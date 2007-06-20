@@ -22,6 +22,7 @@ public class TestMethodCall {
    * @returnsLock PL
    */
   public Object staticMethod_returnsLock() {
+    // GOOD: Returns correct lock
     return TestMethodCall.class;
   }
   
@@ -37,6 +38,7 @@ public class TestMethodCall {
    * @returnsLock LL
    */
   public Object instanceMethod_returnsLock() {
+    // GOOD: Returns correct lock
     return this;
   }
   
