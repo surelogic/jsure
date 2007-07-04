@@ -97,7 +97,7 @@ public class PolicyLock {
   
   
   /**
-   * BAD: cannot bind "this"!  Irreleveant that lock otherwise exists.
+   * BAD: cannot bind "this"!  Irrelevant that lock otherwise exists.
    * This is a syntactic check on the QualifiedLockName.
    * @returnsLock this.NonStaticLock
    */
@@ -106,7 +106,7 @@ public class PolicyLock {
   }
 
   /**
-   * BAD: cannot bind "this"!  Irreleveant that lock otherwise does exist.
+   * BAD: cannot bind "this"!  Irrelevant that lock otherwise does exist.
    * This is a semantic check on the protected region: Check that it is static.
    *
    * @returnsLock NonStaticLock
@@ -133,7 +133,7 @@ public class PolicyLock {
   }
   
   /**
-   * BAD: cannot bind "this"!  Irreleveant that lock otherwise does not exist.
+   * BAD: cannot bind "this"!  Irrelevant that lock otherwise does not exist.
    * @returnsLock this.UnknownRegion
    */
   public static Object getLock_staticMethod_unknownRegionWithThis() {
