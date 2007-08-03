@@ -3,15 +3,16 @@ package test_returns_lock;
 /**
  * (These tests are all really Lock Name sanity tests.)
  *
- * @policyLock Exists is this
+ * @PolicyLock Exists is this
  * 
- * @policyLock StaticLock is class 
- * @policyLock NonStaticLock is this 
+ * @PolicyLock StaticLock is class 
+ * @PolicyLock NonStaticLock is this 
  */
 public class PolicyLock {
   /**
    * BAD: cannot qualify a static lock with this
-   * @returnsLock this.StaticLock
+   * @TestResult is UNASSOCIATED: Cannot qualify a static lock with this
+   * @ReturnsLock this:StaticLock
    */
   public Object getLock_thisQualified_staticLock() {
     return PolicyLock.class;
@@ -19,7 +20,8 @@ public class PolicyLock {
   
   /**
    * GOOD: Can ref static lock from instance method
-   * @returnsLock StaticLock
+   * @TestResult is CONSISTENT
+   * @ReturnsLock StaticLock
    */
   public Object getLock_implicit_staticLock() {
     return PolicyLock.class;
@@ -27,6 +29,7 @@ public class PolicyLock {
   
   /**
    * GOOD: Can ref static lock from instance method
+   * @TestResult is CONSISTENT
    * @returnsLock test_returns_lock.PolicyLock:StaticLock
    */
   public Object getLock_typeQualified_staticLock() {
@@ -35,7 +38,8 @@ public class PolicyLock {
   
   /**
    * BAD: Lock doesn't exist
-   * @returnsLock DoesntExist
+   * @TestResult is UNBOUND
+   * @ReturnsLock DoesntExist
    */
   public Object getLock_doesntExist() {
     return null;
@@ -43,7 +47,8 @@ public class PolicyLock {
   
   /**
    * GOOD: Lock exists
-   * @returnsLock Exists
+   * @TestResult is CONSISTENT
+   * @ReturnsLock Exists
    */
   public Object getLock_exists() {
     return this;
@@ -51,31 +56,36 @@ public class PolicyLock {
   
   /**
    * GOOD: Lock Exists.  Test with qualified this
-   * @returnsLock this.Exists
+   * @TestResult is CONSISTENT
+   * @ReturnsLock this:Exists
    */
   public Object getLock_exists2() {
     return this;
   }
 
-  /**
-   * BAD: parameter doesn't exist.
-   * @returnsLock p.DoesntExist
-   */
-  public Object getLock_bad_param(final Object o) {
-    return o;
-  }
+    /**
+     * BAD: parameter doesn't exist.
+     * @TestResult is UNBOUND: parameter p doesn't exist
+     * @ReturnsLock p:DoesntExist
+     */
+    public Object getLock_bad_param(final Object o) {
+      return o;
+    }
   
   /**
    * BAD: parameter exists, but the lock doesn't exist
-   * @returnsLock p.DoesntExist 
+   * @TestResult is UNBOUND
+   * @ReturnsLock p:DoesntExist 
    */
   public Object getLock_param_doesntExist(final PolicyLock p) {
     return p;
   }
     
+  
   /**
    * BAD: parameter exists; lock exists; but param is non-final
-   * @returnsLock p.Exists 
+   * @TestResult is UNASSOCIATED: parameter is non-final
+   * @ReturnsLock p:Exists 
    */
   public Object getLock_param_nonfinal(PolicyLock p) {
     return p;
@@ -83,7 +93,8 @@ public class PolicyLock {
   
   /**
    * GOOD: parameter exists; lock exists; param is final
-   * @returnsLock p.Exists 
+   * @TestResult is CONSISTENT
+   * @returnsLock p:Exists 
    */
   public Object getLock_param_good(final PolicyLock p) {
     return p;
@@ -99,7 +110,8 @@ public class PolicyLock {
   /**
    * BAD: cannot bind "this"!  Irrelevant that lock otherwise exists.
    * This is a syntactic check on the QualifiedLockName.
-   * @returnsLock this.NonStaticLock
+   * @TestResult is UNASSOCIATED: Cannot refer to 'this' on static method
+   * @ReturnsLock this:NonStaticLock
    */
   public static Object getLock_staticMethod_instanceRegion1() {
     return new Object();
@@ -109,7 +121,8 @@ public class PolicyLock {
    * BAD: cannot bind "this"!  Irrelevant that lock otherwise does exist.
    * This is a semantic check on the protected region: Check that it is static.
    *
-   * @returnsLock NonStaticLock
+   * @TestResult is UNASSOCIATED: Cannot refer to 'this' (implicitly) on static method
+   * @ReturnsLock NonStaticLock
    */
   public static Object getLock_staticMethod_instanceRegion1a() {
     return new Object();
@@ -117,7 +130,8 @@ public class PolicyLock {
   
   /**
    * GOOD: Returns a static policy lock
-   * @returnsLock StaticLock 
+   * @TestResult is CONSISTENT
+   * @ReturnsLock StaticLock 
    */
   public static Object getLock_staticMethod_staticRegion1() {
     return PolicyLock.class;
@@ -126,23 +140,26 @@ public class PolicyLock {
   /**
    * GOOD: Returns a static policy lock.  Here we explicitly 
    * name the class.
-   * @returnsLock test_returns_lock.PolicyLock:StaticLock 
+  * @TestResult is CONSISTENT
+   * @ReturnsLock test_returns_lock.PolicyLock:StaticLock 
    */
   public static Object getLock_staticMethod_staticRegion1a() {
     return PolicyLock.class;
   }
   
   /**
-   * BAD: cannot bind "this"!  Irrelevant that lock otherwise does not exist.
-   * @returnsLock this.UnknownRegion
+   * BAD: Lock does not exist; doesn't matter that we cannot refer to 'this'
+   * @TestResult is UNBOUND: Lock does not exist
+   * @ReturnsLock this:DoesntExist
    */
   public static Object getLock_staticMethod_unknownRegionWithThis() {
     return new Object();
   }
 
   /**
-   * BAD: Lock doesn't exist, so doesn't matter if it is static or not. 
-   * @returnsLock DoesntExist
+   * BAD: Lock doesn't exist, so doesn't matter if it is static or not.
+   * @TestResult is UNBOUND: Lock doesn't exist 
+   * @ReturnsLock DoesntExist
    */
   public static Object getLock_staticMethod_unknownRegion() {
     return new Object();
@@ -150,36 +167,37 @@ public class PolicyLock {
   
   /**
    * BAD: The named class doesn't exist.  (Default package)
-   * @returnsLock C:DoesntExist
+   * @TestResult is UNBOUND: Class doesn't exist (Default package)
+   * @ReturnsLock NoSuchClass:DoesntExist
    */
   public static Object getLock_staticMethod_unknownClass1() {
     return null;
   }
-  
+
   /**
    * BAD: The named class doesn't exist.  (Named package)
-   * @returnsLock foo.bar.C:DoesntExist
+   * @TestResult is UNBOUND: Class doesn't exist
+   * @ReturnsLock no.such.pkg.NoSuchClass:DoesntExist
    */
   public static Object getLock_staticMethod_unknownClass1a() {
     return null;
   }
 
-  
-  
   /**
    * GOOD: Static method returns an instance lock of a parameter.
-   * @returnsLock p.NonStaticLock
+   * @TestResult is CONSISTENT
+   * @ReturnsLock p:NonStaticLock
    */
   public static Object getLock_staticMethod_paramLock(final PolicyLock p) {
     return p;
   }
 
-
   @SuppressWarnings("unused")
   private class Inner {
     /**
      * BAD: Reference to static lock via an instance object.
-     * @returnsLock test_returns_lock.PolicyLock.this:StaticLock
+     * @TestResult is UNASSOCIATED
+     * @ReturnsLock test_returns_lock.PolicyLock.this:StaticLock
      */
     public Object getLock_innerClassMethod_qualifiedThis_staticLock() {
       return PolicyLock.class;
@@ -187,7 +205,8 @@ public class PolicyLock {
 
     /**
      * GOOD: Reference to instance lock via qualified receiver.
-     * @returnsLock test_returns_lock.PolicyLock.this:NonStaticLock
+     * @TestResult is CONSISTENT
+     * @ReturnsLock test_returns_lock.PolicyLock.this:NonStaticLock
      */
     public Object getLock_innerClassMethod_qualifiedThis_nonStaticLock() {
       return PolicyLock.this;

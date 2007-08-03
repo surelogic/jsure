@@ -3,78 +3,86 @@ package test_requires_lock;
 /**
  * (These tests are all really Lock Name sanity tests.)
  * 
- * @region R
- * @lock Exists is this protects R
+ * @PolicyLock Exists is this
  * 
- * @region static StaticRegion
- * @region NonStaticRegion
- * @lock StaticLock is class protects StaticRegion
- * @lock NonStaticLock is this protects NonStaticRegion
+ * @PolicyLock StaticLock is class
+ * @PolicyLock NonStaticLock is this
  */
 public class PolicyLock_LockNames {
   /**
    * BAD: cannot qualify a static lock with this
-   * @requiresLock this.StaticLock
+   * @TestResult is UNASSOCIATED: cannot qualify a static lock with this
+   * @RequiresLock this:StaticLock
    */
   public void bad_thisQualified_staticLock() {}
   
   /**
    * GOOD: Can ref static lock from instance method
-   * @requiresLock StaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock StaticLock
    */
   public void good_implicit_staticLock() {}
   
   /**
    * GOOD: Can ref static lock from instance method
-   * @requiresLock test_requires_lock.PolicyLock_LockNames:StaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock test_requires_lock.PolicyLock_LockNames:StaticLock
    */
   public void good_typeQualified_staticLock() {}
   
   /**
    * BAD: type-qualified instance lock
-   * @requiresLock test_requires_lock.PolicyLock_LockNames:Exists
+   * @TestResult is UNASSOCIATED: type-qualified instance lock
+   * @RequiresLock test_requires_lock.PolicyLock_LockNames:Exists
    */
   public void bad_typeQualifiedInstance() {}
   
   /**
    * BAD: Lock doesn't exist
-   * @requiresLock DoesntExist
+   * @TestResult is UNBOUND: Lock doesn't exist
+   * @RequiresLock DoesntExist
    */
   public void bad_doesntExist() {}
   
   /**
    * GOOD: Lock exists
-   * @requiresLock Exists
+   * @TestResult is CONSISTENT
+   * @RequiresLock Exists
    */
   public void good_exists_implicit_this() {}
   
   /**
    * GOOD: Lock Exists.  Test with qualified this
-   * @requiresLock this.Exists
+   * @TestResult is CONSISTENT
+   * @RequiresLock this:Exists
    */
   public void good_exists_explicit_this() {}
 
   /**
    * BAD: parameter doesn't exist.
-   * @requiresLock p.DoesntExist
+   * @TestResult is UNBOUND: Parameter doesn't exist
+   * @RequiresLock p:DoesntExist
    */
   public void bad_param_doesnt_exist(final Object o) {}
   
   /**
    * BAD: parameter exists, but the lock doesn't exist
-   * @requiresLock p.DoesntExist 
+   * @TestResult is UNBOUND: Lock doesn't exist
+   * @RequiresLock p:DoesntExist 
    */
   public void bad_param_lock_doesnt_exist(final PolicyLock_LockNames p) {}
     
   /**
    * BAD: parameter exists; lock exists; but param is non-final
-   * @requiresLock p.Exists 
+   * @TestResult is UNASSOCIATED: parameter is non-final
+   * @RequiresLock p:Exists 
    */
   public void bad_param_nonfinal(PolicyLock_LockNames p) {}
   
   /**
    * GOOD: parameter exists; lock exists; param is final
-   * @requiresLock p.Exists 
+   * @TestResult is CONSISTENT
+   * @RequiresLock p:Exists 
    */
   public void good_param_is_good(final PolicyLock_LockNames p) {}
   
@@ -86,54 +94,61 @@ public class PolicyLock_LockNames {
   
   
   /**
-   * BAD: cannot bind "this" for a static method!  Irreleveant that lock otherwise exists.
+   * BAD: cannot bind "this" for a static method!  Irrelevant that lock otherwise exists.
    * This is a syntactic check on the QualifiedLockName.
-   * @requiresLock this.NonStaticLock
+   * @TestResult is UNASSOCIATED: cannot use 'this' on static method
+   * @RequiresLock this:NonStaticLock
    */
   public static void bad_static_use_of_explicit_this() {}
 
   /**
-   * BAD: cannot bind "this" for a static method!  Irreleveant that lock otherwise does exist.
+   * BAD: cannot bind "this" for a static method!  Irrelevant that lock otherwise does exist.
    * This is a semantic check on the protected region: Check that it is static.
-   *
-   * @requiresLock NonStaticLock
+   * @TestResult is UNASSOCIATED: cannot use 'this' (implicit) on static method
+   * @RequiresLock NonStaticLock
    */
   public static void bad_static_use_of_implicit_this() {}
   
   /** 
    * GOOD: Returns lock that protects a static region.
-   * @requiresLock StaticLock 
+   * @TestResult is CONSISTENT
+   * @RequiresLock StaticLock 
    */
   public static void good_staticMethod_implicit_staticLock() {}
   
   /**
    * GOOD: Returns lock that protects a static region.  Here we explicitly 
    * name the class.
-   * @requiresLock test_requires_lock.PolicyLock_LockNames:StaticLock 
+   * @TestResult is CONSISTENT
+   * @RequiresLock test_requires_lock.PolicyLock_LockNames:StaticLock 
    */
   public static void good_staticMethod_typeQualified_staticLock() {}
   
   /**
-   * BAD: cannot bind "this"!  Irreleveant that lock otherwise does not exist.
-   * @requiresLock this.UnknownRegion
+   * BAD: Lock does not exist.  Irrelevant that there is a static use of receiver.
+   * @TestResult is UNBOUND: static use of this with unknown region
+   * @RequiresLock this:DoesntExist
    */
   public static void bad_staticMethod_unknownRegionWithThis() {}
 
   /**
-   * BAD: Region doesn't exist, so doesn't matter if it is static or not. 
-   * @requiresLock DoesntExist
+   * BAD: Lock does not exist.  Irrelevant that there is a static use of receiver.
+   * @TestResult is UNBOUND: static use of this (implicit) with unknown region
+   * @RequiresLock DoesntExist
    */
   public static void bad_staticMethod_unknownRegionImplicitThis() {}
   
   /**
    * BAD: The named class doesn't exist.  (Default package)
-   * @requiresLock C:DoesntExist
+   * @TestResult is UNBOUND: No such class (default package)
+   * @RequiresLock NoSuchClass:DoesntExist
    */
   public static void bad_staticMethod_unknownClass1() {}
   
   /**
    * BAD: The named class doesn't exist.  (Named package)
-   * @requiresLock foo.bar.C:DoesntExist
+   * @TestResult is UNBOUND: No such class (non-existent package)
+   * @RequiresLock no.such.pkg.NoSuchClass:DoesntExist
    */
   public static void bad_staticMethod_unknownClass1a() {}
 
@@ -141,7 +156,8 @@ public class PolicyLock_LockNames {
   
   /**
    * GOOD: Static method requires an instance lock of a parameter.
-   * @requiresLock p.NonStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock p:NonStaticLock
    */
   public static void staticMethod_paramLock(final PolicyLock_LockNames p) {}
 }

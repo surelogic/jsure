@@ -1,10 +1,12 @@
 package test_unique_names;
 
 /**
- * @region public R2
+ * @Region public R2
  *
- * @lock L2 is this protects R2
- * @policyLock P2 is class
+ * @TestResult is CONSISTENT: First use of L2 in hierarchy
+ * @Lock L2 is this protects R2
+ * @TestResult is CONSISTENT: First use of P2 in hierarchy
+ * @PolicyLock P2 is class
  */
 public class GoodC2 extends C1 {
 

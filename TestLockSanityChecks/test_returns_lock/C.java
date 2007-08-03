@@ -5,17 +5,20 @@ package test_returns_lock;
  * parameter names.
  * (These tests are all really Lock Name sanity tests.)
  * 
- * @region I
- * @region static S
+ * @TestResult is CONSISTENT
+ * @Region I
+ * @TestResult is CONSISTENT
+ * @Region static S
  * 
- * @lock IL is this protects I
- * @lock SL is class protects S
+ * @Lock IL is this protects I
+ * @Lock SL is class protects S
  *
  */
 public class C {
   /**
    * BAD: instance-qualified static lock
-   * @returnsLock this.SL
+   * @TestResult is UNASSOCIATED : Cannot qualify a static lock with this
+   * @ReturnsLock this:SL
    */
   public Object getLock() {
     return C.class;
@@ -23,7 +26,8 @@ public class C {
 
   /**
    * BAD: instance-qualified static lock
-   * @returnsLock p.SL
+   * @TestResult is UNASSOCIATED : Cannot qualify a static lock with a parameter
+   * @ReturnsLock p:SL
    */
   public Object getLock(final C p) {
     return C.class;
@@ -31,7 +35,8 @@ public class C {
   
   /**
    * GOOD: implicitly class-qualified static lock
-   * @returnsLock SL
+   * @TestResult is CONSISTENT
+   * @ReturnsLock SL
    */
   public Object getLock2() {
     return C.class;
@@ -39,7 +44,8 @@ public class C {
 
   /**
    * Good: instance-qualified instance lock
-   * @returnsLock this.IL
+   * @TestResult is CONSISTENT
+   * @ReturnsLock this:IL
    */
   public Object getInstanceLock() {
     return this;
@@ -47,7 +53,8 @@ public class C {
 
   /**
    * Good: parameter-qualified instance lock
-   * @returnsLock p.IL
+   * @TestResult is CONSISTENT
+   * @ReturnsLock p:IL
    */
   public Object getInstanceLock(final C p) {
     return p;
@@ -55,16 +62,15 @@ public class C {
   
 
   
-
   /**
-   * @lock InnerLock is this protects Instance
+   * @Lock InnerLock is this protects Instance
    */
-  public class Inner1 {
-    
+  public class Inner1 {    
     public class Inner2 {
       /**
        * GOOD: Qualified receiver exists, names instance lock.
-       * @returnsLock test_returns_lock.C.this:IL
+       * @TestResult is CONSISTENT
+       * @ReturnsLock test_returns_lock.C.this:IL
        */
       public Object getLock_good() {
         return C.this;
@@ -73,27 +79,27 @@ public class C {
       /**
        * GOOD: Qualified receiver exists, names instance lock.
        * BUT THE METOD IS BAD: It returns the wrong lock
-       * @returnsLock test_returns_lock.C.this:IL
+       * @TestResult is INCONSISTENT
+       * @EeturnsLock test_returns_lock.C.this:IL
        */
       public Object getLock_bad() {
         return Inner1.this;
       }
 
-// COMMENTED OUT FOR NOW: THIS IS BUG 501.  THE PROMISE PARSER CURRENTLY
-// WON'T PARSE THE "test_returns_lock.C.Inner1.this"
-// REENABLE THIS WHEN BUG 501 IS FIXED.
-//      /**
-//       * GOOD: Qualified receiver exists, names instance lock.
-//       * @returnsLock test_returns_lock.C.Inner1.this:InnerLock
-//       */
-//      public Object getInnerLock_good() {
-//        return Inner1.this;
-//      }
+      /**
+       * GOOD: Qualified receiver exists, names instance lock.
+       * @TestResult is CONSISTENT
+       * @ReturnsLock test_returns_lock.C.Inner1.this:InnerLock
+       */
+      public Object getInnerLock_good() {
+        return Inner1.this;
+      }
     }
     
     /**
      * GOOD: Qualified receiver exists, names instance lock.
-     * @returnsLock test_returns_lock.C.this:IL
+     * @TestResult is CONSISTENT
+     * @ReturnsLock test_returns_lock.C.this:IL
      */
     public Object getLock_good() {
       return C.this;
@@ -101,7 +107,8 @@ public class C {
     
     /**
      * BAD: qualified receiver doesn't exist
-     * @returnsLock test.CC.this:SL
+     * @TestResult is UNBOUND: test.CC doesn't exist
+     * @ReturnsLock test.CC.this:SL
      */
     public Object getLock_badQualifiedReceiver() {
       return C.class;
@@ -109,7 +116,8 @@ public class C {
 
     /**
      * BAD: instance-qualified static lock
-     * @returnsLock test_returns_lock.C.this:SL
+     * @TestResult is UNASSOCIATED: instance-qualified static lock
+     * @ReturnsLock test_returns_lock.C.this:SL
      */
     public Object getLock() {
       return C.class;
@@ -117,7 +125,8 @@ public class C {
 
     /**
      * GOOD: Class-qualified static lock
-     * @returnsLock test_returns_lock.C:SL
+     * @TestResult is CONSISTENT
+     * @ReturnsLock test_returns_lock.C:SL
      */
     public Object getLock2() {
       return C.class;

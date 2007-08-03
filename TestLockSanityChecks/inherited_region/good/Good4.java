@@ -4,7 +4,8 @@ package inherited_region.good;
 
 /**
  * Adds fields to Instance, protects Instance
- * @lock L is this protects Instance
+ * @TestResult is CONSISTENT : Adds field to Instance, protects Instance in same class
+ * @Lock L is this protects Instance
  */
 public class Good4 extends GoodRoot {
   protected int z;

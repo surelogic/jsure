@@ -7,23 +7,23 @@
 package test_unique_names;
 
 /**
- * There are five lock declarations.  Checking goes first by state locks
- * in declaration order, and then poliyc locks in declaration order.  State
- * and policy locks share the same namespace.
+ * There are five lock declarations.  Checking goes first by policy locks
+ * in declaration order, and then state locks in declaration order.  State
+ * and policy locks share the same name space.
  * 
- * (1) Good---first use of "L" (as state lock)
- * (2) Bad---reuse of "L" as a state lock
- * (3) Bad---reuse of "L" as a policy lock
- * (4) Good---First use of "P" (as a policy lock)
- * (5) Bad---reuse of "P" as a policy lock
- * @region A
- * @region B
- * 
- * @lock L is this protects A
- * @lock L is this protects B
- * @policyLock L is class
- * @policyLock P is class
- * @policyLock P is class
+ * @Region A
+ * @Region B
+ *
+ * @TestResult is CONSISTENT: First use of L (Policy)
+ * @PolicyLock L is class
+ * @TestResult is CONSISTENT: First use of P (Policy)
+ * @PolicyLock P is class
+ * @TestResult is UNASSOCIATED: Second use of P (Policy)
+ * @PolicyLock P is class
+ * @TestResult is UNASSOCIATED: Second use of L (State)
+ * @Lock L is this protects A
+ * @TestResult is UNASSOCIATED: Third use of L (State)
+ * @Lock L is this protects B
  */
 public class StateVsPolicyLocks {
   // empty body

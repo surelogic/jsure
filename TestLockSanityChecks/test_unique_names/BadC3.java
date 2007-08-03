@@ -3,10 +3,12 @@ package test_unique_names;
 /**
  * Bad: Reuses lock names L1 and P1
  * 
- * @region public R3
+ * @Region public R3
  *
- * @lock L1 is this protects R3
- * @policyLock P1 is class
+ * @TestResult is UNASSOCIATED: L1 is inherited from grandparent
+ * @Lock L1 is this protects R3
+ * @TestResult is UNASSOCIATED: P1 is inherited from grandparent
+ * @PolicyLock P1 is class
  */
 public class BadC3 extends GoodC2 {
 

@@ -5,14 +5,15 @@ package test_returns_lock;
  * parameter names.
  * (These tests are all really Lock Name sanity tests.)
  * 
- * @policyLock IL is this
- * @policyLock SL is class
+ * @PolicyLock IL is this
+ * @PolicyLock SL is class
  *
  */
 public class C_Policy {
   /**
    * BAD: instance-qualified static lock
-   * @returnsLock this.SL
+   * @TeestResult is UNASSOCIATED: Cannot qualify static lock with 'this'
+   * @ReturnsLock this:SL
    */
   public Object getLock() {
     return C_Policy.class;
@@ -20,7 +21,8 @@ public class C_Policy {
 
   /**
    * BAD: instance-qualified static lock
-   * @returnsLock p.SL
+   * @TestResult is UNASSOCIATED: Cannot qualify static lock with parameter
+   * @ReturnsLock p:SL
    */
   public Object getLock(final C_Policy p) {
     return C_Policy.class;
@@ -28,7 +30,8 @@ public class C_Policy {
   
   /**
    * GOOD: implicitly class-qualified static lock
-   * @returnsLock SL
+   * @TestResult is CONSISTENT
+   * @ReturnsLock SL
    */
   public Object getLock2() {
     return C_Policy.class;
@@ -36,7 +39,8 @@ public class C_Policy {
 
   /**
    * Good: instance-qualified instance lock
-   * @returnsLock this.IL
+   * @TestResult is CONSISTENT
+   * @ReturnsLock this:IL
    */
   public Object getInstanceLock() {
     return this;
@@ -44,7 +48,8 @@ public class C_Policy {
 
   /**
    * Good: parameter-qualified instance lock
-   * @returnsLock p.IL
+   * @TestResult is CONSISTENT
+   * @ReturnsLock p:IL
    */
   public Object getInstanceLock(final C_Policy p) {
     return p;
@@ -52,16 +57,15 @@ public class C_Policy {
   
 
   
-
   /**
-   * @lock InnerLock is this protects Instance
+   * @PolicyLock InnerLock is this
    */
   public class Inner1 {
-    
     public class Inner2 {
       /**
        * GOOD: Qualified receiver exists, names instance lock.
-       * @returnsLock test_returns_lock.C_Policy.this:IL
+       * @TestResult is CONSISTENT
+       * @ReturnsLock test_returns_lock.C_Policy.this:IL
        */
       public Object getLock_good() {
         return C_Policy.this;
@@ -69,28 +73,28 @@ public class C_Policy {
 
       /**
        * GOOD: Qualified receiver exists, names instance lock.
-       * BUT THE METOD IS BAD: It returns the wrong lock
-       * @returnsLock test_returns_lock.C_Policy.this:IL
+       * BUT THE METHOD IS BAD: It returns the wrong lock
+       * @TestResult is INCONSISTENT: Returns the wrong lock
+       * @ReturnsLock test_returns_lock.C_Policy.this:IL
        */
       public Object getLock_bad() {
         return Inner1.this;
       }
 
-// COMMENTED OUT FOR NOW: THIS IS BUG 501.  THE PROMISE PARSER CURRENTLY
-// WON'T PARSE THE "test_returns_lock.C.Inner1.this"
-// REENABLE THIS WHEN BUG 501 IS FIXED.
-//      /**
-//       * GOOD: Qualified receiver exists, names instance lock.
-//       * @returnsLock test_returns_lock.C_Policy.Inner1.this:InnerLock
-//       */
-//      public Object getInnerLock_good() {
-//        return Inner1.this;
-//      }
+      /**
+       * GOOD: Qualified receiver exists, names instance lock.
+       * @TestResult is CONSISTENT
+       * @ReturnsLock test_returns_lock.C_Policy.Inner1.this:InnerLock
+       */
+      public Object getInnerLock_good() {
+        return Inner1.this;
+      }
     }
     
     /**
      * GOOD: Qualified receiver exists, names instance lock.
-     * @returnsLock test_returns_lock.C_Policy.this:IL
+     * @TestResult is CONSISTENT
+     * @ReturnsLock test_returns_lock.C_Policy.this:IL
      */
     public Object getLock_good() {
       return C_Policy.this;
@@ -98,7 +102,8 @@ public class C_Policy {
     
     /**
      * BAD: qualified receiver doesn't exist
-     * @returnsLock test.CC.this:SL
+     * @TestResult is UNBOUND: test.CC doesn't exist
+     * @ReturnsLock test.CC.this:SL
      */
     public Object getLock_badQualifiedReceiver() {
       return C_Policy.class;
@@ -106,7 +111,8 @@ public class C_Policy {
 
     /**
      * BAD: instance-qualified static lock
-     * @returnsLock test_returns_lock.C_Policy.this:SL
+     * @TestResult is UNASSOCIATED: instance-qualified static lock
+     * @ReturnsLock test_returns_lock.C_Policy.this:SL
      */
     public Object getLock() {
       return C_Policy.class;
@@ -114,7 +120,8 @@ public class C_Policy {
 
     /**
      * GOOD: Class-qualified static lock
-     * @returnsLock test_returns_lock.C:SL
+     * @TestResult is CONSISTENT
+     * @ReturnsLock test_returns_lock.C_Policy:SL
      */
     public Object getLock2() {
       return C_Policy.class;

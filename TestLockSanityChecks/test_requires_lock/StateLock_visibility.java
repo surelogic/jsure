@@ -1,7 +1,7 @@
 package test_requires_lock;
 
 /**
- * Check lock visibility issues for state locks and requiresLock promises.
+ * Check lock visibility issues for policy locks and requiresLock promises.
  * Checks that locks required from the receiver are at least as visible as 
  * the method that requires them.  Checks that static locks in class C are at 
  * least as visible as methods in class C that require them.  
@@ -10,25 +10,25 @@ package test_requires_lock;
  * determined at the call site.  The real issue here is that the required lock
  * should be visible when the method is visible.
  *
- * @region private PrivateRegion
- * @region DefaultRegion
- * @region protected ProtectedRegion
- * @region public PublicRegion
+ * @Region private PrivateRegion
+ * @Region DefaultRegion
+ * @Region protected ProtectedRegion
+ * @Region public PublicRegion
  * 
- * @lock PrivateLock is privateField protects PrivateRegion
- * @lock DefaultLock is defaultField protects DefaultRegion
- * @lock ProtectedLock is protectedField protects ProtectedRegion
- * @lock PublicLock is publicField protects PublicRegion
+ * @Lock PrivateLock is privateField protects PrivateRegion
+ * @Lock DefaultLock is defaultField protects DefaultRegion
+ * @Lock ProtectedLock is protectedField protects ProtectedRegion
+ * @Lock PublicLock is publicField protects PublicRegion
  * 
- * @region private static PrivateStaticRegion
- * @region static DefaultStaticRegion
- * @region protected static ProtectedStaticRegion
- * @region public static PublicStaticRegion
+ * @Region private static PrivateStaticRegion
+ * @Region static DefaultStaticRegion
+ * @Region protected static ProtectedStaticRegion
+ * @Region public static PublicStaticRegion
  * 
- * @lock PrivateStaticLock is privateStaticField protects PrivateStaticRegion
- * @lock DefaultStaticLock is defaultStaticField protects DefaultStaticRegion
- * @lock ProtectedStaticLock is protectedStaticField protects ProtectedStaticRegion
- * @lock PublicStaticLock is publicStaticField protects PublicStaticRegion
+ * @Lock PrivateStaticLock is privateStaticField protects PrivateStaticRegion
+ * @Lock DefaultStaticLock is defaultStaticField protects DefaultStaticRegion
+ * @Lock ProtectedStaticLock is protectedStaticField protects ProtectedStaticRegion
+ * @Lock PublicStaticLock is publicStaticField protects PublicStaticRegion
  */
 @SuppressWarnings("unused")
 public class StateLock_visibility extends Root {
@@ -49,88 +49,104 @@ public class StateLock_visibility extends Root {
    * ====================================================================== */
   
   /**
-   * @requiresLock PrivateLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PrivateLock
    */
   private void good_privateMethod_privateLock() {}
   
   /**
-   * @requiresLock DefaultLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock DefaultLock
    */
   private void good_privateMethod_defaultLock() {}
   
   /**
-   * @requiresLock ProtectedLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedLock
    */
   private void good_privateMethod_protectedLock() {}
   
   /**
-   * @requiresLock PublicLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicLock
    */
   private void good_privateMethod_publicLock() {}
   
   
   
   /**
-   * @requiresLock PrivateLock
+   * @TestResult is UNASSOCIATED: default method requires private lock
+   * @RequiresLock PrivateLock
    */
   void bad_defaultMethod_privateLock() {}
   
   /**
-   * @requiresLock DefaultLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock DefaultLock
    */
   void good_defaultMethod_defaultLock() {}
   
   /**
-   * @requiresLock ProtectedLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedLock
    */
   void good_defaultMethod_protectedLock() {}
   
   /**
-   * @requiresLock PublicLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicLock
    */
   void good_defaultMethod_publicLock() {}
   
   
   
   /**
-   * @requiresLock PrivateLock
+   * @TestResult is UNASSOCIATED: protected method requires private lock
+   * @RequiresLock PrivateLock
    */
   protected void bad_protectedMethod_privateLock() {}
   
   /**
-   * @requiresLock DefaultLock
+   * @TestResult is UNASSOCIATED: protected method requires default lock
+   * @RequiresLock DefaultLock
    */
   protected void bad_protectedMethod_defaultLock() {}
   
   /**
-   * @requiresLock ProtectedLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedLock
    */
   protected void good_protectedMethod_protectedLock() {}
   
   /**
-   * @requiresLock PublicLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicLock
    */
   protected void good_protectedMethod_publicLock() {}
   
   
   
   /**
-   * @requiresLock PrivateLock
+   * @TestResult is UNASSOCIATED: Public method requires private lock
+   * @RequiresLock PrivateLock
    */
   public void bad_publicMethod_privateLock() {}
   
   /**
-   * @requiresLock DefaultLock
+   * @TestResult is UNASSOCIATED: Public method requires default lock
+   * @RequiresLock DefaultLock
    */
   public void bad_publicMethod_defaultLock() {}
   
   /**
-   * @requiresLock ProtectedLock
+   * @TestResult is UNASSOCIATED: Public method requires protected lock
+   * @RequiresLock ProtectedLock
    */
   public void bad_publicMethod_protectedLock() {}
   
   /**
-   * @requiresLock PublicLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicLock
    */
   public void good_publicMethod_publicLock() {}
 
@@ -141,88 +157,104 @@ public class StateLock_visibility extends Root {
    * ====================================================================== */
   
   /**
-   * @requiresLock PrivateStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PrivateStaticLock
    */
   private static void good_privateStaticMethod_privateStaticLock() {}
   
   /**
-   * @requiresLock DefaultStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock DefaultStaticLock
    */
   private static void good_privateStaticMethod_defaultStaticLock() {}
   
   /**
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedStaticLock
    */
   private static void good_privateStaticMethod_protectedStaticLock() {}
   
   /**
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   private static void good_privateStaticMethod_publicStaticLock() {}
   
   
   
   /**
-   * @requiresLock PrivateStaticLock
+   * @TestResult is UNASSOCIATED: default method requires private lock
+   * @RequiresLock PrivateStaticLock
    */
   static void bad_defaultStaticMethod_privateStaticLock() {}
   
   /**
-   * @requiresLock DefaultStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock DefaultStaticLock
    */
   static void good_defaultStaticMethod_defaultStaticLock() {}
   
   /**
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedStaticLock
    */
   static void good_defaultStaticMethod_protectedStaticLock() {}
   
   /**
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   static void good_defaultStaticMethod_publicStaticLock() {}
   
   
   
   /**
-   * @requiresLock PrivateStaticLock
+   * @TestResult is UNASSOCIATED: protected method requires private lock
+   * @RequiresLock PrivateStaticLock
    */
   protected static void bad_protectedStaticMethod_privateStaticLock() {}
   
   /**
-   * @requiresLock DefaultStaticLock
+   * @TestResult is UNASSOCIATED: protected method requires default lock
+   * @RequiresLock DefaultStaticLock
    */
   protected static void bad_protectedStaticMethod_defaultStaticLock() {}
   
   /**
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedStaticLock
    */
   protected static void good_protectedStaticMethod_protectedStaticLock() {}
   
   /**
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   protected static void good_protectedStaticMethod_publicStaticLock() {}
   
   
   
   /**
-   * @requiresLock PrivateStaticLock
+   * @TestResult is UNASSOCIATED: public method requires private lock
+   * @RequiresLock PrivateStaticLock
    */
   public static void bad_publicStaticMethod_privateStaticLock() {}
   
   /**
-   * @requiresLock DefaultStaticLock
+   * @TestResult is UNASSOCIATED: public method requires default lock
+   * @RequiresLock DefaultStaticLock
    */
   public static void bad_publicStaticMethod_defaultStaticLock() {}
   
   /**
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is UNASSOCIATED: public method requires protected lock
+   * @RequiresLock ProtectedStaticLock
    */
   public static void bad_publicStaticMethod_protectedStaticLock() {}
   
   /**
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   public static void good_publicStaticMethod_publicStaticLock() {}
 
@@ -233,88 +265,104 @@ public class StateLock_visibility extends Root {
    * ====================================================================== */
   
   /**
-   * @requiresLock PrivateStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PrivateStaticLock
    */
   private void good_privateMethod_privateStaticLock() {}
   
   /**
-   * @requiresLock DefaultStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock DefaultStaticLock
    */
   private void good_privateMethod_defaultStaticLock() {}
   
   /**
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedStaticLock
    */
   private void good_privateMethod_protectedStaticLock() {}
   
   /**
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   private void good_privateMethod_publicStaticLock() {}
   
   
   
   /**
-   * @requiresLock PrivateStaticLock
+   * @TestResult is UNASSOCIATED: default method requires private lock
+   * @RequiresLock PrivateStaticLock
    */
   void bad_defaultMethod_privateStaticLock() {}
   
   /**
-   * @requiresLock DefaultStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock DefaultStaticLock
    */
   void good_defaultMethod_defaultStaticLock() {}
   
   /**
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedStaticLock
    */
   void good_defaultMethod_protectedStaticLock() {}
   
   /**
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   void good_defaultMethod_publicStaticLock() {}
   
   
   
   /**
-   * @requiresLock PrivateStaticLock
+   * @TestResult is UNASSOCIATED: protected method requires private lock
+   * @RequiresLock PrivateStaticLock
    */
   protected void bad_protectedMethod_privateStaticLock() {}
   
   /**
-   * @requiresLock DefaultStaticLock
+   * @TestResult is UNASSOCIATED: protected method requires default lock
+   * @RequiresLock DefaultStaticLock
    */
   protected void bad_protectedMethod_defaultStaticLock() {}
   
   /**
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedStaticLock
    */
   protected void good_protectedMethod_protectedStaticLock() {}
   
   /**
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   protected void good_protectedMethod_publicStaticLock() {}
   
   
   
   /**
-   * @requiresLock PrivateStaticLock
+   * @TestResult is UNASSOCIATED: public method requires private lock
+   * @RequiresLock PrivateStaticLock
    */
   public void bad_publicMethod_privateStaticLock() {}
   
   /**
-   * @requiresLock DefaultStaticLock
+   * @TestResult is UNASSOCIATED: public method requires default lock
+   * @RequiresLock DefaultStaticLock
    */
   public void bad_publicMethod_defaultStaticLock() {}
   
   /**
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is UNASSOCIATED: public method requires protected lock
+   * @RequiresLock ProtectedStaticLock
    */
   public void bad_publicMethod_protectedStaticLock() {}
   
   /**
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   public void good_publicMethod_publicStaticLock() {}
 
@@ -326,25 +374,29 @@ public class StateLock_visibility extends Root {
   
   /**
    * GOOD
-   * @requiresLock PrivateStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PrivateStaticLock
    */
   private StateLock_visibility(boolean x, boolean y) {}
   
   /**
    * GOOD
-   * @requiresLock DefaultStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock DefaultStaticLock
    */
   private StateLock_visibility(boolean x, int y) {}
   
   /**
    * GOOD
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedStaticLock
    */
   private StateLock_visibility(boolean x, float y) {}
   
   /**
    * GOOD
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   private StateLock_visibility(boolean x, Object y) {}
   
@@ -352,25 +404,29 @@ public class StateLock_visibility extends Root {
   
   /**
    * BAD
-   * @requiresLock PrivateStaticLock
+   * @TestResult is UNASSOCIATED: default constructor requires private lock
+   * @RequiresLock PrivateStaticLock
    */
   StateLock_visibility(int x, boolean y) {}
   
   /**
    * GOOD
-   * @requiresLock DefaultStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock DefaultStaticLock
    */
   StateLock_visibility(int x, int y) {}
   
   /**
    * GOOD
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedStaticLock
    */
   StateLock_visibility(int x, float y) {}
   
   /**
    * GOOD
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   StateLock_visibility(int x, Object y) {}
   
@@ -378,25 +434,29 @@ public class StateLock_visibility extends Root {
   
   /**
    * BAD
-   * @requiresLock PrivateStaticLock
+   * @TestResult is UNASSOCIATED: protected constructor requires private lock
+   * @RequiresLock PrivateStaticLock
    */
   protected StateLock_visibility(float x, boolean y) {}
   
   /**
    * BAD
-   * @requiresLock DefaultStaticLock
+   * @TestResult is UNASSOCIATED: protected constructor requires default lock
+   * @RequiresLock DefaultStaticLock
    */
   protected StateLock_visibility(float x, int y) {}
   
   /**
    * GOOD
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock ProtectedStaticLock
    */
   protected StateLock_visibility(float x, float y) {}
   
   /**
    * GOOD
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   protected StateLock_visibility(float x, Object y) {}
   
@@ -404,25 +464,29 @@ public class StateLock_visibility extends Root {
   
   /**
    * BAD
-   * @requiresLock PrivateStaticLock
+   * @TestResult is UNASSOCIATED: public constructor requires private lock
+   * @RequiresLock PrivateStaticLock
    */
   public StateLock_visibility(Object x, boolean y) {}
   
   /**
    * BAD
-   * @requiresLock DefaultStaticLock
+   * @TestResult is UNASSOCIATED: public constructor requires default lock
+   * @RequiresLock DefaultStaticLock
    */
   public StateLock_visibility(Object x, int y) {}
   
   /**
    * BAD
-   * @requiresLock ProtectedStaticLock
+   * @TestResult is UNASSOCIATED: public constructor requires protected lock
+   * @RequiresLock ProtectedStaticLock
    */
   public StateLock_visibility(Object x, float y) {}
   
   /**
    * GOOD
-   * @requiresLock PublicStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock PublicStaticLock
    */
   public StateLock_visibility(Object x, Object y) {}
 
@@ -430,48 +494,52 @@ public class StateLock_visibility extends Root {
   
   /**
    * Don't say anything about the use of locks from parameters.
-   * @requiresLock p.PrivateLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock p:PrivateLock
    */
   public void good_parameterTest(final StateLock_visibility p) {}
   
   /**
    * Don't say anything about the use of static locks from other classes
-   * @requiresLock test_requires_lock.D:PrivateStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock test_requires_lock.D:PrivateStaticLock
    */
   public void good_otherClassTest1() {}
   
   /**
    * Don't say anything about the use of static locks from other classes
-   * @requiresLock test_requires_lock.D:PrivateStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock test_requires_lock.D:PrivateStaticLock
    */
   public static void good_otherClassTest2() {}
   
   /**
-   * GOOD: Don't say anything about the use of static locks from other classes
-   * @requiresLock test_requires_lock.D:PrivateStaticLock
+   * Don't say anything about the use of static locks from other classes
+   * @TestResult is CONSISTENT
+   * @RequiresLock test_requires_lock.D:PrivateStaticLock
    */
   public StateLock_visibility(int x, int y, int z) {}
 
 
 
-
-
-
   /**
    * Don't say anything about the use of static locks from ANCESTOR classes
-   * @requiresLock test_requires_lock.Root:PrivateRootStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock test_requires_lock.Root:PrivateRootStaticLock
    */
   public void good_ancestorClassTest1() {}
   
   /**
    * Don't say anything about the use of static locks from ANCESTOR classes
-   * @requiresLock test_requires_lock.Root:PrivateRootStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock test_requires_lock.Root:PrivateRootStaticLock
    */
   public static void good_ancestorClassTest2() {}
   
   /**
-   * GOOD: Don't say anything about the use of static locks from ANCESTOR classes
-   * @requiresLock test_requires_lock.Root:PrivateRootStaticLock
+   * Don't say anything about the use of static locks from ANCESTOR classes
+   * @TestResult is CONSISTENT
+   * @RequiresLock test_requires_lock.Root:PrivateRootStaticLock
    */
   public StateLock_visibility(int x, int y, int z, int w) {}
 }

@@ -1,23 +1,23 @@
 package test_lock_region;
 
 /**
- * @region EmptyRegionFromGreatGrandparent
+ * @Region EmptyRegionFromGreatGrandparent
  * 
- * @region RegionFromGGPFilledInGGP
- * @region RegionFromGGPFilledInGP
- * @region RegionFromGGPFilledInP
+ * @Region RegionFromGGPFilledInGGP
+ * @Region RegionFromGGPFilledInGP
+ * @Region RegionFromGGPFilledInP
  * 
- * @region RegionFromGGPWithSubRegionFromGGP
- * @region RegionFromGGPWithSubRegionFromGP
- * @region RegionFromGGPWithSubRegionFromP
+ * @Region RegionFromGGPWithSubRegionFromGGP
+ * @Region RegionFromGGPWithSubRegionFromGP
+ * @Region RegionFromGGPWithSubRegionFromP
  * 
- * @region RegionFromGGPWithNestedFieldFromP
+ * @Region RegionFromGGPWithNestedFieldFromP
  * 
- * @region GGPSubRegion1 extends RegionFromGGPWithSubRegionFromGGP
- * @region GGPSubRegion2 extends RegionFromGGPWithNestedFieldFromP
+ * @Region GGPSubRegion1 extends RegionFromGGPWithSubRegionFromGGP
+ * @Region GGPSubRegion2 extends RegionFromGGPWithNestedFieldFromP
  */
 public class GreatGrandparent {
-  /** @mapInto RegionFromGGPFilledInGGP */
+  /** @MapInto RegionFromGGPFilledInGGP */
   @SuppressWarnings("unused")
 private int gppf1 = 1;
 }

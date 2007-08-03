@@ -12,6 +12,7 @@ public class CannotRequireRWLock {
   
   /**
    * BAD: Must require either the read or the write lock
+   * @TestResult is UNASSOCIATED: Cannot require a read-write lock, only it's read or write component
    * @RequiresLock RW
    */
   private void bad() {

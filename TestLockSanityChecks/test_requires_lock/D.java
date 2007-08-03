@@ -1,9 +1,9 @@
 package test_requires_lock;
 
 /**
- * @region private static S
- * @lock PrivateStaticLock is class protects S
- * @policyLock PrivateStaticPolicyLock is class
+ * @Region private static S
+ * @Lock PrivateStaticLock is class protects S
+ * @PolicyLock PrivateStaticPolicyLock is class
  */
 public class D {
 

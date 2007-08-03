@@ -7,37 +7,42 @@ package test_requires_lock;
  * 
  *
  *
- * @policyLock StaticLock is class
- * @policyLock NonStaticLock is this 
+ * @PolicyLock StaticLock is class
+ * @PolicyLock NonStaticLock is this 
  */
 public class PolicyLock_Constructor {
   /**
    * BAD: Constructor requires (implicit) instance lock on "this"
-   * @requiresLock NonStaticLock
+   * @TestResult is UNASSOCIATED: Constructor requires (implicit) instance lock on "this"
+   * @RequiresLock NonStaticLock
    */
   public PolicyLock_Constructor(int x) {}
   
   /**
    * BAD: Constructor requires instance lock on "this"
-   * @requiresLock this.NonStaticLock
+   * @TestResult is UNASSOCIATED: Constructor requires instance lock on "this"
+   * @RequiresLock this:NonStaticLock
    */
   public PolicyLock_Constructor(int x, int y) {}
   
   /**
    * GOOD: Constructor requires instance lock on a parameter
-   * @requiresLock p.NonStaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock p:NonStaticLock
    */
   public PolicyLock_Constructor(final PolicyLock_Constructor p) {}
   
   /**
    * GOOD: Constructor requires static lock of class
-   * @requiresLock StaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock StaticLock
    */
   public PolicyLock_Constructor(int x, int y, int z) {}
   
   /**
    * GOOD: Constructor requires static lock of class
-   * @requiresLock test_requires_lock.PolicyLock_Constructor:StaticLock
+   * @TestResult is CONSISTENT
+   * @RequiresLock test_requires_lock.PolicyLock_Constructor:StaticLock
    */
   public PolicyLock_Constructor(int x, int y, int z, int w) {}
 }
