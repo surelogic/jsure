@@ -2,23 +2,23 @@ package test_final_exprs;
 
 
 /**
- * Tests the finalness or not of instnace field references.
+ * Tests the finalness or not of instance field references.
  * 
- * @region InstanceRegion
- * @lock InstanceLock is this protects InstanceRegion
+ * @Region InstanceRegion
+ * @Lock InstanceLock is this protects InstanceRegion
  */
 public class TestInstanceFieldRefs {
   private final Object finalField = new Object();
   private Object unprotectedField = new Object();
   
-  /** @mapInto InstanceRegion */
+  /** @MapInto InstanceRegion */
   private Object protectedField = new Object();
   
   
   
   /**
-   * @singleThreaded
-   * @borrowed this
+   * @SingleThreaded
+   * @Borrowed this
    */
   public TestInstanceFieldRefs() {
     // Needed to protect the initialization of "protectedField"
@@ -28,6 +28,7 @@ public class TestInstanceFieldRefs {
   
   public void good_finalField_implicitThis() {
     // FINAL: field is final and the object expression is final: implicit "this"
+    // Should get unidentifiable lock expression
     synchronized (finalField) {
       // do stuff
     }
@@ -35,6 +36,7 @@ public class TestInstanceFieldRefs {
   
   public void good_finalField_explicitThis() {
     // FINAL: field is final and the object expression is final: explicit "this"
+    // Should get unidentifiable lock expression
     synchronized (this.finalField) {
       // do stuff
     }
@@ -42,6 +44,7 @@ public class TestInstanceFieldRefs {
   
   public void good_finalField_finalParameter(final TestInstanceFieldRefs p) {
     // FINAL: field is final and the object expression is final: final parameter "p"
+    // Should get unidentifiable lock expression
     synchronized (p.finalField) {
       // do stuff
     }
@@ -52,6 +55,7 @@ public class TestInstanceFieldRefs {
      * is effectively final because it is not modified inside of the synchronized
      * block.
      */
+    // Should get unidentifiable lock expression
     synchronized (p.finalField) {
       // do stuff (but do not write p)
     }
@@ -104,6 +108,7 @@ public class TestInstanceFieldRefs {
      * synchronized block; the object expression is final: implicit "this"
      */
     // BAD: unprotected field reference
+    // Should get unidentifiable lock expression warning
     synchronized (protectedField) {
       // do stuff
       this.readInstance();
@@ -115,6 +120,7 @@ public class TestInstanceFieldRefs {
      * synchronized block; the object expression is final: explicit "this"
      */
     // BAD: unprotected field reference
+    // Should get unidentifiable lock expression warning
     synchronized (this.protectedField) {
       // do stuff
       this.readInstance();
@@ -126,6 +132,7 @@ public class TestInstanceFieldRefs {
      * synchronized block; the object expression is final: final parameter "p"
      */
     // BAD: unprotected field reference
+    // Should get unidentifiable lock expression warning
     synchronized (p.protectedField) {
       // do stuff
       p.readInstance();
@@ -139,6 +146,7 @@ public class TestInstanceFieldRefs {
      * block.
      */
     // BAD: unprotected field reference
+    // Should get unidentifiable lock expression warning
     synchronized (p.protectedField) {
       // do stuff (but do not write p)
       p.readInstance();
@@ -152,6 +160,7 @@ public class TestInstanceFieldRefs {
      * synchronized block; the object expression is final: implicit "this"
      */
     // GOOD: protected field reference
+    // Should get unidentifiable lock expression warning
     synchronized (protectedField) {
       // do stuff
       this.readInstance();
@@ -163,6 +172,7 @@ public class TestInstanceFieldRefs {
      * synchronized block; the object expression is final: explicit "this"
      */
     // GOOD: protected field reference
+    // Should get unidentifiable lock expression warning
     synchronized (this.protectedField) {
       // do stuff
       this.readInstance();
@@ -175,6 +185,7 @@ public class TestInstanceFieldRefs {
        * synchronized block; the object expression is final: final parameter "p"
        */
       // GOOD: protected field reference
+      // Should get unidentifiable lock expression warning
       synchronized (p.protectedField) {
         // do stuff
         p.readInstance();
@@ -190,6 +201,7 @@ public class TestInstanceFieldRefs {
        * block.
        */
       // GOOD: protected field reference
+      // Should get unidentifiable lock expression warning
       synchronized (p.protectedField) {
         // do stuff (but do not write p)
         p.readInstance();
@@ -300,14 +312,14 @@ public class TestInstanceFieldRefs {
   
   
   /**
-   * @reads this.Instance
+   * @Reads this:Instance
    */
   private void readInstance() {
     // do stuff
   }
 
   /**
-   * @writes this.Instance
+   * @Writes this:Instance
    */
   private void writeInstance() {
     // do stuff

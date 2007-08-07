@@ -53,6 +53,7 @@ public class TestMethodCall {
 
   public void good_calls_staticMethod_returnsLock() {
     /* FINAL: method is static, has returns lock */
+    // warning: sync block doesn't protect any state
     synchronized(staticMethod_returnsLock()) {
       // do stuff here
     }
@@ -99,6 +100,7 @@ public class TestMethodCall {
      * the method has a returnsLock annotation.
      */
     final TestMethodCall t = new TestMethodCall();
+    // warning: sync block doesn't protect any state
     synchronized(t.instanceMethod_returnsLock()) {
       // do stuff here
     }

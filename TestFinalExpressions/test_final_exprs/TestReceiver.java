@@ -7,6 +7,7 @@ package test_final_exprs;
  */
 public class TestReceiver {
   public void good_testReceiver() {
+    // final
     synchronized (this) {
       // Do stuff
     }
@@ -16,6 +17,7 @@ public class TestReceiver {
   
   public class C {
     public void good_testQualifiedReceiver() {
+      // final
       synchronized (C.this) {
         // do stuff
       }

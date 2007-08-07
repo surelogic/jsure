@@ -10,6 +10,7 @@ public class TestArrayRefs {
     final Object[] array = new Object[10];
     
     /* FINAL: array expression is final local variable; index is integer literal */
+    // Should get unidentifiable lock warning
     synchronized (array[0]) {
       // do stuff
     }
@@ -17,6 +18,7 @@ public class TestArrayRefs {
 
   public void good_finalArray_constIdx(final Object[] array) {
     /* FINAL: array expression is final parameter; index is integer literal */
+    // Should get unidentifiable lock warning
     synchronized (array[0]) {
       // do stuff
     }
@@ -29,6 +31,7 @@ public class TestArrayRefs {
     final int idx = 5;
     
     /* FINAL: array expression is final local variable; index is final local */
+    // Should get unidentifiable lock warning
     synchronized (array[idx]) {
       // do stuff
     }
@@ -36,6 +39,7 @@ public class TestArrayRefs {
 
   public void good_finalArray_finalIdx(final Object[] array, final int idx) {
     /* FINAL: array expression is final parameter; index is final parameter */
+    // Should get unidentifiable lock warning
     synchronized (array[idx]) {
       // do stuff
     }
@@ -50,6 +54,7 @@ public class TestArrayRefs {
     /* FINAL: array expression is local variable; index is local; 
      * array, idx, and array elements are unchanged in the block
      */
+    // Should get unidentifiable lock warning
     synchronized (array[idx]) {
       // do stuff
     }
@@ -59,6 +64,7 @@ public class TestArrayRefs {
     /* FINAL: array expression is parameter; index is parameter; 
      * array, idx, and array elements are unchanged in the block
      */
+    // Should get unidentifiable lock warning
     synchronized (array[idx]) {
       // do stuff
     }

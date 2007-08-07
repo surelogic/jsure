@@ -6,6 +6,7 @@ package test_final_exprs;
 public class TestLocalVars {
   public void good_finalParameter(final Object p) {
     // FINAL: parameter is final
+    // Should get unidentifiable lock expression
     synchronized (p) {
       // do stuff
     }
@@ -13,7 +14,8 @@ public class TestLocalVars {
 
   public void good_finalLocal() {
     final Object o = new Object();
-    // FINAL: locla variable is final
+    // FINAL: local variable is final
+    // Should get unidentifiable lock expression
     synchronized (o) {
       // do stuff
     }
@@ -23,6 +25,7 @@ public class TestLocalVars {
   
   public void good_nonfinalParameter_readOnly(Object p) {
     // FINAL: parameter is non-final, but readonly in the sync block
+    // Should get unidentifiable lock expression
     synchronized (p) {
       // do stuff
       @SuppressWarnings("unused")
@@ -34,6 +37,7 @@ public class TestLocalVars {
   public void good_nonfinalLocal_readOnly() {
     Object o = new Object();
     // FINAL: local variable is non-final, but readonly in the sync block
+    // Should get unidentifiable lock expression
     synchronized (o) {
       // do stuff
       @SuppressWarnings("unused")

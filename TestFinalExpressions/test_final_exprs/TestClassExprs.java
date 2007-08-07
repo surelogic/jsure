@@ -7,6 +7,7 @@ package test_final_exprs;
  */
 public class TestClassExprs {
   public void good() {
+    // Should get unidentifiable lock warning
     synchronized (Object.class) {
       // do stuff
     }

@@ -16,6 +16,7 @@ public class TestStaticFieldRefs {
   
   public void good_staticFinalField() {
     // FINAL: field is static and final
+    // Unidentifiable lock expression
     synchronized (staticFinalField) {
       // do stuff
     }
@@ -31,6 +32,7 @@ public class TestStaticFieldRefs {
   public void good_staticNonfinalFieldProtectedReadonly_unprotected() {
     // FINAL: field is static, non-final but protected, and is read only in the synchronized block
     // BAD: unprotected field reference
+    // Unidentifiable lock expression
     synchronized (staticProtectedField) {
       readField_staticProtectedField();
     }
@@ -40,6 +42,7 @@ public class TestStaticFieldRefs {
     synchronized (TestStaticFieldRefs.class) {
       // FINAL: field is static, non-final but protected, and is read only in the synchronized block
       // GOOD: protected field reference
+      // Unidentifiable lock expression
       synchronized (staticProtectedField) {
         readField_staticProtectedField();
       }
