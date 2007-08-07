@@ -3,13 +3,10 @@ package test;
 /**
  * Return values: Test methods with multiple return values; Some with 
  * all good; some with all bad; some with good + bad.
- * 
- * @author aarong
- *
  */
 public class MoreUniqueReturnValues {
   /**
-   * @return {@unique}
+   * @Unique return
    */
   public Object goodReturnUnique1(boolean b) {
     if (b) {
@@ -20,8 +17,7 @@ public class MoreUniqueReturnValues {
   }
   
   /**
-   * @unique x, y
-   * @return {@unique}
+   * @Unique x, y, return
    */
   public Object goodReturnUnique2(boolean b, Object x, Object y) {
     if (b) {
@@ -32,8 +28,7 @@ public class MoreUniqueReturnValues {
   }
   
   /**
-   * @unique x
-   * @return {@unique}
+   * @Unique x, return
    */
   public Object badReturnUnique1(boolean b, Object x, Object y) {
     if (b) {
@@ -44,7 +39,7 @@ public class MoreUniqueReturnValues {
   }
   
   /**
-   * @return {@unique}
+   * @Unique return
    */
   public Object badReturnUnique2(boolean b, Object x, Object y) {
     if (b) {

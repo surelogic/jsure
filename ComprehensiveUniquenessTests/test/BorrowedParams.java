@@ -8,7 +8,7 @@ package test;
 public class BorrowedParams {
   /**
    * Good
-   * @borrowed this
+   * @Borrowed this
    */
   public BorrowedParams() {
     // Do nothing; preserves uniqueness of receiver    
@@ -18,7 +18,7 @@ public class BorrowedParams {
   
   /**
    * Good.  Constructor that promises a borrowed parameter.
-   * @borrowed p
+   * @Borrowed p
    */
   private BorrowedParams(final Object p) {
     // Do nothing; preserves state of p 
@@ -28,7 +28,7 @@ public class BorrowedParams {
   
   /** 
    * GOOD.  Return a unique reference.
-   * @return {@unique}
+   * @Unique return
    */
   private BorrowedParams getUnique() {
     return new BorrowedParams();
@@ -42,15 +42,15 @@ public class BorrowedParams {
   }
   
   /**
-   * Good.  Flag method for testing that param is still unique.
-   * @unique p
+   * Good.  Flag method for testing that parameter is still unique.
+   * @Unique p
    */
   private static void stillUnique(final Object p) {
     // do nothing
   }
     
   /**
-   * Good.  Flag method for test that para is still usable.
+   * Good.  Flag method for test that parameter is still usable.
    */
   private static void stillShared(final Object p) {
     // do nothing
@@ -66,7 +66,7 @@ public class BorrowedParams {
   
   /**
    * Good.
-   * @borrowed this
+   * @Borrowed this
    */
   private void borrowedReceiver() {
     // Do nothing; doesn't alias this
@@ -74,7 +74,7 @@ public class BorrowedParams {
   
   /**
    * Good
-   * @borrowed p
+   * @Borrowed p
    */
   private static void borrowedParam(final Object p) {
     // Do nothing; doesn't alias this
@@ -102,7 +102,7 @@ public class BorrowedParams {
   
   /**
    * Good.  Unique parameter preserved through call sequence.
-   * @unique p
+   * @Unique p
    */
   public void goodUniqueBorrowedReceiver3(final BorrowedParams p) {
     p.borrowedReceiver();
@@ -111,7 +111,7 @@ public class BorrowedParams {
   
   /**
    * Good.  Unique receiver preserved through call sequence.
-   * @unique this
+   * @Unique this
    */
   public void goodUniqueBorrowedReceiver4() {
     this.borrowedReceiver();
@@ -140,7 +140,7 @@ public class BorrowedParams {
   
   /**
    * Good.  Unique parameter preserved through call sequence.
-   * @unique p
+   * @Unique p
    */
   public void goodUniqueBorrowedParam3(final BorrowedParams p) {
     borrowedParam(p);
@@ -149,7 +149,7 @@ public class BorrowedParams {
   
   /**
    * Good.  Unique receiver preserved through call sequence.
-   * @unique this
+   * @Unique this
    */
   public void goodUniqueBorrowedParam4() {
     borrowedParam(this);
@@ -178,7 +178,7 @@ public class BorrowedParams {
   
   /**
    * Good.  Unique parameter preserved through call sequence.
-   * @unique p
+   * @Unique p
    */
   public void goodUniqueBorrowedParam3b(final BorrowedParams p) {
     new BorrowedParams(p);
@@ -187,7 +187,7 @@ public class BorrowedParams {
   
   /**
    * Good.  Unique receiver preserved through call sequence.
-   * @unique this
+   * @Unique this
    */
   public void goodUniqueBorrowedParam4b() {
     new BorrowedParams(this);

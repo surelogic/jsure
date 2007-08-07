@@ -2,12 +2,12 @@ package test;
 
 /* Test calling methods and constructors that require unique parameters.
  * Treat constructors and methods as separate cases.  Treat receiver
- * separately from regulat parameters.
+ * separately from regular parameters.
  */
 public class UniqueParams {
   /**
    * Good
-   * @borrowed this
+   * @Borrowed this
    */
   public UniqueParams() {
     // do nothing
@@ -15,7 +15,7 @@ public class UniqueParams {
   
   /** 
    * Good.
-   * @unique p
+   * @Unique p
    */
   public UniqueParams(final Object p) {
     // do nothing
@@ -23,7 +23,7 @@ public class UniqueParams {
   
   /**
    * Good
-   * @unique this
+   * @Unique this
    */
   public void needsUniqueReceiver() {
     // do nothing
@@ -31,7 +31,7 @@ public class UniqueParams {
   
   /**
    * Good
-   * @unique p
+   * @Unique p
    */
   public static void needsUniqueParam(final Object p) {
     // do nothing
@@ -41,7 +41,7 @@ public class UniqueParams {
   
   /**
    * Good!
-   * @return {@unique}
+   * @Unique return
    */
   private UniqueParams getUnique() {
     return new UniqueParams();
@@ -64,7 +64,7 @@ public class UniqueParams {
 
   
   
-  /** Good: Param gets a fresh object */
+  /** Good: Parameter gets a fresh object */
   public void goodUniqueParam1() {
     final Object o = new Object();
     needsUniqueParam(o);
@@ -72,8 +72,7 @@ public class UniqueParams {
   
   /**
    * Good: Gets a unique parameter.
-   * @unique o
-   * @param o
+   * @Unique o
    */
   public void goodUniqueParam2(final Object o) {
     needsUniqueParam(o);
@@ -88,7 +87,7 @@ public class UniqueParams {
   
   /**
    * Good: gets a unique receiver
-   * @unique this
+   * @Unique this
    */
   public void goodUniqueParam4() {
     needsUniqueParam(this);
@@ -106,8 +105,7 @@ public class UniqueParams {
   
   /**
    * BAD: unique parameter is compromised first.
-   * @unique o
-   * @param o
+   * @Unique o
    */
   public void badUniqueParam2(final Object o) {
     invalidateUniqueObject(o);
@@ -133,7 +131,7 @@ public class UniqueParams {
 
   /**
    * BAD: unique receiver is compromised first.
-   * @unique this
+   * @Unique this
    */
   public void badUniqueParam5() {
     invalidateUniqueObject(this);
@@ -144,7 +142,7 @@ public class UniqueParams {
 
   
   
-  /** Good: Param gets a fresh object */
+  /** Good: Parameter gets a fresh object */
   public void goodUniqueReceiver1() {
     final UniqueParams o = new UniqueParams();
     o.needsUniqueReceiver();
@@ -152,8 +150,7 @@ public class UniqueParams {
   
   /**
    * Good: Gets a unique parameter.
-   * @unique o
-   * @param o
+   * @Unique o
    */
   public void goodUniqueReceiver2(final UniqueParams o) {
     o.needsUniqueReceiver();
@@ -168,7 +165,7 @@ public class UniqueParams {
   
   /**
    * Good: gets a unique receiver
-   * @unique this
+   * @Unique this
    */
   public void goodUniqueReceiver4() {
     this.needsUniqueReceiver();
@@ -186,8 +183,7 @@ public class UniqueParams {
   
   /**
    * BAD: unique parameter is compromised first.
-   * @unique o
-   * @param o
+   * @Unique o
    */
   public void badUniqueReceiver2(final UniqueParams o) {
     invalidateUniqueObject(o);
@@ -213,7 +209,7 @@ public class UniqueParams {
 
   /**
    * BAD: unique receiver is compromised first.
-   * @unique this
+   * @Unique this
    */
   public void badUniqueReceiver5() {
     invalidateUniqueObject(this);
@@ -222,7 +218,7 @@ public class UniqueParams {
 
 
 
-  /** Good: Param gets a fresh object */
+  /** Good: Parameter gets a fresh object */
   public void goodConstructorUniqueParam1() {
     final Object o = new Object();
     new UniqueParams(o);
@@ -230,8 +226,7 @@ public class UniqueParams {
   
   /**
    * Good: Gets a unique parameter.
-   * @unique o
-   * @param o
+   * @Unique o
    */
   public void goodConstructorUniqueParam2(final Object o) {
     new UniqueParams(o);
@@ -246,7 +241,7 @@ public class UniqueParams {
   
   /**
    * Good: gets a unique receiver
-   * @unique this
+   * @Unique this
    */
   public void goodConstructorUniqueParam4() {
     new UniqueParams(this);
@@ -264,8 +259,7 @@ public class UniqueParams {
   
   /**
    * BAD: unique parameter is compromised first.
-   * @unique o
-   * @param o
+   * @Unique o
    */
   public void badConstructorUniqueParam2(final Object o) {
     invalidateUniqueObject(o);
@@ -291,7 +285,7 @@ public class UniqueParams {
 
   /**
    * BAD: unique receiver is compromised first.
-   * @unique this
+   * @Unique this
    */
   public void badConstructorUniqueParam5() {
     invalidateUniqueObject(this);

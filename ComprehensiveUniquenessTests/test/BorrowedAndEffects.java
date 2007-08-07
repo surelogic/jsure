@@ -3,20 +3,20 @@ package test;
 /** 
  * Set up situations where the effects of the method
  * do indicate that the borrowed parameter could be accessed by both the
- * paramter and the field.
+ * parameter and the field.
  */
 public class BorrowedAndEffects {
-  /** @unique */
+  /** @Unique */
   private Object uniqueField = null;
   
   /**
-   * @borrowed this
+   * @Borrowed this
    */
   public BorrowedAndEffects() {}
 
   /**
-   * @unique v
-   * @writes Instance
+   * @Unique v
+   * @Writes Instance
    */
   public void update(final Object v) {
     uniqueField = v;
@@ -26,13 +26,13 @@ public class BorrowedAndEffects {
   
   /**
    * Good.
-   * @borrowed p
-   * @reads this.Instance
+   * @Borrowed p
+   * @Reads this:Instance
    */
   public void tricky(final Object p) {
 //    @SuppressWarnings("unused")
     final Object o = this.uniqueField;
-    // o is preseverd
+    // o is preserved
   }
   
   /**
@@ -42,7 +42,7 @@ public class BorrowedAndEffects {
    * and "p", and thus uniqueness is not maintained inside of the method.
    */
   public void containsBadBorrowedUsage() {
-    // Create a new unqiue object
+    // Create a new unique object
     final BorrowedAndEffects x = new BorrowedAndEffects();
     
     // bad call

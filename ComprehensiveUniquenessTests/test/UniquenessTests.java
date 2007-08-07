@@ -5,15 +5,13 @@ package test;
  * This is mean to hit every case that should be assured and 
  * every case that should fail.  We separate annotated parameters
  * from annotated receiver ('this') because of problems that have
- * occured in the implementation.  We test constructors separately
+ * occurred in the implementation.  We test constructors separately
  * from methods as well.
- * 
- * @author Aaron Greenhouse
  */
 public class UniquenessTests {
   /**
    * An unshared field.
-   * @unshared
+   * @Unique
    */
   private Object unshared;
   
@@ -29,7 +27,7 @@ public class UniquenessTests {
    */
    
   /**
-   * Error-free: init both fields to null.
+   * Error-free: initialize both fields to null.
    */
   public UniquenessTests() {
     unshared = null;
@@ -37,7 +35,7 @@ public class UniquenessTests {
   }
   
   /**
-   * Error-free: init unshared field to fresh object.
+   * Error-free: initialize unshared field to fresh object.
    */
   public UniquenessTests( int bogus ) {
     unshared = new Object();
@@ -45,8 +43,8 @@ public class UniquenessTests {
   }
   
   /**
-   * Error-free: init unshared field from a unique parameter.
-   * @unique p
+   * Error-free: initialize unshared field from a unique parameter.
+   * @Unique p
    */
   public UniquenessTests( Object p ) {
     unshared = p;
@@ -54,10 +52,10 @@ public class UniquenessTests {
   }
   
   /**
-   * Error-free: init unshared field from a unique receiver.
+   * Error-free: initialize unshared field from a unique receiver.
    * (In general, this is stupid, but it is legal.  The returned object
    * will be unusable at the call site.)
-   * @unique this
+   * @Unique this
    */
   public UniquenessTests( int bogus1, int bogus2 ) {
     shared = null;
@@ -67,8 +65,8 @@ public class UniquenessTests {
   
   /**
    * Error: the receiver will become useless after being assigned to 
-   * field "unshared", so we cannot refernece "this.shared".
-   * @unique this
+   * field "unshared", so we cannot reference "this.shared".
+   * @Unique this
    */
   public UniquenessTests( int bogus1, int bogus2, int b3, int b4 ) {
     unshared = this;
@@ -76,7 +74,7 @@ public class UniquenessTests {
   }
 
   /**
-   * Error-free: init unshared field from a method declared to return
+   * Error-free: initialize unshared field from a method declared to return
    * a unique value.
    */
   public UniquenessTests( int b1, int b2, int b3 ) {
@@ -108,7 +106,7 @@ public class UniquenessTests {
   
   /**
    * Error-free: assign from a unique parameter.
-   * @unique p
+   * @Unique p
    */
   public void setUnshared3( Object p ) {
     unshared = p;
@@ -118,7 +116,7 @@ public class UniquenessTests {
    * Error-free: assign from a unique receiver.
    * (In general, this is stupid, but it is legal.  The received becomes
    * useless at the call site.)
-   * @unique this
+   * @Unique this
    */
   public void setUnshared4() {
     shared = null;
@@ -142,7 +140,7 @@ public class UniquenessTests {
    
   /**
    * Error-free: method returns a newly created object.
-   * @return {@unique}
+   * @Unique return
    */
   public Object uniqueValue1() {
     return new Object();
@@ -150,7 +148,7 @@ public class UniquenessTests {
   
   /**
    * Error-free: method returns null
-   * @return {@unique}
+   * @Unique return
    */
   public Object uniqueValue2() {
     return null;
@@ -158,8 +156,7 @@ public class UniquenessTests {
   
   /**
    * Error-free: method returns a unique parameter.
-   * @unique p
-   * @return {@unique}
+   * @Unique p, return
    */
   public Object uniqueValue3( Object p ) {
     return p;
@@ -167,8 +164,7 @@ public class UniquenessTests {
   
   /**
    * Error-free: method returns a unique receiver.
-   * @unique this
-   * @return {@unique}
+   * @Unique this, return
    */
   public Object uniqueValue4() {
     return this;
@@ -176,7 +172,7 @@ public class UniquenessTests {
   
   /**
    * Error-free: calls another unique-value returning method.
-   * @return {@unique}
+   * @Unique return
    */
   public Object uniqueValue5() {
     return uniqueValue1();
@@ -192,7 +188,7 @@ public class UniquenessTests {
 
   /**
    * Error: returns a shared field.
-   * @return {@unique}
+   * @Unique return
    */
   public Object bad_notUniqueValue1() {
     return shared;
@@ -200,7 +196,7 @@ public class UniquenessTests {
 
   /**
    * Error: returns a shared parameter.
-   * @return {@unique}
+   * @Unique return
    */
   public Object bad_notUniqueValue2( Object p ) {
     return p;
@@ -208,7 +204,7 @@ public class UniquenessTests {
 
   /**
    * Error: returns a shared method return value.
-   * @return {@unique}
+   * @Unique return
    */
   public Object bad_notUniqueValue3() {
     return sharedValue();
@@ -216,7 +212,7 @@ public class UniquenessTests {
 
   /**
    * Error: returns a shared receiver.
-   * @return {@unique}
+   * @Unique return
    */
   public Object bad_notUniqueValue4() {
     return this;
@@ -326,16 +322,16 @@ public class UniquenessTests {
 
   /*
    * 
-   * Methods that compromise borrowed paramters
+   * Methods that compromise borrowed parameters
    * 
    */
 
   /**
-   * Error: Assign an borrowed param to a shared field.
+   * Error: Assign an borrowed parameter to a shared field.
    * (Also an error to assign to an unshared field, but doing so is also
-   * erroneous becuase it assigns a potentially shared value to the unshared
+   * erroneous because it assigns a potentially shared value to the unshared
    * field.)
-   * @borrowed p
+   * @Borrowed p
    */
   public void bad_compromiseBorrowedParam1( Object p ) {
     shared = p;
@@ -343,7 +339,7 @@ public class UniquenessTests {
 
   /**
    * Error: return a borrowed param
-   * @borrowed p
+   * @Borrowed p
    */
   public Object bad_compromiseBorrowedParam2( Object p ) {
     return p;
@@ -351,7 +347,7 @@ public class UniquenessTests {
   
   /**
    * Error: No such thing as a destructive read of a borrowed.
-   * @borrowed p
+   * @Borrowed p
    */
   public void bad_compromiseBorrowedParam3( Object p ) {
     Object o = p;
@@ -363,14 +359,14 @@ public class UniquenessTests {
 
   /*
    * 
-   * Methods that do not compromise a borrowed param even though
+   * Methods that do not compromise a borrowed parameter even though
    * they assign from it.
    * 
    */
 
   /**
-   * Error-free: Temporarily alias a borrowed param in a local.
-   * @borrowed p
+   * Error-free: Temporarily alias a borrowed parameter in a local.
+   * @Borrowed p
    */
   public void okay3( Object p ) {
 //    @SuppressWarnings("unused")
@@ -388,9 +384,9 @@ public class UniquenessTests {
   /**
    * Error: Assign an borrowed receiver to a shared field.
    * (Also an error to assign to an unshared field, but doing so is also
-   * erroneous becuase it assigns a potentially shared value to the unshared
+   * erroneous because it assigns a potentially shared value to the unshared
    * field.)
-   * @borrowed this
+   * @Borrowed this
    */
   public void bad_compromiseBorrowedRcvr1() {
     shared = this;
@@ -398,7 +394,7 @@ public class UniquenessTests {
 
   /**
    * Error: return a borrowed receiver
-   * @borrowed this
+   * @Borrowed this
    */
   public Object bad_compromiseBorrowedRcvr2() {
     return this;
@@ -411,8 +407,8 @@ public class UniquenessTests {
    */
 
   /**
-   * Error: The reciever becomes useless after being assigned to unshared
-   * @unique this
+   * Error: The receiver becomes useless after being assigned to unshared
+   * @Unique this
    */
   public void bad_compromiseUniqueReceiver() {
     unshared = this;
@@ -429,7 +425,7 @@ public class UniquenessTests {
 
   /**
    * Error-free: Temporarily alias a borrowed receiver in a local.
-   * @borrowed this
+   * @Borrowed this
    */
   public void okay4() {
 //    @SuppressWarnings("unused")
