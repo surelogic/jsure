@@ -1,0 +1,34 @@
+/* Created on Mar 3, 2005
+ */
+package test_lockingPlusAggregationPlusEffects.siblingRegions;
+
+/**
+ * @Region public R 
+ * @Region public Q
+ */
+public class D2 {
+  /** @MapInto R */
+  private int f1;
+  
+  /** @MapInto Q */
+  private int f2;
+  
+  /** @Writes nothing
+   * @Borrowed this */
+  public D2() {
+    f1 = 0;
+    f2 = 0;
+  }
+  
+  /** @Writes Q 
+   * @Borrowed this */
+  public void writesQ() {
+    f2 = 1;
+  }
+  
+  /** @Writes R
+   * @Borrowed this */
+  public void writesR() {
+    f1 = 2;
+  }
+}
