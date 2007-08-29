@@ -11,11 +11,11 @@
     <id>edu.cmu.cs.fluid.dcf.EffectAssurance2</id>
     <id>edu.cmu.cs.fluid.dcf.UpdateSuperRootStorage</id>
   </included-analysis-modules>
-  <included-analysis-modules>
+  <excluded-analysis-modules>
     <id>edu.cmu.cs.fluid.dcf.LockAssurance2</id>
     <id>edu.cmu.cs.fluid.dcf.UniquenessAssurance</id>
     <id>edu.cmu.cs.fluid.dcf.ThreadEffectAssurance</id>
     <id>edu.cmu.cs.fluid.dcf.EffectAssurance</id>
-  </included-analysis-modules>
+  </excluded-analysis-modules>
 </preferences>
 
