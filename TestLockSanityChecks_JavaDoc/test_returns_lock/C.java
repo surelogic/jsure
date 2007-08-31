@@ -78,9 +78,9 @@ public class C {
 
       /**
        * GOOD: Qualified receiver exists, names instance lock.
-       * BUT THE METOD IS BAD: It returns the wrong lock
-       * @TestResult is INCONSISTENT
-       * @EeturnsLock test_returns_lock.C.this:IL
+       * BUT THE METHOD IS BAD: It returns the wrong lock
+       * @TestResult is INCONSISTENT: Returns the wrong state lock
+       * @ReturnsLock test_returns_lock.C.this:IL
        */
       public Object getLock_bad() {
         return Inner1.this;
