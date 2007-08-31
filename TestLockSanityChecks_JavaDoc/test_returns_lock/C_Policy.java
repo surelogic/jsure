@@ -12,7 +12,7 @@ package test_returns_lock;
 public class C_Policy {
   /**
    * BAD: instance-qualified static lock
-   * @TeestResult is UNASSOCIATED: Cannot qualify static lock with 'this'
+   * @TestResult is UNASSOCIATED: Cannot qualify static lock with 'this'
    * @ReturnsLock this:SL
    */
   public Object getLock() {
@@ -27,7 +27,7 @@ public class C_Policy {
   public Object getLock(final C_Policy p) {
     return C_Policy.class;
   }
-  
+
   /**
    * GOOD: implicitly class-qualified static lock
    * @TestResult is CONSISTENT
@@ -74,7 +74,7 @@ public class C_Policy {
       /**
        * GOOD: Qualified receiver exists, names instance lock.
        * BUT THE METHOD IS BAD: It returns the wrong lock
-       * @TestResult is INCONSISTENT: Returns the wrong lock
+       * @TestResult is INCONSISTENT: Returns the wrong policy lock
        * @ReturnsLock test_returns_lock.C_Policy.this:IL
        */
       public Object getLock_bad() {
