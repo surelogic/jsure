@@ -1,6 +1,6 @@
 package test_singleThreaded_constructor;
 
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.Reads;
 import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
@@ -9,7 +9,7 @@ import com.surelogic.Writes;
 /**
  * Tests checking singleThreaded constructors with effects and thread effects.
  */
-@Lock("L is this protects Instance")
+@RegionLock("L is this protects Instance")
 public class TestEffects {
 //  @SuppressWarnings("unused")
   private int x;

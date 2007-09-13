@@ -1,7 +1,7 @@
 package test_requiresLock_for_parameters;
 
 import com.surelogic.Borrowed;
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 import com.surelogic.SingleThreaded;
 
@@ -10,7 +10,7 @@ import com.surelogic.SingleThreaded;
  * class Test to test that method preconditions can require locks to be 
  * held on parameters.
  */
-@Lock("L is this protects Instance")
+@RegionLock("L is this protects Instance")
 public class C {
   private int x;
   private int y;

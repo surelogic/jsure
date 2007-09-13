@@ -8,7 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * TODO: Need to fix the comments for this one.
  */
-@com.surelogic.Lock("L is lockField protects data")
+@com.surelogic.RegionLock("L is lockField protects data")
 public class Tricky {
   private final Lock lockField = new ReentrantLock();
   private int data;

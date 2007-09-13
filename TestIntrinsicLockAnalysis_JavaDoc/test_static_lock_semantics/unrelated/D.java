@@ -6,9 +6,9 @@ package test_static_lock_semantics.unrelated;
 /**
  * Uses static fields declared in another class as locks
  * 
- * @Lock L1 is test_static_lock_semantics.unrelated.C.Lock protects g
- * @Lock L2 is test_static_lock_semantics.unrelated.C.anotherLock protects h
- * @Lock L3 is test_static_lock_semantics.unrelated.C.class protects i
+ * @RegionLock L1 is test_static_lock_semantics.unrelated.C.Lock protects g
+ * @RegionLock L2 is test_static_lock_semantics.unrelated.C.anotherLock protects h
+ * @RegionLock L3 is test_static_lock_semantics.unrelated.C.class protects i
  */
 public class D {
   private static int g;

@@ -6,9 +6,9 @@ package test_static_lock_semantics.parent_child;
  * the methods below acquires all three locks with one synchronized statement.
  * Once upon a time this didn't work correctly, but it should now.
  * 
- * @Lock L1 is test_static_lock_semantics.parent_child.A.Lock protects x
- * @Lock L2 is test_static_lock_semantics.parent_child.B.Lock protects y
- * @Lock L3 is Lock protects z
+ * @RegionLock L1 is test_static_lock_semantics.parent_child.A.Lock protects x
+ * @RegionLock L2 is test_static_lock_semantics.parent_child.B.Lock protects y
+ * @RegionLock L3 is Lock protects z
  */
 public class B extends A{
   private static int x;

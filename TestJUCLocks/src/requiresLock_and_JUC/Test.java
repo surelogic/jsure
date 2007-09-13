@@ -3,8 +3,8 @@ package requiresLock_and_JUC;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.surelogic.Locks;
-import com.surelogic.MapInto;
+import com.surelogic.RegionLocks;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.RequiresLock;
@@ -16,18 +16,18 @@ import com.surelogic.RequiresLock;
   @Region("private Region1"),
   @Region("private Region2")
 })
-@Locks({
-  @com.surelogic.Lock("JUC_LOCK is lockField protects Region1"),
-  @com.surelogic.Lock("JAVA_LOCK is objField protects Region2")
+@RegionLocks({
+  @com.surelogic.RegionLock("JUC_LOCK is lockField protects Region1"),
+  @com.surelogic.RegionLock("JAVA_LOCK is objField protects Region2")
 })
 public class Test {
   private final Lock lockField = new ReentrantLock();
   private final Object objField = new Object();
   
-  @MapInto("Region1")
+  @InRegion("Region1")
   private int x;
 
-  @MapInto("Region2")
+  @InRegion("Region2")
   private int y;
   
  

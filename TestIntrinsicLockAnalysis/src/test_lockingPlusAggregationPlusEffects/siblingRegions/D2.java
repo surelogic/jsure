@@ -3,7 +3,7 @@
 package test_lockingPlusAggregationPlusEffects.siblingRegions;
 
 import com.surelogic.Borrowed;
-import com.surelogic.MapInto;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.Writes;
@@ -13,10 +13,10 @@ import com.surelogic.Writes;
   @Region("public Q")
 })
 public class D2 {
-  @MapInto("R")
+  @InRegion("R")
   private int f1;
   
-  @MapInto("Q")
+  @InRegion("Q")
   private int f2;
 
   @Writes("nothing")

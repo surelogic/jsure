@@ -1,7 +1,7 @@
 package test_static_lock_semantics.parent_child;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 
 /**
  * Extends class A, uses static field from A as a lock.  Point here is that
@@ -9,10 +9,10 @@ import com.surelogic.Locks;
  * the methods below acquires all three locks with one synchronized statement.
  * Once upon a time this didn't work correctly, but it should now.
  */
-@Locks({
-  @Lock("L1 is test_static_lock_semantics.parent_child.A.Lock protects x"),
-  @Lock("L2 is test_static_lock_semantics.parent_child.B.Lock protects y"),
-  @Lock("L3 is Lock protects z")
+@RegionLocks({
+  @RegionLock("L1 is test_static_lock_semantics.parent_child.A.Lock protects x"),
+  @RegionLock("L2 is test_static_lock_semantics.parent_child.B.Lock protects y"),
+  @RegionLock("L3 is Lock protects z")
 })
 public class B extends A{
   private static int x;

@@ -6,7 +6,7 @@ package test_lockingPlusAggregationPlusEffects.siblingRegions;
  * @Region public X
  * @Region public Y
  * 
- * @Lock L2 is this protects Y
+ * @RegionLock L2 is this protects Y
  */
 public class C2 {
   /**

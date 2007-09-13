@@ -7,10 +7,10 @@ package test_lockingPlusAggregationPlusEffects.nestedRegions;
  * @Region public Q extends R
  */
 public class D {
-  /** @MapInto R */
+  /** @InRegion R */
   private int f1;
   
-  /** @MapInto Q */
+  /** @InRegion Q */
   private int f2;
   
   /** @Writes nothing

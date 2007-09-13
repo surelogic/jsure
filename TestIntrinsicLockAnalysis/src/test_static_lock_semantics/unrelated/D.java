@@ -1,7 +1,7 @@
 package test_static_lock_semantics.unrelated;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 /*
  * Created on Jan 24, 2005
  */
@@ -9,10 +9,10 @@ import com.surelogic.Locks;
 /**
  * Uses static fields declared in another class as locks
  */
-@Locks({
-  @Lock("L1 is test_static_lock_semantics.unrelated.C.Lock protects g"),
-  @Lock("L2 is test_static_lock_semantics.unrelated.C.anotherLock protects h"),
-  @Lock("L3 is test_static_lock_semantics.unrelated.C.class protects i")
+@RegionLocks({
+  @RegionLock("L1 is test_static_lock_semantics.unrelated.C.Lock protects g"),
+  @RegionLock("L2 is test_static_lock_semantics.unrelated.C.anotherLock protects h"),
+  @RegionLock("L3 is test_static_lock_semantics.unrelated.C.class protects i")
 })
 public class D {
   private static int g;

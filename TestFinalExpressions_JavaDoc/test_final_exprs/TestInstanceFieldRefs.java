@@ -5,13 +5,13 @@ package test_final_exprs;
  * Tests the finalness or not of instance field references.
  * 
  * @Region InstanceRegion
- * @Lock InstanceLock is this protects InstanceRegion
+ * @RegionLock InstanceLock is this protects InstanceRegion
  */
 public class TestInstanceFieldRefs {
   private final Object finalField = new Object();
   private Object unprotectedField = new Object();
   
-  /** @MapInto InstanceRegion */
+  /** @InRegion InstanceRegion */
   private Object protectedField = new Object();
   
   

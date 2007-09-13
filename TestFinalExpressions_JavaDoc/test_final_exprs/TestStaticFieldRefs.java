@@ -5,13 +5,13 @@ package test_final_exprs;
  * Tests the finalness or not of static field references.
  * 
  * @region static StaticRegion
- * @lock StaticLock is class protects StaticRegion
+ * @RegionLock StaticLock is class protects StaticRegion
  */
 public class TestStaticFieldRefs {
   private static final Object staticFinalField = new Object();
   private static Object staticUnprotectedField = new Object();
   
-  /** @mapInto StaticRegion */
+  /** @InRegion StaticRegion */
   private static Object staticProtectedField = new Object();
   
   public void good_staticFinalField() {

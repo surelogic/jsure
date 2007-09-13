@@ -9,7 +9,7 @@ import com.surelogic.RequiresLock;
  * Test lock preconditions on JUC locks for method parameters (other than
  * the receiver).
  */
-@com.surelogic.Lock("Lock is lockField protects Instance")
+@com.surelogic.RegionLock("Lock is lockField protects Instance")
 public class Other {
   public final Lock lockField = new ReentrantLock();
   

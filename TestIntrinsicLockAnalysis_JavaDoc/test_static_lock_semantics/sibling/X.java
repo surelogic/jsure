@@ -7,7 +7,7 @@ package test_static_lock_semantics.sibling;
  * 
  * <p>We also test out using 'this' as a lock locally.
  * 
- * @Lock XLock is this protects foo
+ * @RegionLock XLock is this protects foo
  */
 public class X {
   // Used as a lock by classes Y and Z

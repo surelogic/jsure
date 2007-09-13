@@ -1,10 +1,10 @@
 package test_selfProtected;
 
 import com.surelogic.Borrowed;
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.SingleThreaded;
 
-@Lock("L is this protects Instance")
+@RegionLock("L is this protects Instance")
 public class Main {
   private C c = new C();
   private D d = new D();

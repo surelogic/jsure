@@ -4,14 +4,14 @@
 package test_array_length;
 
 import com.surelogic.Aggregate;
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.Unique;
 
 /**
  * Test that the length "field" of arrays is not considered mutable data
  * by the lock analysis.
  */
-@Lock("L is this protects Instance")
+@RegionLock("L is this protects Instance")
 public class Test {
   private final @Unique @Aggregate("Instance into Instance") 
   String[] exec = null;

@@ -6,7 +6,7 @@ package test_aggregated_arrays;
 /**
  * Test locking + aggregation with arrays.
  * 
- * @Lock L is this protects Instance
+ * @RegionLock L is this protects Instance
  */
 public class Test {
   /**

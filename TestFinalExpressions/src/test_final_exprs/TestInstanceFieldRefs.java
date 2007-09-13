@@ -1,10 +1,10 @@
 package test_final_exprs;
 
 import com.surelogic.Borrowed;
-import com.surelogic.Lock;
-import com.surelogic.MapInto;
+import com.surelogic.InRegion;
 import com.surelogic.Reads;
 import com.surelogic.Region;
+import com.surelogic.RegionLock;
 import com.surelogic.SingleThreaded;
 import com.surelogic.Writes;
 
@@ -13,12 +13,12 @@ import com.surelogic.Writes;
  * Tests the finalness or not of instance field references.
  */
 @Region("InstanceRegion")
-@Lock("InstanceLock is this protects InstanceRegion")
+@RegionLock("InstanceLock is this protects InstanceRegion")
 public class TestInstanceFieldRefs {
   private final Object finalField = new Object();
   private Object unprotectedField = new Object();
   
-  @MapInto("InstanceRegion")
+  @InRegion("InstanceRegion")
   private Object protectedField = new Object();
   
   

@@ -4,7 +4,7 @@ package test_requiresLock_for_parameters;
  * Tests that requiresLock works on method parameters and that it is properly
  * enforced in that situation.
  * 
- * @Lock LL is this protects Instance 
+ * @RegionLock LL is this protects Instance 
  */
 public class Test {
   private int z;

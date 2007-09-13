@@ -1,8 +1,8 @@
 package test_synchronization_around_inner_classes;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
-import com.surelogic.MapInto;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 
@@ -14,17 +14,17 @@ import com.surelogic.Regions;
   @Region("private static StaticRegion"),
   @Region("private InstanceRegion")
 })
-@Locks({
-  @Lock("StaticLock is staticLock protects StaticRegion"),
-  @Lock("InstanceLock is this protects InstanceRegion")
+@RegionLocks({
+  @RegionLock("StaticLock is staticLock protects StaticRegion"),
+  @RegionLock("InstanceLock is this protects InstanceRegion")
 })
 public class Outer {
   private static final Object staticLock = new Object();
 
-  @MapInto("StaticRegion")
+  @InRegion("StaticRegion")
   private static int staticField;
 
-  @MapInto("InstanceRegion")
+  @InRegion("InstanceRegion")
   private int instanceField;
   
   public void foo() {

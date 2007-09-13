@@ -1,13 +1,13 @@
 package test_static_lock_semantics.sibling;
 
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 
 /**
  * Uses X.lock as a lock. Point is that we should find that for o.lock, when o
  * is statically of type Z, the lock implementation is the lock declared here,
  * but not the lock declared in Y.
  */
-@Lock("ZLock is lock protects baz")
+@RegionLock("ZLock is lock protects baz")
 public class Z extends X {
   private int baz;
   

@@ -1,20 +1,20 @@
 package test_final_exprs;
 
-import com.surelogic.Lock;
-import com.surelogic.MapInto;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
+import com.surelogic.RegionLock;
 
 
 /**
  * Tests the finalness or not of static field references.
  */
 @Region("static StaticRegion")
-@Lock("StaticLock is class protects StaticRegion")
+@RegionLock("StaticLock is class protects StaticRegion")
 public class TestStaticFieldRefs {
   private static final Object staticFinalField = new Object();
   private static Object staticUnprotectedField = new Object();
   
-  @MapInto("StaticRegion")
+  @InRegion("StaticRegion")
   private static Object staticProtectedField = new Object();
   
   public void good_staticFinalField() {

@@ -4,13 +4,13 @@
 package test_aggregated_arrays;
 
 import com.surelogic.Aggregate;
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.Unique;
 
 /**
  * Test locking + aggregation with arrays.
  */
-@Lock("L is this protects Instance")
+@RegionLock("L is this protects Instance")
 public class Test {
   private @Unique @Aggregate("[] into Instance") Object[] good;
   private Object[] bad;

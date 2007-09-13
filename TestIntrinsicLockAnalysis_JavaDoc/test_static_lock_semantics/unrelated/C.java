@@ -7,7 +7,7 @@ package test_static_lock_semantics.unrelated;
  * This class declares static fields that are used as locks in other
  * non-descendant classes.
  * 
- * @Lock L is Lock protects f
+ * @RegionLock L is Lock protects f
  */
 public class C {
   // Used locally as a lock, and by the unrelated class D

@@ -1,7 +1,7 @@
 package test_requiresLock_for_parameters;
 
 import com.surelogic.Borrowed;
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 import com.surelogic.SingleThreaded;
 
@@ -9,7 +9,7 @@ import com.surelogic.SingleThreaded;
  * Tests that requiresLock works on method parameters and that it is properly
  * enforced in that situation.
  */
-@Lock("LL is this protects Instance")
+@RegionLock("LL is this protects Instance")
 public class Test {
   private int z;
   

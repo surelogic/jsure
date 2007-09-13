@@ -4,13 +4,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.surelogic.Borrowed;
-import com.surelogic.Locks;
+import com.surelogic.RegionLocks;
 import com.surelogic.SingleThreaded;
 
-@Locks({
-  @com.surelogic.Lock("L1 is l1 protects f1"),
-  @com.surelogic.Lock("L2 is l2 protects f2"),
-  @com.surelogic.Lock("L3 is l3 protects f3")
+@RegionLocks({
+  @com.surelogic.RegionLock("L1 is l1 protects f1"),
+  @com.surelogic.RegionLock("L2 is l2 protects f2"),
+  @com.surelogic.RegionLock("L3 is l3 protects f3")
 })
 public class SingleThreadedTest {
   private final Lock l1 = new ReentrantLock();

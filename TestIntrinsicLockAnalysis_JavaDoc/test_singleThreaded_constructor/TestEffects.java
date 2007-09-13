@@ -3,7 +3,7 @@ package test_singleThreaded_constructor;
 /**
  * Tests checking singleThreaded constructors with effects and thread effects.
  * 
- * @Lock L is this protects Instance
+ * @RegionLock L is this protects Instance
  */
 public class TestEffects {
 //  @SuppressWarnings("unused")

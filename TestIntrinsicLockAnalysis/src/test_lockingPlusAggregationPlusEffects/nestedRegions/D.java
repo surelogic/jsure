@@ -3,7 +3,7 @@
 package test_lockingPlusAggregationPlusEffects.nestedRegions;
 
 import com.surelogic.Borrowed;
-import com.surelogic.MapInto;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.Writes;
@@ -13,10 +13,10 @@ import com.surelogic.Writes;
   @Region("public Q extends R")
 })
 public class D {
-  @MapInto("R")
+  @InRegion("R")
   private int f1;
   
-  @MapInto("Q")
+  @InRegion("Q")
   private int f2;
   
   @Writes("nothing")

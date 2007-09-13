@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Test that we flag cases where java.util.concurrent.locks.Lock objects are 
  * used with synchronized statements.  
  */
-@com.surelogic.Lock("VLock is jucLock protects value")
+@com.surelogic.RegionLock("VLock is jucLock protects value")
 public class Test {
   private final Lock jucLock = new ReentrantLock();
   private final Object objLock = new Object();

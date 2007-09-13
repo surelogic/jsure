@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Test identification of final lock expressions that don't refer to any
  * declared locks.
  */
-@com.surelogic.Lock("LL is identifiable protects Instance")
+@com.surelogic.RegionLock("LL is identifiable protects Instance")
 public class Test {
   public final Lock identifiable = new ReentrantLock();
   public final Lock unidentifiable = new ReentrantLock();

@@ -7,10 +7,10 @@ package test_lockingPlusAggregationPlusEffects.siblingRegions;
  * @Region public Q
  */
 public class D2 {
-  /** @MapInto R */
+  /** @InRegion R */
   private int f1;
   
-  /** @MapInto Q */
+  /** @InRegion Q */
   private int f2;
   
   /** @Writes nothing

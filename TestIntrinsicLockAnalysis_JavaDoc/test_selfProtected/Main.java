@@ -1,7 +1,7 @@
 package test_selfProtected;
 
 /**
- * @Lock L is this protects Instance
+ * @RegionLock L is this protects Instance
  */
 public class Main {
   private C c = new C();

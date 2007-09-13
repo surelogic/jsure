@@ -6,7 +6,7 @@ package test_lockingPlusAggregationPlusEffects.nestedRegions;
  * @Region public X
  * @Region public Y extends X 
  * 
- * @Lock L is this protects Y
+ * @RegionLock L is this protects Y
  */
 public class C {
   /**

@@ -5,7 +5,7 @@ package test_static_lock_semantics.sibling;
  * is statically of type Z, the lock implementation is the lock declared here,
  * but not the lock declared in Y.
  * 
- * @Lock ZLock is lock protects baz
+ * @RegionLock ZLock is lock protects baz
  */
 public class Z extends X {
   private int baz;

@@ -6,17 +6,17 @@ package test_synchronization_around_inner_classes;
  * 
  * 
  * @Region private static StaticRegion
- * @Lock StaticLock is staticLock protects StaticRegion
+ * @RegionLock StaticLock is staticLock protects StaticRegion
  * 
  * @Region private InstanceRegion
- * @Lock InstanceLock is this protects InstanceRegion
+ * @RegionLock InstanceLock is this protects InstanceRegion
  */
 public class Outer {
   private static final Object staticLock = new Object();
-  /** @MapInto StaticRegion */
+  /** @InRegion StaticRegion */
   private static int staticField;
 
-  /** @MapInto InstanceRegion */
+  /** @InRegion InstanceRegion */
   private int instanceField;
   
   public void foo() {

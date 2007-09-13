@@ -1,6 +1,6 @@
 package test_static_lock_semantics.sibling;
 
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 import com.surelogic.Writes;
@@ -12,7 +12,7 @@ import com.surelogic.Writes;
  * 
  * <p>We also test out using 'this' as a lock locally.
  */
-@Lock("XLock is this protects foo")
+@RegionLock("XLock is this protects foo")
 public class X {
   // Used as a lock by classes Y and Z
   protected final Object lock = new Object();

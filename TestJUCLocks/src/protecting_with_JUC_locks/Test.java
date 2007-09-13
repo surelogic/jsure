@@ -8,7 +8,7 @@ import com.surelogic.RequiresLock;
 import com.surelogic.ReturnsLock;
 import com.surelogic.SingleThreaded;
 
-@com.surelogic.Lock("L is lockField protects Instance")
+@com.surelogic.RegionLock("L is lockField protects Instance")
 public class Test {
   public final Lock lockField = new ReentrantLock();
   

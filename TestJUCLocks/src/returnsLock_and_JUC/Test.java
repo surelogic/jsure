@@ -3,15 +3,15 @@ package returnsLock_and_JUC;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.surelogic.Locks;
-import com.surelogic.MapInto;
+import com.surelogic.RegionLocks;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.ReturnsLock;
 
-@Locks({
-  @com.surelogic.Lock("L is lockField protects Region1"),
-  @com.surelogic.Lock("M is lockField2 protects Region2")
+@RegionLocks({
+  @com.surelogic.RegionLock("L is lockField protects Region1"),
+  @com.surelogic.RegionLock("M is lockField2 protects Region2")
 })
 @Regions({
   @Region("Region1"),
@@ -22,7 +22,7 @@ public class Test {
   private final Lock lockField2 = new ReentrantLock();
   private final Object object = new Object();
   
-  @MapInto("Region1")
+  @InRegion("Region1")
   private int value;
   
   

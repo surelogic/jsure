@@ -7,7 +7,7 @@ package test_array_length;
  * Test that the length "field" of arrays is not considered mutable data
  * by the lock analysis.
  * 
- * @Lock L is this protects Instance
+ * @RegionLock L is this protects Instance
  */
 public class Test {
   /**

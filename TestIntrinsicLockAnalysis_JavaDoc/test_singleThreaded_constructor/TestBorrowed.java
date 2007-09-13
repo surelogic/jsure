@@ -3,7 +3,7 @@ package test_singleThreaded_constructor;
 /**
  * Test checking of singleThreaded constructors using uniqueness 
  * 
- * @Lock L is this protects Instance
+ * @RegionLock L is this protects Instance
  */
 public class TestBorrowed {
 //  @SuppressWarnings("unused")
