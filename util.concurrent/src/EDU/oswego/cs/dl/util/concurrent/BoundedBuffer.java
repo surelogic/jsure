@@ -25,8 +25,8 @@ package EDU.oswego.cs.dl.util.concurrent;
  * @region protected Tail 
  * @-region protected HeadsOrTails
  * 
- * @lock HeadLock is this protects Head
- * @lock TailLock is putMonitor_ protects Tail
+ * @RegionLock HeadLock is this protects Head
+ * @RegionLock TailLock is putMonitor_ protects Tail
  **/
 
 public class BoundedBuffer implements BoundedChannel {
@@ -37,14 +37,14 @@ public class BoundedBuffer implements BoundedChannel {
    */
   protected final Object[]  array_;      // the elements
 
-  /** @mapInto Head */
+  /** @InRegion Head */
   protected int takePtr_ = 0;            // circular indices
-  /** @mapInto Tail */
+  /** @InRegion Tail */
   protected int putPtr_ = 0;       
 
-  /** @mapInto Head */
+  /** @InRegion Head */
   protected int usedSlots_ = 0;          // length
-  /** @mapInto Tail */
+  /** @InRegion Tail */
   protected int emptySlots_;             // capacity - length
 
   /**

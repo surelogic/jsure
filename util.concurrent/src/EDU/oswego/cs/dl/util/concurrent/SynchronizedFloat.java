@@ -21,7 +21,7 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 public class SynchronizedFloat extends SynchronizedVariable implements Comparable, Cloneable {
 
-  /** @mapInto Variable */
+  /** @InRegion Variable */
   protected float value_;
 
   /** 

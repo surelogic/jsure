@@ -20,7 +20,7 @@ package EDU.oswego.cs.dl.util.concurrent;
  * can also be used stand-alone.
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  * 
- * @lock FactoryLock is this protects threadFactory_
+ * @RegionLock FactoryLock is this protects threadFactory_
  * @promise "@singleThreaded" for new(**)
  * @promise "@borrowed this" for new(**)
  **/

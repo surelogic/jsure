@@ -293,7 +293,7 @@ public class SynchronizationTimer {
   /**
    * Information about classes to be tested
    * 
-   * @lock L is this protects enabled_
+   * @RegionLock L is this protects enabled_
    **/
   static class TestedClass { 
     final String name; 
@@ -481,7 +481,7 @@ public class SynchronizationTimer {
   }
     
   /**
-   * @lock L is this protects enabled
+   * @RegionLock L is this protects enabled
    */
   static class ThreadInfo {
     final String name;
@@ -1280,7 +1280,7 @@ public class SynchronizationTimer {
   }
 
   /**
-   * @lock L is this protects Instance
+   * @RegionLock L is this protects Instance
    * @promise "@singleThreaded" for new()
    * @promise "@borrowed this" for new()
    */

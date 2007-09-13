@@ -29,8 +29,8 @@ package EDU.oswego.cs.dl.util.concurrent;
  *
  * @region protected PutInfo
  * @region protected TakeInfo
- * @lock PutLock is putLock_ protects PutInfo
- * @lock TakeLock is this protects TakeInfo
+ * @RegionLock PutLock is putLock_ protects PutInfo
+ * @RegionLock TakeLock is this protects TakeInfo
  **/
 
 public class LinkedQueue implements Channel {
@@ -39,7 +39,7 @@ public class LinkedQueue implements Channel {
   /** 
    * Dummy header node of list. The first actual node, if it exists, is always 
    * at head_.next. After each take, the old first node becomes the head.
-   * @mapInto TakeInfo
+   * @InRegion TakeInfo
    **/
   protected LinkedNode head_;         
 
@@ -50,7 +50,7 @@ public class LinkedQueue implements Channel {
 
   /** 
    * The last node of list. Put() appends to list, so modifies last_
-   * @mapInto PutInfo
+   * @InRegion PutInfo
    **/
   protected LinkedNode last_;         
 
@@ -60,7 +60,7 @@ public class LinkedQueue implements Channel {
    * The bookkeeping is worth it here since in reasonably balanced
    * usages, the notifications will hardly ever be necessary, so
    * the call overhead to notify can be eliminated.
-   * @mapInto PutInfo
+   * @InRegion PutInfo
    **/
   protected int waitingForTake_ = 0;  
 

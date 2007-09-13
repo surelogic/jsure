@@ -43,7 +43,7 @@ package EDU.oswego.cs.dl.util.concurrent;
  *</pre>
  * [<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>] <p>
  * 
- * @lock Lock is this protects Instance
+ * @RegionLock Lock is this protects Instance
  * 
  * @promise "@singleThreaded" for new(**)
  * @promise "@borrowed this" for new(**)

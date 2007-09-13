@@ -27,7 +27,7 @@ import java.lang.reflect.*;
  *
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  *
- * @lock ItemLock is this protects item_
+ * @RegionLock ItemLock is this protects item_
  * 
  * @promise "@singleThreaded" for new(**)
  * @promise "@borrowed this" for new(**)

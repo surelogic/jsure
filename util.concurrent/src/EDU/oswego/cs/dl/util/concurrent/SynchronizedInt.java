@@ -21,7 +21,7 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 public class SynchronizedInt extends SynchronizedVariable implements Comparable, Cloneable {
 
-  /** @mapInto Variable */
+  /** @InRegion Variable */
   protected int value_;
 
   /** 

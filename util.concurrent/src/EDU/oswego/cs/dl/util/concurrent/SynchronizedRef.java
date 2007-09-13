@@ -25,7 +25,7 @@ public class SynchronizedRef extends SynchronizedVariable {
   
   /** 
    * The maintained reference
-   * @mapInto Variable
+   * @InRegion Variable
    **/
   protected Object value_;
 

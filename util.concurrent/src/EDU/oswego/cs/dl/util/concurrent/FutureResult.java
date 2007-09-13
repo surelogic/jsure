@@ -43,7 +43,7 @@ import java.lang.reflect.*;
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  * @see Executor
  * 
- * @lock FutureLock is this protects Instance
+ * @RegionLock FutureLock is this protects Instance
  **/
 
 public class FutureResult {

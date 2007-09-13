@@ -22,7 +22,7 @@ package EDU.oswego.cs.dl.util.concurrent;
  * as many releases as acquires have occurred.
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  * 
- * @lock MetaLock is this protects Instance
+ * @RegionLock MetaLock is this protects Instance
  * @promise "@singleThreaded" for new(**)
  * @promise "@borrowed this" for new(**)
 **/

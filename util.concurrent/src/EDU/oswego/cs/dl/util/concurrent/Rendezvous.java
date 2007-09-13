@@ -105,7 +105,7 @@ package EDU.oswego.cs.dl.util.concurrent;
  * </pre>
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  *
- * @lock RendezvousLock is this protects Instance
+ * @RegionLock RendezvousLock is this protects Instance
  **/
 
 public class Rendezvous implements Barrier {

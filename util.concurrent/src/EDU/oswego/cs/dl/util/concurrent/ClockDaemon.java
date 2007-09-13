@@ -57,7 +57,7 @@ public class ClockDaemon extends ThreadFactoryUser  {
   protected final Heap heap_ = new Heap(DefaultChannelCapacity.get());
 
   /**
-   * @lock NodeLock is this protects Instance
+   * @RegionLock NodeLock is this protects Instance
    */
   protected static class TaskNode implements Comparable {
     final Runnable command;   // The command to run
