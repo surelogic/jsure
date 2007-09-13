@@ -3,18 +3,18 @@ package returnsLock_and_JUC;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.surelogic.Lock;
-import com.surelogic.MapInto;
+import com.surelogic.RegionLock;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.ReturnsLock;
 
 
-@Lock("RW is rwLock protects Region")
+@RegionLock("RW is rwLock protects Region")
 @Region("private Region")
 public class Test2 {
   private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
   
-  @MapInto("Region")
+  @InRegion("Region")
   private int value;
   
   

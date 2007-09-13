@@ -3,17 +3,17 @@ package basic_usage;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.surelogic.Lock;
-import com.surelogic.MapInto;
+import com.surelogic.RegionLock;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 
 @Region("protected Value")
-@Lock("L is rwLock protects Value")
+@RegionLock("L is rwLock protects Value")
 public class Test {
   protected final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-  @MapInto("Value")
+  @InRegion("Value")
   private int value1;
-  @MapInto("Value")
+  @InRegion("Value")
   private int value2;
   
   public void set1(int v) {

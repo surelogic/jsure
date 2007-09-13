@@ -3,13 +3,13 @@ package dont_sync_on_JUC_locks;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 
 /**
  * Test that we flag cases where java.util.concurrent.locks.Lock objects are 
  * used with synchronized statements.  
  */
-@Lock("VLock is jucLock protects value")
+@RegionLock("VLock is jucLock protects value")
 public class Test {
   private final ReadWriteLock jucLock = new ReentrantReadWriteLock();
   private final Object objLock = new Object();

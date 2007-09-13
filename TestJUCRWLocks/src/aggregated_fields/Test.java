@@ -5,18 +5,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
-import com.surelogic.Lock;
-import com.surelogic.Locks;
-import com.surelogic.MapInto;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
-@Locks({
-  @Lock("RW1 is rwLock1 protects Region1"),
-  @Lock("RW2 is rwLock2 protects Region2"),
-  @Lock("RW3 is rwLock3 protects Region3")
+@RegionLocks({
+  @RegionLock("RW1 is rwLock1 protects Region1"),
+  @RegionLock("RW2 is rwLock2 protects Region2"),
+  @RegionLock("RW3 is rwLock3 protects Region3")
 })
 @Regions({
   @Region("private Region1"),
@@ -30,7 +30,7 @@ public class Test {
 
   // [f] Good: needs RW1.writeLock()
   @Unique
-  @MapInto("Region1")
+  @InRegion("Region1")
   @Aggregate("f1 into Region2, f2 into Region3")
   private Inner f; // = new Inner();
   
