@@ -1,9 +1,9 @@
 package test_requires_lock;
 
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 
-@Lock("L is this protects Instance")
+@RegionLock("L is this protects Instance")
 public class TestImprovedMessages {
   @SuppressWarnings("unused")
   private int v;

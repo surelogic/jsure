@@ -3,12 +3,12 @@ package test_requires_lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.Region;
 import com.surelogic.RequiresLock;
 
 @Region("private Region")
-@Lock("RW is rwLock protects Region")
+@RegionLock("RW is rwLock protects Region")
 public class CannotRequireRWLock {
   private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
   

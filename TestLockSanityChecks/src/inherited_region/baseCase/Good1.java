@@ -2,7 +2,7 @@
  */
 package inherited_region.baseCase;
 
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 
 /**
  * Adds fields to Instance and protects Instance.  This
@@ -10,7 +10,7 @@ import com.surelogic.Lock;
  */
 
 // TestResult is CONSISTENT : Adds field to Instance and protects it in the same class
-@Lock("L is this protects Instance" /* is CONSISTENT : Adds field to Instance and protects it in the same class */)
+@RegionLock("L is this protects Instance" /* is CONSISTENT : Adds field to Instance and protects it in the same class */)
 public class Good1 {
   protected int x;
 }

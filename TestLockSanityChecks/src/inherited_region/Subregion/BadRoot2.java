@@ -2,7 +2,7 @@
  */
 package inherited_region.Subregion;
 
-import com.surelogic.MapInto;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 
 /**
@@ -14,6 +14,6 @@ import com.surelogic.Region;
 @Region("public R")
 public class BadRoot2 {
   // TestResult is CONSISTENT
-  @MapInto("R")
+  @InRegion("R")
   protected int x;
 }

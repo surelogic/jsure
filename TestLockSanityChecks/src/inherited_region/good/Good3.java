@@ -2,16 +2,16 @@
  */
 package inherited_region.good;
 
-import com.surelogic.Lock;
-import com.surelogic.MapInto;
+import com.surelogic.RegionLock;
+import com.surelogic.InRegion;
 
 /**
  * Adds fields to R, protects Instance
  */
 // TestResult is CONSISTENT : Adds region to Instance, protects Instance in same class
-@Lock("L is this protects Instance" /* is CONSISTENT : Adds region to Instance, protects Instance in same class*/)
+@RegionLock("L is this protects Instance" /* is CONSISTENT : Adds region to Instance, protects Instance in same class*/)
 public class Good3 extends GoodRoot {
   // TestResult is CONSISTENT
-  @MapInto("R" /* is CONSISTENT */)
+  @InRegion("R" /* is CONSISTENT */)
   protected int z;
 }

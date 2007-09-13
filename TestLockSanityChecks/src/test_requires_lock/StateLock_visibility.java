@@ -1,7 +1,7 @@
 package test_requires_lock;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 import com.surelogic.PolicyLock;
 import com.surelogic.PolicyLocks;
 import com.surelogic.Region;
@@ -28,15 +28,15 @@ import com.surelogic.RequiresLock;
   @Region("protected static ProtectedStaticRegion"),
   @Region("public static PublicStaticRegion")
 })
-@Locks({
-  @Lock("PrivateLock is privateField protects PrivateRegion"), 
-  @Lock("DefaultLock is defaultField protects DefaultRegion"), 
-  @Lock("ProtectedLock is protectedField protects ProtectedRegion"), 
-  @Lock("PublicLock is publicField protects PublicRegion"), 
-  @Lock("PrivateStaticLock is privateStaticField protects PrivateStaticRegion"), 
-  @Lock("DefaultStaticLock is defaultStaticField protects DefaultStaticRegion"), 
-  @Lock("ProtectedStaticLock is protectedStaticField protects ProtectedStaticRegion"), 
-  @Lock("PublicStaticLock is publicStaticField protects PublicStaticRegion")
+@RegionLocks({
+  @RegionLock("PrivateLock is privateField protects PrivateRegion"), 
+  @RegionLock("DefaultLock is defaultField protects DefaultRegion"), 
+  @RegionLock("ProtectedLock is protectedField protects ProtectedRegion"), 
+  @RegionLock("PublicLock is publicField protects PublicRegion"), 
+  @RegionLock("PrivateStaticLock is privateStaticField protects PrivateStaticRegion"), 
+  @RegionLock("DefaultStaticLock is defaultStaticField protects DefaultStaticRegion"), 
+  @RegionLock("ProtectedStaticLock is protectedStaticField protects ProtectedStaticRegion"), 
+  @RegionLock("PublicStaticLock is publicStaticField protects PublicStaticRegion")
 })
 @SuppressWarnings("unused")
 public class StateLock_visibility extends Root {

@@ -1,7 +1,7 @@
 package test_returns_lock;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.ReturnsLock;
@@ -13,8 +13,8 @@ import com.surelogic.ReturnsLock;
  */
 @Regions({@Region("I"),
   @Region("static S")})
-@Locks({@Lock("IL is this protects I"),
-  @Lock("SL is class protects S")})
+@RegionLocks({@RegionLock("IL is this protects I"),
+  @RegionLock("SL is class protects S")})
 public class C {
   /**
    * BAD: instance-qualified static lock
@@ -59,7 +59,7 @@ public class C {
   
 
   
-  @Lock("InnerLock is this protects Instance")
+  @RegionLock("InnerLock is this protects Instance")
   public class Inner1 {
     public class Inner2 {
       /**

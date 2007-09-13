@@ -1,7 +1,7 @@
 package test_requires_lock;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.RequiresLock;
@@ -15,9 +15,9 @@ import com.surelogic.RequiresLock;
   @Region("static StaticRegion"),
   @Region("NonStaticRegion")
 })
-@Locks({
-  @Lock("StaticLock is class protects StaticRegion"),
-  @Lock("NonStaticLock is this protects NonStaticRegion")})
+@RegionLocks({
+  @RegionLock("StaticLock is class protects StaticRegion"),
+  @RegionLock("NonStaticLock is this protects NonStaticRegion")})
 public class StateLock_Constructor {
   /**
    * BAD: Constructor requires (implicit) instance lock on "this"

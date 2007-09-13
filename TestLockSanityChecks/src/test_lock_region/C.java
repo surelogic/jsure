@@ -1,7 +1,7 @@
 package test_lock_region;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 
@@ -22,19 +22,19 @@ import com.surelogic.Regions;
   @Region("static StaticRegionFromC4"),
   @Region("static StaticRegionFromC5"),
 })
-@Locks({
-  @Lock("L1 is this protects UnknownRegion" /* is UNBOUND: Region is undefined */),
-  @Lock("L2 is this protects S1" /* is UNASSOCIATED: Cannot protect a static region with 'this' */),
-  @Lock("L3 is nonStaticField protects S2" /* is UNASSOCIATED: Cannot protect a static region with a non-static field */),
-  @Lock("L4 is class protects S3" /* is CONSISTENT: Static region protected by class */),
-  @Lock("L5 is staticFieldFromC protects S4" /* is CONSISTENT: Static region protected by static field */),
-  @Lock("L6 is staticFieldFromC protects StaticRegionFromC1" /* is CONSISTENT: Static region is from the protecting class; field is from the same */),
-  @Lock("L7 is test_lock_region.B.staticFieldFromB protects StaticRegionFromC2" /* is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from superclass (B) */),
-  @Lock("L8 is test_lock_region.D.staticFieldFromD protects StaticRegionFromC3" /* is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from subclass (D) */),
-  @Lock("L9 is test_lock_region.Other.staticFieldFromOther protects StaticRegionFromC4" /* is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from an unrelated class (Other) */),
-  @Lock("L10 is staticFieldFromC protects test_lock_region.B:StaticRegionFromB" /* is UNASSOCIATED: static region is from superclass (B) */),
-  @Lock("L11 is staticFieldFromC protects test_lock_region.D:StaticRegionFromD" /* is UNASSOCIATED: static region is from subclass (D) */),
-  @Lock("L12 is staticFieldFromC protects test_lock_region.Other:StaticRegionFromOther" /* is UNASSOCIATED: static region is from unrelated class (Other) */),
+@RegionLocks({
+  @RegionLock("L1 is this protects UnknownRegion" /* is UNBOUND: Region is undefined */),
+  @RegionLock("L2 is this protects S1" /* is UNASSOCIATED: Cannot protect a static region with 'this' */),
+  @RegionLock("L3 is nonStaticField protects S2" /* is UNASSOCIATED: Cannot protect a static region with a non-static field */),
+  @RegionLock("L4 is class protects S3" /* is CONSISTENT: Static region protected by class */),
+  @RegionLock("L5 is staticFieldFromC protects S4" /* is CONSISTENT: Static region protected by static field */),
+  @RegionLock("L6 is staticFieldFromC protects StaticRegionFromC1" /* is CONSISTENT: Static region is from the protecting class; field is from the same */),
+  @RegionLock("L7 is test_lock_region.B.staticFieldFromB protects StaticRegionFromC2" /* is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from superclass (B) */),
+  @RegionLock("L8 is test_lock_region.D.staticFieldFromD protects StaticRegionFromC3" /* is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from subclass (D) */),
+  @RegionLock("L9 is test_lock_region.Other.staticFieldFromOther protects StaticRegionFromC4" /* is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from an unrelated class (Other) */),
+  @RegionLock("L10 is staticFieldFromC protects test_lock_region.B:StaticRegionFromB" /* is UNASSOCIATED: static region is from superclass (B) */),
+  @RegionLock("L11 is staticFieldFromC protects test_lock_region.D:StaticRegionFromD" /* is UNASSOCIATED: static region is from subclass (D) */),
+  @RegionLock("L12 is staticFieldFromC protects test_lock_region.Other:StaticRegionFromOther" /* is UNASSOCIATED: static region is from unrelated class (Other) */),
 })
 public class C extends B {
   final Object nonStaticField = new Object();

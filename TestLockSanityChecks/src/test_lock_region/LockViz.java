@@ -1,7 +1,7 @@
 package test_lock_region;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.ReturnsLock;
@@ -38,34 +38,34 @@ import com.surelogic.ReturnsLock;
   @Region("public publicRegion100"),
   @Region("public static publicStaticRegion")
 })
-@Locks({
-  @Lock("L1_good is privateField protects privateRegion1" /* is CONSISTENT: private field >= private region */),
-  @Lock("L2_bad is privateField protects defaultRegion1" /* is CONSISTENT: WARN: private field < default region */),
-  @Lock("L3_bad is privateField protects protectedRegion1" /* is CONSISTENT: WARN: private field < protected region */),
-  @Lock("L4_bad is privateField protects publicRegion1" /* is CONSISTENT: WARN: private field < public region */),
-  @Lock("L5_good is defaultField protects privateRegion2" /* is CONSISTENT: default field >= private region */),
-  @Lock("L6_good is defaultField protects defaultRegion2" /* is CONSISTENT: default field >= default region */),
-  @Lock("L7_bad is defaultField protects protectedRegion2" /* is CONSISTENT: WARN: default field < protected region */),
-  @Lock("L8_bad is defaultField protects publicRegion2" /* is CONSISTENT: WARN: default field < public region */),
-  @Lock("L9_good is protectedField protects privateRegion3" /* is CONSISTENT: protected field >= private region */),
-  @Lock("L10_good is protectedField protects defaultRegion3" /* is CONSISTENT: protected field >= default region */),
-  @Lock("L11_good is protectedField protects protectedRegion3" /* is CONSISTENT: protected field >= protected region */),
-  @Lock("L12_bad is protectedField protects publicRegion3" /* is CONSISTENT: WARN: protected field < public region */),
-  @Lock("L13_good is publicField protects privateRegion4" /* is CONSISTENT: public field >= private region */),
-  @Lock("L14_good is publicField protects defaultRegion4" /* is CONSISTENT: public field >= default region */),
-  @Lock("L15_good is publicField protects protectedRegion4" /* is CONSISTENT: public field >= protected region */),
-  @Lock("L16_good is publicField protects publicRegion4" /* is CONSISTENT: public field >= public region */),
-  @Lock("L200_good is this protects publicRegion100" /* is CONSISTENT: Receiver is public */),
-  @Lock("L201_good is class protects publicStaticRegion" /* is CONSISTENT: Class reference is public */),
-  @Lock("L100_good is privateFieldMadeDefault protects privateRegion5" /* is CONSISTENT: effectively default private field >= private region */),
-  @Lock("L101_good is privateFieldMadeDefault protects defaultRegion5" /* is CONSISTENT: effectively default private field >= default region */),
-  @Lock("L104_good is privateFieldMadeProtected protects privateRegion6" /* is CONSISTENT: effectively protected private field >= private region */),
-  @Lock("L105_good is privateFieldMadeProtected protects defaultRegion6" /* is CONSISTENT: effectively protected private field >= default region */),
-  @Lock("L106_good is privateFieldMadeProtected protects protectedRegion6" /* is CONSISTENT: effectively protected private field >= protected region */),
-  @Lock("L108_good is privateFieldMadePublic protects privateRegion7" /* is CONSISTENT: effectively public private field >= private region */),
-  @Lock("L109_good is privateFieldMadePublic protects defaultRegion7" /* is CONSISTENT: effectively public private field >= default region */),
-  @Lock("L110_good is privateFieldMadePublic protects protectedRegion7" /* is CONSISTENT: effectively public private field >= protected region */),
-  @Lock("L111_good is privateFieldMadePublic protects publicRegion7" /* is CONSISTENT: effectively public private field >= public region */)
+@RegionLocks({
+  @RegionLock("L1_good is privateField protects privateRegion1" /* is CONSISTENT: private field >= private region */),
+  @RegionLock("L2_bad is privateField protects defaultRegion1" /* is CONSISTENT: WARN: private field < default region */),
+  @RegionLock("L3_bad is privateField protects protectedRegion1" /* is CONSISTENT: WARN: private field < protected region */),
+  @RegionLock("L4_bad is privateField protects publicRegion1" /* is CONSISTENT: WARN: private field < public region */),
+  @RegionLock("L5_good is defaultField protects privateRegion2" /* is CONSISTENT: default field >= private region */),
+  @RegionLock("L6_good is defaultField protects defaultRegion2" /* is CONSISTENT: default field >= default region */),
+  @RegionLock("L7_bad is defaultField protects protectedRegion2" /* is CONSISTENT: WARN: default field < protected region */),
+  @RegionLock("L8_bad is defaultField protects publicRegion2" /* is CONSISTENT: WARN: default field < public region */),
+  @RegionLock("L9_good is protectedField protects privateRegion3" /* is CONSISTENT: protected field >= private region */),
+  @RegionLock("L10_good is protectedField protects defaultRegion3" /* is CONSISTENT: protected field >= default region */),
+  @RegionLock("L11_good is protectedField protects protectedRegion3" /* is CONSISTENT: protected field >= protected region */),
+  @RegionLock("L12_bad is protectedField protects publicRegion3" /* is CONSISTENT: WARN: protected field < public region */),
+  @RegionLock("L13_good is publicField protects privateRegion4" /* is CONSISTENT: public field >= private region */),
+  @RegionLock("L14_good is publicField protects defaultRegion4" /* is CONSISTENT: public field >= default region */),
+  @RegionLock("L15_good is publicField protects protectedRegion4" /* is CONSISTENT: public field >= protected region */),
+  @RegionLock("L16_good is publicField protects publicRegion4" /* is CONSISTENT: public field >= public region */),
+  @RegionLock("L200_good is this protects publicRegion100" /* is CONSISTENT: Receiver is public */),
+  @RegionLock("L201_good is class protects publicStaticRegion" /* is CONSISTENT: Class reference is public */),
+  @RegionLock("L100_good is privateFieldMadeDefault protects privateRegion5" /* is CONSISTENT: effectively default private field >= private region */),
+  @RegionLock("L101_good is privateFieldMadeDefault protects defaultRegion5" /* is CONSISTENT: effectively default private field >= default region */),
+  @RegionLock("L104_good is privateFieldMadeProtected protects privateRegion6" /* is CONSISTENT: effectively protected private field >= private region */),
+  @RegionLock("L105_good is privateFieldMadeProtected protects defaultRegion6" /* is CONSISTENT: effectively protected private field >= default region */),
+  @RegionLock("L106_good is privateFieldMadeProtected protects protectedRegion6" /* is CONSISTENT: effectively protected private field >= protected region */),
+  @RegionLock("L108_good is privateFieldMadePublic protects privateRegion7" /* is CONSISTENT: effectively public private field >= private region */),
+  @RegionLock("L109_good is privateFieldMadePublic protects defaultRegion7" /* is CONSISTENT: effectively public private field >= default region */),
+  @RegionLock("L110_good is privateFieldMadePublic protects protectedRegion7" /* is CONSISTENT: effectively public private field >= protected region */),
+  @RegionLock("L111_good is privateFieldMadePublic protects publicRegion7" /* is CONSISTENT: effectively public private field >= public region */)
 })
 public class LockViz {
   @SuppressWarnings("unused")

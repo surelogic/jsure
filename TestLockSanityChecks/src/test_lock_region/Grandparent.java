@@ -1,6 +1,6 @@
 package test_lock_region;
 
-import com.surelogic.MapInto;
+import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 
@@ -15,11 +15,11 @@ import com.surelogic.Regions;
   @Region("GPSubRegion3 extends GGPSubRegion2"),
 })
 public class Grandparent extends GreatGrandparent {
-  @MapInto("RegionFromGGPFilledInGP")
+  @InRegion("RegionFromGGPFilledInGP")
   @SuppressWarnings("unused")
   private int gpf1 = 1;
 
-  @MapInto("RegionFromGPFilledInGP")
+  @InRegion("RegionFromGPFilledInGP")
   @SuppressWarnings("unused")
   private int gpf2 = 1;
 }

@@ -1,7 +1,7 @@
 package test_requires_lock;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.RequiresLock;
@@ -14,10 +14,10 @@ import com.surelogic.RequiresLock;
   @Region("static StaticRegion"),
   @Region("NonStaticRegion")
 })
-@Locks({
-  @Lock("Exists is this protects R"),
-  @Lock("StaticLock is class protects StaticRegion"),
-  @Lock("NonStaticLock is this protects NonStaticRegion")
+@RegionLocks({
+  @RegionLock("Exists is this protects R"),
+  @RegionLock("StaticLock is class protects StaticRegion"),
+  @RegionLock("NonStaticLock is this protects NonStaticRegion")
 })
 public class StateLock_LockNames {
   /**

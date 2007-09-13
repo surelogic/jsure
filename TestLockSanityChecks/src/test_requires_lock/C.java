@@ -1,7 +1,7 @@
 package test_requires_lock;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.RequiresLock;
@@ -15,9 +15,9 @@ import com.surelogic.RequiresLock;
   @Region("I"),
   @Region("static S")
 })
-@Locks({
-  @Lock("IL is this protects I"),
-  @Lock("SL is class protects S")
+@RegionLocks({
+  @RegionLock("IL is this protects I"),
+  @RegionLock("SL is class protects S")
 })
 public class C {
   /**
@@ -53,7 +53,7 @@ public class C {
 
   
 
-  @Lock("InnerLock is this protects Instance")
+  @RegionLock("InnerLock is this protects Instance")
   public class Inner1 {
     public class Inner2 {
       /**

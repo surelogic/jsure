@@ -6,8 +6,8 @@
  */
 package test_unique_names;
 
-import com.surelogic.Lock;
-import com.surelogic.Locks;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
 import com.surelogic.PolicyLock;
 import com.surelogic.PolicyLocks;
 import com.surelogic.Region;
@@ -27,9 +27,9 @@ import com.surelogic.Regions;
   @PolicyLock("P is class" /*is CONSISTENT: First use of P (Policy)*/),
   @PolicyLock("P is class" /*is UNASSOCIATED: Second use of P (Policy)*/)
 })
-@Locks({
-  @Lock("L is this protects A" /*is UNASSOCIATED: Second use of L (State)*/),
-  @Lock("L is this protects B" /*is UNASSOCIATED: Third use of L (State)*/)
+@RegionLocks({
+  @RegionLock("L is this protects A" /*is UNASSOCIATED: Second use of L (State)*/),
+  @RegionLock("L is this protects B" /*is UNASSOCIATED: Third use of L (State)*/)
 })
 public class StateVsPolicyLocks {
   // empty body

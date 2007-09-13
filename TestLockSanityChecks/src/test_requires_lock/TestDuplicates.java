@@ -1,12 +1,12 @@
 package test_requires_lock;
 
-import com.surelogic.Lock;
+import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 
 /**
  * Test detection of duplicate lock names in the requiresLock list.
  */
-@Lock("L is this protects Instance" /* is INCONSISTENT */)
+@RegionLock("L is this protects Instance" /* is INCONSISTENT */)
 public class TestDuplicates {
   private int v;
 
