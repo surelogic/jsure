@@ -4,12 +4,12 @@ package test_requires_lock;
  * (These tests are all really Lock Name sanity tests.)
  * 
  * @Region R
- * @Lock Exists is this protects R
+ * @RegionLock Exists is this protects R
  * 
  * @Region static StaticRegion
- * @Lock StaticLock is class protects StaticRegion
+ * @RegionLock StaticLock is class protects StaticRegion
  * @Region NonStaticRegion
- * @Lock NonStaticLock is this protects NonStaticRegion
+ * @RegionLock NonStaticLock is this protects NonStaticRegion
  */
 public class StateLock_LockNames {
   /**

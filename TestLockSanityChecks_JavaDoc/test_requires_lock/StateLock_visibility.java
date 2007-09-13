@@ -15,20 +15,20 @@ package test_requires_lock;
  * @Region protected ProtectedRegion
  * @Region public PublicRegion
  * 
- * @Lock PrivateLock is privateField protects PrivateRegion
- * @Lock DefaultLock is defaultField protects DefaultRegion
- * @Lock ProtectedLock is protectedField protects ProtectedRegion
- * @Lock PublicLock is publicField protects PublicRegion
+ * @RegionLock PrivateLock is privateField protects PrivateRegion
+ * @RegionLock DefaultLock is defaultField protects DefaultRegion
+ * @RegionLock ProtectedLock is protectedField protects ProtectedRegion
+ * @RegionLock PublicLock is publicField protects PublicRegion
  * 
  * @Region private static PrivateStaticRegion
  * @Region static DefaultStaticRegion
  * @Region protected static ProtectedStaticRegion
  * @Region public static PublicStaticRegion
  * 
- * @Lock PrivateStaticLock is privateStaticField protects PrivateStaticRegion
- * @Lock DefaultStaticLock is defaultStaticField protects DefaultStaticRegion
- * @Lock ProtectedStaticLock is protectedStaticField protects ProtectedStaticRegion
- * @Lock PublicStaticLock is publicStaticField protects PublicStaticRegion
+ * @RegionLock PrivateStaticLock is privateStaticField protects PrivateStaticRegion
+ * @RegionLock DefaultStaticLock is defaultStaticField protects DefaultStaticRegion
+ * @RegionLock ProtectedStaticLock is protectedStaticField protects ProtectedStaticRegion
+ * @RegionLock PublicStaticLock is publicStaticField protects PublicStaticRegion
  */
 @SuppressWarnings("unused")
 public class StateLock_visibility extends Root {

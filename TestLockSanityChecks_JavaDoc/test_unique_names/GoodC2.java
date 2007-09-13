@@ -4,7 +4,7 @@ package test_unique_names;
  * @Region public R2
  *
  * @TestResult is CONSISTENT: First use of L2 in hierarchy
- * @Lock L2 is this protects R2
+ * @RegionLock L2 is this protects R2
  * @TestResult is CONSISTENT: First use of P2 in hierarchy
  * @PolicyLock P2 is class
  */

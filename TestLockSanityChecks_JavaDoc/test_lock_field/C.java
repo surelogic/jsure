@@ -26,43 +26,43 @@ package test_lock_field;
  * @Region static S5
  * 
  * @TestResult is UNBOUND: Field is undefined (Instance Region)
- * @Lock L1 is unknownField protects R1
+ * @RegionLock L1 is unknownField protects R1
  * @TestResult is CONSISTENT: receiver (Instance Region)
- * @Lock L2 is this protects R2
+ * @RegionLock L2 is this protects R2
  * @TestResult is CONSISTENT: known final field (Instance Region)
- * @Lock L3 is goodField protects R3
+ * @RegionLock L3 is goodField protects R3
  * @TestResult is UNASSOCIATED: field is non-final (Instance Region)
- * @Lock L4 is badField protects R4
+ * @RegionLock L4 is badField protects R4
  * @TestResult is UNBOUND: Field is undefined (Static region)
- * @Lock L5 is unknownField protects S1
+ * @RegionLock L5 is unknownField protects S1
  * @TestResult is CONSISTENT: class (Static region)
- * @Lock L6 is class protects S2
+ * @RegionLock L6 is class protects S2
  * @TestResult is CONSISTENT: known final static field (static region)
- * @Lock L7 is goodStatic protects S3
+ * @RegionLock L7 is goodStatic protects S3
  * @TestResult is UNASSOCIATED: non-final field (static region)
- * @Lock L8 is badStatic protects S4
+ * @RegionLock L8 is badStatic protects S4
  * @TestResult is UNASSOCIATED: primitively typed field
- * @Lock L9 is nonObjectField protects R5
+ * @RegionLock L9 is nonObjectField protects R5
  * @TestResult is CONSISTENT: Static locks can use fields from other classes
- * @Lock L10 is test_lock_field.Other.staticField protects S5
+ * @RegionLock L10 is test_lock_field.Other.staticField protects S5
  * @TestResult is UNASSOCIATED: Instance locks cannot use fields from other classes
- * @Lock L11 is test_lock_field.Other.otherField protects R6
+ * @RegionLock L11 is test_lock_field.Other.otherField protects R6
  * @TestResult is CONSISTENT: Can use field from GP
- * @Lock L12 is fieldFromA protects R10
+ * @RegionLock L12 is fieldFromA protects R10
  * @TestResult is CONSISTENT: Can use field from Parent
- * @Lock L13 is fieldFromB protects R11
+ * @RegionLock L13 is fieldFromB protects R11
  * @TestResult is UNBOUND: Field is unknown
- * @Lock L14 is fieldFromD protects R12
+ * @RegionLock L14 is fieldFromD protects R12
  * @TestResult is UNASSOCIATED: Cannot use a field from a child
- * @Lock L15 is test_lock_field.D.fieldFromD protects R13
+ * @RegionLock L15 is test_lock_field.D.fieldFromD protects R13
  * @TestResult is UNASSOCIATED: non-final field from GP
- * @Lock L16 is badFieldFromA protects R14
+ * @RegionLock L16 is badFieldFromA protects R14
  * @TestResult is UNASSOCIATED: non-final field from parent
- * @Lock L17 is badFieldFromB protects R15
+ * @RegionLock L17 is badFieldFromB protects R15
  * @TestResult is UNBOUND: unknown field
- * @Lock L18 is badFieldFromD protects R16
+ * @RegionLock L18 is badFieldFromD protects R16
  * @TestResult is UNASSOCIATED: non-final field from child
- * @Lock L19 is test_lock_field.D.badFieldFromD protects R17
+ * @RegionLock L19 is test_lock_field.D.badFieldFromD protects R17
  * 
  * @Region R100 
  * @Region R101
@@ -70,13 +70,13 @@ package test_lock_field;
  * @Region R103
  * 
  * @TestResult is UNASSOCIATED: class cannot protect an instance region
- * @Lock L100 is class protects R100
+ * @RegionLock L100 is class protects R100
  * @TestResult is UNASSOCIATED: static field cannot protect an instance region
- * @Lock L101 is goodStatic protects R101
+ * @RegionLock L101 is goodStatic protects R101
  * @TestResult is UNASSOCIATED: static field cannot protect an instance region
- * @Lock L102 is test_lock_field.C.goodStatic protects R102
+ * @RegionLock L102 is test_lock_field.C.goodStatic protects R102
  * @TestResult is UNASSOCIATED: static field cannot protect an instance region
- * @Lock L103 is test_lock_field.Other.staticField protects R103
+ * @RegionLock L103 is test_lock_field.Other.staticField protects R103
  * 
  * @TestResult is UNBOUND: Field is undefined (Instance Region)
  * @PolicyLock P1 is unknownField

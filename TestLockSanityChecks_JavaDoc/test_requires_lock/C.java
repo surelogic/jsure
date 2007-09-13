@@ -8,8 +8,8 @@ package test_requires_lock;
  * @Region I
  * @Region static S
  * 
- * @Lock IL is this protects I
- * @Lock SL is class protects S
+ * @RegionLock IL is this protects I
+ * @RegionLock SL is class protects S
  *
  */
 public class C {
@@ -52,7 +52,7 @@ public class C {
   
 
   /**
-   * @Lock InnerLock is this protects Instance
+   * @RegionLock InnerLock is this protects Instance
    */
   public class Inner1 {
     public class Inner2 {

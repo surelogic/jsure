@@ -8,8 +8,8 @@ package test_requires_lock;
  *
  * @Region static StaticRegion
  * @Region NonStaticRegion
- * @Lock StaticLock is class protects StaticRegion
- * @Lock NonStaticLock is this protects NonStaticRegion
+ * @RegionLock StaticLock is class protects StaticRegion
+ * @RegionLock NonStaticLock is this protects NonStaticRegion
  */
 public class StateLock_Constructor {
   /**

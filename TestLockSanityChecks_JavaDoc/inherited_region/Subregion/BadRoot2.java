@@ -12,7 +12,7 @@ package inherited_region.Subregion;
 public class BadRoot2 {
   /**
    * @TestResult is CONSISTENT 
-   * @MapInto R
+   * @InRegion R
    */
   protected int x;
 }

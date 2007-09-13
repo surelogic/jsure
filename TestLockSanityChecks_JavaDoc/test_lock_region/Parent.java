@@ -14,19 +14,19 @@ package test_lock_region;
  * @Region PSubRegion4 extends GPSubRegion3
  */
 public class Parent extends Grandparent {
-  /** @MapInto RegionFromGGPFilledInP */
+  /** @InRegion RegionFromGGPFilledInP */
   @SuppressWarnings("unused")
   private int pf1 = 1;
 
-  /** @MapInto RegionFromGPFilledInP */
+  /** @InRegion RegionFromGPFilledInP */
   @SuppressWarnings("unused")
   private int pf2 = 1;
 
-  /** @MapInto RegionFromPFilledInP */
+  /** @InRegion RegionFromPFilledInP */
   @SuppressWarnings("unused")
   private int pf3 = 1;
   
-  /** @MapInto PSubRegion4 */
+  /** @InRegion PSubRegion4 */
   @SuppressWarnings("unused")
   private int pf4 = 1;
 }

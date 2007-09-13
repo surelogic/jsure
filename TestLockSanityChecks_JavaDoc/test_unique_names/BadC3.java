@@ -6,7 +6,7 @@ package test_unique_names;
  * @Region public R3
  *
  * @TestResult is UNASSOCIATED: L1 is inherited from grandparent
- * @Lock L1 is this protects R3
+ * @RegionLock L1 is this protects R3
  * @TestResult is UNASSOCIATED: P1 is inherited from grandparent
  * @PolicyLock P1 is class
  */

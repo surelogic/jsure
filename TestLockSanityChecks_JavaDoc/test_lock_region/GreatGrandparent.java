@@ -17,7 +17,7 @@ package test_lock_region;
  * @Region GGPSubRegion2 extends RegionFromGGPWithNestedFieldFromP
  */
 public class GreatGrandparent {
-  /** @MapInto RegionFromGGPFilledInGGP */
+  /** @InRegion RegionFromGGPFilledInGGP */
   @SuppressWarnings("unused")
 private int gppf1 = 1;
 }

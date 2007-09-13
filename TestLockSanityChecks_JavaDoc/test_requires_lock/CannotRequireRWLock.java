@@ -4,7 +4,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * @Lock RW is rwLock protects Region
+ * @RegionLock RW is rwLock protects Region
  * @Region private Region
  */
 public class CannotRequireRWLock {

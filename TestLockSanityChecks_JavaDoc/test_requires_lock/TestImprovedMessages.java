@@ -1,7 +1,7 @@
 package test_requires_lock;
 
 /**
- * @Lock L is this protects Instance
+ * @RegionLock L is this protects Instance
  */
 public class TestImprovedMessages {
   private int v;

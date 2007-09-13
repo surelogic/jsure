@@ -4,7 +4,7 @@ package test_requires_lock;
  * Test detection of duplicate lock names in the requiresLock list.
  * 
  * @TestResult is INCONSISTENT
- * @Lock L is this protects Instance
+ * @RegionLock L is this protects Instance
  */
 public class TestDuplicates {
   private int v;

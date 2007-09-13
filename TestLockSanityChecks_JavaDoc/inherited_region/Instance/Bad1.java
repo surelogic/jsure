@@ -4,7 +4,7 @@ package inherited_region.Instance;
 
 /**
  * @TestResult is UNASSOCIATED : Cannot protect Instance because it has fields in a super class. 
- * @Lock L is this protects Instance
+ * @RegionLock L is this protects Instance
  */
 public class Bad1 extends BadRoot1 {
 

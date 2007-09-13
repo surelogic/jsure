@@ -21,9 +21,9 @@ package test_unique_names;
  * @TestResult is UNASSOCIATED: Second use of P (Policy)
  * @PolicyLock P is class
  * @TestResult is UNASSOCIATED: Second use of L (State)
- * @Lock L is this protects A
+ * @RegionLock L is this protects A
  * @TestResult is UNASSOCIATED: Third use of L (State)
- * @Lock L is this protects B
+ * @RegionLock L is this protects B
  */
 public class StateVsPolicyLocks {
   // empty body

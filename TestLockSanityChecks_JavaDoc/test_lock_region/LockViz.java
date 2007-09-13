@@ -41,66 +41,66 @@ package test_lock_region;
  * @Region public static publicStaticRegion
  * 
  * @TestResult is CONSISTENT: private field >= private region
- * @Lock L1_good is privateField protects privateRegion1
+ * @RegionLock L1_good is privateField protects privateRegion1
  * @TestResult is CONSISTENT: WARNING: private field < default region
- * @Lock L2_bad is privateField protects defaultRegion1
+ * @RegionLock L2_bad is privateField protects defaultRegion1
  * @TestResult is CONSISTENT: WARNING: private field < protected region
- * @Lock L3_bad is privateField protects protectedRegion1
+ * @RegionLock L3_bad is privateField protects protectedRegion1
  * @TestResult is CONSISTENT: WARNING: private field < public region
- * @Lock L4_bad is privateField protects publicRegion1
+ * @RegionLock L4_bad is privateField protects publicRegion1
  * 
  * @TestResult is CONSISTENT: default field >= private region
- * @Lock L5_good is defaultField protects privateRegion2
+ * @RegionLock L5_good is defaultField protects privateRegion2
  * @TestResult is CONSISTENT: default field >= default region
- * @Lock L6_good is defaultField protects defaultRegion2
+ * @RegionLock L6_good is defaultField protects defaultRegion2
  * @TestResult is CONSISTENT: WARNING: default field < protected region
- * @Lock L7_bad is defaultField protects protectedRegion2
+ * @RegionLock L7_bad is defaultField protects protectedRegion2
  * @TestResult is CONSISTENT: WARNING: default field < public region
- * @Lock L8_bad is defaultField protects publicRegion2
+ * @RegionLock L8_bad is defaultField protects publicRegion2
  * 
  * @TestResult is CONSISTENT: protected field >= private region
- * @Lock L9_good is protectedField protects privateRegion3
+ * @RegionLock L9_good is protectedField protects privateRegion3
  * @TestResult is CONSISTENT: protected field >= default region
- * @Lock L10_good is protectedField protects defaultRegion3
+ * @RegionLock L10_good is protectedField protects defaultRegion3
  * @TestResult is CONSISTENT: protected field >= protected region
- * @Lock L11_good is protectedField protects protectedRegion3
+ * @RegionLock L11_good is protectedField protects protectedRegion3
  * @TestResult is CONSISTENT: WARNING: protected field < public region
- * @Lock L12_bad is protectedField protects publicRegion3
+ * @RegionLock L12_bad is protectedField protects publicRegion3
  * 
  * @TestResult is CONSISTENT: public field >= private region
- * @Lock L13_good is publicField protects privateRegion4
+ * @RegionLock L13_good is publicField protects privateRegion4
  * @TestResult is CONSISTENT: public field >= default region
- * @Lock L14_good is publicField protects defaultRegion4
+ * @RegionLock L14_good is publicField protects defaultRegion4
  * @TestResult is CONSISTENT: public field >= protected region
- * @Lock L15_good is publicField protects protectedRegion4
+ * @RegionLock L15_good is publicField protects protectedRegion4
  * @TestResult is CONSISTENT: public field >= public region
- * @Lock L16_good is publicField protects publicRegion4
+ * @RegionLock L16_good is publicField protects publicRegion4
  *
  * @TestResult is CONSISTENT: Receiver is public
- * @Lock L200_good is this protects publicRegion100
+ * @RegionLock L200_good is this protects publicRegion100
  * @TestResult is CONSISTENT: Class reference is public
- * @Lock L201_good is class protects publicStaticRegion
+ * @RegionLock L201_good is class protects publicStaticRegion
  * 
  * @TestResult is CONSISTENT: effectively default private field >= private region
- * @Lock L100_good is privateFieldMadeDefault protects privateRegion5
+ * @RegionLock L100_good is privateFieldMadeDefault protects privateRegion5
  * @TestResult is CONSISTENT: effectively default private field >= default region
- * @Lock L101_good is privateFieldMadeDefault protects defaultRegion5
+ * @RegionLock L101_good is privateFieldMadeDefault protects defaultRegion5
  *
  * @TestResult is CONSISTENT: effectively protected private field >= private region
- * @Lock L104_good is privateFieldMadeProtected protects privateRegion6
+ * @RegionLock L104_good is privateFieldMadeProtected protects privateRegion6
  * @TestResult is CONSISTENT: effectively protected private field >= default region
- * @Lock L105_good is privateFieldMadeProtected protects defaultRegion6
+ * @RegionLock L105_good is privateFieldMadeProtected protects defaultRegion6
  * @TestResult is CONSISTENT: effectively protected private field >= protected region
- * @Lock L106_good is privateFieldMadeProtected protects protectedRegion6
+ * @RegionLock L106_good is privateFieldMadeProtected protects protectedRegion6
  * 
  * @TestResult is CONSISTENT: effectively public private field >= private region
- * @Lock L108_good is privateFieldMadePublic protects privateRegion7
+ * @RegionLock L108_good is privateFieldMadePublic protects privateRegion7
  * @TestResult is CONSISTENT: effectively public private field >= default region
- * @Lock L109_good is privateFieldMadePublic protects defaultRegion7
+ * @RegionLock L109_good is privateFieldMadePublic protects defaultRegion7
  * @TestResult is CONSISTENT: effectively public private field >= protected region
- * @Lock L110_good is privateFieldMadePublic protects protectedRegion7
+ * @RegionLock L110_good is privateFieldMadePublic protects protectedRegion7
  * @TestResult is CONSISTENT: effectively public private field >= public region
- * @Lock L111_good is privateFieldMadePublic protects publicRegion7
+ * @RegionLock L111_good is privateFieldMadePublic protects publicRegion7
  */
 public class LockViz {
   @SuppressWarnings("unused")

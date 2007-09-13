@@ -7,7 +7,7 @@ package inherited_region.baseCase;
  * is legal.
  * 
  * @TestResult is CONSISTENT : Adds field to Instance and protects it in the same class
- * @Lock L is this protects Instance
+ * @RegionLock L is this protects Instance
  */
 public class Good1 {
   protected int x;
