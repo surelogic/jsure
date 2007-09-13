@@ -3,7 +3,7 @@ package test;
 /**
  * Test the syntactic equality of lock expressions.
  * 
- * @Lock MyLock is this protects Instance
+ * @RegionLock MyLock is this protects Instance
  */
 public class C {
   public int field;
