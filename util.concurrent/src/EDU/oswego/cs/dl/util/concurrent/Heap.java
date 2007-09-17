@@ -35,7 +35,7 @@ import java.util.Comparator;
 public class Heap  {
   
   /** 
-   * @unshared
+   * @unique
    * @aggregate [] into HeapRegion
    */
   protected Object[] nodes_;  // the tree nodes, packed into an array
