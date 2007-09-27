@@ -32,8 +32,8 @@ package EDU.oswego.cs.dl.util.concurrent;
 public class BoundedBuffer implements BoundedChannel {
 
   /**
-   * @-unshared
-   * @-aggregate [] into HeadsOrTails
+   * @-Unique
+   * @-Aggregate [] into HeadsOrTails
    */
   protected final Object[]  array_;      // the elements
 
