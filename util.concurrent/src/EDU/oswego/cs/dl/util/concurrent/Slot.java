@@ -29,8 +29,8 @@ import java.lang.reflect.*;
  *
  * @RegionLock ItemLock is this protects item_
  * 
- * @promise "@singleThreaded" for new(**)
- * @promise "@borrowed this" for new(**)
+ * @promise '@singleThreaded' for new(**)
+ * @promise '@borrowed this' for new(**)
  **/
 
 public class Slot extends SemaphoreControlledChannel {

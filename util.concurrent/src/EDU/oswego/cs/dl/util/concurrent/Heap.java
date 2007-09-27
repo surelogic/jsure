@@ -28,7 +28,7 @@ import java.util.Comparator;
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  * 
  * @region protected HeapRegion
- * @promise "@InRegion HeapRegion"
+ * @promise '@InRegion HeapRegion'
  * @RegionLock HeapLock is this protects HeapRegion
  **/
 
