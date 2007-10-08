@@ -33,7 +33,7 @@ import com.surelogic.RegionLock;
 import com.surelogic.SingleThreaded;
 
 @Region("protected TotalRegion")
-@RegionLock("L is this protects TotalRegion")
+@RegionLock("L is this protects TotalRegion"/*is CONSISTENT*/)
 abstract class ConnectionCacheBlockingBase<C extends Closeable>
         extends ConnectionCacheBase<C> {
     
@@ -43,7 +43,7 @@ abstract class ConnectionCacheBlockingBase<C extends Closeable>
     protected int totalIdle ;	// Number of idle connections
     
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is CONSISTENT*/)
     ConnectionCacheBlockingBase( String cacheType, int highWaterMark,
             int numberToReclaim, Logger logger ) {
         

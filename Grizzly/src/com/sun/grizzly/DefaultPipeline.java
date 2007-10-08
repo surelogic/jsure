@@ -43,7 +43,7 @@ import com.surelogic.Unique;
  * @author Jean-Francois Arcand
  */
 @Region("protected Region")
-@RegionLock("ThisLock is this protects Region")
+@RegionLock("ThisLock is this protects Region"/*is INCONSISTENT*/)
 @Promise("'InRegion Region' for * *")
 public class DefaultPipeline extends LinkedList<Callable>
         implements Pipeline<Callable>{
@@ -107,7 +107,7 @@ public class DefaultPipeline extends LinkedList<Callable>
      * <code>WorkerThreadImpl</code> amanged by this pipeline.
      */
     @Unique
-    @Aggregate("Instance into Region")
+    @Aggregate("Instance into Region"/*is CONSISTENT*/)
     protected transient WorkerThreadImpl[] workerThreads;
     
     
@@ -138,13 +138,13 @@ public class DefaultPipeline extends LinkedList<Callable>
     
     
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is INCONSISTENT*/)
     public DefaultPipeline(){
         super();
     }
     
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is INCONSISTENT*/)
     public DefaultPipeline(int maxThreads, int minThreads, String name,
             int port, int priority){
         
@@ -161,7 +161,7 @@ public class DefaultPipeline extends LinkedList<Callable>
     
     
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is INCONSISTENT*/)
     public DefaultPipeline(int maxThreads, int minThreads, String name,
             int port){        
         this(maxThreads,minThreads,name,port,Thread.NORM_PRIORITY);
@@ -227,7 +227,7 @@ public class DefaultPipeline extends LinkedList<Callable>
      * @param startThread - should newly added <code>WorkerThreadImpl</code>
      * objects be started after creation?
      */
-    @RequiresLock("ThisLock")
+    @RequiresLock("ThisLock"/*is CONSISTENT*/)
     protected void increaseWorkerThread(int increment, boolean startThread){
         WorkerThreadImpl workerThread;
         int currentCount = threadCount;

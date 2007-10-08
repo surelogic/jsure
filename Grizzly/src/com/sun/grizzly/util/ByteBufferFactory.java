@@ -40,7 +40,7 @@ import com.surelogic.RegionLock;
  * @author Jean-Francois Arcand
  */
 @Region("private static BufferRegion")
-@RegionLock("Lock is class protects BufferRegion")
+@RegionLock("Lock is class protects BufferRegion"/*is CONSISTENT*/)
 public class ByteBufferFactory{
 
     /**

@@ -32,7 +32,7 @@ import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 @Region("HeadRegion")
-@RegionLock("Lock is lock protects HeadRegion")
+@RegionLock("Lock is lock protects HeadRegion"/*is INCONSISTENT*/)
 public class ConcurrentQueueNonBlockingImpl<V> implements ConcurrentQueue<V> {
     // This implementation of ConcurrentQueue uses a non-blocking algorithm (TBD).
     // For now, this is the same as the blocking impl.
@@ -54,7 +54,7 @@ public class ConcurrentQueueNonBlockingImpl<V> implements ConcurrentQueue<V> {
     // head.next == head.prev == head.
     @InRegion("HeadRegion")
     @Unique
-    @Aggregate("Instance into HeadRegion")
+    @Aggregate("Instance into HeadRegion"/*is INCONSISTENT*/)
     final Entry<V> head = new Entry<V>( null ) ;
     
     final Object lock = new Object() ;
@@ -62,7 +62,7 @@ public class ConcurrentQueueNonBlockingImpl<V> implements ConcurrentQueue<V> {
     int count = 0 ;
     
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is INCONSISTENT*/)
     public ConcurrentQueueNonBlockingImpl(){
     	
     }
