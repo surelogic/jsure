@@ -55,7 +55,7 @@ import java.net.InetAddress;
  * @since 2.0
  */
 @Region("private Region")
-@RegionLock("Lock is this protects Region")
+@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
 public class HostConfiguration implements Cloneable {
 
 	/**
@@ -89,7 +89,7 @@ public class HostConfiguration implements Cloneable {
 	 * Constructor for HostConfiguration.
 	 */
 	@SingleThreaded
-	@Borrowed("this")
+	@Borrowed("this"/*is CONSISTENT*/)
 	public HostConfiguration() {
 		super();
 	}
@@ -101,13 +101,13 @@ public class HostConfiguration implements Cloneable {
 	 *            the hostConfiguration to copy
 	 */
 	@SingleThreaded
-	@Borrowed("this")
+	@Borrowed("this"/*is CONSISTENT*/)
 	public HostConfiguration(final HostConfiguration hostConfiguration) {
 		init(hostConfiguration);
 	}
 
 	//Added the synchronized keyword - Ethan Urie
-	@Borrowed("this")
+	@Borrowed("this"/*is CONSISTENT*/)
 	private synchronized void init(final HostConfiguration hostConfiguration) {
 		// wrap all of the assignments in a synchronized block to avoid
 		// having to negotiate the monitor for each method call

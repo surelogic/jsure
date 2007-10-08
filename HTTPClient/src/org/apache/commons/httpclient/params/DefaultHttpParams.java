@@ -55,7 +55,7 @@ import com.surelogic.SingleThreaded;
  * @since 3.0
  */
 @Region("private Region")
-@RegionLock("Lock is this protects Region")
+@RegionLock("Lock is this protects Region" /*is INCONSISTENT*/)
 public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 
 	/** Log object for this class. */
@@ -93,11 +93,11 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 	}
 
 	/** The set of default values to defer to */
-	@InRegion("Region")
+	@InRegion("Region" /*is CONSISTENT*/)
 	private HttpParams defaults = null;
 
 	/** Hash map of HTTP parameters that this collection contains */
-	@InRegion("Region")
+	@InRegion("Region" /*is CONSISTENT*/)
 	private HashMap parameters = null;
 
 	/**
@@ -110,7 +110,7 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 	 *            explictly set in the collection itself.
 	 */
 	@SingleThreaded
-	@Borrowed("this")
+	@Borrowed("this" /*is CONSISTENT*/)
 	public DefaultHttpParams(final HttpParams defaults) {
 		super();
 		this.defaults = defaults;
@@ -125,7 +125,7 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 	 * @see #getDefaultParams()
 	 */
 	@SingleThreaded
-	@Borrowed("this")
+	@Borrowed("this" /*is CONSISTENT*/)
 	public DefaultHttpParams() {
 		this(getDefaultParams());
 	}

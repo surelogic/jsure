@@ -64,7 +64,7 @@ import com.surelogic.SingleThreaded;
  * @version $Revision: 509577 $ $Date: 2007-02-20 15:28:18 +0100 (Tue, 20 Feb 2007) $
  */
 @Region("private Region")
-@RegionLock("Lock is this protects Region")
+@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
 public class HttpClient {
 
 
@@ -102,7 +102,7 @@ public class HttpClient {
      * @see HttpClientParams
      */
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is CONSISTENT*/)
     public HttpClient() {
         this(new HttpClientParams());
     }
@@ -118,7 +118,7 @@ public class HttpClient {
      * @since 3.0
      */
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is CONSISTENT*/)
     public HttpClient(HttpClientParams params) {
         super();
         if (params == null) {
@@ -156,7 +156,7 @@ public class HttpClient {
      * @since 3.0
      */
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is CONSISTENT*/)
     public HttpClient(HttpClientParams params, HttpConnectionManager httpConnectionManager) {
         super();
         if (httpConnectionManager == null) {
@@ -180,7 +180,7 @@ public class HttpClient {
      * @since 2.0
      */
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is CONSISTENT*/)
     public HttpClient(HttpConnectionManager httpConnectionManager) {
         this(new HttpClientParams(), httpConnectionManager);
     }

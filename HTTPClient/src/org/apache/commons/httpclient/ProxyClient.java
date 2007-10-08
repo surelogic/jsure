@@ -51,7 +51,7 @@ import com.surelogic.RegionLock;
  * 
  * @version $Revision: 480424 $
  */
-@RegionLock("Lock is this protects Instance")
+@RegionLock("Lock is this protects Instance"/*is INCONSISTENT*/)
 public class ProxyClient {
 
     // ----------------------------------------------------- Instance Variables

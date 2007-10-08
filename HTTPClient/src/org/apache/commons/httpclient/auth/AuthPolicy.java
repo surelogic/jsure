@@ -62,14 +62,14 @@ import com.surelogic.Unique;
  * @since 3.0
  */
 @Region("private static StaticRegion")
-@RegionLock("Lock is class protects StaticRegion")
+@RegionLock("Lock is class protects StaticRegion" /* is INCONSISTENT */)
 public abstract class AuthPolicy {
 
 	@Unique
-	@Aggregate("Instance into StaticRegion")
+	@Aggregate("Instance into StaticRegion" /* is INCONSISTENT */)
     private static final HashMap   SCHEMES     = new HashMap();
 	@Unique
-	@Aggregate("Instance into StaticRegion")
+	@Aggregate("Instance into StaticRegion" /* is INCONSISTENT */)
     private static final ArrayList SCHEME_LIST = new ArrayList();
     
     /**

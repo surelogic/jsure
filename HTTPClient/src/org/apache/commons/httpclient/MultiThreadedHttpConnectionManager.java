@@ -78,9 +78,9 @@ import com.surelogic.Unique;
 	@Region("private Region")
 	})
 @RegionLocks({
-	@RegionLock("RTCS is REFERENCE_TO_CONNECTION_SOURCE protects ThreadRegion"), 
-	@RegionLock("ACM is ALL_CONNECTION_MANAGERS protects ConnectionsRegion"),
-	@RegionLock("Lock is this protects Region")
+	@RegionLock("RTCS is REFERENCE_TO_CONNECTION_SOURCE protects ThreadRegion"/*is INCONSISTENT*/), 
+	@RegionLock("ACM is ALL_CONNECTION_MANAGERS protects ConnectionsRegion"/*is UNASSOCIATED*/),
+	@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
 	})
 public class MultiThreadedHttpConnectionManager implements HttpConnectionManager {
 
@@ -100,7 +100,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
      * are lost to the garbage collector.
      */
     @Unique
-    @Aggregate("Instance into ThreadRegion")
+    @Aggregate("Instance into ThreadRegion"/*is INCONSISTENT*/)
     private static final Map REFERENCE_TO_CONNECTION_SOURCE = new HashMap();
     
     /**
@@ -120,7 +120,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
      */    
     @Unique
     @InRegion("ConnectionsRegion")
-    @Aggregate("Instance into ThreadRegion")
+    @Aggregate("Instance into ThreadRegion"/*is INCONSISTENT*/)
     private static WeakHashMap ALL_CONNECTION_MANAGERS = new WeakHashMap();
     
 
@@ -729,7 +729,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
     	@Promise("'@SingleThreaded' for new(**) in ConnectionPool"), 
     	@Promise("'@Borrowed this' for new(**) in ConnectionPool")
     	})
-    @RegionLock("CPLock is this protects Instance")
+    @RegionLock("CPLock is this protects Instance"/*is INCONSISTENT*/)
     private class ConnectionPool {
         
         /** The list of free connections */
@@ -743,7 +743,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
          * HostConnectionPool}s
          */
         @Unique
-        @Aggregate("Instance into Instance")
+        @Aggregate("Instance into Instance"/*is INCONSISTENT*/)
         private final Map mapHosts = new HashMap();
 
 //        @InRegion("CPRegion")

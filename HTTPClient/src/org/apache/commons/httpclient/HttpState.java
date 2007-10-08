@@ -70,7 +70,7 @@ import com.surelogic.Unique;
  * 
  */
 @Region("protected Region")
-@RegionLock("Lock is this protects Region")
+@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
 public class HttpState {
 
     // ----------------------------------------------------- Instance Variables
@@ -81,7 +81,7 @@ public class HttpState {
      */
     @InRegion("Region")
     @Unique
-    @Aggregate("Instance into Region")
+    @Aggregate("Instance into Region"/*is INCONSISTENT*/)
     protected HashMap credMap = new HashMap();
 
     /**
@@ -90,7 +90,7 @@ public class HttpState {
      */
     @InRegion("Region")
     @Unique
-    @Aggregate("Instance into Region")
+    @Aggregate("Instance into Region"/*is INCONSISTENT*/)
     protected HashMap proxyCred = new HashMap();
 
     /**
@@ -98,7 +98,7 @@ public class HttpState {
      */
     @Unique
     @InRegion("Region")
-    @Aggregate("Instance into Region")
+    @Aggregate("Instance into Region"/*is INCONSISTENT*/)
     protected ArrayList cookies = new ArrayList();
 
     private boolean preemptive = false;
@@ -125,7 +125,7 @@ public class HttpState {
      * Default constructor.
      */
     @SingleThreaded
-    @Borrowed("this")
+    @Borrowed("this"/*is CONSISTENT*/)
     public HttpState() {
         super();
     }

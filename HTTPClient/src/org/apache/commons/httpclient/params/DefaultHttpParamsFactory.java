@@ -45,7 +45,7 @@ import com.surelogic.RequiresLock;
 /**
  * @since 3.0
  */
-@RegionLock("Lock is this protects httpParams")
+@RegionLock("Lock is this protects httpParams"/*is CONSISTENT*/)
 public class DefaultHttpParamsFactory implements HttpParamsFactory {
 
     private HttpParams httpParams;
@@ -68,7 +68,7 @@ public class DefaultHttpParamsFactory implements HttpParamsFactory {
         return httpParams;
     }
 
-    @RequiresLock("Lock")
+    @RequiresLock("Lock"/*is CONSISTENT*/)
     protected HttpParams createParams() {
         HttpClientParams params = new HttpClientParams(null);
         
