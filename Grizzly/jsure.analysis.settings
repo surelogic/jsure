@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<preferences>
+  <included-analysis-modules>
+    <id>edu.cmu.cs.fluid.dcf.PackageLevelPreprocessing</id>
+    <id>edu.cmu.cs.fluid.dcf.PromiseScrubber</id>
+    <id>edu.cmu.cs.fluid.dcf.PromiseParser</id>
+    <id>edu.cmu.cs.fluid.dcf.ConvertToIR</id>
+    <id>edu.cmu.cs.fluid.dcf.UpdateSuperRootStorage</id>
+    <id>edu.cmu.cs.fluid.dcf.LockAssurance3</id>
+    <id>edu.cmu.cs.fluid.dcf.UniquenessAssurance2</id>
+    <id>edu.cmu.cs.fluid.dcf.ThreadEffectAssurance2</id>
+    <id>edu.cmu.cs.fluid.dcf.EffectAssurance2</id>
+  </included-analysis-modules>
+  <excluded-analysis-modules>
+    <id>edu.cmu.cs.fluid.dcf.LockAssurance2</id>
+    <id>edu.cmu.cs.fluid.dcf.UniquenessAssurance</id>
+    <id>edu.cmu.cs.fluid.dcf.ThreadEffectAssurance</id>
+    <id>edu.cmu.cs.fluid.dcf.EffectAssurance</id>
+  </excluded-analysis-modules>
+</preferences>
+
