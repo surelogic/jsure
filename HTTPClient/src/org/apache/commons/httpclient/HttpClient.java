@@ -64,7 +64,7 @@ import com.surelogic.SingleThreaded;
  * @version $Revision: 509577 $ $Date: 2007-02-20 15:28:18 +0100 (Tue, 20 Feb 2007) $
  */
 @Region("private Region")
-@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
+@RegionLock("Lock is this protects Region"/*is CONSISTENT*/)
 public class HttpClient {
 
 

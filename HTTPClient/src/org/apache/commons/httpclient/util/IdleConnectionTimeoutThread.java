@@ -51,12 +51,10 @@ import com.surelogic.Unique;
  * @since 3.0
  */
 @Region("private MgrRegion")
-@RegionLock("Lock is this protects MgrRegion"/*is INCONSISTENT*/)
+@RegionLock("Lock is this protects MgrRegion"/*is CONSISTENT*/)
 public class IdleConnectionTimeoutThread extends Thread {
     
 	@InRegion("MgrRegion")
-	@Unique
-	@Aggregate("Instance into MgrRegion"/*is INCONSISTENT*/)
     private List connectionManagers = new ArrayList();
     
 	@InRegion("MgrRegion")
@@ -66,8 +64,6 @@ public class IdleConnectionTimeoutThread extends Thread {
     
     private long connectionTimeout = 3000;
     
-    @SingleThreaded
-    @Borrowed("this"/*is INCONSISTENT*/)
     public IdleConnectionTimeoutThread() {
         setDaemon(true);
     }

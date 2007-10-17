@@ -76,7 +76,6 @@ class HttpMethodDirector {
     /** The proxy authenticate response header. */
     public static final String PROXY_AUTH_RESP = "Proxy-Authorization";
 
-    @Unique
     private static final Log LOG = LogFactory.getLog(HttpMethodDirector.class);
 
     private ConnectMethod connectMethod;

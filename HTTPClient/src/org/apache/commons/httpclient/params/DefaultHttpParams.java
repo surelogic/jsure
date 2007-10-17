@@ -55,7 +55,7 @@ import com.surelogic.SingleThreaded;
  * @since 3.0
  */
 @Region("private Region")
-@RegionLock("Lock is this protects Region" /*is INCONSISTENT*/)
+@RegionLock("Lock is this protects Region" /*is CONSISTENT*/)
 public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 
 	/** Log object for this class. */

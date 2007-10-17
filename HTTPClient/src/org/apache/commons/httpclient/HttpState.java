@@ -70,7 +70,7 @@ import com.surelogic.Unique;
  * 
  */
 @Region("protected Region")
-@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
+@RegionLock("Lock is this protects Region"/*is CONSISTENT*/)
 public class HttpState {
 
     // ----------------------------------------------------- Instance Variables
@@ -80,8 +80,6 @@ public class HttpState {
      * HTTP state contains.
      */
     @InRegion("Region")
-    @Unique
-    @Aggregate("Instance into Region"/*is INCONSISTENT*/)
     protected HashMap credMap = new HashMap();
 
     /**
@@ -89,16 +87,12 @@ public class HttpState {
      * HTTP state contains
      */
     @InRegion("Region")
-    @Unique
-    @Aggregate("Instance into Region"/*is INCONSISTENT*/)
     protected HashMap proxyCred = new HashMap();
 
     /**
      * Array of {@link Cookie cookies} that this HTTP state contains.
      */
-    @Unique
     @InRegion("Region")
-    @Aggregate("Instance into Region"/*is INCONSISTENT*/)
     protected ArrayList cookies = new ArrayList();
 
     private boolean preemptive = false;

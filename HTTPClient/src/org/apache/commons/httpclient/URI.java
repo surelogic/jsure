@@ -3901,7 +3901,6 @@ public class URI implements Cloneable, Comparable, Serializable {
     public static class LocaleToCharsetMap {
 
         /** A mapping of language code to charset */
-    	@Unique
         private static final Hashtable LOCALE_TO_CHARSET_MAP;
         static {
             LOCALE_TO_CHARSET_MAP = new Hashtable();

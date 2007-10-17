@@ -55,7 +55,7 @@ import java.net.InetAddress;
  * @since 2.0
  */
 @Region("private Region")
-@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
+@RegionLock("Lock is this protects Region"/*is CONSISTENT*/)
 public class HostConfiguration implements Cloneable {
 
 	/**

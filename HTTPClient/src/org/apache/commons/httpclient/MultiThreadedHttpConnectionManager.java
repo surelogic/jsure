@@ -54,12 +54,14 @@ import org.apache.commons.logging.LogFactory;
 
 import com.surelogic.Aggregate;
 import com.surelogic.InRegion;
+import com.surelogic.NotUnique;
 import com.surelogic.Promise;
 import com.surelogic.Promises;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.Regions;
+import com.surelogic.RequiresLock;
 import com.surelogic.Unique;
 
 /**
@@ -78,9 +80,9 @@ import com.surelogic.Unique;
 	@Region("private Region")
 	})
 @RegionLocks({
-	@RegionLock("RTCS is REFERENCE_TO_CONNECTION_SOURCE protects ThreadRegion"/*is INCONSISTENT*/), 
+	@RegionLock("RTCS is REFERENCE_TO_CONNECTION_SOURCE protects ThreadRegion"/*is CONSISTENT*/), 
 	@RegionLock("ACM is ALL_CONNECTION_MANAGERS protects ConnectionsRegion"/*is UNASSOCIATED*/),
-	@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
+	@RegionLock("Lock is this protects Region"/*is CONSISTENT*/)
 	})
 public class MultiThreadedHttpConnectionManager implements HttpConnectionManager {
 
@@ -99,8 +101,6 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
      * A mapping from Reference to ConnectionSource.  Used to reclaim resources when connections
      * are lost to the garbage collector.
      */
-    @Unique
-    @Aggregate("Instance into ThreadRegion"/*is INCONSISTENT*/)
     private static final Map REFERENCE_TO_CONNECTION_SOURCE = new HashMap();
     
     /**
@@ -118,9 +118,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
     /**
      * Holds references to all active instances of this class.
      */    
-    @Unique
     @InRegion("ConnectionsRegion")
-    @Aggregate("Instance into ThreadRegion"/*is INCONSISTENT*/)
     private static WeakHashMap ALL_CONNECTION_MANAGERS = new WeakHashMap();
     
 
@@ -729,7 +727,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
     	@Promise("'@SingleThreaded' for new(**) in ConnectionPool"), 
     	@Promise("'@Borrowed this' for new(**) in ConnectionPool")
     	})
-    @RegionLock("CPLock is this protects Instance"/*is INCONSISTENT*/)
+    @RegionLock("CPLock is this protects Instance"/*is CONSISTENT*/)
     private class ConnectionPool {
         
         /** The list of free connections */
@@ -742,8 +740,6 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
          * Map where keys are {@link HostConfiguration}s and values are {@link
          * HostConnectionPool}s
          */
-        @Unique
-        @Aggregate("Instance into Instance"/*is INCONSISTENT*/)
         private final Map mapHosts = new HashMap();
 
 //        @InRegion("CPRegion")
