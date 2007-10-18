@@ -46,7 +46,7 @@ import com.surelogic.Unique;
  * @author Ken Cavanaugh
  */
 @Region("protected TotalRegion")
-@RegionLock("Lock is this protects TotalRegion"/*is INCONSISTENT*/)
+@RegionLock("Lock is this protects TotalRegion"/*is CONSISTENT*/)
 @Promise("'InRegion TotalRegion' for int total*")
 public final class InboundConnectionCacheBlockingImpl<C extends Closeable>
         extends ConnectionCacheBlockingBase<C>

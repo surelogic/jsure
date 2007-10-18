@@ -34,7 +34,7 @@ import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 @Region("EntryRegion")
-@RegionLock("Lock is lock protects EntryRegion"/*is INCONSISTENT*/)
+@RegionLock("Lock is lock protects EntryRegion"/*is CONSISTENT*/)
 public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 	// This implementation of ConcurrentQueue uses a single lock, which must be
 	// acquired to update the list. Every operation on this class updates the
@@ -66,8 +66,8 @@ public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 	// if
 	// head.next == head.prev == head.
 	@InRegion("EntryRegion")
-	@Unique
-	@Aggregate("Instance into EntryRegion")
+//	@Unique
+//	@Aggregate("Instance into EntryRegion")
 	final Entry<V> head = new Entry<V>(null);
 	final Object lock = new Object();
 	
@@ -75,7 +75,7 @@ public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 	int count = 0;
 	
     @SingleThreaded
-    @Borrowed("this"/*is INCONSISTENT*/ )
+    @Borrowed("this"/*is CONSISTENT*/ )
     public ConcurrentQueueBlockingImpl(){
 	
     }
@@ -94,13 +94,13 @@ public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 		}
 	}
 
-//	@Region("HandleRegion extends EntryRegion")
-	@RegionLock("HandleLock is ConcurrentQueueBlockingImpl.this#lock protects Instance")
+	@Region("HandleRegion extends EntryRegion")
+	@RegionLock("HandleLock is ConcurrentQueueBlockingImpl.this.lock protects Instance")
 	private final class HandleImpl<V> implements Handle<V> {
-//		@InRegion("HandleRegion")
+		@InRegion("HandleRegion")
 		private Entry<V> entry;
 		private final V value;
-//		@InRegion("HandleRegion")
+		@InRegion("HandleRegion")
 		private boolean valid;
 
 		HandleImpl(Entry<V> entry, V value) {

@@ -50,14 +50,14 @@ import com.surelogic.Unique;
  * @author Alexey Stashok
  */
 @Region("ChannelsRegion")
-@RegionLock("Lock is channels protects ChannelsRegion"/*is INCONSISTENT*/)
+@RegionLock("Lock is channels protects ChannelsRegion"/*is CONSISTENT*/)
 class ReadController extends Controller {
     /**
      * List of <code>Channel<code> to process.
      */
 	@InRegion("ChannelsRegion")
-	@Unique
-	@Aggregate("Instance into ChannelsRegion"/*is INCONSISTENT*/)
+//	@Unique
+//	@Aggregate("Instance into ChannelsRegion"/*is CONSISTENT*/)
     final List<RegisterChannelRecord> channels = new ArrayList<RegisterChannelRecord>();
 	
 	public ReadController(){

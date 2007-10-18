@@ -48,7 +48,7 @@ import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 @Region("protected TotalRegion")
-@RegionLock("Lock is this protects TotalRegion"/*is INCONSISTENT*/)
+@RegionLock("Lock is this protects TotalRegion"/*is CONSISTENT*/)
 @Promise("'InRegion TotalRegion' for int total*")
 public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 		extends ConnectionCacheBlockingBase<C> implements
@@ -61,12 +61,12 @@ public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 	// to the same endpoint
 
 	@InRegion("TotalRegion")
-	@Unique
-	@Aggregate("Instance into TotalRegion"/*is INCONSISTENT*/)
+//	@Unique
+//	@Aggregate("Instance into TotalRegion"/*is INCONSISTENT*/)
 	private Map<ContactInfo<C>, CacheEntry<C>> entryMap;
 	@InRegion("TotalRegion")
-	@Unique
-	@Aggregate("Instance into TotalRegion"/*is INCONSISTENT*/)
+//	@Unique
+//	@Aggregate("Instance into TotalRegion"/*is INCONSISTENT*/)
 	private Map<C, ConnectionState<C>> connectionMap;
 
 	public int maxParallelConnections() {

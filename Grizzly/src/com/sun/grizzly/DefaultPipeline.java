@@ -30,6 +30,7 @@ import java.util.concurrent.Callable;
 import com.sun.grizzly.util.ByteBufferFactory.ByteBufferType;
 import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
+import com.surelogic.InRegion;
 import com.surelogic.Promise;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
@@ -43,7 +44,7 @@ import com.surelogic.Unique;
  * @author Jean-Francois Arcand
  */
 @Region("protected Region")
-@RegionLock("ThisLock is this protects Region"/*is INCONSISTENT*/)
+@RegionLock("ThisLock is this protects Region"/*is CONSISTENT*/)
 @Promise("'InRegion Region' for * *")
 public class DefaultPipeline extends LinkedList<Callable>
         implements Pipeline<Callable>{
@@ -217,6 +218,7 @@ public class DefaultPipeline extends LinkedList<Callable>
         }
         notifyAll();
     }
+    
     
     
     /**

@@ -88,7 +88,7 @@ import com.surelogic.SingleThreaded;
  * @author Alexey Stashok
  * @author Jeanfrancois Arcand
  */
-@RegionLock("Lock is class protects defaultSSLContext"/*is INCONSISTENT*/)
+@RegionLock("Lock is class protects defaultSSLContext"/*is CONSISTENT*/)
 public class SSLConnectorHandler implements ConnectorHandler<SSLSelectorHandler, SSLCallbackHandler>, CallbackHandler {
     
     /**

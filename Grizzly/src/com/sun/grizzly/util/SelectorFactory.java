@@ -40,7 +40,7 @@ import com.surelogic.Unique;
  * @author Jean-Francois Arcand
  */
 @Region("private static Region")
-@RegionLock("Lock is selectors protects Region"/*is INCONSISTENT*/)
+@RegionLock("Lock is selectors protects Region"/*is CONSISTENT*/)
 public class SelectorFactory{
     
     /**
@@ -58,8 +58,8 @@ public class SelectorFactory{
     /**
      * Cache of <code>Selector</code>
      */
-    @Unique
-    @Aggregate("Instance into Region"/*is INCONSISTENT*/)
+//    @Unique
+//    @Aggregate("Instance into Region"/*is INCONSISTENT*/)
     @InRegion("Region")
     private final static Stack<Selector> selectors = new Stack<Selector>();
     
