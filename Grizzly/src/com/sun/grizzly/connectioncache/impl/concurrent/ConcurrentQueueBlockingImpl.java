@@ -94,13 +94,10 @@ public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 		}
 	}
 
-	@Region("HandleRegion extends EntryRegion")
-	@RegionLock("HandleLock is ConcurrentQueueBlockingImpl.this.lock protects Instance")
+	@RegionLock("HandleLock is com.sun.grizzly.connectioncache.impl.concurrent.ConcurrentQueueBlockingImpl.this.lock protects Instance")
 	private final class HandleImpl<V> implements Handle<V> {
-		@InRegion("HandleRegion")
 		private Entry<V> entry;
 		private final V value;
-		@InRegion("HandleRegion")
 		private boolean valid;
 
 		HandleImpl(Entry<V> entry, V value) {
