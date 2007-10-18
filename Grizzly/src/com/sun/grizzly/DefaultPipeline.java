@@ -29,6 +29,8 @@ import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import com.sun.grizzly.util.ByteBufferFactory.ByteBufferType;
 import com.surelogic.Aggregate;
+import com.surelogic.Assume;
+import com.surelogic.Assumes;
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Promise;
@@ -46,6 +48,7 @@ import com.surelogic.Unique;
 @Region("protected Region")
 @RegionLock("ThisLock is this protects Region"/*is CONSISTENT*/)
 @Promise("'InRegion Region' for * *")
+@Assumes({@Assume("'SingleThreaded' for new() in java.util.LinkedList"), @Assume("'Borrowed this' for new() in java.util.LinkedLists")}) //not yet supported
 public class DefaultPipeline extends LinkedList<Callable>
         implements Pipeline<Callable>{
     
