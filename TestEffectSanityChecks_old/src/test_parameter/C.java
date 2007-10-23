@@ -1,9 +1,7 @@
 package test_parameter;
 
-import com.surelogic.Reads;
 import com.surelogic.Region;
 import com.surelogic.Regions;
-import com.surelogic.Writes;
 
 @Regions({
   @Region("public static StaticRegion"),

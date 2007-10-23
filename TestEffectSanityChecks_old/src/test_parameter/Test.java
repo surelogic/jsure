@@ -10,8 +10,9 @@ public class Test {
    * Region exists.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is CONSISTENT */)
-  public void Test(C c, boolean reads) {}
+  public Test(C c, boolean reads) {}
 
   /* Constructor
    * Parameter exists.
@@ -19,8 +20,9 @@ public class Test {
    * Region exists.
    * static Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:StaticRegion" /* is UNASSOCIATED: Region is static */)
-  public void Test(C c, boolean reads, int a) {}
+  public Test(C c, boolean reads, int a) {}
 
   /* Constructor
    * Parameter exists.
@@ -28,29 +30,33 @@ public class Test {
    * Region is from wrong class.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:RegionFromD" /* is UNBOUND: Region is not from C */)
-  public void Test(C c, boolean reads, int a, int b) {}
+  public Test(C c, boolean reads, int a, int b) {}
 
   /* Constructor
    * Parameter exists.
    * Non-primitive type.
    * Region does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:NoSuchRegion" /* is UNBOUND: No such region */)
-  public void Test(C c, boolean reads, int a, int b, int d) {}
+  public Test(C c, boolean reads, int a, int b, int d) {}
 
   /* Constructor
    * Parameter exists.
    * Primitive type.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is UNBOUND: C is primitive, so the region lookup fails */)
-  public void Test(int c, boolean reads, int a, int b, int d, int e) {}
+  public Test(int c, boolean reads, int a, int b, int d, int e) {}
 
   /* Constructor
    * Parameter does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("bad:InstanceRegion" /* is UNBOUND: No such parameter */)
-  public void Test(C c, boolean reads, int a, int b, int d, int e, int f) {}
+  public Test(C c, boolean reads, int a, int b, int d, int e, int f) {}
 
   /* Constructor
    * Parameter exists.
@@ -58,8 +64,9 @@ public class Test {
    * Region exists.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is CONSISTENT */)
-  public void Test(C c, Object writes) {}
+  public Test(C c, Object writes) {}
 
   /* Constructor
    * Parameter exists.
@@ -67,8 +74,9 @@ public class Test {
    * Region exists.
    * static Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:StaticRegion" /* is UNASSOCIATED: Region is static */)
-  public void Test(C c, Object writes, int a) {}
+  public Test(C c, Object writes, int a) {}
 
   /* Constructor
    * Parameter exists.
@@ -76,29 +84,33 @@ public class Test {
    * Region is from wrong class.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:RegionFromD" /* is UNBOUND: Region is not from C */)
-  public void Test(C c, Object writes, int a, int b) {}
+  public Test(C c, Object writes, int a, int b) {}
 
   /* Constructor
    * Parameter exists.
    * Non-primitive type.
    * Region does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:NoSuchRegion" /* is UNBOUND: No such region */)
-  public void Test(C c, Object writes, int a, int b, int d) {}
+  public Test(C c, Object writes, int a, int b, int d) {}
 
   /* Constructor
    * Parameter exists.
    * Primitive type.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is UNBOUND: C is primitive, so the region lookup fails */)
-  public void Test(int c, Object writes, int a, int b, int d, int e) {}
+  public Test(int c, Object writes, int a, int b, int d, int e) {}
 
   /* Constructor
    * Parameter does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("bad:InstanceRegion" /* is UNBOUND: No such parameter */)
-  public void Test(C c, Object writes, int a, int b, int d, int e, int f) {}
+  public Test(C c, Object writes, int a, int b, int d, int e, int f) {}
   
   
   
@@ -108,6 +120,7 @@ public class Test {
    * Region exists.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is CONSISTENT */)
   public void good_reads(C c) {}
 
@@ -117,6 +130,7 @@ public class Test {
    * Region exists.
    * static Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:StaticRegion" /* is UNASSOCIATED: Region is static */)
   public void bad_reads_staticRegion(C c) {}
 
@@ -126,6 +140,7 @@ public class Test {
    * Region is from wrong class.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:RegionFromD" /* is UNBOUND: Region is not from C */)
   public void bad_reads_badRegion(C c) {}
 
@@ -134,6 +149,7 @@ public class Test {
    * Non-primitive type.
    * Region does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:NoSuchRegion" /* is UNBOUND: No such region */)
   public void bad_reads_noSuchRegion(C c) {}
 
@@ -141,12 +157,14 @@ public class Test {
    * Parameter exists.
    * Primitive type.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is UNBOUND: C is primitive, so the region lookup fails */)
   public void bad_reads_primitive(int c) {}
 
   /* Instance method.
    * Parameter does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("bad:InstanceRegion" /* is UNBOUND: No such parameter */)
   public void bad_reads_noSuchParam(C c) {}
 
@@ -156,6 +174,7 @@ public class Test {
    * Region exists.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is CONSISTENT */)
   public void good_writes(C c) {}
 
@@ -165,6 +184,7 @@ public class Test {
    * Region exists.
    * static Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:StaticRegion" /* is UNASSOCIATED: Region is static */)
   public void bad_writes_staticRegion(C c) {}
 
@@ -174,6 +194,7 @@ public class Test {
    * Region is from wrong class.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:RegionFromD" /* is UNBOUND: Region is not from C */)
   public void bad_writes_badRegion(C c) {}
 
@@ -182,6 +203,7 @@ public class Test {
    * Non-primitive type.
    * Region does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:NoSuchRegion" /* is UNBOUND: No such region */)
   public void bad_writes_noSuchRegion(C c) {}
 
@@ -190,12 +212,14 @@ public class Test {
    * Parameter exists.
    * Primitive type.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is UNBOUND: C is primitive, so the region lookup fails */)
   public void bad_writes_primitive(int c) {}
 
   /* Instance method.
    * Parameter does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("bad:InstanceRegion" /* is UNBOUND: No such parameter */)
   public void bad_writes_noSuchParam(C c) {}
 
@@ -207,6 +231,7 @@ public class Test {
    * Region exists.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is CONSISTENT */)
   public static void good_static_reads(C c) {}
 
@@ -216,6 +241,7 @@ public class Test {
    * Region exists.
    * static Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:StaticRegion" /* is UNASSOCIATED: Region is static */)
   public static void bad_static_reads_staticRegion(C c) {}
 
@@ -225,6 +251,7 @@ public class Test {
    * Region is from wrong class.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:RegionFromD" /* is UNBOUND: Region is not from C */)
   public static void bad_static_reads_badRegion(C c) {}
 
@@ -233,6 +260,7 @@ public class Test {
    * Non-primitive type.
    * Region does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:NoSuchRegion" /* is UNBOUND: No such region */)
   public static void bad_static_reads_noSuchRegion(C c) {}
 
@@ -240,12 +268,14 @@ public class Test {
    * Parameter exists.
    * Primitive type.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is UNBOUND: C is primitive, so the region lookup fails */)
   public static void bad_static_reads_primitive(int c) {}
 
   /* Static method.
    * Parameter does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("bad:InstanceRegion" /* is UNBOUND: No such parameter */)
   public static void bad_static_reads_noSuchParam(C c) {}
 
@@ -255,6 +285,7 @@ public class Test {
    * Region exists.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is CONSISTENT */)
   public static void good_static_writes(C c) {}
 
@@ -264,6 +295,7 @@ public class Test {
    * Region exists.
    * static Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:StaticRegion" /* is UNASSOCIATED: Region is static */)
   public static void bad_static_writes_staticRegion(C c) {}
 
@@ -273,6 +305,7 @@ public class Test {
    * Region is from wrong class.
    * Instance Region.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:RegionFromD" /* is UNBOUND: Region is not from C */)
   public static void bad_static_writes_badRegion(C c) {}
 
@@ -281,6 +314,7 @@ public class Test {
    * Non-primitive type.
    * Region does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:NoSuchRegion" /* is UNBOUND: No such region */)
   public static void bad_static_writes_noSuchRegion(C c) {}
 
@@ -288,12 +322,14 @@ public class Test {
    * Parameter exists.
    * Primitive type.
    */
+  @SuppressWarnings("deprecation")
   @Reads("c:InstanceRegion" /* is UNBOUND: C is primitive, so the region lookup fails */)
   public static void bad_static_writes_primitive(int c) {}
 
   /* Static method.
    * Parameter does not exist.
    */
+  @SuppressWarnings("deprecation")
   @Reads("bad:InstanceRegion" /* is UNBOUND: No such parameter */)
   public static void bad_static_writes_noSuchParam(C c) {}
 
@@ -305,6 +341,7 @@ public class Test {
    * Public region, public method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("c:PublicRegion" /* is CONSISTENT */)
   public void good_read_publicRegion_publicMethod(C c) {}
 
@@ -314,6 +351,7 @@ public class Test {
    * Public region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("c:PublicRegion" /* is CONSISTENT */)
   protected void bad_read_publicRegion_protectedMethod(C c) {}
 
@@ -323,6 +361,7 @@ public class Test {
    * Public region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("c:PublicRegion" /* is CONSISTENT */)
   void bad_read_publicRegion_defaultMethod(C c) {}
 
@@ -332,6 +371,7 @@ public class Test {
    * Public region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("c:PublicRegion" /* is CONSISTENT */)
   private void bad_read_publicRegion_privateMethod(C c) {}
 
@@ -341,6 +381,7 @@ public class Test {
    * Protected region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("c:ProtectedRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_read_protectedRegion_publicMethod(C c) {}
 
@@ -350,6 +391,7 @@ public class Test {
    * Protected region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("c:ProtectedRegion" /* is CONSISTENT */)
   protected void bad_read_protectedRegion_protectedMethod(C c) {}
 
@@ -359,6 +401,7 @@ public class Test {
    * Protected region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("c:ProtectedRegion" /* is CONSISTENT */)
   void bad_read_protectedRegion_defaultMethod(C c) {}
 
@@ -368,6 +411,7 @@ public class Test {
    * Protected region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("c:ProtectedRegion" /* is CONSISTENT */)
   private void bad_read_protectedRegion_privateMethod(C c) {}
 
@@ -377,6 +421,7 @@ public class Test {
    * Default region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("c:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_read_defaultRegion_publicMethod(C c) {}
 
@@ -386,6 +431,7 @@ public class Test {
    * Default region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("c:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_read_defaultRegion_protectedMethod(C c) {}
 
@@ -395,6 +441,7 @@ public class Test {
    * Default region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("c:DefaultRegion" /* is CONSISTENT */)
   void bad_read_defaultRegion_defaultMethod(C c) {}
 
@@ -404,6 +451,7 @@ public class Test {
    * Default region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("c:DefaultRegion" /* is CONSISTENT */)
   private void bad_read_defaultRegion_privateMethod(C c) {}
 
@@ -413,6 +461,7 @@ public class Test {
    * Private region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("c:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_read_privateRegion_publicMethod(C c) {}
 
@@ -422,6 +471,7 @@ public class Test {
    * Private region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("c:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_read_privateRegion_protectedMethod(C c) {}
 
@@ -431,6 +481,7 @@ public class Test {
    * Private region, default method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("c:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   void bad_read_privateRegion_defaultMethod(C c) {}
 
@@ -440,6 +491,7 @@ public class Test {
    * Private region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("c:PrivateRegion" /* is CONSISTENT */)
   private void bad_read_privateRegion_privateMethod(C c) {}
 
@@ -451,6 +503,7 @@ public class Test {
    * Public region, public method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("c:PublicRegion" /* is CONSISTENT */)
   public void good_write_publicRegion_publicMethod(C c) {}
 
@@ -460,6 +513,7 @@ public class Test {
    * Public region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("c:PublicRegion" /* is CONSISTENT */)
   protected void bad_write_publicRegion_protectedMethod(C c) {}
 
@@ -469,6 +523,7 @@ public class Test {
    * Public region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("c:PublicRegion" /* is CONSISTENT */)
   void bad_write_publicRegion_defaultMethod(C c) {}
 
@@ -478,6 +533,7 @@ public class Test {
    * Public region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("c:PublicRegion" /* is CONSISTENT */)
   private void bad_write_publicRegion_privateMethod(C c) {}
 
@@ -487,6 +543,7 @@ public class Test {
    * Protected region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("c:ProtectedRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_write_protectedRegion_publicMethod(C c) {}
 
@@ -496,6 +553,7 @@ public class Test {
    * Protected region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("c:ProtectedRegion" /* is CONSISTENT */)
   protected void bad_write_protectedRegion_protectedMethod(C c) {}
 
@@ -505,6 +563,7 @@ public class Test {
    * Protected region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("c:ProtectedRegion" /* is CONSISTENT */)
   void bad_write_protectedRegion_defaultMethod(C c) {}
 
@@ -514,6 +573,7 @@ public class Test {
    * Protected region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("c:ProtectedRegion" /* is CONSISTENT */)
   private void bad_write_protectedRegion_privateMethod(C c) {}
 
@@ -523,6 +583,7 @@ public class Test {
    * Default region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("c:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_write_defaultRegion_publicMethod(C c) {}
 
@@ -532,6 +593,7 @@ public class Test {
    * Default region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("c:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_write_defaultRegion_protectedMethod(C c) {}
 
@@ -541,6 +603,7 @@ public class Test {
    * Default region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("c:DefaultRegion" /* is CONSISTENT */)
   void bad_write_defaultRegion_defaultMethod(C c) {}
 
@@ -550,6 +613,7 @@ public class Test {
    * Default region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("c:DefaultRegion" /* is CONSISTENT */)
   private void bad_write_defaultRegion_privateMethod(C c) {}
 
@@ -559,6 +623,7 @@ public class Test {
    * Private region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("c:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_write_privateRegion_publicMethod(C c) {}
 
@@ -568,6 +633,7 @@ public class Test {
    * Private region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("c:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_write_privateRegion_protectedMethod(C c) {}
 
@@ -577,6 +643,7 @@ public class Test {
    * Private region, default method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("c:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   void bad_write_privateRegion_defaultMethod(C c) {}
 
@@ -586,6 +653,7 @@ public class Test {
    * Private region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("c:PrivateRegion" /* is CONSISTENT */)
   private void bad_write_privateRegion_privateMethod(C c) {}
 }

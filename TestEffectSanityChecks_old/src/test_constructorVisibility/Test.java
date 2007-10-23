@@ -20,6 +20,7 @@ public class Test {
    * Public region, public method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("any(test_constructorVisibility.C):PublicRegion" /* is CONSISTENT */)
   public Test() {}
 
@@ -29,6 +30,7 @@ public class Test {
    * default region, protected method: bad
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("any(test_constructorVisibility.C):DefaultRegion" /* is UNASSOCIATED */)
   public Test(int x) {}
 
@@ -38,6 +40,7 @@ public class Test {
    * Public region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("c:PublicRegion" /* is CONSISTENT */)
   protected Test(C c) {}
 
@@ -47,6 +50,7 @@ public class Test {
    * Private region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("test_constructorVisibility.C:PrivateRegion" /* is CONSISTENT */)
-  private void Test(int a, int b) {}
+  private Test(int a, int b) {}
 }

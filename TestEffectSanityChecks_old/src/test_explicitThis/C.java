@@ -23,6 +23,7 @@ public class C {
    * read effect.
    */
   // BAD -- Constructor
+  @SuppressWarnings("deprecation")
   @Reads("this:InstanceRegion" /* is UNASSOCIATED: Cannot use this on constructor */)
   public C(boolean reads) {}
   
@@ -33,6 +34,7 @@ public class C {
    * read effect.
    */
   // BAD -- Constructor, static region
+  @SuppressWarnings("deprecation")
   @Reads("this:StaticRegion" /* is UNASSOCIATED: Cannot use this, static region on constructor */)
   public C(boolean reads, int a) {}
   
@@ -43,6 +45,7 @@ public class C {
    * read effect.
    */
   // BAD -- Constructor, region not from C
+  @SuppressWarnings("deprecation")
   @Reads("this:RegionFromD" /* is UNBOUND: Cannot use this on constructor; region not from C */)
   public C(boolean reads, int a, int b) {}
 
@@ -53,6 +56,7 @@ public class C {
    * write effect.
    */
   // BAD -- Constructor
+  @SuppressWarnings("deprecation")
   @Writes("this:InstanceRegion" /* is UNASSOCIATED: Cannot use this on constructor */)
   public C(Object writes) {}
   
@@ -63,6 +67,7 @@ public class C {
    * write effect.
    */
   // BAD -- Constructor, static region
+  @SuppressWarnings("deprecation")
   @Writes("this:StaticRegion" /* is UNASSOCIATED: Cannot use this, static region on constructor */)
   public C(Object writes, int a) {}
   
@@ -73,6 +78,7 @@ public class C {
    * write effect.
    */
   // BAD -- Constructor, region not from C
+  @SuppressWarnings("deprecation")
   @Writes("this:RegionFromD" /* is UNBOUND: Cannot use this on constructor; region not from C */)
   public C(Object writes, int a, int b) {}
 
@@ -86,6 +92,7 @@ public class C {
    * read effect.
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("this:InstanceRegion" /* is CONSISTENT */)
   public void good_read_instanceRegion() {}
   
@@ -96,6 +103,7 @@ public class C {
    * read effect.
    */
   // BAD --- static region
+  @SuppressWarnings("deprecation")
   @Reads("this:StaticRegion" /* is UNASSOCIATED: static region */)
   public void bad_read_staticRegion() {}
   
@@ -106,6 +114,7 @@ public class C {
    * read effect.
    */
   // BAD -- region not from C
+  @SuppressWarnings("deprecation")
   @Reads("this:RegionFromD" /* is UNBOUND: no such region */)
   public void bad_read_badRegion() {}
 
@@ -116,6 +125,7 @@ public class C {
    * write effect.
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("this:InstanceRegion" /* is CONSISTENT */)
   public void good_write_instanceRegion() {}
   
@@ -126,6 +136,7 @@ public class C {
    * write effect.
    */
   // BAD -- static region
+  @SuppressWarnings("deprecation")
   @Writes("this:StaticRegion" /* is UNASSOCIATED: static region */)
   public void bad_write_staticRegion() {}
   
@@ -136,6 +147,7 @@ public class C {
    * write effect.
    */
   // BAD -- region not from C
+  @SuppressWarnings("deprecation")
   @Writes("this:RegionFromD" /* is UNBOUND: no such region */)
   public void bad_write_badRegion() {}  
 
@@ -148,6 +160,7 @@ public class C {
    * read effect.
    */
   // BAD -- static method
+  @SuppressWarnings("deprecation")
   @Reads("this:InstanceRegion" /* is UNASSOCIATED: Cannot use this on static method */)
   public static void bad_static_read_instanceRegion() {}
   
@@ -158,6 +171,7 @@ public class C {
    * read effect.
    */
   // BAD -- static method
+  @SuppressWarnings("deprecation")
   @Reads("this:StaticRegion" /* is UNASSOCIATED: Cannot use this on static method */)
   public static void bad_static_read_staticRegion() {}
   
@@ -168,6 +182,7 @@ public class C {
    * read effect.
    */
   // BAD -- static method, region not from C
+  @SuppressWarnings("deprecation")
   @Reads("this:RegionFromD" /* is UNBOUND: Cannot use this on static method; region not from C */)
   public static void bad_static_read_badRegion() {}
 
@@ -178,6 +193,7 @@ public class C {
    * write effect.
    */
   // BAD -- static method
+  @SuppressWarnings("deprecation")
   @Writes("this:InstanceRegion" /* is UNASSOCIATED: Cannot use this on static method */)
   public static void bad_static_write_instanceRegion() {}
   
@@ -188,6 +204,7 @@ public class C {
    * write effect.
    */
   // BAD -- static method
+  @SuppressWarnings("deprecation")
   @Writes("this:StaticRegion" /* is UNASSOCIATED: Cannot use this on static method */)
   public static void bad_static_write_staticRegion() {}
   
@@ -198,6 +215,7 @@ public class C {
    * write effect.
    */
   // BAD -- static method, region not from C
+  @SuppressWarnings("deprecation")
   @Writes("this:RegionFromD" /* is UNBOUND: Cannot use this on static method; region not from C */)
   public static void bad_static_write_badRegion() {}  
 
@@ -210,6 +228,7 @@ public class C {
    * Public region, public method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("this:PublicRegion" /* is CONSISTENT */)
   public void good_read_publicRegion_publicMethod() {}
 
@@ -219,6 +238,7 @@ public class C {
    * Public region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("this:PublicRegion" /* is CONSISTENT */)
   protected void bad_read_publicRegion_protectedMethod() {}
 
@@ -228,6 +248,7 @@ public class C {
    * Public region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("this:PublicRegion" /* is CONSISTENT */)
   void bad_read_publicRegion_defaultMethod() {}
 
@@ -237,6 +258,7 @@ public class C {
    * Public region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("this:PublicRegion" /* is CONSISTENT */)
   private void bad_read_publicRegion_privateMethod() {}
 
@@ -246,6 +268,7 @@ public class C {
    * Protected region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("this:ProtectedRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_read_protectedRegion_publicMethod() {}
 
@@ -255,6 +278,7 @@ public class C {
    * Protected region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("this:ProtectedRegion" /* is CONSISTENT */)
   protected void bad_read_protectedRegion_protectedMethod() {}
 
@@ -264,6 +288,7 @@ public class C {
    * Protected region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("this:ProtectedRegion" /* is CONSISTENT */)
   void bad_read_protectedRegion_defaultMethod() {}
 
@@ -273,6 +298,7 @@ public class C {
    * Protected region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("this:ProtectedRegion" /* is CONSISTENT */)
   private void bad_read_protectedRegion_privateMethod() {}
 
@@ -282,6 +308,7 @@ public class C {
    * Default region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("this:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_read_defaultRegion_publicMethod() {}
 
@@ -291,6 +318,7 @@ public class C {
    * Default region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("this:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_read_defaultRegion_protectedMethod() {}
 
@@ -300,6 +328,7 @@ public class C {
    * Default region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("this:DefaultRegion" /* is CONSISTENT */)
   void bad_read_defaultRegion_defaultMethod() {}
 
@@ -309,6 +338,7 @@ public class C {
    * Default region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("this:DefaultRegion" /* is CONSISTENT */)
   private void bad_read_defaultRegion_privateMethod() {}
 
@@ -318,6 +348,7 @@ public class C {
    * Private region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("this:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_read_privateRegion_publicMethod() {}
 
@@ -327,6 +358,7 @@ public class C {
    * Private region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("this:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_read_privateRegion_protectedMethod() {}
 
@@ -336,6 +368,7 @@ public class C {
    * Private region, default method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("this:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   void bad_read_privateRegion_defaultMethod() {}
 
@@ -345,6 +378,7 @@ public class C {
    * Private region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("this:PrivateRegion" /* is CONSISTENT */)
   private void bad_read_privateRegion_privateMethod() {}
 
@@ -356,6 +390,7 @@ public class C {
    * Public region, public method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("this:PublicRegion" /* is CONSISTENT */)
   public void good_write_publicRegion_publicMethod() {}
 
@@ -365,6 +400,7 @@ public class C {
    * Public region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("this:PublicRegion" /* is CONSISTENT */)
   protected void bad_write_publicRegion_protectedMethod() {}
 
@@ -374,6 +410,7 @@ public class C {
    * Public region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("this:PublicRegion" /* is CONSISTENT */)
   void bad_write_publicRegion_defaultMethod() {}
 
@@ -383,6 +420,7 @@ public class C {
    * Public region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("this:PublicRegion" /* is CONSISTENT */)
   private void bad_write_publicRegion_privateMethod() {}
 
@@ -392,6 +430,7 @@ public class C {
    * Protected region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("this:ProtectedRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_write_protectedRegion_publicMethod() {}
 
@@ -401,6 +440,7 @@ public class C {
    * Protected region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("this:ProtectedRegion" /* is CONSISTENT */)
   protected void bad_write_protectedRegion_protectedMethod() {}
 
@@ -410,6 +450,7 @@ public class C {
    * Protected region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("this:ProtectedRegion" /* is CONSISTENT */)
   void bad_write_protectedRegion_defaultMethod() {}
 
@@ -419,6 +460,7 @@ public class C {
    * Protected region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("this:ProtectedRegion" /* is CONSISTENT */)
   private void bad_write_protectedRegion_privateMethod() {}
 
@@ -428,6 +470,7 @@ public class C {
    * Default region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("this:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_write_defaultRegion_publicMethod() {}
 
@@ -437,6 +480,7 @@ public class C {
    * Default region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("this:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_write_defaultRegion_protectedMethod() {}
 
@@ -446,6 +490,7 @@ public class C {
    * Default region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("this:DefaultRegion" /* is CONSISTENT */)
   void bad_write_defaultRegion_defaultMethod() {}
 
@@ -455,6 +500,7 @@ public class C {
    * Default region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("this:DefaultRegion" /* is CONSISTENT */)
   private void bad_write_defaultRegion_privateMethod() {}
 
@@ -464,6 +510,7 @@ public class C {
    * Private region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("this:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   public void good_write_privateRegion_publicMethod() {}
 
@@ -473,6 +520,7 @@ public class C {
    * Private region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("this:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_write_privateRegion_protectedMethod() {}
 
@@ -482,6 +530,7 @@ public class C {
    * Private region, default method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("this:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   void bad_write_privateRegion_defaultMethod() {}
 
@@ -491,6 +540,7 @@ public class C {
    * Private region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("this:PrivateRegion" /* is CONSISTENT */)
   private void bad_write_privateRegion_privateMethod() {}
 }

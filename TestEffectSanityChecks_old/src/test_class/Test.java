@@ -12,6 +12,7 @@ public class Test {
    * read effect.
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:StaticRegion" /* is CONSISTENT */)
   public Test(boolean read) {}
 
@@ -23,6 +24,7 @@ public class Test {
    * read effect.
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.nested.C:StaticRegion" /* is CONSISTENT */)
   public Test(boolean read, int a) {}
 
@@ -35,6 +37,7 @@ public class Test {
    */
   // XXX: Bug 1053, binder doesn't handle this yet
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("C:StaticRegion" /* is CONSISTENT */)
   public Test(boolean read, int a, int b) {}
 
@@ -46,6 +49,7 @@ public class Test {
    * read effect.
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:InstanceRegion" /* is UNASSOCIATED */)
   public Test(boolean read, int a, int b, int c) {}
 
@@ -57,6 +61,7 @@ public class Test {
    * read effect.
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.NoSuchClass:StaticRegion" /* is UNBOUND */)
   public Test(boolean read, int a, int b, int c, int d) {}
 
@@ -67,6 +72,7 @@ public class Test {
    * read effect.
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:NoSuchRegion" /* is UNBOUND */)
   public Test(boolean read, int a, int b, int c, int d, int e) {}
 
@@ -77,6 +83,7 @@ public class Test {
    * read effect.
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:RegionFromD" /* is UNBOUND */)
   public Test(boolean read, int a, int b, int c, int d, int e, int f) {}
 
@@ -91,6 +98,7 @@ public class Test {
    * write effect.
    */
   /// GOOD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:StaticRegion" /* is CONSISTENT */)
   public Test(Object write) {}
 
@@ -102,6 +110,7 @@ public class Test {
    * write effect.
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.nested.C:StaticRegion" /* is CONSISTENT */)
   public Test(Object write, int a) {}
 
@@ -114,6 +123,7 @@ public class Test {
    */
   // XXX: Bug 1053, binder doesn't handle this yet
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("C:StaticRegion" /* is CONSISTENT */)
   public Test(Object write, int a, int b) {}
 
@@ -125,6 +135,7 @@ public class Test {
    * write effect.
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:InstanceRegion" /* is UNASSOCIATED */)
   public Test(Object write, int a, int b, int c) {}
 
@@ -136,6 +147,7 @@ public class Test {
    * write effect.
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.NoSuchClass:StaticRegion" /* is UNBOUND */)
   public Test(Object write, int a, int b, int c, int d) {}
 
@@ -146,6 +158,7 @@ public class Test {
    * write effect.
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:NoSuchRegion" /* is UNBOUND */)
   public Test(Object write, int a, int b, int c, int d, int e) {}
 
@@ -156,6 +169,7 @@ public class Test {
    * write effect.
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:RegionFromD" /* is UNBOUND */)
   public Test(Object write, int a, int b, int c, int d, int e, int f) {}
 
@@ -170,6 +184,7 @@ public class Test {
    * region is static.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:StaticRegion" /* is CONSISTENT */)
   public void good_read_qualifiedClassName() {}
 
@@ -180,6 +195,7 @@ public class Test {
    * region is static.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.nested.C:StaticRegion" /* is CONSISTENT */)
   public void good_read_goodQualfiedClassName2() {}
 
@@ -191,6 +207,7 @@ public class Test {
    * read effect.
    */
   // XXX: Bug 1053, binder doesn't handle this yet
+  @SuppressWarnings("deprecation")
   @Reads("C:StaticRegion" /* is CONSISTENT */)
   public void good_read_unqualifiedClassName() {}
 
@@ -201,6 +218,7 @@ public class Test {
    * region is non-static.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:InstanceRegion" /* is UNASSOCIATED */)
   public void bad_read_staticRegion() {}
 
@@ -211,6 +229,7 @@ public class Test {
    * region is static.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.NoSuchClass:StaticRegion" /* is UNBOUND */)
   public void bad_read_noSuchClass() {}
 
@@ -220,6 +239,7 @@ public class Test {
    * region does not exist.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:NoSuchRegion" /* is UNBOUND */)
   public void bad_read_noSuchRegion() {}
 
@@ -229,6 +249,7 @@ public class Test {
    * region exists, but not as part of C
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:RegionFromD" /* is UNBOUND */)
   public void bad_read_noSuchRegion2() {}
 
@@ -242,6 +263,7 @@ public class Test {
    * region is static.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:StaticRegion" /* is CONSISTENT */)
   public void good_write_qualifiedClassName() {}
 
@@ -252,6 +274,7 @@ public class Test {
    * region is static.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.nested.C:StaticRegion" /* is CONSISTENT */)
   public void good_write_goodQualfiedClassName2() {}
 
@@ -263,6 +286,7 @@ public class Test {
    * write effect.
    */
   // XXX: Bug 1053, binder doesn't handle this yet
+  @SuppressWarnings("deprecation")
   @Writes("C:StaticRegion" /* is CONSISTENT */)
   public void good_write_unqualifiedClassName() {}
 
@@ -273,6 +297,7 @@ public class Test {
    * region is non-static.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:InstanceRegion" /* is UNASSOCIATED */)
   public void bad_write_staticRegion() {}
 
@@ -283,6 +308,7 @@ public class Test {
    * region is static.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.NoSuchClass:StaticRegion" /* is UNBOUND */)
   public void bad_write_noSuchClass() {}
 
@@ -292,6 +318,7 @@ public class Test {
    * region does not exist.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:NoSuchRegion" /* is UNBOUND */)
   public void bad_write_noSuchRegion() {}
 
@@ -301,6 +328,7 @@ public class Test {
    * region exists, but not as part of C
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:RegionFromD" /* is UNBOUND */)
   public void bad_write_noSuchRegion2() {}
 
@@ -314,6 +342,7 @@ public class Test {
    * region is static.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:StaticRegion" /* is CONSISTENT */)
   public static void good_static_read_qualifiedClassName() {}
 
@@ -324,6 +353,7 @@ public class Test {
    * region is static.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.nested.C:StaticRegion" /* is CONSISTENT */)
   public static void good_static_read_goodQualfiedClassName2() {}
 
@@ -335,6 +365,7 @@ public class Test {
    * read effect.
    */
   // XXX: Bug 1053, binder doesn't handle this yet
+  @SuppressWarnings("deprecation")
   @Reads("C:StaticRegion" /* is CONSISTENT */)
   public static void good_static_read_unqualifiedClassName() {}
 
@@ -345,6 +376,7 @@ public class Test {
    * region is non-static.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:InstanceRegion" /* is UNASSOCIATED */)
   public static void bad_static_read_staticRegion() {}
 
@@ -355,6 +387,7 @@ public class Test {
    * region is static.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.NoSuchClass:StaticRegion" /* is UNBOUND */)
   public static void bad_static_read_noSuchClass() {}
 
@@ -364,6 +397,7 @@ public class Test {
    * region does not exist.
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:NoSuchRegion" /* is UNBOUND */)
   public static void bad_static_read_noSuchRegion() {}
 
@@ -373,6 +407,7 @@ public class Test {
    * region exists, but not as part of C
    * read effect.
    */
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:RegionFromD" /* is UNBOUND */)
   public static void bad_static_read_noSuchRegion2() {}
 
@@ -386,6 +421,7 @@ public class Test {
    * region is static.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:StaticRegion" /* is CONSISTENT */)
   public static void good_static_write_qualifiedClassName() {}
 
@@ -396,6 +432,7 @@ public class Test {
    * region is static.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.nested.C:StaticRegion" /* is CONSISTENT */)
   public static void good_static_write_goodQualfiedClassName2() {}
 
@@ -407,6 +444,7 @@ public class Test {
    * write effect.
    */
   // XXX: Bug 1053, binder doesn't handle this yet
+  @SuppressWarnings("deprecation")
   @Writes("C:StaticRegion" /* is CONSISTENT */)
   public static void good_static_write_unqualifiedClassName() {}
 
@@ -417,6 +455,7 @@ public class Test {
    * region is non-static.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:InstanceRegion" /* is UNASSOCIATED */)
   public static void bad_static_write_staticRegion() {}
 
@@ -427,6 +466,7 @@ public class Test {
    * region is static.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.NoSuchClass:StaticRegion" /* is UNBOUND */)
   public static void bad_static_write_noSuchClass() {}
 
@@ -436,6 +476,7 @@ public class Test {
    * region does not exist.
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:NoSuchRegion" /* is UNBOUND */)
   public static void bad_static_write_noSuchRegion() {}
 
@@ -445,6 +486,7 @@ public class Test {
    * region exists, but not as part of C
    * write effect.
    */
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:RegionFromD" /* is UNBOUND */)
   public static void bad_static_write_noSuchRegion2() {}
 
@@ -457,6 +499,7 @@ public class Test {
    * Public region, public method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:PublicRegion" /* is CONSISTENT */)
   public static void good_read_publicRegion_publicMethod(C c) {}
 
@@ -466,6 +509,7 @@ public class Test {
    * Public region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:PublicRegion" /* is CONSISTENT */)
   protected void bad_read_publicRegion_protectedMethod(C c) {}
 
@@ -475,6 +519,7 @@ public class Test {
    * Public region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:PublicRegion" /* is CONSISTENT */)
   void bad_read_publicRegion_defaultMethod(C c) {}
 
@@ -484,6 +529,7 @@ public class Test {
    * Public region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("test_class.C:PublicRegion" /* is CONSISTENT */)
   private void bad_read_publicRegion_privateMethod(C c) {}
 
@@ -493,6 +539,7 @@ public class Test {
    * Protected region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:ProtectedRegion" /* is UNASSOCIATED: region is less visible than method */)
   public static void good_read_protectedRegion_publicMethod(C c) {}
 
@@ -502,6 +549,7 @@ public class Test {
    * Protected region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:ProtectedRegion" /* is CONSISTENT */)
   protected void bad_read_protectedRegion_protectedMethod(C c) {}
 
@@ -511,6 +559,7 @@ public class Test {
    * Protected region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:ProtectedRegion" /* is CONSISTENT */)
   void bad_read_protectedRegion_defaultMethod(C c) {}
 
@@ -520,6 +569,7 @@ public class Test {
    * Protected region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("test_class.C:ProtectedRegion" /* is CONSISTENT */)
   private void bad_read_protectedRegion_privateMethod(C c) {}
 
@@ -529,6 +579,7 @@ public class Test {
    * Default region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   public static void good_read_defaultRegion_publicMethod(C c) {}
 
@@ -538,6 +589,7 @@ public class Test {
    * Default region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_read_defaultRegion_protectedMethod(C c) {}
 
@@ -547,6 +599,7 @@ public class Test {
    * Default region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:DefaultRegion" /* is CONSISTENT */)
   void bad_read_defaultRegion_defaultMethod(C c) {}
 
@@ -556,6 +609,7 @@ public class Test {
    * Default region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("test_class.C:DefaultRegion" /* is CONSISTENT */)
   private void bad_read_defaultRegion_privateMethod(C c) {}
 
@@ -565,6 +619,7 @@ public class Test {
    * Private region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   public static void good_read_privateRegion_publicMethod(C c) {}
 
@@ -574,6 +629,7 @@ public class Test {
    * Private region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_read_privateRegion_protectedMethod(C c) {}
 
@@ -583,6 +639,7 @@ public class Test {
    * Private region, default method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Reads("test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   void bad_read_privateRegion_defaultMethod(C c) {}
 
@@ -592,6 +649,7 @@ public class Test {
    * Private region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Reads("test_class.C:PrivateRegion" /* is CONSISTENT */)
   private void bad_read_privateRegion_privateMethod(C c) {}
 
@@ -603,6 +661,7 @@ public class Test {
    * Public region, public method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:PublicRegion" /* is CONSISTENT */)
   public static void good_write_publicRegion_publicMethod(C c) {}
 
@@ -612,6 +671,7 @@ public class Test {
    * Public region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:PublicRegion" /* is CONSISTENT */)
   protected void bad_write_publicRegion_protectedMethod(C c) {}
 
@@ -621,6 +681,7 @@ public class Test {
    * Public region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:PublicRegion" /* is CONSISTENT */)
   void bad_write_publicRegion_defaultMethod(C c) {}
 
@@ -630,6 +691,7 @@ public class Test {
    * Public region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("test_class.C:PublicRegion" /* is CONSISTENT */)
   private void bad_write_publicRegion_privateMethod(C c) {}
 
@@ -639,6 +701,7 @@ public class Test {
    * Protected region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:ProtectedRegion" /* is UNASSOCIATED: region is less visible than method */)
   public static void good_write_protectedRegion_publicMethod(C c) {}
 
@@ -648,6 +711,7 @@ public class Test {
    * Protected region, protected method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:ProtectedRegion" /* is CONSISTENT */)
   protected void bad_write_protectedRegion_protectedMethod(C c) {}
 
@@ -657,6 +721,7 @@ public class Test {
    * Protected region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:ProtectedRegion" /* is CONSISTENT */)
   void bad_write_protectedRegion_defaultMethod(C c) {}
 
@@ -666,6 +731,7 @@ public class Test {
    * Protected region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("test_class.C:ProtectedRegion" /* is CONSISTENT */)
   private void bad_write_protectedRegion_privateMethod(C c) {}
 
@@ -675,6 +741,7 @@ public class Test {
    * Default region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   public static void good_write_defaultRegion_publicMethod(C c) {}
 
@@ -684,6 +751,7 @@ public class Test {
    * Default region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:DefaultRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_write_defaultRegion_protectedMethod(C c) {}
 
@@ -693,6 +761,7 @@ public class Test {
    * Default region, default method: Good
    */
   // GOOD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:DefaultRegion" /* is CONSISTENT */)
   void bad_write_defaultRegion_defaultMethod(C c) {}
 
@@ -702,6 +771,7 @@ public class Test {
    * Default region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("test_class.C:DefaultRegion" /* is CONSISTENT */)
   private void bad_write_defaultRegion_privateMethod(C c) {}
 
@@ -711,6 +781,7 @@ public class Test {
    * Private region, public method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   public static void good_write_privateRegion_publicMethod(C c) {}
 
@@ -720,6 +791,7 @@ public class Test {
    * Private region, protected method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   protected void bad_write_privateRegion_protectedMethod(C c) {}
 
@@ -729,6 +801,7 @@ public class Test {
    * Private region, default method: Good
    */
   // BAD
+  @SuppressWarnings("deprecation")
   @Writes("test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
   void bad_write_privateRegion_defaultMethod(C c) {}
 
@@ -738,6 +811,7 @@ public class Test {
    * Private region, private method: Good
    */
   // GOOD
+  @SuppressWarnings({ "deprecation", "unused" })
   @Writes("test_class.C:PrivateRegion" /* is CONSISTENT */)
   private void bad_write_privateRegion_privateMethod(C c) {}
 }
