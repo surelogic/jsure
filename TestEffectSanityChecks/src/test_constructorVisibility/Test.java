@@ -43,10 +43,10 @@ public class Test {
   /**
    * Constructor.
    * read effect.
-   * Private region, private method: Good
+   * Private region, private method: BAD: Cannot refer to private region from another class
    */
-  // GOOD
-  @RegionEffects("reads test_constructorVisibility.C:PrivateRegion" /* is CONSISTENT */)
+  // BAD
+  @RegionEffects("reads test_constructorVisibility.C:PrivateRegion" /* is UNASSOCIATED */)
   @SuppressWarnings("unused")
   private Test(int a, int b) {}
 }

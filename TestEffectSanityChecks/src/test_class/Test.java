@@ -564,7 +564,7 @@ public class Test {
   /**
    * Static method.
    * read effect.
-   * Private region, public method: Good
+   * Private region, public method: BAD: Cannot refer to private region from another class
    */
   // BAD
   @RegionEffects("reads test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
@@ -573,7 +573,7 @@ public class Test {
   /**
    * Static method.
    * read effect.
-   * Private region, protected method: Good
+   * Private region, protected method: BAD: Cannot refer to private region from another class
    */
   // BAD
   @RegionEffects("reads test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
@@ -582,7 +582,7 @@ public class Test {
   /**
    * Static method.
    * read effect.
-   * Private region, default method: Good
+   * Private region, default method: BAD: Cannot refer to private region from another class
    */
   // BAD
   @RegionEffects("reads test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
@@ -591,10 +591,10 @@ public class Test {
   /**
    * Static method.
    * read effect.
-   * Private region, private method: Good
+   * Private region, private method: BAD: Cannot refer to private region from another class
    */
-  // GOOD
-  @RegionEffects("reads test_class.C:PrivateRegion" /* is CONSISTENT */)
+  // GOOD 
+  @RegionEffects("reads test_class.C:PrivateRegion" /* is UNASSOCIATED */)
   @SuppressWarnings("unused")
   private void bad_read_privateRegion_privateMethod(C c) {}
 
@@ -714,7 +714,7 @@ public class Test {
   /**
    * Static method.
    * write effect.
-   * Private region, public method: Good
+   * Private region, public method: BAD: Cannot refer to private region from another class
    */
   // BAD
   @RegionEffects("writes test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
@@ -723,7 +723,7 @@ public class Test {
   /**
    * Static method.
    * write effect.
-   * Private region, protected method: Good
+   * Private region, protected method: BAD: Cannot refer to private region from another class
    */
   // BAD
   @RegionEffects("writes test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
@@ -732,7 +732,7 @@ public class Test {
   /**
    * Static method.
    * write effect.
-   * Private region, default method: Good
+   * Private region, default method: BAD: Cannot refer to private region from another class
    */
   // BAD
   @RegionEffects("writes test_class.C:PrivateRegion" /* is UNASSOCIATED: region is less visible than method */)
@@ -741,10 +741,10 @@ public class Test {
   /**
    * Static method.
    * write effect.
-   * Private region, private method: Good
+   * Private region, private method: BAD: Cannot refer to private region from another class
    */
-  // GOOD
-  @RegionEffects("writes test_class.C:PrivateRegion" /* is CONSISTENT */)
+  // BAD
+  @RegionEffects("writes test_class.C:PrivateRegion" /* is UNASSOCIATED */)
   @SuppressWarnings("unused")
   private void bad_write_privateRegion_privateMethod(C c) {}
 }
