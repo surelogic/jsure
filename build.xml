@@ -1,0 +1,78 @@
+<!--project name="TPTP Ant Tasks Test Script"
+ default="test" 
+ xmlns:tptp="antlib:org.eclipse.hyades.automation.client.adapters.ant">
+
+<property name="eclipse.home" value="C:\eclipse"/>
+
+ <description>
+  This ant script tests the TPTP automation ant task client adapters
+  and also can be used to test the underlying execution of TPTP automatable
+  services via the TPTP automation server
+ </description>
+
+-->
+ <!-- Execute TPTP test suites -->
+<!--
+ <target 
+name="test" description="Executes TPTP Test Suites using default TPTP Ant 
+Tasks"> 
+
+-->
+   <!-- 
+Execute a TPTP test suite using the test task and providing the workspace 
+-->
+<!--
+   <tptp:test
+     workspace="C:/work/workspace"  
+     project="JSure Tests"
+     suite="src/TestTest.testsuite"
+   	 deployment="workDeploy.deploy"
+     synchronicity="synchronous"
+     resultsrefid="tptp.test.results"/>
+
+  </target>
+</project-->
+
+<project name="TPTP Automatable Plugin Tests" default="main" 
+    xmlns:tptp="antlib:org.eclipse.hyades.automation.client.adapters.ant">
+
+    <!-- Define common properties for all automatable services -->
+    <property name="tptp.test.workspace" 
+        value="C:\work\workspace"/>
+    <property name="tptp.test.project" 
+        value="JSure Tests" />
+    <property name="tptp.deployment" 
+        value="workDeploy.deploy" />
+
+    <!-- Define script-local properties, that vary by installation -->
+    <property name="project.dir" 
+        value="${tptp.test.workspace}\${tptp.test.project}"/>
+    <property name="report.publication.location" 
+        location="${user.home}/Desktop" />
+
+    <target name="main" depends="test-execution, test-results-publication"/>
+
+    <echo message="reports to: ${report.publication.location}"/>
+
+    <!-- Execute test suites using default results name -->
+    <target name="test-execution">
+        <echo message="Executing test suite..." />
+
+        <tptp:execution resultsrefid="tptp.test.results"
+            deployment="${tptp.deployment}">
+            <fileset dir="${project.dir}">
+                <include name="**/*.testsuite"/>
+            </fileset>
+        </tptp:execution>
+    </target>
+
+    <!-- Publish test suite results report -->
+
+    <target name="test-results-publication">
+        <echo message="Publishing test suite results report..." />
+        <tptp:publication report="${report.publication.location}/report.html">
+            <filelist refid="tptp.test.results"/>
+        </tptp:publication>
+    </target>
+
+</project>
