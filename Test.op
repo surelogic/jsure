@@ -1,0 +1,26 @@
+# $Header$
+public operator Ellipsis  
+  implements ClassBodyDeclInterface, ForInitInterface, ImportNameInterface,
+	OptArrayInitializerInterface, ReturnTypeInterface, StatementExpressionInterface,
+	TypeDeclInterface, TypeInterface
+{
+  syntax {
+    "..."
+    $mods:Modifiers(public,abstract)	
+    child:JavaOperator 
+    ( 
+    others:Foo + ?/ "," ) 
+  }
+
+  public String name() { return "..."; }
+  
+  public Operator getResultOp() {
+    return Ellipsis.prototype;
+  }
+  
+  public void unparseWrapper(IRNode node, JavaUnparser u) {
+    OPENTOKEN.emit(u, node);
+    unparse(node, u);
+    CLOSETOKEN.emit(u, node);
+  }
+}

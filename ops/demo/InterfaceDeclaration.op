@@ -1,0 +1,34 @@
+# $Header$
+public operator InterfaceDeclaration extends TypeDeclaration implements FlowUnit 
+{
+  syntax {
+    $mods:Modifiers "interface" $id:Info types:TypeFormals extensions:Extensions
+    body:ClassBody // sloppy but easier than doing everything over again
+  }
+
+  @Override public Component createComponent(IRNode node) {
+    return ClassDeclaration.createTypeDeclComponent(node,2,false);
+  }
+
+  public Source getSource(IRNode node) {
+    Component comp = JavaComponentFactory.prototype.getComponent(node);
+    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,2));
+    ControlEdge e = ((SubcomponentEntryPort)sub.getEntryPort()).getInput();
+    return (Source)e.getSource();
+  }
+  public Sink getNormalSink(IRNode node) {
+    Component comp = JavaComponentFactory.prototype.getComponent(node);
+    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,2));
+    ControlEdge e = ((SubcomponentNormalExitPort)sub.getNormalExitPort()).getOutput();
+    return (Sink)e.getSink();
+  }
+  public Sink getAbruptSink(IRNode node) {
+    Component comp = JavaComponentFactory.prototype.getComponent(node);
+    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,2));
+    ControlEdge e = ((SubcomponentAbruptExitPort)sub.getAbruptExitPort()).getOutput();
+    return (Sink)e.getSink();
+  }
+  public Operator getResultOp() {
+    return InterfaceDeclaration.prototype;
+  }
+}

@@ -1,0 +1,11 @@
+# $Header: /cvs/fluid/opgen/ops/demo/OptMethodBody.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+public operator OptMethodBody {
+  /** Create a component which passes through control
+   * directly.  Overridden for an actual method body.
+   */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    ControlEdge.connect(comp.getEntryPort(),comp.getNormalExitPort());
+    return comp;
+  }
+}

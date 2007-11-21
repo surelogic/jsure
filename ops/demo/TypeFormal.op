@@ -1,0 +1,7 @@
+# $Header: /cvs/fluid/opgen/ops/demo/TypeFormal.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+public operator TypeFormal
+{
+  syntax {
+    $mods:Modifiers $id:Info <?> "extends" bound:ClassType </?> bounds:MoreBounds
+  }
+}

@@ -1,0 +1,11 @@
+# $Header$
+/** Extends clause for interfaces.
+ */
+public operator Extensions extends TypeList {
+  syntax {
+    ( "extends" superInterface:Type +/ "," ) ?
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+}

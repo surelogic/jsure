@@ -1,0 +1,7 @@
+# $Header$
+public operator Test2 implements edu.cmu.cs.fluid.java.bind.IHasBinding
+{
+  properties {
+    binding=MethodDeclaration 
+  }
+}

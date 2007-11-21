@@ -1,0 +1,60 @@
+# $Header: /cvs/fluid/opgen/ops/demo/SomeFunctionDeclaration.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+
+/**
+ * An "abstract" operator that covers both method and constructor declarations.
+ */
+public operator SomeFunctionDeclaration extends ClassBodyDeclaration {
+  public static IRNode getTypes(IRNode node) {
+    Operator op = tree.getOperator(node);
+    if (op instanceof ConstructorDeclaration) {
+      return ConstructorDeclaration.getTypes(node);
+    } else if (op instanceof MethodDeclaration) {
+      return MethodDeclaration.getTypes(node);
+    } else {
+      throw new IllegalArgumentException("unknown function declaration op: " + op);
+    }
+  }
+  public static IRNode getParams(IRNode node) {
+    Operator op = tree.getOperator(node);
+    if (op instanceof ConstructorDeclaration) {
+      return ConstructorDeclaration.getParams(node);
+    } else if (op instanceof MethodDeclaration) {
+      return MethodDeclaration.getParams(node);
+    } else {
+      throw new IllegalArgumentException("unknown function declaration op: " + op);
+    }
+  }
+  /**
+   *@deprecated use {@link #getParams(edu.cmu.cs.fluid.ir.IRNode)}
+   */
+  public static IRNode getParameters(IRNode node) {
+    Operator op = tree.getOperator(node);
+    if (op instanceof ConstructorDeclaration) {
+      return ConstructorDeclaration.getParams(node);
+    } else if (op instanceof MethodDeclaration) {
+      return MethodDeclaration.getParams(node);
+    } else {
+      throw new IllegalArgumentException("unknown function declaration op: " + op);
+    }
+  }
+  public static IRNode getExceptions(IRNode node) {
+    Operator op = tree.getOperator(node);
+    if (op instanceof ConstructorDeclaration) {
+      return ConstructorDeclaration.getExceptions(node);
+    } else if (op instanceof MethodDeclaration) {
+      return MethodDeclaration.getExceptions(node);
+    } else {
+      throw new IllegalArgumentException("unknown function declaration op: " + op);
+    }
+  }
+  public static IRNode getBody(IRNode node) {
+    Operator op = tree.getOperator(node);
+    if (op instanceof ConstructorDeclaration) {
+      return ConstructorDeclaration.getBody(node);
+    } else if (op instanceof MethodDeclaration) {
+      return MethodDeclaration.getBody(node);
+    } else {
+      throw new IllegalArgumentException("unknown function declaration op: " + op);
+    }
+  }
+}

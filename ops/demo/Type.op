@@ -1,0 +1,15 @@
+# $Header: /cvs/fluid/opgen/ops/demo/Type.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+public operator Type implements TypeInterface {
+  /** Use the interface to determine what operators are legal:
+   */
+  public boolean includes(Operator other) {
+    if (getClass() == Type.class)
+      return (other instanceof TypeInterface);
+    else
+      return super.includes(other);
+  }
+
+  public Operator getResultOp() {
+    return Type.prototype;
+  }
+}

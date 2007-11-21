@@ -1,0 +1,9 @@
+# $Header: /cvs/fluid/opgen/ops/demo2/TypeActuals.op,v 1.2 2006/06/15 13:52:48 chance Exp $
+public operator TypeActuals extends TypeList {
+  syntax {
+    "<" <angle> type:Type */ ( <> "," <comma> ) </angle> ">"
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+}

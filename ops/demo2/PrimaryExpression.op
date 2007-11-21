@@ -1,0 +1,5 @@
+# $Header: /cvs/fluid/opgen/ops/demo2/PrimaryExpression.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+public operator PrimaryExpression extends Expression 
+    implements StatementExpressionInterface
+{
+}

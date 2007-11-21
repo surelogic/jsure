@@ -1,0 +1,52 @@
+# $Header$
+
+public operator AnonClassExpression extends AllocationExpression 
+    implements TypeDeclInterface, Call, DripOperator
+{
+  syntax {
+    alloc:NewExpression body:ClassBody
+  }
+
+  // backward compatibility
+  public static IRNode getType(IRNode node) {
+    return NewExpression.getType(getAlloc(node));
+  }
+  public static IRNode getArgs(IRNode node) {
+    return NewExpression.getArgs(getAlloc(node));
+  }
+ 
+  public IRNode getActuals(IRNode node) {
+    return getArgs(node);
+  }
+
+  public Operator getResultOp() {
+    return ConstructorDeclaration.prototype;
+  }
+
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent alloc = new Subcomponent(comp,tree.childLocation(node,0),1,1,1);
+
+    ControlNode doClose = new ComponentFlow(comp,null);
+    // doInit calls the class initializer
+    ControlNode doInit = new ComponentChoice(comp,SuperExpression.prototype);
+    ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
+    // new AddLabel(new CallExceptionLabel(node));
+    ControlNode abruptMerge = new Merge();
+
+    ControlEdge.connect(comp.getEntryPort(),doClose);
+    ControlEdge.connect(doClose,alloc.getEntryPort());
+    ControlEdge.connect(alloc.getNormalExitPort(),doInit);
+    ControlEdge.connect(doInit,comp.getNormalExitPort());
+    ControlEdge.connect(alloc.getAbruptExitPort(),abruptMerge);
+    ControlEdge.connect(doInit,propagateExceptions);
+    ControlEdge.connect(propagateExceptions,abruptMerge);
+    ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+    
+    /* doClose: NB: when looking at reads of (final) variables,
+     * it is necessary to check the nested class body for uses.
+     */
+
+    return comp;
+  }
+}

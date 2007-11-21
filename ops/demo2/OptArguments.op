@@ -1,0 +1,13 @@
+# $Header: /cvs/fluid/opgen/ops/demo2/OptArguments.op,v 1.2 2006/06/15 13:52:48 chance Exp $
+public operator OptArguments extends ExpressionList {
+  syntax {
+    @arg:Expression *
+  }
+  properties {
+    logicallyInvisible=true,
+    nonnullVariants=Arguments
+  }
+  @Override public Component createComponent(IRNode node) {
+    return new SimpleComponent(node);
+  }
+}

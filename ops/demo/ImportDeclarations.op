@@ -1,0 +1,7 @@
+# $Header: /cvs/fluid/opgen/ops/demo/ImportDeclarations.op,v 1.2 2006/06/15 13:52:48 chance Exp $
+public operator ImportDeclarations implements DripOperator {
+  syntax { ( imps:ImportDeclaration <br> ) * }
+  properties {
+    logicallyInvisible=true 
+  }
+}

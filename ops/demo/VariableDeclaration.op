@@ -1,0 +1,11 @@
+# $Header: /cvs/fluid/opgen/ops/demo/VariableDeclaration.op,v 1.1 2006/05/04 18:32:57 chance Exp $
+public operator VariableDeclaration extends Declaration implements edu.cmu.cs.fluid.java.bind.IHasType {
+  public static String getId(IRNode node) {
+    if (tree.getOperator(node) instanceof VariableDeclaration) {
+      return JavaNode.getInfo(node);
+    } else {
+      throw new IllegalArgumentException("Not a VariableDeclaration " +
+					 tree.getOperator(node));
+    }
+  }
+}
