@@ -161,7 +161,6 @@ public class UniquenessTests {
     return p;
   }
   
-// DISABLED: BUG 878  
   /**
    * Error-free: method returns a unique receiver.
    */
