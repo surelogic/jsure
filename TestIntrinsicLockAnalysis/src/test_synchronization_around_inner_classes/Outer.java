@@ -104,7 +104,6 @@ public class Outer {
         public void run() {
           synchronized(Outer.this) {
             // GOOD
-            // XXX: BUG 611 keeps this from working correctly
             instanceField = 3;
           }
         }
