@@ -9,10 +9,9 @@ package test_aggregated_arrays;
  * @RegionLock L is this protects Instance
  */
 public class Test {
-  // XXX: Broken, bug 1242
   /**
    * @Unique
-   * @Aggregate [] into Instance
+   * @Aggregate Instance into Instance
    */
   private Object[] good;
   private Object[] bad;
