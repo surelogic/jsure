@@ -12,8 +12,7 @@ import com.surelogic.Unique;
  */
 @RegionLock("L is this protects Instance")
 public class Test {
-  // XXX: Broken, bug 1242
-  private @Unique @Aggregate("[] into Instance") Object[] good;
+  private @Unique @Aggregate("Instance into Instance") Object[] good;
   private Object[] bad;
   
   public synchronized void goodMethod(Object o) {
