@@ -8,7 +8,6 @@ public class TestBadArgs {
   @Unique  // CONSISTENT
   protected Object uniqueField1;
 
-  // Bug 1207
   @Unique(/* is CONSISTENT */)
   protected Object uniqueField2;
   
