@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Eclipse Client for JSure
+Bundle-SymbolicName: com.surelogic.jsure.client.eclipse
+Bundle-Version: 1.0.0
+Bundle-Activator: com.surelogic.jsure.client.eclipse.Activator
+Bundle-Vendor: SureLogic, Inc.
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ edu.cmu.cs.fluid,
+ edu.cmu.cs.fluid.eclipse,
+ com.surelogic.common,
+ com.surelogic.common.eclipse
+Eclipse-LazyStart: true
