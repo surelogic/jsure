@@ -5,6 +5,8 @@ import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.eclipse.logging.SLStatus;
 
+import edu.cmu.cs.fluid.ide.IDE;
+
 /**
  * The activator class controls the plug-in life cycle
  */
@@ -41,6 +43,7 @@ public class Activator extends AbstractUIPlugin {
     Data.bootAndCheckSchema();
     
     // TODO reload persistent data
+    IDE.getInstance().setReporter(new Reporter());
 	}
 
 	/*
