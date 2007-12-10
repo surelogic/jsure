@@ -12,3 +12,7 @@ Require-Bundle: org.eclipse.ui,
  com.surelogic.common,
  com.surelogic.common.eclipse
 Eclipse-LazyStart: true
+Export-Package: com.surelogic.jsure.client.eclipse,
+ com.surelogic.jsure.client.eclipse.preferences,
+ com.surelogic.jsure.jdbc,
+ com.surelogic.jsure.schema
