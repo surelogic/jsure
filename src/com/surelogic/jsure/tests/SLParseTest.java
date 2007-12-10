@@ -10,7 +10,8 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.*;
-import com.surelogic.annotation.parse.*;
+import com.surelogic.annotation.parse.AASTAdaptor;
+import com.surelogic.annotation.parse.SLParse;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.annotation.rules.LockRulesTestHelper.*;
 import com.surelogic.annotation.rules.MethodEffectsRulesHelper.Reads_ParseRuleHelper;
@@ -637,14 +638,6 @@ public class SLParseTest extends TestCase {
 
 		public void testBadRequiresLockAAST() {
 				try {
-						SLParse.initParser("").requiresLock().getTree();
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Should have thrown a recognition exception.");
-				}
-				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
 										"this.lock1").requiresLock().getTree();
 						RequiresLockNode ldn = (RequiresLockNode) root
@@ -766,13 +759,15 @@ public class SLParseTest extends TestCase {
 		public void testGoodMapIntoAAST() {
 				String expected;
 				try {
-						expected = "MapIntoNode\n"+
+						expected = "InRegionNode\n"+
 											 "    RegionName\n"+
 											 "    id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
 										"region1").inRegion().getTree();
 						InRegionNode ldn = (InRegionNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						System.out.println(expected);
+						System.out.println(ldn.unparse());
 						assertTrue(ldn.unparse().equals(expected));
 				} catch (RecognitionException e) {
 						e.printStackTrace();
@@ -1576,13 +1571,13 @@ public class SLParseTest extends TestCase {
 				}
 		}
 
-		public void testGoodReads() {
+		public void testGoodRegionEffects() {
 				String expected;
 				try {
-						expected = "Reads\n";
+						expected = "RegionEffects\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"nothing").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"none").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						assertTrue(node.unparse().equals(expected));
 				} catch (RecognitionException e) {
@@ -1593,15 +1588,40 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						expected = "Reads\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    ThisExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
+						expected = "RegionEffects\n"+
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"region1").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"reads region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						System.out.println(expected);
+						System.out.println(node.unparse());
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				try {
+						expected = "RegionEffects\n"+
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      AnyInstanceExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Type\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"reads any(Type):region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						assertTrue(node.unparse().equals(expected));
 				} catch (RecognitionException e) {
@@ -1612,17 +1632,65 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						expected = "Reads\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    AnyInstanceExpression\n"+
-											 "      NamedType\n"+
-											 "        type=Type\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
+						expected = "RegionEffects\n"+
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      AnyInstanceExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Type.type\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"any(Type):region1").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"reads any(Type.type):region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				/*
+				try {
+						expected = "RegionEffects\n"+
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      SuperExpression\n"+
+											 "      RegionName\n"+
+											 "        id=Region1\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"reads super:Region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				*/
+				try {
+						expected = "RegionEffects\n"+
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n"+
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region2\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"reads region1, region2").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						assertTrue(node.unparse().equals(expected));
 				} catch (RecognitionException e) {
@@ -1633,17 +1701,18 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						expected = "Reads\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    AnyInstanceExpression\n"+
-											 "      NamedType\n"+
-											 "        type=Type.type\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
+						expected = "RegionEffects\n"+
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      QualifiedThisExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Class\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"any(Type.type):region1").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"reads Class.this:region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						assertTrue(node.unparse().equals(expected));
 				} catch (RecognitionException e) {
@@ -1654,15 +1723,18 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						expected = "Reads\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    SuperExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
+						expected = "RegionEffects\n"+
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      QualifiedThisExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Class\n"+
+											 "      RegionName\n"+
+											 "        id=[]\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"super:region1").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"reads Class.this:[]").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						assertTrue(node.unparse().equals(expected));
 				} catch (RecognitionException e) {
@@ -1673,20 +1745,38 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						expected = "Reads\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    ThisExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    ThisExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region2\n";
+						expected = "RegionEffects\n"+
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"region1, region2").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"reads this:region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				
+				/* ****************** Test Writes ****************/
+				try {
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"writes region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						assertTrue(node.unparse().equals(expected));
 				} catch (RecognitionException e) {
@@ -1697,17 +1787,18 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						expected = "Reads\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    QualifiedThisExpression\n"+
-											 "      NamedType\n"+
-											 "        type=Class\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      AnyInstanceExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Type\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"Class.this:region1").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"writes any(Type):region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						assertTrue(node.unparse().equals(expected));
 				} catch (RecognitionException e) {
@@ -1718,17 +1809,65 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						expected = "Reads\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    QualifiedThisExpression\n"+
-											 "      NamedType\n"+
-											 "        type=Class\n"+
-											 "    RegionName\n"+
-											 "      id=[]\n";
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      AnyInstanceExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Type.type\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"Class.this:[]").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"writes any(Type.type):region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				/*
+				try {
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      SuperExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"writes super:region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				*/
+				try {
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n"+
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region2\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"writes region1, region2").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						assertTrue(node.unparse().equals(expected));
 				} catch (RecognitionException e) {
@@ -1739,16 +1878,149 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						expected = "Reads\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    ThisExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      QualifiedThisExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Class\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"this:region1").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"writes Class.this:region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				try {
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      QualifiedThisExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Class\n"+
+											 "      RegionName\n"+
+											 "        id=[]\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"writes Class.this:[]").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				try {
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"writes this:region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				
+				try {
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      QualifiedThisExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Class\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n"+
+											 "  Reads\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"writes Class.this:region1; reads nothing").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				try {
+						expected = "RegionEffects\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      QualifiedThisExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Class\n"+
+											 "      RegionName\n"+
+											 "        id=[]\n" +
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      QualifiedThisExpression\n"+
+											 "        NamedType\n"+
+											 "          type=Class\n"+
+											 "      RegionName\n"+
+											 "        id=[]\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"writes Class.this:[]; reads Class.this:[]").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						assertTrue(node.unparse().equals(expected));
+				} catch (RecognitionException e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				} catch (Exception e) {
+						e.printStackTrace();
+						fail("Unexpected exception");
+				}
+				try {
+						expected = "RegionEffects\n"+
+						           "  Reads\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region\n"+
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      TypeExpression\n"+
+											 "        NamedType\n"+
+											 "          type=com.sun.java.Test\n"+
+											 "      RegionName\n"+
+											 "        id=Region\n"+
+						           "  Writes\n" +
+											 "    EffectSpecification\n" +
+											 "      isWrite=false\n"+
+											 "      ThisExpression\n"+
+											 "      RegionName\n"+
+											 "        id=region1\n";
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+										"reads this:region, com.sun.java.Test:Region; writes this:region1").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
+										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						System.out.println(node.unparse());
 						assertTrue(node.unparse().equals(expected));
 				} catch (RecognitionException e) {
 						e.printStackTrace();
@@ -1759,12 +2031,12 @@ public class SLParseTest extends TestCase {
 				}
 		}
 
-		public void testBadReads() {
+		public void testBadRegionEffects() {
 
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("")
-										.reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										.regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
@@ -1774,8 +2046,8 @@ public class SLParseTest extends TestCase {
 				}
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"any(Type).region").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"reads any(Type).region").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
@@ -1785,8 +2057,8 @@ public class SLParseTest extends TestCase {
 				}
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"region1, nothing").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"reads region1, nothing").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
@@ -1796,194 +2068,11 @@ public class SLParseTest extends TestCase {
 				}
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"Type.this.region.[]").reads().getTree();
-						ReadsNode node = (ReadsNode) root
+										"reads Type.this.region.[]").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-		}
-
-		public void testGoodWrites() {
-				String expected;
-				try {
-						expected = "Writes\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"nothing").writes().getTree();
-						WritesNode node = (WritesNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						expected = "Writes\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    ThisExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"region1").writes().getTree();
-						WritesNode node = (WritesNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						expected = "Writes\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    AnyInstanceExpression\n"+
-											 "      NamedType\n"+
-											 "        type=Type\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"any(Type):region1").writes().getTree();
-						WritesNode node = (WritesNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						expected = "Writes\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    AnyInstanceExpression\n"+
-											 "      NamedType\n"+
-											 "        type=Type.type\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"any(Type.type):region1").writes().getTree();
-						WritesNode node = (WritesNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						expected = "Writes\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    SuperExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"super:region1").writes().getTree();
-						WritesNode node = (WritesNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						expected = "Writes\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    ThisExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    ThisExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region2\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"region1, region2").writes().getTree();
-						WritesNode node = (WritesNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						expected = "Writes\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    QualifiedThisExpression\n"+
-											 "      NamedType\n"+
-											 "        type=Class\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"Class.this:region1").writes().getTree();
-						WritesNode node = (WritesNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						expected = "Writes\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    QualifiedThisExpression\n"+
-											 "      NamedType\n"+
-											 "        type=Class\n"+
-											 "    RegionName\n"+
-											 "      id=[]\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"Class.this:[]").writes().getTree();
-						WritesNode node = (WritesNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						expected = "Writes\n"+
-											 "  EffectSpecification\n" +
-											 "    isWrite=false\n"+
-											 "    ThisExpression\n"+
-											 "    RegionName\n"+
-											 "      id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"this:region1").writes().getTree();
-						WritesNode node = (WritesNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1993,8 +2082,8 @@ public class SLParseTest extends TestCase {
 		public void testBadWrites() {
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("")
-										.writes().getTree();
-						WritesNode node = (WritesNode) root
+										.regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
@@ -2004,8 +2093,8 @@ public class SLParseTest extends TestCase {
 				}
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"any(Type).region").writes().getTree();
-						WritesNode node = (WritesNode) root
+										"any(Type).region").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
@@ -2015,8 +2104,8 @@ public class SLParseTest extends TestCase {
 				}
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"region1, nothing").writes().getTree();
-						WritesNode node = (WritesNode) root
+										"region1, nothing").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
@@ -2026,8 +2115,8 @@ public class SLParseTest extends TestCase {
 				}
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"Type.this.region.[]").writes().getTree();
-						WritesNode node = (WritesNode) root
+										"Type.this.region.[]").regionEffects().getTree();
+						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
@@ -2150,7 +2239,11 @@ public class SLParseTest extends TestCase {
 		}
 
 		public void testGoodLocksRulePlacement() {
+			try{
 				LockRulesTestHelper lrth = LockRulesTestHelper.getInstance();
+			}catch(Error e){
+				e.printStackTrace();
+			}
 
 				Lock_ParseRuleHelper lockRulesHelper = new Lock_ParseRuleHelper();
 
