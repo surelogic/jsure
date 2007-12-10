@@ -1497,22 +1497,26 @@ public class TestScopedPromiseMatching extends TestCase {
 			}
 
 			testCode = "package com.surelogic.foo;\n" + "public class Foo{\n"
-					+ "private String string1;\n" + "private String string2;\n"
-					+ "private String string3;\n" + "private String stringString1;\n"
+					+ "private String string1;\n" 
+					+ "private String string2;\n"
+					+ "private String string3;\n" 
+					+ "private String string31;\n" 
+					+ "private String stringString1;\n"
 					+ "private String stringString2;\n"
 					+ "private String stringString3;\n"
+					+ "private String stringString31;\n"
 					+ "public static Integer integer;\n"
 					+ "private final static Foo instance;\n" + "public Foo(){}\n"
 					+ "protected String bar() {}\n" + "public void bar(int i){}\n" + "}";
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
-			aNode = createAndTargetNode("'reads Instance' for private String *1 & !(private String *3)");
+			aNode = createAndTargetNode("'reads Instance' for private String *1 & !(private String *31)");
 
 			int count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode field : VisitUtil.getClassFieldDecls(typeDecl)) {
 					count++;
-					if (count <= 2 || count == 4 || count == 5) {
+					if (count == 1 || count == 5){
 						assertTrue(aNode.matches(field));
 					} else {
 						assertFalse(aNode.matches(field));
@@ -1532,7 +1536,7 @@ public class TestScopedPromiseMatching extends TestCase {
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode field : VisitUtil.getClassFieldDecls(typeDecl)) {
 					count++;
-					if (count <= 2 || count == 4 || count == 5) {
+					if (count == 1 || count == 2 || count == 4 || count == 5 || count == 6 || count == 8) {
 						assertTrue(aNode.matches(field));
 					} else {
 						assertFalse(aNode.matches(field));
