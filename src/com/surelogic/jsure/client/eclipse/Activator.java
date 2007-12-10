@@ -43,7 +43,6 @@ public class Activator extends AbstractUIPlugin {
     Data.bootAndCheckSchema();
     
     // TODO reload persistent data
-    IDE.getInstance().setReporter(new Reporter());
 	}
 
 	/*
