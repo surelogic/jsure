@@ -1,11 +1,10 @@
 package com.surelogic.jsure.client.eclipse;
 
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.eclipse.logging.SLStatus;
-
-import edu.cmu.cs.fluid.ide.IDE;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -67,4 +66,9 @@ public class Activator extends AbstractUIPlugin {
 		return plugin;
 	}
 
+	public String getLocation(String loc) {
+	  final IPath pluginState = getStateLocation();
+    return pluginState.toOSString() + System.getProperty("file.separator")
+        + loc;
+	}
 }

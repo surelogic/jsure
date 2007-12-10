@@ -10,7 +10,8 @@ Require-Bundle: org.eclipse.ui,
  edu.cmu.cs.fluid,
  edu.cmu.cs.fluid.eclipse,
  com.surelogic.common,
- com.surelogic.common.eclipse
+ com.surelogic.common.eclipse,
+ com.surelogic.adhoc
 Eclipse-LazyStart: true
 Export-Package: com.surelogic.jsure.client.eclipse,
  com.surelogic.jsure.client.eclipse.preferences,

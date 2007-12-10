@@ -58,8 +58,6 @@ public final class Data {
 	}
 
 	private static String getDatabaseLocation() {
-		final IPath pluginState = Activator.getDefault().getStateLocation();
-		return pluginState.toOSString() + System.getProperty("file.separator")
-				+ DATABASE_DIR;
+		return Activator.getDefault().getLocation(DATABASE_DIR);
 	}
 }
