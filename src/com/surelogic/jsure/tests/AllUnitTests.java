@@ -14,7 +14,6 @@ import edu.cmu.cs.fluid.version.TestVersionPackage;
 public class AllUnitTests extends TestSuite {
 
 	public AllUnitTests() {
-    addTest(new TestSuite(TestClassInitialization.class));
 		addTest(new TestSuite(TestSea.class));
 		addTest(new TestSuite(TestDrop.class));
 		addTest(new TestSuite(TestPromiseDrop.class));
