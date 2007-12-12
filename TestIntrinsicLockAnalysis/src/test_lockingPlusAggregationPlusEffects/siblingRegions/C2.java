@@ -16,7 +16,7 @@ import com.surelogic.Unique;
 public class C2 {
   @Unique
   @Aggregate("Instance into Instance, R into X, Q into Y")
-  private D2 f;
+  private final D2 f;
   
   public C2() {
     this.f = new D2();
