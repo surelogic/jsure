@@ -30,9 +30,9 @@ public class Test {
 
   // [f] Good: needs RW1.writeLock()
   @Unique
-  @InRegion("Region1")
-  @Aggregate("f1 into Region2, f2 into Region3")
-  private Inner f; // = new Inner();
+//  @InRegion("Region1")
+  @Aggregate("Instance into Instance, f1 into Region2, f2 into Region3")
+  private final Inner f; // = new Inner();
   
   @SingleThreaded
   @Borrowed("this")
@@ -46,7 +46,7 @@ public class Test {
     try {
       // HOLDS RW1.writeLock()
       // [f] Good
-      f = new Inner();
+//      f = new Inner();
     } finally {
       // HOLDS RW1.writeLock()
       rwLock1.writeLock().unlock();
