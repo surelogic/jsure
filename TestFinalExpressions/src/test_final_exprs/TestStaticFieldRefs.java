@@ -75,7 +75,7 @@ public class TestStaticFieldRefs {
   
   
   /**
-   * @reads staticProtectedField
+   * @reads test_final_exprs.TestStaticFieldRefs:staticProtectedField
    */
   private void readField_staticProtectedField() {
     // do stuff
