@@ -13,20 +13,20 @@ public class D2 {
   /** @InRegion Q */
   private int f2;
   
-  /** @Writes nothing
+  /** @RegionEffects none
    * @Borrowed this */
   public D2() {
     f1 = 0;
     f2 = 0;
   }
   
-  /** @Writes Q 
+  /** @RegionEffects writes Q 
    * @Borrowed this */
   public void writesQ() {
     f2 = 1;
   }
   
-  /** @Writes R
+  /** @RegionEffects writes R
    * @Borrowed this */
   public void writesR() {
     f1 = 2;

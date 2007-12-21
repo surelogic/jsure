@@ -15,7 +15,7 @@ public class TestEffects {
    * GOOD: The constructor writes nothing outside of itself and starts
    * no threads.
    * @SingleThreaded
-   * @Writes nothing
+   * @RegionEffects none
    * @Starts nothing
    */
   public TestEffects(int a, int b) {
@@ -30,8 +30,7 @@ public class TestEffects {
    * from other objects), and starts no threads, even though it creates a thread.
    * 
    * @SingleThreaded
-   * @-Writes nothing
-   * @Reads a:Instance, b:Instance
+   * @RegionEffects reads a:Instance, b:Instance
    * @Starts nothing
    */
   public TestEffects(MyInt a, MyInt b) {
@@ -48,8 +47,7 @@ public class TestEffects {
    * from other objects), but it starts a thread.
    * 
    * @SingleThreaded
-   * @-Writes nothing
-   * @Reads a:Instance
+   * @RegionEffects reads a:Instance
    * @Starts nothing
    */
   public TestEffects(MyInt a) {
@@ -63,7 +61,7 @@ public class TestEffects {
 class MyInt {
   private int val;
   /**
-   * @Reads Instance
+   * @RegionEffects reads Instance
    * @Starts nothing
    */
   public int intValue() { return val; }
@@ -71,7 +69,7 @@ class MyInt {
 
 class Dumb implements Runnable {
   /**
-   * @Writes nothing 
+   * @RegionEffects none
    * @Starts nothing
    */
   public Dumb() {

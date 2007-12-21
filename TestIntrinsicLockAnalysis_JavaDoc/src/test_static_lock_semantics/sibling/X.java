@@ -18,7 +18,7 @@ public class X {
   
   /**
    * @SingleThreaded
-   * @Writes nothing
+   * @RegionEffects none
    * @Starts nothing
    */
   public X() {}
