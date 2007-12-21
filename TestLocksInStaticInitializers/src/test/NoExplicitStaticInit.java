@@ -27,15 +27,17 @@ public class NoExplicitStaticInit {
   protected static final ReadWriteLock staticLockField3 = new ReentrantReadWriteLock();
   
   @InRegion("StaticState1")
-  private static int fieldInit1 = 0;
+  private static int fieldInit1 = 0;  // GOOD
   
   @InRegion("StaticState2")
-  private static int fieldInit2 = 0;
+  private static int fieldInit2 = 0;  // GOOD
   
   @InRegion("StaticState3")
-  private static int fieldInit3 = 0;
+  private static int fieldInit3 = 0;  // GOOD
   
   public static int bad() {
-    return fieldInit1 + fieldInit2 + fieldInit3;
+    return fieldInit1 + // BAD 
+      fieldInit2 +  // BAD
+      fieldInit3; // BAD
   }
 }

@@ -27,23 +27,25 @@ public class StaticTest {
   protected static final ReadWriteLock staticLockField3 = new ReentrantReadWriteLock();
   
   @InRegion("StaticState1")
-  private static int fieldInit = 0;
+  private static int fieldInit = 0;  // GOOD
   
   @InRegion("StaticState2")
-  private static int blockInit1;
+  private static int blockInit1; 
   
   @InRegion("StaticState3")
-  private static int blockInit2;
+  private static int blockInit2;  
   
   static {
-    blockInit1 = 10;
+    blockInit1 = 10;  // GOOD
   }
   
   static {
-    blockInit2 = 100;
+    blockInit2 = 100;  // GOOD
   }
   
   public static int bad() {
-    return fieldInit + blockInit1 + blockInit2;
+    return fieldInit +  // BAD 
+      blockInit1 +   // BAD
+      blockInit2;  // BAD
   }
 }
