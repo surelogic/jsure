@@ -32,9 +32,9 @@ import com.surelogic.Regions;
   @RegionLock("L7 is test_lock_region.B.staticFieldFromB protects StaticRegionFromC2" /* is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from superclass (B) */),
   @RegionLock("L8 is test_lock_region.D.staticFieldFromD protects StaticRegionFromC3" /* is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from subclass (D) */),
   @RegionLock("L9 is test_lock_region.Other.staticFieldFromOther protects StaticRegionFromC4" /* is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from an unrelated class (Other) */),
-  @RegionLock("L10 is staticFieldFromC protects test_lock_region.B:StaticRegionFromB" /* is UNASSOCIATED: static region is from superclass (B) */),
-  @RegionLock("L11 is staticFieldFromC protects test_lock_region.D:StaticRegionFromD" /* is UNASSOCIATED: static region is from subclass (D) */),
-  @RegionLock("L12 is staticFieldFromC protects test_lock_region.Other:StaticRegionFromOther" /* is UNASSOCIATED: static region is from unrelated class (Other) */),
+  @RegionLock("L10 is staticFieldFromC protects test_lock_region.B:StaticRegionFromB" /* is UNPARSEABLE: static region is from superclass (B) */),
+  @RegionLock("L11 is staticFieldFromC protects test_lock_region.D:StaticRegionFromD" /* is UNPARSEABLE: static region is from subclass (D) */),
+  @RegionLock("L12 is staticFieldFromC protects test_lock_region.Other:StaticRegionFromOther" /* is UNPARSEABLE: static region is from unrelated class (Other) */),
 })
 public class C extends B {
   final Object nonStaticField = new Object();
