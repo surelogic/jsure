@@ -2,6 +2,7 @@ package test_final_exprs;
 
 import com.surelogic.InRegion;
 import com.surelogic.Region;
+import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 
 
@@ -32,8 +33,8 @@ public class TestStaticFieldRefs {
     }
   }
 
-  public void good_staticNonfinalFieldProtectedReadonly_unprotected() {
-    // FINAL: field is static, non-final but protected, and is read only in the synchronized block
+  public void bad_staticNonfinalFieldProtectedReadonly_unprotected() {
+    // FINAL: field is static, non-final but unprotected, and is read only in the synchronized block
     // BAD: unprotected field reference
     // Unidentifiable lock expression
     synchronized (staticProtectedField) {
@@ -74,9 +75,7 @@ public class TestStaticFieldRefs {
   
   
   
-  /**
-   * @reads test_final_exprs.TestStaticFieldRefs:staticProtectedField
-   */
+  @RegionEffects("reads test_final_exprs.TestStaticFieldRefs:staticProtectedField")
   private void readField_staticProtectedField() {
     // do stuff
   }

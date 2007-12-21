@@ -2,11 +2,10 @@ package test_final_exprs;
 
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
-import com.surelogic.Reads;
 import com.surelogic.Region;
+import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 import com.surelogic.SingleThreaded;
-import com.surelogic.Writes;
 
 
 /**
@@ -315,12 +314,12 @@ public class TestInstanceFieldRefs {
   
   
   
-  @Reads("this:Instance")
+  @RegionEffects("reads this:Instance")
   private void readInstance() {
     // do stuff
   }
 
-  @Writes("this:Instance")
+  @RegionEffects("writes this:Instance")
   private void writeInstance() {
     // do stuff
   }
