@@ -50,28 +50,6 @@ public class UniquenessTests {
     unshared = p;
     shared = null;
   }
-  
-  /**
-   * Error-free: initialize unshared field from a unique receiver.
-   * (In general, this is stupid, but it is legal.  The returned object
-   * will be unusable at the call site.)
-   * @Unique this
-   */
-  public UniquenessTests( int bogus1, int bogus2 ) {
-    shared = null;
-    unshared = this;
-  }
-  
-  
-  /**
-   * Error: the receiver will become useless after being assigned to 
-   * field "unshared", so we cannot reference "this.shared".
-   * @Unique this
-   */
-  public UniquenessTests( int bogus1, int bogus2, int b3, int b4 ) {
-    unshared = this;
-    shared = null;
-  }
 
   /**
    * Error-free: initialize unshared field from a method declared to return

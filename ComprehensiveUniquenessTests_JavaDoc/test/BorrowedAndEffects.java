@@ -16,7 +16,7 @@ public class BorrowedAndEffects {
 
   /**
    * @Unique v
-   * @Writes Instance
+   * @RegionEffects writes Instance
    */
   public void update(final Object v) {
     uniqueField = v;
@@ -27,7 +27,7 @@ public class BorrowedAndEffects {
   /**
    * Good.
    * @Borrowed p
-   * @Reads this:Instance
+   * @RegionEffects reads this:Instance
    */
   public void tricky(final Object p) {
 //    @SuppressWarnings("unused")
