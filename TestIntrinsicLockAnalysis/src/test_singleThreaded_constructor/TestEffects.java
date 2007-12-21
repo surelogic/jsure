@@ -1,10 +1,9 @@
 package test_singleThreaded_constructor;
 
+import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
-import com.surelogic.Reads;
 import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
-import com.surelogic.Writes;
 
 /**
  * Tests checking singleThreaded constructors with effects and thread effects.
@@ -21,7 +20,7 @@ public class TestEffects {
    * no threads.
    */
   @SingleThreaded
-  @Writes("nothing")
+  @RegionEffects("none")
   @Starts("nothing")
   public TestEffects(int a, int b) {
     // Safe access
@@ -35,7 +34,7 @@ public class TestEffects {
    * from other objects), and starts no threads, even though it creates a thread.
    */
   @SingleThreaded
-  @Reads("a:Instance, b:Instance")
+  @RegionEffects("reads a:Instance, b:Instance")
   @Starts("nothing")
   public TestEffects(MyInt a, MyInt b) {
     // Safe access
@@ -51,7 +50,7 @@ public class TestEffects {
    * from other objects), but it starts a thread.
    */
   @SingleThreaded
-  @Reads("a:Instance")
+  @RegionEffects("reads a:Instance")
   @Starts("nothing")
   public TestEffects(MyInt a) {
     // Safe access
@@ -64,13 +63,13 @@ public class TestEffects {
 class MyInt {
   private int val;
 
-  @Reads("Instance")
+  @RegionEffects("reads Instance")
   @Starts("nothing")
   public int intValue() { return val; }
 }
 
 class Dumb implements Runnable {
-  @Writes("nothing")
+  @RegionEffects("none")
   @Starts("nothing")
   public Dumb() {
   }

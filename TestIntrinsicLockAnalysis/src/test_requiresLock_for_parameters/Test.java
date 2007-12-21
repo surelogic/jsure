@@ -26,7 +26,7 @@ public class Test {
    */
   @RequiresLock("LL, c:L")
   public double doIt(final C c) {
-    return z * c.getMagnitude();
+    return z * c.getMagnitude(); // GOOD
   }
   
   public static void main(final String[] args) {

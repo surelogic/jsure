@@ -38,7 +38,7 @@ public class C {
       touchR2(b);
     }
     
-    touchR1(b);
+    touchR1(b);  // bad
     touchR2(a);
   }
 }

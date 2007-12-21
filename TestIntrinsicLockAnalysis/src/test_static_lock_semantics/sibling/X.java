@@ -1,9 +1,9 @@
 package test_static_lock_semantics.sibling;
 
+import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
-import com.surelogic.Writes;
 
 /**
  * Field lock is used as a lock by subclasess.
@@ -21,7 +21,7 @@ public class X {
   public int foo = 0;
   
   @SingleThreaded
-  @Writes("nothing")
+  @RegionEffects("none")
   @Starts("nothing")
   public X() {}
 

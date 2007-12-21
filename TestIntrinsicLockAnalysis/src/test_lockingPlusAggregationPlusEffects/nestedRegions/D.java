@@ -5,8 +5,8 @@ package test_lockingPlusAggregationPlusEffects.nestedRegions;
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
+import com.surelogic.RegionEffects;
 import com.surelogic.Regions;
-import com.surelogic.Writes;
 
 @Regions({
   @Region("public R"),
@@ -19,20 +19,20 @@ public class D {
   @InRegion("Q")
   private int f2;
   
-  @Writes("nothing")
+  @RegionEffects("none")
   @Borrowed("this")
   public D() {
     f1 = 0;
     f2 = 0;
   }
   
-  @Writes("Q")
+  @RegionEffects("writes Q")
   @Borrowed("this")
   public void writesQ() {
     f2 = 1;
   }
   
-  @Writes("R")
+  @RegionEffects("writes R")
   @Borrowed("this")
   public void writesR() {
     f1 = 2;
