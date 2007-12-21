@@ -13,15 +13,9 @@ public class MethodEffectsRulesHelper extends MethodEffectsRules {
 		public static MethodEffectsRulesHelper getInstance(){
 				return instance;
 		}
-
-		public static class Reads_ParseRuleHelper extends Reads_ParseRule{
-				public Reads_ParseRuleHelper(){
-						super();
-				}
-		}
 		
-		public static class Writes_ParseRuleHelper extends Writes_ParseRule{
-				public Writes_ParseRuleHelper(){
+		public static class RegionEffects_ParseRuleHelper extends RegionEffects_ParseRule{
+				public RegionEffects_ParseRuleHelper(){
 						super();
 				}
 		}

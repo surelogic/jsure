@@ -14,8 +14,7 @@ import com.surelogic.annotation.parse.AASTAdaptor;
 import com.surelogic.annotation.parse.SLParse;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.annotation.rules.LockRulesTestHelper.*;
-import com.surelogic.annotation.rules.MethodEffectsRulesHelper.Reads_ParseRuleHelper;
-import com.surelogic.annotation.rules.MethodEffectsRulesHelper.Writes_ParseRuleHelper;
+import com.surelogic.annotation.rules.MethodEffectsRulesHelper.RegionEffects_ParseRuleHelper;
 import com.surelogic.annotation.rules.RegionRulesTestHelper.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -2749,22 +2748,20 @@ public class SLParseTest extends TestCase {
 		}
 
 		public void testGoodMethodEffectsRulesPlacement() {
-				MethodEffectsRulesHelper merth = MethodEffectsRulesHelper.getInstance();
-				Reads_ParseRuleHelper readsHelper = new Reads_ParseRuleHelper();
-				Writes_ParseRuleHelper writesHelper = new Writes_ParseRuleHelper();
+				RegionEffects_ParseRuleHelper helper = new RegionEffects_ParseRuleHelper();
 
 				TestContext context = new TestContext(null, MethodDeclaration.prototype);
 
 				/* ****************** Test @Reads ****************** */
 
-				readsHelper.parse(context, "nothing");
+				helper.parse(context, "reads nothing");
 				assertTrue(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertTrue(context.getOffset() == 0);
 
 				/* ****************** Test @Writes ****************** */
 
-				writesHelper.parse(context, "nothing");
+				helper.parse(context, "writes nothing");
 				assertTrue(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertTrue(context.getOffset() == 0);
@@ -2772,45 +2769,44 @@ public class SLParseTest extends TestCase {
 
 		public void testBadMethodEffectsRulesPlacement() {
 				MethodEffectsRulesHelper merth = MethodEffectsRulesHelper.getInstance();
-				Reads_ParseRuleHelper readsHelper = new Reads_ParseRuleHelper();
-				Writes_ParseRuleHelper writesHelper = new Writes_ParseRuleHelper();
+        RegionEffects_ParseRuleHelper helper = new RegionEffects_ParseRuleHelper();
 
 				TestContext context = new TestContext(null,
 								PackageDeclaration.prototype);
 
 				/* ****************** Test @Reads ****************** */
 
-				readsHelper.parse(context, "nothing");
+				helper.parse(context, "reads nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(ConstructorDeclaration.prototype);
-				readsHelper.parse(context, "nothing");
+				helper.parse(context, "reads nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(ClassDeclaration.prototype);
-				readsHelper.parse(context, "nothing");
+				helper.parse(context, "reads nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(FieldDeclaration.prototype);
-				readsHelper.parse(context, "nothing");
+				helper.parse(context, "reads nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(ParameterDeclaration.prototype);
-				readsHelper.parse(context, "nothing");
+				helper.parse(context, "reads nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(ClassInitDeclaration.prototype);
-				readsHelper.parse(context, "nothing");
+				helper.parse(context, "reads nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
@@ -2818,37 +2814,37 @@ public class SLParseTest extends TestCase {
 				/* ****************** Test @Writes ****************** */
 
 				context.setOp(ConstructorDeclaration.prototype);
-				writesHelper.parse(context, "nothing");
+				helper.parse(context, "writes nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(PackageDeclaration.prototype);
-				writesHelper.parse(context, "nothing");
+				helper.parse(context, "writes nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(InterfaceDeclaration.prototype);
-				writesHelper.parse(context, "nothing");
+				helper.parse(context, "writes nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(EnumDeclaration.prototype);
-				writesHelper.parse(context, "nothing");
+				helper.parse(context, "writes nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(ClassDeclaration.prototype);
-				writesHelper.parse(context, "nothing");
+				helper.parse(context, "writes nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
 
 				context.setOp(ParameterDeclaration.prototype);
-				writesHelper.parse(context, "nothing");
+				helper.parse(context, "writes nothing");
 				assertFalse(context.getError() == null);
 				assertTrue(context.getException() == null);
 				assertFalse(context.getOffset() == 0);
