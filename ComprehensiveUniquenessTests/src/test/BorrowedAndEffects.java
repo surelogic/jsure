@@ -1,9 +1,8 @@
 package test;
 
 import com.surelogic.Borrowed;
-import com.surelogic.Reads;
+import com.surelogic.RegionEffects;
 import com.surelogic.Unique;
-import com.surelogic.Writes;
 
 /** 
  * Set up situations where the effects of the method
@@ -16,7 +15,7 @@ public class BorrowedAndEffects {
   @Borrowed("this")
   public BorrowedAndEffects() {}
 
-  @Writes("Instance")
+  @RegionEffects("writes Instance")
   public void update(final @Unique Object v) {
     uniqueField = v;
   }
@@ -26,7 +25,7 @@ public class BorrowedAndEffects {
   /**
    * Good
    */
-  @Reads("this:Instance")
+  @RegionEffects("reads this:Instance")
   public void tricky(final @Borrowed Object p) {
 //    @SuppressWarnings("unused")
     final Object o = this.uniqueField;

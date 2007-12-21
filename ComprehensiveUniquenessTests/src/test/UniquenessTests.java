@@ -51,28 +51,6 @@ public class UniquenessTests {
     unshared = p;
     shared = null;
   }
-  
-  /**
-   * Error-free: initialize unshared field from a unique receiver.
-   * (In general, this is stupid, but it is legal.  The returned object
-   * will be unusable at the call site.)
-   */
-  @Unique("this")
-  public UniquenessTests( int bogus1, int bogus2 ) {
-    shared = null;
-    unshared = this;
-  }
-  
-  
-  /**
-   * Error: the receiver will become useless after being assigned to 
-   * field "unshared", so we cannot reference "this.shared".
-   */
-  @Unique("this")
-  public UniquenessTests( int bogus1, int bogus2, int b3, int b4 ) {
-    unshared = this;
-    shared = null;
-  }
 
   /**
    * Error-free: init unshared field from a method declared to return
@@ -143,21 +121,21 @@ public class UniquenessTests {
   /**
    * Error-free: method returns a newly created object.
    */
-  public @Unique Object uniqueValue1() {
+  public @Unique("return") Object uniqueValue1() {
     return new Object();
   }
   
   /**
    * Error-free: method returns null
    */
-  public @Unique Object uniqueValue2() {
+  public @Unique("return") Object uniqueValue2() {
     return null;
   }
   
   /**
    * Error-free: method returns a unique parameter.
    */
-  public @Unique Object uniqueValue3( @Unique Object p ) {
+  public @Unique("return") Object uniqueValue3( @Unique Object p ) {
     return p;
   }
   
@@ -172,7 +150,7 @@ public class UniquenessTests {
   /**
    * Error-free: calls another unique-value returning method.
    */
-  public @Unique Object uniqueValue5() {
+  public @Unique("return") Object uniqueValue5() {
     return uniqueValue1();
   }
   
@@ -187,28 +165,28 @@ public class UniquenessTests {
   /**
    * Error: returns a shared field.
    */
-  public @Unique Object bad_notUniqueValue1() {
+  public @Unique("return") Object bad_notUniqueValue1() {
     return shared;
   }
 
   /**
    * Error: returns a shared parameter.
    */
-  public @Unique Object bad_notUniqueValue2( Object p ) {
+  public @Unique("return") Object bad_notUniqueValue2( Object p ) {
     return p;
   }
 
   /**
    * Error: returns a shared method return value.
    */
-  public @Unique Object bad_notUniqueValue3() {
+  public @Unique("return") Object bad_notUniqueValue3() {
     return sharedValue();
   }
 
   /**
    * Error: returns a shared receiver.
    */
-  public @Unique Object bad_notUniqueValue4() {
+  public @Unique("return") Object bad_notUniqueValue4() {
     return this;
   }
   
