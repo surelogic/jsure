@@ -38,11 +38,11 @@ package test_lock_region;
  * @TestResult is CONSISTENT: Static region is from the protecting class; doesn't matter that field is from an unrelated class (Other)
  * @RegionLock L9 is test_lock_region.Other.staticFieldFromOther protects StaticRegionFromC4
  * 
- * @TestResult is UNASSOCIATED: static region is from superclass (B)
+ * @TestResult is UNPARSEABLE: static region is from superclass (B)
  * @RegionLock L10 is staticFieldFromC protects test_lock_region.B:StaticRegionFromB
- * @TestResult is UNASSOCIATED: static region is from subclass (D)
+ * @TestResult is UNPARSEABLE: static region is from subclass (D)
  * @RegionLock L11 is staticFieldFromC protects test_lock_region.D:StaticRegionFromD
- * @TestResult is UNASSOCIATED: static region is from unrelated class (Other)
+ * @TestResult is UNPARSEABLE: static region is from unrelated class (Other)
  * @RegionLock L12 is staticFieldFromC protects test_lock_region.Other:StaticRegionFromOther
  */
 public class C extends B {
