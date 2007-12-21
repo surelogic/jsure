@@ -1,8 +1,7 @@
 package aggregated_fields;
 
 import com.surelogic.Borrowed;
-import com.surelogic.Reads;
-import com.surelogic.Writes;
+import com.surelogic.RegionEffects;
 
 public class Inner {
   public int f1;
@@ -13,14 +12,14 @@ public class Inner {
     // do stuff
   }
   
-  @Writes("Instance")
+  @RegionEffects("writes Instance")
   @Borrowed("this")
   public void setBoth(int a, int b) {
     f1 = a;
     f2 = b;
   }
   
-  @Reads("Instance")
+  @RegionEffects("reads Instance")
   @Borrowed("this")
   public int sum() {
     return f1 + f2;
