@@ -312,14 +312,14 @@ public class TestInstanceFieldRefs {
   
   
   /**
-   * @Reads this:Instance
+   * @RegionEffects reads this:Instance
    */
   private void readInstance() {
     // do stuff
   }
 
   /**
-   * @Writes this:Instance
+   * @RegionEffects writes this:Instance
    */
   private void writeInstance() {
     // do stuff
