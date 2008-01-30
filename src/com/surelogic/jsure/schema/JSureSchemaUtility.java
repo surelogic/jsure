@@ -1,6 +1,5 @@
 package com.surelogic.jsure.schema;
 
-import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -10,7 +9,6 @@ import com.surelogic.common.jdbc.IDBType;
 import com.surelogic.common.jdbc.ISchemaUtility;
 import com.surelogic.common.jdbc.SchemaAction;
 import com.surelogic.common.jdbc.SchemaUtility;
-import com.surelogic.jsure.jdbc.DBType;
 import com.surelogic.jsure.jdbc.JSureJDBCUtils;
 
 public final class JSureSchemaUtility extends AbstractSchemaUtility {
