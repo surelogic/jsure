@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Eclipse Client for JSure
 Bundle-SymbolicName: com.surelogic.jsure.client.eclipse
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: com.surelogic.jsure.client.eclipse.Activator
 Bundle-Vendor: SureLogic, Inc.
 Require-Bundle: org.eclipse.ui,
