@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import com.surelogic.common.eclipse.jdbc.DerbyDataUtils;
+import com.surelogic.common.derby.DerbyDataUtils;
 import com.surelogic.common.jdbc.LazyPreparedStatementConnection;
 import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
 import com.surelogic.jsure.schema.JSureSchemaUtility;
