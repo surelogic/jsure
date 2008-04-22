@@ -31,7 +31,7 @@ public class TestInstanceInit {
       /* The immediately enclosing instance of s1 is "this" (a Container object)
        * The immediately enclosing instance with respect to Super is Container.this.
        * 
-       * Writes any(TestInstanceInit).t1, any(TestInstanceInit).t2, this.c1, this.c2
+       * Writes TestInstanceInit.this.t1, TestInstanceInit.this.t2, this.c1, this.c2
        */
       final Super s1 = new Super() { 
         private int g = 10;
@@ -40,7 +40,7 @@ public class TestInstanceInit {
       };
     }
     
-    @RegionEffects("writes any(TestInstanceInit):t1, any(TestInstanceInit):t2")
+    @RegionEffects("writes TestInstanceInit.this:t1, TestInstanceInit.this:t2")
     public Container() {
       // Effects from instance init
     }
@@ -54,7 +54,7 @@ public class TestInstanceInit {
         /* The immediately enclosing instance of s3 is "this" (a Middle1 object)
          * The immediately enclosing instance with respect to Super is Container.this.
          * 
-         * Writes any(TestInstanceInit).t1, ant(TestInstanceInit).t2, Container.this.c1, Container.this.c2, this.m1
+         * Writes TestInstanceInit.this.t1, TestInstanceInit.this.t2, Container.this.c1, Container.this.c2, this.m1
          */
         final Super s3 = new Super() { 
           private int g = 10;
@@ -64,7 +64,7 @@ public class TestInstanceInit {
         };
       }
       
-      @RegionEffects("writes any(TestInstanceInit):t1, any(TestInstanceInit):t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.this:c2")
+      @RegionEffects("writes TestInstanceInit.this:t1, TestInstanceInit.this:t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.this:c2")
       public Middle1() {
         // Effects from instance init
       }
@@ -78,7 +78,7 @@ public class TestInstanceInit {
           /* The immediately enclosing instance of s5 is "this" (a Middle2 object)
            * The immediately enclosing instance with respect to Super is Container.this.
            * 
-           * Writes any(TestInstanceInit).t1, any(TestInstanceInit).t2, any(Middle1).m1, Container.this.c1, Container.this.c2, this.m2
+           * Writes TestInstanceInit.this.t1, TestInstanceInit.this.t2, TestInstanceInit.this.m1, Container.this.c1, Container.this.c2, this.m2
            */
           final Super s5 = new Super() { 
             private int g = 10;
@@ -89,7 +89,7 @@ public class TestInstanceInit {
           };
         }
         
-        @RegionEffects("writes any(TestInstanceInit):t1, any(TestInstanceInit):t2, any(test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.Middle1):m1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.this:c2")
+        @RegionEffects("writes TestInstanceInit.this:t1, TestInstanceInit.this:t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.Middle1.this:m1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.TestInstanceInit.Container.this:c2")
         public Middle2() {
           // effects from instance init
         }

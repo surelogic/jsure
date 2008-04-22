@@ -5,7 +5,7 @@ import com.surelogic.RegionEffects;
 public class Test {
   public int t1;
   public int t2;
-  
+   
   public class Container {
     public int c1;
     public int c2;
@@ -26,7 +26,7 @@ public class Test {
       }
     }
   
-    
+    public Container() {}
     
     @RegionEffects("writes other:c1, other:c2, any(test.AnonymousClass.SuperIsMember.Qualified.TwoLevels.Test):t1, any(test.AnonymousClass.SuperIsMember.Qualified.TwoLevels.Test):t2")
     public Container(final Container other) {

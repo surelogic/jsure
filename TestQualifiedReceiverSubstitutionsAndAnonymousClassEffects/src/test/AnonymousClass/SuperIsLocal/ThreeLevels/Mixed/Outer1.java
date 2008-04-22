@@ -20,7 +20,7 @@ public class Outer1 {
         public int r2;
         
         
-        @RegionEffects("writes r1, r2, any(Outer1):t1, any(Outer1):t2, any(Outer2):s1, any(Outer2):s2")
+        @RegionEffects("writes r1, r2, Outer1.this:t1, Outer1.this:t2, Outer2.this:s1, Outer2.this:s2")
         public void outerMethod() {
           class Super {
             public int f;
@@ -34,7 +34,7 @@ public class Outer1 {
               this.f = 10;
             }
             
-            @RegionEffects("writes any(Outer1):t1, any(Outer1):t2, any(Outer2):s1, any(Outer2):s2, OuterLocal.this:r1, OuterLocal.this:r2")
+            @RegionEffects("writes Outer1.this:t1, Outer1.this:t2, Outer2.this:s1, Outer2.this:s2, OuterLocal.this:r1, OuterLocal.this:r2")
             public Super doStuff() {
               /* The immediately enclosing instance is "this" (a Super object)
                * 
@@ -44,7 +44,7 @@ public class Outer1 {
                * 
                * The immediately enclosing instance with respect to Super is OuterLocal.this
                * 
-               * Writes any(Outer1).t1, any(Outer1).t2, any(Outer2).s1, any(Outer2).s2, OuterLocal.this.r1, OuterLocal.this.r2
+               * Writes Outer1.this.t1, Outer1.this.t2, Outer2.this.s1, Outer2.this.s2, OuterLocal.this.r1, OuterLocal.this.r2
                */
               return new Super() {
                 private int g = 10;
@@ -63,7 +63,7 @@ public class Outer1 {
            * 
            * The immediately enclosing instance with respect to Super is OuterLocal.this == this.
            * 
-           * Writes this.r1, this.r2, any(Outer1).t1, any(Outer1).t2, any(Outer2).s1, any(Outer2).s2
+           * Writes this.r1, this.r2, Outer1.this:t1, Outer1.this:t2, Outer2.this:s1, Outer2.this:s2
            */
           final Super s1 = new Super() { 
             private int g = 10;
@@ -75,7 +75,7 @@ public class Outer1 {
           class Middle1 {
             public int m1;
             
-            @RegionEffects("writes this:m1, OuterLocal.this:r1, OuterLocal.this:r2, any(Outer1):t1, any(Outer1):t2, any(Outer2):s1, any(Outer2):s2")
+            @RegionEffects("writes this:m1, OuterLocal.this:r1, OuterLocal.this:r2, Outer1.this:t1, Outer1.this:t2, Outer2.this:s1, Outer2.this:s2")
             public Super doStuff() {
               /* The immediately enclosing instance is "this" (a Middle1 object)
                * 
@@ -85,7 +85,7 @@ public class Outer1 {
                * 
                * The immediately enclosing instance with respect to Super is OuterLocal.this
                * 
-               * Writes this.m1, OuterLocal.this.r1, any(Outer1).t1, any(Outer1).t2, any(Outer2).s1, any(Outer2).s2
+               * Writes this.m1, OuterLocal.this.r1, Outer1.this:t1, Outer1.this:t2, Outer2.this:s1, Outer2.this:s2
                */
               return new Super() {
                 private int g = 10;
@@ -99,7 +99,7 @@ public class Outer1 {
             class Middle2 {
               public int m2;
               
-              @RegionEffects("writes this:m2, any(Middle1):m1, OuterLocal.this:r1, OuterLocal.this:r2, any(Outer1):t1, any(Outer1):t2, any(Outer2):s1, any(Outer2):s2")
+              @RegionEffects("writes this:m2, Middle1.this:m1, OuterLocal.this:r1, OuterLocal.this:r2, Outer1.this:t1, Outer1.this:t2, Outer2.this:s1, Outer2.this:s2")
               public Super doStuff() {
                 /* The immediately enclosing instance is "this" (a Middle2 object)
                  * 
@@ -109,7 +109,7 @@ public class Outer1 {
                  * 
                  * The immediately enclosing instance with respect to Super is OuterLocal.this
                  * 
-                 * Writes any(Middle1).m1, this.m2, OuterLocal.this.r1, any(Outer1).t1, any(Outer1).t2, any(Outer2).s1, any(Outer2).s2
+                 * Writes Middle1.this.m1, this.m2, OuterLocal.this.r1, Outer1.this:t1, Outer1.this:t2, Outer2.this:s1, Outer2.this:s2
                  */
                 return new Super() {
                   private int g = 10;

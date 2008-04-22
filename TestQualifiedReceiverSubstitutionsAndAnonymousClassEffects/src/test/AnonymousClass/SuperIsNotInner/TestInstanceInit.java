@@ -33,7 +33,7 @@ public class TestInstanceInit {
       /* The immediately enclosing instance of s3 is "this" (a Middle1 object)
        * There is no immediately enclosing instance with respect to Super.
        * 
-       * Writes Super.count, this.m1, any(TestInstanceInit).t
+       * Writes Super.count, this.m1, TestInstanceInit.this.t
        */
       final Super s3 = new Super() { 
         private int g = 10;
@@ -42,10 +42,10 @@ public class TestInstanceInit {
       };      
     }
     
-    @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, any(TestInstanceInit):t")
+    @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, TestInstanceInit.this:t")
     public Middle1() {
       /* Do nothing, but initializer for s3 is analyzed.  It has the effects
-       * writes Super.count, this.m1, any(TestInstanceInit).t.  The effect this.m1 
+       * writes Super.count, this.m1, TestInstanceInit.this.t.  The effect this.m1 
        * is masked.
        */
     }
@@ -59,7 +59,7 @@ public class TestInstanceInit {
         /* The immediately enclosing instance of s5 is "this" (a Middle2 object)
          * There is no immediately enclosing instance with respect to Super.
          * 
-         * Writes Super.count, this.m2, any(Middle1).m1, any(TestInstanceInit).t
+         * Writes Super.count, this.m2, Middle1.this.m1, TestInstanceInit.this.t
          */
         final Super s5 = new Super() { 
           private int g = 10;
@@ -69,10 +69,10 @@ public class TestInstanceInit {
         };        
       }
       
-      @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, any(TestInstanceInit):t, any(test.AnonymousClass.SuperIsNotInner.TestInstanceInit.Middle1):m1")
+      @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, TestInstanceInit.this:t, test.AnonymousClass.SuperIsNotInner.TestInstanceInit.Middle1.this:m1")
       public Middle2() {
         /* do nothing, but initializer for s5 is analyzed.  It has the effects
-         * writes Super.count, this.m2, any(TestFieldInit).t, any(Middle1).m1.
+         * writes Super.count, this.m2, Middle1.this.m1, TestInstanceInit.this.t.
          * The effect this.m2 is masked.
          */
       }

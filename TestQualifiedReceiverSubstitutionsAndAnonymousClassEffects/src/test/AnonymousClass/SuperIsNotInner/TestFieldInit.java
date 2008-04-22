@@ -38,10 +38,10 @@ public class TestFieldInit {
       { t += 1; }
     };      
     
-    @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, any(TestFieldInit):t")
+    @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, TestFieldInit.this:t")
     public Middle1() {
       /* Do nothing, but initializer for s3 is analyzed.  It has the effects
-       * writes Super.count, this.m1, any(TestFieldInit).t.  The effect this.m1 
+       * writes Super.count, this.m1, TestFieldInit.this.t.  The effect this.m1 
        * is masked.
        */
     }
@@ -63,10 +63,10 @@ public class TestFieldInit {
         { t += 1; }
       };        
       
-      @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, any(TestFieldInit):t, any(test.AnonymousClass.SuperIsNotInner.TestFieldInit.Middle1):m1")
+      @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, TestFieldInit.this:t, test.AnonymousClass.SuperIsNotInner.TestFieldInit.Middle1.this:m1")
       public Middle2() {
         /* do nothing, but initializer for s5 is analyzed.  It has the effects
-         * writes Super.count, this.m2, any(TestFieldInit).t, any(Middle1).m1.
+         * writes Super.count, this.m2, TestFieldInit.this.t, Middle1.this.m1.
          * The effect this.m2 is masked.
          */
       }

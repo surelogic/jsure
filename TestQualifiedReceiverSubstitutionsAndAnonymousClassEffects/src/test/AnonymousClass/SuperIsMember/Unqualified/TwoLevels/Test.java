@@ -27,12 +27,12 @@ public class Test {
   
     
     
-    @RegionEffects("writes any(Test):t1, any(Test):t2")
+    @RegionEffects("writes Test.this:t1, Test.this:t2")
     public Container() {
       /* The immediately enclosing instance of s1 is "this" (a Container object)
        * The immediately enclosing instance with respect to Super is Container.this.
        * 
-       * Writes any(Test).t1, any(Test).t2, this.c1, this.c2
+       * Writes Test.this.t1, Test.this.t2, this.c1, this.c2
        */
       final Super s1 = new Super() { 
         private int g = 10;
@@ -41,12 +41,12 @@ public class Test {
       };
     }
   
-    @RegionEffects("writes any(Test):t1, any(Test):t2, this:c1, this:c2")
+    @RegionEffects("writes Test.this:t1, Test.this:t2, this:c1, this:c2")
     public void stuff() {
       /* The immediately enclosing instance of s2 is "this" (a Container object)
        * The immediately enclosing instance with respect to Super is Container.this.
        * 
-       * Writes any(Test).t1, any(Test).t2, this.c1, this.c2
+       * Writes Test.this.t1, Test.this.t2, this.c1, this.c2
        */
       final Super s2 = new Super() { 
         private int g = 10;
@@ -60,12 +60,12 @@ public class Test {
     public class Middle1 {
       public int m1;
       
-      @RegionEffects("writes any(Test):t1, any(Test):t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c2")
+      @RegionEffects("writes Test.this:t1, Test.this:t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c2")
       public Middle1() {
         /* The immediately enclosing instance of s3 is "this" (a Middle1 object)
          * The immediately enclosing instance with respect to Super is Container.this.
          * 
-         * Writes any(Test).t1, ant(Test).t2, Container.this.c1, Container.this.c2, this.m1
+         * Writes Test.this.t1, Test.this.t2, Container.this.c1, Container.this.c2, this.m1
          */
         final Super s3 = new Super() { 
           private int g = 10;
@@ -75,12 +75,12 @@ public class Test {
         };
       }
   
-      @RegionEffects("writes any(Test):t1, any(Test):t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c2, this:m1")
+      @RegionEffects("writes Test.this:t1, Test.this:t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c2, this:m1")
       public void stuff() {
         /* The immediately enclosing instance of s4 is "this" (a Middle1 object)
          * The immediately enclosing instance with respect to Super is Container.this.
          * 
-         * Writes any(Test).t1, ant(Test).t2, Container.this.c1, Container.this.c2, this.m1
+         * Writes Test.this:t1, Test.this:t2, Container.this.c1, Container.this.c2, this.m1
          */
         final Super s4 = new Super() { 
           private int g = 10;
@@ -95,12 +95,12 @@ public class Test {
       public class Middle2 {
         public int m2;
         
-        @RegionEffects("writes any(Test):t1, any(Test):t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c2, any(test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.Middle1):m1")
+        @RegionEffects("writes Test.this:t1, Test.this:t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.Middle1.this:m1")
         public Middle2() {
           /* The immediately enclosing instance of s5 is "this" (a Middle2 object)
            * The immediately enclosing instance with respect to Super is Container.this.
            * 
-           * Writes any(Test).t1, any(Test).t2, any(Middle1).m1, Container.this.c1, Container.this.c2, this.m2
+           * Writes Test.this:t1, Test.this:t2, Middle1.this.m1, Container.this.c1, Container.this.c2, this.m2
            */
           final Super s5 = new Super() { 
             private int g = 10;
@@ -111,12 +111,12 @@ public class Test {
           };
         }
   
-        @RegionEffects("writes any(Test):t1, any(Test):t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c2, any(test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.Middle1):m1, this:m2")
+        @RegionEffects("writes Test.this:t1, Test.this:t2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:c2, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.Middle1.this:m1, this:m2")
         public void stuff() {
           /* The immediately enclosing instance of s6 is "this" (a Middle2 object)
            * The immediately enclosing instance with respect to Super is Container.this.
            * 
-           * Writes any(Test).t1, any(Test).t2, any(Middle1).m1, Container.this.c1, Container.this.c2, this.m2
+           * Writes Test.this:t1, Test.this:t2, Middle1.this.m1, Container.this.c1, Container.this.c2, this.m2
            */
           final Super s6 = new Super() { 
             private int g = 10;

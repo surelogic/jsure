@@ -70,7 +70,7 @@ public class TestInstanceInit {
         /* The immediately enclosing instance of s5 is "this" (a Middle2 object)
          * The immediately enclosing instance with respect to Super is TestInstanceInit.this
          * 
-         * Writes TestInstanceInit.this.t1, TestInstanceInit.this.t1, any(Middle1).m1, this.m2
+         * Writes TestInstanceInit.this.t1, TestInstanceInit.this.t1, Middle1.this.m1, this.m2
          */
         final Super s5 = new Super() { 
           private int g = 10;
@@ -80,7 +80,7 @@ public class TestInstanceInit {
         };        
       }
       
-      @RegionEffects("writes TestInstanceInit.this:t1, TestInstanceInit.this:t2, any(test.AnonymousClass.SuperIsMember.Unqualified.OneLevel.TestInstanceInit.Middle1):m1")
+      @RegionEffects("writes TestInstanceInit.this:t1, TestInstanceInit.this:t2, test.AnonymousClass.SuperIsMember.Unqualified.OneLevel.TestInstanceInit.Middle1.this:m1")
       public Middle2() {
         // do nothing, but initializer for s5 is analyzed
       }

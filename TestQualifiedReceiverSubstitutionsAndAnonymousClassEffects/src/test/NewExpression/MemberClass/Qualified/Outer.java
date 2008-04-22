@@ -44,46 +44,14 @@ public class Outer {
         m. new Inner();
       }
       
-      @RegionEffects("writes test.NewExpression.MemberClass.Qualified.Outer.Middle.this:g, any(Outer):f")
+      @RegionEffects("writes test.NewExpression.MemberClass.Qualified.Outer.Middle.this:g, Outer.this:f")
       public void doStuff2() {
+        // Unlike the above, here we do NOT get an any-instance effect
         Middle.this. new Inner();
       }
     }
   }
-  
-  @RegionEffects("writes java.lang.Object:All")
-  public static void main(String args[]) {
-    final Outer outer1 = new Outer();
-    // 1st enclosing instance is outer1
-    // Writes <outer1>.f [masked]
-    final Middle middle1 = outer1. new Middle();
-    // 1st enclosing instance is middle1
-    // 2nd enclosing instance is middle1's first enclosing instance: outer1
-    // Writes <middle1>.g [masked], any(Outer).f
-    final Middle.Inner inner1 = middle1. new Inner();
-    System.out.println(inner1.h + " " + middle1.g + " " + outer1.f);
     
-    outer1.f = middle1.g = inner1.h = 0;
-    final Outer outer2 = new Outer();
-    // 1st enclosing instance is outer2
-    // Writes <outer2>.f [masked]
-    final Middle middle2 = outer2. new Middle();
-    // 1st enclosing instance is middle2
-    // 2nd enclosing instance is middle2's first enclosing instance: outer2
-    // Writes <middle2>.g [masked], any(Outer).f
-    final Middle.Inner inner2 = middle2. new Inner();
-    outer2.f = middle2.g = inner2.h = 0;
-    
-    // Writes <middle1>.g [masked], any(Outer).f
-    inner2.doStuff1(middle1);
-    System.out.println(inner1.h + " " + middle1.g + " " + outer1.f);
-    System.out.println(inner2.h + " " + middle2.g + " " + outer2.f);
-    
-    // Writes any(Middle).g, any(Outer).f
-    inner2.doStuff2();
-  }
-  
-  
   @RegionEffects("writes a:f")
   public void doStuff1(final Outer a) {
     a. new Middle();
@@ -142,7 +110,7 @@ public class Outer {
             m. new Inner();
           }
           
-          @RegionEffects("writes test.NewExpression.MemberClass.Qualified.Outer.Static1.Outer2.Middle.this:g, any(test.NewExpression.MemberClass.Qualified.Outer.Static1.Outer2):xx")
+          @RegionEffects("writes test.NewExpression.MemberClass.Qualified.Outer.Static1.Outer2.Middle.this:g, test.NewExpression.MemberClass.Qualified.Outer.Static1.Outer2.this:xx")
           public void doStuff2() {
             Middle.this. new Inner();
           }

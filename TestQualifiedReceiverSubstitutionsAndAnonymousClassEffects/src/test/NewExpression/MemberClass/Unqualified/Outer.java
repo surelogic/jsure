@@ -32,7 +32,7 @@ public class Outer {
         Outer.this.f = 7;
       }
       
-      @RegionEffects("writes test.NewExpression.MemberClass.Unqualified.Outer.Middle.this:g, any(Outer):f")
+      @RegionEffects("writes test.NewExpression.MemberClass.Unqualified.Outer.Middle.this:g, Outer.this:f")
       public void doStuff2() {
         new Inner();
       }
@@ -78,7 +78,7 @@ public class Outer {
             Outer2.this.xx = 7;
           }
           
-          @RegionEffects("writes test.NewExpression.MemberClass.Unqualified.Outer.Static1.Outer2.Middle.this:g, any(test.NewExpression.MemberClass.Unqualified.Outer.Static1.Outer2):xx")
+          @RegionEffects("writes test.NewExpression.MemberClass.Unqualified.Outer.Static1.Outer2.Middle.this:g, test.NewExpression.MemberClass.Unqualified.Outer.Static1.Outer2.this:xx")
           public void doStuff2() {
             new Inner();
           }

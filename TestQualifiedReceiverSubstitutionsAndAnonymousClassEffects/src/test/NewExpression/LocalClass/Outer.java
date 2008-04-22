@@ -73,7 +73,7 @@ public class Outer {
         this.g = 10;
       }
       
-      @RegionEffects("writes this:g, any(Outer):f")
+      @RegionEffects("writes this:g, Outer.this:f")
       public void doStuff() {
         class MoreLocalClass_om2 {
           public int h;
@@ -85,14 +85,14 @@ public class Outer {
             Outer.this.f = 10;
           }
         }
-        
+       
         /* The immediately enclosing instance is LocalClass_om2.this == this
          * 
          * "LocalClass_om2" is the innermost lexically enclosing class of "MoreLocalClass_om2"
          * "LocalClass_om2" is the 0th lexically enclosing class of the class in which the
          * instance creation expression appears.
          * 
-         * Writes this:g, any(Outer):f
+         * Writes this:g, Outer.this:f
          */
         final MoreLocalClass_om2 m = new MoreLocalClass_om2();
         
@@ -150,7 +150,7 @@ public class Outer {
   public class Middle {
     public int ff = 100;
     
-    @RegionEffects("writes any(Outer):f, this:ff")
+    @RegionEffects("writes Outer.this:f, this:ff")
     public void outerMethod() {
       class LocalClass_m_om {
         public int g;
@@ -170,14 +170,14 @@ public class Outer {
        * "Middle" is the 0th lexically enclosing class of the class in which the
        * instance creation expression appears.
        * 
-       * Writes any(Outer).f, this.ff 
+       * Writes Outer.this:.f, this.ff 
        */
       final LocalClass_m_om lc1 = new LocalClass_m_om();
       
       
       
       class LC200 {
-        @RegionEffects("writes any(Outer):f, Middle.this:ff")
+        @RegionEffects("writes Outer.this:f, Middle.this:ff")
         public LocalClass_m_om doStuff() {
           /* The immediately enclosing instance is Middle.this
            * 
@@ -185,7 +185,7 @@ public class Outer {
            * "Middle" is the 1st lexically enclosing class of the class in which the
            * instance creation expression appears.
            * 
-           * Writes any(Outer).f, this.ff
+           * Writes Outer.this.f, this.ff
            */
           return new LocalClass_m_om();
         }
@@ -193,7 +193,7 @@ public class Outer {
       
       class LC300 {
         class LC400 {
-          @RegionEffects("writes any(Outer):f, Middle.this:ff")
+          @RegionEffects("writes Outer.this:f, Middle.this:ff")
           public LocalClass_m_om doStuff() {
             /* The immediately enclosing instance is Middle.this
              * 
@@ -201,7 +201,7 @@ public class Outer {
              * "Middle" is the 2nd lexically enclosing class of the class in which the
              * instance creation expression appears.
              * 
-             * Writes any(Outer).f, this.ff
+             * Writes Outer.this.f, this.ff
              */
             return new LocalClass_m_om();
           }
@@ -209,7 +209,7 @@ public class Outer {
       }
     }
 
-    @RegionEffects("writes this:ff, any(Outer):f, any(Middle):ff")      // XXX: this:ff and any(Middle):ff are redundant -- remove this:ff because it makes the diffing of results nondeterministic
+    @RegionEffects("writes any(Outer):f, any(Middle):ff")
     public void outerMethod2() {
       class LocalClass_m_om2 {
         public int g;
@@ -221,7 +221,7 @@ public class Outer {
           this.g = 10;
         }
         
-        @RegionEffects("writes this:g, any(Middle):ff, any(Outer):f")
+        @RegionEffects("writes this:g, Middle.this:ff, Outer.this:f")
         public void doStuff() {
           class MoreLocalClass {
             public int h;
@@ -241,12 +241,12 @@ public class Outer {
            * "LocalClass_m_om2" is the 0th lexically enclosing class of the class in which the
            * instance creation expression appears.
            * 
-           * Writes this:g, any(Middle):ff, any(Outer):f
+           * Writes this:g, Middle.this:ff, Outer.this:f
            */
           final MoreLocalClass m = new MoreLocalClass();
           
           class LC2000 {
-            @RegionEffects("writes LocalClass_m_om2.this:g, any(Middle):ff, any(Outer):f")
+            @RegionEffects("writes LocalClass_m_om2.this:g, Middle.this:ff, Outer.this:f")
             public MoreLocalClass doStuff() {
               /* The immediately enclosing instance is LocalClass_m_om2.this
                * 
@@ -254,7 +254,7 @@ public class Outer {
                * "LocalClass_m_om2" is the 1st lexically enclosing class of the class in which the
                * instance creation expression appears.
                * 
-               * Writes any(Outer).f, this.ff
+               * Writes Outer.this.f, this.ff
                */
               return new MoreLocalClass();
             }
@@ -262,7 +262,7 @@ public class Outer {
           
           class LC3000 {
             class LC4000 {
-              @RegionEffects("writes LocalClass_m_om2.this:g, any(Middle):ff, any(Outer):f")
+              @RegionEffects("writes LocalClass_m_om2.this:g, Middle.this:ff, Outer.this:f")
               public MoreLocalClass doStuff() {
                 /* The immediately enclosing instance is LocalClass_m_om2.this
                  * 
@@ -270,7 +270,7 @@ public class Outer {
                  * "LocalClass_m_om2" is the 2nd lexically enclosing class of the class in which the
                  * instance creation expression appears.
                  * 
-                 * Writes any(Outer).f, this.ff
+                 * Writes Outer.this.f, this.ff
                  */
                 return new MoreLocalClass();
               }
@@ -282,7 +282,7 @@ public class Outer {
       /*
        * The immediately enclosing instance of lc1 is Middle.this == this.
        * 
-       * Writes this.ff, any(Outer).f
+       * Writes this.ff, Outer.this.f
        */
       final LocalClass_m_om2 lc1 = new LocalClass_m_om2();
       // Writes lc1.g, any(Middle).ff, any(Outer).f

@@ -14,7 +14,7 @@ public class Outer1 {
     public int s1;
     public int s2;
     
-    @RegionEffects("writes any(Outer1):t1, any(Outer1):t2, this:s1, this:s2")
+    @RegionEffects("writes Outer1.this:t1, Outer1.this:t2, this:s1, this:s2")
     public void outerMethod() {
       class Super {
         public int f;
@@ -27,7 +27,7 @@ public class Outer1 {
           this.f = 10;
         }
         
-        @RegionEffects("writes any(Outer1):t1, any(Outer1):t2, Outer2.this:s1, Outer2.this:s2")
+        @RegionEffects("writes Outer1.this:t1, Outer1.this:t2, Outer2.this:s1, Outer2.this:s2")
         public Super doStuff() {
           /* The immediately enclosing instance is "this" (a Super object)
            * 
@@ -37,7 +37,7 @@ public class Outer1 {
            * 
            * The immediately enclosing instance with respect to Super is Outer2.this
            * 
-           * Writes any(Outer1).t1, any(Outer1).t2, Outer2.this.s1, Outer2.this.s2
+           * Writes Outer1.this.t1, Outer1.this.t2, Outer2.this.s1, Outer2.this.s2
            */
           return new Super() {
             private int g = 10;
@@ -66,7 +66,7 @@ public class Outer1 {
       class Middle1 {
         public int m1;
         
-        @RegionEffects("writes this:m1, Outer2.this:s1, Outer2.this:s2, any(Outer1):t1, any(Outer1):t2")
+        @RegionEffects("writes this:m1, Outer2.this:s1, Outer2.this:s2, Outer1.this:t1, Outer1.this:t2")
         public Super doStuff() {
           /* The immediately enclosing instance is "this" (a Middle1 object)
            * 
@@ -76,7 +76,7 @@ public class Outer1 {
            * 
            * The immediately enclosing instance with respect to Super is Outer2.this
            * 
-           * Writes this.m1, Outer2.this.s1, Outer2.this.s2, any(Outer1).t1, any(Outer1).t2
+           * Writes this.m1, Outer2.this.s1, Outer2.this.s2, Outer1.this.t1, Outer1.this.t2
            */
           return new Super() {
             private int g = 10;
@@ -89,7 +89,7 @@ public class Outer1 {
         class Middle2 {
           public int m2;
           
-          @RegionEffects("writes this:m2, any(Middle1):m1, Outer2.this:s1, Outer2.this:s2, any(Outer1):t1, any(Outer1):t2")
+          @RegionEffects("writes this:m2, Middle1.this:m1, Outer2.this:s1, Outer2.this:s2, Outer1.this:t1, Outer1.this:t2")
           public Super doStuff() {
             /* The immediately enclosing instance is "this" (a Middle2 object)
              * 
@@ -99,7 +99,7 @@ public class Outer1 {
              * 
              * The immediately enclosing instance with respect to Super is Outer2.this
              * 
-             * Writes any(Middle1).m1, this.m2, any(Outer1).t1, any(Outer1).t2, Outer2.this.s1, Outer2.this.s2
+             * Writes Middle1.this.m1, this.m2, Outer1.this.t1, Outer1.this.t2, Outer2.this.s1, Outer2.this.s2
              */
             return new Super() {
               private int g = 10;
