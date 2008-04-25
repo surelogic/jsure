@@ -79,7 +79,7 @@ public class TestFieldInit {
         private int g = 10;
         { m1 = 10; }
         { m2 = 20; }
-        { t1 += 1; }
+        { t2 += 1; }
       };        
       
       @RegionEffects("writes TestFieldInit.this:t1, TestFieldInit.this:t2, test.AnonymousClass.SuperIsMember.Unqualified.OneLevel.TestFieldInit.Middle1.this:m1")

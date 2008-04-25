@@ -76,7 +76,7 @@ public class TestInstanceInit {
           private int g = 10;
           { m1 = 10; }
           { m2 = 20; }
-          { t1 += 1; }
+          { t2 += 1; }
         };        
       }
       

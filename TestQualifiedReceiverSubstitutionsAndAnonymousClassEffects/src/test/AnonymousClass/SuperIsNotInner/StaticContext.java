@@ -25,6 +25,7 @@ public class StaticContext {
       g = staticField2++;
     }
     
+    @RegionEffects("reads test.AnonymousClass.SuperIsNotInner.StaticContext:staticField3")
     public int foo1() {
       return staticField3;
     }
@@ -47,6 +48,7 @@ public class StaticContext {
         g = staticField2++;
       }
       
+      @RegionEffects("reads test.AnonymousClass.SuperIsNotInner.StaticContext:staticField3")
       public int foo2() {
         return staticField3;
       }
@@ -56,7 +58,7 @@ public class StaticContext {
   
   
   
-  @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField1, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField2, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField3")
+  @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField1, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField2")
   public static void doStuff() {
     /* s3 has no immediately enclosing instance.  
      * s3 has no immediately enclosing instance with respect to Super.
@@ -71,6 +73,7 @@ public class StaticContext {
         g = staticField2++;
       }
       
+      @RegionEffects("reads test.AnonymousClass.SuperIsNotInner.StaticContext:staticField3")
       public int foo3() {
         return staticField3;
       }
@@ -86,7 +89,7 @@ public class StaticContext {
   }
   
   public class Subclass extends StaticContext {
-    @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField1, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField2, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField3")
+    @RegionEffects("writes test.AnonymousClass.SuperIsNotInner.Super:count, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField1, test.AnonymousClass.SuperIsNotInner.StaticContext:staticField2")
     public Subclass() {
       /* zuper has no immediately enclosing instance.  
        * zuper has no immediately enclosing instance with respect to Super.
@@ -101,6 +104,7 @@ public class StaticContext {
           g = staticField2++;
         }
         
+        @RegionEffects("reads test.AnonymousClass.SuperIsNotInner.StaticContext:staticField3")
         public int foo1() {
           return staticField3;
         }

@@ -50,7 +50,7 @@ public class Outer {
                   private int g = 10;
                   { t2 += 1; }
                   { s2 += 1; }
-                  { r1 += 1; }
+                  { r2 += 1; }
                 };
               }
             }

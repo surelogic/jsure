@@ -39,7 +39,7 @@ public class Test {
       /* The immediately enclosing instance of s3 is "this" (a Middle1 object)
        * There is no immediately enclosing instance with respect to Super.
        * 
-       * Writes Super.count, this.m1, any(Test).t
+       * Writes Super.count, this.m1, Test.this.t
        */
       final Super s3 = new Super() { 
         private int g = 10;
@@ -53,7 +53,7 @@ public class Test {
       /* The immediately enclosing instance of s4 is "this" (a Middle1 object)
        * There is no immediately enclosing instance with respect to Super.
        * 
-       * Writes Super.count, this.m1, any(Test).t
+       * Writes Super.count, this.m1, Test.this.t
        */
       final Super s4 = new Super() { 
         private int g = 10;
