@@ -15,14 +15,14 @@ public class UniqueParams {
   public UniqueParams() {
     // do nothing
   }
-  
-  /** 
+
+  /**
    * Good.
    */
   public UniqueParams(final @Unique Object p) {
     // do nothing
   }
-  
+
   /**
    * Good
    */
@@ -30,7 +30,7 @@ public class UniqueParams {
   public void needsUniqueReceiver() {
     // do nothing
   }
-  
+
   /**
    * Good
    */
@@ -38,8 +38,8 @@ public class UniqueParams {
     // do nothing
   }
 
-  
-  
+
+
   /**
    * Good!
    */
@@ -47,14 +47,14 @@ public class UniqueParams {
   private UniqueParams getUnique() {
     return new UniqueParams();
   }
-  
+
   /**
    * Good.  Get a possibly shared object.
    */
   private UniqueParams getShared() {
     return null;
   }
-  
+
   /**
    * Good.
    * Invalidates unique objects.
@@ -63,28 +63,28 @@ public class UniqueParams {
     // Do nothing
   }
 
-  
-  
+
+
   /** Good: Parameter gets a fresh object */
   public void goodUniqueParam1() {
     final Object o = new Object();
     needsUniqueParam(o);
   }
-  
+
   /**
    * Good: Gets a unique parameter.
    */
   public void goodUniqueParam2(final @Unique Object o) {
     needsUniqueParam(o);
   }
-  
+
   /**
    * Good: Gets a unique return object.
    */
   public void goodUniqueParam3() {
     needsUniqueParam(getUnique());
   }
-  
+
   /**
    * Good: gets a unique receiver
    */
@@ -92,7 +92,7 @@ public class UniqueParams {
   public void goodUniqueParam4() {
     needsUniqueParam(this);
   }
-  
+
   /**
    * BAD: Newly created object is compromised.
    */
@@ -102,7 +102,7 @@ public class UniqueParams {
     needsUniqueParam(o);
   }
 
-  
+
   /**
    * BAD: unique parameter is compromised first.
    */
@@ -110,7 +110,7 @@ public class UniqueParams {
     invalidateUniqueObject(o);
     needsUniqueParam(o);
   }
-  
+
   /**
    * BAD: unique return object is compromised first.
    */
@@ -119,7 +119,7 @@ public class UniqueParams {
     invalidateUniqueObject(o);
     needsUniqueParam(o);
   }
-  
+
   /**
    * BAD: Object was never unique.
    */
@@ -137,30 +137,30 @@ public class UniqueParams {
     needsUniqueParam(this);
   }
 
-  
 
-  
-  
+
+
+
   /** Good: Parameter gets a fresh object */
   public void goodUniqueReceiver1() {
     final UniqueParams o = new UniqueParams();
     o.needsUniqueReceiver();
   }
-  
+
   /**
    * Good: Gets a unique parameter.
    */
   public void goodUniqueReceiver2(final @Unique UniqueParams o) {
     o.needsUniqueReceiver();
   }
-  
+
   /**
    * Good: Gets a unique return object.
    */
   public void goodUniqueReceiver3() {
     getUnique().needsUniqueReceiver();
   }
-  
+
   /**
    * Good: gets a unique receiver
    */
@@ -168,7 +168,7 @@ public class UniqueParams {
   public void goodUniqueReceiver4() {
     this.needsUniqueReceiver();
   }
-  
+
   /**
    * BAD: Newly created object is compromised.
    */
@@ -178,7 +178,7 @@ public class UniqueParams {
     o.needsUniqueReceiver();
   }
 
-  
+
   /**
    * BAD: unique parameter is compromised first.
    */
@@ -186,7 +186,7 @@ public class UniqueParams {
     invalidateUniqueObject(o);
     o.needsUniqueReceiver();
   }
-  
+
   /**
    * BAD: unique return object is compromised first.
    */
@@ -195,7 +195,7 @@ public class UniqueParams {
     invalidateUniqueObject(o);
     o.needsUniqueReceiver();
   }
-  
+
   /**
    * BAD: Object was never unique.
    */
@@ -220,21 +220,21 @@ public class UniqueParams {
     final Object o = new Object();
     new UniqueParams(o);
   }
-  
+
   /**
    * Good: Gets a unique parameter.
    */
   public void goodConstructorUniqueParam2(final @Unique Object o) {
     new UniqueParams(o);
   }
-  
+
   /**
    * Good: Gets a unique return object.
    */
   public void goodConstructorUniqueParam3() {
     new UniqueParams(getUnique());
   }
-  
+
   /**
    * Good: gets a unique receiver
    */
@@ -242,7 +242,7 @@ public class UniqueParams {
   public void goodConstructorUniqueParam4() {
     new UniqueParams(this);
   }
-  
+
   /**
    * BAD: Newly created object is compromised.
    */
@@ -252,7 +252,7 @@ public class UniqueParams {
     new UniqueParams(o);
   }
 
-  
+
   /**
    * BAD: unique parameter is compromised first.
    */
@@ -260,7 +260,7 @@ public class UniqueParams {
     invalidateUniqueObject(o);
     new UniqueParams(o);
   }
-  
+
   /**
    * BAD: unique return object is compromised first.
    */
@@ -269,7 +269,7 @@ public class UniqueParams {
     invalidateUniqueObject(o);
     new UniqueParams(o);
   }
-  
+
   /**
    * BAD: Object was never unique.
    */

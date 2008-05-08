@@ -14,50 +14,49 @@ public class BorrowedParams {
    */
   @Borrowed("this")
   public BorrowedParams() {
-    // Do nothing; preserves uniqueness of receiver    
+    // Do nothing; preserves uniqueness of receiver
   }
-  
-  
-  
+
+
+
   /**
    * Good.  Constructor that promises a borrowed parameter.
    */
   private BorrowedParams(final @Borrowed Object p) {
-    // Do nothing; preserves state of p 
+    // Do nothing; preserves state of p
   }
-  
-  
-  
-  /** 
+
+
+
+  /**
    * GOOD.  Return a unique reference.
    */
   @Unique("return")
   private BorrowedParams getUnique() {
     return new BorrowedParams();
   }
-  
+
   /**
    * Good.  Return a possibly shared reference.
    */
   private BorrowedParams getShared() {
     return new BorrowedParams();
   }
-  
+
   /**
    * Good.  Flag method for testing that parameter is still unique.
-   * @unique p
    */
-  private static void stillUnique(final Object p) {
+  private static void stillUnique(final @Unique Object p) {
     // do nothing
   }
-    
+
   /**
    * Good.  Flag method for test that parameter is still usable.
    */
   private static void stillShared(final Object p) {
     // do nothing
   }
-  
+
   /**
    * Good.  Flag method that removes uniqueness from newly created objects
    * by not promising to borrow them.
@@ -65,7 +64,7 @@ public class BorrowedParams {
   private void removeUniqueness(final Object p) {
     // do nothing
   }
-  
+
   /**
    * Good.
    */
@@ -73,15 +72,15 @@ public class BorrowedParams {
   private void borrowedReceiver() {
     // Do nothing; doesn't alias this
   }
-  
+
   /**
    * Good
    */
   private static void borrowedParam(final @Borrowed Object p) {
     // Do nothing; doesn't alias this
   }
- 
-  
+
+
   /**
    * Good.  Unique newly created object preserved through call sequence.
    */
@@ -90,7 +89,7 @@ public class BorrowedParams {
     o.borrowedReceiver();
     stillUnique(o);
   }
-  
+
   /**
    * Good.  Unique object preserved through call sequence.
    */
@@ -99,7 +98,7 @@ public class BorrowedParams {
     o.borrowedReceiver();
     stillUnique(o);
   }
-  
+
   /**
    * Good.  Unique parameter preserved through call sequence.
    */
@@ -107,7 +106,7 @@ public class BorrowedParams {
     p.borrowedReceiver();
     stillUnique(p);
   }
-  
+
   /**
    * Good.  Unique receiver preserved through call sequence.
    */
@@ -116,9 +115,9 @@ public class BorrowedParams {
     this.borrowedReceiver();
     stillUnique(this);
   }
-  
- 
-  
+
+
+
   /**
    * Good.  Unique newly created object preserved through call sequence.
    */
@@ -127,7 +126,7 @@ public class BorrowedParams {
     borrowedParam(o);
     stillUnique(o);
   }
-  
+
   /**
    * Good.  Unique object preserved through call sequence.
    */
@@ -136,7 +135,7 @@ public class BorrowedParams {
     borrowedParam(o);
     stillUnique(o);
   }
-  
+
   /**
    * Good.  Unique parameter preserved through call sequence.
    */
@@ -144,7 +143,7 @@ public class BorrowedParams {
     borrowedParam(p);
     stillUnique(p);
   }
-  
+
   /**
    * Good.  Unique receiver preserved through call sequence.
    */
@@ -153,9 +152,9 @@ public class BorrowedParams {
     borrowedParam(this);
     stillUnique(this);
   }
-  
- 
-  
+
+
+
   /**
    * Good.  Unique newly created object preserved through call sequence.
    */
@@ -164,7 +163,7 @@ public class BorrowedParams {
     new BorrowedParams(o);
     stillUnique(o);
   }
-  
+
   /**
    * Good.  Unique object preserved through call sequence.
    */
@@ -173,7 +172,7 @@ public class BorrowedParams {
     new BorrowedParams(o);
     stillUnique(o);
   }
-  
+
   /**
    * Good.  Unique parameter preserved through call sequence.
    */
@@ -181,7 +180,7 @@ public class BorrowedParams {
     new BorrowedParams(p);
     stillUnique(p);
   }
-  
+
   /**
    * Good.  Unique receiver preserved through call sequence.
    */
@@ -190,9 +189,9 @@ public class BorrowedParams {
     new BorrowedParams(this);
     stillUnique(this);
   }
-  
- 
-  
+
+
+
   /**
    * Good.  Shared newly created object preserved through call sequence.
    */
@@ -202,7 +201,7 @@ public class BorrowedParams {
     o.borrowedReceiver();
     stillShared(o);
   }
-  
+
   /**
    * Good.  Shared object preserved through call sequence.
    */
@@ -211,7 +210,7 @@ public class BorrowedParams {
     o.borrowedReceiver();
     stillShared(o);
   }
-  
+
   /**
    * Good.  Shared parameter preserved through call sequence.
    */
@@ -219,7 +218,7 @@ public class BorrowedParams {
     p.borrowedReceiver();
     stillShared(p);
   }
-  
+
   /**
    * Good.  Shared receiver preserved through call sequence.
    */
@@ -227,9 +226,9 @@ public class BorrowedParams {
     this.borrowedReceiver();
     stillShared(this);
   }
-  
- 
-  
+
+
+
   /**
    * Good.  Shared newly created object preserved through call sequence.
    */
@@ -239,7 +238,7 @@ public class BorrowedParams {
     borrowedParam(o);
     stillShared(o);
   }
-  
+
   /**
    * Good.  Shared object preserved through call sequence.
    */
@@ -248,7 +247,7 @@ public class BorrowedParams {
     borrowedParam(o);
     stillShared(o);
   }
-  
+
   /**
    * Good.  Shared parameter preserved through call sequence.
    */
@@ -256,7 +255,7 @@ public class BorrowedParams {
     borrowedParam(p);
     stillShared(p);
   }
-  
+
   /**
    * Good.  Shared receiver preserved through call sequence.
    */
@@ -264,9 +263,9 @@ public class BorrowedParams {
     borrowedParam(this);
     stillShared(this);
   }
-  
- 
-  
+
+
+
   /**
    * Good.  Shared newly created object preserved through call sequence.
    */
@@ -276,7 +275,7 @@ public class BorrowedParams {
     new BorrowedParams(o);
     stillShared(o);
   }
-  
+
   /**
    * Good.  Shared object preserved through call sequence.
    */
@@ -285,7 +284,7 @@ public class BorrowedParams {
     new BorrowedParams(o);
     stillShared(o);
   }
-  
+
   /**
    * Good.  Shared parameter preserved through call sequence.
    */
@@ -293,7 +292,7 @@ public class BorrowedParams {
     new BorrowedParams(p);
     stillShared(p);
   }
-  
+
   /**
    * Good.  Shared receiver preserved through call sequence.
    */
