@@ -1,4 +1,4 @@
-package staticLock.dualingLocks;
+package staticLock.duelingLocks;
 
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;

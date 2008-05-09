@@ -1,4 +1,4 @@
-package instanceLock.dualingLocks;
+package instanceLock.duelingLocks;
 
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
