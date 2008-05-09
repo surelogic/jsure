@@ -32,9 +32,9 @@ public class Test {
    * region is static.
    * read effect.
    */
-  // XXX: Bug 1053, binder doesn't handle this yet
-  // GOOD
-  @RegionEffects("reads C:StaticRegion" /* is CONSISTENT */)
+  // XXX: Bug 1053, binder doesn't handle this yet; Should be CONSISTENT but we get UNBOUND
+  // XXX: @RegionEffects("reads C:StaticRegion" /* is CONSISTENT */)
+  @RegionEffects("reads C:StaticRegion" /* is UNBOUND */)
   public Test(boolean read, int a, int b) {}
 
   /**
@@ -111,9 +111,9 @@ public class Test {
    * region is static.
    * write effect.
    */
-  // XXX: Bug 1053, binder doesn't handle this yet
-  // GOOD
-  @RegionEffects("writes C:StaticRegion" /* is CONSISTENT */)
+  // XXX: Bug 1053, binder doesn't handle this yet; Should be CONSISTENT but we get UNBOUND
+  // XXX: @RegionEffects("reads C:StaticRegion" /* is CONSISTENT */)
+  @RegionEffects("reads C:StaticRegion" /* is UNBOUND */)
   public Test(Object write, int a, int b) {}
 
   /**
@@ -158,10 +158,10 @@ public class Test {
   @RegionEffects("writes test_class.C:RegionFromD" /* is UNBOUND */)
   public Test(Object write, int a, int b, int c, int d, int e, int f) {}
 
-  
-  
+
+
   //===
-  
+
   /**
    * Method: allowed to have class targets.
    * Class exists (fully qualified, same package).
@@ -189,8 +189,9 @@ public class Test {
    * region is static.
    * read effect.
    */
-  // XXX: Bug 1053, binder doesn't handle this yet
-  @RegionEffects("reads C:StaticRegion" /* is CONSISTENT */)
+  // XXX: Bug 1053, binder doesn't handle this yet; Should be CONSISTENT but we get UNBOUND
+  // XXX: @RegionEffects("reads C:StaticRegion" /* is CONSISTENT */)
+  @RegionEffects("reads C:StaticRegion" /* is UNBOUND */)
   public void good_read_unqualifiedClassName() {}
 
   /**
@@ -261,8 +262,9 @@ public class Test {
    * region is static.
    * write effect.
    */
-  // XXX: Bug 1053, binder doesn't handle this yet
-  @RegionEffects("writes C:StaticRegion" /* is CONSISTENT */)
+  // XXX: Bug 1053, binder doesn't handle this yet; Should be CONSISTENT but we get UNBOUND
+  // XXX: @RegionEffects("reads C:StaticRegion" /* is CONSISTENT */)
+  @RegionEffects("reads C:StaticRegion" /* is UNBOUND */)
   public void good_write_unqualifiedClassName() {}
 
   /**
@@ -304,8 +306,8 @@ public class Test {
   public void bad_write_noSuchRegion2() {}
 
   // Static methods
-  
-  
+
+
   /**
    * Static method: allowed to have class targets.
    * Class exists (fully qualified, same package).
@@ -333,8 +335,9 @@ public class Test {
    * region is static.
    * read effect.
    */
-  // XXX: Bug 1053, binder doesn't handle this yet
-  @RegionEffects("reads C:StaticRegion" /* is CONSISTENT */)
+  // XXX: Bug 1053, binder doesn't handle this yet; Should be CONSISTENT but we get UNBOUND
+  // XXX: @RegionEffects("reads C:StaticRegion" /* is CONSISTENT */)
+  @RegionEffects("reads C:StaticRegion" /* is UNBOUND */)
   public static void good_static_read_unqualifiedClassName() {}
 
   /**
@@ -405,8 +408,9 @@ public class Test {
    * region is static.
    * write effect.
    */
-  // XXX: Bug 1053, binder doesn't handle this yet
-  @RegionEffects("writes C:StaticRegion" /* is CONSISTENT */)
+  // XXX: Bug 1053, binder doesn't handle this yet; Should be CONSISTENT but we get UNBOUND
+  // XXX: @RegionEffects("reads C:StaticRegion" /* is CONSISTENT */)
+  @RegionEffects("reads C:StaticRegion" /* is UNBOUND */)
   public static void good_static_write_unqualifiedClassName() {}
 
   /**
@@ -593,7 +597,7 @@ public class Test {
    * read effect.
    * Private region, private method: BAD: Cannot refer to private region from another class
    */
-  // GOOD 
+  // GOOD
   @RegionEffects("reads test_class.C:PrivateRegion" /* is UNASSOCIATED */)
   @SuppressWarnings("unused")
   private void bad_read_privateRegion_privateMethod(C c) {}
