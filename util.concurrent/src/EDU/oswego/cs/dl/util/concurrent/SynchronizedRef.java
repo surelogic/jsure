@@ -33,7 +33,7 @@ public class SynchronizedRef extends SynchronizedVariable {
    * Create a SynchronizedRef initially holding the given reference 
    * and using its own internal lock.
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedRef(Object initialValue) { 
@@ -44,7 +44,7 @@ public class SynchronizedRef extends SynchronizedVariable {
   /** 
    * Make a new SynchronizedRef with the given initial value,
    * and using the supplied lock.
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    * @singleThreaded
    **/

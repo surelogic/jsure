@@ -52,7 +52,7 @@ public final class WaiterPreferenceSemaphore extends Semaphore  {
   /** 
    * Create a Semaphore with the given initial number of permits.
    * @starts nothing
-   * @writes nothing
+   * @RegionEffects none
    * @singleThreaded
   **/
 

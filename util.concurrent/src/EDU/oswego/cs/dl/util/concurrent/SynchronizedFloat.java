@@ -28,7 +28,7 @@ public class SynchronizedFloat extends SynchronizedVariable implements Comparabl
    * Make a new SynchronizedFloat with the given initial value,
    * and using its own internal lock.
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedFloat(float initialValue) { 
@@ -39,7 +39,7 @@ public class SynchronizedFloat extends SynchronizedVariable implements Comparabl
   /** 
    * Make a new SynchronizedFloat with the given initial value,
    * and using the supplied lock.
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    * @singleThreaded
    **/

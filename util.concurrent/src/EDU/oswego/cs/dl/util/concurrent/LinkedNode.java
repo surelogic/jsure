@@ -21,12 +21,12 @@ public class LinkedNode {
   public LinkedNode next;
   public LinkedNode() {}
   /**
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    */
   public LinkedNode(Object x) { value = x; }
   /**
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    */
   public LinkedNode(Object x, LinkedNode n) { value = x; next = n; }

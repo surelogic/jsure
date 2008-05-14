@@ -28,7 +28,7 @@ public class SynchronizedChar extends SynchronizedVariable implements Comparable
    * Make a new SynchronizedChar with the given initial value,
    * and using its own internal lock.
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedChar(char initialValue) { 
@@ -39,7 +39,7 @@ public class SynchronizedChar extends SynchronizedVariable implements Comparable
   /** 
    * Make a new SynchronizedChar with the given initial value,
    * and using the supplied lock.
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    * @singleThreaded
    **/

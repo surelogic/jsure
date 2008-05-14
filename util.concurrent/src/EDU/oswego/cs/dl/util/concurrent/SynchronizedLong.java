@@ -28,7 +28,7 @@ public class SynchronizedLong extends SynchronizedVariable implements Comparable
    * Make a new SynchronizedLong with the given initial value,
    * and using its own internal lock.
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedLong(long initialValue) { 
@@ -39,7 +39,7 @@ public class SynchronizedLong extends SynchronizedVariable implements Comparable
   /** 
    * Make a new SynchronizedLong with the given initial value,
    * and using the supplied lock.
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    * @singleThreaded
    **/

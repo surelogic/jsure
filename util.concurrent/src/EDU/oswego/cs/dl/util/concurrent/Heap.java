@@ -28,7 +28,6 @@ import java.util.Comparator;
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  * 
  * @region protected HeapRegion
- * @promise '@InRegion HeapRegion'
  * @RegionLock HeapLock is this protects HeapRegion
  **/
 
@@ -36,9 +35,11 @@ public class Heap  {
   
   /** 
    * @unique
-   * @aggregate [] into HeapRegion
+   * @aggregate Instance into HeapRegion
+   * @inRegion HeapRegion
    */
   protected Object[] nodes_;  // the tree nodes, packed into an array
+  /** @inRegion HeapRegion */
   protected int count_ = 0;   // number of used slots
   protected final Comparator cmp_;  // for ordering
 

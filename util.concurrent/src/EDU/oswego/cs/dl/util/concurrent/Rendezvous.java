@@ -137,7 +137,7 @@ public class Rendezvous implements Barrier {
    * so that each thread returns an item presented by some
    * other thread (or itself, if parties is 1).
    * 
-   * @promise "@reads nothing" for new()
+   * @promise "@RegionEffects none" for new()
    * @promise "@borrowed this" for new()
    **/
   public static class Rotator implements RendezvousFunction {
@@ -203,11 +203,11 @@ public class Rendezvous implements Barrier {
    * 
    * @singleThreaded
    * 
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    * @borrowed this
    * 
-   * @assume "@writes nothing" for IllegalArgumentException:new()
+   * @assume "@RegionEffects none" for IllegalArgumentException:new()
    * @assume "@starts nothing" for IllegalArgumentException:new()
    */
   public Rendezvous(int parties, RendezvousFunction function) { 

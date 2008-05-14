@@ -28,7 +28,7 @@ public class SynchronizedByte extends SynchronizedVariable implements Comparable
    * Make a new SynchronizedByte with the given initial value,
    * and using its own internal lock.
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedByte(byte initialValue) { 
@@ -39,7 +39,7 @@ public class SynchronizedByte extends SynchronizedVariable implements Comparable
   /** 
    * Make a new SynchronizedByte with the given initial value,
    * and using the supplied lock.
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    * @singleThreaded
    **/

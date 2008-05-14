@@ -184,14 +184,14 @@ public class SynchronizedVariable implements Executor {
   protected final Object lock_;
 
   /** Create a SynchronizedVariable using the supplied lock
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedVariable(Object lock) { lock_ = lock; }
 
   /** 
    * Create a SynchronizedVariable using itself as the lock
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedVariable() { lock_ = this; }

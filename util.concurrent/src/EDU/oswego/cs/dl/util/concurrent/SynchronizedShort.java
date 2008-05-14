@@ -28,7 +28,7 @@ public class SynchronizedShort extends SynchronizedVariable implements Comparabl
    * Make a new SynchronizedShort with the given initial value,
    * and using its own internal lock.
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedShort(short initialValue) { 
@@ -39,7 +39,7 @@ public class SynchronizedShort extends SynchronizedVariable implements Comparabl
   /** 
    * Make a new SynchronizedShort with the given initial value,
    * and using the supplied lock.
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    * @singleThreaded
    **/

@@ -66,7 +66,7 @@ public class LinkedQueue implements Channel {
 
   /**
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    */
   public LinkedQueue() {

@@ -28,7 +28,7 @@ public class SynchronizedBoolean  extends SynchronizedVariable implements Compar
    * Make a new SynchronizedBoolean with the given initial value,
    * and using its own internal lock.
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedBoolean(boolean initialValue) { 
@@ -40,7 +40,7 @@ public class SynchronizedBoolean  extends SynchronizedVariable implements Compar
    * Make a new SynchronizedBoolean with the given initial value,
    * and using the supplied lock.
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedBoolean(boolean initialValue, Object lock) { 

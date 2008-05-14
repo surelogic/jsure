@@ -28,7 +28,7 @@ public class SynchronizedDouble extends SynchronizedVariable implements Comparab
    * Make a new SynchronizedDouble with the given initial value,
    * and using its own internal lock.
    * @singleThreaded
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    **/
   public SynchronizedDouble(double initialValue) { 
@@ -39,7 +39,7 @@ public class SynchronizedDouble extends SynchronizedVariable implements Comparab
   /** 
    * Make a new SynchronizedDouble with the given initial value,
    * and using the supplied lock.
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    * @singleThreaded
    **/

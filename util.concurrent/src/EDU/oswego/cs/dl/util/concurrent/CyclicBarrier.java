@@ -96,7 +96,7 @@ public class CyclicBarrier implements Barrier {
    * Create a CyclicBarrier for the indicated number of parties,
    * and no command to run at each barrier.
    * @exception IllegalArgumentException if parties less than or equal to zero.
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    * @singleThreaded
    **/
@@ -108,10 +108,10 @@ public class CyclicBarrier implements Barrier {
    * and the given command to run at each barrier point.
    * @exception IllegalArgumentException if parties less than or equal to zero.
    * @singleThreaded
-   * @-writes nothing
+   * @-none
    * @-starts nothing
    * @-assume "@starts nothing" for java.lang:IllegalArgumentException:new()
-   * @-assume "@writes nothing" for java.lang:IllegalArgumentException:new()
+   * @-assume "@RegionEffects none" for java.lang:IllegalArgumentException:new()
    **/
 
   public CyclicBarrier(int parties, Runnable command) { 

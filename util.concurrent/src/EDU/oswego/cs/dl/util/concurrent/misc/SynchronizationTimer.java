@@ -270,7 +270,7 @@ import  java.lang.reflect.*;
  *
  *   The test code is ugly; it has just evolved over the years.  Sorry.
  * 
- *   @assume "@writes nothing" for Boolean:new(*)
+ *   @assume "@RegionEffects none" for Boolean:new(*)
  *   @assume "@starts nothing" for Boolean:new(*)
 **/
 
@@ -439,7 +439,7 @@ public class SynchronizationTimer {
   }
 
   /**
-   * @writes nothing
+   * @RegionEffects none
    * @starts nothing
    */
   static String p2ToString(int n) { // print power of two
@@ -490,7 +490,7 @@ public class SynchronizationTimer {
     
     /**
      * @singleThreaded
-     * @writes nothing
+     * @RegionEffects none
      * @starts nothing
      */
     ThreadInfo(int nthr) {
