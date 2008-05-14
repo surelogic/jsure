@@ -46,154 +46,154 @@ import com.surelogic.Unique;
  * @author Jean-Francois Arcand
  */
 @Region("protected Region")
-@RegionLock("ThisLock is this protects Region"/*is CONSISTENT*/)
+@RegionLock("ThisLock is this protects Region"/*is INCONSISTENT*/)
 @Promise("'InRegion Region' for * *")
 @Assumes({@Assume("'SingleThreaded' for new() in java.util.LinkedList"), @Assume("'Borrowed this' for new() in java.util.LinkedLists")}) //not yet supported
 public class DefaultPipeline extends LinkedList<Callable>
         implements Pipeline<Callable>{
-    
-    
+
+
     /**
      * The number of thread waiting for a <code>Task</code>
      */
     protected int waitingThreads = 0;
-    
-    
+
+
     /**
      * The maximum number of Thread
      */
     protected int maxThreads = 20;
-    
-    
+
+
     /**
      * The minimum numbers of <code>WorkerThreadImpl</code>
      */
     protected int minThreads = 5;
-    
-    
+
+
     /**
      * The minimum numbers of spare <code>WorkerThreadImpl</code>
      */
     protected int minSpareThreads = 2;
-    
-    
+
+
     /**
      * The port used.
      */
     protected int port = 8080;
-    
-    
+
+
     /**
      * The number of <code>WorkerThreadImpl</code>
      */
     protected int threadCount = 0;
-    
-    
+
+
     /**
      * The name of this Pipeline
      */
     protected String name = "Grizzly";
-    
-    
+
+
     /**
      * The Thread Priority
      */
     protected int priority = Thread.NORM_PRIORITY;
-    
-    
+
+
     /**
      * Has the pipeline already started
      */
     protected boolean isStarted = false;
-    
-    
+
+
     /**
      * <code>WorkerThreadImpl</code> amanged by this pipeline.
      */
     @Unique
     @Aggregate("Instance into Region"/*is CONSISTENT*/)
     protected transient WorkerThreadImpl[] workerThreads;
-    
-    
+
+
     /**
      * Maximum pending connection before refusing requests.
      */
     protected int maxQueueSizeInBytes = -1;
-    
-    
+
+
     /**
      * The increment number used when adding new thread.
      */
     protected int threadsIncrement = 1;
-    
+
     /**
      * The initial ByteBuffer size for newly created WorkerThread instances
      */
     protected int initialByteBufferSize = 8192;
-    
-    
+
+
     /**
      * The <code>ByteBufferType</code>
      */
     private ByteBufferType byteBufferType = ByteBufferType.HEAP_VIEW;
-    
-    
+
+
     // ------------------------------------------------------- Constructor -----/
-    
-    
+
+
     @SingleThreaded
     @Borrowed("this"/*is INCONSISTENT*/)
     public DefaultPipeline(){
         super();
     }
-    
+
     @SingleThreaded
     @Borrowed("this"/*is INCONSISTENT*/)
     public DefaultPipeline(int maxThreads, int minThreads, String name,
             int port, int priority){
-        
+
         this.maxThreads = maxThreads;
         this.port = port;
         this.name = name;
         this.minThreads = minThreads;
         this.priority = priority;
-        
+
         if ( minThreads < minSpareThreads )
             minSpareThreads = minThreads;
-        
+
     }
-    
-    
+
+
     @SingleThreaded
     @Borrowed("this"/*is INCONSISTENT*/)
     public DefaultPipeline(int maxThreads, int minThreads, String name,
-            int port){        
+            int port){
         this(maxThreads,minThreads,name,port,Thread.NORM_PRIORITY);
     }
-    
-    
+
+
     // ------------------------------------------------ Lifecycle ------------/
-    
-    
+
+
     /**
      * Init the <code>Pipeline</code> by initializing the required
      * <code>WorkerThreadImpl</code>. Default value is 10
      */
     public synchronized void initPipeline(){
-        
+
         if (isStarted){
             return;
         }
-        
+
         if (minThreads > maxThreads) {
             minThreads = maxThreads;
         }
-        
+
         workerThreads = new WorkerThreadImpl[maxThreads];
         increaseWorkerThread(minThreads, false);
     }
-    
-    
+
+
     /**
      * Start the <code>Pipeline</code> and all associated
      * <code>WorkerThreadImpl</code>
@@ -206,8 +206,8 @@ public class DefaultPipeline extends LinkedList<Callable>
             isStarted = true;
         }
     }
-    
-    
+
+
     /**
      * Stop the <code>Pipeline</code> and all associated
      * <code>WorkerThreadImpl</code>
@@ -221,9 +221,9 @@ public class DefaultPipeline extends LinkedList<Callable>
         }
         notifyAll();
     }
-    
-    
-    
+
+
+
     /**
      * Create new <code>WorkerThreadImpl</code>. This method must be invoked
      * from a synchronized block.
@@ -242,16 +242,16 @@ public class DefaultPipeline extends LinkedList<Callable>
                     name + "WorkerThread-"  + port + "-" + i, initialByteBufferSize);
             workerThread.setByteBufferType(byteBufferType);
             workerThread.setPriority(priority);
-            
+
             if (startThread)
                 workerThread.start();
-            
+
             workerThreads[i] = workerThread;
             threadCount++;
         }
     }
-    
-    
+
+
     /**
      * Interrupt the <code>Thread</code> using it thread id
      * @param threadID - id of <code>Thread</code> to interrupt
@@ -261,7 +261,7 @@ public class DefaultPipeline extends LinkedList<Callable>
         ThreadGroup threadGroup = workerThreads[0].getThreadGroup();
         Thread[] threads = new Thread[threadGroup.activeCount()];
         threadGroup.enumerate(threads);
-        
+
         for (Thread thread: threads){
             if ( thread != null && thread.getId() == threadID ){
                 if ( Thread.State.RUNNABLE != thread.getState()){
@@ -276,11 +276,11 @@ public class DefaultPipeline extends LinkedList<Callable>
         }
         return false;
     }
-    
-    
+
+
     // ---------------------------------------------------- Queue ------------//
-    
-    
+
+
     /**
      * Add an object to this pipeline
      * @param callable a <code>Callable</code> to add to this Pipeline
@@ -291,10 +291,10 @@ public class DefaultPipeline extends LinkedList<Callable>
         if (maxQueueSizeInBytes != -1 && maxQueueSizeInBytes < queueSize){
             throw new PipelineFullException("Queue is full");
         }
-        
+
         addLast(callable);
         notify();
-        
+
         // Create worker threads if we know we will run out of them
         if (threadCount < maxThreads && waitingThreads < (queueSize + 1)){
             int left = maxThreads - threadCount;
@@ -304,8 +304,8 @@ public class DefaultPipeline extends LinkedList<Callable>
             increaseWorkerThread(threadsIncrement,true);
         }
     }
-    
-    
+
+
     /**
      * Return a <code>Callable</code> object available in the pipeline.
      * All Threads will synchronize on that method
@@ -323,8 +323,8 @@ public class DefaultPipeline extends LinkedList<Callable>
         }
         return poll();
     }
-    
-    
+
+
     /**
      * Invoked when the SelectorThread is about to expire a SelectionKey.
      * @param key - A <code>SelectionKey</code> to expire
@@ -334,8 +334,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public boolean expireKey(SelectionKey key){
         return true;
     }
-    
-    
+
+
     /**
      * Return <code>true</code> if the size of this <code>ArrayList</code>
      * minus the current waiting threads is lower than zero.
@@ -344,9 +344,9 @@ public class DefaultPipeline extends LinkedList<Callable>
     public boolean isEmpty() {
         return  (size() - getWaitingThread() <= 0);
     }
-    
+
     // --------------------------------------------------Properties ----------//
-    
+
     /**
      * Return the number of waiting threads.
      * @return number of waiting threads
@@ -354,8 +354,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized int getWaitingThread(){
         return waitingThreads;
     }
-    
-    
+
+
     /**
      * Set the number of threads used by this pipeline.
      * @param maxThreads maximum number of threads to use
@@ -363,8 +363,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized void setMaxThreads(int maxThreads){
         this.maxThreads = maxThreads;
     }
-    
-    
+
+
     /**
      * Return the number of threads used by this pipeline.
      * @return maximum number of threads
@@ -372,7 +372,7 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized int getMaxThreads(){
         return maxThreads;
     }
-    
+
     /**
      * Return current thread count
      * @return current thread count
@@ -380,8 +380,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized int getCurrentThreadCount() {
         return threadCount;
     }
-    
-    
+
+
     /**
      * Return the curent number of threads that are currently processing
      * a task.
@@ -390,8 +390,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized int getCurrentThreadsBusy(){
         return (threadCount - waitingThreads);
     }
-    
-    
+
+
     /**
      * Return the maximum spare thread.
      * @return maximum spare thread count
@@ -399,8 +399,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized int getMaxSpareThreads() {
         return maxThreads;
     }
-    
-    
+
+
     /**
      * Return the minimum spare thread.
      * @return minimum spare thread count
@@ -408,8 +408,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized int getMinSpareThreads() {
         return minSpareThreads;
     }
-    
-    
+
+
     /**
      * Set the minimum spare thread this <code>Pipeline</code> can handle.
      * @param minSpareThreads minimum number of spare threads to handle
@@ -417,8 +417,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized void setMinSpareThreads(int minSpareThreads) {
         this.minSpareThreads = minSpareThreads;
     }
-    
-    
+
+
     /**
      * Set the thread priority of the <code>Pipeline</code>
      * @param priority thread priority to use
@@ -426,8 +426,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized void setPriority(int priority){
         this.priority = priority;
     }
-    
-    
+
+
     /**
      * Set the name of this <code>Pipeline</code>
      * @param name Pipeline name to use
@@ -435,8 +435,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized void setName(String name){
         this.name = name;
     }
-    
-    
+
+
     /**
      * Return the name of this <code>Pipeline</code>
      * @return the name of this <code>Pipeline</code>
@@ -444,8 +444,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized String getName(){
         return name+port;
     }
-    
-    
+
+
     /**
      * Set the port used by this <code>Pipeline</code>
      * @param port the port used by this <code>Pipeline</code>
@@ -453,8 +453,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized void setPort(int port){
         this.port = port;
     }
-    
-    
+
+
     /**
      * Set the minimum thread this <code>Pipeline</code> will creates
      * when initializing.
@@ -463,15 +463,15 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized void setMinThreads(int minThreads){
         this.minThreads = minThreads;
     }
-    
-    
+
+
     @Override
     public String toString(){
         return "name: " + name + " maxThreads: " + maxThreads
                 + " type: " + this.getClass().getName();
     }
-    
-    
+
+
     /**
      * Set the number the <code>Pipeline</code> will use when increasing the
      * thread pool
@@ -480,8 +480,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized void setThreadsIncrement(int threadsIncrement){
         this.threadsIncrement = threadsIncrement;
     }
-    
-    
+
+
     /**
      * The number of <code>Task</code> currently queued
      * @return number of queued connections
@@ -489,8 +489,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized int getTaskQueuedCount(){
         return size();
     }
-    
-    
+
+
     /**
      * Set the maximum pending connection this <code>Pipeline</code>
      * can handle.
@@ -500,8 +500,8 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized void setQueueSizeInBytes(int maxQueueSizeInBytesCount){
         this.maxQueueSizeInBytes = maxQueueSizeInBytesCount;
     }
-    
-    
+
+
     /**
      * Get the maximum pending connections this <code>Pipeline</code>
      * can handle.
@@ -510,7 +510,7 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized int getQueueSizeInBytes(){
         return maxQueueSizeInBytes;
     }
-    
+
     /**
      * Get the initial WorkerThreadImpl <code>ByteBuffer</code> size
      * @return initial WorkerThreadImpl <code>ByteBuffer</code> size
@@ -518,7 +518,7 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized int getInitialByteBufferSize(){
         return initialByteBufferSize;
     }
-    
+
     /**
      * Set the initial WorkerThreadImpl <code>ByteBuffer</code> size
      * @param size initial WorkerThreadImpl <code>ByteBuffer</code> size
@@ -526,9 +526,9 @@ public class DefaultPipeline extends LinkedList<Callable>
     public synchronized void setInitialByteBufferSize(int size){
         initialByteBufferSize = size;
     }
-    
-    
-    
+
+
+
     /**
      * The <code>ByteBufferType</code> used to create the <code>ByteBuffer</code>
      * associated with <code>WorkerThreadImpl</code>s created by this instance.
@@ -539,10 +539,10 @@ public class DefaultPipeline extends LinkedList<Callable>
         return byteBufferType;
     }
 
-    
+
     /**
      * Set the <code>ByteBufferType</code> to use when creating the
-     * <code>ByteBuffer</code> associated with <code>WorkerThreadImpl</code>s 
+     * <code>ByteBuffer</code> associated with <code>WorkerThreadImpl</code>s
      * created by this instance.
      * @param byteBufferType The ByteBuffer type.
      */

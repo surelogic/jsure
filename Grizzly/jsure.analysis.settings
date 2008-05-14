@@ -1,21 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <preferences>
   <included-analysis-modules>
-    <id>edu.cmu.cs.fluid.dcf.PackageLevelPreprocessing</id>
-    <id>edu.cmu.cs.fluid.dcf.PromiseScrubber</id>
-    <id>edu.cmu.cs.fluid.dcf.PromiseParser</id>
     <id>edu.cmu.cs.fluid.dcf.ConvertToIR</id>
-    <id>edu.cmu.cs.fluid.dcf.UpdateSuperRootStorage</id>
-    <id>edu.cmu.cs.fluid.dcf.LockAssurance3</id>
-    <id>edu.cmu.cs.fluid.dcf.UniquenessAssurance2</id>
-    <id>edu.cmu.cs.fluid.dcf.ThreadEffectAssurance2</id>
     <id>edu.cmu.cs.fluid.dcf.EffectAssurance2</id>
+    <id>edu.cmu.cs.fluid.dcf.LockAssurance3</id>
+    <id>edu.cmu.cs.fluid.dcf.PackageLevelPreprocessing</id>
+    <id>edu.cmu.cs.fluid.dcf.PromiseParser</id>
+    <id>edu.cmu.cs.fluid.dcf.PromiseScrubber</id>
+    <id>edu.cmu.cs.fluid.dcf.ThreadEffectAssurance2</id>
+    <id>edu.cmu.cs.fluid.dcf.UniquenessAssurance2</id>
+    <id>edu.cmu.cs.fluid.dcf.UpdateSuperRootStorage</id>
   </included-analysis-modules>
   <excluded-analysis-modules>
-    <id>edu.cmu.cs.fluid.dcf.LockAssurance2</id>
-    <id>edu.cmu.cs.fluid.dcf.UniquenessAssurance</id>
-    <id>edu.cmu.cs.fluid.dcf.ThreadEffectAssurance</id>
-    <id>edu.cmu.cs.fluid.dcf.EffectAssurance</id>
+    <id>edu.cmu.cs.fluid.dcf.ColorAssurance</id>
+    <id>edu.cmu.cs.fluid.dcf.ColorAssurance1</id>
+    <id>edu.cmu.cs.fluid.dcf.ColorZerothPass</id>
+    <id>edu.cmu.cs.fluid.dcf.ColorZerothPass1</id>
+    <id>edu.cmu.cs.fluid.dcf.ConcurrencyDetector</id>
+    <id>edu.cmu.cs.fluid.dcf.DeleteIR</id>
+    <id>edu.cmu.cs.fluid.dcf.EffectDumper</id>
+    <id>edu.cmu.cs.fluid.dcf.IRConcurrencyDetector</id>
+    <id>edu.cmu.cs.fluid.dcf.MakeCFGDiagram</id>
+    <id>edu.cmu.cs.fluid.dcf.ManageColorAnnos</id>
+    <id>edu.cmu.cs.fluid.dcf.ManageColorAnnos1</id>
+    <id>edu.cmu.cs.fluid.dcf.ModuleAnalysis</id>
+    <id>edu.cmu.cs.fluid.dcf.ModuleAnalysis2</id>
+    <id>edu.cmu.cs.fluid.dcf.NonNull</id>
+    <id>edu.cmu.cs.fluid.dcf.Static State Detector</id>
+    <id>edu.cmu.cs.fluid.dcf.StructureAnalysis</id>
+    <id>edu.cmu.cs.fluid.dcf.TestMultipleProjects</id>
+    <id>edu.cmu.cs.fluid.dcf.UseTypeWherePossible</id>
   </excluded-analysis-modules>
 </preferences>
-

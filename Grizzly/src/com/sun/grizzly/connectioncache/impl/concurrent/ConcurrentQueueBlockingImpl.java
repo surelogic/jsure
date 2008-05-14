@@ -59,25 +59,24 @@ public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 	// yet.
 	// As always, first make it work, then make it fast(er), but only if
 	// necessary.
-	// 
+	//
 	// Structure: Head points to a node containing a null value, which is a
 	// special marker.
 	// head.next is the first element, head.prev is the last. The queue is empty
 	// if
 	// head.next == head.prev == head.
-	@InRegion("EntryRegion")
 //	@Unique
 //	@Aggregate("Instance into EntryRegion")
 	final Entry<V> head = new Entry<V>(null);
 	final Object lock = new Object();
-	
+
 	@InRegion("EntryRegion")
 	int count = 0;
-	
+
     @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/ )
     public ConcurrentQueueBlockingImpl(){
-	
+
     }
 
 	private final class Entry<V> {
@@ -117,7 +116,7 @@ public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 		/**
 		 * Delete the element corresponding to this handle from the queue. Takes
 		 * constant time.
-		 * 
+		 *
 		 * @return element corresponding to this handle was removed, (yes or no)
 		 */
 		public boolean remove() {
@@ -151,7 +150,7 @@ public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 	/**
 	 * Add a new element to the tail of the queue. Returns a handle for the
 	 * element in the queue.
-	 * 
+	 *
 	 * @param arg
 	 *            element to offer to the queue
 	 * @return a <code>Handle</code> for the element in the queue
@@ -176,7 +175,7 @@ public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 	/**
 	 * Return an element from the head of the queue. The element is removed from
 	 * the queue.
-	 * 
+	 *
 	 * @return element at the head of the queue
 	 */
 	public V poll() {

@@ -55,15 +55,14 @@ class ReadController extends Controller {
     /**
      * List of <code>Channel<code> to process.
      */
-	@InRegion("ChannelsRegion")
 //	@Unique
 //	@Aggregate("Instance into ChannelsRegion"/*is CONSISTENT*/)
     final List<RegisterChannelRecord> channels = new ArrayList<RegisterChannelRecord>();
-	
+
 	public ReadController(){
-		
+
 	}
-	
+
 	/*
 	 * XXX
 	 * @see {@link com.sun.grizzly.Controller#Controller}
@@ -71,7 +70,7 @@ class ReadController extends Controller {
 	protected ReadController(Controller copyFrom){
 		super(copyFrom);
 	}
-    
+
     /**
      * Add a <code>Channel</code>
      * to be processed by <code>ReadController</code>'s
@@ -84,20 +83,20 @@ class ReadController extends Controller {
         synchronized(channels) {
             channels.add(new RegisterChannelRecord(channel, protocol));
         }
-        
+
         getSelectorHandler(protocol).getSelector().wakeup();
     }
-    
+
     /**
      * Register all <code>Channel</code> with an OP_READ opeation.
-     * @throws java.io.IOException 
+     * @throws java.io.IOException
      */
     private void registerNewChannels() throws IOException {
         synchronized(channels) {
             int size = channels.size();
             for (int i = 0; i < size; i++) {
                 RegisterChannelRecord record = channels.get(i);
-                SelectorHandler selectorHandler = 
+                SelectorHandler selectorHandler =
                         getSelectorHandler(record.protocol);
                 Selector auxSelector = selectorHandler.getSelector();
                 SelectableChannel channel = record.channel;
@@ -105,11 +104,11 @@ class ReadController extends Controller {
                         channel.register(auxSelector, SelectionKey.OP_READ);
                 readKey.attach(System.currentTimeMillis());
             }
-            
+
             channels.clear();
         }
     }
-    
+
     /**
      * Start the ReadController.
      * Some <code>Controller</code> properties should not be initialized
@@ -121,7 +120,7 @@ class ReadController extends Controller {
             while(state == State.STARTED){
                 registerNewChannels();
                 for(SelectorHandler selectorHandler: selectorHandlers) {
-                    // State changed inside the loop 
+                    // State changed inside the loop
                     if (state != State.STARTED){
                         break;
                     }
@@ -130,9 +129,9 @@ class ReadController extends Controller {
             }
 
             for (SelectorHandler selectorHandler: selectorHandlers){
-                SelectionKeyHandler selectionKeyHandler = 
+                SelectionKeyHandler selectionKeyHandler =
                         selectorHandler.getSelectionKeyHandler();
-                
+
                 for (SelectionKey selectionKey : selectorHandler.keys()) {
                     selectionKeyHandler.close(selectionKey);
                 }
@@ -140,11 +139,11 @@ class ReadController extends Controller {
             }
         }
     }
-    
+
     static final class RegisterChannelRecord {
         public SelectableChannel channel;
         public Protocol protocol;
-        
+
         public RegisterChannelRecord(SelectableChannel channel, Protocol protocol) {
             this.channel = channel;
             this.protocol = protocol;

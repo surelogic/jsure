@@ -48,7 +48,7 @@ import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 @Region("protected TotalRegion")
-@RegionLock("Lock is this protects TotalRegion"/*is CONSISTENT*/)
+@RegionLock("Lock is this protects TotalRegion"/*is INCONSISTENT*/)
 @Promise("'InRegion TotalRegion' for int total*")
 public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 		extends ConnectionCacheBlockingBase<C> implements
@@ -584,7 +584,7 @@ public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 	/**
 	 * Decrement the number of expected responses. When a connection is idle and
 	 * has no expected responses, it can be reclaimed.
-	 * 
+	 *
 	 * @param conn
 	 *            a connection
 	 */
@@ -631,7 +631,7 @@ public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 
 	/**
 	 * Close a connection, regardless of whether the connection is busy or not.
-	 * 
+	 *
 	 * @param conn
 	 *            a connection
 	 */
