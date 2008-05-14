@@ -47,15 +47,15 @@ import com.surelogic.SingleThreaded;
  * parameters may be linked together to form a hierarchy. If a particular
  * parameter value has not been explicitly defined in the collection itself, its
  * value will be drawn from the parent collection of parameters.
- * 
+ *
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
- * 
+ *
  * @version $Revision: 510589 $
- * 
+ *
  * @since 3.0
  */
 @Region("private Region")
-@RegionLock("Lock is this protects Region" /*is CONSISTENT*/)
+@RegionLock("Lock is this protects Region" /*is INCONSISTENT*/)
 public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 
 	/** Log object for this class. */
@@ -66,10 +66,10 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 
 	/**
 	 * Gets the default HttpParams to be used.
-	 * 
+	 *
 	 * @return the value returned from
 	 *         <code>HttpParamsFactory#getDefaultParams()</code>
-	 * 
+	 *
 	 * @see HttpParamsFactory#getDefaultParams()
 	 */
 	public static HttpParams getDefaultParams() {
@@ -78,10 +78,10 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 
 	/**
 	 * Sets the factory that will provide the default HttpParams.
-	 * 
+	 *
 	 * @param httpParamsFactory
 	 *            an instance of HttpParamsFactory
-	 * 
+	 *
 	 * @see #getDefaultParams()
 	 */
 	public static void setHttpParamsFactory(HttpParamsFactory httpParamsFactory) {
@@ -104,7 +104,7 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 	 * Creates a new collection of parameters with the given parent. The
 	 * collection will defer to its parent for a default value if a particular
 	 * parameter is not explicitly set in the collection itself.
-	 * 
+	 *
 	 * @param defaults
 	 *            the parent collection to defer to, if a parameter is not
 	 *            explictly set in the collection itself.
@@ -121,7 +121,7 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 	 * {@link #getDefaultParams()} as a parent. The collection will defer to its
 	 * parent for a default value if a particular parameter is not explicitly
 	 * set in the collection itself.
-	 * 
+	 *
 	 * @see #getDefaultParams()
 	 */
 	@SingleThreaded
@@ -171,7 +171,7 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 
 	/**
 	 * Assigns the value to all the parameter with the given names
-	 * 
+	 *
 	 * @param names
 	 *            array of parameter name
 	 * @param value
@@ -260,7 +260,7 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 	/**
 	 * Clones this collection of parameters. Please note that paramter values
 	 * themselves are not cloned.
-	 * 
+	 *
 	 * @see java.io.Serializable
 	 * @see java.lang.Object#clone()
 	 */

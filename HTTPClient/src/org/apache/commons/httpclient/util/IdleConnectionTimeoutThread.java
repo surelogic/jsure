@@ -45,34 +45,34 @@ import com.surelogic.Unique;
 
 /**
  * A utility class for periodically closing idle connections.
- * 
+ *
  * @see org.apache.commons.httpclient.HttpConnectionManager#closeIdleConnections(long)
- * 
+ *
  * @since 3.0
  */
 @Region("private MgrRegion")
-@RegionLock("Lock is this protects MgrRegion"/*is CONSISTENT*/)
+@RegionLock("Lock is this protects MgrRegion"/*is INCONSISTENT*/)
 public class IdleConnectionTimeoutThread extends Thread {
-    
+
 	@InRegion("MgrRegion")
     private List connectionManagers = new ArrayList();
-    
+
 	@InRegion("MgrRegion")
     private boolean shutdown = false;
-    
+
     private long timeoutInterval = 1000;
-    
+
     private long connectionTimeout = 3000;
-    
+
     public IdleConnectionTimeoutThread() {
         setDaemon(true);
     }
-    
+
     /**
-     * Adds a connection manager to be handled by this class.  
+     * Adds a connection manager to be handled by this class.
      * {@link HttpConnectionManager#closeIdleConnections(long)} will be called on the connection
      * manager every {@link #setTimeoutInterval(long) timeoutInterval} milliseconds.
-     * 
+     *
      * @param connectionManager The connection manager to add
      */
     public synchronized void addConnectionManager(HttpConnectionManager connectionManager) {
@@ -81,11 +81,11 @@ public class IdleConnectionTimeoutThread extends Thread {
         }
         this.connectionManagers.add(connectionManager);
     }
-    
+
     /**
      * Removes the connection manager from this class.  The idle connections from the connection
      * manager will no longer be automatically closed by this class.
-     * 
+     *
      * @param connectionManager The connection manager to remove
      */
     public synchronized void removeConnectionManager(HttpConnectionManager connectionManager) {
@@ -94,7 +94,7 @@ public class IdleConnectionTimeoutThread extends Thread {
         }
         this.connectionManagers.remove(connectionManager);
     }
-    
+
     /**
      * Handles calling {@link HttpConnectionManager#closeIdleConnections(long) closeIdleConnections()}
      * and doing any other cleanup work on the given connection mangaer.
@@ -103,19 +103,19 @@ public class IdleConnectionTimeoutThread extends Thread {
     protected void handleCloseIdleConnections(HttpConnectionManager connectionManager) {
         connectionManager.closeIdleConnections(connectionTimeout);
     }
-    
+
     /**
      * Closes idle connections.
      */
     public synchronized void run() {
         while (!shutdown) {
             Iterator iter = connectionManagers.iterator();
-            
+
             while (iter.hasNext()) {
                 HttpConnectionManager connectionManager = (HttpConnectionManager) iter.next();
                 handleCloseIdleConnections(connectionManager);
             }
-            
+
             try {
                 this.wait(timeoutInterval);
             } catch (InterruptedException e) {
@@ -124,7 +124,7 @@ public class IdleConnectionTimeoutThread extends Thread {
         // clear out the connection managers now that we're shutdown
         this.connectionManagers.clear();
     }
-    
+
     /**
      * Stops the thread used to close idle connections.  This class cannot be used once shutdown.
      */
@@ -132,12 +132,12 @@ public class IdleConnectionTimeoutThread extends Thread {
         this.shutdown = true;
         this.notifyAll();
     }
-    
+
     /**
      * Sets the timeout value to use when testing for idle connections.
-     * 
+     *
      * @param connectionTimeout The connection timeout in milliseconds
-     * 
+     *
      * @see HttpConnectionManager#closeIdleConnections(long)
      */
     public synchronized void setConnectionTimeout(long connectionTimeout) {
@@ -147,9 +147,9 @@ public class IdleConnectionTimeoutThread extends Thread {
         this.connectionTimeout = connectionTimeout;
     }
     /**
-     * Sets the interval used by this class between closing idle connections.  Idle 
+     * Sets the interval used by this class between closing idle connections.  Idle
      * connections will be closed every <code>timeoutInterval</code> milliseconds.
-     *  
+     *
      * @param timeoutInterval The timeout interval in milliseconds
      */
     public synchronized void setTimeoutInterval(long timeoutInterval) {
@@ -158,5 +158,5 @@ public class IdleConnectionTimeoutThread extends Thread {
         }
         this.timeoutInterval = timeoutInterval;
     }
-    
+
 }

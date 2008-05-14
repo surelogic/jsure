@@ -60,11 +60,11 @@ import com.surelogic.SingleThreaded;
  * @author Sam Maloney
  * @author Laura Werner
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
- * 
+ *
  * @version $Revision: 509577 $ $Date: 2007-02-20 15:28:18 +0100 (Tue, 20 Feb 2007) $
  */
 @Region("private Region")
-@RegionLock("Lock is this protects Region"/*is CONSISTENT*/)
+@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
 public class HttpClient {
 
 
@@ -74,7 +74,7 @@ public class HttpClient {
     private static final Log LOG = LogFactory.getLog(HttpClient.class);
 
     static {
-        
+
         if (LOG.isDebugEnabled()) {
             try {
                 LOG.debug("Java version: " + System.getProperty("java.version"));
@@ -88,7 +88,7 @@ public class HttpClient {
                 for (int i = 0; i < providers.length; i++) {
                     Provider provider = providers[i];
                     LOG.debug(provider.getName() + " " + provider.getVersion()
-                       + ": " + provider.getInfo());   
+                       + ": " + provider.getInfo());
                 }
             } catch (SecurityException ignore) {
             }
@@ -98,7 +98,7 @@ public class HttpClient {
 
     /**
      * Creates an instance of HttpClient using default {@link HttpClientParams parameter set}.
-     * 
+     *
      * @see HttpClientParams
      */
     @SingleThreaded
@@ -108,13 +108,13 @@ public class HttpClient {
     }
 
     /**
-     * Creates an instance of HttpClient using the given 
+     * Creates an instance of HttpClient using the given
      * {@link HttpClientParams parameter set}.
-     * 
+     *
      * @param params The {@link HttpClientParams parameters} to use.
-     * 
+     *
      * @see HttpClientParams
-     * 
+     *
      * @since 3.0
      */
     @SingleThreaded
@@ -122,7 +122,7 @@ public class HttpClient {
     public HttpClient(HttpClientParams params) {
         super();
         if (params == null) {
-            throw new IllegalArgumentException("Params may not be null");  
+            throw new IllegalArgumentException("Params may not be null");
         }
         this.params = params;
         this.httpConnectionManager = null;
@@ -132,7 +132,7 @@ public class HttpClient {
                 this.httpConnectionManager = (HttpConnectionManager) clazz.newInstance();
             } catch (Exception e) {
                 LOG.warn("Error instantiating connection manager class, defaulting to"
-                    + " SimpleHttpConnectionManager", 
+                    + " SimpleHttpConnectionManager",
                     e);
             }
         }
@@ -145,14 +145,14 @@ public class HttpClient {
     }
 
     /**
-     * Creates an instance of HttpClient with a user specified 
-     * {@link HttpClientParams parameter set} and 
+     * Creates an instance of HttpClient with a user specified
+     * {@link HttpClientParams parameter set} and
      * {@link HttpConnectionManager HTTP connection manager}.
-     * 
+     *
      * @param params The {@link HttpClientParams parameters} to use.
      * @param httpConnectionManager The {@link HttpConnectionManager connection manager}
      * to use.
-     * 
+     *
      * @since 3.0
      */
     @SingleThreaded
@@ -160,23 +160,23 @@ public class HttpClient {
     public HttpClient(HttpClientParams params, HttpConnectionManager httpConnectionManager) {
         super();
         if (httpConnectionManager == null) {
-            throw new IllegalArgumentException("httpConnectionManager cannot be null");  
+            throw new IllegalArgumentException("httpConnectionManager cannot be null");
         }
         if (params == null) {
-            throw new IllegalArgumentException("Params may not be null");  
+            throw new IllegalArgumentException("Params may not be null");
         }
-        this.params = params; 
+        this.params = params;
         this.httpConnectionManager = httpConnectionManager;
         this.httpConnectionManager.getParams().setDefaults(this.params);
     }
-    
+
     /**
-     * Creates an instance of HttpClient with a user specified 
+     * Creates an instance of HttpClient with a user specified
      * {@link HttpConnectionManager HTTP connection manager}.
-     * 
+     *
      * @param httpConnectionManager The {@link HttpConnectionManager connection manager}
      * to use.
-     * 
+     *
      * @since 2.0
      */
     @SingleThreaded
@@ -184,10 +184,10 @@ public class HttpClient {
     public HttpClient(HttpConnectionManager httpConnectionManager) {
         this(new HttpClientParams(), httpConnectionManager);
     }
-    
+
     // ----------------------------------------------------- Instance Variables
 
-    /** 
+    /**
      * The {@link HttpConnectionManager connection manager} being used to manage
      * connections for this HttpClient
      */
@@ -199,20 +199,20 @@ public class HttpClient {
      */
     @InRegion("Region")
     private HttpState state = new HttpState();
-    
+
     /**
      * The {@link HttpClientParams collection of parameters} associated with this HttpClient.
      */
     @InRegion("Region")
-    private HttpClientParams params = null; 
+    private HttpClientParams params = null;
 
-    /** 
+    /**
      * The {@link HostConfiguration host configuration} associated with
      * the HttpClient
      */
     @InRegion("Region")
     private HostConfiguration hostConfiguration = new HostConfiguration();
-    
+
     // ------------------------------------------------------------- Properties
 
     /**
@@ -236,14 +236,14 @@ public class HttpClient {
     }
 
     /**
-     * Defines how strictly the method follows the HTTP protocol specification  
-     * (see RFC 2616 and other relevant RFCs). 
-     * 
+     * Defines how strictly the method follows the HTTP protocol specification
+     * (see RFC 2616 and other relevant RFCs).
+     *
      * In the strict mode the method precisely
-     * implements the requirements of the specification, whereas in non-strict mode 
-     * it attempts to mimic the exact behaviour of commonly used HTTP agents, 
+     * implements the requirements of the specification, whereas in non-strict mode
+     * it attempts to mimic the exact behaviour of commonly used HTTP agents,
      * which many HTTP servers expect.
-     * 
+     *
      * @param strictMode <tt>true</tt> for strict mode, <tt>false</tt> otherwise
      *
      * @see #isStrictMode()
@@ -261,13 +261,13 @@ public class HttpClient {
 
     /**
      * Returns the value of the strict mode flag.
-     * 
+     *
      * @return <tt>true</tt> if strict mode is enabled, <tt>false</tt> otherwise
      *
      * @see #setStrictMode(boolean)
      *
-     * @deprecated Use 
-     * {@link org.apache.commons.httpclient.params.HttpClientParams#getParameter(String)} 
+     * @deprecated Use
+     * {@link org.apache.commons.httpclient.params.HttpClientParams#getParameter(String)}
      * to exercise a more granular control over HTTP protocol strictness.
      */
     public synchronized boolean isStrictMode() {
@@ -275,13 +275,13 @@ public class HttpClient {
     }
 
     /**
-     * Sets the socket timeout (<tt>SO_TIMEOUT</tt>) in milliseconds which is the 
-     * timeout for waiting for data. A timeout value of zero is interpreted as an 
+     * Sets the socket timeout (<tt>SO_TIMEOUT</tt>) in milliseconds which is the
+     * timeout for waiting for data. A timeout value of zero is interpreted as an
      * infinite timeout.
      *
      * @param newTimeoutInMilliseconds Timeout in milliseconds
-     * 
-     * @deprecated Use 
+     *
+     * @deprecated Use
      * {@link org.apache.commons.httpclient.params.HttpConnectionManagerParams#setSoTimeout(int)},
      * {@link HttpConnectionManager#getParams()}.
      *
@@ -291,15 +291,15 @@ public class HttpClient {
     }
 
     /**
-     * Sets the timeout in milliseconds used when retrieving an 
+     * Sets the timeout in milliseconds used when retrieving an
      * {@link HttpConnection HTTP connection} from the
      * {@link HttpConnectionManager HTTP connection manager}.
-     * 
+     *
      * @param timeout the timeout in milliseconds
-     * 
+     *
      * @see HttpConnectionManager#getConnection(HostConfiguration, long)
-     * 
-     * @deprecated Use 
+     *
+     * @deprecated Use
      * {@link org.apache.commons.httpclient.params.HttpClientParams#setConnectionManagerTimeout(long)},
      * {@link HttpClient#getParams()}
      */
@@ -308,13 +308,13 @@ public class HttpClient {
     }
 
     /**
-     * Sets the timeout until a connection is etablished. A value of zero 
+     * Sets the timeout until a connection is etablished. A value of zero
      * means the timeout is not used. The default value is zero.
-     * 
+     *
      * @see HttpConnection#setConnectionTimeout(int)
      * @param newTimeoutInMilliseconds Timeout in milliseconds.
-     * 
-     * @deprecated Use 
+     *
+     * @deprecated Use
      * {@link org.apache.commons.httpclient.params.HttpConnectionManagerParams#setConnectionTimeout(int)},
      * {@link HttpConnectionManager#getParams()}.
      */
@@ -331,20 +331,20 @@ public class HttpClient {
      * @return the method's response code
      *
      * @throws IOException If an I/O (transport) error occurs. Some transport exceptions
-     *                     can be recovered from.      
-     * @throws HttpException  If a protocol exception occurs. Usually protocol exceptions 
+     *                     can be recovered from.
+     * @throws HttpException  If a protocol exception occurs. Usually protocol exceptions
      *                    cannot be recovered from.
      */
     public int executeMethod(HttpMethod method)
         throws IOException, HttpException  {
-            
+
         LOG.trace("enter HttpClient.executeMethod(HttpMethod)");
         // execute this method and use its host configuration, if it has one
         return executeMethod(null, method, null);
     }
 
     /**
-    * Executes the given {@link HttpMethod HTTP method} using custom 
+    * Executes the given {@link HttpMethod HTTP method} using custom
     * {@link HostConfiguration host configuration}.
     *
     * @param hostConfiguration The {@link HostConfiguration host configuration} to use.
@@ -354,23 +354,23 @@ public class HttpClient {
     *
     * @throws IOException If an I/O (transport) error occurs. Some transport exceptions
     *                     can be recovered from.
-    * @throws HttpException  If a protocol exception occurs. Usually protocol exceptions 
+    * @throws HttpException  If a protocol exception occurs. Usually protocol exceptions
     *                    cannot be recovered from.
     * @since 2.0
     */
     public int executeMethod(final HostConfiguration hostConfiguration, final HttpMethod method)
         throws IOException, HttpException {
-    
+
         LOG.trace("enter HttpClient.executeMethod(HostConfiguration,HttpMethod)");
 
-        return executeMethod(hostConfiguration, method, null); 
+        return executeMethod(hostConfiguration, method, null);
     }
-    
 
-    
+
+
     /**
-     * Executes the given {@link HttpMethod HTTP method} using the given custom 
-     * {@link HostConfiguration host configuration} with the given custom 
+     * Executes the given {@link HttpMethod HTTP method} using the given custom
+     * {@link HostConfiguration host configuration} with the given custom
      * {@link HttpState HTTP state}.
      *
      * @param hostconfig The {@link HostConfiguration host configuration} to use.
@@ -383,14 +383,14 @@ public class HttpClient {
      *
      * @throws IOException If an I/O (transport) error occurs. Some transport exceptions
      *                     can be recovered from.
-     * @throws HttpException  If a protocol exception occurs. Usually protocol exceptions 
+     * @throws HttpException  If a protocol exception occurs. Usually protocol exceptions
      *                    cannot be recovered from.
      * @since 2.0
      */
-    public int executeMethod(HostConfiguration hostconfig, 
+    public int executeMethod(HostConfiguration hostconfig,
         final HttpMethod method, final HttpState state)
         throws IOException, HttpException  {
-            
+
         LOG.trace("enter HttpClient.executeMethod(HostConfiguration,HttpMethod,HttpState)");
 
         if (method == null) {
@@ -400,7 +400,7 @@ public class HttpClient {
         if (hostconfig == null) {
             hostconfig = defaulthostconfig;
         }
-        URI uri = method.getURI(); 
+        URI uri = method.getURI();
         if (hostconfig == defaulthostconfig || uri.isAbsoluteURI()) {
             // make a deep copy of the host defaults
             hostconfig = (HostConfiguration) hostconfig.clone();
@@ -408,7 +408,7 @@ public class HttpClient {
                 hostconfig.setHost(uri);
             }
         }
-        
+
         HttpMethodDirector methodDirector = new HttpMethodDirector(
                 getHttpConnectionManager(),
                 hostconfig,
@@ -419,10 +419,10 @@ public class HttpClient {
     }
 
     /**
-      * Returns the default host. 
+      * Returns the default host.
       *
       * @return The default host.
-      * 
+      *
       * @deprecated use #getHostConfiguration()
       */
      public String getHost() {
@@ -433,19 +433,19 @@ public class HttpClient {
       * Returns the default port.
       *
       * @return The default port.
-      * 
+      *
       * @deprecated use #getHostConfiguration()
       */
      public int getPort() {
          return hostConfiguration.getPort();
      }
-     
+
     /**
-     * Returns the {@link HostConfiguration host configuration} associated with the 
+     * Returns the {@link HostConfiguration host configuration} associated with the
      * HttpClient.
-     * 
+     *
      * @return {@link HostConfiguration host configuration}
-     * 
+     *
      * @since 2.0
      */
     public synchronized HostConfiguration getHostConfiguration() {
@@ -455,9 +455,9 @@ public class HttpClient {
     /**
      * Assigns the {@link HostConfiguration host configuration} to use with the
      * HttpClient.
-     * 
+     *
      * @param hostConfiguration The {@link HostConfiguration host configuration} to set
-     * 
+     *
      * @since 2.0
      */
     public synchronized void setHostConfiguration(HostConfiguration hostConfiguration) {
@@ -465,11 +465,11 @@ public class HttpClient {
     }
 
     /**
-     * Returns the {@link HttpConnectionManager HTTP connection manager} associated 
+     * Returns the {@link HttpConnectionManager HTTP connection manager} associated
      * with the HttpClient.
-     * 
+     *
      * @return {@link HttpConnectionManager HTTP connection manager}
-     * 
+     *
      * @since 2.0
      */
     public synchronized HttpConnectionManager getHttpConnectionManager() {
@@ -479,10 +479,10 @@ public class HttpClient {
     /**
      * Assigns the {@link HttpConnectionManager HTTP connection manager} to use with
      * the HttpClient.
-     * 
+     *
      * @param httpConnectionManager The {@link HttpConnectionManager HTTP connection manager}
      *  to set
-     * 
+     *
      * @since 2.0
      */
     public synchronized void setHttpConnectionManager(
@@ -496,9 +496,9 @@ public class HttpClient {
 
     /**
      * Returns {@link HttpClientParams HTTP protocol parameters} associated with this HttpClient.
-     * 
+     *
      * @since 3.0
-     * 
+     *
      * @see HttpClientParams
      */
     public HttpClientParams getParams() {
@@ -507,9 +507,9 @@ public class HttpClient {
 
     /**
      * Assigns {@link HttpClientParams HTTP protocol parameters} for this HttpClient.
-     * 
+     *
      * @since 3.0
-     * 
+     *
      * @see HttpClientParams
      */
     public void setParams(final HttpClientParams params) {

@@ -46,16 +46,16 @@ import java.net.InetAddress;
  * Holds all of the variables needed to describe an HTTP connection to a host.
  * This includes remote host, port and protocol, proxy host and port, local
  * address, and virtual host.
- * 
+ *
  * @author <a href="mailto:becke@u.washington.edu">Michael Becke</a>
  * @author <a href="mailto:mbowler@GargoyleSoftware.com">Mike Bowler</a>
  * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
  * @author Laura Werner
- * 
+ *
  * @since 2.0
  */
 @Region("private Region")
-@RegionLock("Lock is this protects Region"/*is CONSISTENT*/)
+@RegionLock("Lock is this protects Region"/*is INCONSISTENT*/)
 public class HostConfiguration implements Cloneable {
 
 	/**
@@ -96,7 +96,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Copy constructor for HostConfiguration
-	 * 
+	 *
 	 * @param hostConfiguration
 	 *            the hostConfiguration to copy
 	 */
@@ -193,12 +193,12 @@ public class HostConfiguration implements Cloneable {
 	 * connection. True only if the host, port, protocol, local address and
 	 * virtual address are equal. If no host configuration has been set false
 	 * will be returned.
-	 * 
+	 *
 	 * @param connection
 	 *            the connection to test against
 	 * @return <code>true</code> if the connection's host information equals
 	 *         that of this configuration
-	 * 
+	 *
 	 * @see #proxyEquals(HttpConnection)
 	 */
 	public synchronized boolean hostEquals(final HttpConnection connection) {
@@ -233,12 +233,12 @@ public class HostConfiguration implements Cloneable {
 	/**
 	 * Tests if the proxy configuration equals the configuration set on the
 	 * connection. True only if the proxyHost and proxyPort are equal.
-	 * 
+	 *
 	 * @param connection
 	 *            the connection to test against
 	 * @return <code>true</code> if the connection's proxy information equals
 	 *         that of this configuration
-	 * 
+	 *
 	 * @see #hostEquals(HttpConnection)
 	 */
 	public synchronized boolean proxyEquals(final HttpConnection connection) {
@@ -256,9 +256,9 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Returns true if the host is set.
-	 * 
+	 *
 	 * @return <code>true</code> if the host is set.
-	 * 
+	 *
 	 * @deprecated no longer used
 	 */
 	public synchronized boolean isHostSet() {
@@ -267,7 +267,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Sets the given host
-	 * 
+	 *
 	 * @param host
 	 *            the host
 	 */
@@ -277,7 +277,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Sets the given host, port and protocol
-	 * 
+	 *
 	 * @param host
 	 *            the host(IP or DNS name)
 	 * @param port
@@ -292,7 +292,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Sets the given host, virtual host, port and protocol.
-	 * 
+	 *
 	 * @param host
 	 *            the host(IP or DNS name)
 	 * @param virtualHost
@@ -301,7 +301,7 @@ public class HostConfiguration implements Cloneable {
 	 *            the host port or -1 to use protocol default
 	 * @param protocol
 	 *            the protocol
-	 * 
+	 *
 	 * @deprecated #setHost(String, int, Protocol)
 	 */
 	public synchronized void setHost(final String host,
@@ -312,7 +312,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Sets the given host, port and protocol.
-	 * 
+	 *
 	 * @param host
 	 *            the host(IP or DNS name)
 	 * @param port
@@ -333,7 +333,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Sets the given host and port. Uses the default protocol "http".
-	 * 
+	 *
 	 * @param host
 	 *            the host(IP or DNS name)
 	 * @param port
@@ -345,7 +345,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Set the given host. Uses the default protocol("http") and its port.
-	 * 
+	 *
 	 * @param host
 	 *            The host(IP or DNS name).
 	 */
@@ -356,7 +356,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Sets the protocol, host and port from the given URI.
-	 * 
+	 *
 	 * @param uri
 	 *            the URI.
 	 */
@@ -370,7 +370,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Return the host url.
-	 * 
+	 *
 	 * @return The host url.
 	 */
 	public synchronized String getHostURL() {
@@ -384,9 +384,9 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Returns the host.
-	 * 
+	 *
 	 * @return the host(IP or DNS name), or <code>null</code> if not set
-	 * 
+	 *
 	 * @see #isHostSet()
 	 */
 	public synchronized String getHost() {
@@ -399,9 +399,9 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Returns the virtual host.
-	 * 
+	 *
 	 * @return the virtual host name, or <code>null</code> if not set
-	 * 
+	 *
 	 * @deprecated use HostParams
 	 */
 	public synchronized String getVirtualHost() {
@@ -410,9 +410,9 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Returns the port.
-	 * 
+	 *
 	 * @return the host port, or <code>-1</code> if not set
-	 * 
+	 *
 	 * @see #isHostSet()
 	 */
 	public synchronized int getPort() {
@@ -425,7 +425,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Returns the protocol.
-	 * 
+	 *
 	 * @return The protocol.
 	 */
 	public synchronized Protocol getProtocol() {
@@ -438,11 +438,11 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Tests if the proxy host/port have been set.
-	 * 
+	 *
 	 * @return <code>true</code> if a proxy server has been set.
-	 * 
+	 *
 	 * @see #setProxy(String, int)
-	 * 
+	 *
 	 * @deprecated no longer used
 	 */
 	public synchronized boolean isProxySet() {
@@ -451,7 +451,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Sets the given proxy host
-	 * 
+	 *
 	 * @param proxyHost
 	 *            the proxy host
 	 */
@@ -461,7 +461,7 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Set the proxy settings.
-	 * 
+	 *
 	 * @param proxyHost
 	 *            The proxy host
 	 * @param proxyPort
@@ -473,9 +473,9 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Returns the proxyHost.
-	 * 
+	 *
 	 * @return the proxy host, or <code>null</code> if not set
-	 * 
+	 *
 	 * @see #isProxySet()
 	 */
 	public synchronized String getProxyHost() {
@@ -488,9 +488,9 @@ public class HostConfiguration implements Cloneable {
 
 	/**
 	 * Returns the proxyPort.
-	 * 
+	 *
 	 * @return the proxy port, or <code>-1</code> if not set
-	 * 
+	 *
 	 * @see #isProxySet()
 	 */
 	public synchronized int getProxyPort() {
@@ -505,7 +505,7 @@ public class HostConfiguration implements Cloneable {
 	 * Set the local address to be used when creating connections. If this is
 	 * unset, the default address will be used. This is useful for specifying
 	 * the interface to use on multi-homed or clustered systems.
-	 * 
+	 *
 	 * @param localAddress
 	 *            the local address to use
 	 */
@@ -517,7 +517,7 @@ public class HostConfiguration implements Cloneable {
 	/**
 	 * Return the local address to be used when creating connections. If this is
 	 * unset, the default address should be used.
-	 * 
+	 *
 	 * @return the local address to be used when creating Sockets, or
 	 *         <code>null</code>
 	 */
@@ -529,9 +529,9 @@ public class HostConfiguration implements Cloneable {
 	/**
 	 * Returns {@link HostParams HTTP protocol parameters} associated with this
 	 * host.
-	 * 
+	 *
 	 * @return HTTP parameters.
-	 * 
+	 *
 	 * @since 3.0
 	 */
 	public HostParams getParams() {
@@ -541,11 +541,11 @@ public class HostConfiguration implements Cloneable {
 	/**
 	 * Assigns {@link HostParams HTTP protocol parameters} specific to this
 	 * host.
-	 * 
+	 *
 	 * @since 3.0
-	 * 
+	 *
 	 * @see HostParams
-	 * 
+	 *
 	 */
 	public void setParams(final HostParams params) {
 		if (params == null) {
