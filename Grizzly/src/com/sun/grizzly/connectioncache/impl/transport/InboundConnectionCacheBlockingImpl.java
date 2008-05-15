@@ -46,14 +46,14 @@ import com.surelogic.Unique;
  * @author Ken Cavanaugh
  */
 @Region("protected TotalRegion")
-@RegionLock("Lock is this protects TotalRegion"/*is CONSISTENT*/)
+@RegionLock("Lock is this protects TotalRegion"/*is INCONSISTENT*/)
 @Promise("'InRegion TotalRegion' for int total*")
 public final class InboundConnectionCacheBlockingImpl<C extends Closeable>
         extends ConnectionCacheBlockingBase<C>
         implements InboundConnectionCache<C> {
 
 	@Unique
-	@Aggregate("Instance into TotalRegion"/*is INCONSISTENT*/)
+	@Aggregate("Instance into TotalRegion"/*is CONSISTENT*/)
     private final Map<C,ConnectionState<C>> connectionMap ;
 
     protected String thisClassName() {
