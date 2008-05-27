@@ -12,7 +12,8 @@ Require-Bundle: org.eclipse.ui,
  com.surelogic.common,
  com.surelogic.common.eclipse,
  com.surelogic.adhoc,
- com.surelogic.common.derby
+ com.surelogic.common.derby,
+ com.surelogic.jsure.message
 Eclipse-LazyStart: true
 Export-Package: com.surelogic.jsure.client.eclipse,
  com.surelogic.jsure.client.eclipse.preferences,
