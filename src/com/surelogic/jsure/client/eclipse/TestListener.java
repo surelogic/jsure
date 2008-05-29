@@ -1,9 +1,6 @@
 package com.surelogic.jsure.client.eclipse;
 
-import java.util.*;
-
 import com.surelogic.jsure.xml.*;
-import static com.surelogic.jsure.xml.JSureXMLReader.*;
 
 public class TestListener extends AbstractXMLResultListener {
 	@Override
