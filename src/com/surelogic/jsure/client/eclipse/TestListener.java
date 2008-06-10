@@ -4,8 +4,9 @@ import com.surelogic.jsure.xml.*;
 
 public class TestListener extends AbstractXMLResultListener {
 	@Override
-	protected void define(int id, Entity e) {
+	protected boolean define(int id, Entity e) {
 		// TODO Auto-generated method stub
+	  return true;
 	}
 
 	@Override
