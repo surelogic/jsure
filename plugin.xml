@@ -23,21 +23,46 @@
 					<separator name="additions" />
 				</menu>
 
+				<action
+					class="com.surelogic.jsure.client.eclipse.actions.ClearDropSeaAction"
+					id="com.surelogic.jsure.client.eclipse.actions.ClearDropSeaAction"
+					icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/red_x.gif"
+					label="Nuke Drop-Sea"
+					tooltip="Invalidate most drops"
+					menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
+					helpContextId="menu-clear-drop-sea">
+				</action>
+
+        <action
+               label="Garbage-collect IR"
+               tooltip="Garbage-collect dead IR"
+               class="edu.cmu.cs.fluid.eclipse.ui.CleanupIRActionDelegate"
+               menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
+               id="com.surelogic.jsure.client.eclipse.actions.irCleanupAction">
+        </action>
+
 		    <action id="com.surelogic.jsure.client.eclipse.view.status"
-			   menubarPath="additions"
+		     icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/plus.gif"
+			   menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
 			   label="Open Verification Status View"
 			   class="com.surelogic.jsure.client.eclipse.actions.ViewStatusAction"
 			   definitionId="com.surelogic.jsure.view.client.eclipse.status">
 		    </action>	
 
-				<action
-					class="com.surelogic.jsure.client.eclipse.actions.ClearDropSeaAction"
-					id="com.surelogic.jsure.client.eclipse.actions.ClearDropSeaAction"
-					icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/red_x.gif"
-					label="Clear Drop-Sea"
-					menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
-					helpContextId="menu-clear-drop-sea">
-				</action>
 	    </actionSet>
    </extension>
+   
+   <extension point="org.eclipse.ui.commands">
+     <category
+            name="JSure"
+            description="Commands for JSure"
+            id="com.surelogic.jsure.client.eclipse.actions">
+     </category>    
+	 	 <command
+			name="Verification Status"
+			description="Open verification status window"
+			categoryId="com.surelogic.jsure.client.eclipse.actions"
+			id="com.surelogic.jsure.view.client.eclipse.status">
+		 </command>
+   </extension>  
 </plugin>
