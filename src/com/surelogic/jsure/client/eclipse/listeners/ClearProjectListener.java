@@ -21,16 +21,20 @@ public class ClearProjectListener implements IResourceChangeListener {
   public void resourceChanged(IResourceChangeEvent event) {
     if (event.getType() == IResourceChangeEvent.PRE_CLOSE) {
       if (event.getResource() instanceof IProject) {
-        try {
-          clearDropSea();
-        
-//          System.out.println("Clearing all comp units");
-          Binding.clearCompUnits();        
-        } catch(Exception e) {
-          e.printStackTrace();
-        }
+        clearJSureState();
       }
     }
+  }
+
+  public static void clearJSureState() {
+	  try {
+		  clearDropSea();
+
+//		  System.out.println("Clearing all comp units");
+		  Binding.clearCompUnits();        
+	  } catch(Exception e) {
+		  e.printStackTrace();
+	  }
   }
   
   private static Set<IClearProjectHelper> helpers = new HashSet<IClearProjectHelper>();
