@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <!-- JSure Assurance perspective -->
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            name="JSure"
+			      icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/plus.gif"
+            class="com.surelogic.jsure.perspectives.JSurePerspective"
+            id="com.surelogic.jsure.perspectives.JSurePerspective">
+      </perspective>
+   </extension>
+   
+   <extension point="org.eclipse.ui.actionSets">
+			<actionSet label="JSure ActionSet" visible="true"
+				id="com.surelogic.jsure.client.eclipse.workbenchActionSet">
+				<menu id="com.surelogic.jsure.client.eclipse.workbenchMenu"
+					label="JSure" path="additions">
+	
+					<groupMarker name="client" />
+					<separator name="server" />
+					<separator name="additions" />
+				</menu>
+
+		    <action id="com.surelogic.jsure.client.eclipse.view.status"
+			   menubarPath="additions"
+			   label="Open Verification Status View"
+			   class="com.surelogic.jsure.client.eclipse.actions.ViewStatusAction"
+			   definitionId="com.surelogic.jsure.view.client.eclipse.status">
+		    </action>	
+
+				<action
+					class="com.surelogic.jsure.client.eclipse.actions.ClearDropSeaAction"
+					id="com.surelogic.jsure.client.eclipse.actions.ClearDropSeaAction"
+					icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/red_x.gif"
+					label="Clear Drop-Sea"
+					menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
+					helpContextId="menu-clear-drop-sea">
+				</action>
+	    </actionSet>
+   </extension>
+</plugin>
