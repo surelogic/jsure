@@ -92,11 +92,11 @@
          </menu>
          
          <action
-               id="edu.cmu.cs.fluid.dc.oc.addNature"
+               id="com.surelogic.jsure.client.eclipse.oc.addNature"
                label="%addNature.label"
                tooltip="%addNature.toolTip"
                menubarPath="jSureMenu/nature.grp"
-               class="edu.cmu.cs.fluid.dc.AddFluidNatureAction"
+               class="com.surelogic.jsure.client.eclipse.actions.AddFluidNatureAction"
                enablesFor="+">
             <enablement>
                <not>
@@ -108,12 +108,12 @@
          </action>
          
          <action
-               id="edu.cmu.cs.fluid.dc.oc.removeNature"
+               id="com.surelogic.jsure.client.eclipse.oc.removeNature"
                label="%removeNature.label"
                icon="%removeNature.icon"
                tooltip="%removeNature.toolTip"
                menubarPath="jSureMenu/nature.grp"
-               class="edu.cmu.cs.fluid.dc.RemoveFluidNatureAction"
+               class="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureAction"
                enablesFor="+">
             <enablement>
                <objectState
@@ -123,17 +123,17 @@
          </action>
          
          <action
-               id="edu.cmu.cs.fluid.dc.oc.focusNature"
+               id="com.surelogic.jsure.client.eclipse.oc.focusNature"
                label="%focusNature.label"
                icon="%focusNature.icon"
                tooltip="%focusNature.toolTip"
                menubarPath="jSureMenu/nature.grp"
-               class="edu.cmu.cs.fluid.dc.FocusFluidNatureAction"
+               class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
                enablesFor="1">
          </action>
          
          <action
-               id="edu.cmu.cs.fluid.dc.oc.analyzeAuto"
+               id="com.surelogic.jsure.client.eclipse.oc.analyzeAuto"
                label="%analyzeAuto.label"
                tooltip="%analyzeAuto.toolTip"
                menubarPath="jSureMenu/nature.grp"
@@ -146,7 +146,7 @@
             </enablement>
          </action>         
          <action
-               id="edu.cmu.cs.fluid.dc.oc.analyzeManual"
+               id="com.surelogic.jsure.client.eclipse.oc.analyzeManual"
                label="%analyzeManual.label"
                tooltip="%analyzeManual.toolTip"
                menubarPath="jSureMenu/nature.grp"
@@ -159,7 +159,7 @@
             </enablement>
          </action>
              <action
-               id="edu.cmu.cs.fluid.dc.oc.analyzeNow"
+               id="com.surelogic.jsure.client.eclipse.oc.analyzeNow"
                label="%analyzeNow.label"
                tooltip="%analyzeNow.toolTip"
                menubarPath="jSureMenu/nature.grp"
@@ -180,11 +180,11 @@
 	          id="org.cmu.cs.fluid.dc.projectexplorer.actions" 
    		      targetID="org.eclipse.jdt.ui.PackageExplorer">
          <action
-               id="edu.cmu.cs.fluid.dc.va.addNature"
+               id="com.surelogic.jsure.client.eclipse.va.addNature"
                label="%addNature.label"
                tooltip="%addNature.toolTip"
                menubarPath="additions"
-               class="edu.cmu.cs.fluid.dc.AddFluidNatureAction"
+               class="com.surelogic.jsure.client.eclipse.actions.AddFluidNatureAction"
                enablesFor="+">
             <enablement>
                <and>
@@ -200,13 +200,13 @@
          </action>
 
          <action
-               id="edu.cmu.cs.fluid.dc.va.focusNature"
+               id="com.surelogic.jsure.client.eclipse.va.focusNature"
                label="%focusNature.label"
                icon="%focusNature.icon"
                tooltip="%focusNature.toolTip"
                toolbarPath="JSure"
                menubarPath="additions"
-               class="edu.cmu.cs.fluid.dc.FocusFluidNatureAction"
+               class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
                enablesFor="1">
             <enablement>
                <objectClass
@@ -215,13 +215,13 @@
          </action>
          
          <action
-               id="edu.cmu.cs.fluid.dc.va.removeNature"
+               id="com.surelogic.jsure.client.eclipse.va.removeNature"
                label="%removeNature.label"
                icon="%removeNature.icon"
                tooltip="%removeNature.toolTip"
                toolbarPath="JSure"
                menubarPath="additions"
-               class="edu.cmu.cs.fluid.dc.RemoveFluidNatureAction"
+               class="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureAction"
                enablesFor="+">
             <enablement>
                <and>
