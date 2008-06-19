@@ -11,11 +11,17 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.IJavaFileLocator;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.WarningDrop;
+import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public class ClearProjectListener implements IResourceChangeListener {
   public void resourceChanged(IResourceChangeEvent event) {
@@ -45,6 +51,17 @@ public class ClearProjectListener implements IResourceChangeListener {
   
   public static void clearDropSea() {
     // Sea.getDefault().invalidateAll();
+	// final IJavaFileLocator loc = IDE.getInstance().getJavaFileLocator();
+	for(RegionModel region : Sea.getDefault().getDropsOfExactType(RegionModel.class)) {
+	  IRNode n    = region.getNode();
+	  IRNode root = VisitUtil.findRoot(n);
+	  CUDrop drop = CUDrop.queryCU(root);
+	  if (drop instanceof SourceCUDrop) {
+		System.out.println(region.getMessage());
+		region.invalidate();
+	  }
+	}
+	RegionModel.purgeUnusedRegions();
     SourceCUDrop.invalidateAll();
     Sea.getDefault().invalidateMatching(
         DropPredicateFactory.matchType(WarningDrop.class));
