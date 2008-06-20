@@ -32,7 +32,7 @@ extends edu.cmu.cs.fluid.dc.RemoveFluidNatureAction {
 		IProject first = null;
 		
 		for(IProject p : projects) {
-			if (Nature.hasNature(p)) {
+			if (p.isOpen() && Nature.hasNature(p)) {
 				if (first == null) {
 					first = p;
 				} 
