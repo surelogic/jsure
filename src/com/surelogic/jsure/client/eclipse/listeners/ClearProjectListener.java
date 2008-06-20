@@ -73,6 +73,7 @@ public class ClearProjectListener implements IResourceChangeListener {
     		h.clearResults();
     	}
     }
+    Sea.getDefault().notifySeaObservers();
   }
 }
 
