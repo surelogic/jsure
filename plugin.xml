@@ -6,7 +6,7 @@
          point="org.eclipse.ui.perspectives">
       <perspective
             name="JSure"
-			      icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/plus.gif"
+			      icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
             class="com.surelogic.jsure.perspectives.JSurePerspective"
             id="com.surelogic.jsure.perspectives.JSurePerspective">
       </perspective>
@@ -42,13 +42,31 @@
         </action>
 
 		    <action id="com.surelogic.jsure.client.eclipse.view.status"
-		     icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/plus.gif"
+		     icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
 			   menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
 			   label="Open Verification Status View"
 			   class="com.surelogic.jsure.client.eclipse.actions.ViewStatusAction"
 			   definitionId="com.surelogic.jsure.view.client.eclipse.status">
+		    </action>		  
+				  
+		    <action id="com.surelogic.jsure.client.eclipse.focus.nature"
+		     icon="%focusNature.icon"
+			   menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
+			   label="%focusNature.label"
+			   tooltip="%focusNature.toolTip"
+			   class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
+         enablesFor="1">
+	         <enablement>
+	          <and>
+	             <objectState
+	                   name="nature"
+	                   value="org.eclipse.jdt.core.javanature"/>
+	             <objectState
+	                   name="open"
+	                   value="true"/>
+	          </and>
+	        </enablement>
 		    </action>	
-
 	    </actionSet>
    </extension>
    
