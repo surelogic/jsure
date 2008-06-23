@@ -19,17 +19,14 @@ import edu.cmu.cs.fluid.dc.Nature;
 
 public class FocusVerificationAction implements IWorkbenchWindowActionDelegate {
 
-	@Override
 	public void dispose() {
 		// Nothing to do
 	}
 
-	@Override
 	public void init(IWorkbenchWindow window) {
 		// Nothing to do
 	}
 
-	@Override
 	public void run(IAction action) {
 		IJavaProject focus = JavaProjectSelectionDialog.getProject(
 				"Select the project to verify:", "Focus Verification", SLImages
@@ -48,7 +45,6 @@ public class FocusVerificationAction implements IWorkbenchWindowActionDelegate {
 
 	}
 
-	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		// Nothing to do
 	}
