@@ -6,11 +6,13 @@ package com.surelogic.jsure.client.eclipse.listeners;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 
 import com.surelogic.common.logging.SLLogger;
 
@@ -106,5 +108,27 @@ public class ClearProjectListener implements IResourceChangeListener {
 		if (first != null) {
 			Nature.runAnalysis(first);
 		}
+	}
+
+	public static void clearNatureFromAllOpenProjects() {
+		// Handle projects that are still active
+		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
+				.getProjects();
+		if (projects == null)
+			return;
+
+		for (IProject p : projects) {
+			if (p.isOpen() && Nature.hasNature(p)) {
+				try {
+					Nature.removeNatureFromProject(p);
+				} catch (CoreException e) {
+					SLLogger.getLogger().log(
+							Level.SEVERE,
+							"CoreException trying to remove the JSure nature from "
+									+ p.getName(), e);
+				}
+			}
+		}
+		postNatureChangeUtility();
 	}
 }

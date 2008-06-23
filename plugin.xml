@@ -2,6 +2,11 @@
 <?eclipse version="3.2"?>
 <plugin>
 
+	<extension point="org.eclipse.core.runtime.preferences">
+		<initializer
+			class="com.surelogic.jsure.client.eclipse.preferences.PreferenceInitializer" />
+	</extension>
+
 	<!-- Code Review perspective links and Java perspective links -->
 
 	<extension point="org.eclipse.ui.perspectives">
@@ -53,11 +58,11 @@
 			</action>
 
 			<action
-				class="com.surelogic.jsure.client.eclipse.actions.SetProjectToVerifyAction"
-				id="com.surelogic.jsure.client.eclipse.actions.SetProjectToVerifyAction"
+				class="com.surelogic.jsure.client.eclipse.actions.FocusVerificationAction"
+				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationAction"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
-				label="Verify Project"
+				label="Focus Verification..."
 				tooltip="Set a particular project to be verified by the JSure tool"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>

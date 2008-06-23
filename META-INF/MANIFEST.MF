@@ -16,7 +16,8 @@ Require-Bundle: org.eclipse.ui,
  com.surelogic.jsure.message,
  org.eclipse.core.resources,
  edu.cmu.cs.fluid.dc,
- org.eclipse.jdt.core
+ org.eclipse.jdt.core,
+ org.eclipse.ui.ide
 Eclipse-LazyStart: true
 Export-Package: com.surelogic.jsure.client.eclipse,
  com.surelogic.jsure.client.eclipse.actions,
