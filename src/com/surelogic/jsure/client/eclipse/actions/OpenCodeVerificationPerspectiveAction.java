@@ -11,23 +11,19 @@ import com.surelogic.jsure.perspectives.CodeVerificationPerspective;
 public class OpenCodeVerificationPerspectiveAction implements
 		IWorkbenchWindowActionDelegate {
 
-	@Override
 	public void dispose() {
 		// Nothing to do
 	}
 
-	@Override
 	public void init(IWorkbenchWindow window) {
 		// Nothing to do
 	}
 
-	@Override
 	public void run(IAction action) {
 		ViewUtility
 				.showPerspective(CodeVerificationPerspective.class.getName());
 	}
 
-	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		// Nothing to do
 	}
