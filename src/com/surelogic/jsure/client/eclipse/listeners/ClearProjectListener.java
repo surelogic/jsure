@@ -18,6 +18,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
@@ -93,20 +94,20 @@ public class ClearProjectListener implements IResourceChangeListener {
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
 				.getProjects();
 		IProject first = null;
-
+			
 		for (IProject p : projects) {
-			if (p.isOpen() && Nature.hasNature(p)) {
+			if (p.isOpen() && Nature.hasNature(p)) {				
 				if (first == null) {
 					first = p;
-				} else {
+				} 
+				else if (!IDE.allowMultipleProjects) {
 					SLLogger.getLogger().severe(
 							"Multiple projects with JSure nature: "
 									+ first.getName() + " and " + p.getName());
+					continue;
 				}
+				Nature.runAnalysis(p);
 			}
-		}
-		if (first != null) {
-			Nature.runAnalysis(first);
 		}
 	}
 
