@@ -18,17 +18,14 @@ import edu.cmu.cs.fluid.dc.Nature;
 public class RemoveFluidNatureFromAllProjectsAction implements
 		IWorkbenchWindowActionDelegate {
 
-	@Override
 	public void dispose() {
 		// Nothing to do
 	}
 
-	@Override
 	public void init(IWorkbenchWindow window) {
 		// Nothing to do
 	}
 
-	@Override
 	public void run(IAction action) {
 		// Handle projects that are still active
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
@@ -52,7 +49,6 @@ public class RemoveFluidNatureFromAllProjectsAction implements
 		ClearProjectListener.postNatureChangeUtility();
 	}
 
-	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		// Nothing to do
 	}
