@@ -35,8 +35,8 @@
 				label="JSure" path="additions">
 
 				<groupMarker name="client" />
+				<separator name="integration" />
 				<separator name="admin" />
-				<separator name="additions" />
 			</menu>
 
 			<action
