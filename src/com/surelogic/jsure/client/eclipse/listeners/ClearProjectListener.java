@@ -22,6 +22,7 @@ import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
@@ -54,6 +55,8 @@ public class ClearProjectListener implements IResourceChangeListener {
 	public static void clearDropSea() {
 		// Sea.getDefault().invalidateAll();
 		// final IJavaFileLocator loc = IDE.getInstance().getJavaFileLocator();
+
+		// FIX to clear out drops for a given project
 		for (RegionModel region : Sea.getDefault().getDropsOfExactType(
 				RegionModel.class)) {
 			IRNode n = region.getNode();
@@ -66,6 +69,8 @@ public class ClearProjectListener implements IResourceChangeListener {
 		}
 		RegionModel.purgeUnusedRegions();
 		SourceCUDrop.invalidateAll();
+		Sea.getDefault().invalidateMatching(
+				DropPredicateFactory.matchType(ProjectDrop.class));		
 		Sea.getDefault().invalidateMatching(
 				DropPredicateFactory.matchType(WarningDrop.class));
 		Sea.getDefault().invalidateMatching(
