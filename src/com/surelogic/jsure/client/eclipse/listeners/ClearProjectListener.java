@@ -1,7 +1,3 @@
-/*
- * Created on Mar 4, 2005
- *
- */
 package com.surelogic.jsure.client.eclipse.listeners;
 
 import java.util.HashSet;
@@ -94,13 +90,12 @@ public class ClearProjectListener implements IResourceChangeListener {
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
 				.getProjects();
 		IProject first = null;
-			
+
 		for (IProject p : projects) {
-			if (p.isOpen() && Nature.hasNature(p)) {				
+			if (p.isOpen() && Nature.hasNature(p)) {
 				if (first == null) {
 					first = p;
-				} 
-				else if (!IDE.allowMultipleProjects) {
+				} else if (!IDE.allowMultipleProjects) {
 					SLLogger.getLogger().severe(
 							"Multiple projects with JSure nature: "
 									+ first.getName() + " and " + p.getName());
