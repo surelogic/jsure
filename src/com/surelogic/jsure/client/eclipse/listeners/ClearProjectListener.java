@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
@@ -41,6 +42,9 @@ public class ClearProjectListener implements IResourceChangeListener {
 
 			// System.out.println("Clearing all comp units");
 			Binding.clearCompUnits();
+			
+			// Go ahead and garbage collect the IR.
+			SlotInfo.gc();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

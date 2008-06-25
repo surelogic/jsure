@@ -125,6 +125,13 @@ public final class JavaProjectSelectionDialog extends Dialog {
 				setOKState();
 			}
 		});
+		f_projectTable.addListener(SWT.MouseDoubleClick, new Listener() {
+			public void handleEvent(Event event) {
+				if (getButton(IDialogConstants.OK_ID).isEnabled()) {
+					okPressed();
+				}
+			}
+		});
 
 		return panel;
 	}
