@@ -56,7 +56,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 		helpers.add(h);
 	}
 
-	public static void clearDropSea() {
+	private static void clearDropSea() {
 		// Sea.getDefault().invalidateAll();
 		// final IJavaFileLocator loc = IDE.getInstance().getJavaFileLocator();
 
