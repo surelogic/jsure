@@ -6,6 +6,8 @@ import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.eclipse.logging.SLStatus;
 
+import edu.cmu.cs.fluid.eclipse.Eclipse;
+
 /**
  * The activator class controls the plug-in life cycle
  */
@@ -32,16 +34,17 @@ public class Activator extends AbstractUIPlugin {
 		plugin = this;
 		
 		/*
-     * "Touch" common-eclipse so the logging gets Eclipse-ified.
-     */
-    SLStatus.touch();
+		 * "Touch" common-eclipse so the logging gets Eclipse-ified.
+		 */
+		SLStatus.touch();
 
-    // TODO find a better place to define this system property
-    System.setProperty("derby.storage.pageCacheSize", "2500");
-    // startup the database and ensure its schema is up to date
-    Data.bootAndCheckSchema();
-    
-    // TODO reload persistent data
+		// TODO find a better place to define this system property
+		System.setProperty("derby.storage.pageCacheSize", "2500");
+		// startup the database and ensure its schema is up to date
+		Data.bootAndCheckSchema();
+
+		// TODO reload persistent data
+		Eclipse.initialize();
 	}
 
 	/*
