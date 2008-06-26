@@ -67,7 +67,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 			IRNode root = VisitUtil.findRoot(n);
 			CUDrop drop = CUDrop.queryCU(root);
 			if (drop instanceof SourceCUDrop) {
-				System.out.println(region.getMessage());
+				//System.out.println(region.getMessage());
 				region.invalidate();
 			}
 		}
