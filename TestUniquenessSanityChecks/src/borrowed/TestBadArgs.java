@@ -19,7 +19,7 @@ public class TestBadArgs {
   public void method8a(@Borrowed(value=" f, a, b" /* is UNPARSEABLE */) Object p) {}
   
   
-  @Borrowed  // bad
+  @Borrowed  // bad, but no where to put "is UNPARSABLE"
   public void annotatedMethod1() {}
 
   @Borrowed(/* is UNPARSEABLE */)
@@ -64,7 +64,7 @@ public class TestBadArgs {
 
 
   protected class Constructor1 {
-    @Borrowed
+    @Borrowed // bad, but no where to put "is UNPARSABLE"
     protected Constructor1() {}
   }
 

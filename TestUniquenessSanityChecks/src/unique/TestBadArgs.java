@@ -82,7 +82,7 @@ public class TestBadArgs {
 
   // === UNIQUE ON METHOD 
   
-  @Unique
+  @Unique // bad, but no where to put "is UNPARSEABLE"
   public void annotatedMethod1() {}
 
   @Unique(/* is UNPARSEABLE */)
