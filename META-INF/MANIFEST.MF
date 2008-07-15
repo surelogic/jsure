@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Eclipse Client for JSure
+Bundle-Name: JSure Eclipse Client
 Bundle-SymbolicName: com.surelogic.jsure.client.eclipse;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 2.3.0.qualifier
 Bundle-Activator: com.surelogic.jsure.client.eclipse.Activator
 Bundle-Vendor: SureLogic, Inc.
 Require-Bundle: org.eclipse.ui,
@@ -19,6 +19,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.core,
  org.eclipse.ui.ide
 Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
 Export-Package: com.surelogic.jsure.client.eclipse,
  com.surelogic.jsure.client.eclipse.actions,
  com.surelogic.jsure.client.eclipse.listeners,
