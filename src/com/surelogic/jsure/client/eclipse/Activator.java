@@ -4,7 +4,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import com.surelogic.common.eclipse.logging.SLStatus;
+import com.surelogic.common.eclipse.logging.SLStatusUtility;
 
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 
@@ -36,7 +36,7 @@ public class Activator extends AbstractUIPlugin {
 		/*
 		 * "Touch" common-eclipse so the logging gets Eclipse-ified.
 		 */
-		SLStatus.touch();
+		SLStatusUtility.touch();
 
 		// TODO find a better place to define this system property
 		System.setProperty("derby.storage.pageCacheSize", "2500");
