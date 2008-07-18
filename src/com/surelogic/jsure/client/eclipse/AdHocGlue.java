@@ -16,7 +16,7 @@ public final class AdHocGlue extends AbstractAdHocGlue {
 	}
 	
 	public Connection getConnection() throws SQLException {
-		return Data.getConnection();
+		return Data.getInstance().getConnection();
 	}
 
 	public int getMaxRowsPerQuery() {

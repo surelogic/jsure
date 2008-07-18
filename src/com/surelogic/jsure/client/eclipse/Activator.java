@@ -41,7 +41,7 @@ public class Activator extends AbstractUIPlugin {
 		// TODO find a better place to define this system property
 		System.setProperty("derby.storage.pageCacheSize", "2500");
 		// startup the database and ensure its schema is up to date
-		Data.bootAndCheckSchema();
+		Data.getInstance().bootAndCheckSchema();
 
 		// TODO reload persistent data
 		Eclipse.initialize();

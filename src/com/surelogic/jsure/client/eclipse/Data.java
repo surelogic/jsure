@@ -1,15 +1,10 @@
 package com.surelogic.jsure.client.eclipse;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import com.surelogic.common.derby.DerbyConnection;
+import com.surelogic.common.jdbc.SchemaData;
+import com.surelogic.jsure.schema.JSureSchemaData;
 
-import com.surelogic.common.derby.DerbyDataUtils;
-import com.surelogic.common.jdbc.LazyPreparedStatementConnection;
-import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
-import com.surelogic.jsure.schema.JSureSchemaUtility;
-
-public final class Data {
+public final class Data extends DerbyConnection {
 
 	private Data() {
 		// no instances
@@ -18,44 +13,35 @@ public final class Data {
 	private static final String SCHEMA_NAME = "JSURE";
 	private static final String DATABASE_DIR = "db";
 
-	public static void bootAndCheckSchema() throws Exception {
-		if (PreferenceConstants.deleteDatabaseOnStartup()) {
-			/*
-			 * Delete the database
-			 */
-			try {
-			  DerbyDataUtils.deleteDatabase(getDatabaseLocation());
-			} finally {
-				PreferenceConstants.setDeleteDatabaseOnStartup(false);
-			}
-		}
-
-		DerbyDataUtils.createDatabase(JSureSchemaUtility.getDefault(), getDatabaseLocation(), SCHEMA_NAME);
+	@Override
+	protected boolean deleteDatabaseOnStartup() {
+		return false;
 	}
 
-	public static Connection readOnlyConnection() throws SQLException {
-		Connection conn = getConnection();
-		conn.setReadOnly(true);
-		return conn;
-	}
-
-	public static Connection transactionConnection() throws SQLException {
-		Connection conn = getConnection();
-		conn.setAutoCommit(false);
-		return conn;
-	}
-
-	public static Connection getConnection() throws SQLException {
-		Connection conn = LazyPreparedStatementConnection.wrap(DriverManager
-				.getConnection(getConnectionURL()));
-		return conn;
-	}
-
-	private static String getConnectionURL() {
-		return DerbyDataUtils.getConnectionURL(getDatabaseLocation(), SCHEMA_NAME);
-	}
-
-	private static String getDatabaseLocation() {
+	@Override
+	protected String getDatabaseLocation() {
 		return Activator.getDefault().getLocation(DATABASE_DIR);
 	}
+
+	@Override
+	protected SchemaData getSchemaLoader() {
+		return new JSureSchemaData();
+	}
+
+	@Override
+	protected String getSchemaName() {
+		return SCHEMA_NAME;
+	}
+
+	@Override
+	protected void setDeleteDatabaseOnStartup(final boolean bool) {
+		// Do nothing
+	}
+
+	private static final Data INSTANCE = new Data();
+
+	public static Data getInstance() {
+		return INSTANCE;
+	}
+
 }
