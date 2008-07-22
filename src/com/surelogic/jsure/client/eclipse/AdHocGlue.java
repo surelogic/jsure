@@ -7,9 +7,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.surelogic.adhoc.IAdHoc;
+import com.surelogic.adhoc.AbstractAdHoc;
 
-public final class AdHocGlue implements IAdHoc {
+public final class AdHocGlue extends AbstractAdHoc {
 
 	private static final ExecutorService exec = Executors
 			.newSingleThreadExecutor();
