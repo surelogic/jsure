@@ -11,13 +11,13 @@ Require-Bundle: org.eclipse.ui,
  edu.cmu.cs.fluid.eclipse,
  com.surelogic.common,
  com.surelogic.common.eclipse,
- com.surelogic.adhoc,
  com.surelogic.common.derby,
  com.surelogic.jsure.message,
  org.eclipse.core.resources,
  edu.cmu.cs.fluid.dc,
  org.eclipse.jdt.core,
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ com.surelogic.common.adhoc;bundle-version="2.3.0"
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: com.surelogic.jsure.client.eclipse,
