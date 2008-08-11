@@ -20,11 +20,11 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 
 import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.common.eclipse.SLImages;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.images.CommonImages;
 
 import edu.cmu.cs.fluid.dc.Nature;
 
@@ -110,8 +110,7 @@ public final class JavaProjectSelectionDialog extends Dialog {
 		for (IJavaProject jp : f_openJavaProjects) {
 			TableItem item = new TableItem(f_projectTable, SWT.NONE);
 			item.setText(jp.getElementName());
-			item.setImage(SLImages
-					.getWorkbenchImage(IDE.SharedImages.IMG_OBJ_PROJECT));
+			item.setImage(SLImages.getImage(CommonImages.IMG_PROJECT));
 			item.setData(jp);
 			if (Nature.hasNature(jp.getProject())) {
 				f_projectTable.select(index);
