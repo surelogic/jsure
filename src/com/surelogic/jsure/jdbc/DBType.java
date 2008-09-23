@@ -1,10 +1,8 @@
 package com.surelogic.jsure.jdbc;
 
-import com.surelogic.common.jdbc.IDBType;
+public enum DBType {
 
-public enum DBType implements IDBType {
-
-	//ORACLE("Oracle", "oracle"), 
+	// ORACLE("Oracle", "oracle"),
 	DERBY("Apache Derby", "derby");
 
 	private final String name;
