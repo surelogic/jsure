@@ -27,8 +27,7 @@ public final class Data extends DerbyConnection {
 		return "JSURE";
 	}
 
-	@Override
-	protected SchemaData getSchemaLoader() {
+	public SchemaData getSchemaLoader() {
 		return new JSureSchemaData();
 	}
 }
