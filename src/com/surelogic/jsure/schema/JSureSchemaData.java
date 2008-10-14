@@ -7,6 +7,7 @@ import java.net.URL;
 
 import com.surelogic.common.jdbc.SchemaAction;
 import com.surelogic.common.jdbc.SchemaData;
+import com.surelogic.common.license.SLLicenseUtility;
 
 public class JSureSchemaData implements SchemaData {
 
@@ -55,4 +56,7 @@ public class JSureSchemaData implements SchemaData {
 		return schemaPackage.replace(".", "/") + "/" + resource;
 	}
 
+	public String getLicenseSubject() {
+		return SLLicenseUtility.JSURE_SUBJECT;
+	}
 }
