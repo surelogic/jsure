@@ -2,18 +2,17 @@ package com.surelogic.jsure.client.eclipse;
 
 import java.io.File;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.logging.Level;
 
 import com.surelogic.common.adhoc.IAdHocDataSource;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.jdbc.DBConnection;
 import com.surelogic.common.logging.SLLogger;
 
 public final class AdHocDataSource implements IAdHocDataSource {
 
-	public Connection getConnection() throws SQLException {
-		return Data.getInstance().getConnection();
+	public DBConnection getDB() {
+		return Data.getInstance();
 	}
 
 	public int getMaxRowsPerQuery() {
