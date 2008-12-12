@@ -1026,10 +1026,10 @@ public class OperatorGen extends AbstractASTGenerator {
         }
       } else if (a.type.equals("Info")) {
         if (s.isVariable()) {
-          printJava("Identifier id = new Identifier(JJNode.getInfo(node).toString());\n");
+          printJava("Identifier id = new Identifier(JJNode.getInfo(node));\n");
           printJava(indent+"TokenList[i].add(id);\n");
         } else {
-          printJava("Identifier id = new Identifier(JJNode.getInfo(node).toString());\n");
+          printJava("Identifier id = new Identifier(JJNode.getInfo(node));\n");
           printJava(indent+"TokenList["+i+"].add(id);\n");
         }
       } else if (a.type.equals("Op")) {
