@@ -18,8 +18,7 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.perspectiveExtensions">
-		<perspectiveExtension
-			targetID="org.eclipse.jdt.ui.JavaPerspective">
+		<perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
 			<perspectiveShortcut
 				id="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
 			</perspectiveShortcut>
@@ -37,6 +36,9 @@
 				<groupMarker name="client" />
 				<separator name="integration" />
 				<separator name="admin" />
+				<separator name="service" />
+				<separator name="license" />
+				<separator name="additions" />
 			</menu>
 
 			<action
@@ -52,8 +54,7 @@
 				id="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureFromAllProjectsAction"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify_gray.gif"
-				label="Disable Verification Of All Projects"
-				tooltip="Set a particular project to be verified by the JSure tool"
+				label="Disable Verification Of All Projects" tooltip="Set a particular project to be verified by the JSure tool"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
@@ -62,8 +63,7 @@
 				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationAction"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
-				label="Focus Verification..."
-				tooltip="Set a particular project to be verified by the JSure tool"
+				label="Focus Verification..." tooltip="Set a particular project to be verified by the JSure tool"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
@@ -74,6 +74,26 @@
 				id="com.surelogic.jsure.client.eclipse.actions.irCleanupAction">
 			</action>
 
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
+				id="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
+				label="Manage SureLogic Licenses" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/license"
+				helpContextId="menu-manage-licenses">
+			</action>
+
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
+				id="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
+				label="Send Problem Report" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
+				helpContextId="menu-send-problem-report">
+			</action>
+
+			<action class="com.surelogic.jsure.client.eclipse.actions.SendTipAction"
+				id="com.surelogic.jsure.client.eclipse.actions.SendTipAction" label="Send Tip for Improvement"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
+				helpContextId="menu-send-tip-for-improvement">
+			</action>
+
 		</actionSet>
 	</extension>
 
@@ -81,10 +101,8 @@
 		<category name="JSure" description="Commands for JSure"
 			id="com.surelogic.jsure.client.eclipse.actions">
 		</category>
-		<command name="Verification Status"
-			description="Open verification status window"
-			categoryId="com.surelogic.jsure.client.eclipse.actions"
-			id="com.surelogic.jsure.view.client.eclipse.status">
+		<command name="Verification Status" description="Open verification status window"
+			categoryId="com.surelogic.jsure.client.eclipse.actions" id="com.surelogic.jsure.view.client.eclipse.status">
 		</command>
 	</extension>
 
@@ -94,8 +112,7 @@
 
 			<visibility>
 				<and>
-					<objectState name="nature"
-						value="org.eclipse.jdt.core.javanature" />
+					<objectState name="nature" value="org.eclipse.jdt.core.javanature" />
 					<objectState name="open" value="true" />
 				</and>
 			</visibility>
@@ -114,14 +131,12 @@
 				enablesFor="+">
 				<enablement>
 					<not>
-						<objectState name="nature"
-							value="edu.cmu.cs.fluid.dc.dcNature" />
+						<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
 					</not>
 				</enablement>
 			</action>
 
-			<action
-				id="com.surelogic.jsure.client.eclipse.oc.removeNature"
+			<action id="com.surelogic.jsure.client.eclipse.oc.removeNature"
 				label="Disable Verification"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify_gray.gif"
@@ -130,13 +145,11 @@
 				class="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureAction"
 				enablesFor="+">
 				<enablement>
-					<objectState name="nature"
-						value="edu.cmu.cs.fluid.dc.dcNature" />
+					<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
 				</enablement>
 			</action>
 
-			<action
-				id="com.surelogic.jsure.client.eclipse.oc.focusNature"
+			<action id="com.surelogic.jsure.client.eclipse.oc.focusNature"
 				label="Verify Only This Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
@@ -146,45 +159,35 @@
 				enablesFor="1">
 			</action>
 
-			<action
-				id="com.surelogic.jsure.client.eclipse.oc.analyzeAuto"
-				label="Analyze Automatically"
-				tooltip="Turns on automatic analysis for all JSure-active projects"
-				menubarPath="jSureMenu/nature.grp"
-				class="edu.cmu.cs.fluid.dc.AnalyzeAutoAction" enablesFor="+">
+			<action id="com.surelogic.jsure.client.eclipse.oc.analyzeAuto"
+				label="Analyze Automatically" tooltip="Turns on automatic analysis for all JSure-active projects"
+				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeAutoAction"
+				enablesFor="+">
 				<enablement>
-					<objectState name="nature"
-						value="edu.cmu.cs.fluid.dc.dcNature" />
+					<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
 				</enablement>
 			</action>
-			<action
-				id="com.surelogic.jsure.client.eclipse.oc.analyzeManual"
-				label="Analyze Manually"
-				tooltip="Turns off automatic analysis for all JSure-active projects"
-				menubarPath="jSureMenu/nature.grp"
-				class="edu.cmu.cs.fluid.dc.AnalyzeManualAction" enablesFor="+">
+			<action id="com.surelogic.jsure.client.eclipse.oc.analyzeManual"
+				label="Analyze Manually" tooltip="Turns off automatic analysis for all JSure-active projects"
+				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeManualAction"
+				enablesFor="+">
 				<enablement>
-					<objectState name="nature"
-						value="edu.cmu.cs.fluid.dc.dcNature" />
+					<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
 				</enablement>
 			</action>
-			<action
-				id="com.surelogic.jsure.client.eclipse.oc.analyzeNow"
-				label="Analyze Now"
-				tooltip="Analyzes selected JSure-active projects"
-				menubarPath="jSureMenu/nature.grp"
-				class="edu.cmu.cs.fluid.dc.AnalyzeNowAction" enablesFor="+">
+			<action id="com.surelogic.jsure.client.eclipse.oc.analyzeNow"
+				label="Analyze Now" tooltip="Analyzes selected JSure-active projects"
+				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeNowAction"
+				enablesFor="+">
 				<enablement>
-					<objectState name="nature"
-						value="edu.cmu.cs.fluid.dc.dcNature" />
+					<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
 				</enablement>
 			</action>
 		</objectContribution>
 	</extension>
 
 	<extension point="org.eclipse.ui.viewActions">
-		<viewContribution
-			id="org.cmu.cs.fluid.dc.projectexplorer.actions"
+		<viewContribution id="org.cmu.cs.fluid.dc.projectexplorer.actions"
 			targetID="org.eclipse.jdt.ui.PackageExplorer">
 			<action id="com.surelogic.jsure.client.eclipse.va.addNature"
 				label="Verify Project"
@@ -196,18 +199,15 @@
 				enablesFor="+">
 				<enablement>
 					<and>
-						<objectClass
-							name="org.eclipse.jdt.core.IJavaProject" />
+						<objectClass name="org.eclipse.jdt.core.IJavaProject" />
 						<not>
-							<objectState name="nature"
-								value="edu.cmu.cs.fluid.dc.dcNature" />
+							<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
 						</not>
 					</and>
 				</enablement>
 			</action>
 
-			<action
-				id="com.surelogic.jsure.client.eclipse.va.focusNature"
+			<action id="com.surelogic.jsure.client.eclipse.va.focusNature"
 				label="Verify Only This Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
@@ -216,13 +216,11 @@
 				class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
 				enablesFor="1">
 				<enablement>
-					<objectClass
-						name="org.eclipse.jdt.core.IJavaProject" />
+					<objectClass name="org.eclipse.jdt.core.IJavaProject" />
 				</enablement>
 			</action>
 
-			<action
-				id="com.surelogic.jsure.client.eclipse.va.removeNature"
+			<action id="com.surelogic.jsure.client.eclipse.va.removeNature"
 				label="Disable Verification"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify_gray.gif"
@@ -232,10 +230,8 @@
 				enablesFor="+">
 				<enablement>
 					<and>
-						<objectClass
-							name="org.eclipse.jdt.core.IJavaProject" />
-						<objectState name="nature"
-							value="edu.cmu.cs.fluid.dc.dcNature" />
+						<objectClass name="org.eclipse.jdt.core.IJavaProject" />
+						<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
 					</and>
 				</enablement>
 			</action>
