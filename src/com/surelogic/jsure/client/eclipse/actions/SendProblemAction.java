@@ -19,7 +19,7 @@ public final class SendProblemAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void run(IAction action) {
-		SendProblemReportDialog.open(SWTUtility.getShell());
+		SendProblemReportDialog.open(SWTUtility.getShell(), "JSure");
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {

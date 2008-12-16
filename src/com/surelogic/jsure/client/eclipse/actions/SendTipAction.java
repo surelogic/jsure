@@ -19,7 +19,7 @@ public final class SendTipAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void run(IAction action) {
-		SendTipDialog.open(SWTUtility.getShell());
+		SendTipDialog.open(SWTUtility.getShell(), "JSure");
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
