@@ -7,6 +7,7 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.dialogs.SendTipDialog;
+import com.surelogic.common.images.CommonImages;
 
 public final class SendTipAction implements IWorkbenchWindowActionDelegate {
 
@@ -19,7 +20,8 @@ public final class SendTipAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void run(IAction action) {
-		SendTipDialog.open(SWTUtility.getShell(), "JSure");
+		SendTipDialog.open(SWTUtility.getShell(), "JSure",
+				CommonImages.IMG_JSURE_LOGO);
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
