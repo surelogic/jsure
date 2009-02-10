@@ -1,0 +1,16 @@
+<?eclipse version="3.0"?>
+<plugin>
+	<extension point="org.eclipse.ui.views">
+		<category name="JSure Debug" id="com.surelogic.jsure.views.debug"></category>
+		<view name="JSure Test Results View"
+			category="com.surelogic.jsure.views.debug"
+			class="com.surelogic.jsure.views.debug.testResults.TestResultsView"
+			id="com.surelogic.jsure.views.debug.testResults.TestResultsView">
+		</view>
+		<view name="JSure Oracle Diff Results View"
+			category="com.surelogic.jsure.views.debug"
+			class="com.surelogic.jsure.views.debug.oracleDiff.OracleDiffResultsView"
+			id="com.surelogic.jsure.views.debug.oracleDiff.OracleDiffResultsView">
+		</view>
+	</extension>
+</plugin>
