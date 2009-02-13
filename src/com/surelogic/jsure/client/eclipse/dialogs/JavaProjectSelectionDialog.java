@@ -24,7 +24,7 @@ import org.eclipse.ui.PlatformUI;
 import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.common.eclipse.SLImages;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.images.CommonImages;
+import com.surelogic.common.CommonImages;
 
 import edu.cmu.cs.fluid.dc.Nature;
 

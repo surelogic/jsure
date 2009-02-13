@@ -10,7 +10,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.common.eclipse.SLImages;
-import com.surelogic.common.images.CommonImages;
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.dialogs.JavaProjectSelectionDialog;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
