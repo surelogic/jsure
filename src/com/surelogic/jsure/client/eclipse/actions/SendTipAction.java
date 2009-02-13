@@ -7,7 +7,7 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.dialogs.SendTipDialog;
-import com.surelogic.common.images.CommonImages;
+import com.surelogic.common.CommonImages;
 
 public final class SendTipAction implements IWorkbenchWindowActionDelegate {
 
