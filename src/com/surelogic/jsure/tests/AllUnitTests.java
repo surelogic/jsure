@@ -1,7 +1,6 @@
 package com.surelogic.jsure.tests;
 
 import junit.framework.TestSuite;
-import edu.cmu.cs.fluid.analysis.structure.TestPackage;
 import edu.cmu.cs.fluid.eclipse.bind.TestObjectBind;
 import edu.cmu.cs.fluid.ir.TestIRPackage;
 import edu.cmu.cs.fluid.java.analysis.TestJavaAnalysisPackage;
@@ -29,9 +28,8 @@ public class AllUnitTests extends TestSuite {
 		addTest(new TestSuite(TestObjectBind.class));
 
 		addTest(new TestSuite(TestJavaAnalysisPackage.class));
-		addTest(new TestSuite(TestPackage.class));
 		addTest(new TestSuite(TestTaskFramework.class));
-    addTest(new TestSuite(TestSLAnnotationsParser.class));
+        addTest(new TestSuite(TestSLAnnotationsParser.class));
 		addTest(new TestSuite(SLParseTest.class));
 		addTest(new TestSuite(TestScopedPromiseMatching.class));
 		addTest(new TestSuite(TestAASTCloning.class));
