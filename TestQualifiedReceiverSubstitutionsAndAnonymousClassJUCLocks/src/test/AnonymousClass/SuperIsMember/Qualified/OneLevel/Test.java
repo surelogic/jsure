@@ -6,7 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
-import com.surelogic.RegionEffects;
+//import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.RequiresLock;
@@ -38,7 +38,7 @@ public class Test {
     @RequiresLock("Test.this:T1")
     @SingleThreaded
     @Borrowed("this")
-    @RegionEffects("writes Test.this:t1")
+//    @RegionEffects("writes Test.this:t1")
     public Super() {
       // do stuff
       Test.this.t1 = 5;
@@ -124,13 +124,13 @@ public class Test {
       @RequiresLock("Test.this:T2")
       @Borrowed("this")
       @Starts("nothing")
-      @RegionEffects("none")
+//      @RegionEffects("none")
       private void needyMethod() {
       }
 
       @Borrowed("this")
       @Starts("nothing")
-      @RegionEffects("none")
+//      @RegionEffects("none")
       public void callsNeedyMethod1() {
         Test.this.lockT2.lock();
         try {
@@ -143,7 +143,7 @@ public class Test {
       @RequiresLock("Test.this:T2")
       @Borrowed("this")
       @Starts("nothing")
-      @RegionEffects("none")
+//      @RegionEffects("none")
       public void callsNeedyMethod2() {
         needyMethod();
       }
@@ -183,13 +183,13 @@ public class Test {
           @RequiresLock("Test.this:T2")
           @Borrowed("this")
           @Starts("nothing")
-          @RegionEffects("none")
+//          @RegionEffects("none")
           private void needyMethod() {
           }
 
           @Borrowed("this")
           @Starts("nothing")
-          @RegionEffects("none")
+//          @RegionEffects("none")
           public void callsNeedyMethod1() {
             Test.this.lockT2.lock();
             try {
@@ -202,7 +202,7 @@ public class Test {
           @RequiresLock("Test.this:T2")
           @Borrowed("this")
           @Starts("nothing")
-          @RegionEffects("none")
+//          @RegionEffects("none")
           public void callsNeedyMethod2() {
             needyMethod();
           }
@@ -223,7 +223,7 @@ public class Test {
     public int m1;
     
     @RequiresLock("other:T1, other:T2")
-    @RegionEffects("writes other:t1, other:t2")
+//    @RegionEffects("writes other:t1, other:t2")
     public Middle1(final Test other) {
       /*
        * The immediately enclosing instance of s3 is "this" (a Middle1 object)
@@ -254,7 +254,7 @@ public class Test {
           }
 
           @RequiresLock("Middle1.this:M1, Test.this:T2")
-          @RegionEffects("none")
+//          @RegionEffects("none")
           private void needyMethod() {
           }
 
@@ -311,7 +311,7 @@ public class Test {
         }
 
         @RequiresLock("Middle1.this:M1, Test.this:T2")
-        @RegionEffects("none")
+//        @RegionEffects("none")
         private void needyMethod() {
         }
 
@@ -370,7 +370,7 @@ public class Test {
               }
 
               @RequiresLock("Middle1.this:M1, Test.this:T2")
-              @RegionEffects("none")
+//              @RegionEffects("none")
               private void needyMethod() {
               }
 
@@ -443,7 +443,7 @@ public class Test {
             }
 
             @RequiresLock("Middle2.this:M2, Middle1.this:M1, Test.this:T2")
-            @RegionEffects("none")
+//            @RegionEffects("none")
             private void needyMethod() {
             }
 
@@ -505,7 +505,7 @@ public class Test {
           }
 
           @RequiresLock("Middle2.this:M2, Middle1.this:M1, Test.this:T2")
-          @RegionEffects("none")
+//          @RegionEffects("none")
           private void needyMethod() {
           }
 
@@ -571,7 +571,7 @@ public class Test {
                   }
 
                   @RequiresLock("Middle2.this:M2, Middle1.this:M1, Test.this:T2")
-                  @RegionEffects("none")
+//                  @RegionEffects("none")
                   private void needyMethod() {
                   }
 
