@@ -1,6 +1,319 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
+  <!-- Originally from double-checker -->
+	<extension-point id="analysisModule" name="JSure Analysis Modules"
+		schema="schema/analysisModule.exsd" />
+
+	<extension point="org.eclipse.ui.preferencePages">
+		<page name="JSure" class="edu.cmu.cs.fluid.dc.PreferencePage"
+			id="edu.cmu.cs.fluid.dc.PreferencePage">
+		</page>
+	</extension>
+	<extension point="org.eclipse.ui.propertyPages">
+		<page objectClass="org.eclipse.jdt.core.IJavaProject"
+			name="JSure" class="edu.cmu.cs.fluid.dc.PropertyPage"
+			id="edu.cmu.cs.fluid.dc.PropertyPage">
+			<filter name="nature"
+				value="org.eclipse.jdt.core.javanature">
+			</filter>
+		</page>
+		<page objectClass="org.eclipse.core.resources.IProject"
+			name="JSure Assurance Tool" class="edu.cmu.cs.fluid.dc.PropertyPage"
+			id="edu.cmu.cs.fluid.dc.PropertyPage">
+			<filter name="nature"
+				value="org.eclipse.jdt.core.javanature">
+			</filter>
+		</page>
+	</extension>
+	<extension id="dcNature" name="double-checker Nature"
+		point="org.eclipse.core.resources.natures">
+		<runtime>
+			<run class="edu.cmu.cs.fluid.dc.Nature">
+				<parameter name="installBuilder" value="true">
+				</parameter>
+			</run>
+		</runtime>
+		<requires-nature id="org.eclipse.jdt.core.javanature">
+		</requires-nature>
+		<builder id="com.surelogic.jsure.client.eclipse.dcBuilder"></builder>
+	</extension>
+	<extension id="dcBuilder" name="JSure Assurance Tool"
+		point="org.eclipse.core.resources.builders">
+		<builder hasNature="true">
+			<run class="edu.cmu.cs.fluid.dc.Majordomo"></run>
+		</builder>
+	</extension>
+
+	<extension point="org.eclipse.ui.decorators">
+		<decorator lightweight="true" adaptable="true"
+			label="%jSure.decorator.label" icon="icons/jsure_decr.gif"
+			state="true" id="jSureDecorator">
+			<description>%jSure.decorator.desc</description>
+			<enablement>
+				<and>
+					<objectClass
+						name="org.eclipse.core.resources.IProject" />
+					<objectState name="nature"
+						value="com.surelogic.jsure.client.eclipse.dcNature" />
+				</and>
+			</enablement>
+		</decorator>
+	</extension>
+  <!-- Originally from double-checker -->
+
+  <!-- Originally from double-checker-fluid -->
+  	<extension id="UpdateSuperRootStorage" name="UWM Bridge"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run
+			class="edu.cmu.cs.fluid.analysis.util.UpdateSuperRootStorage"
+			category="required">
+		</run>
+	</extension>
+	<extension id="PackageLevelPreprocessing"
+		name="Preprocessor for package-level constructs"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run
+			class="edu.cmu.cs.fluid.analysis.util.PackageLevelPreprocessing"
+			category="required">
+		</run>
+		<prerequisite
+			id="com.surelogic.jsure.client.eclipse.UpdateSuperRootStorage">
+		</prerequisite>
+	</extension>
+	<extension id="ConvertToIR" name="eAST to fAST Converter"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.util.ConvertToIR"
+			category="required">
+		</run>
+		<prerequisite
+			id="com.surelogic.jsure.client.eclipse.PackageLevelPreprocessing">
+		</prerequisite>
+	</extension>
+	<extension id="PromiseParser" name="Promise Parser"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.util.PromiseParser"
+			category="required">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.ConvertToIR">
+		</prerequisite>
+	</extension>
+	<extension id="PromiseScrubber" name="Promise Scrubber"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.util.PromiseScrubber"
+			category="required">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseParser">
+		</prerequisite>
+	</extension>
+	<extension id="DeleteIR" name="DeleteIR"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.util.DeleteIR"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="TestMultipleProjects" name="TestMultipleProjects"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.util.TestMultipleProjects"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="ConcurrencyDetector" name="Concurrency detector"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run
+			class="edu.cmu.cs.fluid.analysis.threads.ConcurrencyDetector"
+			production="false">
+		</run>
+	</extension>
+	<extension id="IRConcurrencyDetector" name="IR Concurrency detector"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run
+			class="edu.cmu.cs.fluid.analysis.threads.IRConcurrencyDetector">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="Static State Detector" name="Static state detector"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.lock.StaticStateDetector"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="LockAssurance3"
+		name="Greenhouse Lock Assurance (Converted)"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.lock.LockAssurance3">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="UniquenessAssurance2"
+		name="Uniqueness Assurance (Converted)"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run
+			class="edu.cmu.cs.fluid.analysis.unique.UniquenessAssurance2">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="MakeCFGDiagram" name="CFG diagram Maker"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.cfg.MakeCFGDiagram"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="ModuleAnalysis" name="Module Visibility Analyzer"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="ModuleAnalysis2"
+		name="Module Visibility Analyzer (Converted)"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis2"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="EffectAssurance2"
+		name="Greenhouse &amp; Boyland Effects (Converted)"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run
+			class="edu.cmu.cs.fluid.analysis.effects.EffectAssurance2">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="EffectDumper" name="Effect Dumper"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.effects.EffectDumper"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="NonNull" name="Non Null Analysis"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="com.surelogic.nonnull.NonNull" production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="ThreadEffectAssurance2"
+		name="Halloran Thread Effects (Converted)"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run
+			class="edu.cmu.cs.fluid.analysis.threadeffects.ThreadEffects2">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+	<extension id="StructureAnalysis"
+		name="Program Static Structure Verification"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.structure.Structure"
+			production="false">
+		</run>
+	</extension>
+	<extension id="ColorZerothPass" name="Coloring Zeroth Pass"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.colors.ColorZerothPass"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.ModuleAnalysis">
+		</prerequisite>
+	</extension>
+	<extension id="ManageColorAnnos" name="Coloring Annotation Grabber"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.colors.ManageColorAnnos"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.ColorZerothPass">
+		</prerequisite>
+	</extension>
+	<extension id="ColorAssurance" name="Thread Color Assurance"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.colors.ColorAssurance"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.ManageColorAnnos">
+		</prerequisite>
+	</extension>
+	<extension id="UseTypeWherePossible" name="Type Use Guidance"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run
+			class="edu.cmu.cs.fluid.analysis.usetypewherepossible.UseTypeWherePossibleGuidance"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>
+
+	<extension id="ColorZerothPass1"
+		name="Coloring Zeroth Pass (Converted)"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.colors.ColorZerothPass1"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.ModuleAnalysis2">
+		</prerequisite>
+	</extension>
+	<extension id="ManageColorAnnos1"
+		name="Coloring Annotation Grabber (Converted)"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.colors.ManageColorAnnos1"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.ColorZerothPass1">
+		</prerequisite>
+	</extension>
+	<extension id="ColorAssurance1"
+		name="Thread Color Assurance (Converted)"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="edu.cmu.cs.fluid.analysis.colors.ColorAssurance1"
+			production="false">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.ManageColorAnnos1">
+		</prerequisite>
+	</extension>
+
+	<extension point="org.eclipse.ui.views">
+		<category name="JSure" id="edu.cmu.cs.fluid.dcf"></category>
+		<view name="Verification Status" icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
+			category="edu.cmu.cs.fluid.dcf"
+			class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
+			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
+		</view>
+		<view name="JSure Verification Status Diffs"
+			icon="icons/link.gif" category="edu.cmu.cs.fluid.dcf"
+			class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
+			id="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView">
+		</view>
+		<view name="JSure Verification Metrics" icon="icons/link.gif"
+			category="edu.cmu.cs.fluid.dcf"
+			class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
+			id="edu.cmu.cs.fluid.dcf.views.coe.MetricsView">
+		</view>
+	</extension>
+	<extension point="org.eclipse.ui.views">
+		<view name="FAST Viewer" category="edu.cmu.cs.fluid.dcf"
+			class="edu.cmu.cs.fluid.dcf.views.ast.FastViewer"
+			id="edu.cmu.cs.fluid.dcf.views.ast.FastViewer">
+		</view>
+	</extension>
+  <!-- Originally from double-checker-fluid -->
 
 	<extension point="org.eclipse.core.runtime.preferences">
 		<initializer
@@ -131,7 +444,7 @@
 				enablesFor="+">
 				<enablement>
 					<not>
-						<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
+						<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
 					</not>
 				</enablement>
 			</action>
@@ -145,7 +458,7 @@
 				class="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureAction"
 				enablesFor="+">
 				<enablement>
-					<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
+					<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
 				</enablement>
 			</action>
 
@@ -164,7 +477,7 @@
 				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeAutoAction"
 				enablesFor="+">
 				<enablement>
-					<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
+					<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
 				</enablement>
 			</action>
 			<action id="com.surelogic.jsure.client.eclipse.oc.analyzeManual"
@@ -172,7 +485,7 @@
 				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeManualAction"
 				enablesFor="+">
 				<enablement>
-					<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
+					<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
 				</enablement>
 			</action>
 			<action id="com.surelogic.jsure.client.eclipse.oc.analyzeNow"
@@ -180,7 +493,7 @@
 				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeNowAction"
 				enablesFor="+">
 				<enablement>
-					<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
+					<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
 				</enablement>
 			</action>
 		</objectContribution>
@@ -201,7 +514,7 @@
 					<and>
 						<objectClass name="org.eclipse.jdt.core.IJavaProject" />
 						<not>
-							<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
+							<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
 						</not>
 					</and>
 				</enablement>
@@ -231,7 +544,7 @@
 				<enablement>
 					<and>
 						<objectClass name="org.eclipse.jdt.core.IJavaProject" />
-						<objectState name="nature" value="edu.cmu.cs.fluid.dc.dcNature" />
+						<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
 					</and>
 				</enablement>
 			</action>
