@@ -26,13 +26,13 @@ public final class Nature implements IProjectNature {
 	 * The double-checker builder identifier (<i>must</i> match the plugin
 	 * manifest)
 	 */
-	public static final String DOUBLE_CHECKER_BUILDER_ID = "edu.cmu.cs.fluid.dc.dcBuilder";
+	public static final String DOUBLE_CHECKER_BUILDER_ID = "com.surelogic.jsure.client.eclipse.dcBuilder";
 
 	/**
 	 * The double-checker nature identifier (<i>must</i> match the plugin
 	 * manifest)
 	 */
-	public static final String DOUBLE_CHECKER_NATURE_ID = "edu.cmu.cs.fluid.dc.dcNature";
+	public static final String DOUBLE_CHECKER_NATURE_ID = "com.surelogic.jsure.client.eclipse.dcNature";
 
 	/**
 	 * Checks if the double-checker nature is set for a given project.

@@ -40,7 +40,6 @@ import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -50,13 +49,14 @@ import org.jdom.output.XMLOutputter;
 import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.Activator;
 
 /**
  * The Eclipse plugin class for double-checker. This plugin drives the Eclipse
  * <i>builder</i> that drives assurance analysis. The class also provides a
  * facade to the Eclipse error reporting facilities.
  */
-public class Plugin extends AbstractUIPlugin {
+public class Plugin {
 
 	public static final boolean testing = System.getProperty("dc.testing",
 			"false").equals("true");
@@ -85,7 +85,7 @@ public class Plugin extends AbstractUIPlugin {
 	 * The double-checker plugin identifier <i>must</i> match the plugin
 	 * manifest.
 	 */
-	public static final String DOUBLE_CHECKER_PLUGIN_ID = "edu.cmu.cs.fluid.dc";
+	public static final String DOUBLE_CHECKER_PLUGIN_ID = "com.surelogic.jsure.client.eclipse";
 
 	/**
 	 * The double-checker analysis module extension point identifier <i>must</i>
@@ -97,11 +97,6 @@ public class Plugin extends AbstractUIPlugin {
 	 * The {@link Logger}for this class (named <code>edu.cmu.cs.fluid.dc</code>).
 	 */
 	private static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.dc");
-
-	/**
-	 * The shared instance.
-	 */
-	private static Plugin m_plugin;
 
 	/**
 	 * The list of <i>all</i> registered analysis module extensions reflecting
@@ -165,7 +160,7 @@ public class Plugin extends AbstractUIPlugin {
 	 * @return the shared double-checker plugin instance
 	 */
 	public static Plugin getDefault() {
-		return m_plugin;
+		return Activator.getDefault().getDoubleChecker();
 	}
 
 	/**
@@ -180,7 +175,7 @@ public class Plugin extends AbstractUIPlugin {
 	public ImageDescriptor getImageDescriptor(String fileName) {
 		String iconPath = "icons/"; // relative to the plugin location
 		try {
-			URL installURL = getBundle().getEntry("/");
+			URL installURL = Activator.getDefault().getBundle().getEntry("/");
 			URL url = new URL(installURL, iconPath + fileName);
 			return ImageDescriptor.createFromURL(url);
 		} catch (MalformedURLException e) {
@@ -195,7 +190,7 @@ public class Plugin extends AbstractUIPlugin {
 	 * @return the workspace instance associated with the double-checker plugin
 	 */
 	public static IWorkspace getWorkspace() {
-		return ResourcesPlugin.getWorkspace();
+		return Activator.getWorkspace();
 	}
 
 	/**
@@ -204,7 +199,6 @@ public class Plugin extends AbstractUIPlugin {
 	 */
 	public Plugin() {
 		super();
-		m_plugin = this; // save singleton instance
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("double-checker plugin constructed");
 		}
@@ -223,7 +217,7 @@ public class Plugin extends AbstractUIPlugin {
 		for (int i = 0; i < projects.length; i++) {
 			final IProject p = projects[i];
 			if (p.isOpen() && Nature.hasNature(p)) {
-				getWorkbench().getDisplay().asyncExec(new Runnable() {
+				Activator.getDefault().getWorkbench().getDisplay().asyncExec(new Runnable() {
 					public void run() {
 						refreshProjectAndScheduleInitialAnalysis(p);
 					}
@@ -269,18 +263,17 @@ public class Plugin extends AbstractUIPlugin {
 	 * 
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
-	@Override
 	public void start(BundleContext context) throws Exception {
-		super.start(context);
 		ISaveParticipant saveParticipant = new SaveParticipant();
-		ISavedState lastState = ResourcesPlugin.getWorkspace()
-				.addSaveParticipant(this, saveParticipant);
+		ISavedState lastState = 
+			ResourcesPlugin.getWorkspace().addSaveParticipant(Activator.getDefault(), 
+					                                          saveParticipant);
 		if (lastState != null) {
 			IPath location = lastState.lookup(new Path("save"));
 			if (location != null) {
 				// the plugin instance should read any important state from the
 				// file.
-				File f = getStateLocation().append(location).toFile();
+				File f = Activator.getDefault().getStateLocation().append(location).toFile();
 				readStateFrom(f);
 			} else {
 				invalidatePluginState();
@@ -593,11 +586,11 @@ public class Plugin extends AbstractUIPlugin {
 			String logMessage, Throwable exception) {
 		// build up log information
 		if (from == null) {
-			from = this; // default to this plugin if none was provided
+			from = Activator.getDefault(); // default to this plugin if none was provided
 		}
 		Status logContent = new Status(severity, from.getBundle()
 				.getSymbolicName(), severity, logMessage, exception);
-		Plugin.getDefault().getLog().log(logContent);
+		Activator.getDefault().getLog().log(logContent);
 	}
 
 	/**
@@ -676,7 +669,7 @@ public class Plugin extends AbstractUIPlugin {
 				// build up dialog information
 				org.eclipse.core.runtime.Plugin fromPlugin = from;
 				if (fromPlugin == null) {
-					fromPlugin = Plugin.getDefault();
+					fromPlugin = Activator.getDefault();
 					// default to this plugin if none was provided
 				}
 				MultiStatus dialogContent = new MultiStatus(fromPlugin

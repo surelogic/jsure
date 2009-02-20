@@ -11,6 +11,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 
+import com.surelogic.jsure.client.eclipse.Activator;
+
 /**
  * This class invokes an initial build on the project when the double-checker
  * nature and builder are added to a project, during workbench startup, and when
@@ -37,7 +39,7 @@ public final class FirstTimeAnalysis extends FirstTimeJob {
 				}
 			}
 		} catch (CoreException ce) {
-			Plugin.getDefault().elog(Plugin.getDefault(), IStatus.ERROR,
+			Activator.getDefault().getDoubleChecker().elog(Activator.getDefault(), IStatus.ERROR,
 					"Unable to get build arguments", ce);
 		}
 		return null;
@@ -45,7 +47,7 @@ public final class FirstTimeAnalysis extends FirstTimeJob {
 
 	@Override
 	protected void doJob(IProgressMonitor monitor) throws CoreException {
-		for (String id : Plugin.getDefault().getIncludedExtensions()) {
+		for (String id : Activator.getDefault().getDoubleChecker().getIncludedExtensions()) {
 			if (LOG.isLoggable(Level.FINE))
 				LOG.fine("Activated: " + id);
 		}

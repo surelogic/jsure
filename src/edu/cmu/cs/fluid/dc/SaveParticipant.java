@@ -10,6 +10,7 @@ import org.eclipse.core.resources.ISaveParticipant;
 import org.eclipse.core.runtime.Path;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.Activator;
 
 /**
  * The save participant class for double-checker.
@@ -21,7 +22,7 @@ public final class SaveParticipant implements ISaveParticipant {
   private static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.dc");
 
   public void doneSaving(ISaveContext context) {
-    Plugin myPluginInstance = Plugin.getDefault();
+	Activator myPluginInstance = Activator.getDefault();
     // delete the old saved state since it is not necessary anymore
     int previousSaveNumber = context.getPreviousSaveNumber();
     String oldFileName = "save-" + Integer.toString(previousSaveNumber);
@@ -34,7 +35,7 @@ public final class SaveParticipant implements ISaveParticipant {
   }
 
   public void rollback(ISaveContext context) {
-    Plugin myPluginInstance = Plugin.getDefault();
+	Activator myPluginInstance = Activator.getDefault();
     // since the save operation has failed, delete the saved state we have just
     // written
     int saveNumber = context.getSaveNumber();
@@ -50,7 +51,7 @@ public final class SaveParticipant implements ISaveParticipant {
       if (LOG.isLoggable(Level.FINE)) {
         LOG.fine("performing ISaveContext.FULL_SAVE");
       }
-      Plugin myPluginInstance = Plugin.getDefault();
+      Activator myPluginInstance = Activator.getDefault();
       // save the plug-in state
       int saveNumber = context.getSaveNumber();
       String saveFileName = "save-" + Integer.toString(saveNumber);
@@ -58,7 +59,7 @@ public final class SaveParticipant implements ISaveParticipant {
           .toFile();
       // if we fail to write, an exception is thrown and we do not update the
       // path
-      myPluginInstance.writeStateTo(f);
+      myPluginInstance.getDoubleChecker().writeStateTo(f);
       context.map(new Path("save"), new Path(saveFileName));
       context.needSaveNumber();
       LOG.info("double-checker saved analysis state to XML file "

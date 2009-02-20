@@ -1,11 +1,16 @@
 package com.surelogic.jsure.client.eclipse;
 
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.eclipse.logging.SLEclipseStatusUtility;
 
+import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
+import edu.cmu.cs.fluid.dc.NotificationHub;
+import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 
 /**
@@ -19,6 +24,11 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 
+	//Resource bundle.
+	//private ResourceBundle resourceBundle;
+
+	private Plugin doubleChecker;
+	
 	/**
 	 * The constructor
 	 */
@@ -37,7 +47,20 @@ public class Activator extends AbstractUIPlugin {
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-
+		if (doubleChecker == null) {
+			doubleChecker = new Plugin();
+			doubleChecker.start(context);
+		}
+		
+		/*
+		try {
+			resourceBundle = 
+				ResourceBundle.getBundle("edu.cmu.cs.fluid.dcf.PluginResources");
+		} catch (MissingResourceException x) {
+			resourceBundle = null;
+		}
+		*/
+		
 		/*
 		 * "Touch" common-eclipse so the logging gets Eclipse-ified.
 		 */
@@ -48,6 +71,8 @@ public class Activator extends AbstractUIPlugin {
 
 		// TODO reload persistent data
 		Eclipse.initialize();
+		
+		NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
 	}
 
 	/*
@@ -80,5 +105,16 @@ public class Activator extends AbstractUIPlugin {
 		final IPath pluginState = getStateLocation();
 		return pluginState.toOSString() + System.getProperty("file.separator")
 				+ loc;
+	}
+	
+	/**
+	 * Returns the workspace instance.
+	 */
+	public static IWorkspace getWorkspace() {
+		return ResourcesPlugin.getWorkspace();
+	}
+
+	public Plugin getDoubleChecker() {
+		return doubleChecker;
 	}
 }
