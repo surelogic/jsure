@@ -148,7 +148,7 @@
 	<extension id="LockAssurance3"
 		name="Greenhouse Lock Assurance (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.lock.LockAssurance3">
+		<run class="com.surelogic.analysis.locks.LockAnalysis">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
@@ -157,7 +157,7 @@
 		name="Uniqueness Assurance (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run
-			class="edu.cmu.cs.fluid.analysis.unique.UniquenessAssurance2">
+			class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
@@ -191,7 +191,7 @@
 		name="Greenhouse &amp; Boyland Effects (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run
-			class="edu.cmu.cs.fluid.analysis.effects.EffectAssurance2">
+			class="com.surelogic.analysis.effects.EffectsAnalysis">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
@@ -215,7 +215,7 @@
 		name="Halloran Thread Effects (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run
-			class="edu.cmu.cs.fluid.analysis.threadeffects.ThreadEffects2">
+			class="com.surelogic.analysis.threads.ThreadEffectsModule">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>

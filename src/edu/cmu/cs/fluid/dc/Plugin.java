@@ -48,8 +48,11 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import org.osgi.framework.BundleContext;
 
+import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
+
+import edu.cmu.cs.fluid.analysis.util.WholeAnalysisModule;
 
 /**
  * The Eclipse plugin class for double-checker. This plugin drives the Eclipse
@@ -958,8 +961,12 @@ public class Plugin {
 				IConfigurationElement currentConfigElement = analysisConfigElements[j];
 				if (currentConfigElement.getName().equalsIgnoreCase("run")) {
 					try {
-						result = (IAnalysis) currentConfigElement
-								.createExecutableExtension("class");
+						Object temp = currentConfigElement.createExecutableExtension("class");
+						if (temp instanceof IIRAnalysis) {							
+							result = new WholeAnalysisModule((IIRAnalysis) temp);
+						} else {
+							result = (IAnalysis) temp;
+						}
 						/*
 						 * note that "createExecutableExtension()" *ALWAYS*
 						 * creates a new object instance -- we want analysis
