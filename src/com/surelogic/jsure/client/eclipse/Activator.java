@@ -53,21 +53,9 @@ public class Activator extends AbstractUIPlugin {
 		}
 		
 		/*
-		try {
-			resourceBundle = 
-				ResourceBundle.getBundle("edu.cmu.cs.fluid.dcf.PluginResources");
-		} catch (MissingResourceException x) {
-			resourceBundle = null;
-		}
-		*/
-		
-		/*
 		 * "Touch" common-eclipse so the logging gets Eclipse-ified.
 		 */
 		SLEclipseStatusUtility.touch();
-
-		// startup the database and ensure its schema is up to date
-		Data.getInstance().bootAndCheckSchema();
 
 		// TODO reload persistent data
 		Eclipse.initialize();
