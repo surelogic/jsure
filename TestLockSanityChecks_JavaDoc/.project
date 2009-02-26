@@ -11,13 +11,13 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-			<name>edu.cmu.cs.fluid.dc.dcBuilder</name>
+			<name>com.surelogic.jsure.client.eclipse.dcBuilder</name>
 			<arguments>
 			</arguments>
 		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
-		<nature>edu.cmu.cs.fluid.dc.dcNature</nature>
+		<nature>com.surelogic.jsure.client.eclipse.dcNature</nature>
 	</natures>
 </projectDescription>
