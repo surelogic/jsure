@@ -44,7 +44,7 @@
 			application="org.eclipse.test.coretestapplication"
 			data-dir="${test-workspace}" 
 			plugin-name="${plugin-name}" 
-			extraVMargs="-Xmx1000m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false -Dtest.module=${test-module} -Dextra.test.modules=${extra-test-modules} ${moreVMargs}" 
+			extraVMargs="-Xmx1000m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false -Dtest.module=${test-module} -Dextra.test.modules=${extra-test-modules} ${moreVMargs}" 
 			classname="com.surelogic.jsure.tests.AllRegressionTests" />
 	</target>
 	
@@ -55,7 +55,7 @@
 			application="org.eclipse.test.coretestapplication"
 			data-dir="${test-workspace}" 
 			plugin-name="${plugin-name}" 
-			extraVMargs="-Xmx1000m -Djava.util.logging.config.file=NONE" 
+			extraVMargs="-Xmx1000m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE" 
 			classname="com.surelogic.jsure.tests.AllUnitTests" />
 	</target>
 
