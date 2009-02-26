@@ -19,7 +19,7 @@ import com.surelogic.jsure.client.eclipse.Activator;
  */
 public final class SaveParticipant implements ISaveParticipant {
 
-	private static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.dc");
+	private static final Logger LOG = SLLogger.getLogger();
 
 	public void doneSaving(ISaveContext context) {
 		Activator activator = Activator.getDefault();
@@ -27,8 +27,7 @@ public final class SaveParticipant implements ISaveParticipant {
 			// delete the old saved state since it is not necessary anymore
 			int previousSaveNumber = context.getPreviousSaveNumber();
 			String oldFileName = "save-" + Integer.toString(previousSaveNumber);
-			File f = activator.getStateLocation().append(oldFileName)
-					.toFile();
+			File f = activator.getStateLocation().append(oldFileName).toFile();
 			f.delete();
 		}
 	}
@@ -45,8 +44,7 @@ public final class SaveParticipant implements ISaveParticipant {
 		 */
 		int saveNumber = context.getSaveNumber();
 		String saveFileName = "save-" + Integer.toString(saveNumber);
-		File f = activator.getStateLocation().append(saveFileName)
-				.toFile();
+		File f = activator.getStateLocation().append(saveFileName).toFile();
 		f.delete();
 	}
 
