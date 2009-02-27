@@ -434,7 +434,8 @@
 				<groupMarker name="nature.grp" />
 			</menu>
 
-			<action id="com.surelogic.jsure.client.eclipse.oc.addNature"
+      <!-- Don't need this right now: We only support one project at a time -->
+			<!--action id="com.surelogic.jsure.client.eclipse.oc.addNature"
 				label="Verify Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
@@ -447,7 +448,7 @@
 						<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
 					</not>
 				</enablement>
-			</action>
+			</action-->
 
 			<action id="com.surelogic.jsure.client.eclipse.oc.removeNature"
 				label="Disable Verification"
@@ -463,16 +464,22 @@
 			</action>
 
 			<action id="com.surelogic.jsure.client.eclipse.oc.focusNature"
-				label="Verify Only This Project"
+			  label="Focus Verification on this Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
 				tooltip="Enables JSure analysis for the selected project, and disables assurance for all other projects"
 				menubarPath="jSureMenu/nature.grp"
 				class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
 				enablesFor="1">
+        <enablement>
+          <not>
+            <objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
+          </not>
+        </enablement>
 			</action>
 
-			<action id="com.surelogic.jsure.client.eclipse.oc.analyzeAuto"
+      <!-- XXX: What do these do? -->
+			<!--action id="com.surelogic.jsure.client.eclipse.oc.analyzeAuto"
 				label="Analyze Automatically" tooltip="Turns on automatic analysis for all JSure-active projects"
 				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeAutoAction"
 				enablesFor="+">
@@ -495,14 +502,15 @@
 				<enablement>
 					<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
 				</enablement>
-			</action>
+			</action-->
 		</objectContribution>
 	</extension>
 
 	<extension point="org.eclipse.ui.viewActions">
 		<viewContribution id="org.cmu.cs.fluid.dc.projectexplorer.actions"
 			targetID="org.eclipse.jdt.ui.PackageExplorer">
-			<action id="com.surelogic.jsure.client.eclipse.va.addNature"
+			<!-- Disable this for now, we don't support analysis of multiple projects yet -->
+			<!--action id="com.surelogic.jsure.client.eclipse.va.addNature"
 				label="Verify Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
@@ -518,19 +526,24 @@
 						</not>
 					</and>
 				</enablement>
-			</action>
+			</action-->
 
 			<action id="com.surelogic.jsure.client.eclipse.va.focusNature"
-				label="Verify Only This Project"
+        label="Focus Verification on this Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
 				tooltip="Enables JSure analysis for the selected project, and disables assurance for all other projects"
 				toolbarPath="JSure" menubarPath="additions"
 				class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
 				enablesFor="1">
-				<enablement>
-					<objectClass name="org.eclipse.jdt.core.IJavaProject" />
-				</enablement>
+        <enablement>
+          <and>
+            <objectClass name="org.eclipse.jdt.core.IJavaProject" />
+            <not>
+              <objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
+            </not>
+          </and>
+        </enablement>
 			</action>
 
 			<action id="com.surelogic.jsure.client.eclipse.va.removeNature"
