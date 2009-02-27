@@ -56,64 +56,60 @@ public class SLParseTest extends TestCase {
 				super.tearDown();
 		}
 
-		public void testGoodLockAAST() {
-				String expected;
-				try {
-						expected = "LockDeclaration\n  id=L\n  ThisExpression\n  RegionName\n    id=Instance\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"L is this protects Instance").lock().getTree();
-						LockDeclarationNode ldn = (LockDeclarationNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(ldn.unparse(true).equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
+		/**
+		 * @param expected null if expected to fail
+		 * @return null if successful, otherwise a non-null failure message
+		 */
+		private String tryLockAAST(final String text, final String expected) {
+			try {
+				AASTAdaptor.Node root = 
+					(AASTAdaptor.Node) SLParse.initParser(text).lock().getTree();
+				LockDeclarationNode ldn = 
+					(LockDeclarationNode) root.finalizeAST(IAnnotationParsingContext.nullPrototype);
+				if (expected != null) {
+					String unparse = ldn.unparse(true);
+					return unparse.equals(expected) ? null : "Got: "+unparse+"\nInstead of: "+expected;
+				} else {
+					return "Should have thrown an parse exception.";
 				}
-				try {
-						expected = "LockDeclaration\n  id=L1\n  FieldRef\n    ThisExpression\n    id=lock\n  RegionName\n    id=region\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"L1 is lock protects region").lock().getTree();
-						LockDeclarationNode ldn = (LockDeclarationNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(ldn.unparse(true).equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
+			} catch (RecognitionException e) {
+				if (expected != null) {
+					e.printStackTrace();
+					return "Unexpected exception";
 				}
-				try {
-						expected = "LockDeclaration\n  id=L1\n  FieldRef\n    ThisExpression\n    id=lock\n  RegionName\n    id=region\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"L1 is this.lock protects region").lock().getTree();
-						LockDeclarationNode ldn = (LockDeclarationNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(ldn.unparse(true).equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						expected = "LockDeclaration\n  id=L1\n  QualifiedThisExpression\n    NamedType\n      type=Type\n  RegionName\n    id=region\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"L1 is Type.this protects region").lock().getTree();
-						LockDeclarationNode ldn = (LockDeclarationNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(ldn.unparse(true).equals(expected));
-				} catch (RecognitionException e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
+				return null;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return "Unexpected exception";
+			}
+		}
+		
+		public void testGoodLockAAST() {	
+			String expected = "LockDeclaration\n  id=L\n  ThisExpression\n  RegionName\n    id=Instance\n";
+			String msg      = tryLockAAST("L is this protects Instance", expected);
+			if (msg != null) {
+				fail(msg);
+			}
+
+			expected = "LockDeclaration\n  id=L1\n  FieldRef\n    ThisExpression\n    id=lock\n  RegionName\n    id=region\n";
+			msg      = tryLockAAST("L1 is lock protects region", expected);
+			if (msg != null) {
+				fail(msg);
+			}
+
+			expected = "LockDeclaration\n  id=L1\n  FieldRef\n    ThisExpression\n    id=lock\n  RegionName\n    id=region\n";
+			msg      = tryLockAAST("L1 is this.lock protects region", expected);
+			if (msg != null) {
+				fail(msg);
+			}
+						
+			expected = "LockDeclaration\n  id=L1\n  QualifiedThisExpression\n    NamedType\n      type=Type\n  RegionName\n    id=region\n";
+			msg      = tryLockAAST("L1 is Type.this protects region", expected);
+			if (msg != null) {
+				fail(msg);
+			}
+
+				/*
 				try {
 						expected = "LockDeclaration\n  id=L1\n  FieldRef\n    ThisExpression\n    id=lock\n  QualifiedRegionName\n    NamedType\n      type=Class1\n    id=region\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
@@ -128,6 +124,7 @@ public class SLParseTest extends TestCase {
 						e.printStackTrace();
 						fail("Unexpected exception");
 				}
+
 				try {
 						expected = "LockDeclaration\n  id=L1\n  FieldRef\n    TypeExpression\n      NamedType\n        type=Class1\n    id=lock\n  QualifiedRegionName\n    NamedType\n      type=Class1\n    id=region\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
@@ -143,6 +140,7 @@ public class SLParseTest extends TestCase {
 						e.printStackTrace();
 						fail("Unexpected exception");
 				}
+				
 				try {
 						expected =  "LockDeclaration\n" +
 												"  id=L1\n"+
@@ -170,6 +168,7 @@ public class SLParseTest extends TestCase {
 						e.printStackTrace();
 						fail("Unexpected exception");
 				}
+
 				try {
 						expected = "LockDeclaration\n  id=L1\n  FieldRef\n    ThisExpression\n    id=lock\n  RegionName\n    id=[]\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
@@ -186,51 +185,30 @@ public class SLParseTest extends TestCase {
 						e.printStackTrace();
 						fail("Unexpected exception");
 				}
+				*/
 		}
 
 		public void testBadLockAAST() {
-				try {
-						SLParse.initParser("").lock().getTree();
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected Exception");
-				}
-				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"L1 is class:lock protects region").lock().getTree();
-						LockDeclarationNode ldn = (LockDeclarationNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"L1 is Type.Type:class protects Class1:region").lock()
-										.getTree();
-						LockDeclarationNode ldn = (LockDeclarationNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
-				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
-										"L1 is class.class protects region").lock().getTree();
-						LockDeclarationNode ldn = (LockDeclarationNode) root
-										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected exception");
-				}
+			String msg = tryLockAAST("", null);
+			if (msg != null) {
+				fail(msg);
+			}
+
+			msg = tryLockAAST("L1 is class:lock protects region", null);
+			if (msg != null) {
+				fail(msg);
+			}
+			
+			msg = tryLockAAST("L1 is Type.Type:class protects Class1:region", null);
+			if (msg != null) {
+				fail(msg);
+			}
+			
+			msg = tryLockAAST("L1 is class.class protects region", null);
+			if (msg != null) {
+				fail(msg);
+			}
+
 				/*
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
@@ -244,54 +222,36 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				*/
-				try {
-						SLParse.initParser("is this protects Instance").lock().getTree();
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected Exception");
-				}
-				try {
-						SLParse.initParser("L is protects Instance").lock().getTree();
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected Exception");
-				}
-				try {
-						SLParse.initParser("L is this Instance").lock().getTree();
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected Exception");
-				}
-				try {
-						SLParse.initParser("L this protects Instance").lock().getTree();
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected Exception");
-				}
-				try {
-						SLParse.initParser("L is this protects").lock().getTree();
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected Exception");
-				}
-				try {
-						SLParse.initParser("L is this protects").lock().getTree();
-						fail("Should have thrown an exception.");
-				} catch (RecognitionException e) {
-				} catch (Exception e) {
-						e.printStackTrace();
-						fail("Unexpected Exception");
-				}
+
+			msg = tryLockAAST("is this protects Instance", null);
+			if (msg != null) {
+				fail(msg);
+			}
+			
+			msg = tryLockAAST("L is protects Instance", null);
+			if (msg != null) {
+				fail(msg);
+			}
+			
+			msg = tryLockAAST("L is this Instance", null);
+			if (msg != null) {
+				fail(msg);
+			}
+			
+			msg = tryLockAAST("L this protects Instance", null);
+			if (msg != null) {
+				fail(msg);
+			}
+			
+			msg = tryLockAAST("L is this protects", null);
+			if (msg != null) {
+				fail(msg);
+			}
+			
+			msg = tryLockAAST("L is this protects", null);
+			if (msg != null) {
+				fail(msg);
+			}
 		}
 
 		public void testGoodRegionAAST() {
@@ -1065,7 +1025,7 @@ public class SLParseTest extends TestCase {
 						e.printStackTrace();
 						fail("Unexpected exception");
 				}
-
+				/*
 				try {
 						expected = "AggregateNode\n"+
 											 "    MappedRegionSpecification\n"+
@@ -1097,6 +1057,7 @@ public class SLParseTest extends TestCase {
 						e.printStackTrace();
 						fail("Unexpected exception");
 				}
+				*/
 
 				try {
 						expected = "AggregateNode\n"+
@@ -1130,6 +1091,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 
+				/*
 				try {
 						expected = "AggregateNode\n"+
 											 "    MappedRegionSpecification\n"+
@@ -1161,7 +1123,7 @@ public class SLParseTest extends TestCase {
 						e.printStackTrace();
 						fail("Unexpected exception");
 				}
-
+				*/
 				try {
 						expected = "AggregateNode\n"+
 											 "    MappedRegionSpecification\n"+
