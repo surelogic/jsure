@@ -227,6 +227,9 @@ public class TestTaskFramework extends TestCase {
 		System.out.println("Time: " + (end - start));
 
 		Vector<String> o = output.getOutput();
+		for(String val : o) {
+			System.out.println("Got "+val);
+		}
 		assertEquals(o.size(), 6);
 		assertEquals(o.elementAt(0), ONE);
 		assertEquals(o.elementAt(1), TWO);
