@@ -1001,7 +1001,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 * @throws CoreException
 	 *             if we have trouble getting the project's {@link IMarker}list
 	 */
-	private boolean noCompilationErrors(IJavaProject javaProject)
+	static boolean noCompilationErrors(IJavaProject javaProject)
 			throws CoreException {
 		boolean result = false; // assume it has errors or has never been built
 		if (javaProject.hasBuildState()) {

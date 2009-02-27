@@ -10,6 +10,8 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 
 import com.surelogic.jsure.client.eclipse.Activator;
 
@@ -57,8 +59,16 @@ public final class FirstTimeAnalysis extends FirstTimeJob {
 		} else {
 			if (LOG.isLoggable(Level.FINE))
 				LOG.fine("Starting first-time auto-build");
-			m_project.build(IncrementalProjectBuilder.AUTO_BUILD,
-					Nature.DOUBLE_CHECKER_BUILDER_ID, getArguments(), monitor);
+			
+			final IJavaProject javaProject = JavaCore.create(m_project);
+			final int flag;
+			if (Majordomo.noCompilationErrors(javaProject)) {
+				flag = IncrementalProjectBuilder.AUTO_BUILD;
+			} else {
+				flag = IncrementalProjectBuilder.CLEAN_BUILD;
+				LOG.info("Trying to do clean build");
+			}
+			m_project.build(flag, Nature.DOUBLE_CHECKER_BUILDER_ID, getArguments(), monitor);
 			if (LOG.isLoggable(Level.FINE))
 				LOG.fine("Ending first-time auto-build");
 		}
