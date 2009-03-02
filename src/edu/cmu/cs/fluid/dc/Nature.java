@@ -1,15 +1,27 @@
 package edu.cmu.cs.fluid.dc;
 
+import java.io.IOException;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.ICommand;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.*;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 
+import com.surelogic.common.eclipse.jobs.SLUIJob;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.LibResources;
 
 /**
  * Management class for the double-checker nature. This class can configure and
@@ -61,7 +73,7 @@ public final class Nature implements IProjectNature {
 	 *             if we are unable to get a {@link IProjectDescription} for the
 	 *             project (which is how project natures are managed)
 	 */
-	public static void addNatureToProject(IProject project)
+	public static void addNatureToProject(final IProject project)
 			throws CoreException {
 		// add our nature to the project if it doesn't already exist
 		IProjectDescription description = project.getDescription();
@@ -74,10 +86,66 @@ public final class Nature implements IProjectNature {
 			newNatures[natures.length] = DOUBLE_CHECKER_NATURE_ID;
 			description.setNatureIds(newNatures);
 			project.setDescription(description, null);
-			runAnalysis(project);
+			
+			final IJavaProject jp = checkForPromisesJar(project);
+			SLUIJob job = new SLUIJob() {
+				@Override
+				public IStatus runInUIThread(IProgressMonitor monitor) {
+					if (jp != null) {
+						final Shell shell = 
+							PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+						final boolean addJar = 
+							MessageDialog.openConfirm(shell, "Add Promises Jar?", 
+									                  "Would you like to add promises.jar to the Java build path before running JSure?");
+						// Could be set to browse for a location?
+						if (addJar) {
+							IFile f = project.getFile("/promises.jar");
+							if (!f.exists()) {
+								try {
+									f.create(LibResources.getPromisesJar(), false, null);
+									
+									final IClasspathEntry[] orig = jp.getRawClasspath();
+									List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
+									for(IClasspathEntry e : orig) {
+										entries.add(e);
+									}
+									entries.add(JavaCore.newLibraryEntry(f.getFullPath(), null, null));
+									jp.setRawClasspath(entries.toArray(new IClasspathEntry[orig.length+1]), null);
+								} catch (CoreException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							} else {
+								MessageDialog.openInformation(shell, "Promise Jar Already Exists", 
+										                      f.getFullPath().toPortableString()+" already exists");
+							}
+						}
+					} 
+					runAnalysis(project);
+					return Status.OK_STATUS;
+				}
+
+			};
+			job.schedule();
 		}
 	}
 
+	private static IJavaProject checkForPromisesJar(IProject project) {
+		IJavaProject p = JavaCore.create(project);
+		try {
+			if (p.findType("com.surelogic.RegionLock") == null) {
+				// Could add promises.jar
+				return p;
+			}
+		} catch (JavaModelException e) {
+			// Ignore any exception
+		}
+		return null;
+	}
+	
 	public static void runAnalysis(IProject project) {
 		// perform initial analysis
 		new FirstTimeAnalysis(project).schedule();
