@@ -14,7 +14,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 	public void initializeDefaultPreferences() {
 		final IPreferenceStore store = Activator.getDefault()
 				.getPreferenceStore();
-		store.setDefault(PreferenceConstants.P_SIERRA_DELETE_DB_ON_STARTUP,
-				false);
+		store.setDefault(PreferenceConstants.P_PROMPT_PERSPECTIVE_SWITCH, true);
+		store.setDefault(PreferenceConstants.P_AUTO_PERSPECTIVE_SWITCH, false);
 	}
 }
