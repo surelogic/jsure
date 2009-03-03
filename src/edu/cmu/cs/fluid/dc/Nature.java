@@ -15,7 +15,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.*;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
@@ -86,51 +88,99 @@ public final class Nature implements IProjectNature {
 			newNatures[natures.length] = DOUBLE_CHECKER_NATURE_ID;
 			description.setNatureIds(newNatures);
 			project.setDescription(description, null);
-			
-			final IJavaProject jp = checkForPromisesJar(project);
-			SLUIJob job = new SLUIJob() {
-				@Override
-				public IStatus runInUIThread(IProgressMonitor monitor) {
-					if (jp != null) {
-						final Shell shell = 
-							PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-						final boolean addJar = 
-							MessageDialog.openConfirm(shell, "Add Promises Jar?", 
-									                  "Would you like to add promises.jar to the Java build path before running JSure?");
-						// Could be set to browse for a location?
-						if (addJar) {
-							IFile f = project.getFile("/promises.jar");
-							if (!f.exists()) {
-								try {
-									f.create(LibResources.getPromisesJar(), false, null);
-									
-									final IClasspathEntry[] orig = jp.getRawClasspath();
-									List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
-									for(IClasspathEntry e : orig) {
-										entries.add(e);
-									}
-									entries.add(JavaCore.newLibraryEntry(f.getFullPath(), null, null));
-									jp.setRawClasspath(entries.toArray(new IClasspathEntry[orig.length+1]), null);
-								} catch (CoreException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-							} else {
-								MessageDialog.openInformation(shell, "Promise Jar Already Exists", 
-										                      f.getFullPath().toPortableString()+" already exists");
-							}
-						}
-					} 
-					runAnalysis(project);
-					return Status.OK_STATUS;
-				}
-
-			};
-			job.schedule();
+			finishProjectSetup(project);
 		}
+	}
+	
+	private static final String[] dialogOptions = {
+		IDialogConstants.OK_LABEL,
+        "Browse",
+        IDialogConstants.CANCEL_LABEL,
+	};
+	
+	private static final String[] existsDialogOptions = {
+	    "Browse",
+        IDialogConstants.CANCEL_LABEL,
+	};
+	
+	private static void finishProjectSetup(final IProject project) {
+		final IJavaProject jp = checkForPromisesJar(project);
+		SLUIJob job = new SLUIJob() {
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				if (jp != null) {
+					IFile f = project.getFile("/promises.jar");
+					
+					final Shell shell = 
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+
+					final MessageDialog dialog = 
+						new MessageDialog(shell, "Add Promises Jar?", null, 
+						                  "Would you like to add promises.jar to the Java build path? "+
+						                  "(defaults to the root of "+project.getName()+")", 						                  
+						                  MessageDialog.QUESTION, 
+						                  f.exists() ? existsDialogOptions : dialogOptions, 0); 
+					final int choice = dialog.open();
+					final boolean browse, cancel;
+					if (f.exists()) {
+						browse = (choice == 0);
+						cancel = (choice == 1);	
+					} else {
+						browse = (choice == 1);
+						cancel = (choice == 2);	
+					}
+					if (browse) {
+						// Find a new directory to put promises.jar
+						final String projDir = project.getLocation().toOSString();
+						final DirectoryDialog dd = new DirectoryDialog(shell);
+						dd.setText("Choose Directory for Promises Jar");
+						dd.setMessage("Choose a directory to create promises.jar");						
+						dd.setFilterPath(projDir);						    
+						final String dir = dd.open();			
+						if (dir.startsWith(projDir)) {
+							f = project.getFile(dir.substring(projDir.length())+"/promises.jar");
+						} else {
+							MessageDialog.openInformation(shell, "Location Not In Project", 
+									                      "Cancelling, because"+dir+" is not in "+projDir);
+							f = null;
+						}
+					}
+					else if (cancel) {
+						f = null;
+					}
+					if (f != null) {			
+						if (!f.exists()) {
+							try {
+								f.create(LibResources.getPromisesJar(), false, null);
+
+								final IClasspathEntry[] orig = jp.getRawClasspath();
+								List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
+								for(IClasspathEntry e : orig) {
+									entries.add(e);
+								}
+								entries.add(JavaCore.newLibraryEntry(f.getFullPath(), null, null));
+								jp.setRawClasspath(entries.toArray(new IClasspathEntry[orig.length+1]), null);
+							} catch (CoreException e) {
+								SLLogger.getLogger().log(Level.WARNING, 
+										                 "Error while setting up "+f.getFullPath().toOSString(), e);
+								MessageDialog.openError(shell, "Error", e.getMessage());
+							} catch (IOException e) {
+								SLLogger.getLogger().log(Level.WARNING, 
+										                 "Error while creating "+f.getFullPath().toOSString(), e);
+								MessageDialog.openError(shell, "I/O Error", e.getMessage());
+							}
+						} else {
+							MessageDialog.openInformation(shell, "Promise Jar Already Exists", 
+									f.getFullPath().toPortableString()+" already exists");
+						}
+					}
+				} 
+				runAnalysis(project);
+				return Status.OK_STATUS;
+			}
+
+		};
+		job.schedule();
 	}
 
 	private static IJavaProject checkForPromisesJar(IProject project) {
