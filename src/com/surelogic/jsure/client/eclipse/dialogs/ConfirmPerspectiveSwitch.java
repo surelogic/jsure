@@ -8,7 +8,7 @@ import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
 import com.surelogic.jsure.perspectives.CodeVerificationPerspective;
 
 public final class ConfirmPerspectiveSwitch extends AbstractConfirmPerspectiveSwitch {
-	private static final ConfirmPerspectiveSwitch prototype = new ConfirmPerspectiveSwitch();	
+	public static final ConfirmPerspectiveSwitch prototype = new ConfirmPerspectiveSwitch();	
 	
 	private ConfirmPerspectiveSwitch() {
 		super(CodeVerificationPerspective.class.getName(), PreferenceConstants.prototype);

@@ -24,6 +24,7 @@ import org.eclipse.ui.PlatformUI;
 import com.surelogic.common.eclipse.jobs.SLUIJob;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.LibResources;
+import com.surelogic.jsure.client.eclipse.dialogs.ConfirmPerspectiveSwitch;
 
 /**
  * Management class for the double-checker nature. This class can configure and
@@ -175,6 +176,7 @@ public final class Nature implements IProjectNature {
 						}
 					}
 				} 
+				ConfirmPerspectiveSwitch.prototype.submitUIJob();				
 				runAnalysis(project);
 				return Status.OK_STATUS;
 			}
