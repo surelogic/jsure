@@ -863,7 +863,7 @@ public class TestTaskFramework extends TestCase {
 		} catch (TimeoutException e) {
 			fail("Unexpected exception thrown " + e.getMessage());
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(System.out);
 			fail("Unexpected error thrown " + e.getMessage());
 		}
 		end = System.currentTimeMillis();
