@@ -380,12 +380,13 @@
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
-			<action label="Garbage-Collect IR"
+      <!-- Not a user action -->
+			<!--action label="Garbage-Collect IR"
 				tooltip="Clean out portions of the IR that are no longer used to regain memory"
 				class="edu.cmu.cs.fluid.eclipse.ui.CleanupIRActionDelegate"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/admin"
 				id="com.surelogic.jsure.client.eclipse.actions.irCleanupAction">
-			</action>
+			</action-->
 
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
