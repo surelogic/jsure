@@ -312,6 +312,7 @@ public class TestTaskFramework extends TestCase {
 			fail("Unexpected exception thrown " + e.getMessage());
 		}
 
+		@SuppressWarnings("unused")
 		Vector<String> o = output.getOutput();
 		mgr.shutdown();
 	}
