@@ -1,12 +1,14 @@
 package com.surelogic.jsure.client.eclipse.preferences;
 
+import org.eclipse.jface.preference.IPreferenceStore;
+
 import com.surelogic.common.eclipse.preferences.IPreferenceConstants;
 import com.surelogic.jsure.client.eclipse.Activator;
 
 public class PreferenceConstants implements IPreferenceConstants {
 	private static final String PREFIX = "com.surelogic.jsure.";
 
-	public static final String P_PROMPT_PERSPECTIVE_SWITCH = PREFIX + "perspective-switch-prompt";
+	public static final String P_PROMPT_PERSPECTIVE_SWITCH = PREFIX + PROMPT_PERSPECTIVE_SWITCH;
 
 	public boolean getPromptForPerspectiveSwitch() {
 		return Activator.getDefault().getPluginPreferences().getBoolean(
@@ -18,7 +20,7 @@ public class PreferenceConstants implements IPreferenceConstants {
 				P_PROMPT_PERSPECTIVE_SWITCH, value);
 	}
 	
-	public static final String P_AUTO_PERSPECTIVE_SWITCH = PREFIX + "perspective.switch.auto";
+	public static final String P_AUTO_PERSPECTIVE_SWITCH = PREFIX + AUTO_PERSPECTIVE_SWITCH;
 
 	public boolean getAutoPerspectiveSwitch() {
 		return Activator.getDefault().getPluginPreferences().getBoolean(
@@ -35,4 +37,12 @@ public class PreferenceConstants implements IPreferenceConstants {
 	}
 	
 	public static final PreferenceConstants prototype = new PreferenceConstants();
+
+	public String getPrefConstant(String suffix) {
+		return PREFIX + suffix;
+	}
+
+	public IPreferenceStore getPreferenceStore() {
+		return Activator.getDefault().getPreferenceStore();
+	}
 }

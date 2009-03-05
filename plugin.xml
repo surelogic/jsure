@@ -6,8 +6,12 @@
 		schema="schema/analysisModule.exsd" />
 
 	<extension point="org.eclipse.ui.preferencePages">
-		<page name="JSure" class="edu.cmu.cs.fluid.dc.PreferencePage"
-			id="edu.cmu.cs.fluid.dc.PreferencePage">
+		<page name="JSure" class="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage"
+			id="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
+		</page>	
+		<page name="Analyses" class="edu.cmu.cs.fluid.dc.PreferencePage"
+			id="edu.cmu.cs.fluid.dc.PreferencePage"
+			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
 	</extension>
 	<extension point="org.eclipse.ui.propertyPages">
