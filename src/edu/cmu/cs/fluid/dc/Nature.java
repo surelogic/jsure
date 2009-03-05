@@ -129,15 +129,15 @@ public final class Nature implements IProjectNature {
             final MessageDialog dialog;
             IFile useJar;
             if (foundJar == null) {
-              dialog = new MessageDialog(shell, "Add Promises Jar to Project?", null,
-                  "The project does not contain the SureLogic promises jar file.  " +
+              dialog = new MessageDialog(shell, "Add Promises to Project?", null,
+                  "The project does not contain the SureLogic promises JAR file.  " +
                   "Would you like to add it to the project and build path?",
                   MessageDialog.QUESTION,
                   new String[] { "Add to Project Root", "Browse...", "No" }, 0);
               useJar = project.getFile(PROMISES_JAR);
             } else {
-              dialog = new MessageDialog(shell, "Add Promises Jar to Classpath?", null,
-                  "The project contains the SureLogic promises jar file at \"" +
+              dialog = new MessageDialog(shell, "Add Promises to Build Path?", null,
+                  "The project contains the SureLogic promises JAR file at \"" +
                   foundJar.getLocation() +
                   "\", but it is not on the build path.  " +
                   "Would you like to add it to the build path?",
@@ -157,8 +157,19 @@ public final class Nature implements IProjectNature {
             }
             
             if (choice != 2 && useJar != null) { // User didn't cancel
-              // Create promise.jar if it doesn't already exist
-              if (!useJar.exists()) {
+              boolean createJar = true;
+              // Ask the user what to do if the file already exists
+              if (useJar.exists()) {
+                createJar = MessageDialog.openQuestion(shell,
+                    "Overwrite Existing Promises?",
+                    "The SureLogic promises JAR file already exists at \"" +
+                    useJar.getLocation() + "\".  Would you like to overwrite it?");
+              }
+              if (createJar) {
+                // Remove first if already exists
+                if (useJar.exists()) {
+                  useJar.delete(false, false, null);
+                }
                 useJar.create(LibResources.getPromisesJar(), false, null);
               }
               
