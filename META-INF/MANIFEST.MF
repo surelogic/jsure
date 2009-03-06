@@ -52,5 +52,4 @@ Export-Package: com.surelogic.jsure.client.eclipse,
  edu.cmu.cs.fluid.dcf.views.ast,
  edu.cmu.cs.fluid.dcf.views.coe,
  edu.cmu.cs.fluid.dcf.views.modules
-Bundle-ClassPath: jdom.jar,
- .
+Bundle-ClassPath: .

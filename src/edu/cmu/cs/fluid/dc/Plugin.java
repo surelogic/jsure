@@ -1,10 +1,5 @@
 package edu.cmu.cs.fluid.dc;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -12,8 +7,6 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,31 +14,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ISaveParticipant;
-import org.eclipse.core.resources.ISavedState;
 import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
+
 import org.osgi.framework.BundleContext;
 
 import com.surelogic.analysis.IIRAnalysis;
@@ -66,20 +50,6 @@ public class Plugin {
 
 	// //////////////////////////////////////////////////////////////////////
 	//
-	// XML ELEMENT CONSTANTS
-	//
-	// //////////////////////////////////////////////////////////////////////
-
-	private static final String SF_PREFS = "preferences";
-
-	private static final String SF_EXCLUDED_ANALYSIS_MODULES = "excluded-analysis-modules";
-
-	private static final String SF_INCLUDED_ANALYSIS_MODULES = "included-analysis-modules";
-
-	private static final String SF_ID = "id";
-
-	// //////////////////////////////////////////////////////////////////////
-	//
 	// PLUGIN FIELDS AND CONSTANTS
 	//
 	// //////////////////////////////////////////////////////////////////////
@@ -97,6 +67,11 @@ public class Plugin {
 	public static final String ANALYSIS_MODULE_EXTENSION_POINT_ID = "analysisModule";
 
 	/**
+	 * The preference prefix for whether an analysis is on
+	 */
+	public static final String ANALYSIS_ACTIVE_PREFIX = "com.surelogic.jsure.active.";
+	
+	/**
 	 * The {@link Logger}for this class (named <code>edu.cmu.cs.fluid.dc</code>).
 	 */
 	private static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.dc");
@@ -107,13 +82,6 @@ public class Plugin {
 	 * order.
 	 */
 	IExtension[] allAnalysisExtensions;
-
-	/**
-	 * Flags if a valid preference file for the plugin was found at startup. If
-	 * not then we want to exclude all analysis module extensions which are
-	 * noted to be production="false" in the extension point XML definition.
-	 */
-	boolean m_validPluginStateFile = true;
 
 	/**
 	 * The list of included (by the user) analysis module extensions. All
@@ -132,6 +100,7 @@ public class Plugin {
 
 	/**
 	 * The list of non-excluded registered analysis modules. This is a subset of
+	 * 
 	 * {@link #allAnalysisExtensions}. Extensions are not in any special order.
 	 */
 	IExtension[] analysisExtensions;
@@ -267,39 +236,24 @@ public class Plugin {
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
 	public void start(BundleContext context) throws Exception {
-		ISaveParticipant saveParticipant = new SaveParticipant();
-		ISavedState lastState = 
-			ResourcesPlugin.getWorkspace().addSaveParticipant(Activator.getDefault(), 
-					                                          saveParticipant);
-		if (lastState != null) {
-			IPath location = lastState.lookup(new Path("save"));
-			if (location != null) {
-				// the plugin instance should read any important state from the
-				// file.
-				File f = Activator.getDefault().getStateLocation().append(location).toFile();
-				readStateFrom(f);
-			} else {
-				invalidatePluginState();
-			}
-		} else {
-			invalidatePluginState();
-		}
-		if (m_validPluginStateFile) {
-			if (LOG.isLoggable(Level.FINE))
-				LOG
-						.fine("double-checker read saved XML analysis configuration");
-		} else {
-			if (LOG.isLoggable(Level.FINE))
-				LOG.fine("double-checker was unable to load saved analysis"
-						+ "configuration from XML");
-		}
 		readAnalysisModuleExtensionPoints();
 		analysisExtensionPointsExcludeNonProduction();
+		initAnalysisDefaults(Activator.getDefault().getPreferenceStore());
+		readStateFromPrefs(Activator.getDefault().getPreferenceStore());
+		ensureAllIncludedPrereqsAreIncluded();
+
 		if (analysisExtensionPointsPrerequisitesOK()) {
 			initializeAnalysisLevels();
-		}
-
+		}		
 		autoBuildJSureProjects();
+	}
+
+	private void initAnalysisDefaults(IPreferenceStore store) {
+		for(IExtension ext : allAnalysisExtensions) {
+			final String id = ext.getUniqueIdentifier();
+			store.setDefault(ANALYSIS_ACTIVE_PREFIX + id, 
+					         !m_nonProductionAnalysisExtensions.contains(ext));
+		}
 	}
 
 	/**
@@ -323,61 +277,22 @@ public class Plugin {
 	// //////////////////////////////////////////////////////////////////////
 
 	/**
-	 * Read persistent double-checker plugin information from
-	 * <code>target</code>. Invoked from {@link #startup}.
+	 * Read persistent double-checker plugin information. 
+	 * Invoked from {@link #startup}.
 	 * 
-	 * @param target
-	 *            {@link File}to read from
-	 * 
-	 * @see #writeStateTo(File)
+	 * @see #writeStateToPrefs()
 	 */
-	private void readStateFrom(File target) {
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("Read state from the file " + target.getAbsolutePath());
-		}
-		SAXBuilder parser = new SAXBuilder();
-		try {
-			Document pluginSaveInformation = parser.build(target);
-			Element root = pluginSaveInformation.getRootElement();
-			List<String> includedAnalysisModules = getList(root, SF_PREFS,
-					SF_INCLUDED_ANALYSIS_MODULES, SF_ID);
-			if (LOG.isLoggable(Level.FINE))
-				LOG.fine("analysis module inclusion list "
-						+ includedAnalysisModules);
-			for (String id : includedAnalysisModules) {
+	private void readStateFromPrefs(IPreferenceStore store) {
+		for(IExtension ext : allAnalysisExtensions) {
+			final String id      = ext.getUniqueIdentifier();
+			final boolean active = store.getBoolean(ANALYSIS_ACTIVE_PREFIX + id); 
+			if (active) {
 				m_includedExtensions.add(id.intern());
-				// System.out.println("Included "+id);
-
+				
 				if (allAnalysisExtensions != null) {
 					ensureAnalysisPrereqsAreIncluded(id);
 				}
 			}
-
-			List<String> excludedAnalysisModules = getList(root, SF_PREFS,
-					SF_EXCLUDED_ANALYSIS_MODULES, SF_ID);
-			if (LOG.isLoggable(Level.FINE))
-				LOG.fine("analysis module exclusion list "
-						+ excludedAnalysisModules);
-			for (String id : excludedAnalysisModules) {
-				if (includedAnalysisModules.contains(id)) {
-					LOG.warning("Both included and excluded: " + id);
-				}
-				m_includedExtensions.remove(id.intern());
-				// System.out.println("Excluded "+id);
-			}
-		} catch (JDOMException e) {
-			elog(null, IStatus.ERROR, "failure XML parsing plugin state from "
-					+ target.getAbsolutePath(), e);
-			invalidatePluginState();
-		} catch (IOException e) {
-			elog(
-					null,
-					IStatus.WARNING,
-					"failure reading plugin state from "
-							+ target.getAbsolutePath()
-							+ " perhaps because this is the first invocation of double-checker",
-					e);
-			invalidatePluginState();
 		}
 	}
 
@@ -401,135 +316,27 @@ public class Plugin {
 		m_includedExtensions.addAll(s);
 	}
 
-	public void initAnalyses(File analyses) {
-		this.readStateFrom(analyses);
+	/**
+	 * Only used for regression testing
+	 */
+	public void initAnalyses(IPreferenceStore store) {
+		readStateFromPrefs(store);
 		if (analysisExtensionPointsPrerequisitesOK()) {
 			initializeAnalysisLevels();
 		}
 	}
 
-	private void invalidatePluginState() {
-		m_validPluginStateFile = false;
-		m_includedExtensions.clear();
-	}
-
 	/**
-	 * XML convenience routine that returns a list of strings found in the XML
-	 * tree defined by <code>root</code>. Consider the following XML:
-	 * 
-	 * <pre>
-	 *             &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-	 *             &lt;preferences&gt;
-	 *               &lt;excluded-analysis-modules&gt;
-	 *                 &lt;id&gt;bogas.id.1&lt;/id&gt;
-	 *                 &lt;id&gt;bogas.id.2&lt;/id&gt;
-	 *               &lt;/excluded-analysis-modules&gt;
-	 *             &lt;/preferences&gt;
-	 *             
-	 * </pre>
-	 * 
-	 * A call to
-	 * <code>getList("preferences", "excluded-analysis-modules", "id")</code>
-	 * would return a list containing the strings "bogas.id.1" and "bogas.id.2".
-	 * 
-	 * @param root
-	 *            the JDOM tree to search
-	 * @param category
-	 *            name of the XML element the <code>item</code> is within
-	 * @param item
-	 *            name of the XML element the <code>data</code> is directly
-	 *            contained within
-	 * @param data
-	 *            the element name to return the contents of
-	 * @return a list containing {@link String}items containing the text of
-	 *         each <code>data</code> element found
-	 * 
-	 * @see #readStateFrom(File)
-	 */
-	private List<String> getList(Element root, String category, String item,
-			String data) {
-		List<String> result = new LinkedList<String>();
-		Element categoryElement = findElement(root, category);
-		Element itemElement = findElement(categoryElement, item);
-		if (itemElement == null) {
-			return Collections.emptyList();
-		}
-		@SuppressWarnings("unchecked")
-		List<Element> children = itemElement.getChildren(data);
-		for (Iterator<Element> i = children.iterator(); i.hasNext();) {
-			Element element = i.next();
-			result.add(element.getText());
-		}
-		return result;
-	}
-
-	/**
-	 * XML convenience routine that finds the first instance of an
-	 * {@link Element} with <code>elementName</code> through a search of the
-	 * tree defined by <code>root</code>.
-	 * 
-	 * @param root
-	 *            the JDOM tree to search
-	 * @param elementName
-	 *            the name to search for an {@link Element}using
-	 * @return the element if it is found in <code>root</code>, otherwise
-	 *         <code>null</code>
-	 * 
-	 * @see #readStateFrom(File)
-	 */
-	private Element findElement(Element root, String elementName) {
-		if (root == null) {
-			return null;
-		}
-		if (root.getName().equals(elementName)) {
-			return root;
-		}
-		@SuppressWarnings("unchecked")
-		List<Element> children = root.getChildren();
-		for (Iterator<Element> i = children.iterator(); i.hasNext();) {
-			Element element = i.next();
-			Element found = findElement(element, elementName);
-			if (found != null) {
-				return found;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Saves persistent double-checker plugin information to <code>target</code>.
+	 * Saves persistent double-checker plugin information.
 	 * Invoked as part of the save process within {@link SaveParticipant}.
 	 * 
-	 * @param target
-	 *            {@link File}to write state into
-	 * 
-	 * @see #readStateFrom(File)
+	 * @see #readStateFromPrefs()
 	 */
-	void writeStateTo(File target) {
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("Write state to the file " + target.getAbsolutePath());
-		}
-		Element preferences = new Element(SF_PREFS);
-		Element includedAnalysisModules = new Element(
-				SF_INCLUDED_ANALYSIS_MODULES);
-		preferences.addContent(includedAnalysisModules);
-		for (String id : m_includedExtensions) {
-			Element cur = new Element(SF_ID);
-			cur.setText(id);
-			includedAnalysisModules.addContent(cur);
-		}
-		Document pluginSaveInformation = new Document(preferences);
-		try {
-			// construct plugin save file OutputStream
-			OutputStream pluginSaveFile = new BufferedOutputStream(
-					new FileOutputStream(target));
-			// XML output with two-space indentation and newlines after elements
-			XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
-			// actually output the XML to our plugin save file
-			outputter.output(pluginSaveInformation, pluginSaveFile);
-		} catch (IOException e) {
-			elog(null, IStatus.ERROR, "failure saving plugin state to "
-					+ target.getAbsolutePath(), e);
+	void writeStateToPrefs(IPreferenceStore store) {
+		for(IExtension ext : allAnalysisExtensions) {
+			final String id = ext.getUniqueIdentifier();
+			store.setValue(ANALYSIS_ACTIVE_PREFIX + id, 
+					       m_includedExtensions.contains(id));
 		}
 	}
 
@@ -764,7 +571,6 @@ public class Plugin {
 				Plugin.DOUBLE_CHECKER_PLUGIN_ID,
 				Plugin.ANALYSIS_MODULE_EXTENSION_POINT_ID);
 		allAnalysisExtensions = extensionPoint.getExtensions();
-		ensureAllIncludedPrereqsAreIncluded();
 	}
 
 	/**
@@ -788,11 +594,6 @@ public class Plugin {
 					// add to list of non-production
 					m_nonProductionAnalysisExtensions
 							.add(allAnalysisExtensions[i]);
-				} else if (!m_validPluginStateFile
-						&& !m_nonProductionAnalysisExtensions
-								.contains(allAnalysisExtensions[i])) {
-					// turn it on if no previous settings
-					m_includedExtensions.add(uid.intern());
 				}
 			}
 		}
