@@ -148,7 +148,7 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
     GridLayout gridLayout = new GridLayout();
     composite.setLayout(gridLayout);
     m_onOff = new Button(composite, SWT.CHECK);
-    m_onOff.setText("Focus Assurance on this Java project");
+    m_onOff.setText("Focus assurance on this Java project");
     focusButtonInitialState = doesProjectUseDoubleChecking();
     m_onOff.setSelection(focusButtonInitialState);
     return composite;
