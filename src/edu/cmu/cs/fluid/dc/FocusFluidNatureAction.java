@@ -65,7 +65,7 @@ public class FocusFluidNatureAction implements IViewActionDelegate,
 						changed = true;
 					} catch (CoreException e) {
 						LOG.log(Level.SEVERE,
-								"failure while removing double-checking nature to Java project "
+								"failure while removing double-checking nature from Java project "
 										+ current.getName(), e);
 					}
 				}

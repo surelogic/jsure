@@ -4,6 +4,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaProject;
@@ -14,6 +15,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
 /**
  * Java project property page to enable and set preferences for double-checking.
@@ -32,6 +34,13 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
    */
   private Button m_onOff;
 
+  /**
+   * What was the initial state of the focus button?
+   */
+  private boolean focusButtonInitialState = false;
+  
+  
+  
   /**
    * Checks if a project currently uses double-checking assurance. This is
    * determined by seeing if the double-checker nature is attached to the
@@ -67,11 +76,13 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
    * Sets the project to use or not use double-checking assurance based upon the
    * <code>value</code>.
    * 
+   * <p>Assumes that it is only called if the state needs to be changed.
+   * 
    * @param value
    *          <code>true</code> if the project should be double-checked,
    *          <code>false</code> otherwise.
    */
-  private void setProjectDoubleCheckingStatus(boolean value) {
+  private void setProjectDoubleCheckingStatus(final boolean newValue) {
     IAdaptable element = getElement();
     IProject project = null;
     if (element instanceof IJavaProject) {
@@ -83,19 +94,52 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
       // we should never get here (our plugin.xml must be wrong)
       throw new IllegalStateException("no project information");
     }
+    
+    /* If we are setting the focus, we need to remove the focus from
+     * all the other projects.
+     */
+    if (newValue) {
+      final IProject[] projects =
+        ResourcesPlugin.getWorkspace().getRoot().getProjects();
+
+      for (int i = 0; i < projects.length; i++) {
+        final IProject current = projects[i];
+        // Can only manipulate the nature of open projects
+        if (current.isOpen()) {
+          if (project != current && Nature.hasNature(current)) {
+            try {
+              Nature.removeNatureFromProject(current);
+            } catch (final CoreException e) {
+              LOG.log(Level.SEVERE,
+                  "failure while removing double-checking nature from Java project "
+                  + current.getName(), e);
+            }
+          }
+        }
+      }
+    }
+    
     try {
-      if (value) {
+      if (newValue) {
         // add our Fluid nature to the project
-        Nature.addNatureToProject(project);
+        try {
+          Nature.addNatureToProject(project);
+        } catch (CoreException e) {
+          LOG.log(Level.SEVERE, "failure adding double-checking nature to Java project "
+              + project.getName(), e);
+        }
       } else {
         // remove our nature from the project
         Nature.removeNatureFromProject(project);
       }
     } catch (CoreException e) {
-      LOG.log(Level.SEVERE, "failure setting (" + value
+      LOG.log(Level.SEVERE, "failure setting (" + newValue
           + ") or removing double-checking nature to/from Java project "
           + project.getName(), e);
     }
+    
+    // Report change of state to the system.
+    ClearProjectListener.postNatureChangeUtility();
   }
 
   @Override
@@ -104,8 +148,9 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
     GridLayout gridLayout = new GridLayout();
     composite.setLayout(gridLayout);
     m_onOff = new Button(composite, SWT.CHECK);
-    m_onOff.setText("Enable the JSure Tool for this Java project");
-    m_onOff.setSelection(doesProjectUseDoubleChecking());
+    m_onOff.setText("Focus Assurance on this Java project");
+    focusButtonInitialState = doesProjectUseDoubleChecking();
+    m_onOff.setSelection(focusButtonInitialState);
     return composite;
   }
 
@@ -118,7 +163,9 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
    */
   @Override
   public boolean performOk() {
-    setProjectDoubleCheckingStatus(m_onOff.getSelection());
+    if (focusButtonInitialState != m_onOff.getSelection()) {
+      setProjectDoubleCheckingStatus(m_onOff.getSelection());
+    }
     return super.performOk();
   }
 }

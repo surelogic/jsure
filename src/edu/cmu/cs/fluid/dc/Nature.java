@@ -126,15 +126,18 @@ public final class Nature implements IProjectNature {
             // See if the promises jar is already in the project
             final IFile foundJar = findPromisesjar(project, srcAndOutputDirs);
 
-            final MessageDialog dialog;
             IFile useJar;
+            boolean useExisting = false;
+            final int choice;
             if (foundJar == null) {
-              dialog = new MessageDialog(shell, "Add Promises to Project?", null,
+              final MessageDialog dialog = new MessageDialog(
+                  shell, "Add Promises to Project?", null,
                   "The project does not contain the SureLogic promises JAR file.  " +
                   "Would you like to add it to the project and build path?",
                   MessageDialog.QUESTION,
                   new String[] { "Add to Project Root", "Browse...", "No" }, 0);
               useJar = project.getFile(PROMISES_JAR);
+              choice = dialog.open();
             } else {
               /* This is sloppy, find a better way to make the foundJar path 
                * relative to the project root.
@@ -142,7 +145,8 @@ public final class Nature implements IProjectNature {
               final String foundJarPath =
                 foundJar.getLocation().toString().substring(
                     project.getLocation().toString().length()+1);
-              dialog = new MessageDialog(shell, "Add Promises to Build Path?", null,
+              final MessageDialog dialog = new MessageDialog(
+                  shell, "Add Promises to Build Path?", null,
                   "The project contains the SureLogic promises JAR file at \"" +
                   foundJarPath +
                   "\", but it is not on the build path.  " +
@@ -150,8 +154,9 @@ public final class Nature implements IProjectNature {
                   MessageDialog.QUESTION,
                   new String[] { "Yes", "Copy new JAR file to...", "No" }, 0);
               useJar = foundJar;
+              choice = dialog.open();
+              useExisting = (choice == 0);
             }
-            final int choice = dialog.open();
 
             if (choice == 1) { // Choose a location
               final IContainer newLocation = chooseDirectory(shell, project, jp, srcAndOutputDirs);
@@ -163,9 +168,9 @@ public final class Nature implements IProjectNature {
             }
             
             if (choice != 2 && useJar != null) { // User didn't cancel
-              boolean createJar = true;
+              boolean createJar = !useExisting;
               // Ask the user what to do if the file already exists
-              if (useJar.exists()) {
+              if (useJar.exists() && !useExisting) {
                 /* This is sloppy, find a better way to make the useJar path 
                  * relative to the project root.
                  */
