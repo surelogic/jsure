@@ -136,9 +136,15 @@ public final class Nature implements IProjectNature {
                   new String[] { "Add to Project Root", "Browse...", "No" }, 0);
               useJar = project.getFile(PROMISES_JAR);
             } else {
+              /* This is sloppy, find a better way to make the foundJar path 
+               * relative to the project root.
+               */
+              final String foundJarPath =
+                foundJar.getLocation().toString().substring(
+                    project.getLocation().toString().length()+1);
               dialog = new MessageDialog(shell, "Add Promises to Build Path?", null,
                   "The project contains the SureLogic promises JAR file at \"" +
-                  foundJar.getLocation() +
+                  foundJarPath +
                   "\", but it is not on the build path.  " +
                   "Would you like to add it to the build path?",
                   MessageDialog.QUESTION,
@@ -160,10 +166,16 @@ public final class Nature implements IProjectNature {
               boolean createJar = true;
               // Ask the user what to do if the file already exists
               if (useJar.exists()) {
+                /* This is sloppy, find a better way to make the useJar path 
+                 * relative to the project root.
+                 */
+                final String useJarPath =
+                  foundJar.getLocation().toString().substring(
+                      project.getLocation().toString().length()+1);
                 createJar = MessageDialog.openQuestion(shell,
                     "Overwrite Existing Promises?",
                     "The SureLogic promises JAR file already exists at \"" +
-                    useJar.getLocation() + "\".  Would you like to overwrite it?");
+                    useJarPath + "\".  Would you like to overwrite it?");
               }
               if (createJar) {
                 // Remove first if already exists

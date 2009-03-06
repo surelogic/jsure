@@ -319,13 +319,13 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	protected void setViewState() {
 		actionShowInferences.setChecked(m_contentProvider.isShowInferences());
 		if (m_contentProvider.isShowInferences()) {
-			actionShowInferences.setText("Hide Information & Warning Results");
+			actionShowInferences.setText("Hide Information && Warning Results");
 			actionShowInferences
-					.setToolTipText("Hide analysis information & warning results...show only verification results");
+					.setToolTipText("Hide analysis information && warning results...show only verification results");
 		} else {
-			actionShowInferences.setText("Show Information & Warning Results");
+			actionShowInferences.setText("Show Information && Warning Results");
 			actionShowInferences
-					.setToolTipText("Show analysis information & warning results within verification results");
+					.setToolTipText("Show analysis information && warning results within verification results");
 		}
 	}
 
