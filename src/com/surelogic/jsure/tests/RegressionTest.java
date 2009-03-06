@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.test.*;
@@ -310,7 +311,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
         + "jsure.analysis.settings");
     if (analyses.exists() && analyses.isFile()) {
       System.out.println("Found project-specific analysis settings.");
-      Plugin.getDefault().initAnalyses(analyses);
+      IPreferenceStore store = JSureAnalysisXMLReader.readStateFrom(analyses);
+      Plugin.getDefault().initAnalyses(store);
     } else {
       System.out.println("No project-specific analysis settings.");
     }

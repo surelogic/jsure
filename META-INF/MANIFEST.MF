@@ -17,13 +17,16 @@ Require-Bundle: org.junit,
  com.surelogic.common.eclipse,
  org.eclipse.compare,
  org.eclipse.debug.core,
- com.surelogic.jsure.client.eclipse
+ com.surelogic.jsure.client.eclipse,
+ org.eclipse.swt,
+ org.eclipse.jface
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Package: com.surelogic.jsure.tests
 Bundle-ClassPath: lib/jacl.jar,
  .,
  lib/tcljava.jar,
  lib/ant.jar,
- lib/ant-junit.jar
+ lib/ant-junit.jar,
+ lib/jdom.jar
 Bundle-Activator: com.surelogic.jsure.tests.TestActivator
 Eclipse-LazyStart: true
