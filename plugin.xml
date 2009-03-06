@@ -13,4 +13,16 @@
 			id="com.surelogic.jsure.views.debug.oracleDiff.OracleDiffResultsView">
 		</view>
 	</extension>
+
+  <extension point="org.eclipse.ui.viewActions">
+    <viewContribution id="com.surelogic.jsure.views.debug.viewContributions.ResultsView"
+      targetID="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
+      <action id="com.surelogic.jsure.views.debug.resultsView.exportToOracle"
+        label="Export Oracle File"
+        tooltip="Export results to a date-stamped oracle file in root of project"
+        menubarPath="additions"
+        class="com.surelogic.jsure.views.debug.resultsView.actions.ExportToOracle">
+      </action>
+    </viewContribution>
+  </extension>
 </plugin>
