@@ -648,4 +648,16 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			setPartName(f_viewTitle);
 		}
 	}
+	
+	/* For use by view contribution actions in other plug-ins so that they
+	 * can get a pointer to the TreeViewer
+	 */
+	@Override
+  public Object getAdapter(final Class adapter) {
+	  if (adapter == TreeViewer.class) {
+	    return viewer;
+	  } else {
+	    return super.getAdapter(adapter);
+	  }	  
+	}
 }
