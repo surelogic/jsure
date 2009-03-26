@@ -33,7 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
-import edu.cmu.cs.fluid.util.QuickProperties;
+import com.surelogic.common.XUtil;
 
 /**
  * Java preference page to set preferences for double-checking. It reads and
@@ -43,9 +43,10 @@ import edu.cmu.cs.fluid.util.QuickProperties;
 public final class PreferencePage extends
 		org.eclipse.jface.preference.PreferencePage implements
 		IWorkbenchPreferencePage {
-	public static final boolean showPrivate = QuickProperties.getInstance()
-			.getProperties().getProperty("dc.show.private", "false").equals(
-					"true");
+  public static final boolean showPrivate = XUtil.useExperimental();
+//  public static final boolean showPrivate = QuickProperties.getInstance()
+//  .getProperties().getProperty("dc.show.private", "false").equals(
+//      "true");
 
 	CheckboxTreeViewer checktree;
 

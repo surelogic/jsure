@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.TestListener;
@@ -216,8 +217,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		manager.add(actionShowInferences);
 		manager.add(new Separator());
 		manager.add(new Separator());
-		manager.add(actionExportZIPForStandAloneResultsViewer);
-		manager.add(actionExportXMLForSierra);
+		if (XUtil.useExperimental()) {
+		  manager.add(actionExportZIPForStandAloneResultsViewer);
+		  manager.add(actionExportXMLForSierra);
+		}
 	}
 
 	@Override
@@ -253,31 +256,33 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				.getSharedImages().getImageDescriptor(
 						ISharedImages.IMG_OBJS_INFO_TSK));
 
-		actionExportZIPForStandAloneResultsViewer = new Action() {
-			@Override
-			public void run() {
-				exportZIPForStandAloneResultsViewer();
-			}
-		};
-		actionExportZIPForStandAloneResultsViewer
-				.setText("Export Results && Source (for Stand-Alone Results Viewer)");
-		actionExportZIPForStandAloneResultsViewer
-				.setToolTipText("Creates a ZIP file containing source and analysis results for the Stand-Alone Results Viewer");
-		actionExportZIPForStandAloneResultsViewer
-				.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
+		if (XUtil.useExperimental()) {
+  		actionExportZIPForStandAloneResultsViewer = new Action() {
+  			@Override
+  			public void run() {
+  				exportZIPForStandAloneResultsViewer();
+  			}
+  		};
+  		actionExportZIPForStandAloneResultsViewer
+  				.setText("Export Results && Source (for Stand-Alone Results Viewer)");
+  		actionExportZIPForStandAloneResultsViewer
+  				.setToolTipText("Creates a ZIP file containing source and analysis results for the Stand-Alone Results Viewer");
+  		actionExportZIPForStandAloneResultsViewer
+  				.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
 
-		actionExportXMLForSierra = new Action() {
-			@Override
-			public void run() {
-				exportXMLForSierra();
-			}
-		};
-		actionExportXMLForSierra
-				.setText("Export Results (XML for Sierra Viewer)");
-		actionExportXMLForSierra
-				.setToolTipText("Creates a XML file containing analysis results that can be imported into Sierra");
-		actionExportXMLForSierra.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
-
+  		actionExportXMLForSierra = new Action() {
+  			@Override
+  			public void run() {
+  				exportXMLForSierra();
+  			}
+  		};
+  		actionExportXMLForSierra
+  				.setText("Export Results (XML for Sierra Viewer)");
+  		actionExportXMLForSierra
+  				.setToolTipText("Creates a XML file containing analysis results that can be imported into Sierra");
+  		actionExportXMLForSierra.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
+		}
+		
 		actionExpand = new Action() {
 			@Override
 			public void run() {
