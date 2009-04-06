@@ -5,13 +5,11 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -34,6 +32,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.ide.IDE;
 
+import com.surelogic.common.eclipse.builder.AbstractNature;
 import com.surelogic.common.eclipse.jobs.SLUIJob;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.LibResources;
@@ -46,7 +45,7 @@ import com.surelogic.jsure.client.eclipse.dialogs.ConfirmPerspectiveSwitch;
  * plugin manifest mandates that for a project to be allowed to have the
  * double-checker nature it <i>must</i> have a Java nature as well.
  */
-public final class Nature implements IProjectNature {
+public final class Nature extends AbstractNature {
 
 	private static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.dc");
 
@@ -64,7 +63,9 @@ public final class Nature implements IProjectNature {
 
 	private static final String PROMISES_JAR = "promises.jar";
 	
-	
+	public Nature() {
+		super(DOUBLE_CHECKER_BUILDER_ID);
+	}
 	
 	/**
 	 * Checks if the double-checker nature is set for a given project.
@@ -428,130 +429,6 @@ public final class Nature implements IProjectNature {
 			}
 			description.setNatureIds(newNatures);
 			project.setDescription(description, null);
-		}
-	}
-
-	/**
-	 * the Java project this nature is being managed for
-	 */
-	private IProject project;
-
-	/**
-	 * @see org.eclipse.core.resources.IProjectNature#configure()
-	 */
-	public void configure() throws CoreException {
-		if (LOG.isLoggable(Level.FINE))
-			LOG.fine("configure() called");
-		if (project == null) {
-			LOG.log(Level.SEVERE,
-					"the project is strangely null -- this should not happen");
-			return;
-		}
-		addBuilderToProject(project);
-	}
-
-	/**
-	 * @see org.eclipse.core.resources.IProjectNature#deconfigure()
-	 */
-	public void deconfigure() throws CoreException {
-		if (project == null) {
-			LOG.log(Level.SEVERE,
-					"the project is strangely null -- this should not happen");
-			return;
-		}
-		removeBuilderFromProject(project);
-	}
-
-	/**
-	 * @see org.eclipse.core.resources.IProjectNature#setProject(org.eclipse.core.resources.IProject)
-	 */
-	public void setProject(IProject project) {
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("setProject() called for project " + project.getName());
-		}
-		this.project = project;
-	}
-
-	/**
-	 * @see org.eclipse.core.resources.IProjectNature#getProject()
-	 */
-	public IProject getProject() {
-		if (LOG.isLoggable(Level.FINE))
-			LOG.fine("getProject() called");
-		return project;
-	}
-
-	/**
-	 * Checks if a specific builder exists within a project's builder list.
-	 * 
-	 * @param commands
-	 *            a list of builders which we need to check if
-	 *            <code>builderId</code> is contained within
-	 * @param builderId
-	 *            the builder we want to look for within <code>commands</code>
-	 * @return <code>true</code> if the builder is listed in
-	 *         <code>commands</code>, <code>false</code> otherwise
-	 */
-	public boolean hasBuilder(ICommand[] commands, String builderId) {
-		for (int i = 0; i < commands.length; ++i) {
-			if (commands[i].getBuilderName().equals(builderId)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Adds the double-checker builder to a project.
-	 * 
-	 * @param project
-	 *            the project to add the double-checker builder to
-	 * @throws CoreException
-	 *             if we are unable to get a {@link IProjectDescription} for the
-	 *             project (which is how project builders are managed)
-	 */
-	private void addBuilderToProject(IProject project) throws CoreException {
-		IProjectDescription desc = project.getDescription();
-		ICommand[] commands = desc.getBuildSpec();
-		if (!hasBuilder(commands, DOUBLE_CHECKER_BUILDER_ID)) {
-			// add builder to project
-			ICommand command = desc.newCommand();
-			command.setBuilderName(DOUBLE_CHECKER_BUILDER_ID);
-			ICommand[] newCommands = new ICommand[commands.length + 1];
-			// Add it at the end of all the other builders (e.g., after Java
-			// builder)
-			System.arraycopy(commands, 0, newCommands, 0, commands.length);
-			newCommands[newCommands.length - 1] = command;
-			desc.setBuildSpec(newCommands);
-			project.setDescription(desc, null);
-		}
-	}
-
-	/**
-	 * Removes the double-checker builder from a project.
-	 * 
-	 * @param project
-	 *            the project to remove the double-checker builder from
-	 * @throws CoreException
-	 *             if we are unable to get a {@link IProjectDescription} for the
-	 *             project (which is how project builders are managed)
-	 */
-	private void removeBuilderFromProject(IProject project)
-			throws CoreException {
-		IProjectDescription desc = project.getDescription();
-		ICommand[] commands = desc.getBuildSpec();
-		if (hasBuilder(commands, DOUBLE_CHECKER_BUILDER_ID)) {
-			// remove builder from the project
-			ICommand[] newCommands = new ICommand[commands.length - 1];
-			int newCommandsIndex = 0;
-			for (int i = 0; i < commands.length; ++i) {
-				if (!commands[i].getBuilderName().equals(
-						DOUBLE_CHECKER_BUILDER_ID)) {
-					newCommands[newCommandsIndex++] = commands[i];
-				}
-			}
-			desc.setBuildSpec(newCommands);
-			project.setDescription(desc, null);
 		}
 	}
 }
