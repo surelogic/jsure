@@ -30,3 +30,4 @@ Bundle-ClassPath: lib/jacl.jar,
  lib/jdom.jar
 Bundle-Activator: com.surelogic.jsure.tests.TestActivator
 Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
