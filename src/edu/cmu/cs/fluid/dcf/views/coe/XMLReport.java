@@ -45,7 +45,6 @@ import com.surelogic.jsure.client.eclipse.Activator;
  * Generate an XML representation of the ResultsView output
  * for use by the standalone results viewer.
  */
-@SuppressWarnings("restriction")
 public class XMLReport {
   static final Logger LOG = SLLogger.getLogger("XMLReport");
   

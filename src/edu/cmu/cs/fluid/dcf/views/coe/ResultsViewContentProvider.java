@@ -136,7 +136,6 @@ public class ResultsViewContentProvider extends
 	 */
 	private void addSupportingInformation(Content mutableContentSet,
 			IRReferenceDrop about) {
-		@SuppressWarnings("unchecked")
 		Collection<SupportingInformation> supportingInformation = about
 				.getSupportingInformation();
 		int size = supportingInformation.size();

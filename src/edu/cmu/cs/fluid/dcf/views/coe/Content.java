@@ -8,7 +8,13 @@ import static com.surelogic.xml.results.coe.CoE_Constants.INFO;
 import static com.surelogic.xml.results.coe.CoE_Constants.INFO_WARNING;
 import static com.surelogic.xml.results.coe.CoE_Constants.REDDOT;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -18,7 +24,8 @@ import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
 
 import com.surelogic.jsure.coe.JSureViewConstants;
-import com.surelogic.tree.diff.*;
+import com.surelogic.tree.diff.Diff;
+import com.surelogic.tree.diff.IDiffNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
