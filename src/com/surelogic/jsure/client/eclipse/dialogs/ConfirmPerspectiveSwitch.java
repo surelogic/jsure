@@ -7,16 +7,21 @@ import com.surelogic.common.eclipse.dialogs.AbstractConfirmPerspectiveSwitch;
 import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
 import com.surelogic.jsure.perspectives.CodeVerificationPerspective;
 
-public final class ConfirmPerspectiveSwitch extends AbstractConfirmPerspectiveSwitch {
-	public static final ConfirmPerspectiveSwitch prototype = new ConfirmPerspectiveSwitch();	
-	
+public final class ConfirmPerspectiveSwitch extends
+		AbstractConfirmPerspectiveSwitch {
+
+	public static final ConfirmPerspectiveSwitch prototype = new ConfirmPerspectiveSwitch();
+
 	private ConfirmPerspectiveSwitch() {
-		super(CodeVerificationPerspective.class.getName(), PreferenceConstants.prototype);
+		super(CodeVerificationPerspective.class.getName(),
+				PreferenceConstants.prototype);
 	}
+
 	@Override
 	protected String getLogo() {
 		return CommonImages.IMG_JSURE_LOGO;
 	}
+
 	@Override
 	protected String getShortPrefix() {
 		return "jsure.";
