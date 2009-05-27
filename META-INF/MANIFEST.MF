@@ -17,7 +17,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
  org.eclipse.ui.ide,
- com.surelogic.common.adhoc,
  org.eclipse.ui.views,
  org.eclipse.jface.text,
  org.eclipse.jface,
@@ -31,7 +30,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.team.cvs.core,
  org.eclipse.team.core,
  com.surelogic.xml.results.viewer,
- org.junit 
+ org.junit
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: com.surelogic.jsure.client.eclipse,
