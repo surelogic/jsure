@@ -1,11 +1,16 @@
 package com.surelogic.jsure.client.eclipse;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.logging.SLEclipseStatusUtility;
 
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
@@ -16,7 +21,7 @@ import edu.cmu.cs.fluid.eclipse.Eclipse;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class Activator extends AbstractUIPlugin {
+public class Activator extends AbstractUIPlugin implements IRunnableWithProgress {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "com.surelogic.jsure.client.eclipse";
@@ -51,16 +56,25 @@ public class Activator extends AbstractUIPlugin {
 			doubleChecker = new Plugin();
 			doubleChecker.start(context);
 		}
-		
+		SWTUtility.startup(this);
+	}
+	
+	// Used for startup
+	public void run(IProgressMonitor monitor) 
+	throws InvocationTargetException, InterruptedException {
+		monitor.beginTask("Initializing jsure-client-eclipse", 6);		
 		/*
 		 * "Touch" common-eclipse so the logging gets Eclipse-ified.
 		 */
 		SLEclipseStatusUtility.touch();
-
+		monitor.worked(1);
+		
 		// TODO reload persistent data
 		Eclipse.initialize();
+		monitor.worked(1);
 		
 		NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
+		monitor.worked(1);
 	}
 
 	/*
