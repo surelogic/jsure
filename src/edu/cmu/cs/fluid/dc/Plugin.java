@@ -283,15 +283,20 @@ public class Plugin {
 	 * @see #writeStateToPrefs()
 	 */
 	private void readStateFromPrefs(IPreferenceStore store) {
+		m_includedExtensions.clear();
+		
 		for(IExtension ext : allAnalysisExtensions) {
 			final String id      = ext.getUniqueIdentifier();
 			final boolean active = store.getBoolean(ANALYSIS_ACTIVE_PREFIX + id); 
 			if (active) {
+				//System.out.println("Really Included : "+id);
 				m_includedExtensions.add(id.intern());
 				
 				if (allAnalysisExtensions != null) {
 					ensureAnalysisPrereqsAreIncluded(id);
 				}
+			} else {
+				//System.out.println("Really Excluded : "+id);
 			}
 		}
 	}
@@ -896,6 +901,8 @@ public class Plugin {
 		if (isIncludedExtensionsChanged(includedExtensions)) {
 			m_includedExtensions.clear();
 			m_includedExtensions.addAll(includedExtensions);
+			writeStateToPrefs(Activator.getDefault().getPreferenceStore());
+			
 			if (analysisExtensionPointsPrerequisitesOK()) {
 				initializeAnalysisLevels();
 			}
