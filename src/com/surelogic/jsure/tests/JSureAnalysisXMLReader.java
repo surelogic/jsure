@@ -136,6 +136,7 @@ public final class JSureAnalysisXMLReader {
 				LOG.fine("analysis module inclusion list "
 						+ includedAnalysisModules);
 			for (String id : includedAnalysisModules) {
+				//System.out.println("'Included' : "+id);
 				store.setValue(Plugin.ANALYSIS_ACTIVE_PREFIX + id, true);
 			}
 
@@ -148,6 +149,7 @@ public final class JSureAnalysisXMLReader {
 				if (includedAnalysisModules.contains(id)) {
 					LOG.warning("Both included and excluded: " + id);
 				}
+				//System.out.println("'Excluded' : "+id);
 				store.setValue(Plugin.ANALYSIS_ACTIVE_PREFIX + id, false);
 				// System.out.println("Excluded "+id);
 			}
