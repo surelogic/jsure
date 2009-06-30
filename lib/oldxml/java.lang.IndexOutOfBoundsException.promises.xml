@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.lang">
+    <class name="IndexOutOfBoundsException">
+        <classinit>
+          <promise keyword="reads" contents="nothing"/>
+        </classinit>
+        <constructor params="java.lang.String">
+            <promise keyword="writes" contents="nothing"/>
+        </constructor>
+    </class>  
+</package>

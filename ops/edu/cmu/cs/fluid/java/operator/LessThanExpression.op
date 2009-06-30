@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/LessThanExpression.op,v 1.2 2006/05/26 20:15:36 chance Exp $
+public operator LessThanExpression extends CompareExpression 
+    implements DripOperator
+{
+  syntax { 
+    op1:Expression "<" op2:Expression
+  }
+}

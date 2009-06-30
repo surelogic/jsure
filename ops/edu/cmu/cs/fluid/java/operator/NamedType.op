@@ -1,0 +1,11 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NamedType.op,v 1.15 2006/07/25 18:47:05 chance Exp $
+public operator NamedType extends ClassType implements ImportNameInterface, edu.cmu.cs.fluid.java.bind.IHasBinding, edu.cmu.cs.fluid.java.bind.IHasType
+{
+  syntax { $type:Info }
+  properties {
+    bindsToType=SourceRefType 
+  }
+  public Operator getResultOp() {
+    return TypeDeclaration.prototype;
+  }  
+}

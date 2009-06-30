@@ -1,0 +1,22 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ClassExpression.op,v 1.4 2006/05/02 20:00:50 chance Exp $
+public operator ClassExpression extends Expression implements edu.cmu.cs.fluid.java.bind.IHasBinding
+{
+  syntax {
+    type:ReturnType "." "class"
+  }
+  
+  public Operator getResultOp() {
+    return TypeDeclaration.prototype;
+  }
+  
+  /** Create the control-flow graph component for a class expression
+   * (e.g. <classname>.class).  We don't execute any children
+   */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    ControlNode n = new ComponentFlow(comp,null);
+    ControlEdge.connect(comp.getEntryPort(),n);
+    ControlEdge.connect(n,comp.getNormalExitPort());
+    return comp;
+  }
+}

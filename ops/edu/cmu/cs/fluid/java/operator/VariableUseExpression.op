@@ -1,0 +1,21 @@
+# $Header$
+public operator VariableUseExpression extends PrimaryExpression 
+	implements DripOperator, edu.cmu.cs.fluid.java.bind.IHasBinding 
+{
+  syntax {
+    $id:Info
+  }
+  properties {
+    bindsTo=Variable 
+  }
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    ControlNode n = new ComponentFlow(comp,null);
+    ControlEdge.connect(comp.getEntryPort(),n);
+    ControlEdge.connect(n,comp.getNormalExitPort());
+    return comp;
+  }
+  public Operator getResultOp() {
+    return VariableDeclaration.prototype;
+  }
+}

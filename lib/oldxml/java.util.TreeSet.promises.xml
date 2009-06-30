@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.util">
+    <class name="TreeSet">        
+        <constructor>
+            <promise keyword="borrowed" contents="this"/>
+            <promise keyword="starts" contents="nothing"/>
+        </constructor>
+
+        <constructor params="java.util.Comparator">
+            <promise keyword="borrowed" contents="this"/>
+            <promise keyword="starts" contents="nothing"/>
+        </constructor>
+
+        <constructor params="java.util.Collection">
+            <promise keyword="borrowed" contents="this"/>
+            <promise keyword="starts" contents="nothing"/>
+        </constructor>
+
+        <constructor params="java.util.SortedSet">
+            <promise keyword="borrowed" contents="this"/>
+            <promise keyword="starts" contents="nothing"/>
+        </constructor>
+
+        <method name="add" params="java.lang.Object">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="writes" contents="Instance"/>
+            <promise keyword="starts" contents="nothing"/>
+        </method>
+
+        <method name="remove" params="java.lang.Object">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="writes" contents="Instance"/>
+            <promise keyword="starts" contents="nothing"/>
+        </method>
+
+        <method name="tailSet" params="java.lang.Object">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="reads" contents="Instance"/>
+          <promise keyword="starts" contents="nothing"/>
+        </method>
+
+        <method name="headSet" params="java.lang.Object">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="reads" contents="Instance"/>
+          <promise keyword="starts" contents="nothing"/>
+        </method>
+
+        <method name="iterator">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="reads" contents="Instance"/>
+          <promise keyword="starts" contents="nothing"/>
+        </method>
+
+    </class>  
+</package>

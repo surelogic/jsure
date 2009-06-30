@@ -1,0 +1,14 @@
+# $Header$
+
+/**
+ * An abstract operator representing a name such as <tt>a.b.c.d</tt>.
+ * These operators only occur in non-canonical Java trees.
+ */
+public operator Name implements IllegalCode, edu.cmu.cs.fluid.java.bind.IHasBinding { 
+  properties {
+    noncanonical=true 
+  } 
+  public Operator getResultOp() {
+    return Declaration.prototype;
+  }  
+}

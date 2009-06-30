@@ -1,0 +1,29 @@
+<package name="java.awt.dnd">
+  <Promise>&quot;ColorImport java.awt&quot; for *</Promise>
+
+      <Promise>&quot;Transparent&quot; for add*Listener(**) | remove*Listener(**)</Promise>
+
+  <Promise>&quot;Color GUI&quot; for get*(**)</Promise>
+
+  <Promise>&quot;Color GUI&quot; for add*(**) &amp; !(add*Listener(**))</Promise>
+
+  <Promise>&quot;Color GUI&quot; for new(**)</Promise>
+
+  <Promise>&quot;Color GUI&quot; for process*(**)</Promise>
+
+  <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
+
+  <Promise>&quot;Color GUI&quot; for updateUI()</Promise>
+  <Promise>&quot;Transparent&quot; for revalidate()</Promise>
+
+  <Promise>&quot;Transparent&quot; for repaint(**)</Promise>
+
+  <Promise>&quot;Color AWT&quot; for fire*(**)</Promise>
+
+
+  <Promise>&quot;Color AWT&quot; for requestFocus*(**)</Promise>
+
+
+  <Promise>&quot;Color AWT&quot; for paint*(**)</Promise>
+
+</package>

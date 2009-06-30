@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="javax.swing.table">
+    <class name="JTableHeader">
+
+    <promise keyword="colorImport" contents="java.awt.*;"/>
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for column*(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for get*(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for add*(**) &amp; !(add*Listener(**))"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for set*(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for updateUI()"/>
+    </class>  
+</package>
+

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.util">
+    <class name="AbstractCollection">
+<!-- Copied from List -->
+        <method name="remove" params="java.lang.Object">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="writes" contents="Instance"/>
+        </method>
+    </class>  
+</package>

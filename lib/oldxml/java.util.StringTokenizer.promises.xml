@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.util">
+  <class name="StringTokenizer">
+    <promise keyword="promise"
+      contents="&quot;transparent&quot; for **(**)"/>
+    <promise keyword="promise"
+      contents="&quot;reads Instance&quot; for has*(**) | count*(**)"/>
+    <promise keyword="promise"
+      contents="&quot;writes Instance&quot; for next*(**)"/>
+  </class>
+</package>
+

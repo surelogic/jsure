@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.beans">
+    <class name="PropertyChangeEvent">
+    <promise keyword="colorImport" contents="java.awt.*;"/>
+      <promise keyword="promise"
+	contents="&quot;colorConstraint GUI;&quot; for *(**)"/>
+    </class>
+</package>

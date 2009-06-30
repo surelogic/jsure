@@ -1,0 +1,10 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator ScopedPromise extends TargetedAnnotation {
+   syntax {
+     $promise:Info "for" targets:PromiseTarget
+   }  
+}

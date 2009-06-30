@@ -1,0 +1,10 @@
+
+/** Declare two or more Thead colors to be incompatible
+ */
+ 
+// $modifiers:Modifiers 
+public operator ColorIncompatible extends ColoringAnnotation {
+  syntax {     
+    "incompatibleColors" color:ColorName */ "," 
+  }
+}

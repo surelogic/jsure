@@ -1,0 +1,20 @@
+<package name="java.awt">
+    <class name="FontMetrics">
+    <ColorImport>java.awt</ColorImport>
+
+    <promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIstuff, java.awt.event.ActionListener:GUIinternal&quot; for get*()</promise>
+
+    <promise>&quot;Color GUI&quot; for charWidth*(**) | get*(**)</promise>
+
+        <method name="stringWidth" params="java.lang.String">
+            <Color>GUI</Color>
+            <RegionEffects>reads Instance, arg0:Instance, java.awt.event.ActionListener:GUIinternal</RegionEffects>
+        </method>
+        <method name="getHeight" params="">
+            <Color>GUI</Color>
+        </method>
+        <method name="getAscent" params="">
+            <Color>GUI</Color>
+        </method>
+    </class>
+</package>

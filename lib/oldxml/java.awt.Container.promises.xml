@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt">
+    <class name="Container">
+    <promise keyword="colorImport" contents="java.awt.*;"/>
+        <promise keyword="promise" 
+	  contents="&quot;colorConstraint GUI;&quot; for remove(**)"/>
+        <promise keyword="promise" 
+	  contents="&quot;colorConstraint GUI;&quot; for removeAll()"/>
+        <promise keyword="promise"
+	  contents="&quot;colorConstraint GUI;&quot; for add*(**) &amp; !(add*Listener(**))"/>
+        <promise keyword="promise"
+	  contents="&quot;colorConstraint GUI;&quot; for get*(**)"/>
+        <promise keyword="promise"
+	  contents="&quot;colorConstraint GUI;&quot; for set*(**)"/>
+        <promise keyword="promise"
+	  contents="&quot;colorConstraint GUI;&quot; for is*(**)"/>
+        <promise keyword="promise"
+	  contents="&quot;colorConstraint GUI;&quot; for put*(**) | invalidate(**)"/>
+	  
+	  <promise keyword="promise"
+	  	  contents="&quot;writes java.awt.event.ActionListener.GUIinternal&quot; for add(**) | remove(**)"/>
+	  <promise keyword="promise"
+	  	  contents="&quot;writes java.awt.event.ActionListener.GUIinternal&quot; for set*(**) | create*(**)"/>
+    <promise keyword="promise"
+	  	  contents="&quot;reads java.awt.event.ActionListener.GUIinternal&quot; for get*(**) | is*(**)"/>
+
+        <method name="paint" params="java.awt.Graphics">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="update" params="java.awt.Graphics">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="add" params="java.awt.Component">
+          <promise keyword="colorConstraint" contents="GUI;"/>
+        </method>
+        <method name="add" params="java.lang.String, java.awt.Component">
+          <promise keyword="colorConstraint" contents="GUI;"/>
+        </method>
+        <method name="setLayout" params="java.awt.LayoutManager">
+          <promise keyword="colorConstraint" contents="GUI;"/>
+        </method>
+
+        <method name="validate" params="">
+          <promise keyword="colorConstraint" contents="GUI;"/>
+        </method>
+
+
+    </class>  
+</package>

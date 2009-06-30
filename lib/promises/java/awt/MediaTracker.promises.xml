@@ -1,0 +1,5 @@
+<package name="java.awt">
+    <class name="MediaTracker">
+      <Promise>&quot;Transparent&quot; for **(**)</Promise>
+    </class>  
+</package>

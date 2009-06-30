@@ -1,0 +1,12 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ConditionalExpression.op,v 1.3 2005/05/25 18:03:34 chance Exp $
+public operator ConditionalExpression extends Expression {
+  syntax {
+    cond:Expression "?" iftrue:Expression ":" iffalse:Expression
+  }
+  @Override public Component createComponent(IRNode node) {
+    // We can reuse the structure created for if statements:
+    
+    // TODO check if right?
+    return IfStatement.prototype.createComponent(node);
+  }
+}

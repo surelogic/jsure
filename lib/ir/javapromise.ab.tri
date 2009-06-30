@@ -1,0 +1,90 @@
+magic 0x49524200
+0x00000012
+"JavaPromise.isUnique"
+type 0x42
+slotFactory 0x56
+true
+false
+"JavaPromise.isUnshared"
+type 0x42
+slotFactory 0x56
+true
+false
+"JavaPromise.isImmutable"
+type 0x42
+slotFactory 0x56
+true
+false
+"JavaPromise.isLimited"
+type 0x42
+slotFactory 0x56
+true
+false
+"JavaPromise.hasExhaustiveThrows"
+type 0x42
+slotFactory 0x56
+true
+false
+"JavaPromise.isWrite"
+type 0x42
+slotFactory 0x56
+true
+false
+"JavaPromise.promisedFor"
+type 0x4e
+slotFactory 0x56
+true
+node 0x00000000
+"JavaPromise.returnNode"
+type 0x4e
+slotFactory 0x43
+false
+"JavaPromise.receiverNode"
+type 0x4e
+slotFactory 0x43
+false
+"JavaPromise.initMethod"
+type 0x4e
+slotFactory 0x43
+false
+"JavaPromise.classInitMethod"
+type 0x4e
+slotFactory 0x43
+false
+"JavaPromise.precondition"
+type 0x4e
+slotFactory 0x56
+true
+node 0x00000000
+"JavaPromise.postcondition"
+type 0x4e
+slotFactory 0x56
+true
+node 0x00000000
+"JavaPromise.throwCondition"
+type 0x4e
+slotFactory 0x56
+true
+node 0x00000000
+"JavaPromise.fieldRegion"
+type 0x4e
+slotFactory 0x56
+false
+"JavaPromise.classRegions"
+type 0x5b
+  type 0x4e
+slotFactory 0x43
+false
+"JavaPromise.classInvariants"
+type 0x5b
+  type 0x4e
+slotFactory 0x43
+false
+"JavaPromise.methodEffects"
+type 0x5b
+  type 0x4e
+slotFactory 0x56
+true
+cache false
+:cache_init
+0x45

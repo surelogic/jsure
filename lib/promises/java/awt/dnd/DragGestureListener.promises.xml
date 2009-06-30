@@ -1,0 +1,9 @@
+<package name="java.awt.dnd">
+    <class name="DragGestureListener">
+    
+    <ColorImport>java.awt</ColorImport>
+
+      <Promise>&quot;colorConstraint AWT&quot; for dragGestureRecognized(*)</Promise>
+
+    </class>  
+</package>

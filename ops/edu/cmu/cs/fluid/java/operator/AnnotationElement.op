@@ -1,0 +1,11 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/AnnotationElement.op,v 1.5 2007/05/09 14:24:36 chance Exp $
+public operator AnnotationElement extends ClassBodyDeclaration /* TODO implements FlowUnit */
+{
+  syntax {
+    $modifiers:Modifiers(public,abstract) type:Type $id:Info "()" value:OptDefaultValue
+  }
+
+  // @Override public Component createComponent(IRNode node) {
+  //  return null; // TODO
+  // }
+}

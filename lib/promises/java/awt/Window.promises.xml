@@ -1,0 +1,19 @@
+<package name="java.awt">
+  <class name="Window">
+
+    <Promise>&quot;Transparent&quot; for add*Listener(**) | remove*Listener(**)</Promise>
+
+    <Promise>&quot;Color GUI&quot; for get*(**) | is*(**)</Promise>
+
+    <Promise>&quot;Color GUI&quot; for add*(**) &amp; !(add*Listener(**))</Promise>
+
+    <Promise>&quot;Color GUI&quot; for process*(**) | dispose()</Promise>
+
+    <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
+
+    <Promise>&quot;Color GUI&quot; for toFront() | toBack()</Promise>
+
+    <Promise>&quot;Color GUI&quot; for pack() | show() | hide()</Promise>
+
+  </class>
+</package>

@@ -1,0 +1,28 @@
+<package name="java.util.concurrent.locks">
+ <class name="Lock">
+  <method name="lock">
+   <regionEffects>writes Instance</regionEffects>
+   <starts>nothing</starts>
+  </method>
+  <method name="lockInterruptibly">
+   <regionEffects>writes Instance</regionEffects>
+   <starts>nothing</starts>
+  </method>
+  <method name="newCondition">
+   <regionEffects>writes Instance</regionEffects>
+   <starts>nothing</starts>
+  </method>
+  <method name="tryLock">
+   <regionEffects>writes Instance</regionEffects>
+   <starts>nothing</starts>
+  </method>
+  <method name="tryLock" params="long, java.util.concurrent.TimeUnit">
+   <regionEffects>writes Instance</regionEffects>
+   <starts>nothing</starts>
+  </method>
+  <method name="unlock">
+   <regionEffects>writes Instance</regionEffects>
+   <starts>nothing</starts>
+  </method>
+ </class>
+</package>

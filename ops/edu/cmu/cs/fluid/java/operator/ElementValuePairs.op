@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ElementValuePairs.op,v 1.4 2007/05/09 14:24:36 chance Exp $
+public operator ElementValuePairs
+{
+  syntax {
+    pair:ElementValuePair */ ( <> "," <comma> ) 
+  }
+  properties {
+    logicallyInvisible=true 
+  }  
+}

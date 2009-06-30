@@ -1,0 +1,55 @@
+package com.surelogic.aast.promise;
+
+import java.util.List;
+
+import com.surelogic.aast.*;
+import com.surelogic.parse.AbstractSingleNodeFactory;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+
+public class AnyTargetNode extends ComplexTargetNode { 
+  public static final AbstractSingleNodeFactory factory =
+    new AbstractSingleNodeFactory("AnyTarget") {
+      @Override
+      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+                                      int _mods, String _id, int _dims, List<AASTNode> _kids) {
+        return new AnyTargetNode (_start);
+      }
+    };
+
+  // Constructors
+  /**
+   * Lists passed in as arguments must be @unique
+   */
+  public AnyTargetNode(int offset) {
+    super(offset);
+  }
+
+  @Override
+  public String unparse(boolean debug, int indent) {
+    StringBuilder sb = new StringBuilder();
+    if (debug) { 
+      indent(sb, indent); 
+      sb.append("AnyTarget\n");
+    } else {
+      return "ANY";
+    }
+    return sb.toString();
+  }
+
+  @Override
+  public <T> T accept(INodeVisitor<T> visitor) {
+    return visitor.visit(this);
+  }
+
+	@Override
+	public boolean matches(IRNode irNode) {
+		return irNode != null;
+	}
+	
+	@Override
+	public IAASTNode cloneTree(){
+		return new AnyTargetNode(getOffset());
+	}
+}
+

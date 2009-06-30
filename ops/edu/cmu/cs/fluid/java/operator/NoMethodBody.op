@@ -1,0 +1,4 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NoMethodBody.op,v 1.3 2003/08/05 14:49:05 boyland Exp $
+public operator NoMethodBody extends OptMethodBody {
+  syntax { ";" }
+}

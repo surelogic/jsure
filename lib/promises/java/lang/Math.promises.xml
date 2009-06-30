@@ -1,0 +1,11 @@
+<package name="java.lang">
+ <class name="Math">
+  <method name="min" params="long, long">
+    <RegionEffects>none</RegionEffects>
+  </method>
+
+  <method name="max" params="long, long">
+    <RegionEffects>none</RegionEffects>
+  </method>
+ </class>
+</package>

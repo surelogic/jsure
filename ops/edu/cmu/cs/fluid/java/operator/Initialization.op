@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/Initialization.op,v 1.5 2006/05/02 20:00:50 chance Exp $
+public operator Initialization extends OptInitialization implements edu.cmu.cs.fluid.java.bind.IHasType {
+  syntax {
+    "=" value:Initializer
+  }
+  
+  @Override public Component createComponent(IRNode node) {
+    return new SimpleComponent(node);
+  }
+}

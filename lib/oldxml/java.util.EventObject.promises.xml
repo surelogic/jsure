@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.util">
+    <class name="EventObject">
+    <promise keyword="colorImport" contents="java.awt.*;"/>
+        <method name="getSource" params="">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+          <promise keyword="reads" contents="Instance"/>
+        </method>
+
+    </class>  
+</package>

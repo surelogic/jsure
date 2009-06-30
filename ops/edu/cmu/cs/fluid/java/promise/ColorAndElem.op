@@ -1,0 +1,7 @@
+# $Header: $
+
+public operator ColorAndElem implements ColorAndElemInterface {
+  public boolean includes(Operator other) {
+     return other instanceof ColorAndElemInterface;
+  }
+}

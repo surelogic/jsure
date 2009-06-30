@@ -1,0 +1,29 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/parse/Ellipsis.op,v 1.8 2006/06/30 19:57:38 chance Exp $
+public operator Ellipsis 
+  implements ClassBodyDeclInterface, ForInitInterface, ImportNameInterface,
+	OptArrayInitializerInterface, ReturnTypeInterface, StatementExpressionInterface,
+	TypeDeclInterface, TypeInterface
+{
+  syntax {
+    "..."	
+    child:JavaOperator *
+  }
+  properties {
+    noncanonical=true 
+  }
+  public String name() { return "..."; }
+  
+  public IRNode get_Body(IRNode n) {
+    return null;
+  }
+  
+  public Operator getResultOp() {
+    return Ellipsis.prototype;
+  }
+  
+  public void unparseWrapper(IRNode node, JavaUnparser u) {
+    OPENTOKEN.emit(u, node);
+    unparse(node, u);
+    CLOSETOKEN.emit(u, node);
+  }
+}

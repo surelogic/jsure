@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.lang">
+    <class name="Thread">
+    <promise keyword="promise"
+      contents="&quot;transparent&quot; for **(**)"/>
+      
+    <!-- this promise is a LIE for Bill's demo 3/13/06  -->
+    <promise keyword="promise"
+        contents="&quot;writes nothing&quot; for currentThread()"/>
+
+        <constructor params="java.lang.Runnable">
+            <promise keyword="writes" contents="nothing"/>
+            <promise keyword="starts" contents="nothing"/>
+        </constructor>
+        
+
+        <method name="start">
+            <promise keyword="writes" contents="Instance"/>
+        </method>
+        <method name="sleep" params="long">
+            <!-- not sure what this would modify  -->
+            <promise keyword="writes" contents="nothing"/>
+        </method>
+    </class>
+</package>
+

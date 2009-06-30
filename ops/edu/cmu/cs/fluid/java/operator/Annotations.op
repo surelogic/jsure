@@ -1,0 +1,11 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/Annotations.op,v 1.4 2007/02/28 07:34:00 boyland Exp $
+public operator Annotations 
+{
+  syntax {
+    annot:Annotation */ <li>
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+  
+}

@@ -1,0 +1,5 @@
+# $Header: $
+
+public operator ColorOr implements ColorExprInterface, ColorSpecInterface {
+  syntax { orElems:ColorOrElem +/ "|" }
+}

@@ -1,0 +1,6 @@
+<package name="java.awt.event">
+    <class name="ActionEvent">
+    <ColorImport>java.awt</ColorImport>
+      <Promise>&quot;Color AWT&quot; for **(**) &amp; !(get*())</Promise>
+    </class>  
+</package>

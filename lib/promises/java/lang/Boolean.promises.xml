@@ -1,0 +1,9 @@
+<package name="java.lang">
+ <class name="Boolean">
+  <constructor params="boolean">
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <borrowed>this</borrowed>
+  </constructor>
+ </class>
+</package>

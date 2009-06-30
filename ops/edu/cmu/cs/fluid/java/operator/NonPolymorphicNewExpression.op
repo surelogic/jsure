@@ -1,0 +1,19 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NonPolymorphicNewExpression.op,v 1.3 2007/05/18 14:44:11 chance Exp $
+public operator NonPolymorphicNewExpression extends NewExpression
+{
+  syntax {
+    "new" type:ClassType args:Arguments
+  }
+
+  public Operator getResultOp() {
+    return ConstructorDeclaration.prototype;
+  }
+
+  @Override public Component createComponent(IRNode node) {
+    return super.createComponent(node,0);
+  }
+  
+  public IRNode get_TypeArgs(SyntaxTreeInterface tree, IRNode node) {
+    return null;
+  }
+}

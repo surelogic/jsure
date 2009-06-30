@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt.event">
+    <class name="MouseEvent">
+    <promise keyword="colorImport" contents="java.awt.*;"/>
+    <promise keyword="promise"
+    		contents="&quot;reads Instance&quot; for (get*(**) &amp; (!(getMouseModifiersText(**)))) | is*(**) | paramString()"/>
+    <promise keyword="promise"
+        contents="&quot;reads java.awt.event.ActionListener.GUIinternal&quot; for new(**)"/>
+    <promise keyword="promise"
+        contents="&quot;writes Instance&quot; for translate*(**)"/> 
+    <promise keyword="promise"
+        contents="&quot;writes nothing&quot; for new(**)"/>         
+    <promise keyword="promise"
+        contents="&quot;MapInto java.awt.event.ActionListener#GUIstuff&quot; for * *"/>
+
+    <promise keyword="promise"
+	     contents="&quot;colorConstraint AWT;&quot; for **(**)"/>
+    </class>
+</package>

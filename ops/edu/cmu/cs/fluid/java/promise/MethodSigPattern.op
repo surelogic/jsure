@@ -1,0 +1,13 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator MethodSigPattern extends TypeListPattern {
+  syntax {
+    "(" ( type:Type +/ "," ) ? ")"
+  }
+  properties {
+    logicallyInvisible=true 
+  }  
+}

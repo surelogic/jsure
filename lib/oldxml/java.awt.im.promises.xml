@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt.im">
+  <promise keyword="promise"
+      contents="&quot;colorImport java.awt.*;&quot; for *"/>
+
+      <promise keyword="promise"
+	contents="&quot;transparent&quot; for add*Listener(**) | remove*Listener(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for get*(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for add*(**) &amp; !(add*Listener(**))"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for new(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for process*(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for set*(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint GUI;&quot; for updateUI()"/>
+  <promise keyword="promise"
+    contents="&quot;transparent&quot; for revalidate()"/>
+
+  <promise keyword="promise"
+    contents="&quot;transparent&quot; for repaint(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint AWT;&quot; for fire*(**)"/>
+
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint AWT;&quot; for requestFocus*(**)"/>
+
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint AWT;&quot; for paint*(**)"/>
+
+</package>

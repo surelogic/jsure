@@ -1,0 +1,14 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/EnumConstantDeclaration.op,v 1.7 2006/07/10 21:15:23 chance Exp $
+public operator EnumConstantDeclaration extends VariableDeclaration implements ClassBodyDeclInterface, EnumBodyDeclInterface
+{
+  syntax { 
+    $id:Info args:OptArguments body:OptClassBody
+  }
+  properties {
+    binding=Variable
+    bindsToType=Type 
+  }  
+  @Override public Component createComponent(IRNode node) {
+    return null; // TODO
+  }
+}

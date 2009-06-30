@@ -1,0 +1,13 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator OptThrowsPattern extends TypeListPattern {
+  syntax {
+    ( type:Type +/ "," ) ?
+  }
+  properties {
+    logicallyInvisible=true 
+  }  
+}

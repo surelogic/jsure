@@ -1,0 +1,5 @@
+<package name="java.awt">
+    <class name="Rectangle">
+      <Promise>&quot;Color GUI&quot; for *(**)</Promise>
+    </class>
+</package>

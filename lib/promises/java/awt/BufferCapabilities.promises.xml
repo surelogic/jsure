@@ -1,0 +1,10 @@
+<package name="java.awt">
+    <class name="BufferCapabilities">
+    <ColorImport>java.awt</ColorImport>
+    
+    <MapRegion>Instance into java.awt.event.ActionListener:GUIstuff</MapRegion>
+
+    <Promise>&quot;Color GUI&quot; for **(**)</Promise>
+	   
+    </class>  
+</package>

@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NoArrayInitializer.op,v 1.4 2006/06/15 13:53:39 chance Exp $
+public operator NoArrayInitializer extends OptArrayInitializer
+{
+  syntax { }
+  properties {
+    nullVariant=true
+  }
+}

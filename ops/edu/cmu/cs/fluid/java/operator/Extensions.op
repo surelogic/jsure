@@ -1,0 +1,11 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/Extensions.op,v 1.4 2006/07/12 19:55:07 chance Exp $
+/** Extends clause for interfaces.
+ */
+public operator Extensions extends TypeList {
+  syntax {
+    ( "extends" superInterface:ClassType +/ "," ) ?
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+}

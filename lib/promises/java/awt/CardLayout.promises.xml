@@ -1,0 +1,9 @@
+<package name="java.awt">
+    <class name="CardLayout">
+   <ColorImport>java.awt</ColorImport>
+
+      <Promise>&quot;Color GUI&quot; for new(**) | *(**)</Promise>
+	
+    </class>  
+</package>
+  

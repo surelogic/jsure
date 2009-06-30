@@ -1,0 +1,16 @@
+<package name="java.awt">
+	<class name="Checkbox">
+
+		<ColorImport>java.awt</ColorImport>
+		<Promise>&quot;transparent&quot; for add*Listener(**) | remove*Listener(**)</Promise>
+
+		<Promise>&quot;Color GUI&quot; for get*(**) | new(**)</Promise>
+
+  	<Promise>&quot;Color GUI&quot; for add*(**) &amp; !(add*Listener(**))</Promise>
+
+  	<Promise>&quot;Color GUI&quot; for process*(**)</Promise>
+
+  	<Promise>&quot;Color GUI&quot; for set*(**)</Promise>
+
+  </class>  
+</package>

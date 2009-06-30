@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt.event">
+    <class name="ItemSelectable">
+
+    <promise keyword="colorImport" contents="java.awt.*;"/>
+
+    <promise keyword="promise"
+      contents="&quot;colorConstraint AWT;&quot; for getSelectedObjects()"/>
+
+      <promise keyword="promise"
+	contents="&quot;transparent&quot; for add*Listener(**) | remove*Listener(**)"/>
+
+    </class>
+</package>

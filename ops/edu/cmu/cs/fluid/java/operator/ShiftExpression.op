@@ -1,0 +1,4 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ShiftExpression.op,v 1.2 2007/01/14 07:00:31 nbeckman Exp $
+
+public operator ShiftExpression extends BinopExpression {
+}

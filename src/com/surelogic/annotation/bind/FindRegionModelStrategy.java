@@ -1,0 +1,77 @@
+package com.surelogic.annotation.bind;
+
+import java.util.logging.Level;
+
+import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.annotation.rules.*;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.util.*;
+import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
+
+/**
+ */
+public class FindRegionModelStrategy extends AbstractSuperTypeSearchStrategy<IRegion> {
+  public FindRegionModelStrategy(IBinder bind, String name) {
+    super(bind, "region", name);
+  }
+
+	/* (non-Javadoc)
+	 * @see edu.cmu.cs.fluid.eclipse.bind.ISuperTypeSearchStrategy#visitClass_internal(edu.cmu.cs.fluid.ir.IRNode)
+	 */
+	@Override
+  public void visitClass_internal(IRNode type) {
+		if (type == null) {
+			LOG.severe("Type was null, while looking for a region "+name);
+			searchAfterLastType = false;
+		} else {
+			final boolean finerIsLoggable = LOG.isLoggable(Level.FINEST);
+			if (finerIsLoggable) {
+				LOG.finer("Looking for region "+name+" in "+DebugUnparser.toString(type));
+			}
+
+			IRegion reg = null;
+      final String qname = AnnotationRules.computeQualifiedName(type, name);
+      for(RegionModel r : RegionRules.getModels(type)) {
+        if (finerIsLoggable) {
+          LOG.finer("Looking at "+r.regionName);
+        }
+        if (r.regionName.equals(qname)) {
+          reg = r;
+          break;
+        }
+        if (r.regionName.indexOf('.') < 0) { // simple name
+          final String qname2 = AnnotationRules.computeQualifiedName(type, r.regionName);
+          if (finerIsLoggable) {
+            LOG.finer("Looking at "+qname2);
+          }
+          if (qname2.equals(qname)) {
+            reg = r;
+            break;
+          }
+        }
+      }	  
+		  if (reg == null) { 
+        //LOG.info("Couldn't find "+name+" as region, looking for field"); 
+        IRNode body = VisitUtil.getClassBody(type);
+        IRNode decl = BindUtil.findFieldInBody(body, name); 
+        if (decl != null) {
+          reg = RegionModel.getInstance(decl);          
+        } else if (LOG.isLoggable(Level.FINER)) {
+          LOG.finer("Couldn't find "+qname);
+        }
+		  }		         
+			searchAfterLastType = (reg == null);
+			
+			if (result == null) {
+				// Nothing found yet
+				result = reg;
+			} else if (!result.equals(reg)) {
+				// Found more than one distinct region
+				LOG.warning("Found a duplicate region: "+reg);
+			}
+		}
+	}
+}

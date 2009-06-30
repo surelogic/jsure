@@ -1,0 +1,4 @@
+# $Header$
+public operator PackageRoot {
+  syntax { "package" $name:Info compUnit:CompilationUnit + }
+}

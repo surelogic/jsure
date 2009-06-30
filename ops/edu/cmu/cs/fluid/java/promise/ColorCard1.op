@@ -1,0 +1,8 @@
+# $Header: $
+
+public operator ColorCard1 extends ColorCardChoice {
+  syntax {
+    "1"
+  }
+
+}

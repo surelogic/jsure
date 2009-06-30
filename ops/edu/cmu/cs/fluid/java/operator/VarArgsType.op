@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/VarArgsType.op,v 1.2 2006/05/12 13:51:19 chance Exp $
+public operator VarArgsType extends ReferenceType {
+  syntax {
+    base:Type "..."
+  }
+  
+  public Operator getResultOp() {
+    return ArrayDeclaration.prototype;
+  }
+}

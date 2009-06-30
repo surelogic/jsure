@@ -1,0 +1,19 @@
+# $Header$
+
+/**
+ * A reference to a name within some larger named unit.
+ * This operator only occurs in non-canonical trees, and
+ * represents variously:
+ * <ul>
+ * <li> A sub-package within a larger package
+ * <li> A class/interface within a package
+ * <li> A nested class/interface within another class/interface
+ * <li> A field within a class or object.
+ * </ul>
+ */
+public operator QualifiedName extends Name {
+  syntax { base:Name <> "." <> $id:Info }
+  properties {
+    noncanonical=true 
+  } 
+}

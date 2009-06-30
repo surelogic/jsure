@@ -1,0 +1,5 @@
+<package name="java.awt">
+    <class name="LayoutManager">
+    <Promise>&quot;Color AWT&quot; for *(**) &amp; !(addLayoutComponent(*,*))</Promise>
+    </class>  
+</package>

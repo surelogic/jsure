@@ -1,0 +1,22 @@
+# $Header$
+
+/**
+ * A node representing a simple name of unknown meaning.
+ * A name may represent
+ * <ul>
+ * <li> A top-level package
+ * <li> A class or interface
+ * <li> A nested class or interface
+ * <li> A field 
+ * <li> a local/parameter
+ * </ul>
+ * SimpleName nodes occur only in non-canonical Java trees;
+ * ones that have been parsed, but not yet rewritten.  The binding
+ * informs the rewrite system how to handle it.
+ */
+public operator SimpleName extends Name {
+  syntax { $id:Info }
+  properties {
+    noncanonical=true 
+  }   
+}

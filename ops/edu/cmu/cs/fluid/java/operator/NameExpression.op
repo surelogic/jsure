@@ -1,0 +1,19 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NameExpression.op,v 1.6 2006/06/30 18:15:15 chance Exp $
+
+/**
+ * An expression that consists of a name.  This kind of node only
+ * occurs in non-canonical Java trees.
+ * It variously refers to
+ * <ul>
+ * <li> A local/parameter (replaced with a VariableUseExpression)
+ * <li> A field reference of this or an outer this (replaced with a FieldRef)
+ * <li> A type used for fetching a method (replaced with a TypeExpression).
+ * </ul>
+ */
+public operator NameExpression extends PrimaryExpression implements IllegalCode
+{
+  syntax { name:Name }
+  properties {
+    noncanonical=true 
+  } 
+}

@@ -1,0 +1,31 @@
+magic 0x49524200
+0x00000007
+"Java.modifiers"
+type 0x49
+slotFactory 0x56
+true
+0x00000000
+"Java.op"
+type 0x4f
+slotFactory 0x56
+false
+"Java.dims"
+type 0x49
+slotFactory 0x56
+false
+"Java.code"
+type 0x53
+slotFactory 0x56
+false
+"Java.node"
+type 0x4e
+slotFactory 0x43
+false
+"Java.int"
+type 0x49
+slotFactory 0x43
+false
+"Java.comment"
+type 0x53
+slotFactory 0x56
+false

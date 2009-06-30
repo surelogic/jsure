@@ -1,0 +1,59 @@
+<!-- $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/util/package.html,v 1.6 2007/01/18 16:35:25 chance Exp $ -->
+<BODY>
+<p> This package includes utility classes used the ACT/Fluid project,
+that are independent of the IR.  They may be replaced by
+externally developed classes.  Some already have been replaced. </p>
+
+<p> Most of the classes here concern sets and control-flow analysis
+lattices.   The set classes include the ability to represent (some)
+infinite sets, and the ability to ensure sets with the same elements
+are represented with the same object.  Then object identity
+can be used to check equality. </p>
+
+<p> Thematic listing of classes: </p><ul>
+<li> Sets <ul>
+	<li> {@link edu.cmu.cs.fluid.util.ImmutableHashOrderSet}
+	<li> {@link edu.cmu.cs.fluid.util.SetException}
+	<li> {@link edu.cmu.cs.fluid.util.AbstractCachedSet} (abstract)
+	<li> {@link edu.cmu.cs.fluid.util.SetCache}
+	<li> {@link edu.cmu.cs.fluid.util.CachedSet} (unused) </ul>
+<li> Tables <ul>
+	<li> {@link edu.cmu.cs.fluid.util.IntegerTable}
+	<li> {@link edu.cmu.cs.fluid.util.Hashtable2}</ul>
+<li> Lattices <ul>
+	<li> {@link edu.cmu.cs.fluid.util.Lattice} (interface)
+	<li> {@link edu.cmu.cs.fluid.util.SetLattice} (abstract)
+	<li> {@link edu.cmu.cs.fluid.util.UnionLattice}
+	<li> {@link edu.cmu.cs.fluid.util.IntersectionLattice} 
+	<li> {@link edu.cmu.cs.fluid.util.BooleanLattice}
+	<li> {@link edu.cmu.cs.fluid.util.RecordLattice}
+	<li> {@link edu.cmu.cs.fluid.util.ArrayLattice}
+	<li> {@link edu.cmu.cs.fluid.util.ChainLattice}
+	<li> {@link edu.cmu.cs.fluid.util.FlatLattice}
+	<li> {@link edu.cmu.cs.fluid.util.BitsLattice}</ul>
+<li> Basic data structures <ul>
+	<li> {@link edu.cmu.cs.fluid.util.AssocList}
+	<li> {@link edu.cmu.cs.fluid.util.Stack} (being replaced by {@link java.util.Stack})
+	<li> {@link edu.cmu.cs.fluid.util.Queue} </ul>
+<li> Trivial classes <ul>
+	<li> {@link edu.cmu.cs.fluid.util.Pair}
+	<li> {@link edu.cmu.cs.fluid.util.Triple}
+	<li> {@link edu.cmu.cs.fluid.util.AppendEnumeration}
+	<li> {@link edu.cmu.cs.fluid.util.EmptyEnumeration}
+	<li> {@link edu.cmu.cs.fluid.util.SingletonEnumeration}
+	<li> {@link edu.cmu.cs.fluid.util.PairEnumeration}</ul>
+<li> Persistence-related <ul>
+	<li> {@link edu.cmu.cs.fluid.util.UniqueID}
+	<li> {@link edu.cmu.cs.fluid.util.FileLocator} (interface)
+	<li> {@link edu.cmu.cs.fluid.util.PathFileLocator}
+	<li> {@link edu.cmu.cs.fluid.util.ZipFileLocator}</ul>
+<li> Other <ul>
+	<li> {@link edu.cmu.cs.fluid.util.Profiler}
+	<li> {@link edu.cmu.cs.fluid.util.ThreadGlobal}</ul>
+</ul>
+<p>
+There is a test suite for the set classes in a package private class.
+If you <tt>gmake test</tt> in the <tt>code/fluid/util</tt> directory,
+you will see it in operation.
+</p>
+</BODY>

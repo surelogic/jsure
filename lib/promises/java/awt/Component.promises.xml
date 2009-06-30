@@ -1,0 +1,68 @@
+<package name="java.awt">
+	<class name="Component">
+		<ColorImport>java.awt</ColorImport>
+		<Promise>&quot;transparent&quot; for add*Listener(*)</Promise>
+    <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for add*Listener(*)</Promise>
+    <Promise>&quot;transparent&quot; for remove*Listener(*)</Promise>
+    <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for remove*Listener(*)</Promise>
+	  <Promise>&quot;Color AWT&quot; for remove(**) &amp; !(remove*Listener(**))</Promise>
+	  <Promise>&quot;RegionEffects writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for remove(*)</Promise>
+    <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
+	  <Promise>&quot;RegionEffects writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for set*(**) &amp; !(setRequestFocusController(*))</Promise>
+    <Promise>&quot;Color GUI&quot; for is*(**)</Promise>
+	  <Promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIstuff&quot; for is*(**) &amp; !(isInstanceOf(**))</Promise>
+<!-- <Promise>&quot;Color GUI&quot; for get*(**) &amp; !(getSize(**))</Promise> -->
+    <Promise>&quot;Color GUI&quot; for get*(**)</Promise>
+	  <Promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for public get*(**) &amp; !(getSize())</Promise>
+	  <Promise>&quot;RegionEffects reads Instance&quot; for getSize()</Promise>
+    <Promise>&quot;Color GUI&quot; for create*Image(**)</Promise>
+	  <Promise>&quot;RegionEffects writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for create*Image(**)</Promise>
+
+		<Promise>&quot;transparent&quot; for repaint(**)</Promise>
+	  <Promise>&quot;RegionEffects reads Instance&quot; for repaint(**)</Promise>
+
+
+    <Promise>&quot;Color AWT&quot; for removeNotify()</Promise>
+   
+ 	  <Promise>&quot;Color GUI&quot; for *Focus(**) &amp; !(requestFocus*(**))</Promise>
+	  <Promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for *Focus(**)</Promise>
+
+	 	<Promise>&quot;Color GUI&quot; for enable*(**) | disable*(**)</Promise>
+	  <Promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for enable*(**) | disable*(**)</Promise>
+
+    <Promise>&quot;Color GUI&quot; for validate() | invalidate() | hide()</Promise>
+	  <Promise>&quot;RegionEffects writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for validate() | invalidate() | hide()</Promise>
+
+    <Promise>&quot;Color AWT&quot; for process*Event(*)</Promise>
+	  
+    <method name="update" params="java.awt.Graphics">
+    	<Color>AWT</Color>
+    </method>
+    <method name="mouseDown" params="java.awt.Event, int, int">
+      <Color>AWT</Color>
+    </method>
+    <method name="mouseUp" params="java.awt.Event, int, int">
+      <Color>AWT</Color>
+    </method>
+    <method name="paint" params="java.awt.Graphics">
+      <Color>AWT</Color>
+    </method>
+    <method name="mouseEnter" params="java.awt.Event, int, int">
+    	<Color>AWT</Color>
+    </method>
+    <method name="mouseExit" params="java.awt.Event, int, int">
+      <Color>AWT</Color>
+    </method>
+    <method name="mouseDrag" params="java.awt.Event, int, int">
+      <Color>AWT</Color>
+    </method>
+    <method name="mouseMove" params="java.awt.Event, int, int">
+      <Color>AWT</Color>
+    </method>
+    <method name="repaint" params="">
+      <Transparent/>
+      <Reads>Instance</Reads>
+    </method>
+
+    </class>  
+</package>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt.print">
+  <promise keyword="promise"
+      contents="&quot;colorImport java.awt.*;&quot; for java.awt.print:*"/>
+
+  <promise keyword="promise"
+	 contents="&quot;transparent&quot; for add*Listener(**) | remove*Listener(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;transparent&quot; for revalidate()"/>
+
+  <promise keyword="promise"
+    contents="&quot;transparent&quot; for repaint(**)"/>
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint AWT;&quot; for **(**) &amp; !(add*Listener(**) | remove*Listener(**) | revalidate() | repaint(**))"/>
+</package>

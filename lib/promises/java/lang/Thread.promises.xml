@@ -1,0 +1,19 @@
+<package name="java.lang">
+ <class name="Thread">
+  <constructor>
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <borrowed>this</borrowed>
+  </constructor>
+  
+  <constructor params="java.lang.Runnable">
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <borrowed>this</borrowed>
+  </constructor>
+  
+  <method name="start">
+   <RegionEffects>reads Instance</RegionEffects>
+  </method>
+ </class>
+</package>

@@ -1,0 +1,287 @@
+Information about the Perl script create-operator
+
+$Header: /cvs/fluid/fluid/lib/perl/create-operator.README,v 1.7 2005/11/23 13:49:22 boyland Exp $
+
+Create-operator reads in an operator file (extension ".op")
+and produces a Java file (extension ".java").  For example,
+code/fluid/java/operator/IfStatement.op:
+
+
+public operator IfStatement extends Statement implements DripOperator {
+  syntax {
+    "if" "(" cond:Expression ")"
+      thenpart:Statement
+      elsepart:Statement
+  }
+  public Component createComponent(IRNode node) {
+    .
+    .
+    .
+  }
+}
+
+
+From this script we get
+
+
+package fluid.java.operator;
+
+import fluid.*;
+import fluid.ir.*;
+import fluid.version.*;
+import fluid.tree.*;
+import fluid.control.*;
+import fluid.java.*;
+import fluid.java.control.*;
+
+public class IfStatement extends Statement implements DripOperator { 
+  public static final IfStatement prototype = new IfStatement();
+
+  public Operator superOperator() {
+    return Statement.prototype;
+  }
+
+  public Operator childOperator(int i) {
+    switch (i) {
+    case 0: return Expression.prototype;
+    case 1: return Statement.prototype;
+    case 2: return Statement.prototype;
+    default: return null;
+    }
+  }
+
+  public int numChildren() {
+    return 3;
+  }
+
+  public JavaNode jjtCreate() {
+    return new JavaNode(this,3);
+  }
+
+  public static JavaNode createNode(IRNode cond,
+                                    IRNode thenpart,
+                                    IRNode elsepart) {
+    JavaNode _result = prototype.jjtCreate();
+    tree.setChild(_result,0,cond);
+    tree.setChild(_result,1,thenpart);
+    tree.setChild(_result,2,elsepart);
+    return _result;
+  }
+
+  public static IRNode getCond(IRNode node) {
+    ... access check ...
+    return tree.getChild(node,0);
+  }
+
+  public static IRNode getThenpart(IRNode node) {
+    ... access check ...
+    return tree.getChild(node,1);
+  }
+
+  public static IRNode getElsepart(IRNode node) {
+    ... access check ...
+    return tree.getChild(node,2);
+  }
+
+  public static void setCond(IRNode node, IRNode ch) {
+    ... access check ...
+    tree.setChild(node,0,ch);
+  }
+
+  public static void setThenpart(IRNode node, IRNode ch) {
+    ... access check ...
+    tree.setChild(node,1,ch);
+  }
+
+  public static void setElsepart(IRNode node, IRNode ch) {
+    ... access check ...
+    tree.setChild(node,2,ch);
+  }
+
+  public Component createComponent(IRNode node) {
+    .
+    .
+    .
+  }
+}
+
+
+
+Notes:
+
+The stuff at the beginning (package, imports etc) comes from a header
+file specified with the switch "-header=XXX".
+
+The type of node to generate (by default JJNode) can be specified
+using the "-nodetype=XXX" switch.  Here we have "-nodetype=JavaNode"
+as can be seen in the code generated for jjtCreate().
+
+If the "extends" part is missing, the operator is assumed to extend
+the root operator class (which may be abstract).  By default the root
+operator class is "Operator", but can be specified using the switch
+"-optype=XXX".
+
+If the "syntax" part is missing, only the "prototype", "superOperator" and
+"jjtCreate()" are defined.
+
+This is an example of a "fixed" operator.  Our operators are either
+"fixed" with a constant number of children (here 3), or "variable"
+with zero or more children.
+
+Operators are declared "variable" by the presence of "*" or "+" (or
+"*/" or "+/") in the syntax description.  A "variable" operator may
+only have one child form (of the form "name:Type").
+
+The ... access check ... stuff is code that checks the operator of the
+node to ensure we don't apply the routine to a node with a different
+operator.
+
+
+Here's another example, this time of a "variable" operator:
+
+
+public operator BlockStatement extends Statement implements DripOperator {
+  syntax { 
+    "{" stmt:Statement * "}"
+  }
+}
+
+
+The script creates the following .java file:
+
+
+package fluid.java.operator;
+
+import fluid.*;
+import fluid.ir.*;
+import fluid.version.*;
+import fluid.tree.*;
+import fluid.control.*;
+import fluid.java.*;
+import fluid.java.control.*;
+
+public class BlockStatement extends Statement implements DripOperator { 
+  public static BlockStatement prototype = new BlockStatement();
+
+  public Operator superOperator() {
+    return Statement.prototype;
+  }
+
+  public Operator childOperator(int i) {
+    return Statement.prototype;
+  }
+
+  public Operator childOperator(IRLocation loc) {
+    return Statement.prototype;
+  }
+
+  public Operator variableOperator() {
+    return Statement.prototype;
+  }
+
+  public int numChildren() {
+    return -1;
+  }
+
+  public JavaNode jjtCreate() {
+    return new JavaNode(this,new VersionedSequence());
+  }
+
+  public static JavaNode createNode(IRNode[] stmt) {
+    JavaNode _result = prototype.jjtCreate();
+    for (int _i=0; _i < stmt.length; ++_i) {
+      tree.appendSubtree(_result,stmt[_i]);
+    }
+    return _result;
+  }
+
+  public IRNode getStmt(IRNode node, int i) {
+    ... access check ...
+    return tree.getChild(node,i);
+  }
+
+  public static Enumeration getStmtEnumeration(IRNode node) {
+    ... access check ...
+    return tree.children(node);
+  }
+}
+
+
+The "syntax" section:
+
+The syntax section contains a lot of information that is currently
+unused, but may be useful later for unparsing (and just maybe for
+parsing, if we get sick of JavaCC).  The following elements are legal,
+but only the first two are currently used (except for determining
+whether the operator is variable or not).
+	name:Type	a child node (name: is optional)
+	$name:SlotType	separate information stored in slot (name: is optional)
+	"string"	literal token
+	<?> ... </?> in unparsing check whether the child is implicit and skip
+	                 this section if so.
+	<anything>	a breakpoint marker, used for unparsing only
+	* */ + +/ ? ?/	(see below)
+	( )		(used for grouping)
+The first form is the most common; it specifies a child node (a
+subtree).  The second form is used for storing extra non-tree
+information in the tree.  It has no effect on most of the generated
+methods, but it does affect the static createNode method and also
+leads to an accessor being defined.  For $name:XXX, the information is
+stored and fetched using methods named "setXXX" and "getXXX".  These
+methods are assumed to take/return values of type Object unless an
+argument of the form "XXX:type" is passed to create-operator.
+For example, "Modifiers:int" is used for the Java operator files.
+If we generate unparsing info, we will assume there exists a
+"unparseXXX" method that does the unparsing for this information.
+
+Here's what the special characters mean:
+	X *		zero or more X's
+	X */ Y		zero or more X's separated by Y
+	X +		one or more X's (legal only when optional)
+	X +/ Y		one or more X's (must be optional) separated by Y
+	X ?		zero or one X (X must include + or +/)
+	X ?/ Y		an X or Y (X must include + or +/)
+All the elements *must* be separated by whitespace.  Variable entities
+(X before *, */, +, +/) may not include slots, and must include
+exactly one child.  
+Optional elements (marked with ? or ?/) must be variable items using +
+or +/ because otherwise a child slot would be empty (null).  We may
+decide to permit null children, but it complicates things enormously
+to permit null children.  The separation syntax (the Y after */, +/ or
+?/) may not include children or slots.
+
+Spacing is strict; don't try to say
+	syntax { ("(" Expression+/"," ")") ? }
+it must be
+	syntax { ( "(" Expression +/ "," ")" ) ? }
+(This example specifies the following forms:
+	<nothing>
+	(Expression)
+	(Expression,Expression)
+	(Expression,Expression,Expression)
+	...
+By the way, this is not Java's syntax for parameter lists.
+A more useful description would be
+	syntax { "(" Expression */ "," ")" }
+In other words, the ()'s can never be omitted in Java)
+
+
+
+Details of generation:
+
+Lines starting with "#" are omitted from the generated code.
+
+The "implements" section if exists is passed through unchanged.
+
+The "syntax" section, if it exists, must be first.  Anything afterwards
+is passed through unchanged.
+
+Basically any legal Java program can be used as an operator file, it
+is just passed through essentially unchanged.  But in order for the
+LoadOperator hack to work, every .op file should at least have a
+"prototype".
+
+The Perl script can only handle one operator description per file.
+
+The actual generated code has options for using a different
+SyntaxTreeInterface for the getter/setter functions.

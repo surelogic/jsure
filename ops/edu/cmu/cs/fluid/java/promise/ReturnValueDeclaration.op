@@ -1,0 +1,32 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/promise/ReturnValueDeclaration.op,v 1.6 2007/05/07 15:20:30 chance Exp $
+
+/** An explicit declaration of the return value.
+ * @see MethodDeclaration
+ */
+public operator ReturnValueDeclaration {
+  syntax { "?" "return" }
+  public static IRNode getType(IRNode node) {
+    return MethodDeclaration.getReturnType(JavaPromise.getPromisedFor(node));
+  }
+  public static IRNode getReturnNode(IRNode methodNode) {
+    Operator mop =  tree.getOperator(methodNode);
+    for (Operator op = mop;
+	 op != null &&
+	   !(op instanceof MethodDeclaration) &&
+	   !(op instanceof ConstructorDeclaration);
+	 op = (methodNode==null)?null:tree.getOperator(methodNode)) {
+      methodNode = tree.getParentOrNull(methodNode);
+    }
+    if (methodNode == null) {
+      throw new edu.cmu.cs.fluid.FluidError("Illegal use of return value node on "+mop.name());
+    }
+    
+    IRNode node = JavaPromise.getReturnNodeOrNull(methodNode);
+    if (node != null) {
+      return node;
+    }
+    node = JavaPromise.makeJavaPromise(prototype);
+    JavaPromise.setReturnNode(methodNode,node);
+    return node;
+  }
+}

@@ -1,0 +1,17 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/header,v 1.13 2007/05/07 15:20:30 chance Exp $
+package edu.cmu.cs.fluid.java.operator;
+
+import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.tree.*;
+import edu.cmu.cs.fluid.control.*;
+import edu.cmu.cs.fluid.unparse.*;
+import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.control.*;
+import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.promise.*;
+import edu.cmu.cs.fluid.util.Iteratable;
+
+import java.util.*;
+import java.util.logging.*;
+import java.util.Vector;
+

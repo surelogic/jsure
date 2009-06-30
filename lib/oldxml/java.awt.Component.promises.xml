@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt">
+    <class name="Component">
+      <promise keyword="colorImport" contents="java.awt.*;"/>
+        <promise keyword="promise"
+	  contents="&quot;transparent&quot; for add*Listener(*)"/>
+      <promise keyword="promise"
+	  contents="&quot;writes java.awt.event.ActionListener.GUIinternal&quot; for add*Listener(*)"/>
+        <promise keyword="promise"
+	  contents="&quot;transparent&quot; for remove*Listener(*)"/>
+        <promise keyword="promise"
+	  contents="&quot;writes java.awt.event.ActionListener.GUIinternal&quot; for remove*Listener(*)"/>
+	  <promise keyword="promise"
+	  contents="&quot;colorConstraint AWT;&quot; for remove(**) &amp; !(remove*Listener(**))"/>
+	  <promise keyword="promise"
+	  contents="&quot;writes Instance, java.awt.event.ActionListener.GUIinternal, java.awt.event.ActionListener.GUIstuff&quot; for remove(*)"/>
+        <promise keyword="promise" 
+	  contents="&quot;colorConstraint GUI;&quot; for set*(**)"/>
+	  <promise keyword="promise" 
+	  contents="&quot;writes Instance, java.awt.event.ActionListener.GUIinternal, java.awt.event.ActionListener.GUIstuff&quot; for set*(**)"/>
+        <promise keyword="promise" 
+	  contents="&quot;colorConstraint GUI;&quot; for is*(**)"/>
+	  <promise keyword="promise" 
+	  contents="&quot;reads Instance, java.awt.event.ActionListener.GUIstuff&quot; for is*(**)"/>
+<!--        <promise keyword="promise" 
+	  contents="&quot;colorConstraint GUI;&quot; for get*(**) &amp; !(getSize(**))"/> -->
+        <promise keyword="promise" 
+	  contents="&quot;colorConstraint GUI;&quot; for get*(**)" />
+	  <promise keyword="promise" 
+	  contents="&quot;reads Instance, java.awt.event.ActionListener.GUIinternal, java.awt.event.ActionListener.GUIstuff&quot; for public get*(**) &amp; !(getSize())"/>
+	      <promise keyword="promise" 
+	  contents="&quot;reads Instance&quot; for getSize()"/>
+        <promise keyword="promise" 
+	  contents="&quot;colorConstraint GUI;&quot; for create*Image(**)"/>
+	  <promise keyword="promise" 
+	  contents="&quot;writes Instance, java.awt.event.ActionListener.GUIinternal, java.awt.event.ActionListener.GUIstuff&quot; for create*Image(**)"/>
+
+	 <promise keyword="promise" 
+	   contents="&quot;transparent&quot; for repaint(**)"/>
+	 <promise keyword="promise" 
+	   contents="&quot;reads Instance&quot; for repaint(**)"/>
+
+
+        <promise keyword="promise" 
+	  contents="&quot;colorConstraint AWT;&quot; for removeNotify()"/>
+   
+ 	 <promise keyword="promise" 
+	   contents="&quot;colorConstraint GUI;&quot; for *Focus(**)"/>
+	  <promise keyword="promise" 
+	  contents="&quot;reads Instance, java.awt.event.ActionListener.GUIinternal, java.awt.event.ActionListener.GUIstuff&quot; for *Focus(**)"/>
+
+	 	 <promise keyword="promise" 
+	   contents="&quot;colorConstraint GUI;&quot; for enable*(**) | disable*(**)"/>
+	  <promise keyword="promise" 
+	  contents="&quot;reads Instance, java.awt.event.ActionListener.GUIinternal, java.awt.event.ActionListener.GUIstuff&quot; for enable*(**) | disable*(**)"/>
+
+        <promise keyword="promise" 
+	  contents="&quot;colorConstraint GUI;&quot; for validate() | invalidate() | hide()"/>
+	  <promise keyword="promise" 
+	  contents="&quot;writes Instance, java.awt.event.ActionListener.GUIinternal, java.awt.event.ActionListener.GUIstuff&quot; for validate() | invalidate() | hide()"/>
+
+        <promise keyword="promise" 
+	  contents="&quot;colorConstraint AWT;&quot; for process*Event(*)"/>
+	  
+        <method name="update" params="java.awt.Graphics">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="mouseDown" params="java.awt.Event, int, int">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="mouseUp" params="java.awt.Event, int, int">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="paint" params="java.awt.Graphics">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="mouseEnter" params="java.awt.Event, int, int">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="mouseExit" params="java.awt.Event, int, int">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="mouseDrag" params="java.awt.Event, int, int">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="mouseMove" params="java.awt.Event, int, int">
+          <promise keyword="colorConstraint" contents="AWT;"/>
+        </method>
+        <method name="repaint" params="">
+          <promise keyword="transparent"/>
+          <promise keyword="reads" contents="Instance"/>
+        </method>
+
+    </class>  
+</package>

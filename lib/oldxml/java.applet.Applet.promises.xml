@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.applet">
+    <class name="Applet">
+
+    <promise keyword="colorImport" contents="java.awt.*;"/>
+
+    <promise keyword="promise"
+      contents="&quot;colorConstraint AWT;&quot; for new(**)"/>
+
+<!-- -->
+    <promise keyword="promise"
+      contents="&quot;transparent&quot; for get*Info()"/>
+    <promise keyword="promise"
+      contents="&quot;writes nothing&quot; for play(**) | getCodeBase()"/>
+<!-- -->
+    <promise keyword="promise"
+      contents="&quot;reads Instance&quot; for get*(**) | is*(**)"/>
+    <promise keyword="promise"
+      contents="&quot;writes Instance&quot; for play(**) | init(**) | start() | stop() | destroy() | new(**)"/>
+
+    <promise keyword="mapRegion" contents="Instance into java.awt.event.ActionListener#GUIinternal"/>
+      <method name="isActive" params="">
+        <promise keyword="transparent"/>
+      </method>
+      <method name="getDocumentBase" params="">
+        <promise keyword="transparent"/>
+      </method>
+      <method name="getCodeBase" params="">
+        <promise keyword="transparent"/>
+      </method>
+      <method name="getAppletContext" params="">
+        <promise keyword="colorConstraint" contents="GUI;"/>
+      </method>
+      <method name="getParameter" params="java.lang.String">
+        <promise keyword="colorConstraint" contents="GUI;"/>
+      </method>
+      <method name="getAudioClip" params="java.net.URL">
+        <promise keyword="transparent"/>
+      </method>
+      <method name="getAudioClip" params="java.net.URL, java.lang.String">
+        <promise keyword="transparent"/>
+      </method>
+      <method name="play" params="java.net.URL">
+        <promise keyword="transparent"/>
+      </method>
+      <method name="play" params="java.net.URL, java.lang.String">
+        <promise keyword="transparent"/>
+      </method>
+      <method name="init" params="">
+          <promise keyword="colorConstraint" contents="GUI;" />
+      </method>
+      <method name="destroy" params="">
+          <promise keyword="colorConstraint" contents="GUI;" />
+      </method>
+      <method name="start" params="">
+          <promise keyword="colorConstraint" contents="AWT;" />
+      </method>
+      <method name="stop" params="">
+          <promise keyword="colorConstraint" contents="AWT;" />
+      </method>
+
+    </class>
+</package>

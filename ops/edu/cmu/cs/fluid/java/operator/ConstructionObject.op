@@ -1,0 +1,6 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ConstructionObject.op,v 1.4 2004/02/11 19:09:33 chance Exp $
+/** The class of expressions legal to start a constructor call.
+ * The only legal things are "this" or "super".
+ */
+public operator ConstructionObject extends PrimaryExpression {
+}

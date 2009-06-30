@@ -1,0 +1,32 @@
+// $Header$
+/**
+ * AssignmentNode is a supertype of several different assignment nodes.
+ *        If you are looking for the node that we normally associate with
+ *        assignment, you are probably looking for AssignExpressionNode.
+ */
+public operator Assignment implements AssignmentInterface, StatementExpressionInterface
+{
+//  syntax {
+//    source:Expression target:Expression
+//  }
+  properties {
+    noImpl=true 
+  }
+
+  public IRNode getSource(IRNode node) {
+    Operator op = tree.getOperator(node);
+    if (op instanceof AssignmentInterface) {
+      return ((AssignmentInterface) op).getSource(node);
+    } else {
+      throw new IllegalArgumentException("unknown Assignment op: " + op);
+    }
+  }
+  public IRNode getTarget(IRNode node) {
+    Operator op = tree.getOperator(node);
+    if (op instanceof AssignmentInterface) {
+      return ((AssignmentInterface) op).getTarget(node);
+    } else {
+      throw new IllegalArgumentException("unknown Assignment op: " + op);
+    }
+  }
+}

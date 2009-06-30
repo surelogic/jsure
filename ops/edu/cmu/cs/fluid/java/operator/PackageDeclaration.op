@@ -1,0 +1,9 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/PackageDeclaration.op,v 1.4 2006/06/28 17:39:13 chance Exp $
+public operator PackageDeclaration extends Declaration implements edu.cmu.cs.fluid.java.bind.IHasBinding {
+  syntax { 
+    $@id:Info 
+  }
+  public Operator getResultOp() {
+    return PackageDeclaration.prototype;
+  }
+}

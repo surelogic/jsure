@@ -1,0 +1,5 @@
+# $Header: $
+
+public operator ColorAndParen implements ColorSpecInterface, ColorOrElemInterface {
+  syntax { "(" andElems:ColorAndElem +/ "&" ")" }
+}

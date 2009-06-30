@@ -1,0 +1,9 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/VarArgsExpression.op,v 1.1 2005/06/20 20:54:31 chance Exp $
+public operator VarArgsExpression extends Expression {
+  syntax {
+    arg:Expression */ ( <> "," <comma> ) 
+  }
+  @Override public Component createComponent(IRNode node) {
+    return new SequenceComponent(node);
+  }
+}

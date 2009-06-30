@@ -1,0 +1,30 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NewExpression.op,v 1.17 2007/05/16 20:35:30 chance Exp $
+public operator NewExpression extends AllocationCallExpression 
+    implements edu.cmu.cs.fluid.java.bind.IHasBinding
+{
+  syntax {
+    @typeArgs:TypeActuals? @type:ClassType @args:Arguments
+  }
+
+  protected Component createComponent(IRNode node, int offset) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent sub = new Subcomponent(comp,tree.childLocation(node,offset+1),1,1,1);
+
+    ControlNode doAlloc = new ComponentFlow(comp,prototype);
+    ControlNode doCall = new ComponentChoice(comp,prototype);
+    ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
+    // new AddLabel(new CallExceptionLabel(node));
+    ControlNode abruptMerge = new Merge();
+
+    ControlEdge.connect(comp.getEntryPort(),doAlloc);
+    ControlEdge.connect(doAlloc,sub.getEntryPort());
+    ControlEdge.connect(sub.getNormalExitPort(),doCall);
+    ControlEdge.connect(doCall,comp.getNormalExitPort());
+    ControlEdge.connect(sub.getAbruptExitPort(),abruptMerge);
+    ControlEdge.connect(doCall,propagateExceptions);
+    ControlEdge.connect(propagateExceptions,abruptMerge);
+    ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+
+    return comp;
+  }
+}

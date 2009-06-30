@@ -1,0 +1,11 @@
+<package name="java.util">
+ <class name="WeakHashMap">
+  <constructor>
+    <borrowed>this</borrowed>
+  </constructor>
+  
+  <method name="keySet">
+    <borrowed>this</borrowed>
+  </method>
+ </class>
+</package>

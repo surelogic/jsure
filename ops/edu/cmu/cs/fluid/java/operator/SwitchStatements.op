@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/SwitchStatements.op,v 1.4 2006/05/30 14:51:44 chance Exp $
+public operator SwitchStatements {
+  syntax { stmts:Statement * }
+  properties {
+    logicallyInvisible=true 
+  }
+  @Override public Component createComponent(IRNode node) {
+    return new SequenceComponent(node);
+  }
+}

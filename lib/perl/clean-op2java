@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+#!/usr/local/bin/perl
+# $Header: /cvs/fluid/fluid/lib/perl/clean-op2java,v 1.2 2003/03/12 20:59:13 tien Exp $
+
+# This script cleans up the ".java" files generated
+# from ".op" files within the directory which it
+# is executed in.  It assists the ant build with
+# a clean.
+
+my @opfiles = glob("*.op");
+foreach $f (@opfiles)
+{
+  $f = substr($f,0,rindex($f,".op"));
+  $fclass = $f;
+  $f = "$f.java";
+  print "Deleting: $f\n";
+  unlink $f;
+  $fclass = "$fclass.class";
+  print "Deleting: $fclass\n";
+  unlink $fclass;
+}
+END {close(STDOUT) or die "couldn't close STDOUT: $!" }

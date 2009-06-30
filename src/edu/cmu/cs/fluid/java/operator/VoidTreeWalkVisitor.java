@@ -1,0 +1,28 @@
+package edu.cmu.cs.fluid.java.operator;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+
+/**
+ * A {@link Visitor} class that performs a tree walk. This is a simple
+ * convenience subclass for client code.  The visitor enforces a {@link java.lang.Void}
+ * return type on the visitation methods.  If your tree walk needs to aggregate
+ * results from the visitation methods, consider subclassing
+ * {@link TreeWalkVisitor} instead.
+ * 
+ * <p>
+ * This class is intended to be subclassed.
+ * 
+ * @see Visitor
+ * @see TreeWalkVisitor
+ */
+public abstract class VoidTreeWalkVisitor extends Visitor<Void> {
+
+  /**
+   * Causes the class to visit an entire subtree.
+   */
+  @Override
+  public final Void visit(IRNode node) {
+    doAcceptForChildren(node);
+    return null;
+  }
+}

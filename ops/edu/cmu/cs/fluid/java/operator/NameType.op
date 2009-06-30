@@ -1,0 +1,17 @@
+# $Header$
+
+/**
+ * A type given by a {@link Name}.  These nodes
+ * appear only in non-canonical Java trees.
+ * @see NamedType
+ * @see TypeRef
+ */
+public operator NameType extends ClassType implements ImportNameInterface, edu.cmu.cs.fluid.java.bind.IHasBinding, IllegalCode {
+  syntax { name:Name }
+  properties {
+    noncanonical=true 
+  }   
+  public Operator getResultOp() {
+    return TypeDeclaration.prototype;
+  }  
+}

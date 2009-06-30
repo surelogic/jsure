@@ -1,0 +1,206 @@
+/*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/ModuleRules.java,v 1.2 2007/10/28 18:17:07 dfsuther Exp $*/
+package com.surelogic.annotation.rules;
+
+import static com.surelogic.sea.drops.modules.VisDrop.buildVisDrop;
+
+import java.util.Collection;
+import java.util.HashSet;
+
+import org.antlr.runtime.RecognitionException;
+
+import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.aast.promise.*;
+import com.surelogic.annotation.DefaultSLColorAnnotationParseRule;
+import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.SimpleBooleanAnnotationParseRule;
+import com.surelogic.annotation.parse.SLColorAnnotationsParser;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.ScrubberType;
+import com.surelogic.promise.BooleanPromiseDropStorage;
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.SinglePromiseDropStorage;
+import com.surelogic.sea.drops.colors.ColorImportDrop;
+import com.surelogic.sea.drops.modules.*;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.tree.Operator;
+
+public class ModuleRules extends AnnotationRules {
+
+  public static final String MODULE = "Module";
+  public static final String MODULEWRAPPER = "Module";
+  public static final String VIS = "Vis";
+  public static final String NOVIS = "NoVis";
+  public static final String EXPORT = "Export";
+  public static final String EXPORTTO = "Export";
+  public static final String BLOCKIMPORT = "BlockImport";
+  
+  private static final AnnotationRules instance = new ModuleRules();
+  public static AnnotationRules getInstance() {
+    return instance;
+  }
+  
+  private static final NoVis_ParseRule noVisRule = new NoVis_ParseRule();
+  private static final Vis_ParseRule visRule = new Vis_ParseRule();
+  private static final Module_ParseRule moduleRule = new Module_ParseRule();
+  private static final Export_ParseRule exportRule = new Export_ParseRule();
+
+  public static class NoVis_ParseRule 
+  extends SimpleBooleanAnnotationParseRule<NoVisClauseNode,NoVisPromiseDrop> {
+    public NoVis_ParseRule() {
+      super(NOVIS, declOps, NoVisClauseNode.class);
+    }
+    @Override
+    protected IAASTRootNode makeAAST(int offset) {
+      return new NoVisClauseNode(offset);
+    }
+    @Override
+    protected IPromiseDropStorage<NoVisPromiseDrop> makeStorage() {
+      return BooleanPromiseDropStorage.create(name(), NoVisPromiseDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<NoVisClauseNode> makeScrubber() {
+      return new AbstractAASTScrubber<NoVisClauseNode>(this, ScrubberType.UNORDERED) {
+        @Override
+        protected PromiseDrop<NoVisClauseNode> makePromiseDrop(NoVisClauseNode a) {
+          NoVisPromiseDrop d = new NoVisPromiseDrop(a);
+          return storeDropIfNotNull(getStorage(), a, d);          
+        }
+      };
+    }    
+  } 
+  
+  public static class Vis_ParseRule extends DefaultSLColorAnnotationParseRule<VisClauseNode, VisDrop> {
+    public Vis_ParseRule() {
+      super(VIS, declOps, VisClauseNode.class);
+    }
+ 
+    
+    @Override
+    protected Object parse(IAnnotationParsingContext context,
+                           SLColorAnnotationsParser parser) throws Exception,
+        RecognitionException {
+      return parser.vis().getTree();
+    }
+
+
+    @Override
+    protected IPromiseDropStorage<VisDrop> makeStorage() {
+      return SinglePromiseDropStorage.create(name(), VisDrop.class);
+    }
+    
+    @Override
+    protected IAnnotationScrubber<VisClauseNode> makeScrubber() {
+      return new AbstractAASTScrubber<VisClauseNode>(this, ScrubberType.UNORDERED) {
+        @Override
+        protected PromiseDrop<VisClauseNode> makePromiseDrop(VisClauseNode a) {
+          VisDrop d = buildVisDrop(a);
+          return storeDropIfNotNull(getStorage(), a, d);          
+        }
+      };
+    }    
+    
+  }
+  
+  public static class Module_ParseRule extends DefaultSLColorAnnotationParseRule<ModuleChoiceNode, ModulePromiseDrop> {
+    public Module_ParseRule() {
+      super(MODULE, PackageDeclaration.prototype, ModuleChoiceNode.class);
+    }
+ 
+    
+    @Override
+    protected Object parse(IAnnotationParsingContext context,
+                           SLColorAnnotationsParser parser) throws Exception,
+        RecognitionException {
+      return parser.module().getTree();
+    }
+
+
+    @Override
+    protected IPromiseDropStorage<ModulePromiseDrop> makeStorage() {
+      return SinglePromiseDropStorage.create(name(), ModulePromiseDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<ModuleChoiceNode> makeScrubber() {
+      return new AbstractAASTScrubber<ModuleChoiceNode>(this, ScrubberType.UNORDERED) {
+        @Override
+        protected PromiseDrop<ModuleChoiceNode> makePromiseDrop(ModuleChoiceNode a) {
+          ModulePromiseDrop d = ModulePromiseDrop.buildModulePromiseDrop(a);
+          return storeDropIfNotNull(getStorage(), a, d);          
+        }
+      };
+    }    
+    
+  }
+  
+  public static class Export_ParseRule extends DefaultSLColorAnnotationParseRule<ExportNode, ExportDrop> {
+    public Export_ParseRule() {
+      super(EXPORT, declOps, ExportNode.class);
+    }
+ 
+    
+    @Override
+    protected Object parse(IAnnotationParsingContext context,
+                           SLColorAnnotationsParser parser) throws Exception,
+        RecognitionException {
+      return parser.module().getTree();
+    }
+
+
+    @Override
+    protected IPromiseDropStorage<ExportDrop> makeStorage() {
+      return SinglePromiseDropStorage.create(name(), ExportDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<ExportNode> makeScrubber() {
+      return new AbstractAASTScrubber<ExportNode>(this, ScrubberType.UNORDERED) {
+        @Override
+        protected PromiseDrop<ExportNode> makePromiseDrop(ExportNode a) {
+          ExportDrop d = ExportDrop.buildExportDrop(a);
+          return storeDropIfNotNull(getStorage(), a, d);          
+        }
+      };
+    }    
+    
+  }
+  @Override
+  public void register(PromiseFramework fw) {
+    registerParseRuleStorage(fw, noVisRule);
+    registerParseRuleStorage(fw, visRule);
+    registerParseRuleStorage(fw, moduleRule);
+    registerParseRuleStorage(fw, exportRule);
+    
+  }
+  
+  public static ModulePromiseDrop getModule(IRNode where) {
+    return getDrop(moduleRule.getStorage(), where); 
+  }
+  /**
+   * @return The representation of the module name, or
+   *         null if there is no module declaration 
+   */
+  public static ModulePromiseDrop getModuleDecl(IRNode here) {
+    IRNode cu = VisitUtil.getEnclosingCompilationUnit(here);
+    if (cu == null) {
+      Operator op = tree.getOperator(here);
+      if (CompilationUnit.prototype.includes(op)) {
+        cu = here;
+      } else {
+        LOG.severe("Didn't find enclosing CU for the Module Decl: "+DebugUnparser.toString(here));
+      }
+    }
+    IRNode pd = CompilationUnit.getPkg(cu); 
+    return getModule(pd);
+//    IRNode mayHaveModuleDecl = VisitUtil.computeOutermostEnclosingTypeOrCU(here);
+//    return getModule(mayHaveModuleDecl);
+  }
+  
+
+}

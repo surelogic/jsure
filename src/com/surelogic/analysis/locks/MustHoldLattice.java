@@ -1,0 +1,172 @@
+/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/MustHoldLattice.java,v 1.14 2008/01/19 00:14:21 aarong Exp $*/
+package com.surelogic.analysis.locks;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.analysis.locks.locks.HeldLock;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.util.ImmutableList;
+import edu.cmu.cs.fluid.util.ImmutableSet;
+import edu.uwm.cs.fluid.util.ListLattice;
+import edu.uwm.cs.fluid.util.UnionLattice;
+
+/**
+ * Lattice for the Must-Hold analysis. Essentially a Map from final lock
+ * expression IRNodes to a stack of sets of unlock call IRNodes. The map is
+ * maintained as an ArrayLattice, where the lock expressions are mapped to array
+ * locations. Specifically, the domain of the lattice is
+ * {@code ImmutableList<ImmutableSet<IRNode>>[]}.
+ * 
+ * <p>
+ * The meat of this class is implemented in {@link AbstractLockStackLattice}.
+ * This class basically wraps the
+ * {@link #peek(ImmutableList[], IRNode, IBinder)},
+ * {@link #pushCall(ImmutableList[], IRNode, IBinder)}, and
+ * {@link #popCall(ImmutableList[], IRNode, IBinder)} methods with the more
+ * task-appropriate names
+ * {@link #getLocksFor(ImmutableList[], IRNode, IBinder)},
+ * {@link #foundLock(ImmutableList[], IRNode, IBinder)}, and
+ * {@link #foundUnlock(ImmutableList[], IRNode, IBinder)}, respectively.  It
+ * also adds the method {@link #getLockedExpressions(ImmutableList[])} that 
+ * returns the set of lock expressions that are currently believed to be locked.
+ * 
+ * TODO: Say more about this.
+ * 
+ * @author aarong
+ */
+final class MustHoldLattice extends AbstractLockStackLattice {
+  private final Set<HeldLock> requiredLocks;
+  private final Set<HeldLock> singleThreaded;
+  private final Set<HeldLock> classInit;
+  
+  /**
+   * Private constructor. Use the factory method {@link #createForFlowUnit} to
+   * create instances of this class.
+   * 
+   * @param lockExprs
+   *          The list of unique lock expressions that represent the domain of
+   *          the map portion of this lattice.
+   */
+  @SuppressWarnings("unchecked")
+  private MustHoldLattice(
+      final HeldLock[] locks, final Map<IRNode, Set<HeldLock>> map,
+      final Set<HeldLock> req, final Set<HeldLock> st, final Set<HeldLock> ci) {
+    super(locks, map);
+    requiredLocks = req;
+    singleThreaded = st;
+    classInit = ci;
+  }
+  
+  /**
+   * Get an instance of this lattice that is suitable for use with the given
+   * flow unit.
+   * 
+   * @param flowUnit
+   *          The flow unit we need a lattice for.
+   * @param binder
+   *          The binder.
+   * @return A new lattice instance that is customized based on the unique lock
+   *         expressions present in the provided flow unit.
+   */
+  public static MustHoldLattice createForFlowUnit(
+      final IRNode flowUnit, final ThisExpressionBinder thisExprBinder, final IBinder binder,
+      final JUCLockUsageManager jucLockUsageManager) { 
+    final Map<IRNode, Set<HeldLock>> map = jucLockUsageManager.getLockExprsToLockSets(flowUnit);
+    final Set<HeldLock> required = jucLockUsageManager.getRequiredLocks(flowUnit);
+    final Set<HeldLock> singleThreaded = jucLockUsageManager.getSingleThreaded(flowUnit);
+    final Set<HeldLock> classInit = jucLockUsageManager.getClassInit(flowUnit);
+    final HeldLock[] locks = constructLockArray(map, required, singleThreaded, classInit, thisExprBinder, binder);
+    return new MustHoldLattice(locks, map, required, singleThreaded, classInit);
+  }
+ 
+  
+  
+  /**
+   * Push the given lock method call onto the stack.  The lock expression
+   * is derived from the receiver of the method call.
+   * 
+   * @param oldValue
+   * @param lockCall
+   * @param binder
+   * @return
+   */
+  public ImmutableList<ImmutableSet<IRNode>>[] foundLock(
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
+      final IRNode lockCall, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
+    return pushCall(oldValue, lockCall, thisExprBinder, binder);
+  }
+
+  /**
+   * Remove the top lock method call based on the given unlock method call.
+   * The lock expression is derived from the receiver of the method call.
+   * 
+   * @param oldValue
+   * @param unlockCall
+   * @param binder
+   * @return
+   */
+  public ImmutableList<ImmutableSet<IRNode>>[] foundUnlock(
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
+      final IRNode unlockCall, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
+    return popCall(oldValue, unlockCall, thisExprBinder, binder);
+  }
+  
+  /**
+   * Get the the most recent set of lock calls for the given lock expression.
+   * 
+   * @return The set of lock calls at the top of stack for the given lock
+   *         expression, or {@code null} if the top value is the poisoned TOP
+   *         set value.
+   */
+  public Set<IRNode> getLocksFor(
+      final ImmutableList<ImmutableSet<IRNode>>[] value, final IRNode lockExpr,
+      final ThisExpressionBinder thisExprBinder, final IBinder binder) {
+    return peek(value, lockExpr, thisExprBinder, binder);
+  }
+  
+  /**
+   * Get the set of lock expressions that are known to be locked, i.e., those
+   * lock expressions in the domain of the lattice that have non-empty stacks.
+   */
+  public Set<HeldLock> getHeldLocks(
+      final ImmutableList<ImmutableSet<IRNode>>[] value) {
+    final Set<HeldLock> locked = new HashSet<HeldLock>();
+    final ListLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>> baseLattice = getBaseLattice();
+    final ImmutableList<ImmutableSet<IRNode>> top = baseLattice.top();
+    final ImmutableList<ImmutableSet<IRNode>> bottom = baseLattice.bottom();
+    for (int i = 0; i < value.length; i++) {
+      // skip bogus locks
+      if (!(locks[i].isBogus())) {
+        final ImmutableList<ImmutableSet<IRNode>> current = value[i];
+        /* Bug 1010: Check if the list has a size > 1 because it will always have
+         * the bogus element in it to differentiate the empty lattice value
+         * from the bottom lattice value.
+         */
+        if (current != top && current != bottom && current.size() > 1) {
+          locked.add(locks[i]);
+        }
+      }
+    }
+    return Collections.unmodifiableSet(locked);
+  }
+  
+  public Set<HeldLock> getRequiredLocks() {
+    return requiredLocks;
+  }
+  
+  public Set<HeldLock> getSingleThreaded() {
+    return singleThreaded;
+  }
+  
+  public Set<HeldLock> getClassInit() {
+    return classInit;
+  }
+}
+
+

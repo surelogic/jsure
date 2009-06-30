@@ -1,0 +1,7 @@
+# $Header$
+
+/** Used to map a number of fields into a region
+ */
+public operator FieldMappings {
+  syntax { fields:RegionSpecifications "into" to:RegionSpecification }
+}

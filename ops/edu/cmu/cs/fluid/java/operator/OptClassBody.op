@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/OptClassBody.op,v 1.4 2007/01/15 20:03:36 chance Exp $
+public operator OptClassBody {
+  syntax {
+    @decl:ClassBodyDeclaration *
+  }
+  properties {
+    nonnullVariants=ClassBody
+    logicallyInvisible=true 
+  }
+}

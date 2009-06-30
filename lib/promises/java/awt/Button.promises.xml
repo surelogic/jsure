@@ -1,0 +1,24 @@
+<package name="java.awt">
+    <class name="Button">
+    <ColorImport>java.awt</ColorImport>
+    
+    <MapRegion>Instance into java.awt.event.ActionListener:GUIstuff</MapRegion>
+
+    <Promise>&quot;transparent&quot; for add*Listener(**) | remove*Listener(**)</Promise>
+	  <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for add*Listener(**) | remove*Listener(**)</Promise>
+
+  <Promise>&quot;Color GUI&quot; for get*(**) | new(**)</Promise>
+  <Promise>&quot;RegionEffects reads java.awt.event.ActionListener:GUIinternal&quot; for new(**)</Promise>
+  <Promise>&quot;RegionEffects reads Instance&quot; for get*(**)</Promise>
+
+  <Promise>&quot;Color GUI&quot; for add*(**) &amp; !(add*Listener(**))</Promise>
+  <Promise>&quot;RegionEffects writes Instance&quot; for add*(**) &amp; !(add*Listener(**))</Promise>  
+
+  <Promise>&quot;Color GUI&quot; for process*(**)</Promise>
+  <Promise>&quot;RegionEffects reads java.awt.event.ActionListener:GUIinternal; writes Instance&quot; for process*(**)</Promise>  
+
+  <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
+  <Promise>&quot;RegionEffects writes Instance&quot; for set*(**)</Promise>
+
+    </class>  
+</package>

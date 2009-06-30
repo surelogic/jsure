@@ -1,0 +1,23 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/TypeExpression.op,v 1.7 2005/05/25 18:03:34 chance Exp $
+/** A static reference to a type.
+ * This expression is legal in only a few situations:
+ * <ul>
+ *    <li> As the object for method calls.
+ *    <li> As the object for field refs.
+ * </ul>
+ */
+public operator TypeExpression extends PrimaryExpression {
+  syntax {
+    type:ReturnType
+  }
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    
+    ControlNode getType = new ComponentFlow(comp,null);
+    
+    ControlEdge.connect(comp.getEntryPort(),getType);
+    ControlEdge.connect(getType,comp.getNormalExitPort());
+
+    return comp;
+  }
+}

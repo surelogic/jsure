@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.util">
+    <class name="Calendar">
+        <method name="setTime" params="java.util.Date">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="writes" contents="Instance"/>
+        </method>
+
+        <method name="add" params="int, int">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="writes" contents="Instance"/>
+        </method>
+
+        <method name="set" params="int, int">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="writes" contents="Instance"/>
+        </method>
+
+        <method name="getTime" params="">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="reads" contents="Instance"/>
+        </method>
+    </class>  
+</package>

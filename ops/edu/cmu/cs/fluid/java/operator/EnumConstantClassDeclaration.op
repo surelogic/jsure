@@ -1,0 +1,14 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/EnumConstantClassDeclaration.op,v 1.2 2007/05/14 21:36:57 chance Exp $
+public operator EnumConstantClassDeclaration extends EnumConstantDeclaration implements NestedDeclInterface
+{
+  syntax { 
+    $id:Info args:OptArguments body:ClassBody
+  }
+  properties {
+    binding=Variable
+    bindsToType=Type 
+  }  
+  @Override public Component createComponent(IRNode node) {
+    return null; // TODO
+  }
+}

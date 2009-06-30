@@ -1,0 +1,24 @@
+# $Header$
+public operator NestedTypeDeclaration extends ClassBodyDeclaration implements TypeDeclInterface, NestedTypeDeclInterface {
+  syntax {
+    @annos:Annotations
+    $@mods:Modifiers(public,protected,private,abstract) 
+    $@id:Info @types:TypeFormals
+    @body:ClassBody    
+  }
+
+  /** default component -- do nothing */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    ControlEdge.connect(comp.getEntryPort(),comp.getNormalExitPort());
+    return comp;
+  }
+  
+  /** Use the interface to determine what operators are legal:
+   */
+  public boolean includes(Operator other) {
+    if (getClass() == NestedTypeDeclaration.class)
+      return (other instanceof NestedTypeDeclInterface);
+    else return super.includes(other);
+  }
+}

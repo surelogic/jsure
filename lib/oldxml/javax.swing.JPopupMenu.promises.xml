@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="javax.swing">
+    <class name="JPopupMenu">
+
+    <promise keyword="colorImport" contents="java.awt.*;"/>
+
+
+  <promise keyword="promise"
+    contents="&quot;colorConstraint AWT;&quot; for fire*(**)"/>
+
+  <promise keyword="promise"
+	   contents="&quot;colorConstraint GUI;&quot; for **(**) &amp; !(fire*(**)) &amp; !(add*Listener(**) | remove*Listener(*))"/>
+
+  </class>
+</package>

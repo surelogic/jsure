@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.security">
+    <class name="Principal">
+        <promise keyword="region" contents="public Stuff"/>
+
+        <method name="getName">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="reads" contents="Stuff"/>
+        </method>
+    </class>  
+</package>

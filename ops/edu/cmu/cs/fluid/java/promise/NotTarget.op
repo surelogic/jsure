@@ -1,0 +1,10 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator NotTarget extends ComplexTarget {
+  syntax {
+    "!" target:PromiseTarget 
+  }
+}

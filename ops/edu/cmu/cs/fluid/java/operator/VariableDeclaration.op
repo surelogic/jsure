@@ -1,0 +1,28 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/VariableDeclaration.op,v 1.11 2007/07/12 17:22:41 aarong Exp $
+/**
+ * VariableDeclaration is a supertype that is the parent to several different
+ *        kinds of 'variable declarations.' This includes 'standard' variable 
+ *        decarations, as well as other kinds of declarations such as
+ *        method parameters, enum constants and more. If you are looking for the
+ *        variable declarations, you should probably look at VariableDeclarator.
+ */
+public operator VariableDeclaration extends Declaration implements edu.cmu.cs.fluid.java.bind.IHasType {
+  syntax {
+    $@id:Info
+  }
+  properties {
+    binding=Variable
+    bindsToType=Type 
+  }
+  
+  /*
+  public static String getId(IRNode node) {
+    if (tree.getOperator(node) instanceof VariableDeclaration) {
+      return JJNode.getInfo(node);
+    } else {
+      throw new IllegalArgumentException("Not a VariableDeclaration " +
+					 tree.getOperator(node));
+    }
+  }
+  */
+}

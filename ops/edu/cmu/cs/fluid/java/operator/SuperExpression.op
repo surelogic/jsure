@@ -1,0 +1,18 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/SuperExpression.op,v 1.5 2006/05/02 20:00:50 chance Exp $
+/** Java's super.
+ * This expression is legal in only a few situations:
+ * <ul>
+ *   <li> as the object in method calls.
+ *   <li> as the object for field references.
+ *   <li> as the object in constructor calls.
+ * </ul>
+ */
+public operator SuperExpression extends ConstructionObject
+    implements DripOperator, edu.cmu.cs.fluid.java.bind.IHasBinding
+{
+  syntax { "super" }
+  
+  public Operator getResultOp() {
+    return ReceiverDeclaration.prototype;
+  }
+}

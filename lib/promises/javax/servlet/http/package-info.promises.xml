@@ -1,0 +1,3 @@
+<package name="javax.servlet.http">
+	<Module>Servlet for *</Module>
+</package>

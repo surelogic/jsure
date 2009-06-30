@@ -1,0 +1,49 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ConstructorCall.op,v 1.19 2007/05/16 20:35:30 chance Exp $
+/** A very special form of call: legal only as the first statement expression
+ * of a constructor.  The object must be "this" or "super".
+ */
+public operator ConstructorCall extends SomeFunctionCall
+{
+  syntax {
+    @typeArgs:TypeActuals? @object:ConstructionObject @args:Arguments
+  }
+  properties {
+    bindsTo=Constructor
+  }
+  
+  public Operator getResultOp() {
+    return ConstructorDeclaration.prototype;
+  }
+  
+  protected Component createComponent(IRNode node, int offset) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent rec = new Subcomponent(comp,tree.childLocation(node,0+offset),1,1,1);
+    Subcomponent sub = new Subcomponent(comp,tree.childLocation(node,1+offset),1,1,1);
+	ControlLabel exLabel = ExceptionLabel.prototype;
+	// new CallExceptionLabel(node)
+	
+    ControlNode impossible = new Abort();
+    ControlNode doCall = new ComponentChoice(comp,prototype);
+    ControlNode propagateExceptions = new AddLabel(exLabel);
+    ControlNode doInit = new ComponentChoice(comp,SuperExpression.prototype);
+    ControlNode propagateMoreExceptions = new AddLabel(exLabel);
+    ControlNode abruptMerge = new Merge();
+    ControlNode abruptMerge2 = new Merge();
+
+    ControlEdge.connect(comp.getEntryPort(),rec.getEntryPort());
+    ControlEdge.connect(rec.getNormalExitPort(),sub.getEntryPort());
+    ControlEdge.connect(rec.getAbruptExitPort(),impossible);
+    ControlEdge.connect(sub.getNormalExitPort(),doCall);
+    ControlEdge.connect(doCall,doInit);
+    ControlEdge.connect(doInit,comp.getNormalExitPort());
+    ControlEdge.connect(sub.getAbruptExitPort(),abruptMerge2);
+    ControlEdge.connect(doCall,propagateExceptions);
+    ControlEdge.connect(propagateExceptions,abruptMerge);
+    ControlEdge.connect(doInit,propagateMoreExceptions);
+    ControlEdge.connect(propagateMoreExceptions,abruptMerge);
+    ControlEdge.connect(abruptMerge,abruptMerge2);
+    ControlEdge.connect(abruptMerge2,comp.getAbruptExitPort());
+
+    return comp;
+  }  
+}

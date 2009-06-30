@@ -1,0 +1,5 @@
+<package name="java.awt">
+    <class name="KeyEventDispatcher">
+      <Promise>&quot;Color AWT&quot; for *(**) | new(**)</Promise>
+    </class>
+</package>

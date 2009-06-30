@@ -1,0 +1,12 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ArrayDeclaration.op,v 1.8 2006/06/28 20:27:03 chance Exp $
+public operator ArrayDeclaration implements ReferenceTypeInterface {
+  syntax {
+    base:Type $dims:ConstantInt
+  }
+  properties {
+    noncanonical=true
+  }
+  public Operator getResultOp() {
+    return ArrayDeclaration.prototype;
+  }
+}

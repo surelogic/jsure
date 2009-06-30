@@ -1,0 +1,57 @@
+<package name="java.applet">
+    <class name="Applet">
+
+    <ColorImport>java.awt</ColorImport>
+
+    <Promise>&quot;Color AWT&quot; for new(**)</Promise>
+
+<!-- -->
+    <Promise>&quot;Transparent&quot; for get*Info()</Promise>
+    <Promise>&quot;RegionEffects writes none&quot; for play(**) | getCodeBase()</Promise>
+<!-- -->
+    <Promise>&quot;RegionEffects reads this:Instance&quot; for get*(**) | is*(**)</Promise>
+    <Promise>&quot;RegionEffects writes this:Instance&quot; for play(**) | init(**) | start() | stop() | destroy() | new(**)</Promise>
+
+    <MapRegion>Instance into java.awt.event.ActionListener:GUIinternal</MapRegion>
+      <method name="isActive" params="">
+        <Transparent/>
+      </method>
+      <method name="getDocumentBase" params="">
+        <Transparent/>
+      </method>
+      <method name="getCodeBase" params="">
+        <Transparent/>
+      </method>
+      <method name="getAppletContext" params="">
+        <Color>GUI</Color>
+      </method>
+      <method name="getParameter" params="java.lang.String">
+        <Color>GUI</Color>
+      </method>
+      <method name="getAudioClip" params="java.net.URL">
+        <Transparent/>
+      </method>
+      <method name="getAudioClip" params="java.net.URL, java.lang.String">
+        <Transparent/>
+      </method>
+      <method name="play" params="java.net.URL">
+        <Transparent/>
+      </method>
+      <method name="play" params="java.net.URL, java.lang.String">
+        <Transparent/>
+      </method>
+      <method name="init" params="">
+          <Color>GUI</Color>
+      </method>
+      <method name="destroy" params="">
+          <Color>GUI</Color>
+      </method>
+      <method name="start" params="">
+          <Color>AWT</Color>
+      </method>
+      <method name="stop" params="">
+          <Color>AWT</Color>
+      </method>
+
+    </class>
+</package>

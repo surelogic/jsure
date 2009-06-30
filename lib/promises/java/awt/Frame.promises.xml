@@ -1,0 +1,36 @@
+<package name="java.awt">
+    <class name="Frame">
+
+    <ColorImport>java.awt</ColorImport>
+
+  <Promise>&quot;colorConstraint GUI&quot; for get*(**)</Promise>
+
+  <Promise>&quot;colorConstraint GUI&quot; for is*(**)</Promise>
+
+  <Promise>&quot;colorConstraint GUI&quot; for remove(*)</Promise>
+
+  <Promise>&quot;colorConstraint GUI&quot; for set*(**)</Promise>
+
+  <Promise>&quot;colorConstraint AWT&quot; for *Notify()</Promise>
+
+    <constructor>
+      <Color>GUI</Color>
+    </constructor>
+
+    <constructor params="java.awt.GraphicsConfiguration">
+      <Color>GUI</Color>
+    </constructor>
+
+    <constructor params="java.lang.String">
+      <Color>GUI</Color>
+    </constructor>
+
+    <constructor params="java.lang.String, java.awt.GraphicsConfiguration">
+      <Color>GUI</Color>
+    </constructor>
+
+    </class>  
+</package>
+
+
+

@@ -1,0 +1,14 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ContinueStatement.op,v 1.5 2006/06/29 18:27:09 chance Exp $
+public operator ContinueStatement extends SomeContinueStatement {
+  syntax {
+    "continue" <> ";"
+  }
+  
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,0,1);
+    ControlNode addContinue = new AddLabel(ContinueLabel.prototype);
+    ControlEdge.connect(comp.getEntryPort(),addContinue);
+    ControlEdge.connect(addContinue,comp.getAbruptExitPort());
+    return comp;
+  }
+}

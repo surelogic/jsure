@@ -1,0 +1,135 @@
+<package name="java.nio">
+ <class name="Buffer">
+ 
+  <constructor params="int, int, int, int">
+    <borrowed>this</borrowed>
+    <RegionEffects>writes nothing</RegionEffects>
+    <starts>nothing</starts>
+  </constructor>
+  
+  <method name="capacity">
+    <RegionEffects>reads Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="position">
+    <RegionEffects>reads Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="position" params="int">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="limit">
+    <RegionEffects>reads Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="limit" params="int">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="mark">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="reset">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="clear">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="flip">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="rewind">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="remaining">
+    <RegionEffects>reads Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="hasRemaining">
+    <RegionEffects>reads Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="isReadOnly">
+    <RegionEffects>reads Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="nextGetIndex">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="nextGetIndex" params="int">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+ 
+  <method name="nextPutIndex">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="nextPutIndex" params="int">
+    <RegionEffects>writes Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+ 
+  <method name="checkIndex" params="int">
+    <RegionEffects>reads Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="checkIndex" params="int, int">
+    <RegionEffects>reads Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+ 
+  <method name="markValue">
+    <RegionEffects>reads Instance</RegionEffects>
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>    
+  </method>
+  
+  <method name="checkBounds" params="int, int, int">
+    <RegionEffects>none</RegionEffects>
+    <starts>nothing</starts>    
+  </method>
+ </class>
+</package>

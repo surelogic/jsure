@@ -1,0 +1,47 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/promise/Condition.op,v 1.3 2005/05/25 18:03:36 chance Exp $
+/** This operator is used to cap Java expressions used as conditions
+ * in promises.  The cap is necessary because we use the control-flow
+ * graphs of the expression.
+ */
+public operator Condition implements FlowUnit {
+  syntax {
+    cond:Expression
+  }
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,0,0,0);
+    Subcomponent subcond = 
+        new Subcomponent(comp,tree.childLocation(node,0),1,2,1);
+    ControlNode start = new ComponentSource(comp,null);
+    ControlNode stop = new ComponentSink(comp,Boolean.TRUE);
+    ControlNode merge = new Merge();
+    ControlNode abruptStop = new ComponentSink(comp,null);
+
+    ControlEdge.connect(start,subcond.getEntryPort());
+    ControlEdge.connect(subcond.getNormalExitPort(),merge);
+    ControlEdge.connect(subcond.getNormalExitPort(),merge);
+    ControlEdge.connect(merge,stop);
+    ControlEdge.connect(subcond.getAbruptExitPort(),abruptStop);
+    return comp;
+  }
+
+  public Source getSource(IRNode node) {
+    Component comp = JavaComponentFactory.prototype.getComponent(node);
+    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,0));
+    ControlEdge e = ((SubcomponentEntryPort)sub.getEntryPort()).getInput();
+    return (Source)e.getSource();
+  }
+  public Sink getNormalSink(IRNode node) {
+    Component comp = JavaComponentFactory.prototype.getComponent(node);
+    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,3));
+    ControlEdge e = ((SubcomponentBooleanExitPort)sub.getNormalExitPort()).getOutput1();
+    Merge m = (Merge)(e.getSink());
+    return (Sink)m.getOutput().getSink();
+  }
+  public Sink getAbruptSink(IRNode node) {
+    Component comp = JavaComponentFactory.prototype.getComponent(node);
+    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,3));
+    ControlEdge e = ((SubcomponentAbruptExitPort)sub.getAbruptExitPort()).getOutput();
+    return (Sink)(e.getSink());
+  }
+  
+}

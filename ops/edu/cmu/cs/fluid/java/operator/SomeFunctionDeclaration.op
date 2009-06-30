@@ -1,0 +1,17 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/SomeFunctionDeclaration.op,v 1.6 2006/07/03 17:21:18 chance Exp $
+
+/**
+ * An "abstract" operator that covers both method and constructor declarations.
+ */
+public operator SomeFunctionDeclaration extends ClassBodyDeclaration {
+  syntax {
+    annos:Annotations
+    $modifiers:Modifiers(public,protected,private,native) 
+    types:TypeFormals $id:Info @params:Parameters
+    @exceptions:Throws
+    @body:OptMethodBody
+  }
+  properties {
+    binding=Function
+  }  
+}

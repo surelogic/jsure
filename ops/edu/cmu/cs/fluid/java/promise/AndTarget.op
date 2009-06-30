@@ -1,0 +1,10 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator AndTarget extends ComplexTarget {
+  syntax {
+    target1:PromiseTarget "&&" target2:PromiseTarget
+  }
+}

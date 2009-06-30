@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.lang">
+    <!-- what promises could go here? -->
+    <class name="Object">
+      <promise keyword="promise"
+	contents="&quot;transparent&quot; for new(**)"/>
+
+        <promise keyword="region" contents="public static All"/>
+        <promise keyword="region" contents="public Instance extends All"/>
+        <promise keyword="region" contents="public WaitQueue"/>
+
+        <promise keyword="Lock" contents="MUTEX is this protects WaitQueue"/>
+    
+        <classinit>
+          <promise keyword="reads" contents="nothing"/>
+        </classinit>
+        <constructor>
+            <promise keyword="writes" contents="nothing"/>
+            <promise keyword="borrowed" contents="this"/>
+            <promise keyword="starts" contents="nothing"/>
+          <promise keyword="transparent" />
+        </constructor>
+        
+        <method name="clone">
+          <promise keyword="reads" contents="nothing"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="transparent" />
+        </method>
+
+        <method name="equals" params="java.lang.Object">
+          <promise keyword="reads" contents="this.Instance, arg0.Instance"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="transparent" />
+        </method>
+        
+        <method name="finalize">
+          <promise keyword="reads" contents="nothing"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="transparent" />
+        </method>
+        
+        <method name="getClass">
+          <promise keyword="reads" contents="nothing"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="transparent" />
+          <retval/>
+        </method>
+        
+        <method name="hashCode">
+          <promise keyword="reads" contents="nothing"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="transparent" />
+        </method>
+        
+        <method name="notify">
+          <promise keyword="reads" contents="nothing"/>
+          <promise keyword="requiresLock" contents="MUTEX"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="transparent"/>
+        </method>        	
+        
+        <method name="notifyAll">
+          <promise keyword="reads" contents="nothing"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="requiresLock" contents="MUTEX"/>
+          <promise keyword="transparent"/>
+        </method>   
+        
+        <method name="toString">
+          <promise keyword="reads" contents="nothing"/>
+          <promise keyword="starts" contents="nothing"/>
+            <retval/>
+        </method>   
+        
+        <method name="wait">
+          <promise keyword="reads" contents="nothing"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="requiresLock" contents="MUTEX"/>
+          <promise keyword="transparent" />
+        </method>   
+        
+        <method name="wait" params="long">
+          <promise keyword="reads" contents="nothing"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="requiresLock" contents="MUTEX"/>
+          <promise keyword="transparent" />
+        </method>   
+        
+        <method name="wait" params="long, int">
+          <promise keyword="reads" contents="nothing"/>  
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="requiresLock" contents="MUTEX"/>
+          <promise keyword="transparent" />
+        </method>          
+    </class>  
+</package>

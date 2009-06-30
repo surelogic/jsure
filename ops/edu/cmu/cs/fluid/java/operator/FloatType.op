@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/FloatType.op,v 1.5 2006/05/12 13:51:19 chance Exp $
+public operator FloatType extends FloatingPointType {
+  syntax { "float" }
+  
+  public Operator getResultOp() {
+    return FloatType.prototype;
+  }
+}

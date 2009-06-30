@@ -1,0 +1,14 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/OptMethodBody.op,v 1.4 2006/06/15 13:53:39 chance Exp $
+public operator OptMethodBody {
+  //properties {
+  //  nonnullVariants=MethodBody,CompiledMethodBody,OmittedMethodBody
+  //}
+  /** Create a component which passes through control
+   * directly.  Overridden for an actual method body.
+   */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,0);
+    ControlEdge.connect(comp.getEntryPort(),comp.getNormalExitPort());
+    return comp;
+  }
+}

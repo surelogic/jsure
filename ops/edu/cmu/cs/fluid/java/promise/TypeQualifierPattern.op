@@ -1,0 +1,10 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator TypeQualifierPattern  {
+  syntax {
+    $pkg:Comment $type:Info "."
+  }
+}

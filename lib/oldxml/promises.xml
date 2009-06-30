@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.lang">
+    <!-- what promises could go here? -->
+    <class name="Object">
+        <classinit/>
+        <constructor>
+            <receiver/>
+            <parameter index="0">
+              <promise keyword="borrowed"/>
+            </parameter>
+        </constructor>
+        <field names="test"/>
+        <method name="clone">
+            <retval/>
+        </method>
+    </class>
+    <class name="String">
+      <class name="C">
+      </class>    
+      <class name="B">
+      </class>       
+    </class>
+    <class name="StringBuffer">
+      <class name="A">
+      </class>   
+    </class>    
+</package>

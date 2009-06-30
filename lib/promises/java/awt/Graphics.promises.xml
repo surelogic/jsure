@@ -1,0 +1,34 @@
+<package name="java.awt">
+  <class name="Graphics">
+
+    <ColorImport>java.awt</ColorImport>
+
+    <!-- Promise>&quot;MapRegion Instance into java.awt.event.ActionListener:GUIstuff&quot;</Promise -->
+
+    <Promise>&quot;Color GUI&quot; for get*(**)</Promise>
+    <Promise>&quot;RegionEffects reads java.awt.event.ActionListener:GUIinternal&quot; for get*(**)</Promise>
+    
+    <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
+    <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for set*(**)</Promise>
+    
+    <Promise>&quot;Color GUI&quot; for draw*(**)</Promise>
+    <Promise>&quot;RegionEffects reads Instance; writes java.awt.event.ActionListener:GUIinternal&quot; for draw*(**)</Promise>
+    
+    <Promise>&quot;Color GUI&quot; for fill*(**)</Promise>
+    <Promise>&quot;RegionEffects reads Instance; writes java.awt.event.ActionListener:GUIinternal&quot; for fill*(**)</Promise>
+    
+    
+    <Promise>&quot;Color GUI&quot; for clip*(**)</Promise>
+    
+    <Promise>&quot;Color GUI&quot; for copy*(**)</Promise>
+    
+    <Promise>&quot;Color GUI&quot; for create(**) | translate(**)</Promise>
+    
+    <method name="dispose" params="">
+      <Color>GUI</Color>
+      <RegionEffects>writes Instance</RegionEffects>
+    </method>
+    
+    
+  </class>
+</package>

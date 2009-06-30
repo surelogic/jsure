@@ -1,0 +1,5 @@
+# $Header$
+
+public operator EffectsSpecification  {
+  syntax { effect:EffectSpecification */ "," }
+}

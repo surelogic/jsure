@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+<package name="java.awt.event">
+	<class name="KeyEventDispatcher">
+			<promise
+			keyword="colorImport" contents="java.awt.*;"/>
+		<promise keyword="promise" contents="&amp;quot;colorConstraint AWT;&amp;quot; for *(**)"/>
+		</class>
+
+</package>

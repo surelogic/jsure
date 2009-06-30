@@ -1,0 +1,103 @@
+<!-- $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/bind/package.html,v 1.7 2007/01/18 16:35:25 chance Exp $ -->
+<BODY>
+The Fluid Java language infrastructure.
+<h1>Requirements</h1>
+<ul>
+<li> Loader 
+     <br> Parses and loads files into a Universe
+     <br> Ability to load files into the system on demand (or not)
+     <br> Ability to scan for dependencies and load those files
+
+<li> Universe
+     <br> Keeps track of all files loaded into the system.
+     <br> Handles persistence of pre-loaded IR (load/save) 
+
+<li> TypeEnvironment 
+     <br> Keeps track of all types mapped for a particular system
+     <br> Support different TypeEnvironments for different systems
+
+<li> Binder 
+     <br> Computes both the bindings and types (the latter for expressions)
+     <br> Cannot cause any events that would create a new Version.
+</ul>
+
+<h2>Possible Future Requirements</h2>
+Support for multiple ClassLoaders (i.e. diff simultaneous TypeEnvironments)
+
+<h1>External interfaces</h1>
+    <h2>Loader</h2>
+    <h2>Universe</h2>
+    <h2>TypeEnvironment</h2>
+    <h2>Binder</h2>
+    	<h3>getBinding</h3>
+	This can be called to get the binding for the following kinds of names:
+	<ul>
+	<li> NamedType
+	<li> ArrayType
+	<li> VoidType
+	<li> PrimitiveType
+	<li> ThisE, SuperE (if precomputed)
+	<li> UseE
+	<li> FieldRef
+	<li> Call {MethodCall, NewE, AnonClassE, ConstructorCall)
+	<li> RegionName
+	</ul>
+	Note: this currently has the problem that it will go into an infinite
+	loop if one tries to get the binding on a node that is not supported.
+	(FIX throw SlotUndefinedException if not one of the above)
+
+	<h3>getType</h3>
+	Types are kept unique by the Universe/TypeEnvironment, so as to be able
+	to use IRNode.identity() to do comparisons (FIX code?), and are
+	represented as follows:
+	<ul>
+	<li>IRNode(VoidType) for the void return type
+	<li>IRNode(PrimitiveType) for primitive types
+	<li>IRNode(TypeDeclInterface) for [anon, nested] classes and interfaces
+	<li>IRNode(ArrayDeclaration) for arrays (indexed by base, dims)
+	<li>IRNode(TypeDeclaration) for the "null" type
+	</ul>
+
+	<h3>getValue</h3>
+	As yet unimplemented.
+
+	<h3>getRegionParent</h3>
+	To be implemented RSN.
+
+<h1>Distribution of functionality among the different classes</h1>
+
+<h2>{@link edu.cmu.cs.fluid.java.bind.ITypeEnvironment}</h2>
+Contains mappings from qualified names to types in the Universe
+
+    <h3>{@link edu.cmu.cs.fluid.java.bind.AbstractTypeEnvironment}</h3>
+
+<h2>{@link edu.cmu.cs.fluid.java.bind.IBinder}</h2>
+The external interface to the binding infrastructure, creating the illusion that
+there are separate SlotInfos for bindings, types, and values.
+
+	<h3>{@link edu.cmu.cs.fluid.java.bind.IBindHelper}</h3>
+    A helper class that uses a LocalEnvironment to resolve simple names within a TypeEnvironment.    
+
+    <h3>{@link edu.cmu.cs.fluid.java.bind.LocalEnvironment}</h3>
+    Embodies the imports (both explicit and implicit) for a CompilationUnit.
+    <br>
+    Simple names are resolved in this order:
+    <ol>
+    <li>Declared in same CU
+    <li>Specifically imported
+    <li>Part of the same package
+    <li>Part of "java.lang"
+    <li>Part of an imported package
+    </ol>
+    
+<h2>{@link edu.cmu.cs.fluid.java.bind.IBindHelper}</h2>
+
+
+<h2>{@link edu.cmu.cs.fluid.java.bind.ILoaderTest}</h2>
+A helper class to abstract the use of the Loader, Binder and TypeEnvironment from test code.
+
+<h2>{@link edu.cmu.cs.fluid.java.bind.PromiseConstants}</h2>
+Definitions of the globally defined regions 
+
+</BODY>
+

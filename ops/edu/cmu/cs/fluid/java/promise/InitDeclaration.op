@@ -1,0 +1,57 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/promise/InitDeclaration.op,v 1.10 2007/05/07 15:20:30 chance Exp $
+
+/** An explicit declaration of the initialization method for instances.
+ * @see ClassDeclaration
+ */
+public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
+  syntax { "<init>" }
+  public static IRNode getInitMethod(IRNode classNode) {
+    IRNode node = JavaPromise.getInitMethodOrNull(classNode);
+    if (node != null) {
+      return node;
+    }
+    Operator op = tree.getOperator(classNode);
+    if (!(op instanceof TypeDeclInterface) || (op instanceof InterfaceDeclaration)) { 
+	  throw new edu.cmu.cs.fluid.FluidRuntimeException("interface declarations do not get instance initializers");
+    }	
+    node = JavaPromise.makeJavaPromise(prototype);
+    JavaPromise.setInitMethod(classNode,node);
+    return node;    
+  }
+  public Source getSource(IRNode node) {
+    IRNode classDecl = JavaPromise.getPromisedFor(node);
+    IRNode classBody = null;
+    final Operator op = tree.getOperator(classDecl);
+    if (ClassDeclaration.prototype.includes(op)) {
+      classBody = ClassDeclaration.getBody(classDecl);
+    } else if (AnonClassExpression.prototype.includes(op)) {
+      classBody = AnonClassExpression.getBody(classDecl);
+      System.err.println( "getSource: " + DebugUnparser.toString(classDecl) );
+    }
+    return ClassBody.prototype.getSource(classBody);
+  }
+  public Sink getNormalSink(IRNode node) {
+    IRNode classDecl = JavaPromise.getPromisedFor(node);
+    IRNode classBody = null;
+    final Operator op = tree.getOperator(classDecl);
+    if (ClassDeclaration.prototype.includes(op)) {
+      classBody = ClassDeclaration.getBody(classDecl);
+    } else if (AnonClassExpression.prototype.includes(op)) {
+      classBody = AnonClassExpression.getBody(classDecl);
+      // System.err.println( "getSource: " + DebugUnparser.toString(classDecl) );
+    }
+    return ClassBody.prototype.getNormalSink(classBody);
+  }
+  public Sink getAbruptSink(IRNode node) {
+    IRNode classDecl = JavaPromise.getPromisedFor(node);
+    IRNode classBody = null;
+    final Operator op = tree.getOperator(classDecl);
+    if (ClassDeclaration.prototype.includes(op)) {
+      classBody = ClassDeclaration.getBody(classDecl);
+    } else if (AnonClassExpression.prototype.includes(op)) {
+      classBody = AnonClassExpression.getBody(classDecl);
+      // System.err.println( "getSource: " + DebugUnparser.toString(classDecl) );
+    }
+    return ClassBody.prototype.getAbruptSink(classBody);
+  }
+}

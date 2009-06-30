@@ -1,0 +1,17 @@
+<package name="java.awt">
+  <class name="Graphics2D">
+
+    <ColorImport>java.awt</ColorImport>
+
+    <Promise>&quot;Color GUI&quot; for get*(**)</Promise>
+    
+    <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
+
+    <Promise>&quot;Color GUI&quot; for draw*(**)</Promise>
+    
+    <Promise>&quot;Color GUI&quot; for fill*(**)</Promise>
+    
+    <Promise>&quot;Color GUI&quot; for translate(**)</Promise>
+    
+  </class>
+</package>

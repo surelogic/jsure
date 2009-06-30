@@ -1,0 +1,15 @@
+# $Header$
+public operator SomeThisExpression extends PrimaryExpression 
+implements edu.cmu.cs.fluid.java.bind.IHasBinding, SomeThisExprInterface
+{
+  syntax {
+    @type:ClassType?
+  }
+  properties {
+    bindsTo=Variable 
+    bindsToType=SourceRefType 
+  }
+  public Operator getResultOp() {
+    return ReceiverDeclaration.prototype;
+  }
+}

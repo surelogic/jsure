@@ -1,0 +1,5 @@
+<package name="java.awt">
+  <class name="MenuContainer">
+    <Promise>&quot;Color AWT&quot; for *(**)</Promise>
+  </class>
+</package>

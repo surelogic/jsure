@@ -1,0 +1,13 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/PolymorphicMethodCall.op,v 1.4 2007/05/16 20:35:30 chance Exp $
+public operator PolymorphicMethodCall extends MethodCall
+{
+  syntax { 
+    <?> object:Expression <> "." <> </?> typeArgs:TypeActuals $method:Info <> args:Arguments
+  }
+  
+  @Override
+  public final Component createComponent(IRNode node) {
+    return super.createComponent(node,2);
+  }
+  
+}

@@ -1,0 +1,14 @@
+<package name="java.awt">
+  <class name="Panel">
+    <Promise>&quot;RegionEffects reads java.awt.event.ActionListener:GUIstuff&quot; for new(**)</Promise>
+    
+    <constructor params="">
+      <Color>GUI</Color>
+    </constructor>
+    
+    <constructor params="java.awt.LayoutManager">
+      <Color>GUI</Color>
+    </constructor>
+    
+  </class>  
+</package>

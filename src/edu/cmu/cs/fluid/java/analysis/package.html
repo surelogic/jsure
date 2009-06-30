@@ -1,0 +1,47 @@
+<!-- $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/analysis/package.html,v 1.4 2003/07/15 18:08:54 aarong Exp $ -->
+<BODY>
+<p> This package includes classes for performing control-flow analysis
+of Java programs.  It uses the generic control-flow analysis in
+package {@link edu.cmu.cs.fluid.control},
+{@link edu.cmu.cs.fluid.control.ForwardAnalysis} and 
+{@link edu.cmu.cs.fluid.control.BackwardAnalysis}.
+These analyses need to be parameterized by <em>transfer functions</em>
+that give the rules for each kind of language-specific node in the
+control-flow graph. The transfer functions in the interfaces
+{@link edu.cmu.cs.fluid.control.ForwardTransfer} and
+{@link edu.cmu.cs.fluid.control.BackwardTransfer} are generic in name.
+The (abstract) classes {@link edu.cmu.cs.fluid.java.analysis.JavaForwardTransfer}
+and {@link edu.cmu.cs.fluid.java.analysis.JavaBackwardTransfer} implement them with a large
+set of Java-specific transfer methods with Java-specific names such as
+<tt>transferAssignment</tt>.  Part of the work of transfer classes is
+dealing with labels; a local helper class {@link edu.cmu.cs.fluid.java.analysis.LabelMatch}
+does much of the messy work.  The class
+{@link edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis} provides a template for
+control-flow analyses which work on one method at a time.
+It keeps a cache of recently requested analyses in LRU order.
+Aside from a test analysis that does nothing interesting, we also
+have {@link edu.cmu.cs.fluid.java.analysis.LiveVariables}, and
+{@link edu.cmu.cs.fluid.java.analysis.PredicateAnalysis}.
+For now, we also have some other analyses, but they are likely to be
+removed, or merged into other analyses.
+</p>
+
+<p> This package also includes other analyses, ones that do not
+operate on the control-flow graph.  For instance,
+{@link edu.cmu.cs.fluid.java.analysis.EffectsAnalysis} computes the effects of statements and
+expressions. </p>
+
+<p> All the analyses need to use binding information, and some need to
+use other analyses to work.  The binding information depends on the
+configuration and since we want to handle multiple configurations, the
+current binding is an instance, not static.  Thus we keep track of a
+set of analyses together in an instance of
+{@link edu.cmu.cs.fluid.java.analysis.AnalysisContext}.</p> 
+</BODY>
+
+<!--
+ LocalWords:  ForwardAnalysis BackwardAnalysis analyses ForwardTransfer LRU
+ LocalWords:  BackwardTransfer JavaForwardTransfer JavaBackwardTransfer
+ LocalWords:  transferAssignment LabelMatch IntraproceduralAnalysis
+ LocalWords:  LiveVariables PredicateAnalysis EffectsAnalysis AnalysisContext
+-->

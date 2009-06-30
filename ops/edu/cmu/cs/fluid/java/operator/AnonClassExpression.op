@@ -1,0 +1,67 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/AnonClassExpression.op,v 1.20 2007/07/12 17:22:41 aarong Exp $
+
+public operator AnonClassExpression extends AllocationCallExpression 
+    implements NestedDeclInterface, TypeDeclInterface
+{
+  syntax {
+    alloc:NewExpression body:ClassBody
+  }
+  properties {
+    id="new_Object_{...}"
+    args=alloc
+    typeBinding=SourceRef
+  }
+  
+  // backward compatibility
+  public static IRNode getType(IRNode node) {
+    IRNode alloc       = getAlloc(node);
+    NewExpression newE = (NewExpression) JJNode.tree.getOperator(alloc);
+    return newE.get_Type(alloc);
+  }
+  public static IRNode getArgs(IRNode node) {
+    IRNode alloc       = getAlloc(node);
+    NewExpression newE = (NewExpression) JJNode.tree.getOperator(alloc);
+    return newE.get_Args(alloc);
+  }
+ 
+  public IRNode get_Type(IRNode node) {
+    return getType(node);
+  }
+ 
+  public IRNode get_Args(IRNode node) {
+    return getArgs(node);
+  }
+
+  public IRNode get_TypeArgs(SyntaxTreeInterface tree, IRNode node) {
+    IRNode alloc       = get_Alloc(tree, node);
+    NewExpression newE = (NewExpression) JJNode.tree.getOperator(alloc);
+    return newE.get_Args(tree, alloc);
+  }
+
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent alloc = new Subcomponent(comp,tree.childLocation(node,allocLoc),1,1,1);
+
+    ControlNode doClose = new ComponentFlow(comp,null);
+    // doInit calls the class initializer
+    ControlNode doInit = new ComponentChoice(comp,SuperExpression.prototype);
+    ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
+    // new AddLabel(new CallExceptionLabel(node));
+    ControlNode abruptMerge = new Merge();
+
+    ControlEdge.connect(comp.getEntryPort(),doClose);
+    ControlEdge.connect(doClose,alloc.getEntryPort());
+    ControlEdge.connect(alloc.getNormalExitPort(),doInit);
+    ControlEdge.connect(doInit,comp.getNormalExitPort());
+    ControlEdge.connect(alloc.getAbruptExitPort(),abruptMerge);
+    ControlEdge.connect(doInit,propagateExceptions);
+    ControlEdge.connect(propagateExceptions,abruptMerge);
+    ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+    
+    /* doClose: NB: when looking at reads of (final) variables,
+     * it is necessary to check the nested class body for uses.
+     */
+
+    return comp;
+  }
+}

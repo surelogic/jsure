@@ -1,0 +1,8 @@
+<package name="java.util.concurrent.locks">
+ <class name="ReentrantLock">
+  <constructor>
+   <regionEffects>none</regionEffects>
+   <starts>nothing</starts>
+  </constructor>
+ </class>
+</package>

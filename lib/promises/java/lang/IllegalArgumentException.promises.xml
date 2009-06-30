@@ -1,0 +1,9 @@
+<package name="java.lang">
+ <class name="IllegalArgumentException">
+  <constructor>
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <borrowed>this</borrowed>
+  </constructor>
+ </class>
+</package>

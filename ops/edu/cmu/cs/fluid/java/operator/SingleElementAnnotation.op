@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/SingleElementAnnotation.op,v 1.4 2007/05/09 14:24:36 chance Exp $
+public operator SingleElementAnnotation extends Annotation
+{
+  syntax {
+    "@" $id:Info "(" elt:ElementValue ")"
+  }
+  
+  @Override
+  public String getName(IRNode n) { return getId(n); }
+}

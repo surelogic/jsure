@@ -1,0 +1,5 @@
+<package name="java.util">
+ <class name="Properties">
+  <selfProtected/>
+ </class>
+</package>

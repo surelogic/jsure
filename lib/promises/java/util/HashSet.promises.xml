@@ -1,0 +1,7 @@
+<package name="java.util">
+ <class name="HashSet">
+  <constructor>
+    <borrowed>this</borrowed>
+  </constructor>
+ </class>
+</package>

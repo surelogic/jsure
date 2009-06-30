@@ -1,0 +1,11 @@
+<package name="java.awt">
+    <class name="BorderLayout">
+
+    <ColorImport>java.awt</ColorImport>
+
+    <Promise>&quot;Color GUI&quot; for new(**)</Promise>
+
+  <Promise>&quot;Color GUI&quot; for *(**)</Promise>
+
+    </class>  
+</package>

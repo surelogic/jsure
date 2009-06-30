@@ -1,0 +1,6 @@
+mini-JDK.*
+*.ab
+*.tri
+.cvsignore
+*.far
+*.prj

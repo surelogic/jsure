@@ -1,0 +1,12 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/DimExprs.op,v 1.8 2006/05/30 14:51:44 chance Exp $
+public operator DimExprs extends ExpressionList {
+  syntax {
+    ( "[" <> size:Expression <> "]" <> ) *
+  }
+  properties {
+    logicallyInvisible=true 
+  }  
+  @Override public Component createComponent(IRNode node) {
+    return new SequenceComponent(node);
+  }
+}

@@ -1,0 +1,20 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ThisExpression.op,v 1.8 2007/06/28 17:15:45 chance Exp $
+/**
+ * Java's "this" expression.
+ */
+public operator ThisExpression extends ConstructionObject
+    implements DripOperator, edu.cmu.cs.fluid.java.bind.IHasBinding, SomeThisExprInterface
+{
+  syntax { "this" }
+  properties {
+    bindsTo=Variable 
+    bindsToType=SourceRefType 
+  }
+  public Operator getResultOp() {
+    return ReceiverDeclaration.prototype;
+  }
+  
+  public IRNode get_Type(IRNode n) {
+    return null;
+  }
+}

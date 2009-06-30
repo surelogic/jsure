@@ -1,0 +1,16 @@
+<package name="java.nio">
+ <class name="ByteBuffer">
+  
+  <method name="allocateDirect" params="int">
+    <RegionEffects>none</RegionEffects>
+    <starts>nothing</starts>
+    <unique>return</unique>    
+  </method>
+  
+  <method name="put" params="byte[], int, int">
+    <RegionEffects>writes Instance</RegionEffects>
+    <starts>nothing</starts>
+    <borrowed>this</borrowed>
+  </method>
+ </class>
+</package>

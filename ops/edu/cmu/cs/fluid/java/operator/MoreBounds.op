@@ -1,0 +1,25 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/MoreBounds.op,v 1.4 2006/07/06 20:39:40 chance Exp $
+public operator MoreBounds {
+  syntax {
+    ( "extends" bound:ClassType +/ ( <> "&" <> ) ) ?
+  }
+
+  properties {
+    logicallyInvisible=true 
+  }  
+  /* Old:
+  syntax {
+    ( <> "&" <> bound:ClassType ) *
+  }
+  */  
+  /*
+  * NB: This change is not needed assuming nodes correctly marked as implicit
+   * To be pretty printer friendly, use this syntax instead
+   * and get rid of the '"extends" bound:ClassType part of
+   * TypeFormal:
+  syntax {
+    ( "extends" bound:ClassType +/ ( <> "&" <> ) ) ?
+  }
+   */
+ 
+}

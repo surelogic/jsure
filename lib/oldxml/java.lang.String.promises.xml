@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.lang">
+    <class name="String">
+      <promise keyword="promise"
+        contents="&quot;transparent&quot; for **(**)"/>
+      <promise keyword="promise"
+        contents="&quot;reads Instance&quot; for public *ndexOf(**) | substring(**)"/>
+	  <promise keyword="abstractImmutable"/>
+
+        <method name="equals" params="java.lang.Object">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="reads" contents="Instance, arg0.Instance"/>
+        </method>
+        <method name="equalsIgnoreCase" params="java.lang.String">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="reads" contents="Instance, arg0.Instance"/>
+        </method>
+        <method name="endsWith" params="java.lang.String">
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="reads" contents="Instance, arg0.Instance"/>
+        </method>
+	<method name="startsWith" params="java.lang.String">
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="reads" contents="Instance, arg0.Instance"/>
+        </method>
+	<method name="substring" params="int, int">
+          <promise keyword="starts" contents="nothing"/>
+        </method>
+	<method name="replace" params="char, char">
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="reads" contents="Instance"/>
+        </method>
+	<method name="charAt" params="int">
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="reads" contents="Instance"/>
+        </method>
+	<method name="lastIndexOf" params="int">
+          <promise keyword="starts" contents="nothing"/>
+        </method>
+	<method name="trim">
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="reads" contents="Instance"/>
+        </method>
+	<method name="length">
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="reads" contents="Instance"/>
+        </method>
+  <method name="valueOf" params="int">
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="reads" contents="nothing"/>
+        </method>
+    </class>  
+</package>

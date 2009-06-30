@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt.event">
+    <class name="ComponentListener">
+
+    <promise keyword="colorImport" contents="java.awt.*;"/>
+
+      <promise keyword="promise"
+	contents="&quot;colorConstraint AWT;&quot; for component*(java.awt.event.ComponentEvent)" />
+
+    </class>  
+</package>

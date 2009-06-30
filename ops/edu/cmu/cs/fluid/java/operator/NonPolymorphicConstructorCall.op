@@ -1,0 +1,23 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NonPolymorphicConstructorCall.op,v 1.4 2007/05/18 14:44:11 chance Exp $
+/** A very special form of call: legal only as the first statement expression
+ * of a constructor.  The object must be "this" or "super".
+ */
+public operator NonPolymorphicConstructorCall extends ConstructorCall
+{
+  syntax {
+    object:ConstructionObject args:Arguments <>
+  }
+
+  public Operator getResultOp() {
+    return ConstructorDeclaration.prototype;
+  }
+  
+  public IRNode get_TypeArgs(SyntaxTreeInterface tree, IRNode node) {
+    return null;
+  }
+  
+  @Override
+  public Component createComponent(IRNode node) {
+    return super.createComponent(node,0);
+  }
+}

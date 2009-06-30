@@ -1,0 +1,15 @@
+# $Header$
+public operator ElementValue implements ElementValueInterface {
+  properties {
+    extendable=true
+  }
+
+ /** Use the interface to determine what operators are legal:
+   */
+  public boolean includes(Operator other) {
+    if (getClass() == ElementValue.class)
+      return (other instanceof ElementValueInterface);
+    else
+      return super.includes(other);
+  } 
+}

@@ -1,0 +1,215 @@
+#!/usr/local/bin/perl -w
+# $Header: /cvs/fluid/fluid/lib/perl/vhtml2html,v 1.4 2000/03/01 21:38:07 boyland Exp $
+
+# Create a series of HTML files from a single VHTML
+# "versioned HTML" file.
+# The versioned HTML file should have have the name "xxx.html"
+# The versioned HTML file is in HTML except it can have the following
+# additional tags (which must be properly terminated, and
+# hierarchically nested).
+#
+# Options:
+#  +links	(default) make <links> active
+#  -links       make <links> inactive, <-links> active
+#  
+#
+#	For any unsigned number n:
+# <n>...</n>   Only output to xxx-n.html
+# <+n>...</+n> Only output to xxx-m.html where m >= n
+# <-n>...</-n> Only output to xxx-m.html where m < n
+# <$n>...</$n> Save the lines for the summary
+#
+#	Either of these can take an optional #name suffix:
+# <prev>...</prev>	Link to previous page
+# <next>...</next>	Link to next page
+# <id/>	(or <id>)	page number (increasing by one from 0)
+# <$>...</$>		Expand only if summary is non-empty
+# <-$/> <+$/>		Repeat lines from <$n>...</$n>, first showing
+#			deletions, then additions.
+#
+# Very important:
+# @ The script only outputs pages for n which appear in <n> tags.
+#   <+n> and <-n> tags are ignored when determining pages to output.
+#   This has profound implications seen in the following two points.
+# @ The script only highlights in blue things in <+n>...</+n>
+#   in the file xxx-n.html; it does not highlight everything added
+#   since the last version.
+# @ It only highlights things in red which appear in <-n>...</-n>
+#   where n is the next version to be printed; it does not highlight
+#   everything that will be deleted by the next version.
+
+$startnewcode = "<font color=\$0000ff>";
+$startoldcode = "<font color=\$ff0000>";
+$endnewcode = "</font>";
+$endoldcode = "</font>";
+
+$links = "+";
+
+# process multiple arguments independently.
+while ($arg = shift) {
+    if ($arg =~ /-links/) {
+	$links = "-";
+    } elsif ($arg =~ /\+links/) {
+	$links = "+";
+    } elsif ($arg =~ /-nocolor/) {
+	$startnewcode = "<i>";
+	$startoldcode = "<b>";
+	$endnewcode = "</i>";
+	$endoldcode = "</b>";
+    } else {
+	local (@version) = &read_versions($arg);
+	foreach $i ($[ .. $#version) {
+	    print STDOUT "Creating HTML for version $version[$i]\n";
+	    &create_html($arg,$version[$i-1],$version[$i],$version[$i+1]);
+	}
+    }
+}
+
+sub numerically { $a <=> $b; }
+
+sub read_versions {
+    local (%version);
+    open (VHTML,"<".$_[0]);
+    while ($line = <VHTML>) {
+	if ($line =~ m|\<([0-9.]+)\>|) {
+	    $version{$1} = "true";
+	}
+    }
+    close(VHTML);	    
+    return sort numerically keys(%version);
+}
+
+sub create_html {
+    local ($vfilename,$prev,$version,$next) = (@_);
+    $next = "9999999" if (!(defined($next)));
+    local ($filename) = &html_filename($version);
+    local (@active) = ();
+    local (@inactive) = ();
+    local ($linksactive) = 1;
+    local ($insummary,@summary) = (0);
+    open (VHTML,"<".$vfilename);
+    open (HTML,">".$filename);
+    while ($line = <VHTML>) {
+	# print STDOUT "(@active,@inactive) $line";
+	if ($line =~ m|^\<(/?)([-+]?)links\>$|) {
+	    if ($2 ne $links) {
+		$linksactive = 1 - $linksactive;
+	    }
+	} elsif ($line =~ m|^\<(/?)\$([0-9.]+)\>$|) {
+	    if ($2 == $next) {
+		$insummary = ($1 eq "");
+	    }
+	} elsif ($linksactive == 1) {
+	    push (@summary,$line) if ($insummary);
+	    # print "Summary: $line" if ($insummary);
+	    &process_line($line);
+	}
+    }
+    close(HTML);
+    close(VHTML);
+}
+
+sub html_filename {
+    local ($v) = (@_);
+    local ($result);
+    ($result = $vfilename) =~ s/\./-$v./;
+    # print STDOUT "Output to $result\n";
+    $result;
+}
+
+sub process_line {
+    if ($line =~ m|^\<(/?)([-+]?)([0-9.]+)\>$|) {
+	&process_vtag($1,$2,$3);
+	return;
+    }
+    if ($line =~ m|^\<(/?)\$\>$|) {
+	&process_vtag($1,"","\$");
+        return;
+    }
+    local ($start) = $[;
+    while (($nexttag = index($line,"<",$start)) >= $[) {
+	print HTML substr($line,$start,$nexttag-$start) if (@inactive == 0);
+	($start = index($line,">",$nexttag+1)) ||
+	    die("< not matched at $start in $line");
+	#!! The preceding line doesn't catch unmatched <
+	#print STDOUT "Indexing ($nexttag,$start) in $line\n";
+	$_ = substr($line,$nexttag+1,$start-$nexttag-1);
+	#print STDOUT "Found tag <$_>\n";
+	if (m|^(/?)([-+]?)([0-9.]+)$|) {
+	    &process_vtag($1,$2,$3);
+	} elsif (@inactive == 0) {
+	    if (m|^prev(.*)|) {
+		local ($prevfilename) = &html_filename($prev);
+		print HTML "<a href=\"$prevfilename$1\">";
+	    } elsif (m|^next(.*)|) {
+		local ($nextfilename) = &html_filename($next);
+		print HTML "<a href=\"$nextfilename$1\">";
+	    } elsif (m|/prev| || m|/next|) {
+		print HTML "</a>";
+	    } elsif (m|^id[/]?$|) {
+		print HTML "$i";
+	    } elsif (m|^([-+])\$/$|) {	
+		local ($line);
+		if ($1 eq "-") {
+		    local ($prev,$version,$next) = ("-100",$next-0.1,$next);
+		    foreach $line (@summary) {
+			&process_line($line);
+		    }
+		} else {
+		    local ($prev,$version,$next) = ($version,$next,$next+0.1);
+		    foreach $line (@summary) {
+			&process_line($line);
+		    }
+		}
+	    } else {
+		# print STDOUT "Found normal tag <$_>\n";
+		print HTML "<$_>";
+	    }
+	}
+	++$start;
+    }
+    print HTML substr($line,$start) if (@inactive == 0);
+}
+
+sub process_vtag {
+    local ($terminated,$diff,$v) = (@_);
+
+    # print STDOUT ("length of summary: ",(@summary+0),"\n");
+    # print STDOUT "(@active,@inactive) Found <$terminated$diff$v>\n";
+
+    if ($terminated) {
+	if (@inactive > 0) {
+	    &test_popped("$diff$v",pop(@inactive));
+	} else {
+	    &test_popped("$diff$v",pop(@active));
+	    if ($diff eq "+" && $version eq $v) {
+		print HTML $endnewcode;
+	    } elsif ($diff eq "-" && $next eq $v) {
+		print HTML $endoldcode;
+	    }
+	}
+    } elsif (@inactive) {
+	push(@inactive,"$diff$v");
+    } else {
+	if ($diff eq "" && $version eq $v ||
+	    $diff eq "+" && $version >= $v ||
+	    $diff eq "-" && $version < $v ||
+	    @summary > 0 && $v eq "\$")
+	{
+	    push(@active,"$diff$v");
+	    if ($diff eq "+" && $version eq $v) {
+		print HTML $startnewcode;
+	    } elsif ($diff eq "-" && $next eq $v) {
+		print HTML $startoldcode;
+	    }
+	} else {
+	    push(@inactive,"$diff$v");
+	}
+    }
+}
+
+sub test_popped {
+    local ($was,$expected) = (@_);
+    die ("Expected </$expected> but found </$was>, stopped")
+	unless ($was eq $expected);
+}

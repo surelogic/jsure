@@ -1,0 +1,74 @@
+<package name="java.lang">
+ <class name="Object">
+  <Region>public static All</Region>
+  <Region>public Instance extends All</Region>
+  <Region>public WaitQueue</Region>
+  <RegionLock>MUTEX is this protects WaitQueue</RegionLock>
+  <constructor>
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <borrowed>this</borrowed>
+   <transparent/>
+  </constructor>
+  <method name="clone">
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <transparent/>
+  </method>
+  <method params="java.lang.Object" name="equals">
+   <effects>reads this.Instance</effects>
+   <effects>reads arg0.Instance</effects>
+   <starts>nothing</starts>
+   <transparent/>
+  </method>
+  <method name="finalize">
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <transparent/>
+  </method>
+  <method name="getClass">
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <transparent/>
+  </method>
+  <method name="hashCode">
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <transparent/>
+  </method>
+  <method name="notify">
+   <requiresLock>MUTEX</requiresLock>
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <transparent/>
+  </method>
+  <method name="notifyAll">
+   <requiresLock>MUTEX</requiresLock>
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <transparent/>
+  </method>
+  <method name="toString">
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+  </method>
+  <method name="wait">
+   <requiresLock>MUTEX</requiresLock>
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <transparent/>
+  </method>
+  <method params="long" name="wait">
+   <requiresLock>MUTEX</requiresLock>
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <transparent/>
+  </method>
+  <method params="long, int" name="wait">
+   <requiresLock>MUTEX</requiresLock>
+   <starts>nothing</starts>
+   <RegionEffects>none</RegionEffects>
+   <transparent/>
+  </method>
+ </class>
+</package>

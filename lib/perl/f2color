@@ -1,0 +1,30 @@
+#!/usr/local/bin/perl
+
+while ($arg = shift) {
+    local ($color);
+    $color = 0;
+    local ($outfile);
+    ($outfile = $arg) =~ s/\.ps/-color.ps/;
+    open (PS,"<".$arg);
+    open (OUT,">".$outfile);
+    while ($line = <PS>) {
+	if ($line eq "10 f6\n") {
+	    print OUT ("10 f4 0 0.5 1 setrgbcolor\n");
+	    $color = 1;
+	} elsif ($line eq "10 f5\n") {
+	    print OUT ("10 f4 1 0 0 setrgbcolor\n");
+	    $color = 1;
+	} elsif ($line eq "10 f7\n") {
+	    print OUT ("10 f4 .7 0 .7 setrgbcolor\n");
+	    $color = 1;
+	} elsif ($color && $line =~ /^(.*)show$/) {
+	    print OUT ("$1show 0 setgray\n");
+	    $color = 0;
+	} else {
+	    print OUT ("$line");
+	}
+    }
+    close(OUT);
+    close(PS);
+}
+  

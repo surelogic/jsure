@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/BoxExpression.op,v 1.1 2005/07/15 08:25:59 boyland Exp $
+
+/**
+ * The node inserted for implicit boxing of primitive values.
+ */
+ public operator BoxExpression extends UnopExpression {
+   syntax { 
+     op:Expression
+   }
+}

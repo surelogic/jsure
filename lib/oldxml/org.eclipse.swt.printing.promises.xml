@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="org.eclipse.swt.printing">
+ <promise keyword="promise"
+  	contents="&quot;@colorImport java.awt.*;&quot; for *"/>
+
+ <promise keyword="promise"
+  	contents="&quot;@colorImport org.eclipse.swt.*;&quot; for *"/>
+
+ <promise keyword="color" contents="SWT"/>
+ <promise keyword="incompatibleColors" contents="SWT, Compute"/>
+
+ <promise keyword="promise"
+    contents="&quot;colorConstraint SWT;&quot; for public **(**) &amp; !(asyncExec(*) | syncExec(*))"/>
+
+
+</package>

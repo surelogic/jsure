@@ -1,0 +1,12 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator ColorNot implements ColorSpecInterface, 
+       		       ColorOrElemInterface, ColorAndElemInterface 
+{
+  syntax {
+    "!" target:ColorName 
+  }
+}

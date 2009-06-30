@@ -1,0 +1,9 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/promise/InvariantDeclaration.op,v 1.1 1998/03/24 17:02:07 boyland Exp $
+
+/** A class invariant has a name, modifiers, and a condition.
+ */
+public operator InvariantDeclaration {
+  syntax {
+    $mods:Modifiers "invariant" $id:Info "=" cond:Condition
+  }
+}

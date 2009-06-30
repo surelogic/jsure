@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.util">
+    <class name="Hashtable">
+        <constructor>
+            <promise keyword="borrowed" contents="this"/>
+        </constructor>
+    </class>  
+</package>

@@ -1,0 +1,7 @@
+<package name="java.awt">
+	<class name="Color">
+
+  	<Promise>&quot;Color GUI&quot; for **(**)</Promise>
+
+  </class>
+</package>

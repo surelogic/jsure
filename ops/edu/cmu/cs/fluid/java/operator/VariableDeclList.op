@@ -1,0 +1,12 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/VariableDeclList.op,v 1.2 2007/01/14 07:00:31 nbeckman Exp $
+/**
+ * A common interface for lists of VariableDeclarators
+ * (e.g., FieldDeclaration and DeclStatement)
+ */
+public operator VariableDeclList
+{
+  syntax {
+    annos:Annotations
+    $mods:Modifiers(final) type:Type @vars:VariableDeclarators
+  }
+}

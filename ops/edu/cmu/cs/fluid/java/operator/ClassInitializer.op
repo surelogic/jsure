@@ -1,0 +1,20 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ClassInitializer.op,v 1.6 2007/01/15 17:15:48 chance Exp $
+public operator ClassInitializer extends ClassBodyDeclaration {
+  syntax {
+    $modifiers:Modifiers(static)
+    block:BlockStatement
+  }
+
+  /** Create a component for this node.  Just execute the block.
+   */
+  @Override public Component createComponent(IRNode node) {
+    return new SimpleComponent(node);
+  }  
+  
+  /* Why did I add this?
+  properties {
+    logicallyInvisible=true,
+    id=""
+  } 
+  */ 
+}

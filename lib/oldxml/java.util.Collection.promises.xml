@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.util">
+    <class name="Collection">
+
+        <promise keyword="promise"
+	  contents="&quot;transparent&quot; for *(**)"/>
+
+
+        <method name="iterator" params="">
+          <promise keyword="reads" contents="Instance"/>
+        </method>
+
+        <method name="addAll" params="java.util.Collection">
+          <promise keyword="borrowed" contents="this"/>
+          <promise keyword="writes" contents="Instance"/>
+          <promise keyword="reads" contents="arg0.Instance"/>
+        </method>
+    </class>  
+</package>

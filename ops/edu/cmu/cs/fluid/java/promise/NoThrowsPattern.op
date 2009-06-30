@@ -1,0 +1,10 @@
+# $Header$
+
+/** 
+ * 
+ */
+public operator NoThrowsPattern extends OptThrowsPattern {
+  properties {
+    logicallyInvisible=true 
+  }
+}

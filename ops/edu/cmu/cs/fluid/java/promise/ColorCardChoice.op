@@ -1,0 +1,8 @@
+
+# $Header: $
+
+public operator ColorCardChoice implements ColorCardChoiceInterface {
+  public boolean includes (Operator other) {
+    return other instanceof ColorCardChoiceInterface;
+  }
+}

@@ -1,0 +1,8 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/StaticDemandName.op,v 1.5 2006/06/20 20:31:54 chance Exp $
+public operator StaticDemandName extends ImportName implements edu.cmu.cs.fluid.java.bind.IHasBinding {
+  syntax { "static" type:ClassType <> "." <> "*" }
+  
+  public Operator getResultOp() {
+    return TypeDeclaration.prototype;
+  }  
+}

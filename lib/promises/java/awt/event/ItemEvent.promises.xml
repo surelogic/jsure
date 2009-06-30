@@ -1,0 +1,10 @@
+<package name="java.awt.event">
+  <class name="ItemEvent">
+    <!-- Promise>&quot;InRegion java.awt.event.ActionListener:GUIinternal&quot; for * *</Promise -->
+
+    <method name="getStateChange" params="">
+      <!--Color>AWT</Color-->
+      <RegionEffects>reads java.awt.event.ActionListener:GUIinternal</RegionEffects>
+    </method>
+  </class>
+</package>

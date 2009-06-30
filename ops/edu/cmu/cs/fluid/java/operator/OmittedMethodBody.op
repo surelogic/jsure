@@ -1,0 +1,3 @@
+# $Header$
+public operator OmittedMethodBody extends OptMethodBody {
+}

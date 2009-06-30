@@ -1,0 +1,17 @@
+# $Header$
+public operator AllocationCallExpression extends AllocationExpression implements CallInterface
+{
+  syntax {
+    @typeArgs:TypeActuals? @args:Arguments
+  }
+  properties {
+    bindsTo=Constructor
+  }
+  public Operator getResultOp() {
+    return ConstructorDeclaration.prototype;
+  }  
+  
+  public IRNode get_Type(IRNode node) {
+    throw new UnsupportedOperationException();  
+  }
+}

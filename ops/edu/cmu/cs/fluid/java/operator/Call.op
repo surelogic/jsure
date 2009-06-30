@@ -1,0 +1,24 @@
+# $Header$
+public operator Call implements CallInterface
+{
+  syntax {
+    @typeArgs:TypeActuals
+    @args:Arguments
+  }
+  properties {
+    bindsTo=Function
+  }
+  
+  /** Use the interface to determine what operators are legal:
+   */
+  public boolean includes(Operator other) {
+    if (getClass() == Call.class)
+      return (other instanceof CallInterface);
+    else
+      return super.includes(other);
+  }
+  
+  public Operator getResultOp() {
+    return SomeFunctionDeclaration.prototype;
+  }
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.util">
+    <class name="Map">
+
+      <promise keyword="promise"
+	contents="&quot;transparent&quot; for *(**) | new(**)"/>
+
+      <promise keyword="promise" contents="&quot;borrowed this&quot; for *(**) | new(**)"/>
+      
+      <method name="put" params="*,*">
+          <promise keyword="writes" contents="Instance"/>
+      </method>
+
+      <method name="get" params="java.lang.Object">
+          <promise keyword="reads" contents="Instance"/>
+      </method>
+
+      <method name="remove" params="java.lang.Object">
+          <promise keyword="writes" contents="Instance"/>
+      </method>
+
+      <method name="containsKey" params="java.lang.Object">
+          <promise keyword="reads" contents="Instance"/>
+      </method>
+
+    <class name="Entry">
+
+
+      <promise keyword="promise"
+	contents="&quot;transparent&quot; for *(**) | new(**)"/>
+
+    </class>  
+
+    </class>  
+</package>

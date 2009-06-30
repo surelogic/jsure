@@ -1,0 +1,10 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/SimpleEnumConstantDeclaration.op,v 1.3 2006/06/16 16:36:09 chance Exp $
+public operator SimpleEnumConstantDeclaration extends EnumConstantDeclaration
+{
+  syntax { 
+    $id:Info 
+  }
+  @Override public Component createComponent(IRNode node) {
+    return null;
+  }
+}

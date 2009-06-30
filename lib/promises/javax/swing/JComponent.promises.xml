@@ -1,0 +1,13 @@
+<package name="javax.swing">
+ <class name="JComponent">
+  <method name="setDoubleBuffered" params="boolean">
+    <starts>nothing</starts>
+    <borrowed>this</borrowed>
+   <RegionEffects>writes this:Instance</RegionEffects>
+  </method>
+
+  <method name="setOpaque" params="boolean">
+    <borrowed>this</borrowed>
+  </method>
+ </class>
+</package>

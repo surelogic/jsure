@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.lang">
+    <!-- what promises could go here? -->
+    <class name="System">
+        <promise keyword="promise"
+	  contents="&quot;transparent&quot; for get*(**) | arraycopy(**) | currentTime*(**) | exit(*) | gc() | set*(**)"/>
+
+        <method name="arraycopy" params="java.lang.Object,int,java.lang.Object,int,int">
+<!--            <parameter index="1">
+              <promise keyword="borrowed"/>
+            </parameter>
+            <parameter index="3">
+              <promise keyword="borrowed"/>
+            </parameter>
+-->
+          <promise keyword="borrowed" contents="arg0, arg2"/>
+          <promise keyword="reads" contents="arg0.Instance"/>
+          <promise keyword="writes" contents="arg2.Instance"/>
+          <promise keyword="starts" contents="nothing"/>
+          <promise keyword="transparent"/>
+        </method>
+	<method name="getProperty" params="java.lang.String">
+          <promise keyword="starts" contents="nothing"/>
+        </method>
+	
+    </class>  
+</package>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.io">
+    <class name="InputStream">
+      <promise keyword="promise"
+	contents="&quot;transparent&quot; for *(**)"/>
+    </class>
+</package>

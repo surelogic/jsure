@@ -1,0 +1,12 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/Arguments.op,v 1.10 2006/05/30 14:51:44 chance Exp $
+public operator Arguments extends OptArguments implements DripOperator {
+  syntax {
+    "(" <paren> arg:Expression */ ( <> "," <comma> ) </paren> ")"
+  }
+  properties {
+    logicallyInvisible=true 
+  }
+  @Override public Component createComponent(IRNode node) {
+    return new SequenceComponent(node);
+  }
+}

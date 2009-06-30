@@ -1,0 +1,9 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ShortType.op,v 1.4 2006/05/12 13:51:19 chance Exp $
+public operator ShortType extends IntegralType implements DripOperator {
+  syntax { "short" }
+
+  public Operator getResultOp() {
+    return ShortType.prototype;
+  }
+}
+

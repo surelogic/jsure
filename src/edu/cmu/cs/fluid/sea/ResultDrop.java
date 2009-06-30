@@ -1,0 +1,348 @@
+package edu.cmu.cs.fluid.sea;
+
+import java.util.*;
+
+import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+
+/**
+ * A code/model consistency result drop recording an analysis result in terms
+ * of what promises are (partially or wholly) established in terms of a
+ * (possibly empty) set of precondition promises.
+ * <p>
+ * Not intended to be subclassed.
+ */
+@SuppressWarnings("unchecked")
+public class ResultDrop extends ProofDrop {
+  
+  /**
+   * Holds key that describes which message this result is.
+   */
+  private final String type;
+  
+  
+  /**
+   * @param t Key that describes which message this result drop represents.
+   */
+  public ResultDrop(String t) {
+	  if (t == null) {
+		  throw new RuntimeException();
+	  }
+	  type = t;
+  }
+  public ResultDrop() {
+	  this(null);
+  }
+	
+  /**
+   * The set of promise drops being checked, or established, by this result.
+   */
+  private Set<PromiseDrop> checks = new HashSet<PromiseDrop>();
+
+  /**
+   * The set of promise drops trusted by this result, its preconditions.
+   */
+  private Set<PromiseDrop> trusts = new HashSet<PromiseDrop>();
+
+  /**
+   * Map from "or" logic trust labels (String) to sets of drop promises.  One
+   * complete set of promises must be proved consistent for this result to
+   * be consistent.
+   */
+  private Map<String, Set<PromiseDrop>> or_TrustLabelToTrusts = new HashMap<String, Set<PromiseDrop>>(); // String -> Set (promise drops)
+
+  /**
+   * Flags if this result indicates consistency with code.
+   */
+  private boolean consistent = false;
+
+  /**
+   * Adds a promise to the set of promises this result establishes, or
+   * <i>checks</i>.
+   * 
+   * @param promise the promise being supported by this result
+   */
+  public void addCheckedPromise(PromiseDrop promise) {
+    checks.add(promise);
+    promise.addDependent(this);
+  }
+  
+  public void addCheckedPromises(Collection<? extends PromiseDrop> promises) {
+    //no null check -- fail-fast
+    for (PromiseDrop promise : promises) {
+//   Iterator promiseIter = promises.iterator();
+//    while (promiseIter.hasNext()) {
+//      PromiseDrop promise = (PromiseDrop) promiseIter.next();
+      addCheckedPromise(promise);
+    }
+  }
+
+  /**
+   * Adds a promise to the set of promises this result uses as a
+   * precondition, or <i>trusts</i>.
+   * 
+   * @param promise the promise being trusted by this result
+   */
+  public void addTrustedPromise(PromiseDrop promise) {
+    trusts.add(promise);
+    promise.addDependent(this);
+  }
+  
+  public void addTrustedPromises(Collection<? extends PromiseDrop> promises) {
+    //no null check -- fail-fast
+    for (PromiseDrop promise : promises) {
+//    Iterator promiseIter = promises.iterator();
+//    while (promiseIter.hasNext()) {
+//      PromiseDrop promise = (PromiseDrop) promiseIter.next();
+      addTrustedPromise(promise);
+    }
+  }
+  
+  /**
+   * Adds a promise to the set of promises this result uses as a
+   * precondition, or <i>trusts</i>.
+   * 
+   * @param promise the promise being trusted by this result
+   */
+  public void addTrustedPromise_or(String orKey, PromiseDrop promise) {
+    String key = orKey.intern();
+    Set<PromiseDrop> s = or_TrustLabelToTrusts.get(key);
+    if (s == null) {
+      s = new HashSet<PromiseDrop>();
+      or_TrustLabelToTrusts.put(key, s);
+    }
+    s.add(promise);
+    promise.addDependent(this);
+  }
+
+  /**
+   * @return the set of promise drops established, or checked, by this result.
+   *   All members of the returned set will are of the PromiseDrop type.
+   */
+  public Set<? extends PromiseDrop> getChecks() {
+    return checks;
+  }
+
+  /**
+   * Returns the preconditions of this result, including any "or" preconditions.
+   * However, using this call it is impossible to distingish "and" preconditions
+   * from "or"preconditions.
+   * 
+   * @return the set of promises trusted by this result, its preconditions.
+   *   All members of the returned set will are of the PromiseDrop type.
+   *
+   * @see #getTrusts() 
+   * @see #hasOrLogic()
+   * @see #get_or_TrustLabelSet()
+   * @see #get_or_Trusts(String)
+   */
+  public Set<? extends PromiseDrop> getTrustsComplete() {
+    Set<PromiseDrop> result = new HashSet<PromiseDrop>();
+    result.addAll(trusts);
+    if (hasOrLogic()) {
+      Set<String> orLabels = get_or_TrustLabelSet();
+      for (String orKey : orLabels) {
+        //String orKey = (String) i.next();
+        result.addAll(get_or_Trusts(orKey));
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Returns the preconditions of this result, this set does not include
+   * any "or" preconditions.  Use the "get_or_" methods to obtain
+   * those preconditions.
+   * 
+   * @return the set of promises trusted by this result, its preconditions.
+   *   All members of the returned set will are of the PromiseDrop type.
+   * 
+   * @see #hasOrLogic()
+   * @see #get_or_TrustLabelSet()
+   * @see #get_or_Trusts(String)
+   */
+  public Set<PromiseDrop> getTrusts() {
+    return trusts;
+  }
+
+  /**
+   * Flags if this result has groups of "or" precondition sets which must
+   * be considered in the whole-program consistency proof.  Most results
+   * do not include "or" precondition logic.
+   * <p>
+   * Typical use of this method is:
+   * <pre>
+   * if (rd.hasOrLogic()) {
+   *   Set orLabels = rd.get_or_TrustLabelSet()
+   *   for (Iterator i = orLabels.iterator(); i.hasNext();) {
+   *      String orKey = (String) i.next();
+   *      Set promiseSet = rd.get_or_Trusts(orKey);
+   *      for (Iterator j = promiseSet.iterator(); j.hasNext();) {
+   *         PromiseDrop promise = (PromiseDrop) j.next();
+   *         // do something
+   *      }   
+   *   }
+   * }
+   * </pre>
+   * 
+   * @return <code>true</code> if "or" precondition logic exists,
+   *   <code>false</code> otherwise.
+   */
+  public boolean hasOrLogic() {
+    return !or_TrustLabelToTrusts.keySet().isEmpty();
+  }
+
+  /**
+   * Returns the set of "or" keys used for this promise.
+   * <p>
+   * Typical use of this method is:
+   * <pre>
+   * if (rd.hasOrLogic()) {
+   *   Set orLabels = rd.get_or_TrustLables()
+   *   Set orLabels = rd.get_or_TrustLabelSet()
+   *   for (Iterator i = orLabels.iterator(); i.hasNext();) {
+   *      String orKey = (String) i.next();
+   *      Set promiseSet = rd.get_or_Trusts(orKey);
+   *      for (Iterator j = promiseSet.iterator(); j.hasNext();) {
+   *         PromiseDrop promise = (PromiseDrop) j.next();
+   *         // do something
+   *      }   
+   *   }
+   * }
+   * </pre>
+   * 
+   * @return the set of "or" keys used by this promise
+   */
+  public Set<String> get_or_TrustLabelSet() {
+    return or_TrustLabelToTrusts.keySet();
+  }
+
+  /**
+   * Returns the set of promise drops for a specific "or" key.
+   * <p>
+   * Typical use of this method is:
+   * <pre>
+   * if (rd.hasOrLogic()) {
+   *   Set orLabels = rd.get_or_TrustLabelSet()
+   *   for (Iterator i = orLabels.iterator(); i.hasNext();) {
+   *      String orKey = (String) i.next();
+   *      Set promiseSet = rd.get_or_Trusts(orKey);
+   *      for (Iterator j = promiseSet.iterator(); j.hasNext();) {
+   *         PromiseDrop promise = (PromiseDrop) j.next();
+   *         // do something
+   *      }   
+   *   }
+   * }
+   * </pre>
+   * 
+   * @param key the key to provide the promise drop set for
+   * @return the promise drop set
+   */
+  public Set<PromiseDrop> get_or_Trusts(String key) {
+    return or_TrustLabelToTrusts.get(key);
+  }
+
+  /**
+   * @return <code>true</code> if the result indicates model/code
+   *   consistency, <code>false</code> otherwise.
+   */
+  public boolean isConsistent() {
+    return consistent;
+  }
+
+  /**
+   * Sets this result to indicate model/code consistency.
+   */
+  public void setConsistent() {
+    consistent = true;
+  }
+
+  /**
+   * Sets this result to indicate model/code inconsistency.
+   */
+  public void setInconsistent() {
+    consistent = false;
+  }
+
+  public void setConsistent(final boolean isConsistent) {
+    consistent = isConsistent;
+  }
+  
+  /**
+   * Flags of the proof of "or" trusted promises uses a red dot.
+   */
+  boolean or_proofUsesRedDot = false;
+
+  /**
+   * Returns if the proof of "or" trusted promises uses a red dot.
+   * 
+   * @return <code>true</code> if a red dot is used, <code>false</code> otherwise.
+   */
+  public boolean get_or_proofUsesRedDot() {
+    return or_proofUsesRedDot;
+  }
+
+  /**
+   * Flags if the proof of "or" trusted promises is consistent.
+   */
+  boolean or_provedConsistent = false;
+
+  /**
+   * Returns if the proof of "or" trusted promises is consistent.
+   * 
+   * @return<code>true</code> if consistent, <code>false</code> otherwise.
+   */
+  public boolean get_or_provedConsistent() {
+    return or_provedConsistent;
+  }
+  
+  @Override
+  public String getEntityName() {
+	  return "result-drop";
+  }	
+  
+  @Override
+  public void preprocessRefs(SeaSnapshot s) {
+	  for(Drop c : getChecks()) {
+		  s.snapshotDrop(c);
+	  }
+	  for(Drop t : getTrusts()) {
+		  s.snapshotDrop(t);
+	  }
+	  if (hasOrLogic()) {
+		  for(String label : get_or_TrustLabelSet()) {
+			  for(Drop t : get_or_Trusts(label)) {
+				  s.snapshotDrop(t);
+			  }
+		  }
+	  }
+  }
+  
+  @Override
+  public void snapshotAttrs(SeaSnapshot s) {
+	  super.snapshotAttrs(s);
+	  s.addAttribute("consistent", isConsistent());
+	  if (type != null) {
+		  s.addAttribute("result-type", type);
+	  } else {
+		  System.out.println("result-type is null");
+	  }
+  }
+  
+  @Override
+  public void snapshotRefs(SeaSnapshot s) {
+	  super.snapshotRefs(s);
+	  for(Drop c : getChecks()) {
+		  s.refDrop("checked-promise", c);
+	  }
+	  for(Drop t : getTrusts()) {
+		  s.refDrop("trusted-promise", t);
+	  }
+	  if (hasOrLogic()) {
+		  for(String label : get_or_TrustLabelSet()) {
+			  for(Drop t : get_or_Trusts(label)) {
+				  s.refDrop("or-trusted-promise", t, "label", label);
+			  }
+		  }
+	  }
+  }
+}

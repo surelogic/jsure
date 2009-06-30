@@ -1,0 +1,14 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/promise/header,v 1.7 2005/11/10 21:55:43 chance Exp $
+package edu.cmu.cs.fluid.java.promise;
+
+import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.tree.*;
+import edu.cmu.cs.fluid.control.*;
+import edu.cmu.cs.fluid.unparse.*;
+import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.util.Iteratable;
+
+import java.util.*;
+import java.util.logging.*;

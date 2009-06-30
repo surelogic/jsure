@@ -1,0 +1,5 @@
+<package name="java.awt.event">
+  <class name="FocusListener">
+    <Promise>&quot;Color AWT&quot; for focus*(java.awt.event.FocusEvent)</Promise>
+  </class>  
+</package>

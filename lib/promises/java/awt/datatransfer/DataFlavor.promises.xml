@@ -1,0 +1,8 @@
+<package name="java.awt.datatransfer">
+    <class name="DataFlavor">
+      <Promise>&quot;Transparent&quot; for equals(**)</Promise>
+
+      <Promise>&quot;Color GUI&quot; for **(**) &amp; !(equals(**))</Promise>
+
+    </class>
+</package>

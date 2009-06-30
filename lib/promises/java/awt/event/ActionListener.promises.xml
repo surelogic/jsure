@@ -1,0 +1,21 @@
+<package name="java.awt.event">
+ <class name="ActionListener">
+  <!--<method name="addMouseListener" params="java.awt.event.MouseListener">
+    <starts>nothing</starts>
+    <borrowed>this</borrowed>
+    <RegionEffects>writes Instance</RegionEffects>
+  </method>
+
+  <method name="addMouseMotionListener" params="java.awt.event.MouseMotionListener">
+    <starts>nothing</starts>
+    <borrowed>this</borrowed>
+    <RegionEffects>writes Instance</RegionEffects>
+  </method>
+ -->
+ <Region>public static GUIstuff</Region>
+ <Region>public static GUIinternal</Region>
+ <method name="actionPerformed" params="java.awt.event.ActionEvent">
+ 		<Color>AWT</Color>
+ </method>
+ </class>
+</package>

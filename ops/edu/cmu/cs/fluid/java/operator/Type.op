@@ -1,0 +1,15 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/Type.op,v 1.6 2006/05/12 15:42:41 chance Exp $
+public operator Type extends ReturnType implements TypeInterface {
+  /** Use the interface to determine what operators are legal:
+   */
+  public boolean includes(Operator other) {
+    if (getClass() == Type.class)
+      return (other instanceof TypeInterface);
+    else
+      return super.includes(other);
+  }
+
+  public Operator getResultOp() {
+    return Type.prototype;
+  }
+}
