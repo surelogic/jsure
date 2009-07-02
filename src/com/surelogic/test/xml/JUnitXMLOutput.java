@@ -134,7 +134,6 @@ public class JUnitXMLOutput extends AbstractTestOutput {
   public static final ITestOutputFactory factory = new ITestOutputFactory() {
     public ITestOutput create(String name) {
       try {
-        System.out.println(">>>>>> JUnitXMLOutputFactory creating " + name + ".log.Tests.xml");
         return new JUnitXMLOutput(name, new FileOutputStream(name+".log.Tests.xml"));
       } catch (FileNotFoundException e) {
         e.printStackTrace();
