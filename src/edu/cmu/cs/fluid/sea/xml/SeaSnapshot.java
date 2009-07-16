@@ -35,7 +35,7 @@ public class SeaSnapshot {
 	}
 	
 	public void snapshot(String project, final Sea sea, File location) throws IOException {
-    	pw = new PrintWriter(new FileWriter(location));
+    	pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(location), "UTF-8"));
 		pw.println("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>");
 		
 		reset();
