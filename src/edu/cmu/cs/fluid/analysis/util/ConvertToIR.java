@@ -238,8 +238,6 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 				UpdateSuperRootStorage.excludeLibraryPath(excludePath);
 			}
 		}
-
-		ProjectDrop.ensureDrop(p.getName(), p);
 	}
 
 	/**
@@ -376,6 +374,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 				ClearProjectListener.clearJSureState();
 			}
 		}
+		ProjectDrop.ensureDrop(getProject().getName(), getProject());
 		
 		final Iterator<Map.Entry<String, String>> it = args.entrySet()
 				.iterator();
