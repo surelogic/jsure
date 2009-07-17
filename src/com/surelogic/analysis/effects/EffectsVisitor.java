@@ -688,11 +688,11 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
 
       if (isUnique) {
         // The field is unique, see if we can exploit uniqueness aggregation.
-        final Map<IRegion, IRegion> aggregationMap = 
+        final Map<RegionModel, IRegion> aggregationMap = 
           AggregationUtils.constructRegionMapping(fieldID);
         if (aggregationMap != null) {
           final IRNode newObject = FieldRef.getObject(expr);
-          final IRegion newRegion = AggregationUtils.getMappedRegion(region, aggregationMap);
+          final IRegion newRegion = AggregationUtils.getMappedRegion(region.getModel(), aggregationMap);
           final Target newTarget;
           if (newRegion.isStatic()) {
             newTarget = targetFactory.createClassTarget(newRegion);

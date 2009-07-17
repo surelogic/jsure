@@ -392,7 +392,7 @@ public class ColorTargets {
       /* Get the region mapping for the field 'f'. Mapping is 'null' if the
        * field is not unique or does not have a declared mapping.
        */
-      final Map<IRegion, IRegion> regionMap =
+      final Map<RegionModel, IRegion> regionMap =
         AggregationUtils.getRegionMappingFromFieldRef(binder, actual);
       if (regionMap != null) {
         /* For each region in 'e.f' that may be affected that is mapped into a

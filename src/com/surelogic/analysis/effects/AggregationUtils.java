@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.AggregatePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 /**
  * Contains methods for helping process aggregated regions.  These methods
@@ -80,10 +81,10 @@ public final class AggregationUtils {
         /* Field can only be aggregated if the indirect field is unique */
         if (isUnique) {
           /* The field is unique, see if we can exploit uniqueness aggregation. */
-          final Map<IRegion, IRegion> aggregationMap = constructRegionMapping(fieldID);
+          final Map<RegionModel, IRegion> aggregationMap = constructRegionMapping(fieldID);
           if (aggregationMap != null) {
             final IRNode newObject = FieldRef.getObject(expr);
-            final IRegion newRegion = getMappedRegion(region, aggregationMap);
+            final IRegion newRegion = getMappedRegion(region.getModel(), aggregationMap);
             /* <expr> . <region> == <newObject.f1> . <region> aggregates into
              * <newObject> . <newRegion>
              * 
@@ -107,7 +108,7 @@ public final class AggregationUtils {
    * @param expr
    *          a FieldRef expression.
    */
-  public static Map<IRegion, IRegion> getRegionMappingFromFieldRef(
+  public static Map<RegionModel, IRegion> getRegionMappingFromFieldRef(
       final IBinder binder, final IRNode expr) {
     final IRNode fieldID = binder.getBinding(expr);
     if (UniquenessRules.isUnique(fieldID)) {
@@ -122,15 +123,15 @@ public final class AggregationUtils {
    * doesn't perform any mappings.
    */
   /* Should add a cache later? */
-  protected static Map<IRegion, IRegion> constructRegionMapping(final IRNode field) {
+  protected static Map<RegionModel, IRegion> constructRegionMapping(final IRNode field) {
     /* Try to get the aggregation information. If no aggregation is defined,
      * then getFieldRegion will throw a SlotUndefinedException.
      */
     final AggregatePromiseDrop mrs = RegionRules.getAggregate(field);
     if (mrs != null) {
-      final Map<IRegion, IRegion> aggregationMap = new HashMap<IRegion, IRegion>();
+      final Map<RegionModel, IRegion> aggregationMap = new HashMap<RegionModel, IRegion>();
       for (final RegionMappingNode mapping : mrs.getAST().getSpec().getMappingList()) {
-        aggregationMap.put(mapping.getFrom().resolveBinding().getRegion(), 
+        aggregationMap.put(mapping.getFrom().resolveBinding().getModel(), 
                            mapping.getTo().resolveBinding().getRegion());
       }
       return Collections.unmodifiableMap(aggregationMap);
@@ -147,8 +148,8 @@ public final class AggregationUtils {
    * affected by the mapping.
    */
   public static IRegion getMappedRegion(
-      final IRegion r, final Map<IRegion, IRegion> aggMapping) {
-    IRegion currentRegion = r;
+      final RegionModel r, final Map<RegionModel, IRegion> aggMapping) {
+    RegionModel currentRegion = r;
     IRegion leastRegion = null;
 
     /* Walk up the region hierarchy starting at r. Test if each region is
