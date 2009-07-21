@@ -6,14 +6,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-/**
- * <em>These Target classes are a disaster.  They need to be redone in a more
- * understandable way.  I've spent the last 8 years trying to make them 
- * make sense, I don't really feel like I've succeeded.  Someone who is smarter 
- * than I am needs to fix this.  The problem is that Java has very bad
- * support for union types.</em>
- * &mdash; Aaron Greenhouse, 18 Oct 2006.
- */
 public interface Target {
   /**
    * Get the reference component of the target (if any).
@@ -47,7 +39,7 @@ public interface Target {
    * effect declared on a method. (This is related to the old includes relationship, but
    * that was semantically suspect, and this operation is more narrowly scoped.)
    */
-  public boolean checkTgt(IBinder b, Target declaredTarget);
+  public boolean checkTarget(IBinder b, Target declaredTarget);
 
   /**
    * Query if two targets overlap, that is, identify potentially overlapping

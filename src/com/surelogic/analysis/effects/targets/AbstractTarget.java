@@ -32,12 +32,6 @@ import edu.cmu.cs.fluid.java.bind.*;
  * 
  * <P>
  * Target objects are immutable.
- * 
- * <em>These Target classes are a disaster.  They need to be redone in a more
- * understandable way.  I've spent the last 8 years trying to make them 
- * make sense, I don't really feel like I've succeeded.  Someone who is smarter 
- * than I am needs to fix this.  The problem is that Java has very bad
- * support for union types.</em> &mdash; Aaron Greenhouse, 18 Oct 2006.
  *
  * @see Effect
  * @see AnyInstanceTarget
@@ -60,9 +54,7 @@ abstract class AbstractTarget implements Target {
    * (This is, arrays are subtypes of java.lang.Object.)
    */
   static boolean areDirectlyRelated(
-    final IBinder b,
-    final IJavaType t1,
-    final IJavaType t2) {
+    final IBinder b, final IJavaType t1, final IJavaType t2) {
     ITypeEnvironment tEnv = b.getTypeEnvironment();
     return tEnv.isSubType(t1, t2) || tEnv.isSubType(t2, t1);
   }
@@ -101,6 +93,10 @@ abstract class AbstractTarget implements Target {
     return region;
   }
 
+
+  
+  /* For double dispatching in the implementation of checkTarget() */
+  
   // Receiver is the target from the declared effect
   abstract boolean checkTargetAgainstLocal(IBinder b, LocalTarget actualTarget);
   
@@ -113,6 +109,9 @@ abstract class AbstractTarget implements Target {
   // Receiver is the target from the declared effect
   abstract boolean checkTargetAgainstInstance(IBinder b, InstanceTarget actualTarget);
 
+  
+  
+  /* For double dispatching in the implementation of overlapsWith() */
   
   abstract TargetRelationship overlapsWithLocal(
       IAliasAnalysis.Method am, IBinder binder, LocalTarget t);

@@ -65,7 +65,7 @@ public final class LocalTarget extends AbstractTarget {
     return false;
   }
 
-  public boolean checkTgt(final IBinder b, final Target declaredTarget) {
+  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstLocal(b, this);
   }
 

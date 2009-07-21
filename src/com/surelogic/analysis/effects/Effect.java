@@ -315,7 +315,7 @@ public final class Effect {
   }
 
   public boolean checkEffect(final IBinder binder, final Effect e) {
-    final boolean tgtChecks = target.checkTgt(binder, e.target);
+    final boolean tgtChecks = target.checkTarget(binder, e.target);
     if (tgtChecks) {
       /*
        * only proceed if e is a write effect, in which case it must check us, or

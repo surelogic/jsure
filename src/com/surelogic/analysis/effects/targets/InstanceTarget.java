@@ -124,7 +124,7 @@ public final class InstanceTarget extends AbstractTarget {
     return reference;
   }
 
-  public boolean checkTgt(final IBinder b, final Target declaredTarget) {
+  public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstInstance(b, this);
   }
   
