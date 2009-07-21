@@ -44,7 +44,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 /* I only want this class to be usable by the TargetFactory implementations */
 public final class InstanceTarget extends AbstractTarget {
-  private IRNode reference;
+  final IRNode reference;
 
   // Force use of the target factories
   InstanceTarget(final IRNode object, final IRegion field) {
@@ -59,11 +59,6 @@ public final class InstanceTarget extends AbstractTarget {
     }
     
     reference = object;
-  }
-
-  @Override
-  public Kind getKind() {
-    return Target.Kind.INSTANCE_TARGET;
   }
   
   public boolean isMaskable(final IBinder binder) {
@@ -129,58 +124,84 @@ public final class InstanceTarget extends AbstractTarget {
     return reference;
   }
 
-  /**
-	 * TODO: Say something intelligent here!
-	 */
-  public boolean checkTgt(final IBinder b, final Target t) {
-    if (t.getKind() == Target.Kind.INSTANCE_TARGET) {
-      /*
-       * t must be of the form p.rgn, where p is a parameter declaration or
-       * ReceiverDeclaration. We will only check if we are also of the form
-       * q.rgn', where p == q, rgn' is a descendant of rgn.
-       */
-      final Operator op = JJNode.tree.getOperator(reference);
-      if (ParameterDeclaration.prototype.includes(op)
-        || QualifiedReceiverDeclaration.prototype.includes(op) 
-        || ReceiverDeclaration.prototype.includes(op)) {
-        if (reference.equals(t.getReference())
-          && t.getRegion().ancestorOf(region)) {
-          return true;
-        }
-      }
-    } else if (t.getKind() == Target.Kind.ANY_INSTANCE_TARGET) {
-      final IJavaType clazz = b.getJavaType(reference);
-      if (LOG.isLoggable(Level.FINE)) {
-        LOG.fine("type of reference in " + this + " is " + clazz.getName());
-      }
-      if (areDirectlyRelated(b, clazz, ((AnyInstanceTarget) t).clazz)
-        && t.getRegion().ancestorOf(region)) {
-        return true;
-      }
-    } else if (t.getKind() == Target.Kind.CLASS_TARGET) {
-      if (t.getRegion().ancestorOf(region)) {
-        return true;
-      }
-    }
-
+  public boolean checkTgt(final IBinder b, final Target declaredTarget) {
+    return ((AbstractTarget) declaredTarget).checkTargetAgainstInstance(b, this);
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstLocal(
+      final IBinder b, final LocalTarget actualTarget) {
     return false;
   }
 
+  // Receiver is the target from the declared effect
   @Override
-  TargetRelationship owLocal(final LocalTarget t) {
+  boolean checkTargetAgainstAnyInstance(
+      final IBinder b, final AnyInstanceTarget actualTarget) {
+   return false;
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstClass(
+      final IBinder b, final ClassTarget actualTarget) {
+   return false;
+  }
+  
+  // Receiver is the target from the delcared effect
+  @Override
+  boolean checkTargetAgainstInstance(
+      final IBinder b, final InstanceTarget actualTarget) {
+    /* this (the target from the declared effect) must be of the form p.rgn,
+     * where p is a parameter declaration or ReceiverDeclaration. We will only
+     * check if actualTarget are also of the form q.rgn', where p == q, rgn' is
+     * a descendant of rgn.
+     */
+    final Operator op = JJNode.tree.getOperator(actualTarget.reference);
+    if (ParameterDeclaration.prototype.includes(op)
+        || QualifiedReceiverDeclaration.prototype.includes(op) 
+        || ReceiverDeclaration.prototype.includes(op)) {
+      return this.reference.equals(actualTarget.reference)
+          && this.region.ancestorOf(actualTarget.region);
+    } else {
+      return false;
+    }
+  }
+
+  public TargetRelationship overlapsWith(
+      final IAliasAnalysis.Method am, final IBinder binder, final Target t) {
+    return ((AbstractTarget) t).overlapsWithInstance(am, binder, this);
+  }
+
+  
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithLocal(
+      final IAliasAnalysis.Method am, final IBinder binder, final LocalTarget t) {
     return TargetRelationship.newUnrelated();
   }
 
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
-  TargetRelationship owInstance(
-    final IAliasAnalysis.Method am, final IBinder binder, final IRNode ref, final IRegion reg) {
-    if (am.aliases(reference, ref)) {
-      if (region.equals(reg)) {
+  TargetRelationship overlapsWithAnyInstance(
+      final IAliasAnalysis.Method am, final IBinder binder, final AnyInstanceTarget t) {
+    /* NB. Page 229 of ECOOP paper says we should check that Instance target is
+     * shared (!unique). I think this because we want to make sure that
+     * overlap is based on the aggregated region hierarchy. We don't have to
+     * check this here because we are assuming that effects have already been
+     * elaborated and masked, and thus aggregation relationships have already
+     * been resolved.
+     */
+    if (areDirectlyRelated(binder, binder.getJavaType(this.reference), t.clazz)) {
+      final IRegion regionA = t.region;
+      final IRegion regionB = this.region;
+      if (regionA.equals(regionB)) {
         return TargetRelationship.newAliased(RegionRelationships.EQUAL);
-      } else if (region.ancestorOf(reg)) {
+      } else if (regionA.ancestorOf(regionB)) {
         return TargetRelationship.newAliased(
           RegionRelationships.REGION_A_INCLUDES_REGION_B);
-      } else if (reg.ancestorOf(region)) {
+      } else if (regionB.ancestorOf(regionA)) {
         return TargetRelationship.newAliased(
           RegionRelationships.REGION_B_INCLUDES_REGION_A);
       }
@@ -188,9 +209,10 @@ public final class InstanceTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
-  TargetRelationship owAnyInstance(
-    final IBinder binder, final IJavaType clazz, final IRegion reg) {
+  TargetRelationship overlapsWithClass(
+      final IAliasAnalysis.Method am, final IBinder binder, final ClassTarget t) {
     /* NB. page 229 of ECOOP paper says we should check that Instance target
      * is shared (!unique). I think this because we want to make sure that
      * overlap is based on the aggregated region hierarchy. We don't have to
@@ -198,40 +220,43 @@ public final class InstanceTarget extends AbstractTarget {
      * been elaborated and masked, and thus aggregation relationships have
      * already been resolved.
      */
-    if (areDirectlyRelated(binder, binder.getJavaType(reference), clazz)) {
-      if (region.equals(reg)) {
+    final IRegion regionA = t.region;
+    final IRegion regionB = this.region;
+    if (regionA.equals(regionB)) {
+      // Should never happen???
+      LOG.warning("Region in Class target equal to region in Instance target!");
+      return TargetRelationship.newAIsLarger(RegionRelationships.EQUAL);
+    } else if (regionA.ancestorOf(regionB)) {
+      return TargetRelationship.newAIsLarger(
+        RegionRelationships.REGION_A_INCLUDES_REGION_B);
+    } else if (regionB.ancestorOf(regionA)) {
+      return TargetRelationship.newAIsLarger(
+        RegionRelationships.REGION_B_INCLUDES_REGION_A);
+    } else {
+      return TargetRelationship.newUnrelated();
+    }
+  }
+
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithInstance(
+      final IAliasAnalysis.Method am, final IBinder binder, final InstanceTarget t) {
+    final IRNode referenceA = t.reference;
+    final IRegion regionA = t.region;
+    final IRNode referenceB = this.reference;
+    final IRegion regionB = this.region;
+    if (am.aliases(referenceA, referenceB)) {
+      if (regionA.equals(regionB)) {
         return TargetRelationship.newAliased(RegionRelationships.EQUAL);
-      } else if (region.ancestorOf(reg)) {
+      } else if (regionA.ancestorOf(regionB)) {
         return TargetRelationship.newAliased(
           RegionRelationships.REGION_A_INCLUDES_REGION_B);
-      } else if (reg.ancestorOf(region)) {
+      } else if (regionB.ancestorOf(regionA)) {
         return TargetRelationship.newAliased(
           RegionRelationships.REGION_B_INCLUDES_REGION_A);
       }
     }
     return TargetRelationship.newUnrelated();
-  }
-
-  @Override
-  TargetRelationship owClass(final IBinder binder, final IRegion reg) {
-    /* NB. page 229 of ECOOP paper says we should check that Instance target 
-     * is shared (!unique). I think this because we want to make sure that
-     * overlap is based on the aggregated region hierarchy. We don't have to
-     * check this here because we are assuming that effects have already
-     * been elaborated and masked, and thus aggregation relationships have
-     * already been resolved.
-     */
-    if (region.equals(reg)) {
-      return TargetRelationship.newBIsLarger(RegionRelationships.EQUAL);
-    } else if (region.ancestorOf(reg)) {
-      return TargetRelationship.newBIsLarger(
-        RegionRelationships.REGION_A_INCLUDES_REGION_B);
-    } else if (reg.ancestorOf(region)) {
-      return TargetRelationship.newBIsLarger(
-        RegionRelationships.REGION_B_INCLUDES_REGION_A);
-    } else {
-      return TargetRelationship.newUnrelated();
-    }
   }
 
   @Override

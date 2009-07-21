@@ -6,10 +6,8 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /*
  * 99 Feb 23 Remove iwAnything() because I removed the AnythingTarget class.
@@ -103,36 +101,30 @@ abstract class AbstractTarget implements Target {
     return region;
   }
 
-  public TargetRelationship overlapsWith(
-    final IAliasAnalysis.Method am, final IBinder binder, final Target t) {
-    final Kind kind = t.getKind();
-    final IRegion reg = t.getRegion();
-    IRNode ref = t.getReference();
+  // Receiver is the target from the declared effect
+  abstract boolean checkTargetAgainstLocal(IBinder b, LocalTarget actualTarget);
+  
+  // Receiver is the target from the declared effect
+  abstract boolean checkTargetAgainstAnyInstance(IBinder b, AnyInstanceTarget actualTarget);
+  
+  // Receiver is the target from the declared effect
+  abstract boolean checkTargetAgainstClass(IBinder b, ClassTarget actualTarget);
+  
+  // Receiver is the target from the declared effect
+  abstract boolean checkTargetAgainstInstance(IBinder b, InstanceTarget actualTarget);
 
-    if (kind == Target.Kind.LOCAL_TARGET) {
-      return owLocal((LocalTarget) t);
-    } else if (kind == Target.Kind.INSTANCE_TARGET) {
-      return owInstance(am, binder, ref, reg);
-    } else if (kind == Target.Kind.CLASS_TARGET) {
-      return owClass(binder, reg);
-    } else if (kind == Target.Kind.ANY_INSTANCE_TARGET) {
-      return owAnyInstance(binder, ((AnyInstanceTarget) t).clazz, reg);
-    } else {
-      throw new IllegalArgumentException("t is not a known Target kind");
-    }
-  }
+  
+  abstract TargetRelationship overlapsWithLocal(
+      IAliasAnalysis.Method am, IBinder binder, LocalTarget t);
 
-  abstract TargetRelationship owLocal(LocalTarget t);
+  abstract TargetRelationship overlapsWithAnyInstance(
+      IAliasAnalysis.Method am, IBinder binder, AnyInstanceTarget t);
 
-  abstract TargetRelationship owAnyInstance(
-    IBinder binder,
-    IJavaType c,
-    IRegion reg);
+  abstract TargetRelationship overlapsWithClass(
+      IAliasAnalysis.Method am, IBinder binder, ClassTarget t);
 
-  abstract TargetRelationship owClass(IBinder binder, IRegion reg);
-
-  abstract TargetRelationship owInstance(
-      IAliasAnalysis.Method am, IBinder binder, IRNode ref, IRegion reg);
+  abstract TargetRelationship overlapsWithInstance(
+      IAliasAnalysis.Method am, IBinder binder, InstanceTarget t);
 
   /**
 	 * Get the name of the target. This is currently the same as calling <tt>getString()</tt>,
@@ -144,8 +136,6 @@ abstract class AbstractTarget implements Target {
   public String getName() {
     return toString();
   }
-
-  public abstract Kind getKind();
 
   @Override
   public final String toString() {

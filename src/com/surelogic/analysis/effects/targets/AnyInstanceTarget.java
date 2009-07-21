@@ -3,14 +3,8 @@ package com.surelogic.analysis.effects.targets;
 import com.surelogic.analysis.regions.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
-import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
-import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
-import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 
 /*
  * 99 Feb 23 Remove iwAnything() because I removed the AnythingTarget class.
@@ -71,11 +65,6 @@ public final class AnyInstanceTarget extends AbstractTarget {
     return clazz instanceof IJavaArrayType;
   }
   
-  @Override
-  public Kind getKind() {
-    return Target.Kind.ANY_INSTANCE_TARGET;
-  }
-  
   public boolean isMaskable(final IBinder binder) {
     // Any instance targets are never maskable
     return false;
@@ -85,41 +74,69 @@ public final class AnyInstanceTarget extends AbstractTarget {
     return false;
   }
 
-  /**
-   * An any instance target will check against a static target whose region
-   * includes the region named in the any instance target, and will also check
-   * against a any instance target (1) whose region includes the region named in
-   * this target, and (2) whose class parameter is direct descendant or a direct
-   * ancestor of this target's class parameter.
-   */
-  public boolean checkTgt(final IBinder b, final Target t) {
-    if (t.getKind() == Target.Kind.CLASS_TARGET) {
-      if (t.getRegion().ancestorOf(region)) {
-        return true;
-      }
-    } else if (t.getKind() == Target.Kind.ANY_INSTANCE_TARGET) {
-      final AnyInstanceTarget other = (AnyInstanceTarget) t;
-      if (areDirectlyRelated(b, clazz, other.clazz)
-        && other.getRegion().ancestorOf(region)) {
-        return true;
-      }
-    } 
+  public boolean checkTgt(final IBinder b, final Target declaredTarget) {
+    return ((AbstractTarget) declaredTarget).checkTargetAgainstAnyInstance(b, this);
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstLocal(
+      final IBinder b, final LocalTarget actualTarget) {
     return false;
   }
 
-  @Override TargetRelationship owLocal(final LocalTarget t) {
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstAnyInstance(
+      final IBinder b, final AnyInstanceTarget actualTarget) {
+    return areDirectlyRelated(b, actualTarget.clazz, this.clazz)
+        && this.getRegion().ancestorOf(actualTarget.region);
+  }
+
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstClass(
+      final IBinder b, final ClassTarget actualTarget) {
+   return false;
+  }
+
+  // Receiver is the target from the declard effect
+  @Override
+  boolean checkTargetAgainstInstance(
+      final IBinder b, final InstanceTarget actualTarget) {
+    final IJavaType clazz = b.getJavaType(actualTarget.reference);
+    return areDirectlyRelated(b, clazz, this.clazz)
+        && this.region.getRegion().ancestorOf(actualTarget.region);
+  }
+  
+  public TargetRelationship overlapsWith(
+      final IAliasAnalysis.Method am, final IBinder binder, final Target t) {
+    return ((AbstractTarget) t).overlapsWithAnyInstance(am, binder, this);
+  }
+
+
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithLocal(
+      final IAliasAnalysis.Method am, final IBinder binder, final LocalTarget t) {
     return TargetRelationship.newUnrelated();
   }
 
-  @Override TargetRelationship owAnyInstance(
-    final IBinder binder, final IJavaType c, final IRegion reg) {
-    if (areDirectlyRelated(binder, c, clazz)) {
-      if (region.equals(reg)) {
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithAnyInstance(
+      final IAliasAnalysis.Method am, final IBinder binder, final AnyInstanceTarget t) {
+    final IRegion regionA = t.region;
+    final IJavaReferenceType classA = t.clazz;
+    final IRegion regionB = this.region;
+    final IJavaType classB = this.clazz;
+    if (areDirectlyRelated(binder, classB, classA)) {
+      if (regionA.equals(regionB)) {
         return TargetRelationship.newAliased(RegionRelationships.EQUAL);
-      } else if (region.ancestorOf(reg)) {
+      } else if (regionA.ancestorOf(regionB)) {
         return TargetRelationship.newAliased(
           RegionRelationships.REGION_A_INCLUDES_REGION_B);
-      } else if (reg.ancestorOf(region)) {
+      } else if (regionB.ancestorOf(regionA)) {
         return TargetRelationship.newAliased(
           RegionRelationships.REGION_B_INCLUDES_REGION_A);
       }
@@ -127,38 +144,48 @@ public final class AnyInstanceTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
-  @Override TargetRelationship owClass(final IBinder binder, final IRegion reg) {
-    if (region.equals(reg)) {
-      return TargetRelationship.newBIsLarger(RegionRelationships.EQUAL);
-    } else if (region.ancestorOf(reg)) {
-      return TargetRelationship.newBIsLarger(
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithClass(
+      final IAliasAnalysis.Method am, final IBinder binder, final ClassTarget t) {
+    final IRegion regionA = t.region;
+    final IRegion regionB = this.region;
+    if (regionA.equals(regionB)) {
+      // Shouldn't happen
+      return TargetRelationship.newAIsLarger(RegionRelationships.EQUAL);
+    } else if (regionA.ancestorOf(regionB)) {
+      return TargetRelationship.newAIsLarger(
         RegionRelationships.REGION_A_INCLUDES_REGION_B);
-    } else if (reg.ancestorOf(region)) {
-      return TargetRelationship.newBIsLarger(
+    } else if (regionB.ancestorOf(regionA)) {
+      // shouldn't happen
+      return TargetRelationship.newAIsLarger(
         RegionRelationships.REGION_B_INCLUDES_REGION_A);
     } else {
       return TargetRelationship.newUnrelated();
     }
   }
 
-  @Override TargetRelationship owInstance(
-    final IAliasAnalysis.Method am, final IBinder binder, final IRNode ref,
-    final IRegion reg) {
-    /* NB. Page 229 of ECOOP paper says we should check that Instance target is
-     * shared (!unique). I think this because we want to make sure that
+  // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithInstance(
+      final IAliasAnalysis.Method am, final IBinder binder, final InstanceTarget t) {
+    /* NB. page 229 of ECOOP paper says we should check that Instance target
+     * is shared (!unique). I think this because we want to make sure that
      * overlap is based on the aggregated region hierarchy. We don't have to
-     * check this here because we are assuming that effects have already been
-     * elaborated and masked, and thus aggregation relationships have already
-     * been resolved.
+     * check this here because we are assuming that effects have already
+     * been elaborated and masked, and thus aggregation relationships have
+     * already been resolved.
      */
-    if (areDirectlyRelated(binder, binder.getJavaType(ref), clazz)) {
-      if (region.equals(reg)) {
-        return TargetRelationship.newAliased(RegionRelationships.EQUAL);
-      } else if (region.ancestorOf(reg)) {
+    if (areDirectlyRelated(binder, binder.getJavaType(t.reference), this.clazz)) {
+      final IRegion regionA = t.region;
+      final IRegion regionB = this.region;
+      if (regionA.equals(regionB)) {
+        return TargetRelationship.newBIsLarger(RegionRelationships.EQUAL);
+      } else if (regionA.ancestorOf(regionB)) {
         return TargetRelationship.newAliased(
           RegionRelationships.REGION_A_INCLUDES_REGION_B);
-      } else if (reg.ancestorOf(region)) {
-        return TargetRelationship.newAliased(
+      } else if (regionB.ancestorOf(regionA)) {
+        return TargetRelationship.newBIsLarger(
           RegionRelationships.REGION_B_INCLUDES_REGION_A);
       }
     }

@@ -15,12 +15,6 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * &mdash; Aaron Greenhouse, 18 Oct 2006.
  */
 public interface Target {
-  public enum Kind {
-    LOCAL_TARGET, INSTANCE_TARGET, CLASS_TARGET, ANY_INSTANCE_TARGET;
-  }
-
-
-  
   /**
    * Get the reference component of the target (if any).
    * 
@@ -49,19 +43,19 @@ public interface Target {
   /**
    * The checkTgt relationship from Chapter 4 of Aaron's dissertation. The
    * receiver must be a target from an effect that has been through elaboration
-   * and masking. The parameter <code>t</code> must be a target from an
-   * annotated effect. (This is related to the old includes relationship, but
+   * and masking. The parameter <code>declaredTarget</code> must be a target from an
+   * effect declared on a method. (This is related to the old includes relationship, but
    * that was semantically suspect, and this operation is more narrowly scoped.)
    */
-  public boolean checkTgt(IBinder b, Target t);
+  public boolean checkTgt(IBinder b, Target declaredTarget);
 
   /**
    * Query if two targets overlap, that is, identify potentially overlapping
    * state. This takes static approximations of run-time realities into account,
    * e.g., aliasing.
    */
-  public TargetRelationship overlapsWith(IAliasAnalysis.Method aa, IBinder b,
-      Target t);
+  public TargetRelationship overlapsWith(
+      IAliasAnalysis.Method am, IBinder binder, Target t);
 
   /**
    * Get the name of the target. This is currently the same as calling
@@ -72,13 +66,6 @@ public interface Target {
    *         embedded region
    */
   public String getName();
-
-  /**
-   * Get the kind of the Target.
-   * 
-   * @return an integer representing the kind of the target.
-   */
-  public Kind getKind();
   
   public StringBuilder toString(StringBuilder sb);
 }

@@ -2,18 +2,11 @@ package com.surelogic.analysis.effects.targets;
 
 import java.util.logging.Level;
 
-import com.surelogic.analysis.regions.IRegion;
-
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.NameType;
-import edu.cmu.cs.fluid.java.operator.NamedType;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
-import edu.cmu.cs.fluid.java.operator.ParameterizedType;
-import edu.cmu.cs.fluid.java.operator.TypeRef;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -62,11 +55,6 @@ public final class LocalTarget extends AbstractTarget {
     }
     var = v;
   }
-
-  @Override
-  public Kind getKind() {
-    return Target.Kind.LOCAL_TARGET;
-  }
   
   public boolean isMaskable(final IBinder binder) {
     // Local targets are always maskable
@@ -77,15 +65,63 @@ public final class LocalTarget extends AbstractTarget {
     return false;
   }
 
-  /**
-   * Illegal operation on local targets.
-   */
-  public boolean checkTgt(final IBinder b, final Target t) {
-    throw new UnsupportedOperationException("Doesn't make sense to use this method on a local target");
+  public boolean checkTgt(final IBinder b, final Target declaredTarget) {
+    return ((AbstractTarget) declaredTarget).checkTargetAgainstLocal(b, this);
   }
 
+  // Receiver is the target from the declared effect
   @Override
-  TargetRelationship owLocal(LocalTarget t) {
+  boolean checkTargetAgainstLocal(
+      final IBinder b, final LocalTarget actualTarget) {
+    /* Doesn't make sense because we should not have a local target in the 
+     * declared effects.
+     */
+    throw new UnsupportedOperationException(
+        "Doesn't make sense to use this method on a local target");
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstAnyInstance(
+      final IBinder b, final AnyInstanceTarget actualTarget) {
+    /* Doesn't make sense because we should not have a local target in the 
+     * declared effects.
+     */
+    throw new UnsupportedOperationException(
+        "Doesn't make sense to use this method on a local target");
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstClass(
+      final IBinder b, final ClassTarget actualTarget) {
+    /* Doesn't make sense because we should not have a local target in the 
+     * declared effects.
+     */
+    throw new UnsupportedOperationException(
+        "Doesn't make sense to use this method on a local target");
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstInstance(
+      final IBinder b, final InstanceTarget actualTarget) {
+    /* Doesn't make sense because we should not have a local target in the 
+     * declared effects.
+     */
+    throw new UnsupportedOperationException(
+        "Doesn't make sense to use this method on a local target");
+  }
+
+  public TargetRelationship overlapsWith(
+      final IAliasAnalysis.Method am, final IBinder binder, final Target t) {
+    return ((AbstractTarget) t).overlapsWithLocal(am, binder, this);
+  }
+
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithLocal(
+      final IAliasAnalysis.Method am, final IBinder binder, final LocalTarget t) {
     if (var.equals(t.var)) {
       return TargetRelationship.newSameVariable();
     } else {
@@ -93,20 +129,24 @@ public final class LocalTarget extends AbstractTarget {
     }
   }
 
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
-  TargetRelationship owAnyInstance(
-    final IBinder b, final IJavaType c, final IRegion reg) {
+  TargetRelationship overlapsWithAnyInstance(
+      final IAliasAnalysis.Method am, final IBinder binder, final AnyInstanceTarget t) {
     return TargetRelationship.newUnrelated();
   }
 
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
-  TargetRelationship owClass(final IBinder binder, final IRegion reg) {
+  TargetRelationship overlapsWithClass(
+      final IAliasAnalysis.Method am, final IBinder binder, final ClassTarget t) {
     return TargetRelationship.newUnrelated();
   }
 
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
-  TargetRelationship owInstance(
-    final IAliasAnalysis.Method am, final IBinder binder, final IRNode ref, final IRegion reg) {
+  TargetRelationship overlapsWithInstance(
+      final IAliasAnalysis.Method am, final IBinder binder, final InstanceTarget t) {
     return TargetRelationship.newUnrelated();
   }
 

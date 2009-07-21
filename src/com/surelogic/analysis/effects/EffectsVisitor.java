@@ -18,6 +18,7 @@ import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
+import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
@@ -521,7 +522,7 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
     final Set<Effect> methodEffects = new HashSet<Effect>();
     for (final Effect eff : getMethodEffects(mdecl, call)) {
       final Target t = eff.getTarget();
-      if (t.getKind() == Target.Kind.INSTANCE_TARGET) {
+      if (t instanceof InstanceTarget) {
         final IRNode ref = t.getReference();
         final IRNode val = table.get(ref);
         if (val != null) {
@@ -647,7 +648,7 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
     
     private void elaborationWorker(final Target target,
         final Set<Target> targets, final Set<Target> newTargets) {
-      if (target.getKind() == Target.Kind.INSTANCE_TARGET) {
+      if (target instanceof InstanceTarget) {
         final IRNode expr = target.getReference();
         final Operator op = JJNode.tree.getOperator(expr);
         /*
@@ -762,7 +763,7 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
       if (!(initEffect.isMaskable(binder) || 
           initEffect.affectsReceiver(anonClassReceiver))) {
         final Target target = initEffect.getTarget();
-        if (target.getKind() == Target.Kind.INSTANCE_TARGET) {
+        if (target instanceof InstanceTarget) {
           final IRNode ref = target.getReference();
           final Target newTarget;
           

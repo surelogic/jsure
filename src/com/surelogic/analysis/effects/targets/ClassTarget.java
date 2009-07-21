@@ -6,7 +6,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /*
@@ -31,11 +30,6 @@ public final class ClassTarget extends AbstractTarget {
   ClassTarget(IRegion rgn) {
     super(rgn);
   }
-
-  @Override
-  public Kind getKind() {
-    return Target.Kind.CLASS_TARGET;
-  }
   
   public boolean isMaskable(final IBinder binder) {
     // Class targets are never maskable
@@ -46,45 +40,64 @@ public final class ClassTarget extends AbstractTarget {
     return false;
   }
 
-  /**
-	 * A static target will check against another static target whose region is
-	 * an ancestor of its own region.
-	 */
-  public boolean checkTgt(final IBinder b, final Target t) {
-    if (t.getKind() == Target.Kind.CLASS_TARGET) {
-      if (t.getRegion().ancestorOf(region)) {
-        return true;
-      }
-    }
-    return false;
+  public boolean checkTgt(final IBinder b, final Target declaredTarget) {
+    return ((AbstractTarget) declaredTarget).checkTargetAgainstClass(b, this);
   }
 
-  @Override TargetRelationship owLocal(final LocalTarget t) {
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstLocal(
+      final IBinder b, final LocalTarget actualTarget) {
+    return false;
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstAnyInstance(
+      final IBinder b, final AnyInstanceTarget actualTarget) {
+    return this.getRegion().ancestorOf(actualTarget.region);
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstClass(
+      final IBinder b, final ClassTarget actualTarget) {
+    return this.region.ancestorOf(actualTarget.region);
+  }
+  
+  // Receiver is the target from the declared effect
+  @Override
+  boolean checkTargetAgainstInstance(
+      final IBinder b, final InstanceTarget actualTarget) {
+    return this.region.ancestorOf(actualTarget.region);
+  }
+
+  public TargetRelationship overlapsWith(
+      final IAliasAnalysis.Method am, final IBinder binder, final Target t) {
+    return ((AbstractTarget) t).overlapsWithClass(am, binder, this);
+  }
+
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithLocal(
+      final IAliasAnalysis.Method am, final IBinder binder, final LocalTarget t) {
     return TargetRelationship.newUnrelated();
   }
 
-  @Override TargetRelationship owAnyInstance(
-    final IBinder binder, final IJavaType c, final IRegion reg) {
-    if (region.equals(reg)) {
-      return TargetRelationship.newAIsLarger(RegionRelationships.EQUAL);
-    } else if (region.ancestorOf(reg)) {
-      return TargetRelationship.newAIsLarger(
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithAnyInstance(
+      final IAliasAnalysis.Method am, final IBinder binder, final AnyInstanceTarget t) {
+    final IRegion regionA = t.region;
+    final IRegion regionB = this.region;
+    if (regionA.equals(regionB)) {
+      // Shouldn't happen
+      return TargetRelationship.newBIsLarger(RegionRelationships.EQUAL);
+    } else if (regionA.ancestorOf(regionB)) {
+      // Shouldn't happen
+      return TargetRelationship.newBIsLarger(
         RegionRelationships.REGION_A_INCLUDES_REGION_B);
-    } else if (reg.ancestorOf(region)) {
-      return TargetRelationship.newAIsLarger(
-        RegionRelationships.REGION_B_INCLUDES_REGION_A);
-    } else {
-      return TargetRelationship.newUnrelated();
-    }
-  }
-
-  @Override TargetRelationship owClass(final IBinder binder, final IRegion reg) {
-    if (region.equals(reg)) {
-      return TargetRelationship.newAliased(RegionRelationships.EQUAL);
-    } else if (region.ancestorOf(reg)) {
-      return TargetRelationship.newAIsLarger(
-        RegionRelationships.REGION_A_INCLUDES_REGION_B);
-    } else if (reg.ancestorOf(region)) {
+    } else if (regionB.ancestorOf(regionA)) {
       return TargetRelationship.newBIsLarger(
         RegionRelationships.REGION_B_INCLUDES_REGION_A);
     } else {
@@ -92,29 +105,55 @@ public final class ClassTarget extends AbstractTarget {
     }
   }
 
-  @Override TargetRelationship owInstance(
-    final IAliasAnalysis.Method am, final IBinder binder, final IRNode ref, final IRegion reg) {
-    /* NB. page 229 of ECOOP paper says we should check that Instance target
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithClass(
+      final IAliasAnalysis.Method am, final IBinder binder, final ClassTarget t) {
+    final IRegion regionA = t.region;
+    final IRegion regionB = this.region;
+    
+    if (regionA.equals(regionB)) {
+      return TargetRelationship.newAliased(RegionRelationships.EQUAL);
+    } else if (regionA.ancestorOf(regionB)) {
+      return TargetRelationship.newAIsLarger(
+          RegionRelationships.REGION_A_INCLUDES_REGION_B);
+    } else if (regionB.ancestorOf(regionA)) {
+      return TargetRelationship.newBIsLarger(
+          RegionRelationships.REGION_B_INCLUDES_REGION_A);
+    } else {
+      return TargetRelationship.newUnrelated();
+    }
+  }
+
+  // t is the receiver, and thus TARGET A in the original overlapsWith() call!
+  @Override
+  TargetRelationship overlapsWithInstance(
+      final IAliasAnalysis.Method am, final IBinder binder, final InstanceTarget t) {
+    /* NB. page 229 of ECOOP paper says we should check that Instance target 
      * is shared (!unique). I think this because we want to make sure that
      * overlap is based on the aggregated region hierarchy. We don't have to
      * check this here because we are assuming that effects have already
      * been elaborated and masked, and thus aggregation relationships have
      * already been resolved.
      */
-    if (region.equals(reg)) {
-      // Should never happen???
+    final IRegion regionA = t.region;
+    final IRegion regionB = this.region;
+    if (regionA.equals(regionB)) {
+      // Shouldn't happen
       LOG.warning("Region in Class target equal to region in Instance target!");
-      return TargetRelationship.newAIsLarger(RegionRelationships.EQUAL);
-    } else if (region.ancestorOf(reg)) {
-      return TargetRelationship.newAIsLarger(
+      return TargetRelationship.newBIsLarger(RegionRelationships.EQUAL);
+    } else if (regionA.ancestorOf(regionB)) {
+      return TargetRelationship.newBIsLarger(
         RegionRelationships.REGION_A_INCLUDES_REGION_B);
-    } else if (reg.ancestorOf(region)) {
-      return TargetRelationship.newAIsLarger(
+    } else if (regionB.ancestorOf(regionA)) {
+      return TargetRelationship.newBIsLarger(
         RegionRelationships.REGION_B_INCLUDES_REGION_A);
     } else {
       return TargetRelationship.newUnrelated();
     }
   }
+
+
 
   @Override
   public StringBuilder toString(final StringBuilder sb) {

@@ -61,6 +61,11 @@ import edu.cmu.cs.fluid.tree.Operator;
  * annotated effects of the method/constructor.
  * </dl>
  * 
+ * <p>An Effect refers to the effect it is <em>elaborated</em> from.  Elaboration
+ * is a process used with Instance targets to process aggregation from 
+ * unique references and to trace uses of local variables to more concrete 
+ * sources such as method parameters or method return values.
+ * 
  * @see Target
  * @author Aaron Greenhouse
  */
@@ -97,6 +102,12 @@ public final class Effect {
    */
   protected final IRNode source;
 
+//  /**
+//   * Elaboration data, or <code>null</code> if the effect is not elaborated
+//   * from any other effect.
+//   */
+//  protected final ElaborationEvidence elaborationEvidence;
+//  
   
   
   /**
