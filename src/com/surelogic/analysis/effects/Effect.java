@@ -102,12 +102,6 @@ public final class Effect {
    */
   protected final IRNode source;
 
-//  /**
-//   * Elaboration data, or <code>null</code> if the effect is not elaborated
-//   * from any other effect.
-//   */
-//  protected final ElaborationEvidence elaborationEvidence;
-//  
   
   
   /**
@@ -265,6 +259,29 @@ public final class Effect {
     return target;
   }
 
+  /**
+   * Get the rationale for the elaboration of the target, if it was
+   * elaborated.  Returns {@value null} if the target was not generated
+   * from elaboration.
+   */
+  public ElaborationEvidence getTargetElaborationEvidence() {
+    return target.getElaborationEvidence();
+  }
+  
+  /** 
+   * Did the target of this effect result from aggregation? 
+   */
+  public boolean isTargetAggregated() {
+    ElaborationEvidence current = target.getElaborationEvidence();
+    while (current != null) {
+      if (current instanceof AggregationEvidence) {
+        return true;
+      }
+      current = current.getElaboratedFrom().getElaborationEvidence();
+    }
+    return false;
+  }
+  
   /**
    * Query if the effect is a read effect.
    * 

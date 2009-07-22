@@ -2,6 +2,7 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -35,14 +36,26 @@ public final class ThisBindingTargetFactory implements TargetFactory {
   
   public InstanceTarget createInstanceTarget(
       final IRNode object, final IRegion region) {
-    return new InstanceTarget(thisExprBinder.bindThisExpression(object), region);
+    return createInstanceTarget(object, region, null);
+  }
+
+  public InstanceTarget createInstanceTarget(
+      final IRNode object, final IRegion region,
+      final ElaborationEvidence elabEvidence) {
+    return new InstanceTarget(
+        thisExprBinder.bindThisExpression(object), region, elabEvidence);
+  }
+
+  public ClassTarget createClassTarget(
+      final IRegion region, final ElaborationEvidence elabEvidence) {
+    return new ClassTarget(region, elabEvidence);
   }
 
   public ClassTarget createClassTarget(final IRegion region) {
-    return new ClassTarget(region);
+    return createClassTarget(region, null);
   }
 
   public ClassTarget createClassTarget(final IRNode field) {
-    return new ClassTarget(RegionModel.getInstance(field));
+    return createClassTarget(RegionModel.getInstance(field));
   }
 }

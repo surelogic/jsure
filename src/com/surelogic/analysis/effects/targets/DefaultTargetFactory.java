@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/effects/targets/DefaultTargetFactory.java,v 1.2 2008/01/18 23:52:03 aarong Exp $*/
 package com.surelogic.analysis.effects.targets;
 
+import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -36,14 +37,25 @@ public final class DefaultTargetFactory implements TargetFactory {
   
   public InstanceTarget createInstanceTarget(
       final IRNode object, final IRegion region) {
-    return new InstanceTarget(object, region);
+    return createInstanceTarget(object, region, null);
+  }
+  
+  public InstanceTarget createInstanceTarget(
+      final IRNode object, final IRegion region,
+      final ElaborationEvidence elabEvidence) {
+    return new InstanceTarget(object, region, elabEvidence);
+  }
+
+  public ClassTarget createClassTarget(
+      final IRegion region, final ElaborationEvidence elabEvidence) {
+    return new ClassTarget(region, elabEvidence);
   }
 
   public ClassTarget createClassTarget(final IRegion region) {
-    return new ClassTarget(region);
+    return createClassTarget(region, null);
   }
 
   public ClassTarget createClassTarget(final IRNode field) {
-    return new ClassTarget(RegionModel.getInstance(field));
+    return createClassTarget(RegionModel.getInstance(field));
   }
 }

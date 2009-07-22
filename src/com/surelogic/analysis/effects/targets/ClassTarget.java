@@ -1,5 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
+import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -17,14 +18,22 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  */
 /* I only want this class to be usable by the TargetFactory implementations */
 public final class ClassTarget extends AbstractTarget {
+  final ElaborationEvidence elabEvidence;
+
   // Force use of the target factories
-  ClassTarget(IRegion rgn) {
+  ClassTarget(final IRegion rgn, final ElaborationEvidence evidence) {
     super(rgn);
+    elabEvidence = evidence;
   }
   
   public boolean isMaskable(final IBinder binder) {
     // Class targets are never maskable
     return false;
+  }
+
+  @Override
+  public ElaborationEvidence getElaborationEvidence() {
+    return elabEvidence;
   }
 
   public boolean overlapsReceiver(final IRNode rcvrNode) {

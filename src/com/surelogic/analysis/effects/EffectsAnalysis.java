@@ -121,16 +121,11 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {
 	private void checkConstructor(final RegionEffectsPromiseDrop declEffDrop,
 			final IRNode constructor, final Set<Effect> declFx,
 			final Set<Effect> implFx, String modelName) {
-		/*
-		 * Generate an effect writes( this.Instance ). We need this to account for
-		 * the "free" effects of initializing the state of the constructed object.
-		 */
 		final IRNode receiverNode = PromiseUtil.getReceiverNode(constructor);
-		for (final Iterator<Effect> i = implFx.iterator(); i.hasNext();) {
-			final Effect eff = i.next();
+		for (final Effect eff : implFx) {
 			/*
 			 * First see if the effect is accounted for by the special case of
-			 * affecting the Instance region.
+			 * affecting the Instance region of the receiver.
 			 */
 			if (eff.affectsReceiver(receiverNode)) {
 				constructResultDrop(declEffDrop, true, eff, Messages.EffectAssurance_msgContructorRule, eff);
@@ -193,9 +188,25 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {
 			}
 		}
 
-		setResultDependUponDrop(rd, eff.getSource());
+		addElaborationEvidence(rd, eff.getTargetElaborationEvidence());
+		
+		// Finish the drop
+		setResultDependUponDrop(rd, src);
 		rd.setConsistent(isConsistent);
 		rd.setMessage(msg);
+	}
+	
+	/**
+	 * Recurses through the elaboration evidence, and adds it as supporting 
+	 * information to the given result drop, in the order that the elaboration
+	 * occurred.
+	 */
+	private void addElaborationEvidence(
+	    final ResultDrop rd, final ElaborationEvidence elabEvidence) {
+	  if (elabEvidence != null) {
+	    addElaborationEvidence(rd, elabEvidence.getElaboratedFrom().getElaborationEvidence());
+	    rd.addSupportingInformation(elabEvidence.getMessage(), elabEvidence.getLink());
+	  }
 	}
 
 	/**
@@ -209,8 +220,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {
 		/*
 		 * method parameter is currently unused, but may be useful in the future.
 		 */
-		for (final Iterator<Effect> i = implFx.iterator(); i.hasNext();) {
-			final Effect eff = i.next();
+	  for (final Effect eff : implFx) {
 			checkEffect(declEffDrop, eff, declFx, modelName);
 		}
 	}

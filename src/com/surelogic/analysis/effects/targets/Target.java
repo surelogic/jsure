@@ -1,5 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
+import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -21,6 +22,13 @@ public interface Target {
    */
   public IRegion getRegion();
 
+  /**
+   * Get the evidence chain describing the targets this target was
+   * elaborated from, or {@value null} if this target was not generated
+   * from elaboration.
+   */
+  public ElaborationEvidence getElaborationEvidence();
+  
   /**
    * Does the target refer to state that is not visible outside of the context
    * (i.e., method) in which it originates. 

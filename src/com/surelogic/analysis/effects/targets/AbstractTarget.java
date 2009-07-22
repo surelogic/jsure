@@ -2,6 +2,7 @@ package com.surelogic.analysis.effects.targets;
 
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.logging.SLLogger;
 
@@ -60,11 +61,7 @@ abstract class AbstractTarget implements Target {
     region = reg;
   }
 
-  /**
-	 * Get the reference component of the target (if any).
-	 * 
-	 * @return The IRNode of the reference component
-	 */
+  // Only instance targets have references
   public IRNode getReference() {
     return null;
   }
@@ -78,7 +75,12 @@ abstract class AbstractTarget implements Target {
     return region;
   }
 
-
+  // Only instance or class targets have elaboration evidence
+  public ElaborationEvidence getElaborationEvidence() {
+    return null;
+  }
+  
+  
   
   /* For double dispatching in the implementation of checkTarget() */
   

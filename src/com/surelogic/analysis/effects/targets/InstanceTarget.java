@@ -1,5 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
+import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
 import com.surelogic.annotation.rules.RegionRules;
@@ -35,8 +36,12 @@ import edu.cmu.cs.fluid.tree.Operator;
 public final class InstanceTarget extends AbstractTarget {
   final IRNode reference;
 
+  final ElaborationEvidence elabEvidence;
+  
+  
+  
   // Force use of the target factories
-  InstanceTarget(final IRNode object, final IRegion field) {
+  InstanceTarget(final IRNode object, final IRegion field, final ElaborationEvidence ee) {
     super(field);
     
     /* I've had this error too many times. */
@@ -48,6 +53,7 @@ public final class InstanceTarget extends AbstractTarget {
     }
     
     reference = object;
+    elabEvidence = ee;
   }
   
   public boolean isMaskable(final IBinder binder) {
@@ -113,6 +119,11 @@ public final class InstanceTarget extends AbstractTarget {
     return reference;
   }
 
+  @Override
+  public ElaborationEvidence getElaborationEvidence() {
+    return elabEvidence;
+  }
+  
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstInstance(b, this);
   }
