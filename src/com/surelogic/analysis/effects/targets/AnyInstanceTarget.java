@@ -152,14 +152,13 @@ public final class AnyInstanceTarget extends AbstractTarget {
     final IRegion regionB = this.region;
     if (regionA.equals(regionB)) {
       // Shouldn't happen
-      return TargetRelationship.newAIsLarger(RegionRelationships.EQUAL);
+      throw new IllegalStateException("Region in Class target equal to region in AnyInstance target!");
     } else if (regionA.ancestorOf(regionB)) {
       return TargetRelationship.newAIsLarger(
         RegionRelationships.REGION_A_INCLUDES_REGION_B);
     } else if (regionB.ancestorOf(regionA)) {
       // shouldn't happen
-      return TargetRelationship.newAIsLarger(
-        RegionRelationships.REGION_B_INCLUDES_REGION_A);
+      throw new IllegalStateException("Region in AnyInstace target contains the region in the Class target!");
     } else {
       return TargetRelationship.newUnrelated();
     }

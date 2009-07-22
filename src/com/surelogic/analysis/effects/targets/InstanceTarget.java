@@ -1,7 +1,5 @@
 package com.surelogic.analysis.effects.targets;
 
-import java.util.logging.Level;
-
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
 import com.surelogic.annotation.rules.RegionRules;
@@ -25,15 +23,6 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.tree.Operator;
-
-/*
- * 99 Feb 23 Remove iwAnything() because I removed the AnythingTarget class.
- * Added implementation of equals() and hashCode()
- */
-
-/*
- * 98 Sept 11 Removed iwArrayElt because I removed the ArrayEltTarget class
- */
 
 /**
  * <em>These Target classes are a disaster.  They need to be redone in a more
@@ -197,9 +186,9 @@ public final class InstanceTarget extends AbstractTarget {
       final IRegion regionA = t.region;
       final IRegion regionB = this.region;
       if (regionA.equals(regionB)) {
-        return TargetRelationship.newAliased(RegionRelationships.EQUAL);
+        return TargetRelationship.newAIsLarger(RegionRelationships.EQUAL);
       } else if (regionA.ancestorOf(regionB)) {
-        return TargetRelationship.newAliased(
+        return TargetRelationship.newAIsLarger(
           RegionRelationships.REGION_A_INCLUDES_REGION_B);
       } else if (regionB.ancestorOf(regionA)) {
         return TargetRelationship.newAliased(
@@ -224,14 +213,13 @@ public final class InstanceTarget extends AbstractTarget {
     final IRegion regionB = this.region;
     if (regionA.equals(regionB)) {
       // Should never happen???
-      LOG.warning("Region in Class target equal to region in Instance target!");
-      return TargetRelationship.newAIsLarger(RegionRelationships.EQUAL);
+      throw new IllegalStateException("Region in Class target equal to region in Instance target!");
     } else if (regionA.ancestorOf(regionB)) {
       return TargetRelationship.newAIsLarger(
         RegionRelationships.REGION_A_INCLUDES_REGION_B);
     } else if (regionB.ancestorOf(regionA)) {
-      return TargetRelationship.newAIsLarger(
-        RegionRelationships.REGION_B_INCLUDES_REGION_A);
+      // Shouldn't happen
+      throw new IllegalStateException("Region in Instance target contains the region in the Class target!");
     } else {
       return TargetRelationship.newUnrelated();
     }
@@ -263,7 +251,7 @@ public final class InstanceTarget extends AbstractTarget {
   public StringBuilder toString(final StringBuilder sb) {
     sb.append('<');
     /* Because of BCA, uses of parameters are represented as
-     * ParameterDeclarations. These unparse as the paramter declaration in the
+     * ParameterDeclarations. These unparse as the parameter declaration in the
      * method header. This is not appropriate for the use here, where we just
      * want the name of the parameter.
      */

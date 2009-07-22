@@ -8,15 +8,6 @@ import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
-/*
- * 99 Feb 23 Remove iwAnything() because I removed the AnythingTarget class.
- * Added implementation of equals() and hashCode()
- */
-
-/*
- * 98 Sept 11 Removed iwArrayElt because I removed the ArrayEltTarget class
- */
-
 /**
  * <em>These Target classes are a disaster.  They need to be redone in a more
  * understandable way.  I've spent the last 8 years trying to make them 
@@ -92,11 +83,10 @@ public final class ClassTarget extends AbstractTarget {
     final IRegion regionB = this.region;
     if (regionA.equals(regionB)) {
       // Shouldn't happen
-      return TargetRelationship.newBIsLarger(RegionRelationships.EQUAL);
+      throw new IllegalStateException("Region in Class target equal to region in AnyInstance target!");
     } else if (regionA.ancestorOf(regionB)) {
       // Shouldn't happen
-      return TargetRelationship.newBIsLarger(
-        RegionRelationships.REGION_A_INCLUDES_REGION_B);
+      throw new IllegalStateException("Region in AnyInstace target contains the region in the Class target!");
     } else if (regionB.ancestorOf(regionA)) {
       return TargetRelationship.newBIsLarger(
         RegionRelationships.REGION_B_INCLUDES_REGION_A);
@@ -140,11 +130,10 @@ public final class ClassTarget extends AbstractTarget {
     final IRegion regionB = this.region;
     if (regionA.equals(regionB)) {
       // Shouldn't happen
-      LOG.warning("Region in Class target equal to region in Instance target!");
-      return TargetRelationship.newBIsLarger(RegionRelationships.EQUAL);
+      throw new IllegalStateException("Region in Class target equal to region in Instance target!");
     } else if (regionA.ancestorOf(regionB)) {
-      return TargetRelationship.newBIsLarger(
-        RegionRelationships.REGION_A_INCLUDES_REGION_B);
+      // SHouldn't happen
+      throw new IllegalStateException("Region in Instance target contains the region in the Class target!");
     } else if (regionB.ancestorOf(regionA)) {
       return TargetRelationship.newBIsLarger(
         RegionRelationships.REGION_B_INCLUDES_REGION_A);

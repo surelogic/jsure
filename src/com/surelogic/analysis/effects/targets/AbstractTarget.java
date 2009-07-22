@@ -9,21 +9,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 
-/*
- * 99 Feb 23 Remove iwAnything() because I removed the AnythingTarget class.
- * Made equals() and hashCode() abstract to force the subclasses to implement
- * them.
- */
-
-/*
- * 98 Sept 11 Removed iwArrayElt because I removed the ArrayEltTarget class
- */
-
-/*
- * 98-06-01: - Added intersectsWith() - Added javadoc - really need to unbogufy
- * get/setReference()
- */
-
 /**
  * Abstract class for representing targets of effects. These are not the same
  * as <em>regions</em>, but they do make use of regions. For example, <tt>InstanceTarget</tt>
@@ -45,11 +30,14 @@ abstract class AbstractTarget implements Target {
   protected static final Logger LOG =
 	  SLLogger.getLogger("FLUID.analysis.effects");
 
+  /** The region accessed by the target */
+  protected final IRegion region;
+
 
 
   /**
    * Returns whether <code>t1</code> is an ancestor of <code>t2</code>,
-   * or vice versa.  THis uses ITypeEnvironment.isSubType() which 
+   * or vice versa.  This uses ITypeEnvironment.isSubType() which 
    * already does the right thing for related IJavaArrayType to IJavaDeclaredType.
    * (This is, arrays are subtypes of java.lang.Object.)
    */
@@ -60,9 +48,6 @@ abstract class AbstractTarget implements Target {
   }
 
   
-
-  protected final IRegion region;
-
   /** Only for use by LocalTarget. */
   AbstractTarget() {
     region = null;
@@ -89,7 +74,7 @@ abstract class AbstractTarget implements Target {
 	 * 
 	 * @return The region component
 	 */
-  public IRegion getRegion() {
+  public final IRegion getRegion() {
     return region;
   }
 
@@ -111,20 +96,26 @@ abstract class AbstractTarget implements Target {
 
   
   
-  /* For double dispatching in the implementation of overlapsWith() */
+  /* For double dispatching in the implementation of overlapsWith() */  
   
+  // Receiver is the argument from the original overlapsWith() call
   abstract TargetRelationship overlapsWithLocal(
       IAliasAnalysis.Method am, IBinder binder, LocalTarget t);
 
+  // Receiver is the argument from the original overlapsWith() call
   abstract TargetRelationship overlapsWithAnyInstance(
       IAliasAnalysis.Method am, IBinder binder, AnyInstanceTarget t);
 
+  // Receiver is the argument from the original overlapsWith() call
   abstract TargetRelationship overlapsWithClass(
       IAliasAnalysis.Method am, IBinder binder, ClassTarget t);
 
+  // Receiver is the argument from the original overlapsWith() call
   abstract TargetRelationship overlapsWithInstance(
       IAliasAnalysis.Method am, IBinder binder, InstanceTarget t);
 
+  
+  
   /**
 	 * Get the name of the target. This is currently the same as calling <tt>getString()</tt>,
 	 * but I'm not yet convinced that I should get rid of it.
