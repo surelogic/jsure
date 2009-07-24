@@ -2,6 +2,7 @@ package com.surelogic.analysis.effects.targets;
 
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.effects.AggregationEvidence;
 import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.logging.SLLogger;
@@ -80,8 +81,17 @@ abstract class AbstractTarget implements Target {
     return null;
   }
   
-  
-  
+  public boolean isAggregated() {
+    final ElaborationEvidence ee = getElaborationEvidence();
+    if (ee == null) {
+      return false;
+    } else if (ee instanceof AggregationEvidence) {
+      return true;
+    } else {
+      return ee.getElaboratedFrom().isAggregated();
+    }
+  }
+
   /* For double dispatching in the implementation of checkTarget() */
   
   // Receiver is the target from the declared effect

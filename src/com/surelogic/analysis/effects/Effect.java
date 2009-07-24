@@ -272,14 +272,7 @@ public final class Effect {
    * Did the target of this effect result from aggregation? 
    */
   public boolean isTargetAggregated() {
-    ElaborationEvidence current = target.getElaborationEvidence();
-    while (current != null) {
-      if (current instanceof AggregationEvidence) {
-        return true;
-      }
-      current = current.getElaboratedFrom().getElaborationEvidence();
-    }
-    return false;
+    return target.isAggregated();
   }
   
   /**

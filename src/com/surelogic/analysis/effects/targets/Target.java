@@ -1,5 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
+import com.surelogic.analysis.effects.AggregationEvidence;
 import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
@@ -28,6 +29,11 @@ public interface Target {
    * from elaboration.
    */
   public ElaborationEvidence getElaborationEvidence();
+  
+  /** 
+   * Does this target result from aggregation of state? 
+   */
+  public boolean isAggregated();
   
   /**
    * Does the target refer to state that is not visible outside of the context
