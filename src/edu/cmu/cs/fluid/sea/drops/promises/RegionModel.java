@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
+import java.text.MessageFormat;
 import java.util.*;
 
 import com.surelogic.aast.bind.IRegionBinding;
@@ -73,11 +74,17 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
       throw new IllegalArgumentException("RegionModel doesn't match field decl: "+n);
     }
     model.setNode(region.getNode());
-    
-    final String stat = region.isStatic() ? " static" : "";
+    model.setMessage(
+        generateMessage(region.isStatic(), region.getVisibility(), qname));
+    return model;
+  }
+  
+  private static String generateMessage(
+      final boolean isStatic, final int viz, final String name) {
+    final String stat = isStatic ? " static" : "";
     
     String visibility = " ";
-    switch (region.getVisibility()) {
+    switch (viz) {
     case JavaNode.PRIVATE:
       visibility = "private"; //$NON-NLS-1$
       break;
@@ -88,9 +95,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
       visibility = "public"; //$NON-NLS-1$
       break;
     }
-    model.setMessage(Messages.RegionAnnotation_regionDrop, visibility,  stat, qname);
-
-    return model;
+    
+    return MessageFormat.format(
+        Messages.RegionAnnotation_regionDrop, visibility,  stat, name);
   }
   
 	/**
@@ -196,22 +203,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
     if (ast == null) {
 			return;
 		}
-		
-		final String stat = ast.isStatic() ? " static" : "";
-		
-		String visibility = " ";
-		switch (ast.getVisibility()) {
-		case JavaNode.PRIVATE:
-			visibility = "private"; //$NON-NLS-1$
-			break;
-		case JavaNode.PROTECTED:
-			visibility = "protected"; //$NON-NLS-1$
-			break;
-		case JavaNode.PUBLIC:
-			visibility = "public"; //$NON-NLS-1$
-			break;
-		}
-		setMessage(Messages.RegionAnnotation_regionDrop, visibility,	stat, regionName);
+		setMessage(generateMessage(ast.isStatic(), ast.getVisibility(), regionName));
 	}
 
 	public RegionModel getModel() {
