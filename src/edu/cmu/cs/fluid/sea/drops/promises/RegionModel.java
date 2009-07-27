@@ -17,11 +17,9 @@ import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
-import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -75,6 +73,23 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
       throw new IllegalArgumentException("RegionModel doesn't match field decl: "+n);
     }
     model.setNode(region.getNode());
+    
+    final String stat = region.isStatic() ? " static" : "";
+    
+    String visibility = " ";
+    switch (region.getVisibility()) {
+    case JavaNode.PRIVATE:
+      visibility = "private"; //$NON-NLS-1$
+      break;
+    case JavaNode.PROTECTED:
+      visibility = "protected"; //$NON-NLS-1$
+      break;
+    case JavaNode.PUBLIC:
+      visibility = "public"; //$NON-NLS-1$
+      break;
+    }
+    model.setMessage(Messages.RegionAnnotation_regionDrop, visibility,  stat, qname);
+
     return model;
   }
   
@@ -151,13 +166,13 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	 */
 	@Override
   public boolean isIntendedToBeCheckedByAnalysis() {
-		if (hasMatchingDependents(DropPredicateFactory
-				.matchType(AggregatePromiseDrop.class))) {
-			return true;
-		}
-		else {
+//		if (hasMatchingDependents(DropPredicateFactory
+//				.matchType(AggregatePromiseDrop.class))) {
+//			return true;
+//		}
+//		else {
 			return false;
-		}
+//		}
 	}
 
 	/**
@@ -177,24 +192,26 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 
 	@Override
 	protected void computeBasedOnAST() {
-		if (getAST() == null) {
+		final NewRegionDeclarationNode ast = getAST();
+    if (ast == null) {
 			return;
 		}
+		
+		final String stat = ast.isStatic() ? " static" : "";
+		
 		String visibility = " ";
-		switch (getAST().getVisibility()) {
+		switch (ast.getVisibility()) {
 		case JavaNode.PRIVATE:
-			visibility = " private "; //$NON-NLS-1$
+			visibility = "private"; //$NON-NLS-1$
 			break;
 		case JavaNode.PROTECTED:
-			visibility = " protected "; //$NON-NLS-1$
+			visibility = "protected"; //$NON-NLS-1$
 			break;
 		case JavaNode.PUBLIC:
-			visibility = " public "; //$NON-NLS-1$
+			visibility = "public"; //$NON-NLS-1$
 			break;
 		}
-		setMessage(Messages.RegionAnnotation_regionDrop, visibility,
-				regionName, JavaNames.getTypeName(VisitUtil
-						.getEnclosingType(getNode())));
+		setMessage(Messages.RegionAnnotation_regionDrop, visibility,	stat, regionName);
 	}
 
 	public RegionModel getModel() {

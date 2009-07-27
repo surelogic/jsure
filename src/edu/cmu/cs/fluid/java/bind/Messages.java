@@ -39,7 +39,7 @@ public class Messages extends AbstractMessages {
 
   public static String RegionAnnotation_prescrubbedInRegion = "inRegion promise (pre-scrubbed, not complete)";
 
-  public static String RegionAnnotation_regionDrop = "region {0} {1} on {2}";
+  public static String RegionAnnotation_regionDrop = "region {0}{1} {2}";
 
   public static String RegionAnnotation_mapFieldsDrop = "mapFields {0} to {1}";
 

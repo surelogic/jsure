@@ -1,8 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.AggregateNode;
-import com.surelogic.aast.promise.RegionMappingNode;
 
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -31,13 +29,18 @@ public final class AggregatePromiseDrop extends PromiseDrop<AggregateNode> {
   }
   
   @Override
+  public boolean isIntendedToBeCheckedByAnalysis() {
+    return true;
+  }
+  
+  @Override
   protected void computeBasedOnAST() {    
     if (getAST() != null) {
       setMessage(Messages.RegionAnnotation_aggregateDrop+' '+getAST().getSpec().unparse(false));
-      for(RegionMappingNode m : getAST().getSpec().getMappingList()) {
-        IRegionBinding b = m.getTo().resolveBinding();
-        b.getModel().addDependent(this);
-      }
+//      for(RegionMappingNode m : getAST().getSpec().getMappingList()) {
+//        IRegionBinding b = m.getTo().resolveBinding();
+//        b.getModel().addDependent(this);
+//      }
     }
   }
 }

@@ -166,19 +166,23 @@ public class RegionRules extends AnnotationRules {
          * haven't been seen lexically.  (No forward lookups)
          */
       }
+    } else {
+      /* Parent model is INSTANCE if the region is not static, ALL if 
+       * region is static.  Region ALL has no parent. 
+       */
+      annotationIsGood = true;
+      if (!qualifiedName.equals(RegionModel.ALL)) {
+        parentModel = RegionModel.getInstance(
+            a.isStatic() ? RegionModel.ALL : RegionModel.INSTANCE);
+      }
     }
     
     if (annotationIsGood) {
       RegionModel model = RegionModel.getInstance(qualifiedName);  
       model.setAST(a); // Set to keep it from being purged
       
-      if (parentRegionNode != null) {
-        // Because annotationisGood == true, we know that parentModel != null
-        if (!model.regionName.equals(RegionModel.ALL)) {
-          model.addSupportingInformation(
-              "Child of region \"" + parentModel.regionName + "\"",
-              parentModel.getNode());
-        }
+      if (parentModel != null) { // parentModel == null if region is ALL
+        model.addDependent(parentModel);
       }
       return model;
     } else {
@@ -282,9 +286,13 @@ public class RegionRules extends AnnotationRules {
 
       
       if (annotationIsGood) {
-        final RegionModel model      = parentDecl.getModel();
         final InRegionPromiseDrop mip = new InRegionPromiseDrop(a);
-        model.addDependent(mip);
+        final RegionModel fieldModel = RegionModel.getInstance(fieldDecl).getModel();
+        final RegionModel parentModel = parentDecl.getModel();
+        fieldModel.addDependent(parentModel);
+        fieldModel.addSupportingInformation("via @InRegion annotation", fieldDecl);
+//      IRegionBinding b = getAST().getSpec().resolveBinding();
+//      b.getModel().addDependent(this);
         return mip;
       }
     }
@@ -492,7 +500,14 @@ public class RegionRules extends AnnotationRules {
       }
     }
     
-    return annotationIsGood ? ap : null;
+    if (annotationIsGood) {
+      fieldAsRegion.getModel().addDependent(ap);
+      return ap;
+    } else {
+      return null;
+    }
+    
+//    return annotationIsGood ? ap : null;
   }
   
   private static String truncateName(final String qualifiedName) {
