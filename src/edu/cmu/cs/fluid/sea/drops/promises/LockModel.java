@@ -6,9 +6,7 @@ import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.analysis.locks.LockUtils;
 
-import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.sea.*;
 
 /**
