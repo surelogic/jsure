@@ -1,6 +1,5 @@
 package com.surelogic.analysis.effects.targets;
 
-import com.surelogic.analysis.effects.AggregationEvidence;
 import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 

@@ -200,8 +200,9 @@ public final class Effect {
   }
   
   /**
-   * Is this an effect on the instance region of the given receiver declaration
-   * node?
+   * Does this effect affect an instance region of the receiver only?  That is,
+   * the effect cannot possibly conflict with an effect on any other object, and 
+   * cannot affect a static field.
    */
   public boolean affectsReceiver(final IRNode rcvrNode) {
     return target.overlapsReceiver(rcvrNode);

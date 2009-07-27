@@ -22,7 +22,6 @@ import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -43,6 +42,11 @@ public final class InstanceTarget extends AbstractTarget {
   // Force use of the target factories
   InstanceTarget(final IRNode object, final IRegion field, final ElaborationEvidence ee) {
     super(field);
+    
+    // Region cannot be static: use class target
+    if (field.isStatic()) {
+      throw new IllegalArgumentException("Region cannot be static: use a ClassTarget instead");
+    }
     
     /* I've had this error too many times. */
     final Operator op = JJNode.tree.getOperator(object);
@@ -106,12 +110,7 @@ public final class InstanceTarget extends AbstractTarget {
   }
 
   public boolean overlapsReceiver(final IRNode rcvrNode) {
-    /* XXX: Are we guaranteed that the instance region is always represented by
-     * the same object for the life of JSure?  If so, we can cache the instance
-     * region.
-     */
-    return reference.equals(rcvrNode) && 
-      RegionModel.getInstance(RegionModel.INSTANCE).ancestorOf(region);
+    return reference.equals(rcvrNode);
   }
 
   @Override
