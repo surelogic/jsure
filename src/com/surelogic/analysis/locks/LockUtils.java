@@ -6,6 +6,7 @@ import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.effects.*;
+import com.surelogic.analysis.effects.targets.ClassTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
@@ -19,7 +20,6 @@ import com.surelogic.annotation.rules.*;
 import com.surelogic.util.NullSet;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -37,25 +37,17 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IOldTypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
-import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
-import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CharLiteral;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
-import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
-import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
-import edu.cmu.cs.fluid.java.operator.SomeFunctionCall;
-import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
-import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -775,27 +767,89 @@ public final class LockUtils {
    *          The constructor/method decl of the constructor/method that contains mcall
    */
   public Set<NeededLock> getLocksForMethodAsRegionRef(
-      final IRNode mcall, final IRNode enclosingDecl, 
-      final Set<AggregationEvidence> outEvidence) {
+      final IRNode mcall, final IRNode enclosingDecl) {
     final Set<NeededLock> result = new HashSet<NeededLock>();
-    final Set<Effect> methodFx = EffectsVisitor.getRawMethodCallEffects(
-        targetFactory, binder, mcall, enclosingDecl);
-    final Operator callOp = JJNode.tree.getOperator(mcall);
-
-    // Process all the actual parameters
-    final Iterable<IRNode> actualsEnum =
-      Arguments.getArgIterator(((CallInterface) callOp).get_Args(mcall));
-    for (final IRNode actual : actualsEnum) {
-      getLocksForMethodAsRegionRef_forParam(mcall, actual, methodFx, result, outEvidence);
-    }
-
-    // Process receiver of non-static method calls
-    if (MethodCall.prototype.includes(callOp)) {
-      if (!TypeUtil.isStatic(binder.getBinding(mcall))) {
-        getLocksForMethodAsRegionRef_forParam(
-            mcall, ((MethodCall) callOp).get_Object(mcall), methodFx, result, outEvidence);
+    
+    /* Get the effects of calling the method, and find all the effects
+     * whose targets are the result of aggregation.  For each such target
+     * get the lock required to access the region into which the aggregation
+     * occurred.
+     */
+    /* We use the static method here because we already have a referenced to the
+     * enclosing method declaration that contains the method call from our
+     * caller (it is needed for other things in our caller). Using the instance
+     * method would cause an unneeded crawl up the parse tree to find the
+     * enclosing method declaration.
+     */
+    final Set<Effect> callFx = EffectsVisitor.getMethodCallEffects(
+        effectsVisitor.getBCA(), targetFactory, binder, mcall, enclosingDecl);
+    for (final Effect effect : callFx) {
+      if (effect.isTargetAggregated()) {
+        final boolean isWrite = effect.isWriteEffect();
+        final Target target = effect.getTarget();
+        final IRegion region = target.getRegion();
+        
+        if (target instanceof ClassTarget) {
+          final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
+          final RegionLockRecord neededLock =
+            getLockForRegion(JavaTypeFactory.getMyThisType(cdecl), region);
+          if (neededLock != null) {
+            // Static region must be protected by a static lock
+            /* Whether field is being written to determines whether we need a read
+             * or write lock.
+             */ 
+            final NeededLock l =
+              neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
+            result.add(l);
+          }                  
+        } else { // InstanceTarget
+          final IRNode ref = target.getReference();
+          final IJavaType jt = binder.getJavaType(ref);
+          // Arrays aren't classes
+          if (jt instanceof IJavaDeclaredType) {
+            final RegionLockRecord neededLock =
+              getLockForRegion((IJavaDeclaredType) jt, region);
+            if (neededLock != null) {
+              final NeededLock l;
+              if (neededLock.lockDecl.isLockStatic()) {
+                /* Whether field is being written to determines whether we need a read
+                 * or write lock.
+                 */ 
+                l = neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
+              } else {
+                /* Whether field is being written to determines whether we need a read
+                 * or write lock.
+                 */ 
+                l = neededLockFactory.createInstanceLock(
+                    ref, neededLock.lockDecl, isWrite);
+              }
+              result.add(l);
+            }
+          }
+        }
       }
     }
+    
+    
+    
+//    final Set<Effect> methodFx = EffectsVisitor.getRawMethodCallEffects(
+//        targetFactory, binder, mcall, enclosingDecl);
+//    final Operator callOp = JJNode.tree.getOperator(mcall);
+//
+//    // Process all the actual parameters
+//    final Iterable<IRNode> actualsEnum =
+//      Arguments.getArgIterator(((CallInterface) callOp).get_Args(mcall));
+//    for (final IRNode actual : actualsEnum) {
+//      getLocksForMethodAsRegionRef_forParam(mcall, actual, methodFx, result, outEvidence);
+//    }
+//
+//    // Process receiver of non-static method calls
+//    if (MethodCall.prototype.includes(callOp)) {
+//      if (!TypeUtil.isStatic(binder.getBinding(mcall))) {
+//        getLocksForMethodAsRegionRef_forParam(
+//            mcall, ((MethodCall) callOp).get_Object(mcall), methodFx, result, outEvidence);
+//      }
+//    }
 
     return Collections.unmodifiableSet(result);
   }
@@ -1285,69 +1339,69 @@ public final class LockUtils {
     }
     return objExpr;
   }
-
-  /**
-   * Build a map from formals to Actuals for a method call. Now also used in
-   * ColorTargets.
-   * 
-   * @param mcall
-   *          The node for the invocation expression
-   * @param mdecl
-   *          The node for the method declaration
-   * @return <code>Map</code> from formals to Actuals
-   */
-  private Map<IRNode, IRNode> constructFormalToActualMap(
-      final IRNode mcall, final IRNode mdecl) {
-    // get the formal parameters
-    final IRNode params = ((SomeFunctionDeclaration) JJNode.tree.getOperator(mdecl)).get_Params(mdecl);
-    final Iterator<IRNode> paramsEnum = Parameters.getFormalIterator(params);
-
-    // get the actual parameters
-    final IRNode actuals = ((CallInterface) JJNode.tree.getOperator(mcall)).get_Args(mcall);
-    final Iterator<IRNode> actualsEnum = Arguments.getArgIterator(actuals);
-
-    // build a table mapping each formal parameter to its actual
-    final Map<IRNode, IRNode> table = new HashMap<IRNode, IRNode>();
-    while (paramsEnum.hasNext()) {
-      table.put(paramsEnum.next(), actualsEnum.next());
-    }
-
-    /* mcall could be a an AnonClassExpression, ConstructorCall, MethodCall,
-     * or NewExpression.  If it is a call to a non-static method, we must map
-     * the receiver, and in some cases we can map the qualified receivers.  If
-     * it is a ConstructorCall (i.e., "this(...)" or "super(...)", we must map
-     * the receiver, and in some cases we can map the qualified receivers.
-     * Otherwise, we do not have enough information to map the receivers.
-     */
-    final Operator op = JJNode.tree.getOperator(mcall);
-    if ((MethodCall.prototype.includes(op) && !TypeUtil.isStatic(mdecl)) ||
-        ConstructorCall.prototype.includes(op)) {
-      final boolean mapQualifiedReceivers;
-      if (ConstructorCall.prototype.includes(op)) {
-        mapQualifiedReceivers = true;
-      } else {
-        final IRNode actualRcvr = ((SomeFunctionCall) op).get_Object(mcall);
-        final Operator actualRcvrOp = JJNode.tree.getOperator(actualRcvr);
-        table.put(JavaPromise.getReceiverNodeOrNull(mdecl), actualRcvr);
-        mapQualifiedReceivers = 
-          ThisExpression.prototype.includes(actualRcvrOp) ||
-          SuperExpression.prototype.includes(actualRcvrOp);
-      }
-      if (mapQualifiedReceivers) {
-        /* Special case: we can map Qualified receivers of the called method
-         * to those of the calling context.
-         */
-        final IRNode callingMethodDecl = VisitUtil.getEnclosingMethod(mcall);
-        
-        // Get the qualified receivers of the called method
-        for (final IRNode qrn : JavaPromise.getQualifiedReceiverNodes(mdecl)) {
-          final IRNode type = QualifiedReceiverDeclaration.getType(binder, qrn);
-          // Get the corresponding qualified receiver in the calling context
-          final IRNode callingQRN = JavaPromise.getQualifiedReceiverNodeByName(callingMethodDecl, type);
-          table.put(qrn, callingQRN);
-        }
-      }
-    }
-    return Collections.unmodifiableMap(table);
-  }
+//
+//  /**
+//   * Build a map from formals to Actuals for a method call. Now also used in
+//   * ColorTargets.
+//   * 
+//   * @param mcall
+//   *          The node for the invocation expression
+//   * @param mdecl
+//   *          The node for the method declaration
+//   * @return <code>Map</code> from formals to Actuals
+//   */
+//  private Map<IRNode, IRNode> constructFormalToActualMap(
+//      final IRNode mcall, final IRNode mdecl) {
+//    // get the formal parameters
+//    final IRNode params = ((SomeFunctionDeclaration) JJNode.tree.getOperator(mdecl)).get_Params(mdecl);
+//    final Iterator<IRNode> paramsEnum = Parameters.getFormalIterator(params);
+//
+//    // get the actual parameters
+//    final IRNode actuals = ((CallInterface) JJNode.tree.getOperator(mcall)).get_Args(mcall);
+//    final Iterator<IRNode> actualsEnum = Arguments.getArgIterator(actuals);
+//
+//    // build a table mapping each formal parameter to its actual
+//    final Map<IRNode, IRNode> table = new HashMap<IRNode, IRNode>();
+//    while (paramsEnum.hasNext()) {
+//      table.put(paramsEnum.next(), actualsEnum.next());
+//    }
+//
+//    /* mcall could be a an AnonClassExpression, ConstructorCall, MethodCall,
+//     * or NewExpression.  If it is a call to a non-static method, we must map
+//     * the receiver, and in some cases we can map the qualified receivers.  If
+//     * it is a ConstructorCall (i.e., "this(...)" or "super(...)", we must map
+//     * the receiver, and in some cases we can map the qualified receivers.
+//     * Otherwise, we do not have enough information to map the receivers.
+//     */
+//    final Operator op = JJNode.tree.getOperator(mcall);
+//    if ((MethodCall.prototype.includes(op) && !TypeUtil.isStatic(mdecl)) ||
+//        ConstructorCall.prototype.includes(op)) {
+//      final boolean mapQualifiedReceivers;
+//      if (ConstructorCall.prototype.includes(op)) {
+//        mapQualifiedReceivers = true;
+//      } else {
+//        final IRNode actualRcvr = ((SomeFunctionCall) op).get_Object(mcall);
+//        final Operator actualRcvrOp = JJNode.tree.getOperator(actualRcvr);
+//        table.put(JavaPromise.getReceiverNodeOrNull(mdecl), actualRcvr);
+//        mapQualifiedReceivers = 
+//          ThisExpression.prototype.includes(actualRcvrOp) ||
+//          SuperExpression.prototype.includes(actualRcvrOp);
+//      }
+//      if (mapQualifiedReceivers) {
+//        /* Special case: we can map Qualified receivers of the called method
+//         * to those of the calling context.
+//         */
+//        final IRNode callingMethodDecl = VisitUtil.getEnclosingMethod(mcall);
+//        
+//        // Get the qualified receivers of the called method
+//        for (final IRNode qrn : JavaPromise.getQualifiedReceiverNodes(mdecl)) {
+//          final IRNode type = QualifiedReceiverDeclaration.getType(binder, qrn);
+//          // Get the corresponding qualified receiver in the calling context
+//          final IRNode callingQRN = JavaPromise.getQualifiedReceiverNodeByName(callingMethodDecl, type);
+//          table.put(qrn, callingQRN);
+//        }
+//      }
+//    }
+//    return Collections.unmodifiableMap(table);
+//  }
 }

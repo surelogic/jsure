@@ -275,6 +275,13 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
     });
   }
 
+  /**
+   * Get the Binding Context Analysis object used by this analysis.
+   */
+  public BindingContextAnalysis getBCA() {
+    return bca;
+  }
+  
   
   
   //----------------------------------------------------------------------

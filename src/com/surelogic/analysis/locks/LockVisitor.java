@@ -264,8 +264,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   private static final String DS_NO_MATCHING_LOCKS = Messages.LockAnalysis_ds_NoMatchingLocks;
   
   private static final String DS_MATCHING_LOCK = Messages.LockAnalysis_ds_MatchingLock;
-
-  private static final String DS_AGGREGATION_EVIDENCE = Messages.LockAnalysis_ds_AggregationEvidence;
   
   
     
@@ -322,6 +320,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   
   // Not used right now, but should be used in the future when I stop using
   // getRawMethodCallEffects()
+  @SuppressWarnings("unused")
   private final BindingContextAnalysis bindingContextAnalysis;
 
   /**
@@ -709,18 +708,18 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     public void popFrame() {
       head = head.nextFrame;
     }
-
-    public boolean containsLock(final HeldLock lock, 
-        final ThisExpressionBinder teb, final IBinder b,
-        final boolean setNeeded) {
-      LockStackFrame frame = head;
-      while (frame != null) {
-        if (frame.containsLock(lock, teb, b, setNeeded))
-          return true;
-        frame = frame.nextFrame;
-      }
-      return false;
-    }
+//
+//    public boolean containsLock(final HeldLock lock, 
+//        final ThisExpressionBinder teb, final IBinder b,
+//        final boolean setNeeded) {
+//      LockStackFrame frame = head;
+//      while (frame != null) {
+//        if (frame.containsLock(lock, teb, b, setNeeded))
+//          return true;
+//        frame = frame.nextFrame;
+//      }
+//      return false;
+//    }
 
     public boolean satisfiesLock(final NeededLock lock,
         final ThisExpressionBinder teb, final IBinder b,
@@ -1824,8 +1823,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
      * <code>this.Q</code> and that therefore the lock <code>L</code> must
      * be held.
      */
-    final Set<AggregationEvidence> evidence = new HashSet<AggregationEvidence>();
-    final Set<NeededLock> neededLocks = lockUtils.getLocksForMethodAsRegionRef(call, enclosingMethod, evidence);
+    final Set<NeededLock> neededLocks = lockUtils.getLocksForMethodAsRegionRef(call, enclosingMethod);
     final LockChecker indirectAccessChecker = new LockChecker(call) {
       @Override
       protected LockModel getPromiseDrop(final NeededLock neededLock) {
@@ -1834,14 +1832,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       
       @Override
       protected void addAdditionalEvidence(final ResultDrop resultDrop) {
-        // Add rationale based on method effects and region mapping
-        for (final AggregationEvidence ev : evidence) {
-          for (final Effect effect : ev.conflicts) {
-            addSupportingInformation(resultDrop, useSite, DS_AGGREGATION_EVIDENCE,
-                effect, ev.originalRegion,
-                DebugUnparser.toString(ev.originalObjExpr), ev.mappedRegion);
-          }
-        }
+        // TODO: Add rationale based on method effects and region mapping
       }
     };
     indirectAccessChecker.assureNeededLocks(neededLocks, heldJUCLocks,

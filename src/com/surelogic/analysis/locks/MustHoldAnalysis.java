@@ -76,8 +76,6 @@ public final class MustHoldAnalysis extends
     return mhl;
   }
 
-  
-  @SuppressWarnings("unchecked")
   @Override
   protected FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> createAnalysis(final IRNode flowUnit) {
     final IRNode actualFlowUnit = (constructorContext == null) ? flowUnit : constructorContext;
@@ -274,7 +272,6 @@ public final class MustHoldAnalysis extends
           "Must Hold Analysis", lattice, this, DebugUnparser.viewer);
     }
 
-    @SuppressWarnings("unchecked")
     public ImmutableList<ImmutableSet<IRNode>>[] transferComponentSource(IRNode node) {
       // Initial state of affairs is no locks held
       ImmutableList<ImmutableSet<IRNode>>[] initValue = lattice.getEmptyValue();
