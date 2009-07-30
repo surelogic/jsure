@@ -304,42 +304,6 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
     }    
   }
   
-//  /**
-//   * If the given expression is a ThisExpression, then return the
-//   * ReceiverDeclaration node that represents the receiver in the given context.
-//   * Similarly for QualifiedThisExpressions. Returns the given node otherwise.
-//   * 
-//   * <p>This version is superior {@link PromiseUtil#fixThisExpression} because
-//   * it avoids crawling back up the parse tree because this class already keeps
-//   * track of the receiver and enclosing method.
-//   * 
-//   * <p>
-//   * We used to rely on the use of the BindingContextAnalysis during
-//   * effect/target elaboration to turn ThisExpressions into ReceiverDeclaration
-//   * nodes. But that is too late: we don't have the correct context information
-//   * to know that a use of "this" inside of an instance initializer block that
-//   * is being analyzed on behalf of a constructor declaration (via the
-//   * InstanceInitVisitor) should be mapped to the ReceiverDeclaration node of
-//   * the constructor. If we rely on the BindingContextAnalysis during
-//   * elaboration, the "this" would be instead be converted to the receiver node
-//   * for initialization, and then not be compatible with the effects gathered
-//   * from the constructor declaration itself. In particular, this method needs
-//   * to be used when examining FieldRefs.
-//   */
-//  private IRNode fixThisExpression(final IRNode expr) {
-//    final Operator op = getOperator(expr);
-//    if (ThisExpression.prototype.includes(op)
-//        || SuperExpression.prototype.includes(op)) {
-//      return theReceiverNode;
-//    } else if (QualifiedThisExpression.prototype.includes(op)) {
-//      final IRNode outerType =
-//        binder.getBinding(QualifiedThisExpression.getType(expr));
-//      return JavaPromise.getQualifiedReceiverNodeByName(enclosingMethod, outerType);
-//    } else {
-//      return expr;
-//    }
-//  }
-  
   private IRNode getBinding(final IRNode node) {
     return this.binder.getBinding(node);
   }
@@ -600,6 +564,18 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
   // Target elaboration methods
   // ----------------------------------------------------------------------
   
+  public Set<Effect> elaborateEffect(final TargetFactory targetFactory,
+      final IRNode src, final boolean isRead, final Target target) {
+    if (target instanceof InstanceTarget) {
+      final Set<Effect> elaboratedEffects = new HashSet<Effect>();
+      elaborateInstanceTargetEffects(
+          bca, targetFactory, binder, src, isRead, target, elaboratedEffects);
+      return Collections.unmodifiableSet(elaboratedEffects);
+    } else {
+      return Collections.singleton(Effect.newEffect(src, isRead, target));
+    }
+  }
+  
   private static void elaborateInstanceTargetEffects(
       final BindingContextAnalysis bca, final TargetFactory targetFactory,
       final IBinder binder, final IRNode src, final boolean isRead,
@@ -608,13 +584,6 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
     for (final Target t : te.elaborateTarget(initTarget)) {
       outEffects.add(Effect.newEffect(src, isRead, t));
     }
-  }
-
-  private void elaborateInstanceTargetEffects(
-      final IRNode src, final boolean isRead,
-      final Target initTarget, final Set<Effect> outEffects) {
-    elaborateInstanceTargetEffects(
-        bca, targetFactory, binder, src, isRead, initTarget, outEffects);
   }
   
   private static class TargetElaborator {
@@ -805,7 +774,8 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
     final IRNode array = ArrayRefExpression.getArray(expr);
     final boolean isRead = !this.isLHS;
     this.isLHS = false;
-    elaborateInstanceTargetEffects(expr, isRead,
+    elaborateInstanceTargetEffects(
+        bca, targetFactory, binder, expr, isRead,
         targetFactory.createInstanceTarget(array, ARRAY_ELEMENT), theEffects);
     doAcceptForChildren(expr);
     return null;
@@ -879,7 +849,8 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
         final IRNode obj = FieldRef.getObject(expr);
         final Target initTarget = 
           targetFactory.createInstanceTarget(obj, RegionModel.getInstance(id));
-        elaborateInstanceTargetEffects(expr, isRead, initTarget, theEffects);
+        elaborateInstanceTargetEffects(
+            bca, targetFactory, binder, expr, isRead, initTarget, theEffects);
       }
     }
     doAcceptForChildren(expr);

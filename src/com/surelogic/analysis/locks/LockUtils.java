@@ -7,6 +7,7 @@ import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.ClassTarget;
+import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
@@ -527,6 +528,32 @@ public final class LockUtils {
       final IRNode receiver, final IRNode varDecl, final IJavaType clazz) {
     return getLockForFieldRef(receiver, varDecl, clazz, true);
   }
+
+  /**
+   * Is the array reference supposed to be protected, and if so, by which lock?
+   * 
+   * @param arrayRef
+   *          An ArrayRefExpression node
+   * @return The Lock that must be held or <code>null</code> if no lock is
+   *         known to be necessary for the accessed region.
+   */
+  public Set<NeededLock> getLockForArrayRef(
+      final IRNode arrayRef, final boolean isWrite) {
+    final IRNode obj = ArrayRefExpression.getArray(arrayRef);
+    return getLockForInstanceRegion(isWrite, obj, elementRegion);
+  }
+  
+  public Set<NeededLock> getLocksForDirectRegionAccess(
+    final IRNode srcNode, final boolean isRead, final Target target) {
+    final Set<Effect> elaboratedEffects =
+      effectsVisitor.elaborateEffect(targetFactory, srcNode, isRead, target);
+    
+    final Set<NeededLock> neededLocks = new HashSet<NeededLock>();
+    for (final Effect effect : elaboratedEffects) {
+      getLockFromEffect(effect, neededLocks);
+    }
+    return Collections.unmodifiableSet(neededLocks);
+  }
   
   /**
    * Is this field reference supposed to be protected, and if so, by which lock?
@@ -615,20 +642,6 @@ public final class LockUtils {
       }
     }
     return null;
-  }
-
-  /**
-   * Is the array reference supposed to be protected, and if so, by which lock?
-   * 
-   * @param arrayRef
-   *          An ArrayRefExpression node
-   * @return The Lock that must be held or <code>null</code> if no lock is
-   *         known to be necessary for the accessed region.
-   */
-  public Set<NeededLock> getLockForArrayRef(
-      final IRNode arrayRef, final boolean isWrite) {
-    final IRNode obj = ArrayRefExpression.getArray(arrayRef);
-    return getLockForInstanceRegion(isWrite, obj, elementRegion);
   }
 
   /**
@@ -785,125 +798,78 @@ public final class LockUtils {
         effectsVisitor.getBCA(), targetFactory, binder, mcall, enclosingDecl);
     for (final Effect effect : callFx) {
       if (effect.isTargetAggregated()) {
-        final boolean isWrite = effect.isWriteEffect();
-        final Target target = effect.getTarget();
-        final IRegion region = target.getRegion();
-        
-        if (target instanceof ClassTarget) {
-          final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
-          final RegionLockRecord neededLock =
-            getLockForRegion(JavaTypeFactory.getMyThisType(cdecl), region);
-          if (neededLock != null) {
-            // Static region must be protected by a static lock
-            /* Whether field is being written to determines whether we need a read
-             * or write lock.
-             */ 
-            final NeededLock l =
-              neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
-            result.add(l);
-          }                  
-        } else { // InstanceTarget
-          final IRNode ref = target.getReference();
-          final IJavaType jt = binder.getJavaType(ref);
-          // Arrays aren't classes
-          if (jt instanceof IJavaDeclaredType) {
-            final RegionLockRecord neededLock =
-              getLockForRegion((IJavaDeclaredType) jt, region);
-            if (neededLock != null) {
-              final NeededLock l;
-              if (neededLock.lockDecl.isLockStatic()) {
-                /* Whether field is being written to determines whether we need a read
-                 * or write lock.
-                 */ 
-                l = neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
-              } else {
-                /* Whether field is being written to determines whether we need a read
-                 * or write lock.
-                 */ 
-                l = neededLockFactory.createInstanceLock(
-                    ref, neededLock.lockDecl, isWrite);
-              }
-              result.add(l);
-            }
-          }
-        }
+        getLockFromEffect(effect, result);
       }
     }
-    
-    
-    
-//    final Set<Effect> methodFx = EffectsVisitor.getRawMethodCallEffects(
-//        targetFactory, binder, mcall, enclosingDecl);
-//    final Operator callOp = JJNode.tree.getOperator(mcall);
-//
-//    // Process all the actual parameters
-//    final Iterable<IRNode> actualsEnum =
-//      Arguments.getArgIterator(((CallInterface) callOp).get_Args(mcall));
-//    for (final IRNode actual : actualsEnum) {
-//      getLocksForMethodAsRegionRef_forParam(mcall, actual, methodFx, result, outEvidence);
-//    }
-//
-//    // Process receiver of non-static method calls
-//    if (MethodCall.prototype.includes(callOp)) {
-//      if (!TypeUtil.isStatic(binder.getBinding(mcall))) {
-//        getLocksForMethodAsRegionRef_forParam(
-//            mcall, ((MethodCall) callOp).get_Object(mcall), methodFx, result, outEvidence);
-//      }
-//    }
-
     return Collections.unmodifiableSet(result);
   }
 
-  private void getLocksForMethodAsRegionRef_forParam(final IRNode mcall,
-      final IRNode actual, final Set<Effect> methodFx,
-      final Set<NeededLock> outLocks, final Set<AggregationEvidence> outEvidence) {
-    // Is the actual parameter of the form 'e.f'
-    final Operator actualOp = JJNode.tree.getOperator(actual);
-    if (FieldRef.prototype.includes(actualOp)) {
-      /*
-       * Get the region mapping for the field 'f'. Mapping is 'null' if the
-       * field is not unique or does not have a declared mapping.
-       */
-      final Map<RegionModel, IRegion> regionMap =
-        AggregationUtils.getRegionMappingFromFieldRef(binder, actual);
-      if (regionMap != null) {
-        /*
-         * For each region in 'e.f' that may be affected that is mapped into a
-         * region of 'e', we need to find what locks it may have associated with
-         * it.
-         */
-        for (final IRegion mappedRegion : regionMap.keySet()) {
-          /* See if <e.f> . mappedRegion may be affected by the method call. We
-           * do this by checking whether effects on "<e.f>.mappedRegion" conflict
-           * with the method's effects.  If a write effect conflicts with the method
-           * effects, then the method either reads or writes the region.  If a
-           * read effect also conflicts, then the method writes the region.  We
-           * cannot test for read effects directly because two read effects do
-           * not conflict with each other.
-           */
-          final Target t = targetFactory.createInstanceTarget(actual, mappedRegion);
-          final Effect writeEffect = Effect.newWrite(mcall, t); // bogus src expression
-          final Effect readEffect = Effect.newRead(mcall, t); // bogus src expression
-          final Set<Effect> writeAsSet = Collections.singleton(writeEffect);
-          final Set<Effect> readAsSet = Collections.singleton(readEffect);
-          final ConflictingEffects writeConflicts =
-            conflicter.getMayConflictingEffects(writeAsSet, methodFx, mcall);
-          final boolean hasReadConflicts =
-            conflicter.mayConflict(readAsSet, methodFx, mcall);
-          
-          if (writeConflicts.conflictsExist()) {
-            final boolean isWrite = hasReadConflicts;
-            // Extract the effects that conflict with our actual parameter.
-            final Set<Effect> conflicts = new HashSet<Effect>();
-            for (final ConflictingPair cp : writeConflicts.getAsConflictingPairs()) {
-              // Effect A is always "writeEffect" from above! 
-              conflicts.add(cp.getEffectB());
+  /**
+   * Given an effect, add the needed lock (if any) for the accessed region to
+   * the set of locks.
+   * 
+   * <p>
+   * Currently only works with effects referencing class targets and instance
+   * targets. <em>Does not do anything any instance targets; simply ignores
+   * them.</em>
+   */
+  private void getLockFromEffect(
+      final Effect effect, final Set<NeededLock> result) {
+    final boolean isWrite = effect.isWriteEffect();
+    final Target target = effect.getTarget();
+    final IRegion region = target.getRegion();
+    
+    if (target instanceof ClassTarget) {
+      final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
+      final RegionLockRecord neededLock =
+        getLockForRegion(JavaTypeFactory.getMyThisType(cdecl), region);
+      if (neededLock != null) {
+        // Static region must be protected by a static lock
+        /* Whether field is being written to determines whether we need a read
+         * or write lock.
+         */ 
+        final NeededLock l =
+          neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
+        result.add(l);
+      }                  
+    } else { // InstanceTarget
+      final IRNode ref = target.getReference();
+      final IJavaType jt = binder.getJavaType(ref);
+      // Arrays aren't classes
+      if (jt instanceof IJavaDeclaredType) {
+        final RegionLockRecord neededLock =
+          getLockForRegion((IJavaDeclaredType) jt, region);
+        if (neededLock != null) {
+          final NeededLock l;
+          if (neededLock.lockDecl.isLockStatic()) {
+            /* Whether field is being written to determines whether we need a read
+             * or write lock.
+             */ 
+            l = neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
+          } else {
+            /* Okay, we need BCA in the elaboration to help us track elaboration
+             * all the way into the receiver or other parameter, but it also
+             * messes things up for us by binding all the way to variable
+             * declarations and method return results, when we a lot of the time
+             * we would like the plain-Jane UseExpression.  So we have to back
+             * track trough the evidence to undo the the elaboration.
+             */
+            final IRNode refForLock;
+            final Operator op = JJNode.tree.getOperator(ref);
+            final ElaborationEvidence evidence = target.getElaborationEvidence();
+            if (!VariableUseExpression.prototype.includes(op) && evidence instanceof BCAEvidence) {
+              refForLock = ((BCAEvidence) evidence).getUseExpression();
+            } else {
+              refForLock = ref;
             }
-            getLocksFromAggregation(
-                isWrite, actual, mappedRegion,
-                Collections.unmodifiableSet(conflicts), true,
-                outLocks, outEvidence);
+            
+            /* Whether field is being written to determines whether we need a read
+             * or write lock.
+             */ 
+            l = neededLockFactory.createInstanceLock(
+                refForLock, neededLock.lockDecl, isWrite);
           }
+          result.add(l);
         }
       }
     }
@@ -1404,4 +1370,17 @@ public final class LockUtils {
 //    }
 //    return Collections.unmodifiableMap(table);
 //  }
+  
+  public RegionModel getElementRegion() {
+    return elementRegion;
+  }
+  
+  public InstanceTarget createInstanceTarget(
+      final IRNode object, final IRegion region) {
+    return targetFactory.createInstanceTarget(object, region);
+  }
+
+  public ClassTarget createClassTarget(final IRegion field) {
+    return targetFactory.createClassTarget(field);
+  }  
 }

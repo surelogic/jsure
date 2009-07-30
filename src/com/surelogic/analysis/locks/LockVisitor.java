@@ -24,11 +24,13 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
+import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
 import com.surelogic.analysis.locks.locks.NeededLock;
 import com.surelogic.analysis.locks.locks.NeededLockFactory;
 import com.surelogic.analysis.messages.Messages;
+import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.logging.SLLogger;
 
@@ -282,8 +284,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         return ctxtTheReceiverNode;
       } else {
         throw new UnsupportedOperationException("Binding ThisExpression that is not inside a method or constructor");
-//        // XXX: Is this really necessary?
-//        return defaultBindReceiver(node);
       }
     }
     
@@ -295,8 +295,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         return JavaPromise.getQualifiedReceiverNodeByName(ctxtInsideMethod, outerType);        
       } else {
         throw new UnsupportedOperationException("Binding ThisExpression that is not inside a method or constructor");
-//        // XXX: Is this really necessary?
-//        return defaultBindQualifiedReceiver(outerType, node);
       }
     }
   }  
@@ -2003,7 +2001,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     this.ctxtIsLHS = false;
 
     dereferencesSafeObject(expr);
-    assureRegionRef(expr, lockUtils.getLockForArrayRef(expr, isWrite));
+//    assureRegionRef(expr, lockUtils.getLockForArrayRef(expr, isWrite));
+    assureRegionRef(expr, 
+        lockUtils.getLocksForDirectRegionAccess(expr, !isWrite,
+            lockUtils.createInstanceTarget(
+                ArrayRefExpression.getArray(expr),
+                lockUtils.getElementRegion())));
     // continue into the expression
     doAcceptForChildren(expr);
     return null;
@@ -2207,8 +2210,20 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     this.ctxtIsLHS = false;
     
     dereferencesSafeObject(fieldRef);
-    assureRegionRef(
-        fieldRef, lockUtils.getLockForFieldRef(fieldRef, isWrite));
+//    assureRegionRef(
+//        fieldRef, lockUtils.getLockForFieldRef(fieldRef, isWrite));
+    
+    final IRegion fieldAsRegion =
+      RegionModel.getInstance(binder.getBinding(fieldRef));
+    final Target target;
+    if (fieldAsRegion.isStatic()) {
+      target = lockUtils.createClassTarget(fieldAsRegion);
+    } else {
+      target = lockUtils.createInstanceTarget(FieldRef.getObject(fieldRef), fieldAsRegion);
+    }    
+    assureRegionRef(fieldRef, 
+        lockUtils.getLocksForDirectRegionAccess(fieldRef, !isWrite, target));
+    
     // continue into the expression
     doAcceptForChildren(fieldRef);
     return null;
@@ -2702,9 +2717,19 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
             }
             // Only non-final fields need to be protected
             if (!TypeUtil.isFinal(varDecl)) {
-              assureRegionRef(varDecl,
-                  lockUtils.getLockForVarDecl(
-                      ctxtTheReceiverNode, varDecl, ctxtJavaType));
+              final IRegion fieldAsRegion = RegionModel.getInstance(varDecl);
+              final Target target;
+              if (fieldAsRegion.isStatic()) {
+                target = lockUtils.createClassTarget(fieldAsRegion);
+              } else {
+                target = lockUtils.createInstanceTarget(ctxtTheReceiverNode, fieldAsRegion);
+              }    
+              assureRegionRef(varDecl, 
+                  lockUtils.getLocksForDirectRegionAccess(varDecl, false, target));
+              
+//              assureRegionRef(varDecl,
+//                  lockUtils.getLockForVarDecl(
+//                      ctxtTheReceiverNode, varDecl, ctxtJavaType));
             }
             // analyze the the RHS of the initialization
             doAcceptForChildren(varDecl);
