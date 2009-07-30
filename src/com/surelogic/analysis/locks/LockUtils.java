@@ -523,11 +523,6 @@ public final class LockUtils {
     return getLockForFieldRef(
         FieldRef.getObject(fieldRef), binder.getBinding(fieldRef), null, isWrite);    
   }
-  
-  public Set<NeededLock> getLockForVarDecl(
-      final IRNode receiver, final IRNode varDecl, final IJavaType clazz) {
-    return getLockForFieldRef(receiver, varDecl, clazz, true);
-  }
 
   /**
    * Is the array reference supposed to be protected, and if so, by which lock?
