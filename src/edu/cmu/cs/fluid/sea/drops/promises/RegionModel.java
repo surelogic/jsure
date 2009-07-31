@@ -228,18 +228,20 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	public boolean isFinal() {
 	  final NewRegionDeclarationNode ast = getAST();
 	  if (ast != null) {
-	    return JavaNode.isSet(ast.getModifiers(), JavaNode.FINAL);
-	  } else {
 	    return false;
+	  } else {
+	    return JavaNode.getModifier(
+	        VariableDeclarator.getMods(getNode()), JavaNode.FINAL);
 	  }	  
 	}
 
   public boolean isVolatile() {
     final NewRegionDeclarationNode ast = getAST();
     if (ast != null) {
-      return JavaNode.isSet(ast.getModifiers(), JavaNode.VOLATILE);
-    } else {
       return false;
+    } else {
+      return JavaNode.getModifier(
+          VariableDeclarator.getMods(getNode()), JavaNode.VOLATILE);
     }   
   }
 
@@ -250,6 +252,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
     // FIX From IR
     IRNode decl = getNode();
     if (decl == null) {
+      // XXX: Shouldn't his be "All"???
       return "Static".equals(regionName);
       //throw new Error("decl is null");
     }
