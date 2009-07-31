@@ -31,6 +31,14 @@ public class FieldRegion extends AbstractRegion {
     return false;
   }
   
+  public boolean isFinal() {
+    return TypeUtil.isFinal(field);
+  }
+  
+  public boolean isVolatile() {
+    return TypeUtil.isVolatile(field);
+  }
+  
   public IRNode getNode() {
     return field;
   }

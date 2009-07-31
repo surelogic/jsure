@@ -224,7 +224,25 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	public boolean isAbstract(){
 		return (this.getAST() != null);
 	}
-  
+	
+	public boolean isFinal() {
+	  final NewRegionDeclarationNode ast = getAST();
+	  if (ast != null) {
+	    return JavaNode.isSet(ast.getModifiers(), JavaNode.FINAL);
+	  } else {
+	    return false;
+	  }	  
+	}
+
+  public boolean isVolatile() {
+    final NewRegionDeclarationNode ast = getAST();
+    if (ast != null) {
+      return JavaNode.isSet(ast.getModifiers(), JavaNode.VOLATILE);
+    } else {
+      return false;
+    }   
+  }
+
   public boolean isStatic() {
     if (getAST() != null) {
       return getAST().isStatic();

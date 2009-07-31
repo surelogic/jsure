@@ -814,57 +814,60 @@ public final class LockUtils {
     final Target target = effect.getTarget();
     final IRegion region = target.getRegion();
     
-    if (target instanceof ClassTarget) {
-      final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
-      final RegionLockRecord neededLock =
-        getLockForRegion(JavaTypeFactory.getMyThisType(cdecl), region);
-      if (neededLock != null) {
-        // Static region must be protected by a static lock
-        /* Whether field is being written to determines whether we need a read
-         * or write lock.
-         */ 
-        final NeededLock l =
-          neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
-        result.add(l);
-      }                  
-    } else { // InstanceTarget
-      final IRNode ref = target.getReference();
-      final IJavaType jt = binder.getJavaType(ref);
-      // Arrays aren't classes
-      if (jt instanceof IJavaDeclaredType) {
+    /* Final and volatile regions do not need locks */
+    if (!region.isFinal() && !region.isVolatile()) {
+      if (target instanceof ClassTarget) {
+        final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
         final RegionLockRecord neededLock =
-          getLockForRegion((IJavaDeclaredType) jt, region);
+          getLockForRegion(JavaTypeFactory.getMyThisType(cdecl), region);
         if (neededLock != null) {
-          final NeededLock l;
-          if (neededLock.lockDecl.isLockStatic()) {
-            /* Whether field is being written to determines whether we need a read
-             * or write lock.
-             */ 
-            l = neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
-          } else {
-            /* Okay, we need BCA in the elaboration to help us track elaboration
-             * all the way into the receiver or other parameter, but it also
-             * messes things up for us by binding all the way to variable
-             * declarations and method return results, when we a lot of the time
-             * we would like the plain-Jane UseExpression.  So we have to back
-             * track trough the evidence to undo the the elaboration.
-             */
-            final IRNode refForLock;
-            final Operator op = JJNode.tree.getOperator(ref);
-            final ElaborationEvidence evidence = target.getElaborationEvidence();
-            if (!VariableUseExpression.prototype.includes(op) && evidence instanceof BCAEvidence) {
-              refForLock = ((BCAEvidence) evidence).getUseExpression();
-            } else {
-              refForLock = ref;
-            }
-            
-            /* Whether field is being written to determines whether we need a read
-             * or write lock.
-             */ 
-            l = neededLockFactory.createInstanceLock(
-                refForLock, neededLock.lockDecl, isWrite);
-          }
+          // Static region must be protected by a static lock
+          /* Whether field is being written to determines whether we need a read
+           * or write lock.
+           */ 
+          final NeededLock l =
+            neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
           result.add(l);
+        }                  
+      } else { // InstanceTarget
+        final IRNode ref = target.getReference();
+        final IJavaType jt = binder.getJavaType(ref);
+        // Arrays aren't classes
+        if (jt instanceof IJavaDeclaredType) {
+          final RegionLockRecord neededLock =
+            getLockForRegion((IJavaDeclaredType) jt, region);
+          if (neededLock != null) {
+            final NeededLock l;
+            if (neededLock.lockDecl.isLockStatic()) {
+              /* Whether field is being written to determines whether we need a read
+               * or write lock.
+               */ 
+              l = neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
+            } else {
+              /* Okay, we need BCA in the elaboration to help us track elaboration
+               * all the way into the receiver or other parameter, but it also
+               * messes things up for us by binding all the way to variable
+               * declarations and method return results, when we a lot of the time
+               * we would like the plain-Jane UseExpression.  So we have to back
+               * track trough the evidence to undo the the elaboration.
+               */
+              final IRNode refForLock;
+              final Operator op = JJNode.tree.getOperator(ref);
+              final ElaborationEvidence evidence = target.getElaborationEvidence();
+              if (!VariableUseExpression.prototype.includes(op) && evidence instanceof BCAEvidence) {
+                refForLock = ((BCAEvidence) evidence).getUseExpression();
+              } else {
+                refForLock = ref;
+              }
+              
+              /* Whether field is being written to determines whether we need a read
+               * or write lock.
+               */ 
+              l = neededLockFactory.createInstanceLock(
+                  refForLock, neededLock.lockDecl, isWrite);
+            }
+            result.add(l);
+          }
         }
       }
     }

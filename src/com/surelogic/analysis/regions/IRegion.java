@@ -17,6 +17,10 @@ public interface IRegion extends IRegionBinding {
 
   boolean isAbstract();
   
+  boolean isFinal();
+  
+  boolean isVolatile();
+  
   /**
    * @return A relative location in FAST
    */
