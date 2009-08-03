@@ -2213,16 +2213,20 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 //    assureRegionRef(
 //        fieldRef, lockUtils.getLockForFieldRef(fieldRef, isWrite));
     
-    final IRegion fieldAsRegion =
-      RegionModel.getInstance(binder.getBinding(fieldRef));
-    final Target target;
-    if (fieldAsRegion.isStatic()) {
-      target = lockUtils.createClassTarget(fieldAsRegion);
-    } else {
-      target = lockUtils.createInstanceTarget(FieldRef.getObject(fieldRef), fieldAsRegion);
-    }    
-    assureRegionRef(fieldRef, 
-        lockUtils.getLocksForDirectRegionAccess(fieldRef, !isWrite, target));
+    // Only non-final fields need to be protected
+    final IRNode id = binder.getBinding(fieldRef);
+    if (!TypeUtil.isFinal(id)) {
+      final IRegion fieldAsRegion =
+        RegionModel.getInstance(binder.getBinding(fieldRef));
+      final Target target;
+      if (fieldAsRegion.isStatic()) {
+        target = lockUtils.createClassTarget(fieldAsRegion);
+      } else {
+        target = lockUtils.createInstanceTarget(FieldRef.getObject(fieldRef), fieldAsRegion);
+      }    
+      assureRegionRef(fieldRef, 
+          lockUtils.getLocksForDirectRegionAccess(fieldRef, !isWrite, target));
+    }
     
     // continue into the expression
     doAcceptForChildren(fieldRef);

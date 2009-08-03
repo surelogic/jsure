@@ -817,9 +817,13 @@ public final class LockUtils {
      * happen when dealing with effects that come from method calls, where the
      * declared effects of the method obscure the actual fields and regions
      * touched by the method implementation.
+     * 
+     * We always check the original target as well.  If the additional regions
+     * are protected by locks, then the original target is not.
      */
     final Target target = effect.getTarget();
     final Set<Target> targets = new HashSet<Target>();
+    targets.add(target);
     final com.surelogic.analysis.effects.AggregationEvidence aggEvidence = target.getLastAggregation();
     if (aggEvidence != null) { // We have aggregation
       final IRegion aggedRegion = aggEvidence.getOriginalRegion();
@@ -840,9 +844,6 @@ public final class LockUtils {
           }
         }
       }
-    } else { // No aggregation
-      // Just process the original target
-      targets.add(target);
     }
     
     final boolean isWrite = effect.isWriteEffect();
