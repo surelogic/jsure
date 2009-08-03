@@ -6,6 +6,7 @@ import com.surelogic.analysis.effects.targets.Target;
 import edu.cmu.cs.fluid.ir.IRNode;
 
 public abstract class ElaborationEvidence {
+  /** The target that was elaborated.  Must be an instance target. */
   protected final Target elaboratedFrom;
   
   protected ElaborationEvidence(final Target from) {

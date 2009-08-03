@@ -9,6 +9,7 @@ import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
+@Deprecated
 final class AggregationEvidence {
   public final IRNode originalObjExpr;
   public final IRegion originalRegion;

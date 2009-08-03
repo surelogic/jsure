@@ -545,7 +545,7 @@ public final class LockUtils {
     
     final Set<NeededLock> neededLocks = new HashSet<NeededLock>();
     for (final Effect effect : elaboratedEffects) {
-      getLockFromEffect(effect, neededLocks);
+      getLocksFromEffect(effect, neededLocks);
     }
     return Collections.unmodifiableSet(neededLocks);
   }
@@ -793,14 +793,14 @@ public final class LockUtils {
         effectsVisitor.getBCA(), targetFactory, binder, mcall, enclosingDecl);
     for (final Effect effect : callFx) {
       if (effect.isTargetAggregated()) {
-        getLockFromEffect(effect, result);
+        getLocksFromEffect(effect, result);
       }
     }
     return Collections.unmodifiableSet(result);
   }
 
   /**
-   * Given an effect, add the needed lock (if any) for the accessed region to
+   * Given an effect, add the needed locks (if any) for the accessed region to
    * the set of locks.
    * 
    * <p>
@@ -808,65 +808,100 @@ public final class LockUtils {
    * targets. <em>Does not do anything any instance targets; simply ignores
    * them.</em>
    */
-  private void getLockFromEffect(
+  private void getLocksFromEffect(
       final Effect effect, final Set<NeededLock> result) {
-    final boolean isWrite = effect.isWriteEffect();
+    /* If the target comes from aggregation, it is possible that the region
+     * that has been aggregated has subregions that are aggregated into
+     * lock-protected regions.  This is not immediately apparent from looking 
+     * at the region of the original target.  This kind of thing should only
+     * happen when dealing with effects that come from method calls, where the
+     * declared effects of the method obscure the actual fields and regions
+     * touched by the method implementation.
+     */
     final Target target = effect.getTarget();
-    final IRegion region = target.getRegion();
-    
-    /* Final and volatile regions do not need locks */
-    if (!region.isFinal() && !region.isVolatile()) {
-      if (target instanceof ClassTarget) {
-        final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
-        final RegionLockRecord neededLock =
-          getLockForRegion(JavaTypeFactory.getMyThisType(cdecl), region);
-        if (neededLock != null) {
-          // Static region must be protected by a static lock
-          /* Whether field is being written to determines whether we need a read
-           * or write lock.
-           */ 
-          final NeededLock l =
-            neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
-          result.add(l);
-        }                  
-      } else { // InstanceTarget
-        final IRNode ref = target.getReference();
-        final IJavaType jt = binder.getJavaType(ref);
-        // Arrays aren't classes
-        if (jt instanceof IJavaDeclaredType) {
-          final RegionLockRecord neededLock =
-            getLockForRegion((IJavaDeclaredType) jt, region);
-          if (neededLock != null) {
-            final NeededLock l;
-            if (neededLock.lockDecl.isLockStatic()) {
-              /* Whether field is being written to determines whether we need a read
-               * or write lock.
-               */ 
-              l = neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
+    final Set<Target> targets = new HashSet<Target>();
+    final com.surelogic.analysis.effects.AggregationEvidence aggEvidence = target.getLastAggregation();
+    if (aggEvidence != null) { // We have aggregation
+      final IRegion aggedRegion = aggEvidence.getOriginalRegion();
+      final Map<RegionModel, IRegion> aggMap = aggEvidence.getRegionMapping();
+      for (final Map.Entry<RegionModel, IRegion> mapping : aggMap.entrySet()) {
+        if (aggedRegion.ancestorOf(mapping.getKey())) {
+          final IRegion destRegion = mapping.getValue();
+          if (destRegion.isStatic()) {
+            targets.add(targetFactory.createClassTarget(destRegion));
+          } else {
+            final IRNode objExpr;
+            if (target instanceof ClassTarget) {
+              objExpr = FieldRef.getObject(aggEvidence.getOriginalExpression());
             } else {
-              /* Okay, we need BCA in the elaboration to help us track elaboration
-               * all the way into the receiver or other parameter, but it also
-               * messes things up for us by binding all the way to variable
-               * declarations and method return results, when we a lot of the time
-               * we would like the plain-Jane UseExpression.  So we have to back
-               * track trough the evidence to undo the the elaboration.
-               */
-              final IRNode refForLock;
-              final Operator op = JJNode.tree.getOperator(ref);
-              final ElaborationEvidence evidence = target.getElaborationEvidence();
-              if (!VariableUseExpression.prototype.includes(op) && evidence instanceof BCAEvidence) {
-                refForLock = ((BCAEvidence) evidence).getUseExpression();
-              } else {
-                refForLock = ref;
-              }
-              
-              /* Whether field is being written to determines whether we need a read
-               * or write lock.
-               */ 
-              l = neededLockFactory.createInstanceLock(
-                  refForLock, neededLock.lockDecl, isWrite);
+              objExpr = target.getReference();
             }
+            targets.add(targetFactory.createInstanceTarget(objExpr, destRegion, target.getElaborationEvidence()));
+          }
+        }
+      }
+    } else { // No aggregation
+      // Just process the original target
+      targets.add(target);
+    }
+    
+    final boolean isWrite = effect.isWriteEffect();
+    for (final Target t : targets) {
+      final IRegion region = t.getRegion();
+      /* Final and volatile regions do not need locks */
+      if (!region.isFinal() && !region.isVolatile()) {
+        if (t instanceof ClassTarget) {
+          final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
+          final RegionLockRecord neededLock =
+            getLockForRegion(JavaTypeFactory.getMyThisType(cdecl), region);
+          if (neededLock != null) {
+            // Static region must be protected by a static lock
+            /* Whether field is being written to determines whether we need a read
+             * or write lock.
+             */ 
+            final NeededLock l =
+              neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
             result.add(l);
+          }                  
+        } else { // InstanceTarget
+          final IRNode ref = t.getReference();
+          final IJavaType jt = binder.getJavaType(ref);
+          // Arrays aren't classes
+          if (jt instanceof IJavaDeclaredType) {
+            final RegionLockRecord neededLock =
+              getLockForRegion((IJavaDeclaredType) jt, region);
+            if (neededLock != null) {
+              final NeededLock l;
+              if (neededLock.lockDecl.isLockStatic()) {
+                /* Whether field is being written to determines whether we need a read
+                 * or write lock.
+                 */ 
+                l = neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
+              } else {
+                /* Okay, we need BCA in the elaboration to help us track elaboration
+                 * all the way into the receiver or other parameter, but it also
+                 * messes things up for us by binding all the way to variable
+                 * declarations and method return results, when we a lot of the time
+                 * we would like the plain-Jane UseExpression.  So we have to back
+                 * track through the evidence to undo the the elaboration.
+                 */
+                final IRNode refForLock;
+                final Operator op = JJNode.tree.getOperator(ref);
+                final ElaborationEvidence evidence = t.getElaborationEvidence();
+                if (!VariableUseExpression.prototype.includes(op) && evidence instanceof BCAEvidence) {
+                  refForLock = ((BCAEvidence) evidence).getUseExpression();
+                } else {
+                  refForLock = ref;
+                }
+                
+                /* Whether field is being written to determines whether we need a read
+                 * or write lock.
+                 */ 
+                l = neededLockFactory.createInstanceLock(
+                    refForLock, neededLock.lockDecl, isWrite);
+              }
+              result.add(l);
+            }
           }
         }
       }

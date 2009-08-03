@@ -82,13 +82,17 @@ abstract class AbstractTarget implements Target {
   }
   
   public boolean isAggregated() {
+    return getLastAggregation() != null;
+  }
+  
+  public AggregationEvidence getLastAggregation() {
     final ElaborationEvidence ee = getElaborationEvidence();
     if (ee == null) {
-      return false;
+      return null;
     } else if (ee instanceof AggregationEvidence) {
-      return true;
+      return (AggregationEvidence) ee;
     } else {
-      return ee.getElaboratedFrom().isAggregated();
+      return ee.getElaboratedFrom().getLastAggregation();
     }
   }
 

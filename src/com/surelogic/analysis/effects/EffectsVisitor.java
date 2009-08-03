@@ -671,7 +671,7 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
           final IRNode newObject = FieldRef.getObject(expr);
           final IRegion newRegion = AggregationUtils.getMappedRegion(region.getModel(), aggregationMap);
           final AggregationEvidence evidence =
-            new AggregationEvidence(target, expr, region, newRegion);
+            new AggregationEvidence(target, aggregationMap, newRegion);
           final Target newTarget;
           if (newRegion.isStatic()) {
             newTarget = targetFactory.createClassTarget(newRegion, evidence);
