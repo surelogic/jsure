@@ -19,7 +19,6 @@ public class Test {
 //  @SuppressWarnings("unused")
   private int getLength() {
     // GOOD: access to length of array doesn't need protection
-    // GOOD: access to exec doesn't need protected because it is final
     return exec.length;
   }
   
