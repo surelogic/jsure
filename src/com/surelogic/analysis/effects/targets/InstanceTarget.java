@@ -1,5 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
+import com.surelogic.analysis.effects.BCAEvidence;
 import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
@@ -60,6 +61,20 @@ public final class InstanceTarget extends AbstractTarget {
     elabEvidence = ee;
   }
   
+  public IJavaType getRelativeClass(final IBinder binder) {
+    return binder.getJavaType(reference);
+  }
+  
+  public Target undoBCAElaboration() {
+    Target current = this;
+    ElaborationEvidence ee = current.getElaborationEvidence();
+    while (ee instanceof BCAEvidence) { // null never satisfies instanceof
+      current = ee.getElaboratedFrom();
+      ee = current.getElaborationEvidence();
+    }
+    return current;
+  }
+ 
   public boolean isMaskable(final IBinder binder) {
     IRNode expr = reference;
     Operator exprOp = JJNode.tree.getOperator(expr);

@@ -25,14 +25,6 @@ import edu.cmu.cs.fluid.tree.Operator;
 /**
  * Representation of a use of local variable or a formal parameter. Can only
  * intersect with another LocalTarget that represents an alias of this Target.
- *
- * <em>These Target classes are a disaster.  They need to be redone in a more
- * understandable way.  I've spent the last 8 years trying to make them 
- * make sense, I don't really feel like I've succeeded.  Someone who is smarter 
- * than I am needs to fix this.  The problem is that Java has very bad
- * support for union types.</em> &mdash; Aaron Greenhouse, 18 Oct 2006.
- *
- * @author Aaron Greenhouse
  */
 public final class LocalTarget extends AbstractTarget {
   private final IRNode var;
@@ -56,6 +48,15 @@ public final class LocalTarget extends AbstractTarget {
     var = v;
   }
   
+  public IJavaType getRelativeClass(final IBinder binder) {
+    return null;
+  }
+  
+  public Target undoBCAElaboration() {
+    // Local targets do not original from elaboration
+    return this;
+  }
+
   public boolean isMaskable(final IBinder binder) {
     // Local targets are always maskable
     return true;

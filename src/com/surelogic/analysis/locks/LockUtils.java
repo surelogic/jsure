@@ -847,59 +847,36 @@ public final class LockUtils {
     }
     
     final boolean isWrite = effect.isWriteEffect();
-    for (final Target t : targets) {
+    for (Target t : targets) {
+      /* BCA only helps us if it yields a FieldRef expression that can then be
+       * used with aggregation.  If aggregation doesn't occur after a BCA,
+       * then we don't care about the result.  We take our given target and 
+       * backtrack over BCA until we hit aggregation or the end.
+       */
+      t = t.undoBCAElaboration();
+      
       final IRegion region = t.getRegion();
       /* Final and volatile regions do not need locks */
       if (!region.isFinal() && !region.isVolatile()) {
-        if (t instanceof ClassTarget) {
-          final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
+        final IJavaType lookupRegionInThisType = t.getRelativeClass(binder);
+        /* Arrays aren't classes --- Not sure why this would happen,
+         * but it was a problem in the past. 
+         */
+        if (lookupRegionInThisType instanceof IJavaDeclaredType) {
           final RegionLockRecord neededLock =
-            getLockForRegion(JavaTypeFactory.getMyThisType(cdecl), region);
+            getLockForRegion((IJavaDeclaredType) lookupRegionInThisType, region);
           if (neededLock != null) {
-            // Static region must be protected by a static lock
-            /* Whether field is being written to determines whether we need a read
-             * or write lock.
-             */ 
-            final NeededLock l =
-              neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
-            result.add(l);
-          }                  
-        } else { // InstanceTarget
-          final IRNode ref = t.getReference();
-          final IJavaType jt = binder.getJavaType(ref);
-          // Arrays aren't classes
-          if (jt instanceof IJavaDeclaredType) {
-            final RegionLockRecord neededLock =
-              getLockForRegion((IJavaDeclaredType) jt, region);
-            if (neededLock != null) {
+            if (t instanceof ClassTarget) {
+              final NeededLock l =
+                neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
+              result.add(l);
+            } else { // InstanceTarget
               final NeededLock l;
               if (neededLock.lockDecl.isLockStatic()) {
-                /* Whether field is being written to determines whether we need a read
-                 * or write lock.
-                 */ 
                 l = neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
-              } else {
-                /* Okay, we need BCA in the elaboration to help us track elaboration
-                 * all the way into the receiver or other parameter, but it also
-                 * messes things up for us by binding all the way to variable
-                 * declarations and method return results, when we a lot of the time
-                 * we would like the plain-Jane UseExpression.  So we have to back
-                 * track through the evidence to undo the the elaboration.
-                 */
-                final IRNode refForLock;
-                final Operator op = JJNode.tree.getOperator(ref);
-                final ElaborationEvidence evidence = t.getElaborationEvidence();
-                if (!VariableUseExpression.prototype.includes(op) && evidence instanceof BCAEvidence) {
-                  refForLock = ((BCAEvidence) evidence).getUseExpression();
-                } else {
-                  refForLock = ref;
-                }
-                
-                /* Whether field is being written to determines whether we need a read
-                 * or write lock.
-                 */ 
+              } else {                
                 l = neededLockFactory.createInstanceLock(
-                    refForLock, neededLock.lockDecl, isWrite);
+                    t.getReference(), neededLock.lockDecl, isWrite);
               }
               result.add(l);
             }

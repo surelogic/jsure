@@ -41,7 +41,6 @@ public final class AnyInstanceTarget extends AbstractTarget {
    * Reference to the class declaration node of the class that parameterizes the
    * target.
    */
-  // Sleazy: Need to refactor these classes yet again!
   final IJavaReferenceType clazz;  
   
   
@@ -61,8 +60,13 @@ public final class AnyInstanceTarget extends AbstractTarget {
     clazz = c;
   }
 
-  public final boolean isArray() {
-    return clazz instanceof IJavaArrayType;
+  public IJavaType getRelativeClass(final IBinder binder) {
+    return clazz;
+  }
+  
+  public Target undoBCAElaboration() {
+    // Any instance targets do not original from elaboration
+    return this;
   }
   
   public boolean isMaskable(final IBinder binder) {

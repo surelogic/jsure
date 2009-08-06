@@ -1,7 +1,8 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.effects.ElaborationEvidence;
-import com.surelogic.analysis.regions.*;
+import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.regions.RegionRelationships;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -26,6 +27,16 @@ public final class ClassTarget extends AbstractTarget {
     elabEvidence = evidence;
   }
   
+  public IJavaType getRelativeClass(final IBinder binder) {
+    final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
+    return JavaTypeFactory.getMyThisType(cdecl);
+  }
+  
+  public Target undoBCAElaboration() {
+    // Class targets cannot originate from BCA elaboration
+    return this;
+  }
+ 
   public boolean isMaskable(final IBinder binder) {
     // Class targets are never maskable
     return false;

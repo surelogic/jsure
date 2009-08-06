@@ -7,6 +7,7 @@ import com.surelogic.analysis.regions.IRegion;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 
 public interface Target {
   /**
@@ -39,6 +40,17 @@ public interface Target {
    * Get the most recent aggregation evidence, if any.
    */
   public AggregationEvidence getLastAggregation();
+  
+  /**
+   * Undo the most recent chain of BCA elaborations.
+   */
+  public Target undoBCAElaboration();
+  
+  /**
+   * Get the class that should be used to look up the region referenced by
+   * this target.
+   */
+  public IJavaType getRelativeClass(IBinder binder);
   
   /**
    * Does the target refer to state that is not visible outside of the context
