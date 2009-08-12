@@ -170,7 +170,7 @@ public class RegionRules extends AnnotationRules {
       /* Parent model is INSTANCE if the region is not static, ALL if 
        * region is static.  Region ALL has no parent. 
        */
-      annotationIsGood = true;
+//      annotationIsGood = true;
       if (!qualifiedName.equals(RegionModel.ALL)) {
         parentModel = RegionModel.getInstance(
             a.isStatic() ? RegionModel.ALL : RegionModel.INSTANCE);
@@ -227,8 +227,8 @@ public class RegionRules extends AnnotationRules {
      * declare two fields with the same name, and we already checking that
      * regions declared using @Region do not have the same name as a field.
      * 
-     * Nothing to check regarding cycles because fields cannot have children
-     * and thus cannot be involved in a cycle.
+     * Cycles are prevented by the binder: Names cannot be used if they
+     * haven't been seen lexically.  (No forward lookups)
      */
   
     if (a != null) {
@@ -251,9 +251,12 @@ public class RegionRules extends AnnotationRules {
       } else {
         final RegionModel parentModel = parentDecl.getModel();
         
-        // The region's parent must be an abstract region.
-        if (parentModel.getAST() == null) {
-          context.reportError(a, "Parent region \"{0}\" is a field", parentName);
+        // The region cannot be final and cannot be volatile
+        if (parentModel.isFinal()) {
+          context.reportError(a, "Parent region \"{0}\" is final", parentName);
+          annotationIsGood = false;
+        } else if(parentModel.isVolatile()) {
+          context.reportError(a, "Parent region \"{0}\" is volatile", parentName);
           annotationIsGood = false;
         } else {
           // The parent region must be accessible
@@ -422,7 +425,7 @@ public class RegionRules extends AnnotationRules {
       /* Make sure the destination region exists and is accessible. If the field
        * is not final, then the region must be equal to or contain the field. If
        * the field is final, then the destination region must be static if the
-       * field is static.
+       * field is static.  Destination region cannot be final or volatile.
        */
       if (toDecl == null) {
         context.reportError(a, "Destination region \"{0}\" not found", toId);
@@ -447,6 +450,15 @@ public class RegionRules extends AnnotationRules {
                 toId, VariableDeclarator.getId(promisedFor));
             annotationIsGood = false;
           }
+        }
+        
+        if (toRegion.isFinal()) {
+          context.reportError(a, "Destination region \"{0}\" is final", toId);
+          annotationIsGood = false;
+        }
+        if (toRegion.isVolatile()) {
+          context.reportError(a, "Destination region \"{0}\" is volatile", toId);
+          annotationIsGood = false;
         }
       }
       

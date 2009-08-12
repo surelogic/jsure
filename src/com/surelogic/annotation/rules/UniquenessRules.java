@@ -25,6 +25,7 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
@@ -138,8 +139,7 @@ public class UniquenessRules extends AnnotationRules {
   
   
   public static class Unique_ParseRule 
-  extends DefaultBooleanAnnotationParseRule<UniqueNode,UniquePromiseDrop>
-  implements DropGenerator<UniqueNode, UniquePromiseDrop> {
+  extends DefaultBooleanAnnotationParseRule<UniqueNode,UniquePromiseDrop> {
     public Unique_ParseRule() {
       super(UNIQUE, fieldMethodParamDeclOps, UniqueNode.class);
     }
@@ -187,8 +187,7 @@ public class UniquenessRules extends AnnotationRules {
         protected PromiseDrop<UniqueNode> makePromiseDrop(UniqueNode a) {
           //System.out.println("Promised on "+DebugUnparser.toString(a.getPromisedFor()));
           final UniquePromiseDrop storedDrop =
-            storeDropIfNotNull(getStorage(), a,
-                checkForReferenceType(Unique_ParseRule.this, getContext(), a, "Unique"));
+            storeDropIfNotNull(getStorage(), a, scrubUnique(getContext(), a));
           if (storedDrop != null) {
             uniqueNodes.add(a.getPromisedFor());
           }
@@ -197,8 +196,26 @@ public class UniquenessRules extends AnnotationRules {
       };
     }
     
-    public UniquePromiseDrop generateDrop(final UniqueNode a) {
-      return new UniquePromiseDrop(a);
+    private UniquePromiseDrop scrubUnique(
+        final IAnnotationScrubberContext context, final UniqueNode a) {
+      // must be a reference type variable
+      boolean good = checkForReferenceType(context, a, "Unique");
+      
+      // Unique fields must not be volatile
+      final IRNode promisedFor = a.getPromisedFor();
+      final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
+      if (VariableDeclarator.prototype.includes(promisedForOp)) {
+        if (TypeUtil.isVolatile(promisedFor)) {
+          good = false;
+          context.reportError("Volatile fields cannot be unique", a);
+        }
+      }
+
+      if (good) {
+        return new UniquePromiseDrop(a);
+      } else {
+        return null;
+      }
     }
   }
 
@@ -289,10 +306,9 @@ public class UniquenessRules extends AnnotationRules {
   }
 
   
-  private static <T extends IAASTRootNode, D extends PromiseDrop<T>> D
+  private static <T extends IAASTRootNode, D extends PromiseDrop<T>> boolean
   checkForReferenceType(
-      final DropGenerator<T, D> dropGen, final IAnnotationScrubberContext context,
-      final T a, final String label) {
+      final IAnnotationScrubberContext context, final T a, final String label) {
     final IRNode promisedFor = a.getPromisedFor();
     final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
     final IJavaType type;
@@ -304,15 +320,25 @@ public class UniquenessRules extends AnnotationRules {
       final IRNode method = JavaPromise.getPromisedFor(promisedFor);
       type = context.getBinder().getJavaType(method);
     } else {
-      // Shouldn't happen
-      return null;
+      return false;
     }
     
     if (type instanceof IJavaPrimitiveType) {
       context.reportError(a, "{0} may not be used on primitive types", label);
-      return null;
+      return false;
     } else {
+      return true;
+    }
+  }
+  
+  private static <T extends IAASTRootNode, D extends PromiseDrop<T>> D
+  checkForReferenceType(
+      final DropGenerator<T, D> dropGen, final IAnnotationScrubberContext context,
+      final T a, final String label) {
+    if (checkForReferenceType(context, a, label)) {
       return dropGen.generateDrop(a);
+    } else {
+      return null;
     }
   }
   
