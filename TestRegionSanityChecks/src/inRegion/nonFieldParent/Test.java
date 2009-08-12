@@ -13,12 +13,12 @@ public class Test extends Super {
   @InRegion("LocalRegion" /* is CONSISTENT */) // Good
   int field1;
   
-  @InRegion("field" /* is UNASSOCIATED */) //Bad
+  @InRegion("field" /* is CONSISTENT */) // Good (as of 2009-08-11)
   int field2;
   
   @InRegion("SuperRegion" /* is CONSISTENT */) // Good
   int field3;
   
-  @InRegion("superField" /* is UNASSOCIATED */) // Bad
+  @InRegion("superField" /* is CONSISTENT */) // Good (as of 2009-08-11)
   int field4;
 }
