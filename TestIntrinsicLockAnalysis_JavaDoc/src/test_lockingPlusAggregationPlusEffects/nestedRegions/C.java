@@ -36,8 +36,9 @@ public class C {
   }
   
   public void bad2() {
-    /* writes <this.f>.R --> this.X, which contains region Y, 
-     * so need lock for region 
+    /* We need lock for region Y, even though the effect is on Region X because Q
+     * is a subregion of R, and thus the method may change region Q, which is
+     * mapped into region Y.
      */
     this.f.writesR();
   }
