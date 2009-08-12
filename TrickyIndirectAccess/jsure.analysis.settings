@@ -8,7 +8,6 @@
     <id>com.surelogic.jsure.client.eclipse.PromiseParser</id>
     <id>com.surelogic.jsure.client.eclipse.PromiseScrubber</id>
     <id>com.surelogic.jsure.client.eclipse.ThreadEffectAssurance2</id>
-    <id>com.surelogic.jsure.client.eclipse.UniquenessAssurance2</id>
     <id>com.surelogic.jsure.client.eclipse.UpdateSuperRootStorage</id>
   </included-analysis-modules>
   <excluded-analysis-modules>
@@ -29,6 +28,7 @@
     <id>com.surelogic.jsure.client.eclipse.Static State Detector</id>
     <id>com.surelogic.jsure.client.eclipse.StructureAnalysis</id>
     <id>com.surelogic.jsure.client.eclipse.TestMultipleProjects</id>
+    <id>com.surelogic.jsure.client.eclipse.UniquenessAssurance2</id>
     <id>com.surelogic.jsure.client.eclipse.UseTypeWherePossible</id>
   </excluded-analysis-modules>
 </preferences>
