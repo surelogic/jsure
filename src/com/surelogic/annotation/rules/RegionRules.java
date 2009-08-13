@@ -135,9 +135,13 @@ public class RegionRules extends AnnotationRules {
       } else {
         parentModel = boundParent.getModel();
         
-        // The region's parent must be an abstract region.
-        if (parentModel.getAST() == null) {
-          context.reportError(a, "Parent region \"{0}\" is a field", parentName);
+        
+        // The region cannot be final and cannot be volatile
+        if (parentModel.isFinal()) {
+          context.reportError(a, "Parent region \"{0}\" is final", parentName);
+          annotationIsGood = false;
+        } else if(parentModel.isVolatile()) {
+          context.reportError(a, "Parent region \"{0}\" is volatile", parentName);
           annotationIsGood = false;
         } else {
           // The parent region must be accessible
@@ -170,7 +174,6 @@ public class RegionRules extends AnnotationRules {
       /* Parent model is INSTANCE if the region is not static, ALL if 
        * region is static.  Region ALL has no parent. 
        */
-//      annotationIsGood = true;
       if (!qualifiedName.equals(RegionModel.ALL)) {
         parentModel = RegionModel.getInstance(
             a.isStatic() ? RegionModel.ALL : RegionModel.INSTANCE);
@@ -226,20 +229,16 @@ public class RegionRules extends AnnotationRules {
      * practice because the Java compiler makes sure that a class does not
      * declare two fields with the same name, and we already checking that
      * regions declared using @Region do not have the same name as a field.
-     * 
-     * Cycles are prevented by the binder: Names cannot be used if they
-     * haven't been seen lexically.  (No forward lookups)
      */
   
     if (a != null) {
       final IRNode promisedFor = a.getPromisedFor();
-      final IRNode fieldDecl = promisedFor;
       final String parentName = a.getSpec().getId();
       boolean annotationIsGood = true;
       
       if (TypeUtil.isFinal(promisedFor)) {
         context.reportError(a, "Field \"{0}\" is final: it cannot be given a super region because it is not a region",
-            JavaNames.getFieldDecl(promisedFor));
+            VariableDeclarator.getId(promisedFor));
         annotationIsGood = false;
       }
       
@@ -259,6 +258,13 @@ public class RegionRules extends AnnotationRules {
           context.reportError(a, "Parent region \"{0}\" is volatile", parentName);
           annotationIsGood = false;
         } else {
+          // Parent region must not create a cycle
+          if (RegionModel.getInstance(promisedFor).ancestorOf(parentModel)) {
+            context.reportError(a, "Cycle detected: Field \"{0}\" is already an ancestor of region \"{1}\"",
+                VariableDeclarator.getId(promisedFor), parentModel.regionName);
+            annotationIsGood = false;
+          }
+          
           // The parent region must be accessible
           final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
           if (!parentModel.isAccessibleFromType(
@@ -270,16 +276,16 @@ public class RegionRules extends AnnotationRules {
 
           // Region cannot be more visible than its parent 
           if (!BindUtil.isMoreVisibleThan(
-                parentDecl.getModel().getVisibility(),
-                BindUtil.getVisibility(JJNode.tree.getParent(JJNode.tree.getParent(fieldDecl))))) {
+                parentModel.getVisibility(),
+                BindUtil.getVisibility(JJNode.tree.getParent(JJNode.tree.getParent(promisedFor))))) {
             context.reportError(a, "Region \"{0}\" is more visible than its parent \"{1}\"",
-                VariableDeclarator.getId(fieldDecl), parentName);
+                VariableDeclarator.getId(promisedFor), parentName);
             annotationIsGood = false;
           }
     
           // Instance region cannot contain a static region
-          final boolean regionIsStatic = TypeUtil.isStatic(fieldDecl);
-          final boolean parentIsStatic = parentDecl.getModel().isStatic();
+          final boolean regionIsStatic = TypeUtil.isStatic(promisedFor);
+          final boolean parentIsStatic = parentModel.isStatic();
           if (regionIsStatic && !parentIsStatic) {
             context.reportError(a, "Static region cannot have a non-static parent");
             annotationIsGood = false;
@@ -290,12 +296,10 @@ public class RegionRules extends AnnotationRules {
       
       if (annotationIsGood) {
         final InRegionPromiseDrop mip = new InRegionPromiseDrop(a);
-        final RegionModel fieldModel = RegionModel.getInstance(fieldDecl).getModel();
+        final RegionModel fieldModel = RegionModel.getInstance(promisedFor).getModel();
         final RegionModel parentModel = parentDecl.getModel();
         fieldModel.addDependent(parentModel);
-        fieldModel.addSupportingInformation("via @InRegion annotation", fieldDecl);
-//      IRegionBinding b = getAST().getSpec().resolveBinding();
-//      b.getModel().addDependent(this);
+        fieldModel.addSupportingInformation("via @InRegion annotation", promisedFor);
         return mip;
       }
     }
