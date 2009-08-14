@@ -638,6 +638,16 @@ public final class LockUtils {
     }
     return null;
   }
+  
+  /**
+   * Get the lock needed for the field referenced in the given FieldRef
+   * expression.
+   */
+  public RegionLockRecord getLockForFieldRef(final IRNode fieldRef) {
+    return getLockForRegion(
+        (IJavaDeclaredType) binder.getJavaType(FieldRef.getObject(fieldRef)),
+        RegionModel.getInstance(binder.getBinding(fieldRef)));
+  }
 
   /**
    * Given a reference to an instance region, find the locks that protect that

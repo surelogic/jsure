@@ -1409,25 +1409,22 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 
     /* We need this info along both branches below */
     final boolean isFinal = isArrayRef ? false : TypeUtil.isFinal(fieldRef);
-    final boolean isVolatile = isArrayRef ? false : TypeUtil
-        .isVolatile(fieldRef);
+    final boolean isVolatile = isArrayRef ? false : TypeUtil.isVolatile(fieldRef);
 
     if (FieldRef.prototype.includes(op2)) {
       /*
        * e = e'.f' ==> fieldRef = e'.f'.f Now check if f' is in a protected
        * region.
        */
-      // Just want to see if there is a lock or not, read/write doesn't matter
-      final Set<NeededLock> locksForInnerReference = lockUtils.getLockForRegionRef(objExpr, false);
-      if (!locksForInnerReference.isEmpty()) {
+      final RegionLockRecord innerLock = lockUtils.getLockForFieldRef(objExpr);
+      if (innerLock != null) {
         /*
          * f' is a protected field, see if we have to warn the programmer that
          * the item referenced by f' is not necessarily protected.
          */
 
         /*
-         * if field f is final or VOLATILE, still don't care. Handling of
-         * volatile is questionable, but what else makes sense?
+         * if field f is final or VOLATILE, still don't care.
          * 
          * fdecl == NULL if fieldRef is an ArrayRefExpression (CLEAN UP THIS
          * LOGIC...)
@@ -1448,26 +1445,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
            * that is associated with that field.
            */
           // Just want to see if there is a lock or not, read/write doesn't matter
-          final Set<NeededLock> locksForOuterReference = lockUtils.getLockForRegionRef(fieldRef, false);
-          if (locksForOuterReference.isEmpty()) {
+          if (isArrayRef || lockUtils.getLockForFieldRef(fieldRef) == null) {
             /*
-             * For each lock required for e'.f', attach a warning that it is not
-             * protecting the field f. In general, the set of locks should only
-             * contain 1 lock, but perverse use of region aggregation can cause
-             * it to contain multiple locks.
+             * For the lock required for e'.f', attach a warning that it is not
+             * protecting the field f. 
              */
-            for (NeededLock lock : locksForInnerReference) {
-              final LockModel model = lock.getLockPromise();
-              if (model != null) {
-                final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
-                    fieldRef, DS_AGGREGATION_NEEDED, DebugUnparser
-                        .toString(fieldRef));
-                model.addDependent(info);
-              } else {
-                LOG.log(Level.SEVERE, "Unable to find promise for lock: "
-                    + lock);
-              }
-            }
+            final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
+                fieldRef, DS_AGGREGATION_NEEDED, DebugUnparser.toString(fieldRef));
+            innerLock.lockDecl.addDependent(info);
           }
         }
         // still nothing to do
@@ -1493,18 +1478,15 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
            * see if field f has locks associated with it, or if field f is
            * itself final or volatile
            */
-          // Just wnat to see if there is a lock or not, read/write doesn't matter
-          final Set<NeededLock> locksForOuterReference = lockUtils.getLockForRegionRef(fieldRef, false);
-          if (locksForOuterReference.isEmpty() && !(isFinal || isVolatile)) {
+          if ((isArrayRef || lockUtils.getLockForFieldRef(fieldRef) == null)
+              && !(isFinal || isVolatile)) {
             /* No specific lock models to attach this warning to */
             final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
                 fieldRef, DS_AGGREGATION_NEEDED, DebugUnparser
                     .toString(fieldRef));
             final IRNode decl = this.binder.getBinding(objExpr);
-            if (decl != null) {
-              addSupportingInformation(info, decl, DS_FIELD_DECLARATION_MSG,
-                  DebugUnparser.toString(decl));
-            }
+            addSupportingInformation(info, decl, DS_FIELD_DECLARATION_MSG,
+                DebugUnparser.toString(decl));
           }
         }
         /*
@@ -1595,10 +1577,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
             addSupportingInformation(info, decl, DS_FIELD_DECLARATION_MSG,
                 DebugUnparser.toString(decl));
           } else {
-            final RegionLockRecord neededLock =
-              lockUtils.getLockForRegion(
-                  (IJavaDeclaredType) binder.getJavaType(FieldRef.getObject(actualRcvr)),
-                  RegionModel.getInstance(binder.getBinding(actualRcvr)));
+            final RegionLockRecord neededLock = lockUtils.getLockForFieldRef(actualRcvr);
             if (neededLock != null) {
               // Lock protected field
               final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
