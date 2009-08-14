@@ -1556,8 +1556,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   
   /**
    * <p>
-   * Check if the expression used as the receiver in a method call is a
-   * "thread-safe" object. Current implementation returns true if
+   * Check if the expression used as the receiver in a method call refers to a
+   * "thread-safe" object and the field used to refer to the object is
+   * protected by a lock. Current implementation returns true if the field is 
+   * protected by a lock or the field is final or volatile and the class
+   * declaring the field contains lock declarations, and one of the
+   * following is true
    * <ul>
    * <li>The expression is a FieldRef and the field is unique
    * <li>The type of the expression indicates via {@literal @selfProtected}
@@ -1565,76 +1569,42 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
    * protected).
    * </ul>
    * <p>
-   * Other safe objects ought to include immutable.
+   * (Other safe objects ought to include immutable, but we don't do this yet.)
    * 
    * @param actualRcvr
    *          The expression used as the receiver for a method call.
    */
   private void receiverIsSafeObject(final IRNode actualRcvr) {
-    /*
-     * First see if the type of the expression indicates that the receiving
-     * object is safe.
-     */
-    final boolean safeType = isSafeType(binder.getJavaType(actualRcvr));
-    if (!safeType) {
-      /*
-       * See if the reference is unique.
-       * 
-       * TODO: Should probably extend this to work for local variables known to
-       * be unique.
-       * 
-       * If the receiver is an ArrayRefExpression then it is unsafe because we
-       * don't yet have unique array elements.
-       */
+    // First see if the referenced type is safe
+    if (!isSafeType(binder.getJavaType(actualRcvr))) { // not safe
       final Operator op = JJNode.tree.getOperator(actualRcvr);
-      if (ArrayRefExpression.prototype.includes(op)) {
-        /*
-         * TODO: Need to check whether the array elements are protected, but too
-         * lazy to do that yet, we just say it is bad.
-         */
-      } else if (FieldRef.prototype.includes(op)) {
-        /* If the field is protected then it better be unique */
-        // Just want to see if there is a lock or not, read/write doesn't matter
-        final Set<NeededLock> locksForActualRcvr = lockUtils.getLockForRegionRef(actualRcvr, false);
-        if (mayBeAccessedByManyThreads(actualRcvr)
-            || !locksForActualRcvr.isEmpty()) {
-          final boolean isUnique = UniquenessRules
-              .isUnique(this.binder.getBinding(actualRcvr));
-          if (!isUnique) {
-            /*
-             * For each lock required for the receiver, attach a warning that it
-             * is not protecting the field f. In general, the set of locks
-             * should only contain 1 lock, but perverse use of region
-             * aggregation can cause it to contain multiple locks.
-             * 
-             * If there aren't any locks (because
-             * mayBeAccessedByManyThreads(actualRcvr) is true, but
-             * locksForActualRcvr.isEmpty(), which can happen if the receiver is
-             * e.f and e is protected but f is final or volatile, then we just
-             * spit out a single warning not attached to any model.
-             */
-            if (!locksForActualRcvr.isEmpty()) {
-              for (NeededLock lock : locksForActualRcvr) {
-                final LockModel model = lock.getLockPromise();
-                if (model != null) {
-                  final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
-                      actualRcvr, DS_AGGREGATION_NEEDED2, DebugUnparser
-                          .toString(actualRcvr));
-                  model.addDependent(info);
-                } else {
-                  LOG.log(Level.SEVERE, "Unable to find promise for lock: "
-                      + lock);
-                }
-              }
-            } else {
+      if (FieldRef.prototype.includes(op)) {
+        // If the field is unique, it is a safe object
+        final boolean isUnique =
+          UniquenessRules.isUnique(this.binder.getBinding(actualRcvr));
+        if (!isUnique) {
+          /* See if the field is protected: either directly, or because the
+           * the field is final or volatile and the class contains lock annotations.
+           */
+          if (mayBeAccessedByManyThreads(actualRcvr)) {
+            // final/volatile field in a lock protected class
+            final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
+                actualRcvr, DS_AGGREGATION_NEEDED2,
+                DebugUnparser.toString(actualRcvr));
+            final IRNode decl = this.binder.getBinding(actualRcvr);
+            addSupportingInformation(info, decl, DS_FIELD_DECLARATION_MSG,
+                DebugUnparser.toString(decl));
+          } else {
+            final RegionLockRecord neededLock =
+              lockUtils.getLockForRegion(
+                  (IJavaDeclaredType) binder.getJavaType(FieldRef.getObject(actualRcvr)),
+                  RegionModel.getInstance(binder.getBinding(actualRcvr)));
+            if (neededLock != null) {
+              // Lock protected field
               final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
-                  actualRcvr, DS_AGGREGATION_NEEDED2, DebugUnparser
-                      .toString(actualRcvr));
-              final IRNode decl = this.binder.getBinding(actualRcvr);
-              if (decl != null) {
-                addSupportingInformation(info, decl, DS_FIELD_DECLARATION_MSG,
-                    DebugUnparser.toString(decl));
-              }
+                  actualRcvr, DS_AGGREGATION_NEEDED2,
+                  DebugUnparser.toString(actualRcvr));
+              neededLock.lockDecl.addDependent(info);
             }
           }
         }
