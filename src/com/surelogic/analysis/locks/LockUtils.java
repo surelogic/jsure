@@ -18,11 +18,9 @@ import com.surelogic.analysis.locks.locks.NeededLock;
 import com.surelogic.analysis.locks.locks.NeededLockFactory;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.*;
-import com.surelogic.util.NullSet;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -280,8 +278,7 @@ public final class LockUtils {
           /* Check if the field is protected by a lock and is not modified by
            * the body of the synchronized block.
            */
-          // Doesn't matter if we are reading/write here, just want a lock or not
-          return !getLockForFieldRef(expr, false).isEmpty()
+          return getLockForFieldRef(expr) != null
               && !isLockExpressionChangedBySyncBlock(expr, sync);
         }
       }
@@ -499,44 +496,6 @@ public final class LockUtils {
   // ========================================================================
   // == Methods for getting the necessary locks
   // ========================================================================
-
-  /**
-   * Is the region reference supposed to be protected by a lock, and if so,
-   * which one?
-   * 
-   * @param ref
-   *          A FieldRef or ArrayRefExpression
-   * @return Set of Locks that must be held or <code>null</code> if no lock is
-   *         known to be necessary for the accessed region.
-   */
-  public Set<NeededLock> getLockForRegionRef(
-      final IRNode ref, final boolean isWrite) {
-    if (FieldRef.prototype.includes(JJNode.tree.getOperator(ref))) {
-      return getLockForFieldRef(ref, isWrite);
-    } else {
-      return getLockForArrayRef(ref, isWrite);
-    }
-  }
-  
-  public Set<NeededLock> getLockForFieldRef(
-      final IRNode fieldRef, final boolean isWrite) {
-    return getLockForFieldRef(
-        FieldRef.getObject(fieldRef), binder.getBinding(fieldRef), null, isWrite);    
-  }
-
-  /**
-   * Is the array reference supposed to be protected, and if so, by which lock?
-   * 
-   * @param arrayRef
-   *          An ArrayRefExpression node
-   * @return The Lock that must be held or <code>null</code> if no lock is
-   *         known to be necessary for the accessed region.
-   */
-  public Set<NeededLock> getLockForArrayRef(
-      final IRNode arrayRef, final boolean isWrite) {
-    final IRNode obj = ArrayRefExpression.getArray(arrayRef);
-    return getLockForInstanceRegion(isWrite, obj, elementRegion);
-  }
   
   public Set<NeededLock> getLocksForDirectRegionAccess(
     final IRNode srcNode, final boolean isRead, final Target target) {
@@ -550,72 +509,6 @@ public final class LockUtils {
     return Collections.unmodifiableSet(neededLocks);
   }
   
-  /**
-   * Is this field reference supposed to be protected, and if so, by which lock?
-   * The parameters to this method are a little strange so that the same 
-   * implementation can be used by both {@link #getLockForFieldRef(IRNode, boolean)}
-   * and {@link #getLockForVarDecl(IRNode, IRNode, IJavaType)}.
-   * 
-   * @param obj
-   *          The IRNode of the object expression portion of the field
-   *          reference. Generally this is obtained using
-   *          <code>FieldRef.getObject()</code>.
-   * @param varDecl
-   *          The field declaration node of the field being accessed. Generally
-   *          this is obtained by binding the FieldRef node.
-   * @param clazz
-   *          The IJavaType of the class the field belongs to, or
-   *          <code>null</code> if the method should figure this out using
-   *          <code>binder.getJavaType(obj)</code>. This parameter exists so
-   *          that the calling context can give the type if is already
-   *          available. If not, it is best to pass <code>null</code> because
-   *          the IJavaType is only interesting if the field is static.
-   * @param isWrite
-   *          <code>true</code> if the write permission is required.
-   * @return The locks that must be held or the empty set if no lock is known to
-   *         be necessary for the accessed region.
-   */
-  private Set<NeededLock> getLockForFieldRef(
-      final IRNode obj, final IRNode varDecl, final IJavaType clazz,
-      final boolean isWrite) {
-    // final fields and volatile fields don't need to be protected
-    if (!TypeUtil.isFinal(varDecl) && !TypeUtil.isVolatile(varDecl)) {
-      final IRegion fieldAsRegion = RegionModel.getInstance(varDecl);
-
-      /*
-       * NOTE: Static regions cannot be aggregated into other regions, so we
-       * don't have to do anything fancy here. Instance regions can be
-       * aggregated into other regions, so we pass the buck to the
-       * getLockForInstanceRegion() method which chases the aggregation chain to
-       * see if a field access needs to be protected because the object it
-       * belongs to has been aggregated into a protected region.
-       */
-      if (fieldAsRegion.isStatic()) {
-        final IJavaType clazz2 = (clazz == null) ? binder.getJavaType(obj) : clazz;
-        final RegionLockRecord neededLock = (clazz2 instanceof IJavaDeclaredType)
-            ? getLockForRegion((IJavaDeclaredType) clazz2, fieldAsRegion)
-            : null;
-
-        // If we found a suitable region, generate the Lock
-        if (neededLock != null) {
-          /* Whether field is being written to determines whether we need a read
-           * or write lock.
-           */ 
-          return Collections.<NeededLock> singleton(
-              neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite));
-        } else {
-          return Collections.emptySet();
-        }
-      } else {
-        /* Whether field is being written to determines whether we need a read
-         * or write lock.
-         */ 
-        return getLockForInstanceRegion(isWrite, obj, fieldAsRegion);
-      }
-    }
-    return Collections.emptySet();
-  }
-
   /**
    * Get the lock record for the lock that protects the given region in the
    * given class.
@@ -647,125 +540,6 @@ public final class LockUtils {
     return getLockForRegion(
         (IJavaDeclaredType) binder.getJavaType(FieldRef.getObject(fieldRef)),
         RegionModel.getInstance(binder.getBinding(fieldRef)));
-  }
-
-  /**
-   * Given a reference to an instance region, find the locks that protect that
-   * region, using aggregation information.
-   * 
-   * @param src
-   *          The reference to the region, either a FieldRef,
-   *          ArrayRefExpression, or VariableDeclarator. Used for chain of
-   *          evidence reports.
-   * @param obj
-   *          Node for the expression naming the object whose region is being
-   *          reference.
-   * @param fieldAsRegion
-   *          The region being referenced.
-   * @return The Set of Locks that must be held.
-   */
-  public Set<NeededLock> getLockForInstanceRegion(final boolean isWrite,
-      final IRNode obj, final IRegion fieldAsRegion) {
-    final Set<NeededLock> result = new HashSet<NeededLock>();
-    getLocksFromAggregation(isWrite, obj, fieldAsRegion,
-        NullSet.<Effect>prototype(), false, result,
-        NullSet.<AggregationEvidence>prototype());
-    return result;
-  }
-
-  /**
-   * Given a reference to an instance region, find the locks that protect that
-   * region, using aggregation information.
-   * 
-   * @param src
-   *          The reference to the region, either a FieldRef,
-   *          ArrayRefExpression, or VariableDeclarator. Used for chain of
-   *          evidence reports.
-   * @param obj
-   *          Node for the expression naming the object whose region is being
-   *          reference.
-   * @param fieldAsRegion
-   *          The region being referenced.
-   * @param skipSelf
-   *          Whether the initial field access should be included in the
-   *          accesses that need locks or not.
-   * @param result
-   *          The Set to which the needed locks will be added.
-   */
-  private final void getLocksFromAggregation(final boolean isWrite,
-      final IRNode obj, final IRegion fieldAsRegion, 
-      final Set<Effect> conflicts, final boolean skipSelf,
-      final Set<NeededLock> result, final Set<AggregationEvidence> outEvidence) {
-    /*
-     * Field may belong to other targets because of (uniqueness) aggregation.
-     * Find those targets and see if any of them are protected.
-     * 
-     * Get all the regions that the region aggregates into. Each level of
-     * aggregation may have a lock associated with it. We require each of those
-     * locks to be held. Having multiple locks for a region is, in general, bad,
-     * but it is okay here because of uniqueness. That is, the multiple levels
-     * of locking are redundant.
-     * 
-     * TODO: In the future change to only use the outermost level of locking.
-     * Don't do this yet, because there are several other changes that need to
-     * be made along with it. See long winded e-mail from mid-May 2003.
-     */
-    final List<Target> targets =
-      AggregationUtils.fieldRefAggregatesInto(binder, targetFactory, obj, fieldAsRegion);
-    final Iterator<Target> iter = targets.iterator();
-    // Skip the first target (the field reference itself) if needed
-    if (skipSelf) {
-      @SuppressWarnings("unused")
-      final Object junk = iter.next();
-    }
-    while (iter.hasNext()) {
-      final Target testTgt = iter.next();
-      final IRegion testRegion = testTgt.getRegion();
-      if (testRegion.isStatic()) {
-        final IRNode cdecl = VisitUtil.getClosestType(testRegion.getNode());
-        final RegionLockRecord neededLock =
-          getLockForRegion(JavaTypeFactory.getMyThisType(cdecl), testRegion);
-        if (neededLock != null) {
-          // Static region must be protected by a static lock
-          /* Whether field is being written to determines whether we need a read
-           * or write lock.
-           */ 
-          final NeededLock l =
-            neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
-          result.add(l);
-          final AggregationEvidence ev = new AggregationEvidence(
-              obj, fieldAsRegion, conflicts, testRegion, l);
-          outEvidence.add(ev);
-        }
-      } else {
-        final IRNode ref = testTgt.getReference();
-        final IJavaType jt = binder.getJavaType(ref);
-        // Arrays aren't classes
-        if (jt instanceof IJavaDeclaredType) {
-          final RegionLockRecord neededLock =
-            getLockForRegion((IJavaDeclaredType) jt, testRegion);
-          if (neededLock != null) {
-            final NeededLock l;
-            if (neededLock.lockDecl.isLockStatic()) {
-              /* Whether field is being written to determines whether we need a read
-               * or write lock.
-               */ 
-              l = neededLockFactory.createStaticLock(neededLock.lockDecl, isWrite);
-            } else {
-              /* Whether field is being written to determines whether we need a read
-               * or write lock.
-               */ 
-              l = neededLockFactory.createInstanceLock(
-                  ref, neededLock.lockDecl, isWrite);
-            }
-            result.add(l);
-            final AggregationEvidence ev = new AggregationEvidence(
-                obj, fieldAsRegion, conflicts, testRegion, l);          
-            outEvidence.add(ev);
-          }
-        }
-      }
-    }
   }
 
   // we already know that mcall is an invocation of an instance method!
