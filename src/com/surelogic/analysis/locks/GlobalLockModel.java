@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
@@ -569,7 +568,6 @@ public final class GlobalLockModel {
    * @param classDecl
    *          The type representation of the class on which the lock annotation appears.
    */
-  @SuppressWarnings("deprecation")
   public void addRegionLockDeclaration(
       final IBinder binder, final LockModel lockDecl, final IJavaDeclaredType clazz) {
     final RegionLockRecord lockRec = new RegionLockRecord(binder, clazz, lockDecl);
@@ -590,7 +588,6 @@ public final class GlobalLockModel {
    * @param clazz
    *          The type representation of the class on which the policy lock annotation appears.
    */
-  @SuppressWarnings("deprecation")
   public void addPolicyLockDeclaration(
       final IBinder binder, final LockModel lockDecl, final IJavaDeclaredType clazz) {
     final PolicyLockRecord lockRec = new PolicyLockRecord(binder, clazz, lockDecl);
