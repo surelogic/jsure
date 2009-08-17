@@ -21,6 +21,7 @@ import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.SingleThreadedPromiseDrop;
 
@@ -203,7 +204,8 @@ final class LockExpressions {
       }
       for(final LockSpecificationNode requiredLock : drop.getAST().getLockList()) {
         // only process JUC locks.  Intrinsic locks are handled by the lock visitor
-        if (requiredLock.getType() != LockType.RAW) {
+        final LockModel lockDecl = requiredLock.resolveBinding().getModel();
+        if (lockDecl.isJUCLock(lockUtils)) {
           final HeldLock lock = lockUtils.convertLockNameToMethodContext(decl, requiredLock, true, drop, rcvr);
           /* Lock annotation sanity check guarantees that a lock can only appear
            * once in a given requiresLock annotation.

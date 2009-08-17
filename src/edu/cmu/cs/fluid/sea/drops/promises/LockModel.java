@@ -75,10 +75,6 @@ implements ILockBinding
     public boolean match(Drop d) {
       return 
         d instanceof RequiresLockPromiseDrop ||
-        /*
-        d instanceof LockDeclarationDrop ||
-        d instanceof PolicyLockDeclarationDrop ||
-        */
         d instanceof ReturnsLockPromiseDrop;
     }    
   };

@@ -1324,7 +1324,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       return;
     }
     for(final LockSpecificationNode requiredLock : drop.getAST().getLockList()) {
-      if (requiredLock.getType() == LockType.RAW) {
+      final LockModel lockDecl = requiredLock.resolveBinding().getModel();
+      if (!lockDecl.isJUCLock(lockUtils)) {
         final HeldLock lock =
           lockUtils.convertLockNameToMethodContext(decl, requiredLock, true, drop, ctxtTheReceiverNode);
         // find and add drop
@@ -2219,8 +2220,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         
         /* If it is a lock() call, look for the matching unlock() calls. */
         if (lockMethod.isLock) {
-          final Set<IRNode> unlocks =
-            mustRelease.getUnlocksFor(expr);
+          final Set<IRNode> unlocks = mustRelease.getUnlocksFor(expr);
           if (unlocks == null) { // POISONED!
             final InfoDrop match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_LOCK_CALL, lockMethod.name);
             for (HeldLock lock : lockSet) {
