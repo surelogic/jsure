@@ -85,39 +85,38 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
 
   /** return the FlowUnit node that includes this node's component. */
   public static IRNode getFlowUnit(IRNode n) {
-    Iterator<IRNode> e = tree.rootWalk(n);
+    /* We have a problem: The ClassBodyDeclInterface test below triggers a
+     * match for anonymous class expressions.  This is not what we want if our 
+     * starting node 'n' is the anonymous class expression.  In that case, we
+     * still want the flow unit that 'n' is a part of, not the flow unit that 'n'
+     * is.  So if 'n' is an AnonClassExpression, we start the root walk from the 
+     * parent of 'n'.
+     * 
+     * We search until we hit a FlowUnit (hopefully a method or constructor
+     * declaration) or a ClassBodyDeclInterface.  The latter happens when 'n'
+     * occurs in a field declaration or a class/instance initializer block.  When
+     * that happens we return the appropriate promise node for the single 
+     * Class initializer method or instance initializer method.
+     */
+    final Iterator<IRNode> e = tree.rootWalk(
+        AnonClassExpression.prototype.includes(tree.getOperator(n)) ? JJNode.tree.getParent(n) : n);
     while (e.hasNext()) {
-      IRNode node = e.next();
-      Operator op = tree.getOperator(node);
+      final IRNode node = e.next();
+      final Operator op = tree.getOperator(node);
       if (op instanceof FlowUnit)
         return node;
       if (op instanceof ClassBodyDeclInterface) { 
-        /* We hope to have an item that is declared as a direct child of 
-         * class or interface.  PROBLEM: We also catch AnonClassExpression
-         * as part of a FieldDeclaration here. For example
-         * 
-         * class C {
-         *   final D f = new D() { ... }
-         * }
-         * 
-         * Here we would try to get information from the D, when we really want
-         * to get them from C.  So we have to check that classDecl actually
-         * refers to a classDeclaration or an InterfaceDeclaration.  If not, we
-         * keep searching.
-         */
-        final IRNode classDecl = tree.getParent(tree.getParent(node));
+      final IRNode classDecl = tree.getParent(tree.getParent(node));
         final Operator cdOp = tree.getOperator(classDecl);
-        final boolean isClass = ClassDeclaration.prototype.includes(cdOp);
+//        final boolean isClass = ClassDeclaration.prototype.includes(cdOp);
         final boolean isInterface = InterfaceDeclaration.prototype.includes(cdOp);
-        if (isClass || isInterface) {
-          if (JavaNode.getModifier(node, JavaNode.STATIC) || isInterface) {
-            /* We found a static field/method in a class or an (implicitly) static field
-             * in an interface.
-             */
-            return ClassInitDeclaration.getClassInitMethod(classDecl);
-          } else {
-            return InitDeclaration.getInitMethod(classDecl);
-          }
+        if (JavaNode.getModifier(node, JavaNode.STATIC) || isInterface) {
+          /* We found a static field/method in a class or an (implicitly) static field
+           * in an interface.
+           */
+          return ClassInitDeclaration.getClassInitMethod(classDecl);
+        } else {
+          return InitDeclaration.getInitMethod(classDecl);
         }
       }
     }
