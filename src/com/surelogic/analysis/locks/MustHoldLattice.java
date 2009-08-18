@@ -77,10 +77,10 @@ final class MustHoldLattice extends AbstractLockStackLattice {
   public static MustHoldLattice createForFlowUnit(
       final IRNode flowUnit, final ThisExpressionBinder thisExprBinder, final IBinder binder,
       final JUCLockUsageManager jucLockUsageManager) { 
-    final Map<IRNode, Set<HeldLock>> map = jucLockUsageManager.getLockExprsToLockSets(flowUnit);
-    final Set<HeldLock> required = jucLockUsageManager.getRequiredLocks(flowUnit);
-    final Set<HeldLock> singleThreaded = jucLockUsageManager.getSingleThreaded(flowUnit);
-    final Set<HeldLock> classInit = jucLockUsageManager.getClassInit(flowUnit);
+    final Map<IRNode, Set<HeldLock>> map = jucLockUsageManager.getJUCLockExprsToLockSets(flowUnit);
+    final Set<HeldLock> required = jucLockUsageManager.getJUCRequiredLocks(flowUnit);
+    final Set<HeldLock> singleThreaded = jucLockUsageManager.getJUCSingleThreaded(flowUnit);
+    final Set<HeldLock> classInit = jucLockUsageManager.getJUCClassInit(flowUnit);
     final HeldLock[] locks = constructLockArray(map, required, singleThreaded, classInit, thisExprBinder, binder);
     return new MustHoldLattice(locks, map, required, singleThreaded, classInit);
   }

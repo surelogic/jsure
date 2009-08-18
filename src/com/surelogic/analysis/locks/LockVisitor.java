@@ -1111,6 +1111,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
        * itself as a lock. ThisExpressions and VariableUseExpressions are
        * trivially handled here. We do not do this for method calls because the
        * returned object does not yet have a fixed name.
+       * 
+       * This only applies to intrinsic locks because "this" only refers to a
+       * JUC lock if we are implementing the interface Lock or ReadWriteLock.
+       * Therefore, we always generate a write-enabled non-readWrite lock.
        */
       for (AbstractLockRecord lr : sysLockModel.getRegionAndPolicyLocksForSelf(lockExpr)) {
         stackFrame.push(
@@ -1122,6 +1126,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
        * Now see if the expression is a FieldRef or ClassExpression (which for
        * our purposes is a special kind of FieldRef). If so, see if the field is
        * distinguished as a lock.
+       * 
+       * A class expression can never be a JUC lock because the reference type 
+       * is always java.lang.Class.
        */
       if (ClassExpression.prototype.includes(op)) { // lockExpr == 'e.class'
         final IRNode cdecl = this.binder.getBinding(lockExpr); // get the class being locked

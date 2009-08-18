@@ -27,36 +27,57 @@ import edu.cmu.cs.fluid.sea.drops.promises.SingleThreadedPromiseDrop;
 
 /**
  * A record of the lock expressions used in a method/constructor.  Specifically,
- * keeps track of
+ * keeps separate track of
  * <ul>
  * <li>All the syntactically unique final lock expressions that appear as the
  * object expression in a call to {@code lock()} or {@code unlock()}.
+ * <li>All the syntactically unique final lock expressions that appear the
+ * argument to a {@code synchronized} block.
  * <li>The set of JUC locks that are declared as preconditions.
+ * <li>The set of intrinsic locks that are declared as preconditions.
  * <li>The set of JUC locks that are held if the constructor is single threaded.
+ * <li>The set of intrinsic locks that are held if the constructor is single threaded.
  * <li>The set of static JUC locks that are held because we are analyzing the
+ * class initializer.
+ * <li>The set of static intrinsic locks that are held because we are analyzing the
  * class initializer.
  * </ul> 
  * @author aarong
  */
 final class LockExpressions {
-  private final Map<IRNode, Set<HeldLock>> lockExprsToLockSets =
+  /**
+   * The declaration of the method/constructor being analyzed
+   */
+  private final IRNode enclosingMethodDecl;
+  
+  /**
+   * Map from final lock expressions used as the object expressions to lock() or
+   * unlock() calls to the JUC locks they resolve to.
+   */
+  private final Map<IRNode, Set<HeldLock>> jucLockExprsToLockSets =
     new HashMap<IRNode, Set<HeldLock>>();
+
+  /**
+   * Map from final lock expressions used in synchronized statements to the
+   * intrinsic locks they resolve to.
+   */
+  private final Map<IRNode, Set<HeldLock>> intrinsicLockExprsToLockSets =
+    new HashMap<IRNode, Set<HeldLock>>();
+
   /** Any JUC locks that are declared in a lock precondition */
-  private final Set<HeldLock> requiredLocks = new HashSet<HeldLock>();
+  private final Set<HeldLock> jucRequiredLocks = new HashSet<HeldLock>();
+
   /**
    * The JUC locks that apply because we are analyzing a singled-threaded 
    * constructor.
    */
-  private final Set<HeldLock> singleThreaded = new HashSet<HeldLock>();
+  private final Set<HeldLock> jucSingleThreaded = new HashSet<HeldLock>();
+
   /**
    * The JUC locks that apply because we are analyzing the class initializer.
    */
-  private final Set<HeldLock> classInit = new HashSet<HeldLock>();
-  /**
-   * The method/constructor declaration.
-   */
-  private final IRNode enclosingMethodDecl;
-  
+  private final Set<HeldLock> jucClassInit = new HashSet<HeldLock>();
+
   
   
   public LockExpressions(final IRNode mdecl, 
@@ -69,41 +90,58 @@ final class LockExpressions {
   
   
   /**
-   * Does the method use an JUC locks?
+   * Does the method use any JUC locks?
    */
   public boolean usesJUCLocks() {
-    return !lockExprsToLockSets.isEmpty()
-        || !requiredLocks.isEmpty()
-        || !singleThreaded.isEmpty()
-        || !classInit.isEmpty();
+    return !jucLockExprsToLockSets.isEmpty()
+        || !jucRequiredLocks.isEmpty()
+        || !jucSingleThreaded.isEmpty()
+        || !jucClassInit.isEmpty();
   }
   
   /**
-   * Get the map of lock expressions to locks.
+   * Does the method use any intrinsic locks?
    */
-  public Map<IRNode, Set<HeldLock>> getLockExprsToLockSets() {
-    return Collections.unmodifiableMap(lockExprsToLockSets);
+  public boolean usesIntrinsicLocks() {
+    return !intrinsicLockExprsToLockSets.isEmpty();
+//        || !jucRequiredLocks.isEmpty()
+//        || !jucSingleThreaded.isEmpty()
+//        || !jucClassInit.isEmpty();
   }
   
   /**
-   * Get the locks that appear in lock preconditions.
+   * Get the map of lock expressions to JUC locks.
    */
-  public Set<HeldLock> getRequiredLocks() {
-    return Collections.unmodifiableSet(requiredLocks);
+  public Map<IRNode, Set<HeldLock>> getJUCLockExprsToLockSets() {
+    return Collections.unmodifiableMap(jucLockExprsToLockSets);
   }
   
   /**
-   * Get the locks that are held because of being a singleThreaded constructor
+   * Get the map of lock expressions to intrinsic locks.
    */
-  public Set<HeldLock> getSingleThreaded() {
-    return Collections.unmodifiableSet(singleThreaded);
+  public Map<IRNode, Set<HeldLock>> getIntrinsicLockExprsToLockSets() {
+    return Collections.unmodifiableMap(intrinsicLockExprsToLockSets);
   }
   
   /**
-   * Get the locks that are held because we are inside a class initializer
+   * Get the JUC locks that appear in lock preconditions.
    */
-  public Set<HeldLock> getClassInit() {
-    return Collections.unmodifiableSet(classInit);
+  public Set<HeldLock> getJUCRequiredLocks() {
+    return Collections.unmodifiableSet(jucRequiredLocks);
+  }
+  
+  /**
+   * Get the JUC locks that are held because of being a singleThreaded constructor
+   */
+  public Set<HeldLock> getJUCSingleThreaded() {
+    return Collections.unmodifiableSet(jucSingleThreaded);
+  }
+  
+  /**
+   * Get the JUC locks that are held because we are inside a class initializer
+   */
+  public Set<HeldLock> getJUCClassInit() {
+    return Collections.unmodifiableSet(jucClassInit);
   }
 
   
@@ -177,7 +215,7 @@ final class LockExpressions {
           } else {
             lock = heldLockFactory.createJUCStaticLock(lr.lockDecl, classInitDecl, false);
           }
-          classInit.add(lock);
+          jucClassInit.add(lock);
         }
       }
     }
@@ -210,7 +248,7 @@ final class LockExpressions {
           /* Lock annotation sanity check guarantees that a lock can only appear
            * once in a given requiresLock annotation.
            */
-          requiredLocks.add(lock);
+          jucRequiredLocks.add(lock);
         }
       }
     }
@@ -232,7 +270,7 @@ final class LockExpressions {
           } else {
             lock = heldLockFactory.createJUCInstanceLock(receiverNode, lr.lockDecl, cdecl, drop, false);
           }
-          singleThreaded.add(lock);
+          jucSingleThreaded.add(lock);
         }
       }
     }
@@ -253,7 +291,7 @@ final class LockExpressions {
     private void processMethodCall(final IRNode mcall) {
       if (lockUtils.isLockClassUsage(mcall)) {
         final MethodCall call = (MethodCall) JJNode.tree.getOperator(mcall);
-        addLockExpression(call.get_Object(mcall));
+        addJUCLockExpression(call.get_Object(mcall));
       }
     }
 
@@ -278,7 +316,7 @@ final class LockExpressions {
      * already in the list.
      * @param lockExpr The lock expression to add.
      */
-    private void addLockExpression(final IRNode lockExpr) {
+    private void addJUCLockExpression(final IRNode lockExpr) {
       if (lockUtils.isFinalExpression(lockExpr, null)) {
         // Get the locks for the lock expression
         final Set<HeldLock> lockSet = new HashSet<HeldLock>();
@@ -287,9 +325,10 @@ final class LockExpressions {
         if (lockSet.isEmpty()) {
           lockSet.add(heldLockFactory.createBogusLock(lockExpr));
         }
-        LockExpressions.this.lockExprsToLockSets.put(lockExpr, lockSet);
+        LockExpressions.this.jucLockExprsToLockSets.put(lockExpr, lockSet);
       }
     }
+    
     
     
     // =======================================================================
