@@ -283,7 +283,7 @@ policyLock
 	;
 
 returnsLock
-    	: lockSpecification EOF -> ^(ReturnsLock lockSpecification)
+    	: rawLockSpecification EOF -> ^(ReturnsLock rawLockSpecification)
     	;
     	
 /************* Locking supporting rules **************************/
@@ -295,6 +295,11 @@ policyLockDeclaration
 lockSpecifications
 	: lockSpecification (',' lockSpecification)* -> lockSpecification+
 	;
+
+rawLockSpecification
+  : qualifiedLockName
+  | simpleLockName
+  ;
 
 lockSpecification
   : qualifiedLockSpecification

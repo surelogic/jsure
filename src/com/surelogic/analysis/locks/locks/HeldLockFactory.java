@@ -28,12 +28,6 @@ public final class HeldLockFactory {
       final ExpressionNode o, final LockModel ld, final IRNode src,
       final PromiseDrop<?> sd, final boolean isAssumed, final Type type) {
     return new AASTHeldInstanceLock(o, ld, src, sd, isAssumed, type);
-
-//    if (ld.isReadWriteLock()) {
-//      return new AASTHeldInstanceLock(o, ld, src, sd, isAssumed, isWrite, true);
-//    } else {
-//      return new AASTHeldInstanceLock(o, ld, src, sd, isAssumed, true, false);
-//    }
   }
 
   
