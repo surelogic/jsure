@@ -13,9 +13,8 @@ final class NeededInstanceLock extends AbstractNeededLock {
 	 */
   private final IRNode obj;
 
-  NeededInstanceLock(final IRNode o,
-      final LockModel ld, final boolean write, final boolean rw) {
-    super(ld, write, rw);
+  NeededInstanceLock(final IRNode o, final LockModel lm, final Type type) {
+    super(lm, type);
     obj = o;
   }
   
@@ -43,13 +42,7 @@ final class NeededInstanceLock extends AbstractNeededLock {
     sb.append(DebugUnparser.toString(obj));
     sb.append(">:");
     sb.append(getName());
-    if (isRW) {
-      if (isWrite) {
-        sb.append(".writeLock()");
-      } else {
-        sb.append(".readLock()");
-      }
-    }
+    sb.append(type.getPostFix());
     return sb.toString();
   }
 
@@ -61,7 +54,7 @@ final class NeededInstanceLock extends AbstractNeededLock {
       final EnclosingRefs enclosingRefs, final NeededLockFactory lockFactory) {
     final IRNode newObj = enclosingRefs.replace(obj);
     if (newObj != null) {
-      return lockFactory.createInstanceLock(newObj, lockPromise, isWrite);
+      return lockFactory.createInstanceLock(newObj, lockPromise, type);
     } else {
       return null;
     }

@@ -14,8 +14,8 @@ import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 final class HeldStaticLock extends AbstractHeldLock {
   HeldStaticLock(
       final LockModel ld, final IRNode src, final PromiseDrop<?> sd,
-      final boolean assumed, final boolean write, final boolean rw) {
-    super(ld, src, sd, assumed, write, rw);
+      final boolean assumed, final Type type) {
+    super(ld, src, sd, assumed, type);
   }
   
   /**
@@ -23,7 +23,7 @@ final class HeldStaticLock extends AbstractHeldLock {
    */
   public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb, final IBinder b) {
     if(lock instanceof HeldStaticLock) {
-      return (isWrite == lock.isWrite())
+      return (isWrite() == lock.isWrite())
         && getUniqueIdentifier().equals(((HeldStaticLock) lock).getUniqueIdentifier());
     } else {
       return false;
@@ -37,7 +37,7 @@ final class HeldStaticLock extends AbstractHeldLock {
   public boolean mustSatisfy(final NeededLock lock, final ThisExpressionBinder teb, final IBinder b) {
     if(lock instanceof NeededStaticLock) {
       if (getUniqueIdentifier().equals(((NeededStaticLock) lock).getUniqueIdentifier())) {
-        return isWrite || (!isWrite && !lock.isWrite());
+        return isWrite() || (!isWrite() && !lock.isWrite());
       } 
     }
     return false;
@@ -56,13 +56,7 @@ final class HeldStaticLock extends AbstractHeldLock {
   public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append(getName());
-    if (isRW) {
-      if (isWrite) {
-        sb.append(".writeLock()");
-      } else {
-        sb.append(".readLock()");
-      }
-    }
+    sb.append(type.getPostFix());
     return sb.toString();
   }
 }

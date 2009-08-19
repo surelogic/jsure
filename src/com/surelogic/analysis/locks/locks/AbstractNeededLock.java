@@ -11,15 +11,10 @@ import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 abstract class AbstractNeededLock extends AbstractILock implements NeededLock {
   /**
    * Create a new lock object.
-   * 
-   * @param ld
-   *          The lock declaration node of the lock in question
-   * @param src
-   *          The node that is referring to the lock. See the class description.
    */
   AbstractNeededLock(
-      final LockModel ld, final boolean write, final boolean rw) {
-    super(ld, write, rw);
+      final LockModel lm, final Type type) {
+    super(lm, type);
   }
   
   public final boolean isSatisfiedByLockSet(final Set<HeldLock> lockSet,

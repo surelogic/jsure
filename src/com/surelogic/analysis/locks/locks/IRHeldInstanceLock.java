@@ -17,10 +17,9 @@ class IRHeldInstanceLock extends HeldInstanceLock {
   private final IRNode obj;
   
   IRHeldInstanceLock(
-      final IRNode o, final LockModel ld, final IRNode src,
-      final PromiseDrop<?> sd, final boolean assumed,
-      final boolean write, final boolean rw) {
-    super(ld, src, sd, assumed, write, rw);
+      final IRNode o, final LockModel lm, final IRNode src,
+      final PromiseDrop<?> sd, final boolean assumed, final Type type) {
+    super(lm, src, sd, assumed, type);
     if (o == null) {
       throw new NullPointerException("obj is null");
     }

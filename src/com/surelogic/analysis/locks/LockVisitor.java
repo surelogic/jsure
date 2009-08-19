@@ -29,6 +29,7 @@ import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
 import com.surelogic.analysis.locks.locks.NeededLock;
 import com.surelogic.analysis.locks.locks.NeededLockFactory;
+import com.surelogic.analysis.locks.locks.ILock.Type;
 import com.surelogic.analysis.messages.Messages;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.*;
@@ -1064,126 +1065,18 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     }
   }
 
-  /**
-   * TODO: Need to update the Javadoc!
-   * <p>
-   * Convert an expression into the locks (both state and policy) 
-   * that it may represent. An expression
-   * may represent two locks in the following two cases:
-   * <ul>
-   * <li>The expression is of the form e.f: The field f may refer to a lock for
-   * the object referenced by e. Alternatively, the object referenced by e.f may
-   * use itself as a lock.
-   * <li>The expression e.m(): The method m() may return a lock for the object
-   * referenced by e. The object returned by e.m() may use itself as a lock.
-   * </ul>
-   * 
-   * <p>NOTE: This always creates WRITE-ENABLED locks!
-   * 
-   * <P>Lock expressions always result in non-{@link HeldLock#isAssumed() assumed} locks.
-   * 
-   * @param lockExpr
-   *          the expression to interpret as a lock. Should only be a final
-   *          expression.
-   * @param enclosingDecl
-   *          The method/constructor declaration that contains lockExpr
-   * @param src
-   *          The source statement for the generated lock. Must be a
-   *          ReturnStatement or a SynchronizedStatement.
-   */
-  private void convertLockExpr(
-      final IRNode lockExpr, final IRNode enclosingDecl, 
-      final IRNode src, final LockStackFrame stackFrame) {
-    final Operator op = JJNode.tree.getOperator(lockExpr);
-    final GlobalLockModel sysLockModel = sysLockModelHandle.get();
-    
-    /* For method calls that return the declared lock, if any */
-    if (MethodCall.prototype.includes(op)) {
-      final HeldLock returnedLock = lockUtils.convertReturnedLock(lockExpr, enclosingDecl, src);
-      if (returnedLock != null) {
-        stackFrame.push(returnedLock);
-      } else {
-        // method doesn't return a known lock, so nothing to do.
-      }
-    } else {
-      /*
-       * First see if the expression itself results in an object that uses
-       * itself as a lock. ThisExpressions and VariableUseExpressions are
-       * trivially handled here. We do not do this for method calls because the
-       * returned object does not yet have a fixed name.
-       * 
-       * This only applies to intrinsic locks because "this" only refers to a
-       * JUC lock if we are implementing the interface Lock or ReadWriteLock.
-       * Therefore, we always generate a write-enabled non-readWrite lock.
-       */
-      for (AbstractLockRecord lr : sysLockModel.getRegionAndPolicyLocksForSelf(lockExpr)) {
-        stackFrame.push(
-            // Always create a write-enabled lock
-            heldLockFactory.createInstanceLock(lockExpr, lr.lockDecl, src, null, false, true));
-      }
-  
-      /*
-       * Now see if the expression is a FieldRef or ClassExpression (which for
-       * our purposes is a special kind of FieldRef). If so, see if the field is
-       * distinguished as a lock.
-       * 
-       * A class expression can never be a JUC lock because the reference type 
-       * is always java.lang.Class.
-       */
-      if (ClassExpression.prototype.includes(op)) { // lockExpr == 'e.class'
-        final IRNode cdecl = this.binder.getBinding(lockExpr); // get the class being locked
-        // Check for state locks
-        for (final AbstractLockRecord lr :
-          sysLockModel.getRegionAndPolicyLocksForLockImpl(
-              JavaTypeFactory.getMyThisType(cdecl), cdecl)) {
-          // Always create a write-enabled lock
-          stackFrame.push(
-              heldLockFactory.createStaticLock(lr.lockDecl, src, null, false, true));
-        }
-      } else if (FieldRef.prototype.includes(op)) { // lockExpr == 'e.f'
-        final IRNode obj = FieldRef.getObject(lockExpr);
-        final IJavaType objType = binder.getJavaType(obj);
-        // Arrays cannot declare locks
-        if (objType instanceof IJavaDeclaredType) {
-          final IRNode potentialLockImpl = this.binder.getBinding(lockExpr);
-  
-          // see if 'f' is a lock in class typeOf(e)
-          // reminder: lockExpr is a FieldRef; binding it gives the field decl
-          final Set<AbstractLockRecord> records =
-            sysLockModel.getRegionAndPolicyLocksForLockImpl(
-                (IJavaDeclaredType) objType, potentialLockImpl);
-          if (TypeUtil.isStatic(potentialLockImpl)) {
-            for (final AbstractLockRecord lr : records) {
-              // Always create a write-enabled lock
-              stackFrame.push(
-                  heldLockFactory.createStaticLock(lr.lockDecl, src, null, false, true));
-            }
-          } else {
-            for (final AbstractLockRecord lr : records) {
-              stackFrame.push(
-                  heldLockFactory.createInstanceLock(obj, lr.lockDecl, src, null, false, true));
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * NOTE: Always creates WRITE-ENABLED locks
-   */
-  private Iterable<StackLock> convertLockExpr(
+  private Set<HeldLock> convertLockExpr(
       final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src) {
-    final LockStack bogusStack = new LockStack();
-    final LockStackFrame bogusFrame = bogusStack.pushNewFrame();
     final IRNode sync = SynchronizedStatement.prototype
         .includes(JJNode.tree.getOperator(src)) ? src : null;
     if (lockUtils.isFinalExpression(lockExpr, sync)) {
-      convertLockExpr(lockExpr, enclosingDecl, src, bogusFrame);
+      final Set<HeldLock> result = new HashSet<HeldLock>();
+      lockUtils.convertIntrinsicLockExpr(lockExpr, enclosingDecl, src, result);
+      return result;
     }
-    return bogusFrame;
+    return Collections.emptySet();
   }
-  
+
   /**
    * Given a synchronized method, return the locks it acquires. 
    * 
@@ -1213,7 +1106,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       for (final AbstractLockRecord lr : records) {
         // Synchronized methods use intrinsic locks, so they are always write locks
         stackFrame.push(
-            heldLockFactory.createIntrinsicStaticLock(lr.lockDecl, mdecl, false));
+            heldLockFactory.createStaticLock(lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
       }
     } else {
       // is the receiver a known lock?
@@ -1222,8 +1115,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       for (final AbstractLockRecord lr : records) {
         // Synchronized methods use intrinsic locks, so they are always write locks
         stackFrame.push(
-            heldLockFactory.createIntrinsicInstanceLock(
-                ctxtTheReceiverNode, lr.lockDecl, mdecl, null, false));
+            heldLockFactory.createInstanceLock(ctxtTheReceiverNode, lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
       }
     }
   }
@@ -1252,8 +1144,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       if (!lr.lockDecl.isJUCLock()) {
         if (lr.region.isStatic()) {
           // Pretend the lock is held with full write privileges
+          LockModel ld = lr.lockDecl;
           final HeldLock lock =
-            heldLockFactory.createStaticLock(lr.lockDecl, initBlock, null, false, true);
+            heldLockFactory.createStaticLock(ld, initBlock, null, false, Type.MONOTLITHIC);
           stackFrame.push(lock);
         }
       }
@@ -1297,8 +1190,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       if (!lr.lockDecl.isJUCLock()) {
         if (!lr.region.isStatic() && (lr.lockDecl != MUTEX)) {
           final HeldLock lock =
-            heldLockFactory.createIntrinsicInstanceLock(
-                ctxtTheReceiverNode, lr.lockDecl, conDecl, drop, false);
+            heldLockFactory.createInstanceLock(ctxtTheReceiverNode, lr.lockDecl, conDecl, drop, false, Type.MONOTLITHIC);
           stackFrame.push(lock);
         }
       }
@@ -2466,9 +2358,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
        * works.  
        */
       // ctxtInsideMethod must be non-null because "return" can only be inside of a method
-      for (StackLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt)) {
-        correct |= ctxtReturnedLock.mustAlias(lock.lock, thisExprBinder, binder);
+      for (HeldLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt)) {
+        correct |= ctxtReturnedLock.mustAlias(lock, thisExprBinder, binder);
       }
+//      for (StackLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt)) {
+//        correct |= ctxtReturnedLock.mustAlias(lock.lock, thisExprBinder, binder);
+//      }
 
       if (correct) {
         if (ctxtReturnsLockDrop != null) {
@@ -2520,7 +2415,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         // Only decode the lock if it is a final expression
         if (lockUtils.isFinalExpression(lockExpr, syncBlock)) {
           // Push the acquired locks into the lock context
-          convertLockExpr(lockExpr, getEnclosingMethod(lockExpr), syncBlock, syncFrame);
+//          convertLockExpr(lockExpr, getEnclosingMethod(lockExpr), syncBlock, syncFrame);
+          final Set<HeldLock> heldLocks = new HashSet<HeldLock>();
+          lockUtils.convertIntrinsicLockExpr(lockExpr, getEnclosingMethod(lockExpr), syncBlock, heldLocks);
+          for (final HeldLock lock : heldLocks) syncFrame.push(lock);
+          
           lockIsPolicyLock = isPolicyLockExpr(lockExpr);
   
           /*

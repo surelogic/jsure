@@ -61,14 +61,14 @@ abstract class AbstractHeldLock extends AbstractILock implements HeldLock {
   /**
    * Create a new lock object.
    * 
-   * @param ld
+   * @param lm
    *          The lock declaration node of the lock in question
    * @param src
    *          The node that is referring to the lock. See the class description.
    */
-  AbstractHeldLock(final LockModel ld, final IRNode src,
-      final PromiseDrop<?> sd, final boolean assumed, final boolean write, final boolean rw) {
-    super(ld, write, rw);
+  AbstractHeldLock(final LockModel lm, final IRNode src,
+      final PromiseDrop<?> sd, final boolean assumed, final Type type) {
+    super(lm, type);
     isAssumed = assumed;
     srcExpr = src;
     supportingDrop = sd;

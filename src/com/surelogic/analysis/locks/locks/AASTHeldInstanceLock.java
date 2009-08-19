@@ -13,10 +13,9 @@ class AASTHeldInstanceLock extends HeldInstanceLock {
   private final ExpressionNode objAAST;
   
   AASTHeldInstanceLock(
-      final ExpressionNode o2, final LockModel ld, final IRNode src,
-      final PromiseDrop<?> sd, final boolean assumed,
-      final boolean write, final boolean rw) {
-    super(ld, src, sd, assumed, write, rw);
+      final ExpressionNode o2, final LockModel lm, final IRNode src,
+      final PromiseDrop<?> sd, final boolean assumed, final Type type) {
+    super(lm, src, sd, assumed, type);
     objAAST = o2;
   }
 

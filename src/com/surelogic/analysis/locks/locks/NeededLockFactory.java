@@ -3,15 +3,11 @@
 package com.surelogic.analysis.locks.locks;
 
 import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.analysis.locks.locks.ILock.Type;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
-/* Only need to know the name of the needed lock
- * and whether write privileges are necessary.  We don't have any intrinsic/juc 
- * requirement here.  We match with held locks by the lock declaration, which
- * implicitly determines whether a JUC or intrinsic lock is used.
- */
 public final class NeededLockFactory {
   private final ThisExpressionBinder thisBinder;
   
@@ -20,12 +16,12 @@ public final class NeededLockFactory {
   }
 
   public NeededLock createInstanceLock(
-      final IRNode o, final LockModel ld, final boolean write) {
-    return new NeededInstanceLock(thisBinder.bindThisExpression(o), ld, write, ld.isReadWriteLock());
+      final IRNode o, final LockModel lm, final Type type) {
+    return new NeededInstanceLock(thisBinder.bindThisExpression(o), lm, type);
   } 
   
   public NeededLock createStaticLock(
-      final LockModel ld, final boolean write) {
-    return new NeededStaticLock(ld, write, ld.isReadWriteLock());
+      final LockModel lm, final Type type) {
+    return new NeededStaticLock(lm, type);
   }
 }

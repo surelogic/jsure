@@ -9,9 +9,8 @@ import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
  * only have one instance at runtime.
  */
 final class NeededStaticLock extends AbstractNeededLock {
-  NeededStaticLock(
-      final LockModel ld, final boolean write, final boolean rw) {
-    super(ld, write, rw);
+  NeededStaticLock(final LockModel lm, final Type type) {
+    super(lm, type);
   }
   
   @Override
@@ -27,13 +26,7 @@ final class NeededStaticLock extends AbstractNeededLock {
   public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append(getName());
-    if (isRW) {
-      if (isWrite) {
-        sb.append(".writeLock()");
-      } else {
-        sb.append(".readLock()");
-      }
-    }
+    sb.append(type.getPostFix());
     return sb.toString();
   }
 

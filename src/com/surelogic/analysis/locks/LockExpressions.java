@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.aast.promise.LockSpecificationNode;
-import com.surelogic.aast.promise.LockType;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
+import com.surelogic.analysis.locks.locks.ILock.Type;
 import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -209,12 +209,8 @@ final class LockExpressions {
         sysLockModel.getRegionLocksInClass(JavaTypeFactory.getMyThisType(classDecl));
       for (final RegionLockRecord lr : records) {
         if (lr.region.isStatic() && lr.lockDecl.isJUCLock()) {
-          final HeldLock lock;
-          if (lr.lockDecl.isReadWriteLock()) {
-            lock = heldLockFactory.createJUCRWStaticLock(lr.lockDecl, classInitDecl, false, true);
-          } else {
-            lock = heldLockFactory.createJUCStaticLock(lr.lockDecl, classInitDecl, false);
-          }
+          final Type lockType = lr.lockDecl.isReadWriteLock() ? Type.WRITE : Type.MONOTLITHIC;  
+          final HeldLock lock = heldLockFactory.createStaticLock(lr.lockDecl, classInitDecl, null, false, lockType);
           jucClassInit.add(lock);
         }
       }
@@ -264,12 +260,8 @@ final class LockExpressions {
         sysLockModel.getRegionLocksInClass(JavaTypeFactory.getMyThisType(classDecl));
       for (final RegionLockRecord lr : records) {
         if (!lr.region.isStatic() && lr.lockDecl.isJUCLock()) {
-          final HeldLock lock;
-          if (lr.lockDecl.isReadWriteLock()) {
-            lock = heldLockFactory.createJUCRWInstanceLock(receiverNode, lr.lockDecl, cdecl, drop, false, true);
-          } else {
-            lock = heldLockFactory.createJUCInstanceLock(receiverNode, lr.lockDecl, cdecl, drop, false);
-          }
+          final Type lockType = lr.lockDecl.isReadWriteLock() ? Type.WRITE : Type.MONOTLITHIC;  
+          final HeldLock lock = heldLockFactory.createInstanceLock(receiverNode, lr.lockDecl, cdecl, drop, false, lockType);
           jucSingleThreaded.add(lock);
         }
       }

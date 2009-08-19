@@ -12,31 +12,18 @@ abstract class AbstractILock implements ILock {
   protected final LockModel lockPromise;
   
   /**
-   * Whether write privileges are needed or not.
+   * Whether the lock is monolithic, read only, or write.
    */
-  protected final boolean isWrite;
-
-  /**
-   * Whether the lock is a JUC ReadWriteLock.
-   */
-  protected final boolean isRW;
-  
+  protected final Type type; 
   
   
   
   /**
    * Create a new lock object.
-   * 
-   * @param ld
-   *          The lock declaration node of the lock in question
-   * @param src
-   *          The node that is referring to the lock. See the class description.
    */
-  AbstractILock(
-      final LockModel lm, final boolean write, final boolean rw) {
-    isWrite = write;
-    isRW = rw;
+  AbstractILock(final LockModel lm, final Type t) {
     lockPromise = lm;
+    type = t;
   }
   
   /**
@@ -61,7 +48,7 @@ abstract class AbstractILock implements ILock {
   }
 
   public final boolean isWrite() {
-    return isWrite;
+    return type != Type.READ;
   }
   
   /**
@@ -79,14 +66,14 @@ abstract class AbstractILock implements ILock {
 
   protected final boolean baseEquals(final AbstractILock other) {
     return getUniqueIdentifier().equals(other.getUniqueIdentifier())
-        && (isRW == other.isRW) && (isWrite == other.isWrite);
+        && (type == other.type);
   }
   
   @Override
   public final int hashCode() {
     final int baseHashCode = getUniqueIdentifier().hashCode();
     // Bug 1010: Need to differentiate read lock from write lock
-    return (isRW && isWrite) ? ~baseHashCode : baseHashCode; 
+    return type == Type.WRITE ? ~baseHashCode : baseHashCode; 
   }
 }
 

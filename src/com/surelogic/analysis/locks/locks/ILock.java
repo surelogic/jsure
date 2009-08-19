@@ -5,6 +5,39 @@ import com.surelogic.aast.promise.*;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 public interface ILock {
+  public enum Type { 
+    MONOTLITHIC {
+      @Override
+      public String getPostFix() {
+        return "";
+      }
+    },
+    
+    READ {
+      @Override
+      public String getPostFix() {
+        return ".readLock()";
+      }
+    },
+    
+    WRITE {
+      @Override
+      public String getPostFix() {
+        return ".writeLock()";
+      }      
+    };
+    
+    public static Type get(final boolean isWrite, final boolean isRW) {
+      return isRW ? (isWrite ? WRITE : READ) : MONOTLITHIC;
+    }
+    
+    public static Type getRW(final boolean isWrite) {
+      return isWrite ? WRITE : READ;
+    }
+    
+    public abstract String getPostFix();
+  }
+  
   /** 
    * Get the IRNode of the lock declaration for the lock.
    */
