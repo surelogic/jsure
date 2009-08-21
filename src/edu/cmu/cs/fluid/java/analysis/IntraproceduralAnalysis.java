@@ -106,7 +106,7 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
       if (op instanceof FlowUnit)
         return node;
       if (op instanceof ClassBodyDeclInterface) { 
-      final IRNode classDecl = tree.getParent(tree.getParent(node));
+        final IRNode classDecl = tree.getParent(tree.getParent(node));
         final Operator cdOp = tree.getOperator(classDecl);
 //        final boolean isClass = ClassDeclaration.prototype.includes(cdOp);
         final boolean isInterface = InterfaceDeclaration.prototype.includes(cdOp);

@@ -70,7 +70,39 @@ import edu.cmu.cs.fluid.util.Hashtable2;
  * @author aarong
  */
 public final class LockUtils {
-  private static enum HowToConvertLock { INTRINSIC, JUC }
+  public static enum HowToProcessLocks {
+    INTRINSIC {
+      @Override
+      public boolean acceptsLock(final LockModel lm) {
+        return !lm.isJUCLock();
+      }
+      
+      @Override
+      public ILock.Type getAssumedLockType(final LockModel lm) {
+        return Type.MONOTLITHIC;
+      }
+    },
+    
+    JUC {
+      @Override
+      public boolean acceptsLock(final LockModel lm) {
+        return lm.isJUCLock();
+      }      
+      
+      @Override
+      public ILock.Type getAssumedLockType(final LockModel lm) {
+        return lm.isReadWriteLock() ? Type.WRITE : Type.MONOTLITHIC;
+      }
+    };
+  
+    public abstract boolean acceptsLock(LockModel lm);
+    
+    /**
+     * Given a lock that analysis assumes to be held because of constructor
+     * or initializer semantics, what type should be assigned to the lock.
+     */
+    public abstract ILock.Type getAssumedLockType(LockModel lm);
+  }
   
   
   
@@ -110,6 +142,12 @@ public final class LockUtils {
    */
   public static final String WRITELOCK = "writeLock";
 
+  /**
+   * Name of the wait-queue lock defined for <code>java.lang.Object</code>
+   * used by the {@link java.lang.Object#wait()}method, etc.
+   */
+  public static final String MUTEX_NAME = "MUTEX"; //$NON-NLS-1$
+
   
 
   /**
@@ -134,9 +172,14 @@ public final class LockUtils {
   
   /** Factory for creating targets */
   private final TargetFactory targetFactory;
-  
-  
-  
+
+  /**
+   * Reference to the lock declaration node of the MUTEX lock defined in
+   * <code>java.lang.Object</code> that is used as the precondition for
+   * {@link java.lang.Object#wait()}and friends.
+   */
+  private final LockModel mutex;
+
   /** The element region: {@code []}. */
   private final RegionModel elementRegion;
   
@@ -159,6 +202,8 @@ public final class LockUtils {
    */
   private final Hashtable2<IJavaType, IJavaType, Boolean> subTypeCache = 
 	  new Hashtable2<IJavaType, IJavaType, Boolean>();
+  
+  
   
   // ========================================================================
 
@@ -203,13 +248,25 @@ public final class LockUtils {
         binder.getTypeEnvironment().findNamedType(JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK),
         binder);
 
+    // Get the lock decl of the MUTEX lock on Object
+    final RegionLockRecord lr = sysLockModelHandle.get().getRegionLockByName(
+        binder.getTypeEnvironment().getObjectType(), MUTEX_NAME);
+    if (lr == null) {
+      mutex = null; 
+    } else {
+      mutex = lr.lockDecl;
+    }
+    // Make sure the MUTEX lock shows up in the viewer
+    // XXX: NullPointerException if the lock is not found. This is okay because it is catastrophic if MUTEX is not decalred
+    mutex.setFromSrc(true);
+
     // Get the region for array elements
     elementRegion = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);
     elementRegion.setNode(IOldTypeEnvironment.arrayType);
   }
 
   synchronized void clear() {
-	subTypeCache.clear();
+    subTypeCache.clear();
   }
 
   // ========================================================================
@@ -722,6 +779,12 @@ public final class LockUtils {
   // == Methods for converting lock expressions into locks
   // ========================================================================
 
+  public void convertLockExpr(final HowToProcessLocks howTo,
+      final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src,
+      final Set<HeldLock> lockSet) {
+    convertLockExpr(howTo, lockExpr, enclosingDecl, Type.MONOTLITHIC, src, lockSet);
+  }
+  
   /**
    * Convert an expression known to refer to a lock
    * object into a set of declared locks.  The lock object can be an intrinsic
@@ -733,7 +796,7 @@ public final class LockUtils {
     /* We start by assuming we will be creating a monolithic lock object, and not a
      * read-write lock; thus, we set isWrite to true and isRW to false.
      */
-    convertLockExpr(HowToConvertLock.INTRINSIC, lockExpr, enclosingDecl, Type.MONOTLITHIC, src, lockSet);
+    convertLockExpr(HowToProcessLocks.INTRINSIC, lockExpr, enclosingDecl, src, lockSet);
   }
 
   /**
@@ -750,14 +813,14 @@ public final class LockUtils {
       final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src, final Set<HeldLock> lockSet) {
     /* We start by assuming we will be creating a monolithic lock object
      */
-    convertLockExpr(HowToConvertLock.JUC, lockExpr, enclosingDecl, Type.MONOTLITHIC, src, lockSet);
+    convertLockExpr(HowToProcessLocks.JUC, lockExpr, enclosingDecl, src, lockSet);
   }
 
   /**
    * Note: A lock expression always results in a non-{@link HeldLock#isAssumed() assumed} lock.
    * 
    */
-  private void convertLockExpr(final HowToConvertLock howTo,
+  private void convertLockExpr(final HowToProcessLocks howTo,
       final IRNode lockExpr, final IRNode enclosingDecl, 
       final ILock.Type type, final IRNode src, final Set<HeldLock> lockSet) {
     final Operator op = JJNode.tree.getOperator(lockExpr);
@@ -785,7 +848,7 @@ public final class LockUtils {
         }
       }
     } else {
-      if (howTo == HowToConvertLock.INTRINSIC) {
+      if (howTo == HowToProcessLocks.INTRINSIC) {
         /* First see if the expression itself results in an object that uses
          * itself as a lock. ThisExpressions and VariableUseExpressions are
          * trivially handled here. We do not do this for method calls because the
@@ -843,7 +906,7 @@ public final class LockUtils {
             }
           }
           
-          if (howTo == HowToConvertLock.JUC) {
+          if (howTo == HowToProcessLocks.JUC) {
             /* lockExpr = 'e.f', continued.  Here we try to support a coding
              * idiom for ReadWriteLocks where the separate read and write lock
              * references are cached into fields, e.g.,
@@ -1150,6 +1213,10 @@ public final class LockUtils {
     return elementRegion;
   }
   
+  public LockModel getMutex() {
+    return mutex;
+  }
+  
   public InstanceTarget createInstanceTarget(
       final IRNode object, final IRegion region) {
     return targetFactory.createInstanceTarget(object, region);
@@ -1157,5 +1224,61 @@ public final class LockUtils {
 
   public ClassTarget createClassTarget(final IRegion field) {
     return targetFactory.createClassTarget(field);
-  }  
+  }
+  
+  
+  
+  public void getLockPreconditions(
+      final HowToProcessLocks howTo, final IRNode methodDecl, final IRNode rcvr,
+      final Set<HeldLock> preconditions) {
+    final RequiresLockPromiseDrop drop = LockRules.getRequiresLock(methodDecl);
+    if (drop != null) {
+      for(final LockSpecificationNode requiredLock : drop.getAST().getLockList()) {
+        final LockModel lm = requiredLock.resolveBinding().getModel();
+        if (howTo.acceptsLock(lm)) {
+          final HeldLock lock = convertLockNameToMethodContext(methodDecl, requiredLock, true, drop, rcvr);
+          preconditions.add(lock);
+        }
+      }
+    }
+  }
+  
+  public void getClassInitLocks(
+      final HowToProcessLocks howTo, final IRNode classInitDecl,
+      final IJavaDeclaredType classBeingInitialized, final Set<HeldLock> assumedLocks) {
+    /* Go through all the STATE locks in the class and pick out all the JUC
+     * locks that protect static regions. 
+     */
+    final Set<RegionLockRecord> records =
+      sysLockModelHandle.get().getRegionLocksInClass(classBeingInitialized);
+    for (final RegionLockRecord lr : records) {
+      if (lr.region.isStatic() && howTo.acceptsLock(lr.lockDecl)) {
+        final Type lockType = howTo.getAssumedLockType(lr.lockDecl);
+        final HeldLock lock = heldLockFactory.createStaticLock(lr.lockDecl, classInitDecl, null, false, lockType);
+        assumedLocks.add(lock);
+      }
+    }
+  }
+  
+  public void getSingleThreadedLocks(
+      final HowToProcessLocks howTo, final IRNode conDecl,
+      final IJavaDeclaredType clazz, final IRNode rcvr,
+      final Set<HeldLock> assumedLocks) {
+    /*
+     * Go through all the STATE locks in the class and pick out all the locks that
+     * protect instance regions. Caveat: We exclude the lock MUTEX for Object
+     * because we do not want to be able to verify wait() and notify() calls as
+     * result of the @synchronized annotation.
+     */
+    final SingleThreadedPromiseDrop drop = LockRules.getSingleThreadedDrop(conDecl);
+    final Set<RegionLockRecord> records = sysLockModelHandle.get().getRegionLocksInClass(clazz);
+    for (final RegionLockRecord lr : records) {
+      if (howTo.acceptsLock(lr.lockDecl) && !lr.region.isStatic() && (lr.lockDecl != mutex)) {
+        final Type lockType = howTo.getAssumedLockType(lr.lockDecl);
+        final HeldLock lock =
+          heldLockFactory.createInstanceLock(rcvr, lr.lockDecl, conDecl, drop, false, lockType);
+        assumedLocks.add(lock);
+      }
+    }
+  }
 }

@@ -25,6 +25,7 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.Target;
+import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
 import com.surelogic.analysis.locks.locks.NeededLock;
@@ -304,13 +305,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     
   /** Reference to the Instance region */
   private final RegionModel INSTANCE;
-
-  /**
-   * Reference to the lock declaration node of the MUTEX lock defined in
-   * <code>java.lang.Object</code> that is used as the precondition for
-   * {@link java.lang.Object#wait()}and friends.
-   */
-  private final LockModel MUTEX;
 
   /**
    * The binder to use.
@@ -610,6 +604,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     public void push(final HeldLock lock) {
       locks = new StackLock(lock, locks);
     }
+    
+    public void push(final Set<HeldLock> locks) {
+      for (final HeldLock lock : locks) push(lock);
+    }
 
     public boolean isNeeded() {
       return isNeeded;
@@ -707,18 +705,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     public void popFrame() {
       head = head.nextFrame;
     }
-//
-//    public boolean containsLock(final HeldLock lock, 
-//        final ThisExpressionBinder teb, final IBinder b,
-//        final boolean setNeeded) {
-//      LockStackFrame frame = head;
-//      while (frame != null) {
-//        if (frame.containsLock(lock, teb, b, setNeeded))
-//          return true;
-//        frame = frame.nextFrame;
-//      }
-//      return false;
-//    }
 
     public boolean satisfiesLock(final NeededLock lock,
         final ThisExpressionBinder teb, final IBinder b,
@@ -814,8 +800,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     
     lockUtils = new LockUtils(glmRef, b, effectsVisitor, aliasAnalysis,
         heldLockFactory, neededLockFactory, thisExprBinder);
-    jucLockUsageManager =
-      new JUCLockUsageManager(glmRef, lockUtils, heldLockFactory);
+    jucLockUsageManager = new JUCLockUsageManager(lockUtils, heldLockFactory);
     
     // Create the subsidiary flow analyses
     UniqueID uid = new UniqueID();
@@ -824,23 +809,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     mustHold = new MustHoldAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     
     INSTANCE = RegionModel.getInstance(RegionModel.INSTANCE);
-
-    // Get the lock decl of the MUTEX lock on Object
-    final RegionLockRecord lr = sysLockModelHandle.get().getRegionLockByName(
-        binder.getTypeEnvironment().getObjectType(), MUTEX_NAME);
-    if (lr == null) {
-      LOG.log(Level.SEVERE,
-          "Couldn't get the lock declaration for lock \"MUTEX\" of java.lang.Object"); //$NON-NLS-1$
-      MUTEX = null;
-    } else {
-      MUTEX = lr.lockDecl;
-      if (MUTEX == null) {
-        LOG.log(Level.SEVERE, "Lock \"MUTEX\" bound to null");
-      } else {
-        // Make sure the MUTEX lock shows up in the viewer
-        MUTEX.setFromSrc(true);
-      }
-    }
   }
 
   public void clearCaches() {
@@ -1132,25 +1100,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
    */
   private void convertStaticInitializerBlock(final IRNode initBlock,
       final IJavaDeclaredType clazz, final LockStackFrame stackFrame) {
-    /*
-     * Go through all the STATE locks in the class and pick out all the locks that
-     * protect Static regions.
-     */
-    final Set<RegionLockRecord> records = sysLockModelHandle.get().getRegionLocksInClass(clazz);
-    for (final RegionLockRecord lr : records) {
-      /* Ignore JUC locks: they are dealt with in the flow analyses.
-       * See Bug 691.
-       */
-      if (!lr.lockDecl.isJUCLock()) {
-        if (lr.region.isStatic()) {
-          // Pretend the lock is held with full write privileges
-          LockModel ld = lr.lockDecl;
-          final HeldLock lock =
-            heldLockFactory.createStaticLock(ld, initBlock, null, false, Type.MONOTLITHIC);
-          stackFrame.push(lock);
-        }
-      }
-    }
+    final Set<HeldLock> assumedLocks = new HashSet<HeldLock>();
+    lockUtils.getClassInitLocks(HowToProcessLocks.INTRINSIC, initBlock, clazz, assumedLocks);
+    stackFrame.push(assumedLocks);
   }
 
   /**
@@ -1169,32 +1121,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
    */
   private void convertSingleThreadedConstructor(final IRNode conDecl,
       final IJavaDeclaredType clazz, final LockStackFrame stackFrame) {
-    /*
-     * Go through all the STATE locks in the class and pick out all the locks that
-     * protect instance regions. Caveat: We exclude the lock MUTEX for Object
-     * because we do not want to be able to verify wait() and notify() calls as
-     * result of the @synchronized annotation.
-     */
-    final SingleThreadedPromiseDrop drop = LockRules.getSingleThreadedDrop(conDecl);
-    if (drop == null) {
-      LOG.log(Level.SEVERE,
-          "getLockContext got a null singleThreaded promise drop for "
-              + DebugUnparser.toString(conDecl));
-    }
-
-    final Set<RegionLockRecord> records = sysLockModelHandle.get().getRegionLocksInClass(clazz);
-    for (final RegionLockRecord lr : records) {
-      /* Ignore JUC locks: they are dealt with in the flow analyses.
-       * See Bug 691.
-       */
-      if (!lr.lockDecl.isJUCLock()) {
-        if (!lr.region.isStatic() && (lr.lockDecl != MUTEX)) {
-          final HeldLock lock =
-            heldLockFactory.createInstanceLock(ctxtTheReceiverNode, lr.lockDecl, conDecl, drop, false, Type.MONOTLITHIC);
-          stackFrame.push(lock);
-        }
-      }
-    }
+    final Set<HeldLock> assumedLocks = new HashSet<HeldLock>();
+    lockUtils.getSingleThreadedLocks(HowToProcessLocks.INTRINSIC, conDecl, clazz, ctxtTheReceiverNode, assumedLocks);
+    stackFrame.push(assumedLocks);
   }
 
   /**
@@ -1211,43 +1140,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
    *          method. The locks corresponding to required locks are added to the
    *          front of the list.
    */
-  private void processLockPreconditions(final IRNode decl,
-      final LockStackFrame stackFrame) {
-    /*
-     * Get locks from requiresLock annos. Just get the region from the lock
-     * name. Static regions -> add static target to the set. Instance regions ->
-     * add instance target to the set using the receiver we computed above
-     */
-    final RequiresLockPromiseDrop drop = LockRules.getRequiresLock(decl);
-    if (drop == null) {
-      return;
-    }
-    for(final LockSpecificationNode requiredLock : drop.getAST().getLockList()) {
-      final LockModel lockDecl = requiredLock.resolveBinding().getModel();
-      if (!lockDecl.isJUCLock(lockUtils)) {
-        final HeldLock lock =
-          lockUtils.convertLockNameToMethodContext(decl, requiredLock, true, drop, ctxtTheReceiverNode);
-        // find and add drop
-        /*
-        PromiseDrop pd = null;
-        for (RequiresLockPromiseDrop drop : LockAnnotation
-            .getMutableRequiresLockDropSet(decl)) {
-          final String name = drop.getLockName();
-          if (name == null) {
-            LOG.severe("Incomplete drop: " + drop.getMessage());
-          } else if (name.equals(lock.getName())) {
-            pd = drop;
-            break;
-          }
-        }
-        if (pd == null) {
-          LOG.log(Level.SEVERE, "getLockContext couldn't match requiresLock "
-              + lock.getName() + " to a promise drop");
-        }
-        */
-        stackFrame.push(lock);
-      }
-    }
+  private void processLockPreconditions(
+      final IRNode decl, final LockStackFrame stackFrame) {
+    final Set<HeldLock> preconditions = new HashSet<HeldLock>();
+    lockUtils.getLockPreconditions(
+        HowToProcessLocks.INTRINSIC, decl, ctxtTheReceiverNode, preconditions);
+    stackFrame.push(preconditions);
   }
 
   
@@ -1515,7 +1413,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
           while (recIter.hasNext()) {
             final AbstractLockRecord lr = recIter.next();
             numLocks += 1;
-            containsMutex |= lr.lockDecl.equals(MUTEX);
+            containsMutex |= lr.lockDecl.equals(lockUtils.getMutex());
           }
           return (!containsMutex || (numLocks > 1));
         }
@@ -1801,9 +1699,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       // XXX: because they are used by getEnclosingMethod(), which is called by
       // XXX: getHeldJUCLocks.
       final LockStackFrame frame = ctxtTheHeldLocks.pushNewFrame();
-      for (final HeldLock heldJUCLock : getHeldJUCLocks(expr)) {
-        frame.push(heldJUCLock);
-      }
+      frame.push(getHeldJUCLocks(expr));
 
       /* The information needed for checking returned locks can be preserved, it 
        * is not needed by the recursive visitation because we will only visit
@@ -2146,8 +2042,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         /* If it is an unlock() call, look for the matching lock() calls. */
         if (lockMethod == LockMethods.UNLOCK) {
           final Set<IRNode> locks = mustHold.getLocksFor(expr);
-//          final Integer dv = dummy.getDummy(expr);
-          
           if (locks == null) { // POISONED!
             final InfoDrop match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_UNLOCK_CALL);
             for (HeldLock lock : lockSet) {
@@ -2225,7 +2119,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
          */
         boolean justMUTEX = true;
         for (StackLock guard : syncFrame) {
-          justMUTEX &= guard.lock.getLockPromise().equals(MUTEX);
+          justMUTEX &= guard.lock.getLockPromise().equals(lockUtils.getMutex());
         }
         if (justMUTEX && !syncLockIsPolicyLock) {
           if (TypeUtil.isStatic(mdecl)) {
@@ -2418,7 +2312,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 //          convertLockExpr(lockExpr, getEnclosingMethod(lockExpr), syncBlock, syncFrame);
           final Set<HeldLock> heldLocks = new HashSet<HeldLock>();
           lockUtils.convertIntrinsicLockExpr(lockExpr, getEnclosingMethod(lockExpr), syncBlock, heldLocks);
-          for (final HeldLock lock : heldLocks) syncFrame.push(lock);
+          syncFrame.push(heldLocks);
           
           lockIsPolicyLock = isPolicyLockExpr(lockExpr);
   
@@ -2429,7 +2323,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
            */
           boolean justMUTEX = true;
           for (StackLock guard : syncFrame) {
-            justMUTEX &= guard.lock.getLockPromise().equals(MUTEX);
+            justMUTEX &= guard.lock.getLockPromise().equals(lockUtils.getMutex());
   
             // Complain if the lock acquisition is potentially redundant
             if (ctxtTheHeldLocks.oldFramesContainLock(guard.lock, thisExprBinder, binder)) {
@@ -2585,10 +2479,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
               }    
               assureRegionRef(varDecl, 
                   lockUtils.getLocksForDirectRegionAccess(varDecl, false, target));
-              
-//              assureRegionRef(varDecl,
-//                  lockUtils.getLockForVarDecl(
-//                      ctxtTheReceiverNode, varDecl, ctxtJavaType));
             }
             // analyze the the RHS of the initialization
             doAcceptForChildren(varDecl);

@@ -89,7 +89,6 @@ public final class MustReleaseAnalysis extends
   }
 
   
-  @SuppressWarnings("unchecked")
   @Override
   protected FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> createAnalysis(final IRNode flowUnit) {
     final MustReleaseLattice mustReleaseLattice =
@@ -355,7 +354,6 @@ public final class MustReleaseAnalysis extends
           "Must Release Analysis", lattice, this, DebugUnparser.viewer);
     }
 
-    @SuppressWarnings("unchecked")
     public ImmutableList<ImmutableSet<IRNode>>[] transferComponentSink(IRNode node, boolean normal) {
       final ImmutableList<ImmutableSet<IRNode>>[] emptyValue = lattice.getEmptyValue();
       log(Level.INFO, "transferComponentSink({0}) == {1}",

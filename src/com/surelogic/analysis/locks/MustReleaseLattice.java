@@ -43,7 +43,6 @@ final class MustReleaseLattice extends AbstractLockStackLattice {
    *          The list of unique lock expressions that represent the domain of
    *          the map portion of this lattice.
    */
-  @SuppressWarnings("unchecked")
   private MustReleaseLattice(final HeldLock[] locks, final Map<IRNode, Set<HeldLock>> map) {
     super(locks, map);
   }

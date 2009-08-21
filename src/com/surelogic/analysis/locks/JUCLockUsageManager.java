@@ -4,7 +4,6 @@ package com.surelogic.analysis.locks;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
@@ -25,14 +24,11 @@ import edu.cmu.cs.fluid.ir.IRNode;
 final class JUCLockUsageManager {
   private final Map<IRNode, LockExpressions> lockExpressions = new HashMap<IRNode, LockExpressions>();
   private final LockUtils lockUtils;
-  private final AtomicReference<GlobalLockModel> sysLockModelHandle;
   private final HeldLockFactory heldLockFactory;
   
   
   
-  public JUCLockUsageManager(final AtomicReference<GlobalLockModel> glmRef, final LockUtils lu,
-      final HeldLockFactory hlf) {
-    sysLockModelHandle = glmRef;
+  public JUCLockUsageManager(final LockUtils lu, final HeldLockFactory hlf) {
     lockUtils = lu;
     heldLockFactory = hlf;
   }
@@ -40,7 +36,7 @@ final class JUCLockUsageManager {
   private LockExpressions getLockExpressionsFor(final IRNode mdecl) {
     LockExpressions lockExprs = lockExpressions.get(mdecl);
     if (lockExprs == null) {
-      lockExprs = new LockExpressions(mdecl, sysLockModelHandle.get(), lockUtils, heldLockFactory);
+      lockExprs = new LockExpressions(mdecl, lockUtils, heldLockFactory);
       lockExpressions.put(mdecl, lockExprs);
     }
     return lockExprs;
