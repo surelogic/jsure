@@ -41,6 +41,7 @@ import edu.uwm.cs.fluid.util.UnionLattice;
  * @author aarong
  */
 final class MustHoldLattice extends AbstractLockStackLattice {
+  private final IRNode flowUnit;
   private final Set<HeldLock> requiredLocks;
   private final Set<HeldLock> singleThreaded;
   private final Set<HeldLock> classInit;
@@ -53,11 +54,11 @@ final class MustHoldLattice extends AbstractLockStackLattice {
    *          The list of unique lock expressions that represent the domain of
    *          the map portion of this lattice.
    */
-  @SuppressWarnings("unchecked")
-  private MustHoldLattice(
+  private MustHoldLattice(final IRNode fu,
       final HeldLock[] locks, final Map<IRNode, Set<HeldLock>> map,
       final Set<HeldLock> req, final Set<HeldLock> st, final Set<HeldLock> ci) {
     super(locks, map);
+    flowUnit = fu;
     requiredLocks = req;
     singleThreaded = st;
     classInit = ci;
@@ -82,7 +83,7 @@ final class MustHoldLattice extends AbstractLockStackLattice {
     final Set<HeldLock> singleThreaded = jucLockUsageManager.getJUCSingleThreaded(flowUnit);
     final Set<HeldLock> classInit = jucLockUsageManager.getJUCClassInit(flowUnit);
     final HeldLock[] locks = constructLockArray(map, required, singleThreaded, classInit, thisExprBinder, binder);
-    return new MustHoldLattice(locks, map, required, singleThreaded, classInit);
+    return new MustHoldLattice(flowUnit, locks, map, required, singleThreaded, classInit);
   }
  
   
@@ -154,6 +155,10 @@ final class MustHoldLattice extends AbstractLockStackLattice {
       }
     }
     return Collections.unmodifiableSet(locked);
+  }
+  
+  public IRNode getFlowUnit() {
+    return flowUnit;
   }
   
   public Set<HeldLock> getRequiredLocks() {

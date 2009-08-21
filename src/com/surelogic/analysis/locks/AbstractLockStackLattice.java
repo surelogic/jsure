@@ -17,8 +17,11 @@ import edu.cmu.cs.fluid.ir.IndependentIRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
@@ -371,7 +374,18 @@ abstract class AbstractLockStackLattice extends
               sb.append("IGNORE_ME");
             }
             else try {
-              sb.append(MethodCall.getMethod(call));
+              final Operator op = JJNode.tree.getOperator(call);
+              if (MethodCall.prototype.includes(op)) {
+                sb.append(MethodCall.getMethod(call));
+              } else if (MethodDeclaration.prototype.includes(op)) {
+                sb.append("decl(");
+                sb.append(MethodDeclaration.getId(call));
+                sb.append(")");
+              } else if (ConstructorDeclaration.prototype.includes(op)) {
+                sb.append("decl(");
+                sb.append(ConstructorDeclaration.getId(call));
+                sb.append(")");
+              }
               sb.append('@');
               sb.append(JavaNode.getSrcRef(call).getLineNumber());
             } catch (final SlotUndefinedException e) {
