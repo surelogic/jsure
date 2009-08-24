@@ -1,7 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/edu/uwm/cs/fluid/java/analysis/SimpleNonnullAnalysis.java,v 1.2 2007/09/12 00:41:24 boyland Exp $*/
 package edu.uwm.cs.fluid.java.analysis;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,15 +9,15 @@ import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.Call;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
-import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
+import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
@@ -130,6 +129,7 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
       });
     }
     
+    @SuppressWarnings("unchecked")
     public ListLattice<NullLattice,NullInfo> getLL() { 
       return (ListLattice<NullLattice, NullInfo>) lattice1; 
     }
@@ -381,7 +381,6 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferToString(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
       if (!lattice.isNormal(val)) return val;
-      StringConcat op = null;
       final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
       ImmutableList<NullInfo> stack = val.first();
       if (nullLattice.lessEq(ll.peek(stack),NullInfo.NOTNULL)) return val;
@@ -395,7 +394,8 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
       final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
       NullInfo ni;
       IRNode var = binder.getIBinding(use).getNode();
-      if (tree.getOperator(var) instanceof ReceiverDeclaration || val.second().contains(var)) {
+      final Operator op = tree.getOperator(var);
+      if (op instanceof ReceiverDeclaration || op instanceof QualifiedReceiverDeclaration || val.second().contains(var)) {
         ni = NullInfo.NOTNULL;
       } else {
         ni = NullInfo.MAYBENULL; // all other literals are not null
