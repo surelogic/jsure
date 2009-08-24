@@ -32,9 +32,7 @@ import edu.uwm.cs.fluid.util.UnionLattice;
  * task-appropriate names
  * {@link #getLocksFor(ImmutableList[], IRNode, IBinder)},
  * {@link #foundLock(ImmutableList[], IRNode, IBinder)}, and
- * {@link #foundUnlock(ImmutableList[], IRNode, IBinder)}, respectively.  It
- * also adds the method {@link #getLockedExpressions(ImmutableList[])} that 
- * returns the set of lock expressions that are currently believed to be locked.
+ * {@link #foundUnlock(ImmutableList[], IRNode, IBinder)}, respectively.
  * 
  * TODO: Say more about this.
  * 

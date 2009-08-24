@@ -25,6 +25,8 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * </ul>
  */
 public interface HeldLock extends ILock {
+  public HeldLock changeSource(IRNode src);
+
   /**
    * Get the IRNode representing the syntactic entity that acquires,
    * requires, or returns the lock.

@@ -31,6 +31,10 @@ final class BogusLock implements HeldLock {
   BogusLock(final IRNode le) {
     lockExpr = le;
   }
+  
+  public HeldLock changeSource(final IRNode newSrc) {
+    return this;
+  }
 
   public boolean isBogus() {
     return true;

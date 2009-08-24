@@ -13,6 +13,7 @@ import com.surelogic.analysis.locks.locks.HeldLockFactory;
 import com.surelogic.annotation.rules.LockRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -90,6 +91,11 @@ final class LockExpressions {
    */
   private final Set<HeldLock> intrinsicClassInit = new HashSet<HeldLock>();
 
+  /**
+   * The intrinsic locks that apply because the method is declared synchronized.
+   */
+  private final Set<HeldLock> intrinsicSyncMethod = new HashSet<HeldLock>();
+  
   
   
   public LockExpressions(
@@ -118,7 +124,8 @@ final class LockExpressions {
     return !intrinsicLockExprsToLockSets.isEmpty()
         || !intrinsicRequiredLocks.isEmpty()
         || !intrinsicSingleThreaded.isEmpty()
-        || !intrinsicClassInit.isEmpty();
+        || !intrinsicClassInit.isEmpty()
+        || !intrinsicSyncMethod.isEmpty();
   }
   
   /**
@@ -177,7 +184,13 @@ final class LockExpressions {
     return Collections.unmodifiableSet(intrinsicClassInit);
   }
 
-  
+  /**
+   * Get the intrinsic locks that are held because the method is declared
+   * {@code synchronized}.
+   */
+  public Set<HeldLock> getIntrinsicSynchronizedMethodLocks() {
+    return Collections.unmodifiableSet(intrinsicSyncMethod);
+  }
   
   /**
    * A tree visitor that we run over a method/constructor body to find all the
@@ -232,10 +245,23 @@ final class LockExpressions {
 
     @Override
     public Void visitConstructorDeclaration(final IRNode cdecl) {
-      getLockPreconditions(cdecl);
+      final IRNode rcvr =
+        TypeUtil.isStatic(cdecl) ? null : JavaPromise.getReceiverNodeOrNull(cdecl);
+      /* TODO: LockUtils method needs to make one pass through the 
+       * locks and output to two sets: JUC and intrinsic. 
+       */
+      lockUtils.getLockPreconditions(HowToProcessLocks.JUC, cdecl, rcvr, jucRequiredLocks);
+      lockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, cdecl, rcvr, intrinsicRequiredLocks);
       if (LockRules.isSingleThreaded(cdecl)) {
-        getSingleThreadedLocks(cdecl);
+        final IRNode classDecl = VisitUtil.getEnclosingType(cdecl);
+        final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
+        /* TODO: LockUtils method needs to make one pass through the 
+         * locks and output to two sets: JUC and intrinsic. 
+         */
+        lockUtils.getSingleThreadedLocks(HowToProcessLocks.JUC, cdecl, clazz, rcvr, jucSingleThreaded);
+        lockUtils.getSingleThreadedLocks(HowToProcessLocks.INTRINSIC, cdecl, clazz, rcvr, intrinsicSingleThreaded);
       }
+      
       // Analyze the initialization of the instance
       final InitializationVisitor helper = new InitializationVisitor(false);
       helper.doAcceptForChildren(JJNode.tree.getParent(cdecl));
@@ -246,14 +272,36 @@ final class LockExpressions {
 
     @Override
     public Void visitMethodDeclaration(final IRNode mdecl) {
-      getLockPreconditions(mdecl);
+      final IRNode rcvr =
+        TypeUtil.isStatic(mdecl) ? null : JavaPromise.getReceiverNodeOrNull(mdecl);
+
+      /* TODO: LockUtils method needs to make one pass through the 
+       * locks and output to two sets: JUC and intrinsic. 
+       */
+      lockUtils.getLockPreconditions(HowToProcessLocks.JUC, mdecl, rcvr, jucRequiredLocks);
+      lockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, mdecl, rcvr, intrinsicRequiredLocks);
+      
+      if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
+        final IRNode classDecl = VisitUtil.getEnclosingType(mdecl);
+        final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
+        lockUtils.convertSynchronizedMethod(mdecl, rcvr, clazz, classDecl, intrinsicSyncMethod);
+      }
+      
       doAcceptForChildren(mdecl);
       return null; 
     }
     
     @Override
     public Void visitClassInitDeclaration(final IRNode classInitDecl) {
-      getClassInitLocks(classInitDecl);
+      // Get the locks held due to class initialization assumptions
+      final IRNode classDecl = VisitUtil.getEnclosingType(classInitDecl);
+      final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
+      /* TODO: LockUtils method needs to make one pass through the 
+       * locks and output to two sets: JUC and intrinsic. 
+       */
+      lockUtils.getClassInitLocks(HowToProcessLocks.JUC, classInitDecl, clazz, jucClassInit);
+      lockUtils.getClassInitLocks(HowToProcessLocks.INTRINSIC, classInitDecl, clazz, intrinsicClassInit);
+      
       final InitializationVisitor iv = new InitializationVisitor(true);
       /* Must use accept for children because InitializationVisitor doesn't do anything
        * for ClassDeclaration nodes.  It's better this way anyhow because we only care
@@ -290,36 +338,44 @@ final class LockExpressions {
       return null;
     }
     
-    private void getClassInitLocks(final IRNode classInitDecl) {
-      final IRNode classDecl = VisitUtil.getEnclosingType(classInitDecl);
-      final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
-      /* TODO: LockUtils method needs to make one pass through the 
-       * locks and output to two sets: JUC and intrinsic. 
-       */
-      lockUtils.getClassInitLocks(HowToProcessLocks.JUC, classInitDecl, clazz, jucClassInit);
-      lockUtils.getClassInitLocks(HowToProcessLocks.INTRINSIC, classInitDecl, clazz, intrinsicClassInit);
-    }
+//    private void getClassInitLocks(final IRNode classInitDecl) {
+//      final IRNode classDecl = VisitUtil.getEnclosingType(classInitDecl);
+//      final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
+//      /* TODO: LockUtils method needs to make one pass through the 
+//       * locks and output to two sets: JUC and intrinsic. 
+//       */
+//      lockUtils.getClassInitLocks(HowToProcessLocks.JUC, classInitDecl, clazz, jucClassInit);
+//      lockUtils.getClassInitLocks(HowToProcessLocks.INTRINSIC, classInitDecl, clazz, intrinsicClassInit);
+//    }
 
-    private void getLockPreconditions(final IRNode decl) {
-      final IRNode rcvr =
-        TypeUtil.isStatic(decl) ? null : JavaPromise.getReceiverNodeOrNull(decl);
-      /* TODO: LockUtils method needs to make one pass through the 
-       * locks and output to two sets: JUC and intrinsic. 
-       */
-      lockUtils.getLockPreconditions(HowToProcessLocks.JUC, decl, rcvr, jucRequiredLocks);
-      lockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, decl, rcvr, intrinsicRequiredLocks);
-    }
+//    private void getLockPreconditions(final IRNode decl) {
+//      final IRNode rcvr =
+//        TypeUtil.isStatic(decl) ? null : JavaPromise.getReceiverNodeOrNull(decl);
+//      /* TODO: LockUtils method needs to make one pass through the 
+//       * locks and output to two sets: JUC and intrinsic. 
+//       */
+//      lockUtils.getLockPreconditions(HowToProcessLocks.JUC, decl, rcvr, jucRequiredLocks);
+//      lockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, decl, rcvr, intrinsicRequiredLocks);
+//    }
     
-    private void getSingleThreadedLocks(final IRNode cdecl) {
-      final IRNode receiverNode = JavaPromise.getReceiverNodeOrNull(cdecl);
-      final IRNode classDecl = VisitUtil.getEnclosingType(cdecl);
-      final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
-      /* TODO: LockUtils method needs to make one pass through the 
-       * locks and output to two sets: JUC and intrinsic. 
-       */
-      lockUtils.getSingleThreadedLocks(HowToProcessLocks.JUC, cdecl, clazz, receiverNode, jucSingleThreaded);
-      lockUtils.getSingleThreadedLocks(HowToProcessLocks.INTRINSIC, cdecl, clazz, receiverNode, intrinsicSingleThreaded);
-    }
+//    private void getSingleThreadedLocks(final IRNode cdecl) {
+//      final IRNode receiverNode = JavaPromise.getReceiverNodeOrNull(cdecl);
+//      final IRNode classDecl = VisitUtil.getEnclosingType(cdecl);
+//      final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
+//      /* TODO: LockUtils method needs to make one pass through the 
+//       * locks and output to two sets: JUC and intrinsic. 
+//       */
+//      lockUtils.getSingleThreadedLocks(HowToProcessLocks.JUC, cdecl, clazz, receiverNode, jucSingleThreaded);
+//      lockUtils.getSingleThreadedLocks(HowToProcessLocks.INTRINSIC, cdecl, clazz, receiverNode, intrinsicSingleThreaded);
+//    }
+
+//    private void getSynchronizedMethodLocks(final IRNode mdecl) {
+//      final IRNode rcvr =
+//        TypeUtil.isStatic(mdecl) ? null : JavaPromise.getReceiverNodeOrNull(mdecl);
+//      final IRNode classDecl = VisitUtil.getEnclosingType(mdecl);
+//      final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
+//      lockUtils.convertSynchronizedMethod(mdecl, rcvr, clazz, classDecl, intrinsicSyncMethod);
+//    }
     
     /**
      * This method is shared by the body of {@link #visitMethodCall(IRNode)} in this
@@ -344,7 +400,7 @@ final class LockExpressions {
       final IRNode lockExpr = SynchronizedStatement.getLock(syncBlock);
       addLockExpression(HowToProcessLocks.INTRINSIC, lockExpr, syncBlock, intrinsicLockExprsToLockSets);
     }
-
+    
     private void addLockExpression(final HowToProcessLocks howTo,
         final IRNode lockExpr, final IRNode syncBlock, final Map<IRNode, Set<HeldLock>> map) {
       if (lockUtils.isFinalExpression(lockExpr, syncBlock)) {

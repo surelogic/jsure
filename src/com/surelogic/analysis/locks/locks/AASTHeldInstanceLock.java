@@ -19,6 +19,10 @@ class AASTHeldInstanceLock extends HeldInstanceLock {
     objAAST = o2;
   }
 
+  public HeldLock changeSource(final IRNode newSrc) {
+    return new AASTHeldInstanceLock(objAAST, lockPromise, newSrc, supportingDrop, isAssumed, type);
+  }
+
   @Override
   protected String objToString() {
     return objAAST.toString();

@@ -18,6 +18,10 @@ final class HeldStaticLock extends AbstractHeldLock {
     super(ld, src, sd, assumed, type);
   }
   
+  public HeldLock changeSource(final IRNode newSrc) {
+    return new HeldStaticLock(lockPromise, newSrc, supportingDrop, isAssumed, type);
+  }
+  
   /**
    * Static locks are based on name equivalence.
    */

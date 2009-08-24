@@ -87,6 +87,13 @@ final class JUCLockUsageManager {
   }
   
   /**
+   * Get the intrinsic locks that appear in lock preconditions.
+   */
+  public Set<HeldLock> getIntrinsicRequiredLocks(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).getIntrinsicRequiredLocks();
+  }
+  
+  /**
    * Get the JUC locks that apply because the constructor is single threaded.
    */
   public Set<HeldLock> getJUCSingleThreaded(final IRNode mdecl) {
@@ -94,9 +101,31 @@ final class JUCLockUsageManager {
   }
   
   /**
+   * Get the intrinsic locks that apply because the constructor is single threaded.
+   */
+  public Set<HeldLock> getIntrinsicSingleThreaded(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).getIntrinsicSingleThreaded();
+  }
+  
+  /**
    * Get the JUC locks that apply during class initialization.
    */
   public Set<HeldLock> getJUCClassInit(final IRNode fu) {
     return getLockExpressionsFor(fu).getJUCClassInit();
+  }
+  
+  /**
+   * Get the intrinsic locks that apply during class initialization.
+   */
+  public Set<HeldLock> getIntrinsicClassInit(final IRNode fu) {
+    return getLockExpressionsFor(fu).getIntrinsicClassInit();
+  }
+  
+  /**
+   * The the intrinsic locks that apply due to the method being declared
+   * {@code synchronized}.
+   */
+  public Set<HeldLock> getIntrinsicSynchronizedMethodLocks(final IRNode fu) {
+    return getLockExpressionsFor(fu).getIntrinsicSynchronizedMethodLocks();
   }
 }

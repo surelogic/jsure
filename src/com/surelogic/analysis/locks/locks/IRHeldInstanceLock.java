@@ -26,6 +26,10 @@ class IRHeldInstanceLock extends HeldInstanceLock {
     obj = o;
   }
 
+  public HeldLock changeSource(final IRNode newSrc) {
+    return new IRHeldInstanceLock(obj, lockPromise, newSrc, supportingDrop, isAssumed, type);
+  }
+
   @Override
   protected String objToString() {
     return DebugUnparser.toString(obj);

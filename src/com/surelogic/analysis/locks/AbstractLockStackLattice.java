@@ -20,6 +20,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -220,6 +221,13 @@ abstract class AbstractLockStackLattice extends
     
     // Get the set of locks for the lock expression
     final IRNode lockExpr = mcall.get_Object(call);
+    return pushLockExpression(oldValue, lockExpr, call, thisExprBinder, binder);
+  }
+
+  public ImmutableList<ImmutableSet<IRNode>>[] pushLockExpression(
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
+      final IRNode lockExpr, final IRNode lockAction,
+      final ThisExpressionBinder thisExprBinder, final IBinder binder) {
     final Set<HeldLock> lockSet = lockExprsToLockSets.get(lockExpr);
     ImmutableList<ImmutableSet<IRNode>>[] result = oldValue;
     if (lockSet != null) {
@@ -229,7 +237,7 @@ abstract class AbstractLockStackLattice extends
           // Push the method call onto the stack as a new singleton set
           result = replaceValue(result, idx,
               getBaseLattice().push(result[idx],
-                  ImmutableHashOrderSet.<IRNode>emptySet().addCopy(call)));
+                  ImmutableHashOrderSet.<IRNode>emptySet().addCopy(lockAction)));
         }
       }
     }
@@ -252,6 +260,13 @@ abstract class AbstractLockStackLattice extends
     
     // Get the set of locks for the lock expression
     final IRNode lockExpr = mcall.get_Object(call);
+    return popLockExpression(oldValue, lockExpr, thisExprBinder, binder);
+  }
+
+  public ImmutableList<ImmutableSet<IRNode>>[] popLockExpression(
+      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
+      final IRNode lockExpr, final ThisExpressionBinder thisExprBinder,
+      final IBinder binder) {
     final Set<HeldLock> lockSet = lockExprsToLockSets.get(lockExpr);
     ImmutableList<ImmutableSet<IRNode>>[] result = oldValue;
     if (lockSet != null) {
@@ -326,7 +341,6 @@ abstract class AbstractLockStackLattice extends
     // Push the singleton set with the bogus method call onto the stack
     final ImmutableList<ImmutableSet<IRNode>> initValue = ImmutableList.cons(
         IGNORE_ME_SINGLETON_SET, ImmutableList.<ImmutableSet<IRNode>>nil());
-//    final ImmutableList<ImmutableSet<IRNode>> initValue = ImmutableList.<ImmutableSet<IRNode>>nil();
     for (int i = 0; i < empty.length; i++) {
       empty[i] = initValue;
     }
@@ -385,6 +399,8 @@ abstract class AbstractLockStackLattice extends
                 sb.append("decl(");
                 sb.append(ConstructorDeclaration.getId(call));
                 sb.append(")");
+              } else if (SynchronizedStatement.prototype.includes(op)) {
+                sb.append("sync");
               }
               sb.append('@');
               sb.append(JavaNode.getSrcRef(call).getLineNumber());

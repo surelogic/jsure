@@ -30,7 +30,6 @@ import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
 import com.surelogic.analysis.locks.locks.NeededLock;
 import com.surelogic.analysis.locks.locks.NeededLockFactory;
-import com.surelogic.analysis.locks.locks.ILock.Type;
 import com.surelogic.analysis.messages.Messages;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.*;
@@ -427,6 +426,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   private final SimpleNonnullAnalysis nonNullAnalylsis;
   
   /**
+   * The intrinsic lock flow analysis. 
+   */
+  private final IntrinsicLockAnalysis intrinsicLock;
+  
+  /**
    * The must-release analysis.
    */
   private final MustReleaseAnalysis mustRelease;
@@ -805,6 +809,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     // Create the subsidiary flow analyses
     UniqueID uid = new UniqueID();
     nonNullAnalylsis = new SimpleNonnullAnalysis("Non Null Analysis for "+this+" "+uid, binder);
+    intrinsicLock = new IntrinsicLockAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     mustRelease = new MustReleaseAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     mustHold = new MustHoldAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     
@@ -951,7 +956,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 
   private void addLockAcquisitionInformation(
       final IRReferenceDrop drop, final LockStack intrinsicLocks,
-      final Set<HeldLock> jucLocks) {
+      final Set<HeldLock> jucLocks, final Set<HeldLock> il) {
     for (final StackLock has : intrinsicLocks) {
       addSupportingInformation(drop, has.lock.getSource(),
           has.lock.isAssumed() ? DS_ASSUMED_HELD_MSG : DS_LOCK_HELD_MSG, has.lock);
@@ -960,6 +965,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       addSupportingInformation(drop, lock.getSource(), 
           lock.isAssumed() ? DS_ASSUMED_HELD_MSG : DS_JUC_LOCK_HELD_MSG, lock);
     }
+//    for (final HeldLock lock : il) {
+//      addSupportingInformation(drop, lock.getSource(), 
+//          (lock.isAssumed() ? DS_ASSUMED_HELD_MSG : DS_LOCK_HELD_MSG), lock);
+//      
+//    }
   }
 
   // ----------------------------------------------------------------------
@@ -1045,48 +1055,48 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     return Collections.emptySet();
   }
 
-  /**
-   * Given a synchronized method, return the locks it acquires. 
-   * 
-   * @param mdecl
-   *          The declaration node for the synchronized method. This method does
-   *          <em>not</em> test whether the method is declared to be
-   *          synchronized.  This method assumes it is being called from a context
-   *          in which the body of mdecl is being analyzed, and thus the 
-   *          field {@link #ctxtTheReceiverNode} refers to the canonical receiver
-   *          for this method.
-   * @param cdecl
-   *          The class declaration node for the class in which it is declared.
-   * @param lockStack
-   *          A linked list of locks that that is modified as a result of this
-   *          method. The locks corresponding to the synchronization are added
-   *          to the front of the list.
-   */
-  private void convertSynchronizedMethod(
-      final IRNode mdecl, final IJavaDeclaredType clazz,
-      final IRNode cdecl, final LockStackFrame stackFrame) {
-    // is the method static?
-    if (TypeUtil.isStatic(mdecl)) {
-      // Look up the class definition (which is used to represent the class
-      // lock)
-      final Set<AbstractLockRecord> records =
-        sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(clazz, cdecl);
-      for (final AbstractLockRecord lr : records) {
-        // Synchronized methods use intrinsic locks, so they are always write locks
-        stackFrame.push(
-            heldLockFactory.createStaticLock(lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
-      }
-    } else {
-      // is the receiver a known lock?
-      final Set<AbstractLockRecord> records =
-        sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(clazz, GlobalLockModel.THIS);
-      for (final AbstractLockRecord lr : records) {
-        // Synchronized methods use intrinsic locks, so they are always write locks
-        stackFrame.push(
-            heldLockFactory.createInstanceLock(ctxtTheReceiverNode, lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
-      }
-    }
-  }
+//  /**
+//   * Given a synchronized method, return the locks it acquires. 
+//   * 
+//   * @param mdecl
+//   *          The declaration node for the synchronized method. This method does
+//   *          <em>not</em> test whether the method is declared to be
+//   *          synchronized.  This method assumes it is being called from a context
+//   *          in which the body of mdecl is being analyzed, and thus the 
+//   *          field {@link #ctxtTheReceiverNode} refers to the canonical receiver
+//   *          for this method.
+//   * @param cdecl
+//   *          The class declaration node for the class in which it is declared.
+//   * @param lockStack
+//   *          A linked list of locks that that is modified as a result of this
+//   *          method. The locks corresponding to the synchronization are added
+//   *          to the front of the list.
+//   */
+//  private void convertSynchronizedMethod(
+//      final IRNode mdecl, final IJavaDeclaredType clazz,
+//      final IRNode cdecl, final LockStackFrame stackFrame) {
+//    // is the method static?
+//    if (TypeUtil.isStatic(mdecl)) {
+//      // Look up the class definition (which is used to represent the class
+//      // lock)
+//      final Set<AbstractLockRecord> records =
+//        sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(clazz, cdecl);
+//      for (final AbstractLockRecord lr : records) {
+//        // Synchronized methods use intrinsic locks, so they are always write locks
+//        stackFrame.push(
+//            heldLockFactory.createStaticLock(lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
+//      }
+//    } else {
+//      // is the receiver a known lock?
+//      final Set<AbstractLockRecord> records =
+//        sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(clazz, GlobalLockModel.THIS);
+//      for (final AbstractLockRecord lr : records) {
+//        // Synchronized methods use intrinsic locks, so they are always write locks
+//        stackFrame.push(
+//            heldLockFactory.createInstanceLock(ctxtTheReceiverNode, lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
+//      }
+//    }
+//  }
 
   /**
    * Get the locks held by a static initializer block. These are all the
@@ -1161,7 +1171,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       final IRNode regionAccess, final Set<NeededLock> neededLocks) {
     // Get the JUC locks that are held at entry to the method call
     final Set<HeldLock> heldJUCLocks = getHeldJUCLocks(regionAccess);
-
+    final Set<HeldLock> il = getHeldIntrinsicLocks(regionAccess);
+    
     final LockChecker regionRefChecker = new LockChecker(regionAccess) {
       @Override
       protected LockModel getPromiseDrop(final NeededLock neededLock) {
@@ -1173,7 +1184,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         // No additional evidence to add
       }
     };
-    regionRefChecker.assureNeededLocks(neededLocks, heldJUCLocks,
+    regionRefChecker.assureNeededLocks(neededLocks, heldJUCLocks, il,
         DS_FIELD_ACCESS_ASSURED_MSG, DS_FIELD_ACCESS_ASSURED_ALT_MSG, DSC_FIELD_ACCESS_ASSURED,
         DS_FIELD_ACCESS_NOT_ASSURED_MSG, DSC_FIELD_ACCESS_NOT_ASSURED);
   }
@@ -1432,13 +1443,16 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     }
     
     private boolean isLockSatisfied(
-        final NeededLock neededLock, final Set<HeldLock> heldJUCLocks) {
+        final NeededLock neededLock, final Set<HeldLock> heldJUCLocks, final Set<HeldLock> heldIntrinsicLocks) {
       return ctxtTheHeldLocks.satisfiesLock(neededLock, thisExprBinder, binder, true)
-          || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder, binder);
+        || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder, binder);
+//      return neededLock.isSatisfiedByLockSet(heldIntrinsicLocks, thisExprBinder, binder)
+//        || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder, binder);
     }
     
     public final void assureNeededLocks(
         final Set<NeededLock> neededLocks, final Set<HeldLock> heldJUCLocks,
+        final Set<HeldLock> heldIntrinsicLocks,
         final String goodMsgTemplate, final String goodAltMsgTemplate, final Category goodCategory,
         final String badMsgTemplate, final Category badCategory) {
       for (final NeededLock neededLock : neededLocks) {
@@ -1459,7 +1473,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         
         final ResultDrop resultDrop;
         // Test for the needed lock
-        if (isLockSatisfied(neededLock, heldJUCLocks)) {
+        if (isLockSatisfied(neededLock, heldJUCLocks, heldIntrinsicLocks)) {
           resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), true,
               goodMsgTemplate, neededLock, DebugUnparser.toString(useSite));
           resultDrop.setCategory(goodCategory);
@@ -1467,7 +1481,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
           // Needed lock is not held.  Might we have an alternative?
           if (mayHaveAlternativeLock) {
             if (alternativeLock != null) {
-              if (isLockSatisfied(alternativeLock, heldJUCLocks)) {
+              if (isLockSatisfied(alternativeLock, heldJUCLocks, heldIntrinsicLocks)) {
                 // The alternative exists and is held, so we have the "held as" message
                 resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock),
                     true, goodAltMsgTemplate, neededLock,
@@ -1494,7 +1508,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
           }
         }
         
-        addLockAcquisitionInformation(resultDrop, ctxtTheHeldLocks, heldJUCLocks);
+        addLockAcquisitionInformation(resultDrop, ctxtTheHeldLocks, heldJUCLocks, heldIntrinsicLocks);
         if (ctxtOnBehalfOfConstructor) {
           addSupportingInformation(resultDrop, ctxtInsideConstructor,
               DS_ON_BEHALF_OF_CONSTRUCTOR_MSG, ctxtConstructorName);
@@ -1521,6 +1535,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 
     // Get the JUC locks that are held at entry to the method call
     final Set<HeldLock> heldJUCLocks = getHeldJUCLocks(call);
+    final Set<HeldLock> il = getHeldIntrinsicLocks(call);
     
     // Check that we hold the correct locks to call the method
     final LockUtils.GoodAndBadLocks<NeededLock> locks =
@@ -1540,7 +1555,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         // No additional evidence to add
       }
     };
-    callChecker.assureNeededLocks(locks.goodLocks, heldJUCLocks,
+    callChecker.assureNeededLocks(locks.goodLocks, heldJUCLocks, il,
         DS_PRECONDITIONS_ASSURED_MSG, DS_PRECONDITIONS_ASSURED_ALT_MSG, DSC_PRECONDITIONS_ASSURED,
         DS_PRECONDITIONS_NOT_ASSURED_MSG, DSC_PRECONDITIONS_NOT_ASSURED);
     
@@ -1580,7 +1595,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         // TODO: Add rationale based on method effects and region mapping
       }
     };
-    indirectAccessChecker.assureNeededLocks(neededLocks, heldJUCLocks,
+    indirectAccessChecker.assureNeededLocks(neededLocks, heldJUCLocks, il,
         DS_INDIRECT_FIELD_ACCESS_ASSURED_MSG, DS_INDIRECT_FIELD_ACCESS_ASSURED_ALT_MSG, DSC_INDIRECT_FIELD_ACCESS_ASSURED,
         DS_INDIRECT_FIELD_ACCESS_NOT_ASSURED_MSG, DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED);
   }
@@ -1614,6 +1629,21 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         ConstructorDeclaration.prototype.includes(decl) ? decl : null;
       if (jucLockUsageManager.usesJUCLocks(decl)) {
         return mustHold.getHeldLocks(node, constructorContext);
+      } else {
+        return Collections.emptySet();
+      }      
+    }
+    // Shouldn't get here?
+    throw new IllegalStateException("Shouldn't get here");
+  }
+  
+  private Set<HeldLock> getHeldIntrinsicLocks(final IRNode node) {
+    final IRNode decl = getEnclosingMethod(node);
+    if (decl != null) {
+      final IRNode constructorContext =
+        ConstructorDeclaration.prototype.includes(decl) ? decl : null;
+      if (jucLockUsageManager.usesIntrinsicLocks(decl)) {
+        return intrinsicLock.getHeldLocks(node, constructorContext);
       } else {
         return Collections.emptySet();
       }      
@@ -2109,7 +2139,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       boolean syncLockIsIdentifiable = false;
       boolean syncLockIsPolicyLock = false;
       if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
-        convertSynchronizedMethod(mdecl, ctxtJavaType, ctxtTypeDecl, syncFrame);
+        final Set<HeldLock> syncMethodLocks = new HashSet<HeldLock>();
+        lockUtils.convertSynchronizedMethod(mdecl, ctxtTheReceiverNode, ctxtJavaType, ctxtTypeDecl, syncMethodLocks);
+        syncFrame.push(syncMethodLocks);
+//        convertSynchronizedMethod(mdecl, ctxtJavaType, ctxtTypeDecl, syncFrame);
         syncLockIsPolicyLock = isPolicyLockMethod(mdecl);
 
         /*

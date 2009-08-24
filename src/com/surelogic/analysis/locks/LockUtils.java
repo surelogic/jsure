@@ -1228,6 +1228,49 @@ public final class LockUtils {
   
   
   
+  /**
+   * Given a synchronized method, return the locks it acquires. 
+   * 
+   * @param mdecl
+   *          The declaration node for the synchronized method. This method does
+   *          <em>not</em> test whether the method is declared to be
+   *          synchronized.  This method assumes it is being called from a context
+   *          in which the body of mdecl is being analyzed, and thus the 
+   *          field {@link #ctxtTheReceiverNode} refers to the canonical receiver
+   *          for this method.
+   * @param cdecl
+   *          The class declaration node for the class in which it is declared.
+   * @param lockStack
+   *          A linked list of locks that that is modified as a result of this
+   *          method. The locks corresponding to the synchronization are added
+   *          to the front of the list.
+   */
+  public void convertSynchronizedMethod(
+      final IRNode mdecl, final IRNode rcvr, final IJavaDeclaredType clazz,
+      final IRNode cdecl, final Set<HeldLock> result) {
+    // is the method static?
+    if (TypeUtil.isStatic(mdecl)) {
+      // Look up the class definition (which is used to represent the class
+      // lock)
+      final Set<AbstractLockRecord> records =
+        sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(clazz, cdecl);
+      for (final AbstractLockRecord lr : records) {
+        // Synchronized methods use intrinsic locks, so they are always write locks
+        result.add(
+            heldLockFactory.createStaticLock(lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
+      }
+    } else {
+      // is the receiver a known lock?
+      final Set<AbstractLockRecord> records =
+        sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(clazz, GlobalLockModel.THIS);
+      for (final AbstractLockRecord lr : records) {
+        // Synchronized methods use intrinsic locks, so they are always write locks
+        result.add(
+            heldLockFactory.createInstanceLock(rcvr, lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
+      }
+    }
+  }
+
   public void getLockPreconditions(
       final HowToProcessLocks howTo, final IRNode methodDecl, final IRNode rcvr,
       final Set<HeldLock> preconditions) {
