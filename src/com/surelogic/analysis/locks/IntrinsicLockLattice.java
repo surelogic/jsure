@@ -3,8 +3,6 @@ package com.surelogic.analysis.locks;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -79,42 +77,9 @@ final class IntrinsicLockLattice extends AbstractLockStackLattice {
     final Set<HeldLock> required = jucLockUsageManager.getIntrinsicRequiredLocks(flowUnit);
     final Set<HeldLock> singleThreaded = jucLockUsageManager.getIntrinsicSingleThreaded(flowUnit);
     final Set<HeldLock> classInit = jucLockUsageManager.getIntrinsicClassInit(flowUnit);
-    final HeldLock[] locks = constructLockArray(map, thisExprBinder, binder);
+    final HeldLock[] locks = getLocksFromMap(map, thisExprBinder, binder);
     return new IntrinsicLockLattice(locks, map, sync, required, singleThreaded, classInit);
   }
- 
-  /* Single threaded and class initialization locks cannot be released during the 
-   * execution of the method, so they do not need to be tracked.  Required locks
-   * that are represented using intrinsic locks cannot be released during
-   * execution of the method and also do not need to be tracked.  So we only
-   * need to track those locks that appear as lock expressions in synchronized
-   * statements.  Required locks, class initialization locks, and single threaded
-   * locks are reintegrated into the results via getHeldLocks(). 
-   */
-  protected static HeldLock[] constructLockArray(
-      final Map<IRNode, Set<HeldLock>> map,
-      final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    /* Build the List of locks.  An O(n^2) operation because we do not
-     * want to include aliases.
-     */
-    final List<HeldLock> lockList = new LinkedList<HeldLock>();
-    for (final Set<HeldLock> lockSet : map.values()) {
-      outer:
-      for (final HeldLock wantToAdd : lockSet) {
-        // search for aliases
-        for (final HeldLock current : lockList) {
-          if (current.mustAlias(wantToAdd, thisExprBinder, binder)) {
-            continue outer;
-          }
-        }
-        lockList.add(wantToAdd);
-      }
-    }
-    HeldLock[] lockArray = new HeldLock[0];
-    lockArray = lockList.toArray(lockArray);
-    return lockArray;
-  }
-  
   
   
   
