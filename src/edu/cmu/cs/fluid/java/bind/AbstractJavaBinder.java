@@ -1226,8 +1226,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         IJavaArrayType fat = (IJavaArrayType) fty;
         if (argType instanceof IJavaArrayType) {
           IJavaArrayType aat = (IJavaArrayType) argType;
-          if (fat.getDimensions() <= aat.getDimensions()) {                        
-            capture(map, fat.getBaseType(), aat.getBaseType());          
+          if (fat.getDimensions() == aat.getDimensions()) {  
+        	capture(map, fat.getBaseType(), aat.getBaseType());  
+          }
+          else if (fat.getDimensions() < aat.getDimensions()) {          
+        	final int diff = aat.getDimensions() - fat.getDimensions();
+            capture(map, fat.getBaseType(), JavaTypeFactory.getArrayType(aat.getBaseType(), diff));          
           }
         }
       }
