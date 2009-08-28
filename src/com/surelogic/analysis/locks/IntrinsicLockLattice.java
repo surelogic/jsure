@@ -1,154 +1,182 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/MustHoldLattice.java,v 1.14 2008/01/19 00:14:21 aarong Exp $*/
+/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/AbstractLockStackLattice.java,v 1.18 2008/01/19 00:14:21 aarong Exp $*/
 package com.surelogic.analysis.locks;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.locks.locks.HeldLock;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
-import edu.cmu.cs.fluid.util.ImmutableList;
-import edu.cmu.cs.fluid.util.ImmutableSet;
-import edu.uwm.cs.fluid.util.ListLattice;
-import edu.uwm.cs.fluid.util.UnionLattice;
+import edu.uwm.cs.fluid.util.ArrayLattice;
+import edu.uwm.cs.fluid.util.FlatLattice;
 
 /**
- * Lattice for the intrinsic lock analysis.  Essentially a Map from final lock
- * expression IRNodes to a stack of sets of synchronized block IRNodes. The map is
- * maintained as an ArrayLattice, where the lock expressions are mapped to array
- * locations. Specifically, the domain of the lattice is
- * {@code ImmutableList<ImmutableSet<IRNode>>[]}.
- * 
- * <p>
- * The meat of this class is implemented in {@link AbstractLockStackLattice}.
- * This class basically wraps the
- * {@link #pushLockExpression(ImmutableList[], IRNode, IRNode, ThisExpressionBinder, IBinder)} and
- * {@link #popLockExpression(ImmutableList[], IRNode, ThisExpressionBinder, IBinder)} methods with the more
- * task-appropriate names
- * {@link #enterSynchronized(ImmutableList[], IRNode, IBinder)}, and
- * {@link #leaveSynchronized(ImmutableList[], IRNode, IBinder)}, respectively. 
+ * Lattice for tracking intrinsic locks via control-flow analysis.  The 
+ * lattice is an array of flags.  Each array element corresponds to a specific
+ * synchronized statement in the method being analyzed. The flag indicates
+ * whether the synchronized statement is active or not.  We can use this
+ * simplisitic structure because of the syntactic constraints on 
+ * synchronized blocks.
  */
-final class IntrinsicLockLattice extends AbstractLockStackLattice {
-  private final Set<HeldLock> syncMethodLocks;
-  private final Set<HeldLock> requiredLocks;
-  private final Set<HeldLock> singleThreaded;
-  private final Set<HeldLock> classInit;
+final class IntrinsicLockLattice extends ArrayLattice<FlatLattice, Object> {
+  /**
+   * Values used in the FlatLattice for tracking each individual 
+   * synchronized statement.
+   */
+  private static enum LatticeValues { 
+    /** Value indicating the synchronized statement is active. */
+    LOCKED {
+      @Override
+      public String toString() { return "LOCKED"; }
+    },
+    
+    /** Value indicating the synchronized statement is not active. */
+    UNLOCKED {
+      @Override
+      public String toString() { return "UNLOCKED"; }
+    }
+  }
+
+  
   
   /**
-   * Private constructor. Use the factory method {@link #createForFlowUnit} to
-   * create instances of this class.
-   * 
-   * @param lockExprs
-   *          The list of unique lock expressions that represent the domain of
-   *          the map portion of this lattice.
+   * The list of synchronized blocks tracked by the lattice.
+   */
+  private final IRNode[] syncBlocks;
+  
+  /**
+   * The set of of locks acquired by each synchronized block.
+   */
+  private final Set<HeldLock>[] locks;
+
+  /**
+   * Locks assumed to be held, that cannot be released during the execution 
+   * of the method.  This come from the method being {@code synchronized},
+   * from {@code RequiresLock} annotations, from a constructor being
+   * single threaded, or from the special case of a class initializer.
+   */
+  private final Set<HeldLock> assumedLocks;
+
+  
+  
+  
+  /**
+   * Private constructor: use {@link #createForFlowUnit(IRNode, JUCLockUsageManager)}.
    */
   private IntrinsicLockLattice(
-      final HeldLock[] locks, final Map<IRNode, Set<HeldLock>> map,
-      final Set<HeldLock> sync, final Set<HeldLock> req,
-      final Set<HeldLock> st, final Set<HeldLock> ci) {
-    super(locks, map);
-    syncMethodLocks = sync;
-    requiredLocks = req;
-    singleThreaded = st;
-    classInit = ci;
+      final IRNode[] sb, final Set<HeldLock>[] l, final Set<HeldLock> assumed) {
+    super(FlatLattice.prototype, sb.length, new Object[0]);
+    syncBlocks = sb;
+    locks = l;
+    assumedLocks = assumed;
   }
   
-  /**
-   * Get an instance of this lattice that is suitable for use with the given
-   * flow unit.
-   * 
-   * @param flowUnit
-   *          The flow unit we need a lattice for.
-   * @param binder
-   *          The binder.
-   * @return A new lattice instance that is customized based on the unique lock
-   *         expressions present in the provided flow unit.
-   */
+  @SuppressWarnings("unchecked")
   public static IntrinsicLockLattice createForFlowUnit(
-      final IRNode flowUnit, final ThisExpressionBinder thisExprBinder, final IBinder binder,
-      final JUCLockUsageManager jucLockUsageManager) { 
-    final Map<IRNode, Set<HeldLock>> map = jucLockUsageManager.getIntrinsicLockExprsToLockSets(flowUnit);
-    final Set<HeldLock> sync = jucLockUsageManager.getIntrinsicSynchronizedMethodLocks(flowUnit);
-    final Set<HeldLock> required = jucLockUsageManager.getIntrinsicRequiredLocks(flowUnit);
-    final Set<HeldLock> singleThreaded = jucLockUsageManager.getIntrinsicSingleThreaded(flowUnit);
-    final Set<HeldLock> classInit = jucLockUsageManager.getIntrinsicClassInit(flowUnit);
-    final HeldLock[] locks = getLocksFromMap(map, thisExprBinder, binder);
-    return new IntrinsicLockLattice(locks, map, sync, required, singleThreaded, classInit);
-  }
-  
-  
+      final IRNode flowUnit, final JUCLockUsageManager jucLockUsageManager) {
+    final Map<IRNode, Set<HeldLock>> map = jucLockUsageManager.getSyncBlocks(flowUnit);
+    final IRNode[] syncBlocks = new IRNode[map.keySet().size()];
+    final Set<HeldLock>[] locks = new Set[syncBlocks.length];
+    int i = 0;
+    for (final Map.Entry<IRNode, Set<HeldLock>> entry : map.entrySet()) {
+      syncBlocks[i] = entry.getKey();
+      locks[i] = entry.getValue();
+      i += 1;
+    }
+    
+    final Set<HeldLock> assumedLocks = 
+      jucLockUsageManager.getIntrinsicAssumedLocks(flowUnit);
+    return new IntrinsicLockLattice(syncBlocks, locks, assumedLocks);
+  }  
   
   /**
-   * Push the given lock method call onto the stack.  The lock expression
-   * is derived from the receiver of the method call.
-   * 
-   * @param oldValue
-   * @param lockCall
-   * @param binder
-   * @return
+   * Get the array index of the given sync block
+   * @return The index of the sync block in the array lattice, or
+   *         {@code -1} if the sync block is not found in the lattice.
    */
-  public ImmutableList<ImmutableSet<IRNode>>[] enterSynchronized(
-      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode syncBlock, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    return pushLockExpression(oldValue, SynchronizedStatement.getLock(syncBlock), syncBlock, thisExprBinder, binder);
+  private int getIndexOf(final IRNode syncBlock) {
+    for (int i = 0; i < syncBlocks.length; i++) {
+      if (syncBlock == syncBlocks[i]) return i;
+    }
+    // Not found
+    return -1;
+  }
+  
+  /**
+   * Mark the given synchronized block as being active.
+   */
+  public Object[] enteringSyncBlock(
+      final Object[] oldValue, final IRNode syncBlock) {
+    return updateSyncBlock(oldValue, syncBlock, LatticeValues.LOCKED);
+  }
+  
+  /**
+   * Mark the given synchronized block as being inactive.
+   */
+  public Object[] leavingSyncBlock(
+      final Object[] oldValue, final IRNode syncBlock) {
+    return updateSyncBlock(oldValue, syncBlock, LatticeValues.UNLOCKED);
+  }
+  
+  /**
+   * Update the status of the given synchronized block
+   */
+  private Object[] updateSyncBlock(
+      final Object[] oldValue, final IRNode syncBlock, final LatticeValues status) {
+    final int idx = getIndexOf(syncBlock);
+    Object[] result = oldValue;
+    if (idx != -1) {
+      result = replaceValue(result, idx, status);
+    }
+    return result;
   }
 
   /**
-   * Remove the top lock method call based on the given unlock method call.
-   * The lock expression is derived from the receiver of the method call.
-   * 
-   * @param oldValue
-   * @param syncBlock
-   * @param binder
-   * @return
+   * Get the held locks.
    */
-  public ImmutableList<ImmutableSet<IRNode>>[] leaveSynchronized(
-      final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
-      final IRNode syncBlock, final ThisExpressionBinder thisExprBinder, final IBinder binder) {
-    return popLockExpression(oldValue, SynchronizedStatement.getLock(syncBlock), thisExprBinder, binder);
+  public Set<HeldLock> getHeldLocks(final Object[] value) {
+    final Set<HeldLock> result = new HashSet<HeldLock>(assumedLocks);
+    for (int i = 0; i < syncBlocks.length; i++) {
+      if (value[i] == LatticeValues.LOCKED) result.addAll(locks[i]);
+    }    
+    return result;
   }
   
   /**
-   * Get the set of lock expressions that are known to be locked, i.e., those
-   * lock expressions in the domain of the lattice that have non-empty stacks.
+   * Get a new empty value the lattice: All the synchronized blocks are inactive.
    */
-  public Set<HeldLock> getHeldLocks(
-      final ImmutableList<ImmutableSet<IRNode>>[] value) {
-    final Set<HeldLock> locked = new HashSet<HeldLock>();
-    final ListLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>> baseLattice = getBaseLattice();
-    final ImmutableList<ImmutableSet<IRNode>> top = baseLattice.top();
-    final ImmutableList<ImmutableSet<IRNode>> bottom = baseLattice.bottom();
-    for (int i = 0; i < value.length; i++) {
-      // skip bogus locks
-      if (!(locks[i].isBogus())) {
-        final ImmutableList<ImmutableSet<IRNode>> current = value[i];
-        /* Bug 1010: Check if the list has a size > 1 because it will always have
-         * the bogus element in it to differentiate the empty lattice value
-         * from the bottom lattice value.
-         */
-        if (current != top && current != bottom && current.size() > 1) {
-          for (final ImmutableSet<IRNode> set : current) {
-            for (final IRNode src : set) {
-              if (src != IGNORE_ME) {
-                locked.add(locks[i].changeSource(src));
-              }
-            }
-          }
-//          locked.add(locks[i]);
-        }
-      }
+  public final Object[] getEmptyValue() {
+    final Object[] empty = new Object[syncBlocks.length];
+    for (int i = 0; i < empty.length; i++) empty[i] = LatticeValues.UNLOCKED;
+    return empty;
+  }
+
+  @Override
+  public String toString(final Object[] value) {
+    final StringBuilder sb = new StringBuilder();
+    sb.append('[');
+    for (int i = 0; i < syncBlocks.length; i++) {
+      sb.append("synchronized(");
+      sb.append(DebugUnparser.toString(SynchronizedStatement.getLock(syncBlocks[i])));
+      sb.append(")@");
+      sb.append(JavaNode.getSrcRef(syncBlocks[i]).getLineNumber());
+      sb.append("->");
+      sb.append(value[i]);
+      if (i != syncBlocks.length-1) { sb.append(' '); }
     }
-    locked.addAll(syncMethodLocks);
-    locked.addAll(requiredLocks);
-    locked.addAll(singleThreaded);
-    locked.addAll(classInit);
-    return Collections.unmodifiableSet(locked);
+    sb.append(']');
+    return sb.toString();
+  }
+  
+  /**
+   * Do we have a value that is not the bottom or the top value of the
+   * lattice?
+   */
+  public boolean isNormal(final Object[] value) {
+    return value != bottom() && value != top();
   }
 }
-
-

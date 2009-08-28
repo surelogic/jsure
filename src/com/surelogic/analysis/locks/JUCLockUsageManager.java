@@ -27,7 +27,6 @@ final class JUCLockUsageManager {
   private final HeldLockFactory heldLockFactory;
   
   
-  
   public JUCLockUsageManager(final LockUtils lu, final HeldLockFactory hlf) {
     lockUtils = lu;
     heldLockFactory = hlf;
@@ -71,12 +70,12 @@ final class JUCLockUsageManager {
   public Map<IRNode, Set<HeldLock>> getJUCLockExprsToLockSets(final IRNode mdecl) {
     return getLockExpressionsFor(mdecl).getJUCLockExprsToLockSets();
   }
-  
+
   /**
-   * Get the map of lock expressions to intrinsic locks.
+   * Get the map of synchronized blocks to intrinsic locks.
    */
-  public Map<IRNode, Set<HeldLock>> getIntrinsicLockExprsToLockSets(final IRNode mdecl) {
-    return getLockExpressionsFor(mdecl).getIntrinsicLockExprsToLockSets();
+  public Map<IRNode, Set<HeldLock>> getSyncBlocks(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).getSyncBlocks();
   }
   
   /**
@@ -87,10 +86,11 @@ final class JUCLockUsageManager {
   }
   
   /**
-   * Get the intrinsic locks that appear in lock preconditions.
+   * Get the intrinsic locks that are held through out the lifetime of 
+   * the flow unit.
    */
-  public Set<HeldLock> getIntrinsicRequiredLocks(final IRNode mdecl) {
-    return getLockExpressionsFor(mdecl).getIntrinsicRequiredLocks();
+  public Set<HeldLock> getIntrinsicAssumedLocks(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).getIntrinsicAssumedLocks();
   }
   
   /**
@@ -101,31 +101,9 @@ final class JUCLockUsageManager {
   }
   
   /**
-   * Get the intrinsic locks that apply because the constructor is single threaded.
-   */
-  public Set<HeldLock> getIntrinsicSingleThreaded(final IRNode mdecl) {
-    return getLockExpressionsFor(mdecl).getIntrinsicSingleThreaded();
-  }
-  
-  /**
    * Get the JUC locks that apply during class initialization.
    */
   public Set<HeldLock> getJUCClassInit(final IRNode fu) {
     return getLockExpressionsFor(fu).getJUCClassInit();
-  }
-  
-  /**
-   * Get the intrinsic locks that apply during class initialization.
-   */
-  public Set<HeldLock> getIntrinsicClassInit(final IRNode fu) {
-    return getLockExpressionsFor(fu).getIntrinsicClassInit();
-  }
-  
-  /**
-   * The the intrinsic locks that apply due to the method being declared
-   * {@code synchronized}.
-   */
-  public Set<HeldLock> getIntrinsicSynchronizedMethodLocks(final IRNode fu) {
-    return getLockExpressionsFor(fu).getIntrinsicSynchronizedMethodLocks();
   }
 }

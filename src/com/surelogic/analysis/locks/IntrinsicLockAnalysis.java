@@ -3,7 +3,6 @@ package com.surelogic.analysis.locks;
 
 import java.util.Set;
 
-import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.locks.locks.HeldLock;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -20,16 +19,13 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.ImmutableList;
-import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class IntrinsicLockAnalysis extends
-    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> {
-  private final ThisExpressionBinder thisExprBinder;
+    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<Object[]> {
   private final LockUtils lockUtils;
   private final JUCLockUsageManager jucLockUsageManager;
   private final SimpleNonnullAnalysis nonNullAnalysis;
@@ -56,10 +52,9 @@ public final class IntrinsicLockAnalysis extends
    */
   private IRNode constructorContext = null;
   
-  public IntrinsicLockAnalysis(final ThisExpressionBinder teb, final IBinder b, final LockUtils lu,
+  public IntrinsicLockAnalysis(final IBinder b, final LockUtils lu,
       final JUCLockUsageManager lockMgr, final SimpleNonnullAnalysis sna) {
     super(b);
-    thisExprBinder = teb;
     lockUtils = lu;
     jucLockUsageManager = lockMgr;
     nonNullAnalysis = sna;
@@ -67,23 +62,27 @@ public final class IntrinsicLockAnalysis extends
   }
 
   private IntrinsicLockLattice getLatticeFor(final IRNode node) {
-    IRNode flowUnit = edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(node);
-    if (flowUnit == null)
+    final IRNode flowUnit =
+      edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(node);
+    if (flowUnit == null) {
       return null;
-    final FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> a = getAnalysis(flowUnit);
-    final IntrinsicLockLattice mhl = (IntrinsicLockLattice) a.getLattice();
-    return mhl;
+    } else {
+      final FlowAnalysis<Object[]> a = getAnalysis(flowUnit);
+      final IntrinsicLockLattice ill = (IntrinsicLockLattice) a.getLattice();
+      return ill;
+    }
   }
-
+  
   @Override
-  protected FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> createAnalysis(final IRNode flowUnit) {
+  protected FlowAnalysis<Object[]> createAnalysis(final IRNode flowUnit) {
     final IRNode actualFlowUnit = (constructorContext == null) ? flowUnit : constructorContext;
     final IntrinsicLockLattice intrinsicLockLattice =
-      IntrinsicLockLattice.createForFlowUnit(actualFlowUnit, thisExprBinder, binder, jucLockUsageManager);    
-    final FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> analysis =
-      new ForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[]>(
-          "Must Hold Analysis", intrinsicLockLattice,
-          new IntrinsicLockTransfer(thisExprBinder, binder, lockUtils, intrinsicLockLattice, nonNullAnalysis), DebugUnparser.viewer);
+      IntrinsicLockLattice.createForFlowUnit(actualFlowUnit, jucLockUsageManager);    
+    final FlowAnalysis<Object[]> analysis =
+      new ForwardAnalysis<Object[]>(
+          "Intrinsic Lock Analysis", intrinsicLockLattice,
+          new IntrinsicLockTransfer(binder, lockUtils, intrinsicLockLattice, nonNullAnalysis),
+          DebugUnparser.viewer);
     return analysis;
   }
   
@@ -92,7 +91,7 @@ public final class IntrinsicLockAnalysis extends
    * entry to the node.
    */
   public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
-    final ImmutableList<ImmutableSet<IRNode>>[] value;
+    final Object[] value;
     constructorContext = context;
     try {
       value = getAnalysisResultsBefore(node);
@@ -100,23 +99,19 @@ public final class IntrinsicLockAnalysis extends
       constructorContext = null;
     }
     final IntrinsicLockLattice ill = getLatticeFor(node);
-    System.out.println(ill.toString(value));
     return ill.getHeldLocks(value);
   }
   
   
   
   private static final class IntrinsicLockTransfer extends
-      JavaForwardTransfer<IntrinsicLockLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
-    private final ThisExpressionBinder thisExprBinder;
+      JavaForwardTransfer<IntrinsicLockLattice, Object[]> {
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis nonNullAnalysis;
     
-    public IntrinsicLockTransfer(
-        final ThisExpressionBinder teb, final IBinder binder, final LockUtils lu,
+    public IntrinsicLockTransfer(final IBinder binder, final LockUtils lu,
         final IntrinsicLockLattice lattice, final SimpleNonnullAnalysis sna) {
       super(binder, lattice);
-      thisExprBinder = teb;
       lockUtils = lu;
       nonNullAnalysis = sna;
     }
@@ -131,8 +126,7 @@ public final class IntrinsicLockAnalysis extends
     }
     
     @Override
-    protected ImmutableList<ImmutableSet<IRNode>>[] transferIsObject(
-        IRNode node, boolean flag, ImmutableList<ImmutableSet<IRNode>>[] value) {
+    protected Object[] transferIsObject(IRNode node, boolean flag, Object[] value) {
       if (!flag) {
         /* Abrupt case. Return BOTTOM if we can determine that the object must
          * not be null. We determine the object is non-null (1) if the object is
@@ -182,23 +176,23 @@ public final class IntrinsicLockAnalysis extends
     }
 
     @Override
-    protected ImmutableList<ImmutableSet<IRNode>>[] transferMonitorAction(
+    protected Object[] transferMonitorAction(
         final IRNode syncBlock, final boolean entering,
-        final ImmutableList<ImmutableSet<IRNode>>[] value) {
+        final Object[] value) {
       if (entering) {
-        return lattice.enterSynchronized(value, syncBlock, thisExprBinder, binder);
+        return lattice.enteringSyncBlock(value, syncBlock);
       } else {
-        return lattice.leaveSynchronized(value, syncBlock, thisExprBinder, binder);
+        return lattice.leavingSyncBlock(value, syncBlock);
       }
     }
     
     @Override
-    protected FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> createAnalysis(IBinder binder) {
-      return new ForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[]>(
-          "Must Hold Analysis", lattice, this, DebugUnparser.viewer);
+    protected FlowAnalysis<Object[]> createAnalysis(IBinder binder) {
+      return new ForwardAnalysis<Object[]>(
+          "Intrinsic Lock Analysis", lattice, this, DebugUnparser.viewer);
     }
 
-    public ImmutableList<ImmutableSet<IRNode>>[] transferComponentSource(IRNode node) {
+    public Object[] transferComponentSource(IRNode node) {
       // Initial state of affairs is no locks held
       return lattice.getEmptyValue();
     }

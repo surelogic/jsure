@@ -425,10 +425,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
    */
   private final SimpleNonnullAnalysis nonNullAnalylsis;
   
-  /**
-   * The intrinsic lock flow analysis. 
-   */
-  private final IntrinsicLockAnalysis intrinsicLock;
+//  /**
+//   * The intrinsic lock flow analysis. 
+//   */
+//  private final IntrinsicLockAnalysis intrinsicLock;
   
   /**
    * The must-release analysis.
@@ -809,7 +809,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     // Create the subsidiary flow analyses
     UniqueID uid = new UniqueID();
     nonNullAnalylsis = new SimpleNonnullAnalysis("Non Null Analysis for "+this+" "+uid, binder);
-    intrinsicLock = new IntrinsicLockAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
+//    intrinsicLock = new IntrinsicLockAnalysis(b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     mustRelease = new MustReleaseAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     mustHold = new MustHoldAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     
@@ -956,7 +956,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 
   private void addLockAcquisitionInformation(
       final IRReferenceDrop drop, final LockStack intrinsicLocks,
-      final Set<HeldLock> jucLocks, final Set<HeldLock> il) {
+      final Set<HeldLock> jucLocks) {
     for (final StackLock has : intrinsicLocks) {
       addSupportingInformation(drop, has.lock.getSource(),
           has.lock.isAssumed() ? DS_ASSUMED_HELD_MSG : DS_LOCK_HELD_MSG, has.lock);
@@ -1171,7 +1171,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       final IRNode regionAccess, final Set<NeededLock> neededLocks) {
     // Get the JUC locks that are held at entry to the method call
     final Set<HeldLock> heldJUCLocks = getHeldJUCLocks(regionAccess);
-    final Set<HeldLock> il = getHeldIntrinsicLocks(regionAccess);
+//    final Set<HeldLock> il = getHeldIntrinsicLocks(regionAccess);
     
     final LockChecker regionRefChecker = new LockChecker(regionAccess) {
       @Override
@@ -1184,7 +1184,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         // No additional evidence to add
       }
     };
-    regionRefChecker.assureNeededLocks(neededLocks, heldJUCLocks, il,
+    regionRefChecker.assureNeededLocks(neededLocks, heldJUCLocks,
         DS_FIELD_ACCESS_ASSURED_MSG, DS_FIELD_ACCESS_ASSURED_ALT_MSG, DSC_FIELD_ACCESS_ASSURED,
         DS_FIELD_ACCESS_NOT_ASSURED_MSG, DSC_FIELD_ACCESS_NOT_ASSURED);
   }
@@ -1443,7 +1443,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     }
     
     private boolean isLockSatisfied(
-        final NeededLock neededLock, final Set<HeldLock> heldJUCLocks, final Set<HeldLock> heldIntrinsicLocks) {
+        final NeededLock neededLock, final Set<HeldLock> heldJUCLocks) { //, final Set<HeldLock> heldIntrinsicLocks) {
       return ctxtTheHeldLocks.satisfiesLock(neededLock, thisExprBinder, binder, true)
         || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder, binder);
 //      return neededLock.isSatisfiedByLockSet(heldIntrinsicLocks, thisExprBinder, binder)
@@ -1452,7 +1452,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     
     public final void assureNeededLocks(
         final Set<NeededLock> neededLocks, final Set<HeldLock> heldJUCLocks,
-        final Set<HeldLock> heldIntrinsicLocks,
+//        final Set<HeldLock> heldIntrinsicLocks,
         final String goodMsgTemplate, final String goodAltMsgTemplate, final Category goodCategory,
         final String badMsgTemplate, final Category badCategory) {
       for (final NeededLock neededLock : neededLocks) {
@@ -1473,7 +1473,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         
         final ResultDrop resultDrop;
         // Test for the needed lock
-        if (isLockSatisfied(neededLock, heldJUCLocks, heldIntrinsicLocks)) {
+        if (isLockSatisfied(neededLock, heldJUCLocks)) {
           resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), true,
               goodMsgTemplate, neededLock, DebugUnparser.toString(useSite));
           resultDrop.setCategory(goodCategory);
@@ -1481,7 +1481,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
           // Needed lock is not held.  Might we have an alternative?
           if (mayHaveAlternativeLock) {
             if (alternativeLock != null) {
-              if (isLockSatisfied(alternativeLock, heldJUCLocks, heldIntrinsicLocks)) {
+              if (isLockSatisfied(alternativeLock, heldJUCLocks)) {
                 // The alternative exists and is held, so we have the "held as" message
                 resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock),
                     true, goodAltMsgTemplate, neededLock,
@@ -1508,7 +1508,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
           }
         }
         
-        addLockAcquisitionInformation(resultDrop, ctxtTheHeldLocks, heldJUCLocks, heldIntrinsicLocks);
+        addLockAcquisitionInformation(resultDrop, ctxtTheHeldLocks, heldJUCLocks);
         if (ctxtOnBehalfOfConstructor) {
           addSupportingInformation(resultDrop, ctxtInsideConstructor,
               DS_ON_BEHALF_OF_CONSTRUCTOR_MSG, ctxtConstructorName);
@@ -1535,7 +1535,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 
     // Get the JUC locks that are held at entry to the method call
     final Set<HeldLock> heldJUCLocks = getHeldJUCLocks(call);
-    final Set<HeldLock> il = getHeldIntrinsicLocks(call);
+//    final Set<HeldLock> il = getHeldIntrinsicLocks(call);
     
     // Check that we hold the correct locks to call the method
     final LockUtils.GoodAndBadLocks<NeededLock> locks =
@@ -1555,7 +1555,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         // No additional evidence to add
       }
     };
-    callChecker.assureNeededLocks(locks.goodLocks, heldJUCLocks, il,
+    callChecker.assureNeededLocks(locks.goodLocks, heldJUCLocks,
         DS_PRECONDITIONS_ASSURED_MSG, DS_PRECONDITIONS_ASSURED_ALT_MSG, DSC_PRECONDITIONS_ASSURED,
         DS_PRECONDITIONS_NOT_ASSURED_MSG, DSC_PRECONDITIONS_NOT_ASSURED);
     
@@ -1595,7 +1595,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         // TODO: Add rationale based on method effects and region mapping
       }
     };
-    indirectAccessChecker.assureNeededLocks(neededLocks, heldJUCLocks, il,
+    indirectAccessChecker.assureNeededLocks(neededLocks, heldJUCLocks,
         DS_INDIRECT_FIELD_ACCESS_ASSURED_MSG, DS_INDIRECT_FIELD_ACCESS_ASSURED_ALT_MSG, DSC_INDIRECT_FIELD_ACCESS_ASSURED,
         DS_INDIRECT_FIELD_ACCESS_NOT_ASSURED_MSG, DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED);
   }
@@ -1637,20 +1637,20 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     throw new IllegalStateException("Shouldn't get here");
   }
   
-  private Set<HeldLock> getHeldIntrinsicLocks(final IRNode node) {
-    final IRNode decl = getEnclosingMethod(node);
-    if (decl != null) {
-      final IRNode constructorContext =
-        ConstructorDeclaration.prototype.includes(decl) ? decl : null;
-      if (jucLockUsageManager.usesIntrinsicLocks(decl)) {
-        return intrinsicLock.getHeldLocks(node, constructorContext);
-      } else {
-        return Collections.emptySet();
-      }      
-    }
-    // Shouldn't get here?
-    throw new IllegalStateException("Shouldn't get here");
-  }
+//  private Set<HeldLock> getHeldIntrinsicLocks(final IRNode node) {
+//    final IRNode decl = getEnclosingMethod(node);
+//    if (decl != null) {
+//      final IRNode constructorContext =
+//        ConstructorDeclaration.prototype.includes(decl) ? decl : null;
+//      if (jucLockUsageManager.usesIntrinsicLocks(decl)) {
+//        return intrinsicLock.getHeldLocks(node, constructorContext);
+//      } else {
+//        return Collections.emptySet();
+//      }      
+//    }
+//    // Shouldn't get here?
+//    throw new IllegalStateException("Shouldn't get here");
+//  }
   
   
   private List<IRNode> getJUCLockFields(final IRNode lockExpr) {

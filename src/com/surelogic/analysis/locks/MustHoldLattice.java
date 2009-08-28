@@ -148,6 +148,9 @@ final class MustHoldLattice extends AbstractLockStackLattice {
          * from the bottom lattice value.
          */
         if (current != top && current != bottom && current.size() > 1) {
+          /* TODO Need to retarget the locks here to have the correct source statements.
+           * See the history of IntrinsicLockLattice.
+           */
           locked.add(locks[i]);
         }
       }
