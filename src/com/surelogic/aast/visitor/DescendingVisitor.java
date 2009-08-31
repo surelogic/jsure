@@ -149,6 +149,10 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getRegion()));
     return rv;
   }
+  public T visit(ImplicitQualifierNode n) {
+    T rv = defaultValue;
+    return rv;
+  }
   
   @SuppressWarnings("unchecked")
   public T visit(ColorAndNode n) {

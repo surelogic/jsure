@@ -159,10 +159,25 @@ public class MethodEffectsRules extends AnnotationRules {
 				final RegionSpecificationNode regionSpec = effectNode.getRegion();
 				final ExpressionNode context = effectNode.getContext();
 
+				boolean checkStaticStatus = true;
 	      boolean regionShouldBeStatic = false;
+	      boolean delayCheckingForConstructor = false;
 	      String staticMsgTemplate = null;
 	      good = true;
-				if (context instanceof ThisExpressionNode) {
+	      if (context instanceof ImplicitQualifierNode) {
+	        /* Region must static if the method is static.  Otherwise,
+	         * it can be static or instance.  But constructors cannot declare
+	         * effects on  the receiver, so if the region is instance, and
+	         * we are a constructor, we need to flag an error.  Check this below.
+	         */
+	        if (isStatic) {
+	          regionShouldBeStatic = true;
+	          staticMsgTemplate = "Because region \"{0}\" is not static it cannot be referenced unqualified on a static method";
+	        } else {
+	          checkStaticStatus = false;
+	          delayCheckingForConstructor = isConstructor;
+	        }
+	      } else if (context instanceof ThisExpressionNode) {
 	        /* (1) The annotation must be on a non-static method. (2) Not a
 	         * constructor. (3) Region must not be static.
 	         */
@@ -256,25 +271,32 @@ public class MethodEffectsRules extends AnnotationRules {
           final IRegionBinding boundRegion = regionSpec.resolveBinding();
           final IRegion region = boundRegion.getRegion();
           // Check that the region has the desired static status
-          if (region.isStatic() != regionShouldBeStatic) {
+          final boolean regionIsStatic = region.isStatic();
+          if (checkStaticStatus && (regionIsStatic != regionShouldBeStatic)) {
             scrubberContext.reportError(
                 regionSpec, staticMsgTemplate, regionSpec.getId());
             good = false;
           }
           
-          /* Check that the method may access the region, and whether the
-           * method-region combination preserved abstraction.
-           */
-          final int methodViz = BindUtil.getVisibility(promisedFor);
-          if (!region.isAccessibleFromType(typeEnv, enclosingTypeNode)) {
-            scrubberContext.reportError(regionSpec, "Region \"{0}\" may not be accessed by {1,choice,0#constructor|1#method} \"{2}\"",
-                regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor));
+          if (delayCheckingForConstructor && !regionIsStatic) {
+            scrubberContext.reportError(context,
+              "Constructors cannot declare effects on the receiver because they are masked");
             good = false;
-          }          
-          if (!isAccessibleToAllCallers(enclosingPackageName, methodInType, methodViz, region, typeEnv)) {
-            scrubberContext.reportError(regionSpec, "Region \"{0}\" might not be accessible by all potential callers of {1,choice,0#constructor|1#method} \"{2}\"",
-                regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor));
-            good = false;
+          } else {
+            /* Check that the method may access the region, and whether the
+             * method-region combination preserved abstraction.
+             */
+            final int methodViz = BindUtil.getVisibility(promisedFor);
+            if (!region.isAccessibleFromType(typeEnv, enclosingTypeNode)) {
+              scrubberContext.reportError(regionSpec, "Region \"{0}\" may not be accessed by {1,choice,0#constructor|1#method} \"{2}\"",
+                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor));
+              good = false;
+            }          
+            if (!isAccessibleToAllCallers(enclosingPackageName, methodInType, methodViz, region, typeEnv)) {
+              scrubberContext.reportError(regionSpec, "Region \"{0}\" might not be accessible by all potential callers of {1,choice,0#constructor|1#method} \"{2}\"",
+                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor));
+              good = false;
+            }
           }
         }
 

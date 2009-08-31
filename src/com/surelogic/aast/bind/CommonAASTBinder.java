@@ -34,6 +34,11 @@ public class CommonAASTBinder extends AASTBinder {
     return (t == null) ? false : t.fieldExists(node.getId());
   }
   
+  public ISourceRefType resolveType(ImplicitQualifierNode node) {
+    final IRNode tdecl = findNearestType(node);
+    return createISourceRefType(tdecl);
+  }
+  
   public ISourceRefType resolveType(ThisExpressionNode node) {
     final IRNode tdecl = findNearestType(node);
     return createISourceRefType(tdecl);
@@ -281,6 +286,10 @@ public class CommonAASTBinder extends AASTBinder {
       return createIType(ref.resolveBinding());
     }
     */
+    if (node instanceof ImplicitQualifierNode) {
+      final IRNode type = findNearestType(node);
+      return createIType(type);
+    }
     if (node instanceof ImplicitClassLockExpressionNode) {
       final IRNode type = findNearestType(node);
       return createIType(type);

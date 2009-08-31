@@ -56,6 +56,8 @@ public interface IAASTBinder {
 
   IType resolveType(AASTNode node);
 
+  ISourceRefType resolveType(ImplicitQualifierNode node);
+  
   ISourceRefType resolveType(ThisExpressionNode node);
   
   ISourceRefType resolveType(SuperExpressionNode node);

@@ -16,7 +16,7 @@ public class AnyInstanceExpressionNode extends ExpressionNode {
   public static final AbstractSingleNodeFactory factory =
     new AbstractSingleNodeFactory("AnyInstanceExpression") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         NamedTypeNode type =  (NamedTypeNode) _kids.get(0);
         return new AnyInstanceExpressionNode (_start,

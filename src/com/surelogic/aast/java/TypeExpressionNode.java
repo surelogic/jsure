@@ -16,7 +16,6 @@ public class TypeExpressionNode extends PrimaryExpressionNode {
   public static final AbstractSingleNodeFactory factory =
     new AbstractSingleNodeFactory("TypeExpression") {
       @Override
-      @SuppressWarnings("unchecked")
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         ReturnTypeNode type =  (ReturnTypeNode) _kids.get(0);

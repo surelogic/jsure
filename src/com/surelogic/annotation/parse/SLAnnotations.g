@@ -19,6 +19,7 @@ tokens {
 	ImplicitClassLockExpression; 
 	EffectSpecifications;
 	EffectSpecification;
+	ImplicitQualifier;
 	RequiresLock;
 	ReturnsLock;
 	InRegion;
@@ -456,13 +457,13 @@ effectsSpecification
 
 effectSpecification
 	: simpleEffectExpression ':' simpleRegionSpecification -> ^(EffectSpecification simpleEffectExpression simpleRegionSpecification)
-	| implicitThisEffectSpecification
+	| implicitQualifierEffectSpecification
 	;
 
-implicitThisEffectSpecification
-	: regionName -> ^(EffectSpecification ^(ThisExpression THIS) regionName)
-	;
-
+implicitQualifierEffectSpecification
+  : regionName -> ^(EffectSpecification ^(ImplicitQualifier) regionName)
+  ;
+  
 simpleEffectExpression
 	: anyInstanceExpression
 	| qualifiedThisExpression

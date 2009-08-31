@@ -28,6 +28,7 @@ public interface INodeVisitor<T> {
   T visit(TypeQualifierPatternNode n);
   T visit(UsedBySpecificationNode n);
   T visit(EffectSpecificationNode n);
+  T visit(ImplicitQualifierNode n);
   T visit(ColorAndNode n);
   T visit(EnclosingModuleNode n);
   T visit(ColorizedRegionNode n); 

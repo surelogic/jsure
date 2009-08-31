@@ -13,6 +13,7 @@ import com.surelogic.aast.java.VariableUseExpressionNode;
 import com.surelogic.aast.promise.AnyInstanceExpressionNode;
 import com.surelogic.aast.promise.EffectSpecificationNode;
 import com.surelogic.aast.promise.EffectsSpecificationNode;
+import com.surelogic.aast.promise.ImplicitQualifierNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
@@ -370,7 +371,14 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
           final ExpressionNode pContext = peff.getContext();
           
           final Target targ;
-          if (pContext instanceof AnyInstanceExpressionNode) {
+          if (pContext instanceof ImplicitQualifierNode) {
+            if (region.isStatic()) { // Static region -> class target
+              targ = tf.createClassTarget(region);
+            } else { // Instance region -> qualify with receiver
+              // We bind the receiver ourselves, so this is safe
+              targ = tf.createInstanceTarget(JavaPromise.getReceiverNode(mDecl), region);
+            }
+          } else if (pContext instanceof AnyInstanceExpressionNode) {
             final IJavaType type = 
               ((AnyInstanceExpressionNode) pContext).getType().resolveType().getJavaType();
             targ = tf.createAnyInstanceTarget((IJavaReferenceType) type, region);

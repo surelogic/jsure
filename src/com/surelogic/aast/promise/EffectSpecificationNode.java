@@ -3,6 +3,7 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
+import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.parse.AbstractSingleNodeFactory;
 
@@ -17,7 +18,6 @@ public class EffectSpecificationNode extends AASTNode {
 	public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
 			"EffectSpecification") {
 		@Override
-		@SuppressWarnings("unchecked")
 		public AASTNode create(String _token, int _start, int _stop, int _mods,
 				String _id, int _dims, List<AASTNode> _kids) {
 			boolean isWrite = JavaNode.getModifier(_mods, JavaNode.WRITE);
@@ -59,11 +59,34 @@ public class EffectSpecificationNode extends AASTNode {
 			sb.append("isWrite=").append(getIsWrite());
 			sb.append("\n");
 		}
-		sb.append(getContext().unparse(debug, indent + 2));
-		if (!debug) {
-			sb.append(':');
+		if (debug) {
+		  sb.append(getContext().unparse(true, indent + 2));
+		  sb.append(getRegion().unparse(true, indent + 2));
+		} else {
+		  /* This is super sleazy, but I don't know what else to do. 
+		   * ImplicitQualifierNode is really just a place holder to keep the
+		   * parse tree happy.  All the informaton I need to interpret that node
+		   * is in the region itself: if the region is instance, then we pretend
+		   * the qualifier is "this", other wise we pretend the qualifier is
+		   * the class name, which we already know from the bound region.
+		   */
+	    if (!(getContext() instanceof ImplicitQualifierNode)) {
+	      sb.append(getContext().unparse(false, indent + 2));
+	      sb.append(':');
+	    } else {
+	      final IRegionBinding boundRegion = getRegion().resolveBinding();
+	      if (boundRegion != null) {
+	        if (boundRegion.getRegion().isStatic()) {
+	          final String s = boundRegion.getModel().regionName;
+	          sb.append(s.substring(0, s.lastIndexOf('.')));
+	          sb.append(':');
+	        } else {          
+	          sb.append("this:");
+	        }
+	      }
+	    }
+	    sb.append(getRegion().unparse(debug, indent + 2));
 		}
-		sb.append(getRegion().unparse(debug, indent + 2));
 		return sb.toString();
 	}
 
