@@ -31,8 +31,8 @@ public class C {
    * static region.
    * read effect.
    */
-  // BAD -- Constructor, static region
-  @RegionEffects("reads StaticRegion" /* is UNASSOCIATED: Cannot use this, static region on constructor */)
+  // Used to be bad (Constructor, static region), but as of 2009-08-28 we allow static regions to be named unqualified. 
+  @RegionEffects("reads StaticRegion" /* is CONSISTENT */)
   public C(boolean reads, int a) {}
   
   /**
@@ -41,8 +41,8 @@ public class C {
    * Region not from class C!
    * read effect.
    */
-  // BAD -- Constructor, region not from C
-  @RegionEffects("reads RegionFromD" /* is UNBOUND: Cannot use this on constructor; region not from C */)
+  // Used to be bad (Constructor, static region), but as of 2009-08-28 we allow static regions to be named unqualified.  Now it is bad because the region cannot be found because it's not from an ancestor of C.
+  @RegionEffects("reads RegionFromD" /* is UNBOUND: region not from C */)
   public C(boolean reads, int a, int b) {}
 
   /**
@@ -61,8 +61,8 @@ public class C {
    * static region.
    * write effect.
    */
-  // BAD -- Constructor, static region
-  @RegionEffects("writes StaticRegion" /* is UNASSOCIATED: Cannot use this, static region on constructor */)
+  // Used to be bad, but as of 2009-08-28 we allow static regions to be named unqualified. 
+  @RegionEffects("writes StaticRegion" /* is CONSISTENT */)
   public C(Object writes, int a) {}
   
   /**
@@ -94,8 +94,8 @@ public class C {
    * static region.
    * read effect.
    */
-  // BAD --- static region
-  @RegionEffects("reads StaticRegion" /* is UNASSOCIATED: static region */)
+  // Used to be bad, but as of 2009-08-28 we allow static regions to be named unqualified. 
+  @RegionEffects("reads StaticRegion" /* is CONSISTENT */)
   public void bad_read_staticRegion() {}
   
   /**
@@ -124,8 +124,8 @@ public class C {
    * static region.
    * write effect.
    */
-  // BAD -- static region
-  @RegionEffects("writes StaticRegion" /* is UNASSOCIATED: static region */)
+  // Used to be bad, but as of 2009-08-28 we allow static regions to be named unqualified. 
+  @RegionEffects("writes StaticRegion" /* is CONSISTENT */)
   public void bad_write_staticRegion() {}
   
   /**
@@ -156,8 +156,8 @@ public class C {
    * static region.
    * read effect.
    */
-  // BAD -- static method, static region
-  @RegionEffects("reads StaticRegion" /* is UNASSOCIATED: Cannot use this on static method */)
+  // Used to be bad, but as of 2009-08-28 we allow static regions to be named unqualified. 
+  @RegionEffects("reads StaticRegion" /* is CONSISTENT */)
   public static void bad_static_read_staticRegion() {}
   
   /**
@@ -186,8 +186,8 @@ public class C {
    * static region.
    * write effect.
    */
-  // BAD -- static method, static region
-  @RegionEffects("writes StaticRegion" /* is UNASSOCIATED: Cannot use this on static method */)
+  // Used to be bad, but as of 2009-08-28 we allow static regions to be named unqualified. 
+  @RegionEffects("writes StaticRegion" /* is CONSISTENT */)
   public static void bad_static_write_staticRegion() {}
   
   /**
