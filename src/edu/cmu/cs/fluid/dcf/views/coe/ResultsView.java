@@ -25,6 +25,7 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
 import com.surelogic.common.XUtil;
+import com.surelogic.common.eclipse.DemoProjectAction;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.TestListener;
@@ -216,6 +217,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	protected void fillLocalPullDown(IMenuManager manager) {
 		manager.add(actionShowInferences);
 		manager.add(new Separator());
+		manager.add(new DemoProjectAction("Create PlanetBaronJSure", 
+				    getClass().getResource("/lib/PlanetBaronJSure.zip")));
+		manager.add(new DemoProjectAction("Create BoundedFIFO", 
+				    getClass().getResource("/lib/BoundedFIFO.zip")));
 		manager.add(new Separator());
 		if (XUtil.useExperimental()) {
 		  manager.add(actionExportZIPForStandAloneResultsViewer);
