@@ -420,6 +420,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     return "";
   }
   
+  static class BindingInfo {
+  	final IBinding method;
+  	final int numBoxed;
+  	
+  	BindingInfo(IBinding m, int boxed) {
+  		method = m;
+  		numBoxed = boxed;
+  	}
+  }
+  
   /**
    * The actual work of binding and maintaining scopes.
    * This code has extra machinery in it too handle granules and incrementality.
@@ -899,7 +909,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       */
       
-      IBinding bestMethod = null;
+      BindingInfo bestMethod = null;
       IJavaType bestClass = null; // type of containing class
       IJavaType[] bestArgs = new IJavaType[argTypes.length];
       IJavaType[] tmpTypes = new IJavaType[argTypes.length];
@@ -937,17 +947,18 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           }
         }    
         
-        final IBinding match = matchMethod(targs, args, argTypes, mbind, tmpTypes, methodTypeSubst);
+        final BindingInfo match = matchMethod(targs, args, argTypes, mbind, tmpTypes, methodTypeSubst);
         if (match == null) {
           continue findMethod;
         }
         
-        IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(match.getNode()));
+        IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(match.method.getNode()));
         IJavaType tmpClass = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
         // we don't detect the case that there is no best method.
         if (bestMethod == null ||
-            typeEnvironment.isAssignmentCompatible(bestArgs,tmpTypes) && 
-            typeEnvironment.isSubType(tmpClass,bestClass)) {
+            (typeEnvironment.isAssignmentCompatible(bestArgs,tmpTypes) && 
+             typeEnvironment.isSubType(tmpClass,bestClass)) ||
+            bestMethod.numBoxed > match.numBoxed) { 
           // BUG: this algorithm does the wrong
           // thing in the case of non-overridden multiple inheritance
           // But there's no right thing to do, so...
@@ -963,14 +974,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         System.out.println("Binding "+call);
       }
       */
-      return bind(call,bestMethod);
+      return bind(call, bestMethod.method);
     }
 
     /**
      * @param tmpTypes The types matched against
      * @return non-null if mbind matched the arguments
      */
-    private IBinding matchMethod(IRNode targs, IRNode args, IJavaType[] argTypes, 
+    private BindingInfo matchMethod(IRNode targs, IRNode args, IJavaType[] argTypes, 
                                   IBinding mbind, IJavaType[] tmpTypes,
                                   IJavaTypeSubstitution mSubst) {
       final int numTypeArgs = numChildrenOrZero(targs);
@@ -1002,15 +1013,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       } else {
         map = Collections.emptyMap();
       }
-      IBinding matched = matchedParameters(targs, args, argTypes, mbind, formals, tmpTypes, 
+      BindingInfo matched = matchedParameters(targs, args, argTypes, mbind, formals, tmpTypes, 
     		                               map, mSubst);
       if (matched == null) {
-        return matchedParameters(targs, args, argTypes, mbind, formals, tmpTypes, null, mSubst);
+        matched = matchedParameters(targs, args, argTypes, mbind, formals, tmpTypes, null, mSubst);
       }
       return matched;
     }
     
-    private IBinding matchedParameters(IRNode targs, IRNode args, IJavaType[] argTypes, 
+    private BindingInfo matchedParameters(IRNode targs, IRNode args, IJavaType[] argTypes, 
                                        IBinding mbind, IRNode formals, IJavaType[] tmpTypes, 
                                        Map<IJavaType,IJavaType> map,
                                        IJavaTypeSubstitution mSubst) {
@@ -1077,13 +1088,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     			capture(map, fty, argTypes[i]);
     		}
     	}
+    	
       // Then, substitute and check if compatible
+      int numBoxed = 0;    	
       for (int i=0; i < argTypes.length; ++i) {       
         IJavaType fty      = tmpTypes[i];
         IJavaType captured = map == null ? typeEnvironment.computeErasure(fty) : substitute(map, fty);          
         if (!isCallCompatible(captured,argTypes[i])) {
           // Check if need (un)boxing
           if (onlyNeedsBoxing(captured, argTypes[i])) {
+        	  numBoxed++;
         	  continue;
           }
           if (LOG.isLoggable(Level.FINER)) {
@@ -1098,10 +1112,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	    FunctionParameterSubstitution.create(AbstractJavaBinder.this, mbind.getNode(), map);
     	}
         if (mSubst != IBinding.NULL) {
-          return IBinding.Util.makeMethodBinding(mbind, mSubst);
+          return new BindingInfo(IBinding.Util.makeMethodBinding(mbind, mSubst), numBoxed);
         }
       }
-      return mbind;
+      return new BindingInfo(mbind, numBoxed);
     }
     
     private boolean onlyNeedsBoxing(IJavaType formal, IJavaType arg) {
