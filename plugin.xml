@@ -300,21 +300,28 @@
 			class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
 		</view>
+		
 		<view name="JSure Verification Status Diffs"
 			icon="icons/link.gif" category="edu.cmu.cs.fluid.dcf"
 			class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView">
 		</view>
+		
 		<view name="JSure Verification Metrics" icon="icons/link.gif"
 			category="edu.cmu.cs.fluid.dcf"
 			class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.MetricsView">
 		</view>
-	</extension>
-	<extension point="org.eclipse.ui.views">
+		
 		<view name="FAST Viewer" category="edu.cmu.cs.fluid.dcf"
 			class="edu.cmu.cs.fluid.dcf.views.ast.FastViewer"
 			id="edu.cmu.cs.fluid.dcf.views.ast.FastViewer">
+		</view>
+		
+		<view name="Modelling Problems" icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/warning.gif"
+			category="edu.cmu.cs.fluid.dcf"
+			class="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView"
+			id="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView">
 		</view>
 	</extension>
   <!-- Originally from double-checker-fluid -->

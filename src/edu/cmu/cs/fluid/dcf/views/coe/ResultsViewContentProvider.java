@@ -1014,6 +1014,7 @@ public class ResultsViewContentProvider extends
 			root.add(infoFolder);
 		}
 
+		/*
 		Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea
 				.getDefault().getDropsOfType(PromiseWarningDrop.class);
 		for (PromiseWarningDrop id : promiseWarningDrops) {
@@ -1022,6 +1023,7 @@ public class ResultsViewContentProvider extends
 			// to a promise drop or a result drop
 			root.add(encloseDrop(id));
 		}
+		*/
 
 		Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(
 				ResultDrop.class);

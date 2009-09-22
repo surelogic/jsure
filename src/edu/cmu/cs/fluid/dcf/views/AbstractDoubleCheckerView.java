@@ -24,16 +24,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IContentProvider;
-import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.ITreeSelection;
-import org.eclipse.jface.viewers.TreePath;
-import org.eclipse.jface.viewers.TreeSelection;
-import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.graphics.GC;
@@ -166,21 +157,37 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	protected static final String NO_RESULTS = "No results ... please enable JSure on a project (or open a closed project)";
 
-	protected TreeViewer viewer;
-
+	protected ColumnViewer viewer;
+	protected TreeViewer treeViewer;
+	protected TableViewer tableViewer;
+	
 	private Action doubleClickAction;
+	
+	private final boolean useTable;
 
 	/**
 	 * The view title from the XML, or {@code null} if we couldn't get it.
 	 */
 	private String f_viewTitle;
+	
+	protected AbstractDoubleCheckerView() {
+		this(false);
+	}
+	
+	protected AbstractDoubleCheckerView(boolean useTable) {
+		this.useTable = useTable;
+	}
 
 	@Override
 	public final void createPartControl(Composite parent) {
 		viewerbook = new PageBook(parent, SWT.NULL);
 		noResultsToShowLabel = new Label(viewerbook, SWT.NONE);
 		noResultsToShowLabel.setText(NO_RESULTS);
-		viewer = new TreeViewer(viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
+		if (useTable) {
+			viewer = tableViewer = new TableViewer(viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
+		} else {
+			viewer = treeViewer = new TreeViewer(viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
+		}
 		setupViewer();
 
 		viewer.setInput(getViewSite());
@@ -429,26 +436,28 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	private final LinkedList<String> f_selectionPath = new LinkedList<String>();
 
 	private void saveViewState() {
-		f_stringPaths.clear();
-		final TreePath[] treePaths = viewer.getExpandedTreePaths();
-		for (TreePath path : treePaths) {
-			final LinkedList<String> stringPath = new LinkedList<String>();
-			f_stringPaths.add(stringPath);
-			for (int i = 0; i < path.getSegmentCount(); i++) {
-				String message = path.getSegment(i).toString();
-				stringPath.add(message);
-			}
-		}
-
-		f_selectionPath.clear();
-		final ITreeSelection selection = (ITreeSelection) viewer.getSelection();
-		if (selection != null) {
-			final TreePath[] paths = selection.getPaths();
-			if (paths != null && paths.length > 0) {
-				final TreePath path = paths[0];
+		if (treeViewer != null) {
+			f_stringPaths.clear();
+			final TreePath[] treePaths = treeViewer.getExpandedTreePaths();
+			for (TreePath path : treePaths) {
+				final LinkedList<String> stringPath = new LinkedList<String>();
+				f_stringPaths.add(stringPath);
 				for (int i = 0; i < path.getSegmentCount(); i++) {
 					String message = path.getSegment(i).toString();
-					f_selectionPath.add(message);
+					stringPath.add(message);
+				}
+			}
+
+			f_selectionPath.clear();
+			final ITreeSelection selection = (ITreeSelection) viewer.getSelection();
+			if (selection != null) {
+				final TreePath[] paths = selection.getPaths();
+				if (paths != null && paths.length > 0) {
+					final TreePath path = paths[0];
+					for (int i = 0; i < path.getSegmentCount(); i++) {
+						String message = path.getSegment(i).toString();
+						f_selectionPath.add(message);
+					}
 				}
 			}
 		}
@@ -502,7 +511,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				 * are marked as expanded but are under a collapsed ancestor.
 				 */
 				if (path.isEmpty()) {
-					viewer.setExpandedState(element, true);
+					treeViewer.setExpandedState(element, true);
 				} else {
 					restoreSavedPath(tcp, path, element);
 				}

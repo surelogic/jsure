@@ -295,9 +295,9 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				Object obj = ((IStructuredSelection) selection)
 						.getFirstElement();
 				if (obj instanceof Content) {
-					viewer.expandToLevel(obj, 50);
+					treeViewer.expandToLevel(obj, 50);
 				} else {
-					viewer.expandToLevel(50);
+					treeViewer.expandToLevel(50);
 				}
 			}
 		};
@@ -312,9 +312,9 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				Object obj = ((IStructuredSelection) selection)
 						.getFirstElement();
 				if (obj instanceof Content) {
-					viewer.collapseToLevel(obj, 1);
+					treeViewer.collapseToLevel(obj, 1);
 				} else {
-					viewer.collapseAll();
+					treeViewer.collapseAll();
 				}
 			}
 		};
@@ -351,8 +351,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				highlightLineInJavaEditor(sr);
 			}
 			// open up the tree one more level
-			if (!viewer.getExpandedState(obj))
-				viewer.expandToLevel(obj, 1);
+			if (!treeViewer.getExpandedState(obj))
+				treeViewer.expandToLevel(obj, 1);
 		}
 	}
 
@@ -419,7 +419,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				return; // bail out of previous attempt
 			}
 
-			XMLReport.exportResultsWithSource(zipFile, viewer);
+			XMLReport.exportResultsWithSource(zipFile, treeViewer);
 		}
 	}
 
