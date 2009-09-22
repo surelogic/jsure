@@ -242,7 +242,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(actionShowProblemsView);
-		manager.add(new Separator());
+		//manager.add(new Separator());
 		manager.add(actionShowInferences);
 		manager.add(new Separator());
 		manager.add(actionExpand);
@@ -359,9 +359,11 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			actionShowProblemsView.setImageDescriptor(PlatformUI.getWorkbench()
 					.getSharedImages().getImageDescriptor(
 							ISharedImages.IMG_OBJS_WARN_TSK));
+			actionShowProblemsView.setEnabled(true);
 		} else {
 			actionShowProblemsView.setText("");
-			actionShowProblemsView.setImageDescriptor(null);
+			actionShowProblemsView.setImageDescriptor(null); 
+			actionShowProblemsView.setEnabled(false);
 		}
 	}
 	
