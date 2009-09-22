@@ -675,7 +675,7 @@ public class BindUtil implements JavaGlobals {
   }
   
   public static IRNode findAnonOrLocalClass(IRNode root, String name, IRNode enclosingMethod,
-		                                    boolean isAnonymous) {
+		                                    boolean isAnonymous, boolean isEnum) {
 	if (!isAnonymous && name.endsWith("){}")) {
 		isAnonymous = true;
 	}
@@ -693,8 +693,11 @@ public class BindUtil implements JavaGlobals {
           bestMatch = n;
         }        
       }
-      if (isAnonymous && AnonClassExpression.prototype.includes(n)) {
-        String msg = DebugUnparser.toString(n);
+      else if (isEnum && isAnonymous && EnumConstantClassDeclaration.prototype.includes(n)) {
+        bestMatch = n;
+      }
+      else if (isAnonymous && AnonClassExpression.prototype.includes(n)) {      
+//        String msg = DebugUnparser.toString(n);
 //        System.out.println("Considering ACE: "+msg);
         bestMatch = n;
       }

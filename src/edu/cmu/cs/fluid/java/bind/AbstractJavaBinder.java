@@ -1554,6 +1554,22 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return null;
     }
 
+    @Override
+    public Void visitEnumConstantClassDeclaration(IRNode node) {
+    	IRNode body = EnumConstantClassDeclaration.getBody(node);
+        String name = JJNode.getInfoOrNull(body);
+        IJavaScope sc;
+        if (name != null) {
+          IJavaScope.NestedScope nsc = new IJavaScope.NestedScope(scope);
+          nsc.put(name, node);
+          sc = nsc;
+        } else {
+          sc = scope;
+        }
+        doAcceptForChildren(node, sc);
+        return null;
+    }
+    
     // Copied from ClassInitializer
     @Override
     public Void visitFieldDeclaration(IRNode node) {
