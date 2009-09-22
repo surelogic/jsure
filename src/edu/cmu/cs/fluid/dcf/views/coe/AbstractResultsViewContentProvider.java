@@ -11,6 +11,8 @@ public abstract class AbstractResultsViewContentProvider implements
   
   protected boolean m_showInferences = true;
 
+  protected String problemsViewMsg = null;
+  
   /**
    * @return Returns the showInferences.
    */
@@ -24,5 +26,9 @@ public abstract class AbstractResultsViewContentProvider implements
    */
   public final void setShowInferences(boolean showInferences) {
     this.m_showInferences = showInferences;
+  }
+  
+  public final String getProblemsViewMessage() {
+	  return problemsViewMsg;
   }
 }

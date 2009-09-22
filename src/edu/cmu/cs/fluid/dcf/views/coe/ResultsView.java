@@ -26,6 +26,7 @@ import org.eclipse.ui.PlatformUI;
 
 import com.surelogic.common.XUtil;
 import com.surelogic.common.eclipse.DemoProjectAction;
+import com.surelogic.common.eclipse.ViewUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.TestListener;
@@ -120,6 +121,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	private final IResultsViewLabelProvider m_labelProvider = makeLabelProvider();
 
+	private Action actionShowProblemsView;
+	
 	private Action actionShowInferences;
 
 	private Action actionExpand;
@@ -238,15 +241,25 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
+		manager.add(actionShowProblemsView);
+		manager.add(new Separator());
 		manager.add(actionShowInferences);
 		manager.add(new Separator());
 		manager.add(actionExpand);
 		manager.add(actionCollapse);
 		manager.add(new Separator());
 	}
-
+	
 	@Override
 	protected void makeActions() {
+		actionShowProblemsView = new Action() {
+			@Override
+			public void run() {
+				ViewUtility.showView(ProblemsView.class.getName());
+			}
+		};
+
+		
 		actionShowInferences = new Action() {
 			@Override
 			public void run() {
@@ -337,8 +350,21 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			actionShowInferences
 					.setToolTipText("Show analysis information && warning results within verification results");
 		}
+		showProblemsView(m_contentProvider.getProblemsViewMessage());
 	}
 
+	private void showProblemsView(String msg) {
+		if (msg != null) {
+			actionShowProblemsView.setText(msg);
+			actionShowProblemsView.setImageDescriptor(PlatformUI.getWorkbench()
+					.getSharedImages().getImageDescriptor(
+							ISharedImages.IMG_OBJS_WARN_TSK));
+		} else {
+			actionShowProblemsView.setText("");
+			actionShowProblemsView.setImageDescriptor(null);
+		}
+	}
+	
 	@Override
 	protected void handleDoubleClick(IStructuredSelection selection) {
 		Object obj = selection.getFirstElement();

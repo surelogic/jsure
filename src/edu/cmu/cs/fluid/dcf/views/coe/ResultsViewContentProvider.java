@@ -52,9 +52,9 @@ public class ResultsViewContentProvider extends
 
 	// TODO These are not completely protected, since the arrays get returned
 	protected static Object[] m_root = noObjects;
-	protected static Object[] m_lastRoot = null;
+	protected static Object[] m_lastRoot = null;	
 	protected static long timeStamp = Sea.INVALIDATED;
-
+	
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		Object[] result = new Object[1];
 		result[0] = newInput;
@@ -1013,10 +1013,10 @@ public class ResultsViewContentProvider extends
 			infoFolder.isInfo = true;
 			root.add(infoFolder);
 		}
-
-		/*
+		
 		Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea
 				.getDefault().getDropsOfType(PromiseWarningDrop.class);
+		/*
 		for (PromiseWarningDrop id : promiseWarningDrops) {
 			// PromiseWarningDrop id = (PromiseWarningDrop) j.next();
 			// only show info drops at the main level if they are not attached
@@ -1024,6 +1024,11 @@ public class ResultsViewContentProvider extends
 			root.add(encloseDrop(id));
 		}
 		*/
+		if (promiseWarningDrops.isEmpty()) {
+			problemsViewMsg = null;
+		} else {
+			problemsViewMsg = promiseWarningDrops.size()+" modelling problem(s)";
+		}
 
 		Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(
 				ResultDrop.class);

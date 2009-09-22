@@ -7,4 +7,6 @@ public interface IResultsViewContentProvider extends ITreeContentProvider {
   
   boolean isShowInferences();
   void setShowInferences(boolean toggle);
+
+  String getProblemsViewMessage();
 }
