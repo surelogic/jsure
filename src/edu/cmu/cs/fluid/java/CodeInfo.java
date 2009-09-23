@@ -80,12 +80,11 @@ public final class CodeInfo {
   public static final String CLASSPATH = "CodeInfo.classpath";
   
   @Override
-  public int hashCode() {
-    /*
+  public int hashCode() {    
     if (n == null) {
-      System.out.println("n == null");
+      //System.out.println("n == null");
+      return 0;
     }
-    */
     return n.hashCode();
   }
   @Override
