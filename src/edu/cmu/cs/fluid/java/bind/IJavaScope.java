@@ -12,6 +12,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.debug.DebugUtil;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -513,7 +514,14 @@ public interface IJavaScope {
      */
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
       IBinding result = scope1.lookup(name,useSite,selector);
-      if (result == null) result = scope2.lookup(name,useSite,selector);
+      if (result == null) {
+    	  try {
+    		  result = scope2.lookup(name,useSite,selector);
+    	  } catch (StackOverflowError e) {
+    		  System.out.println("Overflow on "+DebugUnparser.toString(useSite));
+    		  throw e;
+    	  }
+      }
       return result;
     }
 
