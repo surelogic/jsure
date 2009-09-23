@@ -816,7 +816,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	/**
 	 * Only called for .class files
 	 */
-	private void registerClass(CodeInfo info) {
+	void registerClass(CodeInfo info) {
 		createDrop(info);
 		javaFileLoaded(info);
 		/*
