@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.*;
+import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -62,6 +63,8 @@ public final class Nature extends AbstractNature {
 	public static final String DOUBLE_CHECKER_NATURE_ID = "com.surelogic.jsure.client.eclipse.dcNature";
 
 	private static final String PROMISES_JAR = "promises.jar";
+	
+	private static final String PROMISES_JAVADOC_JAR = "promises-javadoc.jar";
 	
 	public Nature() {
 		super(DOUBLE_CHECKER_BUILDER_ID);
@@ -183,12 +186,14 @@ public final class Nature extends AbstractNature {
                     "The SureLogic promises JAR file already exists at \"" +
                     useJarPath + "\".  Would you like to overwrite it?");
               }
+              final IFile useJavadoc = useJar.getParent().getFile(new Path(PROMISES_JAVADOC_JAR));
               if (createJar) {
                 // Remove first if already exists
                 if (useJar.exists()) {
                   useJar.delete(false, false, null);
                 }
-                useJar.create(LibResources.getPromisesJar(), false, null);
+                useJar.create(LibResources.getPromisesJar(), false, null);                                
+                useJavadoc.create(LibResources.getPromisesJavadocJar(), false, null);
               }
               
               // Update build path
@@ -197,7 +202,12 @@ public final class Nature extends AbstractNature {
               for(IClasspathEntry e : orig) {
                 entries.add(e);
               }
-              entries.add(JavaCore.newLibraryEntry(useJar.getFullPath(), null, null));
+              String loc = "jar:platform:/resource"+useJavadoc.getFullPath().toPortableString()+"!/";
+              System.out.println("location = "+loc);
+              IClasspathAttribute javadoc = 
+            	  JavaCore.newClasspathAttribute("javadoc_location", loc);
+              entries.add(JavaCore.newLibraryEntry(useJar.getFullPath(), null, null,
+            		  new IAccessRule[0], new IClasspathAttribute[] { javadoc }, false));
               jp.setRawClasspath(entries.toArray(new IClasspathEntry[orig.length+1]), null);
             }
           } catch (final JavaModelException e) {
