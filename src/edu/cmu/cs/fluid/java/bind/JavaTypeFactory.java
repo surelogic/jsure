@@ -1168,6 +1168,9 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
         return tEnv.getObjectType();
       }
       return dt;
+    } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+      IRNode enumD = VisitUtil.getEnclosingType(declaration);
+      return (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(enumD, tEnv.getBinder());
     } else {
       LOG.severe("Don't know what sort of declation node this is: " + DebugUnparser.toString(declaration));
       return null;
