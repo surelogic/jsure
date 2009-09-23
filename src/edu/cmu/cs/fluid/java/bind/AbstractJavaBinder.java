@@ -315,13 +315,23 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     if (bindings.containsFullInfo()) {
       binderVisitor.setFullPass();
       long start = System.currentTimeMillis();
-      binderVisitor.start();
+      try {
+    	  binderVisitor.start();
+      } catch (StackOverflowError e) {
+    	  System.out.println("StackOverflow: "+DebugUnparser.toString(unit));
+    	  throw e;
+      }
       long end = System.currentTimeMillis();
       fullTime += (end-start);
       numFull  += bindings.getUseToDeclAttr().size();
     } else {
       long start = System.currentTimeMillis();
-      binderVisitor.start();
+      try {
+    	  binderVisitor.start();
+      } catch (StackOverflowError e) {
+    	  System.out.println("StackOverflow: "+DebugUnparser.toString(unit));
+    	  throw e;
+      }
       long end = System.currentTimeMillis();
       partialTime += (end-start);
       numPartial += bindings.getUseToDeclAttr().size();
@@ -974,6 +984,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         System.out.println("Binding "+call);
       }
       */
+      if (bestMethod == null) {
+    	  return bind(call, (IBinding) null);
+      }
       return bind(call, bestMethod.method);
     }
 
