@@ -82,6 +82,8 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 		final List<PromiseWarningDrop> contents = new ArrayList<PromiseWarningDrop>();
 		
 		public void build() {
+			contents.clear();
+			
 			Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea
 					.getDefault().getDropsOfType(PromiseWarningDrop.class);
 			for (PromiseWarningDrop id : promiseWarningDrops) {
