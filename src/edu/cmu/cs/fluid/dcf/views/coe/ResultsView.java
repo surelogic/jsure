@@ -356,6 +356,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	}
 
 	private void showProblemsView(String msg) {
+		//System.out.println(this+": "+msg);
 		if (msg != null) {
 			actionShowProblemsView.setText(msg);
 			actionShowProblemsView.setImageDescriptor(

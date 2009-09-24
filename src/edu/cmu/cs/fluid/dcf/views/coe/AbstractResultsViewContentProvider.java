@@ -11,7 +11,10 @@ public abstract class AbstractResultsViewContentProvider implements
   
   protected boolean m_showInferences = true;
 
-  protected String problemsViewMsg = null;
+  /**
+   * Shared between the normal and diff view
+   */
+  protected static String problemsViewMsg = null;
   
   /**
    * @return Returns the showInferences.
