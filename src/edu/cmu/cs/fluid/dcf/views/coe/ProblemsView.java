@@ -8,6 +8,9 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 
+import com.surelogic.common.CommonImages;
+import com.surelogic.common.eclipse.SLImages;
+
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.eclipse.ui.ITableContentProvider;
 import edu.cmu.cs.fluid.sea.*;
@@ -115,6 +118,9 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 		}
 
 		public Image getColumnImage(Object element, int columnIndex) {
+			if (columnIndex == 0) {
+				return SLImages.getImage(CommonImages.IMG_RED_X);
+			}
 			return null;
 		}
 

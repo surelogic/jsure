@@ -24,8 +24,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.eclipse.DemoProjectAction;
+import com.surelogic.common.eclipse.SLImages;
 import com.surelogic.common.eclipse.ViewUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
@@ -356,9 +358,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	private void showProblemsView(String msg) {
 		if (msg != null) {
 			actionShowProblemsView.setText(msg);
-			actionShowProblemsView.setImageDescriptor(PlatformUI.getWorkbench()
-					.getSharedImages().getImageDescriptor(
-							ISharedImages.IMG_OBJS_WARN_TSK));
+			actionShowProblemsView.setImageDescriptor(
+					SLImages.getImageDescriptor(CommonImages.IMG_RED_X));
 			actionShowProblemsView.setEnabled(true);
 		} else {
 			actionShowProblemsView.setText("");

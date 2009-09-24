@@ -184,7 +184,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		noResultsToShowLabel = new Label(viewerbook, SWT.NONE);
 		noResultsToShowLabel.setText(NO_RESULTS);
 		if (useTable) {
-			viewer = tableViewer = new TableViewer(viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
+			viewer = tableViewer = new TableViewer(viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		} else {
 			viewer = treeViewer = new TreeViewer(viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
 		}
