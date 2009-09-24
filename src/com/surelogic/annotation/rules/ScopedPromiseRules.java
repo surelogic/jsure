@@ -74,6 +74,9 @@ public class ScopedPromiseRules extends AnnotationRules {
 
 		@Override
 		protected ScopedPromisesParser initParser(String contents) throws Exception {
+			if (!contents.contains("'") && !contents.contains("\"")) {
+				contents = '\''+contents+'\'';
+			}
 			return ScopedPromiseParse.initParser(contents);
 		}
 	}
