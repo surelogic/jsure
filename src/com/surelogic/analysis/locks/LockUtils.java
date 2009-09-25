@@ -38,12 +38,14 @@ import edu.cmu.cs.fluid.java.bind.IOldTypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
+import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.CharLiteral;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -293,7 +295,13 @@ public final class LockUtils {
    */
   public boolean isFinalExpression(final IRNode expr, final IRNode sync) {
     final Operator op = JJNode.tree.getOperator(expr);
-    if (MethodCall.prototype.includes(op)) {
+    if (CastExpression.prototype.includes(op)) {
+      // Final if the nested expression is final
+      return isFinalExpression(CastExpression.getExpr(expr), sync);
+    } else if (ParenExpression.prototype.includes(op)) {
+      // Final if the nested expression is final
+      return isFinalExpression(ParenExpression.getOp(expr), sync);
+    } else if (MethodCall.prototype.includes(op)) {
       MethodCall mcall = (MethodCall) op;
       /* Object expression must be final or method must be static, and the method
        * must have a @returnsLock annotation (which we are using as a very
@@ -824,7 +832,7 @@ public final class LockUtils {
       final IRNode lockExpr, final IRNode enclosingDecl, 
       final ILock.Type type, final IRNode src, final Set<HeldLock> lockSet) {
     final Operator op = JJNode.tree.getOperator(lockExpr);
-
+    
     /* For method calls that return the declared lock, if any */
     if (MethodCall.prototype.includes(op)) {
       /* We need to see if the method is a call to readLock or writeLock, and

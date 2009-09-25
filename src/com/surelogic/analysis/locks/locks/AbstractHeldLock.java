@@ -15,6 +15,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
+import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.CharLiteral;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.FalseExpression;
@@ -26,6 +27,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NamedType;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.Parameters;
+import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.TrueExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
@@ -116,8 +118,26 @@ abstract class AbstractHeldLock extends AbstractILock implements HeldLock {
   protected static boolean checkSyntacticEquality(
       final IRNode expr1, final IRNode expr2,
       final ThisExpressionBinder thisExprBinder, final IBinder binderParam) {
+    /* We need to unwrap type casts and parenthesized expressions in the first operand */
     final Operator op1 = JJNode.tree.getOperator(expr1);
+    if (CastExpression.prototype.includes(op1)) {
+      return checkSyntacticEquality(
+          CastExpression.getExpr(expr1), expr2, thisExprBinder, binderParam);
+    } else if (ParenExpression.prototype.includes(op1)) {
+      return checkSyntacticEquality(
+          ParenExpression.getOp(expr1), expr2, thisExprBinder, binderParam);
+    }
+
+    /* Then unwrap type casts and parenthesized expressions in the second operand */
     final Operator op2 = JJNode.tree.getOperator(expr2);
+    if (CastExpression.prototype.includes(op2)) {
+      return checkSyntacticEquality(
+          expr1, CastExpression.getExpr(expr2), thisExprBinder, binderParam);
+    } else if (ParenExpression.prototype.includes(op2)) {
+      return checkSyntacticEquality(
+          expr1, ParenExpression.getOp(expr2), thisExprBinder, binderParam);
+    }
+    
     if (op1.equals(op2)) {
       if (FieldRef.prototype.includes(op1)) {
         // check that the fields are the same
@@ -280,7 +300,16 @@ abstract class AbstractHeldLock extends AbstractILock implements HeldLock {
   protected static boolean checkSyntacticEquality(
       final IRNode expr1, final AASTNode expr2, 
       final ThisExpressionBinder thisExprBinder, final IBinder binderParam) {
+    /* We need to unwrap type casts and parenthesized expressions in the first operand */
     final Operator op1 = JJNode.tree.getOperator(expr1);
+    if (CastExpression.prototype.includes(op1)) {
+      return checkSyntacticEquality(
+          CastExpression.getExpr(expr1), expr2, thisExprBinder, binderParam);
+    } else if (ParenExpression.prototype.includes(op1)) {
+      return checkSyntacticEquality(
+          ParenExpression.getOp(expr1), expr2, thisExprBinder, binderParam);
+    }
+    
     final Operator op2 = expr2.getOp();
     if (op1.equals(op2)) {
       if (FieldRef.prototype.includes(op1)) {
