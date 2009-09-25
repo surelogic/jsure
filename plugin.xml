@@ -300,13 +300,14 @@
 			class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
 		</view>
-		
+		<!--
 		<view name="JSure Verification Status Diffs"
 			icon="icons/link.gif" category="edu.cmu.cs.fluid.dcf"
 			class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView">
 		</view>
-		
+		-->
+				
 		<view name="JSure Verification Metrics" icon="icons/link.gif"
 			category="edu.cmu.cs.fluid.dcf"
 			class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
