@@ -1,0 +1,10 @@
+<package name="java.util">
+ <class name="AbstractMap">
+  <method name="hashCode">
+   <starts>nothing</starts>
+   <borrowed>this</borrowed>
+   <RegionEffects>reads Instance</RegionEffects>
+   <transparent/>
+  </method>
+ </class>
+</package>

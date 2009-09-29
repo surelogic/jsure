@@ -34,5 +34,16 @@
     <starts>nothing</starts>
     <RegionEffects>writes Instance</RegionEffects>
   </method>
+
+  <method name="size">
+    <borrowed>this</borrowed>
+    <starts>nothing</starts>
+    <RegionEffects>reads Instance</RegionEffects>
+  </method>
+
+  <method name="values">
+    <borrowed>this</borrowed>
+    <RegionEffects>reads Instance</RegionEffects>
+  </method>
  </class>
 </package>
