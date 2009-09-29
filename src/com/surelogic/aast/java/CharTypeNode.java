@@ -34,7 +34,7 @@ public class CharTypeNode extends IntegralTypeNode {
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
     if (debug) { indent(sb, indent); }
-    sb.append("CharType\n");
+    sb.append("char\n");
     return sb.toString();
   }
 

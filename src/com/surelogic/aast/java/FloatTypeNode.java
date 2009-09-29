@@ -34,7 +34,7 @@ public class FloatTypeNode extends FloatingPointTypeNode {
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
     if (debug) { indent(sb, indent); }
-    sb.append("FloatType\n");
+    sb.append("float\n");
     return sb.toString();
   }
 

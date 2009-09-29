@@ -34,7 +34,7 @@ public class DoubleTypeNode extends FloatingPointTypeNode {
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
     if (debug) { indent(sb, indent); }
-    sb.append("DoubleType\n");
+    sb.append("double\n");
     return sb.toString();
   }
 

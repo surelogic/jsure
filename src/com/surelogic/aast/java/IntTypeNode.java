@@ -34,7 +34,7 @@ public class IntTypeNode extends IntegralTypeNode {
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
     if (debug) { indent(sb, indent); }
-    sb.append("IntType\n");
+    sb.append("int\n");
     return sb.toString();
   }
 

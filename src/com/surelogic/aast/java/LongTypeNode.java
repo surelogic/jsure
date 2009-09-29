@@ -34,7 +34,7 @@ public class LongTypeNode extends IntegralTypeNode {
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
     if (debug) { indent(sb, indent); }
-    sb.append("LongType\n");
+    sb.append("long\n");
     return sb.toString();
   }
 
