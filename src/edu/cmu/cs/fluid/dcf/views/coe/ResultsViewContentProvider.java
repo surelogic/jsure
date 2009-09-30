@@ -30,6 +30,7 @@ import edu.cmu.cs.fluid.java.promise.TextFile;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
@@ -43,6 +44,8 @@ import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
 import edu.cmu.cs.fluid.sea.drops.PleaseCount;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
+import edu.cmu.cs.fluid.sea.drops.promises.InRegionPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -976,6 +979,21 @@ public class ResultsViewContentProvider extends
 		}
 	}
 
+	private static DropPredicate promisePred = 
+		DropPredicateFactory.matchType(PromiseDrop.class);
+
+	private static DropPredicate scopedPromisePred = 
+		DropPredicateFactory.matchType(PromisePromiseDrop.class);
+	
+	/**
+	 * Matches non-@Promise PromiseDrops
+	 */
+	private static DropPredicate predicate = new DropPredicate() {
+		public boolean match(Drop d) {			
+			return promisePred.match(d) && !scopedPromisePred.match(d);
+		}		
+	};
+ 	
 	@SuppressWarnings("unchecked")
   private IResultsViewContentProvider buildModelOfDropSea_internal() {
 		Collection<Content> root = new HashSet<Content>(); // show at the
@@ -984,12 +1002,20 @@ public class ResultsViewContentProvider extends
 		Set<? extends PromiseDrop> promiseDrops = Sea.getDefault()
 				.getDropsOfType(PromiseDrop.class);
 		for (PromiseDrop pd : promiseDrops) {
-			// PromiseDrop pd = (PromiseDrop) i.next();
+			// PromiseDrop pd = (PromiseDrop) i.next();		
 			if (pd.isFromSrc()) {
-				if (!pd.hasMatchingDeponents(DropPredicateFactory
-						.matchType(PromiseDrop.class))) {
+				if (!pd.hasMatchingDeponents(predicate)) {
+					/*
+					if (pd instanceof InRegionPromiseDrop) {
+						System.out.println(pd.getMessage());
+						for(Drop d : pd.getDeponents()) {
+							System.out.println("\t"+d.getClass().getSimpleName()+": "+d.getMessage());
+						}
+						System.out.println();
+					}
+					*/
 					root.add(encloseDrop(pd));
-				}
+				} 
 			}
 		}
 
