@@ -63,6 +63,7 @@ implements ValidatedDropCallback<InRegionPromiseDrop>
   }
   
   public void validated(InRegionPromiseDrop pd) {
+	pd.setVirtual(true);
     pd.setSourceDrop(this);
   }
 }

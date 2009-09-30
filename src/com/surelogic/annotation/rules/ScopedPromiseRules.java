@@ -357,6 +357,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 		 * @see com.surelogic.annotation.scrub.ValidatedDropCallback#validated(edu.cmu.cs.fluid.sea.PromiseDrop)
 		 */
 		public void validated(PromiseDrop pd) {
+			pd.setVirtual(true);
 			pd.setSourceDrop(scopedPromiseDrop);
 		}
 		
