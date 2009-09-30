@@ -212,81 +212,44 @@ public class ScopedPromiseRules extends AnnotationRules {
 		if (!TypeDeclaration.prototype.includes(promisedFor)) {
 			// Probably a package decl
 			return false;
-		}		
-		String promise = scopedPromiseDrop.getAST().getPromise();
-		String[] words = promise.split("\\s"); // split by white space
-
-		// The actual content of the promise, i.e., minus the annotation string
-		StringBuilder promiseContent = new StringBuilder();
-		if (words.length > 1) {
-			promiseContent.append(promise.substring(words[0].length()));
 		}
-    final String tag = words[0].length() > 0 && words[0].startsWith("@") ?
-        words[0].substring(1) : words[0];
+		final ScopedPromiseCallback callback = 
+			new ScopedPromiseCallback(scopedPromiseDrop);
 		
-		// Used to parse the promise when we find a match
-		IAnnotationParseRule<?, ?> parseRule = PromiseFramework.getInstance()
-				.getParseDropRule(AnnotationVisitor.capitalize(tag));
-
-		if (parseRule != null) {
-			PromiseTargetNode target = scopedPromiseDrop.getAST().getTargets();
-
-			// Shouldn't have to do this AND methods
-			/*
-			 * for (IRNode decls : VisitUtil.getClassConstructors(promisedFor)) {
-			 * if(target.matches(decls)){ } }
-			 */
-
+		if (callback.parseRule != null) {
 			// TODO only loop over the necessary declarations by checking what type
 			// the
 			// scoped promise is
-			AbstractAnnotationParsingContext context;
-			int offset = -1;
-			ScopedPromiseCallback callback = new ScopedPromiseCallback(
-					scopedPromiseDrop);
-			for (IRNode decl : VisitUtil.getClassMethods(promisedFor)) {
-			  Operator op = JJNode.tree.getOperator(decl);
-				if (parseRule.declaredOnValidOp(op) && target.matches(decl)) {
-					final ISrcRef ref = JavaNode.getSrcRef(decl);
-					offset = ref == null ? 0 : ref.getOffset();
-					context = new ScopedAnnotationParsingContext(callback,
-							scopedPromiseDrop.getAST().getSrcType(), decl, parseRule,
-							promiseContent.toString(), offset);
-					parseRule.parse(context, promiseContent.toString());
-					if (!context.createdAAST()) {
-						context.reportError(offset, "Could not apply scoped promise, "
-								+ promise + " AAST on method/constructor " + JavaNames.genMethodConstructorName(decl));
+			for (IRNode decl : VisitUtil.getAllTypeDecls(promisedFor)) {
+				Operator op = JJNode.tree.getOperator(decl);
+				if (callback.parseRule.declaredOnValidOp(op)) {
+					if (!callback.parseAndApplyPromise(decl, op)) {
 						success = false;
 						break;
 					}
 				}
 			}
-
-			if (success && parseRule.declaredOnValidOp(FieldDeclaration.prototype)) {			  
+			
+			for (IRNode decl : VisitUtil.getClassMethods(promisedFor)) {
+				Operator op = JJNode.tree.getOperator(decl);
+				if (callback.parseRule.declaredOnValidOp(op)) {
+					if (!callback.parseAndApplyPromise(decl, op)) {
+						success = false;
+						break;
+					}
+				}
+			}
+			if (success && callback.parseRule.declaredOnValidOp(FieldDeclaration.prototype)) {			  
 				for (IRNode decl : VisitUtil.getClassFieldDecls(promisedFor)) {
-					if (target.matches(decl)) {
-						ISrcRef ref = JavaNode.getSrcRef(decl);
-						if(ref != null){
-						offset = ref.getOffset();
-						} else {
-							offset = -1; //FIXME
-						}
-						context = new ScopedAnnotationParsingContext(callback,
-								scopedPromiseDrop.getAST().getSrcType(), decl, parseRule,
-								promiseContent.toString(), offset);
-						parseRule.parse(context, promiseContent.toString());
-						if (!context.createdAAST()) {
-							context.reportError(offset, "Could not apply scoped promise, "
-									+ promise + " AAST on field " + JavaNames.getFieldDecl(decl));
-							success = false;
-							break;
-						}
+					if (!callback.parseAndApplyPromise(decl, FieldDeclaration.prototype)) {
+						success = false;
+						break;
 					}
 				}
 			}
 		} else {
 			//FIXME is this all?
-			System.err.println("No parse rule found for promise: " + words[0]);
+			System.err.println("No parse rule found for promise: " + callback.tag);
 			success = false;
 		}
 		return success;
@@ -354,12 +317,38 @@ public class ScopedPromiseRules extends AnnotationRules {
 
 	}
 
+	/**
+	 * Also used to help with parsing and applying the scoped promise
+	 */
 	@SuppressWarnings("unchecked")
-  static class ScopedPromiseCallback implements ValidatedDropCallback {
-		private final ScopedPromiseDrop drop;
-
+	static class ScopedPromiseCallback implements ValidatedDropCallback {
+		private final ScopedPromiseDrop scopedPromiseDrop;
+		final PromiseTargetNode target;
+		final String tag, content;
+	
+		// Used to parse the promise when we find a match
+		final IAnnotationParseRule<?, ?> parseRule;		
+		
 		public ScopedPromiseCallback(ScopedPromiseDrop drop) {
-			this.drop = drop;
+			this.scopedPromiseDrop = drop;
+		
+			target = drop.getAST().getTargets();
+			
+			// Process promise text
+			String promise = drop.getAST().getPromise();
+			String[] words = promise.split("\\s"); // split by white space
+
+			// The actual content of the promise, i.e., minus the annotation string
+			StringBuilder promiseContent = new StringBuilder();
+			if (words.length > 1) {
+				promiseContent.append(promise.substring(words[0].length()));
+			}
+			tag = words[0].length() > 0 && words[0].startsWith("@") ?
+					words[0].substring(1) : words[0];
+			content = promiseContent.toString();
+			
+			parseRule = PromiseFramework.getInstance()
+					.getParseDropRule(AnnotationVisitor.capitalize(tag));
 		}
 
 		/*
@@ -368,7 +357,45 @@ public class ScopedPromiseRules extends AnnotationRules {
 		 * @see com.surelogic.annotation.scrub.ValidatedDropCallback#validated(edu.cmu.cs.fluid.sea.PromiseDrop)
 		 */
 		public void validated(PromiseDrop pd) {
-			pd.setSourceDrop(drop);
+			pd.setSourceDrop(scopedPromiseDrop);
+		}
+		
+		/**
+		 * @return false if failed
+		 */
+		boolean parseAndApplyPromise(final IRNode decl, Operator op) {			
+			if (target.matches(decl)) {
+				final ISrcRef ref = JavaNode.getSrcRef(decl);
+				int offset = -1;
+				if (ref != null){
+					offset = ref.getOffset();
+				}
+				final AbstractAnnotationParsingContext context = 
+					new ScopedAnnotationParsingContext(this,
+						scopedPromiseDrop.getAST().getSrcType(), decl, parseRule,
+						content, offset);
+				parseRule.parse(context, content);
+
+				if (!context.createdAAST()) {
+					StringBuilder msg = new StringBuilder("Could not apply scoped promise, ");
+					msg.append(content).append(" on ");
+					
+					if (FieldDeclaration.prototype.includes(op)) {
+						msg.append("field ").append(JavaNames.getFieldDecl(decl));
+					}
+					else if (SomeFunctionDeclaration.prototype.includes(op)) {
+						msg.append("method/constructor ");
+						msg.append(JavaNames.genMethodConstructorName(decl));
+					}					
+					else if (TypeDeclaration.prototype.includes(op)) {
+						msg.append("type ");
+						msg.append(JavaNames.getFullTypeName(decl));
+					}
+					context.reportError(offset, msg.toString());
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 
