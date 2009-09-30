@@ -238,8 +238,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 
   private static final String DS_ON_BEHALF_OF_CONSTRUCTOR_MSG = Messages.LockAnalysis_ds_OnBehalfOfConstructor;
 
-  private static final String DS_FIELD_DECLARATION_MSG = Messages.LockAnalysis_ds_FieldDeclaration;
-
   private static final String DS_ASSUMED_HELD_MSG = Messages.LockAnalysis_ds_AssumedHeld;
   
   private static final String DS_LOCK_HELD_MSG = Messages.LockAnalysis_ds_HeldLock;
@@ -2177,8 +2175,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
        */
       if (syncLockIsIdentifiable && !syncLockIsPolicyLock
           && !syncFrame.isNeeded()) {
-        makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING, mdecl,
-            DS_SYNCHRONIZED_UNUSED_MSG, syncFrame);
+        final InfoDrop info = makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING,
+            mdecl, DS_SYNCHRONIZED_UNUSED_MSG, syncFrame);
+        for (final StackLock stackLock : syncFrame) {
+          stackLock.lock.getLockPromise().addDependent(info);
+        }
       }
 
       // TODO: Check to see if the lock preconditions were needed
@@ -2342,8 +2343,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   
             // Complain if the lock acquisition is potentially redundant
             if (ctxtTheHeldLocks.oldFramesContainLock(guard.lock, thisExprBinder, binder)) {
-              makeWarningDrop(DSC_REDUNDANT_SYNCHRONIZED, syncBlock,
+              final InfoDrop info = makeWarningDrop(DSC_REDUNDANT_SYNCHRONIZED, syncBlock,
                   DS_REDUNDANT_SYNCHRONIZED_MSG, guard.lock);
+              guard.lock.getLockPromise().addDependent(info);
             }
           }
           if (justMUTEX && !lockIsPolicyLock) {
@@ -2410,8 +2412,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 
       // check to see if the synchronization was used for anything
       if (lockIsIdentifiable && !lockIsPolicyLock && !syncFrame.isNeeded()) {
-        makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING, syncBlock,
-            DS_SYNCHRONIZED_UNUSED_MSG, syncFrame);
+        final InfoDrop info = makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING,
+            syncBlock, DS_SYNCHRONIZED_UNUSED_MSG, syncFrame);
+        for (final StackLock stackLock : syncFrame) {
+          stackLock.lock.getLockPromise().addDependent(info);
+        }
       }
     } finally {
       // remove the lock from the context
