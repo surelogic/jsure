@@ -1210,53 +1210,61 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
      * Only interested if there is a nested FieldRef Expression. TODO: (Ought to
      * worry about referencing fields out of array elements too, but not now...)
      */
-    final boolean isArrayRef = ArrayRefExpression.prototype
-        .includes(JJNode.tree.getOperator(fieldRef));
-    final IRNode objExpr = isArrayRef ? ArrayRefExpression.getArray(fieldRef)
-        : FieldRef.getObject(fieldRef);
+    final boolean isArrayRef =
+      ArrayRefExpression.prototype.includes(JJNode.tree.getOperator(fieldRef));
+    final IRNode objExpr = 
+      isArrayRef ? ArrayRefExpression.getArray(fieldRef)
+                 : FieldRef.getObject(fieldRef);
     final Operator op2 = JJNode.tree.getOperator(objExpr);
 
-    /* We need this info along both branches below */
-    final boolean isFinal = isArrayRef ? false : TypeUtil.isFinal(fieldRef);
-    final boolean isVolatile = isArrayRef ? false : TypeUtil.isVolatile(fieldRef);
-
+    /* We only care if fieldRef is e'.f'.f or e'.f'[...] */
     if (FieldRef.prototype.includes(op2)) {
-      /*
-       * e = e'.f' ==> fieldRef = e'.f'.f Now check if f' is in a protected
-       * region.
+      /* Things are only interesting if the outer region f is not protected.
+       * So we don't proceed if f is protected by a lock or if f is volatile
+       * or final.  Array reference is not protected.
        */
-      final RegionLockRecord innerLock = lockUtils.getLockForFieldRef(objExpr);
-      if (innerLock != null) {
-        /*
-         * f' is a protected field, see if we have to warn the programmer that
-         * the item referenced by f' is not necessarily protected.
-         */
-
-        /*
-         * if field f is final or VOLATILE, still don't care.
+      final boolean unprotected = isArrayRef
+          || (!isFinalOrVolatile(fieldRef) &&
+              lockUtils.getLockForFieldRef(fieldRef) == null);
+      if (unprotected) {
+        /* Now check if f' is in a protected region.  There are three cases:
+         * (1) f' is a final or volatile field in a class that contains lock 
+         * declarations.
+         * (2) f' is a field in a region associated with a lock.
+         * (3) Otherwise, we assume f' is not meant to be accessed concurrently,
+         * so we don't have to issue a warning.
          * 
-         * fdecl == NULL if fieldRef is an ArrayRefExpression (CLEAN UP THIS
-         * LOGIC...)
+         * In the first case we report the warning under EACH lock that 
+         * is declared in the class.  In the second case we report the warning
+         * under the lock that protects f'.
          */
-        if (isArrayRef || !(isFinal || isVolatile)) {
-          /*
-           * Now check that f is protected, either by its object (that is, the
-           * object referenced by e'.f'), in which case this expression had
-           * better be inside of another critical section, although this is
-           * checked somewhere else, or see if f' is unique and that f is mapped
-           * into a protected region.
-           * 
-           * In other words, we have an access of the form e'.f'.f, and we know
-           * that f' is associated with a lock, and thus the object referenced
-           * by e'.f' may be accessed by many threads. Therefore, the value in
-           * e'.f'.f may also be accessed by many threads and needs to be
-           * associated with a lock. We issue a warning if we cannot find a lock
-           * that is associated with that field.
-           */
-          // Just want to see if there is a lock or not, read/write doesn't matter
-          if (isArrayRef || lockUtils.getLockForFieldRef(fieldRef) == null) {
-            /*
-             * For the lock required for e'.f', attach a warning that it is not
+        if (isFinalOrVolatile(objExpr)) {
+          // Field is final or volatile, see if the class contains locks
+          if(mayBeAccessedByManyThreads(objExpr)) {
+            /* For each lock declared in the class of e'.f', attach a warning
+             * that it is not protecting the field f. 
+             */
+            final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
+                fieldRef, DS_AGGREGATION_NEEDED, DebugUnparser.toString(fieldRef));
+
+            final IJavaType rcvrType = binder.getJavaType(FieldRef.getObject(objExpr));
+            if (rcvrType instanceof IJavaDeclaredType) {
+              final Set<AbstractLockRecord> records =
+                sysLockModelHandle.get().getRegionAndPolicyLocksInClass((IJavaDeclaredType) rcvrType);
+              for (final AbstractLockRecord lockRecord : records) {
+                if (!lockRecord.lockDecl.equals(lockUtils.getMutex())) {
+                  lockRecord.lockDecl.addDependent(info);
+                }
+              }
+            }
+          }
+        } else {
+          // Field is non-final, non-volatile
+          final RegionLockRecord innerLock = lockUtils.getLockForFieldRef(objExpr);
+          if (innerLock != null) {
+            // Field is non-final, non-volatile, and is associated with a lock
+
+            /* For the lock required for e'.f', attach a warning that it is not
              * protecting the field f. 
              */
             final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
@@ -1264,48 +1272,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
             innerLock.lockDecl.addDependent(info);
           }
         }
-        // still nothing to do
-      } else {
-        /*
-         * We have a reference e'.f'.f, and there is no lock associated with
-         * e'.f'. But if the field f' is final or volatile and the class of e'
-         * contains lock annotations, then it is still the case the e'.f may be
-         * accessed by many threads. (The field f' is "protected" in this case
-         * by virtue of being final/volatile.) So we check to see if the class
-         * contains any @lock annotations, and if so, then we complain if the
-         * field f is not protected.
-         * 
-         * We only consider final/volatile fields here because protected
-         * non-final fields are covered by the 'then' branch above; unprotected
-         * non-final fields have other means of being identified (e.g.,
-         * "synchronized block protects nothing"). Otherwise we cast the net too
-         * wide and end up complaining too much.
-         */
-        if (mayBeAccessedByManyThreads(objExpr)) {
-          /*
-           * Class has programmer-declared locks and f' is suspicious. Check to
-           * see if field f has locks associated with it, or if field f is
-           * itself final or volatile
-           */
-          if ((isArrayRef || lockUtils.getLockForFieldRef(fieldRef) == null)
-              && !(isFinal || isVolatile)) {
-            /* No specific lock models to attach this warning to */
-            final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
-                fieldRef, DS_AGGREGATION_NEEDED, DebugUnparser
-                    .toString(fieldRef));
-            final IRNode decl = this.binder.getBinding(objExpr);
-            addSupportingInformation(info, decl, DS_FIELD_DECLARATION_MSG,
-                DebugUnparser.toString(decl));
-          }
-        }
-        /*
-         * The remaining case is that the class may or may not have lock
-         * annotations in it, but we operate under the assumption that field f'
-         * is not intended to be accessed concurrently because it is not
-         * protected by a lock or by virtue of being final/volatile, thus we
-         * don't have to worry about issuing a warning.
-         */
-      }
+      } 
     }
   }
 
@@ -1346,6 +1313,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   }
   
   /**
+   * Return whether a FieldRef expression references a volatile or final field.
+   */
+  private boolean isFinalOrVolatile(final IRNode fieldRef) {
+    final IRNode fieldDecl = binder.getBinding(fieldRef);
+    return TypeUtil.isFinal(fieldDecl) || TypeUtil.isVolatile(fieldDecl);
+  }
+  
+  /**
    * <p>
    * Check if the expression used as the receiver in a method call refers to a
    * "thread-safe" object and the field used to refer to the object is
@@ -1377,14 +1352,24 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
           /* See if the field is protected: either directly, or because the
            * the field is final or volatile and the class contains lock annotations.
            */
-          if (mayBeAccessedByManyThreads(actualRcvr)) {
-            // final/volatile field in a lock protected class
-            final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
-                actualRcvr, DS_AGGREGATION_NEEDED2,
-                DebugUnparser.toString(actualRcvr));
-            final IRNode decl = this.binder.getBinding(actualRcvr);
-            addSupportingInformation(info, decl, DS_FIELD_DECLARATION_MSG,
-                DebugUnparser.toString(decl));
+          if (isFinalOrVolatile(actualRcvr)) {
+            if (mayBeAccessedByManyThreads(actualRcvr)) {
+              // final/volatile field in a lock protected class
+              final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
+                  actualRcvr, DS_AGGREGATION_NEEDED2,
+                  DebugUnparser.toString(actualRcvr));
+              
+              final IJavaType rcvrType = binder.getJavaType(FieldRef.getObject(actualRcvr));
+              if (rcvrType instanceof IJavaDeclaredType) {
+                final Set<AbstractLockRecord> records =
+                  sysLockModelHandle.get().getRegionAndPolicyLocksInClass((IJavaDeclaredType) rcvrType);
+                for (final AbstractLockRecord lockRecord : records) {
+                  if (!lockRecord.lockDecl.equals(lockUtils.getMutex())) {
+                    lockRecord.lockDecl.addDependent(info);
+                  }
+                }
+              }
+            }
           } else {
             final RegionLockRecord neededLock = lockUtils.getLockForFieldRef(actualRcvr);
             if (neededLock != null) {
@@ -1401,33 +1386,30 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   }
 
   /**
-   * Check if a field is <code>final</code> or <code>volatile</code> and the
-   * class it is a part of contains locking design intent. If so, then the field
+   * Check if a <code>final</code> or <code>volatile</code> field is contained in
+   * a class that contains locking design intent. If so, then the field
    * may be accessed concurrently, although we consider the field "protected" by
    * virtue of it's finality or volatility. This method is called when we are
    * trying to figure out if the object referenced by such a field can be
    * concurrently accessed.
    */
   private boolean mayBeAccessedByManyThreads(final IRNode fieldRef) {
-    // check if f is final or volatile
-    final IRNode fieldDecl = binder.getBinding(fieldRef);
-    if (TypeUtil.isFinal(fieldDecl) || TypeUtil.isVolatile(fieldDecl)) {
-      // now see if class has programmer-declared locks in it.
-      final IJavaType rcvrType = binder.getJavaType(FieldRef.getObject(fieldRef));
-      if (rcvrType instanceof IJavaDeclaredType) {
-        final Set<AbstractLockRecord> records =
-          sysLockModelHandle.get().getRegionAndPolicyLocksInClass((IJavaDeclaredType) rcvrType);
-        final Iterator<AbstractLockRecord> recIter = records.iterator();
-        if (recIter.hasNext()) { // we have at least one lock
-          int numLocks = 0;
-          boolean containsMutex = false;
-          while (recIter.hasNext()) {
-            final AbstractLockRecord lr = recIter.next();
-            numLocks += 1;
-            containsMutex |= lr.lockDecl.equals(lockUtils.getMutex());
-          }
-          return (!containsMutex || (numLocks > 1));
+    /* We assume fieldRef is final or volatile */
+    // now see if class has programmer-declared locks in it.
+    final IJavaType rcvrType = binder.getJavaType(FieldRef.getObject(fieldRef));
+    if (rcvrType instanceof IJavaDeclaredType) {
+      final Set<AbstractLockRecord> records =
+        sysLockModelHandle.get().getRegionAndPolicyLocksInClass((IJavaDeclaredType) rcvrType);
+      final Iterator<AbstractLockRecord> recIter = records.iterator();
+      if (recIter.hasNext()) { // we have at least one lock
+        int numLocks = 0;
+        boolean containsMutex = false;
+        while (recIter.hasNext()) {
+          final AbstractLockRecord lr = recIter.next();
+          numLocks += 1;
+          containsMutex |= lr.lockDecl.equals(lockUtils.getMutex());
         }
+        return (!containsMutex || (numLocks > 1));
       }
     }
     return false;
