@@ -73,7 +73,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
         !n.equals(region.getNode())) {
       throw new IllegalArgumentException("RegionModel doesn't match field decl: "+n);
     }
-    model.setNode(region.getNode());
+    model.setNodeAndCompilationUnitDependency(region.getNode());
     model.setMessage(
         generateMessage(region.isStatic(), region.getVisibility(), qname));
     return model;
@@ -136,35 +136,52 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 					|| d instanceof AggregatePromiseDrop;
 		}
 	};
-
+	
+	public static void invalidate(String key) {
+		RegionModel drop = nameToDrop.get(key);
+		if (drop != null) {
+			drop.setAST(null);
+		}
+	}
+	
 	/**
 	 * Removes regions that are not defined by any promise definitions.
 	 */
 	public static synchronized void purgeUnusedRegions() {
 		Map<String, RegionModel> newMap = new HashMap<String, RegionModel>();
+		//boolean invalidated = false;
 		for (String key : nameToDrop.keySet()) {
 			RegionModel drop = nameToDrop.get(key);
 
 			boolean regionDefinedInCode = modelDefinedInCode(definingDropPred,
-					drop);
+					drop);			
+			boolean keepAnyways = false;
 			if (!regionDefinedInCode) {
-        regionDefinedInCode = drop.isValid() && 
+				keepAnyways = drop.isValid() && 
         	                 (drop.colorInfo != null || 
                               drop.getAST() != null  || 
                               key.equals(INSTANCE) || 
                               key.equals(ALL));
 			}
-
-			if (regionDefinedInCode) {
+			 
+			//System.out.println(key+" : "+regionDefinedInCode+", "+keepAnyways);
+			if (regionDefinedInCode || keepAnyways) {
 				newMap.put(key, drop);
 			}
 			else {
-        //System.out.println("Purging "+drop.regionName);
+				//System.out.println("Purging "+drop.regionName);
 				drop.invalidate();
+				//invalidated = true;
 			}
-		}
+		}		
 		// swap out the static map to regions
 		nameToDrop = newMap;
+		/*
+		if (invalidated) {
+			System.out.println("Re-trying purge");
+			purgeUnusedRegions();	
+		}
+		*/
 	}
 
 	/**
