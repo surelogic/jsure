@@ -42,6 +42,8 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
       }
       // Clear decl
       setNode(null);
+      clearAST();      
+      //System.out.println("Clearing "+this.getMessage()+" due to invalidated "+invalidDeponent.getMessage());
       
       // TODO queue dependents for scrubbing
     /*
@@ -49,7 +51,12 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
       // FIX these shouldn't be connected like this
        */
     } else {
-      LOG.warning("Unexpected invalidate from "+invalidDeponent.getMessage());
+      /*
+      for(Drop d : getDeponents()) {
+    	  System.out.println(d.getClass().getSimpleName()+": "+d.getMessage());
+      }
+      */
+      LOG.warning("Unexpected invalidate on "+getMessage()+" from "+invalidDeponent.getMessage());
     }
   }
   
