@@ -56,9 +56,9 @@ public class Messages extends AbstractMessages {
   public static String LockAnalysis_dsc_MatchingCalls = "lock()\u2013unlock() matches";
   
   // Drop-sea result messages
-  public static String LockAnalysis_ds_SynchronizedConstructorAssured = "singleThreaded constructor supported";
+  public static String LockAnalysis_ds_SynchronizedConstructorAssured = "SingleThreaded constructor supported";
 
-  public static String LockAnalysis_ds_SynchronizedConstructorNotAssured = "singleThreaded constructor has possibly escaping receiver";
+  public static String LockAnalysis_ds_SynchronizedConstructorNotAssured = "SingleThreaded constructor has possibly escaping receiver";
 
   public static String LockAnalysis_ds_AggregationNeeded = "Field reference \"{0}\" may be to a shared unprotected object";
 

@@ -39,8 +39,8 @@ public abstract class IRAbstractState<T> implements IRStoredState<T> {
   /**
    * Create an IR state that has no parent state.
    * 
-   * @singleThreaded
-   * @borrowed this
+   * @SingleThreaded
+   * @Borrowed this
    */
   public IRAbstractState() {
     this(null);
@@ -49,8 +49,8 @@ public abstract class IRAbstractState<T> implements IRStoredState<T> {
   /**
    * Create an IR state within the given state.
    * @param p
-   * @singleThreaded
-   * @borrowed this
+   * @SingleThreaded
+   * @Borrowed this
    */
   public IRAbstractState(IRState p) {
     if (p == null) p = createDefaultStateParent();

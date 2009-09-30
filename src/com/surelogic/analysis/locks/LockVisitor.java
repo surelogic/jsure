@@ -1851,7 +1851,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 
         final SingleThreadedPromiseDrop stDrop = LockRules.getSingleThreadedDrop(cdecl);
         if (stDrop == null) {
-          LOG.severe("NULL singleThreaded drop in checkSynchronizedConstructor");
+          LOG.severe("NULL SingleThreaded drop in checkSynchronizedConstructor");
         }
         // get the receiver and see if it is declared to be borrowed
         final boolean isBorrowedThis =
@@ -1860,7 +1860,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
           // get drop and hook up to singleThreaded drop
           bDrop = UniquenessRules.getBorrowedDrop(ctxtTheReceiverNode);
           if (bDrop == null) {
-            LOG.severe("NULL borrowed this drop in checkSynchronizedConstructor");
+            LOG.severe("NULL Borrowed this drop in checkSynchronizedConstructor");
           }
         }
 

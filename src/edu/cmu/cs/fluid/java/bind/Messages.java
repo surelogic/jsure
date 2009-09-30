@@ -25,7 +25,7 @@ public class Messages extends AbstractMessages {
 
   public static String LockAnnotation_selfProtectedDrop = "selfProtected  on  {0}";
 
-  public static String LockAnnotation_singleThreadedDrop = "singleThreaded  on  {0}";
+  public static String LockAnnotation_singleThreadedDrop = "SingleThreaded  on  {0}";
 
   public static String EffectsAnnotation_prescrubbedEffects = "method effects promise (pre-scrubbed, not complete) on {0}";
 
