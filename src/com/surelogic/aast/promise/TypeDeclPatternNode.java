@@ -92,7 +92,7 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 		if ("*".equals(getPkg()) && "*".equals(getType())) {
 			return true;
 		}
-		return AASTBinder.getInstance().isResolvableToType(this);
+		return true;//AASTBinder.getInstance().isResolvableToType(this);
 	}
 
 	/**
