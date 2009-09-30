@@ -28,7 +28,7 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 	}
 	
 	@Override
-	protected void fillContextMenu(IMenuManager manager) {
+	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		// TODO Auto-generated method stub
 	}
 

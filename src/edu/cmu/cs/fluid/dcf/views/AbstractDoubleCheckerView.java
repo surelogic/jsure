@@ -27,6 +27,8 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
+import org.eclipse.swt.events.MenuDetectEvent;
+import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -192,7 +194,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 		viewer.setInput(getViewSite());
 		makeActions_private();
-		hookContextMenu();
+		hookContextMenu();		
 		hookDoubleClickAction();
 		contributeToActionBars();
 		// start empty until the initial build is done
@@ -274,7 +276,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
-				AbstractDoubleCheckerView.this.fillContextMenu_private(manager);
+				IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
+				AbstractDoubleCheckerView.this.fillContextMenu_private(manager, s);
 			}
 		});
 		Menu menu = menuMgr.createContextMenu(viewer.getControl());
@@ -288,8 +291,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		fillLocalToolBar(bars.getToolBarManager());
 	}
 
-	private void fillContextMenu_private(IMenuManager manager) {
-		fillContextMenu(manager);
+	private void fillContextMenu_private(IMenuManager manager, IStructuredSelection s) {
+		fillContextMenu(manager, s);
 		manager.add(new Separator());
 		// Other plug-ins can contribute there actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
@@ -308,7 +311,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		setViewState();
 	}
 
-	protected abstract void fillContextMenu(IMenuManager manager);
+	protected abstract void fillContextMenu(IMenuManager manager, IStructuredSelection s);
 
 	protected abstract void fillLocalPullDown(IMenuManager manager);
 

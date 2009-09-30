@@ -43,6 +43,7 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
+import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
@@ -134,6 +135,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	private Action actionExportZIPForStandAloneResultsViewer;
 
 	private Action actionExportXMLForSierra;
+	
+	private Action actionShowUnderlyingDropType;
 
 	/**
 	 * Changed to not depend on the Viewer
@@ -234,11 +237,26 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	}
 
 	@Override
-	protected void fillContextMenu(IMenuManager manager) {
+	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		manager.add(actionExpand);
 		manager.add(actionCollapse);
 		manager.add(new Separator());
 		manager.add(actionShowInferences);
+		if (XUtil.useDeveloperMode()) {
+			manager.add(new Separator());
+			manager.add(actionShowUnderlyingDropType);
+			if (!s.isEmpty()) {
+				Content c = (Content) s.getFirstElement();
+				Drop d = c.referencedDrop;
+				if (d != null) {
+					actionShowUnderlyingDropType.setText("Type: "+d.getClass().getName());
+				} else {
+					actionShowUnderlyingDropType.setText("Type: n/a");
+				}
+			} else {
+				actionShowUnderlyingDropType.setText("Type: Unknown");
+			}
+		}
 	}
 
 	@Override
@@ -337,6 +355,13 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		actionCollapse.setToolTipText("Collapse Tree");
 		actionCollapse.setImageDescriptor(COLLAPSEALL_DESC);
 
+		actionShowUnderlyingDropType = new Action() {
+			@Override
+			public void run() {
+				// Does nothing right now
+			}
+		};
+		actionShowUnderlyingDropType.setText("Unknown");		
 		setViewState();
 	}
 
