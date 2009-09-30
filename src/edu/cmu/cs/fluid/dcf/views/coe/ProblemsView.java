@@ -13,6 +13,7 @@ import com.surelogic.common.eclipse.SLImages;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.eclipse.ui.ITableContentProvider;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
 
 public class ProblemsView extends AbstractDoubleCheckerView {
@@ -132,10 +133,22 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 			case 0:
 				return d.getMessage();
 			case 1:
-				IFile f = (IFile) d.getSrcRef().getEnclosingFile();
-				return f.getFullPath().toPortableString();
+				ISrcRef ref = d.getSrcRef();
+				if (ref == null) {
+					return "";
+				}
+				Object o = ref.getEnclosingFile();
+				if (o instanceof IFile) {
+					IFile f = (IFile) o;
+					return f.getFullPath().toPortableString();
+				} else {
+					return o.toString();
+				}
 			case 2:
-				return Integer.toString(d.getSrcRef().getLineNumber());
+				ref = d.getSrcRef();
+				if (ref != null) {
+					return Integer.toString(ref.getLineNumber());
+				}
 			}
 			return "";
 		}
