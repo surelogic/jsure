@@ -44,6 +44,11 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     return this.offset;// + offset;
   }
   
+  @Override
+  public String getSelectedText(int start, int stop) {
+	return contents.substring(start, stop);
+  }
+  
   protected abstract String getName();
   
   /**

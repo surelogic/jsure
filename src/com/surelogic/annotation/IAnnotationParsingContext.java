@@ -2,7 +2,6 @@
 package com.surelogic.annotation;
 
 import com.surelogic.aast.*;
-import com.surelogic.annotation.test.TestResult;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -25,6 +24,8 @@ public interface IAnnotationParsingContext {
    *         to the given offset
    */
   int mapToSource(int offset);
+  
+  String getSelectedText(int start, int stop);
   
   /**   
    * @return The kind of source the text is originally from
@@ -65,7 +66,9 @@ public interface IAnnotationParsingContext {
     public void reportError(int offset, String msg) {
       System.out.println(msg);
     }
-    public <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {}
+    public <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {
+    	// Nothing to do
+    }
     public void reportException(int offset, Exception e) {
       e.printStackTrace();
     }

@@ -69,6 +69,10 @@ ITestAnnotationParsingContext {
     return offset;
   }
   
+  public String getSelectedText(int start, int stop) {
+	throw new UnsupportedOperationException();
+  }
+  
   /**
    * Convenience method for annotations that will appear on the default declaration
    */
