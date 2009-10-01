@@ -93,7 +93,40 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 				// to a promise drop or a result drop
 				contents.add(id);
 			}			
-			// FIX sort?
+			Collections.sort(contents, new Comparator<PromiseWarningDrop>() {
+				public int compare(PromiseWarningDrop d1, PromiseWarningDrop d2) {
+					String res1 = getResource(d1);
+					String res2 = getResource(d2);
+					int rv = 0;
+					// Make those with a real path go first
+					if (res1.startsWith("/")) {
+						rv = -1;
+					}
+					if (res2.startsWith("/")) {
+						rv++;
+					}
+					if (rv == 0) {
+						// Make those with no path go last
+						if (res1.length() == 0) {
+							rv = 1;
+						}
+						if (res2.length() == 0) {
+							rv--;
+						}
+					}
+					if (rv == 0) {
+						rv = res1.compareTo(res2);
+					}
+					if (rv == 0) {
+						rv = getLine(d1) - getLine(d2);
+					}
+					if (rv == 0) {
+						rv = d1.getMessage().compareTo(d2.getMessage());
+					}
+					return rv;
+				}
+				
+			});
 		}
 
 		public Object[] getElements(Object inputElement) {
@@ -127,28 +160,40 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 			return null;
 		}
 
+		private String getResource(PromiseWarningDrop d) {
+			ISrcRef ref = d.getSrcRef();
+			if (ref == null) {
+				return "";
+			}
+			Object o = ref.getEnclosingFile();
+			if (o instanceof IFile) {
+				IFile f = (IFile) o;
+				return f.getFullPath().toPortableString();
+			} else {
+				return o.toString();
+			}
+		}
+		
+		private int getLine(PromiseWarningDrop d) {
+			ISrcRef ref = d.getSrcRef();
+			if (ref != null) {
+				return ref.getLineNumber();
+			}
+			return Integer.MAX_VALUE;
+		}
+		
 		public String getColumnText(Object element, int columnIndex) {
 			PromiseWarningDrop d = (PromiseWarningDrop) element;
 			switch (columnIndex) {
 			case 0:
 				return d.getMessage();
 			case 1:
-				ISrcRef ref = d.getSrcRef();
-				if (ref == null) {
-					return "";
-				}
-				Object o = ref.getEnclosingFile();
-				if (o instanceof IFile) {
-					IFile f = (IFile) o;
-					return f.getFullPath().toPortableString();
-				} else {
-					return o.toString();
-				}
+				return getResource(d);
 			case 2:
-				ref = d.getSrcRef();
-				if (ref != null) {
-					return Integer.toString(ref.getLineNumber());
-				}
+				int line = getLine(d);
+				if (line != Integer.MAX_VALUE) {
+					return Integer.toString(line);
+				}				
 			}
 			return "";
 		}
