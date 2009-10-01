@@ -111,15 +111,28 @@ public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, 
 /*************************************************************************************
  * Rules supporting scoped promises (@Promise, @Assume, @Module)
  *************************************************************************************/	
-
+/*
 scopedPromise
   : promiseString -> ^(ScopedPromise promiseString ^(AnyTarget))
   | promiseString FOR promiseTarget -> ^(ScopedPromise promiseString promiseTarget)
-  ;     	
-
+  ;    
+  
 promiseString
   : PromiseStringLiteral
   | StringLiteral
+  ;  	
+*/
+
+// Still have to check for parens
+scopedPromise
+  : '@' IDENTIFIER -> ^(ScopedPromise IDENTIFIER ^(AnyTarget))
+  | '@' IDENTIFIER promiseContent -> ^(ScopedPromise IDENTIFIER promiseContent ^(AnyTarget))
+  | '@' IDENTIFIER FOR promiseTarget -> ^(ScopedPromise IDENTIFIER promiseTarget)  
+  | '@' IDENTIFIER promiseContent FOR promiseTarget -> ^(ScopedPromise IDENTIFIER promiseContent promiseTarget)
+  ;  
+
+promiseContent
+  : '(' ( ~FOR )* 
   ;
 
 promiseTarget

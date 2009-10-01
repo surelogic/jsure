@@ -3,6 +3,7 @@ package com.surelogic.annotation.parse;
 
 import org.antlr.runtime.Token;
 
+import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.parse.*;
 
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -21,11 +22,17 @@ public class ScopedPromiseAdaptor extends AbstractNodeAdaptor {
   }
 
   public class Node extends AbstractNodeAdaptor.Node {
+	private int textStart = Integer.MAX_VALUE;
+	private int textStop = Integer.MIN_VALUE;
+	  
     Node(String t, int type) {
       super(t, type);
     } 
     @Override
     protected boolean handleSpecialTokens(TreeToken tt) {
+      // Hack to collect data for ScopedPromise
+      updateTextRange(tt.getStartIndex(), tt.getStopIndex());
+      
       switch (tt.getType()) {
         case ScopedPromisesParser.RBRACKET:
           dims++;    
@@ -45,8 +52,28 @@ public class ScopedPromiseAdaptor extends AbstractNodeAdaptor {
         case ScopedPromisesParser.FINAL:
           mods = JavaNode.setModifier(mods, JavaNode.FINAL, true);
           return true;
-      } 
+      }       
       return false;
     }
+    
+    private void updateTextRange(int begin, int end) {
+        if (begin < textStart) {
+        	textStart = begin;
+        }
+        if (textStop < end) {
+        	textStop = end;
+        }
+    }
+
+    /**
+     * Use the original text (from the context), based on the start/stop offsets
+     * (not including child nodes)
+     * 
+     * Really here only for ScopedPromiseNode
+     */
+	public void useText(IAnnotationParsingContext c) {
+		final String text = c.getSelectedText(textStart, textStop+1);
+		id = text;
+	}
   }
 }

@@ -74,9 +74,6 @@ public class ScopedPromiseRules extends AnnotationRules {
 
 		@Override
 		protected ScopedPromisesParser initParser(String contents) throws Exception {
-			if (!contents.contains("'") && !contents.contains("\"")) {
-				contents = '\''+contents+'\'';
-			}
 			return ScopedPromiseParse.initParser(contents);
 		}
 	}
@@ -100,30 +97,30 @@ public class ScopedPromiseRules extends AnnotationRules {
 		@Override
 		protected AASTNode finalizeAST(IAnnotationParsingContext c,
 				AbstractNodeAdaptor.Node tn) {
+			final ScopedPromiseAdaptor.Node node = (ScopedPromiseAdaptor.Node) tn;
+			node.useText(c);
+			
 			ScopedPromiseNode sp = (ScopedPromiseNode) super.finalizeAST(c, tn);
-			// Parse the embedded promise
-			String text = sp.getPromise();
-			int start = text.startsWith("@") ? 1 : 0;
-			int space = text.indexOf(' ');
-			String promise = space < 0 ? text.substring(start) : text.substring(
-					start, space);
-			String contents = space < 0 ? "" : text.substring(space + 1);
-			promise = AnnotationVisitor.capitalize(promise);
-
+			PromiseContentParser parser = new PromiseContentParser(c, sp.getPromise());
+			if (parser.tag == null) {
+				// Already reported error
+				return null;
+			}
+			
 			// -- passing on errors/warnings
 			// -- capturing any AASTs that are created
 			AbstractAnnotationParsingContext context = (AbstractAnnotationParsingContext) c;
 			IAnnotationParseRule<?, ?> r = PromiseFramework.getInstance()
-					.getParseDropRule(promise);
+					.getParseDropRule(parser.tag);
 			if (r != null) {
 				Proxy proxy = new Proxy(context, r);
-				r.parse(proxy, contents);
+				r.parse(proxy, parser.content);
 				if (!proxy.createdAAST() && !proxy.hadProblem()) {
-					context.reportError(0, "Nothing created from " + text);
+					context.reportError(0, "No AAST created from " + sp.getPromise());
 					return null;
 				}
 			} else {
-				context.reportError(0, "No rule for @" + promise);
+				context.reportError(0, "No rule for @" + parser.tag);
 				return null;
 			}
 			
@@ -255,6 +252,9 @@ public class ScopedPromiseRules extends AnnotationRules {
 		return success;
 	}
 	
+	/**
+	 * Used to note the creation of an AAST (discarded afterwards)
+	 */
 	static class Proxy extends AnnotationParsingContextProxy {
 		private final IAnnotationParseRule<?, ?> rule;
 		private boolean reported;
@@ -317,38 +317,59 @@ public class ScopedPromiseRules extends AnnotationRules {
 
 	}
 
+	static class PromiseContentParser {
+		final String tag, content;
+		
+		PromiseContentParser(IAnnotationParsingContext c, String text) {
+			int start = text.startsWith("@") ? 1 : 0;
+			int lparen = text.indexOf('(');
+			String promise, contents;
+			if (lparen < 0) {
+				promise = text.substring(start);
+				contents = "";
+			} else { 
+				// Has a left paren
+				if (text.endsWith(")")) {
+					promise = text.substring(start, lparen);
+					contents = text.substring(lparen + 1, text.length()-1);
+				} else {
+					if (c != null) {
+						c.reportError(text.length()-1, "No closing parentheses :" + text);
+					}
+					promise = null;
+					contents = null;
+				}
+			}
+			if (promise != null) {
+				promise = promise.trim();
+				promise = AnnotationVisitor.capitalize(promise);
+			}
+			tag = promise;
+			content = contents;
+		}
+	}
+	
 	/**
 	 * Also used to help with parsing and applying the scoped promise
 	 */
 	@SuppressWarnings("unchecked")
-	static class ScopedPromiseCallback implements ValidatedDropCallback {
+	static class ScopedPromiseCallback extends PromiseContentParser 
+	implements ValidatedDropCallback {
 		private final ScopedPromiseDrop scopedPromiseDrop;
 		final PromiseTargetNode target;
-		final String tag, content;
 	
 		// Used to parse the promise when we find a match
 		final IAnnotationParseRule<?, ?> parseRule;		
 		
 		public ScopedPromiseCallback(ScopedPromiseDrop drop) {
-			this.scopedPromiseDrop = drop;
-		
+			super(null, drop.getAST().getPromise());			
+			this.scopedPromiseDrop = drop;		
 			target = drop.getAST().getTargets();
 			
-			// Process promise text
-			String promise = drop.getAST().getPromise();
-			String[] words = promise.split("\\s"); // split by white space
-
-			// The actual content of the promise, i.e., minus the annotation string
-			StringBuilder promiseContent = new StringBuilder();
-			if (words.length > 1) {
-				promiseContent.append(promise.substring(words[0].length()));
+			if (tag == null) {
+				throw new IllegalArgumentException("No closing parentheses: "+drop.getAST().getPromise());
 			}
-			tag = words[0].length() > 0 && words[0].startsWith("@") ?
-					words[0].substring(1) : words[0];
-			content = promiseContent.toString();
-			
-			parseRule = PromiseFramework.getInstance()
-					.getParseDropRule(AnnotationVisitor.capitalize(tag));
+			parseRule = PromiseFramework.getInstance().getParseDropRule(tag);
 		}
 
 		/*
