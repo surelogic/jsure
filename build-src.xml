@@ -102,6 +102,7 @@
 				<classpath>
 					<pathelement location="${antlr-lib}/antlr-3.1.jar" />
 				</classpath>
+				<jvmarg value="-Xmx1024m"/>
 			</antlr3>
 		</sequential>
 	</macrodef>
