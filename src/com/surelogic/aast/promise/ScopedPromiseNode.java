@@ -57,11 +57,9 @@ implements IAASTRootNode
       sb.append("\n");
       sb.append(getTargets().unparse(debug, indent+2));
     } else {
-      sb.append('\'').append(getPromise());
-      if (getTargets() instanceof AnyTargetNode) {
-    	  sb.append('\'');
-      } else {
-          sb.append("' for ").append(getTargets());
+      sb.append('@').append(getPromise());
+      if (!(getTargets() instanceof AnyTargetNode)) {
+          sb.append(" for ").append(getTargets());
       }
     }
     return sb.toString();
