@@ -732,6 +732,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 						if (t == null) {
 							LOG.warning("Couldn't load " + qname
 									+ " as a type or a package");
+							//Eclipse.getDefault().getETypeEnv(p).reloadNamedType(qname);
 						}
 					}
 				});
@@ -755,6 +756,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		return super.analyzeEnd(p);
 	}
 
+	// Used by both source and binary files
 	class ITypeBindingHandler implements ISrcAdapterNotify {
 		public void run(CodeInfo info) {
 			checkIfRunning(info.getFileName());
