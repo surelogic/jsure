@@ -36,10 +36,32 @@ public class PackageDrop extends CUDrop {
   private boolean hasPromises = false;
   private final boolean isFromSrc;
   
-  private PackageDrop(String pkgName, IRNode root, IRNode n) { 
+  private PackageDrop(String pkgName, IRNode root, IRNode n,
+		              boolean fromSrc) { 
     super(pkgName, root);
     node      = n;
-    isFromSrc = !XML.getDefault().processingXML();
+    isFromSrc = fromSrc;
+  }
+  
+  private PackageDrop(String pkgName, IRNode root, IRNode n) {
+	this(pkgName, root, n, !XML.getDefault().processingXML());
+  }
+  
+  public static class Info {
+	  public final String pkgName;
+	  public final IRNode root, node;
+	  public final boolean isFromSrc;
+	  
+	  private Info(PackageDrop d) {
+		  pkgName = d.javaOSFileName;
+		  root = d.cu;
+		  node = d.node;
+		  isFromSrc = d.isFromSrc;
+	  }
+  }
+  
+  public Info makeInfo() {
+	  return new Info(this);
   }
   
   public void addType(IRNode t) { types.add(t); }

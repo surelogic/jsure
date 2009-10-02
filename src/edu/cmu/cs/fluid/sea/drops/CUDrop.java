@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
@@ -21,6 +22,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 public abstract class CUDrop extends Drop {
   private static SlotInfo<CUDrop> si = SimpleSlotFactory.prototype.newLabeledAttribute("CUDrop", null);  
   
+  private final CodeInfo info;
   public final String javaOSFileName;
 
   public AnalysisContext analysisContext;
@@ -46,6 +48,8 @@ public abstract class CUDrop extends Drop {
   
   @SuppressWarnings("unchecked")
   protected CUDrop(CodeInfo info) {
+	// TODO will this suck up space for the source?
+	this.info = info;
     cu = info.getNode();
     if (info.getCompUnit() != null) {
       cun = info.getCompUnit();
@@ -68,9 +72,16 @@ public abstract class CUDrop extends Drop {
     } else {
       elidedFields = ef;
     }
+    String pkgName = VisitUtil.getPackageName(cu);
+    final PackageDrop pd = PackageDrop.createPackage(pkgName);
+    pd.addDependent(this);    
     finishInit();
   }
 
+  public CodeInfo makeCodeInfo() {	  
+	  return info;
+  }
+  
   private void finishInit() {
     if (cu != null) {
       cu.setSlotValue(si, this);
@@ -84,6 +95,7 @@ public abstract class CUDrop extends Drop {
    * Only to be called by PackageDrop()
    */
   CUDrop(String pkgName, IRNode root) {
+	info  = null; 
     cu    = root;
     cun   = null;
     lines = 1;
@@ -148,4 +160,10 @@ public abstract class CUDrop extends Drop {
 	  super.snapshotAttrs(s);
 	  s.addAttribute("filename", javaOSFileName);
   }
+  /*
+  @Override
+  protected void invalidate_internal() {
+	  System.out.println("Invalidating "+javaOSFileName);
+  }
+  */
 }
