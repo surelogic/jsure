@@ -385,6 +385,10 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 			throw new IllegalArgumentException("source drop is null");
 		}
 		if (source != null && source.isValid()) {
+			if (source == drop) {
+				LOG.warning("Re-setting source drop: "+drop);
+				return;
+			}
 			throw new IllegalArgumentException(
 					"already have a valid source drop");
 		}
