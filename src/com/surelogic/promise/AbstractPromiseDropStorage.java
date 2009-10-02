@@ -2,6 +2,9 @@
 package com.surelogic.promise;
 
 import java.util.List;
+import java.util.logging.Logger;
+
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
@@ -9,6 +12,8 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public abstract class AbstractPromiseDropStorage<D extends PromiseDrop> 
 implements IPromiseDropStorage<D> {
+  protected Logger LOG = SLLogger.getLogger("fluid");
+	
   private final String name;
   private final Class<D> base;
   

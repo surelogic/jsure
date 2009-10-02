@@ -44,7 +44,7 @@ implements IPromiseDropSeqStorage<D> {
       n.setSlotValue(si, l);
     }
     if (l.contains(d)) {
-      new IllegalArgumentException("For stack trace:"+d+" already associated with "+DebugUnparser.toString(n)).printStackTrace();
+      LOG.warning(d+" already associated with "+DebugUnparser.toString(n));
     } else {
       l.add(d);
     }
