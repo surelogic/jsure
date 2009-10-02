@@ -334,6 +334,9 @@ public abstract class AbstractFluidAnalysisModule extends
     IJavaModel javaModel = JavaCore.create(myWorkspaceRoot);
     try {
       for (IJavaProject proj : javaModel.getJavaProjects()) {
+    	if (!proj.equals(project)) {
+    		continue;
+    	}
         for (IPackageFragment pkgFrag : proj.getPackageFragments()) {
           if (p.javaOSFileName.equals(pkgFrag.getElementName())) {
             // Found a package frag that matches
