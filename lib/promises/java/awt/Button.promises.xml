@@ -4,21 +4,21 @@
     
     <MapRegion>Instance into java.awt.event.ActionListener:GUIstuff</MapRegion>
 
-    <Promise>&quot;transparent&quot; for add*Listener(**) | remove*Listener(**)</Promise>
-	  <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for add*Listener(**) | remove*Listener(**)</Promise>
+    <Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
+	  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add*Listener(**) | remove*Listener(**)</Promise>
 
-  <Promise>&quot;Color GUI&quot; for get*(**) | new(**)</Promise>
-  <Promise>&quot;RegionEffects reads java.awt.event.ActionListener:GUIinternal&quot; for new(**)</Promise>
-  <Promise>&quot;RegionEffects reads Instance&quot; for get*(**)</Promise>
+  <Promise>@Color(GUI) for get*(**) | new(**)</Promise>
+  <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal) for new(**)</Promise>
+  <Promise>@RegionEffects(reads Instance) for get*(**)</Promise>
 
-  <Promise>&quot;Color GUI&quot; for add*(**) &amp; !(add*Listener(**))</Promise>
-  <Promise>&quot;RegionEffects writes Instance&quot; for add*(**) &amp; !(add*Listener(**))</Promise>  
+  <Promise>@Color(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+  <Promise>@RegionEffects(writes Instance) for add*(**) &amp; !(add*Listener(**))</Promise>  
 
-  <Promise>&quot;Color GUI&quot; for process*(**)</Promise>
-  <Promise>&quot;RegionEffects reads java.awt.event.ActionListener:GUIinternal; writes Instance&quot; for process*(**)</Promise>  
+  <Promise>@Color(GUI) for process*(**)</Promise>
+  <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal; writes Instance) for process*(**)</Promise>  
 
-  <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
-  <Promise>&quot;RegionEffects writes Instance&quot; for set*(**)</Promise>
+  <Promise>@Color(GUI) for set*(**)</Promise>
+  <Promise>@RegionEffects(writes Instance) for set*(**)</Promise>
 
     </class>  
 </package>

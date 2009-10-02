@@ -1,6 +1,6 @@
 <package name="javax.servlet.http">
     <class name="HttpServlet">
       <ColorImport>javax.servlet</ColorImport>
-      <Promise>&quot;Color Servlet&quot; for do*(**)</Promise> 
+      <Promise>@Color Servlet) for do*(**)</Promise> 
     </class>  
 </package>

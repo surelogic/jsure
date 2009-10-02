@@ -1,5 +1,5 @@
 <package name="java.awt">
     <class name="KeyAdapter">
-      <Promise>&quot;Color AWT&quot; for *(**) | new(**)</Promise>
+      <Promise>@Color(AWT) for *(**) | new(**)</Promise>
     </class>
 </package>

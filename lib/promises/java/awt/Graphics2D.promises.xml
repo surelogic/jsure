@@ -3,15 +3,15 @@
 
     <ColorImport>java.awt</ColorImport>
 
-    <Promise>&quot;Color GUI&quot; for get*(**)</Promise>
+    <Promise>@Color(GUI) for get*(**)</Promise>
     
-    <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
+    <Promise>@Color(GUI) for set*(**)</Promise>
 
-    <Promise>&quot;Color GUI&quot; for draw*(**)</Promise>
+    <Promise>@Color(GUI) for draw*(**)</Promise>
     
-    <Promise>&quot;Color GUI&quot; for fill*(**)</Promise>
+    <Promise>@Color(GUI) for fill*(**)</Promise>
     
-    <Promise>&quot;Color GUI&quot; for translate(**)</Promise>
+    <Promise>@Color(GUI) for translate(**)</Promise>
     
   </class>
 </package>

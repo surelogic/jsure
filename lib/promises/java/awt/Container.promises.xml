@@ -1,17 +1,17 @@
 <package name="java.awt">
   <class name="Container">
     <ColorImport>java.awt</ColorImport>
-    <Promise>&quot;Color GUI&quot; for remove(**)</Promise>
-    <Promise>&quot;Color GUI&quot; for removeAll()</Promise>
-    <Promise>&quot;Color GUI&quot; for add*(**) &amp; !(add*Listener(**))</Promise>
-    <Promise>&quot;Color GUI&quot; for get*(**)</Promise>
-    <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
-    <Promise>&quot;Color GUI&quot; for is*(**)</Promise>
-    <Promise>&quot;Color GUI&quot; for put*(**) | invalidate(**)</Promise>
+    <Promise>@Color(GUI) for remove(**)</Promise>
+    <Promise>@Color(GUI) for removeAll()</Promise>
+    <Promise>@Color(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+    <Promise>@Color(GUI) for get*(**)</Promise>
+    <Promise>@Color(GUI) for set*(**)</Promise>
+    <Promise>@Color(GUI) for is*(**)</Promise>
+    <Promise>@Color(GUI) for put*(**) | invalidate(**)</Promise>
 	  
-	  <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for add(**) | remove(**)</Promise>
-	  <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for set*(**) | create*(**)</Promise>
-    <Promise>&quot;RegionEffects reads java.awt.event.ActionListener:GUIinternal&quot; for get*(**) | is*(**)</Promise>
+	  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add(**) | remove(**)</Promise>
+	  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for set*(**) | create*(**)</Promise>
+    <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal) for get*(**) | is*(**)</Promise>
 
     <method name="paint" params="java.awt.Graphics">
       <Color>AWT</Color>

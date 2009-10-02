@@ -1,5 +1,5 @@
 <package name="java.awt.event">
   <class name="MouseListener">
-    <Promise>&quot;Color AWT&quot; for mouse*(java.awt.event.MouseEvent)</Promise>
+    <Promise>@Color(AWT) for mouse*(java.awt.event.MouseEvent)</Promise>
   </class>  
 </package>

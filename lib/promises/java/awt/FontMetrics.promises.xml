@@ -2,9 +2,9 @@
     <class name="FontMetrics">
     <ColorImport>java.awt</ColorImport>
 
-    <promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIstuff, java.awt.event.ActionListener:GUIinternal&quot; for get*()</promise>
+    <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIstuff, java.awt.event.ActionListener:GUIinternal) for get*()</promise>
 
-    <promise>&quot;Color GUI&quot; for charWidth*(**) | get*(**)</promise>
+    <Promise>@Color(GUI) for charWidth*(**) | get*(**)</promise>
 
         <method name="stringWidth" params="java.lang.String">
             <Color>GUI</Color>

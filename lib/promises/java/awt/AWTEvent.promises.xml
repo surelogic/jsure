@@ -1,6 +1,6 @@
 <package name="java.awt">
     <class name="AWTEvent">
     <ColorImport>java.awt</ColorImport>
-      <!-- Promise>&quot;Color AWT&quot; for *(**)</Promise !-->
+      <!-- Promise>@Color(AWT) for *(**)</Promise !-->
     </class>
 </package>

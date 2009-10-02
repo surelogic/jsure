@@ -3,26 +3,26 @@
 
     <ColorImport>java.awt</ColorImport>
 
-    <!-- Promise>&quot;MapRegion Instance into java.awt.event.ActionListener:GUIstuff&quot;</Promise -->
+    <!-- Promise>@MapRegion Instance into java.awt.event.ActionListener:GUIstuff)</Promise -->
 
-    <Promise>&quot;Color GUI&quot; for get*(**)</Promise>
-    <Promise>&quot;RegionEffects reads java.awt.event.ActionListener:GUIinternal&quot; for get*(**)</Promise>
+    <Promise>@Color(GUI) for get*(**)</Promise>
+    <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal) for get*(**)</Promise>
     
-    <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
-    <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for set*(**)</Promise>
+    <Promise>@Color(GUI) for set*(**)</Promise>
+    <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for set*(**)</Promise>
     
-    <Promise>&quot;Color GUI&quot; for draw*(**)</Promise>
-    <Promise>&quot;RegionEffects reads Instance; writes java.awt.event.ActionListener:GUIinternal&quot; for draw*(**)</Promise>
+    <Promise>@Color(GUI) for draw*(**)</Promise>
+    <Promise>@RegionEffects(reads Instance; writes java.awt.event.ActionListener:GUIinternal) for draw*(**)</Promise>
     
-    <Promise>&quot;Color GUI&quot; for fill*(**)</Promise>
-    <Promise>&quot;RegionEffects reads Instance; writes java.awt.event.ActionListener:GUIinternal&quot; for fill*(**)</Promise>
+    <Promise>@Color(GUI) for fill*(**)</Promise>
+    <Promise>@RegionEffects(reads Instance; writes java.awt.event.ActionListener:GUIinternal) for fill*(**)</Promise>
     
     
-    <Promise>&quot;Color GUI&quot; for clip*(**)</Promise>
+    <Promise>@Color(GUI) for clip*(**)</Promise>
     
-    <Promise>&quot;Color GUI&quot; for copy*(**)</Promise>
+    <Promise>@Color(GUI) for copy*(**)</Promise>
     
-    <Promise>&quot;Color GUI&quot; for create(**) | translate(**)</Promise>
+    <Promise>@Color(GUI) for create(**) | translate(**)</Promise>
     
     <method name="dispose" params="">
       <Color>GUI</Color>

@@ -1,6 +1,6 @@
 <package name="java.awt.event">
   <class name="ItemEvent">
-    <!-- Promise>&quot;InRegion java.awt.event.ActionListener:GUIinternal&quot; for * *</Promise -->
+    <!-- Promise>@InRegion java.awt.event.ActionListener:GUIinternal) for * *</Promise -->
 
     <method name="getStateChange" params="">
       <!--Color>AWT</Color-->

@@ -1,3 +1,3 @@
 <package name="java.nio">
-  <Promise>&quot;Transparent&quot; for **(**)</Promise> 
+  <Promise>@Transparent for **(**)</Promise> 
 </package>

@@ -3,15 +3,15 @@
 
     <ColorImport>java.awt</ColorImport>
 
-  <Promise>&quot;colorConstraint GUI&quot; for get*(**)</Promise>
+  <Promise>@colorConstraint GUI) for get*(**)</Promise>
 
-  <Promise>&quot;colorConstraint GUI&quot; for is*(**)</Promise>
+  <Promise>@colorConstraint GUI) for is*(**)</Promise>
 
-  <Promise>&quot;colorConstraint GUI&quot; for remove(*)</Promise>
+  <Promise>@colorConstraint GUI) for remove(*)</Promise>
 
-  <Promise>&quot;colorConstraint GUI&quot; for set*(**)</Promise>
+  <Promise>@colorConstraint GUI) for set*(**)</Promise>
 
-  <Promise>&quot;colorConstraint AWT&quot; for *Notify()</Promise>
+  <Promise>@colorConstraint AWT) for *Notify()</Promise>
 
     <constructor>
       <Color>GUI</Color>

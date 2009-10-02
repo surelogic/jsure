@@ -3,7 +3,7 @@
     
     <ColorImport>java.awt</ColorImport>
 
-      <Promise>&quot;colorConstraint AWT&quot; for dragGestureRecognized(*)</Promise>
+      <Promise>@colorConstraint AWT) for dragGestureRecognized(*)</Promise>
 
     </class>  
 </package>

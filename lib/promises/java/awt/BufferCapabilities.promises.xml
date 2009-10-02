@@ -4,7 +4,7 @@
     
     <MapRegion>Instance into java.awt.event.ActionListener:GUIstuff</MapRegion>
 
-    <Promise>&quot;Color GUI&quot; for **(**)</Promise>
+    <Promise>@Color(GUI) for **(**)</Promise>
 	   
     </class>  
 </package>

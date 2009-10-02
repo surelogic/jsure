@@ -3,14 +3,14 @@
 
     <ColorImport>java.awt</ColorImport>
 
-    <Promise>&quot;Color AWT&quot; for new(**)</Promise>
+    <Promise>@Color(AWT) for new(**)</Promise>
 
 <!-- -->
-    <Promise>&quot;Transparent&quot; for get*Info()</Promise>
-    <Promise>&quot;RegionEffects writes none&quot; for play(**) | getCodeBase()</Promise>
+    <Promise>@Transparent for get*Info()</Promise>
+    <Promise>@RegionEffects(writes none) for play(**) | getCodeBase()</Promise>
 <!-- -->
-    <Promise>&quot;RegionEffects reads this:Instance&quot; for get*(**) | is*(**)</Promise>
-    <Promise>&quot;RegionEffects writes this:Instance&quot; for play(**) | init(**) | start() | stop() | destroy() | new(**)</Promise>
+    <Promise>@RegionEffects(reads this:Instance) for get*(**) | is*(**)</Promise>
+    <Promise>@RegionEffects(writes this:Instance) for play(**) | init(**) | start() | stop() | destroy() | new(**)</Promise>
 
     <MapRegion>Instance into java.awt.event.ActionListener:GUIinternal</MapRegion>
       <method name="isActive" params="">

@@ -1,9 +1,9 @@
 <package name="java.awt.event">
   <class name="ItemSelectable">
 
-    <Promise>&quot;Color AWT&quot; for getSelectedObjects()</Promise>
+    <Promise>@Color(AWT) for getSelectedObjects()</Promise>
 
-    <Promise>&quot;Transparent&quot; for add*Listener(**) | remove*Listener(**)</Promise>
+    <Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
     
   </class>
 </package>

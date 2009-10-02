@@ -1,7 +1,7 @@
 <package name="java.awt.event">
   <class name="ComponentListener">
 
-    <Promise>&quot;Color AWT&quot; for component*(java.awt.event.ComponentEvent)</Promise>
+    <Promise>@Color(AWT) for component*(java.awt.event.ComponentEvent)</Promise>
     
   </class>  
 </package>

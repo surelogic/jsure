@@ -1,39 +1,39 @@
 <package name="java.awt">
 	<class name="Component">
 		<ColorImport>java.awt</ColorImport>
-		<Promise>&quot;transparent&quot; for add*Listener(*)</Promise>
-    <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for add*Listener(*)</Promise>
-    <Promise>&quot;transparent&quot; for remove*Listener(*)</Promise>
-    <Promise>&quot;RegionEffects writes java.awt.event.ActionListener:GUIinternal&quot; for remove*Listener(*)</Promise>
-	  <Promise>&quot;Color AWT&quot; for remove(**) &amp; !(remove*Listener(**))</Promise>
-	  <Promise>&quot;RegionEffects writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for remove(*)</Promise>
-    <Promise>&quot;Color GUI&quot; for set*(**)</Promise>
-	  <Promise>&quot;RegionEffects writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for set*(**) &amp; !(setRequestFocusController(*))</Promise>
-    <Promise>&quot;Color GUI&quot; for is*(**)</Promise>
-	  <Promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIstuff&quot; for is*(**) &amp; !(isInstanceOf(**))</Promise>
-<!-- <Promise>&quot;Color GUI&quot; for get*(**) &amp; !(getSize(**))</Promise> -->
-    <Promise>&quot;Color GUI&quot; for get*(**)</Promise>
-	  <Promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for public get*(**) &amp; !(getSize())</Promise>
-	  <Promise>&quot;RegionEffects reads Instance&quot; for getSize()</Promise>
-    <Promise>&quot;Color GUI&quot; for create*Image(**)</Promise>
-	  <Promise>&quot;RegionEffects writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for create*Image(**)</Promise>
+		<Promise>@Transparent for add*Listener(*)</Promise>
+    <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add*Listener(*)</Promise>
+    <Promise>@Transparent for remove*Listener(*)</Promise>
+    <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for remove*Listener(*)</Promise>
+	  <Promise>@Color(AWT) for remove(**) &amp; !(remove*Listener(**))</Promise>
+	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for remove(*)</Promise>
+    <Promise>@Color(GUI) for set*(**)</Promise>
+	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for set*(**) &amp; !(setRequestFocusController(*))</Promise>
+    <Promise>@Color(GUI) for is*(**)</Promise>
+	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIstuff) for is*(**) &amp; !(isInstanceOf(**))</Promise>
+<!-- <Promise>@Color(GUI) for get*(**) &amp; !(getSize(**))</Promise> -->
+    <Promise>@Color(GUI) for get*(**)</Promise>
+	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for public get*(**) &amp; !(getSize())</Promise>
+	  <Promise>@RegionEffects(reads Instance) for getSize()</Promise>
+    <Promise>@Color(GUI) for create*Image(**)</Promise>
+	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for create*Image(**)</Promise>
 
-		<Promise>&quot;transparent&quot; for repaint(**)</Promise>
-	  <Promise>&quot;RegionEffects reads Instance&quot; for repaint(**)</Promise>
+		<Promise>@Transparent for repaint(**)</Promise>
+	  <Promise>@RegionEffects(reads Instance) for repaint(**)</Promise>
 
 
-    <Promise>&quot;Color AWT&quot; for removeNotify()</Promise>
+    <Promise>@Color(AWT) for removeNotify()</Promise>
    
- 	  <Promise>&quot;Color GUI&quot; for *Focus(**) &amp; !(requestFocus*(**))</Promise>
-	  <Promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for *Focus(**)</Promise>
+ 	  <Promise>@Color(GUI) for *Focus(**) &amp; !(requestFocus*(**))</Promise>
+	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for *Focus(**)</Promise>
 
-	 	<Promise>&quot;Color GUI&quot; for enable*(**) | disable*(**)</Promise>
-	  <Promise>&quot;RegionEffects reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for enable*(**) | disable*(**)</Promise>
+	 	<Promise>@Color(GUI) for enable*(**) | disable*(**)</Promise>
+	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for enable*(**) | disable*(**)</Promise>
 
-    <Promise>&quot;Color GUI&quot; for validate() | invalidate() | hide()</Promise>
-	  <Promise>&quot;RegionEffects writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff&quot; for validate() | invalidate() | hide()</Promise>
+    <Promise>@Color(GUI) for validate() | invalidate() | hide()</Promise>
+	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for validate() | invalidate() | hide()</Promise>
 
-    <Promise>&quot;Color AWT&quot; for process*Event(*)</Promise>
+    <Promise>@Color(AWT) for process*Event(*)</Promise>
 	  
     <method name="update" params="java.awt.Graphics">
     	<Color>AWT</Color>
