@@ -61,7 +61,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
   protected IPromiseRule[] getRules() {
     return new IPromiseRule[] {
         new Region_ParseRule(REGION, typeDeclOps), //$NON-NLS-1$
-        new Region_ParseRule("MapRegion", noOps), //$NON-NLS-1$
+        //new Region_ParseRule("MapRegion", noOps), //$NON-NLS-1$
         new MapFields_ParseRule(), new InRegion_ParseRule(),
         new Aggregate_ParseRule(), new RegionName_BindRule(),
         new QualifiedRegionName_BindRule(),

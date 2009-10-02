@@ -86,7 +86,7 @@ tokens {
 	//Effects
 	INREGION='@InRegion';
 	MAPFIELDS='@MapFields';
-	MAPREGION='@MapRegion';
+	//MAPREGION='@MapRegion';
 	AGGREGATE='@Aggregate';
 	REGION='@Region';
 	READS='@Reads';

@@ -628,11 +628,13 @@ JavaNode Start_Region() : {}
   { return (JavaNode)jjtree.rootNode(); }
 }
 
+/*
 JavaNode Start_MapRegion() : {}
 {
   RegionMapping() END()
   { return (JavaNode)jjtree.rootNode(); }
 }
+*/
 
 JavaNode Start_MapFields() : {}
 {
