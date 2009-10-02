@@ -798,11 +798,13 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		}
 
 		public void gotNewPackage(IRNode pkg, String name) {
+			/*
 			checkIfRunning(name);
-
+			
 			CodeInfo info = CodeInfo.createMatchTemplate(VisitUtil
 					.getEnclosingCompilationUnit(pkg), name);
 			createDrop(info);
+			*/
 		}
 
 		private void checkIfRunning(String name) {
