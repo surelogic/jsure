@@ -34,7 +34,8 @@ public class NamedTypePatternNode extends NamedTypeNode {
     if (getType().equals("*") || getType().equals("**")) {
       return true;
     }
-    return AASTBinder.getInstance().isResolvableToType(this);
+    return true;
+    //TODO return AASTBinder.getInstance().isResolvableToType(this);
   }
 
   /**
