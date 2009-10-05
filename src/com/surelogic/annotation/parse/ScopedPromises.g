@@ -254,7 +254,6 @@ methodSigPattern
   
 paramTypeSigPattern
   : typeSigPattern
-  | qualifiedName -> ^(NamedTypePattern qualifiedName)
   ;
   
 returnTypeSigPattern
@@ -288,6 +287,7 @@ optQualifiedTypeNamePattern
 namedTypePattern
   : wildcardIdentifier -> ^(NamedTypePattern wildcardIdentifier)
   | IDENTIFIER -> ^(NamedTypePattern IDENTIFIER)
+  | qualifiedName -> ^(NamedTypePattern qualifiedName)  
   ;	
 
 typeNamePattern
