@@ -292,12 +292,14 @@ public final class PackageLevelPreprocessing extends
 		
 		void finish() {
 			reprocess.removeAll(changed);			
+			/*
 			for(CUDrop d : changed) {
 				System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 			}
 			for(CUDrop d : reprocess) {
 				System.out.println("Reprocess: "+d.javaOSFileName+" "+d.getClass().getSimpleName());
-			}						
+			}
+			*/						
 			IDE.getInstance().setAdapting();
 			try {
 				for(CUDrop d : reprocess) {
