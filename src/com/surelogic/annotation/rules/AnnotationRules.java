@@ -336,6 +336,11 @@ public abstract class AnnotationRules {
       return null;
     }
     D d = getMappedValue(storage.getSlotInfo(), n);
+    /*
+    if (d == null || !d.isValid()) {
+    	return null;
+    }
+*/
     return d;
   }
   
@@ -349,6 +354,11 @@ public abstract class AnnotationRules {
       return null;
     }
     D d = getMappedValue(storage.getSlotInfo(), n);
+    /*
+if (d == null || !d.isValid()) {
+    	return null;
+    }
+    */
     return d;
   }
   

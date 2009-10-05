@@ -79,6 +79,7 @@ public abstract class CUDrop extends Drop {
   }
 
   public CodeInfo makeCodeInfo() {	  
+	  info.clearProperty(CodeInfo.DONE);
 	  return info;
   }
   

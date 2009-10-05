@@ -43,6 +43,16 @@ implements IPromiseDropSeqStorage<D> {
       l = new ArrayList<D>(); 
       n.setSlotValue(si, l);
     }
+    /*
+    // Clear out invalid drops
+    Iterator<D> it = l.iterator();
+    while (it.hasNext()) {
+    	D old = it.next();
+    	if (!old.isValid()) {
+    		it.remove();
+    	}
+    }
+    */
     if (l.contains(d)) {
       LOG.warning(d+" already associated with "+DebugUnparser.toString(n));
     } else {

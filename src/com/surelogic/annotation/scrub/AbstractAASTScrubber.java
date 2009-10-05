@@ -254,7 +254,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		if (defined) {
 			PromiseDrop pd = (PromiseDrop) promisedFor.getSlotValue(stor.getSlotInfo());
 			A old          = (A) pd.getAST();
-			if (old == null) {
+			if (/*!pd.isValid() ||*/ old == null) {
 				return true;
 			}
 			String oldS    = old.toString();
