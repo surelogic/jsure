@@ -31,6 +31,7 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.*;
@@ -302,11 +303,12 @@ public final class PackageLevelPreprocessing extends
 				for(CUDrop d : reprocess) {
 					if (d instanceof PackageDrop) {
 						//Nothing else needed 
-					} else {
+					} else {		
 						// Clear out promise drops
-						for(IRNode n : JavaNode.tree.topDown(d.cu)) {
+						//System.out.println("Clearing "+d.javaOSFileName);
+						for(IRNode n : JavaPromise.bottomUp(d.cu)) {
 							PromiseDropStorage.clearDrops(n);
-						}						
+						}	
 						ConvertToIR.getInstance().registerClass(d.makeCodeInfo());
 					}
 				}
