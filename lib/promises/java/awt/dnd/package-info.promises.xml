@@ -1,5 +1,5 @@
 <package name="java.awt.dnd">
-  <Promise>@ColorImport java.awt) for *</Promise>
+  <Promise>@ColorImport(java.awt) for *</Promise>
 
       <Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
 

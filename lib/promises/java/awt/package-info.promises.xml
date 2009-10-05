@@ -3,7 +3,7 @@
 	<ColorDeclare>AWT, Compute, NotYetVisible</ColorDeclare>
 	<IncompatibleColors>AWT, Compute</IncompatibleColors>
 	<ColorRename>GUI for (AWT | NotYetVisible)</ColorRename>
-	<Promise>@ColorImport java.awt) for *</Promise>
+	<Promise>@ColorImport(java.awt) for *</Promise>
 	
 	<Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
   <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add*Listener(**) | remove*Listener(**)</Promise>
