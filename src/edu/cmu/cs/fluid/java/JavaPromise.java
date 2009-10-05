@@ -776,34 +776,35 @@ public class JavaPromise extends JavaNode {
 	/**
 	 * All promise slots which involve nodes or sequences of nodes.
 	 */
-//	static SlotInfo[] promiseChildrenInfo =
-//	{
-//	returnNodeSlotInfo,
-//	receiverNodeSlotInfo,
-//	initMethodSlotInfo,
-//	classInitMethodSlotInfo,
-//	preconditionSlotInfo,
-//	postconditionSlotInfo,
-//	throwConditionSlotInfo,
-//	fieldRegionSlotInfo,
-//	fieldAggregationSlotInfo,
-//	lockReturnSlotInfo,
-//	lockParamSlotInfo,
-//	// these below are sequences
-//	classRegionsSlotInfo,
-//	classInvariantsSlotInfo,
-//	methodEffectsSlotInfo,
-//	lockDeclarationsSlotInfo,
-//	policyLockDeclarationsSlotInfo,
-//	requiredLocksSlotInfo,
-//	colorDeclSlotInfo,
-//	colorGrantSlotInfo,
-//	colorRevokeSlotInfo,
-//	colorNoteSlotInfo,
-//	colorRequireSlotInfo,
-//	colorIncompatibleSlotInfo,
-//	};
-	static SlotInfo[] promiseChildrenInfo = new SlotInfo[0];
+	static SlotInfo[] promiseChildrenInfo =
+	{
+	returnNodeSlotInfo,
+	receiverNodeSlotInfo,
+	initMethodSlotInfo,
+	classInitMethodSlotInfo,
+/*
+	preconditionSlotInfo,
+	postconditionSlotInfo,
+	throwConditionSlotInfo,
+	fieldRegionSlotInfo,
+	fieldAggregationSlotInfo,
+	lockReturnSlotInfo,
+	lockParamSlotInfo,
+	// these below are sequences
+	classRegionsSlotInfo,
+	classInvariantsSlotInfo,
+	methodEffectsSlotInfo,
+	lockDeclarationsSlotInfo,
+	policyLockDeclarationsSlotInfo,
+	requiredLocksSlotInfo,
+	colorDeclSlotInfo,
+	colorGrantSlotInfo,
+	colorRevokeSlotInfo,
+	colorNoteSlotInfo,
+	colorRequireSlotInfo,
+	colorIncompatibleSlotInfo,
+*/
+	};
 
 	public static SlotInfo[] getPromiseChildrenInfos() {
 		return promiseChildrenInfo; // TODO
@@ -872,11 +873,11 @@ public class JavaPromise extends JavaNode {
 			return p;
 	}
 
-	public static Iterator<IRNode> promiseChildren(IRNode node) {
+	public static Iteratable<IRNode> promiseChildren(IRNode node) {
 		return new JavaPromiseChildrenIterator(node, getPromiseChildrenInfos());
 	}
 
-	public static Iterator<IRNode> promisesBottomUp(IRNode node) {
+	public static Iteratable<IRNode> promisesBottomUp(IRNode node) {
 		return new JavaPromiseDescendantsIterator(node, getPromiseChildrenInfos());
 	}
 
@@ -884,7 +885,7 @@ public class JavaPromise extends JavaNode {
 	 * Return an enumeration of all nodes in the tree or in promises attached to
 	 * the tree.
 	 */
-	public static Iterator<IRNode> bottomUp(IRNode node) {
+	public static Iteratable<IRNode> bottomUp(IRNode node) {
 		return new JavaPromiseTreeIterator(node, true);
 	}
 

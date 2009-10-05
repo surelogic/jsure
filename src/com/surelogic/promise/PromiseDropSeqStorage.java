@@ -19,7 +19,9 @@ implements IPromiseDropSeqStorage<D> {
 
   public static <P extends PromiseDrop>
   PromiseDropSeqStorage<P> create(String name, Class<P> base) {
-    return new PromiseDropSeqStorage<P>(name, base);
+	  PromiseDropSeqStorage<P> s = new PromiseDropSeqStorage<P>(name, base);
+	  PromiseDropStorage.register(s);
+	  return s;
   }
   
   public StorageType type() {

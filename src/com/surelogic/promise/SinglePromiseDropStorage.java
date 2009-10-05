@@ -16,7 +16,9 @@ implements ISinglePromiseDropStorage<D> {
   
   public static <P extends PromiseDrop>
   SinglePromiseDropStorage<P> create(String name, Class<P> base) {
-    return new SinglePromiseDropStorage<P>(name, base);
+	  SinglePromiseDropStorage<P> s = new SinglePromiseDropStorage<P>(name, base);
+	  PromiseDropStorage.register(s);
+	  return s;
   }
 
   public StorageType type() {
