@@ -50,7 +50,7 @@ public final class MethodControlFlow extends PromiseDrop<IAASTRootNode> {
 
   public static synchronized MethodControlFlow getDropFor(final IRNode block) {
     MethodControlFlow drop = blockToDrop.get(block);
-    if (drop == null) {
+    if (drop == null || !drop.isValid()) {
       drop = new MethodControlFlow(block);
       drop.dependUponCompilationUnitOf(block);
       blockToDrop.put(block, drop);
