@@ -104,7 +104,7 @@ public class NamedTypeNode extends ClassTypeNode {
 		} else if (QualifiedName.prototype.includes(type)) {
 			dName = QualifiedName.getId(type);
 		} else {
-    	System.out.println("NamedType. No match with: " + JJNode.tree.getOperator(type).getClass());
+    	    //System.out.println("NamedType. No match with: " + JJNode.tree.getOperator(type).getClass());
 			return false;
 		}
 		if (getType().indexOf("*") < 0) {
