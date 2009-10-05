@@ -140,7 +140,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	public static void invalidate(String key) {
 		RegionModel drop = nameToDrop.get(key);
 		if (drop != null) {
-			drop.setAST(null);
+			drop.clearAST();
 		}
 	}
 	
