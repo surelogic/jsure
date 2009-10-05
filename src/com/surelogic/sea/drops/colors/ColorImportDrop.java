@@ -114,7 +114,9 @@ public class ColorImportDrop extends PromiseDrop<ColorImportNode> {
     }
     synchronized (ColorImportDrop.class) {
       Set<IRNode> importersOfImportedUnit = importMap.get(VisitUtil.getEnclosingCUorHere(boundImportedUnit));
-      importersOfImportedUnit.remove(getNode());
+      if (importersOfImportedUnit != null) {
+    	  importersOfImportedUnit.remove(getNode());
+      }
     }
 //    ColorFirstPass.trackCUchanges(this);
     
