@@ -9,14 +9,8 @@ import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.PackageDeclaration;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseHelper;
@@ -28,14 +22,12 @@ import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
-import edu.cmu.cs.fluid.eclipse.adapter.SrcRef;
 import edu.cmu.cs.fluid.eclipse.promise.EclipsePromiseParser;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
-import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
@@ -90,7 +82,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 		return INSTANCE;
 	}
 
-	private QueuingSrcNotifyListener listener = new QueuingSrcNotifyListener();
+	private QueuingSrcNotifyListener listener = new QueuingSrcNotifyListener("PromiseParser");
 
 	public PromiseParser() {
 		INSTANCE = this;
@@ -98,7 +90,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 	}
 
 
-	private void processCompUnit(ITypeEnvironment te, IRNode cu, String name, String src) {
+	void processCompUnit(ITypeEnvironment te, IRNode cu, String name, String src) {
 		if (IDE.getInstance().isCancelled()) {
 			return;
 		}
@@ -206,8 +198,6 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 		}
 	}
 
-	private final ASTParser parser = ASTParser.newParser(AST.JLS3);
-
 	@Override
 	public boolean analyzeResource(final IResource resource, int kind) {
 		if (AbstractFluidAnalysisModule.isPackageInfo(resource)) {
@@ -220,79 +210,6 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 			return true;
 		}
 		return super.analyzeResource(resource, kind);
-	}
-
-	/**
-	 * @param resource
-	 * @return The node for the package (declaration)
-	 */
-	public PackageDrop parsePackageInfo(final IResource resource) {
-		final ICompilationUnit icu = (ICompilationUnit) JavaCore.create(resource);
-		final IJavaProject project = icu.getJavaProject();
-		if (!project.isOnClasspath(icu)) {
-			return null;
-		}
-		parser.setSource(icu);
-		final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-
-		// identify Javadoc comment
-		// apply promises to package
-		final PackageDeclaration pd = cu.getPackage();
-		/*
-    if (pd.getJavadoc().tags().size() == 0) {
-      // nothing to analyze, so we're done
-      return true;
-    }
-		 */
-		final String pkgName  = (pd == null) ? "" : pd.getName().getFullyQualifiedName();
-		final PackageDrop old = PackageDrop.findPackage(pkgName);
-		if (old != null) {
-			old.invalidate();
-		}
-		final PackageDrop pkg = Binding.confirmPackage(pkgName);
-		runVersioned(new AbstractRunner() {
-			public void run() {
-				try {
-					// Copy the source ref/Javadoc from what I just parsed
-					// and put it on the package
-					String src = icu.getSource();
-					if (pd != null) {
-						ISrcRef srcRef = SrcRef.getInstance(pd, cu, resource, src);
-						pkg.node.setSlotValue(JavaNode.getSrcRefSlotInfo(), srcRef);
-					}
-					final IRNode top = VisitUtil.getEnclosingCompilationUnit(pkg.node);
-					if (useNewParser) {
-						// Look for Javadoc/Java5 annotations
-						final ITypeEnvironment te = Eclipse.getDefault().getTypeEnv(getProject());
-						AnnotationVisitor v = new AnnotationVisitor(te, pkgName);
-						v.doAccept(top);
-						
-						/* FIX moved to EclipseTypeEnvironment
-						// Look for XML annotations
-						final String name = pkg.javaOSFileName+'.'+"package-info.promises.xml";
-						try {
-							if (useNewXMLParser) {
-								int added = TestXMLParser.process(pkg.node, name);
-								System.out.println("Added XML annos: "+added);
-							}
-						} catch (Exception e) {
-							if (!(e instanceof FileNotFoundException)) {
-								e.printStackTrace();
-							} else if (LOG.isLoggable(Level.FINER)) {
-								LOG.finer("Couldn't find "+name);
-							}
-						}
-						*/
-					}
-					else if (src != null && src.length() > 0) {						
-						EclipsePromiseParser.process(top, src);
-					}
-				} catch (JavaModelException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		return pkg;
 	}
 
 	/**
@@ -353,7 +270,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 					}
 					String name = info.getFileName();
 					IRNode cu   = info.getNode();
-					processCompUnit(te, cu, name, null);
+					processCompUnit(te, cu, name, info.getSource());
 				}
 			}
 		});

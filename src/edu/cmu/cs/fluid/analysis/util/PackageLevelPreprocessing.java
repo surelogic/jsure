@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.analysis.util;
 
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -7,15 +8,34 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
 
+import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.promise.PromiseDropStorage;
 
 import edu.cmu.cs.fluid.eclipse.Eclipse;
+import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
 import edu.cmu.cs.fluid.eclipse.adapter.ModuleUtil;
+import edu.cmu.cs.fluid.eclipse.adapter.SrcRef;
+import edu.cmu.cs.fluid.eclipse.promise.EclipsePromiseParser;
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.sea.drops.PackageDrop;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.util.AbstractRunner;
 
 /**
  * Analysis module to preprocess package-level constructs, in particular, scoped
@@ -26,7 +46,9 @@ import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 public final class PackageLevelPreprocessing extends
 		AbstractFluidAnalysisModule {
 	private static PackageLevelPreprocessing INSTANCE;
-
+	private final ASTParser parser = ASTParser.newParser(AST.JLS3);
+	private Dependencies dependencies;
+	
 	/**
 	 * Provides a reference to the sole object of this class.
 	 * 
@@ -55,6 +77,7 @@ public final class PackageLevelPreprocessing extends
 	public void preBuild(IProject p) {
 		ModuleUtil.clearModuleCache();
 		super.preBuild(p);
+		dependencies = new Dependencies();
 	}
 
 	@Override
@@ -71,28 +94,14 @@ public final class PackageLevelPreprocessing extends
 	public boolean analyzeResource(final IResource resource, final int kind) {
 		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			public void run() {
+				PackageDrop p = null;
 				if (AbstractFluidAnalysisModule.isPackageInfo(resource)) {
 					switch (kind) {
 					case IResourceDelta.ADDED:
 					case IResourceDelta.CHANGED:
-						final boolean pkgAlreadyLoaded = true; // FIX
-																// Binding.packageExists(name);
-						// conservatively reload package, since promises need to
-						// be added
-						// Also creates matchers for scoped promises as a
-						// by-product
-						PackageDrop p = PromiseParser.getInstance()
-								.parsePackageInfo(resource);
-						if (p == null) {
-							if (LOG.isLoggable(Level.FINE))
-								LOG.fine("package-info.java not on classpath");
-						} else if (pkgAlreadyLoaded) {
-							queueForLaterProcessing(p);
-						}
+					case IResourceDelta.REMOVED:						
+						p = parsePackageInfo(resource);
 						break;
-					case IResourceDelta.REMOVED:
-						throw new UnsupportedOperationException(
-								"conservatively reload package, since promises need to be deleted");
 					default:
 						LOG.severe("Not handling removal of "
 								+ resource.getName());
@@ -101,46 +110,44 @@ public final class PackageLevelPreprocessing extends
 					switch (kind) {
 					case IResourceDelta.ADDED:
 					case IResourceDelta.CHANGED:
+					case IResourceDelta.REMOVED:
 						final String qname = getCorrespondingPackageName(resource);
 						if (qname != null) {
-							final boolean pkgExists = Binding
-									.packageExists(qname);
-							final boolean pkgAlreadyLoaded;
+							final boolean pkgExists = Binding.packageExists(qname);
 							if (pkgExists) {
-								PackageDrop oldPkgDrop = PackageDrop
-										.findPackage(qname);
-								if (oldPkgDrop != null) {
-									pkgAlreadyLoaded = true;
-									oldPkgDrop.invalidate();
-								} else {
-									pkgAlreadyLoaded = false;
+								p = PackageDrop.findPackage(qname);
+								if (p != null) {
+									p.invalidate(); // What else is invalidated?
 								}
-							} else {
-								pkgAlreadyLoaded = false;
 							}
-
-							// conservatively reload package, since promises
-							// need to be added
-							// Also creates matchers for scoped promises as a
-							// by-product
-							PackageDrop p = Binding.confirmPackage(qname);
-							if (pkgAlreadyLoaded) {
-								queueForLaterProcessing(p);
-							}
+							p = Binding.confirmPackage(qname);
 						}
 						break;
-					case IResourceDelta.REMOVED:
-						throw new UnsupportedOperationException(
-								"conservatively reload package, since promises need to be deleted");
 					default:
 						LOG.severe("Not handling removal of "
 								+ resource.getName());
 					}
 				}
+				if (p == null) {
+					if (LOG.isLoggable(Level.FINE))
+						LOG.fine(resource.getName()+" not on classpath");
+				} else {
+					dependencies.markAsChanged(p);
+					/*
+					if (!p.types.isEmpty()){
+						// conservatively reload package dependencies, since 
+						// promises need to be added
+						//
+						// Also creates matchers for scoped promises as a
+						// by-product					
+						queueForLaterProcessing(p);
+					}
+					*/
+				}
 			}
 		});
-		// No need for analyzeCompilationUnit to be called
-		return true;
+		// Need analyzeCompilationUnit to be called to collect which CUs changed
+		return false;
 	}
 
 	/**
@@ -150,8 +157,8 @@ public final class PackageLevelPreprocessing extends
 	@Override
 	public void analyzeCompilationUnit(final ICompilationUnit file,
 			CompilationUnit ast) {
-		LOG.severe("analyzeCompilationUnit() called on "
-				+ file.getElementName());
+		CUDrop d = SourceCUDrop.queryCU(new EclipseCodeFile(file));
+		dependencies.markAsChanged(d);
 	}
 
 	/**
@@ -160,7 +167,152 @@ public final class PackageLevelPreprocessing extends
 	@Override
 	public IResource[] analyzeEnd(IProject p) {
 		IResource[] results = super.analyzeEnd(p);
+		dependencies.finish();
 		IDE.getInstance().clearAdapting();
 		return results;
+	}
+	
+	@Override
+	public void postBuild(IProject project) {
+		dependencies = null;
+	}
+	
+	/**
+	 * @param resource
+	 * @return The node for the package (declaration)
+	 */
+	private PackageDrop parsePackageInfo(final IResource resource) {
+		final ICompilationUnit icu = (ICompilationUnit) JavaCore.create(resource);
+		final IJavaProject project = icu.getJavaProject();
+		if (!project.isOnClasspath(icu)) {
+			return null;
+		}
+		parser.setSource(icu);
+		final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+
+		// identify Javadoc comment
+		// apply promises to package
+		final PackageDeclaration pd = cu.getPackage();
+		final String pkgName  = (pd == null) ? "" : pd.getName().getFullyQualifiedName();
+		final PackageDrop old = PackageDrop.findPackage(pkgName);
+		if (old != null) {
+			dependencies.collect(old);
+			old.invalidate();
+		}
+		final PackageDrop pkg = Binding.confirmPackage(pkgName);
+		dependencies.markAsChanged(pkg);
+		
+		runVersioned(new AbstractRunner() {
+			public void run() {
+				try {
+					// Copy the source ref/Javadoc from what I just parsed
+					// and put it on the package
+					String src = icu.getSource();
+					if (pd != null) {
+						ISrcRef srcRef = SrcRef.getInstance(pd, cu, resource, src);
+						pkg.node.setSlotValue(JavaNode.getSrcRefSlotInfo(), srcRef);
+					}
+					final IRNode top = VisitUtil.getEnclosingCompilationUnit(pkg.node);
+					if (AnnotationRules.useNewParser) {
+						// Look for Javadoc/Java5 annotations
+						final ITypeEnvironment te = Eclipse.getDefault().getTypeEnv(getProject());
+						AnnotationVisitor v = new AnnotationVisitor(te, pkgName);
+						v.doAccept(top);
+					}
+					else if (src != null && src.length() > 0) {						
+						EclipsePromiseParser.process(top, src);
+					}
+				} catch (JavaModelException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		return pkg;
+	}
+
+	
+	class Dependencies {
+		/**
+		 * To avoid cycles and duplication
+		 */
+		private final Set<Drop> checkedDependents = new HashSet<Drop>();
+		private final Set<Drop> checkedDeponents = new HashSet<Drop>();
+		/**
+		 * The set of CUDrops that need to be reprocessed for promises
+		 */
+		private final Set<CUDrop> reprocess = new HashSet<CUDrop>();
+		/**
+		 * The set of changed CUDrops
+		 */
+		private final Set<CUDrop> changed = new HashSet<CUDrop>();
+		
+		void markAsChanged(CUDrop d) {
+			if (d == null) {
+				return; // Nothing to do
+			}
+			changed.add(d);
+			collect(d);
+		}
+
+		/**
+		 * Collects the CUDrops corresponding to d's dependent drops, 
+		 * so we can reprocess the promises on those
+		 */	
+		private void collect(Drop root) {
+			if (checkedDependents.contains(root)) {
+				return;
+			}
+			checkedDependents.add(root);
+			
+			// Find dependent drops
+			for(Drop d : root.getDependents()) {
+				//System.out.println(root+" <- "+d);
+				findCUDropDeponents(d);
+				collect(d);
+			}				
+		}
+
+		/**
+		 * Recursively check this drop and its deponents for CUDrops
+		 */
+		private void findCUDropDeponents(Drop d) {
+			if (checkedDeponents.contains(d)) {
+				return;
+			}
+			checkedDeponents.add(d);
+			if (d instanceof CUDrop) {
+				reprocess.add((CUDrop) d);
+			}
+			for(Drop deponent : d.getDeponents()) {
+				//System.out.println(d+" -> "+deponent);
+				findCUDropDeponents(deponent);
+			}
+		}
+		
+		void finish() {
+			reprocess.removeAll(changed);			
+			for(CUDrop d : changed) {
+				System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
+			}
+			for(CUDrop d : reprocess) {
+				System.out.println("Reprocess: "+d.javaOSFileName+" "+d.getClass().getSimpleName());
+			}						
+			IDE.getInstance().setAdapting();
+			try {
+				for(CUDrop d : reprocess) {
+					if (d instanceof PackageDrop) {
+						//Nothing else needed 
+					} else {
+						// Clear out promise drops
+						for(IRNode n : JavaNode.tree.topDown(d.cu)) {
+							PromiseDropStorage.clearDrops(n);
+						}						
+						ConvertToIR.getInstance().registerClass(d.makeCodeInfo());
+					}
+				}
+			} finally {
+				IDE.getInstance().clearAdapting();
+			}
+		}
 	}
 }

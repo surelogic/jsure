@@ -57,6 +57,7 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
    */
   private static final Logger LOG = SLLogger.getLogger("PromiseScrubber");
 
+  private static final boolean useNewScrubber = true;
   public static final boolean testBinder = IDE.testBinder;
 
   @Override
@@ -100,30 +101,31 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
        */
 
       sp.processCuAssumptions(binder, cu); // TODO change to process types
+      if (!useNewScrubber) {
+    	  final PromiseFramework frame = PromiseFramework.getInstance();
+    	  // Call IR scrubber within Fluid
+    	  // send in "this" as implementing
+    	  // *.fluid.java.analysis.ITallyhoWarningReport
+    	  Map m = frame.pushTypeContext(cu);
+    	  Map m2 = null;
+    	  try {
+    		  frame.checkAST(PromiseScrubber.this, cu);
+    	  } finally {
+    		  m2 = frame.popTypeContext();
+    		  if (m != m2) {
+    			  LOG.severe("Popping a different type context");
+    		  }
+    	  }
 
-      final PromiseFramework frame = PromiseFramework.getInstance();
-      // Call IR scrubber within Fluid
-      // send in "this" as implementing
-      // *.fluid.java.analysis.ITallyhoWarningReport
-      Map m = frame.pushTypeContext(cu);
-      Map m2 = null;
-      try {
-        frame.checkAST(PromiseScrubber.this, cu);
-      } finally {
-        m2 = frame.popTypeContext();
-        if (m != m2) {
-          LOG.severe("Popping a different type context");
-        }
-      }
-
-      m = frame.pushTypeContext(cu, false, true); // Only look at assumptions
-      try {
-        frame.checkAssumptionsOnAST(PromiseScrubber.this, cu);
-      } finally {
-        m2 = frame.popTypeContext();
-        if (m != m2) {
-          LOG.severe("Popping a different type context 2");
-        }
+    	  m = frame.pushTypeContext(cu, false, true); // Only look at assumptions
+    	  try {
+    		  frame.checkAssumptionsOnAST(PromiseScrubber.this, cu);
+    	  } finally {
+    		  m2 = frame.popTypeContext();
+    		  if (m != m2) {
+    			  LOG.severe("Popping a different type context 2");
+    		  }
+    	  }
       }
     }
     if (PromiseParser.useXMLGen) {
@@ -175,7 +177,9 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
     if (LOG.isLoggable(Level.FINE)) {
       LOG.fine("Scrubbing IType " + drop.javaOSFileName);
     }
-    PromiseFramework.getInstance().checkAST(PromiseScrubber.this, drop.cu);
+    if (!useNewScrubber) {
+    	PromiseFramework.getInstance().checkAST(PromiseScrubber.this, drop.cu);
+    }
   }
   
   @Override

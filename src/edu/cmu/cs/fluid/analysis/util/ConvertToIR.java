@@ -823,25 +823,20 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	void registerClass(CodeInfo info) {
 		createDrop(info);
 		javaFileLoaded(info);
-		/*
-		 * PromiseParser.getInstance().iTypeLoaded(top, javaOSFileName);
-		 * PromiseScrubber.getInstance().iTypeLoaded(top, javaOSFileName);
-		 */
 	}
 
-	private void createDrop(CodeInfo info) {/*
-											 * if (info.getSource() != null) {
-											 * invalidateOldDrops((ICompilationUnit)
-											 * info.getFile());
-											 * 
-											 * createNewDrop(info); } else {
-											 */
-		CUDrop outOfDate = BinaryCUDrop.queryCU(info.getFileName());
-		if (outOfDate != null)
-			outOfDate.invalidate();
+	private void createDrop(CodeInfo info) {
+		if (info.getSource() != null) {
+			invalidateOldDrops((ICompilationUnit) info.getFile().getHostEnvResource());				 
+			new SourceCUDrop(info); 
+			//createNewDrop(info); 
+		} else {
+			CUDrop outOfDate = BinaryCUDrop.queryCU(info.getFileName());
+			if (outOfDate != null)
+				outOfDate.invalidate();
 
-		new BinaryCUDrop(info);
-		// }
+			new BinaryCUDrop(info);
+		}
 	}
 
 	@Override
