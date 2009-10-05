@@ -150,7 +150,7 @@ public class AnnotationVisitor extends Visitor<Void> {
   
   private void checkForTestResult(IRNode node) {
     String result = JavaNode.getComment(node);
-    if (result != null && result != "") { // /**/ minimum
+    if (result != null && result != "" && result.startsWith("/*")) { // /**/ minimum
       // trim off the ending */
       result = result.substring(0, result.length() - 2);
       createPromise(node, TestRules.TEST_RESULT, result, AnnotationSource.JAVA_5, -1);
