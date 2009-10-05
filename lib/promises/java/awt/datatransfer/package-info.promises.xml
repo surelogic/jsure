@@ -1,6 +1,6 @@
 <package name="java.awt.datatransfer">
   <Promise>
-      @ColorImport(java.awt.*) for *</Promise>
+      @ColorImport(java.awt) for *</Promise>
 
       <Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
 
