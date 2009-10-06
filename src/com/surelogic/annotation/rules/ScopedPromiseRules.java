@@ -444,9 +444,11 @@ public class ScopedPromiseRules extends AnnotationRules {
    * Apply promises to types in the package
    */
   private static void applyPromisesToPackage(PromisePromiseDrop d) {
+	/*
 	if (d.getEnclosingFile() != null) {
 		System.out.println(d.getEnclosingFile()+": "+d.getMessage());
 	}
+	*/
     final IRNode pd      = d.getNode();
     final String pkgName = NamedPackageDeclaration.getId(pd);
     final PackageDrop pkg = PackageDrop.findPackage(pkgName);

@@ -295,7 +295,7 @@ public class AnnotationVisitor extends Visitor<Void> {
       else if (o instanceof IJavadocTag) {
         handleJavadocTag(decl, (IJavadocTag) o);
       } else {
-        System.out.println(o);
+        System.out.println("Unknown: "+o);
       }
     }    
     createPromise(decl, capitalize(tag.getTag()), contents, AnnotationSource.JAVADOC, 
