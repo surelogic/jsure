@@ -413,6 +413,9 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	}
 
 	public Object getEnclosingFile() {
+		if (super.getSrcRef() == null) {
+			return null;
+		}
 		return super.getSrcRef().getEnclosingFile();
 	}
 

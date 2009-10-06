@@ -14,6 +14,7 @@ import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.Annotations;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.ImportDeclarations;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarations;
@@ -92,29 +93,51 @@ public class PackageDrop extends CUDrop {
    * Static methods
    ****************************************************/
   
-  public static PackageDrop createPackage(String name) {
+  private static final String DEFAULT_NAME = "(default)";
+  
+  public static PackageDrop createPackage(String name, IRNode root) {
     final PackageDrop pd = findPackage(name);
     if (pd != null) {
       return pd;
     }
+
     IRNode n;
-    if (name.length() == 0) {
-      name = "(default)";
-      n = JavaNode.makeJavaNode(UnnamedPackageDeclaration.prototype);
+    if (root == null) {
+    	if (name == DEFAULT_NAME) {
+    		n = JavaNode.makeJavaNode(UnnamedPackageDeclaration.prototype);
+    	} else {
+    		n = NamedPackageDeclaration.createNode(Annotations.createNode(noNodes), name);
+    	}
+    	LOG.fine("Creating IR for package "+name);
+
+    	// Just to make it into a complete CU
+    	IRNode imports = ImportDeclarations.createNode(noNodes);
+    	IRNode types   = TypeDeclarations.createNode(noNodes);
+    	root = edu.cmu.cs.fluid.java.operator.CompilationUnit.createNode(n, imports, types);
     } else {
-      name = CommonStrings.intern(name);
-      n = NamedPackageDeclaration.createNode(Annotations.createNode(noNodes), name);
+    	n = CompilationUnit.getPkg(root);
+    	if (NamedPackageDeclaration.prototype.includes(n)) {
+    		String name2 = NamedPackageDeclaration.getId(n);
+    		if (!name.equals(name2)) {
+    			throw new IllegalArgumentException("name and AST don't match: "+name+", "+name2);
+    		}
+    	} else {
+    		if (name == null || name.length() == 0) {    			    		
+    			name = "";
+    		} else {
+    			throw new IllegalArgumentException("name and AST don't match: "+name);    			 
+    		}
+    	}
     }
-    LOG.fine("Creating IR for package "+name);
-    
-    // Just to make it into a complete CU
-    IRNode imports = ImportDeclarations.createNode(noNodes);
-    IRNode types   = TypeDeclarations.createNode(noNodes);
-    IRNode root    = edu.cmu.cs.fluid.java.operator.CompilationUnit.createNode(n, imports, types);
-    
+  	if (name.length() == 0) {
+		name = DEFAULT_NAME;
+	} else {
+		name = CommonStrings.intern(name);
+	}
+  	
     PackageDrop pkg = new PackageDrop(name, root, n);
     packageMap.put(name, pkg);
-    if ("(default)".equals(name)) {
+    if (DEFAULT_NAME.equals(name)) {
       packageMap.put("", pkg);
     }
     return pkg;

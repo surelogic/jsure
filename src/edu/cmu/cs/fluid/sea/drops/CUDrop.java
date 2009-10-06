@@ -73,7 +73,7 @@ public abstract class CUDrop extends Drop {
       elidedFields = ef;
     }
     String pkgName = VisitUtil.getPackageName(cu);
-    final PackageDrop pd = PackageDrop.createPackage(pkgName);
+    final PackageDrop pd = PackageDrop.createPackage(pkgName, null);
     pd.addDependent(this);    
     finishInit();
   }
