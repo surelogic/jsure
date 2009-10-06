@@ -282,6 +282,7 @@ fieldNamePattern
 optQualifiedTypeNamePattern
   : typeNamePattern
   | STAR
+  | qualifiedName
   ;
 
 namedTypePattern

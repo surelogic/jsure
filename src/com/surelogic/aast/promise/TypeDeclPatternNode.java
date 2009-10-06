@@ -30,8 +30,15 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 		public AASTNode create(String _token, int _start, int _stop, int _mods,
 				String _id, int _dims, List<AASTNode> _kids) {
 			int mods = _mods;
-			String pkg = "*";
-			String type = _id; // FIX
+			String pkg, type;
+			int lastDot = _id.lastIndexOf('.');
+			if (lastDot < 0) {
+				pkg = "*";
+				type = _id;
+			} else {
+				pkg = _id.substring(0, lastDot);
+				type = _id.substring(lastDot+1);
+			}
 			InPatternNode inPattern = (InPatternNode)_kids.get(0);
 			return new TypeDeclPatternNode(_start, mods, pkg, type, inPattern);
 		}
@@ -187,7 +194,6 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 		final IRNode dPkg = CompilationUnit.getPkg(compUnit);
 		if (NamedPackageDeclaration.prototype.includes(dPkg)) {
 			final String dPkgName = NamedPackageDeclaration.getId(dPkg);
-
 			return pkg.equals(dPkgName);
 		}
 		return false;
