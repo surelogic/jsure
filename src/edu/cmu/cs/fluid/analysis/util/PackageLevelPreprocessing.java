@@ -24,6 +24,7 @@ import com.surelogic.promise.PromiseDropStorage;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
+import edu.cmu.cs.fluid.eclipse.adapter.JavaSourceFileAdapter;
 import edu.cmu.cs.fluid.eclipse.adapter.ModuleUtil;
 import edu.cmu.cs.fluid.eclipse.adapter.SrcRef;
 import edu.cmu.cs.fluid.eclipse.promise.EclipsePromiseParser;
@@ -189,6 +190,7 @@ public final class PackageLevelPreprocessing extends
 			return null;
 		}
 		parser.setSource(icu);
+		parser.setResolveBindings(true);
 		final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 
 		// identify Javadoc comment
@@ -200,7 +202,9 @@ public final class PackageLevelPreprocessing extends
 			dependencies.collect(old);
 			old.invalidate();
 		}
-		final PackageDrop pkg = Binding.confirmPackage(pkgName);
+		
+		IRNode root = JavaSourceFileAdapter.getInstance().adaptPackage(icu, cu);
+		final PackageDrop pkg = Binding.createPackage(pkgName, root);
 		dependencies.markAsChanged(pkg);
 		
 		runVersioned(new AbstractRunner() {
