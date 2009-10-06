@@ -724,8 +724,8 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
      */
 //    @Region("private CPRegion")
     @Promises({
-    	@Promise("'@SingleThreaded' for new(**) in ConnectionPool"),
-    	@Promise("'@Borrowed this' for new(**) in ConnectionPool")
+    	@Promise("@SingleThreaded for new(**) in ConnectionPool"),
+    	@Promise("@Borrowed(this) for new(**) in ConnectionPool")
     	})
     @RegionLock("CPLock is this protects Instance"/*is INCONSISTENT*/)
     private class ConnectionPool {

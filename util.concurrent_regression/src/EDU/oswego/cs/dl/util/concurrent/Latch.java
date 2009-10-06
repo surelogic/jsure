@@ -45,8 +45,8 @@ package EDU.oswego.cs.dl.util.concurrent;
  * 
  * @RegionLock Lock is this protects Instance
  * 
- * @promise '@SingleThreaded' for new(**)
- * @promise '@Borrowed this' for new(**)
+ * @promise @SingleThreaded for new(**)
+ * @promise @Borrowed(this) for new(**)
 **/  
 
 public class Latch implements Sync {

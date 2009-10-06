@@ -137,8 +137,8 @@ public class Rendezvous implements Barrier {
    * so that each thread returns an item presented by some
    * other thread (or itself, if parties is 1).
    * 
-   * @promise "@RegionEffects none" for new()
-   * @promise "@borrowed this" for new()
+   * @promise @RegionEffects(none) for new()
+   * @promise @Borrowed(this) for new()
    **/
   public static class Rotator implements RendezvousFunction {
     /** Rotate the array **/

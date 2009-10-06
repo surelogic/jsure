@@ -23,8 +23,8 @@ package EDU.oswego.cs.dl.util.concurrent;
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  * 
  * @RegionLock MetaLock is this protects Instance
- * @promise "@singleThreaded" for new(**)
- * @promise "@borrowed this" for new(**)
+ * @promise @SingleThreaded for new(**)
+ * @promise @Borrowed(this) for new(**)
 **/
 
 

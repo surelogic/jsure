@@ -1281,8 +1281,8 @@ public class SynchronizationTimer {
 
   /**
    * @RegionLock L is this protects Instance
-   * @promise '@SingleThreaded' for new()
-   * @promise '@Borrowed this' for new()
+   * @promise @SingleThreaded for new()
+   * @promise @Borrowed(this) for new()
    */
   static class BarrierTimer implements Runnable {
     private long startTime_ = 0;
