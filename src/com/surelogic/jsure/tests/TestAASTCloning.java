@@ -183,10 +183,6 @@ public class TestAASTCloning extends TestCase {
 			ConstructorDeclPatternNode clone = (ConstructorDeclPatternNode)node.cloneTree();
 			
 			assertFalse(node == clone);
-			assertFalse(node.getPkg() == clone.getPkg());
-			assertTrue(node.getPkg().equals(clone.getPkg()));
-			assertFalse(node.getType() == clone.getType());
-			assertTrue(node.getType().equals(clone.getType()));
 			assertFalse(node.getInPattern() == clone.getInPattern());
 			assertTrue(node.getMods() == clone.getMods());
 			
