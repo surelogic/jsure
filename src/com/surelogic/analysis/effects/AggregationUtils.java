@@ -123,7 +123,7 @@ public final class AggregationUtils {
    * doesn't perform any mappings.
    */
   /* Should add a cache later? */
-  protected static Map<RegionModel, IRegion> constructRegionMapping(final IRNode field) {
+  public static Map<RegionModel, IRegion> constructRegionMapping(final IRNode field) {
     /* Try to get the aggregation information. If no aggregation is defined,
      * then getFieldRegion will throw a SlotUndefinedException.
      */

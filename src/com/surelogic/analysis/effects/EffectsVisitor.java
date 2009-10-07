@@ -676,7 +676,6 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
         final Map<RegionModel, IRegion> aggregationMap = 
           AggregationUtils.constructRegionMapping(fieldID);
         if (aggregationMap != null) {
-          final IRNode newObject = FieldRef.getObject(expr);
           final IRegion newRegion = AggregationUtils.getMappedRegion(region.getModel(), aggregationMap);
           final AggregationEvidence evidence =
             new AggregationEvidence(target, aggregationMap, newRegion);
@@ -684,6 +683,7 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
           if (newRegion.isStatic()) {
             newTarget = targetFactory.createClassTarget(newRegion, evidence);
           } else {
+            final IRNode newObject = FieldRef.getObject(expr);
             // FIX for bug 1284: Need to bind the receiver here!
             newTarget = targetFactory.createInstanceTarget(newObject, newRegion, evidence);
           }        

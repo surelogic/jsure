@@ -6,6 +6,7 @@ import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.effects.*;
+import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.ClassTarget;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
@@ -20,6 +21,7 @@ import com.surelogic.analysis.locks.locks.ILock.Type;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -567,18 +569,23 @@ public final class LockUtils {
   // == Methods for getting the necessary locks
   // ========================================================================
   
-  public Set<NeededLock> getLocksForDirectRegionAccess(
-    final IRNode srcNode, final boolean isRead, final Target target) {
+  public Set<NeededLock> getLocksForDirectRegionAccess(final IRNode srcNode,
+      final boolean isRead, final Target target) {
+    final Set<NeededLock> neededLocks = new HashSet<NeededLock>();
+    getLocksForDirectRegionAccess(srcNode, isRead, target, neededLocks);
+    return Collections.unmodifiableSet(neededLocks);
+  }
+
+  private void getLocksForDirectRegionAccess(final IRNode srcNode,
+      final boolean isRead, final Target target,
+      final Set<NeededLock> neededLocks) {
     final Set<Effect> elaboratedEffects =
       effectsVisitor.elaborateEffect(targetFactory, srcNode, isRead, target);
-    
-    final Set<NeededLock> neededLocks = new HashSet<NeededLock>();
     for (final Effect effect : elaboratedEffects) {
       getLocksFromEffect(effect, neededLocks);
     }
-    return Collections.unmodifiableSet(neededLocks);
   }
-  
+
   /**
    * Get the lock record for the lock that protects the given region in the
    * given class.
@@ -632,6 +639,41 @@ public final class LockUtils {
       final IRNode mcall, final IRNode enclosingDecl) {
     final Set<NeededLock> result = new HashSet<NeededLock>();
     
+    /* In the case of an effect naming a static or any-instance target, we need
+     * to iterate 
+     *   for each actual parameter A that is syntactically a FieldRef
+     *     Get the field aggregation map M, if any, for A
+     *     Let CE_T be the target from CE
+     *     For each key region R in M
+     *       if target <A, R> overlaps with CE_T, then we need the lock for the
+     *        target obtained from aggregating target <A, R>
+     *
+     * So we precompute the targets <A, R> that we need to test against.
+     * We cannot prebuild the needed locks because it depends on whether the
+     * original effect is read or write.  (We could prebuild both, I suppose.)
+     */
+    final List<Target> exposedTargets = new ArrayList<Target>();
+    
+    // XXX This call is wasteful because the call below to getMethodCallEffects() also builds this map.
+    final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
+        binder, mcall, binder.getBinding(mcall), enclosingDecl);
+    for (final Map.Entry<IRNode, IRNode> entry : m.entrySet()) {
+      final IRNode actual = entry.getValue();
+      if (actual != null && FieldRef.prototype.includes(actual)) {
+        final IRNode fieldID = binder.getBinding(actual);
+        final boolean isUnique = UniquenessRules.isUnique(fieldID);
+        if (isUnique) {
+          final Map<RegionModel, IRegion> aggregationMap = 
+            AggregationUtils.constructRegionMapping(fieldID);
+          for (final RegionModel from : aggregationMap.keySet()) {
+            // This is okay because only instance regions can be mapped
+            final Target testTarget = targetFactory.createInstanceTarget(actual, from);
+            exposedTargets.add(testTarget);
+          }
+        }
+      }
+    }
+
     /* Get the effects of calling the method, and find all the effects
      * whose targets are the result of aggregation.  For each such target
      * get the lock required to access the region into which the aggregation
@@ -645,9 +687,19 @@ public final class LockUtils {
      */
     final Set<Effect> callFx = EffectsVisitor.getMethodCallEffects(
         effectsVisitor.getBCA(), targetFactory, binder, mcall, enclosingDecl);
+
     for (final Effect effect : callFx) {
       if (effect.isTargetAggregated()) {
         getLocksFromEffect(effect, result);
+      } else {
+        final Target target = effect.getTarget();
+        if (target instanceof ClassTarget || target instanceof AnyInstanceTarget) {
+          for (final Target exposedTarget : exposedTargets) {
+            if (conflicter.doTargetsOverlap(target, exposedTarget, exposedTarget.getReference())) {
+              getLocksForDirectRegionAccess(mcall, effect.isReadEffect(), exposedTarget, result);
+            }
+          }
+        }
       }
     }
     return Collections.unmodifiableSet(result);

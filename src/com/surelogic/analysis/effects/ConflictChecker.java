@@ -3,6 +3,9 @@ package com.surelogic.analysis.effects;
 
 import java.util.Set;
 
+import com.surelogic.analysis.effects.targets.Target;
+import com.surelogic.analysis.effects.targets.TargetRelationships;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -45,5 +48,9 @@ public final class ConflictChecker {
   public boolean mustConflict(
       final Set<Effect> s1, final Set<Effect> s2, final IRNode before) {
     return getMustConflictingEffects(s1, s2, before).conflictsExist();
+  }
+  
+  public boolean doTargetsOverlap(final Target t1, final Target t2, final IRNode before) {
+    return t1.overlapsWith(aliasAnalysis.getMayAliasMethod(before), binder, t2).getTargetRelationship() != TargetRelationships.UNRELATED;
   }
 }
