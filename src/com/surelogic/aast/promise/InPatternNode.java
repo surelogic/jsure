@@ -16,7 +16,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  */
 public class InPatternNode extends AASTNode {
 	private final InTypePatternNode typeNode;
-	private final InPackagePatternNode packageNode;
+	private final InTypePatternNode packageNode;
 
 	public static final AbstractSingleNodeFactory factory = new com.surelogic.parse.AbstractSingleNodeFactory(
 			"InPattern") {
@@ -29,10 +29,10 @@ public class InPatternNode extends AASTNode {
 			// FIXME This should change when we move away from supporting the
 			// old-style
 			InTypePatternNode typeNode = null;
-			InPackagePatternNode packageNode = null;
+			InTypePatternNode packageNode = null;
 			if (_kids.size() == 2) {
 				typeNode = (InTypePatternNode) _kids.get(0);
-				packageNode = (InPackagePatternNode) _kids.get(1);
+				packageNode = (InTypePatternNode) _kids.get(1);
 			}
 			return new InPatternNode(_start, typeNode, packageNode);
 		}
@@ -49,7 +49,7 @@ public class InPatternNode extends AASTNode {
 	 *          we move away from the old-style(
 	 */
 	public InPatternNode(int offset, InTypePatternNode typeNode,
-			InPackagePatternNode packageNode) {
+			InTypePatternNode packageNode) {
 		super(offset);
 		this.typeNode = typeNode;
 		this.packageNode = packageNode;
@@ -93,13 +93,7 @@ public class InPatternNode extends AASTNode {
 		boolean matches = true;
 		if (typeNode != null && packageNode != null) {
 			// System.out.println(unparse(false));
-			if (packageNode.getInTypePattern() != null) {
-				InPackagePatternNode ppn = packageNode.combineAASTs(typeNode);
-				// System.out.println(ppn.unparse());
-				matches = ppn.matches(decl);
-			} else {
-				matches = typeNode.matches(decl);
-			}
+			matches = packageNode.matches(decl) && typeNode.matches(decl);
 		}
 		return matches;
 	}
@@ -114,7 +108,7 @@ public class InPatternNode extends AASTNode {
 	/**
 	 * @return A possibly-null InPackagePatternNode
 	 */
-	public InPackagePatternNode getInPackagePattern() {
+	public InTypePatternNode getInPackagePattern() {
 		return packageNode;
 	}
 

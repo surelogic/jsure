@@ -13,7 +13,6 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 	// Fields
 	private final int mods;
 	private final TypeNode ftype;
-	private final TypeQualifierPatternNode type;
 	private final String name;
 	private final InPatternNode inPattern;
 
@@ -25,10 +24,9 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 				String _id, int _dims, List<AASTNode> _kids) {
 			int mods = _mods;
 			TypeNode ftype = (TypeNode) _kids.get(0);
-			TypeQualifierPatternNode type = (TypeQualifierPatternNode) _kids.get(1);
-			InPatternNode inPattern = (InPatternNode) _kids.get(2);
+			InPatternNode inPattern = (InPatternNode) _kids.get(1);
 			String name = _id;
-			return new FieldDeclPatternNode(_start, mods, ftype, type, inPattern,
+			return new FieldDeclPatternNode(_start, mods, ftype, inPattern,
 					name);
 		}
 	};
@@ -40,7 +38,7 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 	 * @unique
 	 */
 	public FieldDeclPatternNode(int offset, int mods, TypeNode ftype,
-			TypeQualifierPatternNode type, InPatternNode inPattern, String name) {
+			                    InPatternNode inPattern, String name) {
 		super(offset);
 		this.mods = mods;
 		if (ftype == null) {
@@ -48,11 +46,6 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 		}
 		((AASTNode) ftype).setParent(this);
 		this.ftype = ftype;
-		if (type == null) {
-			throw new IllegalArgumentException("type is null");
-		}
-		((AASTNode) type).setParent(this);
-		this.type = type;
 		if (name == null) {
 			throw new IllegalArgumentException("name is null");
 		}
@@ -74,14 +67,12 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 			sb.append("mods=").append(getMods());
 			sb.append("\n");
 			sb.append(getFtype().unparse(debug, indent + 2));
-			sb.append(getType().unparse(debug, indent + 2));
 			indent(sb, indent + 2);
 			sb.append("name=").append(getName());
 			sb.append("\n");
 			sb.append(getInPattern().unparse(debug, indent + 2));
 		} else {
 			sb.append(getFtype().unparse(debug)).append(' ');
-			sb.append(getType().unparse(debug)).append('.');
 			sb.append(getName());
 			sb.append(getInPattern().unparse(debug));
 		}
@@ -100,13 +91,6 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 	 */
 	public TypeNode getFtype() {
 		return ftype;
-	}
-
-	/**
-	 * @return A non-null node
-	 */
-	public TypeQualifierPatternNode getType() {
-		return type;
 	}
 
 	/**
@@ -142,7 +126,6 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 
 			boolean ret = matchesModifiers(mods, FieldDeclaration.getMods(irNode));
 			ret = ret && matchesName(VariableDeclarator.getId(vdecl));
-			ret = ret && type.matches(irNode, true);
 			ret = ret && ftype.matches(FieldDeclaration.getType(irNode));
 			ret = ret && inPattern.matches(irNode);
 			return ret;
@@ -167,8 +150,7 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 	@Override
 	public IAASTNode cloneTree() {
 		return new FieldDeclPatternNode(getOffset(), getMods(),
-				(TypeNode) getFtype().cloneTree(), (TypeQualifierPatternNode) getType()
-						.cloneTree(), (InPatternNode) getInPattern().cloneTree(),
+				(TypeNode) getFtype().cloneTree(), (InPatternNode) getInPattern().cloneTree(),
 				new String(getName()));
 	}
 }

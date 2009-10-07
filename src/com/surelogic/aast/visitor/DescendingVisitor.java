@@ -272,7 +272,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(FieldDeclPatternNode n) {
     T rv = defaultValue;
     rv = combineResults(rv, doAccept(n.getFtype()));
-    rv = combineResults(rv, doAccept(n.getType()));
     return rv;
   }
   public T visit(RegionNameNode n) {
@@ -336,7 +335,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(MethodDeclPatternNode n) {
     T rv = defaultValue;
     rv = combineResults(rv, doAccept(n.getRtype()));
-    rv = combineResults(rv, doAccept(n.getType()));
     for(AASTNode c : n.getSigList()) {
       rv = combineResults(rv, doAccept(c));
     }

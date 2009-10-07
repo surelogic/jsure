@@ -8,11 +8,11 @@ import com.surelogic.aast.*;
 import com.surelogic.parse.AbstractSingleNodeFactory;
 
 /**
- * TODO Fill in purpose.
+ * Extends InTypePatternNode, only for convenience in reusing And, Or, Not nodes
  * 
  * @author ethan
  */
-public class InPackagePatternNode extends AASTNode {
+public class InPackagePatternNode extends InTypePatternNode {
 	private final InTypePatternNode type;
 
 	public static final AbstractSingleNodeFactory factory = new com.surelogic.parse.AbstractSingleNodeFactory(
@@ -82,7 +82,7 @@ public class InPackagePatternNode extends AASTNode {
 	 * @param irNode
 	 * @return True if this tree matches the IRNode-based AST
 	 */
-	boolean matches(IRNode irNode) {
+	public boolean matches(IRNode irNode) {
 		if (type != null) {
 			return type.matches(irNode);
 		}
@@ -123,6 +123,7 @@ public class InPackagePatternNode extends AASTNode {
 	 * @param typeNode
 	 * @return InPackagePatternNode with combined information
 	 */
+	@Override
 	InPackagePatternNode combineAASTs(InTypePatternNode typeNode) {
 	  return new InPackagePatternNode(offset, getInTypePattern().combineAASTs(typeNode));	
 	}
@@ -134,5 +135,10 @@ public class InPackagePatternNode extends AASTNode {
   	}else{
     	return new InPackagePatternNode(getOffset(), null);
   	}
+  }
+
+  @Override
+  InTypePatternNode cloneAndModifyTree(String packagePattern) {
+	 throw new UnsupportedOperationException();
   }
 }

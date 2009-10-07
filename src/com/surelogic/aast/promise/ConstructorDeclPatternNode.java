@@ -19,8 +19,6 @@ import edu.cmu.cs.fluid.tree.Operator;
 public class ConstructorDeclPatternNode extends PromiseTargetNode {
 	// Fields
 	private final int mods;
-	private final String pkg;
-	private final String type;
 	private final List<TypeNode> sig;
 	private final InPatternNode inPattern;
 
@@ -31,14 +29,9 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 		public AASTNode create(String _token, int _start, int _stop, int _mods,
 				String _id, int _dims, List<AASTNode> _kids) {
 			int mods = _mods;
-			TypeQualifierPatternNode qual = (TypeQualifierPatternNode) _kids
-					.get(0);
-			InPatternNode inPattern = (InPatternNode) _kids.get(1);
-			String pkg = qual.getPkg();
-			String type = qual.getType();
-			List<TypeNode> sig = ((TempListNode) _kids.get(2)).toList();
-			return new ConstructorDeclPatternNode(_start, mods, pkg, type, sig,
-					inPattern);
+			InPatternNode inPattern = (InPatternNode) _kids.get(0);
+			List<TypeNode> sig = ((TempListNode) _kids.get(1)).toList();
+			return new ConstructorDeclPatternNode(_start, mods, sig, inPattern);
 		}
 	};
 
@@ -48,18 +41,10 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 	 * 
 	 * @unique
 	 */
-	public ConstructorDeclPatternNode(int offset, int mods, String pkg,
-			String type, List<TypeNode> sig, InPatternNode inPattern) {
+	public ConstructorDeclPatternNode(int offset, int mods, 
+			List<TypeNode> sig, InPatternNode inPattern) {
 		super(offset);
 		this.mods = mods;
-		if (pkg == null) {
-			throw new IllegalArgumentException("pkg is null");
-		}
-		this.pkg = pkg;
-		if (type == null) {
-			throw new IllegalArgumentException("type is null");
-		}
-		this.type = type;
 		if (sig == null) {
 			throw new IllegalArgumentException("sig is null");
 		}
@@ -82,19 +67,12 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 			sb.append("ConstructorDeclPattern\n");
 			indent(sb, indent + 2);
 			sb.append("mods=").append(getMods());
-			sb.append("\n");
-			indent(sb, indent + 2);
-			sb.append("pkg=").append(getPkg());
-			sb.append("\n");
-			indent(sb, indent + 2);
-			sb.append("type=").append(getType());
-			sb.append("\n");
+			sb.append("\n");	
 			sb.append(getInPattern().unparse(debug, indent + 2));
 			for (AASTNode _n : getSigList()) {
 				sb.append(_n.unparse(debug, indent + 2));
 			}
 		} else {
-			sb.append(getType());
 			sb.append("new(");
 			unparseList(sb, getSigList());
 			sb.append(')');
@@ -108,20 +86,6 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 	 */
 	public int getMods() {
 		return mods;
-	}
-
-	/**
-	 * @return A non-null String
-	 */
-	public String getPkg() {
-		return pkg;
-	}
-
-	/**
-	 * @return A non-null String
-	 */
-	public String getType() {
-		return type;
 	}
 
 	/**
@@ -153,10 +117,7 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 	public boolean matches(IRNode irNode) {
 		// match the type
 		if (ConstructorDeclaration.prototype.includes(irNode)) {
-			return matchesType(irNode, true)
-			// match the modifiers
-					&& matchesModifiers(mods, ConstructorDeclaration
-							.getModifiers(irNode))
+			return  matchesModifiers(mods, ConstructorDeclaration.getModifiers(irNode))
 					// match argument list
 					&& matchesArgs(ConstructorDeclaration.getParams(irNode))
 					// matches the 'in' pattern
@@ -227,6 +188,7 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 		return true;
 	}
 
+	/*
 	private boolean matchesType(IRNode decl, boolean useEnclosing) {
 		IRNode here = decl;
 
@@ -260,6 +222,7 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 
 		return false;
 	}
+	*/
 
 	@Override
 	public IAASTNode cloneTree() {
@@ -270,7 +233,6 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 		}
 
 		return new ConstructorDeclPatternNode(getOffset(), getMods(),
-				new String(getPkg()), new String(getType()), sigCopy,
-				(InPatternNode) getInPattern().cloneTree());
+				sigCopy, (InPatternNode) getInPattern().cloneTree());
 	}
 }

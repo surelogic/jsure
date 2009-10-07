@@ -17,7 +17,6 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 	// Fields
 	private final int mods;
 	private final TypeNode rtype;
-	private final TypeQualifierPatternNode type;
 	private final String name;
 	private final List<TypeNode> sig;
 	private final InPatternNode inPattern;
@@ -30,12 +29,11 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 				String _id, int _dims, List<AASTNode> _kids) {
 			int mods = _mods;
 			TypeNode rtype = (TypeNode) _kids.get(0);
-			TypeQualifierPatternNode type = (TypeQualifierPatternNode) _kids.get(1);
-			InPatternNode inPattern = (InPatternNode) _kids.get(2);
+			InPatternNode inPattern = (InPatternNode) _kids.get(1);
 			String name = _id;
-			List<TypeNode> sig = ((TempListNode) _kids.get(3)).toList();
+			List<TypeNode> sig = ((TempListNode) _kids.get(2)).toList();
 
-			return new MethodDeclPatternNode(_start, mods, rtype, type, name, sig,
+			return new MethodDeclPatternNode(_start, mods, rtype, name, sig,
 					inPattern);
 		}
 	};
@@ -47,7 +45,7 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 	 * @unique
 	 */
 	public MethodDeclPatternNode(int offset, int mods, TypeNode rtype,
-			TypeQualifierPatternNode type, String name, List<TypeNode> sig,
+			String name, List<TypeNode> sig,
 			InPatternNode inPattern) {
 		super(offset);
 		this.mods = mods;
@@ -56,9 +54,6 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 		}
 		((AASTNode) rtype).setParent(this);
 		this.rtype = rtype;
-		if (type == null) {
-			throw new IllegalArgumentException("type is null");
-		}
 		this.name = name;
 		if (sig == null) {
 			throw new IllegalArgumentException("sig is null");
@@ -67,8 +62,6 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 			((AASTNode) _c).setParent(this);
 		}
 		this.sig = Collections.unmodifiableList(sig);
-		((AASTNode) type).setParent(this);
-		this.type = type;
 		if (name == null) {
 			throw new IllegalArgumentException("name is null");
 		}
@@ -89,8 +82,7 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 			sb.append("mods=").append(getMods());
 			sb.append("\n");
 			sb.append(getRtype().unparse(debug, indent + 2));
-			sb.append(' ');
-			sb.append(getType().unparse(debug, indent + 2));
+
 			indent(sb, indent + 2);
 			sb.append("name=").append(getName());
 			sb.append("\n");
@@ -104,7 +96,6 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 				sb.append(getRtype());
 				sb.append(' ');
 			}
-			sb.append(getType());
 			sb.append(getName());
 			sb.append('(');
 			unparseList(sb, getSigList());
@@ -126,13 +117,6 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 	 */
 	public TypeNode getRtype() {
 		return rtype;
-	}
-
-	/**
-	 * @return A non-null node
-	 */
-	public TypeQualifierPatternNode getType() {
-		return type;
 	}
 
 	/**
@@ -182,9 +166,6 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 			// No wildcards
 			MethodDeclaration.getId(irNode).equals(name)
 					: MethodDeclaration.getId(irNode).matches(namePattern);
-			// match the type
-			matches = matches
-					&& type.matches(MethodDeclaration.getTypes(irNode), true);
 			// match the modifiers
 			matches = matches
 					&& matchesModifiers(mods, MethodDeclaration.getModifiers(irNode));
@@ -271,8 +252,7 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 			sigCopy.add((TypeNode) typeNode.cloneTree());
 		}
 		return new MethodDeclPatternNode(getOffset(), getMods(),
-				(TypeNode) getRtype().cloneTree(), (TypeQualifierPatternNode) getType()
-						.cloneTree(), new String(getName()), sigCopy,
+				(TypeNode) getRtype().cloneTree(), new String(getName()), sigCopy,
 				(InPatternNode) getInPattern().cloneTree());
 	}
 }

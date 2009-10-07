@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.util.OpSearch;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 
+@Deprecated
 public class TypeQualifierPatternNode extends AASTNode {
 	// Fields
 	private final String pkg;

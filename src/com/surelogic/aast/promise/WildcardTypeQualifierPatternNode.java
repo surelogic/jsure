@@ -17,7 +17,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
  * @author ethan
  */
 public class WildcardTypeQualifierPatternNode extends InTypePatternNode {
-
 	// Can't be final b/c we may modify it with package info
 	private final String typePattern;
 

@@ -48,7 +48,7 @@ public class ScopedPromiseParse {
     printAST(initParser("*bar").wildcardIdentifier().tree, false);
     
     printAST(initParser("  *bar").fieldNamePattern().tree);
-    printAST(initParser(" foo.").typeQualifierPattern().tree);
+    //printAST(initParser(" foo.").typeQualifierPattern().tree);
     printAST(initParser("* ").typeSigPattern().tree);
     printAST(initParser("* foo.*bar").fieldDeclPattern().tree);
     
@@ -65,9 +65,9 @@ public class ScopedPromiseParse {
     printAST(initParser("intValue(boolean)").andTarget().tree, false);
     printAST(initParser("intValue(**) & foo.intValue(int)").andTarget().tree, false);
     
-    printAST(initParser(" foo*. ").typeQualifierPattern().tree, false);
+    //printAST(initParser(" foo*. ").typeQualifierPattern().tree, false);
     printAST(initParser(" * ").typeDeclPattern().tree, false);
-    printAST(initParser(" foo. ").typeQualifierPattern().tree, false);
+    //printAST(initParser(" foo. ").typeQualifierPattern().tree, false);
     //printAST(initParser("  ").typeQualifierPattern().tree, false);
     
     printAST(initParser("*(**)").methodMatchPattern().tree, false);

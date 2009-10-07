@@ -111,17 +111,6 @@ public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, 
 /*************************************************************************************
  * Rules supporting scoped promises (@Promise, @Assume, @Module)
  *************************************************************************************/	
-/*
-scopedPromise
-  : promiseString -> ^(ScopedPromise promiseString ^(AnyTarget))
-  | promiseString FOR promiseTarget -> ^(ScopedPromise promiseString promiseTarget)
-  ;    
-  
-promiseString
-  : PromiseStringLiteral
-  | StringLiteral
-  ;  	
-*/
 
 // Still have to check for parens
 scopedPromise
@@ -147,7 +136,7 @@ andTarget
     	
 baseTarget
   : (constructorDeclPattern) => constructorDeclPattern
-//  | (methodDeclPattern) => methodDeclPattern
+  // No real need to match against return value
   | (noReturnMethodDeclPattern) => noReturnMethodDeclPattern
   | (fieldDeclPattern) => fieldDeclPattern
   | typeDeclPattern
@@ -160,23 +149,25 @@ baseTarget
  ******************************************************************/
 
 constructorDeclPattern
-  : accessModPattern typeQualifierPattern 'new' methodSigPattern ->
-    ^(ConstructorDeclPattern accessModPattern typeQualifierPattern ^(InPattern) methodSigPattern)
+  : accessModPattern 'new' methodSigPattern ->
+    ^(ConstructorDeclPattern accessModPattern ^(InPattern) methodSigPattern)
   | accessModPattern 'new' methodSigPattern inPattern ->
-    ^(ConstructorDeclPattern accessModPattern ^(TypeQualifierPattern) inPattern methodSigPattern ^(Throws))
+    ^(ConstructorDeclPattern accessModPattern inPattern methodSigPattern)
   ;
 
 // Factors out the main part of a method pattern
 // from the MethodDeclPatterns below
 methodMatchPattern
-  : typeQualifierPattern methodNamePattern methodSigPattern  -> typeQualifierPattern ^(InPattern) methodNamePattern methodSigPattern
-  | methodNamePattern methodSigPattern inPattern -> ^(TypeQualifierPattern) inPattern methodNamePattern methodSigPattern
+  : methodNamePattern methodSigPattern  -> ^(InPattern) methodNamePattern methodSigPattern
+  | methodNamePattern methodSigPattern inPattern -> inPattern methodNamePattern methodSigPattern
   ;
 
+/* Now unused
 methodDeclPattern
   : modifierPattern returnTypeSigPattern methodMatchPattern ->
     ^(MethodDeclPattern modifierPattern returnTypeSigPattern methodMatchPattern)
   ;
+*/
 
 noReturnMethodDeclPattern
   : modifierPattern methodMatchPattern ->
@@ -184,38 +175,31 @@ noReturnMethodDeclPattern
   ;
 
 fieldDeclPattern
-  : modifierPattern typeSigPattern typeQualifierPattern fieldNamePattern ->
-    ^(FieldDeclPattern modifierPattern typeSigPattern typeQualifierPattern ^(InPattern) fieldNamePattern)
+  : modifierPattern typeSigPattern fieldNamePattern ->
+    ^(FieldDeclPattern modifierPattern typeSigPattern ^(InPattern) fieldNamePattern)
   | modifierPattern typeSigPattern  fieldNamePattern inPattern ->
-    ^(FieldDeclPattern modifierPattern typeSigPattern ^(TypeQualifierPattern) inPattern fieldNamePattern)
-    /*
-  | modifierPattern typeSigPattern  fieldNamePattern ->
-    ^(FieldDeclPattern modifierPattern typeSigPattern ^(TypeQualifierPattern) ^(InPattern) fieldNamePattern)
-    */
+    ^(FieldDeclPattern modifierPattern typeSigPattern inPattern fieldNamePattern)
   ;
 
 typeDeclPattern
   : modifierPattern optQualifiedTypeNamePattern ->
     ^(TypeDeclPattern modifierPattern optQualifiedTypeNamePattern ^(InPattern))
-  | modifierPattern optQualifiedTypeNamePattern inPattern->
-	    ^(TypeDeclPattern modifierPattern optQualifiedTypeNamePattern inPattern)
+  | modifierPattern wildcardTypeNamePattern inPattern->
+	    ^(TypeDeclPattern modifierPattern wildcardTypeNamePattern inPattern)
   ;
 
+/* Now unused
 typeQualifierPattern
   : typeNamePattern '.' -> ^(TypeQualifierPattern typeNamePattern)
   | -> ^(TypeQualifierPattern)
   ;
+*/
 
-//In operator targets
-wildcardTypeQualifierPattern
-  :	methodNamePattern (DOT methodNamePattern)* c=DOT? -> ^(WildcardTypeQualifierPattern methodNamePattern (DOT methodNamePattern)* DOT?)
-  ;
-  
+//In operator targets  
 inPattern
   : IN wildcardTypeQualifierPattern inPackagePattern -> ^(InPattern wildcardTypeQualifierPattern inPackagePattern)
   | IN '(' inTypePattern ')' inPackagePattern -> ^(InPattern inTypePattern inPackagePattern)
   ;
-  
 
 inTypePattern
   : (inAndPattern -> inAndPattern) ( '|' b=inAndPattern -> ^(InOrPattern $inTypePattern $b))*
@@ -232,11 +216,32 @@ inBasePattern
   ;
   
 inPackagePattern
-  : IN wildcardTypeQualifierPattern ->^(InPackagePattern wildcardTypeQualifierPattern)
-  | IN '(' inTypePattern ')' -> ^(InPackagePattern inTypePattern)
+  : IN wildcardPkgQualifierPattern -> wildcardPkgQualifierPattern
+  | IN '(' inPackageRootPattern ')' -> inPackageRootPattern
   | -> ^(InPackagePattern)
   ;
 
+inPackageRootPattern
+  : (inAndPkgPattern -> inAndPkgPattern) ( '|' b=inAndPkgPattern -> ^(InOrPattern $inPackageRootPattern $b))*
+  ;
+
+inAndPkgPattern
+  :  (inBasePkgPattern -> inBasePkgPattern) ('&' b=inBasePkgPattern -> ^(InAndPattern $inAndPkgPattern $b))*
+  ;
+  
+inBasePkgPattern
+  : wildcardTypeQualifierPattern
+  | '!' '(' inPackageRootPattern ')' -> ^(InNotPattern inPackageRootPattern)
+  | '(' inPackageRootPattern ')' -> inPackageRootPattern
+  ;
+
+wildcardTypeQualifierPattern
+  :	methodNamePattern (DOT methodNamePattern)* -> ^(WildcardTypeQualifierPattern methodNamePattern (DOT methodNamePattern)*)
+  ;
+  
+wildcardPkgQualifierPattern
+  :	methodNamePattern (DOT methodNamePattern)* -> ^(InPackagePattern methodNamePattern (DOT methodNamePattern)*)
+  ;
 //Done 'in' operator
   
 methodNamePattern
@@ -280,9 +285,13 @@ fieldNamePattern
   ;
   
 optQualifiedTypeNamePattern
+  : wildcardTypeNamePattern
+  | qualifiedName
+  ;
+
+wildcardTypeNamePattern
   : typeNamePattern
   | STAR
-  | qualifiedName
   ;
 
 namedTypePattern
@@ -314,7 +323,8 @@ wildcardIdentifier
 
 /******************************************************************
  ** Constructs for modifiers
- ******************************************************************/
+ **********************
+ ********************************************/
 
 /*
   ( "public" 
