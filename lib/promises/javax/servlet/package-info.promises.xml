@@ -1,4 +1,4 @@
 <package name="javax.servlet">
-	<Module>Servlet for *</Module>
+	<!--Module>Servlet for *</Module-->
 	<ColorDeclare>Servlet</ColorDeclare>
 </package>
