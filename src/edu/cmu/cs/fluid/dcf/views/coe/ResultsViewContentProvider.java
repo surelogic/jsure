@@ -45,6 +45,8 @@ import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
 import edu.cmu.cs.fluid.sea.drops.PleaseCount;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 import edu.cmu.cs.fluid.sea.drops.promises.InRegionPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
+import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -999,10 +1001,20 @@ public class ResultsViewContentProvider extends
 		Collection<Content> root = new HashSet<Content>(); // show at the
 		// viewer root
 
+		/*
+		for (ModelDrop md : Sea.getDefault().getDropsOfType(ModelDrop.class)) {
+			System.out.println("ModelDrop: "+md.getMessage());
+		}
+		*/
+		
 		Set<? extends PromiseDrop> promiseDrops = Sea.getDefault()
 				.getDropsOfType(PromiseDrop.class);
 		for (PromiseDrop pd : promiseDrops) {
-			// PromiseDrop pd = (PromiseDrop) i.next();		
+			/*
+			if (pd instanceof LockModel) {
+				System.out.println(pd.getMessage());
+			}
+			*/
 			if (pd.isFromSrc()) {
 				if (!pd.hasMatchingDeponents(predicate)) {
 					/*
