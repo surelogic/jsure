@@ -54,6 +54,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 			result = new RegionModel(key);
 
 			nameToDrop.put(key, result);
+			//System.out.println("Creating region "+key);
 		}
 		return result;
 	}
