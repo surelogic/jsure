@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/AbstractIRAnalysis.java,v 1.4 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -15,7 +17,7 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 	protected final T nullAnalysis = (T) new Object();
 	private IIRProject project;
 	private IBinder binder;
-	private ThreadLocal<T> analysis;
+	private final AtomicReference<T> analysis = new AtomicReference<T>();
 	
 	protected IBinder getBinder() {
 		return binder;
@@ -23,6 +25,10 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 	
 	protected T getAnalysis() {
 		return analysis.get();
+	}
+	
+	protected boolean flushAnalysis() {
+		return false;
 	}
 	
 	public String name() {
@@ -37,8 +43,7 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 		this.binder = binder;
 		startAnalyzeBegin(p, binder);
 		
-		if (old != p) {
-			analysis = new ThreadLocal<T>();		
+		if (flushAnalysis() || old != p || analysis.get() == null) {			
 			setupAnalysis();
 		}
 		finishAnalyzeBegin(p, binder);
