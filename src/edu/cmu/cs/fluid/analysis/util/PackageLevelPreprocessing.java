@@ -199,6 +199,12 @@ public final class PackageLevelPreprocessing extends
 		final String pkgName  = (pd == null) ? "" : pd.getName().getFullyQualifiedName();
 		final PackageDrop old = PackageDrop.findPackage(pkgName);
 		if (old != null) {
+			/*
+			System.out.println("PackageDrop: "+old.javaOSFileName);
+			for(Drop d : old.getDependents()) {
+				System.out.println("\t"+d.getMessage());
+			}
+			*/
 			dependencies.collect(old);
 			old.invalidate();
 		}
@@ -299,11 +305,11 @@ public final class PackageLevelPreprocessing extends
 			/*
 			for(CUDrop d : changed) {
 				System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
-			}
+			}		
 			for(CUDrop d : reprocess) {
 				System.out.println("Reprocess: "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 			}
-			*/						
+			*/
 			IDE.getInstance().setAdapting();
 			try {
 				for(CUDrop d : reprocess) {
@@ -311,7 +317,7 @@ public final class PackageLevelPreprocessing extends
 						//Nothing else needed 
 					} else {		
 						// Clear out promise drops
-						//System.out.println("Clearing "+d.javaOSFileName);
+						//System.out.println("Reprocessing "+d.javaOSFileName);
 						for(IRNode n : JavaPromise.bottomUp(d.cu)) {
 							PromiseDropStorage.clearDrops(n);
 						}	
