@@ -61,7 +61,6 @@ public class InPackagePatternNode extends InTypePatternNode {
 			sb.append("pattern=").append(getPackagePattern());
 			sb.append("\n");
 		} else {
-			sb.append(" in ");
 			sb.append(getPackagePattern());
 		}
 		return sb.toString();
