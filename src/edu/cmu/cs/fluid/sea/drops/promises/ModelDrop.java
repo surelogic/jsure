@@ -35,6 +35,7 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
   protected void deponentInvalidAction(Drop invalidDeponent) {    
     // invalidate();
     if (invalidDeponent instanceof CUDrop) {
+      //System.out.println("Invalidating "+getMessage());
       CUDrop cud = (CUDrop) invalidDeponent;
       IRNode cu  = VisitUtil.getEnclosingCompilationUnit(getNode());
       if (!cud.cu.equals(cu)) {
