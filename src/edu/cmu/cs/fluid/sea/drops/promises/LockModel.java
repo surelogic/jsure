@@ -42,6 +42,11 @@ implements ILockBinding
       result = new LockModel(key);
       
       nameToDrop.put(key, result);
+
+      if ("java.lang.Object.MUTEX".equals(key)) {
+    	  result.setFromSrc(true); // Make it show up in the view
+      }
+      //System.out.println("Creating lock "+key);
     }
     return result;
   }
@@ -93,6 +98,7 @@ implements ILockBinding
       if (lockDefinedInCode) {
         newMap.put(key, drop);
       } else {
+    	//System.out.println("Purging lock "+key);
         drop.invalidate();
       }
     }
