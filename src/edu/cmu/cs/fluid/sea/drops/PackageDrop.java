@@ -19,7 +19,9 @@ import edu.cmu.cs.fluid.java.operator.ImportDeclarations;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarations;
 import edu.cmu.cs.fluid.java.operator.UnnamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.java.xml.XML;
+import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.util.*;
 
 /**
@@ -33,7 +35,6 @@ public class PackageDrop extends CUDrop {
   // from String (package name) to Package
   private static final Map<String, PackageDrop> packageMap = new HashMap<String, PackageDrop>();
   public final IRNode node; // PackageDeclaration
-  public final List<IRNode> types = new ArrayList<IRNode>();
   private boolean hasPromises = false;
   private final boolean isFromSrc;
   
@@ -65,11 +66,16 @@ public class PackageDrop extends CUDrop {
 	  return new Info(this);
   }
   
-  public void addType(IRNode t) { types.add(t); }
-  
   public Iterable<IRNode> getTypes() {
-    // clean up?
-    return types;
+	  List<IRNode> types = new ArrayList<IRNode>();
+	  for(Drop d : getDependents()) {
+		  if (d instanceof CUDrop && !(d instanceof PackageDrop)) {
+			for(IRNode t : VisitUtil.getTypeDecls(((CUDrop) d).cu)) {
+				types.add(t);
+			}
+		  }
+	  }
+	  return types;
   }
 
   public void setHasPromises(boolean hasPromises) {
@@ -97,7 +103,7 @@ public class PackageDrop extends CUDrop {
   
   public static PackageDrop createPackage(String name, IRNode root) {
     final PackageDrop pd = findPackage(name);
-    if (pd != null) {
+    if (pd != null && pd.isValid()) {
       return pd;
     }
 
