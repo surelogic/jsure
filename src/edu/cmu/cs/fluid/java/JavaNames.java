@@ -264,23 +264,34 @@ public final class JavaNames {
    */
   public static String getFullTypeName(IRNode decl) {    
     StringBuilder name = new StringBuilder();
-    computeFullTypeName(name, decl);
+    computeFullTypeName(name, decl, true);
     return name.toString();
   }
 
   /**
+   * @return the name of the type inside this CU (no package)
+   */
+  public static String getRelativeTypeName(IRNode decl) {    
+    StringBuilder name = new StringBuilder();
+    computeFullTypeName(name, decl, false);
+    return name.toString();
+  }  
+  
+  /**
    * Helper function for getFullTypeName
    */
-  private static void computeFullTypeName(StringBuilder name, IRNode decl) {
+  private static void computeFullTypeName(StringBuilder name, IRNode decl, boolean includePackage) {
     IRNode enclosingT = VisitUtil.getEnclosingType(decl);
     if (enclosingT == null) {
-      String pkg = getPackageName(decl);
-      if (pkg != null && pkg != "") {
-        name.append(pkg).append('.');
+      if (includePackage) {
+    	  String pkg = getPackageName(decl);
+    	  if (pkg != null && pkg != "") {
+    		  name.append(pkg).append('.');
+    	  }
       }
       name.append(getTypeName(decl));
     } else {
-      computeFullTypeName(name, enclosingT);
+      computeFullTypeName(name, enclosingT, includePackage);
       
       IRNode parent = JJNode.tree.getParentOrNull(decl);
       if (TypeDeclarationStatement.prototype.includes(parent)) {
