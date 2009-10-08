@@ -102,12 +102,9 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 			v.doAccept(cu);
 
 			try {
-
 				if (useNewXMLParser) {
-					if (name.endsWith("test"+File.separatorChar+"Test.java"))
-						TestXMLParser.process(cu, "test.Test.promises.xml");
-					else
-						TestXMLParser.process(cu, name + ".promises.xml");
+					int num = TestXMLParser.process(cu, name + ".promises.xml");
+					//System.out.println("Parsing XML for "+name+": "+num+" added");
 				}
 			} catch (Exception e) {
 				if (!(e instanceof FileNotFoundException)) {
@@ -190,6 +187,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 			cu = null;
 		}
 		if (cu != null) {
+			//System.out.println("Parsing promises for "+info.getFileName());
 			runInVersion(new AbstractRunner() {
 				public void run() {
 					processCompUnit(te, cu, "java.lang.Object", null);
@@ -268,6 +266,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 					if (info.getProperty(CodeInfo.DONE) == Boolean.TRUE) {
 						continue;
 					}
+					//System.out.println("Parsing promises for "+info.getFileName());
 					String name = info.getFileName();
 					IRNode cu   = info.getNode();
 					processCompUnit(te, cu, name, info.getSource());
