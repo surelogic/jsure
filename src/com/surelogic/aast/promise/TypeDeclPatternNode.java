@@ -11,15 +11,14 @@ import com.surelogic.parse.AbstractSingleNodeFactory;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.util.OpSearch;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class TypeDeclPatternNode extends PromiseTargetNode implements
 		ResolvableToType {
 	// Fields
 	private final int mods;
-	private final String pkg;
 	private final String type;
 	private final InPatternNode inPattern;
 
@@ -30,17 +29,8 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 		public AASTNode create(String _token, int _start, int _stop, int _mods,
 				String _id, int _dims, List<AASTNode> _kids) {
 			int mods = _mods;
-			String pkg, type;
-			int lastDot = _id.lastIndexOf('.');
-			if (lastDot < 0) {
-				pkg = "*";
-				type = _id;
-			} else {
-				pkg = _id.substring(0, lastDot);
-				type = _id.substring(lastDot+1);
-			}
 			InPatternNode inPattern = (InPatternNode)_kids.get(0);
-			return new TypeDeclPatternNode(_start, mods, pkg, type, inPattern);
+			return new TypeDeclPatternNode(_start, mods, _id, inPattern);
 		}
 	};
 
@@ -51,13 +41,9 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 	 * @param inPattern An InPatternNode representing this type decl's 'in' statement - may be null if this is using the old style annotation
 	 * @unique
 	 */
-	public TypeDeclPatternNode(int offset, int mods, String pkg, String type, InPatternNode inPattern) {
+	public TypeDeclPatternNode(int offset, int mods, String type, InPatternNode inPattern) {
 		super(offset);
 		this.mods = mods;
-		if (pkg == null) {
-			throw new IllegalArgumentException("pkg is null");
-		}
-		this.pkg = pkg;
 		if (type == null) {
 			throw new IllegalArgumentException("type is null");
 		}
@@ -79,15 +65,10 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 			sb.append("mods=").append(getMods());
 			sb.append("\n");
 			indent(sb, indent + 2);
-			sb.append("pkg=").append(getPkg());
-			sb.append("\n");
-			indent(sb, indent + 2);
 			sb.append("type=").append(getType());
 			sb.append("\n");
       sb.append(getInPattern().unparse(debug, indent + 2));
 		} else {
-			sb.append(getPkg());
-			sb.append('.');
 			sb.append(getType());
 			sb.append(getInPattern().unparse(debug));
 		}
@@ -96,7 +77,7 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 
 	public boolean typeExists() {
 		//TODO add InPattern check
-		if ("*".equals(getPkg()) && "*".equals(getType())) {
+		if ("*".equals(getType())) {
 			return true;
 		}
 		return true;//AASTBinder.getInstance().isResolvableToType(this);
@@ -119,13 +100,6 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 	/**
 	 * @return A non-null String
 	 */
-	public String getPkg() {
-		return pkg;
-	}
-
-	/**
-	 * @return A non-null String
-	 */
 	public String getType() {
 		return type;
 	}
@@ -139,6 +113,11 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 		return visitor.visit(this);
 	}
 
+	@Override
+	public Operator appliesTo() {
+		return TypeDeclaration.prototype;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -171,7 +150,7 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 			}
 			here = enclosingT;
 			
-			final String tName = JJNode.getInfo(enclosingT);
+			final String tName = JJNode.getInfo(here);
 			if (type.indexOf("*") < 0) {
 				//no wildcards
 				if (!tName.equals(type)) {
@@ -183,7 +162,8 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 				return tName.matches(typePattern);
 			}
 		}
-		
+
+		/*
 		// otherwise: wildcard matches anything
 
 		if ("".equals(pkg) || "*".equals(pkg)) {
@@ -197,10 +177,12 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 			return pkg.equals(dPkgName);
 		}
 		return false;
+		*/
+		return true;
 	}
 	
   @Override
   public IAASTNode cloneTree(){
-  	return new TypeDeclPatternNode(getOffset(), getMods(), new String(getPkg()), new String(getType()), (InPatternNode)getInPattern().cloneTree());
+  	return new TypeDeclPatternNode(getOffset(), getMods(), new String(getType()), (InPatternNode)getInPattern().cloneTree());
   }
 }

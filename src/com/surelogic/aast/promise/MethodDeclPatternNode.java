@@ -147,6 +147,14 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 		return visitor.visit(this);
 	}
 
+	@Override
+	public Operator appliesTo() {
+		if ("**".equals(name)) {
+			return SomeFunctionDeclaration.prototype;
+		}
+		return MethodDeclaration.prototype;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

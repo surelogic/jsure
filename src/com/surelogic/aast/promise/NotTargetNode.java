@@ -8,6 +8,7 @@ import com.surelogic.aast.*;
 import com.surelogic.parse.AbstractSingleNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class NotTargetNode extends ComplexTargetNode { 
   // Fields
@@ -68,6 +69,11 @@ public class NotTargetNode extends ComplexTargetNode {
 	@Override
 	public boolean matches(IRNode irNode) {
 		return !target.matches(irNode);
+	}
+	
+	@Override
+	public Operator appliesTo() {
+		return target.appliesTo();
 	}
 	
   @Override

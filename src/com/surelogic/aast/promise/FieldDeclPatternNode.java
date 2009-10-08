@@ -8,6 +8,7 @@ import com.surelogic.parse.AbstractSingleNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class FieldDeclPatternNode extends PromiseTargetNode {
 	// Fields
@@ -113,6 +114,12 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 		return visitor.visit(this);
 	}
 
+
+	@Override
+	public Operator appliesTo() {
+		return FieldDeclaration.prototype;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

@@ -181,11 +181,12 @@ fieldDeclPattern
     ^(FieldDeclPattern modifierPattern typeSigPattern inPattern fieldNamePattern)
   ;
 
+// Other patterns handled by second line  
 typeDeclPattern
-  : modifierPattern optQualifiedTypeNamePattern ->
-    ^(TypeDeclPattern modifierPattern optQualifiedTypeNamePattern ^(InPattern))
-  | modifierPattern wildcardTypeNamePattern inPattern->
-	    ^(TypeDeclPattern modifierPattern wildcardTypeNamePattern inPattern)
+  : modifierPattern qualifiedName ->
+    ^(TypeDeclPattern modifierPattern qualifiedName ^(InPattern))  
+  | modifierPattern wildcardTypeNamePattern inPackagePattern ->
+	    ^(TypeDeclPattern modifierPattern wildcardTypeNamePattern ^(InPattern inPackagePattern))
   ;
 
 /* Now unused
@@ -282,11 +283,6 @@ fieldNamePattern
   : wildcardIdentifier
   | IDENTIFIER
   | STAR  
-  ;
-  
-optQualifiedTypeNamePattern
-  : wildcardTypeNamePattern
-  | qualifiedName
   ;
 
 wildcardTypeNamePattern

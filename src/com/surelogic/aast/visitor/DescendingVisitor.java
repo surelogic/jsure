@@ -614,7 +614,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	 */
 	public T visit(InPackagePatternNode n) {
     T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getInTypePattern()));
 		return rv;
 	}
 

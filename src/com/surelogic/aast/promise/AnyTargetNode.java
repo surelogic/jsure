@@ -6,6 +6,7 @@ import com.surelogic.aast.*;
 import com.surelogic.parse.AbstractSingleNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class AnyTargetNode extends ComplexTargetNode { 
   public static final AbstractSingleNodeFactory factory =
@@ -42,6 +43,11 @@ public class AnyTargetNode extends ComplexTargetNode {
     return visitor.visit(this);
   }
 
+	@Override
+	public Operator appliesTo() {
+		return Operator.prototype;
+	}
+		
 	@Override
 	public boolean matches(IRNode irNode) {
 		return irNode != null;

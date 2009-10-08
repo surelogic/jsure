@@ -6,6 +6,8 @@ import com.surelogic.aast.AASTNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public abstract class PromiseTargetNode extends AASTNode { 
   // Fields
@@ -26,12 +28,28 @@ public abstract class PromiseTargetNode extends AASTNode {
   public abstract boolean matches(IRNode irNode);
   
   /**
+   * @return the Operator of the kinds of declarations that this applies to
+   */
+  public abstract Operator appliesTo();
+  
+  protected final Operator combineOperators(Operator op1, Operator op2) {
+	  if (SomeFunctionDeclaration.prototype.includes(op1) &&
+	      SomeFunctionDeclaration.prototype.includes(op2)) {
+		  return SomeFunctionDeclaration.prototype;
+	  }
+	  else if (Operator.prototype == op1 || Operator.prototype == op2) {
+		  return Operator.prototype;
+	  }
+	  return null; // Incompatible
+  }
+  
+  /**
    * 
    * @param patternMods The modifiers for the pattern
    * @param declMods The modifiers for the declaration
    * @return
    */
-	protected boolean matchesModifiers(int patternMods, int declMods) {
+  protected final boolean matchesModifiers(int patternMods, int declMods) {
     if (patternMods == JavaNode.ALL_FALSE) {
       return true;
     }

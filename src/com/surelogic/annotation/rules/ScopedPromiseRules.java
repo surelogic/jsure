@@ -5,6 +5,7 @@ import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.promise.*;
+import com.surelogic.aast.visitor.DescendingVisitor;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.scrub.*;
@@ -134,12 +135,21 @@ public class ScopedPromiseRules extends AnnotationRules {
 		@Override
 		protected IPromiseDropStorage<PromisePromiseDrop> makeStorage() {
 			return PromiseDropSeqStorage.create(name(), PromisePromiseDrop.class);
-		}
-
+		}		
+		
 		@Override
 		protected IAnnotationScrubber<ScopedPromiseNode> makeScrubber() {
 			return new AbstractAASTScrubber<ScopedPromiseNode>(this, ScrubberType.UNORDERED, 
 			                                                   new String[0], ScrubberOrder.FIRST) {
+				@Override
+				protected boolean customScrub(ScopedPromiseNode a) {
+					// Check for inconsistency
+					if (a.getTargets().appliesTo() == null) {
+						return false;
+					}
+					return new TargetVisitor().doAccept(a.getTargets());					
+				}
+				
 				@Override
 				protected PromiseDrop<ScopedPromiseNode> makePromiseDrop(
 						ScopedPromiseNode a) {
@@ -153,7 +163,41 @@ public class ScopedPromiseRules extends AnnotationRules {
 			};
 		}
 	}
-
+	
+	static class TargetVisitor extends DescendingVisitor<Boolean> {
+		public TargetVisitor() {
+			super(Boolean.TRUE);
+		}
+		@Override
+		protected Boolean combineResults(Boolean before, Boolean next) {
+			return before && next;
+		}
+		@Override
+		public Boolean visit(ConstructorDeclPatternNode n) {
+			return doAccept(n.getInPattern());
+		}
+		@Override
+		public Boolean visit(MethodDeclPatternNode n) {
+			return doAccept(n.getInPattern());
+		}
+		@Override
+		public Boolean visit(FieldDeclPatternNode n) {
+			return doAccept(n.getInPattern());
+		}
+		@Override
+		public Boolean visit(TypeDeclPatternNode n) {
+			return doAccept(n.getInPattern());
+		}
+		@Override
+		public Boolean visit(WildcardTypeQualifierPatternNode n) {
+			return !n.getTypePattern().contains("**.*");
+		}
+		@Override
+		public Boolean visit(InPackagePatternNode n) {
+			return !n.getPackagePattern().contains("**.*");
+		}
+	}
+	
 	/**
 	 * Applies a scoped promise to the CU or Type that it is declared on. Needs
 	 * to: 1 - find the {@link CompilationUnit} that we are currently parsing 2 -

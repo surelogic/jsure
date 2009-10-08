@@ -30,7 +30,10 @@ public class InPatternNode extends AASTNode {
 			// old-style
 			InTypePatternNode typeNode = null;
 			InTypePatternNode packageNode = null;
-			if (_kids.size() == 2) {
+			if (_kids.size() == 1) {
+				packageNode = (InTypePatternNode) _kids.get(0);
+			}
+			else if (_kids.size() == 2) {
 				typeNode = (InTypePatternNode) _kids.get(0);
 				packageNode = (InTypePatternNode) _kids.get(1);
 			}
@@ -91,9 +94,11 @@ public class InPatternNode extends AASTNode {
 
 	public boolean matches(final IRNode decl) {
 		boolean matches = true;
-		if (typeNode != null && packageNode != null) {
-			// System.out.println(unparse(false));
-			matches = packageNode.matches(decl) && typeNode.matches(decl);
+		if (typeNode != null) {
+			matches = typeNode.matches(decl);
+		}
+		if (packageNode != null) {
+			matches = matches && packageNode.matches(decl);
 		}
 		return matches;
 	}

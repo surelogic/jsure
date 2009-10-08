@@ -72,17 +72,6 @@ public class InNotPatternNode extends InTypePatternNode {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.surelogic.aast.promise.InTypePatternNode#combineAASTs(com.surelogic.aast.promise.InTypePatternNode)
-	 */
-	@Override
-	InTypePatternNode combineAASTs(InTypePatternNode typeNode) {
-	  InTypePatternNode t = getTarget().combineAASTs(typeNode);
-	  
-	  return new InNotPatternNode(offset, t);
-	}
-
-
-	/* (non-Javadoc)
 	 * @see com.surelogic.aast.IAASTNode#cloneTree()
 	 */
 	@Override
@@ -91,15 +80,4 @@ public class InNotPatternNode extends InTypePatternNode {
 		
 		return new InNotPatternNode(offset, t);
 	}
-
-	/* (non-Javadoc)
-	 * @see com.surelogic.aast.promise.InTypePatternNode#cloneTree(java.lang.String)
-	 */
-	@Override
-	InTypePatternNode cloneAndModifyTree(String packagePattern) {
-		InTypePatternNode t1 = getTarget().cloneAndModifyTree(packagePattern);
-		
-		return new InNotPatternNode(offset, t1);
-	}
-
 }

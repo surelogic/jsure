@@ -108,6 +108,11 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 		return visitor.visit(this);
 	}
 
+	@Override
+	public Operator appliesTo() {
+		return ConstructorDeclaration.prototype;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
