@@ -76,6 +76,11 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 	}
 
 	@Override
+	protected boolean flushAnalysis() {
+		return true;
+	}
+	
+	@Override
 	protected LockVisitor constructIRAnalysis(IBinder binder) {		
 		try {
 			final BindingContextAnalysis bca = new BindingContextAnalysis(binder);
