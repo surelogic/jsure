@@ -9,6 +9,7 @@ import com.surelogic.parse.AbstractSingleNodeFactory;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /**
  * Represents a type qualifier string that can contain wildcard characters
@@ -41,8 +42,13 @@ public class WildcardTypeQualifierPatternNode extends InTypePatternNode {
 	 */
 	@Override
 	public boolean matches(IRNode irNode) {
-		if (TypeDeclaration.prototype.includes(irNode)) {
-			return matches(JavaNames.getRelativeTypeName(irNode), typePattern);
+		IRNode type = VisitUtil.getClosestType(irNode);
+		if (type != null && TypeDeclaration.prototype.includes(type)) {
+			if (typePattern.indexOf('*') < 0) {
+				// No wildcards, so it can include a package name
+				return typePattern.matches(JavaNames.getFullTypeName(type));
+			}
+			return matches(JavaNames.getRelativeTypeName(type), typePattern);
 		}
 		return false;
 	}
