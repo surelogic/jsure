@@ -144,6 +144,10 @@ public class CommonAASTBinder extends AASTBinder {
       NamedTypeNode t = (NamedTypeNode) node;
       return resolveTypeName(t, t.getType()) != null;
     }
+    else if (node instanceof ArrayTypeNode) {
+    	ArrayTypeNode at = (ArrayTypeNode) node;
+    	return isResolvableToType(at.getBase());
+    }
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
 

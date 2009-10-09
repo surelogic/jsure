@@ -267,6 +267,10 @@ returnTypeSigPattern
   ;
   
 typeSigPattern
+  : typeSigPattern2 ('[' ']')+ -> ^(ArrayType typeSigPattern2 ('[' ']')+)
+  | typeSigPattern2 
+  ;
+typeSigPattern2
   : BOOLEAN -> ^(BooleanType)
   | BYTE -> ^(ByteType)
   | CHAR -> ^(CharType)

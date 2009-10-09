@@ -46,14 +46,21 @@ public class ArrayTypeNode extends ReferenceTypeNode {
   }
 
   @Override
-  public String unparse(boolean debug, int indent) {
+  public String unparse(boolean debug, int indent) {	  
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("ArrayType\n");
-    sb.append(getBase().unparse(debug, indent+2));
-    indent(sb, indent+2);
-    sb.append("dims=").append(getDims());
-    sb.append("\n");
+    if (debug) { 
+    	indent(sb, indent); 
+    	sb.append("ArrayType\n");
+    	sb.append(getBase().unparse(debug, indent+2));
+    	indent(sb, indent+2);
+    	sb.append("dims=").append(getDims());
+    	sb.append("\n");
+    } else {
+    	sb.append(getBase().unparse(debug, indent));
+    	for(int i=0; i<dims; i++) {
+    		sb.append("[]");
+    	}
+    }
     return sb.toString();
   }
 
