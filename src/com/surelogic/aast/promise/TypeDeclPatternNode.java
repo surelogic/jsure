@@ -9,6 +9,7 @@ import com.surelogic.ast.ResolvableToType;
 import com.surelogic.parse.AbstractSingleNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -150,9 +151,15 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 			}
 			here = enclosingT;
 			
-			final String tName = JJNode.getInfo(here);
+			final String tName;
+			if (type.indexOf('.') < 0) {
+				// Not qualified
+				tName = JJNode.getInfo(here);
+			} else {
+				tName = JavaNames.getFullName(here);
+			}
 			if (type.indexOf("*") < 0) {
-				//no wildcards
+				//no wildcards			
 				if (!tName.equals(type)) {
 					return false;
 				}
