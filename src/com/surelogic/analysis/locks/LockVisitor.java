@@ -49,6 +49,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
@@ -2000,6 +2001,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
 
   @Override
   public Void visitMethodCall(final IRNode expr) {
+    final IRNode methodDecl = this.binder.getBinding(expr);
+    // Don't do anything if the method call is a getter method from a Java 5 annotation
+    if (AnnotationElement.prototype.includes(methodDecl)) {
+      return null;
+    }
+    
     final MethodCall call = (MethodCall) JJNode.tree.getOperator(expr);
     
     /* If the method call is to a method from java.util.concurrent.locks.Lock,
@@ -2089,7 +2096,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     
     /* Proceed with normal assurance of the method call */
     assureCall(expr);
-    if (!TypeUtil.isStatic(this.binder.getBinding(expr))) {
+    if (!TypeUtil.isStatic(methodDecl)) {
       /* Check if the receiver is a "safe" object.  This does not apply
        * if the method call is to a Lock method.
        */ 
