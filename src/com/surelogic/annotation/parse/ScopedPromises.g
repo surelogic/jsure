@@ -231,7 +231,7 @@ inAndPkgPattern
   ;
   
 inBasePkgPattern
-  : wildcardTypeQualifierPattern
+  : wildcardPkgQualifierPattern
   | '!' '(' inPackageRootPattern ')' -> ^(InNotPattern inPackageRootPattern)
   | '(' inPackageRootPattern ')' -> inPackageRootPattern
   ;
