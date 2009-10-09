@@ -45,7 +45,7 @@ public class Messages extends AbstractMessages {
 
   public static String RegionAnnotation_parentRegionDrop = "Unknown parent region ' {0} ' for {1}";
 
-  public static String RegionAnnotation_inRegionDrop = "inRegion {0} on {1}";
+  public static String RegionAnnotation_inRegionDrop = "inRegion({0}) on {1}";
 
   public static String RegionAnnotation_aggregationAllowedDrop = "aggregation allowed because field is declared \"unique\"";
 
@@ -53,19 +53,19 @@ public class Messages extends AbstractMessages {
 
   public static String RegionAnnotation_aggregateDrop = "aggregate";
 
-  public static String StartsAnnotation_startNothingDrop = "starts nothing on {0}";
+  public static String StartsAnnotation_startNothingDrop = "starts(nothing)  on  {0}";
 
-  public static String SubtypedByAnnotation_subtypedByDrop = "subtypedBy {0} on {1}";
+  public static String SubtypedByAnnotation_subtypedByDrop = "subtypedBy({0})  on  {1}";
 
   public static String SubtypedByAnnotation_typeDrop = "Type {0} exists and is a subtype of {1}";
 
   public static String UniquenessAnnotation_uniqueDrop1 = "unique  on  {0}";
 
-  public static String UniquenessAnnotation_uniqueDrop2 = "unique {0} on {1}";
+  public static String UniquenessAnnotation_uniqueDrop2 = "unique({0})  on  {1}";
 
-  public static String UniquenessAnnotation_borrowedDrop = "borrowed {0} on {1}";
+  public static String UniquenessAnnotation_borrowedDrop = "borrowed({0})  on  {1}";
   
-  public static String UniquenessAnnotation_notUniqueDrop = "notunique on {0}";
+  public static String UniquenessAnnotation_notUniqueDrop = "notunique  on  {0}";
 
   static {
     // initialize resource bundle

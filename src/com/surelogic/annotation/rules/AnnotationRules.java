@@ -166,7 +166,7 @@ public abstract class AnnotationRules {
     }
 
     public void reportError(String msg, IAASTNode n) {
-      String txt = msg+" on "+n;
+      String txt = msg+"  on  "+n;
       
 //      System.out.println("SCRUBBER: "+txt);
       PromiseWarningDrop d = new PromiseWarningDrop(n.getOffset());
@@ -235,7 +235,7 @@ public abstract class AnnotationRules {
     while (it.hasNext()) {
       final IAASTRootNode a = it.next();
       if (a.getStatus() == AASTStatus.UNPROCESSED) {
-        LOG.severe("Didn't process "+a+" on "+DebugUnparser.toString(a.getPromisedFor()));
+        LOG.severe("Didn't process "+a+"  on  "+DebugUnparser.toString(a.getPromisedFor()));
       } else {
         it.remove();
       }

@@ -217,7 +217,7 @@ public final class ScopedPromises extends AbstractPromiseAnnotation {
     d.dependUponCompilationUnitOf(n);
     d.setMessage((d instanceof AssumePromiseDrop ? "assume \"" : "promise \"")
         + ScopedPromise.getPromise(promise) + "\" for "
-        + DebugUnparser.toString(ScopedPromise.getTargets(promise)) + " on "
+        + DebugUnparser.toString(ScopedPromise.getTargets(promise)) + "  on  "
         + JavaNames.getTypeName(n));
   }
   

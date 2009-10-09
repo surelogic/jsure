@@ -184,7 +184,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			Resolvable r = (Resolvable) node;
 			if (!r.bindingExists()) {
 				context.reportError("Couldn't resolve a binding for " + node
-						+ " on " + current, node);
+						+ "  on  " + current, node);
 				rv = false;
 			}
 		}
@@ -192,7 +192,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			ResolvableToType r = (ResolvableToType) node;
 			if (!r.typeExists()) {
 				context.reportError("Couldn't resolve a type for " + node
-						+ " on " + current, node);
+						+ "  on  " + current, node);
 				rv = false;
 			}
 		}

@@ -40,7 +40,7 @@ implements IBooleanPromiseDropStorage<D> {
     checkArguments(n, d);
     D old = n.getSlotValue(si);
     if (old != null) {
-      System.out.println("Name: "+name()+" on "+n);
+      //System.out.println("Name: "+name()+" on "+n);
       throw new IllegalArgumentException("slot already defined");
     }
     n.setSlotValue(si, d);

@@ -49,7 +49,7 @@ public class RegionEffectsPromiseDrop extends PromiseDrop<RegionEffectsNode> {
 				sb.append("; ");
 				sb.append(effects.get(i).toString());
 			}
-			sb.append(" on ");
+			sb.append("  on  ");
 			sb.append(target);
 			setMessage(sb.toString());
 		} else {
