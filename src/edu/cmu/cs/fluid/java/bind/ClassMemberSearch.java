@@ -42,7 +42,7 @@ public class ClassMemberSearch {
     final T o = tvs.getResult();  
     if (o == null && throwIfNotFound) {
       final String context = DebugUnparser.toString(type);
-      LOG.log(Level.SEVERE, "Couldn't find " + tvs.getLabel() + " in " + context
+      LOG.log(Level.WARNING, "Couldn't find " + tvs.getLabel() + " in " + context
               //, new Throwable(">>> Just for Stack Trace <<<")
               );
       tvs.reset();
