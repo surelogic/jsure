@@ -84,10 +84,14 @@ public class InPatternNode extends AASTNode {
 				sb.append(getInTypePattern().unparse(debug, indent + 2));
 				sb.append(getInPackagePattern().unparse(debug, indent + 2));
 			} else {
-				sb.append(" in ");
-				sb.append(getInTypePattern().unparse(debug));
-				sb.append(" in ");
-				sb.append(getInPackagePattern().unparse(debug));
+				if (typeNode != null) {
+					sb.append(" in ");
+					sb.append(getInTypePattern().unparse(debug));
+				}
+				if (packageNode != null) {
+					sb.append(" in ");
+					sb.append(getInPackagePattern().unparse(debug));
+				}
 			}
 		}
 		return sb.toString();
