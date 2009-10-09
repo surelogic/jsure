@@ -46,6 +46,10 @@ public class WildcardTypeQualifierPatternNode extends InTypePatternNode {
 		if (type != null && TypeDeclaration.prototype.includes(type)) {
 			if (typePattern.indexOf('*') < 0) {
 				// No wildcards, so it can include a package name
+				if (typePattern.indexOf('.') < 0) {
+					// Single identifier, so match against type name
+					return typePattern.matches(JavaNames.getTypeName(type));
+				}
 				return typePattern.matches(JavaNames.getFullTypeName(type));
 			}
 			return matches(JavaNames.getRelativeTypeName(type), typePattern);
