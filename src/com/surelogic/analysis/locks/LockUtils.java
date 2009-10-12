@@ -665,10 +665,12 @@ public final class LockUtils {
         if (isUnique) {
           final Map<RegionModel, IRegion> aggregationMap = 
             AggregationUtils.constructRegionMapping(fieldID);
-          for (final RegionModel from : aggregationMap.keySet()) {
-            // This is okay because only instance regions can be mapped
-            final Target testTarget = targetFactory.createInstanceTarget(actual, from);
-            exposedTargets.add(testTarget);
+          if (aggregationMap != null) {
+              for (final RegionModel from : aggregationMap.keySet()) {
+                  // This is okay because only instance regions can be mapped
+            	  final Target testTarget = targetFactory.createInstanceTarget(actual, from);
+            	  exposedTargets.add(testTarget);
+              }
           }
         }
       }
