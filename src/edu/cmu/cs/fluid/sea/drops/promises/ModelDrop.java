@@ -4,6 +4,8 @@
  */
 package edu.cmu.cs.fluid.sea.drops.promises;
 
+import java.util.logging.Level;
+
 import com.surelogic.aast.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -45,19 +47,15 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
       setNode(null);
       clearAST();      
       //System.out.println("Clearing "+this.getMessage()+" due to invalidated "+invalidDeponent.getMessage());
-      
-      // TODO queue dependents for scrubbing
-    /*
-    } else if (this instanceof RegionModel && invalidDeponent instanceof LockModel) {
-      // FIX these shouldn't be connected like this
-       */
     } else {
       /*
       for(Drop d : getDeponents()) {
     	  System.out.println(d.getClass().getSimpleName()+": "+d.getMessage());
       }
       */
-      LOG.warning("Unexpected invalidate on "+getMessage()+" from "+invalidDeponent.getMessage());
+      if (LOG.isLoggable(Level.FINE)) {
+    	  LOG.fine("Unexpected invalidate on "+getMessage()+" from "+invalidDeponent.getMessage());
+      }
     }
   }
   
