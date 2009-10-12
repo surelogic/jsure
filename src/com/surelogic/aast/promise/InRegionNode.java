@@ -37,10 +37,16 @@ public class InRegionNode extends AASTRootNode
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("InRegionNode\n");
-    indent(sb, indent+2);
-    sb.append(getSpec().unparse(debug, indent+2));
+    if (debug) { 
+    	indent(sb, indent); 
+    	sb.append("InRegionNode\n");
+    	indent(sb, indent+2);
+    	sb.append(getSpec().unparse(debug, indent+2));
+    } else {
+    	sb.append("@InRegion(");
+    	sb.append(getSpec());
+    	sb.append(')');
+    }
     return sb.toString();
   }
 
