@@ -44,9 +44,6 @@ import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
 import edu.cmu.cs.fluid.sea.drops.PleaseCount;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
-import edu.cmu.cs.fluid.sea.drops.promises.InRegionPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
-import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -57,9 +54,9 @@ public class ResultsViewContentProvider extends
 
 	// TODO These are not completely protected, since the arrays get returned
 	protected static Object[] m_root = noObjects;
-	protected static Object[] m_lastRoot = null;	
+	protected static Object[] m_lastRoot = null;
 	protected static long timeStamp = Sea.INVALIDATED;
-	
+
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		Object[] result = new Object[1];
 		result[0] = newInput;
@@ -75,9 +72,9 @@ public class ResultsViewContentProvider extends
 		}
 	}
 
-  protected Object[] getElementsInternal() {
-    return (m_showInferences ? m_root : Content.filterNonInfo(m_root));
-  }
+	protected Object[] getElementsInternal() {
+		return (m_showInferences ? m_root : Content.filterNonInfo(m_root));
+	}
 
 	public Object getParent(Object child) {
 		return null;
@@ -87,14 +84,14 @@ public class ResultsViewContentProvider extends
 		return getChildrenInternal(parent);
 	}
 
-  protected Object[] getChildrenInternal(Object parent) {
-    if (parent instanceof Content) {
+	protected Object[] getChildrenInternal(Object parent) {
+		if (parent instanceof Content) {
 			Content item = (Content) parent;
 			return (m_showInferences ? item.getChildren() : item
 					.getNonInfoChildren());
 		}
 		return noObjects;
-  }
+	}
 
 	public final boolean hasChildren(Object parent) {
 		Object[] children = getChildren(parent);
@@ -113,8 +110,8 @@ public class ResultsViewContentProvider extends
 
 	/**
 	 * Encloses in {@link Content}items and adds each drop in
-	 * <code>dropsToAdd</code> to the mutable set of viewer content items
-	 * passed into this method.
+	 * <code>dropsToAdd</code> to the mutable set of viewer content items passed
+	 * into this method.
 	 * 
 	 * @param mutableContentSet
 	 *            A parent {@link Content} object to add children to
@@ -151,8 +148,7 @@ public class ResultsViewContentProvider extends
 			SupportingInformation si = supportingInformation.iterator().next();
 			Content informationItem = new Content("supporting information: "
 					+ si.getMessage(), si.getLocation());
-			informationItem
-					.setBaseImageName(JSureViewConstants.INFO_NAME);
+			informationItem.setBaseImageName(JSureViewConstants.INFO_NAME);
 			mutableContentSet.addChild(informationItem);
 			return;
 		}
@@ -165,8 +161,7 @@ public class ResultsViewContentProvider extends
 			SupportingInformation si = i.next();
 			Content informationItem = new Content(si.getMessage(), si
 					.getLocation());
-			informationItem
-					.setBaseImageName(JSureViewConstants.INFO_NAME);
+			informationItem.setBaseImageName(JSureViewConstants.INFO_NAME);
 			siFolder.addChild(informationItem);
 		}
 		// TODO why do I need this code?
@@ -193,7 +188,7 @@ public class ResultsViewContentProvider extends
 	 *            the result to add "and" precondition logic about
 	 */
 	@SuppressWarnings("unchecked")
-  private void add_and_TrustedPromises(Content mutableContentSet,
+	private void add_and_TrustedPromises(Content mutableContentSet,
 			ResultDrop result) {
 		// Create a folder to contain the preconditions
 		Set<PromiseDrop> trustedPromiseDrops = result.getTrusts();
@@ -278,16 +273,16 @@ public class ResultsViewContentProvider extends
 	}
 
 	/**
-	 * Create a {@link Content}item for a drop-sea drop. This is only done
-	 * once, hence, the same Content item is returned if the same drop is passed
-	 * to this method.
+	 * Create a {@link Content}item for a drop-sea drop. This is only done once,
+	 * hence, the same Content item is returned if the same drop is passed to
+	 * this method.
 	 * 
 	 * @param drop
 	 *            the drop to enclose
 	 * @return the content item the viewer can use
 	 */
 	@SuppressWarnings("unchecked")
-  private Content encloseDrop(Drop drop) {
+	private Content encloseDrop(Drop drop) {
 		if (drop == null) {
 			LOG
 					.log(Level.SEVERE,
@@ -570,7 +565,8 @@ public class ResultsViewContentProvider extends
 			 */
 			if (!contentsOnPathToRoot.contains(item)) {
 				/*
-				 * Set<Content> newContentsOnPathToRoot = new HashSet<Content>(contentsOnPathToRoot);
+				 * Set<Content> newContentsOnPathToRoot = new
+				 * HashSet<Content>(contentsOnPathToRoot);
 				 * newContentsOnPathToRoot.add(item); categorizeRecursive(item,
 				 * false, existingCategoryFolderSet, newContentsOnPathToRoot);
 				 */
@@ -683,8 +679,7 @@ public class ResultsViewContentProvider extends
 				setConsistencyDecoratorForATypeFolder(typeFolder);
 			}
 			packageFolder.freezeChildrenCount();
-			packageFolder
-					.setBaseImageName(JSureViewConstants.PACKAGE_NAME);
+			packageFolder.setBaseImageName(JSureViewConstants.PACKAGE_NAME);
 			setConsistencyDecoratorForAPackageFolder(packageFolder);
 
 			newChildren.add(packageFolder);
@@ -706,7 +701,8 @@ public class ResultsViewContentProvider extends
 			 */
 			if (!contentsOnPathToRoot.contains(item)) {
 				/*
-				 * Set<Content> newContentsOnPathToRoot = new HashSet<Content>(contentsOnPathToRoot);
+				 * Set<Content> newContentsOnPathToRoot = new
+				 * HashSet<Content>(contentsOnPathToRoot);
 				 * newContentsOnPathToRoot.add(item);
 				 * packageTypeFolderizeRecursive(item, false, existingFolderSet,
 				 * newContentsOnPathToRoot);
@@ -778,8 +774,8 @@ public class ResultsViewContentProvider extends
 	}
 
 	/*
-	 * static class InfoWarning { boolean isInfo = false; boolean isInfoWarning =
-	 * false; }
+	 * static class InfoWarning { boolean isInfo = false; boolean isInfoWarning
+	 * = false; }
 	 */
 
 	/**
@@ -899,7 +895,8 @@ public class ResultsViewContentProvider extends
 			}
 			/*
 			 * if (!node.equals(content.referencedLocation)) { LOG.warning("Node
-			 * from ref drop != node in content: "+content.referencedLocation); }
+			 * from ref drop != node in content: "+content.referencedLocation);
+			 * }
 			 */
 			final Operator op = JavaNames.getOperator(node);
 			final boolean isCU = CompilationUnit.prototype.includes(op);
@@ -967,7 +964,9 @@ public class ResultsViewContentProvider extends
 				seaTime = Sea.getDefault().updateConsistencyProof();
 			}
 
-			SLLogger.getLogger().fine("Comparing view (" + viewTime + ") to sea (" + seaTime + ")");
+			SLLogger.getLogger().fine(
+					"Comparing view (" + viewTime + ") to sea (" + seaTime
+							+ ")");
 			if (viewTime != Sea.INVALIDATED && viewTime == seaTime) {
 				return this;
 			}
@@ -978,53 +977,50 @@ public class ResultsViewContentProvider extends
 		}
 	}
 
-	private static DropPredicate promisePred = 
-		DropPredicateFactory.matchType(PromiseDrop.class);
+	private static DropPredicate promisePred = DropPredicateFactory
+			.matchType(PromiseDrop.class);
 
-	private static DropPredicate scopedPromisePred = 
-		DropPredicateFactory.matchType(PromisePromiseDrop.class);
-	
+	private static DropPredicate scopedPromisePred = DropPredicateFactory
+			.matchType(PromisePromiseDrop.class);
+
 	/**
 	 * Matches non-@Promise PromiseDrops
 	 */
 	private static DropPredicate predicate = new DropPredicate() {
-		public boolean match(Drop d) {			
+		public boolean match(Drop d) {
 			return promisePred.match(d) && !scopedPromisePred.match(d);
-		}		
+		}
 	};
- 	
+
 	@SuppressWarnings("unchecked")
-  private IResultsViewContentProvider buildModelOfDropSea_internal() {
+	private IResultsViewContentProvider buildModelOfDropSea_internal() {
 		Collection<Content> root = new HashSet<Content>(); // show at the
 		// viewer root
 
 		/*
-		for (ModelDrop md : Sea.getDefault().getDropsOfType(ModelDrop.class)) {
-			System.out.println("ModelDrop: "+md.getMessage());
-		}
-		*/
-		
+		 * for (ModelDrop md : Sea.getDefault().getDropsOfType(ModelDrop.class))
+		 * { System.out.println("ModelDrop: "+md.getMessage()); }
+		 */
+
 		Set<? extends PromiseDrop> promiseDrops = Sea.getDefault()
 				.getDropsOfType(PromiseDrop.class);
 		for (PromiseDrop pd : promiseDrops) {
 			/*
-			if (pd instanceof LockModel) {
-				System.out.println(pd.getMessage());
-			}
-			*/
+			 * if (pd instanceof LockModel) {
+			 * System.out.println(pd.getMessage()); }
+			 */
 			if (pd.isFromSrc()) {
 				if (!pd.hasMatchingDeponents(predicate)) {
 					/*
-					if (pd instanceof InRegionPromiseDrop) {
-						System.out.println(pd.getMessage());
-						for(Drop d : pd.getDeponents()) {
-							System.out.println("\t"+d.getClass().getSimpleName()+": "+d.getMessage());
-						}
-						System.out.println();
-					}
-					*/
+					 * if (pd instanceof InRegionPromiseDrop) {
+					 * System.out.println(pd.getMessage()); for(Drop d :
+					 * pd.getDeponents()) {
+					 * System.out.println("\t"+d.getClass().
+					 * getSimpleName()+": "+d.getMessage()); }
+					 * System.out.println(); }
+					 */
 					root.add(encloseDrop(pd));
-				} 
+				}
 			}
 		}
 
@@ -1048,21 +1044,21 @@ public class ResultsViewContentProvider extends
 			infoFolder.isInfo = true;
 			root.add(infoFolder);
 		}
-		
+
 		Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea
 				.getDefault().getDropsOfType(PromiseWarningDrop.class);
 		/*
-		for (PromiseWarningDrop id : promiseWarningDrops) {
-			// PromiseWarningDrop id = (PromiseWarningDrop) j.next();
-			// only show info drops at the main level if they are not attached
-			// to a promise drop or a result drop
-			root.add(encloseDrop(id));
-		}
-		*/
+		 * for (PromiseWarningDrop id : promiseWarningDrops) { //
+		 * PromiseWarningDrop id = (PromiseWarningDrop) j.next(); // only show
+		 * info drops at the main level if they are not attached // to a promise
+		 * drop or a result drop root.add(encloseDrop(id)); }
+		 */
 		if (promiseWarningDrops.isEmpty()) {
-			problemsViewMsg = null;
+			setModelingProblemsHintMessage(null);
 		} else {
-			problemsViewMsg = promiseWarningDrops.size()+" modelling problem(s)";
+			final int problemCount = promiseWarningDrops.size();
+			setModelingProblemsHintMessage(problemCount + " modeling problem"
+					+ (problemCount > 1 ? "s" : ""));
 		}
 
 		Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(

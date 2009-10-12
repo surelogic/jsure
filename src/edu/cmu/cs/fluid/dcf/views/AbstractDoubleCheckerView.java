@@ -163,11 +163,11 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	protected Label noResultsToShowLabel;
 
-	protected static final String PLEASE_WAIT = "Performing analysis ... please wait";
+	protected static final String PLEASE_WAIT = "Performing analysis...please wait";
 
 	protected static final String COMP_ERRORS = "Compilation errors exist...please fix them";
 
-	protected static final String NO_RESULTS = "No results ... please enable JSure on a project (or open a closed project)";
+	protected static final String NO_RESULTS = "No results...please enable JSure on a project (or open a closed project)";
 
 	protected ColumnViewer viewer;
 	protected TreeViewer treeViewer;
@@ -683,6 +683,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	 * For use by view contribution actions in other plug-ins so that they can
 	 * get a pointer to the TreeViewer
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object getAdapter(final Class adapter) {
 		if (adapter == TreeViewer.class) {

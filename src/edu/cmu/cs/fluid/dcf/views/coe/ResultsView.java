@@ -125,7 +125,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	private final IResultsViewLabelProvider m_labelProvider = makeLabelProvider();
 
 	private Action actionShowProblemsView;
-	
+
 	private Action actionShowInferences;
 
 	private Action actionExpand;
@@ -135,7 +135,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	private Action actionExportZIPForStandAloneResultsViewer;
 
 	private Action actionExportXMLForSierra;
-	
+
 	private Action actionShowUnderlyingDropType;
 
 	/**
@@ -171,12 +171,14 @@ public class ResultsView extends AbstractDoubleCheckerView {
 							if (ref1 != null && ref2 != null) {
 								final Object f1 = ref1.getEnclosingFile();
 								final Object f2 = ref2.getEnclosingFile();
-								if (f1 instanceof IResource && f2 instanceof IResource) {
+								if (f1 instanceof IResource
+										&& f2 instanceof IResource) {
 									final IResource file1 = (IResource) f1;
 									final IResource file2 = (IResource) f2;
 									result = file1.getFullPath().toString()
-									.compareTo(
-											file2.getFullPath().toString());
+											.compareTo(
+													file2.getFullPath()
+															.toString());
 								} else {
 									final String file1 = (String) f1;
 									final String file2 = (String) f2;
@@ -205,9 +207,9 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	protected IResultsViewContentProvider makeContentProvider() {
 		return new ResultsViewContentProvider();
 	}
-	
+
 	protected IResultsViewLabelProvider makeLabelProvider() {
-	  return new ResultsViewLabelProvider();
+		return new ResultsViewLabelProvider();
 	}
 
 	@Override
@@ -216,23 +218,23 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		viewer.setLabelProvider(m_labelProvider);
 		viewer.setSorter(createSorter());
 	}
-	
+
 	protected ViewerSorter createSorter() {
-	  return new ContentNameSorter();
+		return new ContentNameSorter();
 	}
 
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
 		manager.add(actionShowInferences);
 		manager.add(new Separator());
-		manager.add(new DemoProjectAction("Create PlanetBaronJSure", 
-				    getClass().getResource("/lib/PlanetBaronJSure.zip")));
-		manager.add(new DemoProjectAction("Create BoundedFIFO", 
-				    getClass().getResource("/lib/BoundedFIFO.zip")));
+		manager.add(new DemoProjectAction("Create PlanetBaronJSure", getClass()
+				.getResource("/lib/PlanetBaronJSure.zip")));
+		manager.add(new DemoProjectAction("Create BoundedFIFO", getClass()
+				.getResource("/lib/BoundedFIFO.zip")));
 		manager.add(new Separator());
 		if (XUtil.useExperimental()) {
-		  manager.add(actionExportZIPForStandAloneResultsViewer);
-		  manager.add(actionExportXMLForSierra);
+			manager.add(actionExportZIPForStandAloneResultsViewer);
+			manager.add(actionExportXMLForSierra);
 		}
 	}
 
@@ -249,7 +251,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				Content c = (Content) s.getFirstElement();
 				Drop d = c.referencedDrop;
 				if (d != null) {
-					actionShowUnderlyingDropType.setText("Type: "+d.getClass().getName());
+					actionShowUnderlyingDropType.setText("Type: "
+							+ d.getClass().getName());
 				} else {
 					actionShowUnderlyingDropType.setText("Type: n/a");
 				}
@@ -262,14 +265,14 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(actionShowProblemsView);
-		//manager.add(new Separator());
+		// manager.add(new Separator());
 		manager.add(actionShowInferences);
 		manager.add(new Separator());
 		manager.add(actionExpand);
 		manager.add(actionCollapse);
 		manager.add(new Separator());
 	}
-	
+
 	@Override
 	protected void makeActions() {
 		actionShowProblemsView = new Action() {
@@ -278,8 +281,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				ViewUtility.showView(ProblemsView.class.getName());
 			}
 		};
-
-		
 		actionShowInferences = new Action() {
 			@Override
 			public void run() {
@@ -295,32 +296,33 @@ public class ResultsView extends AbstractDoubleCheckerView {
 						ISharedImages.IMG_OBJS_INFO_TSK));
 
 		if (XUtil.useExperimental()) {
-  		actionExportZIPForStandAloneResultsViewer = new Action() {
-  			@Override
-  			public void run() {
-  				exportZIPForStandAloneResultsViewer();
-  			}
-  		};
-  		actionExportZIPForStandAloneResultsViewer
-  				.setText("Export Results && Source (for Stand-Alone Results Viewer)");
-  		actionExportZIPForStandAloneResultsViewer
-  				.setToolTipText("Creates a ZIP file containing source and analysis results for the Stand-Alone Results Viewer");
-  		actionExportZIPForStandAloneResultsViewer
-  				.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
+			actionExportZIPForStandAloneResultsViewer = new Action() {
+				@Override
+				public void run() {
+					exportZIPForStandAloneResultsViewer();
+				}
+			};
+			actionExportZIPForStandAloneResultsViewer
+					.setText("Export Results && Source (for Stand-Alone Results Viewer)");
+			actionExportZIPForStandAloneResultsViewer
+					.setToolTipText("Creates a ZIP file containing source and analysis results for the Stand-Alone Results Viewer");
+			actionExportZIPForStandAloneResultsViewer
+					.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
 
-  		actionExportXMLForSierra = new Action() {
-  			@Override
-  			public void run() {
-  				exportXMLForSierra();
-  			}
-  		};
-  		actionExportXMLForSierra
-  				.setText("Export Results (XML for Sierra Viewer)");
-  		actionExportXMLForSierra
-  				.setToolTipText("Creates a XML file containing analysis results that can be imported into Sierra");
-  		actionExportXMLForSierra.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
+			actionExportXMLForSierra = new Action() {
+				@Override
+				public void run() {
+					exportXMLForSierra();
+				}
+			};
+			actionExportXMLForSierra
+					.setText("Export Results (XML for Sierra Viewer)");
+			actionExportXMLForSierra
+					.setToolTipText("Creates a XML file containing analysis results that can be imported into Sierra");
+			actionExportXMLForSierra
+					.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
 		}
-		
+
 		actionExpand = new Action() {
 			@Override
 			public void run() {
@@ -334,8 +336,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				}
 			}
 		};
-		actionExpand.setText("Expand Tree");
-		actionExpand.setToolTipText("Expand Tree");
+		actionExpand.setText("Expand All");
+		actionExpand.setToolTipText("Expand All");
 		actionExpand.setImageDescriptor(EXPANDALL_DESC);
 
 		actionCollapse = new Action() {
@@ -351,8 +353,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				}
 			}
 		};
-		actionCollapse.setText("Collapse Tree");
-		actionCollapse.setToolTipText("Collapse Tree");
+		actionCollapse.setText("Collapse All");
+		actionCollapse.setToolTipText("Collapse All");
 		actionCollapse.setImageDescriptor(COLLAPSEALL_DESC);
 
 		actionShowUnderlyingDropType = new Action() {
@@ -361,39 +363,38 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				// Does nothing right now
 			}
 		};
-		actionShowUnderlyingDropType.setText("Unknown");		
+		actionShowUnderlyingDropType.setText("Unknown");
 		setViewState();
 	}
 
 	@Override
 	protected void setViewState() {
 		actionShowInferences.setChecked(m_contentProvider.isShowInferences());
-		if (m_contentProvider.isShowInferences()) {
-			actionShowInferences.setText("Hide Information && Warning Results");
-			actionShowInferences
-					.setToolTipText("Hide analysis information && warning results...show only verification results");
-		} else {
-			actionShowInferences.setText("Show Information && Warning Results");
-			actionShowInferences
-					.setToolTipText("Show analysis information && warning results within verification results");
-		}
-		showProblemsView(m_contentProvider.getProblemsViewMessage());
+		actionShowInferences.setText("Show Information/Warning Results");
+		actionShowInferences
+				.setToolTipText("Show information and warning analysis results");
+		setShowProblemsViewState(m_contentProvider
+				.getModelingProblemsHintMessage());
 	}
 
-	private void showProblemsView(String msg) {
-		//System.out.println(this+": "+msg);
-		if (msg != null) {
+	private void setShowProblemsViewState(String msg) {
+		final boolean modelingProblemsExist = !"".equals(msg);
+		if (modelingProblemsExist) {
 			actionShowProblemsView.setText(msg);
-			actionShowProblemsView.setImageDescriptor(
-					SLImages.getImageDescriptor(CommonImages.IMG_RED_X));
+			actionShowProblemsView
+					.setToolTipText("Display these modeling problems");
+			actionShowProblemsView.setImageDescriptor(SLImages
+					.getImageDescriptor(CommonImages.IMG_ANNOTATION_ERROR));
 			actionShowProblemsView.setEnabled(true);
 		} else {
-			actionShowProblemsView.setText("");
-			actionShowProblemsView.setImageDescriptor(null); 
 			actionShowProblemsView.setEnabled(false);
+			actionShowProblemsView.setText("");
+			actionShowProblemsView.setToolTipText("");
+			actionShowProblemsView.setImageDescriptor(null);
+
 		}
 	}
-	
+
 	@Override
 	protected void handleDoubleClick(IStructuredSelection selection) {
 		Object obj = selection.getFirstElement();

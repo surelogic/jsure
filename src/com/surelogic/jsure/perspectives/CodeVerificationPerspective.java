@@ -22,7 +22,7 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
 
 		final IPlaceholderFolderLayout problemsArea = layout
 				.createPlaceholderFolder("problemsArea", IPageLayout.BOTTOM,
-						0.5f, "belowEditorArea");
+						0.7f, "belowEditorArea");
 		problemsArea.addPlaceholder(problemsView);
 
 		final IFolderLayout leftOfEditorArea = layout.createFolder(
