@@ -1,5 +1,9 @@
 package edu.cmu.cs.fluid.dcf.views;
 
+import static com.surelogic.jsure.coe.JSureViewConstants.INFO_NAME;
+import static com.surelogic.jsure.coe.JSureViewConstants.PROMISE_NAME;
+import static com.surelogic.jsure.coe.JSureViewConstants.WARNING_NAME;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,11 +28,20 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ColumnViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IContentProvider;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
-import org.eclipse.swt.events.MenuDetectEvent;
-import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -60,8 +73,6 @@ import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.SeaObserver;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.util.AbstractRunner;
-
-import static com.surelogic.jsure.coe.JSureViewConstants.*;
 
 /**
  * This class is designed to provide a TreeViewer when results are available
@@ -116,7 +127,6 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	final public static Point ICONSIZE = new Point(22, 16);
 
-
 	final public static ImageDescriptor PROMISE_DESC = getImageDescriptor(PROMISE_NAME);
 
 	final public static Image PROMISE_IMG = createImage(PROMISE_DESC);
@@ -162,39 +172,41 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	protected ColumnViewer viewer;
 	protected TreeViewer treeViewer;
 	protected TableViewer tableViewer;
-	
+
 	private Action doubleClickAction;
-	
+
 	private final boolean useTable;
 
 	/**
 	 * The view title from the XML, or {@code null} if we couldn't get it.
 	 */
 	private String f_viewTitle;
-	
+
 	protected AbstractDoubleCheckerView() {
 		this(false);
 	}
-	
+
 	protected AbstractDoubleCheckerView(boolean useTable) {
 		this.useTable = useTable;
 	}
 
 	@Override
 	public final void createPartControl(Composite parent) {
-		viewerbook = new PageBook(parent, SWT.NULL);
+		viewerbook = new PageBook(parent, SWT.NONE);
 		noResultsToShowLabel = new Label(viewerbook, SWT.NONE);
 		noResultsToShowLabel.setText(NO_RESULTS);
 		if (useTable) {
-			viewer = tableViewer = new TableViewer(viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+			viewer = tableViewer = new TableViewer(viewerbook, SWT.H_SCROLL
+					| SWT.V_SCROLL | SWT.FULL_SELECTION);
 		} else {
-			viewer = treeViewer = new TreeViewer(viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
+			viewer = treeViewer = new TreeViewer(viewerbook, SWT.H_SCROLL
+					| SWT.V_SCROLL);
 		}
 		setupViewer();
 
 		viewer.setInput(getViewSite());
 		makeActions_private();
-		hookContextMenu();		
+		hookContextMenu();
 		hookDoubleClickAction();
 		contributeToActionBars();
 		// start empty until the initial build is done
@@ -239,7 +251,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			 * the project.
 			 */
 			final String projName = ProjectDrop.getProject();
-			if (projName != null && !COMP_ERRORS.equals(noResultsToShowLabel.getText())) {
+			if (projName != null
+					&& !COMP_ERRORS.equals(noResultsToShowLabel.getText())) {
 				final Control c = viewer.getControl();
 				if (c != null && c.isVisible()) {
 					try {
@@ -276,8 +289,10 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
-				IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
-				AbstractDoubleCheckerView.this.fillContextMenu_private(manager, s);
+				IStructuredSelection s = (IStructuredSelection) viewer
+						.getSelection();
+				AbstractDoubleCheckerView.this.fillContextMenu_private(manager,
+						s);
 			}
 		});
 		Menu menu = menuMgr.createContextMenu(viewer.getControl());
@@ -291,7 +306,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		fillLocalToolBar(bars.getToolBarManager());
 	}
 
-	private void fillContextMenu_private(IMenuManager manager, IStructuredSelection s) {
+	private void fillContextMenu_private(IMenuManager manager,
+			IStructuredSelection s) {
 		fillContextMenu(manager, s);
 		manager.add(new Separator());
 		// Other plug-ins can contribute there actions here
@@ -311,7 +327,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		setViewState();
 	}
 
-	protected abstract void fillContextMenu(IMenuManager manager, IStructuredSelection s);
+	protected abstract void fillContextMenu(IMenuManager manager,
+			IStructuredSelection s);
 
 	protected abstract void fillLocalPullDown(IMenuManager manager);
 
@@ -344,7 +361,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 						try {
 							location = ResourcesPlugin.getWorkspace().getRoot()
 									.createMarker("edu.cmu.fluid");
-							final int offset = srcRef.getOffset(); 
+							final int offset = srcRef.getOffset();
 							if (offset >= 0 && offset != Integer.MAX_VALUE
 									&& srcRef.getLength() >= 0) {
 								location.setAttribute(IMarker.CHAR_START,
@@ -452,7 +469,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			}
 
 			f_selectionPath.clear();
-			final ITreeSelection selection = (ITreeSelection) viewer.getSelection();
+			final ITreeSelection selection = (ITreeSelection) viewer
+					.getSelection();
 			if (selection != null) {
 				final TreePath[] paths = selection.getPaths();
 				if (paths != null && paths.length > 0) {
@@ -660,16 +678,17 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			setPartName(f_viewTitle);
 		}
 	}
-	
-	/* For use by view contribution actions in other plug-ins so that they
-	 * can get a pointer to the TreeViewer
+
+	/*
+	 * For use by view contribution actions in other plug-ins so that they can
+	 * get a pointer to the TreeViewer
 	 */
 	@Override
-  public Object getAdapter(final Class adapter) {
-	  if (adapter == TreeViewer.class) {
-	    return viewer;
-	  } else {
-	    return super.getAdapter(adapter);
-	  }	  
+	public Object getAdapter(final Class adapter) {
+		if (adapter == TreeViewer.class) {
+			return viewer;
+		} else {
+			return super.getAdapter(adapter);
+		}
 	}
 }

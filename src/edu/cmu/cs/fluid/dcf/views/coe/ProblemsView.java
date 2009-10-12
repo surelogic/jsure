@@ -18,7 +18,7 @@ import edu.cmu.cs.fluid.sea.*;
 
 public class ProblemsView extends AbstractDoubleCheckerView {
 	private final ContentProvider content = new ContentProvider();
-	
+
 	public ProblemsView() {
 		super(true);
 	}
@@ -27,7 +27,7 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 	protected void makeActions() {
 		// TODO Auto-generated method stub
 	}
-	
+
 	@Override
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		// TODO Auto-generated method stub
@@ -50,15 +50,16 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void setupViewer() {
-		for(String label : labels) {
-			final TableViewerColumn column = new TableViewerColumn(tableViewer, SWT.LEFT);
-			column.getColumn().setText(label);			
-			column.getColumn().setWidth(40*label.length());
-		}		
-		
+		for (String label : labels) {
+			final TableViewerColumn column = new TableViewerColumn(tableViewer,
+					SWT.LEFT);
+			column.getColumn().setText(label);
+			column.getColumn().setWidth(40 * label.length());
+		}
+
 		viewer.setContentProvider(content);
 		viewer.setLabelProvider(content);
-		//viewer.setSorter(createSorter());
+		// viewer.setSorter(createSorter());
 		tableViewer.getTable().setLinesVisible(true);
 		tableViewer.getTable().setHeaderVisible(true);
 		tableViewer.getTable().pack();
@@ -74,25 +75,24 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 		PromiseWarningDrop d = (PromiseWarningDrop) selection.getFirstElement();
 		highlightLineInJavaEditor(d.getSrcRef());
 	}
-	
-	static final String[] labels = {
-		"Description", "Resource", "Line"
-	};
-	
-	class ContentProvider implements ITableContentProvider {
+
+	static final String[] labels = { "Description", "Resource", "Line" };
+
+	static class ContentProvider implements ITableContentProvider {
 		final List<PromiseWarningDrop> contents = new ArrayList<PromiseWarningDrop>();
-		
+
 		public void build() {
 			contents.clear();
-			
+
 			Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea
 					.getDefault().getDropsOfType(PromiseWarningDrop.class);
 			for (PromiseWarningDrop id : promiseWarningDrops) {
 				// PromiseWarningDrop id = (PromiseWarningDrop) j.next();
-				// only show info drops at the main level if they are not attached
+				// only show info drops at the main level if they are not
+				// attached
 				// to a promise drop or a result drop
 				contents.add(id);
-			}			
+			}
 			Collections.sort(contents, new Comparator<PromiseWarningDrop>() {
 				public int compare(PromiseWarningDrop d1, PromiseWarningDrop d2) {
 					String res1 = getResource(d1);
@@ -125,7 +125,7 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 					}
 					return rv;
 				}
-				
+
 			});
 		}
 
@@ -136,15 +136,15 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 		public int numColumns() {
 			return labels.length;
 		}
-		
+
 		public String getColumnTitle(int column) {
 			return labels[column];
 		}
-		
+
 		public int getColumnWeight(int column) {
 			switch (column) {
 			case 0:
-				return 50;
+				return 70;
 			case 1:
 				return 20;
 			case 2:
@@ -155,9 +155,10 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 
 		public Image getColumnImage(Object element, int columnIndex) {
 			if (columnIndex == 0) {
-				return SLImages.getImage(CommonImages.IMG_RED_X);
+				return SLImages.getImage(CommonImages.IMG_ANNOTATION_ERROR);
+			} else {
+				return null;
 			}
-			return null;
 		}
 
 		private String getResource(PromiseWarningDrop d) {
@@ -173,7 +174,7 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 				return o.toString();
 			}
 		}
-		
+
 		private int getLine(PromiseWarningDrop d) {
 			ISrcRef ref = d.getSrcRef();
 			if (ref != null) {
@@ -181,7 +182,7 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 			}
 			return Integer.MAX_VALUE;
 		}
-		
+
 		public String getColumnText(Object element, int columnIndex) {
 			PromiseWarningDrop d = (PromiseWarningDrop) element;
 			switch (columnIndex) {
@@ -193,17 +194,17 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 				int line = getLine(d);
 				if (line != Integer.MAX_VALUE) {
 					return Integer.toString(line);
-				}				
+				}
 			}
 			return "";
 		}
-		
+
 		public void dispose() {
 			contents.clear();
 		}
-		
+
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-			//throw new UnsupportedOperationException();
+			// throw new UnsupportedOperationException();
 		}
 
 		public boolean isLabelProperty(Object element, String property) {
@@ -211,11 +212,11 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 		}
 
 		public void addListener(ILabelProviderListener listener) {
-			//throw new UnsupportedOperationException();
+			// throw new UnsupportedOperationException();
 		}
-		
+
 		public void removeListener(ILabelProviderListener listener) {
-			//throw new UnsupportedOperationException();
+			// throw new UnsupportedOperationException();
 		}
 	}
 }
