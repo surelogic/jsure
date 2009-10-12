@@ -967,14 +967,11 @@ public class ResultsViewContentProvider extends
 				seaTime = Sea.getDefault().updateConsistencyProof();
 			}
 
-			SLLogger.getLogger().log(
-					Level.INFO,
-					"Comparing view (" + viewTime + ") to sea (" + seaTime
-							+ ")");
+			SLLogger.getLogger().fine("Comparing view (" + viewTime + ") to sea (" + seaTime + ")");
 			if (viewTime != Sea.INVALIDATED && viewTime == seaTime) {
 				return this;
 			}
-			SLLogger.getLogger().log(Level.INFO, "Building model of Drop-Sea");
+			SLLogger.getLogger().fine("Building model of Drop-Sea");
 			IResultsViewContentProvider rv = buildModelOfDropSea_internal();
 			timeStamp = Sea.getDefault().getTimeStamp();
 			return rv;
