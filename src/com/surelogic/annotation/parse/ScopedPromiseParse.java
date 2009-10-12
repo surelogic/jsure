@@ -47,7 +47,7 @@ public class ScopedPromiseParse {
     printAST(initParser("foobar*").wildcardIdentifier().tree, false);
     printAST(initParser("*bar").wildcardIdentifier().tree, false);
     
-    printAST(initParser("  *bar").fieldNamePattern().tree);
+    printAST(initParser("  *bar").simpleNamePattern().tree);
     //printAST(initParser(" foo.").typeQualifierPattern().tree);
     printAST(initParser("* ").typeSigPattern().tree);
     printAST(initParser("* foo.*bar").fieldDeclPattern().tree);
@@ -188,7 +188,7 @@ public class ScopedPromiseParse {
     printAST(initParser("@reads(Instance for new (Foo, Foo) in Foo").scopedPromise().tree);
     
     // Fields
-    printAST(initParser("  field").fieldNamePattern().tree);
+    printAST(initParser("  field").simpleNamePattern().tree);
     printAST(initParser("* Foo.field").fieldDeclPattern().tree);
     printAST(initParser("* Foo.field").baseTarget().tree);
     printAST(initParser("@reads(Instance for Foo Foo.field").scopedPromise().tree);

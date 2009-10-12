@@ -149,17 +149,14 @@ baseTarget
  ******************************************************************/
 
 constructorDeclPattern
-  : accessModPattern 'new' methodSigPattern ->
-    ^(ConstructorDeclPattern accessModPattern ^(InPattern) methodSigPattern)
-  | accessModPattern 'new' methodSigPattern inPattern ->
+  : accessModPattern 'new' methodSigPattern inPattern ->
     ^(ConstructorDeclPattern accessModPattern inPattern methodSigPattern)
   ;
 
 // Factors out the main part of a method pattern
 // from the MethodDeclPatterns below
 methodMatchPattern
-  : methodNamePattern methodSigPattern  -> ^(InPattern) methodNamePattern methodSigPattern
-  | methodNamePattern methodSigPattern inPattern -> inPattern methodNamePattern methodSigPattern
+  : methodNamePattern methodSigPattern inPattern -> inPattern methodNamePattern methodSigPattern
   ;
 
 /* Now unused
@@ -175,31 +172,23 @@ noReturnMethodDeclPattern
   ;
 
 fieldDeclPattern
-  : modifierPattern typeSigPattern fieldNamePattern ->
-    ^(FieldDeclPattern modifierPattern typeSigPattern ^(InPattern) fieldNamePattern)
-  | modifierPattern typeSigPattern  fieldNamePattern inPattern ->
-    ^(FieldDeclPattern modifierPattern typeSigPattern inPattern fieldNamePattern)
+  : modifierPattern typeSigPattern simpleNamePattern inPattern ->
+    ^(FieldDeclPattern modifierPattern typeSigPattern inPattern simpleNamePattern)
   ;
 
 // Other patterns handled by second line  
 typeDeclPattern
   : modifierPattern qualifiedName ->
     ^(TypeDeclPattern modifierPattern qualifiedName ^(InPattern))  
-  | modifierPattern wildcardTypeNamePattern inPackagePattern ->
-	    ^(TypeDeclPattern modifierPattern wildcardTypeNamePattern ^(InPattern inPackagePattern))
+  | modifierPattern simpleNamePattern inPackagePattern ->
+	    ^(TypeDeclPattern modifierPattern simpleNamePattern ^(InPattern inPackagePattern))
   ;
-
-/* Now unused
-typeQualifierPattern
-  : typeNamePattern '.' -> ^(TypeQualifierPattern typeNamePattern)
-  | -> ^(TypeQualifierPattern)
-  ;
-*/
 
 //In operator targets  
 inPattern
   : IN wildcardTypeQualifierPattern inPackagePattern -> ^(InPattern wildcardTypeQualifierPattern inPackagePattern)
   | IN '(' inTypePattern ')' inPackagePattern -> ^(InPattern inTypePattern inPackagePattern)
+  | -> ^(InPattern)
   ;
 
 inTypePattern
@@ -246,7 +235,7 @@ wildcardPkgQualifierPattern
 //Done 'in' operator
   
 methodNamePattern
-  : wildcardIdentifier
+  : WildcardIdentifier
   | IDENTIFIER
   | STAR
   | DSTAR
@@ -283,26 +272,16 @@ typeSigPattern2
   | namedTypePattern 
   ;
 
-fieldNamePattern
-  : wildcardIdentifier
+simpleNamePattern
+  : WildcardIdentifier
   | IDENTIFIER
   | STAR  
   ;
 
-wildcardTypeNamePattern
-  : typeNamePattern
-  | STAR
-  ;
-
 namedTypePattern
-  : wildcardIdentifier -> ^(NamedTypePattern wildcardIdentifier)
+  : WildcardIdentifier -> ^(NamedTypePattern WildcardIdentifier)
   | IDENTIFIER -> ^(NamedTypePattern IDENTIFIER)
   | qualifiedName -> ^(NamedTypePattern qualifiedName)  
-  ;	
-
-typeNamePattern
-  : wildcardIdentifier
-  | IDENTIFIER 
   ;	
 
 qualifiedName
@@ -313,11 +292,8 @@ namedTypes
   : namedType (',' namedType)* -> namedType+
   ;
 
+// For testing
 wildcardIdentifier
-/*
-  : IDENTIFIER ('*')?
-  | '*' IDENTIFIER
-*/
   : WildcardIdentifier
   ;	
 
