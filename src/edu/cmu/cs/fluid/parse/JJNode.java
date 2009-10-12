@@ -271,7 +271,7 @@ public class JJNode extends PlainIRNode implements Node {
           UniqueID.parseUniqueID("parse"),
           IRPersistent.fluidFileLocator);
     } catch (IOException ex) {
-      JavaGlobals.PARSE.info(ex.toString());
+      JavaGlobals.PARSE.fine(ex.toString());
 
       // temp
       jjbundle = new Bundle();

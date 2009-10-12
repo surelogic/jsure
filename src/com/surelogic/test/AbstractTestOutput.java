@@ -45,7 +45,7 @@ public abstract class AbstractTestOutput implements ITestOutput {
     Object last = tracker.put(o, ex);
     if (last != null) {
       if (last.equals(ex)) {
-        System.err.println("WARNING: got message twice: "+last);
+        //System.err.println("WARNING: got message twice: "+last);
         return false;
       } else {
         throw new IllegalArgumentException("Already reported on "+o.hashCode());

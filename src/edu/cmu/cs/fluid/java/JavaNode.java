@@ -626,7 +626,7 @@ public class JavaNode extends JJNode {
       javabundle = Bundle.loadBundle(UniqueID.parseUniqueID("javanode"),
           IRPersistent.fluidFileLocator);
     } catch (IOException ex) {
-      JavaGlobals.PARSE.info(ex.toString());
+      JavaGlobals.PARSE.fine(ex.toString());
       // temp
       javabundle = new Bundle();
       saveAttributes(javabundle);

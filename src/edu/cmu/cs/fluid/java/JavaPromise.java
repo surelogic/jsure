@@ -842,7 +842,7 @@ public class JavaPromise extends JavaNode {
 						UniqueID.parseUniqueID("javapromise"),
 						IRPersistent.fluidFileLocator);
 			} catch (Throwable t) {
-				JavaGlobals.JAVA.info(t.toString());
+				JavaGlobals.JAVA.fine(t.toString());
 
 				promisebundle = new Bundle();
 				saveAttributes(promisebundle);
