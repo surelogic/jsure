@@ -83,8 +83,8 @@ public class ColorDeclareDrop extends ColorNameListDrop<ColorDeclarationNode> {
       break nameLoop;
     }
     if (!stringCuName.equals(cuName)) {
-      if (LOG.isLoggable(Level.INFO)) {
-        LOG.info("cuName \"" + cuName +"\" != stringCuName \"" + stringCuName + "\"");
+      if (LOG.isLoggable(Level.FINE)) {
+        LOG.fine("cuName \"" + cuName +"\" != stringCuName \"" + stringCuName + "\"");
       }
     }
     

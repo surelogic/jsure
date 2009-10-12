@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.logging.*;
 
 import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.*;
@@ -86,8 +87,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   public static long partialTime, fullTime;
   
   public static void printStats() {
-	SLLogger.getLogger().log(Level.INFO,"partial = "+numPartial);
-	SLLogger.getLogger().log(Level.INFO,"full = "+numFull);
+	  if (XUtil.useDeveloperMode()) {
+		  SLLogger.getLogger().log(Level.INFO,"partial = "+numPartial);
+		  SLLogger.getLogger().log(Level.INFO,"full = "+numFull);
+	  }
   }
   
   protected final IJavaClassTable classTable;

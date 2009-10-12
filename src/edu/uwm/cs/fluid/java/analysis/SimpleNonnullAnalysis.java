@@ -3,6 +3,10 @@ package edu.uwm.cs.fluid.java.analysis;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
@@ -39,7 +43,8 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
  * @author boyland
  */
 public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
-
+  private static final Logger LOG = SLLogger.getLogger();
+	
   public SimpleNonnullAnalysis(String name, IBinder b) throws SlotAlreadyRegisteredException {
     super(name, null, b);
   }
@@ -240,11 +245,11 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
       
       if (val.second().contains(var)) {
         if (!nullLattice.lessEq(ni,NullInfo.NOTNULL)) return newPair(val.first(),val.second().removeCopy(var));
-        System.out.println(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
+        if (LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
         // otherwise, do nothing: not null before, not null afterwards
       } else {
         if (nullLattice.lessEq(ni,NullInfo.NOTNULL)) return newPair(val.first(),val.second().addCopy(var));
-        System.out.println(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
+        if (LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
         // do nothing : maybe null before, maybe null afterwards
       }
       return val;
@@ -349,11 +354,11 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
       }
       NullInfo ni = ll.peek(stack);
       if (flag && nullLattice.lessEq(ni, NullInfo.NULL)) {
-        System.out.println("Since we know " + ni + " is null, we can assume " + DebugUnparser.toString(n) + " cannot be dereferenced.");
+        if (LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is null, we can assume " + DebugUnparser.toString(n) + " cannot be dereferenced.");
         return null; // lattice.bottom();
       }
       if (!flag && nullLattice.lessEq(ni, NullInfo.NOTNULL)) {
-        System.out.println("Since we know " + ni + " is not null, we can assume " + DebugUnparser.toString(n) + " won't throw a NPE.");
+        if (LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is not null, we can assume " + DebugUnparser.toString(n) + " won't throw a NPE.");
         return null; //lattice.bottom();
       }
       if (flag && tree.getOperator(n) instanceof VariableUseExpression) {
