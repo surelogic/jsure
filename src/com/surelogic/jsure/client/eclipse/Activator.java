@@ -73,8 +73,8 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
 		Eclipse.initialize();
 		monitor.worked(1);
 		
-		NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
-		monitor.worked(1);
+		//NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
+		//monitor.worked(1);
 	}
 
 	/*
