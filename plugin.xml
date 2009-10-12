@@ -1,32 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-  <!-- Originally from double-checker -->
 	<extension-point id="analysisModule" name="JSure Analysis Modules"
 		schema="schema/analysisModule.exsd" />
 
 	<extension point="org.eclipse.ui.preferencePages">
-		<page name="JSure" class="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage"
+		<page name="JSure"
+			class="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage"
 			id="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
-		</page>	
+		</page>
 		<page name="Analyses" class="edu.cmu.cs.fluid.dc.PreferencePage"
 			id="edu.cmu.cs.fluid.dc.PreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
 	</extension>
 	<extension point="org.eclipse.ui.propertyPages">
-		<page objectClass="org.eclipse.jdt.core.IJavaProject"
-			name="JSure" class="edu.cmu.cs.fluid.dc.PropertyPage"
-			id="edu.cmu.cs.fluid.dc.PropertyPage">
-			<filter name="nature"
-				value="org.eclipse.jdt.core.javanature">
+		<page objectClass="org.eclipse.jdt.core.IJavaProject" name="JSure"
+			class="edu.cmu.cs.fluid.dc.PropertyPage" id="edu.cmu.cs.fluid.dc.PropertyPage">
+			<filter name="nature" value="org.eclipse.jdt.core.javanature">
 			</filter>
 		</page>
-		<page objectClass="org.eclipse.core.resources.IProject"
-			name="JSure Assurance Tool" class="edu.cmu.cs.fluid.dc.PropertyPage"
-			id="edu.cmu.cs.fluid.dc.PropertyPage">
-			<filter name="nature"
-				value="org.eclipse.jdt.core.javanature">
+		<page objectClass="org.eclipse.core.resources.IProject" name="JSure Assurance Tool"
+			class="edu.cmu.cs.fluid.dc.PropertyPage" id="edu.cmu.cs.fluid.dc.PropertyPage">
+			<filter name="nature" value="org.eclipse.jdt.core.javanature">
 			</filter>
 		</page>
 	</extension>
@@ -51,34 +47,28 @@
 
 	<extension point="org.eclipse.ui.decorators">
 		<decorator lightweight="true" adaptable="true"
-			label="%jSure.decorator.label" icon="icons/jsure_decr.gif"
-			state="true" id="jSureDecorator">
+			label="%jSure.decorator.label" icon="icons/jsure_decr.gif" state="true"
+			id="jSureDecorator">
 			<description>%jSure.decorator.desc</description>
 			<enablement>
 				<and>
-					<objectClass
-						name="org.eclipse.core.resources.IProject" />
+					<objectClass name="org.eclipse.core.resources.IProject" />
 					<objectState name="nature"
 						value="com.surelogic.jsure.client.eclipse.dcNature" />
 				</and>
 			</enablement>
 		</decorator>
 	</extension>
-  <!-- Originally from double-checker -->
 
-  <!-- Originally from double-checker-fluid -->
-  	<extension id="UpdateSuperRootStorage" name="UWM Bridge"
+	<extension id="UpdateSuperRootStorage" name="UWM Bridge"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run
-			class="edu.cmu.cs.fluid.analysis.util.UpdateSuperRootStorage"
+		<run class="edu.cmu.cs.fluid.analysis.util.UpdateSuperRootStorage"
 			category="required">
 		</run>
 	</extension>
-	<extension id="PackageLevelPreprocessing"
-		name="Preprocessor for package-level constructs"
+	<extension id="PackageLevelPreprocessing" name="Preprocessor for package-level constructs"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run
-			class="edu.cmu.cs.fluid.analysis.util.PackageLevelPreprocessing"
+		<run class="edu.cmu.cs.fluid.analysis.util.PackageLevelPreprocessing"
 			category="required">
 		</run>
 		<prerequisite
@@ -87,8 +77,7 @@
 	</extension>
 	<extension id="ConvertToIR" name="eAST to fAST Converter"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.ConvertToIR"
-			category="required">
+		<run class="edu.cmu.cs.fluid.analysis.util.ConvertToIR" category="required">
 		</run>
 		<prerequisite
 			id="com.surelogic.jsure.client.eclipse.PackageLevelPreprocessing">
@@ -112,8 +101,7 @@
 	</extension>
 	<extension id="DeleteIR" name="DeleteIR"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.DeleteIR"
-			production="false">
+		<run class="edu.cmu.cs.fluid.analysis.util.DeleteIR" production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
@@ -128,15 +116,13 @@
 	</extension>
 	<extension id="ConcurrencyDetector" name="Concurrency detector"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run
-			class="edu.cmu.cs.fluid.analysis.threads.ConcurrencyDetector"
+		<run class="edu.cmu.cs.fluid.analysis.threads.ConcurrencyDetector"
 			production="false">
 		</run>
 	</extension>
 	<extension id="IRConcurrencyDetector" name="IR Concurrency detector"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run
-			class="edu.cmu.cs.fluid.analysis.threads.IRConcurrencyDetector">
+		<run class="edu.cmu.cs.fluid.analysis.threads.IRConcurrencyDetector">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
@@ -149,19 +135,16 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="LockAssurance3"
-		name="Greenhouse Lock Assurance (Converted)"
+	<extension id="LockAssurance3" name="Greenhouse Lock Assurance (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.locks.LockAnalysis">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="UniquenessAssurance2"
-		name="Uniqueness Assurance (Converted)"
+	<extension id="UniquenessAssurance2" name="Uniqueness Assurance (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run
-			class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule">
+		<run class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
@@ -182,8 +165,7 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="ModuleAnalysis2"
-		name="Module Visibility Analyzer (Converted)"
+	<extension id="ModuleAnalysis2" name="Module Visibility Analyzer (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis2"
 			production="false">
@@ -191,11 +173,9 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="EffectAssurance2"
-		name="Greenhouse &amp; Boyland Effects (Converted)"
+	<extension id="EffectAssurance2" name="Greenhouse &amp; Boyland Effects (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run
-			class="com.surelogic.analysis.effects.EffectsAnalysis">
+		<run class="com.surelogic.analysis.effects.EffectsAnalysis">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
@@ -215,17 +195,14 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="ThreadEffectAssurance2"
-		name="Halloran Thread Effects (Converted)"
+	<extension id="ThreadEffectAssurance2" name="Halloran Thread Effects (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run
-			class="com.surelogic.analysis.threads.ThreadEffectsModule">
+		<run class="com.surelogic.analysis.threads.ThreadEffectsModule">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="StructureAnalysis"
-		name="Program Static Structure Verification"
+	<extension id="StructureAnalysis" name="Program Static Structure Verification"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.structure.Structure"
 			production="false">
@@ -265,8 +242,7 @@
 		</prerequisite>
 	</extension>
 
-	<extension id="ColorZerothPass1"
-		name="Coloring Zeroth Pass (Converted)"
+	<extension id="ColorZerothPass1" name="Coloring Zeroth Pass (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.colors.ColorZerothPass1"
 			production="false">
@@ -274,8 +250,7 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.ModuleAnalysis2">
 		</prerequisite>
 	</extension>
-	<extension id="ManageColorAnnos1"
-		name="Coloring Annotation Grabber (Converted)"
+	<extension id="ManageColorAnnos1" name="Coloring Annotation Grabber (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.colors.ManageColorAnnos1"
 			production="false">
@@ -283,8 +258,7 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.ColorZerothPass1">
 		</prerequisite>
 	</extension>
-	<extension id="ColorAssurance1"
-		name="Thread Color Assurance (Converted)"
+	<extension id="ColorAssurance1" name="Thread Color Assurance (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.colors.ColorAssurance1"
 			production="false">
@@ -295,43 +269,39 @@
 
 	<extension point="org.eclipse.ui.views">
 		<category name="JSure" id="edu.cmu.cs.fluid.dcf"></category>
-		<view name="Verification Status" icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
-			category="edu.cmu.cs.fluid.dcf"
-			class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
+		<view name="Verification Status"
+			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
+			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
 		</view>
 
-		<view name="JSure Verification Status Diffs"
-			icon="icons/link.gif" category="edu.cmu.cs.fluid.dcf"
-			class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
+		<view name="JSure Verification Status Diffs" icon="icons/link.gif"
+			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView">
 		</view>
-				
+
 		<view name="JSure Verification Metrics" icon="icons/link.gif"
-			category="edu.cmu.cs.fluid.dcf"
-			class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
+			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.MetricsView">
 		</view>
-		
+
 		<view name="FAST Viewer" category="edu.cmu.cs.fluid.dcf"
-			class="edu.cmu.cs.fluid.dcf.views.ast.FastViewer"
-			id="edu.cmu.cs.fluid.dcf.views.ast.FastViewer">
+			class="edu.cmu.cs.fluid.dcf.views.ast.FastViewer" id="edu.cmu.cs.fluid.dcf.views.ast.FastViewer">
 		</view>
-		
-		<view name="Modeling Problems" icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_model_problems.gif"
-			category="edu.cmu.cs.fluid.dcf"
-			class="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView"
+
+		<view name="Modeling Problems"
+			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_model_problems.gif"
+			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView">
 		</view>
 	</extension>
-  <!-- Originally from double-checker-fluid -->
 
 	<extension point="org.eclipse.core.runtime.preferences">
 		<initializer
 			class="com.surelogic.jsure.client.eclipse.preferences.PreferenceInitializer" />
 	</extension>
 
-	<!-- Code Review perspective links and Java perspective links -->
+	<!-- JSure perspective links and Java perspective links -->
 
 	<extension point="org.eclipse.ui.perspectives">
 		<perspective name="Code Verification"
@@ -339,6 +309,20 @@
 			class="com.surelogic.jsure.perspectives.CodeVerificationPerspective"
 			id="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
 		</perspective>
+	</extension>
+
+	<extension point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension
+			targetID="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
+			<perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective">
+			</perspectiveShortcut>
+			<viewShortcut
+				id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
+			</viewShortcut>
+			<viewShortcut
+				id="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView">
+			</viewShortcut>
+		</perspectiveExtension>
 	</extension>
 
 	<extension point="org.eclipse.ui.perspectiveExtensions">
@@ -391,14 +375,6 @@
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
-      <!-- Not a user action -->
-			<!--action label="Garbage-Collect IR"
-				tooltip="Clean out portions of the IR that are no longer used to regain memory"
-				class="edu.cmu.cs.fluid.eclipse.ui.CleanupIRActionDelegate"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/admin"
-				id="com.surelogic.jsure.client.eclipse.actions.irCleanupAction">
-			</action-->
-
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ManageLicensesAction"
@@ -446,22 +422,6 @@
 				<groupMarker name="nature.grp" />
 			</menu>
 
-      <!-- Don't need this right now: We only support one project at a time -->
-			<!--action id="com.surelogic.jsure.client.eclipse.oc.addNature"
-				label="Verify Project"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
-				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
-				tooltip="Enables JSure analysis of the selected projects"
-				menubarPath="jSureMenu/nature.grp"
-				class="com.surelogic.jsure.client.eclipse.actions.AddFluidNatureAction"
-				enablesFor="+">
-				<enablement>
-					<not>
-						<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
-					</not>
-				</enablement>
-			</action-->
-
 			<action id="com.surelogic.jsure.client.eclipse.oc.removeNature"
 				label="Disable Verification"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
@@ -471,91 +431,50 @@
 				class="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureAction"
 				enablesFor="+">
 				<enablement>
-					<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
+					<objectState name="nature"
+						value="com.surelogic.jsure.client.eclipse.dcNature" />
 				</enablement>
 			</action>
 
 			<action id="com.surelogic.jsure.client.eclipse.oc.focusNature"
-			  label="Focus Verification on this Project"
+				label="Focus Verification on this Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
 				tooltip="Enables JSure analysis for the selected project, and disables assurance for all other projects"
 				menubarPath="jSureMenu/nature.grp"
 				class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
 				enablesFor="1">
-        <enablement>
-          <not>
-            <objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
-          </not>
-        </enablement>
-			</action>
-
-      <!-- XXX: What do these do? -->
-			<!--action id="com.surelogic.jsure.client.eclipse.oc.analyzeAuto"
-				label="Analyze Automatically" tooltip="Turns on automatic analysis for all JSure-active projects"
-				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeAutoAction"
-				enablesFor="+">
 				<enablement>
-					<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
+					<not>
+						<objectState name="nature"
+							value="com.surelogic.jsure.client.eclipse.dcNature" />
+					</not>
 				</enablement>
 			</action>
-			<action id="com.surelogic.jsure.client.eclipse.oc.analyzeManual"
-				label="Analyze Manually" tooltip="Turns off automatic analysis for all JSure-active projects"
-				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeManualAction"
-				enablesFor="+">
-				<enablement>
-					<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
-				</enablement>
-			</action>
-			<action id="com.surelogic.jsure.client.eclipse.oc.analyzeNow"
-				label="Analyze Now" tooltip="Analyzes selected JSure-active projects"
-				menubarPath="jSureMenu/nature.grp" class="edu.cmu.cs.fluid.dc.AnalyzeNowAction"
-				enablesFor="+">
-				<enablement>
-					<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
-				</enablement>
-			</action-->
 		</objectContribution>
 	</extension>
 
 	<extension point="org.eclipse.ui.viewActions">
 		<viewContribution id="org.cmu.cs.fluid.dc.projectexplorer.actions"
 			targetID="org.eclipse.jdt.ui.PackageExplorer">
-			<!-- Disable this for now, we don't support analysis of multiple projects yet -->
-			<!--action id="com.surelogic.jsure.client.eclipse.va.addNature"
-				label="Verify Project"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
-				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
-				tooltip="Enables JSure analysis of the selected projects"
-				menubarPath="additions"
-				class="com.surelogic.jsure.client.eclipse.actions.AddFluidNatureAction"
-				enablesFor="+">
-				<enablement>
-					<and>
-						<objectClass name="org.eclipse.jdt.core.IJavaProject" />
-						<not>
-							<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
-						</not>
-					</and>
-				</enablement>
-			</action-->
 
 			<action id="com.surelogic.jsure.client.eclipse.va.focusNature"
-        label="Focus Verification on this Project"
+				label="Focus Verification on this Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
 				tooltip="Enables JSure analysis for the selected project, and disables assurance for all other projects"
 				toolbarPath="JSure" menubarPath="additions"
 				class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
 				enablesFor="1">
-        <enablement>
-          <and>
-            <objectClass name="org.eclipse.jdt.core.IJavaProject" />
-            <not>
-              <objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
-            </not>
-          </and>
-        </enablement>
+				<enablement>
+					<and>
+						<objectClass name="org.eclipse.jdt.core.IJavaProject" />
+						<not>
+							<objectState name="nature"
+								value="com.surelogic.jsure.client.eclipse.dcNature" />
+						</not>
+					</and>
+				</enablement>
 			</action>
 
 			<action id="com.surelogic.jsure.client.eclipse.va.removeNature"
@@ -569,18 +488,18 @@
 				<enablement>
 					<and>
 						<objectClass name="org.eclipse.jdt.core.IJavaProject" />
-						<objectState name="nature" value="com.surelogic.jsure.client.eclipse.dcNature" />
+						<objectState name="nature"
+							value="com.surelogic.jsure.client.eclipse.dcNature" />
 					</and>
 				</enablement>
 			</action>
 		</viewContribution>
 	</extension>
-		
-	<extension
-         point="org.eclipse.ui.editors.templates">
+
+	<extension point="org.eclipse.ui.editors.templates">
 		<contextType name="JSure Java Context"
-            class="org.eclipse.jdt.internal.corext.template.java.JavaContextType"
-            id="java"/>
-      	<include file="lib/templates/default-jsure-java5-templates.xml"/>
-    </extension>
+			class="org.eclipse.jdt.internal.corext.template.java.JavaContextType"
+			id="java" />
+		<include file="lib/templates/default-jsure-java5-templates.xml" />
+	</extension>
 </plugin>
