@@ -23,7 +23,7 @@ import org.eclipse.team.internal.ccvs.core.ICVSFile;
 import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
 
-import com.surelogic.jsure.coe.JSureViewConstants;
+import com.surelogic.common.CommonImages;
 import com.surelogic.tree.diff.Diff;
 import com.surelogic.tree.diff.IDiffNode;
 
@@ -41,14 +41,14 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	/**
 	 * Status for diffing
 	 */
-	private Status status = Status.SAME;
+	private Status f_status = Status.SAME;
 
-	private int numIssues = -1;
+	private int f_numIssues = -1;
 
 	/**
-	 * The drop referenced, or null
+	 * The drop referenced, or {@code null}.
 	 */
-	final Drop referencedDrop;
+	final Drop f_referencedDrop;
 
 	/**
 	 * This items children for the viewer, meant to be accessed by
@@ -56,7 +56,7 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	 * 
 	 * @see #getChildren()
 	 */
-	private Collection<Content> children;
+	private Collection<Content> f_children;
 
 	/**
 	 * The message to display in the viewer, meant to be accessed by
@@ -64,47 +64,46 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	 * 
 	 * @see #getMessage()
 	 */
-	private final String message;
+	private final String f_message;
 
-	private String m_baseImageName;
+	private String f_baseImageName;
 
-	private int m_imageFlags = 0;
+	private int f_imageFlags = 0;
 
 	/**
 	 * The fAST node that this item references, or null, if the associated drop
 	 * defines the reference location.
 	 */
-	// private IRNode referencedLocation;
-	private ISrcRef sourceRef = null;
+	private ISrcRef f_sourceRef = null;
 
 	/**
 	 * <code>true</code> if this content is from an inference (or InfoDrop),
 	 * <code>false</code> otherwise.
 	 */
-	boolean isInfo = false;
+	boolean f_isInfo = false;
 
-	boolean isInfoDecorated = false;
+	boolean f_isInfoDecorated = false;
 
 	/**
-	 * <code>true</code> if this content is from an inference (or InfoDrop)
-	 * that is a warning, <code>false</code> otherwise.
+	 * <code>true</code> if this content is from an inference (or InfoDrop) that
+	 * is a warning, <code>false</code> otherwise.
 	 */
-	boolean isInfoWarning = false;
+	boolean f_isInfoWarning = false;
 
-	boolean isInfoWarningDecorate = false;
+	boolean f_isInfoWarningDecorate = false;
 
-	boolean donePropagatingWarningDecorators = false;
+	boolean f_donePropagatingWarningDecorators = false;
 
 	/**
 	 * <code>true</code> if this content is from an promise warning drop (or
 	 * PromiseWarningDrop), <code>false</code> otherwise.
 	 */
-	boolean isPromiseWarning = false;
+	boolean f_isPromiseWarning = false;
 
 	Content(String msg, Collection<Content> content) {
-		message = msg;
-		children = content;
-		referencedDrop = null;
+		f_message = msg;
+		f_children = content;
+		f_referencedDrop = null;
 	}
 
 	Content(String msg) {
@@ -114,54 +113,54 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	Content(String msg, IRNode location) {
 		this(msg);
 		if (location != null) {
-			sourceRef = JavaNode.getSrcRef(location);
+			f_sourceRef = JavaNode.getSrcRef(location);
 		}
 	}
 
 	Content(String msg, Drop drop) {
-		message = msg;
-		children = new HashSet<Content>();
-		referencedDrop = drop;
+		f_message = msg;
+		f_children = new HashSet<Content>();
+		f_referencedDrop = drop;
 		if (drop instanceof IRReferenceDrop) {
-			sourceRef = ((IRReferenceDrop) referencedDrop).getSrcRef();
+			f_sourceRef = ((IRReferenceDrop) f_referencedDrop).getSrcRef();
 		}
 	}
 
 	Content cloneAsLeaf() {
 		Content clone = shallowCopy();
 		if (clone != null) {
-			clone.status = Status.BACKEDGE;
+			clone.f_status = Status.BACKEDGE;
 		}
 		return clone;
 	}
 
 	public void setCount(int count) {
-		numIssues = count;
+		f_numIssues = count;
 	}
 
 	public int freezeCount() {
-		return numIssues = children.size();
+		return f_numIssues = f_children.size();
 	}
 
 	public void freezeChildrenCount() {
 		int size = 0;
-		for (Content c : children) {
+		for (Content c : f_children) {
 			size += c.freezeCount();
 		}
-		numIssues = size;
+		f_numIssues = size;
 	}
 
 	public int recomputeCounts() {
-		if (numIssues < 0) {
+		if (f_numIssues < 0) {
 			// No counts previously recorded here
-			for (Content c : children) {
+			for (Content c : f_children) {
 				c.recomputeCounts();
 			}
 			return -1;
 		}
 		boolean counted = false;
 		int size = 0;
-		for (Content c : children) {
+		for (Content c : f_children) {
 			int count = c.recomputeCounts();
 			if (count > 0) {
 				size += count;
@@ -169,7 +168,7 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 			}
 		}
 		if (counted) {
-			return numIssues = size;
+			return f_numIssues = size;
 		}
 		return freezeCount();
 	}
@@ -178,14 +177,14 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 		/*
 		 * if (referencedDrop instanceof IRReferenceDrop) { return
 		 * ((IRReferenceDrop) referencedDrop).getSrcRef(); } return
-		 * (referencedLocation != null ? JavaNode .getSrcRef(referencedLocation) :
-		 * null);
+		 * (referencedLocation != null ? JavaNode .getSrcRef(referencedLocation)
+		 * : null);
 		 */
-		return sourceRef;
+		return f_sourceRef;
 	}
 
 	public String getMessage() {
-		String result = message;
+		String result = f_message;
 		final ISrcRef ref = getSrcRef();
 		if (ref != null) {
 			String name = "?";
@@ -203,16 +202,16 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 			} else if (!name.equals("?")) {
 				result += "  at  " + name;
 			}
-		} else if (numIssues > 0) {
-			if (message.contains("s)")) {
-				result = numIssues + " " + result;
+		} else if (f_numIssues > 0) {
+			if (f_message.contains("s)")) {
+				result = f_numIssues + " " + result;
 			} else {
-				result += " (" + numIssues
-						+ (numIssues > 1 ? " issues)" : " issue)");
+				result += " (" + f_numIssues
+						+ (f_numIssues > 1 ? " issues)" : " issue)");
 			}
 		}
-		if (status != Status.SAME) {
-			result += " -- " + status;
+		if (f_status != Status.SAME) {
+			result += " -- " + f_status;
 		}
 		return result;
 	}
@@ -220,74 +219,77 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	public void setBaseImageName(String name) {
 		if (name == null)
 			throw new IllegalArgumentException("the base image can't be null");
-		m_baseImageName = name;
+		f_baseImageName = name;
 	}
 
 	public String getBaseImageName() {
-		return m_baseImageName;
+		return f_baseImageName;
 	}
 
 	public void setImageFlags(int flags) {
-		m_imageFlags = flags;
+		f_imageFlags = flags;
 	}
 
 	public int getImageFlags() {
-		return m_imageFlags;
+		return f_imageFlags;
 	}
 
 	// For exporting the node (see XMLReport)
 	public int getFlags() {
-    int flagInt = getImageFlags();
-    if (isInfoWarningDecorate) {
-      flagInt |= INFO_WARNING;
-    } else if (isInfoDecorated) {
-      if (getBaseImageName() != JSureViewConstants.INFO_NAME)
-        flagInt |= INFO;
-    }
-    return flagInt;
+		int flagInt = getImageFlags();
+		if (f_isInfoWarningDecorate) {
+			flagInt |= INFO_WARNING;
+		} else if (f_isInfoDecorated) {
+			if (!CommonImages.IMG_INFO.equals(getBaseImageName()))
+				flagInt |= INFO;
+		}
+		return flagInt;
 	}
-	
+
 	// For exporting the node (see XMLReport)
 	public boolean isRedDot() {
-    if((getImageFlags() & REDDOT) > 0) {
-      return true;
-    }
-    return false;
+		if ((getImageFlags() & REDDOT) > 0) {
+			return true;
+		}
+		return false;
 	}
-	
+
 	// For exporting the node (see XMLReport)
-	@SuppressWarnings("restriction") // Suppress warnings about accessing the CVS information
-  public Map<String, String> getLocationAttributes(
-      final Map<String, String> attrs, final boolean includeCVS) {
-    final ISrcRef srcRef = getSrcRef();
-    if(srcRef != null && srcRef.getEnclosingFile() instanceof IResource) {
-      final IResource srcFile = (IResource) srcRef.getEnclosingFile();
-      attrs.put(ATTR_SOURCE, srcFile.getFullPath() + ".html");
-      attrs.put(ATTR_LINE_NUM, Integer.toString(srcRef.getLineNumber()));
-      if (includeCVS) {
-        final ICVSFile cvsFile = CVSWorkspaceRoot.getCVSFileFor((IFile) srcRef.getEnclosingFile());
-        try {
-          attrs.put(ATTR_CVSSOURCE, cvsFile.getRepositoryRelativePath());
-          ResourceSyncInfo fileInfo = cvsFile.getSyncInfo();
-          if (fileInfo != null && fileInfo.getRevision() != null) {
-            attrs.put(ATTR_CVSREVISION, fileInfo.getRevision());
-          } 
-        } catch (CoreException e) {
-          // do nothing
-        }
-      }
-      return attrs;
-    } else {
-      return null;
-    }
+	@SuppressWarnings("restriction")
+	// Suppress warnings about accessing the CVS information
+	public Map<String, String> getLocationAttributes(
+			final Map<String, String> attrs, final boolean includeCVS) {
+		final ISrcRef srcRef = getSrcRef();
+		if (srcRef != null && srcRef.getEnclosingFile() instanceof IResource) {
+			final IResource srcFile = (IResource) srcRef.getEnclosingFile();
+			attrs.put(ATTR_SOURCE, srcFile.getFullPath() + ".html");
+			attrs.put(ATTR_LINE_NUM, Integer.toString(srcRef.getLineNumber()));
+			if (includeCVS) {
+				final ICVSFile cvsFile = CVSWorkspaceRoot
+						.getCVSFileFor((IFile) srcRef.getEnclosingFile());
+				try {
+					attrs.put(ATTR_CVSSOURCE, cvsFile
+							.getRepositoryRelativePath());
+					ResourceSyncInfo fileInfo = cvsFile.getSyncInfo();
+					if (fileInfo != null && fileInfo.getRevision() != null) {
+						attrs.put(ATTR_CVSREVISION, fileInfo.getRevision());
+					}
+				} catch (CoreException e) {
+					// do nothing
+				}
+			}
+			return attrs;
+		} else {
+			return null;
+		}
 	}
-	
+
 	public static Object[] filterNonInfo(Object[] items) {
 		Set<Content> result = new HashSet<Content>();
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] instanceof Content) {
 				Content item = (Content) items[i];
-				if (!item.isInfo) {
+				if (!item.f_isInfo) {
 					result.add(item);
 				}
 			} else {
@@ -299,16 +301,16 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	}
 
 	public Object[] getNonInfoChildren() {
-		return filterNonInfo(children.toArray());
+		return filterNonInfo(f_children.toArray());
 	}
 
 	public Object[] getChildren() {
-		return children.toArray();
+		return f_children.toArray();
 	}
 
 	public Category getCategory() {
-		if (referencedDrop instanceof IRReferenceDrop) {
-			return ((IRReferenceDrop) referencedDrop).getCategory();
+		if (f_referencedDrop instanceof IRReferenceDrop) {
+			return ((IRReferenceDrop) f_referencedDrop).getCategory();
 		}
 		return null;
 	}
@@ -317,19 +319,19 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 		if (c == null) {
 			throw new IllegalArgumentException("New children is null");
 		}
-		children = c;
+		f_children = c;
 	}
 
 	public void addChild(Content child) {
-		children.add(child);
+		f_children.add(child);
 	}
 
 	public int numChildren() {
-		return children.size();
+		return f_children.size();
 	}
 
 	public Collection<Content> children() {
-		return children;
+		return f_children;
 	}
 
 	public static Collection<Content> diffChildren(Collection<Content> last,
@@ -342,36 +344,36 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	}
 
 	public Collection<Content> getChildrenAsCollection() {
-		return children;
+		return f_children;
 	}
 
 	public Collection<Content> setChildren(Collection<Content> c) {
 		try {
-			return children;
+			return f_children;
 		} finally {
-			children = c;
+			f_children = c;
 		}
 	}
 
 	public Status getStatus() {
-		return status;
+		return f_status;
 	}
 
 	public Status setStatus(Status s) {
 		try {
-			return status;
+			return f_status;
 		} finally {
-			status = s;
+			f_status = s;
 		}
 	}
 
 	@Override
 	public String toString() {
-		if (sourceRef != null) {
-			return message + " at " + sourceRef.getEnclosingFile() + ":"
-					+ sourceRef.getLineNumber();
+		if (f_sourceRef != null) {
+			return f_message + " at " + f_sourceRef.getEnclosingFile() + ":"
+					+ f_sourceRef.getLineNumber();
 		}
-		return message;
+		return f_message;
 	}
 
 	public Object identity() {
@@ -389,24 +391,24 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 			 * if (referencedDrop != null) { return
 			 * referencedDrop.getMessage().hashCode(); }
 			 */
-			if (message == null) {
+			if (f_message == null) {
 				return 0;
 			}
-			return message.hashCode();
+			return f_message.hashCode();
 		}
 
 		@Override
 		public boolean equals(Object o) {
 			if (o instanceof Identity) {
 				Content c = ((Identity) o).content();
-				if (referencedDrop == c.referencedDrop) {
+				if (f_referencedDrop == c.f_referencedDrop) {
 					return true;
 				}
-				if (message.equals(c.message)) {
-					return sourceRef == c.sourceRef
-							|| (sourceRef != null && c.sourceRef != null && sourceRef
+				if (f_message.equals(c.f_message)) {
+					return f_sourceRef == c.f_sourceRef
+							|| (f_sourceRef != null && c.f_sourceRef != null && f_sourceRef
 									.getEnclosingFile().equals(
-											c.sourceRef.getEnclosingFile()));
+											c.f_sourceRef.getEnclosingFile()));
 				}
 			}
 			return false;
@@ -421,19 +423,19 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 			public int compare(Identity o1, Identity o2) {
 				Content c1 = o1.content();
 				Content c2 = o2.content();
-				if (c1.referencedDrop == c2.referencedDrop) {
+				if (c1.f_referencedDrop == c2.f_referencedDrop) {
 					return 0;
 				}
-				if (c1.message.equals(c2.message)) {
-					if (c1.sourceRef == c2.sourceRef) {
+				if (c1.f_message.equals(c2.f_message)) {
+					if (c1.f_sourceRef == c2.f_sourceRef) {
 						return 0;
 					}
-					if (c1.sourceRef != null
-							&& c2.sourceRef != null
-							&& c1.sourceRef.getEnclosingFile().equals(
-									c2.sourceRef.getEnclosingFile())) {
-						String cmt1 = c1.sourceRef.getComment();
-						String cmt2 = c2.sourceRef.getComment();
+					if (c1.f_sourceRef != null
+							&& c2.f_sourceRef != null
+							&& c1.f_sourceRef.getEnclosingFile().equals(
+									c2.f_sourceRef.getEnclosingFile())) {
+						String cmt1 = c1.f_sourceRef.getComment();
+						String cmt2 = c2.f_sourceRef.getComment();
 						if (cmt1 == null) {
 							// near match, or completely off
 							return (cmt2 == null) ? 1 : Integer.MAX_VALUE;
@@ -442,8 +444,8 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 							// Completely off since cmt1 != null
 							return Integer.MAX_VALUE;
 						}
-						return c1.sourceRef.getOffset()
-								- c2.sourceRef.getOffset();
+						return c1.f_sourceRef.getOffset()
+								- c2.f_sourceRef.getOffset();
 					}
 				}
 				return Integer.MAX_VALUE;
@@ -452,20 +454,20 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	}
 
 	public boolean isShallowMatch(Content n) {
-		return this.m_baseImageName.equals(n.m_baseImageName)
-				&& this.m_imageFlags == n.m_imageFlags
-				&& this.isInfo == n.isInfo
-				&& this.isInfoDecorated == n.isInfoDecorated
-				&& this.isInfoWarning == n.isInfoWarning
-				&& this.isInfoWarningDecorate == n.isInfoWarningDecorate
-				&& this.isPromiseWarning == n.isPromiseWarning;
+		return this.f_baseImageName.equals(n.f_baseImageName)
+				&& this.f_imageFlags == n.f_imageFlags
+				&& this.f_isInfo == n.f_isInfo
+				&& this.f_isInfoDecorated == n.f_isInfoDecorated
+				&& this.f_isInfoWarning == n.f_isInfoWarning
+				&& this.f_isInfoWarningDecorate == n.f_isInfoWarningDecorate
+				&& this.f_isPromiseWarning == n.f_isPromiseWarning;
 	}
 
 	public Content shallowCopy() {
 		Content clone;
 		try {
 			clone = (Content) clone();
-			clone.children = Collections.emptySet();
+			clone.f_children = Collections.emptySet();
 			return clone;
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
@@ -475,9 +477,9 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 
 	public Content deepCopy() {
 		Content copy = shallowCopy();
-		copy.children = new ArrayList<Content>();
-		for (Content c : children) {
-			copy.children.add(c.deepCopy());
+		copy.f_children = new ArrayList<Content>();
+		for (Content c : f_children) {
+			copy.f_children.add(c.deepCopy());
 		}
 		return copy;
 	}

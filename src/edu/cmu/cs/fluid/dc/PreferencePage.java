@@ -33,7 +33,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.eclipse.SLImages;
 
 /**
  * Java preference page to set preferences for double-checking. It reads and
@@ -43,26 +45,14 @@ import com.surelogic.common.XUtil;
 public final class PreferencePage extends
 		org.eclipse.jface.preference.PreferencePage implements
 		IWorkbenchPreferencePage {
-  public static final boolean showPrivate = XUtil.useExperimental();
-//  public static final boolean showPrivate = QuickProperties.getInstance()
-//  .getProperties().getProperty("dc.show.private", "false").equals(
-//      "true");
+	public static final boolean showPrivate = XUtil.useExperimental();
+	// public static final boolean showPrivate = QuickProperties.getInstance()
+	// .getProperties().getProperty("dc.show.private", "false").equals(
+	// "true");
 
 	CheckboxTreeViewer checktree;
 
 	AnalysisModuleContentProvider analysisModuleContentProvider;
-
-	final public static Image ANALMOD_IMG = Plugin.getDefault()
-			.getImageDescriptor("analmod.gif").createImage();
-
-	final public static Image ANALMOD_CO_IMG = Plugin.getDefault()
-			.getImageDescriptor("analmod_co.gif").createImage();
-
-	final public static Image PREQ_IMG = Plugin.getDefault()
-			.getImageDescriptor("preq.gif").createImage();
-
-	final public static Image PREQ_CO_IMG = Plugin.getDefault()
-			.getImageDescriptor("preq_co.gif").createImage();
 
 	public void init(IWorkbench workbench) {
 		// do nothing
@@ -498,14 +488,14 @@ public final class PreferencePage extends
 			PreferenceTreeNode node = (PreferenceTreeNode) element;
 			if (node.isAMirror) {
 				if (checktree.getChecked(node)) {
-					return PREQ_IMG;
+					return SLImages.getImage(CommonImages.IMG_PREREQUISITE);
 				}
-				return PREQ_CO_IMG;
+				return SLImages.getImage(CommonImages.IMG_PREREQUISITE_GRAY);
 			}
 			if (checktree.getChecked(node)) {
-				return ANALMOD_IMG;
+				return SLImages.getImage(CommonImages.IMG_GREEN_DOT);
 			}
-			return ANALMOD_CO_IMG;
+			return SLImages.getImage(CommonImages.IMG_EMPTY_DOT);
 		}
 
 		/**

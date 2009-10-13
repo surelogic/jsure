@@ -1,9 +1,5 @@
 package edu.cmu.cs.fluid.dcf.views;
 
-import static com.surelogic.jsure.coe.JSureViewConstants.INFO_NAME;
-import static com.surelogic.jsure.coe.JSureViewConstants.PROMISE_NAME;
-import static com.surelogic.jsure.coe.JSureViewConstants.WARNING_NAME;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -83,85 +79,14 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	protected static final Logger LOG = SLLogger
 			.getLogger("AbstractDoubleCheckerView");
 
-	private static final Map<String, ImageDescriptor> imgDescriptors = new HashMap<String, ImageDescriptor>();
-
-	static public ImageDescriptor getImageDescriptor(String fileName) {
-		String iconPath = "icons/"; // relative to the plugin location
-		try {
-			URL installURL = Activator.getDefault().getBundle().getEntry("/");
-			URL url = new URL(installURL, iconPath + fileName);
-			ImageDescriptor id = ImageDescriptor.createFromURL(url);
-			if (id != null) {
-				imgDescriptors.put(fileName, id);
-				return id;
-			}
-			return ImageDescriptor.getMissingImageDescriptor();
-		} catch (MalformedURLException e) {
-			// should not happen
-			return ImageDescriptor.getMissingImageDescriptor();
-		}
-	}
-
-	static public ImageDescriptor getMatchingDescriptor(String name) {
-		ImageDescriptor id = imgDescriptors.get(name);
-		if (id == null) {
-			LOG.severe("Couldn't find a mapping");
-			return ImageDescriptor.getMissingImageDescriptor();
-		}
-		return id;
-	}
-
-	private static Image createImage(ImageDescriptor desc) {
-		try {
-			ResultsImageDescriptor rid = new ResultsImageDescriptor(desc, 0,
-					ICONSIZE);
-			return rid.createImage();
-		} catch (SWTError e) {
-			if (e.getMessage().contains("No more handles")) {
-				return null;
-			} else {
-				throw e;
-			}
-		}
-	}
-
 	final public static Point ICONSIZE = new Point(22, 16);
 
-	final public static ImageDescriptor PROMISE_DESC = getImageDescriptor(PROMISE_NAME);
+	/**
+	 * leave {@code null} if the subclass doesn't want to use this capability.
+	 */
+	protected PageBook f_viewerbook = null;
 
-	final public static Image PROMISE_IMG = createImage(PROMISE_DESC);
-
-	final public static ImageDescriptor INFO_DESC = getImageDescriptor(INFO_NAME);
-
-	final public static Image INFO_IMG = createImage(INFO_DESC);
-
-	final public static ImageDescriptor WARNING_DESC = getImageDescriptor(WARNING_NAME);
-
-	final public static Image WARNING_IMG = createImage(WARNING_DESC);
-
-	final public static ImageDescriptor FOLDER_DESC = getImageDescriptor("folder.gif");
-
-	final public static Image FOLDER_IMG = createImage(FOLDER_DESC);
-
-	final public static ImageDescriptor PACKAGE_DESC = getImageDescriptor("package.gif");
-
-	final public static Image PACKAGE_IMG = createImage(PACKAGE_DESC);
-
-	final public static ImageDescriptor JAVACU_DESC = getImageDescriptor("jcu.gif");
-
-	final public static Image JAVACU_IMG = createImage(JAVACU_DESC);
-
-	final public static ImageDescriptor CLASS_DESC = getImageDescriptor("class.gif");
-
-	final public static Image CLASS_IMG = createImage(CLASS_DESC);
-
-	final public static ImageDescriptor INTERFACE_DESC = getImageDescriptor("interface.gif");
-
-	final public static Image INTERFACE_IMG = createImage(INTERFACE_DESC);
-
-	protected PageBook viewerbook;
-
-	protected Label noResultsToShowLabel;
+	protected Label f_noResultsToShowLabel = null;
 
 	protected static final String PLEASE_WAIT = "Performing analysis...please wait";
 
@@ -175,7 +100,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	private Action doubleClickAction;
 
-	private final boolean useTable;
+	private final boolean f_useTable;
 
 	/**
 	 * The view title from the XML, or {@code null} if we couldn't get it.
@@ -187,19 +112,19 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	protected AbstractDoubleCheckerView(boolean useTable) {
-		this.useTable = useTable;
+		f_useTable = useTable;
 	}
 
 	@Override
 	public final void createPartControl(Composite parent) {
-		viewerbook = new PageBook(parent, SWT.NONE);
-		noResultsToShowLabel = new Label(viewerbook, SWT.NONE);
-		noResultsToShowLabel.setText(NO_RESULTS);
-		if (useTable) {
-			viewer = tableViewer = new TableViewer(viewerbook, SWT.H_SCROLL
+		f_viewerbook = new PageBook(parent, SWT.NONE);
+		f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
+		f_noResultsToShowLabel.setText(NO_RESULTS);
+		if (f_useTable) {
+			viewer = tableViewer = new TableViewer(f_viewerbook, SWT.H_SCROLL
 					| SWT.V_SCROLL | SWT.FULL_SELECTION);
 		} else {
-			viewer = treeViewer = new TreeViewer(viewerbook, SWT.H_SCROLL
+			viewer = treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL
 					| SWT.V_SCROLL);
 		}
 		setupViewer();
@@ -236,14 +161,14 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	 * Toggles between the empty viewer page and the Fluid results
 	 */
 	protected final void setViewerVisibility(boolean showResults) {
-		if (viewerbook.isDisposed())
+		if (f_viewerbook.isDisposed())
 			return;
 		if (showResults) {
 			if (f_fancyWait != null) {
 				f_fancyWait.dispose();
 				f_fancyWait = null;
 			}
-			viewerbook.showPage(viewer.getControl());
+			f_viewerbook.showPage(viewer.getControl());
 		} else {
 			/*
 			 * Check if there is actually a project before we show grayed view.
@@ -252,7 +177,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			 */
 			final String projName = ProjectDrop.getProject();
 			if (projName != null
-					&& !COMP_ERRORS.equals(noResultsToShowLabel.getText())) {
+					&& !COMP_ERRORS.equals(f_noResultsToShowLabel.getText())) {
 				final Control c = viewer.getControl();
 				if (c != null && c.isVisible()) {
 					try {
@@ -268,7 +193,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 							f_fancyWait = new Image(display, image,
 									SWT.IMAGE_GRAY);
 							image.dispose();
-							noResultsToShowLabel.setImage(f_fancyWait);
+							f_noResultsToShowLabel.setImage(f_fancyWait);
 						}
 					} catch (Exception e) {
 						SLLogger
@@ -280,7 +205,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					}
 				}
 			}
-			viewerbook.showPage(noResultsToShowLabel);
+			f_viewerbook.showPage(f_noResultsToShowLabel);
 		}
 	}
 
@@ -594,11 +519,11 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("analysisStarting() called");
 		}
-		if (viewerbook != null && !viewerbook.isDisposed()) {
-			viewerbook.getDisplay().asyncExec(new Runnable() {
+		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
+			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
 					saveViewState();
-					noResultsToShowLabel.setText(PLEASE_WAIT);
+					f_noResultsToShowLabel.setText(PLEASE_WAIT);
 					setViewerVisibility(false);
 				}
 			});
@@ -609,8 +534,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("analysisCompleted() called");
 		}
-		if (viewerbook != null && !viewerbook.isDisposed()) {
-			viewerbook.getDisplay().asyncExec(new Runnable() {
+		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
+			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
 					refreshView();
 					restoreViewState();
@@ -624,10 +549,10 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("analysisPostponed() called");
 		}
-		if (viewerbook != null && !viewerbook.isDisposed()) {
-			viewerbook.getDisplay().asyncExec(new Runnable() {
+		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
+			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
-					noResultsToShowLabel.setText(COMP_ERRORS);
+					f_noResultsToShowLabel.setText(COMP_ERRORS);
 					setViewerVisibility(false);
 				}
 			});
@@ -642,10 +567,10 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("seaChanged() called");
 		}
-		if (viewerbook != null && !viewerbook.isDisposed()) {
-			viewerbook.getDisplay().asyncExec(new Runnable() {
+		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
+			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
-					noResultsToShowLabel.setText(NO_RESULTS);
+					f_noResultsToShowLabel.setText(NO_RESULTS);
 					setViewerVisibility(false);
 				}
 			});

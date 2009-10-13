@@ -12,13 +12,11 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISharedImages;
@@ -55,71 +53,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	private static final Logger LOG = SLLogger.getLogger("ResultsView");
 
-	final public static String CHOICE_NAME = "choice.gif";
-
-	final public static ImageDescriptor CHOICE_DESC = getImageDescriptor(CHOICE_NAME);
-
-	final public static Image CHOICE_IMG = new ResultsImageDescriptor(
-			CHOICE_DESC, 0, ICONSIZE).createImage();
-
-	final public static String CHOICE_ITEM_NAME = "choice_item.gif";
-
-	final public static ImageDescriptor CHOICE_ITEM_DESC = getImageDescriptor(CHOICE_ITEM_NAME);
-
-	final public static Image CHOICE_ITEM_IMG = new ResultsImageDescriptor(
-			CHOICE_ITEM_DESC, 0, ICONSIZE).createImage();
-
-	final public static String PLUS_NAME = "plus.gif";
-
-	final public static ImageDescriptor PLUS_DESC = getImageDescriptor(PLUS_NAME);
-
-	final public static Image PLUS_IMG = new ResultsImageDescriptor(PLUS_DESC,
-			0, ICONSIZE).createImage();
-
-	final public static String REDX_NAME = "redx.gif";
-
-	final public static ImageDescriptor REDX_DESC = getImageDescriptor(REDX_NAME);
-
-	final public static Image REDX_IMG = new ResultsImageDescriptor(REDX_DESC,
-			0, ICONSIZE).createImage();
-
-	final public static ImageDescriptor UNKNOWN_DESC = getImageDescriptor("unknown.gif");
-
-	final public static Image UNKNOWN_IMG = new ResultsImageDescriptor(
-			UNKNOWN_DESC, 0, ICONSIZE).createImage();
-
-	final public static String TALLYHO_NAME = "tallyho.gif";
-
-	final public static ImageDescriptor TALLYHO_DESC = getImageDescriptor(TALLYHO_NAME);
-
-	final public static Image TALLYHO_IMG = new ResultsImageDescriptor(
-			TALLYHO_DESC, 0, ICONSIZE).createImage();
-
-	final public static ImageDescriptor REFRESH_DESC = getImageDescriptor("refresh.gif");
-
-	final public static Image REFRESH_IMG = new ResultsImageDescriptor(
-			REFRESH_DESC, 0, ICONSIZE).createImage();
-
-	final public static ImageDescriptor EXPANDALL_DESC = getImageDescriptor("expandall.gif");
-
-	final public static Image EXPANDALL_IMG = new ResultsImageDescriptor(
-			EXPANDALL_DESC, 0, ICONSIZE).createImage();
-
-	final public static ImageDescriptor COLLAPSEALL_DESC = getImageDescriptor("collapseall.gif");
-
-	final public static Image COLLAPSEALL_IMG = new ResultsImageDescriptor(
-			COLLAPSEALL_DESC, 0, ICONSIZE).createImage();
-
-	final public static ImageDescriptor EXPORT_DESC = getImageDescriptor("export.gif");
-
-	final public static Image EXPORT_IMG = new ResultsImageDescriptor(
-			EXPORT_DESC, 0, ICONSIZE).createImage();
-
-	final public static ImageDescriptor EXPORT_WITH_SOURCE_DESC = getImageDescriptor("export_with_source.gif");
-
-	final public static Image EXPORT_WITH_SOURCE_IMG = new ResultsImageDescriptor(
-			EXPORT_WITH_SOURCE_DESC, 0, ICONSIZE).createImage();
-
 	private final IResultsViewContentProvider m_contentProvider = makeContentProvider();
 
 	private final IResultsViewLabelProvider m_labelProvider = makeLabelProvider();
@@ -150,15 +83,15 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			if (bothContent) {
 				Content c1 = (Content) e1;
 				Content c2 = (Content) e2;
-				boolean c1IsNonProof = (c1.isInfo || c1.isPromiseWarning);
-				boolean c2IsNonProof = (c2.isInfo || c2.isPromiseWarning);
+				boolean c1IsNonProof = (c1.f_isInfo || c1.f_isPromiseWarning);
+				boolean c2IsNonProof = (c2.f_isInfo || c2.f_isPromiseWarning);
 				if (c1IsNonProof && !c2IsNonProof) {
 					result = 1;
 				} else if (c2IsNonProof && !c1IsNonProof) {
 					result = -1;
 				} else {
-					boolean c1isPromise = c1.referencedDrop instanceof PromiseDrop;
-					boolean c2isPromise = c2.referencedDrop instanceof PromiseDrop;
+					boolean c1isPromise = c1.f_referencedDrop instanceof PromiseDrop;
+					boolean c2isPromise = c2.f_referencedDrop instanceof PromiseDrop;
 					if (c1isPromise && !c2isPromise) {
 						result = 1;
 					} else if (c2isPromise && !c1isPromise) {
@@ -249,7 +182,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			manager.add(actionShowUnderlyingDropType);
 			if (!s.isEmpty()) {
 				Content c = (Content) s.getFirstElement();
-				Drop d = c.referencedDrop;
+				Drop d = c.f_referencedDrop;
 				if (d != null) {
 					actionShowUnderlyingDropType.setText("Type: "
 							+ d.getClass().getName());
@@ -307,7 +240,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			actionExportZIPForStandAloneResultsViewer
 					.setToolTipText("Creates a ZIP file containing source and analysis results for the Stand-Alone Results Viewer");
 			actionExportZIPForStandAloneResultsViewer
-					.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
+					.setImageDescriptor(SLImages
+							.getImageDescriptor(CommonImages.IMG_EXPORT_WITH_SOURCE));
 
 			actionExportXMLForSierra = new Action() {
 				@Override
@@ -319,8 +253,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 					.setText("Export Results (XML for Sierra Viewer)");
 			actionExportXMLForSierra
 					.setToolTipText("Creates a XML file containing analysis results that can be imported into Sierra");
-			actionExportXMLForSierra
-					.setImageDescriptor(EXPORT_WITH_SOURCE_DESC);
+			actionExportXMLForSierra.setImageDescriptor(SLImages
+					.getImageDescriptor(CommonImages.IMG_EXPORT_WITH_SOURCE));
 		}
 
 		actionExpand = new Action() {
@@ -338,7 +272,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		};
 		actionExpand.setText("Expand All");
 		actionExpand.setToolTipText("Expand All");
-		actionExpand.setImageDescriptor(EXPANDALL_DESC);
+		actionExpand.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
 
 		actionCollapse = new Action() {
 			@Override
@@ -355,7 +290,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		};
 		actionCollapse.setText("Collapse All");
 		actionCollapse.setToolTipText("Collapse All");
-		actionCollapse.setImageDescriptor(COLLAPSEALL_DESC);
+		actionCollapse.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
 		actionShowUnderlyingDropType = new Action() {
 			@Override

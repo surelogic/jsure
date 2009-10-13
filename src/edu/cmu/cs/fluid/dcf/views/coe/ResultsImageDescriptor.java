@@ -28,7 +28,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 
-import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
+import com.surelogic.common.CommonImages;
+import com.surelogic.common.eclipse.SLImages;
 
 /**
  * A AssuranceImageDescriptor consists of a base image and several adornments.
@@ -44,29 +45,29 @@ import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
  * @see org.eclipse.jdt.ui.JavaElementImageDescriptor
  */
 public class ResultsImageDescriptor extends CompositeImageDescriptor {
-	public static final ImageDescriptor DESC_ASSUME_DECR = AbstractDoubleCheckerView
-			.getImageDescriptor("assume_decr.gif");
+	public static final ImageDescriptor DESC_ASSUME_DECR = SLImages
+			.getImageDescriptor(CommonImages.IMG_ASSUME_DECR);
 
-	public static final ImageDescriptor DESC_CONSISTENT_DECR = AbstractDoubleCheckerView
-			.getImageDescriptor("consistent_decr.gif");
+	public static final ImageDescriptor DESC_CONSISTENT_DECR = SLImages
+			.getImageDescriptor(CommonImages.IMG_CONSISTENT_DECR);
 
-	public static final ImageDescriptor DESC_INCONSISTENT_DECR = AbstractDoubleCheckerView
-			.getImageDescriptor("inconsistent_decr.gif");
+	public static final ImageDescriptor DESC_INCONSISTENT_DECR = SLImages
+			.getImageDescriptor(CommonImages.IMG_INCONSISTENT_DECR);
 
-	public static final ImageDescriptor DESC_REDDOT_DECR = AbstractDoubleCheckerView
-			.getImageDescriptor("reddot_decr.gif");
+	public static final ImageDescriptor DESC_REDDOT_DECR = SLImages
+			.getImageDescriptor(CommonImages.IMG_REDDOT_DECR);
 
-	public static final ImageDescriptor DESC_TRUSTED_DECR = AbstractDoubleCheckerView
-			.getImageDescriptor("trusted_decr.gif");
+	public static final ImageDescriptor DESC_TRUSTED_DECR = SLImages
+			.getImageDescriptor(CommonImages.IMG_TRUSTED_DECR);
 
-	public static final ImageDescriptor DESC_VIRTUAL_DECR = AbstractDoubleCheckerView
-			.getImageDescriptor("virtual_decr.gif");
+	public static final ImageDescriptor DESC_VIRTUAL_DECR = SLImages
+			.getImageDescriptor(CommonImages.IMG_VIRTUAL_DECR);
 
-	public static final ImageDescriptor DESC_WARNING_DECR = AbstractDoubleCheckerView
-			.getImageDescriptor("warning_decr.gif");
+	public static final ImageDescriptor DESC_WARNING_DECR = SLImages
+			.getImageDescriptor(CommonImages.IMG_WARNING_DECR);
 
-	public static final ImageDescriptor DESC_INFO_DECR = AbstractDoubleCheckerView
-			.getImageDescriptor("info_decr.gif");
+	public static final ImageDescriptor DESC_INFO_DECR = SLImages
+			.getImageDescriptor(CommonImages.IMG_INFO_DECR);
 
 	private final ImageDescriptor fBaseImage;
 
@@ -138,8 +139,8 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
 
 	/**
 	 * Sets the descriptors adornments. Valid values are:
-	 * <code>CONSISTENT</code>, <code>INCONSISTENT</code>,
-	 * <code>REDDOT</code>, or any combination of those.
+	 * <code>CONSISTENT</code>, <code>INCONSISTENT</code>, <code>REDDOT</code>,
+	 * or any combination of those.
 	 * 
 	 * @param adornments
 	 *            the image descritpors adornments

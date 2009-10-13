@@ -13,8 +13,8 @@ import java.util.logging.Level;
 
 import org.eclipse.jface.viewers.Viewer;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.coe.JSureViewConstants;
 import com.surelogic.xml.results.coe.CoE_Constants;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -148,20 +148,20 @@ public class ResultsViewContentProvider extends
 			SupportingInformation si = supportingInformation.iterator().next();
 			Content informationItem = new Content("supporting information: "
 					+ si.getMessage(), si.getLocation());
-			informationItem.setBaseImageName(JSureViewConstants.INFO_NAME);
+			informationItem.setBaseImageName(CommonImages.IMG_INFO);
 			mutableContentSet.addChild(informationItem);
 			return;
 		}
 		// More than one thing
 		Content siFolder = new Content("supporting information:");
-		siFolder.setBaseImageName(JSureViewConstants.FOLDER_NAME);
+		siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 
 		for (Iterator<SupportingInformation> i = supportingInformation
 				.iterator(); i.hasNext();) {
 			SupportingInformation si = i.next();
 			Content informationItem = new Content(si.getMessage(), si
 					.getLocation());
-			informationItem.setBaseImageName(JSureViewConstants.INFO_NAME);
+			informationItem.setBaseImageName(CommonImages.IMG_INFO);
 			siFolder.addChild(informationItem);
 		}
 		// TODO why do I need this code?
@@ -213,7 +213,7 @@ public class ResultsViewContentProvider extends
 		flags |= (elementsProvedConsistent ? CoE_Constants.CONSISTENT
 				: CoE_Constants.INCONSISTENT);
 		preconditionFolder.setImageFlags(flags);
-		preconditionFolder.setBaseImageName(ResultsView.CHOICE_ITEM_NAME);
+		preconditionFolder.setBaseImageName(CommonImages.IMG_CHOICE_ITEM);
 		mutableContentSet.addChild(preconditionFolder);
 	}
 
@@ -242,7 +242,7 @@ public class ResultsViewContentProvider extends
 		flags |= (result.get_or_provedConsistent() ? CoE_Constants.CONSISTENT
 				: CoE_Constants.INCONSISTENT);
 		orContentFolder.setImageFlags(flags);
-		orContentFolder.setBaseImageName(ResultsView.CHOICE_NAME);
+		orContentFolder.setBaseImageName(CommonImages.IMG_CHOICE);
 		mutableContentSet.addChild(orContentFolder);
 
 		// create a folder for each choice
@@ -268,7 +268,7 @@ public class ResultsViewContentProvider extends
 			flags |= (choiceConsistent ? CoE_Constants.CONSISTENT
 					: CoE_Constants.INCONSISTENT);
 			choiceFolder.setImageFlags(flags);
-			choiceFolder.setBaseImageName(ResultsView.CHOICE_ITEM_NAME);
+			choiceFolder.setBaseImageName(CommonImages.IMG_CHOICE_ITEM);
 		}
 	}
 
@@ -299,10 +299,12 @@ public class ResultsViewContentProvider extends
 			Content result = new Content(drop.getMessage(), drop);
 			m_contentCache.put(drop, result); // to avoid infinite recursion
 
-			// ///////////////
-			// PROMISE DROP //
-			// ///////////////
 			if (drop instanceof PromiseDrop) {
+
+				/*
+				 * PROMISE DROP
+				 */
+
 				PromiseDrop promiseDrop = (PromiseDrop) drop;
 
 				// image
@@ -318,7 +320,7 @@ public class ResultsViewContentProvider extends
 				flags |= (promiseDrop.isAssumed() ? CoE_Constants.ASSUME : 0);
 				flags |= (promiseDrop.isVirtual() ? CoE_Constants.VIRTUAL : 0);
 				result.setImageFlags(flags);
-				result.setBaseImageName(JSureViewConstants.PROMISE_NAME);
+				result.setBaseImageName(CommonImages.IMG_ANNOTATION);
 
 				// children
 				addSupportingInformation(result, promiseDrop);
@@ -331,10 +333,12 @@ public class ResultsViewContentProvider extends
 				addDrops(result, matching);
 				addDrops(result, promiseDrop.getCheckedBy());
 
-				// //////////////
-				// RESULT DROP //
-				// //////////////
 			} else if (drop instanceof ResultDrop) {
+
+				/*
+				 * RESULT DROP
+				 */
+
 				ResultDrop resultDrop = (ResultDrop) drop;
 
 				// image
@@ -349,42 +353,46 @@ public class ResultsViewContentProvider extends
 				}
 				result.setImageFlags(flags);
 				result
-						.setBaseImageName(resultDrop.isConsistent() ? ResultsView.PLUS_NAME
-								: ResultsView.REDX_NAME);
+						.setBaseImageName(resultDrop.isConsistent() ? CommonImages.IMG_PLUS
+								: CommonImages.IMG_RED_X);
 
 				// children
 				addSupportingInformation(result, resultDrop);
 				add_or_TrustedPromises(result, resultDrop);
 				add_and_TrustedPromises(result, resultDrop);
 
-				// ////////////
-				// INFO DROP //
-				// ////////////
 			} else if (drop instanceof InfoDrop) {
+
+				/*
+				 * INFO DROP
+				 */
+
 				InfoDrop infoDrop = (InfoDrop) drop;
 
 				// image
 				result
-						.setBaseImageName(drop instanceof WarningDrop ? JSureViewConstants.WARNING_NAME
-								: JSureViewConstants.INFO_NAME);
+						.setBaseImageName(drop instanceof WarningDrop ? CommonImages.IMG_WARNING
+								: CommonImages.IMG_INFO);
 
 				// children
 				addSupportingInformation(result, infoDrop);
-				result.isInfo = true;
-				result.isInfoWarning = drop instanceof WarningDrop;
+				result.f_isInfo = true;
+				result.f_isInfoWarning = drop instanceof WarningDrop;
 
-				// ///////////////////////
-				// PROMISE WARNING DROP //
-				// ///////////////////////
 			} else if (drop instanceof PromiseWarningDrop) {
+
+				/*
+				 * PROMISE WARNING DROP
+				 */
+
 				PromiseWarningDrop promiseWarningDrop = (PromiseWarningDrop) drop;
 
 				// image
-				result.setBaseImageName(JSureViewConstants.WARNING_NAME);
+				result.setBaseImageName(CommonImages.IMG_WARNING);
 
 				// children
 				addSupportingInformation(result, promiseWarningDrop);
-				result.isPromiseWarning = true;
+				result.f_isPromiseWarning = true;
 			} else {
 				LOG.log(Level.SEVERE,
 						"ResultsViewContentProvider.encloseDrop(Drop) passed an unknown drop type "
@@ -444,10 +452,10 @@ public class ResultsViewContentProvider extends
 				categorizedChildren.add(item);
 			} else {
 				toBeCategorized.add(item);
-				if (item.referencedDrop instanceof PromiseDrop
+				if (item.f_referencedDrop instanceof PromiseDrop
 						&& !atRoot
-						&& !(item.referencedDrop instanceof RequiresLockPromiseDrop)
-						&& !(item.referencedDrop instanceof PleaseFolderize)) {
+						&& !(item.f_referencedDrop instanceof RequiresLockPromiseDrop)
+						&& !(item.f_referencedDrop instanceof PleaseFolderize)) {
 					/*
 					 * Only categorize promise drops at the root level
 					 */
@@ -503,24 +511,23 @@ public class ResultsViewContentProvider extends
 
 			for (Content item : categoryFolder.children()) {
 
-				if (item.referencedDrop instanceof ProofDrop) {
-					proofDrops.add((ProofDrop) item.referencedDrop);
-				} else if (item.referencedDrop instanceof InfoDrop) {
-					infoDrops.add((InfoDrop) item.referencedDrop);
-					if (item.referencedDrop instanceof WarningDrop) {
-						warningDrops.add((WarningDrop) item.referencedDrop);
+				if (item.f_referencedDrop instanceof ProofDrop) {
+					proofDrops.add((ProofDrop) item.f_referencedDrop);
+				} else if (item.f_referencedDrop instanceof InfoDrop) {
+					infoDrops.add((InfoDrop) item.f_referencedDrop);
+					if (item.f_referencedDrop instanceof WarningDrop) {
+						warningDrops.add((WarningDrop) item.f_referencedDrop);
 					}
 				}
 			}
 			if (proofDrops.isEmpty() && !infoDrops.isEmpty()) {
 				categoryFolder
-						.setBaseImageName(!warningDrops.isEmpty() ? JSureViewConstants.WARNING_NAME
-								: JSureViewConstants.INFO_NAME);
-				categoryFolder.isInfo = true;
+						.setBaseImageName(!warningDrops.isEmpty() ? CommonImages.IMG_WARNING
+								: CommonImages.IMG_INFO);
+				categoryFolder.f_isInfo = true;
 			} else if (proofDrops.isEmpty() && infoDrops.isEmpty()) {
-				categoryFolder
-						.setBaseImageName(JSureViewConstants.WARNING_NAME);
-				categoryFolder.isPromiseWarning = true;
+				categoryFolder.setBaseImageName(CommonImages.IMG_WARNING);
+				categoryFolder.f_isPromiseWarning = true;
 			} else {
 				// set proof bits properly
 				int flags = 0; // assume no adornments
@@ -542,9 +549,8 @@ public class ResultsViewContentProvider extends
 						: CoE_Constants.INCONSISTENT);
 				categoryFolder.setImageFlags(flags);
 				categoryFolder
-						.setBaseImageName(atRoot ? ResultsView.TALLYHO_NAME
-								: (localConsistent ? JSureViewConstants.FOLDER_NAME
-										: JSureViewConstants.FOLDER_NAME));
+						.setBaseImageName(atRoot ? CommonImages.IMG_PROJECT
+								: CommonImages.IMG_FOLDER);
 			}
 			categorizedChildren.add(categoryFolder);
 		}
@@ -617,7 +623,7 @@ public class ResultsViewContentProvider extends
 				 * If the drop the Content "item" references has a package and a
 				 * type we'll generate folders for it.
 				 */
-				Drop drop = item.referencedDrop;
+				Drop drop = item.f_referencedDrop;
 				boolean hasJavaContext = false;
 				if (drop instanceof ResultDrop || drop instanceof InfoDrop
 						|| drop instanceof PleaseFolderize) {
@@ -644,8 +650,8 @@ public class ResultsViewContentProvider extends
 								// map
 								folder = new Content(typeKey);
 								folder
-										.setBaseImageName(context.typeIsAnInterface ? JSureViewConstants.INTERFACE_NAME
-												: JSureViewConstants.CLASS_NAME);
+										.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE
+												: CommonImages.IMG_CLASS);
 								typeToFolder.put(typeKey, folder);
 							}
 							folder.addChild(item);
@@ -679,7 +685,7 @@ public class ResultsViewContentProvider extends
 				setConsistencyDecoratorForATypeFolder(typeFolder);
 			}
 			packageFolder.freezeChildrenCount();
-			packageFolder.setBaseImageName(JSureViewConstants.PACKAGE_NAME);
+			packageFolder.setBaseImageName(CommonImages.IMG_PACKAGE);
 			setConsistencyDecoratorForAPackageFolder(packageFolder);
 
 			newChildren.add(packageFolder);
@@ -721,7 +727,7 @@ public class ResultsViewContentProvider extends
 		boolean consistent = true;
 		boolean hasRedDot = false;
 		for (Content node : c.children()) {
-			Drop d = node.referencedDrop;
+			Drop d = node.f_referencedDrop;
 			if (d instanceof ProofDrop) {
 				hasAResult = true;
 				ProofDrop pd = (ProofDrop) d;
@@ -785,11 +791,11 @@ public class ResultsViewContentProvider extends
 	 * InfoWarning Changed to track all nodes already visited
 	 */
 	private void nodeNeedsWarningDecorator(Content node, Set<Content> onPath) {
-		node.isInfoDecorated = node.isInfo;
-		node.isInfoWarningDecorate = node.isInfoWarning;
+		node.f_isInfoDecorated = node.f_isInfo;
+		node.f_isInfoWarningDecorate = node.f_isInfoWarning;
 
-		if (node.referencedDrop instanceof PleaseCount) {
-			node.setCount(((PleaseCount) node.referencedDrop).count());
+		if (node.f_referencedDrop instanceof PleaseCount) {
+			node.setCount(((PleaseCount) node.f_referencedDrop).count());
 		}
 
 		onPath.add(node);
@@ -802,14 +808,14 @@ public class ResultsViewContentProvider extends
 			 * Guard against infinite recursion (drop-sea is a graph)
 			 */
 			if (!onPath.contains(item)) {
-				if (!item.donePropagatingWarningDecorators) {
+				if (!item.f_donePropagatingWarningDecorators) {
 					nodeNeedsWarningDecorator(item, onPath);
 				}
-				node.isInfoDecorated |= item.isInfoDecorated;
-				node.isInfoWarningDecorate |= item.isInfoWarningDecorate;
+				node.f_isInfoDecorated |= item.f_isInfoDecorated;
+				node.f_isInfoWarningDecorate |= item.f_isInfoWarningDecorate;
 			}
 		}
-		node.donePropagatingWarningDecorators = true;
+		node.f_donePropagatingWarningDecorators = true;
 		onPath.remove(node);
 	}
 
@@ -886,9 +892,9 @@ public class ResultsViewContentProvider extends
 		 */
 		public ContentJavaContext(final Content content) {
 			// Get reference IRNode
-			if (!(content.referencedDrop instanceof IRReferenceDrop))
+			if (!(content.f_referencedDrop instanceof IRReferenceDrop))
 				return;
-			IRReferenceDrop drop = (IRReferenceDrop) content.referencedDrop;
+			IRReferenceDrop drop = (IRReferenceDrop) content.f_referencedDrop;
 			final IRNode node = drop.getNode();
 			if (node == null) {
 				return;
@@ -1038,10 +1044,9 @@ public class ResultsViewContentProvider extends
 					hasWarning = true;
 				infoFolder.addChild(encloseDrop(id));
 			}
-			infoFolder
-					.setBaseImageName(hasWarning ? JSureViewConstants.WARNING_NAME
-							: JSureViewConstants.INFO_NAME);
-			infoFolder.isInfo = true;
+			infoFolder.setBaseImageName(hasWarning ? CommonImages.IMG_WARNING
+					: CommonImages.IMG_INFO);
+			infoFolder.f_isInfo = true;
 			root.add(infoFolder);
 		}
 

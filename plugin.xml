@@ -47,7 +47,7 @@
 
 	<extension point="org.eclipse.ui.decorators">
 		<decorator lightweight="true" adaptable="true"
-			label="%jSure.decorator.label" icon="icons/jsure_decr.gif" state="true"
+			label="%jSure.decorator.label" icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_decr.gif" state="true"
 			id="jSureDecorator">
 			<description>%jSure.decorator.desc</description>
 			<enablement>
@@ -275,12 +275,12 @@
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
 		</view>
 
-		<view name="JSure Verification Status Diffs" icon="icons/link.gif"
+		<view name="JSure Verification Status Diffs" icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView">
 		</view>
 
-		<view name="JSure Verification Metrics" icon="icons/link.gif"
+		<view name="JSure Verification Metrics" icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.MetricsView">
 		</view>

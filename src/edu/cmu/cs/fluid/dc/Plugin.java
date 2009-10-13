@@ -135,26 +135,6 @@ public class Plugin {
 		return Activator.getDefault().getDoubleChecker();
 	}
 
-	/**
-	 * Returns a image descriptor from the "icons/" directory within this
-	 * plugin.
-	 * 
-	 * @param fileName
-	 *            the name of the image file (e.g., <code>image.gif</code>)
-	 * @return a image descriptor from the <code>icons/</code> directory
-	 *         within this plugin
-	 */
-	public ImageDescriptor getImageDescriptor(String fileName) {
-		String iconPath = "icons/"; // relative to the plugin location
-		try {
-			URL installURL = Activator.getDefault().getBundle().getEntry("/");
-			URL url = new URL(installURL, iconPath + fileName);
-			return ImageDescriptor.createFromURL(url);
-		} catch (MalformedURLException e) {
-			// should not happen
-			return ImageDescriptor.getMissingImageDescriptor();
-		}
-	}
 
 	/**
 	 * Returns the workspace instance.
