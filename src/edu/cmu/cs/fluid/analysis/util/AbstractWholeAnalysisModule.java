@@ -6,6 +6,7 @@ import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 
 import edu.cmu.cs.fluid.eclipse.Eclipse;
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
@@ -67,5 +68,6 @@ public abstract class AbstractWholeAnalysisModule extends AbstractWholeIRAnalysi
 	public final void postBuild(IProject project) {
 		analysis.postAnalysis(Eclipse.getDefault().makeClassPath(project));
 		super.postBuild(project);
+		IDE.getInstance().clearCaches();
 	}
 }
