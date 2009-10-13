@@ -298,7 +298,8 @@ public class RegionRules extends AnnotationRules {
         final RegionModel fieldModel = RegionModel.getInstance(promisedFor).getModel();
         final RegionModel parentModel = parentDecl.getModel();
         fieldModel.addDependent(parentModel);
-        fieldModel.addSupportingInformation("via @InRegion annotation", promisedFor);
+        fieldModel.addDependent(mip);
+        //fieldModel.addSupportingInformation("via @InRegion annotation", promisedFor);
         return mip;
       }
     }
