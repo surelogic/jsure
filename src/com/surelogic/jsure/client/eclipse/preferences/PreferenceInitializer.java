@@ -16,5 +16,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 				.getPreferenceStore();
 		store.setDefault(PreferenceConstants.P_PROMPT_PERSPECTIVE_SWITCH, true);
 		store.setDefault(PreferenceConstants.P_AUTO_PERSPECTIVE_SWITCH, false);
+		store.setDefault(
+				PreferenceConstants.P_AUTO_OPEN_MODELING_PROBLEMS_VIEW, true);
 	}
 }

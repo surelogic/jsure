@@ -47,9 +47,8 @@
 
 	<extension point="org.eclipse.ui.decorators">
 		<decorator lightweight="true" adaptable="true"
-			label="%jSure.decorator.label"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_decr.gif"
-			state="true" id="jSureDecorator">
+			label="%jSure.decorator.label" icon="lib/jsure_decr.gif" state="true"
+			id="jSureDecorator">
 			<description>%jSure.decorator.desc</description>
 			<enablement>
 				<and>

@@ -11,10 +11,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.eclipse.ViewUtility;
+import com.surelogic.common.eclipse.jobs.SLUIJob;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
 import com.surelogic.xml.results.coe.CoE_Constants;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -50,6 +58,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public class ResultsViewContentProvider extends
 		AbstractResultsViewContentProvider {
+
 	protected static final Object[] noObjects = new Object[0];
 
 	// TODO These are not completely protected, since the arrays get returned
@@ -73,7 +82,7 @@ public class ResultsViewContentProvider extends
 	}
 
 	protected Object[] getElementsInternal() {
-		return (m_showInferences ? m_root : Content.filterNonInfo(m_root));
+		return (isShowInferences() ? m_root : Content.filterNonInfo(m_root));
 	}
 
 	public Object getParent(Object child) {
@@ -87,7 +96,7 @@ public class ResultsViewContentProvider extends
 	protected Object[] getChildrenInternal(Object parent) {
 		if (parent instanceof Content) {
 			Content item = (Content) parent;
-			return (m_showInferences ? item.getChildren() : item
+			return (isShowInferences() ? item.getChildren() : item
 					.getNonInfoChildren());
 		}
 		return noObjects;
@@ -998,38 +1007,26 @@ public class ResultsViewContentProvider extends
 
 	@SuppressWarnings("unchecked")
 	private IResultsViewContentProvider buildModelOfDropSea_internal() {
-		Collection<Content> root = new HashSet<Content>(); // show at the
-		// viewer root
+		// show at the viewer root
+		Collection<Content> root = new HashSet<Content>();
 
 		/*
 		 * for (ModelDrop md : Sea.getDefault().getDropsOfType(ModelDrop.class))
 		 * { System.out.println("ModelDrop: "+md.getMessage()); }
 		 */
 
-		Set<? extends PromiseDrop> promiseDrops = Sea.getDefault()
+		final Set<? extends PromiseDrop> promiseDrops = Sea.getDefault()
 				.getDropsOfType(PromiseDrop.class);
 		for (PromiseDrop pd : promiseDrops) {
-			/*
-			 * if (pd instanceof LockModel) {
-			 * System.out.println(pd.getMessage()); }
-			 */
 			if (pd.isFromSrc()) {
 				if (!pd.hasMatchingDeponents(predicate)) {
-					/*
-					 * if (pd instanceof InRegionPromiseDrop) {
-					 * System.out.println(pd.getMessage()); for(Drop d :
-					 * pd.getDeponents()) {
-					 * System.out.println("\t"+d.getClass().
-					 * getSimpleName()+": "+d.getMessage()); }
-					 * System.out.println(); }
-					 */
 					root.add(encloseDrop(pd));
 				}
 			}
 		}
 
-		Set<? extends InfoDrop> infoDrops = Sea.getDefault().getDropsOfType(
-				InfoDrop.class);
+		final Set<? extends InfoDrop> infoDrops = Sea.getDefault()
+				.getDropsOfType(InfoDrop.class);
 		if (!infoDrops.isEmpty()) {
 			final String msg = "Suggestions and warnings";
 			Content infoFolder = new Content(msg);
@@ -1037,7 +1034,6 @@ public class ResultsViewContentProvider extends
 
 			boolean hasWarning = false;
 			for (InfoDrop id : infoDrops) {
-				// InfoDrop id = (InfoDrop) j.next();
 				if (id instanceof WarningDrop)
 					hasWarning = true;
 				infoFolder.addChild(encloseDrop(id));
@@ -1048,29 +1044,31 @@ public class ResultsViewContentProvider extends
 			root.add(infoFolder);
 		}
 
-		Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea
+		final Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea
 				.getDefault().getDropsOfType(PromiseWarningDrop.class);
-		/*
-		 * for (PromiseWarningDrop id : promiseWarningDrops) { //
-		 * PromiseWarningDrop id = (PromiseWarningDrop) j.next(); // only show
-		 * info drops at the main level if they are not attached // to a promise
-		 * drop or a result drop root.add(encloseDrop(id)); }
-		 */
-		if (promiseWarningDrops.isEmpty()) {
-			setModelingProblemsHintMessage(null);
-		} else {
-			final int problemCount = promiseWarningDrops.size();
-			setModelingProblemsHintMessage(problemCount + " modeling problem"
-					+ (problemCount > 1 ? "s" : ""));
+		if (!promiseWarningDrops.isEmpty()) {
+			/*
+			 * We have modeling problems...make sure the view that shows them is
+			 * visible to the user.
+			 */
+			if (PreferenceConstants.prototype.getAutoOpenModelingProblemsView()) {
+				final UIJob job = new SLUIJob() {
+					@Override
+					public IStatus runInUIThread(IProgressMonitor monitor) {
+						ViewUtility.showView(ProblemsView.class.getName(),
+								null, IWorkbenchPage.VIEW_VISIBLE);
+						return Status.OK_STATUS;
+					}
+				};
+				job.schedule();
+			}
 		}
 
-		Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(
+		final Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(
 				ResultDrop.class);
 		for (ResultDrop id : resultDrops) {
-			// ResultDrop id = (ResultDrop) j.next();
 			// only show result drops at the main level if they are not attached
 			// to a promise drop or a result drop
-
 			if (id.isValid()
 					&& ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || (id instanceof MaybeTopLevel && ((MaybeTopLevel) id)
 							.requestTopLevel()))) {
@@ -1080,28 +1078,21 @@ public class ResultsViewContentProvider extends
 				root.add(encloseDrop(id));
 			}
 		}
-		/*
-		 * Set<ModuleModel> moduleDrops =
-		 * Sea.getDefault().getDropsOfExactType(ModuleModel.class); for
-		 * (ModuleModel id : moduleDrops) { root.add(encloseDrop(id)); }
-		 */
-
 		root = categorize(root);
 		root = packageTypeFolderize(root);
 		propagateWarningDecorators(root);
 		breakBackEdges(root);
 		m_lastRoot = m_root;
 		m_root = root.toArray();
-		m_contentCache = new HashMap<Drop, Content>(); // reset our cache, for
-		// next time
-		// m_contentCache.clear();
+		// reset our cache, for next time
+		m_contentCache = new HashMap<Drop, Content>();
 
 		return this;
 	}
 
 	public Object[] getLastElements() {
 		synchronized (ResultsViewContentProvider.class) {
-			return (m_showInferences ? m_lastRoot : Content
+			return (isShowInferences() ? m_lastRoot : Content
 					.filterNonInfo(m_lastRoot));
 		}
 	}

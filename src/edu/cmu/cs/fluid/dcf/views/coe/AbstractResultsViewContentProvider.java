@@ -9,9 +9,7 @@ public abstract class AbstractResultsViewContentProvider implements
 	protected static final Logger LOG = SLLogger
 			.getLogger("ResultsViewContentProvider");
 
-	protected boolean m_showInferences = true;
-
-	private static String f_modelingProblemsHintMessage = "";
+	private boolean m_showInferences = true;
 
 	/**
 	 * @return Returns the showInferences.
@@ -26,31 +24,5 @@ public abstract class AbstractResultsViewContentProvider implements
 	 */
 	public final void setShowInferences(boolean showInferences) {
 		this.m_showInferences = showInferences;
-	}
-
-	/**
-	 * Gets the hint if the user needs to look at modeling problems or not.
-	 * 
-	 * @return the non-null hint if the user needs to look at modeling problems
-	 *         or not.
-	 */
-	public final String getModelingProblemsHintMessage() {
-		return f_modelingProblemsHintMessage;
-	}
-
-	/**
-	 * Sets the hint if the user needs to look at modeling problems or not.
-	 * 
-	 * @param value
-	 *            a hint if the user needs to look at modeling problems or not.
-	 *            If this parameter is {@code null} the hint will be set to the
-	 *            empty string.
-	 */
-	protected final void setModelingProblemsHintMessage(final String value) {
-		if (value != null) {
-			f_modelingProblemsHintMessage = value;
-		} else {
-			f_modelingProblemsHintMessage = ""; // none
-		}
 	}
 }

@@ -162,6 +162,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		manager.add(actionCollapseAll);
 		manager.add(new Separator());
 		manager.add(actionShowInferences);
+		manager.add(actionShowProblemsView);
 		manager.add(new Separator());
 		manager.add(new DemoProjectAction("Create PlanetBaronJSure", getClass()
 				.getResource("/lib/PlanetBaronJSure.zip")));
@@ -211,6 +212,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				ViewUtility.showView(ProblemsView.class.getName());
 			}
 		};
+		actionShowProblemsView.setText("Show Modeling Problems");
+		actionShowProblemsView.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
+
 		actionShowInferences = new Action() {
 			@Override
 			public void run() {
@@ -326,26 +331,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		actionShowInferences.setText("Show Information/Warning Results");
 		actionShowInferences
 				.setToolTipText("Show information and warning analysis results");
-		setShowProblemsViewState(m_contentProvider
-				.getModelingProblemsHintMessage());
-	}
-
-	private void setShowProblemsViewState(String msg) {
-		final boolean modelingProblemsExist = !"".equals(msg);
-		if (modelingProblemsExist) {
-			actionShowProblemsView.setText(msg);
-			actionShowProblemsView
-					.setToolTipText("Display these modeling problems");
-			actionShowProblemsView.setImageDescriptor(SLImages
-					.getImageDescriptor(CommonImages.IMG_ANNOTATION_ERROR));
-			actionShowProblemsView.setEnabled(true);
-		} else {
-			actionShowProblemsView.setEnabled(false);
-			actionShowProblemsView.setText("");
-			actionShowProblemsView.setToolTipText("");
-			actionShowProblemsView.setImageDescriptor(null);
-
-		}
 	}
 
 	@Override
