@@ -1032,14 +1032,10 @@ public class ResultsViewContentProvider extends
 			Content infoFolder = new Content(msg);
 			infoFolder.setCount(infoDrops.size());
 
-			boolean hasWarning = false;
 			for (InfoDrop id : infoDrops) {
-				if (id instanceof WarningDrop)
-					hasWarning = true;
 				infoFolder.addChild(encloseDrop(id));
 			}
-			infoFolder.setBaseImageName(hasWarning ? CommonImages.IMG_WARNING
-					: CommonImages.IMG_INFO);
+			infoFolder.setBaseImageName(CommonImages.IMG_INFO);
 			infoFolder.f_isInfo = true;
 			root.add(infoFolder);
 		}
