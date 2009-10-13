@@ -43,8 +43,8 @@ public class ZipFileLocator extends AbstractFileLocator {
       inZip = new ZipFile(f);
       break;
     case WRITE:
-      inZip = null;
-      outZip = new ZipOutputStream(new FileOutputStream(f));
+      inZip = null;      
+      outZip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(f), 32768));
       pendingEntries = new ArrayList<EntryOutputStream>();
       break;
     }
@@ -72,7 +72,7 @@ public class ZipFileLocator extends AbstractFileLocator {
       if (ze == null) {
         return null;
       }
-      return new BufferedInputStream(inZip.getInputStream(ze));
+      return new BufferedInputStream(inZip.getInputStream(ze), 32768);
     } catch (IOException e) {
       return null;
     }
