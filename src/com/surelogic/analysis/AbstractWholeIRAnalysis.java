@@ -10,6 +10,7 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
+import edu.cmu.cs.fluid.util.CachedSet;
 
 public abstract class AbstractWholeIRAnalysis<T> extends AbstractIRAnalysis<T> {
 	static private class ResultsDepDrop extends Drop {
@@ -62,6 +63,9 @@ public abstract class AbstractWholeIRAnalysis<T> extends AbstractIRAnalysis<T> {
 	}
 	
 	public void postAnalysis(IIRProject p) {
-		// Nothing to do
+		clearCaches();
+		CachedSet.clearCache();
 	}
+	
+	protected abstract void clearCaches();
 }

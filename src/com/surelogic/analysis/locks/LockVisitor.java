@@ -819,9 +819,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     isSafeTypeCache.clear();
     jucLockUsageManager.clear();
     lockUtils.clear();
+    bindingContextAnalysis.clear();
   }
-
-  
   
   /**
    * THe main method

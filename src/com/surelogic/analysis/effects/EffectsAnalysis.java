@@ -36,6 +36,11 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {
 	}
 
 	@Override
+	protected void clearCaches() {
+		getAnalysis().clearCaches();
+	}
+	
+	@Override
 	public void doAnalysisOnAFile(CUDrop cud, IRNode compUnit) {
         checkEffectsForFile(compUnit);
 	}

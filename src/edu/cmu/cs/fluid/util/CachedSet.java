@@ -31,7 +31,7 @@ public final class CachedSet<T> extends AbstractCachedSet<T> {
   /** Return the shared table used to hold instances. */
   private static Hashtable<ImmutableHashOrderSet, AbstractCachedSet> table = 
     new Hashtable<ImmutableHashOrderSet, AbstractCachedSet>();
-
+  
   @SuppressWarnings("cast")
   @Override
   protected Hashtable<ImmutableHashOrderSet<T>, AbstractCachedSet<T>> getTable() {

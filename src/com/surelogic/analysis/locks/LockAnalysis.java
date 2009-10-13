@@ -95,6 +95,11 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 	}
 	
 	@Override
+	protected void clearCaches() {
+		getAnalysis().clearCaches();
+	}
+	
+	@Override
 	public void doAnalysisOnAFile(CUDrop cud, final IRNode compUnit) {
 		// FIX factor out?
 		final Visitor<Void> topLevel = new TopLevelVisitor(getAnalysis(),

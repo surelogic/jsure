@@ -25,6 +25,11 @@ public class WholeIRAnalysisTemplate<T> extends AbstractWholeIRAnalysis<T> {
 	}
 	
 	@Override
+	protected void clearCaches() {
+		// TODO Auto-generated method stub
+	}
+	
+	@Override
 	protected void doAnalysisOnAFile(CUDrop cud, IRNode cu) {
 		// TODO Auto-generated method stub
 	}

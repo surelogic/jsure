@@ -42,7 +42,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
   public BindingContextAnalysis(IBinder b) {
     super(b);
   }
-
+  
   @Override
   public FlowAnalysis<IRNode> createAnalysis(IRNode flowNode) {
     FlowUnit op = (FlowUnit) tree.getOperator(flowNode);

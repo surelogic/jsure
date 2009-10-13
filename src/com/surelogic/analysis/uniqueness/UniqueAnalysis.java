@@ -88,6 +88,11 @@ public class UniqueAnalysis extends IntraproceduralAnalysis<Object,Boolean> {
     effectsVisitor = ev;
   }
 
+  public void clearCaches() {
+	  effectsVisitor.clearCaches();
+	  clear();
+  }
+  
   /**
 	 * Return whether the evaluation of this expression always is a unique
 	 * reference.

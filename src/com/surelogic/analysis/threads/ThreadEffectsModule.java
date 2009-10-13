@@ -22,6 +22,11 @@ public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAn
 	}
 	
 	@Override
+	protected void clearCaches() {
+		// Nothing to do
+	}
+	
+	@Override
 	protected void doAnalysisOnAFile(CUDrop cud, IRNode cu) {
 		getAnalysis().analyzeCompilationUnit(cu, getResultDependUponDrop());
 	}

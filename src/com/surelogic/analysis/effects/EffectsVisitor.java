@@ -167,7 +167,9 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
     this.ARRAY_ELEMENT = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);    
   }
   
-  
+  public void clearCaches() {
+	  bca.clear();
+  }
   
   //----------------------------------------------------------------------
   

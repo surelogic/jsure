@@ -46,6 +46,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	}
 
 	@Override
+	protected void clearCaches() {
+		getAnalysis().clearCaches();
+	}
+	
+	@Override
 	protected void doAnalysisOnAFile(CUDrop cud, IRNode compUnit) {
 		checkUniquenessForFile(compUnit);
 	}
