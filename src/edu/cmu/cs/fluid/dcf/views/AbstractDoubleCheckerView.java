@@ -509,7 +509,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	 */
 
 	public final void analysisStarting() {
-		LOG.info("analysisStarting() called");
+		LOG.fine("analysisStarting() called");
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
@@ -522,7 +522,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	public final void analysisCompleted() {
-		LOG.info("analysisCompleted() called");
+		LOG.fine("analysisCompleted() called");
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
@@ -535,7 +535,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	public final void analysisPostponed() {
-		LOG.info("analysisPostponed() called");
+		LOG.fine("analysisPostponed() called");
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
@@ -547,7 +547,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	public final void seaChanged() {
-		LOG.info("seaChanged() called");
+		LOG.fine("seaChanged() called");
 		if (!Nature.hasNatureAnyProject()) {
 			if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 				f_viewerbook.getDisplay().asyncExec(new Runnable() {
