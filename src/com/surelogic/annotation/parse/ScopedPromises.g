@@ -75,6 +75,36 @@ import com.surelogic.parse.*;
     emit(t);
     return t;
   }
+  
+  private static boolean initialized = true;
+  
+  public static synchronized void clear() {
+    initialized = false;
+    for(int i=0; i<DFA18_transition.length; i++) {
+      DFA18_transition[i] = null;
+    }
+    for(int i=0; i<DFA31_transition.length; i++) {
+      DFA31_transition[i] = null;
+    }
+    for(int i=0; i<DFA34_transition.length; i++) {
+      DFA34_transition[i] = null;
+    }
+  }
+  public static synchronized void init() {
+    if (initialized) {
+      return;
+    }
+    for (int i=0; i<DFA18_transition.length; i++) {
+      DFA18_transition[i] = DFA.unpackEncodedString(DFA18_transitionS[i]);
+    }
+    for (int i=0; i<DFA31_transition.length; i++) {
+      DFA31_transition[i] = DFA.unpackEncodedString(DFA31_transitionS[i]);
+    }
+    for (int i=0; i<DFA34_transition.length; i++) {
+      DFA34_transition[i] = DFA.unpackEncodedString(DFA34_transitionS[i]);
+    }
+    initialized = true;
+  }
 }
 
 /* Disables the default error handling so we can get the error immediately */
