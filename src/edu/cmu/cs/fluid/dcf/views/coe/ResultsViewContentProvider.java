@@ -548,9 +548,7 @@ public class ResultsViewContentProvider extends
 				flags |= (choiceConsistent ? CoE_Constants.CONSISTENT
 						: CoE_Constants.INCONSISTENT);
 				categoryFolder.setImageFlags(flags);
-				categoryFolder
-						.setBaseImageName(atRoot ? CommonImages.IMG_PROJECT
-								: CommonImages.IMG_FOLDER);
+				categoryFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 			}
 			categorizedChildren.add(categoryFolder);
 		}
