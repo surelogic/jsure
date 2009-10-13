@@ -375,7 +375,6 @@ public class RegionRules extends AnnotationRules {
   private static AggregatePromiseDrop scrubAggregate(
       final IAnnotationScrubberContext context, final AggregateNode a) {
     boolean annotationIsGood = true;
-    final AggregatePromiseDrop ap = new AggregatePromiseDrop(a);
     final IRNode promisedFor = a.getPromisedFor();
     final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
     final IRNode declStmt = tree.getParent(tree.getParent(promisedFor));
@@ -516,7 +515,17 @@ public class RegionRules extends AnnotationRules {
     }
     
     if (annotationIsGood) {
-      fieldAsRegion.getModel().addDependent(ap);
+      // Create the annotation drop and link it to each field that is mapped
+      final AggregatePromiseDrop ap = new AggregatePromiseDrop(a);
+      for (final Map.Entry<IRegion, IRegion> entry : regionMap.entrySet()) {
+        final RegionModel src = entry.getKey().getModel();
+        final RegionModel dest = entry.getValue().getModel();
+        src.addDependent(ap);
+        src.addDependent(dest);
+      }
+      // We know unique is not null because annotationIsGood is true
+      ap.addDependent(unique);
+//      fieldAsRegion.getModel().addDependent(ap);
       return ap;
     } else {
       return null;
