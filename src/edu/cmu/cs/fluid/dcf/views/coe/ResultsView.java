@@ -14,13 +14,12 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
@@ -64,6 +63,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	private Action actionExpand;
 
 	private Action actionCollapse;
+
+	private Action actionCollapseAll;
 
 	private Action actionExportZIPForStandAloneResultsViewer;
 
@@ -158,6 +159,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void fillLocalPullDown(IMenuManager manager) {
+		manager.add(actionCollapseAll);
+		manager.add(new Separator());
 		manager.add(actionShowInferences);
 		manager.add(new Separator());
 		manager.add(new DemoProjectAction("Create PlanetBaronJSure", getClass()
@@ -175,8 +178,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		manager.add(actionExpand);
 		manager.add(actionCollapse);
-		manager.add(new Separator());
-		manager.add(actionShowInferences);
 		if (XUtil.useDeveloperMode()) {
 			manager.add(new Separator());
 			manager.add(actionShowUnderlyingDropType);
@@ -197,13 +198,9 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(actionShowProblemsView);
-		// manager.add(new Separator());
+		manager.add(actionCollapseAll);
+		manager.add(new Separator());
 		manager.add(actionShowInferences);
-		manager.add(new Separator());
-		manager.add(actionExpand);
-		manager.add(actionCollapse);
-		manager.add(new Separator());
 	}
 
 	@Override
@@ -224,9 +221,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				viewer.refresh();
 			}
 		};
-		actionShowInferences.setImageDescriptor(PlatformUI.getWorkbench()
-				.getSharedImages().getImageDescriptor(
-						ISharedImages.IMG_OBJS_INFO_TSK));
+		actionShowInferences.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
 
 		if (XUtil.useExperimental()) {
 			actionExportZIPForStandAloneResultsViewer = new Action() {
@@ -261,17 +257,22 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			@Override
 			public void run() {
 				ISelection selection = viewer.getSelection();
-				Object obj = ((IStructuredSelection) selection)
-						.getFirstElement();
-				if (obj instanceof Content) {
-					treeViewer.expandToLevel(obj, 50);
-				} else {
+				if (selection == null || selection == StructuredSelection.EMPTY) {
 					treeViewer.expandToLevel(50);
+				} else {
+					Object obj = ((IStructuredSelection) selection)
+							.getFirstElement();
+					if (obj instanceof Content) {
+						treeViewer.expandToLevel(obj, 50);
+					} else {
+						treeViewer.expandToLevel(50);
+					}
 				}
 			}
 		};
-		actionExpand.setText("Expand All");
-		actionExpand.setToolTipText("Expand All");
+		actionExpand.setText("Expand");
+		actionExpand
+				.setToolTipText("Expand the current selection or all if none");
 		actionExpand.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
 
@@ -279,18 +280,34 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			@Override
 			public void run() {
 				ISelection selection = viewer.getSelection();
-				Object obj = ((IStructuredSelection) selection)
-						.getFirstElement();
-				if (obj instanceof Content) {
-					treeViewer.collapseToLevel(obj, 1);
-				} else {
+				if (selection == null || selection == StructuredSelection.EMPTY) {
 					treeViewer.collapseAll();
+				} else {
+					Object obj = ((IStructuredSelection) selection)
+							.getFirstElement();
+					if (obj instanceof Content) {
+						treeViewer.collapseToLevel(obj, 1);
+					} else {
+						treeViewer.collapseAll();
+					}
 				}
 			}
 		};
-		actionCollapse.setText("Collapse All");
-		actionCollapse.setToolTipText("Collapse All");
+		actionCollapse.setText("Collapse");
+		actionCollapse
+				.setToolTipText("Collapse the current selection or all if none");
 		actionCollapse.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
+		actionCollapseAll = new Action() {
+			@Override
+			public void run() {
+				treeViewer.collapseAll();
+			}
+		};
+		actionCollapseAll.setText("Collapse All");
+		actionCollapseAll.setToolTipText("Collapse All");
+		actionCollapseAll.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
 		actionShowUnderlyingDropType = new Action() {
