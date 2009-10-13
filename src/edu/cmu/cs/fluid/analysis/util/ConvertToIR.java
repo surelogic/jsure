@@ -6,7 +6,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,7 +100,8 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	public ConvertToIR() {
 		setInstance(this);
 		prefetch("java.lang.Object");
-		// Needed because the scrubber calls AbstractLockDeclarationNode.isReadWriteLock
+		// Needed because the scrubber calls
+		// AbstractLockDeclarationNode.isReadWriteLock
 		prefetch("java.util.concurrent.locks.ReadWriteLock");
 		for (IJavaPrimitiveType pt : JavaTypeFactory.primTypes) {
 			prefetch(pt.getCorrespondingTypeName());
@@ -369,13 +379,13 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		String kind = (String) args.get(Majordomo.BUILD_KIND);
 		if (kind != null) {
 			final int k = Integer.parseInt(kind);
-			if (k == IncrementalProjectBuilder.CLEAN_BUILD ||
-			    k == IncrementalProjectBuilder.FULL_BUILD) {
+			if (k == IncrementalProjectBuilder.CLEAN_BUILD
+					|| k == IncrementalProjectBuilder.FULL_BUILD) {
 				ClearProjectListener.clearJSureState();
 			}
 		}
 		ProjectDrop.ensureDrop(getProject().getName(), getProject());
-		
+
 		final Iterator<Map.Entry<String, String>> it = args.entrySet()
 				.iterator();
 		while (it.hasNext()) {
@@ -384,8 +394,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 			String pattern = e.getValue();
 			if (key.equals(Majordomo.BUILD_KIND)) {
 				continue; // Nothing to do here
-			}
-			else if (key.startsWith("ConvertToIR.asClass")) {
+			} else if (key.startsWith("ConvertToIR.asClass")) {
 				// Binding.setAsSource(CompUnitPattern.create(project, pattern),
 				// false);
 				for (Iterator<CompUnitPattern> p = parsePatterns(getProject(),
@@ -474,7 +483,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		nodes = PlainIRNode.getTotalNodesCreated();
 		compUnits = 0;
 		justLoaded.clear();
-		
+
 		IDE.runVersioned(new AbstractRunner() {
 			public void run() {
 				// pre-load Object
@@ -519,7 +528,8 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	protected void removeResource(IResource resource) {
 		super.removeResource(resource);
 
-		final EclipseFileLocator jfl = Eclipse.getDefault().getJavaFileLocator();
+		final EclipseFileLocator jfl = Eclipse.getDefault()
+				.getJavaFileLocator();
 		// How to invalidate the old info?
 		String handle = resourceHandles.get(resource.getLocation()
 				.toPortableString());
@@ -544,8 +554,9 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	 * @return true if already loaded, or if not loaded on demand
 	 */
 	private boolean toBeLoaded(final ICompilationUnit file) {
-		if (Eclipse.getDefault().getJavaFileLocator().isLoaded(file.getHandleIdentifier()) ||
-			!ModuleUtil.loadedAsNeeded(file)) {
+		if (Eclipse.getDefault().getJavaFileLocator().isLoaded(
+				file.getHandleIdentifier())
+				|| !ModuleUtil.loadedAsNeeded(file)) {
 			ICodeFile cf = new EclipseCodeFile(file);
 			return !justLoaded.contains(cf);
 		}
@@ -557,7 +568,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	private List<ICompilationUnit> batchQ = new ArrayList<ICompilationUnit>(
 			BATCH_SIZE);
 	private Set<ICodeFile> justLoaded = new HashSet<ICodeFile>();
-	
+
 	// private ICompilationUnit[] temp = new ICompilationUnit[BATCH_SIZE];
 
 	/**
@@ -601,10 +612,11 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 				if (load) {
 					// Already loaded, but with private members omitted, yet it
 					// was changed?
-					final boolean loaded = Eclipse.getDefault().getJavaFileLocator()
-					                       .isLoaded(file.getHandleIdentifier());
+					final boolean loaded = Eclipse.getDefault()
+							.getJavaFileLocator().isLoaded(
+									file.getHandleIdentifier());
 					final boolean source = ModuleUtil.treatedAsSource(file);
-					final boolean warn   = loaded && !source;							
+					final boolean warn = loaded && !source;
 					if (batch && !warn) {
 						cu = null;
 						batchQ.add(javaFile);
@@ -646,9 +658,9 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 			IRNode[] asts = new IRNode[size];
 			Eclipse.adaptIR(getJavaProject(), cus, asts);
 			batchQ.clear();
-            
+
 			Binding.ensureBindingsLoaded();
-            
+
 			if (IDE.testReloadMemoryLeak) {
 				printUsage("BEFORE");
 				Eclipse.adaptIR(getJavaProject(), cus, asts);
@@ -732,7 +744,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 						if (t == null) {
 							LOG.warning("Couldn't load " + qname
 									+ " as a type or a package");
-							//Eclipse.getDefault().getETypeEnv(p).reloadNamedType(qname);
+							// Eclipse.getDefault().getETypeEnv(p).reloadNamedType(qname);
 						}
 					}
 				});
@@ -799,12 +811,11 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 
 		public void gotNewPackage(IRNode pkg, String name) {
 			/*
-			checkIfRunning(name);
-			
-			CodeInfo info = CodeInfo.createMatchTemplate(VisitUtil
-					.getEnclosingCompilationUnit(pkg), name);
-			createDrop(info);
-			*/
+			 * checkIfRunning(name);
+			 * 
+			 * CodeInfo info = CodeInfo.createMatchTemplate(VisitUtil
+			 * .getEnclosingCompilationUnit(pkg), name); createDrop(info);
+			 */
 		}
 
 		private void checkIfRunning(String name) {
@@ -827,9 +838,10 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 
 	private void createDrop(CodeInfo info) {
 		if (info.getSource() != null) {
-			invalidateOldDrops((ICompilationUnit) info.getFile().getHostEnvResource());				 
-			new SourceCUDrop(info); 
-			//createNewDrop(info); 
+			invalidateOldDrops((ICompilationUnit) info.getFile()
+					.getHostEnvResource());
+			new SourceCUDrop(info);
+			// createNewDrop(info);
 		} else {
 			CUDrop outOfDate = BinaryCUDrop.queryCU(info.getFileName());
 			if (outOfDate != null)
