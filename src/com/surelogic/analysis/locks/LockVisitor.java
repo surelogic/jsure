@@ -1218,12 +1218,18 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     /* We only care if fieldRef is e'.f'.f or e'.f'[...] */
     if (FieldRef.prototype.includes(op2)) {
       /* Things are only interesting if the outer region f is not protected.
-       * So we don't proceed if f is protected by a lock or if f is volatile
+       * So we don't proceed if f' is unique (and thus f is aggregated into the 
+       * state of the referring object), f is protected by a lock or if f is volatile
        * or final.  Array reference is not protected.
        */
-      final boolean unprotected = isArrayRef
-          || (!isFinalOrVolatile(fieldRef) &&
-              lockUtils.getLockForFieldRef(fieldRef) == null);
+      final boolean isUnique =
+        UniquenessRules.isUnique(this.binder.getBinding(objExpr));
+
+      final boolean unprotected = 
+        !UniquenessRules.isUnique(this.binder.getBinding(objExpr))
+          && (isArrayRef
+            || (!isFinalOrVolatile(fieldRef) &&
+                lockUtils.getLockForFieldRef(fieldRef) == null));
       if (unprotected) {
         /* Now check if f' is in a protected region.  There are three cases:
          * (1) f' is a final or volatile field in a class that contains lock 
