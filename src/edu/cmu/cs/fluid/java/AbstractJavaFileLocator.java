@@ -393,12 +393,13 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	  Random r = new Random(hashCode());
 
 	  public void handleLowMemory(IMemoryPolicy mp) {
-		  IDE.getInstance().clearCaches();
-
 		  final double ratio = mp.percentToUnload();
 		  if (ratio < 0.01) {
 			  return;
 		  }
+		  if (r.nextDouble() < ratio) {
+			  IDE.getInstance().clearCaches();
+		  }		  
 		  final int num = (int) Math.round(1.0 / ratio);
 		  if (LOG.isLoggable(Level.FINE))
 			  LOG.fine("Need to unload: " + ratio + " or 1 out of " + num);
