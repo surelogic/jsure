@@ -17,6 +17,8 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.part.ViewPart;
 
+import com.surelogic.common.CommonImages;
+import com.surelogic.common.eclipse.SLImages;
 import com.surelogic.jsure.views.debug.testResults.model.Root;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsLabelProvider;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsTreeContentProvider;
@@ -25,13 +27,11 @@ import com.surelogic.test.ITest;
 import com.surelogic.test.ITestOutput;
 import com.surelogic.test.ITestOutputFactory;
 
-import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 
 public final class TestResultsView extends ViewPart {
-  private static final String EXPORT_IMAGE_NAME = "export.gif";
   private static final ImageDescriptor EXPORT_IMAGE_DESC =
-    AbstractDoubleCheckerView.getImageDescriptor(EXPORT_IMAGE_NAME);
+    SLImages.getImageDescriptor(CommonImages.IMG_EXPORT);
 
   private TreeViewer treeViewer;
   private TestResultsTreeContentProvider contentProvider;

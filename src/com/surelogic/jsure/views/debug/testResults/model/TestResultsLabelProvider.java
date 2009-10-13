@@ -4,18 +4,18 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 
-import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
+import com.surelogic.common.CommonImages;
+import com.surelogic.common.eclipse.SLImages;
+
 import edu.cmu.cs.fluid.java.JavaNames;
 
 public final class TestResultsLabelProvider extends LabelProvider {
-  private static final String FAIL_IMAGE_NAME = "redx.gif";
   private static final ImageDescriptor FAIL_IMAGE_DESC =
-    AbstractDoubleCheckerView.getImageDescriptor(FAIL_IMAGE_NAME);
+    SLImages.getImageDescriptor(CommonImages.IMG_RED_X);
   private static final Image FAIL_IMAGE = FAIL_IMAGE_DESC.createImage();
 
-  private static final String SUCCESS_IMAGE_NAME = "plus.gif";
   private static final ImageDescriptor SUCCESS_IMAGE_DESC =
-    AbstractDoubleCheckerView.getImageDescriptor(SUCCESS_IMAGE_NAME);
+    SLImages.getImageDescriptor(CommonImages.IMG_PLUS);
   private static final Image SUCCESS_IMAGE = SUCCESS_IMAGE_DESC.createImage();
 
   
