@@ -39,18 +39,17 @@ public class RegionRules extends AnnotationRules {
   private static final AnnotationRules instance = new RegionRules();  
 
   private static final GlobalRegionState globalRegionState = new GlobalRegionState();
-  private static final InitGlobalRegionState initState   = new InitGlobalRegionState(globalRegionState);
-  private static final Region_ParseRule regionRule       = new Region_ParseRule(globalRegionState);
-  private static final InRegion_ParseRule inRegionRule   = new InRegion_ParseRule();
-  private static final MapFields_ParseRule mapFieldsRule = new MapFields_ParseRule();
-  private static final Aggregate_ParseRule aggregateRule = new Aggregate_ParseRule();
+  private static final InitGlobalRegionState initState     = new InitGlobalRegionState(globalRegionState);
+  private static final Region_ParseRule regionRule         = new Region_ParseRule(globalRegionState);
+  private static final InRegion_ParseRule inRegionRule     = new InRegion_ParseRule();
+  private static final MapFields_ParseRule mapFieldsRule   = new MapFields_ParseRule();
+  private static final Aggregate_ParseRule aggregateRule   = new Aggregate_ParseRule();
   private static final SimpleScrubber regionsDone = new SimpleScrubber(REGIONS_DONE, REGION, IN_REGION, AGGREGATE) {
     @Override
     protected void scrub() {
       // do nothing
     }
   };
-  
   
   public static AnnotationRules getInstance() {
     return instance;
@@ -294,7 +293,6 @@ public class RegionRules extends AnnotationRules {
         }
       }
 
-      
       if (annotationIsGood) {
         final InRegionPromiseDrop mip = new InRegionPromiseDrop(a);
         final RegionModel fieldModel = RegionModel.getInstance(promisedFor).getModel();

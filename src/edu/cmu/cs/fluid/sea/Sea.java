@@ -1,6 +1,5 @@
 package edu.cmu.cs.fluid.sea;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -127,9 +126,9 @@ public final class Sea {
 
 	/**
 	 * Mutates <code>mutableDropSet</code> removing all drops from it that are
-	 * not of <code>dropType</code> or any of its subtypes. This method
-	 * returns a references to the mutated set that is up-cast (the client is
-	 * warned that subsequent mutations to <code>mutableDropSet</code> via the
+	 * not of <code>dropType</code> or any of its subtypes. This method returns
+	 * a references to the mutated set that is up-cast (the client is warned
+	 * that subsequent mutations to <code>mutableDropSet</code> via the
 	 * reference passed to this method could invalidate the up-cast).
 	 * <p>
 	 * Due to the up-cast, this method is less "safe" than
@@ -312,8 +311,8 @@ public final class Sea {
 	}
 
 	/**
-	 * Returns the set of drops within <code>dropSet</code> that match the
-	 * given drop predicate.
+	 * Returns the set of drops within <code>dropSet</code> that match the given
+	 * drop predicate.
 	 * 
 	 * @param pred
 	 *            the drop predicate to apply to the drop set.
@@ -578,18 +577,18 @@ public final class Sea {
 		if (LOG.isLoggable(Level.FINE))
 			LOG.fine("Updating consistency proof: " + timeStamp);
 
-		// /////////////////////////////////////////////////////////////
-		// Initialize drop-sea flow analysis "proof" (a drop-sea query)
-		// /////////////////////////////////////////////////////////////
+		/*
+		 * Initialize drop-sea flow analysis "proof" (a drop-sea query)
+		 */
 		worklist = new LinkedList<ProofDrop>();
 		Set<? extends ProofDrop> s = this.getDropsOfType(ProofDrop.class);
 		for (ProofDrop d : s) {
-			// ProofDrop d = i.next();
-
-			// ////////////////
-			// PROMISE DROP //
-			// ////////////////
 			if (d instanceof PromiseDrop) {
+
+				/*
+				 * PROMISE DROP
+				 */
+
 				PromiseDrop pd = (PromiseDrop) d;
 
 				// for a promise drop we flag a red dot if it is not checked by
@@ -609,10 +608,12 @@ public final class Sea {
 					pd.provedConsistent = pd.provedConsistent
 							&& result.isConsistent();
 				}
-				// ///////////////
-				// RESULT DROP //
-				// ///////////////
 			} else if (d instanceof ResultDrop) {
+
+				/*
+				 * RESULT DROP
+				 */
+
 				ResultDrop rd = (ResultDrop) d;
 
 				// result drops are, by definition, can not start off with a red
@@ -626,31 +627,27 @@ public final class Sea {
 				LOG
 						.log(
 								Level.SEVERE,
-								"[Sea.updateConsistencyProof] SERIOUS ERROR - "
-										+ "ProofDrop is not a PromiseDrop or a ResultDrop");
+								"[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
 			}
 			worklist.add(d);
 		}
 
-		// //////////////////////////////////////////////////////////////////////
-		// Do "proof" until we reach a fixed-point (i.e., the worklist is empty)
-		// //////////////////////////////////////////////////////////////////////
+		/*
+		 * Do "proof" until we reach a fixed-point (i.e., the worklist is empty)
+		 */
 		while (!worklist.isEmpty()) {
 			Set<ProofDrop> nextWorklist = new HashSet<ProofDrop>(); // avoid
-			// mutation
-			// during
-			// iteration
+			// mutation during iteration
 			for (ProofDrop d : worklist) {
-				// for (Iterator<ProofDrop> i = worklist.iterator();
-				// i.hasNext();) {
-				// ProofDrop d = i.next();
 				boolean oldProofIsConsistent = d.provedConsistent;
 				boolean oldProofUsesRedDot = d.proofUsesRedDot;
 
-				// ////////////////
-				// PROMISE DROP //
-				// ////////////////
 				if (d instanceof PromiseDrop) {
+
+					/*
+					 * PROMISE DROP
+					 */
+
 					PromiseDrop pd = (PromiseDrop) d;
 
 					// examine dependent analysis results and dependent promises
@@ -663,22 +660,19 @@ public final class Sea {
 					}
 					proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class,
 							pd.getDependents()));
-					// proofDrops.addAll(Sea.removeDropsNotOfType(
-					// PromiseDrop.class, pd.getDependents()));
 					for (ProofDrop result : proofDrops) {
-						// ProofDrop result = (ProofDrop) j.next();
 						// all must be consistent for this drop to be consistent
-						pd.provedConsistent &= result.provedConsistent; // & in
-						// result
+						pd.provedConsistent &= result.provedConsistent;
 						// any red dot means this drop depends upon a red dot
 						if (result.proofUsesRedDot)
 							pd.proofUsesRedDot = true;
 					}
-
-					// ///////////////
-					// RESULT DROP //
-					// ///////////////
 				} else if (d instanceof ResultDrop) {
+
+					/*
+					 * RESULT DROP
+					 */
+
 					ResultDrop rd = (ResultDrop) d;
 
 					// "and" trust promise drops
@@ -687,26 +681,22 @@ public final class Sea {
 							.hasNext();) {
 						PromiseDrop promise = j.next();
 						// all must be consistent for this drop to be consistent
-						rd.provedConsistent &= promise.provedConsistent; // & in
-						// result
+						rd.provedConsistent &= promise.provedConsistent;
 						// any red dot means this drop depends upon a red dot
 						if (promise.proofUsesRedDot)
 							rd.proofUsesRedDot = true;
 					}
 					// "or" trust promise drops
-					if (rd.hasOrLogic()) { // skip this complexity in the
-						// common case
+					if (rd.hasOrLogic()) { // skip this in the common case
 						boolean overall_or_Result = false;
 						boolean overall_or_UsesRedDot = false;
 						Set<String> orLabels = rd.get_or_TrustLabelSet();
 						for (String orKey : orLabels) {
-							// String orKey = (String) k.next();
 							boolean choiceResult = true;
 							boolean choiceUsesRedDot = false;
 							Set<? extends PromiseDrop> promiseSet = rd
 									.get_or_Trusts(orKey);
 							for (PromiseDrop promise : promiseSet) {
-								// PromiseDrop promise = (PromiseDrop) l.next();
 								// all must be consistent for this choice to be
 								// consistent
 								choiceResult &= promise.provedConsistent;
@@ -717,10 +707,10 @@ public final class Sea {
 							}
 							// should we choose this choice? Recall our lattice
 							// is:
-							// consistent
-							// consistent/red dot
-							// inconsistent/red dot
-							// inconsistent
+							// o consistent
+							// o consistent/red dot
+							// o inconsistent/red dot
+							// o inconsistent
 							// so we want to pick the "highest" result
 							if (choiceResult) {
 								if (!choiceUsesRedDot) {
@@ -751,8 +741,7 @@ public final class Sea {
 						// add the choice selected into the overall result for
 						// this drop
 						// all must be consistent for this drop to be consistent
-						rd.provedConsistent &= overall_or_Result; // & in
-						// result
+						rd.provedConsistent &= overall_or_Result;
 						// any red dot means this drop depends upon a red dot
 						if (overall_or_UsesRedDot)
 							rd.proofUsesRedDot = true;
@@ -764,8 +753,7 @@ public final class Sea {
 					LOG
 							.log(
 									Level.SEVERE,
-									"[Sea.updateConsistencyProof] SERIOUS ERROR - "
-											+ "ProofDrop is not a PromiseDrop or a ResultDrop");
+									"[Sea.updateConsistencyProof] SERIOUS ERROR - ProofDrop is not a PromiseDrop or a ResultDrop");
 				}
 
 				// only add to worklist if something changed about the result
@@ -774,8 +762,7 @@ public final class Sea {
 					nextWorklist.add(d);
 					if (d instanceof PromiseDrop) {
 						PromiseDrop pd = (PromiseDrop) d;
-						// add all drops result drops trusted by this promise
-						// drop
+						// add all result drops trusted by this promise drop
 						nextWorklist.addAll(pd.getTrustedBy());
 						// add all deponent promise drops of this promise drop
 						nextWorklist.addAll(Sea.filterDropsOfType(
@@ -811,9 +798,7 @@ public final class Sea {
 	 *            what happened to the drop.
 	 */
 	void notify(Drop drop, DropEvent event) {
-		// if (drop instanceof ProofDrop) {
 		timeStamp = INVALIDATED;
-		// }
 
 		if (event == DropEvent.Created) {
 			// add the new drop to this sea's list of valid drops
