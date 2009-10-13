@@ -319,6 +319,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       binderVisitor.setFullPass();
       long start = System.currentTimeMillis();
       try {
+    	  //System.out.println("Full:\t"+DebugUnparser.toString(unit));
     	  binderVisitor.start();
       } catch (StackOverflowError e) {
     	  System.out.println("StackOverflow: "+DebugUnparser.toString(unit));
@@ -330,6 +331,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     } else {
       long start = System.currentTimeMillis();
       try {
+    	  //System.out.println("Part:\t"+DebugUnparser.toString(unit));
     	  binderVisitor.start();
       } catch (StackOverflowError e) {
     	  System.out.println("StackOverflow: "+DebugUnparser.toString(unit));

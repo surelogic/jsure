@@ -8,6 +8,7 @@ import edu.cmu.cs.fluid.derived.*;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -86,6 +87,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   
   public synchronized void clearAll() {
+	//System.out.println("Cleared ALL");
     partialGranuleBindings.clear();
     allGranuleBindings.clear();
     UnversionedJavaImportTable.clearAll();
@@ -105,6 +107,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
         // System.out.println("Cleared "+DebugUnparser.toString(n));
       }
       memberTableCache.remove(n);
+      //System.out.println("Cleared: "+JavaNames.getTypeName(n));
     }
     JavaTypeFactory.clearCaches();
   }
