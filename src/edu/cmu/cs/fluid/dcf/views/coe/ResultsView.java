@@ -23,7 +23,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.eclipse.DemoProjectAction;
 import com.surelogic.common.eclipse.SLImages;
 import com.surelogic.common.eclipse.ViewUtility;
 import com.surelogic.common.logging.SLLogger;
@@ -77,22 +76,24 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	 */
 	public static class ContentNameSorter extends ViewerSorter {
 		@Override
-		public int compare(Viewer viewer, Object e1, Object e2) {
+		public int compare(final Viewer viewer, final Object e1, final Object e2) {
 			int result; // = super.compare(viewer, e1, e2);
-			boolean bothContent = (e1 instanceof Content)
-					&& (e2 instanceof Content);
+			final boolean bothContent = e1 instanceof Content
+					&& e2 instanceof Content;
 			if (bothContent) {
-				Content c1 = (Content) e1;
-				Content c2 = (Content) e2;
-				boolean c1IsNonProof = (c1.f_isInfo || c1.f_isPromiseWarning);
-				boolean c2IsNonProof = (c2.f_isInfo || c2.f_isPromiseWarning);
+				final Content c1 = (Content) e1;
+				final Content c2 = (Content) e2;
+				final boolean c1IsNonProof = c1.f_isInfo
+						|| c1.f_isPromiseWarning;
+				final boolean c2IsNonProof = c2.f_isInfo
+						|| c2.f_isPromiseWarning;
 				if (c1IsNonProof && !c2IsNonProof) {
 					result = 1;
 				} else if (c2IsNonProof && !c1IsNonProof) {
 					result = -1;
 				} else {
-					boolean c1isPromise = c1.f_referencedDrop instanceof PromiseDrop;
-					boolean c2isPromise = c2.f_referencedDrop instanceof PromiseDrop;
+					final boolean c1isPromise = c1.f_referencedDrop instanceof PromiseDrop;
+					final boolean c2isPromise = c2.f_referencedDrop instanceof PromiseDrop;
 					if (c1isPromise && !c2isPromise) {
 						result = 1;
 					} else if (c2isPromise && !c1isPromise) {
@@ -121,8 +122,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 								if (result == 0) {
 									final int line1 = ref1.getLineNumber();
 									final int line2 = ref2.getLineNumber();
-									result = (line1 == line2) ? 0
-											: ((line1 < line2) ? -1 : 1);
+									result = line1 == line2 ? 0
+											: line1 < line2 ? -1 : 1;
 								}
 							}
 						}
@@ -158,16 +159,11 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	}
 
 	@Override
-	protected void fillLocalPullDown(IMenuManager manager) {
+	protected void fillLocalPullDown(final IMenuManager manager) {
 		manager.add(actionCollapseAll);
 		manager.add(new Separator());
 		manager.add(actionShowInferences);
 		manager.add(actionShowProblemsView);
-		manager.add(new Separator());
-		manager.add(new DemoProjectAction("Create PlanetBaronJSure", getClass()
-				.getResource("/lib/PlanetBaronJSure.zip")));
-		manager.add(new DemoProjectAction("Create BoundedFIFO", getClass()
-				.getResource("/lib/BoundedFIFO.zip")));
 		manager.add(new Separator());
 		if (XUtil.useExperimental()) {
 			manager.add(actionExportZIPForStandAloneResultsViewer);
@@ -176,15 +172,16 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	}
 
 	@Override
-	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
+	protected void fillContextMenu(final IMenuManager manager,
+			final IStructuredSelection s) {
 		manager.add(actionExpand);
 		manager.add(actionCollapse);
 		if (XUtil.useDeveloperMode()) {
 			manager.add(new Separator());
 			manager.add(actionShowUnderlyingDropType);
 			if (!s.isEmpty()) {
-				Content c = (Content) s.getFirstElement();
-				Drop d = c.f_referencedDrop;
+				final Content c = (Content) s.getFirstElement();
+				final Drop d = c.f_referencedDrop;
 				if (d != null) {
 					actionShowUnderlyingDropType.setText("Type: "
 							+ d.getClass().getName());
@@ -198,7 +195,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	}
 
 	@Override
-	protected void fillLocalToolBar(IToolBarManager manager) {
+	protected void fillLocalToolBar(final IToolBarManager manager) {
 		manager.add(actionCollapseAll);
 		manager.add(new Separator());
 		manager.add(actionShowInferences);
@@ -219,7 +216,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		actionShowInferences = new Action() {
 			@Override
 			public void run() {
-				boolean toggle = !m_contentProvider.isShowInferences();
+				final boolean toggle = !m_contentProvider.isShowInferences();
 				m_contentProvider.setShowInferences(toggle);
 				m_labelProvider.setShowInferences(toggle);
 				setViewState();
@@ -261,11 +258,11 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		actionExpand = new Action() {
 			@Override
 			public void run() {
-				ISelection selection = viewer.getSelection();
+				final ISelection selection = viewer.getSelection();
 				if (selection == null || selection == StructuredSelection.EMPTY) {
 					treeViewer.expandToLevel(50);
 				} else {
-					Object obj = ((IStructuredSelection) selection)
+					final Object obj = ((IStructuredSelection) selection)
 							.getFirstElement();
 					if (obj instanceof Content) {
 						treeViewer.expandToLevel(obj, 50);
@@ -284,11 +281,11 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		actionCollapse = new Action() {
 			@Override
 			public void run() {
-				ISelection selection = viewer.getSelection();
+				final ISelection selection = viewer.getSelection();
 				if (selection == null || selection == StructuredSelection.EMPTY) {
 					treeViewer.collapseAll();
 				} else {
-					Object obj = ((IStructuredSelection) selection)
+					final Object obj = ((IStructuredSelection) selection)
 							.getFirstElement();
 					if (obj instanceof Content) {
 						treeViewer.collapseToLevel(obj, 1);
@@ -334,19 +331,20 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	}
 
 	@Override
-	protected void handleDoubleClick(IStructuredSelection selection) {
-		Object obj = selection.getFirstElement();
+	protected void handleDoubleClick(final IStructuredSelection selection) {
+		final Object obj = selection.getFirstElement();
 		if (obj instanceof Content) {
 			// try to open an editor at the point this item references
 			// in the code
-			Content c = (Content) obj;
-			ISrcRef sr = c.getSrcRef();
+			final Content c = (Content) obj;
+			final ISrcRef sr = c.getSrcRef();
 			if (sr != null) {
 				highlightLineInJavaEditor(sr);
 			}
 			// open up the tree one more level
-			if (!treeViewer.getExpandedState(obj))
+			if (!treeViewer.getExpandedState(obj)) {
 				treeViewer.expandToLevel(obj, 1);
+			}
 		}
 	}
 
@@ -361,14 +359,14 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			// update the whole-program proof
 			ConsistencyListener.prototype.analysisCompleted();
 
-			long start = System.currentTimeMillis();
+			final long start = System.currentTimeMillis();
 			m_contentProvider.buildModelOfDropSea();
-			long buildEnd = System.currentTimeMillis();
+			final long buildEnd = System.currentTimeMillis();
 			SLLogger.getLogger().log(Level.INFO,
 					"Time to build model  = " + (buildEnd - start) + " ms");
 			if (IJavaFileLocator.testIRPaging) {
-				EclipseFileLocator loc = (EclipseFileLocator) IDE.getInstance()
-						.getJavaFileLocator();
+				final EclipseFileLocator loc = (EclipseFileLocator) IDE
+						.getInstance().getJavaFileLocator();
 				// loc.printSummary(new PrintWriter(System.out));
 				loc.testUnload(false, false);
 				SlotInfo.compactAll();
@@ -379,7 +377,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				 */
 			}
 			setViewState();
-		} catch (Throwable t) {
+		} catch (final Throwable t) {
 			t.printStackTrace();
 		}
 	}
@@ -390,9 +388,9 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	 * source files in the workspace.
 	 */
 	private void exportZIPForStandAloneResultsViewer() {
-		Shell shell = Activator.getDefault().getWorkbench().getDisplay()
+		final Shell shell = Activator.getDefault().getWorkbench().getDisplay()
 				.getActiveShell();
-		FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
+		final FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
 		fileChooser.setFilterExtensions(new String[] { "*.zip" });
 		fileChooser
 				.setText("Select ZIP output filename (for import into the Stand-Alone Results Viewer)");
@@ -404,7 +402,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			FileOutputStream zipFile;
 			try {
 				zipFile = new FileOutputStream(filename);
-			} catch (FileNotFoundException e) {
+			} catch (final FileNotFoundException e) {
 				LOG.severe("Unable to create ZIP file ");
 				e.printStackTrace();
 				MessageDialog.openError(shell, "Error exporting results",
@@ -421,22 +419,22 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		final String proj = ProjectDrop.getProject();
 		File location;
 		if (true) {
-			Shell shell = Activator.getDefault().getWorkbench().getDisplay()
-					.getActiveShell();
-			FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
+			final Shell shell = Activator.getDefault().getWorkbench()
+					.getDisplay().getActiveShell();
+			final FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
 			fileChooser.setFilterExtensions(new String[] { "*.xml" });
 			fileChooser
 					.setText("Select XML output filename (for import into Sierra)");
-			String filename = fileChooser.open();
+			final String filename = fileChooser.open();
 			location = new File(filename);
 		} else {
-			File userDir = new File(System.getProperty("user.home"));
+			final File userDir = new File(System.getProperty("user.home"));
 			location = new File(userDir, "Desktop/" + proj + ".sea.xml");
 		}
 		try {
 			new SeaSnapshot().snapshot(proj, Sea.getDefault(), location);
 			JSureXMLReader.readSnapshot(location, new TestListener());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
