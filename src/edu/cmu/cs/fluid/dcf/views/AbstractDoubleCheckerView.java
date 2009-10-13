@@ -55,6 +55,7 @@ import org.eclipse.ui.part.ViewPart;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.dc.IAnalysisListener;
+import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -508,9 +509,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	 */
 
 	public final void analysisStarting() {
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("analysisStarting() called");
-		}
+		LOG.info("analysisStarting() called");
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
@@ -523,9 +522,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	public final void analysisCompleted() {
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("analysisCompleted() called");
-		}
+		LOG.info("analysisCompleted() called");
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
@@ -538,9 +535,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	public final void analysisPostponed() {
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("analysisPostponed() called");
-		}
+		LOG.info("analysisPostponed() called");
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
@@ -552,20 +547,16 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	}
 
 	public final void seaChanged() {
-		/*
-		 * Called when JSure removed from a project or the focus project is
-		 * changed.
-		 */
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("seaChanged() called");
-		}
-		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
-			f_viewerbook.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					f_noResultsToShowLabel.setText(NO_RESULTS);
-					setViewerVisibility(false);
-				}
-			});
+		LOG.info("seaChanged() called");
+		if (!Nature.hasNatureAnyProject()) {
+			if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
+				f_viewerbook.getDisplay().asyncExec(new Runnable() {
+					public void run() {
+						f_noResultsToShowLabel.setText(NO_RESULTS);
+						setViewerVisibility(false);
+					}
+				});
+			}
 		}
 	}
 

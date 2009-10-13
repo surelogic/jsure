@@ -42,7 +42,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 
 			// System.out.println("Clearing all comp units");
 			Binding.clearCompUnits();
-			
+
 			// Go ahead and garbage collect the IR.
 			SlotInfo.gc();
 		} catch (Exception e) {
@@ -57,8 +57,6 @@ public class ClearProjectListener implements IResourceChangeListener {
 	}
 
 	private static void clearDropSea() {
-		// Sea.getDefault().invalidateAll();
-		// final IJavaFileLocator loc = IDE.getInstance().getJavaFileLocator();
 
 		// FIX to clear out drops for a given project
 		for (RegionModel region : Sea.getDefault().getDropsOfExactType(
@@ -67,14 +65,14 @@ public class ClearProjectListener implements IResourceChangeListener {
 			IRNode root = VisitUtil.findRoot(n);
 			CUDrop drop = CUDrop.queryCU(root);
 			if (drop instanceof SourceCUDrop) {
-				//System.out.println(region.getMessage());
+				// System.out.println(region.getMessage());
 				region.invalidate();
 			}
 		}
 		RegionModel.purgeUnusedRegions();
 		SourceCUDrop.invalidateAll();
 		Sea.getDefault().invalidateMatching(
-				DropPredicateFactory.matchType(ProjectDrop.class));		
+				DropPredicateFactory.matchType(ProjectDrop.class));
 		Sea.getDefault().invalidateMatching(
 				DropPredicateFactory.matchType(WarningDrop.class));
 		Sea.getDefault().invalidateMatching(
