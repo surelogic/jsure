@@ -13,15 +13,14 @@ import org.osgi.framework.BundleContext;
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.logging.SLEclipseStatusUtility;
 
-import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
-import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 
 /**
  * The activator class controls the plug-in life cycle
  */
-public class Activator extends AbstractUIPlugin implements IRunnableWithProgress {
+public class Activator extends AbstractUIPlugin implements
+		IRunnableWithProgress {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "com.surelogic.jsure.client.eclipse";
@@ -29,11 +28,11 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
 	// The shared instance
 	private static Activator plugin;
 
-	//Resource bundle.
-	//private ResourceBundle resourceBundle;
+	// Resource bundle.
+	// private ResourceBundle resourceBundle;
 
 	private Plugin doubleChecker;
-	
+
 	/**
 	 * The constructor
 	 */
@@ -58,23 +57,23 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
 		}
 		SWTUtility.startup(this);
 	}
-	
+
 	// Used for startup
-	public void run(IProgressMonitor monitor) 
-	throws InvocationTargetException, InterruptedException {
-		monitor.beginTask("Initializing jsure-client-eclipse", 6);		
+	public void run(IProgressMonitor monitor) throws InvocationTargetException,
+			InterruptedException {
+		monitor.beginTask("Initializing jsure-client-eclipse", 6);
 		/*
 		 * "Touch" common-eclipse so the logging gets Eclipse-ified.
 		 */
 		SLEclipseStatusUtility.touch();
 		monitor.worked(1);
-		
+
 		// TODO reload persistent data
 		Eclipse.initialize();
 		monitor.worked(1);
-		
-		//NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
-		//monitor.worked(1);
+
+		// NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
+		// monitor.worked(1);
 	}
 
 	/*
@@ -108,7 +107,7 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
 		return pluginState.toOSString() + System.getProperty("file.separator")
 				+ loc;
 	}
-	
+
 	/**
 	 * Returns the workspace instance.
 	 */

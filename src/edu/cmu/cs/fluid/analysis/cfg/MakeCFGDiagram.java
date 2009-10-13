@@ -494,7 +494,6 @@ public final class MakeCFGDiagram extends AbstractFluidAnalysisModule {
 	 *            the number of node before calling this method
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	protected String getNoPortCFGDiagramBackward(ControlNode node,
 			ControlNode next, int num) {
 		String cfg = "";
