@@ -107,6 +107,7 @@ public class PackageDrop extends CUDrop {
       return pd;
     }
 
+    name = CommonStrings.intern(name);
     IRNode n;
     if (root == null) {
     	if (name == DEFAULT_NAME) {

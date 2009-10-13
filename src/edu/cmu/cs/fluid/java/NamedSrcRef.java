@@ -9,7 +9,7 @@ public final class NamedSrcRef extends AbstractSrcRef {
   
   public NamedSrcRef(Object f, String p, String cu) {
     file = f;
-    pkg = p;
+    pkg = CommonStrings.intern(p);
     cunit = cu;
   }
   

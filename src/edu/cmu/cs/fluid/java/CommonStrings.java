@@ -24,6 +24,10 @@ public final class CommonStrings {
 			pool.put(s, s);
 		}
 	}
+	/**
+	 * Check if the String is already in the pool,
+	 * and if so, reuse it
+	 */
 	public static String pool(String value) {
 		String pooled = pool.get(value);
 		return pooled == null ? value : pooled;
@@ -32,7 +36,10 @@ public final class CommonStrings {
 	public static boolean interned(String value) {
 		return pool.containsKey(value);
 	}
-	
+
+	/**
+	 * Add the String to the pool if not already in it
+	 */
 	public static String intern(String value) {
 		String pooled = pool.get(value);
 		if (pooled == null) {
