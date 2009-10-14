@@ -257,6 +257,8 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
      */
     final SlotInfo<List<IBinding>> methodOverridesAttr;
     
+    private boolean isDestroyed = false;
+    
     GranuleBindings(IRNode gr) {
       unit = gr;
       rootVersion = Version.getVersion();
@@ -265,6 +267,15 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
       methodOverridesAttr = f.newAttribute(null);
     }
 
+    public boolean isDestroyed() {
+    	return isDestroyed;
+    }
+    
+    public void destroy() {
+    	useToDeclAttr.destroy();
+    	methodOverridesAttr.destroy();
+    }
+    
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation#deriveChild(edu.cmu.cs.fluid.version.Version, edu.cmu.cs.fluid.version.Version)
      */

@@ -82,16 +82,32 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   
   public void astsChanged() {
-    clearAll();
+    clearAll(true);
     JavaTypeFactory.clearCaches();
   }
   
-  public synchronized void clearAll() {
-	//System.out.println("Cleared ALL");
-    partialGranuleBindings.clear();
-    allGranuleBindings.clear();
-    UnversionedJavaImportTable.clearAll();
-    memberTableCache.clear();
+  private static boolean clearBindings(Map<IRNode,IGranuleBindings> bindings) {
+	  boolean isDeriving = false;
+	  for(IGranuleBindings b : bindings.values()) {
+		  if (b.isDeriving()) {
+			  isDeriving = true;
+		  } else {
+			  b.destroy();
+		  }
+	  }
+	  return isDeriving;
+  }
+  
+  public synchronized void clearAll(boolean force) {
+	boolean isDeriving = clearBindings(partialGranuleBindings);
+	isDeriving = clearBindings(allGranuleBindings) || isDeriving;
+	if (force || !isDeriving) {
+		//System.out.println("Cleared ALL");
+		partialGranuleBindings.clear();
+		allGranuleBindings.clear();
+		UnversionedJavaImportTable.clearAll();
+		memberTableCache.clear();
+	}
   }
   
   public synchronized void astChanged(IRNode cu) {
@@ -104,7 +120,14 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       IGranuleBindings b1 = allGranuleBindings.remove(n);
       IGranuleBindings b2 = partialGranuleBindings.remove(n);
       if (UnversionedJavaImportTable.clear(n) || b1 != null || b2 != null) {
-        // System.out.println("Cleared "+DebugUnparser.toString(n));
+        // System.out.println("Cleared "+DebugUnparser.toString(n));      
+    	  if (b1 != null && !b1.isDeriving()) {
+    		  b1.destroy();
+    	  }
+    	  // TODO what to do if deriving, yet now obsolete
+    	  if (b2 != null && !b2.isDeriving()) {
+    		  b2.destroy();
+    	  }
       }
       memberTableCache.remove(n);
       //System.out.println("Cleared: "+JavaNames.getTypeName(n));
@@ -162,7 +185,8 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    */
   class CompUnitBindings extends AbstractDerivedInformation implements IGranuleBindings {
     final IRNode unit;
-    boolean hasFullInfo = false;
+    private boolean hasFullInfo = false;
+    private boolean isDestroyed = false;
     
     /**
      * binding each use of a name to the declaration that it refers to.
@@ -180,6 +204,15 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       methodOverridesAttr = f.newLabeledAttribute("CompUnitBindings.methodOverrides", null);
     }
 
+    public boolean isDestroyed() {
+    	return isDestroyed;
+    }
+    
+    public void destroy() {
+    	useToDeclAttr.destroy();
+    	methodOverridesAttr.destroy();
+    }
+    
     @Override
     protected String getLabel() {
     	String rv = JJNode.getInfoOrNull(unit);

@@ -35,4 +35,8 @@ public interface IGranuleBindings extends IDerivedInformation {
   boolean containsFullInfo();
   
   void setContainsFullInfo(boolean full);
+  
+  boolean isDestroyed();
+  
+  void destroy();
 }
