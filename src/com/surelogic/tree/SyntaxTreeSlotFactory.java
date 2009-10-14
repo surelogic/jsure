@@ -151,32 +151,46 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   @Override
   @SuppressWarnings("unchecked")
   public <T> SlotInfo<T> newAttribute(String name, IRType<T> type) throws SlotAlreadyRegisteredException {
-	  StoredSlotInfo<T,T> backup = (StoredSlotInfo<T, T>) super.newAttribute(name+".backup", type);
-	  return newAttribute(name, type, null, true, backup);
+	  //StoredSlotInfo<T,T> backup = (StoredSlotInfo<T, T>) super.newAttribute(name+".backup", type);
+	  return newAttribute(name, type, null, true);
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T> SlotInfo<T> newAttribute(String name, IRType<T> type, T defaultValue) throws SlotAlreadyRegisteredException {
-	  StoredSlotInfo<T,T> backup = (StoredSlotInfo<T, T>) super.newAttribute(name+".backup", type, defaultValue);
-	  return newAttribute(name, type, defaultValue, false, backup);
+	  //StoredSlotInfo<T,T> backup = (StoredSlotInfo<T, T>) super.newAttribute(name+".backup", type, defaultValue);
+	  return newAttribute(name, type, defaultValue, false);
+  }
+  
+  private final <T> SlotInfo<T> makeBackupSI(String name, IRType<T> type, 
+                                             T defaultValue, boolean undefined) 
+                                throws SlotAlreadyRegisteredException 
+  {
+	  if (undefined) {
+		  return super.newAttribute(name+".backup", type);
+	  } else {
+		  return super.newAttribute(name+".backup", type, defaultValue);
+	  }
   }
   
   @SuppressWarnings("unchecked")
   private final <T> SlotInfo<T> newAttribute(String name, IRType<T> type, 
-		                                     T defaultValue, boolean undefined,
-		                                     StoredSlotInfo<T,T> backupSI) 
+		                                     T defaultValue, boolean undefined) 
   throws SlotAlreadyRegisteredException {
+	SlotInfo<T> backupSI;
     if (type == IROperatorType.prototype && name.endsWith(SyntaxTree.OPERATOR)) {
       Operator def = undefined ? Constants.undefinedOperator : (Operator) defaultValue;
+      backupSI = makeBackupSI(name, type, defaultValue, undefined);
       return (SlotInfo<T>) makeOperatorSI(name, def, (StoredSlotInfo<Operator, Operator>) backupSI);
     }
     else if (type == IRLocationType.prototype && name.endsWith(Tree.LOCATION)) {
       IRLocation def = undefined ? Constants.undefinedLocation : (IRLocation) defaultValue;
+      backupSI = makeBackupSI(name, type, defaultValue, undefined);
       return (SlotInfo<T>) makeLocationSI(name, def, (StoredSlotInfo<IRLocation, IRLocation>) backupSI);
     }
     else if (type == IRNodeType.prototype && name.endsWith(Tree.PARENTS)) {
         IRNode def = undefined ? Constants.undefinedNode : (IRNode) defaultValue;
+        backupSI = makeBackupSI(name, type, defaultValue, undefined);
         return (SlotInfo<T>) makeParentSI(name, def, (StoredSlotInfo<IRNode, IRNode>) backupSI);
       }
     else if (type instanceof IRSequenceType) {
@@ -185,6 +199,7 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
     	                       (IRSequence<IRNode>) defaultValue;
       if (t.getElementType() instanceof IRNodeType) {
         if (name.endsWith(Digraph.CHILDREN)) {
+          backupSI = makeBackupSI(name, type, defaultValue, undefined);
           return (SlotInfo<T>) makeChildrenSI(name, def, (StoredSlotInfo<IRSequence<IRNode>, 
         		                                                         IRSequence<IRNode>>) backupSI);
         } 
@@ -197,13 +212,14 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
     }
     else if (type == ISrcRef.srcRefType && ISrcRef.srcRefName.equals(name)) {
     	ISrcRef def = undefined ? Constants.undefinedSrcRef : (ISrcRef) defaultValue;
+    	backupSI = makeBackupSI(name, type, defaultValue, undefined);
     	return (SlotInfo<T>) makeSrcRefSI(name, def, (StoredSlotInfo<ISrcRef, ISrcRef>) backupSI);
     }
     else if (type instanceof IRStringType && infoName.equals(name)) {
     	String def = undefined ? Constants.undefinedString : (String) defaultValue;
+    	backupSI = makeBackupSI(name, type, defaultValue, undefined);
     	return (SlotInfo<T>) makeInfoSI(name, def, (StoredSlotInfo<String, String>) backupSI);
     }
-    backupSI.destroy();
     
     if (undefined) {    	
         return super.newAttribute(name, type);
