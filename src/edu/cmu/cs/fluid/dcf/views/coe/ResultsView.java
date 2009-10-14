@@ -51,25 +51,77 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	private static final Logger LOG = SLLogger.getLogger("ResultsView");
 
-	private final IResultsViewContentProvider m_contentProvider = makeContentProvider();
+	private final IResultsViewContentProvider f_contentProvider = makeContentProvider();
 
-	private final IResultsViewLabelProvider m_labelProvider = makeLabelProvider();
+	private final IResultsViewLabelProvider f_labelProvider = makeLabelProvider();
 
-	private Action actionShowProblemsView;
+	private final Action f_actionShowProblemsView = new Action() {
+		@Override
+		public void run() {
+			ViewUtility.showView(ProblemsView.class.getName());
+		}
+	};
 
-	private Action actionShowInferences;
+	private final Action f_actionShowInferences = new Action() {
+		@Override
+		public void run() {
+			final boolean toggle = !f_contentProvider.isShowInferences();
+			f_contentProvider.setShowInferences(toggle);
+			f_labelProvider.setShowInferences(toggle);
+			setViewState();
+			viewer.refresh();
+		}
+	};
 
-	private Action actionExpand;
+	private final Action f_actionExpand = new Action() {
+		@Override
+		public void run() {
+			final ISelection selection = viewer.getSelection();
+			if (selection == null || selection == StructuredSelection.EMPTY) {
+				treeViewer.expandToLevel(50);
+			} else {
+				final Object obj = ((IStructuredSelection) selection)
+						.getFirstElement();
+				if (obj instanceof Content) {
+					treeViewer.expandToLevel(obj, 50);
+				} else {
+					treeViewer.expandToLevel(50);
+				}
+			}
+		}
+	};
 
-	private Action actionCollapse;
+	private final Action f_actionCollapse = new Action() {
+		@Override
+		public void run() {
+			final ISelection selection = viewer.getSelection();
+			if (selection == null || selection == StructuredSelection.EMPTY) {
+				treeViewer.collapseAll();
+			} else {
+				final Object obj = ((IStructuredSelection) selection)
+						.getFirstElement();
+				if (obj instanceof Content) {
+					treeViewer.collapseToLevel(obj, 1);
+				} else {
+					treeViewer.collapseAll();
+				}
+			}
+		}
+	};
 
-	private Action actionCollapseAll;
+	private final Action f_actionCollapseAll = new Action() {
+		@Override
+		public void run() {
+			treeViewer.collapseAll();
+		}
+	};
 
-	private Action actionExportZIPForStandAloneResultsViewer;
-
-	private Action actionExportXMLForSierra;
-
-	private Action actionShowUnderlyingDropType;
+	/*
+	 * Experimental actions
+	 */
+	private Action f_actionExportZIPForStandAloneResultsViewer;
+	private Action f_actionExportXMLForSierra;
+	private Action f_actionShowUnderlyingDropType;
 
 	/**
 	 * Changed to not depend on the Viewer
@@ -149,8 +201,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void setupViewer() {
-		viewer.setContentProvider(m_contentProvider);
-		viewer.setLabelProvider(m_labelProvider);
+		viewer.setContentProvider(f_contentProvider);
+		viewer.setLabelProvider(f_labelProvider);
 		viewer.setSorter(createSorter());
 	}
 
@@ -160,173 +212,118 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void fillLocalPullDown(final IMenuManager manager) {
-		manager.add(actionCollapseAll);
+		manager.add(f_actionCollapseAll);
 		manager.add(new Separator());
-		manager.add(actionShowInferences);
-		manager.add(actionShowProblemsView);
-		manager.add(new Separator());
+		manager.add(f_actionShowInferences);
+		manager.add(f_actionShowProblemsView);
 		if (XUtil.useExperimental()) {
-			manager.add(actionExportZIPForStandAloneResultsViewer);
-			manager.add(actionExportXMLForSierra);
+			manager.add(new Separator());
+			manager.add(f_actionExportZIPForStandAloneResultsViewer);
+			manager.add(f_actionExportXMLForSierra);
 		}
 	}
 
 	@Override
 	protected void fillContextMenu(final IMenuManager manager,
 			final IStructuredSelection s) {
-		manager.add(actionExpand);
-		manager.add(actionCollapse);
+		manager.add(f_actionExpand);
+		manager.add(f_actionCollapse);
 		if (XUtil.useDeveloperMode()) {
 			manager.add(new Separator());
-			manager.add(actionShowUnderlyingDropType);
+			manager.add(f_actionShowUnderlyingDropType);
 			if (!s.isEmpty()) {
 				final Content c = (Content) s.getFirstElement();
 				final Drop d = c.f_referencedDrop;
 				if (d != null) {
-					actionShowUnderlyingDropType.setText("Type: "
+					f_actionShowUnderlyingDropType.setText("Type: "
 							+ d.getClass().getName());
 				} else {
-					actionShowUnderlyingDropType.setText("Type: n/a");
+					f_actionShowUnderlyingDropType.setText("Type: n/a");
 				}
 			} else {
-				actionShowUnderlyingDropType.setText("Type: Unknown");
+				f_actionShowUnderlyingDropType.setText("Type: Unknown");
 			}
 		}
 	}
 
 	@Override
 	protected void fillLocalToolBar(final IToolBarManager manager) {
-		manager.add(actionCollapseAll);
+		manager.add(f_actionCollapseAll);
 		manager.add(new Separator());
-		manager.add(actionShowInferences);
+		manager.add(f_actionShowInferences);
 	}
 
 	@Override
 	protected void makeActions() {
-		actionShowProblemsView = new Action() {
-			@Override
-			public void run() {
-				ViewUtility.showView(ProblemsView.class.getName());
-			}
-		};
-		actionShowProblemsView.setText("Show Modeling Problems");
-		actionShowProblemsView.setImageDescriptor(SLImages
+		f_actionShowProblemsView.setText("Show Modeling Problems");
+		f_actionShowProblemsView.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
 
-		actionShowInferences = new Action() {
-			@Override
-			public void run() {
-				final boolean toggle = !m_contentProvider.isShowInferences();
-				m_contentProvider.setShowInferences(toggle);
-				m_labelProvider.setShowInferences(toggle);
-				setViewState();
-				viewer.refresh();
-			}
-		};
-		actionShowInferences.setImageDescriptor(SLImages
+		f_actionShowInferences.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
 
+		f_actionExpand.setText("Expand");
+		f_actionExpand
+				.setToolTipText("Expand the current selection or all if none");
+		f_actionExpand.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+
+		f_actionCollapse.setText("Collapse");
+		f_actionCollapse
+				.setToolTipText("Collapse the current selection or all if none");
+		f_actionCollapse.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
+		f_actionCollapseAll.setText("Collapse All");
+		f_actionCollapseAll.setToolTipText("Collapse All");
+		f_actionCollapseAll.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
 		if (XUtil.useExperimental()) {
-			actionExportZIPForStandAloneResultsViewer = new Action() {
+			f_actionExportZIPForStandAloneResultsViewer = new Action() {
 				@Override
 				public void run() {
 					exportZIPForStandAloneResultsViewer();
 				}
 			};
-			actionExportZIPForStandAloneResultsViewer
+			f_actionExportZIPForStandAloneResultsViewer
 					.setText("Export Results && Source (for Stand-Alone Results Viewer)");
-			actionExportZIPForStandAloneResultsViewer
+			f_actionExportZIPForStandAloneResultsViewer
 					.setToolTipText("Creates a ZIP file containing source and analysis results for the Stand-Alone Results Viewer");
-			actionExportZIPForStandAloneResultsViewer
+			f_actionExportZIPForStandAloneResultsViewer
 					.setImageDescriptor(SLImages
 							.getImageDescriptor(CommonImages.IMG_EXPORT_WITH_SOURCE));
 
-			actionExportXMLForSierra = new Action() {
+			f_actionExportXMLForSierra = new Action() {
 				@Override
 				public void run() {
 					exportXMLForSierra();
 				}
 			};
-			actionExportXMLForSierra
+			f_actionExportXMLForSierra
 					.setText("Export Results (XML for Sierra Viewer)");
-			actionExportXMLForSierra
+			f_actionExportXMLForSierra
 					.setToolTipText("Creates a XML file containing analysis results that can be imported into Sierra");
-			actionExportXMLForSierra.setImageDescriptor(SLImages
+			f_actionExportXMLForSierra.setImageDescriptor(SLImages
 					.getImageDescriptor(CommonImages.IMG_EXPORT_WITH_SOURCE));
+
+			f_actionShowUnderlyingDropType = new Action() {
+				@Override
+				public void run() {
+					// Does nothing right now
+				}
+			};
+			f_actionShowUnderlyingDropType.setText("Unknown");
 		}
 
-		actionExpand = new Action() {
-			@Override
-			public void run() {
-				final ISelection selection = viewer.getSelection();
-				if (selection == null || selection == StructuredSelection.EMPTY) {
-					treeViewer.expandToLevel(50);
-				} else {
-					final Object obj = ((IStructuredSelection) selection)
-							.getFirstElement();
-					if (obj instanceof Content) {
-						treeViewer.expandToLevel(obj, 50);
-					} else {
-						treeViewer.expandToLevel(50);
-					}
-				}
-			}
-		};
-		actionExpand.setText("Expand");
-		actionExpand
-				.setToolTipText("Expand the current selection or all if none");
-		actionExpand.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
-
-		actionCollapse = new Action() {
-			@Override
-			public void run() {
-				final ISelection selection = viewer.getSelection();
-				if (selection == null || selection == StructuredSelection.EMPTY) {
-					treeViewer.collapseAll();
-				} else {
-					final Object obj = ((IStructuredSelection) selection)
-							.getFirstElement();
-					if (obj instanceof Content) {
-						treeViewer.collapseToLevel(obj, 1);
-					} else {
-						treeViewer.collapseAll();
-					}
-				}
-			}
-		};
-		actionCollapse.setText("Collapse");
-		actionCollapse
-				.setToolTipText("Collapse the current selection or all if none");
-		actionCollapse.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
-
-		actionCollapseAll = new Action() {
-			@Override
-			public void run() {
-				treeViewer.collapseAll();
-			}
-		};
-		actionCollapseAll.setText("Collapse All");
-		actionCollapseAll.setToolTipText("Collapse All");
-		actionCollapseAll.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
-
-		actionShowUnderlyingDropType = new Action() {
-			@Override
-			public void run() {
-				// Does nothing right now
-			}
-		};
-		actionShowUnderlyingDropType.setText("Unknown");
 		setViewState();
 	}
 
 	@Override
 	protected void setViewState() {
-		actionShowInferences.setChecked(m_contentProvider.isShowInferences());
-		actionShowInferences.setText("Show Information/Warning Results");
-		actionShowInferences
+		f_actionShowInferences.setChecked(f_contentProvider.isShowInferences());
+		f_actionShowInferences.setText("Show Information/Warning Results");
+		f_actionShowInferences
 				.setToolTipText("Show information and warning analysis results");
 	}
 
@@ -360,21 +357,15 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			ConsistencyListener.prototype.analysisCompleted();
 
 			final long start = System.currentTimeMillis();
-			m_contentProvider.buildModelOfDropSea();
+			f_contentProvider.buildModelOfDropSea();
 			final long buildEnd = System.currentTimeMillis();
 			SLLogger.getLogger().log(Level.INFO,
 					"Time to build model  = " + (buildEnd - start) + " ms");
 			if (IJavaFileLocator.testIRPaging) {
 				final EclipseFileLocator loc = (EclipseFileLocator) IDE
 						.getInstance().getJavaFileLocator();
-				// loc.printSummary(new PrintWriter(System.out));
 				loc.testUnload(false, false);
 				SlotInfo.compactAll();
-				/*
-				 * Enumeration<SlotInfo> e = JJNode.getBundle().attributes();
-				 * while (e.hasMoreElements()) { SlotInfo si = e.nextElement();
-				 * si.dumpState(); }
-				 */
 			}
 			setViewState();
 		} catch (final Throwable t) {
