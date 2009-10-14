@@ -206,6 +206,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     */
     // LOG.finer("getting binding for " + DebugUnparser.toString(node));
     try {
+      // TODO how to protect against destroyed bindings?
       IBinding binding = node.getSlotValue(bindings.getUseToDeclAttr());
       return binding;
     } catch (SlotUndefinedException e) {
@@ -261,30 +262,17 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     final int size = stack.size();
     try {
-    	Thread t = null;
+    	BindingsThread t = null;
         //if (size > 10) {
         	//System.out.println("Binding stack for "+JJNode.getInfoOrNull(node)+": "+size);
         	if (size > 50) {
         		// Finish derivation in a separate thread to avoid StackOverflowError
-        		final IGranuleBindings b = bindings;
-        		final Version v = Version.getVersion();
         		//System.out.println("Over 50");
-        		t = new Thread() {
-        			@SuppressWarnings("deprecation")
-					@Override
-        			public void run() {
-        				Version.setVersion(v);
-        				b.ensureDerived(node);
-        			}
-        		};
+        		t = new BindingsThread(bindings, node);
         	}
         //}
         if (t == null) {
-        	if (bindings.isDestroyed()) {
-        		// Retry
-        		bindings = ensureBindingsOK(node);
-        	}
-        	bindings.ensureDerived(node);
+        	bindings = deriveBindings(bindings, node);
         } else {
         	t.start();
         	try {
@@ -292,11 +280,49 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 			} catch (InterruptedException e) {
 				LOG.log(Level.SEVERE, "Interrupted while joining with deriving thread", e);
 			}
+			bindings = t.bindings;
         }
     } finally {
     	stack.pop();
     }
     return bindings;
+  }
+  
+  class BindingsThread extends Thread {
+	  IGranuleBindings bindings;
+	  final IRNode node;
+	  final Version v;
+	  
+	  BindingsThread(IGranuleBindings bindings, IRNode node) {
+		this.bindings = bindings;
+		this.node = node;
+		v = Version.getVersion();
+	  }
+
+	  @SuppressWarnings("deprecation")
+	  @Override
+	  public void run() {
+		  Version.setVersion(v);
+		  bindings = deriveBindings(bindings, node);
+	  }
+  }
+  
+  IGranuleBindings deriveBindings(IGranuleBindings bindings, IRNode node) {
+	  // To prevent it from being destroyed while deriving
+	  synchronized (bindings) {
+		  IGranuleBindings toDerive = bindings;
+		  while (toDerive.isDestroyed()) {
+			  // Retry
+			  toDerive = ensureBindingsOK(node);
+		  }
+		  if (toDerive == bindings) {
+			  toDerive.ensureDerived(node);
+		  } else {
+			  // Otherwise, already derived
+		  }
+		  bindings = toDerive;
+	  }
+	  return bindings;
   }
   
   protected abstract IGranuleBindings makeGranuleBindings(IRNode cu);
