@@ -485,6 +485,9 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
       final boolean isRaw) {    
     // Get the node of the method/constructor declaration
     final IRNode mdecl = binder.getBinding(call);
+    if (mdecl == null) {
+    	return Collections.emptySet();
+    }
     final Operator op = JJNode.tree.getOperator(mdecl);
 
     // Don't process pseudo-method calls that make up Java 5 annotations
