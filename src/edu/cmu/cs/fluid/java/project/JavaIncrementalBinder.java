@@ -267,13 +267,14 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
       methodOverridesAttr = f.newAttribute(null);
     }
 
-    public boolean isDestroyed() {
+    public synchronized boolean isDestroyed() {
     	return isDestroyed;
     }
     
-    public void destroy() {
+    public synchronized void destroy() {
     	useToDeclAttr.destroy();
     	methodOverridesAttr.destroy();
+    	isDestroyed = true;
     }
     
     /* (non-Javadoc)

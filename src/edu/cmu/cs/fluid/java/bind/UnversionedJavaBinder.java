@@ -207,13 +207,14 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       methodOverridesAttr = f.newLabeledAttribute("CompUnitBindings.methodOverrides", null);
     }
 
-    public boolean isDestroyed() {
+    public synchronized boolean isDestroyed() {
     	return isDestroyed;
     }
     
-    public void destroy() {
+    public synchronized void destroy() {    	
     	useToDeclAttr.destroy();
     	methodOverridesAttr.destroy();
+    	isDestroyed = true;
     }
     
     @Override
