@@ -515,23 +515,15 @@ public class RegionRules extends AnnotationRules {
     }
     
     if (annotationIsGood) {
-      // Create the annotation drop and link it to each field that is mapped
+      // Create the annotation drop and link it to the annotated field
       final AggregatePromiseDrop ap = new AggregatePromiseDrop(a);
-      for (final Map.Entry<IRegion, IRegion> entry : regionMap.entrySet()) {
-        final RegionModel src = entry.getKey().getModel();
-        final RegionModel dest = entry.getValue().getModel();
-        src.addDependent(ap);
-        src.addDependent(dest);
-      }
       // We know unique is not null because annotationIsGood is true
       ap.addDependent(unique);
-//      fieldAsRegion.getModel().addDependent(ap);
+      fieldAsRegion.getModel().addDependent(ap);
       return ap;
     } else {
       return null;
     }
-    
-//    return annotationIsGood ? ap : null;
   }
   
   private static String truncateName(final String qualifiedName) {
