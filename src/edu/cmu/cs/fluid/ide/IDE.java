@@ -247,6 +247,9 @@ public abstract class IDE {
     compUnitListeners.add(l);
   }
 
+  /**
+   * Only to be called after canonicalizing an AST
+   */
   public final void notifyASTChanged(IRNode cu) {
     for(ICompUnitListener l : new ArrayList<ICompUnitListener>(compUnitListeners)) {
       l.astChanged(cu);

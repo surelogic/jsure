@@ -110,6 +110,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 	}
   }
   
+  /**
+   * Only to be called after canonicalizing an AST
+   */
   public synchronized void astChanged(IRNode cu) {
     // If so, we need to clear all the cached data
     for(final IRNode n : JJNode.tree.topDown(cu)) {
@@ -233,6 +236,18 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     @Override
     protected boolean derive() {
       deriveInfo(this, unit);
+      
+      // Check if this should have been destroyed
+      Map<IRNode,IGranuleBindings> bindings;
+      if (containsFullInfo()) {
+    	  bindings = allGranuleBindings;
+      } else {
+    	  bindings = partialGranuleBindings;
+      }
+      if (this != bindings.get(unit)) {
+    	  // Not available
+    	  destroy();
+      }
       return true;
     }
 
