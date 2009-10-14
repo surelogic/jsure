@@ -655,25 +655,30 @@ public final class LockUtils {
     final List<Target> exposedTargets = new ArrayList<Target>();
     
     // XXX This call is wasteful because the call below to getMethodCallEffects() also builds this map.
-    final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
-        binder, mcall, binder.getBinding(mcall), enclosingDecl);
-    for (final Map.Entry<IRNode, IRNode> entry : m.entrySet()) {
-      final IRNode actual = entry.getValue();
-      if (actual != null && FieldRef.prototype.includes(actual)) {
-        final IRNode fieldID = binder.getBinding(actual);
-        final boolean isUnique = UniquenessRules.isUnique(fieldID);
-        if (isUnique) {
-          final Map<RegionModel, IRegion> aggregationMap = 
-            AggregationUtils.constructRegionMapping(fieldID);
-          if (aggregationMap != null) {
-              for (final RegionModel from : aggregationMap.keySet()) {
-                  // This is okay because only instance regions can be mapped
-            	  final Target testTarget = targetFactory.createInstanceTarget(actual, from);
-            	  exposedTargets.add(testTarget);
-              }
-          }
-        }
-      }
+    final IRNode binding = binder.getBinding(mcall);
+    if (binding != null) {
+    	final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
+    			binder, mcall, binding, enclosingDecl);
+    	for (final Map.Entry<IRNode, IRNode> entry : m.entrySet()) {
+    		final IRNode actual = entry.getValue();
+    		if (actual != null && FieldRef.prototype.includes(actual)) {
+    			final IRNode fieldID = binder.getBinding(actual);
+    			final boolean isUnique = UniquenessRules.isUnique(fieldID);
+    			if (isUnique) {
+    				final Map<RegionModel, IRegion> aggregationMap = 
+    					AggregationUtils.constructRegionMapping(fieldID);
+    				if (aggregationMap != null) {
+    					for (final RegionModel from : aggregationMap.keySet()) {
+    						// This is okay because only instance regions can be mapped
+    						final Target testTarget = targetFactory.createInstanceTarget(actual, from);
+    						exposedTargets.add(testTarget);
+    					}
+    				}
+    			}
+    		}
+    	}
+    } else {
+    	// Already produced warning
     }
 
     /* Get the effects of calling the method, and find all the effects
