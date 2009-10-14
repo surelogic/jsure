@@ -161,7 +161,7 @@ public final class OracleDiffResultsViewContentProvider extends ResultsViewConte
     if (parent instanceof ResultsTreeNode) {
       final ResultsTreeNode node = (ResultsTreeNode) parent;
       final List<ResultsTreeNode> children = node.getChildrenAsCollection();
-      if (m_showInferences) {
+      if (isShowInferences()) {
         return children.toArray();
       } else {
         return ResultsTreeNode.filterNonInfo(children);
