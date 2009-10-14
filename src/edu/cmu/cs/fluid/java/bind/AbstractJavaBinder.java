@@ -280,6 +280,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	}
         //}
         if (t == null) {
+        	if (bindings.isDestroyed()) {
+        		// Retry
+        		bindings = ensureBindingsOK(node);
+        	}
         	bindings.ensureDerived(node);
         } else {
         	t.start();
