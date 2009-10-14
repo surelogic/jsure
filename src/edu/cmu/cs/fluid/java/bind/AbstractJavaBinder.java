@@ -247,7 +247,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     IGranuleBindings bindings;
     synchronized (this) {     
       bindings = granuleBindings.get(gr);
-      if (bindings == null) {
+      if (bindings == null || bindings.isDestroyed()) {
         bindings = makeGranuleBindings(gr);
         bindings.setContainsFullInfo(needFullInfo);
         granuleBindings.put(gr,bindings);
