@@ -323,12 +323,21 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
   }
   
   public synchronized IJavaFileStatus<T> unregister(T handle) {
-	  IJavaFileStatus<T> s = resources.remove(handle);
+	  JavaFileStatus<T,P> s = resources.remove(handle);
 	  // TODO cleanup -- unload?
+	  destroy(s.astChunk1.getRegion());
+	  destroy(s.astChunk2.getRegion());
+	  destroy(s.canonChunk1.getRegion());
+	  destroy(s.canonChunk2.getRegion());
 	  return s;
   }
   
-  public IJavaFileStatus<T> isUpToDate(T id, long time, Type thisType) {
+  private void destroy(IRPersistent r) {
+	if (!r.isDestroyed()) {
+		r.destroy();
+	}	
+}
+public IJavaFileStatus<T> isUpToDate(T id, long time, Type thisType) {
 	  IJavaFileStatus<T> status = getStatus(id);
 	  long modTime           = mapTimeStamp(time);
 	  if (status != null && modTime == status.modTime() && thisType == status.getType()) {
