@@ -67,8 +67,10 @@ public class ResultsViewContentProvider extends
 	protected static long timeStamp = Sea.INVALIDATED;
 
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-		Object[] result = new Object[1];
-		result[0] = newInput;
+		if (newInput == null) {
+			m_root = noObjects;
+			m_lastRoot = null;
+		}
 	}
 
 	public void dispose() {

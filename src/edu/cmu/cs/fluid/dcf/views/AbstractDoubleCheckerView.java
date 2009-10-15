@@ -161,6 +161,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				f_fancyWait.dispose();
 				f_fancyWait = null;
 			}
+			viewer.setInput(getViewSite());
 			f_viewerbook.showPage(viewer.getControl());
 		} else {
 			/*
@@ -197,6 +198,9 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 										e);
 					}
 				}
+			} 
+			if (projName == null) {
+				viewer.setInput(null);
 			}
 			f_viewerbook.showPage(f_noResultsToShowLabel);
 		}
