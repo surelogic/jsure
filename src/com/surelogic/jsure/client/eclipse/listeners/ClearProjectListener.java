@@ -86,6 +86,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 		
 		if (clearAll) {
 			BinaryCUDrop.invalidateAll();
+			PackageDrop.invalidateAll();
 			IDE.getInstance().clearCaches();
 		}
 		for (IClearProjectHelper h : helpers) {
