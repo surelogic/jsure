@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.eclipse.adapter.Binding;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
+import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
@@ -37,7 +38,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 	/**
 	 * Otherwise, clear the current project
 	 */
-	private static final boolean clearAll = false;	
+	private static final boolean clearAll = true;	
 	
 	public static void clearJSureState() {
 		try {
@@ -46,6 +47,9 @@ public class ClearProjectListener implements IResourceChangeListener {
 			// System.out.println("Clearing all comp units");
 			Binding.clearCompUnits(clearAll);
 
+			if (clearAll) {
+				JavaTypeFactory.clearAll();
+			}			
 			// Go ahead and garbage collect the IR.
 			SlotInfo.gc();
 		} catch (Exception e) {
