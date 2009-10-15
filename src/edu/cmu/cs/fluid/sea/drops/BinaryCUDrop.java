@@ -7,6 +7,7 @@ package edu.cmu.cs.fluid.sea.drops;
 import java.util.Set;
 
 import edu.cmu.cs.fluid.java.CodeInfo;
+import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.Sea;
 
 /**
@@ -38,5 +39,9 @@ public class BinaryCUDrop extends CUDrop {
   @Override
   public boolean isAsSource() {
     return false;
+  }
+
+  public static void invalidateAll() {
+	    Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(BinaryCUDrop.class));
   }
 }

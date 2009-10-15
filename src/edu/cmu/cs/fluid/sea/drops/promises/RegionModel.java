@@ -15,6 +15,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.Messages;
+import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
@@ -145,6 +146,14 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		}
 	}
 	
+	@Override
+	protected void invalidate_internal() {
+		if ("[]".equals(regionName)) {
+			System.out.println("Invalidating region "+regionName);
+		}
+		super.invalidate_internal();
+	}
+	
 	/**
 	 * Removes regions that are not defined by any promise definitions.
 	 */
@@ -162,7 +171,8 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
         	                 (drop.colorInfo != null || 
                               drop.getAST() != null  || 
                               key.equals(INSTANCE) || 
-                              key.equals(ALL));
+                              key.equals(ALL)) || 
+                              key.equals(PromiseConstants.REGION_ELEMENT_NAME);
 			}
 			 
 			//System.out.println(key+" : "+regionDefinedInCode+", "+keepAnyways);

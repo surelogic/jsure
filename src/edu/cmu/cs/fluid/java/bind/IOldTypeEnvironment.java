@@ -207,7 +207,8 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       JavaNode.setModifier(privateLengthField, JavaNode.FINAL, true);      
       
       final ISrcRef ref = 
-    	  new NamedSrcRef("java.lang.[]", "java.lang", "[]");
+    	  new NamedSrcRef("java.lang."+PromiseConstants.REGION_ELEMENT_NAME, "java.lang", 
+    			          PromiseConstants.REGION_ELEMENT_NAME);
       privateCloneMethod.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
       privateLengthField.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
       privateArrayType.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
