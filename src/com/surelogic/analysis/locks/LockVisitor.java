@@ -820,6 +820,29 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     jucLockUsageManager.clear();
     lockUtils.clear();
     bindingContextAnalysis.clear();
+    mustRelease.clear();
+    mustHold.cleanup();
+    nonNullAnalylsis.clear();
+    jucLockUsageManager.clear();
+    initHelper.clear();
+    clear();
+  }
+  
+  private void clear() {
+      resultDependUpon = null;
+      ctxtTypeDecl = null;
+      ctxtJavaType = null;
+      ctxtTheHeldLocks = null;
+      ctxtReturnedLock = null;
+      ctxtReturnsLockDrop = null;
+      ctxtIsLHS = false;
+      ctxtInsideMethod = null;
+      ctxtOnBehalfOfConstructor = false;
+      ctxtInsideConstructor = null;
+      ctxtConstructorName = null;
+      ctxtTheReceiverNode = null;
+      ctxtEnclosingRefs = null;
+      ctxtInsideAnonClassExpr = false;
   }
   
   /**
@@ -835,16 +858,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       ctxtTypeDecl = JJNode.tree.getParentOrNull(node);
       ctxtJavaType = JavaTypeFactory.getMyThisType(ctxtTypeDecl);
       ctxtTheHeldLocks = new LockStack();
-      ctxtReturnedLock = null;
-      ctxtReturnsLockDrop = null;
-      ctxtIsLHS = false;
-      ctxtInsideMethod = null;
-      ctxtOnBehalfOfConstructor = false;
-      ctxtInsideConstructor = null;
-      ctxtConstructorName = null;
-      ctxtTheReceiverNode = null;
-      ctxtEnclosingRefs = null;
-      ctxtInsideAnonClassExpr = false;
       this.doAccept(node);
     } else {
       throw new IllegalArgumentException("Node must have an operator of type "

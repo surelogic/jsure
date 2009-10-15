@@ -22,6 +22,8 @@ import edu.cmu.cs.fluid.java.operator.UnnamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.java.xml.XML;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.DropPredicateFactory;
+import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.util.*;
 
 /**
@@ -163,6 +165,11 @@ public class PackageDrop extends CUDrop {
         return e.getValue();
       }      
     };
+  }
+  
+  public static void invalidateAll() {
+	    Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(BinaryCUDrop.class));
+	    packageMap.clear();
   }
 }
 

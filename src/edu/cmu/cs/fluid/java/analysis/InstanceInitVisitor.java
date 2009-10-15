@@ -102,6 +102,11 @@ public class InstanceInitVisitor<T> extends Visitor<T> {
     analysisWeAreHelping = yourAnalysis;
   }
 
+  public void clear() {
+	  firstSuperCall = null;
+	  enclosingClass = null;
+  }
+  
   /**
    * Possibly kick off traversal of Instance field initializations. Kicks off a
    * traversal that will visit the instance field initializers when appropriate
