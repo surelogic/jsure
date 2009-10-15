@@ -54,6 +54,8 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  new Hashtable2<IJavaType, IJavaType, Boolean>();
   */
   public void clearCaches() {
+	  objectType = null;
+	  stringType = null;
 	  convertedTypeCache.clear();
 	  //subTypeCache.clear();
   }

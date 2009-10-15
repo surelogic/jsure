@@ -218,7 +218,9 @@ public class JavaTypeFactory implements IRType, Cleanable {
   }
   
   // declared types
-  private static JavaDeclaredType rootType = new JavaDeclaredType() {
+  private static JavaDeclaredType rootType = new RootType();
+  
+  private static class RootType extends JavaDeclaredType {
     @Override public String toString() { return ""; }
   };
 
@@ -285,7 +287,17 @@ public class JavaTypeFactory implements IRType, Cleanable {
   }
   
   static void clearCaches() {
-    //Nothing to do right now
+	  // Nothing to do here
+  }
+  
+  public static void clearAll() {
+	  typeFormals.clear();
+	  intersectionTypes.clear();
+	  captureTypes.clear();
+	  arrayTypes.clear();
+	  lowerBounded.clear();
+	  upperBounded.clear();
+	  rootType = new RootType();
   }
   
   /**
