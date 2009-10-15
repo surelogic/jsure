@@ -26,7 +26,7 @@ public class ImportTutorialProjectsAction implements
 		InstallTutorialProjectsDialog.open(SWTUtility.getShell(),
 				"/com.surelogic.jsure.client.help/ch01s03.html", loader
 						.getResource("/lib/PlanetBaronJSure.zip"), loader
-						.getResource("/lib/BoundedFIFO.zip"));
+						.getResource("/lib/BoundedFIFOJSure.zip"));
 	}
 
 	public void selectionChanged(final IAction action,
