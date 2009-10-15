@@ -22,9 +22,7 @@ import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.WarningDrop;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
-import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
+import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public class ClearProjectListener implements IResourceChangeListener {
@@ -36,12 +34,17 @@ public class ClearProjectListener implements IResourceChangeListener {
 		}
 	}
 
+	/**
+	 * Otherwise, clear the current project
+	 */
+	private static final boolean clearAll = false;	
+	
 	public static void clearJSureState() {
 		try {
-			clearDropSea();
+			clearDropSea(clearAll);
 
 			// System.out.println("Clearing all comp units");
-			Binding.clearCompUnits();
+			Binding.clearCompUnits(clearAll);
 
 			// Go ahead and garbage collect the IR.
 			SlotInfo.gc();
@@ -56,8 +59,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 		helpers.add(h);
 	}
 
-	private static void clearDropSea() {
-
+	private static void clearDropSea(final boolean clearAll) {
 		// FIX to clear out drops for a given project
 		for (RegionModel region : Sea.getDefault().getDropsOfExactType(
 				RegionModel.class)) {
@@ -77,7 +79,11 @@ public class ClearProjectListener implements IResourceChangeListener {
 				DropPredicateFactory.matchType(WarningDrop.class));
 		Sea.getDefault().invalidateMatching(
 				DropPredicateFactory.matchType(PromiseWarningDrop.class));
-
+		
+		if (clearAll) {
+			BinaryCUDrop.invalidateAll();
+			IDE.getInstance().clearCaches();
+		}
 		for (IClearProjectHelper h : helpers) {
 			if (h != null) {
 				h.clearResults();
