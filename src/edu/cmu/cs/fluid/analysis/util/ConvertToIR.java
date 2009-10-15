@@ -534,8 +534,8 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		String handle = resourceHandles.get(resource.getLocation()
 				.toPortableString());
 		if (handle != null) {
-			jfl.unregister(handle);
 			Binding.clearOldCU(handle);
+			jfl.unregister(handle);
 		}
 	}
 
