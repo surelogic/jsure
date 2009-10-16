@@ -206,9 +206,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     */
     // LOG.finer("getting binding for " + DebugUnparser.toString(node));
     try {
-      // TODO how to protect against destroyed bindings?
-      IBinding binding = node.getSlotValue(bindings.getUseToDeclAttr());
-      return binding;
+    	synchronized (bindings) {
+    		// TODO how to protect against destroyed bindings?
+    		if (bindings.isDestroyed()) {
+    			return getIBinding(node);
+    		} else {
+    			IBinding binding = node.getSlotValue(bindings.getUseToDeclAttr());
+    			return binding;
+    		}
+    	}
     } catch (SlotUndefinedException e) {
       // debugging
       LOG.severe("no binding for " + node + " = " + DebugUnparser.toString(node) + " in version " + Version.getVersion());
