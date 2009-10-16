@@ -168,7 +168,7 @@ public class PackageDrop extends CUDrop {
   }
   
   public static void invalidateAll() {
-	    Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(BinaryCUDrop.class));
+	    Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(PackageDrop.class));
 	    packageMap.clear();
   }
 }
