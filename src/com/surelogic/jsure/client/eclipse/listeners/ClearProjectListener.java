@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -43,7 +44,11 @@ public class ClearProjectListener implements IResourceChangeListener {
 	public static void clearJSureState() {
 		try {
 			clearDropSea(clearAll);
-
+			/*
+			for(Drop d : Sea.getDefault().getDrops()) {
+				System.out.println(d.getMessage());
+			}
+			*/
 			// System.out.println("Clearing all comp units");
 			Binding.clearCompUnits(clearAll);
 
@@ -87,7 +92,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 		if (clearAll) {
 			BinaryCUDrop.invalidateAll();
 			PackageDrop.invalidateAll();
-			IDE.getInstance().clearCaches();
+			IDE.getInstance().clearAll();
 		}
 		for (IClearProjectHelper h : helpers) {
 			if (h != null) {
