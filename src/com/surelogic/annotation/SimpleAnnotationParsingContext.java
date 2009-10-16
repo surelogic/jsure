@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/SimpleAnnotationParsingContext.java,v 1.5 2008/06/24 19:13:15 thallora Exp $*/
 package com.surelogic.annotation;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.antlr.runtime.RecognitionException;
@@ -127,7 +128,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
       LOG.warning(txt);
       d.setMessage(txt);
     } else {
-      e.printStackTrace();
+      LOG.log(Level.SEVERE, "Unexpected problem while parsing promise", e);
     }
     hadProblem = true;
   }

@@ -1,6 +1,10 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/parse/JJNodeCachingProxy.java,v 1.2 2007/03/14 19:52:20 chance Exp $*/
 package edu.cmu.cs.fluid.parse;
 
+import java.util.logging.Level;
+
+import com.surelogic.common.logging.SLLogger;
+
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -28,7 +32,7 @@ public class JJNodeCachingProxy extends AbstractProxyNode {
       childrenSlotInfo = SlotInfo.findSlotInfo("Parse.Digraph.Children");
       parentsSlotInfo = SlotInfo.findSlotInfo("Parse.Tree.parents");
     } catch (SlotNotRegisteredException e) {
-      e.printStackTrace();
+      SLLogger.getLogger().log(Level.SEVERE, "Problem while creating SIs", e);
       throw new Error("Can't load ASTNode");
     }
   }

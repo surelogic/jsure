@@ -140,7 +140,7 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 			  beginCanonicalization();
 			  okToCanonicalize = true;
 		  } catch (IOException e) {
-			  e.printStackTrace();
+	          LOG.log(Level.SEVERE, "Unable to canonicalize", e);
 		  }
 	  }
 
@@ -184,7 +184,7 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 		  // Check if low on memory
 		  memHandler.handleLowMemory(IDE.getInstance().getMemoryPolicy());
 	  } catch (IOException e) {
-		  e.printStackTrace();
+          LOG.log(Level.SEVERE, "Unable to persist IR", e);
 	  }
   }
   
@@ -391,7 +391,7 @@ public IJavaFileStatus<T> isUpToDate(T id, long time, Type thisType) {
 					  LOG.fine("Reloaded " + s.label());
 				  return true;
 			  } catch (IOException e) {
-				  e.printStackTrace();
+		          LOG.log(Level.SEVERE, "Problem while reloading IR", e);
 			  }
 		  }
 		  return false;
@@ -435,7 +435,7 @@ public IJavaFileStatus<T> isUpToDate(T id, long time, Type thisType) {
 					  try {
 						  commitCurrentArchive(false);
 					  } catch (IOException ioe) {
-						  ioe.printStackTrace();
+				          LOG.log(Level.SEVERE, "Unable to commit current archive", ioe);
 						  return;
 					  }
 

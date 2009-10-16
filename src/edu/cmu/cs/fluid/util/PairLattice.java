@@ -4,6 +4,10 @@
  */
 package edu.cmu.cs.fluid.util;
 
+import java.util.logging.Level;
+
+import com.surelogic.common.logging.SLLogger;
+
 /**
  * @author dpgraves
  *
@@ -59,7 +63,7 @@ public class PairLattice<T1,T2> implements Lattice<PairLattice.Type<T1,T2>> {
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "Problem while creating PairLattice", e);
 		}
 	}
 

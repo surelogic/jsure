@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 import edu.cmu.cs.fluid.derived.*;
 import edu.cmu.cs.fluid.ide.IDE;
@@ -67,7 +68,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
           return super.getBinding(node);
         }
         catch (SlotUndefinedException e) {
-          e.printStackTrace();
+          LOG.log(Level.SEVERE, "Unable to get binding", e);
           return null;
         }
       }
@@ -76,7 +77,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       return super.getBinding(node);
     }
     catch (SlotUndefinedException e) {
-      e.printStackTrace();
+      LOG.log(Level.SEVERE, "Unable to get binding", e);
       return null;
     }
   }

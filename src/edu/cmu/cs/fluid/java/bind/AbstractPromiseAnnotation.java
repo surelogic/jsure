@@ -5,6 +5,7 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
@@ -41,7 +42,7 @@ public abstract class AbstractPromiseAnnotation
     try {
       frame.registerAnnotation(this);
     } catch (Throwable t) {
-      t.printStackTrace();
+      LOG.log(Level.SEVERE, "Unable to register annotations", t);
     }
   }
 

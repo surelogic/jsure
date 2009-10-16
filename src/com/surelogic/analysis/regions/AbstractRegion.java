@@ -1,6 +1,10 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/regions/AbstractRegion.java,v 1.2 2007/07/16 19:47:39 chance Exp $*/
 package com.surelogic.analysis.regions;
 
+import java.util.logging.Level;
+
+import com.surelogic.common.logging.SLLogger;
+
 public abstract class AbstractRegion implements IRegion {  
   @Override
   public abstract String toString();
@@ -27,7 +31,7 @@ public abstract class AbstractRegion implements IRegion {
           current = current.getParentRegion();
         }
         catch (Exception e) {
-          e.printStackTrace();
+          SLLogger.getLogger().log(Level.SEVERE, "Problem while getting ancestor region", e);
           break;
         }
       }
@@ -57,7 +61,7 @@ public abstract class AbstractRegion implements IRegion {
           current = current.getParentRegion();
         }
         catch (Exception e) {
-          e.printStackTrace();
+          SLLogger.getLogger().log(Level.SEVERE, "Problem while computing includes()", e);
           break;
         }
       }

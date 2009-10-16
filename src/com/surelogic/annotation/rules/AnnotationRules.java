@@ -6,6 +6,7 @@ import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.aast.AASTStatus;
@@ -202,10 +203,9 @@ public abstract class AnnotationRules {
         manager.addDependency(before, s.name());
       }
     } catch (DuplicateTaskNameException e) {
-      e.printStackTrace();
+      LOG.log(Level.SEVERE, "Unable to register scrubber", e);
     } catch (IllegalStateException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOG.log(Level.SEVERE, "Unable to register scrubber", e);
     }
   }
 
@@ -218,19 +218,16 @@ public abstract class AnnotationRules {
       mgr.execute(true);
       lastMgr.execute(true);
     } catch (UndefinedDependencyException e) {
-      e.printStackTrace();
+    	LOG.log(Level.SEVERE, "Problem while running scrubber", e);
     } catch (CycleFoundException e) {
-      e.printStackTrace();
+    	LOG.log(Level.SEVERE, "Problem while running scrubber", e);
     } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    	LOG.log(Level.SEVERE, "Problem while running scrubber", e);
     } catch (BrokenBarrierException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    	LOG.log(Level.SEVERE, "Problem while running scrubber", e);
     } catch (TimeoutException e) {
-      // TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+    	LOG.log(Level.SEVERE, "Problem while running scrubber", e);
+    }
     final Iterator<IAASTRootNode> it = AASTStore.getASTs().iterator();
     while (it.hasNext()) {
       final IAASTRootNode a = it.next();

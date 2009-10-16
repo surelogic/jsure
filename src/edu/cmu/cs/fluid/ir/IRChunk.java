@@ -4,6 +4,7 @@ package edu.cmu.cs.fluid.ir;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.logging.Level;
 
 import edu.cmu.cs.fluid.util.FileLocator;
 import edu.cmu.cs.fluid.util.Hashtable2;
@@ -259,7 +260,7 @@ public class IRChunk extends IRPersistent implements IRState {
     super.unload();
     
     if (this.getClass() != IRChunk.class) {
-      new Throwable("unload() not called from IRChunk").printStackTrace();
+      LOG.log(Level.WARNING, "unload() not called from IRChunk", new Error());
       return;
     }
     int n = bundle.getNumAttributes();

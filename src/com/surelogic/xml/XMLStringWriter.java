@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.logging.Level;
+
+import com.surelogic.common.logging.SLLogger;
 
 public class XMLStringWriter {
 
@@ -32,7 +35,7 @@ public class XMLStringWriter {
 			/** This should never happen as StringWriters do not generate 
 			 * IOExceptions
 			 */
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "This should never happen", e);
 		}
 
 		return s.toString();
@@ -61,7 +64,7 @@ public class XMLStringWriter {
 			/** This should never happen as StringWriters do not generate 
 			 * IOExceptions
 			 */
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "This should never happen", e);
 		}
 
 		return s.toString() + "\n";
@@ -92,7 +95,7 @@ public class XMLStringWriter {
 			/** This should never happen as StringWriters do not generate 
 			 * IOExceptions
 			 */
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "This should never happen", e);
 		}
 
 		return s.toString() + "\n";
@@ -117,7 +120,7 @@ public class XMLStringWriter {
 			/** This should never happen as StringWriters do not generate 
 			 * IOExceptions
 			 */
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "This should never happen", e);
 		}
 		return s.toString() + "\n";
 	}

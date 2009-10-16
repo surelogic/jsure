@@ -52,8 +52,7 @@ public class Version implements Serializable {
       LOG.fine("Creating shadow for version " + v + " as child of " + v.parent);
     }
     if (v.isDestroyed()) {
-      LOG.severe("adding a shadow to a destroyed version!");
-      new Error().printStackTrace();
+      LOG.log(Level.SEVERE, "adding a shadow to a destroyed version!", new Error());
     }
     /*
 		 * if (v.parent == null) { LOG.warn("parent is null at:", new Throwable()); }

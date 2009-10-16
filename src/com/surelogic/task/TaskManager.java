@@ -7,6 +7,9 @@ package com.surelogic.task;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+
+import com.surelogic.common.logging.SLLogger;
 
 /**
  * This is a class designed to manage and run a set of Runnable tasks that may
@@ -530,8 +533,7 @@ public class TaskManager extends ThreadPoolExecutor {
 			task.notifyDependents();
 		}
 		if (throwable != null) {
-			// XXX log the error and notify the user
-			throwable.printStackTrace(System.out);
+			SLLogger.getLogger().log(Level.WARNING, "Problem while executing", throwable);
 		}
 		
 		/* Note that this is mainly to avoid a problem on Linux
@@ -969,7 +971,7 @@ public class TaskManager extends ThreadPoolExecutor {
 			}
 			catch (InterruptedException e) {
 				// Do nothing b/c this is just a notification
-				e.printStackTrace();
+				SLLogger.getLogger().log(Level.FINE, "Interrupted", e);
 			}
 		}
 
@@ -987,7 +989,7 @@ public class TaskManager extends ThreadPoolExecutor {
 			}
 			catch (InterruptedException e) {
 				// Do nothing b/c this is just a notification
-				e.printStackTrace();
+				SLLogger.getLogger().log(Level.FINE, "Interrupted", e);
 			}
 		}
 

@@ -327,7 +327,7 @@ public abstract class IDE {
           //new Throwable().printStackTrace();
 //          System.out.println("Creating "+name+" ("+delegate+")");
         } catch (Exception e) {
-          e.printStackTrace();
+          LOG.log(Level.SEVERE, "Couldn't create delegate", e);
           return null;
         }
       }

@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/parse/AnnotationVisitor.java,v 1.53 2008/11/03 16:03:48 chance Exp $*/
 package com.surelogic.annotation.parse;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.antlr.runtime.*;
@@ -87,7 +88,7 @@ public class AnnotationVisitor extends Visitor<Void> {
       if (e instanceof RecognitionException) {
         System.err.println(e.getMessage());
       } else {
-        e.printStackTrace();
+        LOG.log(Level.WARNING, "Unable to create promise", e);
       }
     } finally {
     	if (clearResult) {

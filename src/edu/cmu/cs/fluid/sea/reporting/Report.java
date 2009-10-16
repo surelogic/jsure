@@ -7,6 +7,9 @@ package edu.cmu.cs.fluid.sea.reporting;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.util.*;
+import java.util.logging.Level;
+
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -54,7 +57,7 @@ public class Report {
 
     for (Drop drop : drops) {
       if (drop == null) {
-        new Throwable("stack trace for null drop").printStackTrace();
+        SLLogger.getLogger().log(Level.WARNING, "Got null drop", new Throwable());
         continue;
       }
       // only count promises within the source code

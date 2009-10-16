@@ -109,8 +109,7 @@ public abstract class FlowAnalysis<T> {
         work((ControlEdge)worklist.dequeue());
       }
     } catch (RuntimeException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
+      LOG.log(Level.WARNING, "Problem while analyzing", e1);
     }
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("Analysis is complete.");

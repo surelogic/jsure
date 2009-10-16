@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Stack;
+import java.util.logging.Level;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
@@ -13,6 +14,8 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
+
+import com.surelogic.common.logging.SLLogger;
 
 public class XMLValidator extends DefaultHandler 
 implements TestXMLParserConstants
@@ -75,13 +78,9 @@ implements TestXMLParserConstants
 			" Generated Exception");
 			LOG.severe(se.getMessage());
 		} catch (FileNotFoundException e) {
-			LOG.severe("FileNotFoundException");
-			LOG.severe(e.getMessage());
-			e.printStackTrace();
-		} catch (IOException e) {
-			LOG.severe("IOException");
-			LOG.severe(e.getMessage());
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, e.getMessage(), e);
+		} catch (IOException ioe) {
+			SLLogger.getLogger().log(Level.SEVERE, ioe.getMessage(), ioe);
 		} 
 		LOG.severe("File " + f.getName() + " is invalid");
 	}
