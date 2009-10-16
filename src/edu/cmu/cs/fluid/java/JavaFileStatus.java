@@ -76,7 +76,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
 
     @Override
     protected void process(IRNode root) {
-      for(IRNode n : JJNode.tree.topDown(root)) {
+      for(IRNode n : JavaPromise.bottomUp(root)) {
         region.saveNode(n);
         if (includePromises) {
           PromiseFramework.getInstance().processPromises(n, this);
