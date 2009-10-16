@@ -427,7 +427,7 @@ public final class LockUtils {
   }
   
   private synchronized boolean isSubType(IJavaType s, IJavaType t) {
-	  if (s == null) {
+	  if (s == null || t == null) {
 		  return false;
 	  }
 	  Boolean result = subTypeCache.get(s, t);
