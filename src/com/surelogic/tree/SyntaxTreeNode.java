@@ -60,6 +60,16 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
   @SuppressWarnings("unchecked")
   static Set<SlotInfo> noticed = new HashSet<SlotInfo>();
   
+  @Override
+  public synchronized void destroy() {
+	  super.destroy();
+	  children = null;
+	  info = null;
+	  loc = null;
+	  op = null;
+	  parent = null;
+	  srcRef = null;
+  }
   /*
   @Override
   public <T> void setSlotValue(SlotInfo<T> si, T newValue) {
