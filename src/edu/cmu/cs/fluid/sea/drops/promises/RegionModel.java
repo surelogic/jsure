@@ -10,6 +10,7 @@ import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.RegionRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -51,7 +52,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		String key = regionName;
 		RegionModel result = nameToDrop.get(key);
 		if (result == null) {
-			key = regionName.intern();
+			key = CommonStrings.intern(regionName);
 			result = new RegionModel(key);
 
 			nameToDrop.put(key, result);

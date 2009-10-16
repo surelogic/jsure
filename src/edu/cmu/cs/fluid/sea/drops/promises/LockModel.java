@@ -6,6 +6,7 @@ import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
 import com.surelogic.analysis.locks.LockUtils;
 
+import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.*;
 
@@ -38,7 +39,7 @@ implements ILockBinding
     String key  = lockName;
     LockModel result = nameToDrop.get(key);
     if (result == null) {
-      key    = lockName.intern();
+      key    = CommonStrings.intern(lockName);
       result = new LockModel(key);
       
       nameToDrop.put(key, result);

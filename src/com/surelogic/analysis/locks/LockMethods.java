@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/LockMethods.java,v 1.7 2007/09/11 20:32:40 aarong Exp $*/
 package com.surelogic.analysis.locks;
 
+import edu.cmu.cs.fluid.java.CommonStrings;
+
 /**
  * Enumeration that describes the different Lock methods in 
  * java.util.concurrent.locks.Lock, plus a value indicating "none of the above",
@@ -8,12 +10,12 @@ package com.surelogic.analysis.locks;
  * is not from the Lock class.
  */
 public enum LockMethods {
-  LOCK("lock", true, true),
-  LOCK_INTERRUPTIBLY("lockInterruptibly", true, true),
-  TRY_LOCK("tryLock", true, false),
-  UNLOCK("unlock", false, true),
-  NOT_A_LOCK_METHOD("not a method", false, true),
-  IDENTICALLY_NAMED_METHOD("fake", false, true); 
+  LOCK(CommonStrings.intern("lock"), true, true),
+  LOCK_INTERRUPTIBLY(CommonStrings.intern("lockInterruptibly"), true, true),
+  TRY_LOCK(CommonStrings.intern("tryLock"), true, false),
+  UNLOCK(CommonStrings.intern("unlock"), false, true),
+  NOT_A_LOCK_METHOD(CommonStrings.intern("not a method"), false, true),
+  IDENTICALLY_NAMED_METHOD(CommonStrings.intern("fake"), false, true); 
 
   
   
@@ -44,7 +46,7 @@ public enum LockMethods {
 
   
   public static LockMethods whichLockMethod(final String mname) {
-    final String internedName = mname.intern();
+    final String internedName = CommonStrings.intern(mname);
     if (internedName == LockMethods.LOCK.name) {
       return LockMethods.LOCK;
     } else if (internedName == LockMethods.LOCK_INTERRUPTIBLY.name) {

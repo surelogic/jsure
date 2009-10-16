@@ -62,7 +62,7 @@ public class CogenUtil implements JavaGlobals {
 
   /// createNamedT
   public static IRNode createNamedT(String n) {
-    return NamedType.createNode(n.intern());
+    return NamedType.createNode(CommonStrings.intern(n));
   }
 
   public static IRNode createType(ITypeEnvironment tEnv, IJavaType t) {
@@ -153,7 +153,7 @@ public class CogenUtil implements JavaGlobals {
   
   /// createTypeE
   public static IRNode createTypeE(String n) {
-    IRNode t = NamedType.createNode(n.intern());
+    IRNode t = NamedType.createNode(CommonStrings.intern(n));
     return TypeExpression.createNode(t);
   }
 

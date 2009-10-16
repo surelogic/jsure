@@ -1,16 +1,10 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/aast/promise/VisClauseNode.java,v 1.1 2007/10/27 17:11:10 dfsuther Exp $*/
 package com.surelogic.aast.promise;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.analysis.colors.CBinExpr;
-import com.surelogic.analysis.colors.CExpr;
 import com.surelogic.parse.AbstractSingleNodeFactory;
-
-import edu.cmu.cs.fluid.ir.IRNode;
 
 public class VisClauseNode extends ModuleAnnotationNode {
   // Fields
@@ -36,7 +30,7 @@ public class VisClauseNode extends ModuleAnnotationNode {
     super(offset);
 
     if (optionalName == null) {
-      modName = "".intern();
+      modName = "";
     } else {
       modName = optionalName;
     }

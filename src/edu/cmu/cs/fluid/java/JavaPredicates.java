@@ -65,7 +65,7 @@ public class JavaPredicates
    */
   public static boolean isKeyword( final String s )
   {
-    final String s2 = s.intern();
+    final String s2 = CommonStrings.intern(s);
     for( int i = 0; i < keywords.length; i++ ) {
       if( keywords[i] == s2 ) return true;
     }
@@ -77,7 +77,7 @@ public class JavaPredicates
    */
   public static boolean isBooleanLiteral( final String s )
   {
-    final String s2 = s.intern();
+	final String s2 = CommonStrings.intern(s);
     return (s2 == trueLiteral) || (s2 == falseLiteral);
   }
 
@@ -86,7 +86,7 @@ public class JavaPredicates
    */
   public static boolean isNullLiteral( final String s )
   {
-    return (nullLiteral == s.intern());
+    return (nullLiteral == CommonStrings.intern(s));
   }
 
   /**

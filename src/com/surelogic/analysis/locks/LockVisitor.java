@@ -37,6 +37,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
+import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -558,7 +559,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     
     public StackLock(final HeldLock l, final StackLock nxt) {
       lock = l;
-      key = l.getName().intern();
+      key = CommonStrings.intern(l.getName());
       next = nxt;
     }
 
@@ -939,7 +940,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   private void addTrustedLockDrop(
       final LockStack intrinsicLocks, final Set<HeldLock> jucLocks,
       final NeededLock needed, final ResultDrop result) {
-    final String lockKey = needed.getName().intern();
+    final String lockKey = CommonStrings.intern(needed.getName());
     for (final StackLock lock : intrinsicLocks) {
       if (lock.key == lockKey) {
         final PromiseDrop<?> supportingDrop = lock.lock.getSupportingDrop();
