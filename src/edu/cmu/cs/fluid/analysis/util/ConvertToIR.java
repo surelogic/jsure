@@ -918,6 +918,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	protected void processPrefetchList() {
 		Eclipse e = Eclipse.getDefault();
 		for (String t : e.getQueuedTypes()) {
+			//System.out.println("Prefetching "+t);
 			prefetch(t);
 		}
 		e.clearTypeQueue();
@@ -925,7 +926,9 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		ITypeEnvironment te = e.getTypeEnv(getProject());
 		Iterator<String> qnames = prefetchList.iterator();
 		while (qnames.hasNext()) {
-			te.findNamedType(qnames.next());
+			String qname = qnames.next();
+			//System.out.println("Prefetching "+qname);
+			te.findNamedType(qname);
 		}
 	}
 }

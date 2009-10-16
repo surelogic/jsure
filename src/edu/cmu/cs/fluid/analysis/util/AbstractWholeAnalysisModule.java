@@ -30,12 +30,12 @@ public abstract class AbstractWholeAnalysisModule extends AbstractWholeIRAnalysi
 			throw new IllegalArgumentException("Not a whole-program analysis");
 		}
 		analysis = a;
-		analysis.init(env);
 	}
 	
 	@Override
 	public final void preBuild(IProject project) {
 		super.preBuild(project);
+		analysis.init(env);
 		analysis.preAnalysis(env, Eclipse.getDefault().makeClassPath(project));
 	}
 	
