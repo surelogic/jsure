@@ -8,13 +8,16 @@ package edu.cmu.cs.fluid.ir;
  * @author chance
  *
  */
+@SuppressWarnings("unchecked")
 public class SimpleIRArray<T> extends IRArray<T,T>  {
+  private static final ImplicitSlotStorage prototype =
+	  new ImplicitSlotStorage(SimpleSlotFactory.prototype);
+
   /**
    * @param size
    * @param ss
    */
   public SimpleIRArray(int size) {
-    super(size,new ImplicitSlotStorage<T>(SimpleSlotFactory.prototype));
-    // TODO Auto-generated constructor stub
+    super(size, prototype);
   }
 }
