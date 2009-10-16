@@ -107,6 +107,10 @@ public abstract class IRReferenceDrop extends Drop {
     computeBasedOnAST();
   }
   
+  public final void clearNode() {
+	node = null;
+  }
+  
   protected void computeBasedOnAST() {
   }
   

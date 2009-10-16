@@ -26,9 +26,13 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
     }
   }
   
-  public void setPromisedFor(IRNode n) {
+  public final void setPromisedFor(IRNode n) {
     checkArgument(promisedFor, n);
     promisedFor = n;
+  }
+  
+  public final void clearPromisedFor() {
+	  promisedFor = null;
   }
   
   public final AnnotationSource getSrcType() {

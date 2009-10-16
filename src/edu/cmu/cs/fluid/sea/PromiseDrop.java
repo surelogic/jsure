@@ -325,7 +325,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	@Override
 	protected void invalidate_internal() {
 		super.invalidate_internal();
+		if (getAST() != null) {
+			getAST().clearPromisedFor();
+		}
 		clearAST();
+		clearNode();
 	}
 
 	/**
