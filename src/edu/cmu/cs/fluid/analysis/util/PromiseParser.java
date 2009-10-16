@@ -15,6 +15,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseHelper;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
+import com.surelogic.annotation.parse.SLColorAnnotationsLexer;
 import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
@@ -166,6 +167,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 		super.preBuild(p);
 		ScopedPromisesLexer.init();
 		SLAnnotationsLexer.init();
+		SLColorAnnotationsLexer.init();
 	}
 
 	@Override
@@ -328,6 +330,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 		super.postBuild(project);
 		ScopedPromisesLexer.clear();
 		SLAnnotationsLexer.clear();
+		SLColorAnnotationsLexer.clear();
 	}
 	
 	/**
