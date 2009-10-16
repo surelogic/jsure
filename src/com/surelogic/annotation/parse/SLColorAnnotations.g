@@ -102,6 +102,24 @@ import com.surelogic.parse.*;
     emit(t);
     return t;
   }
+  
+  private static boolean initialized = true;
+  
+  public static synchronized void clear() {
+    initialized = false;
+    for(int i=0; i<DFA3_transition.length; i++) {
+      DFA3_transition[i] = null;
+    }
+  }
+  public static synchronized void init() {
+    if (initialized) {
+      return;
+    }
+    for (int i=0; i<DFA3_transition.length; i++) {
+      DFA3_transition[i] = DFA.unpackEncodedString(DFA3_transitionS[i]);
+    }
+    initialized = true;
+  }
 }
 
 /* Disables the default error handling so we can get the error immediately */
