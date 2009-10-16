@@ -552,7 +552,14 @@ public abstract class IDE {
 
   public void clearCaches() {
 	  for(IClassPathContext c : contexts.values()) {
-		  c.getTypeEnv().clearCaches();
+		  c.getTypeEnv().clearCaches(false);
+	  }
+	  JavaComponentFactory.clearCache();
+  }
+  
+  public void clearAll() {
+	  for(IClassPathContext c : contexts.values()) {
+		  c.getTypeEnv().clearCaches(true);
 	  }
 	  JavaComponentFactory.clearCache();
   }

@@ -199,5 +199,5 @@ public interface ITypeEnvironment {
 	IJavaType computeErasure(IJavaType t);
 
 	IJavaType convertNodeTypeToIJavaType(IRNode nodeType);
-	void clearCaches();
+	void clearCaches(boolean clearAll);
 }
