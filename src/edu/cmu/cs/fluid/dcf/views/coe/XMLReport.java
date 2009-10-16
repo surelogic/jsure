@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -58,16 +59,15 @@ public class XMLReport {
 	           XMLReport.generateReport(new PrintWriter(xmlFile), viewer, false);
 	           xmlFile.close();
 	         } catch (IOException e) {
-	           LOG.severe("Error writing XML results file ");
-	           e.printStackTrace();
+	           LOG.log(Level.SEVERE, "Error writing XML results file ", e);
 	           return; // bail out
 	         }
 	       }
 	    });
     } catch(InvocationTargetException e) {
-      e.printStackTrace();
+		SLLogger.getLogger().log(Level.SEVERE, "Problem exporting XML results", e);
     } catch(InterruptedException e) {
-      e.printStackTrace();
+		SLLogger.getLogger().log(Level.SEVERE, "Problem exporting XML results", e);
     }
   }
 
@@ -85,9 +85,9 @@ public class XMLReport {
 				}
 			});
 		} catch (InvocationTargetException e) {
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "Problem exporting XML results", e);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "Problem exporting XML results", e);
 		}
 	}
   
@@ -265,8 +265,7 @@ public class XMLReport {
     	out.flush(); // unnecessary?
     	out.close();
     } catch (IOException e) {
-    	LOG.severe("Error writing ZIP file ");
-    	e.printStackTrace();
+    	LOG.log(Level.SEVERE, "Error writing ZIP file ", e);
     	return; // bail out
     }
   }

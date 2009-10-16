@@ -111,7 +111,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 				}
 			} catch (Exception e) {
 				if (!(e instanceof FileNotFoundException)) {
-					e.printStackTrace();
+					SLLogger.getLogger().log(Level.SEVERE, "Problem parsing "+name+".promises.xml", e);
 				} else if (LOG.isLoggable(Level.FINER)) {
 					LOG.finer("Couldn't find file " + name + ".promises.xml");
 				}

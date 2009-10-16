@@ -58,7 +58,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 			// Go ahead and garbage collect the IR.
 			SlotInfo.gc();
 		} catch (Exception e) {
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "Problem while clearing JSure state", e);
 		}
 	}
 

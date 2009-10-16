@@ -1,8 +1,12 @@
 package com.surelogic.nonnull;
 
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.swt.internal.win32.LOGBRUSH;
+
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
@@ -87,8 +91,7 @@ public final class NonNull extends AbstractWholeIRAnalysisModule
         try {
           nonNullAnalysis = new SimpleNonnullAnalysis("Non Null Analysis", binder);
         } catch (SlotAlreadyRegisteredException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "Problem creating Non Null Analysis", e);
         }
       }
     });    

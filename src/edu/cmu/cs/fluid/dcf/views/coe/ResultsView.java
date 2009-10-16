@@ -369,7 +369,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			}
 			setViewState();
 		} catch (final Throwable t) {
-			t.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "Problem updating COE view", t);
 		}
 	}
 
@@ -394,8 +394,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			try {
 				zipFile = new FileOutputStream(filename);
 			} catch (final FileNotFoundException e) {
-				LOG.severe("Unable to create ZIP file ");
-				e.printStackTrace();
+				LOG.log(Level.SEVERE, "Unable to create ZIP file ", e);
 				MessageDialog.openError(shell, "Error exporting results",
 						"Unable to create ZIP results file");
 				exportZIPForStandAloneResultsViewer(); // try again
@@ -426,7 +425,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			new SeaSnapshot().snapshot(proj, Sea.getDefault(), location);
 			JSureXMLReader.readSnapshot(location, new TestListener());
 		} catch (final Exception e) {
-			e.printStackTrace();
+			SLLogger.getLogger().log(Level.SEVERE, "Problem exporting for Sierra", e);
 		}
 	}
 }
