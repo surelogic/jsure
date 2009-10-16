@@ -37,6 +37,8 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.eclipse.SLImages;
 
+import edu.cmu.cs.fluid.java.CommonStrings;
+
 /**
  * Java preference page to set preferences for double-checking. It reads and
  * updates the list of excluded analysis module extension points for
@@ -168,7 +170,7 @@ public final class PreferencePage extends
 			Set<String> result = new HashSet<String>();
 			for (PreferenceTreeNode node : m_checktreeContents) {
 				if (node.isOn) {
-					result.add(node.am.getUniqueIdentifier().intern());
+					result.add(CommonStrings.intern(node.am.getUniqueIdentifier()));
 				}
 			}
 			return result;

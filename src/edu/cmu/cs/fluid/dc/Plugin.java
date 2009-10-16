@@ -33,6 +33,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
 
 import edu.cmu.cs.fluid.analysis.util.WholeAnalysisModule;
+import edu.cmu.cs.fluid.java.CommonStrings;
 
 /**
  * The Eclipse plugin class for double-checker. This plugin drives the Eclipse
@@ -266,7 +267,7 @@ public class Plugin {
 			final boolean active = store.getBoolean(ANALYSIS_ACTIVE_PREFIX + id); 
 			if (active) {
 				//System.out.println("Really Included : "+id);
-				m_includedExtensions.add(id.intern());
+				m_includedExtensions.add(CommonStrings.intern(id));
 				
 				if (allAnalysisExtensions != null) {
 					ensureAnalysisPrereqsAreIncluded(id);
@@ -598,8 +599,7 @@ public class Plugin {
 			if (isExtensionIncluded(allAnalysisExtensions[i])) {
 				// user preference exclude
 				ids
-						.add(allAnalysisExtensions[i].getUniqueIdentifier()
-								.intern());
+						.add(CommonStrings.intern(allAnalysisExtensions[i].getUniqueIdentifier()));
 				ams.add(allAnalysisExtensions[i]);
 			}
 		}
@@ -611,8 +611,7 @@ public class Plugin {
 				IConfigurationElement currentConfigElement = analysisConfigElements[j];
 				if (currentConfigElement.getName().equalsIgnoreCase(
 						"prerequisite")) {
-					if (!ids.contains(currentConfigElement.getAttribute("id")
-							.intern())) {
+					if (!ids.contains(CommonStrings.intern(currentConfigElement.getAttribute("id")))) {
 						String logMessage = "The identified prerequisite \""
 								+ currentConfigElement.getAttribute("id")
 								+ "\" for \""
@@ -691,7 +690,7 @@ public class Plugin {
 			m_analysisExtensionSets.add(thisLevel);
 			remainingAnalyses.removeAll(thisLevel);
 			for (IExtension cur : thisLevel) {
-				lowerLevels.add(cur.getUniqueIdentifier().intern());
+				lowerLevels.add(CommonStrings.intern(cur.getUniqueIdentifier()));
 			}
 			thisLevel = new HashSet<IExtension>();
 		}
@@ -718,7 +717,7 @@ public class Plugin {
 		for (int j = 0; j < analysisConfigElements.length; j++) {
 			IConfigurationElement currentConfigElement = analysisConfigElements[j];
 			if (currentConfigElement.getName().equalsIgnoreCase("prerequisite")) {
-				result.add(currentConfigElement.getAttribute("id").intern());
+				result.add(CommonStrings.intern(currentConfigElement.getAttribute("id")));
 			}
 		}
 		return result;
@@ -912,7 +911,7 @@ public class Plugin {
 	 *         <code>false</code> otherwise
 	 */
 	private boolean isExtensionIncluded(String id) {
-		return m_includedExtensions.contains(id.intern());
+		return m_includedExtensions.contains(id);
 	}
 
 	public Iterable<String> getIncludedExtensions() {
