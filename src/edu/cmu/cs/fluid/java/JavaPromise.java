@@ -778,8 +778,10 @@ public class JavaPromise extends JavaNode {
 	 */
 	static SlotInfo[] promiseChildrenInfo =
 	{
+//    promisedForSlotInfo,
 	returnNodeSlotInfo,
 	receiverNodeSlotInfo,
+	qualifiedReceiverNodeSlotInfo,
 	initMethodSlotInfo,
 	classInitMethodSlotInfo,
 /*
