@@ -550,18 +550,22 @@ public abstract class IDE {
     return old;
   }
 
-  public void clearCaches() {
-	  for(IClassPathContext c : contexts.values()) {
-		  c.getTypeEnv().clearCaches(false);
-	  }
+  protected void clearCaches_internal() {
 	  JavaComponentFactory.clearCache();
   }
   
-  public void clearAll() {
+  public final void clearCaches() {
+	  for(IClassPathContext c : contexts.values()) {
+		  c.getTypeEnv().clearCaches(false);
+	  }
+	  clearCaches_internal();
+  }
+  
+  public final void clearAll() {
 	  for(IClassPathContext c : contexts.values()) {
 		  c.getTypeEnv().clearCaches(true);
 	  }
-	  JavaComponentFactory.clearCache();
+	  clearCaches_internal();
   }
 }
 
