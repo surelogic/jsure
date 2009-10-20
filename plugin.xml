@@ -383,6 +383,13 @@
 			</action>
 
 			<action
+				class="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
+				id="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
+				label="Run JSure Tutorials" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
+				helpContextId="menu-run-jsure-tutorials">
+			</action>
+			
+			<action
 				class="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
 				id="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
 				label="Send Problem Report" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
@@ -393,12 +400,6 @@
 				id="com.surelogic.jsure.client.eclipse.actions.SendTipAction" label="Send Tip for Improvement"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
 				helpContextId="menu-send-tip-for-improvement">
-			</action>
-			<action	
-				class="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
-				id="com.surelogic.jsure.client.eclipse.actions.ImportTutorialProjectsAction"
-				label="Run JSure Tutorials" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
-				helpContextId="menu-run-jsure-tutorials">
 			</action>
 		</actionSet>
 	</extension>
