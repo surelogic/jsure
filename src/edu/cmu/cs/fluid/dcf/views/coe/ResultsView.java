@@ -359,8 +359,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			final long start = System.currentTimeMillis();
 			f_contentProvider.buildModelOfDropSea();
 			final long buildEnd = System.currentTimeMillis();
-			SLLogger.getLogger().log(Level.INFO,
-					"Time to build model  = " + (buildEnd - start) + " ms");
+			System.err.println("Time to build model  = " + (buildEnd - start) + " ms");
 			if (IJavaFileLocator.testIRPaging) {
 				final EclipseFileLocator loc = (EclipseFileLocator) IDE
 						.getInstance().getJavaFileLocator();

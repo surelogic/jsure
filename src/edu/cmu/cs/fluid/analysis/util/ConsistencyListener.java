@@ -24,8 +24,7 @@ public class ConsistencyListener implements IAnalysisListener {
 		Sea.getDefault().updateConsistencyProof();
 		long proofEnd = System.currentTimeMillis();
 
-		SLLogger.getLogger().log(Level.INFO,
-				"Time to update proof = " + (proofEnd - start) + " ms");
+		System.err.println("Time to update proof = " + (proofEnd - start) + " ms");
 
 		TestResult.checkConsistency();
 	}

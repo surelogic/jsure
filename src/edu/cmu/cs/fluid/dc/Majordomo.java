@@ -1015,19 +1015,19 @@ public final class Majordomo extends AbstractJavaBuilder implements
 			for (IMarker marker : problems) {
 				if (IMarker.SEVERITY_ERROR == marker.getAttribute(
 						IMarker.SEVERITY, IMarker.SEVERITY_INFO)) {
-					LOG.info("***** MARKER Message: "
+					LOG.fine("***** MARKER Message: "
 							+ marker.getAttribute(IMarker.MESSAGE));
-					LOG.info("***** MARKER Line #: "
+					LOG.fine("***** MARKER Line #: "
 							+ marker.getAttribute(IMarker.LINE_NUMBER));
-					LOG.info("***** MARKER File: "
+					LOG.fine("***** MARKER File: "
 							+ marker.getAttribute(IMarker.LOCATION));
-					LOG.info("***** MARKER Message: "
+					LOG.fine("***** MARKER Message: "
 							+ marker.getAttribute(IMarker.MESSAGE));
 					return false; // we found an error (bail out)
 				}
 			}
 		} else {
-			LOG.warning("NO BUILD STATE");
+			LOG.info("NO BUILD STATE");
 		}
 		return result;
 	}
