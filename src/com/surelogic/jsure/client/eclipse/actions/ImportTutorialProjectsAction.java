@@ -5,6 +5,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.dialogs.InstallTutorialProjectsDialog;
 
@@ -24,6 +25,7 @@ public class ImportTutorialProjectsAction implements
 		final ClassLoader loader = Thread.currentThread()
 				.getContextClassLoader();
 		InstallTutorialProjectsDialog.open(SWTUtility.getShell(),
+				CommonImages.IMG_JSURE_LOGO,
 				"/com.surelogic.jsure.client.help/ch01s03.html", loader
 						.getResource("/lib/PlanetBaronJSure.zip"), loader
 						.getResource("/lib/BoundedFIFOJSure.zip"));
