@@ -149,6 +149,9 @@ public final class PackageLevelPreprocessing extends
 			}
 		});
 		// Need analyzeCompilationUnit to be called to collect which CUs changed
+		if (kind == IResourceDelta.REMOVED) {
+			return true;
+		}
 		return false;
 	}
 
