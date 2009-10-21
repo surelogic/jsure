@@ -73,6 +73,8 @@ public final class Nature extends AbstractNature {
 	private static final String PROMISES_JAR = "promises.jar";
 
 	private static final String PROMISES_JAVADOC_JAR = "promises-javadoc.jar";
+	
+	private static final boolean useSeparateJavadocJar = false;
 
 	public Nature() {
 		super(DOUBLE_CHECKER_BUILDER_ID);
@@ -228,8 +230,9 @@ public final class Nature extends AbstractNature {
 														+ useJarPath
 														+ "\".  Would you like to overwrite it?");
 							}
-							final IFile useJavadoc = useJar.getParent()
-									.getFile(new Path(PROMISES_JAVADOC_JAR));
+							final IFile useJavadoc = useSeparateJavadocJar ? 
+								useJar.getParent().getFile(new Path(PROMISES_JAVADOC_JAR)) :
+								useJar; // Reuse promises jar otherwise
 							if (createJar) {
 								// Remove first if already exists
 								if (useJar.exists()) {
@@ -237,8 +240,10 @@ public final class Nature extends AbstractNature {
 								}
 								useJar.create(LibResources.getPromisesJar(),
 										false, null);
-								useJavadoc.create(LibResources
+								if (useSeparateJavadocJar) {
+									useJavadoc.create(LibResources
 										.getPromisesJavadocJar(), false, null);
+								}
 							}
 
 							// Update build path
