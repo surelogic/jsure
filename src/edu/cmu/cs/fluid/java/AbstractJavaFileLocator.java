@@ -324,11 +324,13 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
   
   public synchronized IJavaFileStatus<T> unregister(T handle) {
 	  JavaFileStatus<T,P> s = resources.remove(handle);
-	  // TODO cleanup -- unload?
-	  destroy(s.astChunk1.getRegion());
-	  destroy(s.astChunk2.getRegion());
-	  destroy(s.canonChunk1.getRegion());
-	  destroy(s.canonChunk2.getRegion());
+	  if (s != null) {
+		  // TODO cleanup -- unload?
+		  destroy(s.astChunk1.getRegion());
+		  destroy(s.astChunk2.getRegion());
+		  destroy(s.canonChunk1.getRegion());
+		  destroy(s.canonChunk2.getRegion());
+	  }
 	  return s;
   }
   
