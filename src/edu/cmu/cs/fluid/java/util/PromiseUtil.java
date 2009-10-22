@@ -161,7 +161,8 @@ public final class PromiseUtil {
       } else if (
         op == NestedClassDeclaration.prototype
           || op == NestedInterfaceDeclaration.prototype
-          || op == AnonClassExpression.prototype) {
+          || op == AnonClassExpression.prototype
+          || op == NestedAnnotationDeclaration.prototype) {
         addRequiredTypePromises(binder, helper, node, added);
       } else if (EnumDeclaration.prototype.includes(op)) {
         addRequiredTypePromises(binder, helper, node, added);

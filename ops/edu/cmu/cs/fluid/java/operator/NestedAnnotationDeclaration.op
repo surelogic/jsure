@@ -1,0 +1,17 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/AnnotationDeclaration.op,v 1.9 2007/05/09 14:24:36 chance Exp $
+public operator NestedAnnotationDeclaration extends AnnotationDeclaration /* implements FlowUnit */
+implements NestedDeclInterface
+{
+  // Exactly like AnnotationDecl
+  syntax {
+    annos:Annotations
+    $mods:Modifiers(public,abstract) "@interface" $id:Info body:ClassBody
+  }
+  properties {
+    binding=Annotation
+  }
+  
+  public Operator getResultOp() {
+    return NestedAnnotationDeclaration.prototype;
+  }
+}
