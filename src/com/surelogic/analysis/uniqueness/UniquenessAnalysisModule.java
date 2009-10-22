@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/uniqueness/UniquenessAnalysisModule.java,v 1.2 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis.uniqueness;
 
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -19,6 +20,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
@@ -26,12 +28,38 @@ import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnalysis> {
-	public UniquenessAnalysisModule() {
+  private static final Category DSC_UNIQUE_PARAMS_SATISFIED =
+    Category.getInstance(Messages.Category_uniqueParametersSatisfied);
+  
+  private static final Category DSC_UNIQUE_PARAMS_UNSATISFIED =
+    Category.getInstance(Messages.Category_uniqueParametersUnsatisfied);
+  
+  
+  
+  /**
+   * Map from promise drops to "intermediate result drops" that are used
+   * to allow promises to depend on other promises.  There should be only
+   * one intermediate result, so we cache it here.
+   */
+  private final Map<PromiseDrop<? extends IAASTRootNode>, ResultDrop> intermediateResultDrops =
+    new HashMap<PromiseDrop<? extends IAASTRootNode>, ResultDrop>();
+
+  /**
+   * All the method control flow result drops we create.  We scan this at the
+   * end to invalidate any drops that are not used.
+   */
+  private final Set<ResultDrop> controlFlowDrops = new HashSet<ResultDrop>();
+  
+  
+  
+  public UniquenessAnalysisModule() {
 		super("UniqueAnalysis");
 	}
 
+  
+  
 	public void init(IIRAnalysisEnvironment env) {
-		// TODO Auto-generated method stub
+		// Nothing to do
 	}
 
 	@Override
@@ -47,6 +75,16 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 
 	@Override
 	protected void clearCaches() {
+	  intermediateResultDrops.clear();
+	  
+	  // Remove any control flow drops that aren't used for anything
+	  for (final ResultDrop cfDrop : controlFlowDrops) {
+	    if (cfDrop.getTrusts().isEmpty()) {
+	      cfDrop.invalidate();
+	    }
+	  }
+	  controlFlowDrops.clear();
+	  
 		getAnalysis().clearCaches();
 	}
 	
@@ -103,7 +141,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			final IRNode insideBlock = getContainingBlock(currentNode);
 			if (insideBlock != null) {
 				final PromiseRecord pr = getCachedPromiseRecord(insideBlock);
-				checkMethodBody(currentNode, pr);
 				checkMethodCall(currentNode, pr);
 				checkForError(currentNode, pr);
 			}
@@ -249,47 +286,32 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 
 	private void checkForError(final IRNode node, final PromiseRecord pr) {
 		if (isInvalid(node)) {
-			final ResultDrop rd = new ResultDrop("UniquenessAssurance_error");
-			setResultDependUponDrop(rd, node);
-			rd.setInconsistent();
-			rd.setMessage(getErrorMessage(node) + " " + DebugUnparser.toString(node)); //$NON-NLS-1$
-			rd.addCheckedPromise(pr.controlFlow);
-		}
-	}
-
-	public void checkMethodBody(final IRNode node, final PromiseRecord pr) {
-		final Operator op = JJNode.tree.getOperator(node);
-		if (MethodBody.prototype.includes(op)) {
-			if (getAnalysis().isPositivelyAssured(node)) {
-				ResultDrop rd = new ResultDrop("UniquenessAssurance_uniquenessContraints1");
-				rd.addCheckedPromise(pr.controlFlow);
-				rd.setConsistent();
-				setResultDependUponDrop(rd, node);
-				rd.setMessage(Messages.UniquenessAssurance_uniquenessContraints1); //$NON-NLS-1$
-			} else {
-				ResultDrop rd = new ResultDrop("UniquenessAssurance_uniquenessContraints2");
-				rd.addCheckedPromise(pr.controlFlow);
-				rd.setInconsistent();
-				setResultDependUponDrop(rd, node);
-				rd.setMessage(Messages.UniquenessAssurance_uniquenessContraints2); //$NON-NLS-1$
-			}
+		  final ResultDrop cfDrop = pr.controlFlow;
+		  cfDrop.setInconsistent();
+		  cfDrop.addSupportingInformation(getErrorMessage(node), node);
 		}
 	}
 
 	public void checkMethodCall(final IRNode node, final PromiseRecord pr) {
 		if (JJNode.tree.getOperator(node) instanceof CallInterface) {
 			final Set<ResultDrop> callDrops = pr.callsToDrops.get(node);
-
+			
 			if (getAnalysis().isPositivelyAssured(node)) {
 				for (ResultDrop callDrop : callDrops) {
 					callDrop.setConsistent();
+					if (pr.calledUniqueParams.contains(callDrop)) {
+					  callDrop.setMessage(Messages.uniqueParametersSatisfied, DebugUnparser.toString(node));
+					  callDrop.setCategory(DSC_UNIQUE_PARAMS_SATISFIED);
+					}
 				}
 			} else {
 				for (ResultDrop callDrop : callDrops) {
 					callDrop.setInconsistent();
-//					callDrop.setMessage(Messages.UniquenessAssurance_checkMethodCallDrop,
-//					callDrop.getMessage(), analysisContext.uniqueAnalysis
-//					.isInvalid(node), getErrorMessage(node)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+          callDrop.addSupportingInformation(getErrorMessage(node), node);
+					if (pr.calledUniqueParams.contains(callDrop)) {
+					  callDrop.setMessage(Messages.uniqueParametersUnsatisfied, DebugUnparser.toString(node));
+					  callDrop.setCategory(DSC_UNIQUE_PARAMS_UNSATISFIED);
+					}
 				}
 			}
 		}
@@ -350,26 +372,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					|| FieldDeclaration.prototype.includes(op)) {
 				return node;
 			}
-//			if (VariableDeclarator.prototype.includes(op)) {
-//			// found an initializer, is it a field initializer?
-//			if (FieldDeclaration.prototype.includes(
-//			JJNode.tree.getOperator(
-//			JJNode.tree.getParent(
-//			JJNode.tree.getParent(node))))) {
-//			return node;
-//			}
-//			}
-
-//			if (Initialization.prototype.includes(op)) {
-//			// found an initializer, is it a field initializer?
-//			if (FieldDeclaration.prototype.includes(
-//			JJNode.tree.getOperator(
-//			JJNode.tree.getParent(
-//			JJNode.tree.getParent(
-//			JJNode.tree.getParent(node)))))) {
-//			return node;
-//			}
-//			}
 			node = JJNode.tree.getParentOrNull(node);
 		}
 		return null;
@@ -398,7 +400,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	 * A record of the annotations that are interesting for a particular
 	 * MethodDeclaration, ConstructorDeclaration, ClassInitializer, or Initialzer.
 	 */
-	private static class PromiseRecord {
+	private class PromiseRecord {
 		/** The unique parameters declared by this method/constructor */
 		public final Set<UniquePromiseDrop> myUniqueParams;
 
@@ -411,9 +413,18 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		/** Method call drops for each invoked method that has unique parameters */
 		public final Set<ResultDrop> calledUniqueParams;
 
-		/** Method call drops for each invoked method that has unique return */
-		public final Set<ResultDrop> calledUniqueReturns;
+		/**
+		 * Method call drops for each invoked method that has unique return;
+		 * Map from the method call drop to the unique promise about the return value.
+		 */
+		public final Map<ResultDrop, UniquePromiseDrop> calledUniqueReturns;
 
+		/**
+		 * Method call drops for each invoked constructor that has a borrowed
+		 * receiver.  Map from the method call drop to the borrowed promise.
+		 */
+		public final Map<ResultDrop, BorrowedPromiseDrop> calledBorrowedConstructors;
+		
 		/** Method call drops for each invoked method that has borrowed parameters */
 		public final Set<ResultDrop> calledBorrowedParams;
 
@@ -424,7 +435,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		public final Set<UniquePromiseDrop> uniqueFields;
 
 		/** Drop for control-flow within this block */
-		public final MethodControlFlow controlFlow;
+		public final ResultDrop controlFlow;
 
 		/**
 		 * Map from method/constructor calls to the set of result drops that
@@ -436,25 +447,61 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			myUniqueParams = new HashSet<UniquePromiseDrop>();
 			myBorrowedParams = new HashSet<BorrowedPromiseDrop>();
 			myUniqueReturn = new HashSet<UniquePromiseDrop>();
-			calledUniqueReturns = new HashSet<ResultDrop>();
+			calledUniqueReturns = new HashMap<ResultDrop, UniquePromiseDrop>();
+			calledBorrowedConstructors = new HashMap<ResultDrop, BorrowedPromiseDrop>();
 			calledUniqueParams = new HashSet<ResultDrop>();
 			calledBorrowedParams = new HashSet<ResultDrop>();
 			calledEffects = new HashSet<ResultDrop>();
 			uniqueFields = new HashSet<UniquePromiseDrop>();
 
 			callsToDrops = new HashMap<IRNode, Set<ResultDrop>>();
-
+			
 			// Create the control flow drop for the block
-			controlFlow = MethodControlFlow.getDropFor(block);
+			controlFlow = getMethodControlFlowDrop(block);
 		}
 	}
 
+	private final Map<IRNode, ResultDrop> cachedControlFlow = new HashMap<IRNode, ResultDrop>();
+	
+	private ResultDrop getMethodControlFlowDrop(final IRNode block) {
+    ResultDrop drop = cachedControlFlow.get(block);
+    if (drop == null || !drop.isValid()) {
+      drop = new ResultDrop("methodControlFlow");
+      drop.setConsistent();
+      setResultDependUponDrop(drop, block);
+
+      final String message;
+      final Operator op = JJNode.tree.getOperator(block);
+      if (ConstructorDeclaration.prototype.includes(op)) {
+        message = MessageFormat.format(
+            Messages.methodControlFlow, "constructor",
+            JavaNames.genMethodConstructorName(block));
+      } else if (MethodDeclaration.prototype.includes(op)) {
+        message = MessageFormat.format(
+            Messages.methodControlFlow, "method",
+            JavaNames.genMethodConstructorName(block));
+      } else if (ClassInitializer.prototype.includes(op)) {
+        message = MessageFormat.format(
+            Messages.methodControlFlow, "initializer",
+            DebugUnparser.toString(block));
+      } else { // Field declaration
+        message = MessageFormat.format(
+            Messages.methodControlFlow, "field initializer",
+            DebugUnparser.toString(block));
+      }
+      drop.setMessage(message);
+      cachedControlFlow.put(block, drop);
+      controlFlowDrops.add(drop);
+    }
+    return drop;
+	}
+	
 	private PromiseRecord createPromiseRecordFor(final IRNode block) {
 		final PromiseRecord pr = new PromiseRecord(block);
 		final Operator blockOp = JJNode.tree.getOperator(block);
 
 		/*
-		 * If the block is an FieldDeclaration, see if it contains any unique fields.
+		 * If the block is a FieldDeclaration, see if it contains any unique fields.
 		 */
 		if (FieldDeclaration.prototype.includes(blockOp)) {
 			final IRNode variableDeclarators = FieldDeclaration.getVars(block);
@@ -465,22 +512,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			}
 		}
 
-//		if (VariableDeclarator.prototype.includes(blockOp)) {
-//		final IRNode variableDeclarators = JJNode.tree.getParent(block);
-//		final IRNode possibleFieldDeclaration = JJNode.tree.getParent(variableDeclarators);
-//		if (FieldDeclaration.prototype.includes(
-//		JJNode.tree.getOperator(possibleFieldDeclaration))) {
-//		if (UniquenessRules.isUnique(block)) {
-//		pr.uniqueFields.add(UniquenessRules.getUniqueDrop(block));
-//		}
-//		}
-//		}
-
 		// If the block is a method declaration, get promise information from it
 		if (ConstructorDeclaration.prototype.includes(blockOp)
 				|| MethodDeclaration.prototype.includes(blockOp)) {
 			// don't care about my effects, use a throw-away set here
-			getPromisesFromMethodDecl(block, pr.myUniqueReturn, pr.myBorrowedParams,
+			getPromisesFromMethodDecl(block, pr.myUniqueReturn,
+			    pr.myBorrowedParams, new HashSet<BorrowedPromiseDrop>(),
 					pr.myUniqueParams, new HashSet<RegionEffectsPromiseDrop>());
 		}
 
@@ -504,40 +541,55 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 
 				// get the info for the called method
 				final Set<UniquePromiseDrop> uniqueReturns = new HashSet<UniquePromiseDrop>();
-				final Set<BorrowedPromiseDrop> borrowedParams = new HashSet<BorrowedPromiseDrop>();
+        final Set<BorrowedPromiseDrop> borrowedParams = new HashSet<BorrowedPromiseDrop>();
+        final Set<BorrowedPromiseDrop> borrowedReceiver = new HashSet<BorrowedPromiseDrop>();
 				final Set<UniquePromiseDrop> uniqueParams = new HashSet<UniquePromiseDrop>();
 				final Set<RegionEffectsPromiseDrop> effects = new HashSet<RegionEffectsPromiseDrop>();
-				getPromisesFromMethodDecl(declNode, uniqueReturns, borrowedParams,
+				getPromisesFromMethodDecl(
+				    declNode, uniqueReturns, borrowedParams, borrowedReceiver,
 						uniqueParams, effects);
 
 				// Create the method call drops
 				final Set<ResultDrop> allCallDrops = new HashSet<ResultDrop>();
 				final String label = DebugUnparser.toString(currentNode);
 				if (!uniqueReturns.isEmpty()) {
-					final ResultDrop callDrop = getMethodCallDrop("UniquenessAssurance_uniqueReturnDrop",
-							Messages.UniquenessAssurance_uniqueReturnDrop + label + "\"", currentNode, uniqueReturns); //$NON-NLS-1$ //$NON-NLS-2$
+					final ResultDrop callDrop = getMethodCallDrop("uniqueReturnDrop",
+					    MessageFormat.format(Messages.uniqueReturnDrop, label),
+					    currentNode, uniqueReturns);
 					allCallDrops.add(callDrop);
-					pr.calledUniqueReturns.add(callDrop);
+					// Unique returns is a singleton set
+					pr.calledUniqueReturns.put(callDrop, uniqueReturns.iterator().next());
 				}
 				if (!borrowedParams.isEmpty()) {
-					final ResultDrop callDrop = getMethodCallDrop("UniquenessAssurance_borrowedParametersDrop",
-							Messages.UniquenessAssurance_borrowedParametersDrop + label
-							+ "\"", currentNode, borrowedParams); //$NON-NLS-1$ //$NON-NLS-2$
+					final ResultDrop callDrop = getMethodCallDrop("borrowedParametersDrop",
+					    MessageFormat.format(Messages.borrowedParametersDrop, label),
+							currentNode, borrowedParams);
 					allCallDrops.add(callDrop);
 					pr.calledBorrowedParams.add(callDrop);
+					
+					if (NewExpression.prototype.includes(op) && !borrowedReceiver.isEmpty()) {
+					  // Borrowed receivers is a singleton set
+					  pr.calledBorrowedConstructors.put(callDrop, borrowedReceiver.iterator().next());
+					}
 				}
 				if (!uniqueParams.isEmpty()) {
-					final ResultDrop callDrop = getMethodCallDrop("UniquenessAssurance_uniqueParametersDrop",
-							Messages.UniquenessAssurance_uniqueParametersDrop + label + "\"", currentNode, uniqueParams); //$NON-NLS-1$ //$NON-NLS-2$
-					final CalledMethodsWithUniqueParams pd =
-						CalledMethodsWithUniqueParams.getDropFor(currentNode);
-					callDrop.addCheckedPromise(pd);
+				  /* Here we hold off setting the message and category until the 
+				   * call is actually assured in checkMethodCall()
+				   */
+					final ResultDrop callDrop = new ResultDrop("uniqueParametersDrop");
+					callDrop.setConsistent();
+          setResultDependUponDrop(callDrop, currentNode);
+          // This result checks the uniqueness promises of the parameters
+          for (final UniquePromiseDrop uniqueParam : uniqueParams) {
+            callDrop.addCheckedPromise(uniqueParam);
+          }
 					allCallDrops.add(callDrop);
 					pr.calledUniqueParams.add(callDrop);
 				}
 				if (!effects.isEmpty()) {
-					final ResultDrop callDrop = getMethodCallDrop("UniquenessAssurance_effectOfCallDrop",
-							Messages.UniquenessAssurance_effectOfCallDrop + label + "\"", currentNode, effects); //$NON-NLS-1$ //$NON-NLS-2$
+					final ResultDrop callDrop = getMethodCallDrop("effectOfCallDrop",
+					    MessageFormat.format(Messages.effectOfCallDrop, label),
+					    currentNode, effects);
 					allCallDrops.add(callDrop);
 					pr.calledEffects.add(callDrop);
 				}
@@ -548,20 +600,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		}
 
 		/*
-		 * TODO: Find a better place to put this. This method should get run exactly
-		 * once for each method in the CU that has anything to do with uniqueness.
-		 * So we set up all the cross dependences now.
-		 */
-
-		/*
 		 * Set up the borrowed dependencies. Each parameter of the method that is
 		 * declared to be borrowed trusts the @borrowed annotations of any methods
 		 * called by the body of this method.
 		 */
 		{
-			final Set<MethodControlFlow> dependsOnPromises = Collections.singleton(pr.controlFlow);
 			final Set<ResultDrop> dependsOnResults = new HashSet<ResultDrop>(pr.calledBorrowedParams);
-			addDependencies(pr.myBorrowedParams, dependsOnPromises, dependsOnResults);
+			dependsOnResults.add(pr.controlFlow);
+      addDependencies(pr.myBorrowedParams, intermediateResultDrops, Collections.<PromiseDrop>emptySet(), dependsOnResults);
 		}
 
 		/*
@@ -576,12 +622,13 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 			dependsOnPromises.addAll(pr.myUniqueParams);
 			dependsOnPromises.addAll(pr.uniqueFields);
-			dependsOnPromises.add(pr.controlFlow);
 			final Set<ResultDrop> dependsOnResults = new HashSet<ResultDrop>();
-			dependsOnResults.addAll(pr.calledUniqueReturns);
+			dependsOnResults.add(pr.controlFlow);
+      dependsOnResults.addAll(pr.calledUniqueReturns.keySet());
+      dependsOnResults.addAll(pr.calledBorrowedConstructors.keySet());
 			dependsOnResults.addAll(pr.calledBorrowedParams);
 			dependsOnResults.addAll(pr.calledEffects);
-			addDependencies(pr.uniqueFields, dependsOnPromises, dependsOnResults);
+			addDependencies(pr.uniqueFields, intermediateResultDrops, dependsOnPromises, dependsOnResults);
 		}
 
 		/*
@@ -595,10 +642,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 			dependsOnPromises.addAll(pr.myUniqueParams);
 			dependsOnPromises.addAll(pr.uniqueFields);
-			dependsOnPromises.add(pr.controlFlow);
 			final Set<ResultDrop> dependsOnResults = new HashSet<ResultDrop>();
-			dependsOnResults.addAll(pr.calledUniqueReturns);
-			addDependencies(pr.myUniqueReturn, dependsOnPromises, dependsOnResults);
+	    dependsOnResults.add(pr.controlFlow);
+  		dependsOnResults.addAll(pr.calledUniqueReturns.keySet());
+  		dependsOnResults.addAll(pr.calledBorrowedConstructors.keySet());
+			addDependencies(pr.myUniqueReturn, intermediateResultDrops, dependsOnPromises, dependsOnResults);
 		}
 
 		/*
@@ -612,10 +660,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 			dependsOnPromises.addAll(pr.myUniqueParams);
 			dependsOnPromises.addAll(pr.uniqueFields);
-			dependsOnPromises.add(pr.controlFlow);
-			final Set<ResultDrop> dependsOnResults = new HashSet<ResultDrop>();
-			dependsOnResults.addAll(pr.calledUniqueReturns);
-			if (!dependsOnPromises.isEmpty() && !dependsOnResults.isEmpty()) {
+			if (!(dependsOnPromises.isEmpty() && pr.calledUniqueReturns.isEmpty() && pr.calledBorrowedConstructors.isEmpty())) {
 				for (ResultDrop callToCheck : pr.calledUniqueParams) {
 					// Add depended upon promises
 					for (final PromiseDrop<? extends IAASTRootNode> trustedPD : dependsOnPromises) {
@@ -625,10 +670,23 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 						}
 					}
 
-					// Add depended on method calls, etc.
-					for (ResultDrop rd : dependsOnResults) {
-						callToCheck.addDependent(rd);
+					// Add depended on method calls
+					for (Map.Entry<ResultDrop, UniquePromiseDrop> entry : pr.calledUniqueReturns.entrySet()) {
+					  final IRNode methodCall = entry.getKey().getNode();
+					  callToCheck.addSupportingInformation(
+					      MessageFormat.format(Messages.uniqueReturnValue,
+					          DebugUnparser.toString(methodCall)), methodCall);
+					  callToCheck.addTrustedPromise(entry.getValue());
 					}
+
+          // Add depended on borrowed constructors
+          for (Map.Entry<ResultDrop, BorrowedPromiseDrop> entry : pr.calledBorrowedConstructors.entrySet()) {
+            final IRNode constructorCall = entry.getKey().getNode();
+            callToCheck.addSupportingInformation(
+                MessageFormat.format(Messages.borrowedConstructor,
+                    DebugUnparser.toString(constructorCall)), constructorCall);
+            callToCheck.addTrustedPromise(entry.getValue());
+          }
 				}
 			}
 		}
@@ -656,6 +714,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	private void getPromisesFromMethodDecl(final IRNode mdecl,
 			final Set<UniquePromiseDrop> uniqueReturns,
 			final Set<BorrowedPromiseDrop> borrowedParams,
+			final Set<BorrowedPromiseDrop> borrowedReceiver,
 			final Set<UniquePromiseDrop> uniqueParams,
 			final Set<RegionEffectsPromiseDrop> effects) {
 		final Operator op = JJNode.tree.getOperator(mdecl);
@@ -675,12 +734,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		// Get the @borrowed and @unique params drops, if any
 		if (!TypeUtil.isStatic(mdecl)) { // don't forget the receiver
 			final IRNode self = JavaPromise.getReceiverNode(mdecl);
-			final BorrowedPromiseDrop borrowedRcvrDrop =
-				UniquenessRules.getBorrowedDrop(self);
-			final UniquePromiseDrop uniqueRcvrDrop =
-				UniquenessRules.getUniqueDrop(self);
+			final BorrowedPromiseDrop borrowedRcvrDrop = UniquenessRules.getBorrowedDrop(self);
+			final UniquePromiseDrop uniqueRcvrDrop = UniquenessRules.getUniqueDrop(self);
 			if (borrowedRcvrDrop != null) {
 				borrowedParams.add(borrowedRcvrDrop);
+				borrowedReceiver.add(borrowedRcvrDrop);
 			}
 			if (uniqueRcvrDrop != null) {
 				uniqueParams.add(uniqueRcvrDrop);
@@ -688,24 +746,24 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		}
 		final IRNode myParams = isConstructor ? ConstructorDeclaration
 				.getParams(mdecl) : MethodDeclaration.getParams(mdecl);
-				for (int i = 0; i < JJNode.tree.numChildren(myParams); i++) {
-					final IRNode param = JJNode.tree.getChild(myParams, i);
-					final BorrowedPromiseDrop borrowedDrop = UniquenessRules.getBorrowedDrop(param);
-					final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(param);
-					if (borrowedDrop != null) {
-						borrowedParams.add(borrowedDrop);
-					}
-					if (uniqueDrop != null) {
-						uniqueParams.add(uniqueDrop);
-					}
-				}
+		for (int i = 0; i < JJNode.tree.numChildren(myParams); i++) {
+			final IRNode param = JJNode.tree.getChild(myParams, i);
+			final BorrowedPromiseDrop borrowedDrop = UniquenessRules.getBorrowedDrop(param);
+			final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(param);
+			if (borrowedDrop != null) {
+				borrowedParams.add(borrowedDrop);
+			}
+			if (uniqueDrop != null) {
+				uniqueParams.add(uniqueDrop);
+			}
+		}
 
-				// get effects
-				if (true) {
-					final RegionEffectsPromiseDrop fx = MethodEffectsRules.getRegionEffectsDrop(mdecl);
-					if (fx != null)
-						effects.add(fx);
-				}
+		// get effects
+		if (true) {
+			final RegionEffectsPromiseDrop fx = MethodEffectsRules.getRegionEffectsDrop(mdecl);
+			if (fx != null)
+				effects.add(fx);
+		}
 	}
 
 	private <D extends PromiseDrop<? extends IAASTNode>> ResultDrop
@@ -723,29 +781,33 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	private <PD1 extends PromiseDrop<? extends IAASTRootNode>,
 	PD2 extends PromiseDrop<? extends IAASTRootNode>>
 	void addDependencies(final Set<PD1> promises,
+      final Map<PromiseDrop<? extends IAASTRootNode>, ResultDrop> intermediateDrops,
 			final Set<PD2> dependsOnPromises,
 			final Set<ResultDrop> dependsOnResults) {
 		if (!dependsOnPromises.isEmpty() || !dependsOnResults.isEmpty()) {
 			for (final PD1 promiseToCheck : promises) {
-				// Add depended upon promises
-				if (!dependsOnPromises.isEmpty()) {
-					final ResultDrop middleDrop = new ResultDrop("UniquenessAssurance_dependencyDrop");
-					middleDrop.addCheckedPromise(promiseToCheck);
-					middleDrop.setConsistent();
-					middleDrop.setMessage(Messages.UniquenessAssurance_dependencyDrop); //$NON-NLS-1$
-					middleDrop.setNode(promiseToCheck.getNode());
+				/* Add depended upon promises, skipping ourself (avoid direct
+				 * self-dependency).  So we proceed if dependsOnPromises contains
+				 * promiseToCheck but has size >= 2, or if dependsOnPromises has size >= 1.
+				 */
+			  if (dependsOnPromises.contains(promiseToCheck) ? dependsOnPromises.size() >= 2 : dependsOnPromises.size() >= 1) {
+				  ResultDrop middleDrop = intermediateDrops.get(promiseToCheck);
+				  if (middleDrop == null) {
+				    middleDrop = new ResultDrop("dependencyDrop");
+	          middleDrop.setNode(promiseToCheck.getNode());
+	          middleDrop.setConsistent();
+	          middleDrop.setMessage(Messages.dependencyDrop);
+	          middleDrop.addCheckedPromise(promiseToCheck);
+	          intermediateDrops.put(promiseToCheck, middleDrop);
+				  }
 
-					boolean addedTrustedDrop = false;
 					for (final PD2 trustedPD : dependsOnPromises) {
 						// Avoid self-dependency
 						if ((trustedPD != null) && (promiseToCheck != trustedPD)) {
-							addedTrustedDrop = true;
 							middleDrop.addTrustedPromise(trustedPD);
 							setResultDependUponDrop(middleDrop);
 						}
 					}
-					if (!addedTrustedDrop)
-						middleDrop.invalidate();
 				}
 
 				// Add depended on method calls, etc.
