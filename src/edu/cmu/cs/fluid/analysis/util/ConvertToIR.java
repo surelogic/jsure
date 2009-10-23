@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -880,7 +881,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	 * List that holds all registered objects to be called back when an Eclipse
 	 * ICompilationUnit is adapted into the IR.
 	 */
-	private static List<ISrcAdapterNotify> sf_srcAdapterNotifyList = new LinkedList<ISrcAdapterNotify>();
+	private static List<ISrcAdapterNotify> sf_srcAdapterNotifyList = new CopyOnWriteArrayList<ISrcAdapterNotify>();
 
 	public static void register(ISrcAdapterNotify item) {
 		sf_srcAdapterNotifyList.add(0, item); // HACK
@@ -894,6 +895,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		for (Iterator<ISrcAdapterNotify> i = sf_srcAdapterNotifyList.iterator(); i
 				.hasNext();) {
 			ISrcAdapterNotify item = i.next();
+			if (item != null)
 			item.run(info);
 		}
 	}
