@@ -166,7 +166,7 @@ public class MethodCallUtils {
     final Map<IRNode, IRNode> table = new HashMap<IRNode, IRNode>();
     while (paramsEnum.hasNext()) {
       if (!actualsEnum.hasNext()) {
-    	  System.out.println("Skipping empty varargs");
+    	  //System.out.println("Skipping empty varargs");
     	  break; 
       }
       IRNode param = paramsEnum.next();      
@@ -174,7 +174,7 @@ public class MethodCallUtils {
     	  // Last formal
     	  IRNode ptype = ParameterDeclaration.getType(param);
     	  if (VarArgsType.prototype.includes(ptype)) {
-    		  System.out.println("Skipping varargs");
+    		  //System.out.println("Skipping varargs");
     		  break;
     	  }
       }
