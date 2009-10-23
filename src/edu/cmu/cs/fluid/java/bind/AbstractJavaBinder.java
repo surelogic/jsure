@@ -474,10 +474,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   static class BindingInfo {
   	final IBinding method;
   	final int numBoxed;
+  	final boolean usedVarArgs;
   	
-  	BindingInfo(IBinding m, int boxed) {
+  	BindingInfo(IBinding m, int boxed, boolean var) {
   		method = m;
   		numBoxed = boxed;
+  		usedVarArgs = var;
   	}
   }
   
@@ -1008,7 +1010,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         // we don't detect the case that there is no best method.
         if (bestMethod == null ||
             (typeEnvironment.isAssignmentCompatible(bestArgs,tmpTypes) && 
-             typeEnvironment.isSubType(tmpClass,bestClass)) ||
+             typeEnvironment.isSubType(tmpClass,bestClass)) &&
+             useMatch(bestMethod, match) ||
             bestMethod.numBoxed > match.numBoxed) { 
           // BUG: this algorithm does the wrong
           // thing in the case of non-overridden multiple inheritance
@@ -1032,6 +1035,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
 
     /**
+     * Only ruling out the case that the match used varargs,
+     * but the best did not.
+     */
+    private boolean useMatch(BindingInfo best, BindingInfo match) {    	
+    	return !match.usedVarArgs || best.usedVarArgs;
+	}
+
+	/**
      * @param tmpTypes The types matched against
      * @return non-null if mbind matched the arguments
      */
@@ -1166,10 +1177,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	    FunctionParameterSubstitution.create(AbstractJavaBinder.this, mbind.getNode(), map);
     	}
         if (mSubst != IBinding.NULL) {
-          return new BindingInfo(IBinding.Util.makeMethodBinding(mbind, mSubst), numBoxed);
+          return new BindingInfo(IBinding.Util.makeMethodBinding(mbind, mSubst), numBoxed, varType != null);
         }
       }
-      return new BindingInfo(mbind, numBoxed);
+      return new BindingInfo(mbind, numBoxed, varType != null);
     }
     
     private boolean onlyNeedsBoxing(IJavaType formal, IJavaType arg) {
