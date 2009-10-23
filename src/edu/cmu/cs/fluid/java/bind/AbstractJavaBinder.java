@@ -1166,7 +1166,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	  numBoxed++;
         	  continue;
           }
-          if (isVarArgs && i == argTypes.length-1 && argTypes[i] instanceof IJavaArrayType) { 
+          if (isVarArgs && i == argTypes.length-1 && captured instanceof IJavaArrayType &&
+              argTypes[i] instanceof IJavaArrayType) {
         	  // issue w/ the last/varargs parameter
         	  final IJavaArrayType at = (IJavaArrayType) captured;
         	  final IJavaType eltType = at.getElementType();
