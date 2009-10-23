@@ -326,15 +326,19 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	  JavaFileStatus<T,P> s = resources.remove(handle);
 	  if (s != null) {
 		  // TODO cleanup -- unload?
-		  destroy(s.astChunk1.getRegion());
-		  destroy(s.astChunk2.getRegion());
-		  destroy(s.canonChunk1.getRegion());
-		  destroy(s.canonChunk2.getRegion());
+		  destroy(s.astChunk1);
+		  destroy(s.astChunk2);
+		  destroy(s.canonChunk1);
+		  destroy(s.canonChunk2);
 	  }
 	  return s;
   }
   
-  private void destroy(IRPersistent r) {
+  private void destroy(IRChunk c) {
+	if (c == null) {
+		return;
+	}
+	IRPersistent r = c.getRegion();
 	if (!r.isDestroyed()) {
 		r.destroy();
 	}	
