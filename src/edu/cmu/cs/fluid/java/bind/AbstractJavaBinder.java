@@ -1155,15 +1155,37 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	}
     	
       // Then, substitute and check if compatible
+      final boolean isVarArgs = varType != null;
       int numBoxed = 0;    	
       for (int i=0; i < argTypes.length; ++i) {       
         IJavaType fty      = tmpTypes[i];
         IJavaType captured = map == null ? typeEnvironment.computeErasure(fty) : substitute(map, fty);          
-        if (!isCallCompatible(captured,argTypes[i])) {
+        if (!isCallCompatible(captured,argTypes[i])) {        	
           // Check if need (un)boxing
           if (onlyNeedsBoxing(captured, argTypes[i])) {
         	  numBoxed++;
         	  continue;
+          }
+          if (isVarArgs && i == argTypes.length-1 && argTypes[i] instanceof IJavaArrayType) { 
+        	  // issue w/ the last/varargs parameter
+        	  final IJavaArrayType at = (IJavaArrayType) captured;
+        	  final IJavaType eltType = at.getElementType();
+        	  final IRNode varArg = Arguments.getArg(args, i); 
+        	  if (VarArgsExpression.prototype.includes(varArg)) {
+        	    inner:
+        		  for(IRNode arg : VarArgsExpression.getArgIterator(varArg)) {
+        			  final IJavaType argType = getJavaType(arg);
+        			  if (!isCallCompatible(eltType, argType)) {        	
+        				  // Check if need (un)boxing
+        				  if (onlyNeedsBoxing(eltType, argType)) {
+        					  numBoxed++;
+        					  continue inner;
+        				  }
+        				  return null;
+        			  }
+        		  }
+        	      continue;
+        	  }
           }
           if (LOG.isLoggable(Level.FINER)) {
             LOG.finer("... but " + argTypes[i] + " !<= " + captured);
@@ -1177,10 +1199,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	    FunctionParameterSubstitution.create(AbstractJavaBinder.this, mbind.getNode(), map);
     	}
         if (mSubst != IBinding.NULL) {
-          return new BindingInfo(IBinding.Util.makeMethodBinding(mbind, mSubst), numBoxed, varType != null);
+          return new BindingInfo(IBinding.Util.makeMethodBinding(mbind, mSubst), numBoxed, isVarArgs);
         }
       }
-      return new BindingInfo(mbind, numBoxed, varType != null);
+      return new BindingInfo(mbind, numBoxed, isVarArgs);
     }
     
     private boolean onlyNeedsBoxing(IJavaType formal, IJavaType arg) {
