@@ -10,6 +10,10 @@ public operator EnumDeclaration extends TypeDeclaration implements ClassBodyDecl
     typeBinding=Declared
   }
 
+  @Override public Component createComponent(IRNode node) {
+    return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,false);
+  }
+
   // TODO fix these -- from ClassDecl
   public Source getSource(IRNode node) {
     Component comp = JavaComponentFactory.prototype.getComponent(node);
