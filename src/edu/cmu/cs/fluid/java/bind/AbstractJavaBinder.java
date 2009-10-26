@@ -265,35 +265,48 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     // NamedType)
     final Stack<IGranuleBindings> stack = bindingStack.get();
     stack.push(bindings);    
-    
+
     final int size = stack.size();
     try {
-    	BindingsThread t = null;
-        //if (size > 10) {
-        	//System.out.println("Binding stack for "+JJNode.getInfoOrNull(node)+": "+size);
-        	if (size > 50) {
-        		// Finish derivation in a separate thread to avoid StackOverflowError
-        		//System.out.println("Over 50");
-        		t = new BindingsThread(bindings, node);
-        	}
-        //}
-        if (t == null) {
-        	bindings = deriveBindings(bindings, node);
-        } else {
-        	t.start();
-        	try {
-				t.join();
-			} catch (InterruptedException e) {
-				LOG.log(Level.SEVERE, "Interrupted while joining with deriving thread", e);
-			}
-			bindings = t.bindings;
-        }
+    	try {
+    		BindingsThread t = null;
+    		//if (size > 10) {
+    		//System.out.println("Binding stack for "+JJNode.getInfoOrNull(node)+": "+size);
+    		if (size > 50) {
+    			// Finish derivation in a separate thread to avoid StackOverflowError
+    			//System.out.println("Over 50");
+    			t = new BindingsThread(bindings, node);
+    		}
+    		//}
+    		if (t == null) {
+    			bindings = deriveBindings(bindings, node);
+    		} else {
+    			t.start();
+    			try {
+    				t.join();
+    			} catch (InterruptedException e) {
+    				LOG.log(Level.SEVERE, "Interrupted while joining with deriving thread", e);
+    			}
+    			bindings = t.bindings;
+    		}
+    	} catch(StackOverflowError e) {
+    		if (stack.size() == 1) { // Last one, try to restart
+    			System.out.println("Retry after StackOverflow");
+    			reset();
+    			return ensureBindingsOK(node);
+    		}
+    		throw e;
+    	}
     } finally {
     	stack.pop();
     }
     return bindings;
   }
   
+  protected void reset() {
+	  // Nothing to do yet
+  }
+    
   class BindingsThread extends Thread {
 	  IGranuleBindings bindings;
 	  final IRNode node;
@@ -314,20 +327,25 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   }
   
   IGranuleBindings deriveBindings(IGranuleBindings bindings, IRNode node) {
+	  try {
 	  // To prevent it from being destroyed while deriving
-	  synchronized (bindings) {
-		  IGranuleBindings toDerive = bindings;
-		  while (toDerive.isDestroyed()) {
-			  // Retry
-			  toDerive = ensureBindingsOK(node);
+		  synchronized (bindings) {
+			  IGranuleBindings toDerive = bindings;
+			  while (toDerive.isDestroyed()) {
+				  // Retry
+				  toDerive = ensureBindingsOK(node);
+			  }
+			  if (toDerive == bindings) {
+				  toDerive.ensureDerived(node);
+			  } else {
+				  // Otherwise, already derived
+			  }
+			  bindings = toDerive;
 		  }
-		  if (toDerive == bindings) {
-			  toDerive.ensureDerived(node);
-		  } else {
-			  // Otherwise, already derived
-		  }
-		  bindings = toDerive;
-	  }
+      } catch (StackOverflowError e) {
+    	  System.out.println("StackOverflow: "+DebugUnparser.toString(node));
+    	  throw e;    	  
+      }
 	  return bindings;
   }
   
@@ -354,25 +372,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     if (bindings.containsFullInfo()) {
       binderVisitor.setFullPass();
       long start = System.currentTimeMillis();
-      try {
-    	  //System.out.println("Full:\t"+DebugUnparser.toString(unit));
-    	  binderVisitor.start();
-      } catch (StackOverflowError e) {
-    	  System.out.println("StackOverflow: "+DebugUnparser.toString(unit));
-    	  throw e;
-      }
+      
+      //System.out.println("Full:\t"+DebugUnparser.toString(unit));
+      binderVisitor.start();
+
       long end = System.currentTimeMillis();
       fullTime += (end-start);
       numFull  += bindings.getUseToDeclAttr().size();
     } else {
       long start = System.currentTimeMillis();
-      try {
-    	  //System.out.println("Part:\t"+DebugUnparser.toString(unit));
-    	  binderVisitor.start();
-      } catch (StackOverflowError e) {
-    	  System.out.println("StackOverflow: "+DebugUnparser.toString(unit));
-    	  throw e;
-      }
+
+      //System.out.println("Part:\t"+DebugUnparser.toString(unit));
+      binderVisitor.start();
+
       long end = System.currentTimeMillis();
       partialTime += (end-start);
       numPartial += bindings.getUseToDeclAttr().size();

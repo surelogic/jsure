@@ -108,7 +108,13 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		allGranuleBindings.clear();
 		UnversionedJavaImportTable.clearAll();
 		memberTableCache.clear();		
+		JavaMemberTable.clearAll();
 	}
+  }
+  
+  @Override
+  protected void reset() {
+	  clearAll(true);
   }
   
   /**
