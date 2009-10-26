@@ -31,6 +31,23 @@ public class JavaRewrite implements JavaGlobals {
 	static final Logger LOG = SLLogger.getLogger("FLUID.bind");
 
 	protected Collection<IRNode> added = new ArrayList<IRNode>();
+	
+	private void markAsAdded(IRNode parent, IRNode n) {
+		added.add(n);
+		/*
+		boolean found = false;
+		for(IRNode c : JJNode.tree.children(parent)) {
+			if (c == n) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			LOG.warning("Unable to find node "+DebugUnparser.toString(n)+
+		                " in parent: "+DebugUnparser.toString(parent));
+		}
+		*/
+	}
 
 	// / insertDefaultCall
 	protected void insertDefaultCall(IRNode mbody, IRNode call) {
@@ -38,7 +55,7 @@ public class JavaRewrite implements JavaGlobals {
 
 		IRNode block = MethodBody.getBlock(mbody);
 		JJNode.tree.insertSubtree(block, call); // add to front
-		added.add(call);
+		markAsAdded(block, call);
 	}
 
 	protected void insertDefaultConstructor(IRNode cbody, IRNode constructor) {
@@ -46,7 +63,10 @@ public class JavaRewrite implements JavaGlobals {
 		// JavaNode.getModifier(node, JavaNode.IMPLICIT);
 
 		JJNode.tree.insertSubtree(cbody, constructor); // add to front
-		added.add(constructor);
+		markAsAdded(cbody, constructor);
+		
+		IRNode type = VisitUtil.getEnclosingType(cbody);
+		//System.out.println("Created default constructor for "+JavaNames.getFullTypeName(type));
 	}
 
 	protected boolean ensureSuperConstructorCall(IRNode constructor) {
@@ -190,7 +210,7 @@ public class JavaRewrite implements JavaGlobals {
 				 * JJNode.tree.insertSubtree(AnonClassExpression.getBody(y),
 				 * makeAnonConstructor(y));
 				 */
-				// added.add(?)
+				// markAsAdded(?)
 			} else if (EnumDeclaration.prototype.includes(op)) {
 				ensureConstructorStuff(y);
 				if (debug)
@@ -228,6 +248,8 @@ public class JavaRewrite implements JavaGlobals {
 		final IRNode body = EnumDeclaration.getBody(ed);
 		JJNode.tree.appendSubtree(body, values);
 		JJNode.tree.appendSubtree(body, valueOf);
+		markAsAdded(body, values);
+		markAsAdded(body, valueOf);
 		/*
 		 * JJNode.tree.appendSubtree(body, name);
 		 */
@@ -250,7 +272,6 @@ public class JavaRewrite implements JavaGlobals {
 		IRNode body = OmittedMethodBody.prototype.jjtCreate();
 		IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type,
 				"values", noNodes, noNodes, body);
-		added.add(rv);
 		return rv;
 	}
 
@@ -262,7 +283,6 @@ public class JavaRewrite implements JavaGlobals {
 		IRNode body = OmittedMethodBody.prototype.jjtCreate();
 		IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type,
 				"valueOf", params, noNodes, body);
-		added.add(rv);
 		return rv;
 	}
 
@@ -273,7 +293,7 @@ public class JavaRewrite implements JavaGlobals {
 		IRNode body = OmittedMethodBody.prototype.jjtCreate();
 		IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type,
 				"name", noNodes, noNodes, body);
-		added.add(rv);
+		markAsAdded(rv);
 		return rv;
 	}
 	*/
