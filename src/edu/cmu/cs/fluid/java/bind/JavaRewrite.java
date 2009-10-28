@@ -174,7 +174,7 @@ public class JavaRewrite implements JavaGlobals {
 			} else if (InterfaceDeclaration.prototype.includes(op)) {
 				changed |= ensureDefaultsExistForType(x);
 			} else if (AnnotationDeclaration.prototype.includes(op)) {
-				LOG.warning("Ignoring AnnotationDecl: " + JJNode.getInfo(x));
+				System.err.println("Ignoring AnnotationDecl: " + JJNode.getInfo(x));
 			} else {
 				LOG.severe("Ignoring " + op.name() + ": " + JJNode.getInfo(x));
 			}

@@ -169,7 +169,7 @@ public final class PromiseUtil {
       } else if (EnumConstantDeclaration.prototype.includes(op)) {
         addRequiredEnumConstantDeclPromises(binder, helper, node, added, op);
       } else if (AnnotationElement.prototype.includes(op)) {
-        LOG.warning("Ignoring required promises on "+op.name());
+        System.err.println("Ignoring required promises on "+op.name());
       }
       
       /*
