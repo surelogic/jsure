@@ -16,6 +16,10 @@ import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
+
+import edu.cmu.cs.fluid.java.JavaGlobals;
+import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 
 /**
  * The central controller to notify analysis modules that changes to the state
@@ -203,26 +207,41 @@ public final class Majordomo extends AbstractJavaBuilder implements
 				try {
 					projectCache.flushCache(args);
 				} catch (CoreException e) {
-					LOG.log(Level.WARNING,
-							"General problem doing double-checker analysis", e);
+					handleFailure("General problem while doing double-checker analysis", e);
 				} finally {
-					projectCache.reset(); // wipe the cache for this project
-					NotificationHub.notifyAnalysisCompleted();
+					projectCache.reset(); // wipe the cache for this project					
 				}
 			} else {
 				NotificationHub.notifyAnalysisPostponed();
 			}
 			showBuildIsDone();
 		} catch (CoreException e) {
-			LOG.log(Level.WARNING, "General problem doing preparing for"
+			handleFailure("General problem while preparing for"
 					+ " double-checker analysis", e);
 			throw e;
 		} catch (Throwable e) {
-			LOG.log(Level.WARNING, "General problem (Throwable) doing"
-					+ " preparing for double-checker analysis", e);
+			handleFailure("General problem (Throwable) while"
+					      + " preparing for double-checker analysis", e);
+		} finally {
+			NotificationHub.notifyAnalysisCompleted();
 		}
 	}
 
+	private void handleFailure(String msg, Throwable t) {
+		LOG.log(Level.WARNING, msg, t);
+		
+		// Clear before creating warning
+		ClearProjectListener.clearJSureState();
+				
+		PromiseWarningDrop d = new PromiseWarningDrop();
+		String msg2 = t.getMessage();
+		if (msg2 == null) {
+			msg2 = t.getClass().getSimpleName();
+		}
+		d.setMessage(msg+": "+msg2);
+		d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
+	}
+	
 	/**
 	 * Resource visitor method for a full re-analysis.
 	 * 
