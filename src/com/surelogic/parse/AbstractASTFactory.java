@@ -26,8 +26,7 @@ public abstract class AbstractASTFactory implements IASTFactory {
 			if (f == null) {
 				if (token.endsWith("s")) {
 					if (!token.equals("Throws") && !token.equals("Parameters")) {
-						SLLogger.getLogger().log(
-								Level.WARNING,
+						System.err.println(
 								"No factory found for " + token
 										+ ", creating TempListNode");
 					}
