@@ -40,7 +40,7 @@
   <template name="Sl.region" 
             description="Region and corresponding lock decl" 
             id="com.surelogic.templates.region.lock" context="java" 
-            enabled="true">Region ${accessMod} ${name}State")
+            enabled="true">Region("${accessMod} ${name}State")
     @RegionLock("${name}Lock is ${lockExpr} protects ${name}State")</template>
 
   <template name="PolicyLock" 
@@ -62,7 +62,7 @@
             description="singleThreaded constructor with borrowed this" 
             id="com.surelogic.jsure.templates.singleThreaded.borrowed" context="java" 
             enabled="true">SingleThreaded
-    @Borrowed</template>
+    @Borrowed("this")</template>
   
   <template name="SingleThreaded" 
             description="singleThreaded constructor writing/starting nothing" 
