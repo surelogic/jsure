@@ -302,16 +302,22 @@ public final class Nature extends AbstractNature {
 				.getOutputLocation()));
 		for (IClasspathEntry entry : javaProject.getRawClasspath()) {
 			if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-				sourceAndOutputDirs.add(workspace.getFolder(entry.getPath()));
+				sourceAndOutputDirs.add(getWorkspaceFolder(javaProject.getProject(), entry.getPath())); 
 			}
 			final IPath output = entry.getOutputLocation();
 			if (output != null) {
-				sourceAndOutputDirs.add(workspace.getFolder(output));
+				sourceAndOutputDirs.add(getWorkspaceFolder(javaProject.getProject(), output));
 			}
 		}
 		return sourceAndOutputDirs;
 	}
 
+	private static IFolder getWorkspaceFolder(IProject proj, IPath path) {
+		final IWorkspaceRoot workspace = ResourcesPlugin.getWorkspace().getRoot();
+		return workspace.getFolder(path);
+		//getWorkspaceFolder(javaProject.getProject(), entry.getPath())
+	}
+	
 	private static boolean isGoodPromiseContainer(final IFolder test,
 			final Set<IFolder> ignore) {
 		final boolean isHidden = test.getName().charAt(0) == '.';
