@@ -135,14 +135,14 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="LockAssurance3" name="Greenhouse Lock Assurance (Converted)"
+	<extension id="LockAssurance3" name="Greenhouse Lock Assurance"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.locks.LockAnalysis">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="UniquenessAssurance2" name="Uniqueness Assurance (Converted)"
+	<extension id="UniquenessAssurance2" name="Uniqueness Assurance"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule">
 		</run>
@@ -165,7 +165,7 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="ModuleAnalysis2" name="Module Visibility Analyzer (Converted)"
+	<extension id="ModuleAnalysis2" name="Module Visibility Analyzer"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis2"
 			production="false">
@@ -173,7 +173,7 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="EffectAssurance2" name="Greenhouse &amp; Boyland Effects (Converted)"
+	<extension id="EffectAssurance2" name="Greenhouse &amp; Boyland Effects"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.effects.EffectsAnalysis">
 		</run>
@@ -195,7 +195,7 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="ThreadEffectAssurance2" name="Halloran Thread Effects (Converted)"
+	<extension id="ThreadEffectAssurance2" name="Halloran Thread Effects"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.threads.ThreadEffectsModule">
 		</run>
