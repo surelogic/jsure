@@ -96,33 +96,34 @@
   <template name="Promise" 
             description="Scoped promise" 
             id="com.surelogic.jsure.templates.promise" context="java" 
-            enabled="true">Promise("'${promise}' for ${targets}")</template>
+            enabled="true">Promise("@${promise} for ${targets}")</template>
   
    <template name="Promise" 
             description="Scoped promise on all fields" 
             id="com.surelogic.jsure.templates.promise.fields" context="java" 
-            enabled="true">Promise("'${promise}' for * *")</template>
+            enabled="true">Promise("@${promise} for * *")</template>
   
   <template name="Promise" 
             description="Scoped promise on all constructors" 
             id="com.surelogic.jsure.templates.promise.constructors" context="java" 
-            enabled="true">Promise("'${promise}' for new(**)")</template>
+            enabled="true">Promise("@${promise} for new(**)")</template>
   
   <template name="Promise" 
             description="Scoped promise on all methods" 
             id="com.surelogic.jsure.templates.promise.methods" context="java" 
-            enabled="true">Promise("'${promise}' for *(**)")</template>
+            enabled="true">Promise("@${promise} for *(**)")</template>
   
   <template name="Promise" 
-            description="Scoped promise on all methods and constructors" 
+            description="Scoped promise on all methods and constructors"
             id="com.surelogic.jsure.templates.promise.methods" context="java" 
-            enabled="true">Promise("'${promise}' for **(**)")</template>
+            enabled="true">Promise("@${promise} for **(**)")</template>
   
   <template name="Promise" 
             description="singleThreaded/borrowed on the default constructor" 
             id="com.surelogic.jsure.templates.promise.methods" context="java" 
-            enabled="true">Promise("'@SingleThreaded' for new()")
-    @Promise("'@borrowed this' for new()")</template>  
+            enabled="true">@Promises({ @Promise("@SingleThreaded for new()"),
+    @Promise("@Borrowed(this) for new()"),
+    })</template>  
   
   <!-- Starts annotations -->
   
