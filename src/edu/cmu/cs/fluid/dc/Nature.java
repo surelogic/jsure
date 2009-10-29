@@ -8,14 +8,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -149,7 +142,7 @@ public final class Nature extends AbstractNature {
 
 					try {
 						// Build the list of source and output directories
-						final Set<IFolder> srcAndOutputDirs = getSourceAndOutputDirs(jp);
+						final Set<IContainer> srcAndOutputDirs = getSourceAndOutputDirs(jp);
 
 						// See if the promises jar is already in the project
 						final IFile foundJar = findPromisesjar(project,
@@ -293,12 +286,10 @@ public final class Nature extends AbstractNature {
 		job.schedule();
 	}
 
-	private static Set<IFolder> getSourceAndOutputDirs(IJavaProject javaProject)
+	private static Set<IContainer> getSourceAndOutputDirs(IJavaProject javaProject)
 			throws JavaModelException {
-		final IWorkspaceRoot workspace = ResourcesPlugin.getWorkspace()
-				.getRoot();
-		final Set<IFolder> sourceAndOutputDirs = new HashSet<IFolder>();
-		sourceAndOutputDirs.add(workspace.getFolder(javaProject
+		final Set<IContainer> sourceAndOutputDirs = new HashSet<IContainer>();
+		sourceAndOutputDirs.add(getWorkspaceFolder(javaProject.getProject(), javaProject
 				.getOutputLocation()));
 		for (IClasspathEntry entry : javaProject.getRawClasspath()) {
 			if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
@@ -312,14 +303,13 @@ public final class Nature extends AbstractNature {
 		return sourceAndOutputDirs;
 	}
 
-	private static IFolder getWorkspaceFolder(IProject proj, IPath path) {
+	private static IContainer getWorkspaceFolder(IProject proj, IPath path) {
 		final IWorkspaceRoot workspace = ResourcesPlugin.getWorkspace().getRoot();
-		return workspace.getFolder(path);
-		//getWorkspaceFolder(javaProject.getProject(), entry.getPath())
+		return workspace.getContainerForLocation(path);
 	}
 	
-	private static boolean isGoodPromiseContainer(final IFolder test,
-			final Set<IFolder> ignore) {
+	private static boolean isGoodPromiseContainer(final IContainer test,
+			final Set<IContainer> ignore) {
 		final boolean isHidden = test.getName().charAt(0) == '.';
 		final boolean isSourceOrOutput = ignore.contains(test);
 		return !isHidden && !isSourceOrOutput;
@@ -333,7 +323,7 @@ public final class Nature extends AbstractNature {
 	 * @throws CoreException
 	 */
 	private static IFile findPromisesjar(final IContainer current,
-			final Set<IFolder> ignore) throws CoreException {
+			final Set<IContainer> ignore) throws CoreException {
 		final IResource[] members = current.members();
 
 		// First scan for promises jar
@@ -347,8 +337,8 @@ public final class Nature extends AbstractNature {
 
 		// If we don't find it, search the directories
 		for (final IResource rsrc : members) {
-			if (rsrc instanceof IFolder) {
-				if (isGoodPromiseContainer((IFolder) rsrc, ignore)) {
+			if (rsrc instanceof IContainer) {
+				if (isGoodPromiseContainer((IContainer) rsrc, ignore)) {
 					final IFile found = findPromisesjar((IFolder) rsrc, ignore);
 					if (found != null)
 						return found;
@@ -362,7 +352,7 @@ public final class Nature extends AbstractNature {
 
 	private static IContainer chooseDirectory(final Shell shell,
 			final IProject project, final IJavaProject javaProject,
-			final Set<IFolder> srcAndOutputDirs) {
+			final Set<IContainer> srcAndOutputDirs) {
 		/**
 		 * Class used the root element for the model, used to encapsulate the
 		 * project element.
