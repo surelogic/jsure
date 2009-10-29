@@ -204,11 +204,14 @@ public final class Majordomo extends AbstractJavaBuilder implements
 			if (noCompilationErrors(javaProject)) {
 				// we are OK to do analysis -- no errors
 				NotificationHub.notifyAnalysisStarting();
+				final long start = System.currentTimeMillis();
 				try {
 					projectCache.flushCache(args);
 				} catch (CoreException e) {
 					handleFailure("General problem while doing double-checker analysis", e);
 				} finally {
+					long end = System.currentTimeMillis();
+					System.err.println("Time to analyze code = "+(end-start)+" ms");
 					projectCache.reset(); // wipe the cache for this project					
 				}
 			} else {
