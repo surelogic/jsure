@@ -218,6 +218,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 				NotificationHub.notifyAnalysisPostponed();
 			}
 			showBuildIsDone();
+		} catch (OperationCanceledException e) {
+			handleFailure("Analysis cancelled", null);
 		} catch (CoreException e) {
 			handleFailure("General problem while preparing for"
 					+ " double-checker analysis", e);
@@ -230,18 +232,22 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		}
 	}
 
-	private void handleFailure(String msg, Throwable t) {
-		LOG.log(Level.WARNING, msg, t);
-		
+	private void handleFailure(String msg, Throwable t) {		
 		// Clear before creating warning
 		ClearProjectListener.clearJSureState();
 				
 		PromiseWarningDrop d = new PromiseWarningDrop();
-		String msg2 = t.getMessage();
-		if (msg2 == null) {
-			msg2 = t.getClass().getSimpleName();
+		if (t != null) {
+			String msg2 = t.getMessage();
+			if (msg2 == null) {
+				msg2 = t.getClass().getSimpleName();
+			}
+			d.setMessage(msg+": "+msg2);
+			LOG.log(Level.WARNING, msg, t);
+		} else {
+			d.setMessage(msg);
+			LOG.log(Level.INFO, msg);
 		}
-		d.setMessage(msg+": "+msg2);
 		d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
 	}
 	
