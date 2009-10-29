@@ -25,7 +25,8 @@ public abstract class AbstractASTFactory implements IASTFactory {
 			IASTFactory f = factories.get(token);
 			if (f == null) {
 				if (token.endsWith("s")) {
-					if (!token.equals("Throws") && !token.equals("Parameters")) {
+					if (!token.equals("Throws") && !token.equals("Parameters") &&
+						!token.equals("RegionSpecifications")) {
 						System.err.println(
 								"No factory found for " + token
 										+ ", creating TempListNode");
