@@ -25,17 +25,23 @@
             enabled="true">RegionLock("${name} is this protects Instance")</template>
   
   <template name="RegionLock" 
-            description="Lock decl - this protects this' fields" 
+            description="Lock decl - this protects all of this Object's fields" 
             id="com.surelogic.jsure.templates.lock.this.fields" context="java" 
             enabled="true">Region("${accessMod} ${name}State")
-    @Promise("'InRegion ${name}State' for * *")
+    @Promise("@InRegion(${name}State) for * *")
     @RegionLock("${name}Lock is this protects ${name}State")</template>
+  
+  <template name="Region" 
+            description="'State' region and corresponding lock decl" 
+            id="com.surelogic.jsure.templates.region.lock" context="java" 
+            enabled="true">Region("State")
+    @RegionLock("Lock is ${lockExpr} protects State")</template>
   
   <template name="Region" 
             description="Region and corresponding lock decl" 
             id="com.surelogic.jsure.templates.region.lock" context="java" 
             enabled="true">Region("${accessMod} ${name}State")
-    @RegionLock ${name}Lock is ${lockExpr} protects ${name}State")</template>
+    @RegionLock("${name}Lock is ${lockExpr} protects ${name}State")</template>
    
   <template name="Sl.region" 
             description="Region and corresponding lock decl" 
