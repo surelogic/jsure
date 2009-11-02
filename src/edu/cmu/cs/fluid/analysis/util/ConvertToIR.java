@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -29,7 +28,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
-import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
@@ -334,9 +332,6 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 					+ AbstractJavaAdapter.getModsCount());
 			LOG.fine(label + " #Nodes = " + PlainIRNode.getTotalNodesCreated());
 			LOG.fine(label + " #Slots = " + SlotInfo.totalSize());
-			if (!AnnotationRules.useNewParser) {
-				edu.cmu.cs.fluid.promise.parse.PromiseParser.printUnused();
-			}
 			// AssocList.printTotal();
 			// NodeFactories.printUsage();
 

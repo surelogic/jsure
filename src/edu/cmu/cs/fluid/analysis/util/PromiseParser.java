@@ -1,8 +1,6 @@
 package edu.cmu.cs.fluid.analysis.util;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,7 +15,6 @@ import com.surelogic.annotation.parse.ParseHelper;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
 import com.surelogic.annotation.parse.SLColorAnnotationsLexer;
 import com.surelogic.annotation.parse.ScopedPromisesLexer;
-import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.TestXMLParser;
 
@@ -25,7 +22,6 @@ import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
-import edu.cmu.cs.fluid.eclipse.promise.EclipsePromiseParser;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
@@ -38,7 +34,6 @@ import edu.cmu.cs.fluid.java.bind.ModulePromises;
 import edu.cmu.cs.fluid.java.bind.ScopedPromises;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarations;
-import edu.cmu.cs.fluid.java.promise.ScopedPromise;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.java.xml.XML;
@@ -60,8 +55,6 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 	 */
 	private static final Logger LOG = SLLogger.getLogger("PromiseParser");
 
-	private static final boolean useNewParser = AnnotationRules.useNewParser;
-
 	public static final QuickProperties.Flag xmlgenFlag =
 		new QuickProperties.Flag(LOG, "xml.useGenerator", "Generate");
 
@@ -70,15 +63,6 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 	}
 
 	public static final boolean useXMLGen = useXMLGen();
-
-	public static final QuickProperties.Flag newXMLParserFlag =
-	  new QuickProperties.Flag(LOG, "xml.useNewParser", "Parser", true);
-
-	private static boolean useNewXMLParser() {
-	  return QuickProperties.checkFlag(newXMLParserFlag);
-	}
-
-	public static final boolean useNewXMLParser = useNewXMLParser();
 
 	private static PromiseParser INSTANCE;
 
@@ -101,25 +85,20 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 		postProcessFAST(te, cu);
 		handlePackageLevelPromises(cu);
 
-		if (useNewParser) {
-			AnnotationVisitor v = new AnnotationVisitor(te, name);
-			v.doAccept(cu);
+		AnnotationVisitor v = new AnnotationVisitor(te, name);
+		v.doAccept(cu);
 
-			try {
-				if (useNewXMLParser) {
-					int num = TestXMLParser.process(cu, name + ".promises.xml");
-					//System.out.println("Parsing XML for "+name+": "+num+" added");
-				}
-			} catch (Exception e) {
-				if (!(e instanceof FileNotFoundException)) {
-					SLLogger.getLogger().log(Level.SEVERE, "Problem parsing "+name+".promises.xml", e);
-				} else if (LOG.isLoggable(Level.FINER)) {
-					LOG.finer("Couldn't find file " + name + ".promises.xml");
-				}
+		try {
+			//int num = 
+			TestXMLParser.process(cu, name + ".promises.xml");
+			//System.out.println("Parsing XML for "+name+": "+num+" added");
+		} catch (Exception e) {
+			if (!(e instanceof FileNotFoundException)) {
+				SLLogger.getLogger().log(Level.SEVERE, "Problem parsing "+name+".promises.xml", e);
+			} else if (LOG.isLoggable(Level.FINER)) {
+				LOG.finer("Couldn't find file " + name + ".promises.xml");
 			}
 		}
-		parsePromises(te, cu, name, src);
-
 		doneProcessing(cu);
 	}
 
@@ -129,37 +108,6 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 		if (LOG.isLoggable(Level.FINER)) {
 			LOG.finer("Finished activating promises on " + DebugUnparser.toString(cu));
 		}
-	}
-
-	/**
-	 * @param top
-	 * @param javaOSFileName
-	 * @param src
-	 */
-	void parsePromises(ITypeEnvironment te, IRNode top, String javaOSFileName, String src) {
-		// adapter.run(top, javaOSFileName, src);
-
-		// check source for promises to parse
-		if (src != null && src.length() > 0) {
-			if (!useNewParser) {
-				EclipsePromiseParser.process(top, src);
-				LOG.info("Using the old promise parser");
-			}
-		} else if (LOG.isLoggable(Level.FINER)) {
-			LOG.finer("No source to parse for promises: " + javaOSFileName);
-		}
-		if (!useNewParser || !useNewXMLParser) {
-			XML.getDefault().setProcessingXMLInSrc(src != null);
-			Eclipse.getDefault().getContext(getProject()).getXmlProcessor().process(top);
-			XML.getDefault().setProcessingXMLInSrc(false);
-		}
-		// make sure all promises are part of fm
-		//
-//		SyntaxForestModel fm = Eclipse.getDefault().getForestModel();
-//		Iterator<IRNode> it = JavaPromise.promisesBottomUp(top);
-//		while (it.hasNext()) {
-//		fm.addRoot(it.next());
-//		}
 	}
 
 	@Override

@@ -14,7 +14,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
-import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.ast.java.operator.ICompilationUnitNode;
 import com.surelogic.common.logging.SLLogger;
 
@@ -170,7 +169,7 @@ public abstract class AbstractIRAnalysisModule extends
       }
 
       private void doAnalysisOnCUDrop(final CUDrop drop) throws JavaModelException {
-        if (!usesEitherParser && needsNewParser != AnnotationRules.useNewParser) {
+        if (!usesEitherParser && needsNewParser != true) {
           String msg = AbstractIRAnalysisModule.this.getClass().getSimpleName()+
                        " is incompatible with the "+
                        (needsNewParser ? "old" : "new")+" promise parser code";

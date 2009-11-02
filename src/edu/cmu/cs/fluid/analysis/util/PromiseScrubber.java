@@ -1,6 +1,5 @@
 package edu.cmu.cs.fluid.analysis.util;
 
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,7 +21,6 @@ import edu.cmu.cs.fluid.java.bind.IHasBinding;
 import edu.cmu.cs.fluid.java.bind.IHasType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.bind.ScopedPromises;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
@@ -57,7 +55,6 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
    */
   private static final Logger LOG = SLLogger.getLogger("PromiseScrubber");
 
-  private static final boolean useNewScrubber = true;
   public static final boolean testBinder = IDE.testBinder;
 
   @Override
@@ -92,13 +89,14 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
         }
       }
     }
+    /* TODO kept for future implementation of @Assume
     if (!AnnotationRules.useNewParser) {
       final ScopedPromises sp = ScopedPromises.getInstance();
       /*
        * final Enumeration types = VisitUtil.getTypeDecls(dropContents.cu); while
        * (types.hasNext()) { IRNode type = (IRNode) types.nextElement();
        * sp.processAssumptions(type); }
-       */
+       *
 
       sp.processCuAssumptions(binder, cu); // TODO change to process types
       if (!useNewScrubber) {
@@ -126,8 +124,9 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
     			  LOG.severe("Popping a different type context 2");
     		  }
     	  }
-      }
+      }     
     }
+    */
     if (PromiseParser.useXMLGen) {
       try {
         XMLGenerator.generateXML(cu,false);
@@ -176,9 +175,6 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
     }
     if (LOG.isLoggable(Level.FINE)) {
       LOG.fine("Scrubbing IType " + drop.javaOSFileName);
-    }
-    if (!useNewScrubber) {
-    	PromiseFramework.getInstance().checkAST(PromiseScrubber.this, drop.cu);
     }
   }
   

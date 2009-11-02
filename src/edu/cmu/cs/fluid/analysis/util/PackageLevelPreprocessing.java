@@ -17,7 +17,6 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
-import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.PromiseDropStorage;
 
@@ -27,7 +26,6 @@ import edu.cmu.cs.fluid.eclipse.adapter.Binding;
 import edu.cmu.cs.fluid.eclipse.adapter.JavaSourceFileAdapter;
 import edu.cmu.cs.fluid.eclipse.adapter.ModuleUtil;
 import edu.cmu.cs.fluid.eclipse.adapter.SrcRef;
-import edu.cmu.cs.fluid.eclipse.promise.EclipsePromiseParser;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -227,15 +225,10 @@ public final class PackageLevelPreprocessing extends
 						pkg.node.setSlotValue(JavaNode.getSrcRefSlotInfo(), srcRef);
 					}
 					final IRNode top = VisitUtil.getEnclosingCompilationUnit(pkg.node);
-					if (AnnotationRules.useNewParser) {
-						// Look for Javadoc/Java5 annotations
-						final ITypeEnvironment te = Eclipse.getDefault().getTypeEnv(getProject());
-						AnnotationVisitor v = new AnnotationVisitor(te, pkgName);
-						v.doAccept(top);
-					}
-					else if (src != null && src.length() > 0) {						
-						EclipsePromiseParser.process(top, src);
-					}
+					// Look for Javadoc/Java5 annotations
+					final ITypeEnvironment te = Eclipse.getDefault().getTypeEnv(getProject());
+					AnnotationVisitor v = new AnnotationVisitor(te, pkgName);
+					v.doAccept(top);
 				} catch (JavaModelException e) {
 					e.printStackTrace();
 				}
