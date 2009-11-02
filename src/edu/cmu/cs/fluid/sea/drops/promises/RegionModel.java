@@ -6,7 +6,6 @@ import java.util.*;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.regions.*;
-import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.RegionRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -408,9 +407,6 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	}
 
   public boolean isSameRegionAs(IRegion o) {
-    if (!AnnotationRules.useNewParser) {
-      return super.equals(o);
-    }
     if (o instanceof FieldRegion) {
       FieldRegion fr = (FieldRegion) o;
       /*

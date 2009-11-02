@@ -4,16 +4,13 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.*;
 import java.util.logging.*;
 
-import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.*;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
@@ -64,14 +61,6 @@ import edu.cmu.cs.fluid.version.Version;
 public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
   
-  public static final QuickProperties.Flag promisesFlag = 
-    new QuickProperties.Flag(LOG, "surelogic.bindPromisesNatively", "Promises");
-
-  private static boolean handlePromises() {
-    return QuickProperties.checkFlag(promisesFlag);
-  }  
-  
-  protected static final boolean handlePromises = !AnnotationRules.useNewParser && handlePromises();
   protected static final boolean storeNullBindings = true;
   protected boolean warnAboutPkgBindings = false;
 
@@ -173,12 +162,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     while (!(isGranule(op = JJNode.tree.getOperator(node), node))) {
       IRNode p;
       try {
-        //XXX!! Promises should not be IR:  This kludge needs to go away.
-        if (handlePromises) {
-          p = JavaPromise.getParentOrPromisedFor(node);
-        } else {
-          p = JJNode.tree.getParent(node);
-        }
+    	p = JJNode.tree.getParent(node);        
       } catch (SlotUndefinedException e) {
         p = null;
       }
@@ -589,21 +573,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       isFullPass = true;
     }
     
-    IPromiseProcessor promiseProcessor = new AbstractNodePromiseProcessor() {
-      @Override
-      protected void process(IRNode n) {
-        throw new NotImplemented();
-      }
-      @Override
-      protected void process(IRNode promisedFor, IRNode n) {
-        //System.out.println(JJNode.tree.getOperator(n).name()+" on "+DebugUnparser.toString(promisedFor));
-        doAccept(n);
-      }
-      public String getIdentifier() {
-        return "Promise Visitor";
-      }
-    };
-    
     /**
      * For intra-granule incrementality, we only look
      * if there was a change here or if we are in batch mode
@@ -704,6 +673,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (LOG.isLoggable(Level.FINEST) && okToAccess(node)) {
         LOG.finest(this + " visit" + (isFullPass ? "(full) " : "(initial) ") + op + DebugUnparser.toString(node));
       }
+      /*
       if (handlePromises) {
         super.doAccept(node);
         bindPromises(node);
@@ -726,6 +696,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         }
         return null;
       }
+      */
       //return super.doAccept(node);
       return ((IAcceptor) op).accept(node, this);
     }
@@ -738,6 +709,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       sc.put("this", JavaPromise.getReceiverNode(type));
     }
 
+    /*
     private void bindPromises(IRNode node) {
       PromiseFramework frame = PromiseFramework.getInstance();
       Operator op = JJNode.tree.getOperator(node);
@@ -752,6 +724,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         }
       }
     }
+    */
     
     /**
      * We do the accept of a node
@@ -810,7 +783,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       for(IRNode n : JJNode.tree.children(node)) {
     	doAccept(n);
       }
-
+      /*
       // This needs to be done after the rest of the children
       // (particularly the ParameterDecls)
       PromiseFramework frame = PromiseFramework.getInstance();
@@ -819,6 +792,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (SomeFunctionDeclaration.prototype.includes(op)) {
         frame.processPromises(node, promiseProcessor);        
       }
+      */
       return null;
     }
     
@@ -2020,10 +1994,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (name.contains("*")) {
         return null;
       }
+      /*
       if (handlePromises && "".equals(name)) {
         // ignore these -- not meant to be bound
         return null;
       }
+      */
       IRNode decl = classTable.getOuterClass(name,node);
       boolean success;
       

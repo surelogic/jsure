@@ -6,21 +6,14 @@
  */
 package edu.cmu.cs.fluid.java.bind;
 
-import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
-
-import java.util.List;
-
 import com.surelogic.aast.promise.*;
-import com.surelogic.annotation.rules.AnnotationRules;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.NamedSrcRef;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.promise.NewRegionDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
-import edu.cmu.cs.fluid.java.promise.RegionName;
 import edu.cmu.cs.fluid.java.util.CogenUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -220,20 +213,9 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       IRNode pkg = NamedPackageDeclaration.createNode(Annotations.createNode(noNodes), "java.lang");
       CompilationUnit.createNode(pkg, ImportDeclarations.createNode(new IRNode[0]), 
           TypeDeclarations.createNode(new IRNode[] {privateArrayType}));
-      
-      if (AnnotationRules.useNewParser) {
-        createArrayRegion(PromiseConstants.REGION_ELEMENT_NAME);
-        createArrayRegion(PromiseConstants.REGION_LENGTH_NAME);
-      } else {
-      IRNode REGION_ELEMENT =
-        NewRegionDeclaration.createNode(
-          JavaNode.ALL_FALSE,
-          PromiseConstants.REGION_ELEMENT_NAME,
-          RegionName.createNode(PromiseConstants.REGION_INSTANCE_NAME));    
-      
-      // Add required promises;
-      RegionAnnotation.addClassRegion(privateArrayType, REGION_ELEMENT);
-      }
+
+      createArrayRegion(PromiseConstants.REGION_ELEMENT_NAME);
+      createArrayRegion(PromiseConstants.REGION_LENGTH_NAME);
       ReceiverDeclaration.getReceiverNode(privateCloneMethod);
       ReceiverDeclaration.getReceiverNode(privateArrayType);
     }

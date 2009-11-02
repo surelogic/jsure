@@ -49,15 +49,6 @@ public abstract class AnnotationRules {
   
   public static final ITestOutput XML_LOG = IDE.getInstance().makeLog(XML_LOG_NAME);
   
-  public static final QuickProperties.Flag parserFlag = 
-    new QuickProperties.Flag(LOG, "surelogic.useNewParser", "Parser", true, true);
-  
-  public static final boolean useNewParser = useNewParser();
-
-  private static boolean useNewParser() {
-    return QuickProperties.checkFlag(parserFlag);
-  }
-  
   /* *************************************************
    *  Constants
    * *************************************************/

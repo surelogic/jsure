@@ -15,7 +15,6 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
-import edu.cmu.cs.fluid.java.bind.AssumeFinalAnnotation;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
@@ -196,20 +195,19 @@ public class TypeUtil implements JavaGlobals {
       } else if (JavaNode.getModifier(JJNode.tree.getParent(JJNode.tree
           .getParent(node)), JavaNode.FINAL)) {
         return true; // declared final
-      } else if (AnnotationRules.useNewParser) {
-        if (AssumeFinalRules.isAssumedFinal(node)) {
+      } else if (AssumeFinalRules.isAssumedFinal(node)) {
           /*
           System.out.println("@assumeFinal on node " + DebugUnparser.toString(node)
               + "\"");
               */
-          return true; // assumeFinal promise  
-        }      
+    	return true; // assumeFinal promise  
+      /*
       } else if (AssumeFinalAnnotation.isAssumeFinal(node)) {
         /*
         System.out.println("@assumeFinal on node " + DebugUnparser.toString(node)
             + "\"");
-            */
         return true; // assumeFinal promise
+        */
       }
       return false;
     } else if (ParameterDeclaration.prototype.includes(op)) {

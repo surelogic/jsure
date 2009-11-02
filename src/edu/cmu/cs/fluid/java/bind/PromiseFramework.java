@@ -487,6 +487,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * @param report
    * @param node
    */
+  @Deprecated
   public void checkAST(IWarningReport report, IRNode node) {
     setReporter(report);
 
@@ -796,6 +797,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * @param p The policy object that decides what to do with the promises found
    */
   @SuppressWarnings("unchecked")
+  @Deprecated
   public void processPromises(IRNode n, IPromiseProcessor p) {
     if (n == null || !tree.isNode(n)) {
       return;

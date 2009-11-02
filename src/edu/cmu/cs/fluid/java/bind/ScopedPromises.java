@@ -4,8 +4,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.annotation.rules.AnnotationRules;
-
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -358,7 +356,7 @@ public final class ScopedPromises extends AbstractPromiseAnnotation {
     protected boolean processResult(final IRNode n, 
 																		final IRNode result,
 																		IPromiseParsedCallback cb) {
-      if (AnnotationRules.useNewParser) {
+      if (true) {
         LOG.info("Ignoring @Promise with the old XML parser in the new system");
         return true;
       }

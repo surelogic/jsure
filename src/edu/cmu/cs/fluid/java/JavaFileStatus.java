@@ -2,7 +2,6 @@ package edu.cmu.cs.fluid.java;
 
 import java.io.*;
 
-import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.tree.SyntaxTreeRegion;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -64,11 +63,9 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
   
   private static class PromiseSaver extends AbstractNodePromiseProcessor {
     final IRRegion region;
-    final boolean includePromises;
     
     PromiseSaver(IRRegion r, boolean include) {
       region = r;
-      includePromises = !AnnotationRules.useNewParser && include; 
     }
     public String getIdentifier() {
       return "Promise Saver";
@@ -78,11 +75,6 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     protected void process(IRNode root) {
       for(IRNode n : JavaPromise.bottomUp(root)) {
         region.saveNode(n);
-        if (includePromises) {
-          PromiseFramework.getInstance().processPromises(n, this);
-        } else {
-          // FIX this doesn't persist everything (receiver, return nodes)
-        }
       }
     }
   }
