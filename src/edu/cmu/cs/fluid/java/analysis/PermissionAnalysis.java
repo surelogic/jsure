@@ -1590,7 +1590,7 @@ class PermissionTransfer extends JavaEvaluationTransfer{
 		}
 		// now if a method call, pop receiver and push return value
 		if (mcall) {
-		    IRNode retDecl = ReturnValueDeclaration.getReturnNode(mdecl);
+		    IRNode retDecl = JavaPromise.getReturnNode(mdecl);
 			bef = bef.push(getLocation(bef,node));
 			boolean uniqueRet = isAnnotatedUnique(retDecl) 
 				|| NewExpression.prototype.includes(op)
@@ -1705,7 +1705,7 @@ class PermissionTransfer extends JavaEvaluationTransfer{
         && !JavaNode.getModifier(methodDecl,JavaNode.STATIC)
         && !(tree.getOperator(MethodDeclaration.getReturnType(methodDecl)) 
             instanceof VoidType)){
-      IRNode ret = ReturnValueDeclaration.getReturnNode(methodDecl);
+      IRNode ret = JavaPromise.getReturnNode(methodDecl);
       SimpleLocation rl = before.topElement();
       if(isAnnotatedUnique(ret)){
         before = before.checkUnique(rl,node,ret,rd);
