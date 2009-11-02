@@ -42,12 +42,16 @@
             id="com.surelogic.jsure.templates.region.lock" context="java" 
             enabled="true">Region("${accessMod} ${name}State")
     @RegionLock("${name}Lock is ${lockExpr} protects ${name}State")</template>
-   
-  <template name="Sl.region" 
-            description="Region and corresponding lock decl" 
-            id="com.surelogic.templates.region.lock" context="java" 
-            enabled="true">Region("${accessMod} ${name}State")
-    @RegionLock("${name}Lock is ${lockExpr} protects ${name}State")</template>
+
+  <template name="Regions" 
+            description="Region and corresponding lock decl (out of many)" 
+            id="com.surelogic.jsure.templates.region.locks" context="java" 
+            enabled="true">Regions({
+        @Region("${accessMod} ${name}State"),
+    })
+    @RegionLocks({
+        @RegionLock("${name}Lock is ${lockExpr} protects ${name}State"),
+    })</template>
 
   <template name="PolicyLock" 
             description="Policy lock declaration" 
