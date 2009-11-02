@@ -421,9 +421,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (wt.getUpperBound() != null) {
         return typeScope(wt.getUpperBound());  
       }
+      /* // Could be any supertype of T, including Object
       else if (wt.getLowerBound() != null) {
         LOG.warning("What type scope do I use for "+wt+"?");
       }
+      */
       return typeScope(typeEnvironment.getObjectType());
     } else if (ty instanceof IJavaIntersectionType) {
       IJavaIntersectionType it = (IJavaIntersectionType) ty;
