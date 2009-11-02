@@ -25,7 +25,8 @@ import edu.cmu.cs.fluid.util.Iteratable;
 public class AnnotationVisitor extends Visitor<Void> {
   static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
   static final String promisePrefix = "com.surelogic.";
-  
+  public static final boolean allowJavadoc = false;
+
   final boolean inEclipse = IDE.getInstance().getClass().getName().contains("Eclipse");
   final ITypeEnvironment tEnv;
   final String name;
@@ -270,6 +271,9 @@ public class AnnotationVisitor extends Visitor<Void> {
   }
 
   private void checkForJavadoc(IRNode node, ISrcRef ref) {
+	if (!allowJavadoc) {
+		return;
+	}
     IJavadocElement elt = ref.getJavadoc();
     if (elt != null) {
       for(Object o : elt) {
