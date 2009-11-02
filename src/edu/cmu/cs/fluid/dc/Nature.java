@@ -239,29 +239,33 @@ public final class Nature extends AbstractNature {
 								}
 							}
 
-							// Update build path
-							final IClasspathEntry[] orig = jp.getRawClasspath();
-							List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
-							for (IClasspathEntry e : orig) {
-								entries.add(e);
-							}
-							String loc = "jar:platform:/resource"
+							if (!isOnClasspath(jp, useJar)) {														
+								// Update build path
+								final IClasspathEntry[] orig = jp.getRawClasspath();
+								List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
+								for (IClasspathEntry e : orig) {
+									entries.add(e);
+								}
+								String loc = "jar:platform:/resource"
 									+ useJavadoc.getFullPath()
-											.toPortableString() + "!/";
-							System.out.println("location = " + loc);
-							IClasspathAttribute javadoc = JavaCore
-									.newClasspathAttribute("javadoc_location",
-											loc);
-							entries.add(JavaCore.newLibraryEntry(useJar
-									.getFullPath(), null, null,
-									new IAccessRule[0],
-									new IClasspathAttribute[] { javadoc },
-									false));
-							jp
-									.setRawClasspath(
-											entries
-													.toArray(new IClasspathEntry[orig.length + 1]),
-											null);
+									.toPortableString() + "!/";
+								System.out.println("location = " + loc);
+								IClasspathAttribute javadoc = JavaCore
+								.newClasspathAttribute("javadoc_location",
+										loc);
+								entries.add(JavaCore.newLibraryEntry(useJar
+										.getFullPath(), null, null,
+										new IAccessRule[0],
+										new IClasspathAttribute[] { javadoc },
+										false));
+								jp
+								.setRawClasspath(
+										entries
+										.toArray(new IClasspathEntry[orig.length + 1]),
+										null);
+							} else {
+								// useJar is already listed on the classpath
+							}
 						}
 					} catch (final JavaModelException e) {
 						SLLogger.getLogger().log(Level.WARNING,
@@ -284,6 +288,22 @@ public final class Nature extends AbstractNature {
 
 		};
 		job.schedule();
+	}
+
+	static boolean isOnClasspath(IJavaProject jp, IFile useJar) { 
+		try {
+			for(IClasspathEntry e :	jp.getRawClasspath()) {
+				if (e.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+					System.out.println("Comparing "+useJar+" with "+e.getPath());
+					if (useJar.getFullPath().equals(e.getPath())) {
+						return true;
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+			return true; // FIX?
+		}
+		return false;
 	}
 
 	private static Set<IContainer> getSourceAndOutputDirs(IJavaProject javaProject)
@@ -461,6 +481,9 @@ public final class Nature extends AbstractNature {
 		return null;
 	}
 
+	/**
+	 * @return non-null if unable to resolve promises
+	 */
 	private static IJavaProject checkForPromisesJar(IProject project) {
 		IJavaProject p = JavaCore.create(project);
 		try {
