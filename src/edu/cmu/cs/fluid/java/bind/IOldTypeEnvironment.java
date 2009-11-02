@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.NamedSrcRef;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.CogenUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -216,6 +217,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
 
       createArrayRegion(PromiseConstants.REGION_ELEMENT_NAME);
       createArrayRegion(PromiseConstants.REGION_LENGTH_NAME);
+      ReturnValueDeclaration.getReturnNode(privateCloneMethod);
       ReceiverDeclaration.getReceiverNode(privateCloneMethod);
       ReceiverDeclaration.getReceiverNode(privateArrayType);
     }
