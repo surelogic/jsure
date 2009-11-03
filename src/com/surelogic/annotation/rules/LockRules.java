@@ -495,23 +495,36 @@ public class LockRules extends AnnotationRules {
     return scrubAbstractLock(context, protectedRegions, lockDecl, LOCK_DECLARATION_CONTINUATION);
   }
 
-  private static interface LockScrubContinuation<T extends AbstractLockDeclarationNode> {
-    public LockModel continueScrubbing(
+  private static abstract class LockScrubContinuation<T extends AbstractLockDeclarationNode> {
+    protected void handleAssumeFinal(final LockModel lockModel, final IRNode lockFieldNode) {
+      if (lockFieldNode != null) {
+        final AssumeFinalPromiseDrop assumeFinal =
+          AssumeFinalRules.getAssumeFinalDrop(lockFieldNode);
+        if (assumeFinal != null) {
+          lockModel.addDependent(assumeFinal);
+        }
+      }
+    }
+    
+    public abstract LockModel continueScrubbing(
         IAnnotationScrubberContext context,
         ProtectedRegions protectedRegions,
         IJavaDeclaredType promisedForType,
         T lockDecl,
         boolean declIsGood,
-        boolean fieldIsStatic);
+        boolean fieldIsStatic,
+        IRNode lockFieldNode);
   }
   
   private static final LockScrubContinuation<LockDeclarationNode> LOCK_DECLARATION_CONTINUATION = new LockScrubContinuation<LockDeclarationNode>() {
+    @Override
     public LockModel continueScrubbing(
         final IAnnotationScrubberContext context,
         final ProtectedRegions protectedRegions,
         final IJavaDeclaredType promisedForType,
         final LockDeclarationNode lockDecl,
-        final boolean declIsGoodIn, final boolean fieldIsStatic) {
+        final boolean declIsGoodIn, final boolean fieldIsStatic,
+        final IRNode lockFieldNode) {
       boolean declIsGood = declIsGoodIn;
       final IBinder binder = context.getBinder();
       final ExpressionNode field = lockDecl.getField();
@@ -618,7 +631,11 @@ public class LockRules extends AnnotationRules {
         model.setMessage(Messages.LockAnnotation_lockModel,
             model.getQualifiedName(), field, region,
             JavaNames.getTypeName(lockDecl.getPromisedFor()));
-        model.addDependent(regionBinding.getModel());
+        // Add the protected region
+        model.addDependent(regionBinding.getModel());        
+        // Get the AssumeFinal promise, if any
+        handleAssumeFinal(model, lockFieldNode);
+        
         return model;
       }
       return null;
@@ -626,12 +643,13 @@ public class LockRules extends AnnotationRules {
   };
   
   private static final LockScrubContinuation<PolicyLockDeclarationNode> POLICY_LOCK_DECLARATION_CONTINUATION = new LockScrubContinuation<PolicyLockDeclarationNode>() {
+    @Override
     public LockModel continueScrubbing(
         final IAnnotationScrubberContext context,
         final ProtectedRegions protectedRegions,
         final IJavaDeclaredType promisedForType,
         final PolicyLockDeclarationNode lockDecl, final boolean declIsGood,
-        final boolean fieldIsStatic) {
+        final boolean fieldIsStatic, final IRNode lockFieldNode) {
       final String qualifiedName = computeQualifiedName(lockDecl);     
       if (declIsGood) {
         /* One last test: Analysis does not currently support using locks 
@@ -653,6 +671,9 @@ public class LockRules extends AnnotationRules {
         model.setMessage(Messages.LockAnnotation_policyLockModel,
             model.getQualifiedName(), lockDecl.getField(), JavaNames.getTypeName(lockDecl
                 .getPromisedFor()));
+        // Get the AssumeFinal promise, if any
+        handleAssumeFinal(model, lockFieldNode);
+
         return model;
       }
       return null;
@@ -733,16 +754,17 @@ public class LockRules extends AnnotationRules {
 		final boolean fieldIsThis = (field instanceof ThisExpressionNode)
         || (field instanceof QualifiedThisExpressionNode);
 		final boolean fieldIsStatic;
-
+		final IRNode lockFieldNode;
+		
 		if (!fieldIsThis) {
 			if (!(field instanceof ClassLockExpressionNode)) {
 				// Have real field, check that it is final...
-				FieldRefNode fieldRefNode = (FieldRefNode) field;
-				IVariableBinding varBinding =
-				  fieldRefNode.resolveBinding();
-
-        final int mods = VariableDeclarator.getMods(varBinding.getNode());
-				if (!TypeUtil.isFinal(varBinding.getNode())) {
+				final FieldRefNode fieldRefNode = (FieldRefNode) field;
+				final IVariableBinding varBinding = fieldRefNode.resolveBinding();
+				lockFieldNode = varBinding.getNode();
+				
+        final int mods = VariableDeclarator.getMods(lockFieldNode);
+				if (!TypeUtil.isFinal(lockFieldNode)) {
 					context.reportError("Field \"" + field //$NON-NLS-1$
 							+ "\" is not final", lockDecl); //$NON-NLS-1$
 					declIsGood = false;
@@ -779,13 +801,15 @@ public class LockRules extends AnnotationRules {
 				}
 			}	else {
 				fieldIsStatic = true;
+				lockFieldNode = null;
 			}
 		} else {
 			fieldIsStatic = false;
+			lockFieldNode = null;
 		}
 
 		return continuation.continueScrubbing(
-		    context, protectedRegions, promisedForType, lockDecl, declIsGood, fieldIsStatic);
+		    context, protectedRegions, promisedForType, lockDecl, declIsGood, fieldIsStatic, lockFieldNode);
 	}
 
 	/**
