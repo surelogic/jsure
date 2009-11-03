@@ -24,7 +24,9 @@ import edu.cmu.cs.fluid.util.Iteratable;
 
 public class AnnotationVisitor extends Visitor<Void> {
   static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
-  static final String promisePrefix = "com.surelogic.";
+  private static final String promisePrefix = "com.surelogic.";
+  private static final String jcipPrefix = "net.jcip.annotations.";
+  
   public static final boolean allowJavadoc = false;
 
   final boolean inEclipse = IDE.getInstance().getClass().getName().contains("Eclipse");
@@ -56,7 +58,7 @@ public class AnnotationVisitor extends Visitor<Void> {
 		IJavaDeclaredType type = (IJavaDeclaredType) tEnv.getBinder().getJavaType(anno);
 		id = JavaNames.getQualifiedTypeName(type); 
 	}
-    if (id.startsWith(promisePrefix)) {
+    if (id.startsWith(promisePrefix) || (id.startsWith(jcipPrefix) && id.endsWith("ThreadSafe"))) {
       int lastDot = id.lastIndexOf('.');      
       return id.substring(lastDot+1);
     }
