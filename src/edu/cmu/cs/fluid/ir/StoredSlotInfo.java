@@ -139,7 +139,9 @@ public abstract class StoredSlotInfo<S,T>
    */
   @Override
   public synchronized T getSlotValue(IRNode node) throws SlotUndefinedException {
-	  return getSlotValue_unsync(node);
+	  S slotState = getSlot_safe(node);
+	  return storage.getSlotValue(slotState);
+	  //return getSlotValue_unsync(node);
   }
   
   protected final T getSlotValue_unsync(IRNode node) {	  
@@ -215,13 +217,13 @@ public abstract class StoredSlotInfo<S,T>
     if (slotState != newSlotState)
       setSlot(node, newSlotState);
     if (hasListeners()) {
-      SlotInfoEvent e =
+      SlotInfoEvent<T> e =
         defined
-          ? (SlotInfoEvent) new SlotInfoChangedEvent<T>(this,
+          ? (SlotInfoEvent<T>) new SlotInfoChangedEvent<T>(this,
             node,
             oldValue,
             newValue)
-          : (SlotInfoEvent) new SlotInfoDefinedEvent<T>(this, node, newValue);
+          : (SlotInfoEvent<T>) new SlotInfoDefinedEvent<T>(this, node, newValue);
       informListeners(e);
     }
     if (defined)
@@ -309,7 +311,7 @@ public abstract class StoredSlotInfo<S,T>
     S newSlotState;
     // ensure that if the slot's value is an abstract state, its parent is set.
     //IRAbstractState.pushDefaultStateParent(new SlotState<T>(this,node));
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "unused" })
     Object stack = slotParentInfo.pushPair(this, node);
     try {
       newSlotState = storage.readSlotValue(slotState,type(), in);
@@ -404,6 +406,7 @@ public abstract class StoredSlotInfo<S,T>
    * @param node node for which the slot is bound
    * @param value possible stateful value
    */
+  @SuppressWarnings("unchecked")
   protected void setStateParent(IRNode node, Object value) {
     if (value instanceof IRStoredState) {
       ((IRStoredState) value).setParent(this, node);
