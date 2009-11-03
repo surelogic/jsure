@@ -90,7 +90,10 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
      * starting node 'n' is the anonymous class expression.  In that case, we
      * still want the flow unit that 'n' is a part of, not the flow unit that 'n'
      * is.  So if 'n' is an AnonClassExpression, we start the root walk from the 
-     * parent of 'n'.
+     * parent of 'n'.  
+     * 
+     * We also need to check if 'n' is part of an argument to the ACE
+     * Note that we only want to skip the first ACE
      * 
      * We search until we hit a FlowUnit (hopefully a method or constructor
      * declaration) or a ClassBodyDeclInterface.  The latter happens when 'n'
@@ -98,14 +101,31 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
      * that happens we return the appropriate promise node for the single 
      * Class initializer method or instance initializer method.
      */
-    final Iterator<IRNode> e = tree.rootWalk(
-        AnonClassExpression.prototype.includes(tree.getOperator(n)) ? JJNode.tree.getParent(n) : n);
+	boolean skippedACE = false;
+	IRNode start = n;
+	if (AnonClassExpression.prototype.includes(n)) {
+		start = JJNode.tree.getParent(n);
+		skippedACE = true;
+	} 
+
+    final Iterator<IRNode> e = tree.rootWalk(start);
+    Operator lastOp = null;
     while (e.hasNext()) {
       final IRNode node = e.next();
       final Operator op = tree.getOperator(node);
       if (op instanceof FlowUnit)
         return node;
       if (op instanceof ClassBodyDeclInterface) { 
+    	if (!skippedACE && AnonClassExpression.prototype.includes(op)) {
+    		// Check if we're part of the arguments to the ACE
+    		if (!Arguments.prototype.includes(lastOp)) {
+    			LOG.warning("Trying to get flow unit from ACE's "+lastOp.name());
+    		}
+    		skippedACE = true;
+    		lastOp = op;
+    		continue;
+    	}
+    	    	  
         final IRNode classDecl = tree.getParent(tree.getParent(node));
         final Operator cdOp = tree.getOperator(classDecl);
 //        final boolean isClass = ClassDeclaration.prototype.includes(cdOp);
@@ -119,6 +139,7 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
           return InitDeclaration.getInitMethod(classDecl);
         }
       }
+      lastOp = op;
     }
     return null;
   }
