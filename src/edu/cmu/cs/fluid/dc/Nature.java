@@ -139,10 +139,8 @@ public final class Nature extends AbstractNature {
 		SLUIJob job = new SLUIJob() {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
+				final Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 				if (jp != null) { // Promises are NOT on the classpath
-					final Shell shell = PlatformUI.getWorkbench()
-							.getActiveWorkbenchWindow().getShell();
-
 					try {
 						// Build the list of source and output directories
 						final Set<IContainer> srcAndOutputDirs = getSourceAndOutputDirs(jp);
@@ -283,6 +281,11 @@ public final class Nature extends AbstractNature {
 								"Error while adding promises.jar", e);
 						MessageDialog.openError(shell, "Error", e.getMessage());
 					}
+				} else { // Already on the classpath
+					if (onlyAddJar) {
+						MessageDialog.openInformation(shell, "Info", 
+								"The SureLogic promises JAR file is already on the classpath");
+					}
 				}
 				if (!onlyAddJar) {
 					ConfirmPerspectiveSwitch.prototype.submitUIJob();
@@ -290,7 +293,6 @@ public final class Nature extends AbstractNature {
 				}
 				return Status.OK_STATUS;
 			}
-
 		};
 		job.schedule();
 	}
