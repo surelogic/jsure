@@ -14,6 +14,16 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Assume;
+import com.surelogic.Assumes;
+import com.surelogic.Borrowed;
+import com.surelogic.Promise;
+import com.surelogic.Promises;
+import com.surelogic.RegionEffects;
+import com.surelogic.RegionLock;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * A rendezvous is a barrier that:
  * <ul>
@@ -104,10 +114,8 @@ package EDU.oswego.cs.dl.util.concurrent;
  * }
  * </pre>
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- *
- * @RegionLock RendezvousLock is this protects Instance
  **/
-
+@RegionLock("RendezvousLock is this protects Instance")
 public class Rendezvous implements Barrier {
 
   /**
@@ -136,10 +144,11 @@ public class Rendezvous implements Barrier {
    * The default rendezvous function. Rotates the array
    * so that each thread returns an item presented by some
    * other thread (or itself, if parties is 1).
-   * 
-   * @promise @RegionEffects(none) for new()
-   * @promise @Borrowed(this) for new()
    **/
+  @Promises({
+	  @Promise("@RegionEffects(none) for new()"),
+	  @Promise("@Borrowed(this) for new()")
+  })
   public static class Rotator implements RendezvousFunction {
     /** Rotate the array **/
     public void rendezvousFunction(Object[] objects) {
@@ -186,10 +195,9 @@ public class Rendezvous implements Barrier {
    * Create a Barrier for the indicated number of parties,
    * and the default Rotator function to run at each barrier point.
    * @exception IllegalArgumentException if parties less than or equal to zero.
-   * @singleThreaded
-   * @borrowed this
    **/
-
+  @SingleThreaded
+  @Borrowed("this")
   public Rendezvous(int parties) { 
     this(parties, new Rotator()); 
   }
@@ -200,16 +208,15 @@ public class Rendezvous implements Barrier {
    * 
    * @exception IllegalArgumentException
    *              if parties less than or equal to zero.
-   * 
-   * @singleThreaded
-   * 
-   * @RegionEffects none
-   * @starts nothing
-   * @borrowed this
-   * 
-   * @assume "@RegionEffects none" for IllegalArgumentException:new()
-   * @assume "@starts nothing" for IllegalArgumentException:new()
    */
+  @SingleThreaded
+  @RegionEffects("none")
+  @Starts("nothing")
+  @Borrowed("this")
+  @Assumes({
+	  @Assume("@RegionEffects(none) for IllegalArgumentException:new()"),
+	  @Assume("@Starts(nothing) for IllegalArgumentException:new()")
+  })
   public Rendezvous(int parties, RendezvousFunction function) { 
     if (parties <= 0) throw new IllegalArgumentException();
     parties_ = parties; 

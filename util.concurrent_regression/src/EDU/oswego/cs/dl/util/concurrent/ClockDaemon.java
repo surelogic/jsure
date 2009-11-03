@@ -16,6 +16,10 @@ package EDU.oswego.cs.dl.util.concurrent;
 import java.util.Comparator;
 import java.util.Date;
 
+import com.surelogic.Borrowed;
+import com.surelogic.RegionLock;
+import com.surelogic.SingleThreaded;
+
 /**
  * A general-purpose time-based daemon, vaguely similar in functionality
  * to common system-level utilities such as <code>at</code> 
@@ -56,9 +60,7 @@ public class ClockDaemon extends ThreadFactoryUser  {
   /** tasks are maintained in a standard priority queue **/
   protected final Heap heap_ = new Heap(DefaultChannelCapacity.get());
 
-  /**
-   * @RegionLock NodeLock is this protects Instance
-   */
+  @RegionLock("NodeLock is this protects Instance")
   protected static class TaskNode implements Comparable {
     final Runnable command;   // The command to run
     final long period;        // The cycle period, or -1 if not periodic
@@ -86,18 +88,14 @@ public class ClockDaemon extends ThreadFactoryUser  {
       return (a < b)? -1 : ((a == b)? 0 : 1);
     }
 
-    /**
-     * @singleThreaded
-     * @borrowed this
-     */
+    @SingleThreaded
+    @Borrowed("this")
     TaskNode(long w, Runnable c, long p) {
       timeToRun_ = w; command = c; period = p;
     }
 
-    /**
-     * @singleThreaded
-     * @borrowed this
-     */
+    @SingleThreaded
+    @Borrowed("this")
     TaskNode(long w, Runnable c) { this(w, c, -1); }
   }
 

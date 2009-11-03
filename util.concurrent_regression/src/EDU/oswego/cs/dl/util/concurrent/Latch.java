@@ -13,6 +13,10 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Promise;
+import com.surelogic.Promises;
+import com.surelogic.RegionLock;
+
 /**
  * A latch is a boolean condition that is set at most once, ever.
  * Once a single release is issued, all acquires will pass.
@@ -42,13 +46,12 @@ package EDU.oswego.cs.dl.util.concurrent;
  * }
  *</pre>
  * [<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>] <p>
- * 
- * @RegionLock Lock is this protects Instance
- * 
- * @promise @SingleThreaded for new(**)
- * @promise @Borrowed(this) for new(**)
 **/  
-
+@RegionLock("Lock is this protects Instance")
+@Promises({
+	@Promise("@SingleThreaded for new(**)"),
+	@Promise("@Borrowed(this) for new(**)")
+})
 public class Latch implements Sync {
   protected boolean latched_ = false;
 

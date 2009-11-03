@@ -14,6 +14,10 @@
 package EDU.oswego.cs.dl.util.concurrent;
 import java.util.*;
 
+import com.surelogic.Borrowed;
+import com.surelogic.RegionLock;
+import com.surelogic.SingleThreaded;
+
 /**
  * The ObservableSync class performs no synchronization
  * itself, but invokes event-style messages to other
@@ -33,11 +37,9 @@ import java.util.*;
  * EventObjects and forwarding them.
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  * @see LayeredSync
- * 
- * @RegionLock Lock is this protects Instance
 **/
 
-
+@RegionLock("Lock is this protects Instance")
 public class ObservableSync implements Sync {
 
 
@@ -64,10 +66,9 @@ public class ObservableSync implements Sync {
    * Create an ObservableSync that uses the supplied argument
    * for all notifications. The argument is typically an
    * object that is being managed by this Sync object.
-   * @borrowed this
-   * @singleThreaded
    **/
-
+  @SingleThreaded
+  @Borrowed("this")
   public ObservableSync(Object notificationArgument) {
     arg_ = notificationArgument;
   }

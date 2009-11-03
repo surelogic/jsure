@@ -13,6 +13,11 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.InRegion;
+import com.surelogic.RegionEffects;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * A class useful for offloading synch for int instance variables.
  *
@@ -21,16 +26,16 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 public class SynchronizedInt extends SynchronizedVariable implements Comparable, Cloneable {
 
-  /** @InRegion Variable */
-  protected int value_;
+	  @InRegion("Variable")
+	  protected int value_;
 
   /** 
    * Make a new SynchronizedInt with the given initial value,
    * and using its own internal lock.
-   * @singleThreaded
-   * @RegionEffects none
-   * @starts nothing
    **/
+	  @SingleThreaded
+	  @RegionEffects("none")
+	  @Starts("nothing")
   public SynchronizedInt(int initialValue) { 
     super(); 
     value_ = initialValue; 
@@ -39,10 +44,10 @@ public class SynchronizedInt extends SynchronizedVariable implements Comparable,
   /** 
    * Make a new SynchronizedInt with the given initial value,
    * and using the supplied lock.
-   * @RegionEffects none
-   * @starts nothing
-   * @singleThreaded
    **/
+	  @SingleThreaded
+	  @RegionEffects("none")
+	  @Starts("nothing")
   public SynchronizedInt(int initialValue, Object lock) { 
     super(lock); 
     value_ = initialValue; 

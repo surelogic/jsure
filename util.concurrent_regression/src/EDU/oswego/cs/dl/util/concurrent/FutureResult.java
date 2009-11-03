@@ -14,6 +14,11 @@
 package EDU.oswego.cs.dl.util.concurrent;
 import java.lang.reflect.*;
 
+import com.surelogic.Borrowed;
+import com.surelogic.RegionLock;
+import com.surelogic.RequiresLock;
+import com.surelogic.SingleThreaded;
+
 /**
  * A  class maintaining a single reference variable serving as the result
  * of an operation. The result cannot be accessed until it has been set.
@@ -42,10 +47,8 @@ import java.lang.reflect.*;
  * </pre>
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
  * @see Executor
- * 
- * @RegionLock FutureLock is this protects Instance
  **/
-
+@RegionLock("FutureLock is this protects Instance")
 public class FutureResult {
   /** The result of the operation **/
   protected Object value_ = null;
@@ -58,9 +61,9 @@ public class FutureResult {
 
   /** 
    * Create an initially unset FutureResult
-   * @singleThreaded
-   * @borrowed this
    **/
+  @SingleThreaded
+  @Borrowed("this")
   public FutureResult() { }
 
 
@@ -85,9 +88,8 @@ public class FutureResult {
     };
   }
 
-  /** internal utility: either get the value or throw the exception 
-   * @requiresLock FutureLock 
-   **/
+  /** internal utility: either get the value or throw the exception **/
+  @RequiresLock("FutureLock")
   protected Object doGet() throws InvocationTargetException {
     if (exception_ != null) 
       throw exception_;

@@ -16,35 +16,40 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Borrowed;
+import com.surelogic.InRegion;
+import com.surelogic.Region;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
+import com.surelogic.Regions;
+import com.surelogic.RequiresLock;
+import com.surelogic.SingleThreaded;
+
 /**
  * Efficient array-based bounded buffer class.
  * Adapted from CPJ, chapter 8, which describes design.
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>] <p>
- * 
- * @region protected Head
- * @region protected Tail 
- * @-region protected HeadsOrTails
- * 
- * @RegionLock HeadLock is this protects Head
- * @RegionLock TailLock is putMonitor_ protects Tail
  **/
-
+@Regions({
+	@Region("protected Head"),
+	@Region("protected Tail")
+})
+@RegionLocks({
+	@RegionLock("HeadLock is this protects Head"),
+	@RegionLock("TailLock is putMonitor_ protects Tail")
+})
 public class BoundedBuffer implements BoundedChannel {
 
-  /**
-   * @-Unique
-   * @-Aggregate [] into HeadsOrTails
-   */
   protected final Object[]  array_;      // the elements
 
-  /** @InRegion Head */
+  @InRegion("Head")
   protected int takePtr_ = 0;            // circular indices
-  /** @InRegion Tail */
+  @InRegion("Tail")
   protected int putPtr_ = 0;       
 
-  /** @InRegion Head */
+  @InRegion("Head")
   protected int usedSlots_ = 0;          // length
-  /** @InRegion Tail */
+  @InRegion("Tail")
   protected int emptySlots_;             // capacity - length
 
   /**
@@ -55,9 +60,9 @@ public class BoundedBuffer implements BoundedChannel {
   /**
    * Create a BoundedBuffer with the given capacity.
    * @exception IllegalArgumentException if capacity less or equal to zero
-   * @borrowed this
-   * @singleThreaded
    **/
+  @SingleThreaded
+  @Borrowed("this")
   public BoundedBuffer(int capacity) throws IllegalArgumentException {
     if (capacity <= 0) throw new IllegalArgumentException();
     array_ = new Object[capacity];
@@ -66,10 +71,9 @@ public class BoundedBuffer implements BoundedChannel {
 
   /**
    * Create a buffer with the current default capacity
-   * @borrowed this
-   * @singleThreaded
    **/
-
+  @SingleThreaded
+  @Borrowed("this")
   public BoundedBuffer() { 
     this(DefaultChannelCapacity.get()); 
   }
@@ -95,14 +99,14 @@ public class BoundedBuffer implements BoundedChannel {
     notify();
   }
 
-  /** @requiresLock TailLock */
+  @RequiresLock("TailLock")
   protected final void insert(Object x) { // mechanics of put
     --emptySlots_;
     array_[putPtr_] = x;
     if (++putPtr_ >= array_.length) putPtr_ = 0;
   }
 
-  /** @requiresLock HeadLock */
+  @RequiresLock("HeadLock")
   protected final Object extract() { // mechanics of take
     --usedSlots_;
     Object old = array_[takePtr_];

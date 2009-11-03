@@ -13,6 +13,10 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Promise;
+import com.surelogic.Promises;
+import com.surelogic.RegionLock;
+
 /**
  * A simple non-reentrant mutual exclusion lock.
  * The lock is free upon construction. Each acquire gets the
@@ -104,12 +108,12 @@ package EDU.oswego.cs.dl.util.concurrent;
  * <p>
  * @see Semaphore
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- * 
- * @RegionLock MetaLock is this protects Instance
- * @promise @SingleThreaded for new(**)
- * @promise @Borrowed(this) for new(**)
 **/
-
+@RegionLock("MetaLock is this protects Instance")
+@Promises({
+	@Promise("@SingleThreaded for new(**)"),
+	@Promise("@Borrowed(this) for new(**)")
+})
 public class Mutex implements Sync  {
 
   /** The lock status **/

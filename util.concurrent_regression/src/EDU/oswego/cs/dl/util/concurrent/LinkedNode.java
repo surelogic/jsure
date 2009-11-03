@@ -15,19 +15,18 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.RegionEffects;
+import com.surelogic.Starts;
+
 /** A standard linked list node used in various queue classes **/
 public class LinkedNode { 
   public Object value;
   public LinkedNode next;
   public LinkedNode() {}
-  /**
-   * @RegionEffects none
-   * @starts nothing
-   */
+  @RegionEffects("none")
+  @Starts("nothing")
   public LinkedNode(Object x) { value = x; }
-  /**
-   * @RegionEffects none
-   * @starts nothing
-   */
+  @RegionEffects("none")
+  @Starts("nothing")
   public LinkedNode(Object x, LinkedNode n) { value = x; next = n; }
 }

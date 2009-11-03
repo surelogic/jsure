@@ -13,6 +13,10 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Borrowed;
+import com.surelogic.RegionLock;
+import com.surelogic.SingleThreaded;
+
 /**
  * A CountDown can serve as a simple one-shot barrier. 
  * A Countdown is initialized
@@ -49,19 +53,17 @@ package EDU.oswego.cs.dl.util.concurrent;
  * </pre>
  *
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- *
- *@RegionLock Lock is this protects Instance
 **/
-
+@RegionLock("Lock is this protects Instance")
 public class CountDown implements Sync {
   protected final int initialCount_;
   protected int count_;
 
   /** 
    * Create a new CountDown with given count value
-   * @borrowed this
-   * @singleThreaded
    **/
+  @SingleThreaded
+  @Borrowed("this")
   public CountDown(int count) { count_ = initialCount_ = count; }
 
   

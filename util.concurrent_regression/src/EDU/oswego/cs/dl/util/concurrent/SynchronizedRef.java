@@ -14,6 +14,11 @@
 package EDU.oswego.cs.dl.util.concurrent;
 import java.io.*;
 
+import com.surelogic.InRegion;
+import com.surelogic.RegionEffects;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * A simple class maintaining a single reference variable that
  * is always accessed and updated under synchronization.
@@ -25,17 +30,17 @@ public class SynchronizedRef extends SynchronizedVariable {
   
   /** 
    * The maintained reference
-   * @InRegion Variable
    **/
+	  @InRegion("Variable")
   protected Object value_;
 
   /** 
    * Create a SynchronizedRef initially holding the given reference 
    * and using its own internal lock.
-   * @singleThreaded
-   * @RegionEffects none
-   * @starts nothing
    **/
+	  @SingleThreaded
+	  @RegionEffects("none")
+	  @Starts("nothing")
   public SynchronizedRef(Object initialValue) { 
     super();
     value_ = initialValue; 
@@ -44,10 +49,10 @@ public class SynchronizedRef extends SynchronizedVariable {
   /** 
    * Make a new SynchronizedRef with the given initial value,
    * and using the supplied lock.
-   * @RegionEffects none
-   * @starts nothing
-   * @singleThreaded
    **/
+	  @SingleThreaded
+	  @RegionEffects("none")
+	  @Starts("nothing")
   public SynchronizedRef(Object initialValue, Object lock) { 
     super(lock); 
     value_ = initialValue; 

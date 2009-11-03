@@ -50,9 +50,8 @@ public class C {
   
   /**
    * Good: parameter-qualified instance lock
-   * @TestResult is CONSISTENT
-   * @ReturnsLock p:IL
    */
+  @ReturnsLock("p:IL" /* is CONSISTENT */)
   public Object getInstanceLock(final C p) {
     return p;
   }

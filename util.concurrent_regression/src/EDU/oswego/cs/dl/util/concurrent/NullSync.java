@@ -13,6 +13,8 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.PolicyLock;
+
 /**
  * A No-Op implementation of Sync. Acquire never blocks,
  * Attempt always succeeds, Release has no effect.
@@ -25,11 +27,9 @@ package EDU.oswego.cs.dl.util.concurrent;
  * it is found that locking is not strictly necesssary.
  *
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- * 
- * @policyLock MemoryBarrier is this
 **/
 
-
+@PolicyLock("MemoryBarrier is this")
 public class NullSync implements Sync {
 
   public synchronized void acquire() throws InterruptedException {

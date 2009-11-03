@@ -15,6 +15,12 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Borrowed;
+import com.surelogic.RegionEffects;
+import com.surelogic.RegionLock;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * Base class for counting semaphores.
  * Conceptually, a semaphore maintains a set of permits.
@@ -84,11 +90,9 @@ package EDU.oswego.cs.dl.util.concurrent;
  * }
  *</pre>
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- * 
- * @RegionLock Lock is this protects Instance
 **/
 
-
+@RegionLock("Lock is this protects Instance")
 public class Semaphore implements Sync  {
   /** current number of available permits **/
   protected long permits_;
@@ -98,11 +102,11 @@ public class Semaphore implements Sync  {
    * Using a seed of one makes the semaphore act as a mutual exclusion lock.
    * Negative seeds are also allowed, in which case no acquires will proceed
    * until the number of releases has pushed the number of permits past 0.
-   * @borrowed this
-   * @RegionEffects none
-   * @starts nothing
-   * @singleThreaded
   **/
+  @SingleThreaded
+  @Borrowed("this")
+  @Starts("nothing")
+  @RegionEffects("none")
   public Semaphore(long initialPermits) {  permits_ = initialPermits; }
 
 

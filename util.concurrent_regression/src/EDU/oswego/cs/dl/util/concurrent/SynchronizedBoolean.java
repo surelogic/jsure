@@ -13,6 +13,11 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.InRegion;
+import com.surelogic.RegionEffects;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * A class useful for offloading synch for boolean instance variables.
  *
@@ -21,16 +26,16 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 public class SynchronizedBoolean  extends SynchronizedVariable implements Comparable, Cloneable {
   
-  /** @InRegion Variable */
+  @InRegion("Variable")
   protected boolean value_;
 
   /** 
    * Make a new SynchronizedBoolean with the given initial value,
    * and using its own internal lock.
-   * @singleThreaded
-   * @RegionEffects none
-   * @starts nothing
    **/
+  @SingleThreaded
+  @RegionEffects("none")
+  @Starts("nothing")
   public SynchronizedBoolean(boolean initialValue) { 
     super(); 
     value_ = initialValue; 
@@ -39,10 +44,10 @@ public class SynchronizedBoolean  extends SynchronizedVariable implements Compar
   /** 
    * Make a new SynchronizedBoolean with the given initial value,
    * and using the supplied lock.
-   * @singleThreaded
-   * @RegionEffects none
-   * @starts nothing
    **/
+  @SingleThreaded
+  @RegionEffects("none")
+  @Starts("nothing")
   public SynchronizedBoolean(boolean initialValue, Object lock) { 
     super(lock); 
     value_ = initialValue; 

@@ -13,6 +13,11 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.InRegion;
+import com.surelogic.RegionEffects;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * A class useful for offloading synch for byte instance variables.
  *
@@ -21,16 +26,16 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 public class SynchronizedByte extends SynchronizedVariable implements Comparable, Cloneable {
 
-  /** @InRegion Variable */
+  @InRegion("Variable")
   protected byte value_;
 
   /** 
    * Make a new SynchronizedByte with the given initial value,
    * and using its own internal lock.
-   * @singleThreaded
-   * @RegionEffects none
-   * @starts nothing
    **/
+  @SingleThreaded
+  @RegionEffects("none")
+  @Starts("nothing")
   public SynchronizedByte(byte initialValue) { 
     super(); 
     value_ = initialValue; 
@@ -39,10 +44,10 @@ public class SynchronizedByte extends SynchronizedVariable implements Comparable
   /** 
    * Make a new SynchronizedByte with the given initial value,
    * and using the supplied lock.
-   * @RegionEffects none
-   * @starts nothing
-   * @singleThreaded
    **/
+  @SingleThreaded
+  @RegionEffects("none")
+  @Starts("nothing")
   public SynchronizedByte(byte initialValue, Object lock) { 
     super(lock); 
     value_ = initialValue; 

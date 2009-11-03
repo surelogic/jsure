@@ -15,6 +15,10 @@
 package EDU.oswego.cs.dl.util.concurrent;
 import java.lang.reflect.*;
 
+import com.surelogic.Promise;
+import com.surelogic.Promises;
+import com.surelogic.RegionLock;
+
 /**
  * A one-slot buffer, using semaphores to control access.
  * Slots are usually more efficient and controllable than using other
@@ -26,13 +30,12 @@ import java.lang.reflect.*;
  * and returned by various threads.
  *
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- *
- * @RegionLock ItemLock is this protects item_
- * 
- * @promise @SingleThreaded for new(**)
- * @promise @Borrowed(this) for new(**)
  **/
-
+@RegionLock("ItemLock is this protects item_")
+@Promises({
+	@Promise("@SingleThreaded for new(**)"),
+	@Promise("@Borrowed(this) for new(**)")
+})
 public class Slot extends SemaphoreControlledChannel {
 
   /**
@@ -46,8 +49,6 @@ public class Slot extends SemaphoreControlledChannel {
    * @exception IllegalAccessException if constructor cannot be called
    * @exception InvocationTargetException if semaphore constructor throws an
    * exception
-   * 
-   * @-borrowed this
    **/
 
   public Slot(Class semaphoreClass) 

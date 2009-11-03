@@ -28,6 +28,16 @@ package EDU.oswego.cs.dl.util.concurrent.misc;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import com.surelogic.Assume;
+import com.surelogic.Assumes;
+import com.surelogic.Borrowed;
+import com.surelogic.Promise;
+import com.surelogic.Promises;
+import com.surelogic.RegionEffects;
+import com.surelogic.RegionLock;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 //import com.sun.java.swing.*;
 //import com.sun.java.swing.border.*;
 
@@ -269,11 +279,11 @@ import  java.lang.reflect.*;
  *  <p>
  *
  *   The test code is ugly; it has just evolved over the years.  Sorry.
- * 
- *   @assume "@RegionEffects none" for Boolean:new(*)
- *   @assume "@starts nothing" for Boolean:new(*)
 **/
-
+@Assumes({
+	@Assume("@RegionEffects(none) for Boolean:new(*)"),
+	@Assume("@Starts(nothing) for Boolean:new(*)")
+})
 public class SynchronizationTimer {
 
   /** Start up this application **/
@@ -292,9 +302,8 @@ public class SynchronizationTimer {
 
   /**
    * Information about classes to be tested
-   * 
-   * @RegionLock L is this protects enabled_
    **/
+  @RegionLock("L is this protects enabled_")
   static class TestedClass { 
     final String name; 
     final Class cls; 
@@ -319,19 +328,15 @@ public class SynchronizationTimer {
       return true;
     }
     
-    /**
-     * @singleThreaded
-     * @borrowed this
-     */
+    @SingleThreaded
+    @Borrowed("this")
     TestedClass(String n, Class c, boolean m, boolean sok) {
       name = n; cls = c; multipleOK = m; singleOK = sok; 
       buffCls = null;
     }
     
-    /**
-     * @singleThreaded
-     * @borrowed this
-     */
+    @SingleThreaded
+    @Borrowed("this")
     TestedClass(String n, Class c, boolean m, boolean sok, Class bc) {
       name = n; cls = c; multipleOK = m; singleOK = sok; 
       buffCls = bc;
@@ -438,10 +443,8 @@ public class SynchronizationTimer {
     return sms;
   }
 
-  /**
-   * @RegionEffects none
-   * @starts nothing
-   */
+  @RegionEffects("none")
+  @Starts("nothing")
   static String p2ToString(int n) { // print power of two
     String suf = "";
     if (n >= 1024) {
@@ -480,19 +483,15 @@ public class SynchronizationTimer {
     }
   }
     
-  /**
-   * @RegionLock L is this protects enabled
-   */
+  @RegionLock("L is this protects enabled")
   static class ThreadInfo {
     final String name;
     final int number;
     Boolean enabled;
     
-    /**
-     * @singleThreaded
-     * @RegionEffects none
-     * @starts nothing
-     */
+    @SingleThreaded
+    @RegionEffects("none")
+    @Starts("nothing")
     ThreadInfo(int nthr) {
       number = nthr;
       name = p2ToString(nthr);
@@ -1279,11 +1278,11 @@ public class SynchronizationTimer {
     }
   }
 
-  /**
-   * @RegionLock L is this protects Instance
-   * @promise @SingleThreaded for new()
-   * @promise @Borrowed(this) for new()
-   */
+  @RegionLock("L is this protects Instance")
+  @Promises({
+	  @Promise("@SingleThreaded for new()"),
+	  @Promise("@Borrowed(this) for new()")
+  })
   static class BarrierTimer implements Runnable {
     private long startTime_ = 0;
     private long endTime_ = 0;

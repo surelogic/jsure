@@ -13,6 +13,13 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Borrowed;
+import com.surelogic.Region;
+import com.surelogic.RegionEffects;
+import com.surelogic.RegionLock;
+import com.surelogic.ReturnsLock;
+import com.surelogic.Starts;
+
 /**
  * Base class for simple,  small classes 
  * maintaining single values that are always accessed
@@ -174,33 +181,30 @@ package EDU.oswego.cs.dl.util.concurrent;
  *
  *
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- * 
- * @region public Variable
- * @RegionLock VarLock is lock_ protects Variable 
  **/
-
+@Region("public Variable")
+@RegionLock("VarLock is lock_ protects Variable")
 public class SynchronizedVariable implements Executor {
 
   protected final Object lock_;
 
-  /** Create a SynchronizedVariable using the supplied lock
-   * @RegionEffects none
-   * @starts nothing
-   **/
+  /** Create a SynchronizedVariable using the supplied lock **/
+  @RegionEffects("none")
+  @Starts("nothing")
   public SynchronizedVariable(Object lock) { lock_ = lock; }
 
   /** 
    * Create a SynchronizedVariable using itself as the lock
-   * @RegionEffects none
-   * @starts nothing
    **/
+  @RegionEffects("none")
+  @Starts("nothing")
   public SynchronizedVariable() { lock_ = this; }
 
   /**
    * Return the lock used for all synchronization for this object
-   * @returnsLock VarLock
-   * @borrowed this
    **/
+  @Borrowed("this")
+  @ReturnsLock("VarLock")
   public Object getLock() { return lock_; }
 
   /**

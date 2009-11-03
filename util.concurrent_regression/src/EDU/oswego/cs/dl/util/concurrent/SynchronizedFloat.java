@@ -13,6 +13,11 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.InRegion;
+import com.surelogic.RegionEffects;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * A class useful for offloading synch for float instance variables.
  *
@@ -21,16 +26,16 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 public class SynchronizedFloat extends SynchronizedVariable implements Comparable, Cloneable {
 
-  /** @InRegion Variable */
+	  @InRegion("Variable")
   protected float value_;
 
   /** 
    * Make a new SynchronizedFloat with the given initial value,
    * and using its own internal lock.
-   * @singleThreaded
-   * @RegionEffects none
-   * @starts nothing
    **/
+	  @SingleThreaded
+	  @RegionEffects("none")
+	  @Starts("nothing")
   public SynchronizedFloat(float initialValue) { 
     super(); 
     value_ = initialValue; 
@@ -39,10 +44,10 @@ public class SynchronizedFloat extends SynchronizedVariable implements Comparabl
   /** 
    * Make a new SynchronizedFloat with the given initial value,
    * and using the supplied lock.
-   * @RegionEffects none
-   * @starts nothing
-   * @singleThreaded
    **/
+	  @SingleThreaded
+	  @RegionEffects("none")
+	  @Starts("nothing")
   public SynchronizedFloat(float initialValue, Object lock) { 
     super(lock); 
     value_ = initialValue; 

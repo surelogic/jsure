@@ -16,6 +16,14 @@
 package EDU.oswego.cs.dl.util.concurrent;
 import java.util.Comparator;
 
+import com.surelogic.Aggregate;
+import com.surelogic.Borrowed;
+import com.surelogic.InRegion;
+import com.surelogic.Region;
+import com.surelogic.RegionLock;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Unique;
+
 /**
  * A heap-based priority queue, without any concurrency control
  * (i.e., no blocking on empty/full states).
@@ -26,31 +34,25 @@ import java.util.Comparator;
  * are fully synchronized. In the future,
  * it may instead use structures permitting finer-grained locking.
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- * 
- * @region protected HeapRegion
- * @RegionLock HeapLock is this protects HeapRegion
  **/
-
+@Region("protected HeapRegion")
+@RegionLock("HeapLock is this protects HeapRegion")
 public class Heap  {
   
-  /** 
-   * @unique
-   * @aggregate Instance into HeapRegion
-   * @inRegion HeapRegion
-   */
+  @Unique
+  @Aggregate("Instance into HeapRegion")
+  @InRegion("HeapRegion")
   protected Object[] nodes_;  // the tree nodes, packed into an array
-  /** @inRegion HeapRegion */
+  @InRegion("HeapRegion")
   protected int count_ = 0;   // number of used slots
   protected final Comparator cmp_;  // for ordering
 
   /**
    * Create a Heap with the given initial capacity and comparator
    * @exception IllegalArgumentException if capacity less or equal to zero
-   * 
-   * @borrowed this
-   * @singleThreaded
    **/
-
+  @SingleThreaded
+  @Borrowed("this")
   public Heap(int capacity, Comparator cmp) 
    throws IllegalArgumentException {
     if (capacity <= 0) throw new IllegalArgumentException();
@@ -61,11 +63,9 @@ public class Heap  {
   /**
    * Create a Heap with the given capacity,
    * and relying on natural ordering.
-   * 
-   * @borrowed this
-   * @singleThreaded
    **/
-
+  @SingleThreaded
+  @Borrowed("this")
   public Heap(int capacity) { 
     this(capacity, null); 
   }

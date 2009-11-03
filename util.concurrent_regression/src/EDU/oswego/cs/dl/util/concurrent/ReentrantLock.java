@@ -14,6 +14,10 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Promise;
+import com.surelogic.Promises;
+import com.surelogic.RegionLock;
+
 /**
  * A lock with the same semantics as builtin
  * Java synchronized locks: Once a thread has a lock, it
@@ -21,13 +25,12 @@ package EDU.oswego.cs.dl.util.concurrent;
  * The lock is made available to other threads when
  * as many releases as acquires have occurred.
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- * 
- * @RegionLock MetaLock is this protects Instance
- * @promise @SingleThreaded for new(**)
- * @promise @Borrowed(this) for new(**)
 **/
-
-
+@RegionLock("MetaLock is this protects Instance")
+@Promises({
+	@Promise("@SingleThreaded for new(**)"),
+	@Promise("@Borrowed(this) for new(**)")
+})
 public class ReentrantLock implements Sync  {
 
   protected Thread owner_ = null;

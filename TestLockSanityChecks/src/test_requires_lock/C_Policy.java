@@ -57,7 +57,6 @@ public class C_Policy {
 
       /**
        * GOOD: Qualified receiver exists, names instance lock.
-       * @returnsLock test_requires_lock.C_Policy.Inner1.this:InnerLock
        */
       @RequiresLock("test_requires_lock.C_Policy.Inner1.this:InnerLock" /* is CONSISTENT */)
       public void getInnerLock_good() {}

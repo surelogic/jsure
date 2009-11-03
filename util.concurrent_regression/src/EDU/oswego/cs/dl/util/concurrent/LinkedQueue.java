@@ -16,6 +16,16 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Borrowed;
+import com.surelogic.InRegion;
+import com.surelogic.Region;
+import com.surelogic.RegionEffects;
+import com.surelogic.RegionLock;
+import com.surelogic.RegionLocks;
+import com.surelogic.Regions;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * A linked list based channel implementation.
  * The algorithm avoids contention between puts
@@ -26,21 +36,23 @@ package EDU.oswego.cs.dl.util.concurrent;
  * other Channel implementations in producer/consumer
  * applications.
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- *
- * @region protected PutInfo
- * @region protected TakeInfo
- * @RegionLock PutLock is putLock_ protects PutInfo
- * @RegionLock TakeLock is this protects TakeInfo
  **/
-
+@Regions({
+	@Region("protected PutInfo"),
+	@Region("protected TakeInfo")
+})
+@RegionLocks({
+	@RegionLock("PutLock is putLock_ protects PutInfo"),
+	@RegionLock("TakeLock is this protects TakeInfo")
+})
 public class LinkedQueue implements Channel {
 
 
   /** 
    * Dummy header node of list. The first actual node, if it exists, is always 
    * at head_.next. After each take, the old first node becomes the head.
-   * @InRegion TakeInfo
    **/
+  @InRegion("TakeInfo")
   protected LinkedNode head_;         
 
   /**
@@ -50,8 +62,8 @@ public class LinkedQueue implements Channel {
 
   /** 
    * The last node of list. Put() appends to list, so modifies last_
-   * @InRegion PutInfo
    **/
+  @InRegion("PutInfo")
   protected LinkedNode last_;         
 
   /**
@@ -60,15 +72,13 @@ public class LinkedQueue implements Channel {
    * The bookkeeping is worth it here since in reasonably balanced
    * usages, the notifications will hardly ever be necessary, so
    * the call overhead to notify can be eliminated.
-   * @InRegion PutInfo
    **/
+  @InRegion("PutInfo")
   protected int waitingForTake_ = 0;  
 
-  /**
-   * @singleThreaded
-   * @RegionEffects none
-   * @starts nothing
-   */
+  @SingleThreaded
+  @RegionEffects("none")
+  @Starts("nothing")
   public LinkedQueue() {
     head_ = new LinkedNode(null); 
     last_ = head_;

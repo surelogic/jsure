@@ -13,17 +13,22 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Promise;
+import com.surelogic.Promises;
+import com.surelogic.RegionLock;
+
 /**
  * 
  * Base class for Executors and related classes that rely on thread factories.
  * Generally intended to be used as a mixin-style abstract class, but
  * can also be used stand-alone.
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
- * 
- * @RegionLock FactoryLock is this protects threadFactory_
- * @promise @SingleThreaded for new(**)
- * @promise @Borrowed(this) for new(**)
  **/
+@RegionLock("FactoryLock is this protects threadFactory_")
+@Promises({
+	@Promise("@SingleThreaded for new(**)"),
+	@Promise("@Borrowed(this) for new(**)")
+})
 
 public class ThreadFactoryUser {
 

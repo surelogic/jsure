@@ -14,6 +14,12 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.Borrowed;
+import com.surelogic.RegionEffects;
+import com.surelogic.RegionLock;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * A cyclic barrier is a reasonable choice for a barrier in contexts
  * involving a fixed sized group of threads that
@@ -81,9 +87,8 @@ package EDU.oswego.cs.dl.util.concurrent;
  * }
  * </pre>
  * <p>[<a href="http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"> Introduction to this package. </a>]
-
- * @RegionLock Lock is this protects Instance
  **/
+@RegionLock("Lock is this protects Instance")
 public class CyclicBarrier implements Barrier {
 
   protected final int parties_;
@@ -96,32 +101,23 @@ public class CyclicBarrier implements Barrier {
    * Create a CyclicBarrier for the indicated number of parties,
    * and no command to run at each barrier.
    * @exception IllegalArgumentException if parties less than or equal to zero.
-   * @RegionEffects none
-   * @starts nothing
-   * @singleThreaded
    **/
-
+  @SingleThreaded
+  @Starts("nothing")
+  @RegionEffects("none")
   public CyclicBarrier(int parties) { this(parties, null); }
 
   /** 
    * Create a CyclicBarrier for the indicated number of parties.
    * and the given command to run at each barrier point.
    * @exception IllegalArgumentException if parties less than or equal to zero.
-   * @singleThreaded
-   * @-none
-   * @-starts nothing
-   * @-assume "@starts nothing" for java.lang:IllegalArgumentException:new()
-   * @-assume "@RegionEffects none" for java.lang:IllegalArgumentException:new()
    **/
-
+  @SingleThreaded
   public CyclicBarrier(int parties, Runnable command) { 
     if (parties <= 0) throw new IllegalArgumentException();
     parties_ = parties; 
     count_ = parties;
     barrierCommand_ = command;
-    
-    // bogus statement for demo purposes!
-//    new Thread(command).start();
   }
 
   /**

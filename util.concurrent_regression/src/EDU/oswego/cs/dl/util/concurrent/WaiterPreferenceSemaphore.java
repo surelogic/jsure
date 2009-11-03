@@ -15,6 +15,10 @@
 
 package EDU.oswego.cs.dl.util.concurrent;
 
+import com.surelogic.RegionEffects;
+import com.surelogic.SingleThreaded;
+import com.surelogic.Starts;
+
 /**
  * An implementation of counting Semaphores that
  *  enforces enough fairness for applications that
@@ -51,11 +55,10 @@ public final class WaiterPreferenceSemaphore extends Semaphore  {
 
   /** 
    * Create a Semaphore with the given initial number of permits.
-   * @starts nothing
-   * @RegionEffects none
-   * @singleThreaded
   **/
-
+	  @SingleThreaded
+	  @RegionEffects("none")
+	  @Starts("nothing")
   public WaiterPreferenceSemaphore(long initial) {  super(initial); }
 
   /** Number of waiting threads **/

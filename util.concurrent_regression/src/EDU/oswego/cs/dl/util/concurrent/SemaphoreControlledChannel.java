@@ -16,6 +16,9 @@
 package EDU.oswego.cs.dl.util.concurrent;
 import java.lang.reflect.*;
 
+import com.surelogic.Borrowed;
+import com.surelogic.SingleThreaded;
+
 /**
  * Abstract class for channels that use Semaphores to
  * control puts and takes.
@@ -31,10 +34,9 @@ public abstract class SemaphoreControlledChannel implements BoundedChannel {
    * Create a channel with the given capacity and default
    * semaphore implementation
    * @exception IllegalArgumentException if capacity less or equal to zero
-   * @singleThreaded
-   * @borrowed this
    **/
-
+  @SingleThreaded
+  @Borrowed("this")
   public SemaphoreControlledChannel(int capacity) 
    throws IllegalArgumentException {
     if (capacity <= 0) throw new IllegalArgumentException();
@@ -56,8 +58,6 @@ public abstract class SemaphoreControlledChannel implements BoundedChannel {
    * @exception IllegalAccessException if constructor cannot be called
    * @exception InvocationTargetException if semaphore constructor throws an
    * exception
-   * @-singleThreaded
-   * @-borrowed this
    **/
   public SemaphoreControlledChannel(int capacity, Class semaphoreClass) 
    throws IllegalArgumentException, 
