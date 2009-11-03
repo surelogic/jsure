@@ -5,19 +5,22 @@ import java.util.*;
 
 import org.antlr.runtime.RecognitionException;
 
-import com.surelogic.aast.AASTNode;
+import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
+import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -27,6 +30,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class RegionRules extends AnnotationRules {
   public static final String REGION = "Region";
@@ -83,6 +87,16 @@ public class RegionRules extends AnnotationRules {
     registerParseRuleStorage(fw, regionRule);
     registerParseRuleStorage(fw, inRegionRule);
     registerParseRuleStorage(fw, mapFieldsRule);
+    fw.registerParseDropRule(new NullAnnotationParseRule(IN_REGION, PromiseConstants.fieldOrTypeOp) {
+    	@Override
+		public void parse(IAnnotationParsingContext context, String contents) {
+			if (FieldDeclaration.prototype.includes(context.getOp())) {
+				inRegionRule.parse(context, contents);
+			} else {
+				mapFieldsRule.parse(context, contents);
+			}
+		}    	
+    }, true);
     registerParseRuleStorage(fw, aggregateRule);
     registerParseRuleStorage(fw, aggregateInRegionRule);
     registerScrubber(fw, regionsDone);
@@ -331,6 +345,12 @@ public class RegionRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<FieldMappingsNode> makeScrubber() {
+     /*
+    	// TODO wrong ordering label
+      return new AbstractAASTScrubber<FieldMappingsNode>(MAP_FIELDS, getAASTType(), getStorage(),
+    		  ScrubberType.UNORDERED, 
+                                                         new String[] { IN_REGION }, ScrubberOrder.NORMAL, REGION) {
+*/
       return new AbstractAASTScrubber<FieldMappingsNode>(this, ScrubberType.UNORDERED, 
                                                          new String[] { IN_REGION }, REGION) {
         @Override

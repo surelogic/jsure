@@ -41,11 +41,11 @@ public class Messages extends AbstractMessages {
 
   public static String RegionAnnotation_regionDrop = "region {0}{1} {2}";
 
-  public static String RegionAnnotation_mapFieldsDrop = "mapFields {0} to {1}";
+  public static String RegionAnnotation_mapFieldsDrop = "InRegion({0} into {1})";
 
   public static String RegionAnnotation_parentRegionDrop = "Unknown parent region ' {0} ' for {1}";
 
-  public static String RegionAnnotation_inRegionDrop = "inRegion({0}) on {1}";
+  public static String RegionAnnotation_inRegionDrop = "InRegion({0}) on {1}";
 
   public static String RegionAnnotation_aggregationAllowedDrop = "aggregation allowed because field is declared \"unique\"";
 

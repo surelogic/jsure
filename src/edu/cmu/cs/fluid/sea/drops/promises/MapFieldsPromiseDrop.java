@@ -9,7 +9,7 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
- * Promise drop for "mapFields" promise annotations defining a region.
+ * Promise drop for "InRegion" promise annotations defining a region.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.Region
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation

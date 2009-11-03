@@ -159,13 +159,17 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    */
   @SuppressWarnings("unchecked")
   public boolean registerParseDropRule(IAnnotationParseRule rule) {
+	  return registerParseDropRule(rule, false);
+  }
+  @SuppressWarnings("unchecked")
+  public boolean registerParseDropRule(IAnnotationParseRule rule, boolean suppressWarning) {
     String tag = rule.name();
     if (tag.length() == 0) {
       return false;
     }
     tag = ensureCapitalizedTag(tag);
     IAnnotationParseRule oldRule = parseMap.put(tag, rule);
-    if (oldRule != null) {
+    if (!suppressWarning && oldRule != null) {
       LOG.severe("Bumped out parse rule: " + oldRule);
     } 
     return true;
