@@ -21,8 +21,13 @@ public class NullAnnotationParseRule extends AbstractNamedPromiseRule implements
     super(name, anyOp);
   }
 
-  public boolean declaredOnValidOp(Operator op) {
-    return true;
+  public boolean declaredOnValidOp(Operator declaredOn) {
+	  for (Operator op : ops) {
+		  if (op.includes(declaredOn)) {
+			  return true;
+		  }
+	  }
+	  return false;
   }
   
   public IAnnotationScrubber getScrubber() {
