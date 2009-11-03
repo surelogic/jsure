@@ -110,6 +110,7 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
 
     final Iterator<IRNode> e = tree.rootWalk(start);
     Operator lastOp = null;
+    Operator last2Op = null;
     while (e.hasNext()) {
       final IRNode node = e.next();
       final Operator op = tree.getOperator(node);
@@ -118,10 +119,13 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
       if (op instanceof ClassBodyDeclInterface) { 
     	if (!skippedACE && AnonClassExpression.prototype.includes(op)) {
     		// Check if we're part of the arguments to the ACE
-    		if (!Arguments.prototype.includes(lastOp)) {
-    			LOG.warning("Trying to get flow unit from ACE's "+lastOp.name());
+    		if (!NewExpression.prototype.includes(lastOp) || 
+    			!Arguments.prototype.includes(last2Op)) {
+    			LOG.warning("Trying to get flow unit from ACE's "+lastOp.name()+
+    					    ", "+last2Op.name());
     		}
     		skippedACE = true;
+    		last2Op = lastOp;
     		lastOp = op;
     		continue;
     	}
@@ -139,6 +143,7 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
           return InitDeclaration.getInitMethod(classDecl);
         }
       }
+      last2Op = lastOp;
       lastOp = op;
     }
     return null;
