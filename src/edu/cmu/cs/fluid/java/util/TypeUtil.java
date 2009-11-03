@@ -211,7 +211,7 @@ public class TypeUtil implements JavaGlobals {
       }
       return false;
     } else if (ParameterDeclaration.prototype.includes(op)) {
-      return JavaNode.getModifier(node, JavaNode.FINAL);
+      return JavaNode.getModifier(node, JavaNode.FINAL) || AssumeFinalRules.isAssumedFinal(node);
     } else {
       return false;
     }
