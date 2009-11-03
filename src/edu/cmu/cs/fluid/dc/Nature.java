@@ -127,11 +127,14 @@ public final class Nature extends AbstractNature {
 			newNatures[natures.length] = DOUBLE_CHECKER_NATURE_ID;
 			description.setNatureIds(newNatures);
 			project.setDescription(description, null);
-			finishProjectSetup(project);
+			finishProjectSetup(project, false);
 		}
 	}
 
-	private static void finishProjectSetup(final IProject project) {
+	/**
+	 * Primarily adds the promises.jar if desired
+	 */
+	public static void finishProjectSetup(final IProject project, final boolean onlyAddJar) {
 		final IJavaProject jp = checkForPromisesJar(project);
 		SLUIJob job = new SLUIJob() {
 			@Override
@@ -281,8 +284,10 @@ public final class Nature extends AbstractNature {
 						MessageDialog.openError(shell, "Error", e.getMessage());
 					}
 				}
-				ConfirmPerspectiveSwitch.prototype.submitUIJob();
-				runAnalysis(project);
+				if (!onlyAddJar) {
+					ConfirmPerspectiveSwitch.prototype.submitUIJob();
+					runAnalysis(project);
+				}
 				return Status.OK_STATUS;
 			}
 

@@ -428,6 +428,14 @@
 				<groupMarker name="nature.grp" />
 			</menu>
 
+			<action id="com.surelogic.jsure.client.eclipse.oc.addPromisesJar"
+				label="Add Promises Jar"
+				tooltip="Creates promises.jar in the project, and adds it to the project's classpath"
+				menubarPath="jSureMenu/nature.grp"
+				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarAction"
+				enablesFor="1">
+			</action>
+
 			<action id="com.surelogic.jsure.client.eclipse.oc.removeNature"
 				label="Disable Verification"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
