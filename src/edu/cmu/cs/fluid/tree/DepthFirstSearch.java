@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.util.*;
  */
 public class DepthFirstSearch extends AbstractRemovelessIterator<IRNode> {
   protected final DigraphInterface digraph;
+  @SuppressWarnings("unchecked")
   protected final ArrayStack stack = new ArrayStack();
   private IRNode node = null;
   // private IRLocation loc = null;
@@ -61,7 +62,7 @@ public class DepthFirstSearch extends AbstractRemovelessIterator<IRNode> {
   @SuppressWarnings("unchecked")
   protected void popState() {
     // loc = (IRLocation)stack.pop();
-		children = (Iterator<IRNode>) stack.pop();
+	children = (Iterator<IRNode>) stack.pop();
     node = (IRNode)stack.pop();
   }
     
@@ -80,28 +81,28 @@ public class DepthFirstSearch extends AbstractRemovelessIterator<IRNode> {
   protected static final IRNode noNext = new MarkedIRNode("noNext");
 
   protected IRNode getNext() {
-    while (nextResult == null) {
-//      if (loc != null) {
-//        IRNode newNode = digraph.getChild(node, loc);
-//        loc = digraph.nextChildLocation(node, loc);
+	  while (nextResult == null) {
+//		  if (loc != null) {
+//		  IRNode newNode = digraph.getChild(node, loc);
+//		  loc = digraph.nextChildLocation(node, loc);
 		  if (/*children != null && */ children.hasNext()) {
 			  IRNode newNode = children.next();
-        if (mark(newNode)) {
-          if (newNode == null) {
-            // System.out.println("DFS IRNode is null");
-          } else {
-            visit(newNode);
-          }
-        }
-      } else if (node == null) {
-        // throw new NoSuchElementException("depth first search is over");
-        return noNext;
-      } else if (!additionalChildren(node)) {
-        if (bottomUp)
-          nextResult = node;
-        popState();
-      }
-    }
+			  if (mark(newNode)) {
+				  if (newNode == null) {
+					  // System.out.println("DFS IRNode is null");
+				  } else {
+					  visit(newNode);
+				  }
+			  }
+		  } else if (node == null) {
+			  // throw new NoSuchElementException("depth first search is over");
+			  return noNext;
+		  } else if (!additionalChildren(node)) {
+			  if (bottomUp)
+				  nextResult = node;
+			  popState();
+		  }
+	  }
     try {
       return nextResult;
     } finally {
@@ -135,9 +136,9 @@ public class DepthFirstSearch extends AbstractRemovelessIterator<IRNode> {
     if (node == null) return false;
     //if (node.getSlotValue(markInfo).booleanValue()) return false;
     //node.setSlotValue(markInfo,Boolean.TRUE);
-    if (markInfo.containsKey(node)) return false;
-    markInfo.put(node, Boolean.TRUE);
-    return true;
+    
+    Boolean old = markInfo.put(node, Boolean.TRUE);
+    return old != null;
   }
 
   /** Handle additional children.
