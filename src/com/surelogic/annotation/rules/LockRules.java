@@ -38,9 +38,9 @@ public class LockRules extends AnnotationRules {
 	private static final String RETURNS_LOCK = "ReturnsLock";
 	private static final String POLICY_LOCK = "PolicyLock";
   private static final String SINGLE_THREADED = "SingleThreaded";
-  private static final String SELF_PROTECTED = "SelfProtected";
+  private static final String SELF_PROTECTED = "ThreadSafe";
   private static final String LOCK_FIELD_VISIBILITY = "LockFieldVisibility";
-  private static final String REGION_INITIALIZER = "Regoin Initializer";
+  private static final String REGION_INITIALIZER = "Region Initializer";
   
 	private static final AnnotationRules instance = new LockRules();
 

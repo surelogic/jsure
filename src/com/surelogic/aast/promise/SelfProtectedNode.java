@@ -20,7 +20,7 @@ public class SelfProtectedNode extends AbstractBooleanNode
 
   @Override
   public String unparse(boolean debug, int indent) {
-    return unparse(debug, indent, "SelfProtected");
+    return unparse(debug, indent, "ThreadSafe");
   }
 
   @Override

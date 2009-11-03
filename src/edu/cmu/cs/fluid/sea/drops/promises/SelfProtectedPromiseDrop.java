@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 
 /**
- * Promise drop for "selfProtected" promises.
+ * Promise drop for "ThreadSafe" promises.
  * 
  * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
