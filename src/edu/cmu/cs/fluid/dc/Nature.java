@@ -301,7 +301,7 @@ public final class Nature extends AbstractNature {
 		try {
 			for(IClasspathEntry e :	jp.getRawClasspath()) {
 				if (e.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-					System.out.println("Comparing "+useJar+" with "+e.getPath());
+					//System.out.println("Comparing "+useJar+" with "+e.getPath());
 					if (useJar.getFullPath().equals(e.getPath())) {
 						return true;
 					}
