@@ -52,6 +52,8 @@ public class Messages extends AbstractMessages {
   public static String RegionAnnotation_aggregationDisallowedDrop = "aggregation disallowed because field is not declared \"unique\"";
 
   public static String RegionAnnotation_aggregateDrop = "aggregate";
+  
+  public static String RegionAnnotation_aggregateInRegionDrop = "AggregateInRegion({0}) on {1}";
 
   public static String StartsAnnotation_startNothingDrop = "starts(nothing)  on  {0}";
 

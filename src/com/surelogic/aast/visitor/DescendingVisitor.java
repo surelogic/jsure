@@ -526,7 +526,13 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getSpec()));
     return rv;
   }
-
+  
+  public T visit(AggregateInRegionNode n) {
+	  T rv = defaultValue;
+	  rv = combineResults(rv, doAccept(n.getSpec()));
+	  return rv;
+  }
+  
   public T visit(AggregateNode n) {
     T rv = defaultValue;
     rv = combineResults(rv, doAccept(n.getSpec()));

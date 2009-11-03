@@ -116,4 +116,5 @@ public interface INodeVisitor<T> {
 	T visit(WildcardTypeQualifierPatternNode wildcardTypeQualifierPatternNode);
 	T visit(NotUniqueNode notUniqueNode);
 	T visit(RegionEffectsNode regionEffectsNode);
+	T visit(AggregateInRegionNode n);
 }

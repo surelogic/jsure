@@ -33,6 +33,7 @@ public class RegionRules extends AnnotationRules {
   public static final String IN_REGION = "InRegion";
   public static final String MAP_FIELDS = "MapFields";
   public static final String AGGREGATE = "Aggregate";
+  public static final String AGGREGATE_IN_REGION = "AggregateInRegion";
   public static final String REGION_INITIALIZER = "RegionInitializer";
   public static final String REGIONS_DONE = "RegionsDone";
   
@@ -44,7 +45,12 @@ public class RegionRules extends AnnotationRules {
   private static final InRegion_ParseRule inRegionRule     = new InRegion_ParseRule();
   private static final MapFields_ParseRule mapFieldsRule   = new MapFields_ParseRule();
   private static final Aggregate_ParseRule aggregateRule   = new Aggregate_ParseRule();
-  private static final SimpleScrubber regionsDone = new SimpleScrubber(REGIONS_DONE, REGION, IN_REGION, AGGREGATE) {
+
+  private static final AggregateInRegion_ParseRule aggregateInRegionRule = 
+	  new AggregateInRegion_ParseRule();
+  
+  private static final SimpleScrubber regionsDone = new SimpleScrubber(REGIONS_DONE, REGION, IN_REGION, 
+		                                                               AGGREGATE, AGGREGATE_IN_REGION) {
     @Override
     protected void scrub() {
       // do nothing
@@ -66,6 +72,10 @@ public class RegionRules extends AnnotationRules {
   public static AggregatePromiseDrop getAggregate(IRNode vdecl) {
     return getDrop(aggregateRule.getStorage(), vdecl);
   }
+
+  public static AggregateInRegionPromiseDrop getAggregateInRegion(IRNode vdecl) {
+	  return getDrop(aggregateInRegionRule.getStorage(), vdecl);
+  }
   
   @Override
   public void register(PromiseFramework fw) {
@@ -74,6 +84,7 @@ public class RegionRules extends AnnotationRules {
     registerParseRuleStorage(fw, inRegionRule);
     registerParseRuleStorage(fw, mapFieldsRule);
     registerParseRuleStorage(fw, aggregateRule);
+    registerParseRuleStorage(fw, aggregateInRegionRule);
     registerScrubber(fw, regionsDone);
 //    registerScrubber(fw, new UniquelyNamed_NoCycles());
   }
@@ -524,6 +535,42 @@ public class RegionRules extends AnnotationRules {
     } else {
       return null;
     }
+  }
+  
+  public static class AggregateInRegion_ParseRule 
+  extends DefaultSLAnnotationParseRule<AggregateInRegionNode,AggregateInRegionPromiseDrop> {
+    protected AggregateInRegion_ParseRule() {
+      super(AGGREGATE_IN_REGION, FieldDeclaration.prototype, AggregateInRegionNode.class);
+    }
+  
+    @Override
+    protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
+      return parser.inRegion().getTree();
+    }
+    @Override
+    protected AggregateInRegionNode makeRoot(AASTNode an) {
+      return new AggregateInRegionNode(an.getOffset(), (RegionSpecificationNode) an);
+    }
+    @Override
+    protected IPromiseDropStorage<AggregateInRegionPromiseDrop> makeStorage() {
+      return SinglePromiseDropStorage.create(name(), AggregateInRegionPromiseDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<AggregateInRegionNode> makeScrubber() {
+      return new AbstractAASTScrubber<AggregateInRegionNode>(this, 
+                                                   ScrubberType.UNORDERED, REGION) {
+        @Override
+        protected PromiseDrop<AggregateInRegionNode> makePromiseDrop(AggregateInRegionNode a) {
+          return storeDropIfNotNull(getStorage(), a, scrubAggregateInRegion(getContext(), a));          
+        }
+      };
+    }
+  }
+  
+  static AggregateInRegionPromiseDrop scrubAggregateInRegion(IAnnotationScrubberContext context, 
+		                                                      AggregateInRegionNode a) {
+	  // TODO Auto-generated method stub
+	  return null;
   }
   
   private static String truncateName(final String qualifiedName) {
