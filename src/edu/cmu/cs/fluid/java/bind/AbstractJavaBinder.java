@@ -275,7 +275,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		}
     	} catch(StackOverflowError e) {
     		if (stack.size() == 1) { // Last one, try to restart
-    			System.out.println("Retry after StackOverflow");
+    			System.err.println("Retry after StackOverflow");
     			reset();
     			return ensureBindingsOK(node);
     		}
@@ -513,7 +513,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     protected final IRNode targetGranule;
     protected boolean isBatch = true; // by default we have a batch binder
     protected boolean isFullPass = false; // by default we start in the preliminary pass
-    protected boolean debug = LOG.isLoggable(Level.FINER);        
+    protected final boolean debug = LOG.isLoggable(Level.FINER);        
     private Hashtable2<IJavaType,IJavaType,Boolean> callCompatCache = 
     	new Hashtable2<IJavaType,IJavaType,Boolean>();
     
@@ -551,7 +551,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * Start doing the binding.
      */
     public void start() {
-      if (LOG.isLoggable(Level.FINER)) {
+      if (debug) {
         LOG.finer("Starting to bind granule "
             + DebugUnparser.toString(targetGranule));
       }      
@@ -635,7 +635,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void doAccept(IRNode node) {
       if (node == null) {
-        LOG.finer("Skipping null");
+    	if (debug) {
+    		LOG.finer("Skipping null");
+    	}
         return null;
       }
       if (pathToTarget != null) {
@@ -662,7 +664,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           */
           //return super.doAccept(node);          
           return ((IAcceptor) op).accept(node, this);
-        } else if (LOG.isLoggable(Level.FINER)) {
+        } else if (debug) {
           Operator o = size > 0 ? JJNode.tree.getOperator(pathToTarget.get(size-1)) : null;
           LOG.finer("Skipping node not on path (next = " + o + ") " + DebugUnparser.toString(node));
         }
@@ -672,7 +674,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (isGranule(op, node)) {
         return null; // skip granule nested in this one
       }
-      if (LOG.isLoggable(Level.FINEST) && okToAccess(node)) {
+      if (debug && LOG.isLoggable(Level.FINEST) && okToAccess(node)) {
         LOG.finest(this + " visit" + (isFullPass ? "(full) " : "(initial) ") + op + DebugUnparser.toString(node));
       }
       /*
@@ -834,7 +836,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	System.out.println();
         }
         return false;
-      } else if (LOG.isLoggable(Level.FINER)){
+      } else if (debug){
         LOG.finer("Establishing binding for " + node + " = " + DebugUnparser.toString(node) + " to " + 
             DebugUnparser.toString(binding.getNode()) + getInVersionString());
       }
@@ -936,19 +938,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (pathToTarget != null) return true; // skip the work   
       final int numTypeArgs = numChildrenOrZero(targs);
       final IJavaType[] argTypes = getArgTypes(args);
-      if (LOG.isLoggable(Level.FINER)) {
+      if (debug) {
         StringBuilder sb = buildStringOfArgTypes(argTypes);
         LOG.finer("Looking for method: " + name + sb + getInVersionString());
       }
-      /*
-      if ("toArray".equals(JJNode.getInfo(call))) {
-    	String unparse = DebugUnparser.toString(call);
-    	if (unparse.startsWith("indirs.toArray(new org.apache.hadoop.fs.Path[")) {
-    		System.out.println("Call: "+unparse);
-    		System.out.println();
-    	}
-      }
-      */
       
       BindingInfo bestMethod = null;
       IJavaType bestClass = null; // type of containing class
@@ -972,7 +965,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       findMethod: while (methods.hasNext()) {
         final IBinding mbind = methods.next();
         final IRNode mdecl = mbind.getNode();
-        if (LOG.isLoggable(Level.FINER)) {
+        if (debug) {
           LOG.finer("Considering method binding: " + mdecl + " : " + DebugUnparser.toString(mdecl)
               + getInVersionString());
         }
@@ -1085,7 +1078,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		IRNode lastParam = JJNode.tree.getChild(formals,lastLoc);
     		IRNode ptype = ParameterDeclaration.getType(lastParam);
     		if (VarArgsType.prototype.includes(ptype)) {
-    			LOG.finer("Handling variable numbers of parameters.");
+    			if (debug) {
+    				LOG.finer("Handling variable numbers of parameters.");
+    			}
     			varType = ptype;
     		} else {
     			varType = null;
@@ -1096,12 +1091,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	final int numFormals = JJNode.tree.numChildren(formals);
     	if (varType != null) {
     		if (argTypes.length < numFormals - 1) {
-    			LOG.finer("Wrong number of parameters.");
+    			if (debug) {
+    				LOG.finer("Wrong number of parameters.");
+    			}
         		return null;
     		}
     	} 
     	else if (numFormals != argTypes.length) {
-    		LOG.finer("Wrong number of parameters.");
+    		if (debug) {
+    			LOG.finer("Wrong number of parameters.");
+    		}
     		return null;
     	}    	    	    	
     	
@@ -1176,7 +1175,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	      continue;
         	  }
           }
-          if (LOG.isLoggable(Level.FINER)) {
+          if (debug) {
             LOG.finer("... but " + argTypes[i] + " !<= " + captured);
           }
           return null;
@@ -1570,7 +1569,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitClassBody(IRNode node) {
-      LOG.finer("visiting getClassBody(IRNode)"); 
+      if (debug) {
+    	  LOG.finer("visiting getClassBody(IRNode)"); 
+      }
       IRNode parent = JJNode.tree.getParent(node);
       IJavaType type = JavaTypeFactory.getMyThisType(parent);
       IJavaScope classScope = typeScope(type);
@@ -1939,7 +1940,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
               JJNode.tree.numChildren(MethodDeclaration.getParams(mdecl)) == paramTypes.size()) {
             Iterator<IRNode> params = JJNode.tree.children(MethodDeclaration.getParams(mdecl));
             Iterator<IJavaType> match = paramTypes.iterator();
-            if (LOG.isLoggable(Level.FINER)) {
+            if (debug) {
               LOG.finer("Considering override: " + mdecl + "=" + DebugUnparser.toString(mdecl) + " for " + overrider);
             }
             while (params.hasNext()) {
@@ -1947,13 +1948,17 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
               ty = ty.subst(subst);
               IJavaType oty = match.next();
               if (ty != oty) {
-                LOG.finer("Rejected because " + ty + "!=" + oty);
+            	if (debug) {
+            		LOG.finer("Rejected because " + ty + "!=" + oty);
+            	}
                 continue checkCandidates;
               }
             }
             // if not accessible, then stop looking in this class or its superclasses.
             if (!BindUtil.isAccessible(typeEnvironment, mdecl,overrider)) {
-              LOG.finer("Rejected because inaccessible");
+              if (debug) {
+            	  LOG.finer("Rejected because inaccessible");
+              }
               continue checkType;
             }
             // a full match!
@@ -1991,7 +1996,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         return null;
       }
       String name = JJNode.getInfo(node);
-      LOG.finer("Got a named type " + name);
+      if (debug) {    	  
+    	  LOG.finer("Got a named type " + name);
+      }
       // Ignore if it's really for scoped promises
       if (name.contains("*")) {
         return null;
@@ -2098,7 +2105,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IJavaScope.NestedScope sc = (IJavaScope.NestedScope)scope;
       sc.add(node); 
       if (!isBatch && nodeHasChanged(node)) isBatch = true;
-      if (LOG.isLoggable(Level.FINER)) {
+      if (debug) {
         LOG.finer("Added param " + JJNode.getInfo(node) + " to local scope.");
       }
       visit(node);
