@@ -70,10 +70,10 @@ abstract class NodeStoredSlotInfo<T> extends StoredSlotInfo<T,T> {
   @Override
   protected final T getSlot(IRNode node) {
 	T slot;
-	if (node instanceof SyntaxTreeNode) {
+	try {
 		SyntaxTreeNode n = (SyntaxTreeNode) node;
 		slot = getSlot(n);
-	} else {
+	} catch (ClassCastException e) {	
 		slot = adapter.getSlot(backupSI, node);
 	}
 	if (slot == undefinedValue) {
