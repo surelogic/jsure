@@ -8,7 +8,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -63,11 +70,12 @@ public final class Nature extends AbstractNature {
 	 */
 	public static final String DOUBLE_CHECKER_NATURE_ID = "com.surelogic.jsure.client.eclipse.dcNature";
 
-	private static final String PROMISES_JAR = "promises.jar";
+	// private static final String PROMISES_JAR = "promises.jar";
 
-	private static final String PROMISES_JAVADOC_JAR = "promises-javadoc.jar";
-	
-	private static final boolean useSeparateJavadocJar = false;
+	// private static final String PROMISES_JAVADOC_JAR =
+	// "promises-javadoc.jar";
+
+	// private static final boolean useSeparateJavadocJar = false;
 
 	public Nature() {
 		super(DOUBLE_CHECKER_BUILDER_ID);
@@ -134,12 +142,14 @@ public final class Nature extends AbstractNature {
 	/**
 	 * Primarily adds the promises.jar if desired
 	 */
-	public static void finishProjectSetup(final IProject project, final boolean onlyAddJar) {
+	public static void finishProjectSetup(final IProject project,
+			final boolean onlyAddJar) {
 		final IJavaProject jp = checkForPromisesJar(project);
 		SLUIJob job = new SLUIJob() {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				final Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+				final Shell shell = PlatformUI.getWorkbench()
+						.getActiveWorkbenchWindow().getShell();
 				if (jp != null) { // Promises are NOT on the classpath
 					try {
 						// Build the list of source and output directories
@@ -162,7 +172,7 @@ public final class Nature extends AbstractNature {
 									MessageDialog.QUESTION, new String[] {
 											"Add to Project Root", "Browse...",
 											"No" }, 0);
-							useJar = project.getFile(PROMISES_JAR);
+							useJar = project.getFile(LibResources.PROMISES_JAR);
 							choice = dialog.open();
 						} else {
 							/*
@@ -194,7 +204,7 @@ public final class Nature extends AbstractNature {
 									shell, project, jp, srcAndOutputDirs);
 							if (newLocation != null) {
 								useJar = newLocation.getFile(new Path(
-										PROMISES_JAR));
+										LibResources.PROMISES_JAR));
 							} else {
 								useJar = null; // force a cancel
 							}
@@ -224,9 +234,6 @@ public final class Nature extends AbstractNature {
 														+ useJarPath
 														+ "\".  Would you like to overwrite it?");
 							}
-							final IFile useJavadoc = useSeparateJavadocJar ? 
-								useJar.getParent().getFile(new Path(PROMISES_JAVADOC_JAR)) :
-								useJar; // Reuse promises jar otherwise
 							if (createJar) {
 								// Remove first if already exists
 								if (useJar.exists()) {
@@ -234,57 +241,53 @@ public final class Nature extends AbstractNature {
 								}
 								useJar.create(LibResources.getPromisesJar(),
 										false, null);
-								if (useSeparateJavadocJar) {
-									useJavadoc.create(LibResources
-										.getPromisesJavadocJar(), false, null);
-								}
 							}
 
-							if (!isOnClasspath(jp, useJar)) {														
+							if (!isOnClasspath(jp, useJar)) {
 								// Update build path
-								final IClasspathEntry[] orig = jp.getRawClasspath();
+								final IClasspathEntry[] orig = jp
+										.getRawClasspath();
 								List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
 								for (IClasspathEntry e : orig) {
 									entries.add(e);
 								}
-								String loc = "jar:platform:/resource"
-									+ useJavadoc.getFullPath()
-									.toPortableString() + "!/";
-								System.out.println("location = " + loc);
-								IClasspathAttribute javadoc = JavaCore
-								.newClasspathAttribute("javadoc_location",
-										loc);
 								entries.add(JavaCore.newLibraryEntry(useJar
 										.getFullPath(), null, null,
 										new IAccessRule[0],
-										new IClasspathAttribute[] { javadoc },
-										false));
+										new IClasspathAttribute[0], false));
 								jp
-								.setRawClasspath(
-										entries
-										.toArray(new IClasspathEntry[orig.length + 1]),
-										null);
+										.setRawClasspath(
+												entries
+														.toArray(new IClasspathEntry[orig.length + 1]),
+												null);
 							} else {
 								// useJar is already listed on the classpath
 							}
 						}
 					} catch (final JavaModelException e) {
-						SLLogger.getLogger().log(Level.WARNING,
-								"Error while adding promises.jar", e);
+						SLLogger.getLogger().log(
+								Level.WARNING,
+								"JavaModelException while adding "
+										+ LibResources.PROMISES_JAR, e);
 						MessageDialog.openError(shell, "Error", e.getMessage());
 					} catch (final CoreException e) {
-						SLLogger.getLogger().log(Level.WARNING,
-								"Error while adding promises.jar", e);
+						SLLogger.getLogger().log(
+								Level.WARNING,
+								"CoreException while adding "
+										+ LibResources.PROMISES_JAR, e);
 						MessageDialog.openError(shell, "Error", e.getMessage());
 					} catch (final IOException e) {
-						SLLogger.getLogger().log(Level.WARNING,
-								"Error while adding promises.jar", e);
+						SLLogger.getLogger().log(
+								Level.WARNING,
+								"IOException while adding "
+										+ LibResources.PROMISES_JAR, e);
 						MessageDialog.openError(shell, "Error", e.getMessage());
 					}
 				} else { // Already on the classpath
 					if (onlyAddJar) {
-						MessageDialog.openInformation(shell, "Info", 
-								"The SureLogic promises JAR file is already on the classpath");
+						MessageDialog
+								.openInformation(shell, "Info",
+										"The SureLogic promises JAR file is already on the classpath");
 					}
 				}
 				if (!onlyAddJar) {
@@ -297,11 +300,11 @@ public final class Nature extends AbstractNature {
 		job.schedule();
 	}
 
-	static boolean isOnClasspath(IJavaProject jp, IFile useJar) { 
+	static boolean isOnClasspath(IJavaProject jp, IFile useJar) {
 		try {
-			for(IClasspathEntry e :	jp.getRawClasspath()) {
+			for (IClasspathEntry e : jp.getRawClasspath()) {
 				if (e.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-					//System.out.println("Comparing "+useJar+" with "+e.getPath());
+					// System.out.println("Comparing "+useJar+" with "+e.getPath());
 					if (useJar.getFullPath().equals(e.getPath())) {
 						return true;
 					}
@@ -313,28 +316,31 @@ public final class Nature extends AbstractNature {
 		return false;
 	}
 
-	private static Set<IContainer> getSourceAndOutputDirs(IJavaProject javaProject)
-			throws JavaModelException {
+	private static Set<IContainer> getSourceAndOutputDirs(
+			IJavaProject javaProject) throws JavaModelException {
 		final Set<IContainer> sourceAndOutputDirs = new HashSet<IContainer>();
-		sourceAndOutputDirs.add(getWorkspaceFolder(javaProject.getProject(), javaProject
-				.getOutputLocation()));
+		sourceAndOutputDirs.add(getWorkspaceFolder(javaProject.getProject(),
+				javaProject.getOutputLocation()));
 		for (IClasspathEntry entry : javaProject.getRawClasspath()) {
 			if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-				sourceAndOutputDirs.add(getWorkspaceFolder(javaProject.getProject(), entry.getPath())); 
+				sourceAndOutputDirs.add(getWorkspaceFolder(javaProject
+						.getProject(), entry.getPath()));
 			}
 			final IPath output = entry.getOutputLocation();
 			if (output != null) {
-				sourceAndOutputDirs.add(getWorkspaceFolder(javaProject.getProject(), output));
+				sourceAndOutputDirs.add(getWorkspaceFolder(javaProject
+						.getProject(), output));
 			}
 		}
 		return sourceAndOutputDirs;
 	}
 
 	private static IContainer getWorkspaceFolder(IProject proj, IPath path) {
-		final IWorkspaceRoot workspace = ResourcesPlugin.getWorkspace().getRoot();
+		final IWorkspaceRoot workspace = ResourcesPlugin.getWorkspace()
+				.getRoot();
 		return workspace.getContainerForLocation(path);
 	}
-	
+
 	private static boolean isGoodPromiseContainer(final IContainer test,
 			final Set<IContainer> ignore) {
 		final boolean isHidden = test.getName().charAt(0) == '.';
@@ -343,8 +349,8 @@ public final class Nature extends AbstractNature {
 	}
 
 	/**
-	 * Search the given project for a file named "promises.jar". Does not search
-	 * hidden directories, source directories, or output directories.
+	 * Search the given project for a file named LibResources.PROMISES_JAR. Does
+	 * not search hidden directories, source directories, or output directories.
 	 * 
 	 * @return The file handle, or {@code null} if not found.
 	 * @throws CoreException
@@ -356,7 +362,7 @@ public final class Nature extends AbstractNature {
 		// First scan for promises jar
 		for (final IResource rsrc : members) {
 			if (rsrc instanceof IFile) {
-				if (rsrc.getName().equals(PROMISES_JAR)) {
+				if (rsrc.getName().equals(LibResources.PROMISES_JAR)) {
 					return (IFile) rsrc;
 				}
 			}
