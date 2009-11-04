@@ -78,7 +78,7 @@
             description="singleThreaded constructor writing/starting nothing" 
             id="com.surelogic.jsure.templates.singleThreaded.nothing" context="java" 
             enabled="true">SingleThreaded
-   * @Writes nothing
+    @RegionEffects("reads All; writes nothing")
     @Starts("nothing")</template>
   
   <!-- Uniqueness annotations -->
@@ -86,21 +86,21 @@
             description="Unique and aggregated Object" 
             id="com.surelogic.jsure.templates.unique" context="java" 
             enabled="true">Unique
-    @Aggregate("Instance into ${region}")</template>  
+    @AggregateInRegion("${region}")</template>  
   
   <template name="InRegion" 
             description="Unique and aggregated Object" 
             id="com.surelogic.jsure.templates.mappedObject" context="java" 
             enabled="true">InRegion("${region}")
     @Unique
-    @Aggregate("Instance into ${region}")</template>  
+    @AggregateInRegion("${region}")</template>  
   
   <template name="InRegion" 
             description="Unique and aggregated array" 
             id="com.surelogic.jsure.templates.mappedArray" context="java" 
             enabled="true">InRegion("${region}")
     @Unique
-    @Aggregate("[] into ${region}")</template>  
+    @AggregateInRegion("${region}")</template>  
     
   <!-- Scoped promises -->
   <template name="Promise" 
