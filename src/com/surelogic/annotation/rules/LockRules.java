@@ -40,6 +40,7 @@ public class LockRules extends AnnotationRules {
   private static final String SINGLE_THREADED = "SingleThreaded";
   private static final String SELF_PROTECTED = "ThreadSafe";
   private static final String NOT_THREAD_SAFE = "NotThreadSafe";
+  private static final String IMMUTABLE = "Immutable";
   private static final String LOCK_FIELD_VISIBILITY = "LockFieldVisibility";
   private static final String REGION_INITIALIZER = "Region Initializer";
   
@@ -56,6 +57,7 @@ public class LockRules extends AnnotationRules {
   private static final SingleThreaded_ParseRule singleThreadedRule = new SingleThreaded_ParseRule();
   private static final SelfProtected_ParseRule selfProtectedRule = new SelfProtected_ParseRule();
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
+  private static final ImmutableParseRule immutableRule = new ImmutableParseRule();
   
   private static class ProtectedRegions {
     private final Map<String, Set<IJavaType>> protectedRegions = new HashMap<String, Set<IJavaType>>();
@@ -143,7 +145,7 @@ public class LockRules extends AnnotationRules {
     registerParseRuleStorage(fw, singleThreadedRule);
     registerParseRuleStorage(fw, selfProtectedRule);
     registerParseRuleStorage(fw, notThreadSafeRule);
-    
+    registerParseRuleStorage(fw, immutableRule);
     registerScrubber(fw, new LockFieldVisibilityScrubber());
 	}
 
@@ -1341,6 +1343,31 @@ public class LockRules extends AnnotationRules {
         @Override
         protected PromiseDrop<NotThreadSafeNode> makePromiseDrop(NotThreadSafeNode a) {
           NotThreadSafePromiseDrop d = new NotThreadSafePromiseDrop(a);
+          return storeDropIfNotNull(getStorage(), a, d);          
+        }
+      };
+    }    
+  }
+  
+  public static class ImmutableParseRule 
+  extends SimpleBooleanAnnotationParseRule<ImmutableNode,ImmutablePromiseDrop> {
+    public ImmutableParseRule() {
+      super(IMMUTABLE, typeDeclOps, ImmutableNode.class);
+    }
+    @Override
+    protected IAASTRootNode makeAAST(int offset) {
+      return new ImmutableNode(offset);
+    }
+    @Override
+    protected IPromiseDropStorage<ImmutablePromiseDrop> makeStorage() {
+      return BooleanPromiseDropStorage.create(name(), ImmutablePromiseDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<ImmutableNode> makeScrubber() {
+      return new AbstractAASTScrubber<ImmutableNode>(this) {
+        @Override
+        protected PromiseDrop<ImmutableNode> makePromiseDrop(ImmutableNode a) {
+        	ImmutablePromiseDrop d = new ImmutablePromiseDrop(a);
           return storeDropIfNotNull(getStorage(), a, d);          
         }
       };

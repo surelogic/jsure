@@ -580,6 +580,10 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  T rv = defaultValue;
 	  return rv;
   }
+  
+  public T visit(ImmutableNode node) {
+	  return defaultValue;
+  }
 
 	/* (non-Javadoc)
 	 * @see com.surelogic.aast.INodeVisitor#visit(com.surelogic.aast.promise.InPatternNode)
