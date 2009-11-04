@@ -16,7 +16,7 @@
 	  <jar destfile="./lib/common.jar" basedir="../common/bin" />
 	  <mkdir dir="./lib/common"/>
 	  <copy todir="./lib/common">
-	    <fileset dir="../common/lib"/>
+	    <fileset dir="../common/lib/runtime"/>
 	  </copy>
 		
 	  <jar destfile="./lib/fluid.jar" basedir="../fluid/bin" />
