@@ -3,6 +3,9 @@
 
 	<!-- Note that you must have the 'promises' project checked out from /svn/public -->
 
+	<!-- ENSURE THAT THIS MATCHES 'pom.xml' in the 'promises' project -->
+	<property name="promises-version" value="-3.0.0" />
+
 	<!-- Production promises go into '/build' -->
 	<property name="build" location="${basedir}/build" />
 	<!-- Experimental and production promises go into '/build-x' -->
@@ -11,6 +14,10 @@
 	<property name="promises-x-src" location="${basedir}/src" />
 	<property name="production-promises" location="${basedir}/../promises/" />
 	<property name="production-promises-src" location="${production-promises}/src/main/java" />
+
+
+	<property name="promises-jar" location="${build}/promises${promises-version}.jar" />
+	<property name="promises-x-jar" location="${build-x}/promises-x${promises-version}.jar" />
 
 	<target name="clean">
 		<delete quiet="true" dir="${build}" />
@@ -26,14 +33,14 @@
 
 	<target name="build" depends="setup">
 		<javac srcdir="${production-promises-src}" destdir="${build}/bin" classpath="." debug="on" source="1.5" />
-		<jar destfile="${build}/promises.jar">
+		<jar destfile="${promises-jar}">
 			<fileset dir="${build}/bin" />
 			<manifest />
 		</jar>
 	</target>
 
 	<target name="src" depends="build">
-		<jar destfile="${build}/promises.jar" update="true">
+		<jar destfile="${promises-jar}" update="true">
 			<fileset dir="${production-promises-src}">
 				<filename name="**/*.java" />
 			</fileset>
@@ -49,14 +56,14 @@
 
 	<target name="build-x" depends="setup">
 		<javac srcdir="${promises-x-src}:${production-promises-src}" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" />
-		<jar destfile="${build-x}/promises.jar">
+		<jar destfile="${promises-x-jar}">
 			<fileset dir="${build-x}/bin" />
 			<manifest />
 		</jar>
 	</target>
 
 	<target name="src-x" depends="build-x">
-		<jar destfile="${build-x}/promises.jar" update="true">
+		<jar destfile="${promises-x-jar}" update="true">
 			<fileset dir="${promises-x-src}">
 				<filename name="**/*.java" />
 			</fileset>
