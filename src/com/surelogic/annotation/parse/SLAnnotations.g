@@ -24,6 +24,7 @@ tokens {
 	ReturnsLock;
 	InRegion;
 	Aggregate;
+	AggregateInRegion;
 	RegionEffects;
 	Reads;
 	Writes; 
@@ -409,6 +410,10 @@ inRegion
 	: regionSpecification EOF -> ^(InRegion regionSpecification)
 	;
 
+aggregateInRegion
+	: regionSpecification EOF -> ^(AggregateInRegion regionSpecification)
+	;
+	
 mapFields
     : fieldMappings EOF -> fieldMappings
    	;

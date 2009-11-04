@@ -10,10 +10,7 @@ import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.annotation.DefaultSLAnnotationParseRule;
-import com.surelogic.annotation.IAnnotationParseRule;
-import com.surelogic.annotation.IAnnotationParsingContext;
-import com.surelogic.annotation.NullAnnotationParseRule;
+import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.promise.*;
@@ -30,7 +27,6 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
-import edu.cmu.cs.fluid.tree.Operator;
 
 public class RegionRules extends AnnotationRules {
   public static final String REGION = "Region";
@@ -345,12 +341,6 @@ public class RegionRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<FieldMappingsNode> makeScrubber() {
-     /*
-    	// TODO wrong ordering label
-      return new AbstractAASTScrubber<FieldMappingsNode>(MAP_FIELDS, getAASTType(), getStorage(),
-    		  ScrubberType.UNORDERED, 
-                                                         new String[] { IN_REGION }, ScrubberOrder.NORMAL, REGION) {
-*/
       return new AbstractAASTScrubber<FieldMappingsNode>(this, ScrubberType.UNORDERED, 
                                                          new String[] { IN_REGION }, REGION) {
         @Override
@@ -366,6 +356,9 @@ public class RegionRules extends AnnotationRules {
     MapFieldsPromiseDrop drop = new MapFieldsPromiseDrop(a);
     
     for(RegionSpecificationNode spec : a.getFieldsList()) {
+      if (!spec.bindingExists()) {
+    	  return null;
+  	  }	  
       FieldRegion field = (FieldRegion) spec.resolveBinding().getRegion();
       InRegionNode mapInto = inRegionRule.makeRoot((RegionSpecificationNode)a.getTo().cloneTree());
       mapInto.setPromisedFor(field.getNode());
@@ -565,12 +558,14 @@ public class RegionRules extends AnnotationRules {
   
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
-      return parser.inRegion().getTree();
+      return parser.aggregateInRegion().getTree();
     }
+    /*
     @Override
     protected AggregateInRegionNode makeRoot(AASTNode an) {
       return new AggregateInRegionNode(an.getOffset(), (RegionSpecificationNode) an);
     }
+    */
     @Override
     protected IPromiseDropStorage<AggregateInRegionPromiseDrop> makeStorage() {
       return SinglePromiseDropStorage.create(name(), AggregateInRegionPromiseDrop.class);
@@ -589,8 +584,25 @@ public class RegionRules extends AnnotationRules {
   
   static AggregateInRegionPromiseDrop scrubAggregateInRegion(IAnnotationScrubberContext context, 
 		                                                      AggregateInRegionNode a) {
-	  // TODO Auto-generated method stub
-	  return null;
+	  AggregateInRegionPromiseDrop drop = new AggregateInRegionPromiseDrop(a);
+
+	  RegionSpecificationNode spec = a.getSpec();
+	  if (!spec.bindingExists()) {
+		  return null;
+	  }	  
+	  // Create AggregateNode tree
+	  RegionNameNode instance = new RegionNameNode(a.getOffset(), "Instance");
+	  RegionMappingNode mapping = new RegionMappingNode(a.getOffset(), instance, 
+			                                           (RegionSpecificationNode) spec.cloneTree());
+	  MappedRegionSpecificationNode map = 
+		  new MappedRegionSpecificationNode(a.getOffset(), Collections.singletonList(mapping));
+	  AggregateNode aggregate = new AggregateNode(a.getOffset(), map);
+	  aggregate.setPromisedFor(a.getPromisedFor());
+	  aggregate.setSrcType(a.getSrcType()); // FIX
+	  
+	  AASTStore.add(aggregate);
+	  AASTStore.triggerWhenValidated(aggregate, drop);	  
+	  return drop;
   }
   
   private static String truncateName(final String qualifiedName) {

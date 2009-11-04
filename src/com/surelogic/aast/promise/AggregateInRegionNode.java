@@ -13,7 +13,7 @@ public class AggregateInRegionNode extends AASTRootNode
   private final RegionSpecificationNode spec;
 
   public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("InRegion") {
+    new AbstractSingleNodeFactory("AggregateInRegion") {
       @Override
       @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {

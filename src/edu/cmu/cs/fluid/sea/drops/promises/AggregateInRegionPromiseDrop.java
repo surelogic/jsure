@@ -1,7 +1,9 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.*;
+import com.surelogic.annotation.scrub.ValidatedDropCallback;
 
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -13,9 +15,11 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.analysis.Region
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
-public final class AggregateInRegionPromiseDrop extends PromiseDrop<AggregateInRegionNode> {
+public final class AggregateInRegionPromiseDrop extends PromiseDrop<AggregateInRegionNode> 
+implements ValidatedDropCallback<AggregatePromiseDrop> {
   public AggregateInRegionPromiseDrop(AggregateInRegionNode n) {
     super(n);
+    setCategory(JavaGlobals.REGION_CAT);
   }
   
   /**
@@ -45,5 +49,10 @@ public final class AggregateInRegionPromiseDrop extends PromiseDrop<AggregateInR
       String regionName = getAST().getSpec().unparse(false);
       setMessage(Messages.RegionAnnotation_aggregateInRegionDrop, regionName, name); //$NON-NLS-1$
     }
+  }
+  
+  public void validated(AggregatePromiseDrop pd) {
+	  pd.setVirtual(true);
+	  pd.setSourceDrop(this);
   }
 }
