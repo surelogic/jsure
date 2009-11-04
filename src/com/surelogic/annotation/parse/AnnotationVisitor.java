@@ -58,7 +58,8 @@ public class AnnotationVisitor extends Visitor<Void> {
 		IJavaDeclaredType type = (IJavaDeclaredType) tEnv.getBinder().getJavaType(anno);
 		id = JavaNames.getQualifiedTypeName(type); 
 	}
-    if (id.startsWith(promisePrefix) || (id.startsWith(jcipPrefix) && id.endsWith("ThreadSafe"))) {
+    if (id.startsWith(promisePrefix) || (id.startsWith(jcipPrefix) && 
+    		                             (id.endsWith("ThreadSafe") || id.endsWith(".Immutable")))) {
       int lastDot = id.lastIndexOf('.');      
       return id.substring(lastDot+1);
     }
