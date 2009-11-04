@@ -78,7 +78,7 @@
             description="singleThreaded constructor writing/starting nothing" 
             id="com.surelogic.jsure.templates.singleThreaded.nothing" context="java" 
             enabled="true">SingleThreaded
-    @RegionEffects("reads All; writes nothing")
+    @RegionEffects("reads All")
     @Starts("nothing")</template>
   
   <!-- Uniqueness annotations -->
