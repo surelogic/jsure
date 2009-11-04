@@ -199,6 +199,9 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		return rv;
 	}
 
+	/**
+	 * @return true if all bindings are good
+	 */
 	protected final boolean scrubBindings(A a) {
 		current = a;
 		if (a == null) {
@@ -218,6 +221,8 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	 * Assumes that the AAST needs to have its bindings scrubbed.
 	 * 
 	 * Intended to be overridden
+	 * 
+	 * @return true if the AAST is good
 	 */
 	protected boolean scrub(A a) {
 		return scrubBindings(a) && scrubNumberOfDrops(a) && customScrub(a);
@@ -225,6 +230,8 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 
 	/**
 	 * Checks that whether it's ok to define another drop
+	 * 
+	 * @return true if ok
 	 */
 	protected final boolean scrubNumberOfDrops(A a) {
 		if (stor == null) {
@@ -269,6 +276,8 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 
 	/**
 	 * Intended to be overridden
+	 * 
+	 * @return true if a is good
 	 */
 	protected boolean customScrub(A a) {
 		return true;
