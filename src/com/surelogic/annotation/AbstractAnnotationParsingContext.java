@@ -72,6 +72,10 @@ ITestAnnotationParsingContext {
   public String getSelectedText(int start, int stop) {
 	throw new UnsupportedOperationException();
   }
+    
+  public String getAllText() {
+	throw new UnsupportedOperationException();
+  }
   
   /**
    * Convenience method for annotations that will appear on the default declaration

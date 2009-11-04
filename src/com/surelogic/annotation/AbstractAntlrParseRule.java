@@ -30,6 +30,7 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
                                              P extends Parser>
 	extends AbstractAnnotationParseRule<A, D> {
   protected static final Object IGNORED = new Object();
+  protected static final Object USE_RAW_STRING = new Object();
   
 	AnnotationLocation relativeLocation;
 
@@ -74,28 +75,33 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 //		    System.out.println("Ignoring: @"+name()+' '+contents);
 		    return;
 		  }
-		  AbstractNodeAdaptor.Node tn =	(AbstractNodeAdaptor.Node) result;
-			if (tn == null || tn.isNil()) {
-				context.reportError(0, "Nothing parsed: " + contents);
-				return;
-			}
-			AASTNode an = finalizeAST(context, tn);
-			A n;
-			if (an == null) {
+		  AASTNode an;
+		  if (result instanceof AASTNode) {
+			  an = (AASTNode) result;
+		  } else {
+			  AbstractNodeAdaptor.Node tn =	(AbstractNodeAdaptor.Node) result;
+			  if (tn == null || tn.isNil()) {
+				  context.reportError(0, "Nothing parsed: " + contents);
+				  return;
+			  }
+			  an = finalizeAST(context, tn);
+		  }
+		  A n;
+		  if (an == null) {
 			  return;  
-			}
-			else if (getAASTType().isInstance(an)) {
-				@SuppressWarnings("unchecked")
-				A temp = (A) an;
-				n = temp;
-			}
-			else {
-				n = makeRoot(an);
-			}
+		  }
+		  else if (getAASTType().isInstance(an)) {
+			  @SuppressWarnings("unchecked")
+			  A temp = (A) an;
+			  n = temp;
+		  }
+		  else {
+			  n = makeRoot(an);
+		  }
 
-			if (n != null) {
-				context.reportAAST(n.getOffset(), relativeLocation, n);
-			}
+		  if (n != null) {
+			  context.reportAAST(n.getOffset(), relativeLocation, n);
+		  }
 		}
 		catch (RecognitionException e) {
 		  handleRecognitionException(context, contents, e);

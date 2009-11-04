@@ -27,6 +27,8 @@ public interface IAnnotationParsingContext {
   
   String getSelectedText(int start, int stop);
   
+  String getAllText();
+  
   /**   
    * @return The kind of source the text is originally from
    */
@@ -79,5 +81,8 @@ public interface IAnnotationParsingContext {
     protected IRNode getNode() {
       return null;
     }
+	public String getAllText() {
+		return null;
+	}
   };
 }

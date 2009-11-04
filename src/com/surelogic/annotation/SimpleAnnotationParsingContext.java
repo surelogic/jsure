@@ -50,6 +50,11 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 	return contents.substring(start, stop);
   }
   
+  @Override
+  public String getAllText() {
+	return contents;
+  }
+  
   protected abstract String getName();
   
   /**

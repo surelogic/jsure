@@ -142,6 +142,8 @@ public class LockRules extends AnnotationRules {
 		registerParseRuleStorage(fw, returnsLockRule);
     registerParseRuleStorage(fw, singleThreadedRule);
     registerParseRuleStorage(fw, selfProtectedRule);
+    registerParseRuleStorage(fw, notThreadSafeRule);
+    
     registerScrubber(fw, new LockFieldVisibilityScrubber());
 	}
 

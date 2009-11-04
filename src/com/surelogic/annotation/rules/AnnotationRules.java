@@ -100,6 +100,7 @@ public abstract class AnnotationRules {
     ColorRules.getInstance().register(fw);
     ModuleRules.getInstance().register(fw);
     AssumeFinalRules.getInstance().register(fw);
+    VouchRules.getInstance().register(fw);
     
     PromiseDropStorage.init();
   }

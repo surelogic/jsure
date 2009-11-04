@@ -118,4 +118,5 @@ public interface INodeVisitor<T> {
 	T visit(NotUniqueNode notUniqueNode);
 	T visit(RegionEffectsNode regionEffectsNode);
 	T visit(AggregateInRegionNode n);
+	T visit(VouchSpecificationNode n);
 }

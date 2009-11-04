@@ -74,6 +74,8 @@ public interface JavaGlobals {
 
   static final Category PROMISE_CAT = Category
       .getResultInstance("Scoped promises");
+  
+  static final Category VOUCH_CAT = Category.getResultInstance("Vouches");
 
   static final Category ASSUME_CAT = Category
       .getResultInstance("Scoped assumptions");

@@ -661,5 +661,8 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getTheExprNode()));
     return rv;
   }  
-	
+
+  public T visit(VouchSpecificationNode n) {
+	  return defaultValue;
+  }
 }
