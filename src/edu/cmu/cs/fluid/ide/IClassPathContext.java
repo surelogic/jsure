@@ -2,9 +2,7 @@
 package edu.cmu.cs.fluid.ide;
 
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.xml.*;
 
 public interface IClassPathContext {
   ITypeEnvironment getTypeEnv();
-  IXmlPromiseProcessor getXmlProcessor();
 }
