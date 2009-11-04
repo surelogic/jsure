@@ -8,7 +8,7 @@
  * must include this copyright and license notice.
  */
 
-package net.jcip.annotations;
+package com.surelogic;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
