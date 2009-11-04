@@ -32,15 +32,6 @@ public class ScopedPromiseRules extends AnnotationRules {
 	public static final String PROMISE = "Promise";
 	public static final String PACKAGE_PROMISE = "Package Promise";
 
-	public static final QuickProperties.Flag useNewScopedPromisesFlag = new QuickProperties.Flag(
-			LOG, "rules.useNewScopedPromises", "Promise", true, true);
-
-	private static boolean useNewScopedPromises() {
-		return QuickProperties.checkFlag(useNewScopedPromisesFlag);
-	}
-
-	public static final boolean useNewScopedPromises = useNewScopedPromises();
-
 	private static final AnnotationRules instance = new ScopedPromiseRules();
 
 	private static final Promise_ParseRule promiseRule = new Promise_ParseRule();
@@ -57,10 +48,8 @@ public class ScopedPromiseRules extends AnnotationRules {
 
 	@Override
 	public void register(PromiseFramework fw) {
-		if (useNewScopedPromises) {
-			registerParseRuleStorage(fw, promiseRule);
-			registerScrubber(fw, packageScrubber);
-		}
+		registerParseRuleStorage(fw, promiseRule);
+		registerScrubber(fw, packageScrubber);		
 	}
 
 	public static abstract class ScopedPromiseRule<A extends ScopedPromiseNode, P extends ScopedPromiseDrop>
@@ -88,11 +77,8 @@ public class ScopedPromiseRules extends AnnotationRules {
 		@Override
 		protected Object parse(IAnnotationParsingContext context,
 				ScopedPromisesParser parser) throws RecognitionException {
-			if (useNewScopedPromises) {
-				Object rv = parser.scopedPromise().getTree();
-				return rv;
-			}
-			return null;
+			Object rv = parser.scopedPromise().getTree();
+			return rv;
 		}
 
 		@Override
