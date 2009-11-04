@@ -28,7 +28,6 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.dc.AbstractAnalysisModule;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
-import edu.cmu.cs.fluid.eclipse.xml.XmlPromiseConstants;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -59,7 +58,7 @@ public abstract class AbstractFluidAnalysisModule extends
   static {
     Eclipse.initialize();
   }
-  
+  private static final String PROMISES_XML_SUFFIX = ".promises.xml";
   private static final Logger LOG = SLLogger
       .getLogger("AbstractFluidAnalysisModule");
 
@@ -198,7 +197,7 @@ public abstract class AbstractFluidAnalysisModule extends
 
   public static boolean isPromisesXML(IResource resource) {
     return (resource.getType() == IResource.FILE && resource.getName()
-        .endsWith(XmlPromiseConstants.SUFFIX));
+        .endsWith(PROMISES_XML_SUFFIX));
   }
 
   public static boolean isPackageInfo(IResource resource) {
@@ -251,7 +250,7 @@ public abstract class AbstractFluidAnalysisModule extends
    */
   public static String getCorrespondingTypeName(IResource resource) {
     String promisesXML = resource.getName();
-    int len = promisesXML.length() - XmlPromiseConstants.SUFFIX.length();
+    int len = promisesXML.length() - PROMISES_XML_SUFFIX.length();
     return promisesXML.substring(0, len);
   }
   

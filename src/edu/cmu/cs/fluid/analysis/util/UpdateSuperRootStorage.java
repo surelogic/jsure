@@ -72,6 +72,7 @@ public final class UpdateSuperRootStorage extends AbstractFluidAnalysisModule {
 	 */
 	@Override
 	public boolean analyzeResource(IResource resource, int kind) {
+		/* TODO update for new processor?
 		// FIX how to ignore build path resources?
 		if (AbstractFluidAnalysisModule.isPromisesXML(resource) && onLibPath(resource)) {
 			if (isOnOutputPath(resource)) {
@@ -88,6 +89,7 @@ public final class UpdateSuperRootStorage extends AbstractFluidAnalysisModule {
 					.registerXML(name);
 			return true;
 		}
+		*/
 		// need analyzeCompilationUnit to be called
 		return super.analyzeResource(resource, kind);
 	}
