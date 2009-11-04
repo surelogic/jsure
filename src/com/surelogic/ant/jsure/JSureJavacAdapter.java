@@ -2,12 +2,8 @@ package com.surelogic.ant.jsure;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.StringTokenizer;
 
-import org.apache.commons.lang.SystemUtils;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.taskdefs.compilers.*;
 import org.apache.tools.ant.types.*;
@@ -261,11 +257,15 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 	}
 
 	private void addJavaFile(Config config, File file) {
+		if (!file.getName().endsWith(".java")) {
+			return;
+		}
 		String path = file.getAbsolutePath();
 		String srcPath = findSrcDir(path);
 		if (srcPath != null) {
-			String qname = computeQualifiedName(path.substring(srcPath.length()));
+			String qname = computeQualifiedName(path.substring(srcPath.length()+1));
 			config.files.add(new Pair<String,File>(qname, file));
+			//System.out.println(qname+": "+file.getAbsolutePath());
 			
 			final int lastDot = qname.lastIndexOf('.');
 			config.addPackage(lastDot < 0 ? "" : qname.substring(0, lastDot));

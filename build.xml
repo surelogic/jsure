@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="build-ant-task" default="all">
+	<description>Build for SL Ant tasks</description>
+
+  <target name="all" depends="clean,build,zip"/>
+  
+  <target name="clean-build" depends="clean,build"/>
+  
+  <target name="clean">
+    <delete dir="./lib"/>
+  </target>
+  
+	<target name="build">
+	  <mkdir dir="./lib"/>
+ 
+	  <jar destfile="./lib/common.jar" basedir="../common/bin" />
+	  <mkdir dir="./lib/common"/>
+	  <copy todir="./lib/common">
+	    <fileset dir="../common/lib"/>
+	  </copy>
+		
+	  <jar destfile="./lib/fluid.jar" basedir="../fluid/bin" />
+	  <mkdir dir="./lib/fluid"/>
+	  <copy todir="./lib/fluid">
+		<fileset dir="../fluid/lib/jars"/>
+	  </copy>		
+	  
+	  <jar destfile="./lib/jsure-message.jar" basedir="../jsure-message/bin" />
+	  
+	  <jar destfile="./lib/fluid-javac.jar" basedir="../fluid-javac/bin" />
+		<mkdir dir="./lib/fluid-javac"/>
+		<copy todir="./lib/fluid-javac">
+			<fileset dir="../fluid-javac/lib"/>
+		</copy>	
+		
+	  <jar destfile="./lib/jsure-ant.jar" basedir="../jsure-ant/bin" />
+	  
+	</target>
+	  
+	<target name="zip">
+
+	  <zip destfile="./jsure-ant.zip" basedir=".."
+	       includes="jsure-ant/lib/**/*.jar, jsure-ant/lib/**/*.MF, jsure-ant/README.txt"/>
+	</target>
+</project>
+	  
