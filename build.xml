@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="fresh-javadoc">
+<project default="fresh-everything">
 
+	<!-- Note that you must have the 'promises' project checked out from /svn/public -->
+
+	<!-- Production promises go into '/build' -->
 	<property name="build" location="${basedir}/build" />
+	<!-- Experimental and production promises go into '/build-x' -->
 	<property name="build-x" location="${basedir}/build-x" />
 
+	<property name="promises-x-src" location="${basedir}/src" />
 	<property name="production-promises" location="${basedir}/../promises/" />
+	<property name="production-promises-src" location="${production-promises}/src/main/java" />
 
 	<target name="clean">
 		<delete quiet="true" dir="${build}" />
@@ -16,8 +22,10 @@
 		<mkdir dir="${build-x}/bin" />
 	</target>
 
+	<!-- Production promises go into '/build' -->
+
 	<target name="build" depends="setup">
-		<javac srcdir="${production-promises}/src/main/java" destdir="${build}/bin" classpath="." debug="on" source="1.5" />
+		<javac srcdir="${production-promises-src}" destdir="${build}/bin" classpath="." debug="on" source="1.5" />
 		<jar destfile="${build}/promises.jar">
 			<fileset dir="${build}/bin" />
 			<manifest />
@@ -26,16 +34,21 @@
 
 	<target name="src" depends="build">
 		<jar destfile="${build}/promises.jar" update="true">
-			<fileset dir="${production-promises}/src/main/java">
+			<fileset dir="${production-promises-src}">
 				<filename name="**/*.java" />
 			</fileset>
 			<manifest />
 		</jar>
 	</target>
 
+	<target name="javadoc" depends="src">
+		<javadoc access="public" destdir="${build}/javadoc" source="1.5" sourcepath="${production-promises-src}" notree="true" nodeprecatedlist="true" />
+	</target>
+
+	<!-- Experimental and production promises go into '/build-x' -->
 
 	<target name="build-x" depends="setup">
-		<javac srcdir="${basedir}/src:${production-promises}/src/main/java" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" />
+		<javac srcdir="${promises-x-src}:${production-promises-src}" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" />
 		<jar destfile="${build-x}/promises.jar">
 			<fileset dir="${build-x}/bin" />
 			<manifest />
@@ -44,21 +57,20 @@
 
 	<target name="src-x" depends="build-x">
 		<jar destfile="${build-x}/promises.jar" update="true">
-			<fileset dir="${basedir}/src">
+			<fileset dir="${promises-x-src}">
 				<filename name="**/*.java" />
 			</fileset>
-			<fileset dir="${production-promises}/src/main/java">
+			<fileset dir="${production-promises-src}">
 				<filename name="**/*.java" />
 			</fileset>
 			<manifest />
 		</jar>
 	</target>
 
-
-	<target name="javadoc" depends="src">
-		<javadoc access="public" author="true" classpath="." destdir="${build}/javadoc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="com.surelogic" source="1.5" sourcepath="src" splitindex="true" use="true" version="true" />
+	<target name="javadoc-x" depends="src-x">
+		<javadoc access="public" destdir="${build-x}/javadoc" source="1.5" sourcepath="${promises-x-src}:${production-promises-src}" notree="true" nodeprecatedlist="true" />
 	</target>
 
-	<target name="fresh-javadoc" depends="clean, src, src-x" />
+	<target name="fresh-everything" depends="clean, src, javadoc, src-x, javadoc-x" />
 
 </project>
