@@ -134,7 +134,23 @@ public class LockRules extends AnnotationRules {
     return getBooleanDrop(selfProtectedRule.getStorage(), cdecl);
   }
   
-	@Override
+  public static boolean isNotThreadSafe(IRNode cdecl) {
+	  return getNotThreadSafeDrop(cdecl) != null;
+  }
+
+  public static NotThreadSafePromiseDrop getNotThreadSafeDrop(IRNode cdecl) {
+	  return getBooleanDrop(notThreadSafeRule.getStorage(), cdecl);
+  }
+  
+  public static boolean isImmutable(IRNode cdecl) {
+	  return getImmutableDrop(cdecl) != null;
+  }
+
+  public static ImmutablePromiseDrop getImmutableDrop(IRNode cdecl) {
+	  return getBooleanDrop(immutableRule.getStorage(), cdecl);
+  }
+  
+  @Override
   public void register(PromiseFramework fw) {
     registerScrubber(fw, initRegionSet);
 		registerParseRuleStorage(fw, policyRule);
