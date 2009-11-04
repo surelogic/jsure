@@ -108,6 +108,7 @@ public interface INodeVisitor<T> {
   T visit(WriteLockNode node);
   T visit(SingleThreadedNode node);
   T visit(SelfProtectedNode node); 
+  T visit(NotThreadSafeNode node); 
   T visit(InPatternNode node);
   T visit(InAndPatternNode node);
   T visit(InOrPatternNode node);

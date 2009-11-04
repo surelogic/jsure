@@ -24,6 +24,8 @@ public class Messages extends AbstractMessages {
   public static String LockAnnotation_returnsLockDrop = "returnsLock {0}  on  {1}";
 
   public static String LockAnnotation_selfProtectedDrop = "ThreadSafe  on  {0}";
+  
+  public static String LockAnnotation_notThreadSafeDrop = "NotThreadSafe  on  {0}";
 
   public static String LockAnnotation_singleThreadedDrop = "SingleThreaded  on  {0}";
 

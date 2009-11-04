@@ -39,6 +39,7 @@ public class LockRules extends AnnotationRules {
 	private static final String POLICY_LOCK = "PolicyLock";
   private static final String SINGLE_THREADED = "SingleThreaded";
   private static final String SELF_PROTECTED = "ThreadSafe";
+  private static final String NOT_THREAD_SAFE = "NotThreadSafe";
   private static final String LOCK_FIELD_VISIBILITY = "LockFieldVisibility";
   private static final String REGION_INITIALIZER = "Region Initializer";
   
@@ -54,7 +55,7 @@ public class LockRules extends AnnotationRules {
 	private static final ReturnsLock_ParseRule returnsLockRule = new ReturnsLock_ParseRule();
   private static final SingleThreaded_ParseRule singleThreadedRule = new SingleThreaded_ParseRule();
   private static final SelfProtected_ParseRule selfProtectedRule = new SelfProtected_ParseRule();
-  
+  private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
   
   private static class ProtectedRegions {
     private final Map<String, Set<IJavaType>> protectedRegions = new HashMap<String, Set<IJavaType>>();
@@ -1313,6 +1314,31 @@ public class LockRules extends AnnotationRules {
         @Override
         protected PromiseDrop<SelfProtectedNode> makePromiseDrop(SelfProtectedNode a) {
           SelfProtectedPromiseDrop d = new SelfProtectedPromiseDrop(a);
+          return storeDropIfNotNull(getStorage(), a, d);          
+        }
+      };
+    }    
+  }
+  
+  public static class NotThreadSafe_ParseRule 
+  extends SimpleBooleanAnnotationParseRule<NotThreadSafeNode,NotThreadSafePromiseDrop> {
+    public NotThreadSafe_ParseRule() {
+      super(NOT_THREAD_SAFE, typeDeclOps, NotThreadSafeNode.class);
+    }
+    @Override
+    protected IAASTRootNode makeAAST(int offset) {
+      return new NotThreadSafeNode(offset);
+    }
+    @Override
+    protected IPromiseDropStorage<NotThreadSafePromiseDrop> makeStorage() {
+      return BooleanPromiseDropStorage.create(name(), NotThreadSafePromiseDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<NotThreadSafeNode> makeScrubber() {
+      return new AbstractAASTScrubber<NotThreadSafeNode>(this) {
+        @Override
+        protected PromiseDrop<NotThreadSafeNode> makePromiseDrop(NotThreadSafeNode a) {
+          NotThreadSafePromiseDrop d = new NotThreadSafePromiseDrop(a);
           return storeDropIfNotNull(getStorage(), a, d);          
         }
       };
