@@ -164,7 +164,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 		for (String elt : path.list()) {
 			File f = new File(elt);
 			if (f.exists()) {
-				// System.out.println(type+": "+elt);
+				//System.out.println("Adding "+elt);
 				if (f.isDirectory()) {
 					Util.addJavaFiles(f, config.asBinary, config.pkgs);
 				} else {
@@ -180,7 +180,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 	 */
 	protected Config setupConfig(Config cmd, boolean useDebugLevel) {
 		Path classpath = getCompileClasspath();
-		
+		Path bootClasspath = getBootClassPath();
 		// For -sourcepath, use the "sourcepath" value if present.
 		// Otherwise default to the "srcdir" value.
 		Path sourcepath;
@@ -202,7 +202,16 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 //			cmd.addTarget(new FullDirectoryTarget(Type.BINARY, destDir
 //							.toURI()));
 //		}
-		
+		if (bootClasspath.size() == 0) {
+            // try to use sun.boot.classpath
+			bootClasspath = new Path(getProject());
+			StringTokenizer st = new StringTokenizer(System.getProperty("sun.boot.class.path"), 
+					                                 File.pathSeparator);
+			while (st.hasMoreTokens()) {
+				bootClasspath.add(new Path(getProject(), st.nextToken()));
+			}			
+		}
+		addPath(cmd, bootClasspath);
 		addPath(cmd, classpath);
 		
 		// If the buildfile specifies sourcepath="", then don't
