@@ -25,6 +25,8 @@ public class VouchRules extends AnnotationRules {
   private static final AnnotationRules instance = new VouchRules();
   
   private static final Vouch_ParseRule vouchRule = new Vouch_ParseRule();
+ 
+  private static final VouchProcessor vouchProcessor = new VouchProcessor();
   
   public static AnnotationRules getInstance() {
     return instance;
@@ -55,6 +57,20 @@ public class VouchRules extends AnnotationRules {
   @Override
   public void register(PromiseFramework fw) {
     registerParseRuleStorage(fw, vouchRule);
+    Sea.getDefault().setProofInitializer(vouchProcessor);
+  }
+  
+  static class VouchProcessor implements Sea.ProofInitializer {
+	  public void init(Sea sea) {
+		  for(ResultDrop d : sea.getDropsOfType(ResultDrop.class)) {
+			  if (!d.isConsistent()) {
+				  VouchPromiseDrop vouch = getEnclosingVouch(d.getNode());
+				  if (vouch != null) {
+					  // TODO what to do now
+				  }
+			  }
+		  }
+	  } 
   }
   
   static class Vouch_ParseRule 

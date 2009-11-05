@@ -576,7 +576,11 @@ public final class Sea {
 		}
 		if (LOG.isLoggable(Level.FINE))
 			LOG.fine("Updating consistency proof: " + timeStamp);
-
+		
+		if (proofInit != null) {
+			proofInit.init(this);
+		}
+		
 		/*
 		 * Initialize drop-sea flow analysis "proof" (a drop-sea query)
 		 */
@@ -835,6 +839,16 @@ public final class Sea {
 	 */
 	private long timeStamp = INVALIDATED;
 
+	public interface ProofInitializer {
+		void init(Sea sea);
+	}
+	
+	private ProofInitializer proofInit;
+	
+	public void setProofInitializer(ProofInitializer init) {
+		proofInit = init;
+	}
+	
 	/**
 	 * The set of valid drops within this sea.
 	 */
