@@ -144,151 +144,73 @@ public final class Nature extends AbstractNature {
 	 */
 	public static void finishProjectSetup(final IProject project,
 			final boolean onlyAddJar) {
-		final IJavaProject jp = checkForPromisesJar(project);
+		final IJavaProject jp = JavaCore.create(project);
+		final boolean foundRegionLock = checkForPromises(jp);
 		SLUIJob job = new SLUIJob() {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				final Shell shell = PlatformUI.getWorkbench()
 						.getActiveWorkbenchWindow().getShell();
-				if (jp != null) { // Promises are NOT on the classpath
-					try {
-						// Build the list of source and output directories
-						final Set<IContainer> srcAndOutputDirs = getSourceAndOutputDirs(jp);
-
-						// See if the promises jar is already in the project
-						final IFile foundJar = findPromisesjar(project,
-								srcAndOutputDirs);
-
-						IFile useJar;
-						boolean useExisting = false;
-						final int choice;
-						if (foundJar == null) {
-							final MessageDialog dialog = new MessageDialog(
-									shell,
-									"Add Promises to Project?",
-									null,
-									"The project does not contain the SureLogic promises JAR file.  "
-											+ "Would you like to add it to the project and build path?",
-									MessageDialog.QUESTION, new String[] {
-											"Add to Project Root", "Browse...",
-											"No" }, 0);
-							useJar = project.getFile(LibResources.PROMISES_JAR);
-							choice = dialog.open();
-						} else {
-							/*
-							 * This is sloppy, find a better way to make the
-							 * foundJar path relative to the project root.
-							 */
-							final String foundJarPath = foundJar.getLocation()
-									.toString().substring(
-											project.getLocation().toString()
-													.length() + 1);
-							final MessageDialog dialog = new MessageDialog(
-									shell,
-									"Add Promises to Build Path?",
-									null,
-									"The project contains the SureLogic promises JAR file at \""
-											+ foundJarPath
-											+ "\", but it is not on the build path.  "
-											+ "Would you like to add it to the build path?",
-									MessageDialog.QUESTION, new String[] {
-											"Yes", "Copy new JAR file to...",
-											"No" }, 0);
-							useJar = foundJar;
-							choice = dialog.open();
-							useExisting = (choice == 0);
+				try {
+					if (!foundRegionLock) { // Promises are NOT available
+						// 1. No jar on classpath
+						// 2. Jar on classpath, but not longer in project
+						// 3. Jar in project, but not on classpath		
+						LocationChoice lc = askForPromisesJarLocation(shell, jp);						
+						if (lc.choice != 2 && lc.useJar != null) { 
+							// User didn't cancel
+							setupPromisesJar(jp, shell, lc);
 						}
-
-						if (choice == 1) { // Choose a location
-							final IContainer newLocation = chooseDirectory(
-									shell, project, jp, srcAndOutputDirs);
-							if (newLocation != null) {
-								useJar = newLocation.getFile(new Path(
-										LibResources.PROMISES_JAR));
-							} else {
-								useJar = null; // force a cancel
-							}
-						}
-
-						if (choice != 2 && useJar != null) { // User didn't
-							// cancel
-							boolean createJar = !useExisting;
-							// Ask the user what to do if the file already
-							// exists
-							if (useJar.exists() && !useExisting) {
-								/*
-								 * This is sloppy, find a better way to make the
-								 * useJar path relative to the project root.
-								 */
-								final String useJarPath = foundJar
-										.getLocation()
-										.toString()
-										.substring(
-												project.getLocation()
-														.toString().length() + 1);
-								createJar = MessageDialog
-										.openQuestion(
-												shell,
-												"Overwrite Existing Promises?",
-												"The SureLogic promises JAR file already exists at \""
-														+ useJarPath
-														+ "\".  Would you like to overwrite it?");
-							}
-							if (createJar) {
-								// Remove first if already exists
-								if (useJar.exists()) {
-									useJar.delete(false, false, null);
-								}
-								useJar.create(LibResources.getPromisesJar(),
-										false, null);
-							}
-
-							if (!isOnClasspath(jp, useJar)) {
-								// Update build path
-								final IClasspathEntry[] orig = jp
-										.getRawClasspath();
-								List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
-								for (IClasspathEntry e : orig) {
-									entries.add(e);
-								}
-								entries.add(JavaCore.newLibraryEntry(useJar
-										.getFullPath(), null, null,
-										new IAccessRule[0],
-										new IClasspathAttribute[0], false));
-								jp
-										.setRawClasspath(
-												entries
-														.toArray(new IClasspathEntry[orig.length + 1]),
-												null);
-							} else {
-								// useJar is already listed on the classpath
-							}
-						}
-					} catch (final JavaModelException e) {
-						SLLogger.getLogger().log(
-								Level.WARNING,
-								"JavaModelException while adding "
-										+ LibResources.PROMISES_JAR, e);
-						MessageDialog.openError(shell, "Error", e.getMessage());
-					} catch (final CoreException e) {
-						SLLogger.getLogger().log(
-								Level.WARNING,
-								"CoreException while adding "
-										+ LibResources.PROMISES_JAR, e);
-						MessageDialog.openError(shell, "Error", e.getMessage());
-					} catch (final IOException e) {
-						SLLogger.getLogger().log(
-								Level.WARNING,
-								"IOException while adding "
-										+ LibResources.PROMISES_JAR, e);
-						MessageDialog.openError(shell, "Error", e.getMessage());
-					}
-				} else { // Already on the classpath
-					if (onlyAddJar) {
-						MessageDialog
+					} else { 
+						// Promises are available, but check if I need to upgrade the jar 
+						final List<IPath> old = findOldJarsOnClasspath(jp);
+						if (old.isEmpty()) {
+							if (onlyAddJar) {
+								MessageDialog
 								.openInformation(shell, "Info",
-										"The SureLogic promises JAR file is already on the classpath");
+								"The latest SureLogic promises JAR file is already on the build path");
+							}
+						} else {
+							// Check about removing the old jars
+							final boolean hasCurrentJar = isJarOnClasspath(jp);
+							final StringBuilder sb = new StringBuilder();					
+							if (hasCurrentJar) {
+								// We've got the latest, but also older jars					
+								sb.append("The latest SureLogic promises JAR file is on the build path, ");
+								sb.append("but there are also older jars:\n");
+							} else {
+								// We only have older jars
+								sb.append("The project does not contain the latest SureLogic promises JAR file, ");
+								sb.append("but there are older jars:\n");
+							}
+							for(IPath p : old) {
+								sb.append('\t').append(p.toString()).append('\n');
+							}	
+							sb.append("\nWould you like to remove the old jars from the build path?");
+
+							final MessageDialog dialog = new MessageDialog(shell,
+									"Remove Old Promises from Build Path?", null, sb.toString(),
+									MessageDialog.QUESTION, new String[] { "Yes", "No" }, 0);
+							final int removeChoice = dialog.open();
+							if (removeChoice == 0) {
+								try {
+									removeOldFromClasspath(jp);
+								} catch (JavaModelException e) {
+									handleError(shell, " while removing jars from build path", e);
+								}
+							}
+							if (!hasCurrentJar) {				
+								final LocationChoice lc = askForPromisesJarLocation(shell, jp);
+								if (lc.useJar != null) {
+									setupPromisesJar(jp, shell, lc);
+								}								
+							}
+						}
 					}
+				} catch (final CoreException e) {
+					handleError(shell, " while adding "+ LibResources.PROMISES_JAR, e);
+				} catch (final IOException e) {
+					handleError(shell, " while adding "+ LibResources.PROMISES_JAR, e);
 				}
 				if (!onlyAddJar) {
 					ConfirmPerspectiveSwitch.prototype.submitUIJob();
@@ -300,23 +222,194 @@ public final class Nature extends AbstractNature {
 		job.schedule();
 	}
 
-	static boolean isOnClasspath(IJavaProject jp, IFile useJar) {
+	static class LocationChoice {
+		final int choice;
+		final IFile useJar;
+		final boolean useExisting;
+		
+		LocationChoice(int choice, IFile loc, boolean useExisting) {
+			this.useExisting = useExisting;
+			this.choice = choice;
+			useJar = loc;
+		}
+	}
+	
+	static LocationChoice askForPromisesJarLocation(Shell shell, IJavaProject jp) 
+	throws CoreException {
+		// Build the list of source and output directories
+		final Set<IContainer> srcAndOutputDirs = getSourceAndOutputDirs(jp);
+		
+		// See if the promises jar is already in the project
+		final IFile foundJar = findPromisesjar(jp.getProject(), srcAndOutputDirs);
+		
+		IFile useJar;
+		final int choice;
+		boolean useExisting = false;
+		if (foundJar == null) {
+			final MessageDialog dialog = new MessageDialog(
+					shell,
+					"Add Promises to Project?",
+					null,
+					"The project does not contain the latest SureLogic promises JAR file.  "
+							+ "Would you like to add it to the project and build path?",
+					MessageDialog.QUESTION, new String[] {
+							"Add to Project Root", "Browse...",
+							"No" }, 0);
+			useJar = jp.getProject().getFile(LibResources.PROMISES_JAR);
+			choice = dialog.open();
+		} else {
+			final String foundJarPath = computeRelativePath(foundJar, jp.getProject());
+			final MessageDialog dialog = new MessageDialog(
+					shell,
+					"Add Promises to Build Path?",
+					null,
+					"The project contains the latest SureLogic promises JAR file at \""
+							+ foundJarPath
+							+ "\", but it is not on the build path.  "
+							+ "Would you like to add it to the build path?",
+					MessageDialog.QUESTION, new String[] {
+							"Yes", "Copy new JAR file to...",
+							"No" }, 0);
+			useJar = foundJar;
+			choice = dialog.open();
+			useExisting = (choice == 0);
+		}
+
+		if (choice == 1) { // Choose a location
+			final IContainer newLocation = chooseDirectory(
+					shell, jp.getProject(), jp, srcAndOutputDirs);
+			if (newLocation != null) {
+				useJar = newLocation.getFile(new Path(
+						LibResources.PROMISES_JAR));
+			} else {
+				useJar = null; // force a cancel
+			}
+		}
+		return new LocationChoice(choice, useJar, useExisting);
+	}
+	
+	static void handleError(Shell shell, String whileMsg, Exception e) {
+		SLLogger.getLogger().log(Level.WARNING,
+				e.getClass().getSimpleName()+whileMsg, e);
+		MessageDialog.openError(shell, "Error", e.getMessage());
+	}
+	
+	/*
+	 * This is sloppy, find a better way to make the
+	 * foundJar path relative to the project root.
+	 */
+	static String computeRelativePath(IFile f, IContainer c) {
+		return computeRelativePath(f.getLocation(), c);
+	}
+	
+	static String computeRelativePath(IPath p, IContainer c) {
+		return p.toString().substring(c.getLocation().toString().length() + 1);
+	}
+	
+	static void addToClasspath(final IJavaProject jp, IFile useJar)
+	throws JavaModelException {
+		final IClasspathEntry[] orig = jp.getRawClasspath();
+		List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
+		for (IClasspathEntry e : orig) {
+			entries.add(e);
+		}
+		entries.add(JavaCore.newLibraryEntry(useJar
+				.getFullPath(), null, null,
+				new IAccessRule[0],
+				new IClasspathAttribute[0], false));
+		jp.setRawClasspath(
+				entries.toArray(new IClasspathEntry[entries.size()]),
+				null);
+	}
+	
+	static void removeOldFromClasspath(final IJavaProject jp)
+	throws JavaModelException {
+		final IClasspathEntry[] orig = jp.getRawClasspath();
+		List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
+		IPathFilter f = new OldJarMatcher();
+		for (IClasspathEntry e : orig) {
+			if (e.getEntryKind() == IClasspathEntry.CPE_LIBRARY && f.match(e.getPath())) {				
+				continue;
+			}
+			entries.add(e);
+		}
+		jp.setRawClasspath(
+				entries.toArray(new IClasspathEntry[entries.size()]),
+				null);
+	}
+	
+	static abstract class IPathFilter {
+		abstract boolean match(IPath path);
+		boolean stopAfterMatch() {
+			return true;
+		}
+	}
+	
+	static boolean isOnClasspath(IJavaProject jp, final IFile useJar) {
+		return isOnClasspath(jp, new IPathFilter() {
+			boolean match(IPath path) {
+				// System.out.println("Comparing "+useJar+" with "+path);
+				return useJar.getFullPath().equals(path);
+			}			
+		});
+	}
+	
+	static boolean isOnClasspath(IJavaProject jp, IPathFilter matcher) {
+		boolean rv = false;
 		try {
 			for (IClasspathEntry e : jp.getRawClasspath()) {
 				if (e.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-					// System.out.println("Comparing "+useJar+" with "+e.getPath());
-					if (useJar.getFullPath().equals(e.getPath())) {
-						return true;
+					if (matcher.match(e.getPath())) {
+						if (matcher.stopAfterMatch()) {
+							return true;
+						} else {
+							rv = true;
+						}
 					}
 				}
 			}
 		} catch (JavaModelException e) {
 			return true; // FIX?
 		}
-		return false;
+		return rv;
 	}
 
-	private static Set<IContainer> getSourceAndOutputDirs(
+	/**
+	 * @return true if it looks like the current jar is on the classpath
+	 */
+	static boolean isJarOnClasspath(IJavaProject jp) {
+		return isOnClasspath(jp, new IPathFilter() {
+			boolean match(IPath path) {
+				return LibResources.PROMISES_JAR.equals(path.lastSegment());
+			}			
+		});
+	}
+	
+	static class OldJarMatcher extends IPathFilter {
+		final List<IPath> results = new ArrayList<IPath>();
+		
+		boolean stopAfterMatch() {
+			return false; // Check the whole classpath
+		}
+		@Override
+		boolean match(IPath path) {
+			for(String name : LibResources.PROMISES_JAR_OLD_VERSIONS) {
+				if (name.equals(path.lastSegment())) {
+					results.add(path);
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+	
+	static List<IPath> findOldJarsOnClasspath(IJavaProject jp) {		
+		OldJarMatcher f = new OldJarMatcher();
+		isOnClasspath(jp, f);
+		return f.results;
+	}
+	
+	static Set<IContainer> getSourceAndOutputDirs(
 			IJavaProject javaProject) throws JavaModelException {
 		final Set<IContainer> sourceAndOutputDirs = new HashSet<IContainer>();
 		sourceAndOutputDirs.add(getWorkspaceFolder(javaProject.getProject(),
@@ -335,13 +428,13 @@ public final class Nature extends AbstractNature {
 		return sourceAndOutputDirs;
 	}
 
-	private static IContainer getWorkspaceFolder(IProject proj, IPath path) {
+	static IContainer getWorkspaceFolder(IProject proj, IPath path) {
 		final IWorkspaceRoot workspace = ResourcesPlugin.getWorkspace()
 				.getRoot();
 		return workspace.getContainerForLocation(path);
 	}
 
-	private static boolean isGoodPromiseContainer(final IContainer test,
+	static boolean isGoodPromiseContainer(final IContainer test,
 			final Set<IContainer> ignore) {
 		final boolean isHidden = test.getName().charAt(0) == '.';
 		final boolean isSourceOrOutput = ignore.contains(test);
@@ -355,7 +448,7 @@ public final class Nature extends AbstractNature {
 	 * @return The file handle, or {@code null} if not found.
 	 * @throws CoreException
 	 */
-	private static IFile findPromisesjar(final IContainer current,
+	static IFile findPromisesjar(final IContainer current,
 			final Set<IContainer> ignore) throws CoreException {
 		final IResource[] members = current.members();
 
@@ -383,7 +476,7 @@ public final class Nature extends AbstractNature {
 		return null;
 	}
 
-	private static IContainer chooseDirectory(final Shell shell,
+	static IContainer chooseDirectory(final Shell shell,
 			final IProject project, final IJavaProject javaProject,
 			final Set<IContainer> srcAndOutputDirs) {
 		/**
@@ -495,19 +588,20 @@ public final class Nature extends AbstractNature {
 	}
 
 	/**
-	 * @return non-null if unable to resolve promises
+	 * @return true if found a promise
 	 */
-	private static IJavaProject checkForPromisesJar(IProject project) {
-		IJavaProject p = JavaCore.create(project);
+	static boolean checkForPromises(IJavaProject p) {
 		try {
 			if (p.findType("com.surelogic.RegionLock") == null) {
 				// Could add promises.jar
-				return p;
+				return false;
+			} else {
+				return true;
 			}
 		} catch (JavaModelException e) {
 			// Ignore any exception
 		}
-		return null;
+		return true;
 	}
 
 	public static void runAnalysis(IProject project) {
@@ -541,6 +635,37 @@ public final class Nature extends AbstractNature {
 			}
 			description.setNatureIds(newNatures);
 			project.setDescription(description, null);
+		}
+	}
+
+	private static void setupPromisesJar(final IJavaProject jp, final Shell shell, LocationChoice lc) 
+	throws CoreException, IOException, JavaModelException {
+		boolean createJar = !lc.useExisting;
+		// Ask the user what to do if the file already
+		// exists
+		if (lc.useJar.exists() && !lc.useExisting) {
+			final String useJarPath = computeRelativePath(lc.useJar, jp.getProject());
+			createJar = MessageDialog
+					.openQuestion(
+							shell,
+							"Overwrite Existing Promises?",
+							"The SureLogic promises JAR file already exists at \""
+									+ useJarPath
+									+ "\".  Would you like to overwrite it?");
+		}
+		if (createJar) {
+			// Remove first if already exists
+			if (lc.useJar.exists()) {
+				lc.useJar.delete(false, false, null);
+			}
+			lc.useJar.create(LibResources.getPromisesJar(),
+					false, null);
+		}
+
+		if (!isOnClasspath(jp, lc.useJar)) {
+			addToClasspath(jp, lc.useJar);
+		} else {
+			// useJar is already listed on the classpath
 		}
 	}
 }
