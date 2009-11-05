@@ -365,7 +365,8 @@ public class ResultsViewContentProvider extends
 				result.setImageFlags(flags);
 				result
 						.setBaseImageName(resultDrop.isConsistent() ? CommonImages.IMG_PLUS
-								: CommonImages.IMG_RED_X);
+								: resultDrop.isVouched() ? CommonImages.IMG_PLUS_VOUCH
+										: CommonImages.IMG_RED_X);
 
 				// children
 				addSupportingInformation(result, resultDrop);

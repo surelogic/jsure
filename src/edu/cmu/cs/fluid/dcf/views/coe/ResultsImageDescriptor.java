@@ -36,8 +36,8 @@ import com.surelogic.common.eclipse.SLImages;
  * The adornments are computed according to the flags either passed during
  * creation or set via the method * <code>setAdornments</code>. This class
  * "cloned" from {@link org.eclipse.jdt.ui.JavaElementImageDescriptor} within
- * the Eclipse JDT source code. It has been modifed to output assurance
- * decrators and all dependencies to internal Eclipse packages was removed.
+ * the Eclipse JDT source code. It has been modified to output assurance
+ * decorators and all dependencies to internal Eclipse packages was removed.
  * <p>
  * This class may be instantiated; it is not intended to be subclassed.
  * </p>
