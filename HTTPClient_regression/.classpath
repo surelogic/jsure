@@ -4,6 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/commons-codec_1.3.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.jar"/>
-	<classpathentry kind="lib" path="promises.jar"/>
+	<classpathentry kind="lib" path="promises-3.0.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

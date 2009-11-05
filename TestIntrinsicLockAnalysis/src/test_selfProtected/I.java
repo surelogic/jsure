@@ -1,8 +1,8 @@
 package test_selfProtected;
 
-import com.surelogic.SelfProtected;
+import com.surelogic.ThreadSafe;
 
-@SelfProtected
+@ThreadSafe
 public interface I {
 
 }

@@ -37,7 +37,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.surelogic.SelfProtected;
+//import com.surelogic.SelfProtected;
 
 /**
  * Cookie management policy class. The cookie policy provides corresponding

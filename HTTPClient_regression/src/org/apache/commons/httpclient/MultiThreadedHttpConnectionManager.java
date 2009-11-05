@@ -54,7 +54,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.surelogic.Aggregate;
 import com.surelogic.InRegion;
-import com.surelogic.NotUnique;
+//import com.surelogic.NotUnique;
 import com.surelogic.Promise;
 import com.surelogic.Promises;
 import com.surelogic.Region;
