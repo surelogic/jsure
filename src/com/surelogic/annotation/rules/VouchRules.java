@@ -63,16 +63,19 @@ public class VouchRules extends AnnotationRules {
 
 	static class VouchProcessor implements Sea.ProofInitializer {
 		public void init(Sea sea) {
-			for (ResultDrop d : sea.getDropsOfType(ResultDrop.class)) {
-				if (!d.isConsistent()) {
-					VouchPromiseDrop vouch = getEnclosingVouch(d.getNode());
+			for (final ResultDrop rd : sea.getDropsOfType(ResultDrop.class)) {
+				if (!rd.isConsistent()) {
+					VouchPromiseDrop vouch = getEnclosingVouch(rd.getNode());
 					if (vouch != null) {
-						d.setVouched();
-						d.addTrustedPromise(vouch);
+						rd.setVouched();
+						rd.addTrustedPromise(vouch);
 						if (vouch.getAST() != null) {
 							final String vouchReason = vouch.getAST()
 									.getReason();
-							d.addSupportingInformation(vouchReason, null);
+							rd.addSupportingInformation("(vouch) "
+									+ vouchReason, null);
+							vouch.addSupportingInformation("(analysis result) "
+									+ rd.getMessage(), rd.getNode());
 						}
 					}
 				}
