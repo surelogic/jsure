@@ -310,13 +310,14 @@ public final class Nature extends AbstractNature {
 	throws JavaModelException {
 		final IClasspathEntry[] orig = jp.getRawClasspath();
 		List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
-		for (IClasspathEntry e : orig) {
-			entries.add(e);
-		}
 		entries.add(JavaCore.newLibraryEntry(useJar
 				.getFullPath(), null, null,
 				new IAccessRule[0],
 				new IClasspathAttribute[0], false));
+
+		for (IClasspathEntry e : orig) {
+			entries.add(e);
+		}
 		jp.setRawClasspath(
 				entries.toArray(new IClasspathEntry[entries.size()]),
 				null);
