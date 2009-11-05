@@ -188,7 +188,6 @@ public final class Nature extends AbstractNature {
 							}	
 							sb.append("\nWould you like to remove the older libraries from the project's build path?");
 							sb.append("\n\nThis action will not delete the older libraries from your disk (you can do that manually).");
-							sb.append("You will be prompted next to add the latest SureLogic promises library to your build path.");
 
 							final MessageDialog dialog = new MessageDialog(shell,
 									"Remove Old Promises Libraries from your Build Path?", null, sb.toString(),
