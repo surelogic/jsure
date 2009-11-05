@@ -429,8 +429,8 @@
 			</menu>
 
 			<action id="com.surelogic.jsure.client.eclipse.oc.addPromisesJar"
-				label="Add Promises To This Project"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/annotation.gif"
+				label="Add/Update Promises Library"
+				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jar.gif"
 				tooltip="Creates promises.jar in this project, and adds it to this project's classpath"
 				menubarPath="jSureMenu/nature.grp"
 				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarAction"
