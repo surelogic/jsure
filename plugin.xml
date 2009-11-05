@@ -350,16 +350,17 @@
 			</menu>
 
 			<action
+				class="com.surelogic.jsure.client.eclipse.actions.OpenCodeVerificationPerspectiveAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ShowCodeVerificationPerspectiveAction"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
 				label="Open Code Verification Perspective"
-				class="com.surelogic.jsure.client.eclipse.actions.OpenCodeVerificationPerspectiveAction">
+				tooltip="Open the Code Verification perspective to examine JSure tool results"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
 			<action
-				class="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureFromAllProjectsAction"
-				id="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureFromAllProjectsAction"
+				class="com.surelogic.jsure.client.eclipse.actions.DisableVerificationOfAllProjectsMainAction"
+				id="com.surelogic.jsure.client.eclipse.actions.DisableVerificationOfAllProjectsMainAction"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify_gray.gif"
 				label="Disable Verification Of All Projects" tooltip="Set a particular project to be verified by the JSure tool"
@@ -367,8 +368,17 @@
 			</action>
 
 			<action
-				class="com.surelogic.jsure.client.eclipse.actions.FocusVerificationAction"
-				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationAction"
+				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarMainAction"
+				id="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarMainAction"
+				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jar.gif"
+				label="Add/Update Promises Library..."
+				tooltip="Add or update the promises library to a project so that annotations can be added to the project's code"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.FocusVerificationMainAction"
+				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationMainAction"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
 				label="Focus Verification..." tooltip="Set a particular project to be verified by the JSure tool"
@@ -388,7 +398,7 @@
 				label="Run JSure Tutorials" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/service"
 				helpContextId="menu-run-jsure-tutorials">
 			</action>
-			
+
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
 				id="com.surelogic.jsure.client.eclipse.actions.SendProblemAction"
@@ -428,21 +438,23 @@
 				<groupMarker name="nature.grp" />
 			</menu>
 
-			<action id="com.surelogic.jsure.client.eclipse.oc.addPromisesJar"
+			<action
+				id="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarContextAction"
 				label="Add/Update Promises Library"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jar.gif"
 				tooltip="Creates promises.jar in this project, and adds it to this project's classpath"
 				menubarPath="jSureMenu/nature.grp"
-				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarAction"
+				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarContextAction"
 				enablesFor="1">
 			</action>
 
-			<action id="com.surelogic.jsure.client.eclipse.oc.removeNature"
+			<action
+				id="com.surelogic.jsure.client.eclipse.actions.DisableVerificationContextAction"
 				label="Disable Verification"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
 				tooltip="Disables JSure analysis for the selected projects"
 				menubarPath="jSureMenu/nature.grp"
-				class="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureAction"
+				class="com.surelogic.jsure.client.eclipse.actions.DisableVerificationContextAction"
 				enablesFor="+">
 				<enablement>
 					<objectState name="nature"
@@ -450,12 +462,13 @@
 				</enablement>
 			</action>
 
-			<action id="com.surelogic.jsure.client.eclipse.oc.focusNature"
+			<action
+				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
 				label="Focus Verification on this Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				tooltip="Enables JSure analysis for the selected project, and disables assurance for all other projects"
 				menubarPath="jSureMenu/nature.grp"
-				class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
+				class="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
 				enablesFor="1">
 				<enablement>
 					<not>
@@ -471,13 +484,14 @@
 		<viewContribution id="org.cmu.cs.fluid.dc.projectexplorer.actions"
 			targetID="org.eclipse.jdt.ui.PackageExplorer">
 
-			<action id="com.surelogic.jsure.client.eclipse.va.focusNature"
+			<action
+				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
 				label="Focus Verification on this Project"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
 				tooltip="Enables JSure analysis for the selected project, and disables assurance for all other projects"
 				toolbarPath="JSure" menubarPath="additions"
-				class="com.surelogic.jsure.client.eclipse.actions.FocusFluidNatureAction"
+				class="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
 				enablesFor="1">
 				<enablement>
 					<and>
@@ -490,13 +504,14 @@
 				</enablement>
 			</action>
 
-			<action id="com.surelogic.jsure.client.eclipse.va.removeNature"
+			<action
+				id="com.surelogic.jsure.client.eclipse.actions.DisableVerificationContextAction"
 				label="Disable Verification"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
 				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify_gray.gif"
 				tooltip="Disables JSure analysis for the selected projects"
 				toolbarPath="JSure" menubarPath="additions"
-				class="com.surelogic.jsure.client.eclipse.actions.RemoveFluidNatureAction"
+				class="com.surelogic.jsure.client.eclipse.actions.DisableVerificationContextAction"
 				enablesFor="+">
 				<enablement>
 					<and>

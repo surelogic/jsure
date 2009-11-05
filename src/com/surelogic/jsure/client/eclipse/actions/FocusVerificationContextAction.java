@@ -2,7 +2,7 @@ package com.surelogic.jsure.client.eclipse.actions;
 
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
-public class FocusFluidNatureAction extends
+public class FocusVerificationContextAction extends
 		edu.cmu.cs.fluid.dc.FocusFluidNatureAction {
 	@Override
 	protected void cleanup() {

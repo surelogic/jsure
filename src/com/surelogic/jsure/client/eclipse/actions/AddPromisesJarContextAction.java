@@ -8,9 +8,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
-import edu.cmu.cs.fluid.dc.PromisesJarUtility;
-
-public class AddPromisesJarAction implements IViewActionDelegate {
+public class AddPromisesJarContextAction implements IViewActionDelegate {
 	private IProject project;
 
 	public void init(IViewPart view) {
@@ -30,8 +28,6 @@ public class AddPromisesJarAction implements IViewActionDelegate {
 	}
 
 	public void run(IAction action) {
-		if (project != null) {
-			PromisesJarUtility.finishProjectSetup(project, true);
-		}
+		AddPromisesJarMainAction.performAction(project);
 	}
 }

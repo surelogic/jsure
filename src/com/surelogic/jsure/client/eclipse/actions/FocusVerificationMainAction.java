@@ -17,7 +17,7 @@ import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
 import edu.cmu.cs.fluid.dc.Nature;
 
-public class FocusVerificationAction implements IWorkbenchWindowActionDelegate {
+public class FocusVerificationMainAction implements IWorkbenchWindowActionDelegate {
 
 	public void dispose() {
 		// Nothing to do

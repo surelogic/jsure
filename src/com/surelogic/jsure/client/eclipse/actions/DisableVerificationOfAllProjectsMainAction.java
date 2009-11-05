@@ -7,7 +7,7 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
-public class RemoveFluidNatureFromAllProjectsAction implements
+public class DisableVerificationOfAllProjectsMainAction implements
 		IWorkbenchWindowActionDelegate {
 
 	public void dispose() {

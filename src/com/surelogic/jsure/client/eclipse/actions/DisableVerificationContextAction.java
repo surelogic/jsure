@@ -2,7 +2,7 @@ package com.surelogic.jsure.client.eclipse.actions;
 
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
-public class RemoveFluidNatureAction extends
+public class DisableVerificationContextAction extends
 		edu.cmu.cs.fluid.dc.RemoveFluidNatureAction {
 	private boolean changed = false;
 
