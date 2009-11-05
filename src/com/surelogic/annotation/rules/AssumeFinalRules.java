@@ -9,13 +9,20 @@ import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -95,11 +102,39 @@ public class AssumeFinalRules extends AnnotationRules {
       return new AbstractAASTScrubber<AssumeFinalNode>(this) {
         @Override
         protected PromiseDrop<AssumeFinalNode> makePromiseDrop(AssumeFinalNode a) {
-          AssumeFinalPromiseDrop d = new AssumeFinalPromiseDrop(a);
-          //System.out.println("Promised on "+DebugUnparser.toString(a.getPromisedFor()));
-          return storeDropIfNotNull(getStorage(), a, d);          
+//          AssumeFinalPromiseDrop d = new AssumeFinalPromiseDrop(a);
+//          return storeDropIfNotNull(getStorage(), a, d);          
+          return storeDropIfNotNull(getStorage(), a, 
+              scrubAssumeFinal(getContext(), a));          
         }
       };
     }    
+  }
+  
+  private static AssumeFinalPromiseDrop scrubAssumeFinal(
+      final IAnnotationScrubberContext context,
+      final AssumeFinalNode a) {
+    final IRNode promisedFor = a.getPromisedFor();
+    
+    // Cannot use TypeUtils.isFinal() because that checks for @AssumeFinal
+    boolean isAlreadyFinal = false;
+    final Operator op = JJNode.tree.getOperator(promisedFor);
+    if (VariableDeclarator.prototype.includes(op)) {
+      if (TypeUtil.isInterface(VisitUtil.getEnclosingType(promisedFor))) {
+        isAlreadyFinal = true; // declared in an interface
+      } else if (JavaNode.getModifier(JJNode.tree.getParent(
+          JJNode.tree.getParent(promisedFor)), JavaNode.FINAL)) {
+        isAlreadyFinal = true; // declared final
+      }
+    } else if (ParameterDeclaration.prototype.includes(op)) {
+      isAlreadyFinal = JavaNode.getModifier(promisedFor, JavaNode.FINAL);
+    }
+    
+    if (isAlreadyFinal) {
+      context.reportError("Field/parameter is already declared to be final; no need to assume it", a);
+      return null;
+    } else {
+      return new AssumeFinalPromiseDrop(a);
+    }
   }
 }
