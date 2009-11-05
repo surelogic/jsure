@@ -167,8 +167,8 @@ public final class Nature extends AbstractNature {
 						if (old.isEmpty()) {
 							if (onlyAddJar) {
 								MessageDialog
-								.openInformation(shell, "Info",
-								"The latest SureLogic promises JAR file is already on the build path");
+								.openInformation(shell, "Using the Latest SureLogic Promises Library",
+								"The latest SureLogic promises library is already on the build path for this project.");
 							}
 						} else {
 							// Check about removing the old jars
@@ -176,20 +176,22 @@ public final class Nature extends AbstractNature {
 							final StringBuilder sb = new StringBuilder();					
 							if (hasCurrentJar) {
 								// We've got the latest, but also older jars					
-								sb.append("The latest SureLogic promises JAR file is on the build path, ");
-								sb.append("but there are also older jars:\n");
+								sb.append("The latest SureLogic promises library is on the build path, ");
+								sb.append("but there are also older SureLogic promises libraries on the build path:\n\n");
 							} else {
 								// We only have older jars
-								sb.append("The project does not contain the latest SureLogic promises JAR file, ");
-								sb.append("but there are older jars:\n");
+								sb.append("The project does not contain the latest SureLogic promises library on its build path, ");
+								sb.append("but there are older SureLogic promises libraries on the build path:\n\n");
 							}
 							for(IPath p : old) {
 								sb.append('\t').append(p.toString()).append('\n');
 							}	
-							sb.append("\nWould you like to remove the old jars from the build path?");
+							sb.append("\nWould you like to remove the older libraries from the project's build path?");
+							sb.append("\n\nThis action will not delete the older libraries from your disk (you can do that manually).");
+							sb.append("You will be prompted next to add the latest SureLogic promises library to your build path.");
 
 							final MessageDialog dialog = new MessageDialog(shell,
-									"Remove Old Promises from Build Path?", null, sb.toString(),
+									"Remove Old Promises Libraries from your Build Path?", null, sb.toString(),
 									MessageDialog.QUESTION, new String[] { "Yes", "No" }, 0);
 							final int removeChoice = dialog.open();
 							if (removeChoice == 0) {
