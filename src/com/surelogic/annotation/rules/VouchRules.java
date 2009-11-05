@@ -11,8 +11,13 @@ import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class VouchRules extends AnnotationRules {
   public static final String VOUCH = "Vouch";
@@ -25,8 +30,26 @@ public class VouchRules extends AnnotationRules {
     return instance;
   }
   
-  public static VouchPromiseDrop getVouchSpec(IRNode mdecl) {
-    return getDrop(vouchRule.getStorage(), mdecl);
+  public static VouchPromiseDrop getVouchSpec(IRNode decl) {
+    return getDrop(vouchRule.getStorage(), decl);
+  }
+  
+  /**
+   * Returns the closest vouch applicable for the given IRNode, if any  
+   */
+  public static VouchPromiseDrop getEnclosingVouch(final IRNode n) {
+	  IRNode decl = VisitUtil.getClosestDecl(n);
+	  while (n != null) {		  
+		  Operator op = JJNode.tree.getOperator(decl);
+		  if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {			 
+			  VouchPromiseDrop rv = getVouchSpec(decl);
+			  if (rv != null) {
+				  return rv;
+			  }
+		  }
+		  decl = VisitUtil.getEnclosingDecl(n);
+	  }
+	  return null;
   }
   
   @Override

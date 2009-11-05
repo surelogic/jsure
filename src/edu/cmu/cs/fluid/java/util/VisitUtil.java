@@ -97,6 +97,10 @@ public class VisitUtil implements JavaGlobals {
     if (OpSearch.declSearch.found(op)) {
       return here;
     }
+    return getEnclosingDecl(here);
+  }
+  
+  public static IRNode getEnclosingDecl(IRNode here) {
     return OpSearch.declSearch.findEnclosing(here);
   }
   
