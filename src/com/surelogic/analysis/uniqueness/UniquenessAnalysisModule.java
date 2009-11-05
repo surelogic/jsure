@@ -538,6 +538,10 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			// Is it a method call
 			if (op instanceof CallInterface) {
 				final IRNode declNode = getBinder().getBinding(currentNode);
+				if (declNode == null) {
+					LOG.warning("No binding for "+DebugUnparser.toString(currentNode));
+					continue;
+				}
 
 				// get the info for the called method
 				final Set<UniquePromiseDrop> uniqueReturns = new HashSet<UniquePromiseDrop>();
