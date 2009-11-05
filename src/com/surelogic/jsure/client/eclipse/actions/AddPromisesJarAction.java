@@ -8,13 +8,13 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
-import edu.cmu.cs.fluid.dc.Nature;
+import edu.cmu.cs.fluid.dc.PromisesJarUtility;
 
 public class AddPromisesJarAction implements IViewActionDelegate {
 	private IProject project;
-	
+
 	public void init(IViewPart view) {
-		//Nothing to do
+		// Nothing to do
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
@@ -31,7 +31,7 @@ public class AddPromisesJarAction implements IViewActionDelegate {
 
 	public void run(IAction action) {
 		if (project != null) {
-			Nature.finishProjectSetup(project, true);
+			PromisesJarUtility.finishProjectSetup(project, true);
 		}
 	}
 }
