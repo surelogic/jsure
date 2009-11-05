@@ -576,11 +576,11 @@ public final class Sea {
 		}
 		if (LOG.isLoggable(Level.FINE))
 			LOG.fine("Updating consistency proof: " + timeStamp);
-		
+
 		if (proofInit != null) {
 			proofInit.init(this);
 		}
-		
+
 		/*
 		 * Initialize drop-sea flow analysis "proof" (a drop-sea query)
 		 */
@@ -610,7 +610,7 @@ public final class Sea {
 					 * & in local result
 					 */
 					pd.provedConsistent = pd.provedConsistent
-							&& result.isConsistent();
+							&& (result.isConsistent() || result.isVouched());
 				}
 			} else if (d instanceof ResultDrop) {
 
@@ -620,12 +620,11 @@ public final class Sea {
 
 				ResultDrop rd = (ResultDrop) d;
 
-				// result drops are, by definition, can not start off with a red
-				// dot :-)
+				// result drops, by definition, can not start off with a red dot
 				rd.proofUsesRedDot = false;
 
 				// record local result
-				rd.provedConsistent = rd.isConsistent();
+				rd.provedConsistent = rd.isConsistent() || rd.isVouched();
 
 			} else {
 				LOG
@@ -842,13 +841,13 @@ public final class Sea {
 	public interface ProofInitializer {
 		void init(Sea sea);
 	}
-	
+
 	private ProofInitializer proofInit;
-	
+
 	public void setProofInitializer(ProofInitializer init) {
 		proofInit = init;
 	}
-	
+
 	/**
 	 * The set of valid drops within this sea.
 	 */
