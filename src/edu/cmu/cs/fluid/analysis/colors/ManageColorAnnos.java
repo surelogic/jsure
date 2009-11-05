@@ -12,15 +12,14 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.common.logging.SLLogger;
 
-
 import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
 import edu.cmu.cs.fluid.analysis.util.ConvertToIR;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
-//import edu.cmu.cs.fluid.eclipse.bind.EclipseBinder;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
-import edu.cmu.cs.fluid.java.analysis.*;
+import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
+import edu.cmu.cs.fluid.java.analysis.ColorFirstPass;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.util.AbstractRunner;

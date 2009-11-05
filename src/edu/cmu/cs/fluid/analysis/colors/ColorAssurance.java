@@ -7,7 +7,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.client.eclipse.listeners.*;
+import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
+import com.surelogic.jsure.client.eclipse.listeners.IClearProjectHelper;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
