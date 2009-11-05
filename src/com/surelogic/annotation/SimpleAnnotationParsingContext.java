@@ -15,6 +15,8 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
+import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -89,7 +91,34 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
       // CHANGED from pointing at the promise node
       // FIX drop.setNodeAndCompilationUnitDependency(declNode); 
       if (declNode == null) {
-        reportError(offset, "Couldn't find "+o);
+    	final IRNode decl = VisitUtil.getEnclosingDecl(node);
+    	final Operator op = JJNode.tree.getOperator(decl);
+    	final boolean isFunction = SomeFunctionDeclaration.prototype.includes(op);
+    	final String msg;
+    	switch (loc) {
+    	case RECEIVER:
+    		if (isFunction) {
+    			if (TypeUtil.isStatic(decl)) {
+    				msg = "Cannot use @"+rule.name()+"("+o+") on a static method, since it does not have a receiver";
+    				break;
+    			}
+    		}
+    		msg = "No receiver on this "+getUnit(op)+" to annotate with @"+rule.name();    		
+			break;
+    	case RETURN_VAL:    
+    		if (isFunction && MethodDeclaration.prototype.includes(op)) {
+    			IRNode rtype = MethodDeclaration.getReturnType(decl);
+    			if (VoidType.prototype.includes(rtype)) {
+    				msg = "Cannot use @"+rule.name()+"("+o+") on a void method, since it does not have a return value";
+    				break;
+    			}
+    		}
+    		msg = "No return value on this "+getUnit(op)+" to annotate with @"+rule.name();   
+    		break;
+    	default:
+    		msg = "Couldn't find '"+o+"' to annotate with @"+rule.name();
+    	}
+    	reportError(offset, msg);
         root.markAsUnbound();      
       } else {        
         root.setPromisedFor(declNode);
@@ -106,6 +135,22 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     }
     clearTestResult();
   }  
+  
+  public static String getUnit(Operator op) {
+	  if (ConstructorDeclaration.prototype.includes(op)) {
+		  return "constructor";
+	  }
+	  else if (MethodDeclaration.prototype.includes(op)) {
+		  return "method";
+	  }
+	  else if (FieldDeclaration.prototype.includes(op)) {
+		  return "field";
+	  }
+	  else if (TypeDeclaration.prototype.includes(op)) {
+		  return "type";		  
+	  }	  
+	  return "declaration";
+  }
   
   public void reportError(int offset, String msg) {
     String txt = getName()+":"+offset+" -- "+msg;
