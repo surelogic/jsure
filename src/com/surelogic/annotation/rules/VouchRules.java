@@ -73,7 +73,7 @@ public class VouchRules extends AnnotationRules {
 							final String vouchReason = vouch.getAST()
 									.getReason();
 							rd.addSupportingInformation("(vouch) "
-									+ vouchReason, null);
+									+ vouchReason, vouch.getNode());
 							vouch.addSupportingInformation("(analysis result) "
 									+ rd.getMessage(), rd.getNode());
 						}
