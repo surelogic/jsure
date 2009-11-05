@@ -41,7 +41,7 @@ public class VouchRules extends AnnotationRules {
 	 */
 	public static VouchPromiseDrop getEnclosingVouch(final IRNode n) {
 		IRNode decl = VisitUtil.getClosestDecl(n);
-		while (n != null) {
+		while (decl != null) {
 			Operator op = JJNode.tree.getOperator(decl);
 			if (ClassBodyDeclaration.prototype.includes(op)
 					|| TypeDeclaration.prototype.includes(op)) {
@@ -50,7 +50,7 @@ public class VouchRules extends AnnotationRules {
 					return rv;
 				}
 			}
-			decl = VisitUtil.getEnclosingDecl(n);
+			decl = VisitUtil.getEnclosingDecl(decl);
 		}
 		return null;
 	}
