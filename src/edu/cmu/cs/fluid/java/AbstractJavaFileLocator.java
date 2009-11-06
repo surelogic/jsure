@@ -143,9 +143,9 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	          LOG.log(Level.SEVERE, "Unable to canonicalize", e);
 		  }
 	  }
-
+	  final boolean changed;
 	  if (useJavaCanonicalizer) {
-		  doJavaCanonicalization(s);
+		  changed = doJavaCanonicalization(s);
 	  } else {
 		  P p = s.project();
 		  JavaRewrite r = canonicalizers.get(p);
@@ -153,19 +153,24 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 			  r = getRewrite(p);
 			  canonicalizers.put(p, r);
 		  }
-		  r.ensureDefaultsExist(s.root());
+		  changed = r.ensureDefaultsExist(s.root());
 	  }
-	  IDE.getInstance().notifyASTChanged(s.root());
+	  if (changed) {
+		  IDE.getInstance().notifyASTChanged(s.root());
+	  }
   }
   
-  private void doJavaCanonicalization(JavaFileStatus<T,P> s) {
+  /**
+   * @return true if changed
+   */
+  private boolean doJavaCanonicalization(JavaFileStatus<T,P> s) {
 	  P p = s.project();
 	  JavaCanonicalizer jc = javaCanonicalizers.get(p);
 	  if (jc == null) {
 		  jc = getCanonicalizer(p);
 		  javaCanonicalizers.put(p, jc);
 	  }
-	  jc.canonicalize(s.root());
+	  return jc.canonicalize(s.root());
   }
   
   public synchronized void beginCanonicalization() throws IOException {
