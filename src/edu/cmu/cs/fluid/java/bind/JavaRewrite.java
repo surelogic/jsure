@@ -155,8 +155,8 @@ public class JavaRewrite implements JavaGlobals {
 				String qname = JavaNames.getFullTypeName(x);
 
 				// not for interfaces
-				if (debug || qname.startsWith("com.surelogic")) {
-					System.out.println("Ensuring constructor for " + qname);
+				if (debug) {
+					LOG.finer("Ensuring constructor for " + qname);
 				}
 				if (qname.equals("java.lang.Object")) {			
 					changed |= ensureConstructorStuffForObject(x);					
@@ -313,8 +313,8 @@ public class JavaRewrite implements JavaGlobals {
 				// not for interfaces
 				String qname = JavaNames.getFullTypeName(y);
 				
-				if (debug || qname.startsWith("com.surelogic")) {
-					System.out.println("Ensuring constructor for " + qname);
+				if (debug) {
+					LOG.finer("Ensuring constructor for " + qname);
 				}
 				changed |= ensureConstructorStuff(y);
 			} else if (InterfaceDeclaration.prototype.includes(op)) {
