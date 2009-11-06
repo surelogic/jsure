@@ -94,6 +94,9 @@ public class AASTStore {
     }
   }
   
+  /**
+   * A convenience method for rules that create AASTs, like scoped promises
+   */
   public static synchronized void addDerived(IAASTRootNode clone, IAASTRootNode orig, ValidatedDropCallback<?> r) {
 	  add(clone);
 	  triggerWhenValidated(clone, r);
