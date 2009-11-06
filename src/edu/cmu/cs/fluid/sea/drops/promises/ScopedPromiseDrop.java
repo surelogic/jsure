@@ -11,7 +11,9 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  *   edu.cmu.cs.fluid.sea.drops.promises.AssumePromiseDrop,
  *   edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop
  */
-public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> {
+@SuppressWarnings("unchecked")
+public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> 
+implements IDerivedDropCreator {
   public ScopedPromiseDrop(ScopedPromiseNode a) {
     super(a);
   }
@@ -25,5 +27,9 @@ public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> {
   @Override
   public boolean isCheckedByAnalysis() {
     return true;
+  }
+  
+  public void validated(PromiseDrop pd) {
+	  throw new UnsupportedOperationException();
   }
 }

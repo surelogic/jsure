@@ -1,7 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.*;
-import com.surelogic.annotation.scrub.ValidatedDropCallback;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -16,7 +15,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
 public final class AggregateInRegionPromiseDrop extends PromiseDrop<AggregateInRegionNode> 
-implements ValidatedDropCallback<AggregatePromiseDrop> {
+implements IDerivedDropCreator<AggregatePromiseDrop> {
   public AggregateInRegionPromiseDrop(AggregateInRegionNode n) {
     super(n);
     setCategory(JavaGlobals.REGION_CAT);

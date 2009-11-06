@@ -1,7 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.*;
-import com.surelogic.annotation.scrub.ValidatedDropCallback;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.bind.Messages;
@@ -15,7 +14,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
 public final class MapFieldsPromiseDrop extends PromiseDrop<FieldMappingsNode> 
-implements ValidatedDropCallback<InRegionPromiseDrop>
+implements IDerivedDropCreator<InRegionPromiseDrop>
 {
   public MapFieldsPromiseDrop(FieldMappingsNode a) {
     super(a);

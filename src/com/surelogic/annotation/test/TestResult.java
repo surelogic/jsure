@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.IDerivedDropCreator;
 
 public class TestResult implements ITest {
   public final IRNode node;
@@ -144,6 +145,10 @@ public class TestResult implements ITest {
       else if (!result.drop.isValid()) {
         AnnotationRules.XML_LOG.reportFailure(result, "Invalid drop associated with "+result.promise);
         continue; 
+      }
+      else if (result.drop instanceof IDerivedDropCreator) {
+    	System.err.println("Ignoring IDerivedDropCreator: "+result.promise);
+    	continue;
       }
       TestResultType actual = result.drop.provedConsistent() ? TestResultType.CONSISTENT : TestResultType.INCONSISTENT;
       checkIfMatchesResult(result, actual);
