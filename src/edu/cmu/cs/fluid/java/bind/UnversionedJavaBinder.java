@@ -99,7 +99,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 	  return isDeriving;
   }
   
-  public synchronized void clearAll(boolean force) {
+  private synchronized void clearAll(boolean force) {
     System.out.println("Clearing all bindings: force="+force);
 	boolean isDeriving = clearBindings(partialGranuleBindings);
 	isDeriving = clearBindings(allGranuleBindings) || isDeriving;
