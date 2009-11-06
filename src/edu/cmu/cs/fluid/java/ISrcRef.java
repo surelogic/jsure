@@ -91,5 +91,8 @@ public interface ISrcRef {
   String getPackage();
   String getCUName();
   
+  /**
+   * Create a similar ISrcRef, but with the new offset
+   */
   ISrcRef createSrcRef(int offset);
 }

@@ -9,6 +9,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -30,7 +31,7 @@ public class JavaRewrite implements JavaGlobals {
 	 */
 	static final Logger LOG = SLLogger.getLogger("FLUID.bind");
 
-	protected Collection<IRNode> added = new ArrayList<IRNode>();
+	private final Collection<IRNode> added = new ArrayList<IRNode>();
 	
 	private void markAsAdded(IRNode parent, IRNode n) {
 		added.add(n);
@@ -65,7 +66,8 @@ public class JavaRewrite implements JavaGlobals {
 		JJNode.tree.insertSubtree(cbody, constructor); // add to front
 		markAsAdded(cbody, constructor);
 		
-		IRNode type = VisitUtil.getEnclosingType(cbody);
+		//IRNode type = 
+		VisitUtil.getEnclosingType(cbody);
 		//System.out.println("Created default constructor for "+JavaNames.getFullTypeName(type));
 	}
 
@@ -179,9 +181,122 @@ public class JavaRewrite implements JavaGlobals {
 				LOG.severe("Ignoring " + op.name() + ": " + JJNode.getInfo(x));
 			}
 		}
+		
+		changed |= addSrcRefs();
 		return changed;
 	}
 
+	private boolean addSrcRefs() {
+		final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
+
+		// Post-process nodes to generate a SrcRef?
+		final SlotInfo<ISrcRef> si = JavaNode.getSrcRefSlotInfo();
+		for (IRNode n : added) {
+			Operator op = jtree.getOperator(n);
+
+			// Assuming inserted at the front of any siblings
+			if (op instanceof ConstructorDeclaration
+					|| op instanceof ExprStatement)// ConstructorCall)
+			{
+				// System.out.println("Looking at "+DebugUnparser.toString(n));
+				IRNode p = jtree.getParentOrNull(n);
+				final int ni;
+				try {
+					ni = jtree.childLocationIndex(p, jtree.getLocation(n));
+				} catch(IndexOutOfBoundsException e) {
+					LOG.log(Level.WARNING, "Unable to find node "+DebugUnparser.toString(n)+
+							               " in parent: "+DebugUnparser.toString(p));
+					continue;
+				}
+				assert (ni == 0);
+
+				ISrcRef pRef = null;
+				if (pRef == null) {
+					// try next sibling
+					int sib = ni + 1;
+					if (sib < jtree.numChildren(p)) {
+						pRef = JavaNode.getSrcRef(jtree.getChild(p, sib));
+						if (LOG.isLoggable(Level.FINE))
+							LOG
+									.fine("Created src ref from next sibling: "
+											+ op);
+					}
+				}
+				if (pRef == null) {
+					// try the parent
+					pRef = JavaNode.getSrcRef(p);
+				}
+				for (int i = 2; pRef == null; i++) {
+					// try ancestors
+					p = jtree.getParentOrNull(p);
+					if (p != null) {
+						pRef = JavaNode.getSrcRef(p);
+						if (pRef != null) {
+							if (LOG.isLoggable(Level.FINE))
+								LOG.fine("Created src ref from ancestors " + i
+										+ " gens up: " + op);
+						}
+					} else {
+						break; // no more ancestors to look at
+					}
+				}
+
+				if (pRef == null) {
+					// Couldn't find an ancestor
+					IRNode context = null;
+					if (op instanceof ExprStatement) {// ConstructorCall) {
+						context = VisitUtil.getEnclosingClassBodyDecl(n);
+					} else {
+						// usually because the new constructor decl is from a
+						// type binding
+						context = VisitUtil.getEnclosingType(n);
+					}
+					if (fineIsLoggable) {
+						LOG
+								.fine("Could not find a src ref to make the dummy for "
+										+ op
+										+ " out of: "
+										+ DebugUnparser.toString(context));
+					}
+					continue; // skip
+				}
+				
+				ISrcRef ref = makeDummyRef(pRef, true);
+				markSubtree(si, n, ref);
+			} else if (op instanceof MethodDeclaration) {
+				IRNode p = jtree.getParentOrNull(n);
+				ISrcRef pRef = JavaNode.getSrcRef(p);
+				n.setSlotValue(JavaNode.getSrcRefSlotInfo(), pRef);
+			} else {
+				LOG.severe("Unexpected AST nodes: " + op);
+			}
+		}
+		final boolean changed = !added.isEmpty();
+		added.clear();
+		return changed;
+	}
+
+	/**
+	 * Generates a 0-length source ref for the start or end of an existing one
+	 */
+	private ISrcRef makeDummyRef(ISrcRef ref, boolean useStart) {
+		int offset = ref.getOffset();
+		if (!useStart && ref.getLength() > 0) {
+			offset += (ref.getLength() - 1);
+		}
+		ISrcRef result = ref.createSrcRef(offset);
+		return result;
+	}
+	
+	private void markSubtree(final SlotInfo<ISrcRef> si, final IRNode n,
+			final ISrcRef ref) {
+		Iterator<IRNode> enm = jtree.topDown(n);
+		while (enm.hasNext()) {
+			IRNode node = enm.next();
+			node.setSlotValue(si, ref);
+		}
+	}
+	
 	/**
 	 * Iterates over the AST to apply defaults to all type declarations
 	 */
