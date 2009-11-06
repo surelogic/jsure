@@ -111,7 +111,9 @@ public class AASTStore {
 	TestResult result = getTestResult(orig);
 	TestResult newResult = getTestResult(clone);
 	if (newResult == null) {
-		associateTestResult(clone, result);	
+		newResult = result.cloneResult();
+		TestResult.addAAST(newResult, clone);
+		associateTestResult(clone, newResult);	
 	}
   }
   
