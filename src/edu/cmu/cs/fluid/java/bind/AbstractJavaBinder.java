@@ -142,7 +142,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       */
       return true;
     }
-    if (op instanceof OuterObjectSpecifier) {
+    else if (op instanceof OuterObjectSpecifier) {
       IRNode alloc = OuterObjectSpecifier.getCall(node);
       if (AnonClassExpression.prototype.includes(alloc)) {
         return true;
