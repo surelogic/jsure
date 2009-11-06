@@ -109,6 +109,9 @@ public class AASTStore {
   
   public static synchronized void cloneTestResult(IAASTRootNode orig, IAASTRootNode clone) {
 	TestResult result = getTestResult(orig);
+	if (result == null) {
+		return;
+	}
 	TestResult newResult = getTestResult(clone);
 	if (newResult == null) {
 		newResult = result.cloneResult();
