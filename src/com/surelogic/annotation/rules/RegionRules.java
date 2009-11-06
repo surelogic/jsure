@@ -410,6 +410,19 @@ public class RegionRules extends AnnotationRules {
     final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
     final IRNode declStmt = tree.getParent(tree.getParent(promisedFor));
     
+    /* Check that we don't also have an @AggregateInRegion.  This is tricky
+     * because @AggregateInRegion generates an @Aggregate, so we have to see if
+     * we are the @Aggregate that was generated or not.
+     */
+    final AggregateInRegionPromiseDrop aggInRegion = getAggregateInRegion(promisedFor);
+    if (aggInRegion != null) {
+      if (a.getOffset() != aggInRegion.getAST().getOffset()) { // not generated
+        // bad, cannot have both
+        context.reportError(a, "Cannot have both @Aggregate and @AggregateInRegion on the same field, ignoring the @Aggregate annotation");
+        annotationIsGood = false;
+      }
+    }
+    
     /* Check that the field is unique
      */
     final UniquePromiseDrop unique = UniquenessRules.getUniqueDrop(promisedFor);

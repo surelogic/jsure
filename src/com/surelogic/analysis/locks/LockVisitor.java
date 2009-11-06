@@ -1310,7 +1310,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       boolean isSafe = false;
       if (type instanceof IJavaSourceRefType) {
         final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
-        if (LockRules.isSelfProtected(srcRefType.getDeclaration())) {
+        if (LockRules.isSelfProtected(srcRefType.getDeclaration()) || LockRules.isImmutable(srcRefType.getDeclaration())) {
           isSafe = true;
         } else {
           for (final IJavaType superType : srcRefType.getSupertypes(binder.getTypeEnvironment())) {
