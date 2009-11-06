@@ -364,8 +364,7 @@ public class RegionRules extends AnnotationRules {
       mapInto.setPromisedFor(field.getNode());
       mapInto.setSrcType(a.getSrcType()); // FIX
       
-      AASTStore.add(mapInto);
-      AASTStore.triggerWhenValidated(mapInto, drop);
+      AASTStore.addDerived(mapInto, a, drop);
     }
     return drop;
   }
@@ -601,8 +600,7 @@ public class RegionRules extends AnnotationRules {
 	  aggregate.setPromisedFor(a.getPromisedFor());
 	  aggregate.setSrcType(a.getSrcType()); // FIX
 	  
-	  AASTStore.add(aggregate);
-	  AASTStore.triggerWhenValidated(aggregate, drop);	  
+	  AASTStore.addDerived(aggregate, a, drop);	  
 	  return drop;
   }
   

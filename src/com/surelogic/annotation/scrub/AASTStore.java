@@ -94,12 +94,25 @@ public class AASTStore {
     }
   }
   
-
+  public static synchronized void addDerived(IAASTRootNode clone, IAASTRootNode orig, ValidatedDropCallback<?> r) {
+	  add(clone);
+	  triggerWhenValidated(clone, r);
+	  cloneTestResult(orig, clone);
+  }
+  
   public static synchronized void associateTestResult(IAASTRootNode root, TestResult result) {
     if (result == null) {
       return;
     }
     results.put(root, result);
+  }
+  
+  public static synchronized void cloneTestResult(IAASTRootNode orig, IAASTRootNode clone) {
+	TestResult result = getTestResult(orig);
+	TestResult newResult = getTestResult(clone);
+	if (newResult == null) {
+		associateTestResult(clone, result);	
+	}
   }
   
   public static synchronized TestResult getTestResult(IAASTRootNode root) {

@@ -26,7 +26,6 @@ import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ScopedPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.QuickProperties;
 
 public class ScopedPromiseRules extends AnnotationRules {
 	public static final String PROMISE = "Promise";
@@ -333,6 +332,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 		@Override
     protected void postAASTCreate(final AASTRootNode root) {
 			AASTStore.triggerWhenValidated(root, callback);
+			AASTStore.cloneTestResult(callback.scopedPromiseDrop.getAST(), root);
 		}
 
 		/*
