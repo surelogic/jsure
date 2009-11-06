@@ -5,6 +5,7 @@
 
 package com.surelogic.annotation.rules;
 
+import java.text.MessageFormat;
 import java.util.*;
 
 import org.antlr.runtime.*;
@@ -1412,9 +1413,12 @@ public class LockRules extends AnnotationRules {
       final int lockViz = getLockFieldVisibility(lockDecl, context.getBinder());
       final int regionViz = regionBinding.getModel().getVisibility();
       if (!BindUtil.isMoreVisibleThan(lockViz, regionViz)) { // (5)
-        context.reportWarning("lock field \"" //$NON-NLS-1$
-            + field + "\" is less visible than region \"" //$NON-NLS-1$
-            + region + "\"", lockDecl); //$NON-NLS-1$
+        context.reportWarning(
+            MessageFormat.format("Lock field \"{0}\" is less visible than region \"{1}\"; consider protecting a less visible region or adding a lock getter method",
+                field, region), lockDecl);
+//        context.reportWarning("lock field \"" //$NON-NLS-1$
+//            + field + "\" is less visible than region \"" //$NON-NLS-1$
+//            + region + "\"", lockDecl); //$NON-NLS-1$
       }
     }
   }
