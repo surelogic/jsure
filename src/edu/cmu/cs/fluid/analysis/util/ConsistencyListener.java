@@ -1,9 +1,6 @@
 package edu.cmu.cs.fluid.analysis.util;
 
-import java.util.logging.Level;
-
 import com.surelogic.annotation.test.TestResult;
-import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.dc.IAnalysisListener;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
