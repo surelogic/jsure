@@ -100,6 +100,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   
   public synchronized void clearAll(boolean force) {
+    System.out.println("Clearing all bindings: force="+force);
 	boolean isDeriving = clearBindings(partialGranuleBindings);
 	isDeriving = clearBindings(allGranuleBindings) || isDeriving;
 	if (force || !isDeriving) {
@@ -126,6 +127,12 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       final Operator op = JJNode.tree.getOperator(n);
       if (!isGranule(op, n)) {
         continue;
+      }
+      if (TypeDeclaration.prototype.includes(op)) {
+    	  String qname = JavaNames.getFullTypeName(n);
+    	  if (qname.startsWith("com.surelogic")) {
+    		  System.out.println("Clearing bindings for "+JavaNames.getFullTypeName(n));
+    	  }
       }
       IGranuleBindings b1 = allGranuleBindings.remove(n);
       IGranuleBindings b2 = partialGranuleBindings.remove(n);

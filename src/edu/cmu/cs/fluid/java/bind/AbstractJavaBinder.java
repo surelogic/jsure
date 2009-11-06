@@ -337,7 +337,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
  
   protected final void deriveInfo(IGranuleBindings bindings, IRNode unit) {
     //System.out.println("Deriving info for "+DebugUnparser.toString(unit));
-    
+	if (TypeDeclaration.prototype.includes(unit)) {
+		String qname = JavaNames.getFullTypeName(unit);
+		if (qname.startsWith("com.surelogic")) {
+			System.out.println("Deriving info for "+qname);
+		}
+	}
+	  
     // we need to do two passes
     // because we need to bind all types before we try to handle
     // method calls because a method return type will need to be bound

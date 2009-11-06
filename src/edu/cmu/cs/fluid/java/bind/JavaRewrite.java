@@ -152,16 +152,14 @@ public class JavaRewrite implements JavaGlobals {
 
 			if (ClassDeclaration.prototype.includes(op)
 					|| EnumDeclaration.prototype.includes(op)) {
-				String name = JJNode.getInfo(x);
+				String qname = JavaNames.getFullTypeName(x);
 
 				// not for interfaces
-				if (debug) {
-					LOG.finer("Ensuring constructor for " + name);
+				if (debug || qname.startsWith("com.surelogic")) {
+					System.out.println("Ensuring constructor for " + qname);
 				}
-				if (name.equals("Object")) {
-					if (JavaNames.genPackageQualifier(x).equals("java.lang.")) {
-						changed |= ensureConstructorStuffForObject(x);
-					}
+				if (qname.equals("java.lang.Object")) {			
+					changed |= ensureConstructorStuffForObject(x);					
 				} else {
 					changed |= ensureConstructorStuff(x);
 					if (EnumDeclaration.prototype.includes(op)) {
@@ -313,8 +311,10 @@ public class JavaRewrite implements JavaGlobals {
 			Operator op = JJNode.tree.getOperator(y);
 			if (ClassDeclaration.prototype.includes(op)) {
 				// not for interfaces
-				if (debug) {
-					LOG.finer("Ensuring constructor for " + JJNode.getInfo(y));
+				String qname = JavaNames.getFullTypeName(y);
+				
+				if (debug || qname.startsWith("com.surelogic")) {
+					System.out.println("Ensuring constructor for " + qname);
 				}
 				changed |= ensureConstructorStuff(y);
 			} else if (InterfaceDeclaration.prototype.includes(op)) {
