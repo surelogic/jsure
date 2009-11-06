@@ -3,7 +3,7 @@
  * For importing inner classes
  */
 public operator TypedDemandName extends ImportName implements edu.cmu.cs.fluid.java.bind.IHasBinding {
-  syntax { type:NamedType <> "." <> "*" }
+  syntax { type:ClassType <> "." <> "*" }
   
   public Operator getResultOp() {
     return TypeDeclaration.prototype;
