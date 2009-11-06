@@ -375,6 +375,14 @@ public class RegionRules extends AnnotationRules {
       super(AGGREGATE, FieldDeclaration.prototype, AggregateNode.class);
     }
     @Override
+    protected SLAnnotationsParser initParser(String contents) throws Exception {
+    	if (contents == null || contents.length() == 0) {
+    		contents = "Instance into Instance";
+    	}
+    	return super.initParser(contents);
+    }
+    
+    @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
       return parser.aggregate().getTree();
     }
