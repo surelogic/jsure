@@ -7,6 +7,7 @@ package com.surelogic.test;
  * @author Edwin.Chan
  */
 public interface ITestOutput {
+  void reset();
   ITest reportStart(ITest o);
   void reportSuccess(ITest o, String msg);
   void reportFailure(ITest o, String msg); 

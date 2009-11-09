@@ -334,6 +334,10 @@ public abstract class IDE {
       return delegate;
     }
 
+    public void reset() {
+      ensureDelegateExists().reset();
+    }
+    
     public void close() {
       ensureDelegateExists().close();
     }

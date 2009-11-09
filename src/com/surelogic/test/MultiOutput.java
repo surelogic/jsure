@@ -9,6 +9,11 @@ public class MultiOutput implements ITestOutput {
     this.o2 = o2;
   }
 
+  public void reset() {
+	  o1.reset();
+	  o2.reset();
+  }
+  
   public ITest reportStart(ITest o) {
     o1.reportStart(o);
     o2.reportStart(o);

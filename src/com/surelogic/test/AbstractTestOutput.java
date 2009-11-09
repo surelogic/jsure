@@ -21,6 +21,10 @@ public abstract class AbstractTestOutput implements ITestOutput {
     }
   }
   
+  public void reset() {
+	  tracker.clear();
+  }
+  
   public ITest reportStart(ITest o) {
     if (tracker.containsKey(o)) {
       throw new IllegalArgumentException("Already started: "+o);
@@ -78,6 +82,7 @@ public abstract class AbstractTestOutput implements ITestOutput {
         reportFailure(key, "No recorded result for "+key);
       }
     }
+    tracker.clear();
 //    System.out.println("Closing "+getClass().getName()+": "+name);
   }  
 }

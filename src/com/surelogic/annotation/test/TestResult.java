@@ -80,6 +80,10 @@ public class TestResult implements ITest {
     return type == end;
   }
   
+  public static void reset() {
+	  AnnotationRules.XML_LOG.reset();
+  }
+  
   public static void checkIfMatchesResult(TestResult result, TestResultType end) {
     if (result == null) {
       return;
@@ -153,7 +157,7 @@ public class TestResult implements ITest {
       TestResultType actual = result.drop.provedConsistent() ? TestResultType.CONSISTENT : TestResultType.INCONSISTENT;
       checkIfMatchesResult(result, actual);
     }
-    
+    reset();
 //    AnnotationRules.XML_LOG.close();
   }
 }
