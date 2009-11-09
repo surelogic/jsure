@@ -134,6 +134,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
       canonChunk1.unload();
       canonChunk2.unload();
     }
+    //System.out.println("Unloaded "+label);
     unloadCount++;
     loaded = false;
     return true;
@@ -147,6 +148,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     if (!persistent || (loaded && !force)) {
       return false;
     }
+    //System.out.println("Reloading "+label);
     astChunk1.load(floc);
     astChunk2.load(floc);
     if (canonChunk1 != null) {
@@ -197,6 +199,14 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     if (canonical) {
       return;
     }
+    if (!loaded) {
+    	try {
+    		reload(locator.flocPath, false);
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+    }
+    persistent = false;
     locator.canonicalize(this);
     canonical = true;    
     
