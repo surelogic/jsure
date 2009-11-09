@@ -4,11 +4,13 @@ import java.util.Iterator;
 
 import org.eclipse.jdt.core.JavaModelException;
 
+import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -49,13 +51,14 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 	}
 
 	private class FastVisitor extends Visitor<Object> {
-		final IJavaType threadType = findNamedType("java.lang.Thread");
-		final IJavaType runnableType = findNamedType("java.lang.Runnable");
+		final ITypeEnvironment tEnv  = Eclipse.getDefault().getETypeEnv(getProject());
+		final IJavaType threadType   = findNamedType(tEnv, "java.lang.Thread");
+		final IJavaType runnableType = findNamedType(tEnv, "java.lang.Runnable");
 
 		// TODO other forms?
 		@Override
 		public Object visitNewExpression(IRNode n) {
-			IJavaType t = analysisContext.binder.getJavaType(n);
+			IJavaType t = tEnv.getBinder().getJavaType(n);
 			if (t == null) {
 				return null;
 			}
@@ -80,7 +83,7 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 		public Object visitMethodCall(IRNode n) {
 			final String name = MethodCall.getMethod(n);
 			if (name.equals("start")) {
-				IRNode m = analysisContext.binder.getBinding(n);
+				IRNode m = tEnv.getBinder().getBinding(n);
 				if (m == null) {
 					return null;
 				}
@@ -89,7 +92,7 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 					return null;
 				}
 				IJavaType type = JavaTypeFactory.convertNodeTypeToIJavaType(t,
-						analysisContext.binder);
+						tEnv.getBinder());
 				if (type instanceof IJavaDeclaredType
 						&& isThreadStart(m, (IJavaDeclaredType) type)) {
 					reportInference(threadStartsCategory, JavaNames
@@ -114,13 +117,11 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 		}
 
 		private boolean implementsRunnable(IJavaDeclaredType type) {
-			return analysisContext.binder.getTypeEnvironment().isSubType(type,
-					runnableType);
+			return tEnv.isSubType(type, runnableType);
 		}
 
 		private boolean isThreadSubtype(IJavaDeclaredType type) {
-			return analysisContext.binder.getTypeEnvironment().isSubType(type,
-					threadType);
+			return tEnv.isSubType(type, threadType);
 		}
 	}
 }

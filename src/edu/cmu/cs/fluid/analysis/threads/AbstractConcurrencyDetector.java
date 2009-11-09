@@ -8,9 +8,11 @@ import com.surelogic.ast.java.operator.IJavaOperatorNode;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
 import edu.cmu.cs.fluid.analysis.util.ConvertToIR;
+import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Category;
@@ -51,11 +53,10 @@ public abstract class AbstractConcurrencyDetector extends
 		id.setCategory(c);
 	}
 
-	protected final IJavaDeclaredType findNamedType(String qname) {
-		IRNode t = analysisContext.binder.getTypeEnvironment().findNamedType(
-				qname);
+	protected final IJavaDeclaredType findNamedType(final ITypeEnvironment tEnv, String qname) {
+		final IRNode t = tEnv.findNamedType(qname);
 		return (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(
-				t, analysisContext.binder);
+				t, tEnv.getBinder());
 	}
 
 	protected final IRNode toNode(IJavaOperatorNode n) {
@@ -67,9 +68,9 @@ public abstract class AbstractConcurrencyDetector extends
 	}
 
 	protected final ISourceRefType findNamedTypeBinding(String qname) {
-		IRNode t = analysisContext.binder.getTypeEnvironment().findNamedType(
-				qname);
+		final ITypeEnvironment tEnv = Eclipse.getDefault().getETypeEnv(getProject());
+		final IRNode t = tEnv.findNamedType(qname);
 		CUDrop.queryCU(VisitUtil.getEnclosingCompilationUnit(t));
-		return null;
+		throw new UnsupportedOperationException();
 	}
 }
