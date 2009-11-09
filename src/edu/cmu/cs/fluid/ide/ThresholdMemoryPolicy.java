@@ -77,8 +77,10 @@ public final class ThresholdMemoryPolicy extends AbstractMemoryPolicy {
 				*/
 				final long size = biggest.getUsage().getMax();
 				if (biggest.isUsageThresholdSupported() && biggest.isCollectionUsageThresholdSupported()) {
-					biggest.setUsageThreshold((long) (threshold * size));
-					biggest.setCollectionUsageThreshold((long) (threshold * size));
+					long limit = (long) (threshold * size);
+					//System.out.println("Set limit to "+limit);
+					biggest.setUsageThreshold(limit);
+					biggest.setCollectionUsageThreshold(limit);
 				} else {
 					LOG.warning("Couldn't set (collection) usage thresholds");
 				}
