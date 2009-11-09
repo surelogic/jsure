@@ -499,8 +499,14 @@ public class JavaRewrite implements JavaGlobals {
 				insertDefaultConstructor(cbody, makeDefaultConstructor(type));
 			}
 			if (LOG.isLoggable(Level.FINER)) {
-				LOG.finer("Adding default constructor to "
-						+ JJNode.getInfo(type));
+			    String qname = JavaNames.getFullTypeName(type);			    
+				LOG.finer("Adding default constructor to "+qname);
+			    /*
+				if (qname.endsWith("TestMultipleTextOutputFormat") ||
+					qname.endsWith("TestMultiFileInputFormat")) {
+					System.out.println(DebugUnparser.childrenToString(VisitUtil.getClassBody(type)));
+				}
+			    */
 			}
 			changed = true;
 		}

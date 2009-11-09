@@ -100,7 +100,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   
   private synchronized void clearAll(boolean force) {
-    System.out.println("Clearing all bindings: force="+force);
+    //System.out.println("Clearing all bindings: force="+force);
 	boolean isDeriving = clearBindings(partialGranuleBindings);
 	isDeriving = clearBindings(allGranuleBindings) || isDeriving;
 	if (force || !isDeriving) {
@@ -128,14 +128,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       if (!isGranule(op, n)) {
         continue;
       }
-      if (TypeDeclaration.prototype.includes(op)) {
-    	  String qname = JavaNames.getFullTypeName(n);
-    	  if (qname.startsWith("com.surelogic")) {
-    		  System.out.println("Clearing bindings for "+JavaNames.getFullTypeName(n));
-    	  }
-      }
       IGranuleBindings b1 = allGranuleBindings.remove(n);
       IGranuleBindings b2 = partialGranuleBindings.remove(n);
+      boolean changed = false;
       if (UnversionedJavaImportTable.clear(n) || b1 != null || b2 != null) {
         // System.out.println("Cleared "+DebugUnparser.toString(n));      
     	  if (b1 != null && !b1.isDeriving()) {
@@ -145,9 +140,17 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     	  if (b2 != null && !b2.isDeriving()) {
     		  b2.destroy();
     	  }
+    	  changed = true;
       }
-      memberTableCache.remove(n);
-      //System.out.println("Cleared: "+JavaNames.getTypeName(n));
+      changed |= (memberTableCache.remove(n) != null);
+      /*
+      if (changed && TypeDeclaration.prototype.includes(op)) {
+    	  String qname = JavaNames.getFullTypeName(n);
+    	  //if (qname.startsWith("com.surelogic")) {
+    		  System.out.println("Clearing bindings for "+qname);
+    	  //}
+      }
+      */
     }
     JavaTypeFactory.clearCaches();
   }

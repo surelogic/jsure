@@ -337,12 +337,17 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
  
   protected final void deriveInfo(IGranuleBindings bindings, IRNode unit) {
     //System.out.println("Deriving info for "+DebugUnparser.toString(unit));
+	/*
 	if (TypeDeclaration.prototype.includes(unit)) {
 		String qname = JavaNames.getFullTypeName(unit);
-		if (qname.startsWith("com.surelogic")) {
-			System.out.println("Deriving info for "+qname);
+		System.out.println("Deriving info for "+qname+": "+
+				(bindings.containsFullInfo() ? "full" : "partial"));
+		if (qname.endsWith("TestMultipleTextOutputFormat") ||
+			qname.endsWith("TestMultiFileInputFormat")) {
+			System.err.println(DebugUnparser.childrenToString(VisitUtil.getClassBody(unit)));
 		}
 	}
+	*/
 	  
     // we need to do two passes
     // because we need to bind all types before we try to handle
