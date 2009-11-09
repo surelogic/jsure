@@ -101,10 +101,10 @@ public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
     }
   }
 
-  public String childrenToString(IRNode node) {
+  public static String childrenToString(IRNode node) {
 	  StringBuilder sb = new StringBuilder();
-	  for(IRNode c : tree.children(node)) {
-		  sb.append(toString(c)).append('\n');
+	  for(IRNode c : JJNode.tree.children(node)) {
+		  sb.append('\t').append(toString(c)).append('\n');
 	  }
 	  return sb.toString();
   }
