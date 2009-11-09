@@ -360,11 +360,11 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
     
     // Get the effects from the promises
     final RegionEffectsPromiseDrop promisedEffects = MethodEffectsRules.getRegionEffectsDrop(mDecl);
-    final Set<Effect> result = new HashSet<Effect>();
-
     if (promisedEffects == null) { // No promises, return null
       return null;
     } else {
+      final Set<Effect> result = new HashSet<Effect>();
+    	
       // Convert IRNode representation of effects in Effect objects
       for(final EffectsSpecificationNode effList : promisedEffects.getEffects()) {
         for(final EffectSpecificationNode peff : effList.getEffectList()) {
@@ -407,8 +407,8 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
           result.add(eff);
         }
       }
+      return Collections.unmodifiableSet(result);
     }
-    return Collections.unmodifiableSet(result);
   }
   
   /** Get the declared effects for a method invoked from a particular call-site.
