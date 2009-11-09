@@ -347,7 +347,8 @@ class JJNodeBoot {
 
   static {
     try {
-      if (versioningIsOn) {
+      //System.out.println("versioningIsOn = "+versioningIsOn);
+      if (versioningIsOn) {    	
         slotFactory = VersionedSlotFactory.prototype;
       } 
       else if (specializeForSyntaxTree) {
