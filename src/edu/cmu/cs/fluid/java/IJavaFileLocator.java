@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
  */
 public interface IJavaFileLocator<T,P> extends Iterable<IJavaFileStatus<T>> {
   public static final boolean testIRPaging = false;
-  public static final boolean useIRPaging = !JJNode.versioningIsOn && (testIRPaging || true);
+  public static final boolean useIRPaging = !JJNode.versioningIsOn && (testIRPaging || false);
   
   public enum Type {
     /**
