@@ -79,7 +79,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	  
 	  // Remove any control flow drops that aren't used for anything
 	  for (final ResultDrop cfDrop : controlFlowDrops) {
-	    if (cfDrop.getTrusts().isEmpty()) {
+	    if (cfDrop.getChecks().isEmpty()) {
 	      cfDrop.invalidate();
 	    }
 	  }
@@ -126,7 +126,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				}
 			}
 		} catch (Exception e) {
-			LOG.log(Level.SEVERE, "Exception in unique assruance", e); //$NON-NLS-1$
+			LOG.log(Level.SEVERE, "Exception in unique assurance", e); //$NON-NLS-1$
 		}
 	}
 
@@ -179,8 +179,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				/*
 				 * We are searching for (1) the declarations of an unique field (2) the
 				 * use of an unique field, (3) the declaration of a method that has
-				 * borrowed parameters or a unique return value, or (4) the invocation
-				 * of a method that has unique parameter requirements.
+				 * borrowed parameters, unique parameters, or a unique return value, or
+				 * (4) the invocation of a method that has unique parameter requirements.
 				 */
 
 				/*
@@ -212,6 +212,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				if (ConstructorDeclaration.prototype.equals(op)
 						|| MethodDeclaration.prototype.equals(op)) {
 					boolean hasBorrowedParam = false;
+					boolean hasUniqueParam = false;
 					boolean returnsUnique = false;
 
 					// Case 3a: returns unique
@@ -221,10 +222,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 								.isUnique(retDecl);
 					}
 
-					// Case 3b: borrowed parameter
+					// Case 3b: borrowed/unique parameter
 					if (!TypeUtil.isStatic(currentNode)) {
 						final IRNode self = JavaPromise.getReceiverNode(currentNode);
 						hasBorrowedParam |= UniquenessRules.isBorrowed(self);
+						hasUniqueParam |= UniquenessRules.isUnique(self);
 					}
 					IRNode formals = null;
 					if (op instanceof ConstructorDeclaration) {
@@ -232,12 +234,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					} else {
 						formals = MethodDeclaration.getParams(currentNode);
 					}
-					for (int i = 0; !hasBorrowedParam
-					&& (i < JJNode.tree.numChildren(formals)); i++) {
-						hasBorrowedParam = UniquenessRules.isBorrowed(JJNode.tree
-								.getChild(formals, i));
+					for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
+            final IRNode param = JJNode.tree.getChild(formals, i);
+            hasBorrowedParam = UniquenessRules.isBorrowed(param);
+            hasUniqueParam = UniquenessRules.isUnique(param);
 					}
-					if (returnsUnique || hasBorrowedParam)
+					if (returnsUnique || hasBorrowedParam || hasUniqueParam)
 						rootNodesForAnalysis.add(currentNode);
 				}
 
@@ -653,6 +655,18 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			addDependencies(pr.myUniqueReturn, intermediateResultDrops, dependsOnPromises, dependsOnResults);
 		}
 
+		/* Set up the dependencies for this method's unique parameters.  They can
+		 * be compromised and turned non-unique during the execution of the method.
+		 * Depends on the the control-flow of the method.
+		 */
+		{
+      final Set<PromiseDrop<? extends IAASTRootNode>> dependsOnPromises =
+        new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+      final Set<ResultDrop> dependsOnResults = new HashSet<ResultDrop>();
+      dependsOnResults.add(pr.controlFlow);
+		  addDependencies(pr.myUniqueParams, intermediateResultDrops, dependsOnPromises, dependsOnResults);
+		}
+		
 		/*
 		 * Set up the dependencies for this method's called methods with unique
 		 * parameters. Depends on the unique parameters of this method, the unique
@@ -670,7 +684,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					for (final PromiseDrop<? extends IAASTRootNode> trustedPD : dependsOnPromises) {
 						if (trustedPD != null) {
 							callToCheck.addTrustedPromise(trustedPD);
-							setResultDependUponDrop(callToCheck, trustedPD.getNode());
 						}
 					}
 
