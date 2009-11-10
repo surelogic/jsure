@@ -171,6 +171,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		instances.put(getProject().getName(), this);
 		setProgressMonitor(monitor);
 
+		//System.out.println("Starting build "+kind+" for "+getProject());
 		args.put(BUILD_KIND, Integer.toString(kind));
 
 		// cache Eclipse provide workspace changes
