@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.analysis.threads;
 
 import java.util.Iterator;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaModelException;
 
 import edu.cmu.cs.fluid.eclipse.Eclipse;
@@ -31,6 +32,14 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 
 	FastVisitor v = null;
 
+	@Override
+	public void analyzeBegin(IProject p) {
+		super.analyzeBegin(p);
+		
+		// initialize after everything else is setup
+		v = new FastVisitor(Eclipse.getDefault().getETypeEnv(p));		
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -40,10 +49,6 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 	 */
 	@Override
 	protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
-		if (v == null) {
-			// initialize after everything else is setup
-			v = new FastVisitor();
-		}
 		Iterator<IRNode> e = JJNode.tree.bottomUp(cu);
 		while (e.hasNext()) {
 			v.doAccept(e.next());
@@ -51,10 +56,16 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 	}
 
 	private class FastVisitor extends Visitor<Object> {
-		final ITypeEnvironment tEnv  = Eclipse.getDefault().getETypeEnv(getProject());
-		final IJavaType threadType   = findNamedType(tEnv, "java.lang.Thread");
-		final IJavaType runnableType = findNamedType(tEnv, "java.lang.Runnable");
+		final ITypeEnvironment tEnv;
+		final IJavaType threadType;
+		final IJavaType runnableType;
 
+		FastVisitor(ITypeEnvironment te) {
+			tEnv = te;
+			threadType = findNamedType(tEnv, "java.lang.Thread");
+			runnableType = findNamedType(tEnv, "java.lang.Runnable");
+		}
+		
 		// TODO other forms?
 		@Override
 		public Object visitNewExpression(IRNode n) {
