@@ -337,7 +337,7 @@ public class RegionRules extends AnnotationRules {
     }    
     @Override
     protected IPromiseDropStorage<MapFieldsPromiseDrop> makeStorage() {
-      return SinglePromiseDropStorage.create(name(), MapFieldsPromiseDrop.class);
+      return PromiseDropSeqStorage.create(name(), MapFieldsPromiseDrop.class);
     }
     @Override
     protected IAnnotationScrubber<FieldMappingsNode> makeScrubber() {
