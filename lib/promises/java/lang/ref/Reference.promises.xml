@@ -1,8 +1,0 @@
-<package name="java.lang.ref">
- <class name="Reference">
-  <constructor params="java.lang.Object, java.lang.ref.ReferenceQueue">
-   <borrowed>this</borrowed>
-   <RegionEffects>none</RegionEffects>
-  </constructor>
- </class>
-</package>
