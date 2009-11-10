@@ -1,5 +1,6 @@
 package aggregate.respectsHierarchy;
 
+import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
@@ -28,4 +29,9 @@ public class C {
   
   @InRegion("R3")
   protected int inR3;
+  
+  @Borrowed("this")
+  public C() {
+  	super();
+  }
 }

@@ -1,5 +1,6 @@
 package aggregate.dstStatic;
 
+import com.surelogic.Borrowed;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 
@@ -10,5 +11,8 @@ import com.surelogic.Regions;
   @Region("public R4")
 })
 public class C {
-  // do nothing
+  @Borrowed("this")
+  public C() {
+  	super();
+  }
 }

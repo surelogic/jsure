@@ -1,6 +1,5 @@
 package region.accessibility.samePackage;
 
-import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 
@@ -12,174 +11,95 @@ import com.surelogic.Regions;
   @Region("private static PrivateStaticLocal"),
   @Region("static DefaultStaticLocal"),
   @Region("protected static ProtectedStaticLocal"),
-  @Region("public static PublicStaticLocal")
-})  
-public class ParentIsPublicSuper extends PublicSuper {
+  @Region("public static PublicStaticLocal"),
+  
   // Local instance
   
-  @SuppressWarnings("unused")
-  @InRegion("PrivateLocal" /* is CONSISTENT */)
-  private int Private1;    
-  @SuppressWarnings("unused")
-  @InRegion("DefaultLocal" /* is CONSISTENT */)
-  private int Private2;    
-  @SuppressWarnings("unused")
-  @InRegion("ProtectedLocal" /* is CONSISTENT */)
-  private int Private3;  
-  @SuppressWarnings("unused")
-  @InRegion("PublicLocal" /* is CONSISTENT */)
-  private int Private4;     
+  @Region("private Private1 extends PrivateLocal" /* is CONSISTENT */),    // GOOD
+  @Region("private Private2 extends DefaultLocal" /* is CONSISTENT */),    // GOOD
+  @Region("private Private3 extends ProtectedLocal" /* is CONSISTENT */),  // GOOD
+  @Region("private Private4 extends PublicLocal" /* is CONSISTENT */),     // GOOD
 
-  @InRegion("PrivateLocal" /* is UNASSOCIATED */)
-  int Default1;   
-  @InRegion("DefaultLocal" /* is CONSISTENT */)
-  int Default2;   
-  @InRegion("ProtectedLocal" /* is CONSISTENT */)
-  int Default3; 
-  @InRegion("PublicLocal" /* is CONSISTENT */)
-  int Default4;    
+  @Region("Default1 extends PrivateLocal" /* is UNASSOCIATED */),   // BAD
+  @Region("Default2 extends DefaultLocal" /* is CONSISTENT */),   // GOOD
+  @Region("Default3 extends ProtectedLocal" /* is CONSISTENT */), // GOOD
+  @Region("Default4 extends PublicLocal" /* is CONSISTENT */),    // GOOD
 
-  @InRegion("PrivateLocal" /* is UNASSOCIATED */)
-  protected int Protected1;   
-  @InRegion("DefaultLocal" /* is UNASSOCIATED */)
-  protected int Protected2;   
-  @InRegion("ProtectedLocal" /* is CONSISTENT */)
-  protected int Protected3; 
-  @InRegion("PublicLocal" /* is CONSISTENT */)
-  protected int Protected4;    
+  @Region("protected Protected1 extends PrivateLocal" /* is UNASSOCIATED */),   // BAD
+  @Region("protected Protected2 extends DefaultLocal" /* is UNASSOCIATED */),   // BAD
+  @Region("protected Protected3 extends ProtectedLocal" /* is CONSISTENT */), // GOOD
+  @Region("protected Protected4 extends PublicLocal" /* is CONSISTENT */),    // GOOD
 
-  @InRegion("PrivateLocal" /* is UNASSOCIATED */)
-  public int Public1;    
-  @InRegion("DefaultLocal" /* is UNASSOCIATED */)
-  public int Public2;    
-  @InRegion("ProtectedLocal" /* is UNASSOCIATED */)
-  public int Public3;  
-  @InRegion("PublicLocal" /* is CONSISTENT */)
-  public int Public4;     
+  @Region("public Public1 extends PrivateLocal" /* is UNASSOCIATED */),    // BAD
+  @Region("public Public2 extends DefaultLocal" /* is UNASSOCIATED */),    // BAD
+  @Region("public Public3 extends ProtectedLocal" /* is UNASSOCIATED */),  // BAD
+  @Region("public Public4 extends PublicLocal" /* is CONSISTENT */),     // GOOD
   
   // Super instance
   
-  @SuppressWarnings("unused")
-  @InRegion("PrivateSuper" /* is UNASSOCIATED */)
-  private int Private10;    
-  @SuppressWarnings("unused")
-  @InRegion("DefaultSuper" /* is CONSISTENT */)
-  private int Private20;    
-  @SuppressWarnings("unused")
-  @InRegion("ProtectedSuper" /* is CONSISTENT */)
-  private int Private30;  
-  @SuppressWarnings("unused")
-  @InRegion("PublicSuper" /* is CONSISTENT */)
-  private int Private40;     
+  @Region("private Private10 extends PrivateSuper" /* is UNASSOCIATED */),    // GOOD
+  @Region("private Private20 extends DefaultSuper" /* is CONSISTENT */),    // GOOD
+  @Region("private Private30 extends ProtectedSuper" /* is CONSISTENT */),  // GOOD
+  @Region("private Private40 extends PublicSuper" /* is CONSISTENT */),     // GOOD
 
-  @InRegion("PrivateSuper" /* is UNASSOCIATED */)
-  int Default10;   
-  @InRegion("DefaultSuper" /* is CONSISTENT */)
-  int Default20;   
-  @InRegion("ProtectedSuper" /* is CONSISTENT */)
-  int Default30; 
-  @InRegion("PublicSuper" /* is CONSISTENT */)
-  int Default40;    
+  @Region("Default10 extends PrivateSuper" /* is UNASSOCIATED */),   // BAD
+  @Region("Default20 extends DefaultSuper" /* is CONSISTENT */),   // GOOD
+  @Region("Default30 extends ProtectedSuper" /* is CONSISTENT */), // GOOD
+  @Region("Default40 extends PublicSuper" /* is CONSISTENT */),    // GOOD
 
-  @InRegion("PrivateSuper" /* is UNASSOCIATED */)
-  protected int Protected10;   
-  @InRegion("DefaultSuper" /* is UNASSOCIATED */)
-  protected int Protected20;   
-  @InRegion("ProtectedSuper" /* is CONSISTENT */)
-  protected int Protected30; 
-  @InRegion("PublicSuper" /* is CONSISTENT */)
-  protected int Protected40;    
+  @Region("protected Protected10 extends PrivateSuper" /* is UNASSOCIATED */),   // BAD
+  @Region("protected Protected20 extends DefaultSuper" /* is UNASSOCIATED */),   // BAD
+  @Region("protected Protected30 extends ProtectedSuper" /* is CONSISTENT */), // GOOD
+  @Region("protected Protected40 extends PublicSuper" /* is CONSISTENT */),    // GOOD
 
-  @InRegion("PrivateSuper" /* is UNASSOCIATED */)
-  public int Public10;    
-  @InRegion("DefaultSuper" /* is UNASSOCIATED */)
-  public int Public20;    
-  @InRegion("ProtectedSuper" /* is UNASSOCIATED */)
-  public int Public30;  
-  @InRegion("PublicSuper" /* is CONSISTENT */)
-  public int Public40;     
+  @Region("public Public10 extends PrivateSuper" /* is UNASSOCIATED */),    // BAD
+  @Region("public Public20 extends DefaultSuper" /* is UNASSOCIATED */),    // BAD
+  @Region("public Public30 extends ProtectedSuper" /* is UNASSOCIATED */),  // BAD
+  @Region("public Public40 extends PublicSuper" /* is CONSISTENT */),     // GOOD
   
   // Local static
   
-  @SuppressWarnings("unused")
-  @InRegion("PrivateStaticLocal" /* is CONSISTENT */)
-  private static int Private100;    
-  @SuppressWarnings("unused")
-  @InRegion("DefaultStaticLocal" /* is CONSISTENT */)
-  private static int Private200;    
-  @SuppressWarnings("unused")
-  @InRegion("ProtectedStaticLocal" /* is CONSISTENT */)
-  private static int Private300;  
-  @SuppressWarnings("unused")
-  @InRegion("PublicStaticLocal" /* is CONSISTENT */)
-  private static int Private400;     
+  @Region("private static Private100 extends PrivateStaticLocal" /* is CONSISTENT */),    // GOOD
+  @Region("private static Private200 extends DefaultStaticLocal" /* is CONSISTENT */),    // GOOD
+  @Region("private static Private300 extends ProtectedStaticLocal" /* is CONSISTENT */),  // GOOD
+  @Region("private static Private400 extends PublicStaticLocal" /* is CONSISTENT */),     // GOOD
 
-  @InRegion("PrivateStaticLocal" /* is UNASSOCIATED */)
-  static int Default100;   
-  @InRegion("DefaultStaticLocal" /* is CONSISTENT */)
-  static int Default200;   
-  @InRegion("ProtectedStaticLocal" /* is CONSISTENT */)
-  static int Default300; 
-  @InRegion("PublicStaticLocal" /* is CONSISTENT */)
-  static int Default400;    
+  @Region("static Default100 extends PrivateStaticLocal" /* is UNASSOCIATED */),   // BAD
+  @Region("static Default200 extends DefaultStaticLocal" /* is CONSISTENT */),   // GOOD
+  @Region("static Default300 extends ProtectedStaticLocal" /* is CONSISTENT */), // GOOD
+  @Region("static Default400 extends PublicStaticLocal" /* is CONSISTENT */),    // GOOD
 
-  @InRegion("PrivateStaticLocal" /* is UNASSOCIATED */)
-  protected static int Protected100;   
-  @InRegion("DefaultStaticLocal" /* is UNASSOCIATED */)
-  protected static int Protected200;   
-  @InRegion("ProtectedStaticLocal" /* is CONSISTENT */)
-  protected static int Protected300; 
-  @InRegion("PublicStaticLocal" /* is CONSISTENT */)
-  protected static int Protected400;    
+  @Region("protected static Protected100 extends PrivateStaticLocal" /* is UNASSOCIATED */),   // BAD
+  @Region("protected static Protected200 extends DefaultStaticLocal" /* is UNASSOCIATED */),   // BAD
+  @Region("protected static Protected300 extends ProtectedStaticLocal" /* is CONSISTENT */), // GOOD
+  @Region("protected static Protected400 extends PublicStaticLocal" /* is CONSISTENT */),    // GOOD
 
-  @InRegion("PrivateStaticLocal" /* is UNASSOCIATED */)
-  public static int Public100;    
-  @InRegion("DefaultStaticLocal" /* is UNASSOCIATED */)
-  public static int Public200;    
-  @InRegion("ProtectedStaticLocal" /* is UNASSOCIATED */)
-  public static int Public300;  
-  @InRegion("PublicStaticLocal" /* is CONSISTENT */)
-  public static int Public400;     
+  @Region("public static Public100 extends PrivateStaticLocal" /* is UNASSOCIATED */),    // BAD
+  @Region("public static Public200 extends DefaultStaticLocal" /* is UNASSOCIATED */),    // BAD
+  @Region("public static Public300 extends ProtectedStaticLocal" /* is UNASSOCIATED */),  // BAD
+  @Region("public static Public400 extends PublicStaticLocal" /* is CONSISTENT */),     // GOOD
   
   // Super static
   
-  @SuppressWarnings("unused")
-  @InRegion("PrivateStaticSuper" /* is UNASSOCIATED */)
-  private static int Private1000;    
-  @SuppressWarnings("unused")
-  @InRegion("DefaultStaticSuper" /* is CONSISTENT */)
-  private static int Private2000;    
-  @SuppressWarnings("unused")
-  @InRegion("ProtectedStaticSuper" /* is CONSISTENT */)
-  private static int Private3000;  
-  @SuppressWarnings("unused")
-  @InRegion("PublicStaticSuper" /* is CONSISTENT */)
-  private static int Private4000;     
+  @Region("private static Private1000 extends PrivateStaticSuper" /* is UNASSOCIATED */),    // GOOD
+  @Region("private static Private2000 extends DefaultStaticSuper" /* is CONSISTENT */),    // GOOD
+  @Region("private static Private3000 extends ProtectedStaticSuper" /* is CONSISTENT */),  // GOOD
+  @Region("private static Private4000 extends PublicStaticSuper" /* is CONSISTENT */),     // GOOD
 
-  @InRegion("PrivateStaticSuper" /* is UNASSOCIATED */)
-  static int Default1000;   
-  @InRegion("DefaultStaticSuper" /* is CONSISTENT */)
-  static int Default2000;   
-  @InRegion("ProtectedStaticSuper" /* is CONSISTENT */)
-  static int Default3000; 
-  @InRegion("PublicStaticSuper" /* is CONSISTENT */)
-  static int Default4000;    
+  @Region("static Default1000 extends PrivateStaticSuper" /* is UNASSOCIATED */),   // BAD
+  @Region("static Default2000 extends DefaultStaticSuper" /* is CONSISTENT */),   // GOOD
+  @Region("static Default3000 extends ProtectedStaticSuper" /* is CONSISTENT */), // GOOD
+  @Region("static Default4000 extends PublicStaticSuper" /* is CONSISTENT */),    // GOOD
 
-  @InRegion("PrivateStaticSuper" /* is UNASSOCIATED */)
-  protected static int Protected1000;   
-  @InRegion("DefaultStaticSuper" /* is UNASSOCIATED */)
-  protected static int Protected2000;   
-  @InRegion("ProtectedStaticSuper" /* is CONSISTENT */)
-  protected static int Protected3000; 
-  @InRegion("PublicStaticSuper" /* is CONSISTENT */)
-  protected static int Protected4000;    
+  @Region("protected static Protected1000 extends PrivateStaticSuper" /* is UNASSOCIATED */),   // BAD
+  @Region("protected static Protected2000 extends DefaultStaticSuper" /* is UNASSOCIATED */),   // BAD
+  @Region("protected static Protected3000 extends ProtectedStaticSuper" /* is CONSISTENT */), // GOOD
+  @Region("protected static Protected4000 extends PublicStaticSuper" /* is CONSISTENT */),    // GOOD
 
-  @InRegion("PrivateStaticSuper" /* is UNASSOCIATED */)
-  public static int Public1000;    
-  @InRegion("DefaultStaticSuper" /* is UNASSOCIATED */)
-  public static int Public2000;    
-  @InRegion("ProtectedStaticSuper" /* is UNASSOCIATED */)
-  public static int Public3000;  
-  @InRegion("PublicStaticSuper" /* is CONSISTENT */)
-  public static int Public4000;     
+  @Region("public static Public1000 extends PrivateStaticSuper" /* is UNASSOCIATED */),    // BAD
+  @Region("public static Public2000 extends DefaultStaticSuper" /* is UNASSOCIATED */),    // BAD
+  @Region("public static Public3000 extends ProtectedStaticSuper" /* is UNASSOCIATED */),  // BAD
+  @Region("public static Public4000 extends PublicStaticSuper" /* is CONSISTENT */),     // GOOD
+})
+public class ParentIsPublicSuper extends PublicSuper {
 }

@@ -1,5 +1,6 @@
 package aggregate.srcRepeated;
 
+import com.surelogic.Borrowed;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 
@@ -13,4 +14,9 @@ public class C {
   protected int f2;
   protected int f3;
   // Do nothing
+  
+  @Borrowed("this")
+  public C() {
+  	super();
+  }
 }

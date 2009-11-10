@@ -7,6 +7,7 @@ import aggregate.accessibility.differentPackages.p1.PublicDelegate;
 import aggregate.accessibility.differentPackages.p1.Super;
 
 import com.surelogic.Aggregate;
+import com.surelogic.Borrowed;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.Unique;
@@ -25,6 +26,10 @@ public class ParentIsSuper extends Super {
   
   @Region("private PrivateInnerAgg")
   private class PrivateInnerDelegate {
+  	@Borrowed("this")
+  	public PrivateInnerDelegate() {
+  		super();
+  	}
   }
      
   
