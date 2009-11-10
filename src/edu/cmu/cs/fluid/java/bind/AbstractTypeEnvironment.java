@@ -72,7 +72,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 		  if (result != null) {
 			  convertedTypeCache.put(nodeType, result);		 
 		  } else {
-			  LOG.severe("Null type for "+nodeType);
+			  LOG.severe("Null type for "+DebugUnparser.toString(nodeType));
 			  JavaTypeFactory.convertNodeTypeToIJavaType(nodeType, getBinder());
 		  }
 	  } else {
