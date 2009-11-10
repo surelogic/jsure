@@ -7,6 +7,7 @@ import com.surelogic.tree.SyntaxTreeRegion;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
 import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.*;
 
@@ -25,6 +26,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
   boolean loaded = true;
   boolean canonical = false;
   boolean persistent = false;
+  boolean isCanonicalizing = false;
   IRChunk astChunk1 = null;
   IRChunk canonChunk1 = null;
   IRChunk astChunk2 = null;
@@ -199,6 +201,27 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     if (canonical) {
       return;
     }
+    isCanonicalizing = true;
+    
+    // Ensure that the super class(es) is canonicalized first
+    final ITypeEnvironment env = locator.getTypeEnvironment(project);
+    for(IRNode t : VisitUtil.getAllTypeDecls(root)) {
+    	IJavaType jt = JavaTypeFactory.convertNodeTypeToIJavaType(t, env.getBinder());
+    	for(IJavaType st : jt.getSupertypes(env)) {
+    		if (st == jt) {
+    			continue; // Check for java.lang.Object?
+    		}
+    		if (st instanceof IJavaDeclaredType) {
+    			IJavaDeclaredType ds   = (IJavaDeclaredType) st;
+    			IRNode root            = VisitUtil.findRoot(ds.getDeclaration());    			
+    			IJavaFileStatus<T> jfs = locator.getStatusForAST(root);
+    			if (jfs != null && !jfs.isCanonicalizing()) {
+    				//System.out.println("Canonicalizing "+jfs.label());
+    				jfs.canonicalize();
+    			}
+    		}
+    	}
+    }
     if (!loaded) {
     	try {
     		reload(locator.flocPath, false);
@@ -218,13 +241,17 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
       locator.persist(this);
       persistent = true;
     }
+    isCanonicalizing = false;
   }
   
   public boolean isCanonical() {
     return canonical;
   }
 
-
+  public boolean isCanonicalizing() {
+	return isCanonicalizing;
+  }
+  
   @SuppressWarnings("unchecked")
   protected static boolean isInBundle(PersistentSlotInfo psi) {
     SlotInfo si = (SlotInfo) psi;

@@ -43,8 +43,12 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
   int numWritten = 0;
   
   protected abstract long mapTimeStamp(long t);
-  protected abstract JavaRewrite getRewrite(P proj);
+  protected JavaRewrite getRewrite(P proj) {
+	  ITypeEnvironment te = getTypeEnvironment(proj);
+	  return new JavaRewrite(te);  
+  }
   protected abstract JavaCanonicalizer getCanonicalizer(P proj);
+  protected abstract ITypeEnvironment getTypeEnvironment(P proj);
   
   protected static File createTempFile() throws IOException {
 	  File tempFile = File.createTempFile("JSure", ".tmp");

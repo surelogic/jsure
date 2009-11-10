@@ -42,6 +42,8 @@ public interface IJavaFileStatus<T> {
    * Return if the corresponding AST has been canonicalized
    */
   boolean isCanonical();
+  
+  boolean isCanonicalizing();
 
   /**
    * Canonicalize the corresponding AST
