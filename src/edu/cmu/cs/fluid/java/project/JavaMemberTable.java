@@ -722,6 +722,9 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       for (IJavaType st : getSuperTypes()) {
         // XXX: BUG: need to mark this useSite somehow as dependent on the lookup here.
         IJavaScope scope = binder.typeScope(st);
+        if (scope == null) {
+        	continue;
+        }
         IBinding binding = scope.lookup(name,useSite,selector);
         if (binding != null) return binding;
       }
