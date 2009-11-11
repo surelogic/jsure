@@ -20,12 +20,14 @@ public interface IMultiMap<K,V> {
    * @param val
    */
   void map(K key, V val);
-  void remove(K key, V val);
+  void remove(K key, V val);  
   
   /**
    * Removes all mappings for the given key
    */
   Collection<V> removeAll(K key);
+  
+  void clear();
   
   /**
    * @return The mutable collection of mappings (not a copy)
