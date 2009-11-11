@@ -28,7 +28,8 @@ public class ImportTutorialProjectsAction implements
 				CommonImages.IMG_JSURE_LOGO,
 				"/com.surelogic.jsure.client.help/ch01s03.html", loader
 						.getResource("/lib/PlanetBaronJSure.zip"), loader
-						.getResource("/lib/BoundedFIFOJSure.zip"));
+						.getResource("/lib/BoundedFIFOJSure.zip"), loader
+						.getResource("/lib/apache-log4j.zip"));
 	}
 
 	public void selectionChanged(final IAction action,
