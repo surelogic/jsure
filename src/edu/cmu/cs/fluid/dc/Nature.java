@@ -72,7 +72,8 @@ public final class Nature extends AbstractNature {
 	 */
 	public static boolean hasNatureAnyProject() {
 		for (IJavaProject jp : JDTUtility.getJavaProjects()) {
-			if (hasNature(jp.getProject()))
+		  final IProject project = jp.getProject();
+			if (project.isOpen() && hasNature(project))
 				return true;
 		}
 		return false;
