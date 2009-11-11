@@ -14,6 +14,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
+import edu.cmu.cs.fluid.eclipse.adapter.TypeBindings;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
@@ -54,6 +55,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 			*/
 			// System.out.println("Clearing all comp units");
 			Binding.clearCompUnits(clearAll);
+			TypeBindings.clearAll();
 
 			if (clearAll) {
 				JavaTypeFactory.clearAll();
