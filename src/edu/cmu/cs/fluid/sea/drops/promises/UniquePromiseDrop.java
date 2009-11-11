@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
 
 /**
  * Promise drop for "unique" promises established by the
@@ -17,7 +18,8 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * @see edu.cmu.cs.fluid.java.analysis.UniqueAnalysis
  * @see edu.cmu.cs.fluid.java.bind.UniquenessAnnotation
  */
-public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> {
+public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> 
+implements MaybeTopLevel {
   //This page intentionally left blank
   
   private boolean isUniqueReturn;
@@ -67,5 +69,9 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> {
              JavaNames.getFieldDecl(node), 
              JavaNames.genMethodConstructorName(method)); //$NON-NLS-1$
     }
+  }
+
+  public boolean requestTopLevel() {
+	  return true;
   }
 }
