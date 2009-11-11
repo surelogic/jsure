@@ -30,7 +30,8 @@ public class ImportTutorialProjectsAction implements
 						.getResource("/lib/PlanetBaronJSure.zip"), loader
 						.getResource("/lib/BoundedFIFOJSure.zip"), loader
 						.getResource("/lib/apache-log4j.zip"), loader
-						.getResource("/lib/java.util.logging.zip"));
+						.getResource("/lib/java.util.logging.zip"), loader
+						.getResource("/lib/oswego.util.concurrent.zip"));
 	}
 
 	public void selectionChanged(final IAction action,
