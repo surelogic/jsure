@@ -1,5 +1,5 @@
 <package name="java.awt.event">
   <class name="MouseAdapter">
-    <Promise>@Color(AWT) for *(**) | new(**)</Promise>
+    <Promise>@Color(AWT) for **(**)</Promise>
   </class>
 </package>
