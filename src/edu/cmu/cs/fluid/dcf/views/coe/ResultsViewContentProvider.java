@@ -1022,8 +1022,11 @@ public class ResultsViewContentProvider extends
 				.getDropsOfType(PromiseDrop.class);
 		for (PromiseDrop pd : promiseDrops) {
 			if (pd.isFromSrc()) {
-				if (!pd.hasMatchingDeponents(predicate)) {
+				//System.out.println("Considering: "+pd.getMessage());
+				if (!pd.hasMatchingDeponents(predicate) || shouldBeTopLevel(pd)) {
 					root.add(encloseDrop(pd));
+				} else {
+					//System.out.println("Rejected: "+pd.getMessage());
 				}
 			}
 		}
@@ -1069,8 +1072,7 @@ public class ResultsViewContentProvider extends
 			// only show result drops at the main level if they are not attached
 			// to a promise drop or a result drop
 			if (id.isValid()
-					&& ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || (id instanceof MaybeTopLevel && ((MaybeTopLevel) id)
-							.requestTopLevel()))) {
+					&& ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
 				if (id.getCategory() == null) {
 					id.setCategory(Category.getInstance("unparented drops"));
 				}
@@ -1089,6 +1091,11 @@ public class ResultsViewContentProvider extends
 		return this;
 	}
 
+	private static boolean shouldBeTopLevel(Drop d) {
+		//System.out.println("???: "+d.getMessage());
+		return d instanceof MaybeTopLevel && ((MaybeTopLevel) d).requestTopLevel();
+	}
+	
 	public Object[] getLastElements() {
 		synchronized (ResultsViewContentProvider.class) {
 			return (isShowInferences() ? m_lastRoot : Content
