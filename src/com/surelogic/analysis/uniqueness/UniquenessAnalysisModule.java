@@ -236,8 +236,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					}
 					for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
             final IRNode param = JJNode.tree.getChild(formals, i);
-            hasBorrowedParam = UniquenessRules.isBorrowed(param);
-            hasUniqueParam = UniquenessRules.isUnique(param);
+            hasBorrowedParam |= UniquenessRules.isBorrowed(param);
+            hasUniqueParam |= UniquenessRules.isUnique(param);
 					}
 					if (returnsUnique || hasBorrowedParam || hasUniqueParam)
 						rootNodesForAnalysis.add(currentNode);
