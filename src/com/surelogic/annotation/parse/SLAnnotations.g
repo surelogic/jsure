@@ -432,8 +432,8 @@ regionEffects
 /************* Effects supporting rules **************************/
 
 	
-regionSpecifications
-	: regionSpecification (',' regionSpecification)* -> ^(RegionSpecifications regionSpecification+)
+regionNames
+	: regionName (',' regionName)* -> ^(RegionSpecifications regionName+)
 	;
 
 regionSpecification
@@ -467,7 +467,7 @@ mappedRegionSpecification
 	;
 	
 fieldMappings
-	: regionSpecifications 'into' regionSpecification -> ^(FieldMappings regionSpecifications regionSpecification)
+	: regionNames 'into' regionSpecification -> ^(FieldMappings regionNames regionSpecification)
 	;
 
 regionMapping
