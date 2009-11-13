@@ -108,7 +108,12 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(
 				new ClearProjectListener(), IResourceChangeEvent.PRE_CLOSE);
-
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(
+				new ClearProjectListener(), IResourceChangeEvent.PRE_DELETE);
+		if (ClearProjectListener.clearAfterChange) {
+			ResourcesPlugin.getWorkspace().addResourceChangeListener(
+					new ClearProjectListener(), IResourceChangeEvent.POST_CHANGE);
+		}
 		Eclipse.initialize();
 		Eclipse.register(new ITypeBindingHandler());
 	}

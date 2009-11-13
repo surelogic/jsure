@@ -32,10 +32,29 @@ import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public class ClearProjectListener implements IResourceChangeListener {
+	public static final boolean clearAfterChange = true;
+	private static IProject lastProject = null;
+	
 	public void resourceChanged(IResourceChangeEvent event) {
-		if (event.getType() == IResourceChangeEvent.PRE_CLOSE) {
-			if (event.getResource() instanceof IProject) {
-				clearJSureState();
+		synchronized (ClearProjectListener.class) {
+			if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
+				if (lastProject != null) {
+					lastProject = null;
+					clearJSureState();
+				}
+			}
+			else if (event.getResource() instanceof IProject) {
+				switch (event.getType()) {
+				case IResourceChangeEvent.PRE_CLOSE:
+				case IResourceChangeEvent.PRE_DELETE:		
+					if (clearAfterChange) {
+						lastProject = (IProject) event.getResource();
+					} else {
+						clearJSureState();
+					}
+				default:
+					return;
+				}
 			}
 		}
 	}
