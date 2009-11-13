@@ -44,11 +44,15 @@ public class ClearProjectListener implements IResourceChangeListener {
 				}
 			}
 			else if (event.getResource() instanceof IProject) {
+				IProject p = (IProject) event.getResource();
+				if (!p.getName().equals(ProjectDrop.getProject())) {
+					return; // Not the current project, so ignore this
+				}
 				switch (event.getType()) {
 				case IResourceChangeEvent.PRE_CLOSE:
 				case IResourceChangeEvent.PRE_DELETE:		
 					if (clearAfterChange) {
-						lastProject = (IProject) event.getResource();
+						lastProject = p;
 					} else {
 						clearJSureState();
 					}
