@@ -552,16 +552,16 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	public final void seaChanged() {
 		LOG.fine("seaChanged() called");
-		if (!Nature.hasNatureAnyProject()) {
-			if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
-				f_viewerbook.getDisplay().asyncExec(new Runnable() {
-					public void run() {
+		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
+			f_viewerbook.getDisplay().asyncExec(new Runnable() {
+				public void run() {
+					if (!Nature.hasNatureAnyProject()) {
 						f_noResultsToShowLabel.setText(NO_RESULTS);
 						setViewerVisibility(false);
 					}
-				});
-			}
-		}
+				}
+			});
+		}		
 	}
 
 	/**
