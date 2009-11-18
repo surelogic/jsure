@@ -312,7 +312,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   
   // Not used right now, but should be used in the future when I stop using
   // getRawMethodCallEffects()
-  @SuppressWarnings("unused")
   private final BindingContextAnalysis bindingContextAnalysis;
 
   /**
@@ -1236,9 +1235,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
        * state of the referring object), f is protected by a lock or if f is volatile
        * or final.  Array reference is not protected.
        */
-      final boolean isUnique =
-        UniquenessRules.isUnique(this.binder.getBinding(objExpr));
-
       final boolean unprotected = 
         !UniquenessRules.isUnique(this.binder.getBinding(objExpr))
           && (isArrayRef
@@ -1295,12 +1291,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
   }
 
   /**
-   * Determine whether a class can be considered to protect itself. Right now
-   * returns <code>true</code> if and only if the class/interface or one of it's
-   * ancestors is annotated with <code>@selfProtected</code>.
-   * 
-   * @param cdecl
-   *          Class or interface declaration
+   * Determine whether a class can be considered to protect itself. Returns 
+   * {@value true} if one of the following is true:
+   * <ul>
+   * <li>The class, or one of its ancestors, is annotated with <code>@ThreadSafe</code>
+   * <li>The class, or one of its ancestors, is annotated with <code>@Immutable</code>
+   * <li>The class, or one of its ancestors, declares at least one region or policy lock</code>
+   * </ul>
    */
   private boolean isSafeType(final IJavaType type) {
     final Boolean isSafeCached = isSafeTypeCache.get(type);
@@ -1310,7 +1307,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
       boolean isSafe = false;
       if (type instanceof IJavaSourceRefType) {
         final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
-        if (LockRules.isSelfProtected(srcRefType.getDeclaration()) || LockRules.isImmutable(srcRefType.getDeclaration())) {
+        final IRNode typeDeclarationNode = srcRefType.getDeclaration();
+        final boolean isSelfProtected = LockRules.isSelfProtected(typeDeclarationNode);
+        final boolean isImmutable = LockRules.isImmutable(typeDeclarationNode);
+        if (isSelfProtected || isImmutable || classDeclaresLocks(type)) {
           isSafe = true;
         } else {
           for (final IJavaType superType : srcRefType.getSupertypes(binder.getTypeEnvironment())) {
@@ -1415,9 +1415,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     /* We assume fieldRef is final or volatile */
     // now see if class has programmer-declared locks in it.
     final IJavaType rcvrType = binder.getJavaType(FieldRef.getObject(fieldRef));
-    if (rcvrType instanceof IJavaDeclaredType) {
+    return classDeclaresLocks(rcvrType);
+  }
+
+  private boolean classDeclaresLocks(final IJavaType type) {
+    if (type instanceof IJavaDeclaredType) {
       final Set<AbstractLockRecord> records =
-        sysLockModelHandle.get().getRegionAndPolicyLocksInClass((IJavaDeclaredType) rcvrType);
+        sysLockModelHandle.get().getRegionAndPolicyLocksInClass((IJavaDeclaredType) type);
       final Iterator<AbstractLockRecord> recIter = records.iterator();
       if (recIter.hasNext()) { // we have at least one lock
         int numLocks = 0;
