@@ -120,7 +120,7 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
     	if (!skippedACE && AnonClassExpression.prototype.includes(op)) {
     		// Check if we're part of the arguments to the ACE
     		if (!NewExpression.prototype.includes(lastOp) || 
-    			!Arguments.prototype.includes(last2Op)) {
+    			!(last2Op == null || Arguments.prototype.includes(last2Op))) {
     			LOG.warning("Trying to get flow unit from ACE's "+lastOp.name()+
     					    ", "+last2Op.name());
     		}
