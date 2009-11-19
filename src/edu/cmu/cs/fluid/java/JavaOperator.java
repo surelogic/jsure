@@ -188,6 +188,8 @@ public class JavaOperator extends JJOperator {
     return missingTokens(node);
   }
 
+  //private static final Vector<Token>[] noVectors = new Vector[0];
+  
   public Vector<Token>[] missingTokens(IRNode node) {
     return null; // by default
   }

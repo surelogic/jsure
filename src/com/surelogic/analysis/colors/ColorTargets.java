@@ -101,6 +101,7 @@ public class ColorTargets {
     final IRegion reg = tgt.getRegion();
     if (reg == null) {
       LOG.severe("null Region for target " + tgt);
+      return null;
     }
     final RegionModel rm = reg.getModel();
     ColorizedRegionModel crm = null;

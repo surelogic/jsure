@@ -233,6 +233,7 @@ public class ColorReqSummaryDrop extends PromiseDrop implements PleaseFolderize 
       //      res.setMessage("(partial) Inferred color requirement");
       res = null;
       LOG.severe("Internal requirements summaries ARE NOT SUPPORTED!");
+      return null;
     }
 
     ColorInherit.doInherit(node);

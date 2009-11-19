@@ -6,6 +6,7 @@ package edu.cmu.cs.fluid.ide;
 
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -76,7 +77,7 @@ public abstract class IDE {
 
   protected static IDE prototype;
 
-  public static IDE getInstance() {
+  public static synchronized IDE getInstance() {
     if (prototype == null) {
       throw new UnsupportedOperationException();
     }
@@ -148,11 +149,13 @@ public abstract class IDE {
   private IClassPath classpath;
 
   public final void setDefaultClassPath(IClassPath path) {
+	/*
     if (path == null) {
-//      System.out.println("Clearing the classpath");
+      System.out.println("Clearing the classpath");
     } else {
-//      System.out.println("Setting it to "+path);
+      System.out.println("Setting it to "+path);
     }
+    */
     classpath = path;
     
     ITypeEnvironment tEnv = getTypeEnv(path);
@@ -238,7 +241,7 @@ public abstract class IDE {
    * FIX Hack to support Fluid binder
    **************************************************************/
 
-  private List<ICompUnitListener> compUnitListeners = new ArrayList<ICompUnitListener>(1);
+  private List<ICompUnitListener> compUnitListeners = new CopyOnWriteArrayList<ICompUnitListener>();
 
   public synchronized final void addCompUnitListener(ICompUnitListener l) {
     if (compUnitListeners.contains(l)) {
@@ -251,13 +254,13 @@ public abstract class IDE {
    * Only to be called after canonicalizing an AST
    */
   public final void notifyASTChanged(IRNode cu) {
-    for(ICompUnitListener l : new ArrayList<ICompUnitListener>(compUnitListeners)) {
+    for(ICompUnitListener l : compUnitListeners) {
       l.astChanged(cu);
     }
   }
 
   public final void notifyASTsChanged() {
-    for(ICompUnitListener l : new ArrayList<ICompUnitListener>(compUnitListeners)) {
+    for(ICompUnitListener l : compUnitListeners) {
       l.astsChanged();
     }
   }

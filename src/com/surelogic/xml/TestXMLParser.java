@@ -174,8 +174,10 @@ public class TestXMLParser extends DefaultHandler implements
 			String pName = nodeStack.peek().getName();
 
 			/** Make sure the package element is well formed */
-			if (name == null)
+			if (name == null) {
 				malformedXML("Package element requires a name attribute");
+				return;
+			}
 
 			/**
 			 * Make sure the two package names match. If they don't, something

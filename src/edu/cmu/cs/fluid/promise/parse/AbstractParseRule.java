@@ -102,5 +102,7 @@ public abstract class AbstractParseRule extends AbstractNamedPromiseRule impleme
   /**
    * Called if the promise is parsed successfully 
    */
-  protected void parsedSuccessfully(IRNode promisedFor) {}
+  protected void parsedSuccessfully(IRNode promisedFor) {
+	  // Nothing to do
+  }
 }

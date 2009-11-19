@@ -808,6 +808,8 @@ public class JavaCanonicalizer {
         IBinding mb         = findNoArgMethod(collT, "iterator");
         if (mb == null) {
           findNoArgMethod(collT, "iterator");
+          LOG.severe("Unable to find iterator() on "+collT);
+          return null;
         }
         IRNode rtype        = MethodDeclaration.getReturnType(mb.getNode());
         IJavaType rtypeT    = binder.getJavaType(rtype);

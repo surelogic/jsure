@@ -99,6 +99,7 @@ public class ColorTargets {
     final IRegion reg = tgt.getRegion();
     if (reg == null) {
       LOG.severe("null Region for target " + tgt);
+      return null;
     }
     final String regName = RegionAnnotation.getRegionName(reg.getNode());
     final RegionModel rm = RegionModel.getInstance(regName);
