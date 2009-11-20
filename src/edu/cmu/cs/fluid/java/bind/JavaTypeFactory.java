@@ -306,6 +306,9 @@ public class JavaTypeFactory implements IRType, Cleanable {
    * @return
    */
   public static IJavaType convertNodeTypeToIJavaType(IRNode nodeType, IBinder binder) {
+	if (nodeType == null) {
+		return null;
+	}
     // TODO Change to use a Visitor, more efficient
     Operator op = JJNode.tree.getOperator(nodeType);
     if (op instanceof PrimitiveType) {
