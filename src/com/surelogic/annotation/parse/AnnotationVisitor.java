@@ -27,7 +27,7 @@ public class AnnotationVisitor extends Visitor<Void> {
   private static final String promisePrefix = "com.surelogic.";
   private static final String jcipPrefix = "net.jcip.annotations.";
   
-  public static final boolean allowJavadoc = false;
+  public static final boolean allowJavadoc = true;
 
   final boolean inEclipse = IDE.getInstance().getClass().getName().contains("Eclipse");
   final ITypeEnvironment tEnv;
