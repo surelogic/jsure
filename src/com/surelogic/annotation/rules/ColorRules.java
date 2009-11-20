@@ -54,6 +54,8 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ColorRules extends AnnotationRules {
+	public static final boolean useColoring = false;
+	
 	public static final String TRANSPARENT = "Transparent";
 	public static final String COLOR_CONSTRAINT = "ColorConstraint";
 	public static final String COLOR_IMPORT = "ColorImport";
@@ -145,7 +147,7 @@ public class ColorRules extends AnnotationRules {
 		}
 
 		@Override
-		protected Object parse(IAnnotationParsingContext context,
+		protected Object parseColorAnno(IAnnotationParsingContext context,
 				SLColorAnnotationsParser parser) throws Exception,
 				RecognitionException {
 			return parser.colorTransparent().getTree();
@@ -178,7 +180,7 @@ public class ColorRules extends AnnotationRules {
 		}
 
 		@Override
-		protected Object parse(IAnnotationParsingContext context,
+		protected Object parseColorAnno(IAnnotationParsingContext context,
 				SLColorAnnotationsParser parser) throws Exception,
 				RecognitionException {
 			return parser.colorConstraint().getTree();
@@ -211,7 +213,7 @@ public class ColorRules extends AnnotationRules {
 		}
 
 		@Override
-		protected Object parse(IAnnotationParsingContext context,
+		protected Object parseColorAnno(IAnnotationParsingContext context,
 				SLColorAnnotationsParser parser) throws Exception,
 				RecognitionException {
 			return parser.color().getTree();
@@ -243,7 +245,7 @@ public class ColorRules extends AnnotationRules {
 		}
 
 		@Override
-		protected Object parse(IAnnotationParsingContext context,
+		protected Object parseColorAnno(IAnnotationParsingContext context,
 				SLColorAnnotationsParser parser) throws Exception,
 				RecognitionException {
 			return parser.colorImport().getTree();
@@ -301,7 +303,7 @@ public class ColorRules extends AnnotationRules {
 		}
 
 		@Override
-		protected Object parse(IAnnotationParsingContext context,
+		protected Object parseColorAnno(IAnnotationParsingContext context,
 				SLColorAnnotationsParser parser) throws Exception,
 				RecognitionException {
 			return parser.colorGrant().getTree();
@@ -328,7 +330,7 @@ public class ColorRules extends AnnotationRules {
 		}
 
 		@Override
-		protected Object parse(IAnnotationParsingContext context,
+		protected Object parseColorAnno(IAnnotationParsingContext context,
 				SLColorAnnotationsParser parser) throws Exception,
 				RecognitionException {
 			return parser.colorRevoke().getTree();
@@ -355,7 +357,7 @@ public class ColorRules extends AnnotationRules {
 		}
 
 		@Override
-		protected Object parse(IAnnotationParsingContext context,
+		protected Object parseColorAnno(IAnnotationParsingContext context,
 				SLColorAnnotationsParser parser) throws Exception,
 				RecognitionException {
 			return parser.colorDeclare().getTree();
@@ -384,7 +386,7 @@ public class ColorRules extends AnnotationRules {
 		}
 
 		@Override
-		protected Object parse(IAnnotationParsingContext context,
+		protected Object parseColorAnno(IAnnotationParsingContext context,
 				SLColorAnnotationsParser parser) throws Exception,
 				RecognitionException {
 			return parser.colorIncompatible().getTree();
@@ -410,7 +412,7 @@ public class ColorRules extends AnnotationRules {
 		}
 
 		@Override
-		protected Object parse(IAnnotationParsingContext context,
+		protected Object parseColorAnno(IAnnotationParsingContext context,
 				SLColorAnnotationsParser parser) throws Exception,
 				RecognitionException {
 			return parser.colorRename().getTree();

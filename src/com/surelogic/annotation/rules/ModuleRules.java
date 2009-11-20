@@ -84,7 +84,7 @@ public class ModuleRules extends AnnotationRules {
  
     
     @Override
-    protected Object parse(IAnnotationParsingContext context,
+    protected Object parseColorAnno(IAnnotationParsingContext context,
                            SLColorAnnotationsParser parser) throws Exception,
         RecognitionException {
       return parser.vis().getTree();
@@ -116,7 +116,7 @@ public class ModuleRules extends AnnotationRules {
  
     
     @Override
-    protected Object parse(IAnnotationParsingContext context,
+    protected Object parseColorAnno(IAnnotationParsingContext context,
                            SLColorAnnotationsParser parser) throws Exception,
         RecognitionException {
       return parser.module().getTree();
@@ -147,7 +147,7 @@ public class ModuleRules extends AnnotationRules {
  
     
     @Override
-    protected Object parse(IAnnotationParsingContext context,
+    protected Object parseColorAnno(IAnnotationParsingContext context,
                            SLColorAnnotationsParser parser) throws Exception,
         RecognitionException {
       return parser.module().getTree();

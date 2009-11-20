@@ -6,7 +6,7 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.parse.SLColorAnnotationsParser;
 import com.surelogic.annotation.parse.SLColorParse;
-import com.surelogic.annotation.parse.SLParse;
+import com.surelogic.annotation.rules.ColorRules;
 
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -38,8 +38,14 @@ extends AbstractAntlrParseRule<A, P, SLColorAnnotationsParser>  {
     }
 
     @Override
-    protected abstract Object parse(IAnnotationParsingContext context,
-        SLColorAnnotationsParser parser) throws Exception, RecognitionException;
+    protected final Object parse(IAnnotationParsingContext context,
+            SLColorAnnotationsParser parser) throws Exception, RecognitionException {
+    	if (!ColorRules.useColoring) {
+    		return IGNORED;
+    	}
+    	return parseColorAnno(context, parser);
+    }
     
-    
+    protected abstract Object parseColorAnno(IAnnotationParsingContext context,
+        SLColorAnnotationsParser parser) throws Exception, RecognitionException;  
 }
