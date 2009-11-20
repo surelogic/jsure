@@ -7,21 +7,21 @@ public class Messages extends AbstractMessages {
   
   private static final String BUNDLE_NAME = "edu.cmu.cs.fluid.java.bind.messages"; //$NON-NLS-1$
 
-  public static String LockAnnotation_lockModel = "lock {0} is {1} protects {2}  on  {3}";
+  public static String LockAnnotation_lockModel = "RegionLock {0} is {1} protects {2}  on  {3}";
 
-  public static String LockAnnotation_policyLockModel = "policy lock {0} is {1}  on  {2}";
+  public static String LockAnnotation_policyLockModel = "PolicyLock {0} is {1}  on  {2}";
 
-  public static String LockAnnotation_prescrubbedLock = "lock {0} (pre-scrubbed, not complete)";
+  public static String LockAnnotation_prescrubbedLock = "RegionLock {0} (pre-scrubbed, not complete)";
 
-  public static String LockAnnotation_prescrubbedPolicyLock = "policyLock {0} (pre-scrubbed, not complete)";
+  public static String LockAnnotation_prescrubbedPolicyLock = "PolicyLock {0} (pre-scrubbed, not complete)";
 
-  public static String LockAnnotation_prescrubbedRequiresLock = "requiresLock  on  {0} (pre-scrubber, not complete)";
+  public static String LockAnnotation_prescrubbedRequiresLock = "RequiresLock  on  {0} (pre-scrubber, not complete)";
 
-  public static String LockAnnotation_prescrubbedReturnsLock = "returnsLock (pre-scrubber, not complete)";
+  public static String LockAnnotation_prescrubbedReturnsLock = "ReturnsLock (pre-scrubber, not complete)";
 
-  public static String LockAnnotation_requiresLockDrop = "requiresLock {0}  on  {1}";
+  public static String LockAnnotation_requiresLockDrop = "{0}  on  {1}";
 
-  public static String LockAnnotation_returnsLockDrop = "returnsLock {0}  on  {1}";
+  public static String LockAnnotation_returnsLockDrop = "ReturnsLock {0}  on  {1}";
 
   public static String LockAnnotation_selfProtectedDrop = "ThreadSafe  on  {0}";
   
