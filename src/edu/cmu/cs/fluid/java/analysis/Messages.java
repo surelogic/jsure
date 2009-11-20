@@ -88,7 +88,7 @@ public class Messages extends AbstractMessages {
 
   public static String LockAnalysis_ds_NonfinalExpression = "Lock expression \"{0}\" is not final";
 
-  public static String LockAnalysis_ds_UnidentifiableLock = "Lock expression \"{0}\" does not name a programmer-declared lock; consider declaring the state protected by the referenced lock";
+  public static String LockAnalysis_ds_UnidentifiableLock = "Lock expression \"{0}\" does not name a programmer-declared lock; consider declaring what state is protected by the referenced lock";
 
   public static String LockAnalysis_ds_RedundantSynchronized = "Acquisition of lock \"{0}\" may be redundant";
 
