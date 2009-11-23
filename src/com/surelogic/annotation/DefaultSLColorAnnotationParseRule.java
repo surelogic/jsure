@@ -41,7 +41,7 @@ extends AbstractAntlrParseRule<A, P, SLColorAnnotationsParser>  {
     protected final Object parse(IAnnotationParsingContext context,
             SLColorAnnotationsParser parser) throws Exception, RecognitionException {
     	if (!ColorRules.useColoring) {
-    		return IGNORED;
+    		return ParseResult.IGNORE;
     	}
     	return parseColorAnno(context, parser);
     }

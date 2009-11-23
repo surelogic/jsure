@@ -142,6 +142,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 					boolean worked = applyScopedPromises(d);					
 					if (!worked) {
 					  d.invalidate();
+					  return null;
 					}
 					return storeDropIfNotNull(getStorage(), a, d);
 				}
@@ -185,10 +186,11 @@ public class ScopedPromiseRules extends AnnotationRules {
 	
 	/**
 	 * Applies a scoped promise to the CU or Type that it is declared on. Needs
-	 * to: 1 - find the {@link CompilationUnit} that we are currently parsing 2 -
-	 * create an AAST from the promise in the {@link ScopedPromiseNode} 3 - loop
-	 * over all of the relevant elements of the {@link CompilationUnit} and apply
-	 * the AAST to the matching elements
+	 * to: 
+	 * 1 - find the {@link CompilationUnit} that we are currently parsing 
+	 * 2 - create an AAST from the promise in the {@link ScopedPromiseNode} 
+	 * 3 - loop over all of the relevant elements of the {@link CompilationUnit} 
+	 *     and apply the AAST to the matching elements
 	 * 
 	 * @param scopedPromise
 	 *          The AAST representing the scoped promise contained in the code
@@ -244,8 +246,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 		
 		if (callback.parseRule != null) {
 			// TODO only loop over the necessary declarations by checking what type
-			// the
-			// scoped promise is
+			// the scoped promise is
 			for (IRNode decl : VisitUtil.getAllTypeDecls(promisedFor)) {
 				Operator op = JJNode.tree.getOperator(decl);
 				if (callback.parseRule.declaredOnValidOp(op)) {
@@ -426,9 +427,11 @@ public class ScopedPromiseRules extends AnnotationRules {
 					new ScopedAnnotationParsingContext(this,
 						scopedPromiseDrop.getAST().getSrcType(), decl, parseRule,
 						content, offset);
-				parseRule.parse(context, content);
-
-				if (!context.createdAAST()) {
+				ParseResult result = parseRule.parse(context, content);
+				if (result == ParseResult.IGNORE) {
+					return false;
+				}
+				else if (result == ParseResult.FAIL || !context.createdAAST()) {
 					StringBuilder msg = new StringBuilder("Could not apply scoped promise, ");
 					msg.append(content).append("  on  ");
 					

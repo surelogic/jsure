@@ -32,7 +32,7 @@ extends IPromiseRule, PromiseConstants {
    * @param n The AST node to be associated with the drops
    * @param contents The text to parse
    */
-  void parse(IAnnotationParsingContext context, String contents);
+  ParseResult parse(IAnnotationParsingContext context, String contents);
   
   /**
    * @return null if there's no associated storage

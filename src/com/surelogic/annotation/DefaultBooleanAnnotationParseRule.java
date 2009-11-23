@@ -33,16 +33,16 @@ extends AbstractAnnotationParseRule<A,P> {
    * Assumes that parsed text specifies where the annotations should go
    * Handles differences between syntax for Java 5 and Javadoc
    */
-  public final void parse(IAnnotationParsingContext context, String contents) {
+  public final ParseResult parse(IAnnotationParsingContext context, String contents) {
     if (!declaredOnValidOp(context.getOp())) {
       context.reportError(IAnnotationParsingContext.UNKNOWN,
                           "Promise declared on invalid operator");
-      return;
+      return ParseResult.FAIL;
     }
     try {
       AASTAdaptor.Node tn    = (AASTAdaptor.Node) parse(context, SLParse.initParser(contents));
       if (tn == null) {
-        return;
+        return ParseResult.FAIL;
       }
       if (tn.getType() == SLAnnotationsParser.Expressions) {
         /*
@@ -59,9 +59,12 @@ extends AbstractAnnotationParseRule<A,P> {
       }
     } catch (RecognitionException e) {
       handleRecognitionException(context, contents, e);
+      return ParseResult.FAIL;
     } catch (Exception e) {
       context.reportException(IAnnotationParsingContext.UNKNOWN, e);
+      return ParseResult.FAIL;
     }
+    return ParseResult.OK;
   }
 
   /**

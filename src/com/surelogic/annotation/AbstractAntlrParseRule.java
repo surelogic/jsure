@@ -14,7 +14,6 @@ import org.antlr.runtime.Parser;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.*;
-import com.surelogic.annotation.parse.*;
 import com.surelogic.parse.AbstractNodeAdaptor;
 
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -29,7 +28,6 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
                                              D extends PromiseDrop<? super A>,
                                              P extends Parser>
 	extends AbstractAnnotationParseRule<A, D> {
-  protected static final Object IGNORED = new Object();
   protected static final Object USE_RAW_STRING = new Object();
   
 	AnnotationLocation relativeLocation;
@@ -63,17 +61,17 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 	 * @param contents
 	 *            The information defining the annotation
 	 */
-	public final void parse(IAnnotationParsingContext context, String contents) {
+	public final ParseResult parse(IAnnotationParsingContext context, String contents) {
 		if (!declaredOnValidOp(context.getOp())) {
 			context.reportError(IAnnotationParsingContext.UNKNOWN,
 				"@"+name()+" declared on invalid operator: "+context.getOp().name());
-			return;
+			return ParseResult.FAIL;
 		}
 		try {
 		  Object result       = parse(context, initParser(contents));
-		  if (result == IGNORED) {
+		  if (result == ParseResult.IGNORE) {
 //		    System.out.println("Ignoring: @"+name()+' '+contents);
-		    return;
+		    return ParseResult.IGNORE;
 		  }
 		  AASTNode an;
 		  if (result instanceof AASTNode) {
@@ -82,13 +80,13 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 			  AbstractNodeAdaptor.Node tn =	(AbstractNodeAdaptor.Node) result;
 			  if (tn == null || tn.isNil()) {
 				  context.reportError(0, "Nothing parsed: " + contents);
-				  return;
+				  return ParseResult.FAIL;
 			  }
 			  an = finalizeAST(context, tn);
 		  }
 		  A n;
 		  if (an == null) {
-			  return;  
+			  return ParseResult.FAIL;  
 		  }
 		  else if (getAASTType().isInstance(an)) {
 			  @SuppressWarnings("unchecked")
@@ -105,10 +103,13 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 		}
 		catch (RecognitionException e) {
 		  handleRecognitionException(context, contents, e);
+		  return ParseResult.FAIL;
 		}
 		catch (Exception e) {
 			context.reportException(IAnnotationParsingContext.UNKNOWN, e);
+			return ParseResult.FAIL;
 		}
+		return ParseResult.OK;
 	}
 
 	protected abstract P initParser(String contents) throws Exception;

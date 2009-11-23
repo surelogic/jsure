@@ -85,11 +85,11 @@ public class RegionRules extends AnnotationRules {
     registerParseRuleStorage(fw, mapFieldsRule);
     fw.registerParseDropRule(new NullAnnotationParseRule(IN_REGION, PromiseConstants.fieldOrTypeOp) {
     	@Override
-		public void parse(IAnnotationParsingContext context, String contents) {
+		public ParseResult parse(IAnnotationParsingContext context, String contents) {
 			if (FieldDeclaration.prototype.includes(context.getOp())) {
-				inRegionRule.parse(context, contents);
+				return inRegionRule.parse(context, contents);
 			} else {
-				mapFieldsRule.parse(context, contents);
+				return mapFieldsRule.parse(context, contents);
 			}
 		}    	
     }, true);

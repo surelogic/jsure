@@ -33,12 +33,12 @@ public class TestRules extends AnnotationRules {
       super(TEST_RESULT);
     }
     @Override
-    public void parse(IAnnotationParsingContext context, String contents) {
+    public ParseResult parse(IAnnotationParsingContext context, String contents) {
       try {
         ITestAnnotationParsingContext testContext = (ITestAnnotationParsingContext) context;
         AASTAdaptor.Node tn = parse(context, SLParse.initParser(contents));
         if (tn == null) {
-          return;
+          return ParseResult.FAIL;
         }
         final int end       = tn.getTokenStopIndex();
         String explanation  = ':' == contents.charAt(end) ? contents.substring(end+1) : null;
@@ -52,7 +52,7 @@ public class TestRules extends AnnotationRules {
         }
         if (rt == null) {
           context.reportError(0, "Unknown test result type: "+type);
-          return;
+          return ParseResult.FAIL;
         }        
         if (s.hasMoreTokens()) {
           testContext.setTestResultForUpcomingPromise(rt, s.nextToken(), explanation);
@@ -61,7 +61,9 @@ public class TestRules extends AnnotationRules {
         }
       } catch (Exception e) {
         context.reportException(IAnnotationParsingContext.UNKNOWN, e);
+        return ParseResult.FAIL;
       }
+      return ParseResult.OK;
     }
     
     private AASTAdaptor.Node parse(IAnnotationParsingContext context, 

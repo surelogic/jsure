@@ -38,7 +38,7 @@ public class NullAnnotationParseRule extends AbstractNamedPromiseRule implements
     return null;
   }
 
-  public void parse(IAnnotationParsingContext context, String contents) {
-    // do nothing
+  public ParseResult parse(IAnnotationParsingContext context, String contents) {
+	  return ParseResult.IGNORE;
   }
 }
