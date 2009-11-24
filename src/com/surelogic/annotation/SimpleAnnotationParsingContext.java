@@ -152,34 +152,38 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 	  return "declaration";
   }
   
+  public static void reportError(IRNode node, int offset, String txt) {	    
+	  PromiseWarningDrop d = new PromiseWarningDrop(offset);
+	  d.setMessage(txt);
+	  d.setCategory(JavaGlobals.PROMISE_PARSER_PROBLEM);
+	  d.setNodeAndCompilationUnitDependency(node);
+  }
+  
   public void reportError(int offset, String msg) {
-    String txt = getName()+":"+offset+" -- "+msg;
-//    System.out.println(txt);
-    
     TestResult.checkIfMatchesResult(getTestResult(), TestResultType.UNPARSEABLE);
     
-    PromiseWarningDrop d = new PromiseWarningDrop(mapToSource(offset));
-    d.setMessage(txt);
-    d.setCategory(JavaGlobals.PROMISE_PARSER_PROBLEM);
-    d.setNodeAndCompilationUnitDependency(node);
+	final int position = mapToSource(offset);
+    String txt = getName()+":"+offset+" -- "+msg;
+    reportError(node, position, txt);
     hadProblem = true;
   }
 
   public void reportException(int offset, Exception e) {
     TestResult.checkIfMatchesResult(getTestResult(), TestResultType.UNPARSEABLE);
     
-    PromiseWarningDrop d = new PromiseWarningDrop(mapToSource(offset));
-    d.setCategory(JavaGlobals.PROMISE_PARSER_PROBLEM);
-    d.setNodeAndCompilationUnitDependency(node);
-    
-    if (e instanceof RecognitionException ||
-        e instanceof RewriteCardinalityException) {
-      String txt = e.toString();
-      LOG.warning(txt);
-      d.setMessage(txt);
-    } else {
-      LOG.log(Level.SEVERE, "Unexpected problem while parsing promise", e);
-    }
+	final int position = mapToSource(offset);
+	final String txt;
+	if (e instanceof RecognitionException ||
+	    e instanceof RewriteCardinalityException) {
+		txt = e.toString();
+		LOG.warning(txt);
+	} else {
+		LOG.log(Level.SEVERE, "Unexpected problem while parsing promise", e);
+		txt = "Unexpected problem while parsing promise: "+e.getMessage();
+	}
+	reportError(node, position, txt);
+
+
     hadProblem = true;
   }
 
