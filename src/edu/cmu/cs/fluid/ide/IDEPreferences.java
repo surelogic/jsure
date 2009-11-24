@@ -2,5 +2,5 @@
 package edu.cmu.cs.fluid.ide;
 
 public interface IDEPreferences {
-	String ALLOW_JAVADOC_ANNOS = "allowJavaDocAnnos";
+	String ALLOW_JAVADOC_ANNOS = "allow.javadoc.annos";
 }

@@ -575,15 +575,6 @@ public abstract class IDE {
 	  clearCaches_internal();
   }
 
-  private final Map<String,Boolean> prefs = new HashMap<String,Boolean>();
-
-  public synchronized boolean getPreference(String key) {
-	  final Boolean val = prefs.get(key);
-	  return val == null ? false : val;
-  }
-
-  public synchronized void setPreference(String key, boolean value) {
-	  prefs.put(key, value);
-  }
+  public abstract boolean getBooleanPreference(String key);
 }
 
