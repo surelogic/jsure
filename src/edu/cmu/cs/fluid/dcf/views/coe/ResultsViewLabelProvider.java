@@ -1,8 +1,9 @@
 package edu.cmu.cs.fluid.dcf.views.coe;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.eclipse.SLImages;
@@ -10,8 +11,9 @@ import com.surelogic.xml.results.coe.CoE_Constants;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 
-public final class ResultsViewLabelProvider extends LabelProvider implements
+public final class ResultsViewLabelProvider extends ColumnLabelProvider implements
 		IResultsViewLabelProvider {
+	private static final boolean showCustomToolTips = false;
 	private boolean m_showInferences = true;
 
 	/**
@@ -22,7 +24,6 @@ public final class ResultsViewLabelProvider extends LabelProvider implements
 		m_showInferences = showInferences;
 	}
 
-	@Override
 	public String getText(final Object obj) {
 		if (obj instanceof Content) {
 			Content c = (Content) obj;
@@ -36,7 +37,6 @@ public final class ResultsViewLabelProvider extends LabelProvider implements
 		return "invalid: not of type Content";
 	}
 
-	@Override
 	public Image getImage(final Object obj) {
 		if (obj instanceof Content) {
 			Content c = (Content) obj;
@@ -56,5 +56,36 @@ public final class ResultsViewLabelProvider extends LabelProvider implements
 			return rid.getCachedImage();
 		}
 		return SLImages.getImage(CommonImages.IMG_UNKNOWN);
+	}
+
+	public Image getToolTipImage(Object element) {
+		return showCustomToolTips ? getImage(element) : null;
+	}
+	
+	//@Override
+	public String getToolTipText(Object element) {
+		return showCustomToolTips ? "Tooltip (" + element + ")" : null;
+	}
+
+	//@Override
+	public Point getToolTipShift(Object object) {
+		return new Point(5, 5);
+	}
+
+	//@Override
+	public int getToolTipDisplayDelayTime(Object object) {
+		return 200;
+	}
+
+	//@Override
+	public int getToolTipTimeDisplayed(Object object) {
+		return 5000;
+	}
+
+	//@Override
+	public void update(ViewerCell cell) {
+		final Object element = cell.getElement();
+		cell.setText(getText(element));
+		cell.setImage(getImage(element));
 	}
 }

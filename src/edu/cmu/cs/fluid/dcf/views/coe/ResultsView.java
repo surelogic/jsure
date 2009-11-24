@@ -12,6 +12,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -204,6 +205,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		viewer.setContentProvider(f_contentProvider);
 		viewer.setLabelProvider(f_labelProvider);
 		viewer.setSorter(createSorter());
+		ColumnViewerToolTipSupport.enableFor(viewer);
 	}
 
 	protected ViewerSorter createSorter() {
