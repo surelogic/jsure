@@ -354,6 +354,9 @@ public class AnnotationVisitor extends Visitor<Void> {
 	  // Test result?
 	  final int startContents = text.indexOf("(\"");
 	  final int endContents = text.lastIndexOf("\")");
+	  if (startContents < 0 && endContents < 0) {
+		  return handleSimpleJavadocPromise(decl, text, offset);
+	  }
 	  if (startContents < 0 || endContents < 0) {		  
 		  SimpleAnnotationParsingContext.reportError(decl, offset, "Syntax not matching Foo(\"...\"): "+text);
 		  return false;
@@ -369,5 +372,26 @@ public class AnnotationVisitor extends Visitor<Void> {
 	  final String tag = text.substring(0, startContents).trim();
 	  final String contents = text.substring(startContents+2, endContents);
 	  return createPromise(decl, tag, contents, AnnotationSource.JAVADOC, offset);
+  }
+
+  /**
+   * Assumes that text looks like Foo (e.g. no parameters)
+   */
+  private boolean handleSimpleJavadocPromise(IRNode decl, String text, int offset) {
+	  final String tag = text.trim();
+	  // Check if legal identifier
+	  boolean first = true;
+	  for(int i=0; i<tag.length(); i++) {
+		  final char ch       = tag.charAt(i);
+		  final boolean legal = first ? Character.isJavaIdentifierStart(ch) :
+			  Character.isJavaIdentifierPart(ch);
+		  first = false;
+		  if (!legal) {
+			  SimpleAnnotationParsingContext.reportError(decl, offset, 
+					  "Not a legal annotation name: "+tag);
+			  return false;				  
+		  }
+	  }
+	  return createPromise(decl, tag, "", AnnotationSource.JAVADOC, offset);
   }
 }
