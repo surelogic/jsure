@@ -28,6 +28,7 @@ public class AnnotationVisitor extends Visitor<Void> {
   private static final String jcipPrefix = "net.jcip.annotations.";
   
   public static final boolean allowJavadoc = true;
+  public static final boolean onlyUseAnnotate = true;
 
   final boolean inEclipse = IDE.getInstance().getClass().getName().contains("Eclipse");
   final ITypeEnvironment tEnv;
@@ -292,6 +293,9 @@ public class AnnotationVisitor extends Visitor<Void> {
     if (tag.getTag() == null) {
       return; // Leading text
     }
+    if (onlyUseAnnotate && !"annotate".equals(tag.getTag())) {
+    	return; // ignore other tags
+    }
     String contents = null;
     for(Object o : tag) {
       if (o instanceof String) {
@@ -306,8 +310,12 @@ public class AnnotationVisitor extends Visitor<Void> {
         System.out.println("Unknown: "+o);
       }
     }    
-    createPromise(decl, capitalize(tag.getTag()), contents, AnnotationSource.JAVADOC, 
-                  tag.getOffset());
+    if (onlyUseAnnotate) {
+    	handleJavadocPromise(decl, contents, tag.getOffset());
+    } else { 
+    	createPromise(decl, capitalize(tag.getTag()), contents, 
+    			      AnnotationSource.JAVADOC, tag.getOffset());
+    }
   }
 
   public static String capitalize(String tag) {
@@ -336,5 +344,29 @@ public class AnnotationVisitor extends Visitor<Void> {
   public boolean handleXMLPromise(IRNode node, String promise, String c) {
     return createPromise(node, capitalize(promise), c, AnnotationSource.XML, 
                          Integer.MAX_VALUE);
+  }
+  
+  /**
+   * Assumes that text looks like Foo("...")
+   */
+  private boolean handleJavadocPromise(IRNode decl, String text, int offset) {
+	  // Test result?
+	  final int startContents = text.indexOf("(\"");
+	  final int endContents = text.lastIndexOf("\")");
+	  if (startContents < 0 || endContents < 0) {		  
+		  SimpleAnnotationParsingContext.reportError(decl, offset, "Syntax not matching Foo(\"...\"): "+text);
+		  return false;
+	  }
+	  // Check if the rest is whitespace
+	  for(int i=endContents+2; i<text.length(); i++) {
+		  if (!Character.isWhitespace(text.charAt(i))) {
+			  SimpleAnnotationParsingContext.reportError(decl, offset, 
+					  "Non-whitespace after annotation: "+text);
+			  return false;
+		  }
+	  }
+	  final String tag = text.substring(0, startContents).trim();
+	  final String contents = text.substring(startContents+2, endContents);
+	  return createPromise(decl, tag, contents, AnnotationSource.JAVADOC, offset);
   }
 }
