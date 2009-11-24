@@ -310,6 +310,7 @@ public class AnnotationVisitor extends Visitor<Void> {
         System.out.println("Unknown: "+o);
       }
     }    
+
     if (onlyUseAnnotate) {
     	handleJavadocPromise(decl, contents, tag.getOffset());
     } else { 
