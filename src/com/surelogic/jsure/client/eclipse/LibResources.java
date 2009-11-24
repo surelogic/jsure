@@ -11,13 +11,14 @@ public class LibResources {
 	 * If you change this you <i>must</i> add the current name to the {@code
 	 * PROMISES_JAR_OLD_VERSIONS} array.
 	 */
-	public static final String PROMISES_JAR = "promises-3.0.0.jar";
+	public static final String PROMISES_JAR = "promises-3.1.0.jar";
 
 	/**
 	 * Holds the names of the old library files that may need to be upgraded to
 	 * the new promises Jar file.
 	 */
-	public static final String[] PROMISES_JAR_OLD_VERSIONS = { "promises.jar" };
+	public static final String[] PROMISES_JAR_OLD_VERSIONS = { "promises.jar",
+			"promises-3.0.0.jar" };
 
 	public static final String PATH = "/lib/";
 	public static final String PROMISES_JAR_PATHNAME = PATH + PROMISES_JAR;
