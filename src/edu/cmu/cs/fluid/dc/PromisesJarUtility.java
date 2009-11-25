@@ -38,6 +38,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.ide.IDE;
 
+import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.common.eclipse.jobs.SLUIJob;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.LibResources;
@@ -51,6 +52,17 @@ public class PromisesJarUtility {
 	public static void finishProjectSetup(final IProject project,
 			final boolean onlyAddJar) {
 		final IJavaProject jp = JavaCore.create(project);
+		if (JDTUtility.getMajorJavaVersion(jp) < 5) {
+			if (onlyAddJar) {
+				final Shell shell = 
+					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+				MessageDialog.openInformation(
+						shell,
+						"No Need for SureLogic Promises Library",
+						"The SureLogic promises library is only for projects using Java 5 and above.");
+			}
+			return;
+		}
 		final boolean foundRegionLock = checkForPromises(jp);
 		SLUIJob job = new SLUIJob() {
 			@Override
