@@ -64,7 +64,7 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider implemen
 	
 	//@Override
 	public String getToolTipText(Object element) {
-		return showCustomToolTips ? "Tooltip (" + element + ")" : null;
+		return showCustomToolTips ? "Tooltip\n (" + element + ")" : null;
 	}
 
 	//@Override
