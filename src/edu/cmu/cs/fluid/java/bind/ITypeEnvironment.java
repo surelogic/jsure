@@ -9,6 +9,7 @@ public interface ITypeEnvironment {
 	/** The Tree used to build all the ASTs used here */
   SyntaxTreeInterface parsetree = JJNode.tree;
 	
+  int getMajorJavaVersion();
   
   public abstract IJavaClassTable getClassTable();
 

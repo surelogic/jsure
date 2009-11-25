@@ -13,6 +13,7 @@ import com.surelogic.annotation.test.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
@@ -27,7 +28,7 @@ public class AnnotationVisitor extends Visitor<Void> {
   private static final String promisePrefix = "com.surelogic.";
   private static final String jcipPrefix = "net.jcip.annotations.";
   
-  public static final boolean allowJavadoc = true;
+  //private static final boolean allowJavadoc = true;
   public static final boolean onlyUseAnnotate = true;
 
   final boolean inEclipse = IDE.getInstance().getClass().getName().contains("Eclipse");
@@ -39,6 +40,12 @@ public class AnnotationVisitor extends Visitor<Void> {
   public AnnotationVisitor(ITypeEnvironment te, String label) {
     tEnv = te;  
     name = label;
+  }
+  
+  public static boolean allowJavadoc(ITypeEnvironment te) {
+	  final IDE ide = IDE.getInstance();
+	  return ide.getBooleanPreference(IDEPreferences.ALLOW_JAVADOC_ANNOS) ||
+	         te.getMajorJavaVersion() < 5; // project is Java 1.4 or below	         
   }
   
   @Override
@@ -275,7 +282,7 @@ public class AnnotationVisitor extends Visitor<Void> {
   }
 
   private void checkForJavadoc(IRNode node, ISrcRef ref) {
-	if (!allowJavadoc) {
+	if (!allowJavadoc(tEnv)) {
 		return;
 	}
     IJavadocElement elt = ref.getJavadoc();

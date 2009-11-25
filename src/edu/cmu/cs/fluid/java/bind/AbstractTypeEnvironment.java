@@ -65,6 +65,10 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  //System.out.println("Total T = "+total);
   }
   
+  public int getMajorJavaVersion() {
+	  return 0; // TODO
+  }
+  
   public IJavaType convertNodeTypeToIJavaType(IRNode nodeType) {
 	  IJavaType result = convertedTypeCache.get(nodeType);
 	  if (result == null) {
