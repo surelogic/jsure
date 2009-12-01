@@ -81,6 +81,7 @@ public interface IAnnotationParsingContext {
     protected IRNode getNode() {
       return null;
     }
+	@Override
 	public String getAllText() {
 		return null;
 	}
