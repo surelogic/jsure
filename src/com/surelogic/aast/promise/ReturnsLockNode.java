@@ -11,10 +11,7 @@ import com.surelogic.parse.AbstractSingleNodeFactory;
  * 
  * @author ethan
  */
-public class ReturnsLockNode extends AASTRootNode {
-	
-	private final LockNameNode lock;
-
+public class ReturnsLockNode extends AbstractSingleLockNode {
 	public static final AbstractSingleNodeFactory factory = 
 		new AbstractSingleNodeFactory("ReturnsLock") {
 		@Override
@@ -29,20 +26,7 @@ public class ReturnsLockNode extends AASTRootNode {
 	
 	
 	public ReturnsLockNode(int offset, LockNameNode lock){
-		super(offset);
-		if(lock == null){
-			throw new IllegalArgumentException("lock is null");
-		}
-		lock.setParent(this);
-		this.lock = lock;
-	}
-	
-	/**
-	 * Return a non-null LockNameNode for the lock that is associated with this
-	 * @return
-	 */
-	public LockNameNode getLock(){
-		return lock;
+		super(offset, lock);
 	}
 
 	/*

@@ -10,9 +10,7 @@ import com.surelogic.parse.AbstractSingleNodeFactory;
  * Represents an AAST node for the @IsLock annotation
  * @author ethan
  */
-public class IsLockNode extends AASTRootNode {
-	private LockNameNode lock;
-	
+public class IsLockNode extends AbstractSingleLockNode {
 	public static final AbstractSingleNodeFactory factory =
 		new AbstractSingleNodeFactory("IsLock"){
 		
@@ -25,12 +23,7 @@ public class IsLockNode extends AASTRootNode {
 	};
 	
 	public IsLockNode(int offset, LockNameNode lock){
-		super(offset);
-		if(lock == null){
-			throw new IllegalArgumentException("lock is null");
-		}
-		lock.setParent(this);
-		this.lock = lock;
+		super(offset, lock);
 	}
 
 	/* (non-Javadoc)
@@ -52,14 +45,6 @@ public class IsLockNode extends AASTRootNode {
 		indent(sb, indent+2);
 		sb.append(getLock().unparse(debug, indent+2));
 		return sb.toString();
-	}
-	
-	/**
-	 * Returns a non-null LockNameNode
-	 * @return
-	 */
-	public LockNameNode getLock(){
-		return lock;
 	}
 	
   @Override
