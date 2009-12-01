@@ -242,6 +242,12 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     return doAccept(ConstructorCall.getObject(node));
   }
   
+  @Override 
+  public IJavaType visitConstructorDeclaration(IRNode node) {
+	IRNode type = VisitUtil.getEnclosingType(node);
+	return JavaTypeFactory.convertNodeTypeToIJavaType(type, binder);
+  }
+  
   @Override
   public IJavaType visitConditionalAndExpression(IRNode node) {
     return JavaTypeFactory.booleanType;
