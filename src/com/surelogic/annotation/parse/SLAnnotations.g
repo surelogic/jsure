@@ -268,7 +268,7 @@ uniqueConstructorExpressionList
     ;
 
 uniqueConstructorExpression
-    : varUse 
+    : varUse | returnValue
     ;
     
 /*************************************************************************************
