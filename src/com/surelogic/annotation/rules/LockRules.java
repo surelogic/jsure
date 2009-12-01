@@ -37,6 +37,7 @@ public class LockRules extends AnnotationRules {
 	private static final String IS_LOCK = "IsLock";
 	private static final String REQUIRES_LOCK = "RequiresLock";
 	private static final String RETURNS_LOCK = "ReturnsLock";
+	private static final String PROHIBITS_LOCK = "ProhibitsLock";
 	private static final String POLICY_LOCK = "PolicyLock";
   private static final String SINGLE_THREADED = "SingleThreaded";
   private static final String SELF_PROTECTED = "ThreadSafe";
@@ -55,6 +56,7 @@ public class LockRules extends AnnotationRules {
 	private static final IsLock_ParseRule isLockRule = new IsLock_ParseRule();
 	private static final RequiresLock_ParseRule requiresLockRule = new RequiresLock_ParseRule();
 	private static final ReturnsLock_ParseRule returnsLockRule = new ReturnsLock_ParseRule();
+	private static final ProhibitsLock_ParseRule prohibitsLockRule = new ProhibitsLock_ParseRule();
   private static final SingleThreaded_ParseRule singleThreadedRule = new SingleThreaded_ParseRule();
   private static final SelfProtected_ParseRule selfProtectedRule = new SelfProtected_ParseRule();
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
@@ -246,10 +248,59 @@ public class LockRules extends AnnotationRules {
 		return returnDrop;
 	}
 
+	public static class ProhibitsLock_ParseRule
+	extends
+	DefaultSLAnnotationParseRule<ProhibitsLockNode, ProhibitsLockPromiseDrop> {
+		public ProhibitsLock_ParseRule() {
+			super(PROHIBITS_LOCK, methodDeclOps, ProhibitsLockNode.class);
+		}
+
+		@Override
+		protected Object parse(IAnnotationParsingContext context,
+				SLAnnotationsParser parser) throws Exception,
+				RecognitionException {
+			return parser.requiresLock().getTree();
+		}
+
+		@Override
+		protected IPromiseDropStorage<ProhibitsLockPromiseDrop> makeStorage() {
+			return SinglePromiseDropStorage.create(name(),
+					ProhibitsLockPromiseDrop.class);
+		}
+
+		@Override
+		protected IAnnotationScrubber<ProhibitsLockNode> makeScrubber() {
+			return new AbstractAASTScrubber<ProhibitsLockNode>(this,
+					ScrubberType.UNORDERED, LOCK,
+					POLICY_LOCK, RETURNS_LOCK, REQUIRES_LOCK) {
+				@Override
+				protected PromiseDrop<ProhibitsLockNode> makePromiseDrop(
+						ProhibitsLockNode a) {
+					return storeDropIfNotNull(getStorage(), a,
+							scrubProhibitsLock(getContext(), a));
+
+				}
+			};
+		}
+	}
+	
 	/**
-	 * Parse rule for the
+	 * Scrubbing code for the ProhibitsLock annotation. If the annotation is good, return a new {@link RequiresLockPromiseDrop}, otherwise
+	 * return <code>null</code>
 	 * 
-	 * @RequiresLock annotation
+	 * @param context
+	 * @param node The ProhibitsLockNode created by the parser
+	 * @return A new ProhibitsLockPromiseDrop if it is a valid annotation, null otherwise
+	 */
+	private static ProhibitsLockPromiseDrop scrubProhibitsLock(
+			IAnnotationScrubberContext context, ProhibitsLockNode node) {
+		// TODO what else?
+		return new ProhibitsLockPromiseDrop(node);
+	}
+	
+	/**
+	 * Parse rule for the @RequiresLock annotation
+	 * 
 	 * @author ethan
 	 */
 	public static class RequiresLock_ParseRule

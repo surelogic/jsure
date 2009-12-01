@@ -539,6 +539,14 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     return rv;
   }
 
+  public T visit(ProhibitsLockNode n) {
+	    T rv = defaultValue;
+	    for (LockSpecificationNode l : n.getLockList()) {
+	      rv = combineResults(rv, doAccept(l));
+	    }
+	    return rv;
+  }
+  
   public T visit(ReturnsLockNode n) {
     T rv = defaultValue;
     rv = combineResults(rv, doAccept(n.getLock()));

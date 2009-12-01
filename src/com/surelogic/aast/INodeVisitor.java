@@ -56,6 +56,7 @@ public interface INodeVisitor<T> {
   T visit(PolicyLockDeclarationNode n);
   T visit(ReturnsLockNode n);
   T visit(RequiresLockNode n);
+  T visit(ProhibitsLockNode n);
   T visit(IsLockNode n);
   T visit(ColorRenameNode n);
   T visit(ConstructorDeclPatternNode n);

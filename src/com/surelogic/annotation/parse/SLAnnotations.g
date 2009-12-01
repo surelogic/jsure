@@ -20,6 +20,7 @@ tokens {
 	EffectSpecifications;
 	EffectSpecification;
 	ImplicitQualifier;
+	ProhibitsLock;
 	RequiresLock;
 	ReturnsLock;
 	InRegion;
@@ -298,6 +299,11 @@ lock
 requiresLock
 	: lockSpecifications -> ^(RequiresLock lockSpecifications)
 	| -> ^(RequiresLock)
+	;
+	
+prohibitsLock
+	: lockSpecifications -> ^(ProhibitsLock lockSpecifications)
+	| -> ^(ProhibitsLock)
 	;
 	
 isLock
