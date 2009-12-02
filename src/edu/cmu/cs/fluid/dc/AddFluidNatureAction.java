@@ -1,7 +1,5 @@
 package edu.cmu.cs.fluid.dc;
 
-import java.util.logging.Level;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -20,7 +18,8 @@ public class AddFluidNatureAction extends SelectedProjectsAction {
     	  return true;
       }
     } catch (CoreException e) {
-      LOG.log(Level.SEVERE, "failure while adding double-checking nature from Java project "
+    	Majordomo.logError("Error While Adding JSure Nature", 
+    			"Unable to add JSure nature from Java project "
           + project.getName(), e);
     }
     return false;

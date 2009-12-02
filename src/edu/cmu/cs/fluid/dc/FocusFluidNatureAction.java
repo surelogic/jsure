@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -16,6 +17,7 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.sea.drops.colors.ColorReqSummaryDrop.Status;
 
 /**
  * Implements a context menu action for IProject and IJavaProject that sets the
@@ -64,16 +66,16 @@ public class FocusFluidNatureAction implements IViewActionDelegate,
 						Nature.removeNatureFromProject(current);
 						changed = true;
 					} catch (CoreException e) {
-						LOG.log(Level.SEVERE,
-								"failure while removing double-checking nature from Java project "
-										+ current.getName(), e);
+				    	Majordomo.logError("Error While Removing JSure Nature", 
+				    			"Unable to remove JSure nature from Java project "
+				    			+ current.getName(), e);
 					}
 				}
 			}
 		}
 
 		// Add the nature to the currently selected project
-		try {
+		try {			
 			if (!Nature.hasNature(project)) {
 				cleanup(); // FIX only for JSure
 				Nature.addNatureToProject(project);
@@ -82,9 +84,9 @@ public class FocusFluidNatureAction implements IViewActionDelegate,
 				Nature.runAnalysis(project);
 			}
 		} catch (CoreException e) {
-			LOG.log(Level.SEVERE,
-					"failure while adding double-checking nature to Java project "
-							+ project.getName(), e);
+	    	Majordomo.logError("Error While Adding JSure Nature", 
+	    			"Unable to add JSure nature from Java project "
+	    			+ project.getName(), e);
 		}
 	}
 

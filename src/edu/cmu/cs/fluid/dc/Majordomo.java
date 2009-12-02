@@ -10,6 +10,9 @@ import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 
 import com.surelogic.common.eclipse.builder.*;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
@@ -115,6 +118,14 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		t.start();
 	}
 
+	public static void logError(String title, String msg, Throwable t) {
+		LOG.log(Level.SEVERE, msg, t);
+		
+		final IWorkbenchWindow win = 
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		MessageDialog.openError(win.getShell(), title, msg+": \n\t"+t.getMessage());
+	}
+	
 	private void propagateCancel() {
 		Iterator<IAnalysis> it = getAnalysisModules();
 		while (it.hasNext()) {
