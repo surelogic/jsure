@@ -56,6 +56,9 @@ public final class PromiseDropStorage {
 	
 	public static void clearDrops(IRNode n) {
 		for(BooleanPromiseDropStorage<?> b : booleans) {
+			if (b.getSlotInfo() == null) {
+				continue;
+			}
 			Object o = n.getSlotValue(b.getSlotInfo());
 			if (o != null) {
 				//System.out.println("Cleared: "+b.name()+" on "+n);
@@ -63,6 +66,9 @@ public final class PromiseDropStorage {
 			}
 		}
 		for(SinglePromiseDropStorage<?> s : nodes) {
+			if (s.getSlotInfo() == null) {
+				continue;
+			}
 			Object o = n.getSlotValue(s.getSlotInfo());
 			if (o != null) {
 				//System.out.println("Cleared: "+s.name()+" on "+n);
@@ -70,6 +76,9 @@ public final class PromiseDropStorage {
 			}		
 		}
 		for(PromiseDropSeqStorage<?> s : sequences) {
+			if (s.getSeqSlotInfo() == null) {
+				continue;
+			}
 			Object o = n.getSlotValue(s.getSeqSlotInfo());
 			if (o != null) {
 				//System.out.println("Cleared: "+s.name()+" on "+n);
