@@ -609,7 +609,7 @@ public class LockRules extends AnnotationRules {
       final String regionName = regionBinding.getModel().regionName;
       if (!protectedRegions.addIfNotAlreadyProtected(
           context.getBinder().getTypeEnvironment(), regionName, promisedForType)) {
-        context.reportError(lockDecl, "Region \"{0}\" is already associated with a lock", regionName);
+        context.reportError(lockDecl, "Region \"{0}\" is already protected by a lock", regionName);
         declIsGood = false;
       }
       
@@ -630,7 +630,7 @@ public class LockRules extends AnnotationRules {
           context.reportError(
               "Static region \"" //$NON-NLS-1$
               + region
-              + "\" is not associated with a static field", lockDecl); //$NON-NLS-1$
+              + "\" should be protected by a static field", lockDecl); //$NON-NLS-1$
           declIsGood = false;
         }
 
@@ -643,7 +643,7 @@ public class LockRules extends AnnotationRules {
           context.reportError(
               "Static region \"" + //$NON-NLS-1$
               region
-              + "\" may only be associated with a lock in the class" + //$NON-NLS-1$
+              + "\" may only be protected by a lock in the class" + //$NON-NLS-1$
               " that declares it",
               lockDecl); //$NON-NLS-1$
           declIsGood = false;
@@ -655,7 +655,8 @@ public class LockRules extends AnnotationRules {
           context.reportError(
               "Instance region \"" //$NON-NLS-1$
               + region
-              + "\" is not associated with an instance field", lockDecl); //$NON-NLS-1$
+              + "\" should be protected by an instance field; consider including "+region+
+              " in a static region", lockDecl); //$NON-NLS-1$
           declIsGood = false;
         }
       }
