@@ -2057,13 +2057,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         if (lockMethod.isLock) {
           final Set<IRNode> unlocks = mustRelease.getUnlocksFor(expr);
           if (unlocks == null) { // POISONED!
-            final InfoDrop match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_LOCK_CALL, lockMethod.name);
+            final InfoDrop match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_LOCK_CALL, lockMethod.name);
             for (HeldLock lock : lockSet) {
               lock.getLockPromise().addDependent(match);
             }
           } else {
             if (unlocks.isEmpty()) {
-              final InfoDrop match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_UNLOCKS, lockMethod.name);
+              final InfoDrop match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_UNLOCKS, lockMethod.name);
               for (HeldLock lock : lockSet) {
                 lock.getLockPromise().addDependent(match);
               }
@@ -2083,13 +2083,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         if (lockMethod == LockMethods.UNLOCK) {
           final Set<IRNode> locks = mustHold.getLocksFor(expr);
           if (locks == null) { // POISONED!
-            final InfoDrop match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_UNLOCK_CALL);
+            final InfoDrop match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_UNLOCK_CALL);
             for (HeldLock lock : lockSet) {
               lock.getLockPromise().addDependent(match);
             }
           } else {
             if (locks.isEmpty()) {
-              final InfoDrop match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_LOCKS);
+              final InfoDrop match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_LOCKS);
               for (HeldLock lock : lockSet) {
                 lock.getLockPromise().addDependent(match);
               }
