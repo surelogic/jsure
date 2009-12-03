@@ -171,7 +171,7 @@ public abstract class IRReferenceDrop extends Drop {
       for (SupportingInformation si : supportingInformation) {
         if (message.equals(si.message) && 
             si.location != null && (si.location == link || si.location.equals(link))) {
-          LOG.warning("Duplicate supporting information");
+          LOG.fine("Duplicate supporting information");
           return;
         }
       }
