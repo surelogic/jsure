@@ -11,13 +11,14 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
 
-public class SeaSnapshot {	
+public class SeaSnapshot extends AbstractSeaXmlCreator {	
 	public static final String SUFFIX = ".sea.xml";
-	
+		
 	private final Map<Drop,String> idMap = new HashMap<Drop,String>();
-	private final StringBuilder b = new StringBuilder();
-	private boolean firstAttr = true;
-	private PrintWriter pw = null;
+	
+	public SeaSnapshot(File location) throws IOException {
+		super(location);
+	}
 	
 	private String computeId(Drop d) {
 		String id = idMap.get(d);
@@ -29,15 +30,7 @@ public class SeaSnapshot {
 		return id;
 	}
 	
-	private void reset() {
-		b.setLength(0);
-		firstAttr = true;
-	}
-	
-	public void snapshot(String project, final Sea sea, File location) throws IOException {
-    	pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(location), "UTF-8"));
-		pw.println("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>");
-		
+	public void snapshot(String project, final Sea sea) throws IOException {
 		reset();
 		Entities.start(ROOT, b);
 		Entities.addAttribute(UID_ATTR, UUID.randomUUID().toString(), b);
@@ -49,7 +42,7 @@ public class SeaSnapshot {
 		}
 		pw.println("</"+ROOT+">\n");
 		pw.close();
-		pw = null;
+		//pw = null;
 		//JSureXMLReader.readSnapshot(location, null);
 	}
 	
@@ -72,28 +65,6 @@ public class SeaSnapshot {
 		b.append("</"+name+">\n");
 		pw.println(b.toString());	
     }
-	
-	public void addAttribute(String name, boolean value) {
-		if (value) {
-			addAttribute(name, Boolean.toString(value));
-		}
-	}
-	
-	public void addAttribute(String name, Long value) {		
-		if (value == null) {
-			return;
-		}
-		addAttribute(name, value.toString());		
-	}
-	
-	public void addAttribute(String name, String value) {
-		if (firstAttr) {
-			firstAttr = false;
-		} else {
-			b.append("\n\t");
-		}
-		Entities.addAttribute(name, value, b);
-	}
 	
 	public void refDrop(String name, Drop d) {
 		refDrop(name, d, null, null);
@@ -119,13 +90,7 @@ public class SeaSnapshot {
 		}
 		b.append(indent);
 		Entities.start(SOURCE_REF, b);
-		Entities.addAttribute(LINE_ATTR, s.getLineNumber(), b);
-		Object file = s.getEnclosingFile();
-		if (file instanceof String) {
-			addAttribute(FILE_ATTR, file.toString());
-		} else {
-			addAttribute(FILE_ATTR, file.toString());
-		}		
+		addLocation(s);		
 		addAttribute(HASH_ATTR, s.getHash());
 		addAttribute(CUNIT_ATTR, s.getCUName());
 		addAttribute(PKG_ATTR, s.getPackage());

@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.java.promise.TextFile;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -481,7 +481,7 @@ public abstract class Drop {
 		}
 	}
 	
-	public void snapshotAttrs(SeaSnapshot s) {
+	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		s.addAttribute(MESSAGE, getMessage());
 	}
 

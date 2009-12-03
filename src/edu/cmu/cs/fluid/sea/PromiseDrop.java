@@ -10,7 +10,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.ScopedPromises;
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
  * Abstract base class for tracking all promises in the "sea" of knowledge.
@@ -487,7 +487,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	}
 
 	@Override
-	public void snapshotAttrs(SeaSnapshot s) {
+	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		super.snapshotAttrs(s);
 		s.addAttribute("assumed", isAssumed());
 		s.addAttribute("checked-by-analysis", isCheckedByAnalysis());

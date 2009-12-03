@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.*;
 
+import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 /**
@@ -363,8 +364,9 @@ public class ResultDrop extends ProofDrop {
 	}
 
 	@Override
-	public void snapshotAttrs(SeaSnapshot s) {
+	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		super.snapshotAttrs(s);
+		s.addAttribute("vouched", isVouched());
 		s.addAttribute("consistent", isConsistent());
 		if (type != null) {
 			s.addAttribute("result-type", type);

@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.sea;
 
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
  * Represents a promise or a result used in the code/model consistency proof.
@@ -51,7 +51,7 @@ public abstract class ProofDrop extends IRReferenceDrop {
   }	
   
   @Override
-  public void snapshotAttrs(SeaSnapshot s) {
+  public void snapshotAttrs(AbstractSeaXmlCreator s) {
 	  super.snapshotAttrs(s);
 	  s.addAttribute("used-red-dot", proofUsesRedDot());
 	  s.addAttribute("proved-consistent", provedConsistent());

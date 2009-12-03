@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.sea;
 
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
  * Drops for reporting inferred or information to the user, "i" results.
@@ -17,7 +17,7 @@ public class InfoDrop extends IRReferenceDrop {
 	}
 	
 	@Override
-	public void snapshotAttrs(SeaSnapshot s) {
+	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		super.snapshotAttrs(s);
 		if (type != null) {
 			s.addAttribute("result-type", type);

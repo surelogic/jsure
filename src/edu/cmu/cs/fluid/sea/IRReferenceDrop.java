@@ -11,7 +11,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
  * The abstract base class for all drops within the sea which reference
@@ -220,7 +220,7 @@ public abstract class IRReferenceDrop extends Drop {
   }	
   
   @Override
-  public void snapshotAttrs(SeaSnapshot s) {
+  public void snapshotAttrs(AbstractSeaXmlCreator s) {
 	  super.snapshotAttrs(s);
 	  if (getCategory() != null) {
 		  s.addAttribute("category", getCategory().getKey());

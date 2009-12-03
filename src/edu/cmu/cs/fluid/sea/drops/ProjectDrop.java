@@ -2,7 +2,7 @@ package edu.cmu.cs.fluid.sea.drops;
 
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.*;
 
 public class ProjectDrop extends Drop {
   final String projectName;
@@ -26,7 +26,7 @@ public class ProjectDrop extends Drop {
   }	
   
   @Override
-  public void snapshotAttrs(SeaSnapshot s) {
+  public void snapshotAttrs(AbstractSeaXmlCreator s) {
 	  super.snapshotAttrs(s);
 	  s.addAttribute("name", projectName);
   }

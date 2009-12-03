@@ -11,7 +11,7 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
  * Drop representating a compilation unit, suitable for promise and result drops
@@ -157,7 +157,7 @@ public abstract class CUDrop extends Drop {
   }	
   
   @Override
-  public void snapshotAttrs(SeaSnapshot s) {
+  public void snapshotAttrs(AbstractSeaXmlCreator s) {
 	  super.snapshotAttrs(s);
 	  s.addAttribute("filename", javaOSFileName);
   }
