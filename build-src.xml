@@ -20,11 +20,6 @@
 	<!--   Either "fluid-build.properities" or ".fluid-build.properties"     -->
 	<!--   must exist in "user.home" (as defined by the JRE). Even under     -->
 	<!--   MS Windows use "/" as the directory separator.                    -->
-	<!--   Required Properties:                                              -->
-	<!--     "fluid.perl" The full path and name of the perl executable      -->
-	<!--                  be provided.                                       -->
-	<!--         Example (Linux):   fluid.perl=/usr/bin/perl                 -->
-	<!--         Example (Windows): fluid.perl=C:/Perl/bin/perl.exe          -->
 	<!--                                                                     -->
 	<!--   Optional Properties:                                              -->
 	<!--     "fluid.javadoc.dir" path to where to put the Javadoc            -->
@@ -177,8 +172,6 @@
 		<!-- Show the user what values we are using -->
 		<echo message="Using build property file '${build-prop-file}'" />
 		<echo message="----------------------------------------------------------" />
-		<echo message="--> [required] Perl interperter (fluid.perl) is '${fluid.perl}'" />
-		<echo message="----------------------------------------------------------" />
 		<echo message="--> [optional] Javadoc destination dir (fluid.javadoc.dir) is '${fluid.javadoc.dir}'" />
 		<echo message="--> [optional] Javadoc parameters (fluid.javadoc.params) is '${fluid.javadoc.params}'" />
 		<echo message="--> [optional] Java skip list (fluid.java.skip) is '${fluid.java.skip}'" />
@@ -197,103 +190,19 @@
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="fluid-java-operator" depends="init">
-		<!-- Generate Java source code in /edu/cmu/cs/fluid/java/operator -->
-		<mkdir dir="${fjo-gen-dir}" />
-		<apply dir="${fjo-ops-dir}" dest="${fjo-gen-dir}" executable="${fluid.perl}" skipemptyfilesets="true" parallel="false">
-			<arg value="${perl-lib}/create-operator" />
-			<arg value="-header=header" />
-			<arg value="-nodetype=JavaNode" />
-			<arg value="-optype=JavaOperator" />
-			<arg value="-unparse=true" />
-			<arg value="-unparsetype=JavaUnparser" />
-			<arg value="-genvisitor=true" />
-			<arg value="-target=${fjo-gen-dir}" />
-			<arg value="Info:String" />
-			<arg value="DimInfo:int" />
-			<arg value="Modifiers:int" />
-			<arg value="Names:IRSequence" />
-			<arg value="Op:JavaOperator" />
-			<arg value="Code:Object" />
-			<arg value="ForInit:ForInitInterface" />
-			<arg value="ImportName:ImportNameInterface" />
-			<arg value="StatementExpression:StatementExpressionInterface" />
-			<arg value="OptArrayInitializer:OptArrayInitializerInterface" />
-			<arg value="ConstantNode:IRNode" />
-			<arg value="ConstantInt:int" />
-			<targetfile />
-			<srcfile />
-			<fileset dir="${fjo-ops-dir}" includes="*.op" />
-			<mapper type="glob" from="*.op" to="*.java" />
-		</apply>
-		<!-- workaround for problem with ActivePerl truncating .java to .jav -->
-		<move todir="${fjo-gen-dir}">
-			<fileset dir="${fjo-gen-dir}" includes="*.jav" />
-			<mapper type="glob" from="*.jav" to="*.java" />
-		</move>
-		<!-- Check if the existing LoadOperator.java file is up to date -->
-		<uptodate property="fjo-uptodate" targetfile="${fjo-gen-dir}/LoadOperator.java">
-			<srcfiles dir="${fjo-gen-dir}" includes="*.java" excludes="${fjo-gen-dir}/LoadOperator.java,${fjo-dir}/*Visitor.java,${fjo-dir}/IAcceptor.java" />
-		</uptodate>
-		<uptodate property="fjo-visitors-done" targetfile="${fjo-gen-dir}/Visitor.java">
-			<srcfiles dir="${fjo-ops-dir}" includes="*.op" />
-		</uptodate>
-	</target>
-
-	<target name="fluid-java-operator-genloadclass" depends="fluid-java-operator" unless="fjo-uptodate">
-		<exec dir="${fjo-ops-dir}" executable="${fluid.perl}" output="${fjo-gen-dir}/LoadOperator.java">
-			<arg value="${perl-lib}/gen-loadopclasses" />
-			<arg value="edu.cmu.cs.fluid.java.operator" />
-			<arg value="LoadOperator" />
-		</exec>
-	</target>
-
-	<!-- Generate visitor classes 
-       (not just Visitor.java but also IVisitor.java) -->
-	<target name="fluid-java-operator-visitors" depends="fluid-java-operator" unless="fjo-visitors-done">
-		<exec dir="${fjo-gen-dir}" executable="${fluid.perl}">
-			<arg value="${perl-lib}/gen-visitor-classes" />
-			<arg value="-header=${fjo-ops-dir}/header" />
-			<arg value="-nodetype=JavaNode" />
-			<arg value="-optype=JavaOperator" />
-			<arg value="-source=${fjo-ops-dir}" />
-		</exec>
-	</target>
-
-	<!-- Generate the package.html file for fluid.java.operator -->
-	<target name="fluid-java-operator-package-html" depends="fluid-java-operator">
-		<exec dir="${fjo-ops-dir}" executable="${fluid.perl}" output="${fjo-gen-dir}/package.html">
-			<arg value="${perl-lib}/document-operators" />
-			<arg value="-package=edu.cmu.cs.fluid.java.operator" />
-			<arg value="-header=header.html" />
-			<arg value="-start=CompilationUnit" />
-			<arg value="-supers:Assignment=StatementExpression" />
-			<arg value="-supers:FloatingPointType=NumericType" />
-			<arg value="-supers:IntegralType=NumericType" />
-			<arg value="-supers:NumericType=PrimitiveType" />
-			<arg value="-supers:PrimitiveType=Type" />
-			<arg value="-supers:ReferenceType=Type" />
-			<arg value="ForInit:ForInitInterface" />
-			<arg value="ImportName:ImportNameInterface" />
-			<arg value="StatementExpression:StatementExpressionInterface" />
-			<arg value="OptArrayInitializer:OptArrayInitializerInterface" />
-			<arg value="ClassBodyDeclaration:ClassBodyDeclInterface" />
-			<arg value="ReturnType:ReturnTypeInterface" />
-			<arg value="TypeDeclaration:TypeDeclInterface" />
-			<arg value="Type:TypeInterface" />
-		</exec>
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
 	<target name="fluid-java-parse" depends="init">
 		<!-- Generate Java source code in /edu/cmu/cs/fluid/java/parse -->
 		<jjtree outputdirectory="${fjp-dir}" target="${fjp-dir}/JavaX.jjt" javacchome="${javacc-home}" />
-		<!-- copy file="${fjp-dir}/JavaX.jj" tofile="${fjp-dir}/Java.jj" overwrite="no"/ -->
+		<copy file="${fjp-dir}/JavaX.jj" tofile="${fjp-dir}/Java.jj" overwrite="no"/>
+		<!--
 		<exec dir="${fjp-dir}" executable="${fluid.perl}" input="${fjp-dir}/JavaX.jj" output="${fjp-dir}/Java.jj">
 			<arg value="-pe" />
 			<arg value="s/SimpleNode([ \)])/JavaNode$+/g" />
 		</exec>
+		-->
+		<replaceregexp file="${fjp-dir}/Java.jj" flags="g"
+		                         match="SimpleNode([ \)])"
+		                         replace="JavaNode\1"/>
 		<!-- Check if we really need to run the JavaCC -->
 		<uptodate property="fjp-uptodate" targetfile="${fjp-dir}/JavaParser.java">
 			<srcfiles dir="${fjp-dir}" includes="Java.jj" />
@@ -309,99 +218,20 @@
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="fluid-java-promise" depends="init">
-		<mkdir dir="${fjpr-gen-dir}" />
-		<!-- Generate Java source code in /edu/cmu/cs/fluid/java/promise -->
-		<apply dir="${fjpr-ops-dir}" dest="${fjpr-gen-dir}" executable="${fluid.perl}" skipemptyfilesets="true" parallel="false">
-			<arg value="${perl-lib}/create-operator" />
-			<arg value="-header=${fjpr-ops-dir}/header" />
-			<arg value="-nodetype=JavaPromise" />
-			<arg value="-optype=JavaPromiseOperator" />
-			<arg value="-createmethod=createPromise" />
-			<arg value="-unparse=true" />
-			<arg value="-unparsetype=JavaUnparser" />
-			<arg value="Info:String" />
-			<arg value="Comment:String" />
-			<arg value="Modifiers:int" />
-			<arg value="IsWrite:boolean" />
-			<targetfile />
-			<srcfile />
-			<fileset dir="${fjpr-ops-dir}" includes="*.op" />
-			<mapper type="glob" from="*.op" to="*.java" />
-		</apply>
-		<!-- workaround for problem with ActivePerl truncating .java to .jav -->
-		<move todir="${fjpr-gen-dir}">
-			<fileset dir="${fjpr-gen-dir}" includes="*.jav" />
-			<mapper type="glob" from="*.jav" to="*.java" />
-		</move>
-		<!-- Check if the existing LoadPromises.java file is up to date -->
-		<uptodate property="fjpr-uptodate" targetfile="${fjpr-gen-dir}/LoadPromises.java">
-			<srcfiles dir="${fjpr-gen-dir}" includes="*.java" excludesfile="${fjpr-gen-dir}/LoadPromises.java" />
-		</uptodate>
-	</target>
-
-	<target name="fluid-java-promise-genloadclass" depends="fluid-java-promise" unless="fjpr-uptodate">
-		<exec dir="${fjpr-ops-dir}" executable="${fluid.perl}" output="${fjpr-gen-dir}/LoadPromises.java">
-			<arg value="${perl-lib}/gen-loadopclasses" />
-			<arg value="edu.cmu.cs.fluid.java.promise" />
-			<arg value="LoadPromises" />
-		</exec>
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<target name="fluid-parse" depends="init">
-		<mkdir dir="${fp-gen-dir}" />
-		<!-- Generate Java source code in /edu/cmu/cs/fluid/parse -->
-		<apply dir="${fp-ops-dir}" dest="${fp-gen-dir}" executable="${fluid.perl}" skipemptyfilesets="true" parallel="false">
-			<arg value="${perl-lib}/create-operator" />
-			<arg value="-header=header" />
-			<arg value="-nodetype=JavaNode" />
-			<arg value="-optype=JavaOperator" />
-			<arg value="-unparse=true" />
-			<arg value="-unparsetype=JavaUnparser" />
-			<arg value="Info:String" />
-			<arg value="DimInfo:int" />
-			<arg value="Modifiers:int" />
-			<arg value="Names:IRSequence" />
-			<arg value="Op:JavaOperator" />
-			<arg value="Code:Object" />
-			<arg value="ConstantNode:IRNode" />
-			<arg value="ConstantInt:int" />
-			<targetfile />
-			<srcfile />
-			<fileset dir="${fp-ops-dir}" includes="*.op" />
-			<mapper type="glob" from="*.op" to="*.java" />
-		</apply>
-		<!-- workaround for problem with ActivePerl truncating .java to .jav -->
-		<move todir="${fp-gen-dir}">
-			<fileset dir="${fp-gen-dir}" includes="*.jav" />
-			<mapper type="glob" from="*.jav" to="*.java" />
-		</move>
-		<!-- Check if the existing LoadParseOp.java file is up to date -->
-		<uptodate property="fp-uptodate" targetfile="${fp-gen-dir}/LoadParseOp.java">
-			<srcfiles dir="${fp-gen-dir}" includes="*.java" excludesfile="${fp-gen-dir}/LoadParseOp.java" />
-		</uptodate>
-	</target>
-
-	<target name="fluid-parse-genloadclass" depends="fluid-parse" unless="fp-uptodate">
-		<exec dir="${fp-ops-dir}" executable="${fluid.perl}" output="${fp-gen-dir}/LoadParseOp.java">
-			<arg value="${perl-lib}/gen-loadopclasses" />
-			<arg value="edu.cmu.cs.fluid.parse" />
-			<arg value="LoadParseOp" />
-		</exec>
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
 	<target name="fluid-promise-parse" depends="init">
 		<!-- Generate Java source code in /edu/cmu/cs/fluid/promise/parse -->
 		<jjtree outputdirectory="${fpp-dir}" target="${fpp-dir}/PromiseX.jjt" javacchome="${javacc-home}" />
-		<!-- copy file="${fpp-dir}/PromiseX.jj" tofile="${fpp-dir}/Promise.jj" overwrite="no"/ -->
+		<copy file="${fpp-dir}/PromiseX.jj" tofile="${fpp-dir}/Promise.jj" overwrite="no"/>
+		<!--
 		<exec dir="${fpp-dir}" executable="${fluid.perl}" input="${fpp-dir}/PromiseX.jj" output="${fpp-dir}/Promise.jj">
 			<arg value="-pe" />
 			<arg value="s/SimpleNode([ \)])/JavaNode$+/g" />
 		</exec>
+		-->
+		<replaceregexp file="${fpp-dir}/Promise.jj" flags="g"
+		                         match="SimpleNode([ \)])"
+		                         replace="JavaNode\1"/>
+
 		<!-- Check if we really need to run the JavaCC -->
 		<uptodate property="fep-uptodate" targetfile="${fpp-dir}/PromiseParser.java">
 			<srcfiles dir="${fpp-dir}" includes="Promise.jj" />
@@ -433,17 +263,6 @@
   	generate-syntaxTreeNodes-from-operators,
   	generate-crystal-from-operators,
     fluid-java-parse-javacc,
-    fluid-promise-parse-javacc">
-		<echo message="All source code created..." />
-	</target>
-
-	<target name="old-build-src" depends="
-    fluid-java-operator-genloadclass,
-    fluid-java-operator-visitors,
-    fluid-java-operator-package-html,
-    fluid-java-parse-javacc,
-    fluid-java-promise-genloadclass,
-    fluid-parse-genloadclass,
     fluid-promise-parse-javacc">
 		<echo message="All source code created..." />
 	</target>
@@ -599,9 +418,6 @@
 
 		<!-- Delete generated files in /edu/cmu/cs/fluid/java/operator -->
 		<echo message="Cleaning up in ${fjo-dir}" />
-		<exec dir="${fjo-dir}" executable="${fluid.perl}">
-			<arg value="${perl-lib}/clean-op2java" />
-		</exec>
 		<delete quiet="true" file="${fjo-dir}/LoadOperator.java" />
 		<delete quiet="true" file="${fjo-dir}/Visitor.java" />
 		<delete quiet="true" file="${fjo-dir}/IVisitor.java" />
@@ -625,16 +441,10 @@
 
 		<!-- Delete generated files in /edu/cmu/cs/fluid/java/promise -->
 		<echo message="Cleaning up in ${fjpr-dir}" />
-		<exec dir="${fjpr-dir}" executable="${fluid.perl}">
-			<arg value="${perl-lib}/clean-op2java" />
-		</exec>
 		<delete quiet="true" file="${fjpr-dir}/LoadPromises.java" />
 
 		<!-- Delete generated files in /edu/cmu/cs/fluid/parse -->
 		<echo message="Cleaning up in ${fp-dir}" />
-		<exec dir="${fp-dir}" executable="${fluid.perl}">
-			<arg value="${perl-lib}/clean-op2java" />
-		</exec>
 		<delete quiet="true" file="${fp-dir}/LoadParseOp.java" />
 
 		<echo message="Cleaning up in ${gensrc}" />
@@ -660,9 +470,6 @@
 	<target name="clean-java-operator" depends="read-prop-file">
 		<!-- Delete generated files in /edu/cmu/cs/fluid/java/operator -->
 		<echo message="Cleaning up in ${fjo-dir}" />
-		<exec dir="${fjo-dir}" executable="${fluid.perl}">
-			<arg value="${perl-lib}/clean-op2java" />
-		</exec>
 		<delete quiet="true" file="${fjo-dir}/LoadOperator.java" />
 		<delete quiet="true" file="${fjo-dir}/Visitor.java" />
 		<delete quiet="true" file="${fjo-dir}/IVisitor.java" />
