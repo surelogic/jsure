@@ -56,7 +56,7 @@ public class LockRules extends AnnotationRules {
 	private static final IsLock_ParseRule isLockRule = new IsLock_ParseRule();
 	private static final RequiresLock_ParseRule requiresLockRule = new RequiresLock_ParseRule();
 	private static final ReturnsLock_ParseRule returnsLockRule = new ReturnsLock_ParseRule();
-	private static final ProhibitsLock_ParseRule prohibitsLockRule = new ProhibitsLock_ParseRule();
+	//private static final ProhibitsLock_ParseRule prohibitsLockRule = new ProhibitsLock_ParseRule();
   private static final SingleThreaded_ParseRule singleThreadedRule = new SingleThreaded_ParseRule();
   private static final SelfProtected_ParseRule selfProtectedRule = new SelfProtected_ParseRule();
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
@@ -161,6 +161,7 @@ public class LockRules extends AnnotationRules {
 		registerParseRuleStorage(fw, isLockRule);
 		registerParseRuleStorage(fw, requiresLockRule);
 		registerParseRuleStorage(fw, returnsLockRule);
+		//registerParseRuleStorage(fw, prohibitsLockRule);
     registerParseRuleStorage(fw, singleThreadedRule);
     registerParseRuleStorage(fw, selfProtectedRule);
     registerParseRuleStorage(fw, notThreadSafeRule);
