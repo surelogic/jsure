@@ -33,10 +33,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	public void snapshot(String project, final Sea sea) throws IOException {
 		reset();
 		Entities.start(ROOT, b);
-		Entities.addAttribute(UID_ATTR, UUID.randomUUID().toString(), b);
-		Entities.addAttribute(PROJECT_ATTR, project, b);
+		addAttribute(UID_ATTR, UUID.randomUUID().toString());
+		addAttribute(PROJECT_ATTR, project);
 		b.append(">\n");
-		pw.println(b.toString());
+		flushBuffer(pw);
+
 		for(Drop d : sea.getDrops()) {
 			snapshotDrop(d);
 		}
@@ -45,7 +46,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		//pw = null;
 		//JSureXMLReader.readSnapshot(location, null);
 	}
-	
+
 	public void snapshotDrop(Drop d) {
 		if (idMap.containsKey(d)) {
 			return;
@@ -63,7 +64,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		b.append(">\n");
 		d.snapshotRefs(this);
 		b.append("</"+name+">\n");
-		pw.println(b.toString());	
+		flushBuffer(pw);	
     }
 	
 	public void refDrop(String name, Drop d) {

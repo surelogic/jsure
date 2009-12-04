@@ -5,12 +5,14 @@ import static com.surelogic.jsure.xml.AbstractXMLReader.FILE_ATTR;
 import static com.surelogic.jsure.xml.AbstractXMLReader.LINE_ATTR;
 
 import java.io.*;
+import java.util.*;
 
 import com.surelogic.common.xml.Entities;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 public class AbstractSeaXmlCreator {
+	protected final Map<String,String> attributes = new HashMap<String,String>();
 	protected final StringBuilder b = new StringBuilder();
 	protected boolean firstAttr = true;
 	protected final PrintWriter pw;
@@ -19,10 +21,16 @@ public class AbstractSeaXmlCreator {
     	pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(location), "UTF-8"));
 		pw.println("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>");
 	}
+		
+	protected void flushBuffer(PrintWriter pw) {
+		pw.println(b.toString());
+		reset();
+	}
 	
 	protected final void reset() {
 		b.setLength(0);
 		firstAttr = true;
+		attributes.clear();
 	}
 	 
 	public void addAttribute(String name, boolean value) {
@@ -45,10 +53,11 @@ public class AbstractSeaXmlCreator {
 			b.append("\n\t");
 		}
 		Entities.addAttribute(name, value, b);
+		attributes.put(name, value);
 	}
 	
 	protected void addLocation(ISrcRef ref) {
-		Entities.addAttribute(LINE_ATTR, ref.getLineNumber(), b);
+		addAttribute(LINE_ATTR, (long) ref.getLineNumber());
 		Object file = ref.getEnclosingFile();
 		if (file instanceof String) {
 			addAttribute(FILE_ATTR, file.toString());
