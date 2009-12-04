@@ -59,7 +59,7 @@ public abstract class AbstractFluidAnalysisModule extends
     Eclipse.initialize();
   }
   private static final String PROMISES_XML_SUFFIX = ".promises.xml";
-  protected static final String JSURE_PROPERTIES = "fluid.properties";
+  protected static final String JSURE_PROPERTIES = "jsure.properties";
   private static final Logger LOG = SLLogger
       .getLogger("AbstractFluidAnalysisModule");
 
