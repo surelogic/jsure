@@ -396,13 +396,13 @@ public final class ModulePromises extends AbstractPromiseAnnotation {
   }
 
   public static void defaultAsSource(boolean b) {
-    LOG.info(b ? "Defaulting to load as source" : "Defaulting to load as class");
+    LOG.fine(b ? "Defaulting to load as source" : "Defaulting to load as class");
     defaultAsSource = b;
   }
 
   public static void defaultAsNeeded(boolean b) {
     if (b) {
-      LOG.info("Defaulting to load as needed");
+      LOG.fine("Defaulting to load as needed");
     }
     defaultAsNeeded = b;
   } 
@@ -417,7 +417,7 @@ public final class ModulePromises extends AbstractPromiseAnnotation {
   
   public static void setAsNeeded(String modulePattern, boolean b) {
     final String msg = b ? "Loading as needed: " : "Loading required: ";
-    LOG.info(msg+modulePattern);
+    LOG.fine(msg+modulePattern);
     List<ModulePattern> l = b ? yes_AsNeeded : no_AsNeeded; 
     ModulePattern p       = findPattern(modulePattern);
     l.add(p);
@@ -425,7 +425,7 @@ public final class ModulePromises extends AbstractPromiseAnnotation {
 
   public static void setAsSource(String modulePattern, boolean b) {
     final String msg = b ? "Loading as source: " : "Loading as class: ";
-    LOG.info(msg+modulePattern);
+    LOG.fine(msg+modulePattern);
     List<ModulePattern> l = b ? yes_AsSource : no_AsSource; 
     ModulePattern p       = findPattern(modulePattern);
     l.add(p);
@@ -490,7 +490,7 @@ public final class ModulePromises extends AbstractPromiseAnnotation {
     List<ScopedModuleRecord> modules = scopedModules.get(pkgName);
     if (modules == null) {
       modules = new ArrayList<ScopedModuleRecord>(2);
-      LOG.info("Creating scoped module for "+pkgName+": "+DebugUnparser.toString(sm));
+      LOG.fine("Creating scoped module for "+pkgName+": "+DebugUnparser.toString(sm));
       scopedModules.put(pkgName, modules);
     }
     modules.add(new ScopedModuleRecord(sm, name, matcher));   
