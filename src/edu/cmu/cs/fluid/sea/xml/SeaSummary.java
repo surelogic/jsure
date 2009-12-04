@@ -52,7 +52,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			IRReferenceDrop id = (IRReferenceDrop) d;
 			ISrcRef ref = id.getSrcRef();
 			if (ref == null) {
-				System.out.println("No src ref for "+d.getMessage());
+				if (!d.getMessage().contains("java.lang.Object")) {
+					System.out.println("No src ref for "+d.getMessage());
+				}
 				return;				
 			}			
 			reset();
