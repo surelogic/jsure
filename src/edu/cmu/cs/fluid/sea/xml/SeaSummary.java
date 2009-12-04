@@ -74,10 +74,13 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		} 
 	}
 
-	private long computeHash(IRNode node) {
-		IRNode parent = JJNode.tree.getParentOrNull(node);
-		IRNode context = parent == null ? node : parent;
-		String unparse = DebugUnparser.toString(context);
+	private long computeHash(IRNode node) {			
+		IRNode parent  = JJNode.tree.getParentOrNull(node);
+		String unparse = DebugUnparser.toString(node);
+		if (parent != null) {
+			String unparse2 = DebugUnparser.toString(parent);
+			return unparse.hashCode() + (long) unparse2.hashCode();
+		}	
 		return unparse.hashCode();
 	}
 }
