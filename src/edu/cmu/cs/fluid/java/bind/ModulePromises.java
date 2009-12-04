@@ -451,10 +451,14 @@ public final class ModulePromises extends AbstractPromiseAnnotation {
   }
   
   public static boolean loadedAsNeeded(String module) {
-    return processPatterns(module, yes_AsNeeded, no_AsNeeded, defaultAsNeeded);
+    boolean rv = processPatterns(module, yes_AsNeeded, no_AsNeeded, defaultAsNeeded);
+    //System.out.println(module+" as needed? "+rv);
+    return rv;
   }
   public static boolean treatedAsSource(String module) {
-    return processPatterns(module, yes_AsSource, no_AsSource, defaultAsSource);
+    boolean rv = processPatterns(module, yes_AsSource, no_AsSource, defaultAsSource);
+    //System.out.println(module+" as source? "+rv);
+    return rv;
   }
   
   private static class ScopedModuleRecord {
