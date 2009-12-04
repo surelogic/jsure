@@ -184,8 +184,8 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		Binding.clearAsSourcePatterns();
 		Binding.clearAsNeededPatterns();
 
-		IResource fp = p.getFile("fluid.properties");
-		Eclipse.getDefault().confirmResourceNode(fp, "fluid.properties");
+		IResource fp = p.getFile(JSURE_PROPERTIES);
+		Eclipse.getDefault().confirmResourceNode(fp, JSURE_PROPERTIES);
 		Properties props = IDE.getInstance().getProperties();
 
 		// If no properties, try to read them in
@@ -199,7 +199,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 					props.load(is);
 					is.close();
 				} catch (IOException e) {
-					String msg = "Problem while loading fluid.properties: "
+					String msg = "Problem while loading "+JSURE_PROPERTIES+": "
 							+ e.getMessage();
 					reportProblem(msg, null);
 					LOG.log(Level.SEVERE, msg, e);

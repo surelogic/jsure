@@ -59,6 +59,7 @@ public abstract class AbstractFluidAnalysisModule extends
     Eclipse.initialize();
   }
   private static final String PROMISES_XML_SUFFIX = ".promises.xml";
+  protected static final String JSURE_PROPERTIES = "fluid.properties";
   private static final Logger LOG = SLLogger
       .getLogger("AbstractFluidAnalysisModule");
 
@@ -216,8 +217,8 @@ public abstract class AbstractFluidAnalysisModule extends
   }
 
   public static boolean isFluidProperties(IResource resource) {
-    return (resource.getType() == IResource.FILE && resource.getFullPath()
-        .toString().equals("fluid.properties"));
+	final String name = resource.getFullPath().toString();
+    return (resource.getType() == IResource.FILE && name.equals(JSURE_PROPERTIES));
   }
 
   public boolean isOnOutputPath(IResource resource) {
