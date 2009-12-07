@@ -268,11 +268,14 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		static boolean match(Entity n, Entity o, String attr) {
 			String a_n = n.getAttribute(attr);
 			String a_o = o.getAttribute(attr);
+			if (a_n == null) {
+				return a_o == null;
+			}
 			return a_n.equals(a_o);
 		}
 		
 		boolean match(Entity n, Entity o) {
-			return match(n, o, MESSAGE_ATTR);
+			return match(n, o, CATEGORY_ATTR) && match(n, o, MESSAGE_ATTR);
 		}
 	}
 	
