@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.util.Hashtable2;
 
 public class SeaSummary extends AbstractSeaXmlCreator {
 	private SeaSummary(File location) throws IOException {
@@ -34,7 +35,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	private void summarize(String project, Sea sea) {
 		Date now = new Date(System.currentTimeMillis());
 		Entities.start(ROOT, b);
-		addAttribute(TIME_ATTR, now.toString());
+		addAttribute(TIME_ATTR, DateFormat.getDateTimeInstance().format(now));
 		addAttribute(PROJECT_ATTR, project);
 		b.append(">\n");
 		flushBuffer(pw);
@@ -49,7 +50,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		pw.close();
 	}
 
-	private IRReferenceDrop checkIfReady(Drop d) {
+	private static IRReferenceDrop checkIfReady(Drop d) {
 		if (d instanceof PromiseDrop) {
 			@SuppressWarnings("unchecked")
 			PromiseDrop pd = (PromiseDrop) d;
@@ -88,7 +89,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	private void addAttributes(IRReferenceDrop id) {
 		final String type = id.getClass().getSimpleName();
 		addAttribute(TYPE_ATTR, type);
-		addAttribute(MESSAGE_ATTR, id.getMessage());
+		//addAttribute(MESSAGE_ATTR, id.getMessage());
 		
 		ISrcRef ref = id.getSrcRef();
 		addLocation(ref);
@@ -112,14 +113,29 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	public static void diff(String project, final Sea sea, File location)
 	throws Exception {
 		// Load up current contents
-		Listener l = new Listener();
+		final Listener l = new Listener();
 		new JSureSummaryXMLReader(l).read(location);
-		/*
-		SeaSummary s = new SeaSummary(location);
-		s.summarize(project, sea);
-		*/
-	}
+		
+		final List<Entity> oldDrops = l.drops;
+		//Collections.sort(oldDrops, EntityComparator.prototype);
 	
+		final SeaSummary s = new SeaSummary(null);
+		final List<Entity> newDrops = new ArrayList<Entity>();
+		for(Drop d : sea.getDrops()) {
+			IRReferenceDrop id = checkIfReady(d);
+			if (id != null) {
+				s.reset();
+				s.summarizeDrop(id);
+				
+				Entity e = new Entity(id.getEntityName(), s.attributes);
+				newDrops.add(e);
+			}
+		}
+		//Collections.sort(newDrops, EntityComparator.prototype);
+		
+		diff(oldDrops, newDrops);
+	}
+
 	static class Listener implements IXMLResultListener {
 		final List<Entity> drops = new ArrayList<Entity>();
 		String project;
@@ -127,7 +143,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		
 		public void start(String time, String project) {
 			try {
-				this.time = DateFormat.getDateInstance().parse(time);
+				this.time = DateFormat.getDateTimeInstance().parse(time);
 				this.project = project;
 			} catch (ParseException e) {
 				SLLogger.getLogger().log(Level.SEVERE, "Could not parse "+time);
@@ -140,6 +156,114 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		
 		public void done() {
 			// TODO Auto-generated method stub
+		}
+	}
+
+	/**
+	 * Used to sort the entities by file/entity-name
+	 */
+	static class EntityComparator implements Comparator<Entity> {
+		static EntityComparator prototype = new EntityComparator();
+		
+		public int compare(Entity e1, Entity e2) {
+			final String file1 = e1.getAttribute(FILE_ATTR);
+			final String file2 = e2.getAttribute(FILE_ATTR);
+			int rv = file1.compareTo(file2);
+			if (rv == 0) {
+				rv = e1.getName().compareTo(e2.getName());
+			}
+			return rv;
+		}
+		
+	}
+	
+	private static void diff(List<Entity> oldDrops, List<Entity> newDrops) {
+		// Separate into categories
+		Categories categories = new Categories();
+		for(Entity e : oldDrops) {
+			Category c = categories.getOrCreate(e);
+			c.addOld(e);
+		}
+		for(Entity e : newDrops) {
+			Category c = categories.getOrCreate(e);
+			c.addNew(e);
+		}
+		for(Category c : categories.elements()) {
+			System.out.println("Category: "+c.name+" in "+c.file);
+			c.match(System.out);
+		}
+	}
+	
+	static class Categories extends Hashtable2<String,String,Category> {
+		Category getOrCreate(Entity e) {
+			final String file = e.getAttribute(FILE_ATTR);
+			if (file == null) {
+				System.out.println(file);
+			}
+			Category c = this.get(file, e.getName());
+			if (c == null) {
+				c = new Category(file, e.getName());
+				this.put(file, e.getName(), c);
+			}
+			return c;
+		}
+	}
+	
+	/**
+	 * Storage for old and new drops that might match
+	 */
+	static class Category {
+		final String file;
+		final String name;		
+		final Set<Entity> old = new HashSet<Entity>();
+		final Set<Entity> newer = new HashSet<Entity>();
+		
+		public Category(String file, String name) {
+			this.file = file;
+			this.name = name;
+		}
+
+		public void addOld(Entity e) {
+			old.add(e);
+		}
+
+		public void addNew(Entity e) {
+			newer.add(e);
+		}
+		
+		public void match(PrintStream out) {
+			Iterator<Entity> it = newer.iterator();
+			while (it.hasNext()) {
+				Entity n = it.next();
+				for(Entity o : old) {
+					if (match(n, o)) {
+						out.println("\tMatched: "+toString(n));
+						old.remove(o);
+						it.remove();
+						break;
+					}
+				}
+			}
+			for(Entity o : old) {
+				out.println("\tOld    : "+toString(o));
+			}
+			for(Entity o : newer) {
+				out.println("\tNewer  : "+toString(o));
+			}
+		}
+
+		private String toString(Entity e) {
+			return e.getAttribute(OFFSET_ATTR)+" - "+e.getAttribute(MESSAGE_ATTR);
+		}
+
+		private boolean match(Entity n, Entity o) {
+			return match(n, o, MESSAGE_ATTR);
+		}
+		
+		private boolean match(Entity n, Entity o, String attr) {
+			String a_n = n.getAttribute(attr);
+			String a_o = o.getAttribute(attr);
+			return a_n.equals(a_o);
 		}
 	}
 }

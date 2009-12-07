@@ -18,13 +18,19 @@ public class AbstractSeaXmlCreator {
 	protected final PrintWriter pw;
 	
 	AbstractSeaXmlCreator(File location) throws IOException {
-    	pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(location), "UTF-8"));
-		pw.println("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>");
+		if (location != null) {
+			pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(location), "UTF-8"));
+			pw.println("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>");
+		} else {
+			pw = null;
+		}
 	}
 		
 	protected void flushBuffer(PrintWriter pw) {
-		pw.println(b.toString());
-		reset();
+		if (pw != null) {
+			pw.println(b.toString());
+			reset();
+		}
 	}
 	
 	protected final void reset() {
