@@ -197,13 +197,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	static class Categories extends Hashtable2<String,String,Category> {
 		Category getOrCreate(Entity e) {
 			final String file = e.getAttribute(FILE_ATTR);
-			if (file == null) {
-				System.out.println(file);
-			}
-			Category c = this.get(file, e.getName());
+			final String type = e.getAttribute(TYPE_ATTR);
+			Category c = this.get(file, type);
 			if (c == null) {
-				c = new Category(file, e.getName());
-				this.put(file, e.getName(), c);
+				c = new Category(file, type);
+				this.put(file, type, c);
 			}
 			return c;
 		}
@@ -232,18 +230,12 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 		
 		public void match(PrintStream out) {
-			Iterator<Entity> it = newer.iterator();
-			while (it.hasNext()) {
-				Entity n = it.next();
-				for(Entity o : old) {
-					if (match(n, o)) {
-						out.println("\tMatched: "+toString(n));
-						old.remove(o);
-						it.remove();
-						break;
-					}
-				}
+			match(out, EXACT,  "Exact  ");
+			match(out, HASHED, "Hashed ");
+			if ("ResultDrop".equals(name)) {
+				match(out, RESULT, "Results");
 			}
+			
 			for(Entity o : old) {
 				out.println("\tOld    : "+toString(o));
 			}
@@ -252,18 +244,56 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			}
 		}
 
-		private String toString(Entity e) {
-			return e.getAttribute(OFFSET_ATTR)+" - "+e.getAttribute(MESSAGE_ATTR);
-		}
-
-		private boolean match(Entity n, Entity o) {
-			return match(n, o, MESSAGE_ATTR);
+		private void match(PrintStream out, Matcher m, String label) {
+			Iterator<Entity> it = newer.iterator();
+			while (it.hasNext()) {
+				Entity n = it.next();
+				for(Entity o : old) {
+					if (m.match(n, o)) {
+						out.println("\t"+label+": "+toString(n));
+						old.remove(o);
+						it.remove();
+						break;
+					}
+				}
+			}
 		}
 		
-		private boolean match(Entity n, Entity o, String attr) {
+		static String toString(Entity e) {
+			return e.getAttribute(OFFSET_ATTR)+" - "+e.getAttribute(MESSAGE_ATTR);
+		}
+	}
+	
+	static abstract class Matcher {
+		static boolean match(Entity n, Entity o, String attr) {
 			String a_n = n.getAttribute(attr);
 			String a_o = o.getAttribute(attr);
 			return a_n.equals(a_o);
 		}
+		
+		boolean match(Entity n, Entity o) {
+			return match(n, o, MESSAGE_ATTR);
+		}
 	}
+	
+	static final Matcher EXACT = new Matcher() {
+		@Override
+		boolean match(Entity n, Entity o) {
+			return super.match(n, o) && match(n, o, OFFSET_ATTR);
+		}
+	};
+	
+	static final Matcher HASHED = new Matcher() {
+		@Override
+		boolean match(Entity n, Entity o) {
+			return super.match(n, o) && match(n, o, HASH_ATTR);
+		}
+	};
+	
+	static final Matcher RESULT = new Matcher() {
+		@Override
+		boolean match(Entity n, Entity o) {
+			return match(n, o, HASH_ATTR) && false;
+		}
+	};
 }
