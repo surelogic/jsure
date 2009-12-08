@@ -198,13 +198,7 @@ public class Plugin {
 		 */
 		new FirstTimeRefresh(project).schedule();
 
-		/*
-		 * Schedule Eclipse to run our initial analysis (an AUTO_BUILD of
-		 * project). We need this because we don't (currently) persist our
-		 * results. Note that this job should run after the one above (I belive
-		 * this is what is occurring in Eclipse).
-		 */
-		new FirstTimeAnalysis(project).schedule();
+		//Moved analysis to after the refresh
 	}
 
 	/**
