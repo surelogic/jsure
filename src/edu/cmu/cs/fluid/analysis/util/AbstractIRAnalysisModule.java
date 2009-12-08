@@ -14,6 +14,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.ast.java.operator.ICompilationUnitNode;
 import com.surelogic.common.logging.SLLogger;
 
@@ -102,10 +103,10 @@ public abstract class AbstractIRAnalysisModule extends
   }
 
   @Override
-  public final void analyzeCompilationUnit(final ICompilationUnit file,
-      CompilationUnit ast) {
+  public final boolean analyzeCompilationUnit(final ICompilationUnit file,
+      CompilationUnit ast, IAnalysisMonitor monitor) {
     if (IDE.getInstance().isCancelled()) {
-      return;
+      return false;
     }
 
     // save the file to report results
@@ -126,15 +127,18 @@ public abstract class AbstractIRAnalysisModule extends
     }
     final CUDrop drop      = SourceCUDrop.queryCU(new EclipseCodeFile(file));    
     final boolean isLoaded = (drop != null) ? true : Eclipse.getDefault().getJavaFileLocator().isLoaded(file.getHandleIdentifier());
-    analyzeCUDrop(drop, isLoaded);
+    boolean rv = analyzeCUDrop(drop, isLoaded, monitor);
 
     javaFile = null;
     f_ast = null;
+    return rv;
   }
 
-  private void analyzeCUDrop(final CUDrop drop, final boolean isLoaded) {
-    runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
+  private boolean analyzeCUDrop(final CUDrop drop, final boolean isLoaded, 
+		  final IAnalysisMonitor monitor) {
+    Object rv = runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
       public void run() {
+    	result = null;
         try {
           if (drop != null) {
             if (drop.analysisContext == null) {
@@ -148,13 +152,13 @@ public abstract class AbstractIRAnalysisModule extends
             if (useAssumptions) {
               frame.pushTypeContext(drop.cu);
               try {
-                doAnalysisOnCUDrop(drop);
+                doAnalysisOnCUDrop(drop, monitor);
                 doneProcessing(drop.cu);
               } finally {
                 frame.popTypeContext();
               }
             } else {
-              doAnalysisOnCUDrop(drop);
+              doAnalysisOnCUDrop(drop, monitor);
             }
           } else if (isLoaded && javaFile != null) {
             LOG.warning("No IR drop found for " + javaFile.getElementName());
@@ -168,7 +172,7 @@ public abstract class AbstractIRAnalysisModule extends
         }
       }
 
-      private void doAnalysisOnCUDrop(final CUDrop drop) throws JavaModelException {
+      private void doAnalysisOnCUDrop(final CUDrop drop, IAnalysisMonitor monitor) throws JavaModelException {
         if (!usesEitherParser && needsNewParser != true) {
           String msg = AbstractIRAnalysisModule.this.getClass().getSimpleName()+
                        " is incompatible with the "+
@@ -179,9 +183,10 @@ public abstract class AbstractIRAnalysisModule extends
         if (drop.lines == 0) {
         	return; // Skip empty files
         }
-        doAnalysisOnAFile(drop);
+        result = doAnalysisOnAFile(drop, monitor);
       }
     });
+    return rv == Boolean.TRUE;
   }
 
   /**
@@ -196,11 +201,11 @@ public abstract class AbstractIRAnalysisModule extends
     return false;
   }
   
-  protected void doAnalysisOnAFile(final CUDrop drop) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(final CUDrop drop, IAnalysisMonitor monitor) throws JavaModelException {
       if (useTypedASTs()) {            
-          doAnalysisOnAFile(drop.cu, drop.cun);
+          return doAnalysisOnAFile(drop.cu, drop.cun, monitor);
       } else {
-          doAnalysisOnAFile(drop.cu);
+          return doAnalysisOnAFile(drop.cu, monitor);
       }
   }
   
@@ -210,13 +215,13 @@ public abstract class AbstractIRAnalysisModule extends
    * @param file
    *          the Java compilation unit to perform analysis on
    */
-  protected abstract void doAnalysisOnAFile(IRNode cu)
+  protected abstract boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor)
       throws JavaModelException;
   
-  protected void doAnalysisOnAFile(IRNode n, ICompilationUnitNode cu)
+  protected boolean doAnalysisOnAFile(IRNode n, ICompilationUnitNode cu, IAnalysisMonitor monitor)
   throws JavaModelException 
   {    
-    doAnalysisOnAFile(n);
+    return doAnalysisOnAFile(n, monitor);
   }
   /*
   @Override
@@ -229,7 +234,7 @@ public abstract class AbstractIRAnalysisModule extends
    * Allows us to insert code before the analysis ends
    */
   @Override
-  public final IResource[] analyzeEnd(IProject project) {       
+  public final IResource[] analyzeEnd(IProject project, IAnalysisMonitor monitor) {       
     if (msgPrefix == null) {
       LOG.severe("Probably forgot to call super.analyzeBegin() for "+this.getClass().getCanonicalName());
     }
@@ -237,7 +242,7 @@ public abstract class AbstractIRAnalysisModule extends
     // Process cached files from ConvertToIR
     // Also make sure that we don't reprocess files
     List<IResource> resources = null;
-    Iterable<IRNode> iAble = finishAnalysis(project);
+    Iterable<IRNode> iAble = finishAnalysis(project, monitor);
     if (iAble == null) {
       return null; // analyze everything again
     }
@@ -260,13 +265,13 @@ public abstract class AbstractIRAnalysisModule extends
           LOG.severe("Couldn't get resource: ignoring "+icu.getElementName());
         }
       } else { // simulate
-        analyzeCUDrop(d, true);
+        analyzeCUDrop(d, true, null);
       }
     }
     if (resources != null) {
       return resources.toArray(NONE_FURTHER);
     } else if (notEmpty) { // need to call finishAnalysis
-      return analyzeEnd(project);
+      return analyzeEnd(project, monitor);
     }
     //IDE.getInstance().setDefaultClassPath(null);
     return NONE_FURTHER;
@@ -275,7 +280,7 @@ public abstract class AbstractIRAnalysisModule extends
   /** 
    * @return IRNodes returned may have be previously processed
    */
-  protected Iterable<IRNode> finishAnalysis(IProject project) {
+  protected Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
     return NONE_TO_ANALYZE;
   }
   

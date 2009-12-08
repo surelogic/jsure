@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.analysis.util;
 
 import org.eclipse.core.resources.IProject;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 
@@ -46,22 +47,22 @@ public abstract class AbstractWholeAnalysisModule extends AbstractWholeIRAnalysi
 	}
 	
 	@Override
-	protected final void doAnalysisOnAFile(final CUDrop drop) {
-		analysis.doAnalysisOnAFile(drop);
+	protected final boolean doAnalysisOnAFile(final CUDrop drop, IAnalysisMonitor monitor) {
+		return analysis.doAnalysisOnAFile(drop, monitor);
 	}
 	
 	@Override
-	protected final void doAnalysisOnAFile(IRNode cu) {
+	protected final boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) {
 		throw new UnsupportedOperationException("Requires a CUDrop");
 	}
 	
 	@Override
-	public final Iterable<IRNode> finishAnalysis(IProject project) {
+	public final Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
 		if (doingFullProjectPass) {
 			// Ignoring return value, since we're done with the full pass
 			analysis.analyzeEnd(Eclipse.getDefault().makeClassPath(project));
 		}
-		return super.finishAnalysis(project);
+		return super.finishAnalysis(project, monitor);
 	}
 	
 	@Override

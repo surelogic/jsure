@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.analysis.util;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 
+import com.surelogic.analysis.IAnalysisMonitor;
+
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -66,7 +68,7 @@ public abstract class AbstractWholeIRAnalysisModule extends
    * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
    */
   @Override
-  public Iterable<IRNode> finishAnalysis(IProject project) {
+  public Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
     if (IDE.getInstance().isCancelled()) {
       return NONE_TO_ANALYZE;
     }

@@ -10,6 +10,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
@@ -150,8 +151,9 @@ public final class ColorZerothPass extends AbstractIRAnalysisModule {
    * @see edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule#doAnalysisOnAFile(edu.cmu.cs.fluid.ir.IRNode)
    */
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     ColorFirstPass.getInstance().doOneCUZerothPass(cu, binder);
+    return true;
   }
 
    public static ColorZerothPass getInstance() {

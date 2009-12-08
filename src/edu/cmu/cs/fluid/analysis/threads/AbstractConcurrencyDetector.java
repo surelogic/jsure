@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.analysis.threads;
 
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.ast.ISourceRefType;
 import com.surelogic.ast.java.operator.IDeclarationNode;
 import com.surelogic.ast.java.operator.IJavaOperatorNode;
@@ -42,7 +43,7 @@ public abstract class AbstractConcurrencyDetector extends
 	}
 
 	@Override
-	protected abstract void doAnalysisOnAFile(IRNode cu)
+	protected abstract boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor)
 			throws JavaModelException;
 
 	protected final void reportInference(Category c, String msg, IRNode loc) {

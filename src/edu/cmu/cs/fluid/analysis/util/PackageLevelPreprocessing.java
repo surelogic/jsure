@@ -16,6 +16,7 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.PromiseDropStorage;
@@ -158,18 +159,20 @@ public final class PackageLevelPreprocessing extends
 	 *      org.eclipse.jdt.core.dom.CompilationUnit)
 	 */
 	@Override
-	public void analyzeCompilationUnit(final ICompilationUnit file,
-			CompilationUnit ast) {
+	public boolean analyzeCompilationUnit(final ICompilationUnit file,
+			CompilationUnit ast, 
+            IAnalysisMonitor monitor) {
 		CUDrop d = SourceCUDrop.queryCU(new EclipseCodeFile(file));
 		dependencies.markAsChanged(d);
+		return false;
 	}
 
 	/**
 	 * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
 	 */
 	@Override
-	public IResource[] analyzeEnd(IProject p) {
-		IResource[] results = super.analyzeEnd(p);
+	public IResource[] analyzeEnd(IProject p, IAnalysisMonitor monitor) {
+		IResource[] results = super.analyzeEnd(p, monitor);
 		dependencies.finish();
 		IDE.getInstance().clearAdapting();
 		return results;

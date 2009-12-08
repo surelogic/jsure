@@ -184,12 +184,12 @@ public abstract class AbstractFluidAnalysisModule extends
     }
   }
 
-  public static void runVersioned(AbstractRunner r) {
-    IDE.runVersioned(r);
+  public static Object runVersioned(AbstractRunner r) {
+    return IDE.runVersioned(r);
   }
 
-  public static void runInVersion(AbstractRunner r) {
-    IDE.runAtMarker(r);
+  public static Object runInVersion(AbstractRunner r) {
+    return IDE.runAtMarker(r);
   }
 
   protected static Operator getOperator(final IRNode n) {

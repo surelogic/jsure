@@ -4,6 +4,8 @@ import java.util.*;
 
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
+
 import edu.cmu.cs.fluid.analysis.util.*;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
@@ -55,12 +57,13 @@ public final class StaticStateDetector extends AbstractIRAnalysisModule {
    * @see edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule#doAnalysisOnAFile(edu.cmu.cs.fluid.ir.IRNode)
    */
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     FastVisitor v = new FastVisitor(); // TODO cache
     Iterator<IRNode> e = JJNode.tree.bottomUp(cu);
     while (e.hasNext()) {
       v.doAccept(e.next());
     }
+    return true;
   }
 
   private void reportInference(Category c, String msg, IRNode loc) {

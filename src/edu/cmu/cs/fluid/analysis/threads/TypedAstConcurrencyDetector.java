@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.analysis.threads;
 
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.ast.*;
 import com.surelogic.ast.java.operator.*;
 
@@ -25,17 +26,17 @@ public final class TypedAstConcurrencyDetector extends AbstractConcurrencyDetect
   }
 
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     throw new UnsupportedOperationException();
   }
   
   @Override
-  protected void doAnalysisOnAFile(IRNode n, ICompilationUnitNode cu)
+  protected boolean doAnalysisOnAFile(IRNode n, ICompilationUnitNode cu, IAnalysisMonitor monitor)
   throws JavaModelException 
   {     
     if (cu == null) {
 //      System.out.println("cu is null");
-      return;
+      return false;
     }
     if (v == null) {
       v = new FastVisitor(); 
@@ -46,6 +47,7 @@ public final class TypedAstConcurrencyDetector extends AbstractConcurrencyDetect
       v.doAccept(e.next());
     }
     */
+    return false;
   }
 
   private class FastVisitor extends AbstractingBaseVisitor<Void> {

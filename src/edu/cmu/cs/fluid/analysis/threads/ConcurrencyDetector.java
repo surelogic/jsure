@@ -13,6 +13,7 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
@@ -122,11 +123,13 @@ public final class ConcurrencyDetector extends AbstractFluidAnalysisModule
     return true;
   }
   @Override
-  public void analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast) {
+  public boolean analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast, 
+          IAnalysisMonitor monitor) {
     LOG.info("analyzeCompilationUnit() on " + file.getElementName());
     javaFile = file;
     ast.accept(new ClassInstanceCreationVisitor()); // do the actual search
     javaFile = null;
+    return true;
   }
   
   @Override

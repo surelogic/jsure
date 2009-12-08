@@ -5,6 +5,8 @@ import java.util.*;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
+
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.bind.EclipseTypeEnvironment;
@@ -42,7 +44,7 @@ public class TestMultipleProjects extends AbstractIRAnalysisModule {
   }
   
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     String qname = JavaNames.genPrimaryTypeName(cu);
     CUDrop cud   = CUDrop.queryCU(cu);
     if (isFirstProject) {
@@ -67,10 +69,11 @@ public class TestMultipleProjects extends AbstractIRAnalysisModule {
         System.out.println("Couldn't find a drop for "+qname);
       }
     }
+    return true;
   }
   
   @Override
-  protected Iterable<IRNode> finishAnalysis(IProject project) {
+  protected Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
     if (isFirstProject) {
       isFirstProject = false;
       
@@ -147,7 +150,7 @@ public class TestMultipleProjects extends AbstractIRAnalysisModule {
         }
       }
     }
-    return super.finishAnalysis(project);
+    return super.finishAnalysis(project, monitor);
   }
 
   private void checkIfInSnapshot(IRNode newT) {

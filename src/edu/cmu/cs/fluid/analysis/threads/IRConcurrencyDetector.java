@@ -5,6 +5,8 @@ import java.util.Iterator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
+
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -48,11 +50,12 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 	 * (edu.cmu.cs.fluid.ir.IRNode)
 	 */
 	@Override
-	protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+	protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
 		Iterator<IRNode> e = JJNode.tree.bottomUp(cu);
 		while (e.hasNext()) {
 			v.doAccept(e.next());
 		}
+		return true;
 	}
 
 	private class FastVisitor extends Visitor<Object> {

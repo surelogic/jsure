@@ -6,6 +6,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
@@ -104,8 +105,9 @@ public final class ColorData
    * @see edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule#doAnalysisOnAFile(edu.cmu.cs.fluid.ir.IRNode)
    */
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     DataColoring.getInstance().doDataColoringforOneCU(cu);
+    return true;
   }
   
   @Override
@@ -117,7 +119,7 @@ public final class ColorData
 	 * @see edu.cmu.cs.fluid.javaassure.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
 	 */
   @Override
-  public Iterable<IRNode> finishAnalysis(IProject project) {
+  public Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
     AbstractFluidAnalysisModule.runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
       public void run() {
         //ColorSecondPass.getInstance().cspEnd(resultDependUpon, binder);

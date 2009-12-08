@@ -10,6 +10,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.dc.AbstractAnalysisModule;
@@ -107,16 +108,18 @@ public final class UpdateSuperRootStorage extends AbstractFluidAnalysisModule {
 	 *      org.eclipse.jdt.core.dom.CompilationUnit)
 	 */
 	@Override
-	public void analyzeCompilationUnit(final ICompilationUnit file,
-			CompilationUnit ast) {
+	public boolean analyzeCompilationUnit(final ICompilationUnit file,
+			CompilationUnit ast, 
+            IAnalysisMonitor monitor) {
 		compUnits++;
+		return false;
 	}
 
 	/**
 	 * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
 	 */
 	@Override
-	public IResource[] analyzeEnd(IProject p) {
+	public IResource[] analyzeEnd(IProject p, IAnalysisMonitor monitor) {
 		long used2 = edu.cmu.cs.fluid.dc.Plugin.memoryUsed();
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("BEFORE memory = " + used);

@@ -2,6 +2,8 @@ package edu.cmu.cs.fluid.dc;
 
 import java.util.Map;
 
+import com.surelogic.analysis.*;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -103,8 +105,10 @@ public interface IAnalysis {
 	 * @param ast
 	 *            the abstract syntax tree (with type bindings) for the Java
 	 *            compilation unit
+	 * @return true if progress is to be handled automatically (e.g. ++)
 	 */
-	void analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast);
+	boolean analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast, 
+			                       IAnalysisMonitor monitor);
 
 	/**
 	 * Frames the end of calls to re-analyze resources within a project. Called
@@ -126,7 +130,7 @@ public interface IAnalysis {
 	 *         {@link AbstractAnalysisModule#NONE_FURTHER}field may be returned,
 	 *         which is what the default method implementation does)
 	 */
-	IResource[] analyzeEnd(IProject project);
+	IResource[] analyzeEnd(IProject project, IAnalysisMonitor monitor);
 
 	/**
 	 * Frames the end of an any build on a project. Called after all analyses

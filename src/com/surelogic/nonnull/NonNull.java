@@ -5,6 +5,7 @@ import java.util.logging.Level;
 
 import org.eclipse.core.resources.IProject;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
@@ -98,12 +99,13 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	}
 
 	@Override
-	protected void doAnalysisOnAFile(final IRNode compUnit) {
+	protected boolean doAnalysisOnAFile(final IRNode compUnit, IAnalysisMonitor monitor) {
 		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			public void run() {
 				checkNonNullForFile(compUnit);
 			}
 		});
+		return true;
 	}
 
 	protected void checkNonNullForFile(final IRNode compUnit) {

@@ -14,6 +14,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.eclipse.builder.*;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
@@ -62,6 +63,16 @@ public final class Majordomo extends AbstractJavaBuilder implements
 
 	private final ASTParser parser = ASTParser.newParser(AST.JLS3);
 
+	private final IAnalysisMonitor monitor = new IAnalysisMonitor() {
+		public void subTask(String name) {
+			setProgressSubTaskName(name);
+		}
+
+		public void worked() {
+			showProgress();
+		}
+	};
+	
 	private static class ProjectClosingListner implements
 			IResourceChangeListener {
 
@@ -824,7 +835,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 				String msg = "Checking [" + analysisModule.getLabel() + "] " + 
 				             resource.getName();
 				setProgressSubTaskName(msg);				
-				analysisModule.analyzeCompilationUnit(compUnit, ast);
+				analysisModule.analyzeCompilationUnit(compUnit, ast, monitor);
 			}
 		}
 	}
@@ -863,7 +874,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	private void analyzeEnd(IProject project, IAnalysis analysisModule)
 			throws CoreException {
 		final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
-		IResource[] reanalyze = analysisModule.analyzeEnd(project);
+		IResource[] reanalyze = analysisModule.analyzeEnd(project, monitor);
 		if (reanalyze == null) {
 			if (fineIsLoggable) {
 				LOG

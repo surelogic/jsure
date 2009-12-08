@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.colors.ColorFirstPass;
 import com.surelogic.common.logging.SLLogger;
 
@@ -87,7 +88,7 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
    * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
    */
   @Override
-  public Iterable<IRNode> finishAnalysis(IProject project) {
+  public Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
     final Iterable<IRNode> reprocessThese = ColorFirstPass.getInstance().cfpEnd();
 
   
@@ -116,8 +117,9 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
    * @see edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule#doAnalysisOnAFile(edu.cmu.cs.fluid.ir.IRNode)
    */
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     ColorFirstPass.getInstance().doOneCU(cu, binder);
+    return true;
   }
 
   // /*

@@ -28,6 +28,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
@@ -577,8 +578,9 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	 *      org.eclipse.jdt.core.dom.CompilationUnit)
 	 */
 	@Override
-	public void analyzeCompilationUnit(final ICompilationUnit file,
-			CompilationUnit ast) {
+	public boolean analyzeCompilationUnit(final ICompilationUnit file,
+			CompilationUnit ast, 
+            final IAnalysisMonitor monitor) {
 
 		final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
 		final boolean load = toBeLoaded(file);
@@ -607,9 +609,9 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		javaOSFileName = javaFile.getResource().getLocation().makeAbsolute()
 				.toOSString();
 
-		IDE.runVersioned(new AbstractRunner() {
-
+		Object rv = IDE.runVersioned(new AbstractRunner() {
 			public void run() {
+				result = null;
 				if (load) {
 					// Already loaded, but with private members omitted, yet it
 					// was changed?
@@ -621,7 +623,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 					if (batch && !warn) {
 						cu = null;
 						batchQ.add(javaFile);
-						batchIfReady();
+						batchIfReady(monitor);												
 					} else {
 						cu = Eclipse.adaptIR(getJavaProject(), javaFile);
 						if (IDE.testReloadMemoryLeak) {
@@ -632,6 +634,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 							reportProblem(msg, cu);
 							LOG.warning(msg);
 						}
+						result = true;
 					}
 					// Binding.ensureNonlocalBindingsLoaded(getProject());
 				} else {
@@ -646,28 +649,31 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 			LOG.fine("Got IR for " + javaOSFileName + " = " + cu);
 			// createNewDrop(file);
 		}
+		return rv == Boolean.TRUE;
 	}
 
-	protected void batchIfReady() {
-		batchIfReady(false);
+	protected int batchIfReady(IAnalysisMonitor monitor) {
+		return batchIfReady(monitor, false);
 	}
 
-	protected void batchIfReady(boolean force) {
-		int size = batchQ.size();
+	protected int batchIfReady(IAnalysisMonitor monitor, boolean force) {
+		final int size = batchQ.size();
 		if (force || size >= BATCH_SIZE) {
 			ICompilationUnit[] cus = batchQ.toArray(new ICompilationUnit[size]);
 			IRNode[] asts = new IRNode[size];
-			Eclipse.adaptIR(getJavaProject(), cus, asts);
+			Eclipse.adaptIR(getJavaProject(), cus, asts, monitor);
 			batchQ.clear();
 
-			Binding.ensureBindingsLoaded();
+			Binding.ensureBindingsLoaded(monitor);
 
 			if (IDE.testReloadMemoryLeak) {
 				printUsage("BEFORE");
-				Eclipse.adaptIR(getJavaProject(), cus, asts);
+				Eclipse.adaptIR(getJavaProject(), cus, asts, null);
 				printUsage("AFTER");
 			}
+			return size;
 		}
+		return 0;
 	}
 
 	private void invalidateOldDrops(final ICompilationUnit file) {
@@ -702,7 +708,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	 * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
 	 */
 	@Override
-	public IResource[] analyzeEnd(final IProject p) {
+	public IResource[] analyzeEnd(final IProject p, final IAnalysisMonitor monitor) {
 		final long used2 = edu.cmu.cs.fluid.dc.Plugin.memoryUsed();
 		final int nodes2 = PlainIRNode.getTotalNodesCreated();
 		if (LOG.isLoggable(Level.FINE)) {
@@ -717,7 +723,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 
 		IDE.runVersioned(new AbstractRunner() {
 			public void run() {
-				batchIfReady(true);
+				batchIfReady(monitor, true);
 
 				// Check if Object got processed correctly (has a drop)
 				IRNode object = Eclipse.getDefault().getTypeEnv(p)
@@ -749,7 +755,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 						}
 					}
 				});
-				Binding.ensureBindingsLoaded();
+				Binding.ensureBindingsLoaded(monitor);
 			}
 		});
 
@@ -766,7 +772,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		}
 		IDE.getInstance().clearAdapting();
 		justLoaded.clear();
-		return super.analyzeEnd(p);
+		return super.analyzeEnd(p, monitor);
 	}
 
 	// Used by both source and binary files

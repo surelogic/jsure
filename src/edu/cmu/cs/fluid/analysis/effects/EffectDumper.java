@@ -10,6 +10,7 @@ import java.util.TreeSet;
 
 import org.eclipse.core.resources.IProject;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.EffectsVisitor;
@@ -97,12 +98,13 @@ public final class EffectDumper extends AbstractWholeIRAnalysisModule
   }
   
   @Override
-  protected void doAnalysisOnAFile(final IRNode compUnit) {
+  protected boolean doAnalysisOnAFile(final IRNode compUnit, IAnalysisMonitor monitor) {
     runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
       public void run() {
         dumpEffectsForFile(compUnit); 
       }
     });
+    return true;
   }
 
   private void dumpEffectsForFile(final IRNode compUnit) {

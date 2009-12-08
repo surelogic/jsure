@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
+
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -20,7 +22,7 @@ public class TestIRPersistence extends AbstractIRAnalysisModule {
   }
   
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     IRRegion r = new IRRegion();
     for(IRNode n : JJNode.tree.topDown(cu)) {
       r.saveNode(n);
@@ -38,5 +40,6 @@ public class TestIRPersistence extends AbstractIRAnalysisModule {
     } catch (IOException e) {
       e.printStackTrace();
     }
+    return true;
   }
 }

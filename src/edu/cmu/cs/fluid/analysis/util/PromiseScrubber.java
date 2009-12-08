@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IProject;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.XMLGenerator;
@@ -77,7 +78,7 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
    * @see edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule#doAnalysisOnAFile(edu.cmu.cs.fluid.ir.IRNode)
    */
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) {
     if (testBinder) {
       for(IRNode n : JJNode.tree.bottomUp(cu)) {
         Operator op = JJNode.tree.getOperator(n);
@@ -134,6 +135,7 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
         e.printStackTrace();
       }
     } 
+    return false;
   }
 
   private void checkIfNull(String label, IRNode n, Object result) {
@@ -179,8 +181,8 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
   }
   
   @Override
-  public Iterable<IRNode> finishAnalysis(IProject p) {
-    Iterable<IRNode> rv = super.finishAnalysis(p);
+  public Iterable<IRNode> finishAnalysis(IProject p, final IAnalysisMonitor monitor) {
+    Iterable<IRNode> rv = super.finishAnalysis(p, monitor);
     
     final ITypeEnvironment te = Eclipse.getDefault().getTypeEnv(p);
     handleWaitQueue(new IQueueHandler() {
@@ -193,7 +195,7 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
           return;
         }
         else if (d instanceof SourceCUDrop) {
-          doAnalysisOnAFile(cu);
+          doAnalysisOnAFile(cu, monitor);
         } else {
           processClassFile(d);
         }

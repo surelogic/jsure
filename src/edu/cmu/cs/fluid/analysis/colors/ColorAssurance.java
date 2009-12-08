@@ -6,6 +6,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.listeners.IClearProjectHelper;
@@ -117,9 +118,9 @@ public final class ColorAssurance
    * @see edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule#doAnalysisOnAFile(edu.cmu.cs.fluid.ir.IRNode)
    */
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     cuCount += 1;
-    return;
+    return false;
   }
   
   @Override
@@ -131,7 +132,7 @@ public final class ColorAssurance
 	 * @see edu.cmu.cs.fluid.javaassure.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
 	 */
   @Override
-  public Iterable<IRNode> finishAnalysis(final IProject project) {
+  public Iterable<IRNode> finishAnalysis(final IProject project, IAnalysisMonitor monitor) {
     AbstractFluidAnalysisModule.runInVersion(new AbstractRunner() {
       public void run() {
         LOG.info("Finishing color assurance");

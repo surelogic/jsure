@@ -23,6 +23,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -192,14 +193,15 @@ public final class MakeCFGDiagram extends AbstractFluidAnalysisModule {
 	}
 
 	@Override
-	public void analyzeCompilationUnit(ICompilationUnit file,
-			org.eclipse.jdt.core.dom.CompilationUnit ast) {
+	public boolean analyzeCompilationUnit(ICompilationUnit file,
+			org.eclipse.jdt.core.dom.CompilationUnit ast, 
+            IAnalysisMonitor monitor) {
 		LOG.info("Draw CFG diagram on " + file.getElementName());
-		doAnalysisOnAFile(file);
+		return doAnalysisOnAFile(file);		
 	}
 
 	@Override
-	public IResource[] analyzeEnd(IProject project) {
+	public IResource[] analyzeEnd(IProject project, IAnalysisMonitor monitor) {
 		if (doingFullProjectPass) {
 			doingFullProjectPass = fullBuildInProgress = false;
 			return NONE_FURTHER;
@@ -208,7 +210,7 @@ public final class MakeCFGDiagram extends AbstractFluidAnalysisModule {
 		return null; // the entire project needs to be analyzed again
 	}
 
-	private void doAnalysisOnAFile(final ICompilationUnit file) {
+	private boolean doAnalysisOnAFile(final ICompilationUnit file) {
 
 		javaFile = file;
 
@@ -225,7 +227,7 @@ public final class MakeCFGDiagram extends AbstractFluidAnalysisModule {
 								+ javaFile.getElementName());
 					cfgDiagramMaker(drop.cu);
 
-					javaFile = null;
+					javaFile = null;					
 				} else {
 					LOG.warning("No IR drop found for "
 							+ javaFile.getElementName());
@@ -234,6 +236,7 @@ public final class MakeCFGDiagram extends AbstractFluidAnalysisModule {
 		});
 
 		javaFile = null;
+		return true;
 	}
 
 	private void cfgDiagramMaker(final IRNode compUnit) {

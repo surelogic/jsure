@@ -13,6 +13,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
@@ -75,8 +76,9 @@ public class ModuleAnalysis extends AbstractWholeIRAnalysisModule {
    }
   
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     ModuleAnalysisAndVisitor.getInstance().doOneCU(cu, binder);
+    return true;
   }
 
   /* (non-Javadoc)

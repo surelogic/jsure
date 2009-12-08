@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.analysis.util;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.ast.fluid.TestFluidBinder;
 import com.surelogic.ast.java.operator.*;
 
@@ -32,17 +33,17 @@ public class TestTypedASTs extends AbstractIRAnalysisModule {
   }
   
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) throws JavaModelException {
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
     throw new UnsupportedOperationException();
   }
   
   @Override
-  protected void doAnalysisOnAFile(IRNode n, ICompilationUnitNode cu)
+  protected boolean doAnalysisOnAFile(IRNode n, ICompilationUnitNode cu, IAnalysisMonitor monitor)
   throws JavaModelException 
   {     
     if (cu == null) {
       System.out.println("cu is null");
-      return;
+      return false;
     }
     cu.accept(nv);
     long startAST = System.nanoTime();
@@ -56,5 +57,6 @@ public class TestTypedASTs extends AbstractIRAnalysisModule {
     astTime += (ast - startAST);
     System.out.println("IR run time so far:    \t"+irTime);
     System.out.println("Proxy run time so far: \t"+astTime);
+    return true;
   }
 }

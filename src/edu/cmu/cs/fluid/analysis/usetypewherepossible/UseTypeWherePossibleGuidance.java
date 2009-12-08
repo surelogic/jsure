@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.analysis.usetypewherepossible;
 
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
@@ -30,7 +31,8 @@ public class UseTypeWherePossibleGuidance extends AbstractIRAnalysisModule {
 	}
 
 	@Override
-	protected void doAnalysisOnAFile(IRNode cu) {
+	protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) {
 		useTypeWherePossibleAnalysis.analyzeCompilationUnit(cu);
+		return true;
 	}
 }

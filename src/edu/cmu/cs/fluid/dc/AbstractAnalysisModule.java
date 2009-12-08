@@ -7,6 +7,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
+import com.surelogic.analysis.IAnalysisMonitor;
+
 /**
  * A minimum analysis module, intended to be extended by other classes to create
  * new analysis modules. Analysis modules are singleton classes that implement
@@ -65,14 +67,16 @@ public class AbstractAnalysisModule implements IAnalysis {
   /**
    * @see IAnalysis#analyzeCompilationUnit(ICompilationUnit, CompilationUnit)
    */
-  public void analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast) {
-    // do nothing
+  public boolean analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast, 
+          IAnalysisMonitor monitor) {
+	  // do nothing
+	  return false;
   }
 
   /**
    * @see IAnalysis#analyzeEnd(IProject)
    */
-  public IResource[] analyzeEnd(IProject project) {
+  public IResource[] analyzeEnd(IProject project, IAnalysisMonitor monitor) {
     return NONE_FURTHER;
   }
 

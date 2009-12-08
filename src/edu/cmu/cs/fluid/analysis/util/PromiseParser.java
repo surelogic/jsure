@@ -10,6 +10,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseHelper;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
@@ -170,9 +171,10 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 	 *      org.eclipse.jdt.core.dom.CompilationUnit)
 	 */
 	@Override
-	public void analyzeCompilationUnit(
+	public boolean analyzeCompilationUnit(
 			ICompilationUnit file,
-			CompilationUnit ast) {
+			CompilationUnit ast, 
+            IAnalysisMonitor monitor) {
 		javaFile = file;
 
 		/*
@@ -205,13 +207,14 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 		}
 
 		javaFile = null;
+		return true;
 	}
 
 	/**
 	 * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
 	 */
 	@Override
-	public IResource[] analyzeEnd(IProject p) {
+	public IResource[] analyzeEnd(IProject p, IAnalysisMonitor monitor) {
 		final ITypeEnvironment te = Eclipse.getDefault().getTypeEnv(p);
 		runVersioned(new AbstractRunner() {
 			public void run() {

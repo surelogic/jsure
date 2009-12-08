@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IProject;
 
+import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
@@ -40,15 +41,16 @@ public abstract class AbstractQueuedIRAnalysisModule extends AbstractIRAnalysisM
    * @see edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule#doAnalysisOnAFile(edu.cmu.cs.fluid.ir.IRNode)
    */
   @Override
-  protected void doAnalysisOnAFile(IRNode cu) {    
+  protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) {    
     // do nothing
+	  return false;
   }
 
   /**
    * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
    */
   @Override
-  public Iterable<IRNode> finishAnalysis(IProject project) {
+  public Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
     //System.err.println("Starting iterator for "+this);    
     final Iterator<CodeInfo> it = listener.infos();
     while (it.hasNext()) {

@@ -7,6 +7,8 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 
+import com.surelogic.analysis.IAnalysisMonitor;
+
 import edu.cmu.cs.fluid.dc.AbstractAnalysisModule;
 
 public final class Structure extends AbstractAnalysisModule {
@@ -75,17 +77,20 @@ public final class Structure extends AbstractAnalysisModule {
   }
 
   @Override
-  public void analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast) {
+  public boolean analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast, 
+          IAnalysisMonitor monitor) {
     try {
       if (file.getCorrespondingResource().getName().endsWith(
           "package-info.java")) {
         // special "package-info.java" file
         ast.accept(VIS);
+        return true;
       }
     } catch (JavaModelException e) {
       // TODO not sure what to do here?
       e.printStackTrace();
     }
+    return false;
   }
 
   @Override
