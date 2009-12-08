@@ -30,7 +30,8 @@ public class WholeIRAnalysisTemplate<T> extends AbstractWholeIRAnalysis<T> {
 	}
 	
 	@Override
-	protected void doAnalysisOnAFile(CUDrop cud, IRNode cu) {
+	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor) {
 		// TODO Auto-generated method stub
+		return true;
 	}
 }

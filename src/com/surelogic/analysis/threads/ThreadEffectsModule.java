@@ -27,7 +27,8 @@ public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAn
 	}
 	
 	@Override
-	protected void doAnalysisOnAFile(CUDrop cud, IRNode cu) {
+	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor) {
 		getAnalysis().analyzeCompilationUnit(cu, getResultDependUponDrop());
+		return true;
 	}
 }

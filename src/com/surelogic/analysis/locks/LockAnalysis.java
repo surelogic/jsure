@@ -100,11 +100,12 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 	}
 	
 	@Override
-	public void doAnalysisOnAFile(CUDrop cud, final IRNode compUnit) {
+	public boolean doAnalysisOnAFile(CUDrop cud, final IRNode compUnit, IAnalysisMonitor monitor) {
 		// FIX factor out?
 		final Visitor<Void> topLevel = new TopLevelVisitor(getAnalysis(),
 				                                           getResultDependUponDrop());
 		topLevel.doAccept(compUnit);	
+		return true;
 	}
 
 	@Override

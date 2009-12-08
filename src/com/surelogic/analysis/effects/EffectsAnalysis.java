@@ -41,8 +41,9 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {
 	}
 	
 	@Override
-	public void doAnalysisOnAFile(CUDrop cud, IRNode compUnit) {
+	public boolean doAnalysisOnAFile(CUDrop cud, IRNode compUnit, IAnalysisMonitor monitor) {
         checkEffectsForFile(compUnit);
+        return true;
 	}
 
 	private void checkEffectsForFile(final IRNode compUnit) {

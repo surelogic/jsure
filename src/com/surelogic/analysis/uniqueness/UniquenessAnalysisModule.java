@@ -89,8 +89,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	}
 	
 	@Override
-	protected void doAnalysisOnAFile(CUDrop cud, IRNode compUnit) {
-		checkUniquenessForFile(compUnit);
+	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode compUnit, IAnalysisMonitor monitor) {
+		return checkUniquenessForFile(compUnit, monitor);
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		return JavaGlobals.noNodes;
 	}
 
-	protected void checkUniquenessForFile(IRNode compUnit) {
+	protected boolean checkUniquenessForFile(IRNode compUnit, IAnalysisMonitor monitor) {
 		// clear the cached information
 		clearPromiseRecordCache();
 
@@ -118,16 +118,19 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					final IRNode typeDecl = decls.next();
 					analyzeSubtree(typeDecl);
 				}
+				return true;
 			} else {
 				// Analyze the given nodes
 				for (Iterator<IRNode> iter = methods.iterator(); iter.hasNext();) {
 					final IRNode node = iter.next();
 					analyzeSubtree(node);
 				}
+				return !methods.isEmpty();
 			}
 		} catch (Exception e) {
 			LOG.log(Level.SEVERE, "Exception in unique assurance", e); //$NON-NLS-1$
 		}
+		return false;
 	}
 
 	/**

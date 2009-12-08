@@ -71,25 +71,27 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 		// Nothing to do yet
 	}
 	
-	public final void doAnalysisOnAFile(final CUDrop cud) {
+	public final boolean doAnalysisOnAFile(final CUDrop cud, 
+			final IAnalysisMonitor monitor) {
 		T analysis = getAnalysis();
 		if (analysis == null) {
 			setupAnalysis();
 		}
-		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
+		Object rv = runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			public void run() {
-				doAnalysisOnAFile(cud, cud.cu);
+				result = doAnalysisOnAFile(cud, cud.cu, monitor);
 			}
 		});
+		return rv == Boolean.TRUE;
 	}
-	protected abstract void doAnalysisOnAFile(CUDrop cud, IRNode cu);
+	protected abstract boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor);
 	
-	protected static void runVersioned(AbstractRunner r) {
-		IDE.runVersioned(r);
+	protected static Object runVersioned(AbstractRunner r) {
+		return IDE.runVersioned(r);
 	}
 
-	protected static void runInVersion(AbstractRunner r) {
-		IDE.runAtMarker(r);
+	protected static Object runInVersion(AbstractRunner r) {
+		return IDE.runAtMarker(r);
 	}
 
 	protected static Operator getOperator(final IRNode n) {
