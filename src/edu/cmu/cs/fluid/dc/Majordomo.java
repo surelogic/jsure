@@ -734,15 +734,17 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		for (IExtension ext : currentLevel) {
 			IAnalysis analysisModule = Plugin.getDefault().getAnalysisModule(
 					ext);
-
-			long start = System.nanoTime();
-			analyzeResource(analysisModule, resource, kind);
-			long end = System.nanoTime();
-			long time = (end - start) / 1000000;
-			if (time > 500) {
-				if (LOG.isLoggable(Level.FINE))
+			if (LOG.isLoggable(Level.FINE)) {
+				long start = System.nanoTime();
+				analyzeResource(analysisModule, resource, kind);
+				long end = System.nanoTime();
+				long time = (end - start) / 1000000;
+				if (time > 500) {
 					LOG.fine(ext.getLabel() + " on " + resource.getName()
 							+ ": " + time + " ms");
+				}
+			} else {
+				analyzeResource(analysisModule, resource, kind);
 			}
 		}
 		showProgress();
@@ -765,11 +767,13 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 */
 	private void analyzeResource(IAnalysis analysisModule, IResource resource,
 			int kind) {
-		String msg = "Checking [" + analysisModule.getLabel() + "] "
-				+ resource.getName();
-		setProgressSubTaskName(msg);
-		if (LOG.isLoggable(Level.FINE))
+
+		if (LOG.isLoggable(Level.FINE)) {
+			String msg = "Checking [" + analysisModule.getLabel() + "] "
+			+ resource.getName();
+			setProgressSubTaskName(msg);
 			LOG.fine(msg);
+		}
 		boolean sendCompilationUnit = !analysisModule.analyzeResource(resource,
 				kind);
 		if (sendCompilationUnit) {
@@ -798,7 +802,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		if ((javaResource != null)
 				&& (javaResource.getElementType() == IJavaElement.COMPILATION_UNIT)) {
 			ICompilationUnit compUnit = (ICompilationUnit) javaResource;
-			if (compUnit.getJavaProject().isOnClasspath(compUnit)) {
+			if (compUnit.getJavaProject().isOnClasspath(compUnit)) {			
 				CompilationUnit ast = null;
 				if (analysisModule.needsAST()) {
 					// check if the Eclipse AST has been cached (generated
@@ -817,6 +821,9 @@ public final class Majordomo extends AbstractJavaBuilder implements
 						}
 					}
 				}
+				String msg = "Checking [" + analysisModule.getLabel() + "] " + 
+				             resource.getName();
+				setProgressSubTaskName(msg);				
 				analysisModule.analyzeCompilationUnit(compUnit, ast);
 			}
 		}
