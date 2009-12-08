@@ -713,67 +713,79 @@ class SortedArray {
     */
     lastArray = a;
   }  
+  private static final int SHELL_INCREMENT = 4;
   
   // Copied from java.util.Arrays, and customized
   // Made to assume that dest is the correct length
   // src can be longer with unused elements
   static void mergeSort(Object src[], Object dest[], int low, int high) {
-    final int length = high - low;
-    // Insertion sort on smallest arrays
-    if (length < 7) {
-      /* Original
-	 for (int i = low; i < high; i++)
-	 for (int j = i; j > low
-	 && dest[j - 1].hashCode() > dest[j].hashCode(); j--)
-	 swap(dest, j, j - 1);
-      */
-      // i is the element being inserted into the sorted part of the array
-      // dest[low] is already "sorted" by default
-      for (int i = low+1; i < high; i++) {
-	final int iHash = dest[i].hashCode(); 
-	
-	// Find out if dest[i] should be somewhere else
-	for (int j = i; j > low
-	       && dest[j - 1].hashCode() > iHash; j--) 
-	  {
-	    swap(dest, j, j - 1);			
+	  final int length = high - low;
+	  // Insertion sort on smallest arrays
+	  if (length < 7) {
+		  /* Original
+	      for (int i = low; i < high; i++)
+	      for (int j = i; j > low
+	      && dest[j - 1].hashCode() > dest[j].hashCode(); j--)
+	      swap(dest, j, j - 1);
+		   */
+		  // Shell sort pass with SHELL_INCREMENT
+		  for (int i = low+SHELL_INCREMENT, j=low; i < high; i++, j++) {
+			  final int iHash = dest[i].hashCode(); 
+
+			  // Find out if dest[i] should be somewhere else
+			  final int jHash = dest[j].hashCode();
+			  if (jHash > iHash) {
+				  swap(dest, i, j);		
+			  }
+		  }
+		  
+		  // i is the element being inserted into the sorted part of the array
+		  // dest[low] is already "sorted" by default
+		  for (int i = low+1; i < high; i++) {
+			  final int iHash = dest[i].hashCode(); 
+
+			  // Find out if dest[i] should be somewhere else
+			  for (int j = i; j > low
+			  && dest[j - 1].hashCode() > iHash; j--) 
+			  {
+				  swap(dest, j, j - 1);			
+			  }
+		  }
+		  return;
 	  }
-      }
-      return;
-    }
-    // Recursively sort halves of dest into src
-    final int mid = (low + high) / 2;
-    mergeSort(dest, src, low, mid);
-    mergeSort(dest, src, mid, high);
-    // If list is already sorted, just copy from src to dest. This is an
-    // optimization that results in faster sorts for nearly ordered lists.
-    if (src[mid - 1].hashCode() <= src[mid].hashCode()) {
-      System.arraycopy(src, low, dest, low, length);
-      return;
-    }
-    // Merge sorted halves (now in src) into dest
-    /* Original
+	  // Recursively sort halves of dest into src
+	  final int mid = (low + high) / 2;
+	  mergeSort(dest, src, low, mid);
+	  mergeSort(dest, src, mid, high);
+	  // If list is already sorted, just copy from src to dest. This is an
+	  // optimization that results in faster sorts for nearly ordered lists.
+	  if (src[mid - 1].hashCode() <= src[mid].hashCode()) {
+		  System.arraycopy(src, low, dest, low, length);
+		  return;
+	  }
+	  // Merge sorted halves (now in src) into dest
+	  /* Original
        for (int i = low, p = low, q = mid; i < high; i++) {
        if (q >= high || p < mid && src[p].hashCode() <= src[q].hashCode())
        dest[i] = src[p++];
        else
        dest[i] = src[q++];
        }
-    */
-    // Based on initial values of p and q
-    int pHash = src[low].hashCode();
-    int qHash = src[mid].hashCode();
-    final int len = (src.length < dest.length) ? src.length : dest.length;
-    
-    for (int i = low, p = low, q = mid; i < high; i++) {
-      if (q >= high || p < mid && pHash <= qHash) {
-	dest[i] = src[p++]; 
-	pHash   = src[p].hashCode(); // updated whenever p changes 
-      } else {
-	dest[i] = src[q++];
-	qHash   = (q < len /*Same as src.length*/) ? src[q].hashCode() : 0;
-      }
-    }		
+	   */
+	  // Based on initial values of p and q
+	  int pHash = src[low].hashCode();
+	  int qHash = src[mid].hashCode();
+	  final int len = (src.length < dest.length) ? src.length : dest.length;
+
+	  for (int i = low, p = low, q = mid; i < high; i++) {
+		  if (q >= high || p < mid && pHash <= qHash) {
+			  dest[i] = src[p++]; 
+			  pHash   = src[p].hashCode(); // updated whenever p changes 
+		  } else {
+			  dest[i] = src[q++];
+			  qHash   = (q < len /*Same as src.length*/) ? src[q].hashCode() : 0;
+		  }
+	  }		
   }
   
   /**
@@ -1058,7 +1070,7 @@ class SortedArray {
    */
   private static List tempList = null;
   
-  static <V> V[] combine(final V[] a, final V[] b , int flags) {
+  static <V> V[] combine(final V[] a, final V[] b , final int flags) {
     List l;
     synchronized (SortedArray.class) {
       if (tempList == null) {
@@ -1068,17 +1080,22 @@ class SortedArray {
         tempList = null;
       }
     }
+
+    final boolean b_EXCL = (flags & B_EXCL) == B_EXCL;
+	final boolean a_INCL = (flags & A_INCL) == A_INCL;
+	final boolean only_OVERLAP = (flags & OVERLAP) == OVERLAP && !a_INCL;
     int lowa = 0;
     int lowb = 0;
     while (lowa < a.length && lowb < b.length) {
       int ah = a[lowa].hashCode();
       int bh = b[lowb].hashCode();
       if (ah == bh) {
+
         int higha, highb;
         /* move through a's elements adding if guaranteed to want them */
         for (higha = lowa; higha < a.length
         && a[higha].hashCode() == ah; ++higha) {
-          if ((flags & A_INCL) == A_INCL) {
+          if (a_INCL) {
             l.add(a[higha]);
           }
         }
@@ -1088,15 +1105,13 @@ class SortedArray {
            * only if the elements are potentially relevant do we see
            * if it is found
            */
-          if (((flags & OVERLAP) == OVERLAP && (flags & A_INCL) != A_INCL)
-              || (flags & B_EXCL) == B_EXCL) {
+          if (only_OVERLAP || b_EXCL) {
             boolean found = false;
             Object elem = b[highb];
             for (int i = lowa; !found && i < higha; ++i) {
               found = (a[i].equals(elem));
             }
-            if ((found && ((flags & OVERLAP) == OVERLAP && (flags & A_INCL) != A_INCL))
-                || (!found && (flags & B_EXCL) == B_EXCL)) {
+            if ((found && only_OVERLAP) || (!found && b_EXCL)) {
               l.add(elem);
             }
           }
@@ -1117,14 +1132,15 @@ class SortedArray {
         lowb = highb;
       } else if (ah < bh) {
         // move lowa along
+    	final boolean a_EXCL = (flags & A_EXCL) == A_EXCL;
         for (; lowa < a.length && a[lowa].hashCode() < bh; ++lowa) {
-          if ((flags & A_EXCL) == A_EXCL)
+          if (a_EXCL)
             l.add(a[lowa]);
         }
       } else { // ah > bh
         // move lowb along
         for (; lowb < b.length && b[lowb].hashCode() < ah; ++lowb) {
-          if ((flags & B_EXCL) == B_EXCL)
+          if (b_EXCL)
             l.add(b[lowb]);
         }
       }
