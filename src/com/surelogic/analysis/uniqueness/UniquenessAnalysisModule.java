@@ -116,6 +116,10 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					TypeDeclarations.getTypesIterator(typeDecls);
 				while (decls.hasNext()) {
 					final IRNode typeDecl = decls.next();
+					if (monitor != null) {
+						monitor.subTask("Checking [ Uniqueness Assurance ] "+
+								        JavaNames.getFullTypeName(typeDecl));
+					}
 					analyzeSubtree(typeDecl);
 				}
 				return true;
@@ -123,6 +127,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				// Analyze the given nodes
 				for (Iterator<IRNode> iter = methods.iterator(); iter.hasNext();) {
 					final IRNode node = iter.next();
+					
+					if (monitor != null) {
+						monitor.subTask("Checking [ Uniqueness Assurance ] "+
+								        JavaNames.genRelativeFunctionName(node));
+					}
 					analyzeSubtree(node);
 				}
 				return !methods.isEmpty();
