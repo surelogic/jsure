@@ -157,23 +157,49 @@ public final class JavaNames {
     if (node == null) {
       return "(n/a)";
     }
-    final Operator op = getOperator(node);
     // add the type we found the method within (could be the promised type)
     IRNode enclosingType = VisitUtil.getEnclosingType(node);
-    String typeName = getFullTypeName(enclosingType);
-    String targetName = "(none)";
-    if (MethodDeclaration.prototype.includes(op)) {
-      targetName = MethodDeclaration.getId(node);
-      IRNode args = MethodDeclaration.getParams(node);
-      targetName += genArgList(args);
-    } else if (ConstructorDeclaration.prototype.includes(op)) {
-      targetName = ConstructorDeclaration.getId(node);
-      IRNode args = ConstructorDeclaration.getParams(node);
-      targetName += genArgList(args);
-    }
-    return typeName + "." + targetName;
+    String typeName      = getFullTypeName(enclosingType);
+    StringBuilder sb     = new StringBuilder(typeName);
+    addTargetName(sb, node, true);
+    return sb.toString();
   }
 
+  public static String genRelativeFunctionName(IRNode node) {
+	  if (node == null) {
+		  return "(n/a)";
+	  }
+	  // add the type we found the method within (could be the promised type)
+	  IRNode enclosingType = VisitUtil.getEnclosingType(node);
+	  String typeName      = getRelativeTypeName(enclosingType);
+	  StringBuilder sb     = new StringBuilder(typeName);
+	  addTargetName(sb, node, false);
+	  return sb.toString();
+  }
+  
+  private static void addTargetName(StringBuilder sb, IRNode node, boolean includeArgs) {
+	  String targetName = "(none)";
+	  final Operator op = getOperator(node);
+	  final IRNode args;
+	  if (MethodDeclaration.prototype.includes(op)) {
+		  targetName = MethodDeclaration.getId(node);
+		  args = MethodDeclaration.getParams(node);
+	  } else if (ConstructorDeclaration.prototype.includes(op)) {
+		  targetName = ConstructorDeclaration.getId(node);
+		  args = ConstructorDeclaration.getParams(node);
+	  } else {
+		  sb.append("("+op.name()+")");
+		  return;
+	  }
+	  sb.append('.').append(targetName);
+	  
+	  if (includeArgs) {
+		  sb.append(genArgList(args));
+	  } else {
+		  sb.append("()");
+	  }
+  }
+  
   /**
    * Returns the name of the package that the node is part of.
    * 
