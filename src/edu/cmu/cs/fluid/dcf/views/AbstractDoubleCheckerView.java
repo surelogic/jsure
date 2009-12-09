@@ -32,6 +32,7 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -90,6 +91,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	protected ColumnViewer viewer;
 	protected TreeViewer treeViewer;
 	protected TableViewer tableViewer;
+	protected Clipboard clipboard;
 
 	private Action doubleClickAction;
 
@@ -121,6 +123,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					| SWT.V_SCROLL);
 		}
 		setupViewer();
+		clipboard = new Clipboard(getSite().getShell().getDisplay());
 
 		viewer.setInput(getViewSite());
 		makeActions_private();
@@ -224,8 +227,13 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	private void contributeToActionBars() {
 		IActionBars bars = getViewSite().getActionBars();
+		fillGlobalActionHandlers(bars);
 		fillLocalPullDown(bars.getMenuManager());
 		fillLocalToolBar(bars.getToolBarManager());
+	}
+
+	protected void fillGlobalActionHandlers(IActionBars bars) {
+		// Nothing to do yet
 	}
 
 	private void fillContextMenu_private(IMenuManager manager,

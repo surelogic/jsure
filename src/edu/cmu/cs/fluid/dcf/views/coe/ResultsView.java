@@ -7,11 +7,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.action.AbstractAction;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuCreator;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -19,8 +22,13 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.events.HelpListener;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
@@ -206,12 +214,47 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		viewer.setLabelProvider(f_labelProvider);
 		viewer.setSorter(createSorter());
 		ColumnViewerToolTipSupport.enableFor(viewer);
+		/*
+		final int ops = DND.DROP_COPY;
+		final Transfer[] transfers = new Transfer[] { TextTransfer.getInstance()};
+		viewer.addDragSupport(ops, transfers, new DragSourceAdapter() {
+			public void dragSetData(DragSourceEvent event){
+				if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
+					Object o = event.data;
+					event.data = f_labelProvider.getText(o);
+				}
+			}
+		});
+		*/
 	}
 
 	protected ViewerSorter createSorter() {
 		return new ContentNameSorter();
 	}
 
+	String getSelectedText() {
+		IStructuredSelection selection = (IStructuredSelection)viewer.getSelection();
+		StringBuilder sb = new StringBuilder();
+		for(Object elt : selection.toList()) {
+			if (sb.length() > 0) {
+				sb.append('\n');
+			}
+			sb.append(f_labelProvider.getText(elt));
+		}	
+		return sb.toString();
+	}
+	
+	@Override
+	protected void fillGlobalActionHandlers(IActionBars bars) {
+		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), new Action() {	
+			public void run() {
+				clipboard.setContents(
+						new Object[] { getSelectedText() },
+						new Transfer[] { TextTransfer.getInstance()});
+			}
+		});
+	}
+	
 	@Override
 	protected void fillLocalPullDown(final IMenuManager manager) {
 		manager.add(f_actionCollapseAll);
