@@ -3,8 +3,6 @@ package com.surelogic.analysis.colors;
 
 import java.util.*;
 
-import com.surelogic.sea.drops.colors.*;
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.colors.ColorIncompatibleDrop;
 import edu.cmu.cs.fluid.sea.drops.colors.ColorRenameDrop;

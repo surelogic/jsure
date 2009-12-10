@@ -8,9 +8,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.surelogic.sea.drops.colors.*;
-
-
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.bind.AbstractPromiseAnnotation;
 import edu.cmu.cs.fluid.promise.IPromiseRule;

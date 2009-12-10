@@ -15,7 +15,6 @@ import com.surelogic.aast.promise.ColorNameListNode;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.ColorRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.sea.drops.colors.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;

@@ -18,7 +18,6 @@ import SableJBDD.bdd.JBDD;
 
 import com.surelogic.analysis.messages.Messages;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.sea.drops.colors.*;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;

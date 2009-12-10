@@ -20,7 +20,6 @@ import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
-import com.surelogic.sea.drops.modules.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;

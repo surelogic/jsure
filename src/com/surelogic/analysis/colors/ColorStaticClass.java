@@ -4,8 +4,6 @@ package com.surelogic.analysis.colors;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.surelogic.sea.drops.colors.*;
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.colors.ColorImportDrop;
 import edu.cmu.cs.fluid.sea.drops.colors.ColorRenameDrop;

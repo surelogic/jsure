@@ -9,8 +9,6 @@ package com.surelogic.analysis.colors;
 import java.util.Collection;
 import java.util.Iterator;
 
-import com.surelogic.sea.drops.colors.*;
-
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropEvent;
 import edu.cmu.cs.fluid.sea.DropObserver;

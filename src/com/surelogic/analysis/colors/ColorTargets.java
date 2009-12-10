@@ -19,7 +19,6 @@ import com.surelogic.analysis.effects.targets.TargetRelationships;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 import com.surelogic.analysis.regions.*;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.sea.drops.colors.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
