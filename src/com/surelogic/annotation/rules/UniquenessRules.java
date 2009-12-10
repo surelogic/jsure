@@ -13,6 +13,7 @@ import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.SimpleScrubber;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -223,8 +224,7 @@ public class UniquenessRules extends AnnotationRules {
 
   
   public static class Borrowed_ParseRule
-  extends DefaultBooleanAnnotationParseRule<BorrowedNode,BorrowedPromiseDrop>
-  implements DropGenerator<BorrowedNode, BorrowedPromiseDrop> {
+  extends DefaultBooleanAnnotationParseRule<BorrowedNode,BorrowedPromiseDrop> {
     public Borrowed_ParseRule() {
       super(BORROWED, methodOrParamDeclOps, BorrowedNode.class);
     }
@@ -249,17 +249,46 @@ public class UniquenessRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<BorrowedNode> makeScrubber() {
-      return new AbstractAASTScrubber<BorrowedNode>(this) {
+      return new AbstractAASTScrubber<BorrowedNode>(this,
+          ScrubberType.UNORDERED, UNIQUE) {
         @Override
         protected PromiseDrop<BorrowedNode> makePromiseDrop(BorrowedNode a) {
-          return storeDropIfNotNull(getStorage(), a, 
-              checkForReferenceType(Borrowed_ParseRule.this, getContext(), a, "Borrowed"));          
+          return storeDropIfNotNull(getStorage(), a, scrubBorrowed(getContext(), a));
         }
       };
     }    
     
-    public BorrowedPromiseDrop generateDrop(BorrowedNode a) {
-      return new BorrowedPromiseDrop(a); 
+    private BorrowedPromiseDrop scrubBorrowed(
+        final IAnnotationScrubberContext context, final BorrowedNode a) {
+      // must be a reference type variable
+      boolean good = checkForReferenceType(context, a, "Borrowed");
+      
+      /* If the annotation is @Borrowed("this"), and it appears on a constructor,
+       * then we also make sure that the constructor is not annotated with
+       * @Unique("return").
+       */
+      final IRNode promisedFor = a.getPromisedFor();
+      final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
+      if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
+        // Get the method/constructor declaration that the receiver belongs to
+        final IRNode decl = JavaPromise.getPromisedForOrNull(promisedFor);
+        if (ConstructorDeclaration.prototype.includes(decl)) {
+          // It's from a constructor, look for unique on the return node
+          final IRNode returnNode = JavaPromise.getReturnNodeOrNull(decl);
+          if (returnNode != null) {
+            if (isUnique(returnNode)) {
+              good = false;
+              context.reportError("Cannot use both @Borrowed(\"this\") and @Unique(\"return\") on a constructor declaration", a);
+            }
+          }
+        }
+      }
+
+      if (good) {
+        return new BorrowedPromiseDrop(a);
+      } else {
+        return null;
+      }
     }
   }
   
