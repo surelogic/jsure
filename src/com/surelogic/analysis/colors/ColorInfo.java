@@ -3,7 +3,6 @@
  */
 package com.surelogic.analysis.colors;
 
-import com.surelogic.sea.drops.colors.ColorReqSummaryDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
@@ -12,6 +11,7 @@ import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorReqSummaryDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 

@@ -11,7 +11,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.sea.drops.colors.ColorRenameDrop;
+
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRenameDrop;
 
 import SableJBDD.bdd.JBDD;
 

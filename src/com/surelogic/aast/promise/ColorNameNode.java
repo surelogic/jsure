@@ -6,9 +6,9 @@ import com.surelogic.aast.*;
 import com.surelogic.analysis.colors.CExpr;
 import com.surelogic.analysis.colors.CLeafExpr;
 import com.surelogic.parse.AbstractSingleNodeFactory;
-import com.surelogic.sea.drops.colors.ColorNameModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorNameModel;
 
 
 

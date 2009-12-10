@@ -13,10 +13,6 @@ import java.util.logging.Logger;
 
 import com.surelogic.analysis.colors.ColorFirstPass;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.sea.drops.callgraph.SimpleCallGraphDrop;
-import com.surelogic.sea.drops.modules.ModuleModel;
-import com.surelogic.sea.drops.modules.ModulePromiseDrop;
-import com.surelogic.sea.drops.modules.VisibilityDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -28,6 +24,10 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.callgraph.SimpleCallGraphDrop;
+import edu.cmu.cs.fluid.sea.drops.modules.ModuleModel;
+import edu.cmu.cs.fluid.sea.drops.modules.ModulePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.modules.VisibilityDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ModuleAnalysisAndVisitor {

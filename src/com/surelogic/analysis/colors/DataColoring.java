@@ -6,11 +6,11 @@
  */
 package com.surelogic.analysis.colors;
 
-import com.surelogic.sea.drops.colors.ColorCtxSummaryDrop;
 
 import SableJBDD.bdd.JBDD;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.Visitor;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorCtxSummaryDrop;
 
 /**
  * @author dfsuther

@@ -8,8 +8,6 @@ package com.surelogic.analysis.colors;
 
 import java.util.Iterator;
 
-import com.surelogic.sea.drops.colors.ColorResultDrop;
-import com.surelogic.sea.drops.colors.ColoredClassDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.Category;
@@ -18,6 +16,8 @@ import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorResultDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColoredClassDrop;
 
 
 /**

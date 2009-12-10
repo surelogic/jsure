@@ -12,9 +12,6 @@ import java.util.logging.Logger;
 
 import com.surelogic.annotation.rules.ColorRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.sea.drops.callgraph.SimpleCallGraphDrop;
-import com.surelogic.sea.drops.colors.ColorReqSummaryDrop;
-import com.surelogic.sea.drops.modules.ModuleModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -22,6 +19,9 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.WarningDrop;
+import edu.cmu.cs.fluid.sea.drops.callgraph.SimpleCallGraphDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorReqSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.modules.ModuleModel;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**

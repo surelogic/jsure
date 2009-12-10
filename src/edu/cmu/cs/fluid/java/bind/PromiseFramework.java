@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import com.surelogic.annotation.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.*;
-import com.surelogic.sea.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRBooleanType;
@@ -33,6 +32,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.promise.*;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 

@@ -15,6 +15,14 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropEvent;
 import edu.cmu.cs.fluid.sea.DropObserver;
 import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorCtxSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorDeclareDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorGrantDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorIncompatibleDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorNameModel;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorReqSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRequireDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRevokeDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.SimpleCallGraphDrop;
 
 /**

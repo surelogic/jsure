@@ -1,10 +1,10 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/promise/BooleanPromiseDropStorage.java,v 1.7 2007/07/13 18:02:57 chance Exp $*/
 package com.surelogic.promise;
 
-import com.surelogic.sea.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
+import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 public final class BooleanPromiseDropStorage<D extends BooleanPromiseDrop> 
 extends AbstractPromiseDropStorage<D>

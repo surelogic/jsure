@@ -20,7 +20,6 @@ import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 import com.surelogic.analysis.regions.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.sea.drops.colors.*;
-import com.surelogic.sea.drops.effects.WholeModuleFXDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
@@ -30,6 +29,8 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorizedRegionModel;
+import edu.cmu.cs.fluid.sea.drops.effects.WholeModuleFXDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.tree.Operator;
 

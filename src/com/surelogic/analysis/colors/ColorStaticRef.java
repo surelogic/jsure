@@ -3,10 +3,10 @@ package com.surelogic.analysis.colors;
 
 import java.util.*;
 
-import com.surelogic.sea.drops.colors.ColorizedRegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorizedRegionModel;
 import edu.cmu.cs.fluid.tree.Operator;
 
 

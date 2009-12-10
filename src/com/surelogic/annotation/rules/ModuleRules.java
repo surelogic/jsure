@@ -1,7 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/ModuleRules.java,v 1.2 2007/10/28 18:17:07 dfsuther Exp $*/
 package com.surelogic.annotation.rules;
 
-import static com.surelogic.sea.drops.modules.VisDrop.buildVisDrop;
+import static edu.cmu.cs.fluid.sea.drops.modules.VisDrop.buildVisDrop;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,7 +20,6 @@ import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
-import com.surelogic.sea.drops.colors.ColorImportDrop;
 import com.surelogic.sea.drops.modules.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -30,6 +29,11 @@ import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorImportDrop;
+import edu.cmu.cs.fluid.sea.drops.modules.ExportDrop;
+import edu.cmu.cs.fluid.sea.drops.modules.ModulePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.modules.NoVisPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.modules.VisDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ModuleRules extends AnnotationRules {

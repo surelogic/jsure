@@ -2,11 +2,11 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.NotUniqueNode;
-import com.surelogic.sea.drops.BooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
+import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 /**
  * TODO Fill in purpose.

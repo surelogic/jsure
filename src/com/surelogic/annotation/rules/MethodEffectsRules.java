@@ -30,7 +30,7 @@ import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
-import com.surelogic.sea.drops.effects.RegionEffectsPromiseDrop; 
+import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 
 public class MethodEffectsRules extends AnnotationRules {
   private static final int PRIVATE = JavaNode.PRIVATE;

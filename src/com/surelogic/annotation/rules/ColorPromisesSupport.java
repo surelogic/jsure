@@ -15,6 +15,15 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.bind.AbstractPromiseAnnotation;
 import edu.cmu.cs.fluid.promise.IPromiseRule;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorCtxSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorDeclareDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorGrantDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorImportDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorIncompatibleDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorReqSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRequireDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRevokeDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.RegionColorDeclDrop;
 
 public class ColorPromisesSupport extends AbstractPromiseAnnotation {
   public static ColorPromisesSupport INSTANCE = new ColorPromisesSupport();

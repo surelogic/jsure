@@ -8,8 +8,8 @@ package com.surelogic.analysis.colors;
 
 import java.util.Set;
 
-import com.surelogic.sea.drops.colors.ColorNameModel;
-import com.surelogic.sea.drops.colors.ColorRenameDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorNameModel;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRenameDrop;
 
 import SableJBDD.bdd.JBDD;
 

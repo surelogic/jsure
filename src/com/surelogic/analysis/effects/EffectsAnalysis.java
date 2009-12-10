@@ -7,7 +7,6 @@ import java.util.*;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.annotation.rules.MethodEffectsRules;
-import com.surelogic.sea.drops.effects.RegionEffectsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
@@ -19,6 +18,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {	

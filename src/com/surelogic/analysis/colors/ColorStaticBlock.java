@@ -6,6 +6,8 @@ import java.util.Set;
 import com.surelogic.sea.drops.colors.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorGrantDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRevokeDrop;
 
 
 public class ColorStaticBlock extends ColorStaticBlockish {

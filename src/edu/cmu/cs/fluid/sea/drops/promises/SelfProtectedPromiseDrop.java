@@ -6,6 +6,7 @@ import com.surelogic.sea.drops.*;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
+import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 /**
  * Promise drop for "ThreadSafe" promises.

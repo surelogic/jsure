@@ -5,6 +5,8 @@
 package com.surelogic.analysis.colors;
 
 import com.surelogic.sea.drops.colors.*;
+
+import edu.cmu.cs.fluid.sea.drops.colors.ColorNameModel;
 import SableJBDD.bdd.JBDD;
 
 

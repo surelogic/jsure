@@ -17,7 +17,6 @@ import com.surelogic.annotation.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.*;
-import com.surelogic.sea.drops.BooleanPromiseDrop;
 import com.surelogic.task.*;
 import com.surelogic.test.*;
 
@@ -32,6 +31,7 @@ import edu.cmu.cs.fluid.java.bind.IDropFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.tree.*;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.FilterIterator;

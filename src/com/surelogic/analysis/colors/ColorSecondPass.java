@@ -18,9 +18,7 @@ import SableJBDD.bdd.JBDD;
 
 import com.surelogic.analysis.messages.Messages;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.sea.drops.callgraph.SimpleCallGraphDrop;
 import com.surelogic.sea.drops.colors.*;
-import com.surelogic.sea.drops.modules.ModuleModel;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -38,6 +36,21 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.callgraph.SimpleCallGraphDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorCtxSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorDeclareDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorGrantDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorIncSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorNameModel;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRenameDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRenamePerCU;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorReqSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRequireDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorRevokeDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.colors.ColorizedRegionModel;
+import edu.cmu.cs.fluid.sea.drops.colors.RegionColorDeclDrop;
+import edu.cmu.cs.fluid.sea.drops.modules.ModuleModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.tree.Operator;
 
