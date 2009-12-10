@@ -16,6 +16,8 @@ import org.eclipse.ui.IWorkbenchPart;
 
 import com.surelogic.common.logging.SLLogger;
 
+import edu.cmu.cs.fluid.sea.drops.colors.ColorReqSummaryDrop.Status;
+
 /**
  * Implements a context menu action for IProject and IJavaProject that sets the
  * Fluid nature for the project.
