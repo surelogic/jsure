@@ -21,6 +21,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.IJavaVoidType;
+import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -306,8 +308,7 @@ public class UniquenessRules extends AnnotationRules {
   }
 
   
-  private static <T extends IAASTRootNode, D extends PromiseDrop<T>> boolean
-  checkForReferenceType(
+  private static <T extends IAASTRootNode> boolean checkForReferenceType(
       final IAnnotationScrubberContext context, final T a, final String label) {
     final IRNode promisedFor = a.getPromisedFor();
     final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
@@ -325,6 +326,9 @@ public class UniquenessRules extends AnnotationRules {
     
     if (type instanceof IJavaPrimitiveType) {
       context.reportError(a, "{0} may not be used on primitive types", label);
+      return false;
+    } else if (type == JavaTypeFactory.voidType) {
+      context.reportError(a, "{0} may not be used on void types", label);
       return false;
     } else {
       return true;
