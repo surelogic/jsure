@@ -10,6 +10,7 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
+import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.util.CachedSet;
 
 public abstract class AbstractWholeIRAnalysis<T> extends AbstractIRAnalysis<T> {
@@ -44,6 +45,10 @@ public abstract class AbstractWholeIRAnalysis<T> extends AbstractIRAnalysis<T> {
 			LOG.log(Level.SEVERE,
 					"setResultDependUponDrop found invalid or null resultDependUpon drop");
 		}
+	}
+	
+	protected final void setResultDependUponDrop(ResultDropBuilder p) {
+		p.setResultDependUponDrop(resultDependUpon);
 	}
 	
 	public boolean analyzeAll() {
