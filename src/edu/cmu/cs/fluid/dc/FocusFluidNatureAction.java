@@ -1,13 +1,11 @@
 package edu.cmu.cs.fluid.dc;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -17,7 +15,6 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
 
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.sea.drops.colors.ColorReqSummaryDrop.Status;
 
 /**
  * Implements a context menu action for IProject and IJavaProject that sets the
