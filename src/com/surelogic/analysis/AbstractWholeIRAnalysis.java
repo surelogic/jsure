@@ -47,6 +47,11 @@ public abstract class AbstractWholeIRAnalysis<T> extends AbstractIRAnalysis<T> {
 		}
 	}
 	
+	protected final void setResultDependUponDrop(ResultDropBuilder drop, IRNode node) {
+		drop.setNode(node);
+		setResultDependUponDrop(drop);
+	}
+	
 	protected final void setResultDependUponDrop(ResultDropBuilder p) {
 		p.setResultDependUponDrop(resultDependUpon);
 	}

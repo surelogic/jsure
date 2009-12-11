@@ -1,7 +1,13 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/AbstractIRAnalysis.java,v 1.4 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+
+import jsr166y.forkjoin.*;
+import jsr166y.forkjoin.Ops.*;
+
+import org.apache.commons.lang.SystemUtils;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -9,6 +15,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
@@ -18,6 +25,23 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 	private IIRProject project;
 	private IBinder binder;
 	private final AtomicReference<T> analysis = new AtomicReference<T>();
+	
+    public static final boolean singleThreaded  = false || SystemUtils.IS_JAVA_1_5;
+	private static final ForkJoinExecutor pool   = singleThreaded ? null : new ForkJoinPool(2);  
+	// TODO use ThreadLocal trick to collect all the builders
+	private List<ResultDropBuilder> builders = new Vector<ResultDropBuilder>();
+	
+	protected <E> void runInParallel(Class<E> type, Collection<E> c, Procedure<E> proc) {
+		final IParallelArray<E> array = singleThreaded ? 
+				new NonParallelArray<E>() : ParallelArray.create(0, type, pool);	
+		array.asList().addAll(c);
+		/*
+		for(Procedure<E> p : procs) {
+			array.apply(p);
+		}
+		*/
+		array.apply(proc);
+	}
 	
 	protected IBinder getBinder() {
 		return binder;
@@ -35,12 +59,25 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 		return getClass().getSimpleName();
 	}
 	
+	public final void handleBuilder(ResultDropBuilder b) {
+		builders.add(b);
+	}
+	
+	protected final void finishBuild() {
+		for(ResultDropBuilder b : builders) {
+			b.build();
+		}
+		builders.clear();
+	}
+	
 	public final void analyzeBegin(IIRProject p) {
 		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv(p);
 		final IBinder binder        = tEnv.getBinder(); 
 		final IIRProject old        = project;
 		project = p;		
 		this.binder = binder;
+		builders.clear();
+		
 		startAnalyzeBegin(p, binder);
 		
 		if (flushAnalysis() || old != p || analysis.get() == null) {			

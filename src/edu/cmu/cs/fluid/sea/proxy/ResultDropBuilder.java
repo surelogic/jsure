@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.sea.proxy;
 import java.text.MessageFormat;
 import java.util.*;
 
+import com.surelogic.analysis.IIRAnalysis;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.util.Pair;
@@ -27,8 +29,14 @@ public class ResultDropBuilder {
 	private Set<PromiseDrop> trusted = new HashSet<PromiseDrop>();
 	private Drop resultDependUponDrop;
 	
-	public ResultDropBuilder(String type) {
+	private ResultDropBuilder(String type) {		
 		this.type = type;
+	}
+	
+	public static ResultDropBuilder create(IIRAnalysis a, String type) {
+		ResultDropBuilder rv = new ResultDropBuilder(type);
+		a.handleBuilder(rv);
+		return rv;
 	}
 	
 	public boolean isValid() {
