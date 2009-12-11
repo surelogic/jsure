@@ -394,25 +394,22 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 
   @SuppressWarnings("unchecked")
   public ImmutableHashOrderSet<T> addElements(Iterator<T> it) {
-    List<T> l;      
-    synchronized (ImmutableHashOrderSet.class) {
-      if (tempList != null) {
-        l = (List<T>) tempList;
-        tempList = null;
-      } else {
-        l = new ArrayList<T>();
-      }
-      while (it.hasNext()) {
-        l.add(it.next());
-      }
+    List<T> l = (List<T>) tempList.get();      
+    if (l != null) {
+       tempList.remove();
+    } else {
+    	l = new ArrayList<T>();
     }
+    while (it.hasNext()) {
+    	l.add(it.next());
+    }
+    
     try {
       return union(new ImmutableHashOrderSet<T>((T[]) l.toArray()));
     } 
     finally {
-      // No need to synchronize 
       l.clear();
-      tempList = l; 
+      tempList.set(l); 
     }
   }
 
@@ -561,15 +558,19 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
       return contents;
   }
 
-  @SuppressWarnings("unchecked")
-  private static List<?> tempList = new ArrayList();
+  
+  private static ThreadLocal<List<?>> tempList = new ThreadLocal<List<?>>() {
+	  @SuppressWarnings("unchecked")
+	  @Override
+	  protected List<?> initialValue() {
+		  return new ArrayList();
+	  }
+  };
 }
 
 /** Routines for handling arrays of objects sorted by hashCode.
  * All routines are static, because we can't inherit from Object[]
  * 
- * @region private static Temp
- * @lock ListLock is class protects Temp
  */
 @SuppressWarnings("all")
 class SortedArray {
@@ -659,15 +660,14 @@ class SortedArray {
   }
   */
   
-  /**
-   * @mapInto Temp
-   * @unique
-   * @aggregate Instance into Temp  
-   */
-  private static Object[] lastArray = new Object[300];
+  private static ThreadLocal<Object[]> lastArray = new ThreadLocal<Object[]>() {
+	  protected Object[] initialValue() {
+		  return new Object[300];
+	  }
+  }; 
   
   // Only used by sort()
-  private static synchronized <V> V[] cloneArray(V[] a) {
+  private static <V> V[] cloneArray(V[] a) {
     final int len = a.length;
     V[] array = empty();
     
@@ -683,9 +683,10 @@ class SortedArray {
       }
       else 
       */
-      if (lastArray != null && len <= lastArray.length) {
-        array = (V[]) lastArray;
-        lastArray = null;
+      V[] last = (V[]) lastArray.get();
+      if (last != null && len <= last.length) {
+    	array = last;
+    	lastArray.remove();
         
         System.arraycopy(a, 0, array, 0, a.length);
         return array;  
@@ -703,7 +704,7 @@ class SortedArray {
   }
   
   // Only used by sort()
-  private static synchronized <V> void cacheArray(V[] a) {
+  private static <V> void cacheArray(V[] a) {
     /*
     if (a.length < MAX_ARRAYS) {
       cachedArrays[a.length] = a;
@@ -711,7 +712,7 @@ class SortedArray {
       lastArray = a;
     }
     */
-    lastArray = a;
+    lastArray.set(a);
   }  
   private static final int SHELL_INCREMENT = 4;
   
@@ -1063,22 +1064,14 @@ class SortedArray {
   public static final int A_INCL = A_EXCL|OVERLAP;
   public static final int B_INCL = B_EXCL|OVERLAP;
   
-  /**
-   * @mapInto Temp
-   * @unique
-   * @aggregate Instance into Temp  
-   */
-  private static List tempList = null;
+  private static ThreadLocal<List> tempList = new ThreadLocal<List>();
   
   static <V> V[] combine(final V[] a, final V[] b , final int flags) {
-    List l;
-    synchronized (SortedArray.class) {
-      if (tempList == null) {
-        l = new ArrayList(a.length + b.length);
-      } else {
-        l = tempList;
-        tempList = null;
-      }
+    List l = tempList.get();
+    if (l == null) {
+    	l = new ArrayList(a.length + b.length);
+    } else {
+        tempList.remove();      
     }
 
     final boolean b_EXCL = (flags & B_EXCL) == B_EXCL;
@@ -1163,7 +1156,7 @@ class SortedArray {
     }
     finally {
       l.clear();
-      tempList = l;
+      tempList.set(l);
     }
   }    
   
