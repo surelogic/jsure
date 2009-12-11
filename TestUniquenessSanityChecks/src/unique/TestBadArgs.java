@@ -94,7 +94,7 @@ public class TestBadArgs {
   @Unique(" this " /* is CONSISTENT */)
   public void annotatedMethod4() {}
 
-  @Unique(" return  " /* is CONSISTENT */)
+  @Unique(" return  " /* is UNASSOCIATED */)
   public void annotatedMethod5() {}
 
   @Unique(" this, return " /* is CONSISTENT */)
@@ -112,7 +112,7 @@ public class TestBadArgs {
   @Unique(value=" this " /* is CONSISTENT */)
   public void annotatedMethod4a() {}
 
-  @Unique(value=" return  " /* is CONSISTENT */)
+  @Unique(value=" return  " /* is UNASSOCIATED */)
   public void annotatedMethod5a() {}
 
   @Unique(value=" this, return " /* is CONSISTENT */)
