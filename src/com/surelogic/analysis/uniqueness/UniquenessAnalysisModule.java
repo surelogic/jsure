@@ -235,13 +235,18 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					}
 
 					// Case 3b: borrowed/unique parameter
-					if (!TypeUtil.isStatic(currentNode)) {
-						final IRNode self = JavaPromise.getReceiverNode(currentNode);
-						hasBorrowedParam |= UniquenessRules.isBorrowed(self);
-						hasUniqueParam |= UniquenessRules.isUnique(self);
-					}
+          if (ConstructorDeclaration.prototype.includes(op)) {
+            hasBorrowedParam |= UniquenessRules.constructorYieldsUnaliasedObject(currentNode);
+            // Cannot have a unique receiver
+          } else {
+            if (!TypeUtil.isStatic(currentNode)) { // non-static method
+              final IRNode self = JavaPromise.getReceiverNode(currentNode);
+              hasBorrowedParam |= UniquenessRules.isBorrowed(self);
+              hasUniqueParam |= UniquenessRules.isUnique(self);
+            }
+          }
 					IRNode formals = null;
-					if (op instanceof ConstructorDeclaration) {
+					if (ConstructorDeclaration.prototype.includes(op)) {
 						formals = ConstructorDeclaration.getParams(currentNode);
 					} else {
 						formals = MethodDeclaration.getParams(currentNode);
@@ -438,9 +443,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		 * receiver.  Map from the method call drop to the borrowed promise.
 		 */
 		public final Map<ResultDrop, BorrowedPromiseDrop> calledBorrowedConstructors;
+		public final Map<ResultDrop, UniquePromiseDrop> calledUniqueConstructors;
 		
 		/** Method call drops for each invoked method that has borrowed parameters */
 		public final Set<ResultDrop> calledBorrowedParams;
+		public final Set<ResultDrop> calledBorrowedReceiverAsUniqueReturn;
 
 		/** Method call drops for each invoked method that has effects */
 		public final Set<ResultDrop> calledEffects;
@@ -462,9 +469,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			myBorrowedParams = new HashSet<BorrowedPromiseDrop>();
 			myUniqueReturn = new HashSet<UniquePromiseDrop>();
 			calledUniqueReturns = new HashMap<ResultDrop, UniquePromiseDrop>();
-			calledBorrowedConstructors = new HashMap<ResultDrop, BorrowedPromiseDrop>();
+      calledBorrowedConstructors = new HashMap<ResultDrop, BorrowedPromiseDrop>();
+      calledUniqueConstructors = new HashMap<ResultDrop, UniquePromiseDrop>();
 			calledUniqueParams = new HashSet<ResultDrop>();
-			calledBorrowedParams = new HashSet<ResultDrop>();
+      calledBorrowedParams = new HashSet<ResultDrop>();
+      calledBorrowedReceiverAsUniqueReturn = new HashSet<ResultDrop>();
 			calledEffects = new HashSet<ResultDrop>();
 			uniqueFields = new HashSet<UniquePromiseDrop>();
 
@@ -510,7 +519,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
     return drop;
 	}
 	
-	private PromiseRecord createPromiseRecordFor(final IRNode block) {
+	@SuppressWarnings("unchecked")
+  private PromiseRecord createPromiseRecordFor(final IRNode block) {
 		final PromiseRecord pr = new PromiseRecord(block);
 		final Operator blockOp = JJNode.tree.getOperator(block);
 
@@ -526,14 +536,16 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			}
 		}
 
-		// If the block is a method declaration, get promise information from it
-		if (ConstructorDeclaration.prototype.includes(blockOp)
-				|| MethodDeclaration.prototype.includes(blockOp)) {
-			// don't care about my effects, use a throw-away set here
-			getPromisesFromMethodDecl(block, pr.myUniqueReturn,
-			    pr.myBorrowedParams, new HashSet<BorrowedPromiseDrop>(),
-					pr.myUniqueParams, new HashSet<RegionEffectsPromiseDrop>());
-		}
+		/* If the block is a method or constructor declaration, get promise
+		 * information from it.
+		 */
+		final boolean isConDecl = ConstructorDeclaration.prototype.includes(blockOp);
+    if (isConDecl || MethodDeclaration.prototype.includes(blockOp)) {
+      // don't care about my effects, use a throw-away set here
+      getPromisesFromMethodDecl(block, pr.myUniqueReturn,
+          pr.myBorrowedParams, new HashSet<BorrowedPromiseDrop>(),
+          pr.myUniqueParams, new HashSet<RegionEffectsPromiseDrop>());
+    }
 
 		// Look at the guts of the method/constructor/initializer
 		final Iterator<IRNode> nodes = JJNode.tree.topDown(block);
@@ -556,7 +568,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					LOG.warning("No binding for "+DebugUnparser.toString(currentNode));
 					continue;
 				}
-
+				final boolean isConstructorCall = 
+				  ConstructorDeclaration.prototype.includes(declNode);
+				
 				// get the info for the called method
 				final Set<UniquePromiseDrop> uniqueReturns = new HashSet<UniquePromiseDrop>();
         final Set<BorrowedPromiseDrop> borrowedParams = new HashSet<BorrowedPromiseDrop>();
@@ -574,9 +588,18 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					final ResultDrop callDrop = getMethodCallDrop("uniqueReturnDrop",
 					    MessageFormat.format(Messages.uniqueReturnDrop, label),
 					    currentNode, uniqueReturns);
-					allCallDrops.add(callDrop);
-					// Unique returns is a singleton set
-					pr.calledUniqueReturns.put(callDrop, uniqueReturns.iterator().next());
+					if (!isConstructorCall) {
+  					allCallDrops.add(callDrop);
+  					// Unique returns is a singleton set
+  					pr.calledUniqueReturns.put(callDrop, uniqueReturns.iterator().next());
+					} else {
+	          /* Unique return on constructor should be treated like a borrowed
+	           * receiver 
+	           */
+					  allCallDrops.add(callDrop);
+					  pr.calledBorrowedReceiverAsUniqueReturn.add(callDrop);
+					  pr.calledUniqueConstructors.put(callDrop, uniqueReturns.iterator().next());
+					}
 				}
 				if (!borrowedParams.isEmpty()) {
 					final ResultDrop callDrop = getMethodCallDrop("borrowedParametersDrop",
@@ -585,7 +608,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					allCallDrops.add(callDrop);
 					pr.calledBorrowedParams.add(callDrop);
 					
-					if (NewExpression.prototype.includes(op) && !borrowedReceiver.isEmpty()) {
+					if (isConstructorCall && !borrowedReceiver.isEmpty()) {
 					  // Borrowed receivers is a singleton set
 					  pr.calledBorrowedConstructors.put(callDrop, borrowedReceiver.iterator().next());
 					}
@@ -617,21 +640,31 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			}
 		}
 
-		/*
-		 * Set up the borrowed dependencies. Each parameter of the method that is
-		 * declared to be borrowed trusts the @borrowed annotations of any methods
-		 * called by the body of this method.
-		 */
+    /*
+     * Set up the borrowed dependencies. Each parameter of the method that is
+     * declared to be borrowed trusts the @borrowed annotations (including
+     * @Unique("return") annotations on constructors) of any methods called by
+     * the body of this method.
+     */
 		{
 			final Set<ResultDrop> dependsOnResults = new HashSet<ResultDrop>(pr.calledBorrowedParams);
+			dependsOnResults.addAll(pr.calledBorrowedReceiverAsUniqueReturn);
 			dependsOnResults.add(pr.controlFlow);
-      addDependencies(pr.myBorrowedParams, intermediateResultDrops, Collections.<PromiseDrop>emptySet(), dependsOnResults);
+      addDependencies(pr.myBorrowedParams, intermediateResultDrops,
+          Collections.<PromiseDrop>emptySet(), dependsOnResults);
+      /* If we are a constructor, we treat unique("return") like @borrowed("this")
+       */
+      if (isConDecl) {
+        addDependencies(pr.myUniqueReturn, intermediateResultDrops,
+            Collections.<PromiseDrop>emptySet(), dependsOnResults);
+      }
 		}
 
 		/*
 		 * Set up the dependencies for this method's accessed unique fields. Depends
 		 * on the unique parameters of the method, the unique return values of
-		 * called methods, the borrowed parameters of called methods, the unique
+		 * called methods, the borrowed parameters of called methods (including
+     * @Unique("return") annotations on constructors), the unique
 		 * fields accessed by this method, the effects of methods w/borrowed
 		 * parameters, and the control-flow of the method itself.
 		 */
@@ -644,7 +677,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			dependsOnResults.add(pr.controlFlow);
       dependsOnResults.addAll(pr.calledUniqueReturns.keySet());
       dependsOnResults.addAll(pr.calledBorrowedConstructors.keySet());
+      dependsOnResults.addAll(pr.calledUniqueConstructors.keySet());
 			dependsOnResults.addAll(pr.calledBorrowedParams);
+			dependsOnResults.addAll(pr.calledBorrowedReceiverAsUniqueReturn);
 			dependsOnResults.addAll(pr.calledEffects);
 			addDependencies(pr.uniqueFields, intermediateResultDrops, dependsOnPromises, dependsOnResults);
 		}
@@ -663,8 +698,15 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			final Set<ResultDrop> dependsOnResults = new HashSet<ResultDrop>();
 	    dependsOnResults.add(pr.controlFlow);
   		dependsOnResults.addAll(pr.calledUniqueReturns.keySet());
-  		dependsOnResults.addAll(pr.calledBorrowedConstructors.keySet());
-			addDependencies(pr.myUniqueReturn, intermediateResultDrops, dependsOnPromises, dependsOnResults);
+      dependsOnResults.addAll(pr.calledBorrowedConstructors.keySet());
+      dependsOnResults.addAll(pr.calledUniqueConstructors.keySet());
+  		/* If this is from a constructor than unique("return") should be 
+  		 * treated as borrowed("this")
+  		 */
+  		if (!isConDecl) {
+  		  addDependencies(pr.myUniqueReturn, intermediateResultDrops,
+  		      dependsOnPromises, dependsOnResults);
+  		}
 		}
 
 		/* Set up the dependencies for this method's unique parameters.  They can
@@ -690,7 +732,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 			dependsOnPromises.addAll(pr.myUniqueParams);
 			dependsOnPromises.addAll(pr.uniqueFields);
-			if (!(dependsOnPromises.isEmpty() && pr.calledUniqueReturns.isEmpty() && pr.calledBorrowedConstructors.isEmpty())) {
+			if (!(dependsOnPromises.isEmpty() && pr.calledUniqueReturns.isEmpty() && pr.calledBorrowedConstructors.isEmpty() && pr.calledUniqueConstructors.isEmpty())) {
 				for (ResultDrop callToCheck : pr.calledUniqueParams) {
 					// Add depended upon promises
 					for (final PromiseDrop<? extends IAASTRootNode> trustedPD : dependsOnPromises) {
@@ -708,8 +750,15 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					  callToCheck.addTrustedPromise(entry.getValue());
 					}
 
-          // Add depended on borrowed constructors
+          // Add depended on contructors with borrowed("this") or unique("return")
           for (Map.Entry<ResultDrop, BorrowedPromiseDrop> entry : pr.calledBorrowedConstructors.entrySet()) {
+            final IRNode constructorCall = entry.getKey().getNode();
+            callToCheck.addSupportingInformation(
+                MessageFormat.format(Messages.borrowedConstructor,
+                    DebugUnparser.toString(constructorCall)), constructorCall);
+            callToCheck.addTrustedPromise(entry.getValue());
+          }
+          for (Map.Entry<ResultDrop, UniquePromiseDrop> entry : pr.calledUniqueConstructors.entrySet()) {
             final IRNode constructorCall = entry.getKey().getNode();
             callToCheck.addSupportingInformation(
                 MessageFormat.format(Messages.borrowedConstructor,
@@ -750,14 +799,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		final boolean isConstructor = ConstructorDeclaration.prototype.includes(op);
 
 		// Try to get the @unique returns drop if any
-		if (!isConstructor) {
-			final IRNode retDecl = JavaPromise.getReturnNodeOrNull(mdecl);
-			if (retDecl != null) {
-				final UniquePromiseDrop returnsUniqueDrop =
-					UniquenessRules.getUniqueDrop(retDecl);
-				if (returnsUniqueDrop != null)
-					uniqueReturns.add(returnsUniqueDrop);
-			}
+		final IRNode retDecl = JavaPromise.getReturnNodeOrNull(mdecl);
+		if (retDecl != null) {
+		  final UniquePromiseDrop returnsUniqueDrop =
+		    UniquenessRules.getUniqueDrop(retDecl);
+		  if (returnsUniqueDrop != null)
+		    uniqueReturns.add(returnsUniqueDrop);
 		}
 
 		// Get the @borrowed and @unique params drops, if any

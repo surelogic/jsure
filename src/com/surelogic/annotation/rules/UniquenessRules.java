@@ -22,7 +22,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.IJavaVoidType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -133,7 +132,25 @@ public class UniquenessRules extends AnnotationRules {
     registerScrubber(fw, uniquenessDone);
   }
   
-  
+  /**
+   * Constructors can be annoted with either "borrowed this" or 
+   * "returns unique" to indicate that the receiver is borrowed.  This
+   * method return true if either of those cases is met.
+   * @param conDecl A constructor declaration node
+   */
+  public static boolean constructorYieldsUnaliasedObject(final IRNode conDecl) {
+    /* Santiy checking already guarantess that at most one of the two case
+     * is met.
+     */
+    // Unique return is the preferred way of doing things, so check it first
+    final IRNode returnNode = JavaPromise.getReturnNodeOrNull(conDecl);
+    if (isUnique(returnNode)) {
+      return true;
+    } else {
+      final IRNode rcvrNode = JavaPromise.getReceiverNodeOrNull(conDecl);
+      return isBorrowed(rcvrNode);
+    }
+  }
   
   private static interface DropGenerator<T extends IAASTRootNode, D extends PromiseDrop<T>> {
     public D generateDrop(T a);

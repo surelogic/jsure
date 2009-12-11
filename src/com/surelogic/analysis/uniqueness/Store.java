@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.version.Version;
 import edu.cmu.cs.fluid.version.VersionedRegion;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
@@ -280,47 +281,59 @@ public class Store extends RecordLattice {
    * add edges (n,field,{}) for all n.
    */
   public Store opStart() {
-    UnionLattice objects = (UnionLattice)getObjects().top();
+    UnionLattice objects = (UnionLattice) getObjects().top();
     UnionLattice empty = nodeSet;
-    Store temp = (Store)top();
-    /* Start with nothing on stack, and just four objects
-     * {}, {undefined}, {borrowed}, {borrowed,shared}
+    Store temp = (Store) top();
+    /*
+     * Start with nothing on stack, and just four objects {}, {undefined},
+     * {borrowed}, {borrowed,shared}
      */
     temp = temp.setStackSize(getStackSize(0));
-    objects = (UnionLattice)objects
-      .addElement(empty)
-      .addElement(empty.addElement(undefinedVariable))
-      .addElement(empty.addElement(borrowedVariable))
-      .addElement(empty
-		  .addElement(sharedVariable)
-		  .addElement(borrowedVariable));
+    objects = (UnionLattice) objects.
+      addElement(empty).
+      addElement(empty.addElement(undefinedVariable)).
+      addElement(empty.addElement(borrowedVariable)).
+      addElement(empty.addElement(sharedVariable).addElement(borrowedVariable));
     temp = temp.setObjects(objects);
-    /** now add each parameter or local in turn.
-     * Currently undefined locals are held back until the end,
-     * when they are made undefined.
+    /**
+     * now add each parameter or local in turn. Currently undefined locals are
+     * held back until the end, when they are made undefined.
      */
     UnionLattice undefinedLocals = nodeSet;
-    for (int i=0; i < locals.length; ++i) {
+    for (int i = 0; i < locals.length; ++i) {
       IRNode local = locals[i];
       Operator op = JJNode.tree.getOperator(local);
-      if (op instanceof ReceiverDeclaration ||
-	  op instanceof ParameterDeclaration) {
-	if (UniquenessRules.isBorrowed(local)) {
-	  temp = temp.opExisting(borrowedVariable);
-	} else if (UniquenessRules.isUnique(local)) {
-	  temp = temp.opNew();
-	} else {
-	  temp = temp.opExisting(sharedVariable);
-	}
-	UnionLattice lset = (UnionLattice)nodeSet.addElement(local);
-	temp = temp
-	  .apply(new StoreAdd(temp.getStackTop(),lset))
-	  .pop();
+      
+      boolean isReceiverFromUniqueReturningConstructor = false;
+      if (op instanceof ReceiverDeclaration) {
+        /* Check if the receiver is from a constructor, and if so,
+         * whether the return node of the constructor is unique 
+         */
+        final IRNode decl = JavaPromise.getPromisedFor(local);
+        if (ConstructorDeclaration.prototype.includes(decl)) {
+          // It's from a constructor, look for unique on the return node
+          final IRNode returnNode = JavaPromise.getReturnNode(decl);
+          if (UniquenessRules.isUnique(returnNode)) {
+            isReceiverFromUniqueReturningConstructor = true;
+          }
+        }
+      }
+      if (op instanceof ReceiverDeclaration
+          || op instanceof ParameterDeclaration) {
+        if (isReceiverFromUniqueReturningConstructor || UniquenessRules.isBorrowed(local)) {
+          temp = temp.opExisting(borrowedVariable);
+        } else if (UniquenessRules.isUnique(local)) {
+          temp = temp.opNew();
+        } else {
+          temp = temp.opExisting(sharedVariable);
+        }
+        UnionLattice lset = (UnionLattice) nodeSet.addElement(local);
+        temp = temp.apply(new StoreAdd(temp.getStackTop(), lset)).pop();
       } else {
-	undefinedLocals = (UnionLattice)undefinedLocals.addElement(local);
+        undefinedLocals = (UnionLattice) undefinedLocals.addElement(local);
       }
     }
-    temp = temp.apply(new StoreAdd(undefinedVariable,undefinedLocals));
+    temp = temp.apply(new StoreAdd(undefinedVariable, undefinedLocals));
     return temp;
   }
 

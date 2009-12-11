@@ -489,13 +489,17 @@ class UniqueTransfer extends JavaEvaluationTransfer {
     if (JavaNode.getModifier(decl, JavaNode.STATIC)) {
       return s.opRelease();
     } else {
+      boolean isConstructor = ConstructorDeclaration.prototype.includes(decl);
       IRNode recDecl = JavaPromise.getReceiverNode(decl);
+      IRNode retDecl = JavaPromise.getReturnNode(decl);
+      
       if (UniquenessRules.isUnique(recDecl)) {
         return s.opUndefine();
-      } else if (UniquenessRules.isBorrowed(recDecl)) {
+      } else if (UniquenessRules.isBorrowed(recDecl) ||
+          (isConstructor && UniquenessRules.isUnique(retDecl))) {
         return s.opBorrow();
       } else {
-        if (tree.getOperator(decl) instanceof ConstructorDeclaration) {
+        if (isConstructor) {
           if (LOG.isLoggable(Level.FINE)) {
             LOG.fine("Receiver is not limited for\n  " + DebugUnparser.toString(decl));
           }

@@ -91,6 +91,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.SingleThreadedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.UniqueID;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
@@ -1867,13 +1868,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
         convertSingleThreadedConstructor(cdecl, ctxtJavaType, syncFrame);
 
         // Assure the single threaded annotation
+        UniquePromiseDrop uDrop = null;
         BorrowedPromiseDrop bDrop = null;
         RegionEffectsPromiseDrop eDrop = null;
         StartsPromiseDrop teDrop = null;
 
         final SingleThreadedPromiseDrop stDrop = LockRules.getSingleThreadedDrop(cdecl);
         if (stDrop == null) {
-          LOG.severe("NULL SingleThreaded drop in checkSynchronizedConstructor");
+          LOG.severe("NULL SingleThreaded drop in visitConstructorDeclaration");
         }
         // get the receiver and see if it is declared to be borrowed
         final boolean isBorrowedThis =
@@ -1882,7 +1884,17 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
           // get drop and hook up to singleThreaded drop
           bDrop = UniquenessRules.getBorrowedDrop(ctxtTheReceiverNode);
           if (bDrop == null) {
-            LOG.severe("NULL Borrowed this drop in checkSynchronizedConstructor");
+            LOG.severe("NULL Borrowed this drop in visitConstructorDeclaration");
+          }
+        }
+        
+        // See if the return v alue is declared to be unique
+        final IRNode returnNode = JavaPromise.getReturnNodeOrNull(cdecl);
+        final boolean isUniqueReturn = UniquenessRules.isUnique(returnNode);
+        if (isUniqueReturn) {
+          uDrop = UniquenessRules.getUniqueDrop(returnNode);
+          if (uDrop == null) {
+            LOG.severe("NULL Unique return drop in visitConstructorDeclaration");
           }
         }
 
@@ -1927,10 +1939,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
           }
         }
 
-        boolean isOkay = isBorrowedThis || isEffects;
+        boolean isOkay = isUniqueReturn || isBorrowedThis || isEffects;
         if (isOkay) {
           final ResultDrop r = makeResultDrop(cdecl, stDrop, true,
               DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG);
+          if (isUniqueReturn) {
+            r.addTrustedPromise_or("by unique return", uDrop);
+          }
           if (isBorrowedThis) {
             r.addTrustedPromise_or("by borrowed receiver", bDrop);
           }
