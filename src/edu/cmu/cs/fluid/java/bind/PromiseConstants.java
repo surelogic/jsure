@@ -68,9 +68,8 @@ public interface PromiseConstants {
                                                          ClassDeclaration.prototype,
                                                          InterfaceDeclaration.prototype,
                                                          EnumDeclaration.prototype,
-                                                         MethodDeclaration.prototype,
-                                                         FieldDeclaration.prototype,
-                                                         ConstructorDeclaration.prototype,};
+                                                         SomeFunctionDeclaration.prototype,
+                                                         FieldDeclaration.prototype, };
 
   public static final Operator[] typeDeclOps = {
     // AnonClassExpression.prototype,
@@ -93,18 +92,18 @@ public interface PromiseConstants {
   public static final Operator[] methodDeclOps = {
     // AnonClassExpression.prototype,
     ClassInitDeclaration.prototype,
-    MethodDeclaration.prototype, ConstructorDeclaration.prototype, };
+    SomeFunctionDeclaration.prototype, };
   
   public static final Operator[] methodOrParamDeclOps = {
     // AnonClassExpression.prototype,
     ClassInitDeclaration.prototype,
-    MethodDeclaration.prototype, ConstructorDeclaration.prototype,
+    SomeFunctionDeclaration.prototype,
     ParameterDeclaration.prototype 
   };
 
   public static final Operator[] methodOrClassDeclOps = {
     // AnonClassExpression.prototype,
-    MethodDeclaration.prototype, ConstructorDeclaration.prototype, 
+	SomeFunctionDeclaration.prototype,
     ClassDeclaration.prototype,
     EnumDeclaration.prototype,
     InterfaceDeclaration.prototype,
@@ -112,7 +111,7 @@ public interface PromiseConstants {
   
   public static final Operator[] fieldMethodDeclOps = {
     FieldDeclaration.prototype, 
-    MethodDeclaration.prototype, ConstructorDeclaration.prototype, };
+    SomeFunctionDeclaration.prototype, };
   
   public static final Operator[] fieldParamDeclOps = {
     FieldDeclaration.prototype, ParameterDeclaration.prototype, };
@@ -120,7 +119,7 @@ public interface PromiseConstants {
   
   public static final Operator[] fieldMethodParamDeclOps = {
     FieldDeclaration.prototype, ParameterDeclaration.prototype,
-    MethodDeclaration.prototype, ConstructorDeclaration.prototype, };
+    SomeFunctionDeclaration.prototype, };
   
   public static final Operator[] fieldDeclOp = { FieldDeclaration.prototype, VariableDeclarator.prototype };
 
@@ -147,7 +146,7 @@ public interface PromiseConstants {
   
   public static final Operator[] methodDeclOrStatementOps = {
 		// AnonClassExpression.prototype,
-		MethodDeclaration.prototype, ConstructorDeclaration.prototype,
+	  SomeFunctionDeclaration.prototype,
 		    Statement.prototype,
   };
 
