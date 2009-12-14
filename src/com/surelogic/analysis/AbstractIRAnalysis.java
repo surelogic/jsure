@@ -25,12 +25,19 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 	protected final T nullAnalysis = (T) new Object();
 	private IIRProject project;
 	private IBinder binder;
-	private final AtomicReference<T> analysis = new AtomicReference<T>();
+	private final ThreadLocal<T> analysis = new ThreadLocal<T>();
 	
     public static final boolean singleThreaded  = false || SystemUtils.IS_JAVA_1_5;
     private static final int threadCount = 
     	IDE.getInstance().getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
 	private static final ForkJoinExecutor pool   = singleThreaded ? null : new ForkJoinPool(threadCount);  
+	protected static final List<Void> nulls = new ArrayList<Void>();
+	static {
+		for(int i=0;i<threadCount; i++) {
+			nulls.add(null);
+		}
+	}
+	
 	// TODO use ThreadLocal trick to collect all the builders
 	private List<ResultDropBuilder> builders = new Vector<ResultDropBuilder>();
 	
@@ -58,6 +65,10 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 		return false;
 	}
 	
+	protected boolean runInParallel() {
+		return false;
+	}
+	
 	public String name() {
 		return getClass().getSimpleName();
 	}
@@ -73,7 +84,7 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 		builders.clear();
 	}
 	
-	public final void analyzeBegin(IIRProject p) {
+	public final void analyzeBegin(final IIRProject p) {
 		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv(p);
 		final IBinder binder        = tEnv.getBinder(); 
 		final IIRProject old        = project;
@@ -82,20 +93,27 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 		builders.clear();
 		
 		startAnalyzeBegin(p, binder);
-		
-		if (flushAnalysis() || old != p || analysis.get() == null) {			
-			setupAnalysis();
+		if (!runInParallel() || singleThreaded) {
+			setupAnalysis(old != p);
+		} else {
+			runInParallel(Void.class, nulls, new Procedure<Void>() {
+				public void op(Void v) {
+					setupAnalysis(old != p);
+				}				
+			});
 		}
 		finishAnalyzeBegin(p, binder);
 	}
 	
-	private final void setupAnalysis() {
-		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			public void run() {
-				T a = constructIRAnalysis(binder);
-				analysis.set(a);
-			}
-		});
+	private final void setupAnalysis(boolean diffProject) {
+		if (flushAnalysis() || diffProject || analysis.get() == null) {			
+			runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
+				public void run() {
+					T a = constructIRAnalysis(binder);
+					analysis.set(a);
+				}
+			});
+		}
 	}
 	
 	protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
@@ -113,10 +131,12 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 	
 	public final boolean doAnalysisOnAFile(final CUDrop cud, 
 			final IAnalysisMonitor monitor) {
+		/*
 		T analysis = getAnalysis();
 		if (analysis == null) {
 			setupAnalysis();
 		}
+		*/
 		Object rv = runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			public void run() {
 				result = doAnalysisOnAFile(cud, cud.cu, monitor);

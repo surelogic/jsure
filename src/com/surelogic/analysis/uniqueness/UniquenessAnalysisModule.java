@@ -58,7 +58,10 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		super("UniqueAnalysis");
 	}
 
-  
+  @Override
+  protected boolean runInParallel() {
+	  return true;
+  }
   
 	public void init(IIRAnalysisEnvironment env) {
 		// Nothing to do
@@ -87,7 +90,16 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	  }
 	  controlFlowDrops.clear();
 	  
+	  if (singleThreaded) {
 		getAnalysis().clearCaches();
+	  } else {
+		  runInParallel(Void.class, nulls, new Procedure<Void>() {
+			  public void op(Void v) {
+				  // This gets run in each thread in the pool
+				  getAnalysis().clearCaches();
+			  }
+		  });
+	  }
 	}
 	
 	@Override
