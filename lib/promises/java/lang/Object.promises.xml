@@ -7,7 +7,7 @@
   <constructor>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <borrowed>this</borrowed>
+   <unique>return</unique>
    <transparent/>
   </constructor>
   <method name="clone">
