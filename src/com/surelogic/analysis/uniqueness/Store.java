@@ -69,7 +69,7 @@ public class Store extends RecordLattice {
   static {
     stackSizes.addElement(new FlatLattice(new Integer(0)));
   }
-  public static FlatLattice getStackSize(int n) {
+  public static synchronized FlatLattice getStackSize(int n) {
     int i = stackSizes.size();
     while (i <= n) {
       stackSizes.addElement(new FlatLattice(new Integer(i)));
