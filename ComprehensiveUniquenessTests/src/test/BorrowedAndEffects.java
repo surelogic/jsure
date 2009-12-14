@@ -12,7 +12,7 @@ import com.surelogic.Unique;
 public class BorrowedAndEffects {
   private @Unique Object uniqueField = null;
 
-  @Borrowed("this")
+  @Unique("return")
   public BorrowedAndEffects() {}
 
   @RegionEffects("writes Instance")

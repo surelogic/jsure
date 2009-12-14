@@ -12,7 +12,7 @@ public class BorrowedParams {
   /**
    * Good
    */
-  @Borrowed("this")
+  @Unique("return")
   public BorrowedParams() {
     // Do nothing; preserves uniqueness of receiver
   }

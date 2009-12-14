@@ -1,6 +1,6 @@
 package test;
 
-import com.surelogic.Borrowed;
+//import com.surelogic.Borrowed;  // unused but keep so that I don't mess up the line numbers
 import com.surelogic.Unique;
 
 /* Test calling methods and constructors that require unique parameters.
@@ -11,7 +11,7 @@ public class UniqueParams {
   /**
    * Good
    */
-  @Borrowed("this")
+  @Unique("return")
   public UniqueParams() {
     // do nothing
   }
