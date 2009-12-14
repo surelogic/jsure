@@ -3,4 +3,5 @@ package edu.cmu.cs.fluid.ide;
 
 public interface IDEPreferences {
 	String ALLOW_JAVADOC_ANNOS = "allow.javadoc.annos";
+	String ANALYSIS_THREAD_COUNT = "analysis.thread.count";
 }

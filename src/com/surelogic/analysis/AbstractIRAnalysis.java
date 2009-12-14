@@ -10,6 +10,7 @@ import jsr166y.forkjoin.Ops.*;
 import org.apache.commons.lang.SystemUtils;
 
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
@@ -27,7 +28,9 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 	private final AtomicReference<T> analysis = new AtomicReference<T>();
 	
     public static final boolean singleThreaded  = false || SystemUtils.IS_JAVA_1_5;
-	private static final ForkJoinExecutor pool   = singleThreaded ? null : new ForkJoinPool(2);  
+    private static final int threadCount = 
+    	IDE.getInstance().getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
+	private static final ForkJoinExecutor pool   = singleThreaded ? null : new ForkJoinPool(threadCount);  
 	// TODO use ThreadLocal trick to collect all the builders
 	private List<ResultDropBuilder> builders = new Vector<ResultDropBuilder>();
 	

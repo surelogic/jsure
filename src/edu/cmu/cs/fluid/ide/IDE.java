@@ -576,5 +576,7 @@ public abstract class IDE {
   }
 
   public abstract boolean getBooleanPreference(String key);
+  
+  public abstract int getIntPreference(String key);
 }
 
