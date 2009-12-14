@@ -9,6 +9,6 @@ public operator EnumConstantClassDeclaration extends EnumConstantDeclaration imp
     bindsToType=Type 
   }  
   @Override public Component createComponent(IRNode node) {
-    return null; // TODO
+    return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,false);
   }
 }

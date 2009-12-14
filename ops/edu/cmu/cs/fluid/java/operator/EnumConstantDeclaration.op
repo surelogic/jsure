@@ -9,6 +9,6 @@ public operator EnumConstantDeclaration extends VariableDeclaration implements C
     bindsToType=Type 
   }  
   @Override public Component createComponent(IRNode node) {
-    return null; // TODO
+    return new SimpleComponent(node); // TODO is this right?
   }
 }
