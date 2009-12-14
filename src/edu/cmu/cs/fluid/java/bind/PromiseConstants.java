@@ -55,9 +55,7 @@ public interface PromiseConstants {
   public static final Operator[] declOps = {
     // AnonClassExpression.prototype,
     PackageDeclaration.prototype,
-    EnumDeclaration.prototype,
-      ClassDeclaration.prototype,
-      InterfaceDeclaration.prototype,
+	TypeDeclaration.prototype, 
       MethodDeclaration.prototype,
       FieldDeclaration.prototype,
       };
@@ -65,23 +63,19 @@ public interface PromiseConstants {
   public static final Operator[] declOrConstructorOps = {
                                                          // AnonClassExpression.prototype,
                                                          PackageDeclaration.prototype,
-                                                         ClassDeclaration.prototype,
-                                                         InterfaceDeclaration.prototype,
-                                                         EnumDeclaration.prototype,
+                                                         TypeDeclaration.prototype, 
                                                          SomeFunctionDeclaration.prototype,
                                                          FieldDeclaration.prototype, };
 
   public static final Operator[] typeDeclOps = {
     // AnonClassExpression.prototype,
-    ClassDeclaration.prototype, InterfaceDeclaration.prototype, 
-    EnumDeclaration.prototype
+	TypeDeclaration.prototype, 
   };
 
 	public static final Operator[] packageTypeDeclOps = {
 		// AnonClassExpression.prototype,
 		PackageDeclaration.prototype,
-        EnumDeclaration.prototype,
-		ClassDeclaration.prototype, InterfaceDeclaration.prototype, };  
+		TypeDeclaration.prototype,  };  
   
   public static final Operator[] methodDeclOp =
     { MethodDeclaration.prototype, };
@@ -104,9 +98,7 @@ public interface PromiseConstants {
   public static final Operator[] methodOrClassDeclOps = {
     // AnonClassExpression.prototype,
 	SomeFunctionDeclaration.prototype,
-    ClassDeclaration.prototype,
-    EnumDeclaration.prototype,
-    InterfaceDeclaration.prototype,
+	TypeDeclaration.prototype, 
   };
   
   public static final Operator[] fieldMethodDeclOps = {
@@ -125,8 +117,7 @@ public interface PromiseConstants {
 
   public static final Operator[] fieldOrTypeOp = { 
     FieldDeclaration.prototype, 
-    EnumDeclaration.prototype,
-    ClassDeclaration.prototype, InterfaceDeclaration.prototype,
+	TypeDeclaration.prototype, 
   };
   
   public static final Operator[] statementOp = { Statement.prototype, };
@@ -136,9 +127,7 @@ public interface PromiseConstants {
   public static final Operator[] declOrStatementOps = {
 		// AnonClassExpression.prototype,
 		PackageDeclaration.prototype,
-        EnumDeclaration.prototype,
-			ClassDeclaration.prototype,
-			InterfaceDeclaration.prototype,
+		TypeDeclaration.prototype, 
 			MethodDeclaration.prototype,
 			FieldDeclaration.prototype,
 		    Statement.prototype,
