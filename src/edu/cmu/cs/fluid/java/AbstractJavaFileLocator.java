@@ -291,7 +291,7 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 			  return s;
 		  }
 	  }
-	  throw new IllegalArgumentException("Couldn't find AST");
+	  throw new IllegalArgumentException("Couldn't find AST for "+DebugUnparser.toString(root));
   }
 
   protected JavaFileStatus<T,P> getStatusForRegionOrNull(IRRegion owner) {
