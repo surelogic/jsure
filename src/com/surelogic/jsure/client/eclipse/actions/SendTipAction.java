@@ -23,7 +23,7 @@ public final class SendTipAction implements IWorkbenchWindowActionDelegate {
 
 	public void run(IAction action) {
 		SendTipDialog.open(SWTUtility.getShell(), 
-				"JSure"+EclipseUtility.getVersion(Activator.getDefault()),
+				"JSure "+EclipseUtility.getVersion(Activator.getDefault()),
 				CommonImages.IMG_JSURE_LOGO);
 	}
 

@@ -5,9 +5,11 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
+import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.dialogs.SendProblemReportDialog;
 import com.surelogic.common.CommonImages;
+import com.surelogic.jsure.client.eclipse.Activator;
 
 public final class SendProblemAction implements IWorkbenchWindowActionDelegate {
 
@@ -20,7 +22,8 @@ public final class SendProblemAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void run(IAction action) {
-		SendProblemReportDialog.open(SWTUtility.getShell(), "JSure",
+		SendProblemReportDialog.open(SWTUtility.getShell(), 
+				"JSure "+EclipseUtility.getVersion(Activator.getDefault()),
 				CommonImages.IMG_JSURE_LOGO);
 	}
 
