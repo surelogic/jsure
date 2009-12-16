@@ -98,6 +98,7 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 		} else {
 			runInParallel(Void.class, nulls, new Procedure<Void>() {
 				public void op(Void v) {
+					//System.out.println(old+" ?= "+p);
 					setupAnalysis(old != p);
 				}				
 			});
@@ -105,7 +106,11 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 		finishAnalyzeBegin(p, binder);
 	}
 	
-	private final void setupAnalysis(boolean diffProject) {
+	final void setupAnalysis(boolean diffProject) {
+		/*
+		System.out.println("diffProject   = "+diffProject);
+		System.out.println("flushAnalysis = "+flushAnalysis());
+		*/
 		if (flushAnalysis() || diffProject || analysis.get() == null) {			
 			runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 				public void run() {
