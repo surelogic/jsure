@@ -11,22 +11,27 @@ public class LabelList {
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
 
   private LabelList() {
+	  // Do nothing
   }
+  
   public static final LabelList empty = new LabelList();
-  private static Hashtable2<LabelList,ControlLabel,LabelList> longer = 
+  private static final Hashtable2<LabelList,ControlLabel,LabelList> longer = 
     new Hashtable2<LabelList,ControlLabel,LabelList>();
 
   ControlLabel label = null;
   LabelList shorter = null;
 
   public LabelList addLabel(ControlLabel l) {
-    LabelList ll = longer.get(this,l);
-    if (ll == null) {
-      ll = new LabelList();
-      ll.label = l;
-      ll.shorter = this;
-      longer.put(this,l, ll);
-    }
+	LabelList ll;
+	synchronized (LabelList.class) {
+		ll = longer.get(this,l);
+		if (ll == null) {
+			ll = new LabelList();
+			ll.label = l;
+			ll.shorter = this;
+			longer.put(this,l, ll);
+		}
+	}
     return ll;
   }
 
