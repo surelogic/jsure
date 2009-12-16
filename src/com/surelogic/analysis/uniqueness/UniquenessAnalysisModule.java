@@ -60,7 +60,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 
   @Override
   protected boolean runInParallel() {
-	  return true;
+	  return true && !singleThreaded;
   }
   
 	public void init(IIRAnalysisEnvironment env) {
@@ -90,7 +90,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	  }
 	  controlFlowDrops.clear();
 	  
-	  if (singleThreaded) {
+	  if (!runInParallel()) {
 		getAnalysis().clearCaches();
 	  } else {
 		  runInParallel(Void.class, nulls, new Procedure<Void>() {
@@ -139,13 +139,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					analyzeSubtree(typeDecl);
 				}
 				return true;
-			} else if (!singleThreaded) {
+			} else if (runInParallel()) {
 				runInParallel(IRNode.class, methods, new Procedure<IRNode>() {
 					public void op(IRNode node) {
 						if (monitor != null) {
 							monitor.subTask("Checking [ Uniqueness Assurance ] "+
 									        JavaNames.genRelativeFunctionName(node));
 						}
+						System.out.println("Parallel: "+JavaNames.genRelativeFunctionName(node));
 						analyzeSubtree(node);
 					}
 				});
