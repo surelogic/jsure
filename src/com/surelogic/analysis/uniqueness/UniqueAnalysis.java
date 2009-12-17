@@ -273,7 +273,7 @@ implements IBinderClient {
       LOG.fine("Starting uniqueness analysis on " + DebugUnparser.toString(flowNode));
     }
     FlowUnit op = (FlowUnit) tree.getOperator(flowNode);
-    final Store store = new Store(flowUnitLocals(flowNode));
+    final Store store = new Store(flowUnitLocals(flowNode, false, binder));
     FlowAnalysis analysis =
       new ForwardAnalysis(
         "unique analysis",

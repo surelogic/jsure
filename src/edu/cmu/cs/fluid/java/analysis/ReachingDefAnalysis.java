@@ -21,7 +21,7 @@ public class ReachingDefAnalysis<V> extends IntraproceduralAnalysis<IRNode,V> {
   @Override
   public FlowAnalysis<IRNode> createAnalysis(final IRNode flowNode) {
     final FlowUnit op = (FlowUnit) tree.getOperator(flowNode);
-    final IRNode[] locals = flowUnitLocals(flowNode);
+    final IRNode[] locals = flowUnitLocals(flowNode, true, binder);
     final ReachingDefs rd = new ReachingDefs(locals);
     final ForwardTransfer<IRNode> rdt = new ReachingDefsTransfer(this);
     final FlowAnalysis<IRNode> analysis =

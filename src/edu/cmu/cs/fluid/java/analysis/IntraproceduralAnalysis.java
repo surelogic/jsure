@@ -18,7 +18,7 @@ import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.*;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -182,7 +182,7 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
       }
     };
   }
-
+  
   /**
 	 * Create an array of all locals accessible in this fluid unit. We include
 	 * those in nested blocks, but not those in nested method bodies.
@@ -191,7 +191,8 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
 	 * flow unit, but it makes an effort to include all those which <em>are</em>
 	 * in the flow unit.
 	 */
-  public static IRNode[] flowUnitLocals(IRNode flowNode) {
+  public static IRNode[] flowUnitLocals(IRNode flowNode, 
+		  boolean keepPrimitiveVars, IBinder binder) {
     FlowUnit op = (FlowUnit) tree.getOperator(flowNode);
     // System.out.println("Getting locals for a " + op);
     Vector<IRNode> locals = new Vector<IRNode>();
@@ -199,16 +200,24 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
     for (Iterator<IRNode> e = bottomUp(flowNode); e.hasNext();) {
       IRNode node = e.next();
       Operator op2 = tree.getOperator(node);
-      if (op2 instanceof VariableDeclarator
-        || op2 instanceof ParameterDeclaration)
-        locals.addElement(node);
+      if (op2 instanceof VariableDeclarator || op2 instanceof ParameterDeclaration) {
+    	  if (keepPrimitiveVars || binder.getJavaType(node) instanceof IJavaReferenceType) {
+    		  locals.addElement(node);
+    	  } else {
+    		  //System.out.println("Rejecting "+DebugUnparser.toString(node));
+    	  }
+      }
     }
 
     // then grab receiver or return values
     IRNode temp = null;
     temp = JavaPromise.getReturnNodeOrNull(flowNode);
     if (temp != null) {
-      locals.addElement(temp);
+    	if (keepPrimitiveVars || binder.getJavaType(temp) instanceof IJavaReferenceType) {
+    		locals.addElement(temp);
+  	  } else {
+		  //System.out.println("Rejecting "+DebugUnparser.toString(temp));
+	  }
     }
     temp = JavaPromise.getReceiverNodeOrNull(flowNode);
     if (temp != null) {
@@ -235,7 +244,7 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
     // from the instance initializer
     // (flow node ClassBody)
     if (op instanceof ConstructorDeclaration) {
-      IRNode[] moreLocals = flowUnitLocals(tree.getParent(flowNode));
+      IRNode[] moreLocals = flowUnitLocals(tree.getParent(flowNode), keepPrimitiveVars, binder);
       locals.ensureCapacity(locals.size() + moreLocals.length);
       for (int i = 0; i < moreLocals.length; ++i) {
         locals.addElement(moreLocals[i]);
@@ -244,7 +253,7 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
     // similarly for the two kinds of initializer promises:
     if (op instanceof ClassInitDeclaration || op instanceof InitDeclaration) {
       IRNode classdecl = JavaPromise.getPromisedFor(flowNode);
-      IRNode[] moreLocals = flowUnitLocals(VisitUtil.getClassBody(classdecl));
+      IRNode[] moreLocals = flowUnitLocals(VisitUtil.getClassBody(classdecl), keepPrimitiveVars, binder);
       locals.ensureCapacity(locals.size() + moreLocals.length);
       for (int i = 0; i < moreLocals.length; ++i) {
         locals.addElement(moreLocals[i]);
@@ -279,7 +288,12 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
           locals.addElement(receiverNode);
         }
         for (Iterator<IRNode> e = tree.children(params); e.hasNext();) {
-          locals.addElement(e.next());
+        	IRNode n = e.next();        
+        	if (keepPrimitiveVars || binder.getJavaType(n) instanceof IJavaReferenceType) {
+        		locals.addElement(n);
+      	  } else {
+    		  //System.out.println("Rejecting "+DebugUnparser.toString(n));
+    	  }
         }
       }
     }
