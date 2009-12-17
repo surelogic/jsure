@@ -4,6 +4,7 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.*;
 import java.util.logging.*;
 
+import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 
@@ -2572,6 +2573,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public IJavaClassTable getClassTable() {
       return classTable;
     }
+    
+	public IIRProject getProject() {
+	  throw new UnsupportedOperationException();
+	}
   }
   
   public interface IDependency {
