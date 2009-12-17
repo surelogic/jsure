@@ -16,7 +16,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
+import edu.cmu.cs.fluid.sea.proxy.AbstractDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
@@ -31,7 +31,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient> implements IIR
 	private static final ForkJoinExecutor pool   = singleThreaded ? null : new ForkJoinPool(threadCount);  
 	
 	// TODO use ThreadLocal trick to collect all the builders
-	private List<ResultDropBuilder> builders = new Vector<ResultDropBuilder>();
+	private List<AbstractDropBuilder> builders = new Vector<AbstractDropBuilder>();
 	
 	protected <E> void runInParallel(Class<E> type, Collection<E> c, Procedure<E> proc) {
 		final IParallelArray<E> array = singleThreaded ? 
@@ -65,12 +65,12 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient> implements IIR
 		return getClass().getSimpleName();
 	}
 	
-	public final void handleBuilder(ResultDropBuilder b) {
+	public final void handleBuilder(AbstractDropBuilder b) {
 		builders.add(b);
 	}
 	
 	protected final void finishBuild() {
-		for(ResultDropBuilder b : builders) {
+		for(AbstractDropBuilder b : builders) {
 			b.build();
 		}
 		builders.clear();

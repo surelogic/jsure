@@ -1,6 +1,5 @@
 package edu.cmu.cs.fluid.sea.proxy;
 
-import java.text.MessageFormat;
 import java.util.*;
 
 import com.surelogic.analysis.IIRAnalysis;
@@ -15,53 +14,22 @@ import edu.cmu.cs.fluid.util.Pair;
  * @author Edwin
  */
 @SuppressWarnings("unchecked")
-public class ResultDropBuilder {
-	private final String type;
-	private boolean isValid = true;
-	private IRNode node;
-	private String message;
-	private Category category;
+public final class ResultDropBuilder extends AbstractDropBuilder {
 	private List<Pair<String,IRNode>> supportingInfos =
 		new ArrayList<Pair<String,IRNode>>();
 	
 	private boolean isConsistent = false;
 	private Set<PromiseDrop> checks = new HashSet<PromiseDrop>();
 	private Set<PromiseDrop> trusted = new HashSet<PromiseDrop>();
-	private Drop resultDependUponDrop;
 	
 	private ResultDropBuilder(String type) {		
-		this.type = type;
+		super(type);
 	}
 	
 	public static ResultDropBuilder create(IIRAnalysis a, String type) {
 		ResultDropBuilder rv = new ResultDropBuilder(type);
 		a.handleBuilder(rv);
 		return rv;
-	}
-	
-	public boolean isValid() {
-		return isValid;
-	}
-	
-	public void invalidate() {
-		isValid = false;
-	}
-	
-	public IRNode getNode() {
-		return node;
-	}
-	
-	public void setNode(IRNode n) {
-		node = n;
-	}
-	
-	public void setMessage(String msg, Object... args) {
-		message = (args.length == 0) ? msg : 
-			MessageFormat.format(msg, args);
-	}
-	
-	public void setCategory(Category c) {
-		category = c;
 	}
 	
 	public void addSupportingInformation(String msg, IRNode context) {
@@ -98,19 +66,12 @@ public class ResultDropBuilder {
 	public void addTrustedPromise(PromiseDrop promise) {
 		trusted.add(promise);
 	}
-
-	public void setResultDependUponDrop(Drop drop) {
-		resultDependUponDrop = drop;
-	}
 	
 	public ResultDrop build() {
 		if (!isValid()) {
 			return null;
 		}
-		ResultDrop rd = new ResultDrop(type);
-		rd.setNode(node);
-		rd.setMessage(message);
-		rd.setCategory(category);
+		ResultDrop rd = new ResultDrop(type);		
 		for(Pair<String,IRNode> p : supportingInfos) {
 			rd.addSupportingInformation(p.first(), p.second());
 		}
@@ -122,7 +83,7 @@ public class ResultDropBuilder {
 		for(PromiseDrop t : trusted) {
 			rd.addTrustedPromise(t);
 		}		
-		resultDependUponDrop.addDependent(rd);
+		buildDrop(rd);
 		return rd;
 	}
 }

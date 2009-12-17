@@ -3,7 +3,7 @@ package com.surelogic.analysis;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
+import edu.cmu.cs.fluid.sea.proxy.*;
 
 public interface IIRAnalysis {	
 	String name();
@@ -16,5 +16,5 @@ public interface IIRAnalysis {
 	IRNode[] analyzeEnd(IIRProject p);
 	void postAnalysis(IIRProject p);
 	
-	void handleBuilder(ResultDropBuilder b);
+	void handleBuilder(AbstractDropBuilder b);
 }
