@@ -74,10 +74,31 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 
 	@Override
 	protected UniqueAnalysis constructIRAnalysis(IBinder binder) {
+		//System.out.println(Thread.currentThread()+" : Constructed Unique for "+
+		//           binder.getTypeEnvironment().getProject());
 		return new UniqueAnalysis(binder,
 				new EffectsVisitor(binder, new BindingContextAnalysis(binder)));
 	}
-
+	
+	/*
+	@Override
+	protected void finishAnalyzeBegin(IIRProject p, IBinder binder) {
+		if (runInParallel()) {
+			runInParallel(Void.class, nulls, new Procedure<Void>() {
+				public void op(Void v) {
+					UniqueAnalysis a = getAnalysis();
+					System.out.println(Thread.currentThread()+" : Analysis for "+
+				           a.binder.getTypeEnvironment().getProject());
+				}
+			});
+		} else {
+			UniqueAnalysis a = getAnalysis();
+			System.out.println(Thread.currentThread()+" : Analysis for "+
+		           a.binder.getTypeEnvironment().getProject());
+		}
+	}
+	*/
+	
 	@Override
 	protected void clearCaches() {
 	  intermediateResultDrops.clear();
@@ -93,12 +114,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	  if (!runInParallel()) {
 		getAnalysis().clearCaches();
 	  } else {
-		  runInParallel(Void.class, nulls, new Procedure<Void>() {
-			  public void op(Void v) {
-				  // This gets run in each thread in the pool
-				  getAnalysis().clearCaches();
-			  }
-		  });
+		analyses.clearCaches();
 	  }
 	}
 	
@@ -130,6 +146,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					edu.cmu.cs.fluid.java.operator.CompilationUnit.getDecls(compUnit);
 				final Iterator<IRNode> decls =
 					TypeDeclarations.getTypesIterator(typeDecls);
+				
 				while (decls.hasNext()) {
 					final IRNode typeDecl = decls.next();
 					if (monitor != null) {
@@ -368,15 +385,18 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	 * Is the node the source of a uniqueness problem?
 	 */
 	private boolean isInvalid(final IRNode node) {
+		final UniqueAnalysis a = getAnalysis();
+		//System.out.println("Unique using "+a.binder.getTypeEnvironment().getProject());
+		
 		/* Definitely not erroneous */
-		if (!getAnalysis().isInvalid(node))
+		if (!a.isInvalid(node))
 			return false;
 
 		/* Node is erroneous, but does the error come from a child? */
 		for (Iterator<IRNode> ch = JJNode.tree.children(node); ch.hasNext();) {
 			final IRNode n = ch.next();
 			/* Problem comes from a child, so parent is not to blame */
-			if (getAnalysis().isInvalid(n))
+			if (a.isInvalid(n))
 				return false;
 		}
 		/* Not a problem from a child. */

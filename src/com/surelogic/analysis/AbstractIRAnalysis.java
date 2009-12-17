@@ -20,23 +20,15 @@ import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
-	@SuppressWarnings("unchecked")
-	protected final T nullAnalysis = (T) new Object();
+public abstract class AbstractIRAnalysis<T extends IBinderClient> implements IIRAnalysis {
 	private IIRProject project;
 	private IBinder binder;
-	private final ThreadLocal<T> analysis = new ThreadLocal<T>();
+	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
 	
     public static final boolean singleThreaded  = false || SystemUtils.IS_JAVA_1_5;
     private static final int threadCount = 
     	IDE.getInstance().getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
 	private static final ForkJoinExecutor pool   = singleThreaded ? null : new ForkJoinPool(threadCount);  
-	protected static final List<Void> nulls = new ArrayList<Void>();
-	static {
-		for(int i=0;i<threadCount; i++) {
-			nulls.add(null);
-		}
-	}
 	
 	// TODO use ThreadLocal trick to collect all the builders
 	private List<ResultDropBuilder> builders = new Vector<ResultDropBuilder>();
@@ -58,7 +50,7 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 	}
 	
 	protected T getAnalysis() {
-		return analysis.get();
+		return analyses.getAnalysis();
 	}
 	
 	protected boolean flushAnalysis() {
@@ -87,12 +79,18 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 	public final void analyzeBegin(final IIRProject p) {
 		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv(p);
 		final IBinder binder        = tEnv.getBinder(); 
-		final IIRProject old        = project;
+		//final IIRProject old        = project;
 		project = p;		
 		this.binder = binder;
 		builders.clear();
 		
 		startAnalyzeBegin(p, binder);
+		if (flushAnalysis()) {
+			analyses.resetAllAnalyses(binder);
+		} else {
+			analyses.updateAllAnalyses(binder);
+		}
+		/*
 		if (!runInParallel() || singleThreaded) {
 			setupAnalysis(old != p);
 		} else {
@@ -103,36 +101,36 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 				}				
 			});
 		}
-		finishAnalyzeBegin(p, binder);
+		*/
+		//finishAnalyzeBegin(p, binder);
 	}
 	
+	/*
 	final void setupAnalysis(boolean diffProject) {
-		/*
-		System.out.println("diffProject   = "+diffProject);
-		System.out.println("flushAnalysis = "+flushAnalysis());
-		*/
+		//System.out.println(Thread.currentThread()+" : "+flushAnalysis()+", "+diffProject);
 		if (flushAnalysis() || diffProject || analysis.get() == null) {			
 			runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 				public void run() {
+					analysis.remove();
 					T a = constructIRAnalysis(binder);
 					analysis.set(a);
 				}
 			});
 		}
 	}
+	*/
 	
 	protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
 		// Nothing to do yet
 	}
 	
-	@SuppressWarnings("unchecked")
-	protected T constructIRAnalysis(IBinder binder) {
-		return nullAnalysis;
-	}
+	protected abstract T constructIRAnalysis(IBinder binder);
 	
-	protected void finishAnalyzeBegin(IIRProject p, IBinder binder) {
+	/*
+	protected final void finishAnalyzeBegin(IIRProject p, IBinder binder) {
 		// Nothing to do yet
 	}
+	*/
 	
 	public final boolean doAnalysisOnAFile(final CUDrop cud, 
 			final IAnalysisMonitor monitor) {
@@ -161,5 +159,43 @@ public abstract class AbstractIRAnalysis<T> implements IIRAnalysis {
 
 	protected static Operator getOperator(final IRNode n) {
 		return JJNode.tree.getOperator(n);
+	}
+	
+	protected class ThreadLocalAnalyses {
+		private final List<AtomicReference<T>> analysisRefs = new Vector<AtomicReference<T>>();
+		private final ThreadLocal<AtomicReference<T>> analysis = new ThreadLocal<AtomicReference<T>>() {
+			@Override
+			protected AtomicReference<T> initialValue() {
+				T a = constructIRAnalysis(binder);
+				AtomicReference<T> ref = new AtomicReference<T>(a);				
+				analysisRefs.add(ref);
+				return ref;
+			}
+		};
+		
+		T getAnalysis() {
+			return analysis.get().get();
+		}
+		
+		void updateAllAnalyses(IBinder binder) {
+			for(AtomicReference<T> ref : analysisRefs) {
+				T old = ref.get();
+				if (old.getBinder() != binder) {
+					ref.set(constructIRAnalysis(binder));
+				}
+			}
+		}
+		
+		void resetAllAnalyses(IBinder binder) {
+			for(AtomicReference<T> ref : analysisRefs) {
+				ref.set(constructIRAnalysis(binder));
+			}
+		}
+		
+		public void clearCaches() {
+			for(AtomicReference<T> ref : analysisRefs) {
+				ref.get().clearCaches();
+			}
+		}
 	}
 }
