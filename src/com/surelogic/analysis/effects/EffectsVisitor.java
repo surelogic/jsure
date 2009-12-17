@@ -15,6 +15,7 @@ import com.surelogic.aast.promise.EffectSpecificationNode;
 import com.surelogic.aast.promise.EffectsSpecificationNode;
 import com.surelogic.aast.promise.ImplicitQualifierNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
+import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
@@ -68,7 +69,8 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author aarong
  * 
  */
-public final class EffectsVisitor extends VoidTreeWalkVisitor {
+public final class EffectsVisitor extends VoidTreeWalkVisitor 
+implements IBinderClient {
   private final RegionModel ARRAY_ELEMENT;
 
   /**
@@ -169,6 +171,10 @@ public final class EffectsVisitor extends VoidTreeWalkVisitor {
   
   public void clearCaches() {
 	  bca.clear();
+  }
+  
+  public IBinder getBinder() {
+	  return binder;
   }
   
   //----------------------------------------------------------------------

@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.Target;
@@ -69,7 +70,8 @@ import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
  * @see JavaEvaluationTransfer
  * @see #isUnique
  */
-public class UniqueAnalysis extends IntraproceduralAnalysis<Object,Boolean> {
+public class UniqueAnalysis extends IntraproceduralAnalysis<Object,Boolean> 
+implements IBinderClient {
   /** Logger instance for debugging. */
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis.unique");
 
@@ -88,6 +90,10 @@ public class UniqueAnalysis extends IntraproceduralAnalysis<Object,Boolean> {
     effectsVisitor = ev;
   }
 
+  public IBinder getBinder() {
+	  return this.binder;
+  }
+  
   public void clearCaches() {
 	  effectsVisitor.clearCaches();
 	  clear();

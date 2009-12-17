@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
+import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
@@ -127,7 +128,8 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
  * @author aarong
  * 
  */
-public final class LockVisitor extends VoidTreeWalkVisitor {
+public final class LockVisitor extends VoidTreeWalkVisitor
+implements IBinderClient {
   /** Logger instance for debugging. */
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis.lock"); //$NON-NLS-1$
 
@@ -816,6 +818,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor {
     INSTANCE = RegionModel.getInstance(RegionModel.INSTANCE);
   }
 
+  public IBinder getBinder() {
+	  return this.binder;
+  }
+  
   public void clearCaches() {
     isSafeTypeCache.clear();
     jucLockUsageManager.clear();

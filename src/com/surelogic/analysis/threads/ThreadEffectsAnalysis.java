@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.messages.Messages;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.logging.SLLogger;
@@ -23,7 +24,7 @@ import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public final class ThreadEffectsAnalysis {
+public final class ThreadEffectsAnalysis implements IBinderClient {
 
   private static final Logger LOG = SLLogger
       .getLogger("FLUID.analysis.ThreadEffects"); //$NON-NLS-1$
@@ -50,6 +51,14 @@ public final class ThreadEffectsAnalysis {
     return binder.getBinding(n);
   }
 
+  public IBinder getBinder() {
+	  return binder;
+  }
+  
+  public void clearCaches() {
+	  // Nothing to do
+  }
+  
   //
   // Saves the IRNode for "java.lang.Thread" which is lazily loaded
   // should always be accessed via the "getJavaLangThread()" call below
