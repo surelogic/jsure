@@ -1,9 +1,7 @@
 /* $Header: /cvs/fluid/fluid/src/com/surelogic/analysis/uniqueness/Store.java,v 1.41 2007/07/10 22:16:37 aarong Exp $ */
 package com.surelogic.analysis.uniqueness;
 
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Vector;
+import java.util.*;
 
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -697,22 +695,49 @@ public class Store extends RecordLattice {
   }
 
   /** Keep only nodes which fulfil the filter */
-  protected Store filter(StoreFilter f) {
+  protected Store filter(final StoreFilter f) {
     if (!isValid()) return this;
     UnionLattice objects = getObjects();
     UnionLattice newObjects = (UnionLattice)objects.top();
     try {
+      // Changed to avoid set ops by not adding one at a time
+      Iterator it = new EnumerationIterator(objects.elements());
+      newObjects.addElements(new FilterIterator(it) {
+		@Override
+		protected Object select(Object o) {
+			if (f.filter((UnionLattice) o)) {
+				return o;
+			}
+			return noElement;
+		}    	  
+      });
+      /*
       for (Enumeration enm = objects.elements(); enm.hasMoreElements();) {
 	UnionLattice node = (UnionLattice)enm.nextElement();
 	if (f.filter(node))
 	  newObjects = (UnionLattice)newObjects.addElement(node);
       }
+      */
     } catch (SetException ex) {
       return this;
     }
     UnionLattice fieldStore = getFieldStore();
     UnionLattice newFieldStore = (UnionLattice)fieldStore.top();
     try {
+      // Changed to avoid set ops by not adding one at a time
+      Iterator it = new EnumerationIterator(fieldStore.elements());
+      newFieldStore.addElements(new FilterIterator(it) {
+    	  @Override
+    	  protected Object select(Object o) {    	
+    		  Triple t = (Triple)o;
+    		  if (f.filter((UnionLattice)t.first()) &&
+    			  f.filter((UnionLattice)t.third())) {
+    			  return o;
+    		  }
+    		  return noElement;
+    	  }
+      });
+      /*
       for (Enumeration enm=fieldStore.elements(); enm.hasMoreElements();) {
 	Triple t = (Triple)enm.nextElement();
 	if (f.filter((UnionLattice)t.first()) &&
@@ -720,6 +745,7 @@ public class Store extends RecordLattice {
 	  newFieldStore = (UnionLattice)newFieldStore.addElement(t);
 	}
       }
+      */
     } catch (SetException ex) {
       return this;
     }
