@@ -121,10 +121,12 @@ public class LockRules extends AnnotationRules {
 		return getDrop(isLockRule.getStorage(), vdecl);
 	}
 
+	@Deprecated
   public static boolean isSingleThreaded(IRNode cdecl) {
     return getSingleThreadedDrop(cdecl) != null;
   }
 
+  @Deprecated
   public static SingleThreadedPromiseDrop getSingleThreadedDrop(IRNode cdecl) {
     return getBooleanDrop(singleThreadedRule.getStorage(), cdecl);
   }

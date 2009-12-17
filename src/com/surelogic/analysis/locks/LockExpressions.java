@@ -4,13 +4,20 @@ package com.surelogic.analysis.locks;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.analysis.effects.Effect;
+import com.surelogic.analysis.effects.EffectsVisitor;
+import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
 import com.surelogic.annotation.rules.LockRules;
+import com.surelogic.annotation.rules.MethodEffectsRules;
+import com.surelogic.annotation.rules.ThreadEffectsRules;
+import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -23,6 +30,10 @@ import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 
 /**
  * A record of the lock expressions used in a method/constructor.  Specifically,
@@ -44,6 +55,35 @@ import edu.cmu.cs.fluid.parse.JJNode;
  * @author aarong
  */
 final class LockExpressions {
+  final public static class SingleThreadedData {
+    public final boolean isBorrowedThis;
+    public final BorrowedPromiseDrop bDrop;
+
+    public final boolean isUniqueReturn;
+    public final UniquePromiseDrop uDrop;
+    
+    public final boolean isEffects;
+    public final RegionEffectsPromiseDrop eDrop;
+    public final StartsPromiseDrop teDrop;
+    
+    public final boolean isSingleThreaded;
+    
+    public SingleThreadedData(
+        final boolean isBorrowedThis, final BorrowedPromiseDrop bDrop,
+        final boolean isUniqueReturn, final UniquePromiseDrop uDrop,
+        final boolean isEffects,
+        final RegionEffectsPromiseDrop eDrop, final StartsPromiseDrop teDrop) {
+      this.isBorrowedThis = isBorrowedThis;
+      this.bDrop = bDrop;
+      this.isUniqueReturn = isUniqueReturn;
+      this.uDrop = uDrop;
+      this.isEffects = isEffects;
+      this.eDrop = eDrop;
+      this.teDrop = teDrop;
+      this.isSingleThreaded = isUniqueReturn || isBorrowedThis || isEffects;
+    }
+  }
+  
   /**
    * The declaration of the method/constructor being analyzed
    */
@@ -86,6 +126,12 @@ final class LockExpressions {
    */
   private final Set<HeldLock> intrinsicAssumedLocks = new HashSet<HeldLock>();
  
+  /**
+   * Information for determining whether a constructor is proven single-threaded.
+   * If the flow unit is not a constructor this is {@value null}.
+   */
+  private final SingleThreadedData singleThreadedData;
+  
   
   
   public LockExpressions(
@@ -93,6 +139,7 @@ final class LockExpressions {
     enclosingMethodDecl = mdecl;
     final LockExpressionVisitor visitor = new LockExpressionVisitor(lu, hlf);
     visitor.doAccept(mdecl);
+    singleThreadedData = visitor.getSingleThreadedData();
   }
 
   
@@ -142,6 +189,13 @@ final class LockExpressions {
   }
   
   /**
+   * Get the single threaded data block for the flow unit.
+   */
+  public SingleThreadedData getSingleThreadedData() {
+    return singleThreadedData;
+  }
+  
+  /**
    * Get the JUC locks that are held because of being a singleThreaded constructor
    */
   public Set<HeldLock> getJUCSingleThreaded() {
@@ -161,17 +215,22 @@ final class LockExpressions {
    * 
    * @author Aaron Greenhouse
    */
-  final class LockExpressionVisitor extends VoidTreeWalkVisitor {
+  private final class LockExpressionVisitor extends VoidTreeWalkVisitor {
     
     private final LockUtils lockUtils;
     private final HeldLockFactory heldLockFactory;
-    
+    // Set as a side-effect of visitConstructorDeclaration
+    private SingleThreadedData singleThreadedData = null;
     
     
     public LockExpressionVisitor(final LockUtils lu, final HeldLockFactory hlf) {
       super();
       lockUtils = lu;
       heldLockFactory = hlf;
+    }
+    
+    public SingleThreadedData getSingleThreadedData() {
+      return singleThreadedData;
     }
     
     @Override
@@ -208,14 +267,14 @@ final class LockExpressions {
 
     @Override
     public Void visitConstructorDeclaration(final IRNode cdecl) {
-      final IRNode rcvr =
-        TypeUtil.isStatic(cdecl) ? null : JavaPromise.getReceiverNodeOrNull(cdecl);
+      final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(cdecl);
       /* TODO: LockUtils method needs to make one pass through the 
        * locks and output to two sets: JUC and intrinsic. 
        */
       lockUtils.getLockPreconditions(HowToProcessLocks.JUC, cdecl, rcvr, jucRequiredLocks);
       lockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, cdecl, rcvr, intrinsicAssumedLocks);
-      if (LockRules.isSingleThreaded(cdecl)) {
+      singleThreadedData = lockUtils.isConstructorSingleThreaded(cdecl, rcvr);
+      if (singleThreadedData.isSingleThreaded) {
         final IRNode classDecl = VisitUtil.getEnclosingType(cdecl);
         final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
         /* TODO: LockUtils method needs to make one pass through the 

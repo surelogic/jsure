@@ -24,7 +24,6 @@ import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
-import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
@@ -84,15 +83,10 @@ import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
-import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.SingleThreadedPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.UniqueID;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
@@ -199,8 +193,6 @@ implements IBinderClient {
 
   private static final String DS_AGGREGATION_NEEDED2 = Messages.LockAnalysis_ds_AggregationNeeded2;
 
-  private static final String DS_SYNCHRONIZED_CONSTRUCTOR_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_SynchronizedConstructorNotAssured;
-
   private static final String DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG = Messages.LockAnalysis_ds_SynchronizedConstructorAssured;
 
   private static final String DS_FIELD_ACCESS_ASSURED_MSG = Messages.LockAnalysis_ds_FieldAccessAssured;
@@ -243,6 +235,12 @@ implements IBinderClient {
 
   private static final String DS_ON_BEHALF_OF_CONSTRUCTOR_MSG = Messages.LockAnalysis_ds_OnBehalfOfConstructor;
 
+  private static final String DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_ConstructorIsSingleThreaded;
+  
+  private static final String DS_ENCLOSING_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_EnclosingConstructorIsSingleThreaded;
+  
+  private static final String DS_ENCLOSING_CONSTRUCTOR_NOT_PROVEN_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded; 
+  
   private static final String DS_ASSUMED_HELD_MSG = Messages.LockAnalysis_ds_AssumedHeld;
   
   private static final String DS_LOCK_HELD_MSG = Messages.LockAnalysis_ds_HeldLock;
@@ -270,8 +268,13 @@ implements IBinderClient {
   private static final String DS_NO_MATCHING_LOCKS = Messages.LockAnalysis_ds_NoMatchingLocks;
   
   private static final String DS_MATCHING_LOCK = Messages.LockAnalysis_ds_MatchingLock;
+
+  private static final String DS_SINGLE_THREADED_UNIQUE_RETURN = Messages.LockAnalysis_ds_SingleThreadedUniqueReturn;
   
+  private static final String DS_SINGLE_THREADED_EFFECTS = Messages.LockAnalysis_ds_SingleThreadedEffects;
   
+  private static final String DS_SINGLE_THREADED_BORROWED_RECEIVER = Messages.LockAnalysis_ds_SingleThreadedBorrowedThis;
+
     
   // ////////////////////////////////////////////////////////////////////////////
 
@@ -304,9 +307,6 @@ implements IBinderClient {
   }  
 
   private final ThisExpressionBinder thisExprBinder;
-    
-  /** Reference to the Instance region */
-  private final RegionModel INSTANCE;
 
   /**
    * The binder to use.
@@ -510,6 +510,14 @@ implements IBinderClient {
    */
   private Object[] ctxtConstructorName = null;
 
+  /**
+   * When analyzing the body of a constructor (including any initialization
+   * blocks or field initializers), this value is non- {@value null} and indicates
+   * whether the current constructor was found to be singl-threaded or not.
+   * Otherwise this value is {@value null}.
+   */
+  private Boolean ctxtConstructorIsSingleThreaded = null;
+  
   /**
    * The receiver declaration node of the constructor/method/field
    * initializer/class initializer currently being analyzed. Every expression we
@@ -814,8 +822,6 @@ implements IBinderClient {
 //    intrinsicLock = new IntrinsicLockAnalysis(b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     mustRelease = new MustReleaseAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     mustHold = new MustHoldAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
-    
-    INSTANCE = RegionModel.getInstance(RegionModel.INSTANCE);
   }
 
   public IBinder getBinder() {
@@ -836,20 +842,21 @@ implements IBinderClient {
   }
   
   private void clear() {
-      resultDependUpon = null;
-      ctxtTypeDecl = null;
-      ctxtJavaType = null;
-      ctxtTheHeldLocks = null;
-      ctxtReturnedLock = null;
-      ctxtReturnsLockDrop = null;
-      ctxtIsLHS = false;
-      ctxtInsideMethod = null;
-      ctxtOnBehalfOfConstructor = false;
-      ctxtInsideConstructor = null;
-      ctxtConstructorName = null;
-      ctxtTheReceiverNode = null;
-      ctxtEnclosingRefs = null;
-      ctxtInsideAnonClassExpr = false;
+    resultDependUpon = null;
+    ctxtTypeDecl = null;
+    ctxtJavaType = null;
+    ctxtTheHeldLocks = null;
+    ctxtReturnedLock = null;
+    ctxtReturnsLockDrop = null;
+    ctxtIsLHS = false;
+    ctxtInsideMethod = null;
+    ctxtOnBehalfOfConstructor = false;
+    ctxtInsideConstructor = null;
+    ctxtConstructorIsSingleThreaded = null;
+    ctxtConstructorName = null;
+    ctxtTheReceiverNode = null;
+    ctxtEnclosingRefs = null;
+    ctxtInsideAnonClassExpr = false;
   }
   
   /**
@@ -933,7 +940,7 @@ implements IBinderClient {
   }
 
   /**
-   * Add links to the lock precondition and single threaded promises that are
+   * Add links to the lock precondition promises that are
    * used by the proof for the given result drop.
    * 
    * @param lockToDrop
@@ -1524,6 +1531,16 @@ implements IBinderClient {
           addSupportingInformation(resultDrop, ctxtInsideConstructor,
               DS_ON_BEHALF_OF_CONSTRUCTOR_MSG, ctxtConstructorName);
         }
+        if (ctxtConstructorIsSingleThreaded != null) {
+          if (ctxtConstructorIsSingleThreaded) {
+            addSupportingInformation(resultDrop, ctxtInsideConstructor,
+                DS_ENCLOSING_CONSTRUCTOR_IS_SINGLE_THREADED_MSG, ctxtConstructorName);
+          } else {
+            addSupportingInformation(resultDrop, ctxtInsideConstructor,
+                DS_ENCLOSING_CONSTRUCTOR_NOT_PROVEN_SINGLE_THREADED_MSG,
+                ctxtConstructorName);
+          }
+        }
         addTrustedLockDrop(ctxtTheHeldLocks, heldJUCLocks, neededLock, resultDrop);
         addAdditionalEvidence(resultDrop);
       }
@@ -1713,6 +1730,7 @@ implements IBinderClient {
     final IRNode oldInsideMethod = ctxtInsideMethod;
     final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
     final IRNode oldInsideConstructor = ctxtInsideConstructor;
+    final Boolean oldConstructorIsSingleThreaded = ctxtConstructorIsSingleThreaded;
     final Object[] oldConstructorName = ctxtConstructorName;
     final IRNode oldTheReceiverNode = ctxtTheReceiverNode;
     final MethodCallUtils.EnclosingRefs oldEnclosingRefs = ctxtEnclosingRefs;
@@ -1756,6 +1774,7 @@ implements IBinderClient {
       ctxtInsideMethod = JavaPromise.getInitMethodOrNull(expr);
       ctxtOnBehalfOfConstructor = false;
       ctxtInsideConstructor = null;
+      ctxtConstructorIsSingleThreaded = null;
       ctxtConstructorName = null;
       ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(ctxtInsideMethod);
       
@@ -1772,6 +1791,7 @@ implements IBinderClient {
       ctxtInsideMethod = oldInsideMethod;
       ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
       ctxtInsideConstructor = oldInsideConstructor;
+      ctxtConstructorIsSingleThreaded = oldConstructorIsSingleThreaded;
       ctxtConstructorName = oldConstructorName;
       ctxtTheReceiverNode = oldTheReceiverNode;
     }
@@ -1867,104 +1887,76 @@ implements IBinderClient {
       ctxtConstructorName =
         new Object[] { JavaNames.genMethodConstructorName(cdecl) };
 
-      // Deal with "single threaded" constructors
+      final LockExpressions.SingleThreadedData singleThreadedData =
+        jucLockUsageManager.getSingleThreadedData(cdecl);
       final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
-      if (LockRules.isSingleThreaded(cdecl)) {
-        // Add the locks to the lock context
+      ctxtConstructorIsSingleThreaded =
+        Boolean.valueOf(singleThreadedData.isSingleThreaded);
+      if (singleThreadedData.isSingleThreaded) {
         convertSingleThreadedConstructor(cdecl, ctxtJavaType, syncFrame);
-
-        // Assure the single threaded annotation
-        UniquePromiseDrop uDrop = null;
-        BorrowedPromiseDrop bDrop = null;
-        RegionEffectsPromiseDrop eDrop = null;
-        StartsPromiseDrop teDrop = null;
-
-        final SingleThreadedPromiseDrop stDrop = LockRules.getSingleThreadedDrop(cdecl);
-        if (stDrop == null) {
-          LOG.severe("NULL SingleThreaded drop in visitConstructorDeclaration");
-        }
-        // get the receiver and see if it is declared to be borrowed
-        final boolean isBorrowedThis =
-          UniquenessRules.isBorrowed(ctxtTheReceiverNode);
-        if (isBorrowedThis) {
-          // get drop and hook up to singleThreaded drop
-          bDrop = UniquenessRules.getBorrowedDrop(ctxtTheReceiverNode);
-          if (bDrop == null) {
-            LOG.severe("NULL Borrowed this drop in visitConstructorDeclaration");
+        final Iterator<StackLock> locks = syncFrame.iterator();
+        final Set<HeldLock> jucLocks = jucLockUsageManager.getJUCSingleThreaded(cdecl);
+        if (locks.hasNext() || !jucLocks.isEmpty()) { // May not have any locks at all
+          final ResultDrop result = new ResultDrop(
+              Messages.getName(DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG));
+          result.setMessage(MessageFormat.format(
+              DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG,
+              JavaNames.genMethodConstructorName(cdecl)));
+          setLockResultDep(result, cdecl);
+          result.setConsistent();
+          
+          if (singleThreadedData.isUniqueReturn) {
+            result.addTrustedPromise_or(DS_SINGLE_THREADED_UNIQUE_RETURN, singleThreadedData.uDrop);
           }
-        }
-        
-        // See if the return v alue is declared to be unique
-        final IRNode returnNode = JavaPromise.getReturnNodeOrNull(cdecl);
-        final boolean isUniqueReturn = UniquenessRules.isUnique(returnNode);
-        if (isUniqueReturn) {
-          uDrop = UniquenessRules.getUniqueDrop(returnNode);
-          if (uDrop == null) {
-            LOG.severe("NULL Unique return drop in visitConstructorDeclaration");
+          if (singleThreadedData.isBorrowedThis) {
+            result.addTrustedPromise_or(DS_SINGLE_THREADED_BORROWED_RECEIVER, singleThreadedData.bDrop);
           }
-        }
-
-        /*
-         * See if the declared *write* effects are < "writes this.Instance" (Can
-         * read whatever it wants. Want to prevent the object from writing a
-         * reference to itself into another object.
-         */
-        boolean isEffects = false;
-        // We can use the default target factory here because we are passing it the receiver declaration node directly
-        final Effect writesInstance = Effect.newWrite(
-            DefaultTargetFactory.PROTOTYPE.createInstanceTarget(ctxtTheReceiverNode, INSTANCE));
-
-        final Set<Effect> declFx = EffectsVisitor.getDeclaredMethodEffects(cdecl, cdecl);
-        if (declFx != null) {
-          isEffects = true;
-          // get the drop
-          eDrop = MethodEffectsRules.getRegionEffectsDrop(cdecl);
-          if (eDrop == null) {
-            LOG.severe("NULL effects drop in checkSynchronizedConstructor");
-          }
-          final Iterator<Effect> iter = declFx.iterator();
-          while (isEffects && iter.hasNext()) {
-            final Effect effect = iter.next();
-            if (effect.isWriteEffect()) {
-              isEffects &= effect.checkEffect(binder, writesInstance);
-            }
-          }
-        }
-        /*
-         * if effects look OK, check that this constructor promises not to start
-         * any threads
-         */
-        if (isEffects) {
-          isEffects = ThreadEffectsRules.startsNothing(cdecl);
-          if (isEffects) {
-            teDrop = ThreadEffectsRules.getStartsSpec(cdecl);
-            if (teDrop == null) {
-              LOG
-                  .severe("NULL thread effects drop in checkSynchronizedConstructor");
-            }
-          }
-        }
-
-        boolean isOkay = isUniqueReturn || isBorrowedThis || isEffects;
-        if (isOkay) {
-          final ResultDrop r = makeResultDrop(cdecl, stDrop, true,
-              DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG);
-          if (isUniqueReturn) {
-            r.addTrustedPromise_or("by unique return", uDrop);
-          }
-          if (isBorrowedThis) {
-            r.addTrustedPromise_or("by borrowed receiver", bDrop);
-          }
-          if (isEffects) {
+          if (singleThreadedData.isEffects) {
             // Note: "by effects" has to be the same string to "and" the "or"
-            r.addTrustedPromise_or("by effects", eDrop);
-            r.addTrustedPromise_or("by effects", teDrop);
+            result.addTrustedPromise_or(DS_SINGLE_THREADED_EFFECTS, singleThreadedData.eDrop);
+            result.addTrustedPromise_or(DS_SINGLE_THREADED_EFFECTS, singleThreadedData.teDrop);
           }
-        } else {
-          makeResultDrop(cdecl, stDrop, false,
-              DS_SYNCHRONIZED_CONSTRUCTOR_NOT_ASSURED_MSG);
+          
+          // Handle the instrinsic locks
+          while (locks.hasNext()) {
+            final StackLock sl = locks.next();
+            result.addCheckedPromise(sl.lock.getLockPromise());
+          }
+          // Handle the juc locks
+          for (final HeldLock hl : jucLocks) {
+            result.addCheckedPromise(hl.getLockPromise());
+          }          
         }
-      } // end of single-threaded issues
+      }
+      
+///*** old ***/      
+//      // Deal with "single threaded" constructors
+//      if (LockRules.isSingleThreaded(cdecl)) {
+//        final SingleThreadedPromiseDrop stDrop = LockRules.getSingleThreadedDrop(cdecl);
+//        if (stDrop == null) {
+//          LOG.severe("NULL SingleThreaded drop in visitConstructorDeclaration");
+//        }
+//
+//        if (isSingleThreaded) {
+//          final ResultDrop r = makeResultDrop(cdecl, stDrop, true,
+//              DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG);
+//          if (isUniqueReturn) {
+//            r.addTrustedPromise_or("by unique return", uDrop);
+//          }
+//          if (isBorrowedThis) {
+//            r.addTrustedPromise_or("by borrowed receiver", bDrop);
+//          }
+//          if (isEffects) {
+//            // Note: "by effects" has to be the same string to "and" the "or"
+//            r.addTrustedPromise_or("by effects", eDrop);
+//            r.addTrustedPromise_or("by effects", teDrop);
+//          }
+//        } else {
+//          makeResultDrop(cdecl, stDrop, false,
+//              DS_SYNCHRONIZED_CONSTRUCTOR_NOT_ASSURED_MSG);
+//        }
+//      } // end of single-threaded issues
+///*** end of old ***/      
 
       // Add locks from lock preconditions to the lock context
       final LockStackFrame reqFrame = ctxtTheHeldLocks.pushNewFrame();
@@ -1985,7 +1977,8 @@ implements IBinderClient {
       ctxtTheReceiverNode = null;
       ctxtInsideConstructor = null;
       ctxtConstructorName = null;
-
+      ctxtConstructorIsSingleThreaded = null;
+      
       // remove the lock from the context
       ctxtTheHeldLocks.popFrame();
       ctxtTheHeldLocks.popFrame();

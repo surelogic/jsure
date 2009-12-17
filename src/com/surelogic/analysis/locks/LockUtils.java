@@ -8,6 +8,7 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.ClassTarget;
+import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
@@ -24,6 +25,7 @@ import com.surelogic.annotation.rules.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +57,7 @@ import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Hashtable2;
@@ -151,6 +154,9 @@ public final class LockUtils {
    * used by the {@link java.lang.Object#wait()}method, etc.
    */
   public static final String MUTEX_NAME = "MUTEX"; //$NON-NLS-1$
+  
+  /** Reference to the Instance region */
+  private final RegionModel INSTANCE;
 
   
 
@@ -252,6 +258,9 @@ public final class LockUtils {
         binder.getTypeEnvironment().findNamedType(JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK),
         binder);
 
+    // Get the instance region declaration
+    INSTANCE = RegionModel.getInstance(RegionModel.INSTANCE);
+    
     // Get the lock decl of the MUTEX lock on Object
     final RegionLockRecord lr = sysLockModelHandle.get().getRegionLockByName(
         binder.getTypeEnvironment().getObjectType(), MUTEX_NAME);
@@ -1292,8 +1301,59 @@ public final class LockUtils {
   public ClassTarget createClassTarget(final IRegion field) {
     return targetFactory.createClassTarget(field);
   }
-  
-  
+
+  /**
+   * Determine if a constructor can be considered to be single-threaded
+   * 
+   * @param cdecl
+   *          The constructor declaration node of the constructor to be tested.
+   * @param rcvrDecl
+   *          The receiver declaration node associated with the constructor
+   *          declaration.
+   */
+  /* Could move this to LockExpressions, but I like it better here because
+   * LockUtils contains all the methods for complex operations involving lock
+   * semantics.
+   */
+  public LockExpressions.SingleThreadedData isConstructorSingleThreaded(
+      final IRNode cdecl, final IRNode rcvrDecl) {
+    // get the receiver and see if it is declared to be borrowed
+    final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowedDrop(rcvrDecl);
+    final boolean isBorrowedThis = bDrop != null;
+    
+    // See if the return value is declared to be unique
+    final IRNode returnNode = JavaPromise.getReturnNodeOrNull(cdecl);
+    final UniquePromiseDrop uDrop = UniquenessRules.getUniqueDrop(returnNode);
+    final boolean isUniqueReturn = uDrop != null;
+
+    /*
+     * See if the declared *write* effects are < "writes this.Instance" (Can
+     * read whatever it wants. Want to prevent the object from writing a
+     * reference to itself into another object.
+     */
+    /*
+     * We can use the default target factory here because we are passing it the
+     * receiver declaration node directly.
+     */
+    final Effect writesInstance = Effect.newWrite(
+        DefaultTargetFactory.PROTOTYPE.createInstanceTarget(rcvrDecl, INSTANCE));
+
+    final Set<Effect> declFx = EffectsVisitor.getDeclaredMethodEffects(cdecl, cdecl);
+    final RegionEffectsPromiseDrop eDrop = MethodEffectsRules.getRegionEffectsDrop(cdecl);
+    final StartsPromiseDrop teDrop = ThreadEffectsRules.getStartsSpec(cdecl);
+    boolean isEffectsWork = teDrop != null;
+    if (isEffectsWork && declFx != null) {
+      final Iterator<Effect> iter = declFx.iterator();
+      while (isEffectsWork && iter.hasNext()) {
+        final Effect effect = iter.next();
+        if (effect.isWriteEffect()) {
+          isEffectsWork &= effect.checkEffect(binder, writesInstance);
+        }
+      }
+    }
+    return new LockExpressions.SingleThreadedData(isBorrowedThis, bDrop,
+        isUniqueReturn, uDrop, isEffectsWork, eDrop, teDrop);
+  }
   
   /**
    * Given a synchronized method, return the locks it acquires. 
@@ -1380,13 +1440,12 @@ public final class LockUtils {
      * because we do not want to be able to verify wait() and notify() calls as
      * result of the @synchronized annotation.
      */
-    final SingleThreadedPromiseDrop drop = LockRules.getSingleThreadedDrop(conDecl);
     final Set<RegionLockRecord> records = sysLockModelHandle.get().getRegionLocksInClass(clazz);
     for (final RegionLockRecord lr : records) {
       if (howTo.acceptsLock(lr.lockDecl) && !lr.region.isStatic() && (lr.lockDecl != mutex)) {
         final Type lockType = howTo.getAssumedLockType(lr.lockDecl);
         final HeldLock lock =
-          heldLockFactory.createInstanceLock(rcvr, lr.lockDecl, conDecl, drop, false, lockType);
+          heldLockFactory.createInstanceLock(rcvr, lr.lockDecl, conDecl, null, false, lockType);
         assumedLocks.add(lock);
       }
     }

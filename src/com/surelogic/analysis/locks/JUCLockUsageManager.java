@@ -94,6 +94,13 @@ final class JUCLockUsageManager {
   }
   
   /**
+   * Get the single threaded data block associated with the flow unit.
+   */
+  public LockExpressions.SingleThreadedData getSingleThreadedData(final IRNode cdecl) {
+    return getLockExpressionsFor(cdecl).getSingleThreadedData();
+  }
+  
+  /**
    * Get the JUC locks that apply because the constructor is single threaded.
    */
   public Set<HeldLock> getJUCSingleThreaded(final IRNode mdecl) {

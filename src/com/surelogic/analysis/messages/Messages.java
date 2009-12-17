@@ -60,8 +60,6 @@ public class Messages extends AbstractMessages {
   // Drop-sea result messages
   public static String LockAnalysis_ds_SynchronizedConstructorAssured = "single-threaded constructor supported";
 
-  public static String LockAnalysis_ds_SynchronizedConstructorNotAssured = "single-threaded constructor has possibly escaping receiver";
-
   public static String LockAnalysis_ds_AggregationNeeded = "Field reference \"{0}\" may be to a shared unprotected object";
 
   public static String LockAnalysis_ds_AggregationNeeded2 = "Receiver \"{0}\" may be a shared unprotected object";
@@ -119,6 +117,12 @@ public class Messages extends AbstractMessages {
   // Drop-sea Supporting information messages
   public static String LockAnalysis_ds_OnBehalfOfConstructor = "Analyzed on behalf of constructor \"{0}\"";
 
+  public static String LockAnalysis_ds_ConstructorIsSingleThreaded = "Constructor \"{0}\" is single-threaded";
+  
+  public static String LockAnalysis_ds_EnclosingConstructorIsSingleThreaded = "Enclosing constructor \"{0}\" is single-threaded";
+  
+  public static String LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded = "Enclosing constructor \"{0}\" cannot be proven to be single-threaded";
+    
   public static String LockAnalysis_ds_FieldDeclaration = "Field Declaration: {0}";
   
   public static String LockAnalysis_ds_AssumedHeld = "Assuming lock \"{0}\" is held";
@@ -141,7 +145,19 @@ public class Messages extends AbstractMessages {
 
   public static String LockAnalysis_ds_AggregationEvidence="Method effect {0} affects region {1} of {2} which is aggregated into region {3}";
   
+  
+  // Labels for the single-threaded result disjunction
+  public static String LockAnalysis_ds_SingleThreadedUniqueReturn = "by unique return";
+  
+  public static String LockAnalysis_ds_SingleThreadedEffects = "by effects";
+  
+  public static String LockAnalysis_ds_SingleThreadedBorrowedThis = "by borrowed receiver";
+
+  
+  
   private static final Map<String,String> value2field = new HashMap<String,String>();
+  
+  
   
   public static String getName(String msg) {
 	  return value2field.get(msg);
