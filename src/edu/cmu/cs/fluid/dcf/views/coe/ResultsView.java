@@ -21,6 +21,7 @@ import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
@@ -29,7 +30,9 @@ import org.eclipse.ui.actions.ActionFactory;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.eclipse.SLImages;
+import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.ViewUtility;
+import com.surelogic.common.eclipse.dialogs.ImageDialog;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.TestListener;
@@ -127,6 +130,19 @@ public class ResultsView extends AbstractDoubleCheckerView {
     }
   };
 
+  private final Action f_showQuickRef = new Action() {
+    @Override
+    public void run() {
+      final Image quickRefImage = SLImages
+          .getImage(CommonImages.IMG_JSURE_QUICK_REF);
+      final Image icon = SLImages
+          .getImage(CommonImages.IMG_JSURE_QUICK_REF_ICON);
+      final ImageDialog dialog = new ImageDialog(SWTUtility.getShell(),
+          quickRefImage, icon, "Iconography Quick Reference");
+      dialog.open();
+    }
+  };
+
   /*
    * Experimental actions
    */
@@ -210,14 +226,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
     viewer.setLabelProvider(f_labelProvider);
     viewer.setSorter(createSorter());
     ColumnViewerToolTipSupport.enableFor(viewer);
-    /*
-     * final int ops = DND.DROP_COPY; final Transfer[] transfers = new
-     * Transfer[] { TextTransfer.getInstance()}; viewer.addDragSupport(ops,
-     * transfers, new DragSourceAdapter() { public void
-     * dragSetData(DragSourceEvent event){ if
-     * (TextTransfer.getInstance().isSupportedType(event.dataType)) { Object o =
-     * event.data; event.data = f_labelProvider.getText(o); } } });
-     */
   }
 
   protected ViewerSorter createSorter() {
@@ -246,6 +254,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
   protected void fillLocalPullDown(final IMenuManager manager) {
     manager.add(f_actionCollapseAll);
     manager.add(new Separator());
+    manager.add(f_showQuickRef);
     manager.add(f_actionShowInferences);
     manager.add(f_actionShowProblemsView);
     if (XUtil.useExperimental()) {
@@ -286,6 +295,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
   protected void fillLocalToolBar(final IToolBarManager manager) {
     manager.add(f_actionCollapseAll);
     manager.add(new Separator());
+    manager.add(f_showQuickRef);
     manager.add(f_actionShowInferences);
   }
 
@@ -318,6 +328,11 @@ public class ResultsView extends AbstractDoubleCheckerView {
     f_copy.setText("Copy");
     f_copy
         .setToolTipText("Copy the selected verification result to the clipboard");
+
+    f_showQuickRef.setText("Show Iconography Quick Reference Card");
+    f_showQuickRef.setToolTipText("Show the iconography quick reference card");
+    f_showQuickRef.setImageDescriptor(SLImages
+        .getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
 
     if (XUtil.useExperimental()) {
       f_actionExportZIPForStandAloneResultsViewer = new Action() {
