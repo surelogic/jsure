@@ -553,6 +553,18 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   public IJavaType visitReceiverDeclaration(IRNode node) {
     return JavaTypeFactory.getThisType(node);
   }
+
+  @Override
+  public IJavaType visitReturnValueDeclaration(IRNode rvd) {
+	  IRNode n = JavaPromise.getPromisedForOrNull(rvd);
+	  if (MethodDeclaration.prototype.includes(n)) {
+		  return getJavaType(MethodDeclaration.getReturnType(n));
+	  }
+	  else if (ConstructorDeclaration.prototype.includes(n)) {
+		  return JavaTypeFactory.getThisType(n);
+	  }
+	  throw new UnsupportedOperationException("No return value for "+DebugUnparser.toString(n));
+  }
   
   @Override
   public IJavaType visitRelopExpression(IRNode node) {
