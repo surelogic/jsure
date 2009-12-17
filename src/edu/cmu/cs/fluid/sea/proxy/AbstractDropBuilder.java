@@ -2,6 +2,7 @@
 package edu.cmu.cs.fluid.sea.proxy;
 
 import java.text.MessageFormat;
+import java.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.*;
@@ -12,7 +13,7 @@ public abstract class AbstractDropBuilder {
 	private IRNode node;
 	private String message;
 	private Category category;
-	private Drop resultDependUponDrop;
+	private List<Drop> dependUponDrops = new ArrayList<Drop>();
 	
 	AbstractDropBuilder(String type) {		
 		this.type = type;
@@ -43,15 +44,17 @@ public abstract class AbstractDropBuilder {
 		category = c;
 	}
 	
-	public void setResultDependUponDrop(Drop drop) {
-		resultDependUponDrop = drop;
+	public void addDependUponDrop(Drop drop) {
+		dependUponDrops.add(drop);
 	}
 	
 	void buildDrop(IRReferenceDrop d) {
 		d.setNode(node);
 		d.setMessage(message);
 		d.setCategory(category);
-		resultDependUponDrop.addDependent(d);
+		for(Drop deponent : dependUponDrops) {
+			deponent.addDependent(d);
+		}
 	}
 	
 	public abstract Drop build();

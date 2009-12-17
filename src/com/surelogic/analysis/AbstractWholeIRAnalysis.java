@@ -11,7 +11,6 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
-import edu.cmu.cs.fluid.util.CachedSet;
 
 public abstract class AbstractWholeIRAnalysis<T extends IBinderClient> extends AbstractIRAnalysis<T> {
 	static private class ResultsDepDrop extends Drop {
@@ -53,7 +52,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient> extends A
 	}
 	
 	protected final void setResultDependUponDrop(ResultDropBuilder p) {
-		p.setResultDependUponDrop(resultDependUpon);
+		p.addDependUponDrop(resultDependUpon);
 	}
 	
 	public boolean analyzeAll() {
