@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.java.bind;
 
+import com.surelogic.analysis.IIRProject;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.*;
@@ -201,4 +203,6 @@ public interface ITypeEnvironment {
 
 	IJavaType convertNodeTypeToIJavaType(IRNode nodeType);
 	void clearCaches(boolean clearAll);
+	
+	IIRProject getProject();
 }

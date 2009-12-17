@@ -4,6 +4,8 @@
  */
 package edu.cmu.cs.fluid.java.bind;
 
+import com.surelogic.analysis.IIRProject;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.version.Version;
 
@@ -57,4 +59,7 @@ public class VersionFixedTypeEnvironment extends AbstractTypeEnvironment {
     return fixed.getClassTable();
   }
 
+  public IIRProject getProject() {
+	  return fixed.getProject();
+  }
 }
