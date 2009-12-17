@@ -398,10 +398,10 @@ public class Store extends RecordLattice {
   /** Load a field from memory
    * @precondition isValid();
    **/
-  public Store opLoad(IRNode fieldDecl) {
+  public Store opLoad(final IRNode fieldDecl) {
     if (!isValid()) return this;
     if (UniquenessRules.isUnique(fieldDecl)) {
-      Integer n = getStackTop();
+      final Integer n = getStackTop();
       UnionLattice affected = nodeSet; // X' in paper
       UnionLattice objects = getObjects();
       try {
@@ -425,10 +425,22 @@ public class Store extends RecordLattice {
 	.apply(new StoreAdd(undefinedVariable,affected))
 	.opNew();
       UnionLattice fieldStore = temp.getFieldStore();
-      UnionLattice uniqueNode =
+      final UnionLattice uniqueNode =
 	(UnionLattice)nodeSet.addElement(temp.getStackTop());
       // System.out.println(temp);
       try {
+    	  Iterator it = new EnumerationIterator(fieldStore.elements());
+          fieldStore.addElements(new FilterIterator(it) {
+    		@Override
+    		protected Object select(Object o) {
+    			UnionLattice object = (UnionLattice) o;
+    			if (object.contains(n)) {
+    				return new Triple(object,fieldDecl,uniqueNode);
+    			}
+    			return noElement;
+    		}
+          });
+    /*
 	Enumeration enm = temp.getObjects().elements();
 	while (enm.hasMoreElements()) {
 	  UnionLattice object = (UnionLattice)enm.nextElement();
@@ -438,6 +450,7 @@ public class Store extends RecordLattice {
 	    fieldStore = (UnionLattice)fieldStore.addElement(t);
 	  }
 	}
+	*/
       } catch (SetException ex) {
 	return this;
       }
@@ -527,10 +540,22 @@ public class Store extends RecordLattice {
     if (!isValid()) return this;
     Store temp = push();
     Integer n = temp.getStackTop();
-    UnionLattice nset = (UnionLattice)nodeSet.addElement(n);
+    final UnionLattice nset = (UnionLattice)nodeSet.addElement(n);
     temp = temp.setObjects((UnionLattice)temp.getObjects().addElement(nset));
     UnionLattice fieldStore = temp.getFieldStore();
     try {
+      Iterator it = new EnumerationIterator(fieldStore.elements());
+      fieldStore.addElements(new FilterIterator(it) {
+		@Override
+		protected Object select(Object o) {
+			Triple t = (Triple) o;
+			if (t.first().equals(nodeSet)) {
+				return new Triple(nset,t.second(),t.third());
+			}
+			return noElement;
+		}
+      });
+      /*
       for (Enumeration enm=fieldStore.elements(); enm.hasMoreElements();) {
 	Triple t = (Triple)enm.nextElement();
 	if (t.first().equals(nodeSet)) {
@@ -538,6 +563,7 @@ public class Store extends RecordLattice {
 	    .addElement(new Triple(nset,t.second(),t.third()));
 	}
       }
+      */
     } catch (SetException ex) {
       return this;
     }
