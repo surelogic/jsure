@@ -40,7 +40,7 @@ public class AddPromisesJarMainAction implements IWorkbenchWindowActionDelegate 
 
 	public static void performAction(IProject project) {
 		if (project != null) {
-			PromisesJarUtility.finishProjectSetup(project, true);
+			PromisesJarUtility.finishProjectSetup(project, true, null);
 		}
 	}
 }

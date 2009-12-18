@@ -10,6 +10,7 @@ import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.common.eclipse.builder.AbstractNature;
+import com.surelogic.common.jobs.*;
 import com.surelogic.common.logging.SLLogger;
 
 /**
@@ -90,6 +91,26 @@ public final class Nature extends AbstractNature {
 	 */
 	public static void addNatureToProject(final IProject project)
 			throws CoreException {
+		IProjectDescription description = project.getDescription();
+		boolean hasQualityNature = description.hasNature(DOUBLE_CHECKER_NATURE_ID);
+		if (!hasQualityNature) {
+			PromisesJarUtility.finishProjectSetup(project, false, 
+			  new AbstractSLJob("Adding JSure Nature to "+project.getName()) {
+				public SLStatus run(SLProgressMonitor monitor) {
+					try {
+						onlyAddNatureToProject(project);
+					} catch (CoreException e) {
+						String msg = "Could not add JSure nature to "+project.getName();
+						SLLogger.getLogger().log(Level.SEVERE, msg, e);
+						return SLStatus.createErrorStatus(msg, e);
+					}
+					return SLStatus.OK_STATUS;
+				}			
+			});
+		}
+	}
+	
+	static void onlyAddNatureToProject(final IProject project) throws CoreException {
 		// add our nature to the project if it doesn't already exist
 		IProjectDescription description = project.getDescription();
 		String[] natures = description.getNatureIds();
@@ -100,8 +121,7 @@ public final class Nature extends AbstractNature {
 			System.arraycopy(natures, 0, newNatures, 0, natures.length);
 			newNatures[natures.length] = DOUBLE_CHECKER_NATURE_ID;
 			description.setNatureIds(newNatures);
-			project.setDescription(description, null);
-			PromisesJarUtility.finishProjectSetup(project, false);
+			project.setDescription(description, null);			
 		}
 	}
 

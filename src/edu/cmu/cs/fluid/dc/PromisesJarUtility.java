@@ -39,7 +39,9 @@ import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.ide.IDE;
 
 import com.surelogic.common.eclipse.JDTUtility;
+import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.eclipse.jobs.SLUIJob;
+import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.LibResources;
 import com.surelogic.jsure.client.eclipse.dialogs.ConfirmPerspectiveSwitch;
@@ -50,7 +52,7 @@ public class PromisesJarUtility {
 	 * Primarily adds the promises.jar if desired
 	 */
 	public static void finishProjectSetup(final IProject project,
-			final boolean onlyAddJar) {
+			final boolean onlyAddJar, final SLJob finish) {
 		final IJavaProject jp = JavaCore.create(project);
 		if (JDTUtility.getMajorJavaVersion(jp) < 5) {
 			if (onlyAddJar) {
@@ -61,6 +63,7 @@ public class PromisesJarUtility {
 						"No Need for SureLogic Promises Library",
 						"The SureLogic promises library is only for projects using Java 5 and above.");
 			}
+			EclipseJob.getInstance().schedule(finish);
 			return;
 		}
 		final boolean foundRegionLock = checkForPromises(jp);
@@ -150,10 +153,12 @@ public class PromisesJarUtility {
 					handleError(shell, " while adding "
 							+ LibResources.PROMISES_JAR, e);
 				}
+				EclipseJob.getInstance().schedule(finish);
 				if (!onlyAddJar) {
 					ConfirmPerspectiveSwitch.prototype.submitUIJob();
-					Nature.runAnalysis(project);
-				}
+					// Already started by nature change
+					// Nature.runAnalysis(project);
+				} 
 				return Status.OK_STATUS;
 			}
 		};
