@@ -34,6 +34,9 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient> implements IIR
 	private List<AbstractDropBuilder> builders = new Vector<AbstractDropBuilder>();
 	
 	protected <E> void runInParallel(Class<E> type, Collection<E> c, Procedure<E> proc) {
+		if (c.isEmpty()) {
+			return;
+		}
 		final IParallelArray<E> array = singleThreaded ? 
 				new NonParallelArray<E>() : ParallelArray.create(0, type, pool);	
 		array.asList().addAll(c);
