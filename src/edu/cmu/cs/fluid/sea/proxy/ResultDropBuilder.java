@@ -4,9 +4,7 @@ import java.util.*;
 
 import com.surelogic.analysis.IIRAnalysis;
 
-import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.util.Pair;
 
 /**
  * Temporary builder to help analyses be parallelized
@@ -14,13 +12,12 @@ import edu.cmu.cs.fluid.util.Pair;
  * @author Edwin
  */
 @SuppressWarnings("unchecked")
-public final class ResultDropBuilder extends AbstractDropBuilder {
-	private List<Pair<String,IRNode>> supportingInfos =
-		new ArrayList<Pair<String,IRNode>>();
-	
+public final class ResultDropBuilder extends AbstractDropBuilder {	
 	private boolean isConsistent = false;
 	private Set<PromiseDrop> checks = new HashSet<PromiseDrop>();
 	private Set<PromiseDrop> trusted = new HashSet<PromiseDrop>();
+	private Map<String,Set<PromiseDrop>> trustedOr = 
+		new HashMap<String,Set<PromiseDrop>>();
 	
 	private ResultDropBuilder(String type) {		
 		super(type);
@@ -30,10 +27,6 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 		ResultDropBuilder rv = new ResultDropBuilder(type);
 		a.handleBuilder(rv);
 		return rv;
-	}
-	
-	public void addSupportingInformation(String msg, IRNode context) {
-		supportingInfos.add(new Pair<String,IRNode>(msg, context));
 	}
 	
 	public void setConsistent() {
@@ -67,16 +60,21 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 		trusted.add(promise);
 	}
 	
+	public void addTrustedPromise_or(String label, PromiseDrop drop) {
+		Set<PromiseDrop> drops = trustedOr.get(label);
+		if (drops == null) {
+			drops = new HashSet<PromiseDrop>();
+			trustedOr.put(label, drops);
+		}
+		drops.add(drop);
+	}
+	
 	@Override
 	public ResultDrop build() {
 		if (!isValid()) {
 			return null;
 		}
-		ResultDrop rd = new ResultDrop(type);		
-		for(Pair<String,IRNode> p : supportingInfos) {
-			rd.addSupportingInformation(p.first(), p.second());
-		}
-		
+		ResultDrop rd = new ResultDrop(type);				
 		rd.setConsistent(isConsistent);
 		for(PromiseDrop check : checks) {
 			rd.addCheckedPromise(check);
@@ -84,6 +82,11 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 		for(PromiseDrop t : trusted) {
 			rd.addTrustedPromise(t);
 		}		
+		for(Map.Entry<String, Set<PromiseDrop>> e : trustedOr.entrySet()) {
+			for(PromiseDrop d : e.getValue()) {
+				rd.addTrustedPromise_or(e.getKey(), d);
+			}
+		}
 		buildDrop(rd);
 		return rd;
 	}
