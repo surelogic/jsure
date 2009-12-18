@@ -70,6 +70,9 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   }
   
   public IJavaType convertNodeTypeToIJavaType(IRNode nodeType) {
+	  if (nodeType == null) {
+		  return null;
+	  }
 	  IJavaType result = convertedTypeCache.get(nodeType);
 	  if (result == null) {
 		  result = JavaTypeFactory.convertNodeTypeToIJavaType(nodeType, getBinder());
