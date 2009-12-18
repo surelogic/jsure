@@ -32,7 +32,7 @@
 	<!-- Production promises go into '/build' -->
 
 	<target name="build" depends="setup">
-		<javac srcdir="${production-promises-src}" destdir="${build}/bin" classpath="." debug="on" source="1.5" />
+		<javac srcdir="${production-promises-src}" destdir="${build}/bin" classpath="." debug="on" source="1.5" target="1.5" />
 		<jar destfile="${promises-jar}">
 			<fileset dir="${build}/bin" />
 			<manifest />
@@ -55,7 +55,7 @@
 	<!-- Experimental and production promises go into '/build-x' -->
 
 	<target name="build-x" depends="setup">
-		<javac srcdir="${promises-x-src}:${production-promises-src}" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" />
+		<javac srcdir="${promises-x-src}:${production-promises-src}" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" target="1.5" />
 		<jar destfile="${promises-x-jar}">
 			<fileset dir="${build-x}/bin" />
 			<manifest />
