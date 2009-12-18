@@ -33,17 +33,17 @@ public class Messages extends AbstractMessages {
 
   public static String EffectsAnnotation_prescrubbedEffects = "method effects promise (pre-scrubbed, not complete) on {0}";
 
-  public static String AssumeFinalAnnotation_finalFieldDrop = "assumedFinal on {0}";
+  public static String AssumeFinalAnnotation_finalFieldDrop = "AssumedFinal on {0}";
 
-  public static String NotNullAnnotation_notNullDrop = "notNull {0} on {1}";
+  public static String NotNullAnnotation_notNullDrop = "NotNull {0} on {1}";
 
-  public static String UsedByAnnotation_usedByDrop = "usedBy {0} on {1}";
+  public static String UsedByAnnotation_usedByDrop = "UsedBy {0} on {1}";
 
-  public static String RegionAnnotation_prescrubbedAggregate = "aggregate promise (pre-scrubbed, not complete)";
+  public static String RegionAnnotation_prescrubbedAggregate = "Aggregate promise (pre-scrubbed, not complete)";
 
-  public static String RegionAnnotation_prescrubbedInRegion = "inRegion promise (pre-scrubbed, not complete)";
+  public static String RegionAnnotation_prescrubbedInRegion = "InRegion promise (pre-scrubbed, not complete)";
 
-  public static String RegionAnnotation_regionDrop = "region {0}{1} {2}";
+  public static String RegionAnnotation_regionDrop = "Region {0}{1} {2}";
 
   public static String RegionAnnotation_mapFieldsDrop = "InRegion({0} into {1})";
 
@@ -55,23 +55,23 @@ public class Messages extends AbstractMessages {
 
   public static String RegionAnnotation_aggregationDisallowedDrop = "aggregation disallowed because field is not declared \"unique\"";
 
-  public static String RegionAnnotation_aggregateDrop = "aggregate";
+  public static String RegionAnnotation_aggregateDrop = "Aggregate";
   
   public static String RegionAnnotation_aggregateInRegionDrop = "AggregateInRegion({0}) on {1}";
 
-  public static String StartsAnnotation_startNothingDrop = "starts(nothing)  on  {0}";
+  public static String StartsAnnotation_startNothingDrop = "Starts(nothing)  on  {0}";
 
-  public static String SubtypedByAnnotation_subtypedByDrop = "subtypedBy({0})  on  {1}";
+  public static String SubtypedByAnnotation_subtypedByDrop = "SubtypedBy({0})  on  {1}";
 
   public static String SubtypedByAnnotation_typeDrop = "Type {0} exists and is a subtype of {1}";
 
-  public static String UniquenessAnnotation_uniqueDrop1 = "unique  on  {0}";
+  public static String UniquenessAnnotation_uniqueDrop1 = "Unique  on  {0}";
 
-  public static String UniquenessAnnotation_uniqueDrop2 = "unique({0})  on  {1}";
+  public static String UniquenessAnnotation_uniqueDrop2 = "Unique({0})  on  {1}";
 
-  public static String UniquenessAnnotation_borrowedDrop = "borrowed({0})  on  {1}";
+  public static String UniquenessAnnotation_borrowedDrop = "Borrowed({0})  on  {1}";
   
-  public static String UniquenessAnnotation_notUniqueDrop = "notunique  on  {0}";
+  public static String UniquenessAnnotation_notUniqueDrop = "NotUnique  on  {0}";
 
   static {
     // initialize resource bundle
