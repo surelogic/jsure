@@ -1829,7 +1829,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           }
         }
       } else {
-        LOG.severe("Nothing to look for a method name in. Skipping " + JavaNames.genMethodConstructorName(node) );
+        LOG.severe("Nothing to look for a method name in. Skipping call to " + 
+        		   JavaNames.genMethodConstructorName(node)+" in"+
+        		   DebugUnparser.toString(VisitUtil.getEnclosingClassBodyDecl(node)));
         bind(node,(IRNode)null);
       }
       return null;
