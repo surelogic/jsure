@@ -60,6 +60,7 @@ public abstract class AbstractDropBuilder {
 	}
 	
 	void buildDrop(IRReferenceDrop d) {
+		//System.out.println("Making: "+message);
 		d.setNode(node);
 		d.setMessage(message);
 		d.setCategory(category);

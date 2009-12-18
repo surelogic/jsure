@@ -109,6 +109,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	      cfDrop.invalidate();
 	    }
 	  }
+	  cachedControlFlow.clear();
 	  controlFlowDrops.clear();
 	  
 	  if (!runInParallel()) {
@@ -153,6 +154,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 						monitor.subTask("Checking [ Uniqueness Assurance ] "+
 								        JavaNames.getFullTypeName(typeDecl));
 					}
+					//System.out.println("Analyzing "+JavaNames.getFullTypeName(typeDecl));
 					analyzeSubtree(typeDecl);
 				}
 				return true;
@@ -177,6 +179,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 						monitor.subTask("Checking [ Uniqueness Assurance ] "+
 								        JavaNames.genRelativeFunctionName(node));
 					}
+					//System.out.println("Sequential: "+JavaNames.genRelativeFunctionName(node));
+
 					analyzeSubtree(node);
 				}
 				return !methods.isEmpty();
@@ -455,6 +459,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	 *          A MethodDeclaration, ConstructorDeclaration, or ClassInitializer.
 	 */
 	private PromiseRecord getCachedPromiseRecord(final IRNode block) {
+		/*
+		String name = DebugUnparser.toString(block);
+		if (name.contains("GameMap getMap()")) {
+			System.out.println("Found: "+name);
+		}
+		*/
 		PromiseRecord pr = cachedPromiseRecord.get(block);
 		if (pr == null) {
 			pr = createPromiseRecordFor(block);
@@ -512,6 +522,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		 */
 		public final Map<IRNode, Set<ResultDropBuilder>> callsToDrops;
 
+		private String name;
+		
 		public PromiseRecord(final IRNode block) {
 			myUniqueParams = new HashSet<UniquePromiseDrop>();
 			myBorrowedParams = new HashSet<BorrowedPromiseDrop>();
@@ -529,12 +541,18 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			
 			// Create the control flow drop for the block
 			controlFlow = getMethodControlFlowDrop(block);
+			name = DebugUnparser.toString(block);
+		}
+		
+		@Override
+		public String toString() {
+			return name;
 		}
 	}
 
 	private final Map<IRNode, ResultDropBuilder> cachedControlFlow = new HashMap<IRNode, ResultDropBuilder>();
 	
-	private ResultDropBuilder getMethodControlFlowDrop(final IRNode block) {
+	ResultDropBuilder getMethodControlFlowDrop(final IRNode block) {
     ResultDropBuilder drop = cachedControlFlow.get(block);
     if (drop == null || !drop.isValid()) {
       drop = ResultDropBuilder.create(this, "methodControlFlow");
@@ -551,6 +569,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
         message = MessageFormat.format(
             Messages.methodControlFlow, "method",
             JavaNames.genMethodConstructorName(block));
+        /*
+        if (message.endsWith("getMap()")) {
+        	System.out.println("Found: "+message);
+        }
+        */
       } else if (ClassInitializer.prototype.includes(op)) {
         message = MessageFormat.format(
             Messages.methodControlFlow, "initializer",
