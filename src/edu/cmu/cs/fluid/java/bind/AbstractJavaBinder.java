@@ -1829,7 +1829,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           }
         }
       } else {
-        LOG.info("Nothing to look for a method name in. Skipping " + MethodCall.getMethod(node) );
+        LOG.severe("Nothing to look for a method name in. Skipping " + JavaNames.genMethodConstructorName(node) );
         bind(node,(IRNode)null);
       }
       return null;
