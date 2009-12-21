@@ -147,7 +147,6 @@ public class MethodCallUtils {
   public static Map<IRNode, IRNode> constructFormalToActualMap(
       final IBinder binder, final IRNode call, final IRNode mdecl,
       final IRNode callingMethodDecl) {
-//    final IRNode callingMethodDecl = PromiseUtil.getEnclosingMethod(call);
     final IRNode callParent = JJNode.tree.getParentOrNull(call);
 
     // ==== Step 1: map the formal -> actual parameters
