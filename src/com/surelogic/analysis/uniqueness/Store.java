@@ -429,8 +429,8 @@ public class Store extends RecordLattice {
 	(UnionLattice)nodeSet.addElement(temp.getStackTop());
       // System.out.println(temp);
       try {
-    	  Iterator it = new EnumerationIterator(fieldStore.elements());
-          fieldStore.addElements(new FilterIterator(it) {
+    	  Iterator it = new EnumerationIterator(temp.getObjects().elements());
+        fieldStore = (UnionLattice) fieldStore.addElements(new FilterIterator(it) {
     		@Override
     		protected Object select(Object o) {
     			UnionLattice object = (UnionLattice) o;
@@ -440,17 +440,16 @@ public class Store extends RecordLattice {
     			return noElement;
     		}
           });
-    /*
-	Enumeration enm = temp.getObjects().elements();
-	while (enm.hasMoreElements()) {
-	  UnionLattice object = (UnionLattice)enm.nextElement();
-	  if (object.contains(n)) {
-	    Triple t = new Triple(object,fieldDecl,uniqueNode);
-	    // System.out.println("  adding " + tripleToString(t));
-	    fieldStore = (UnionLattice)fieldStore.addElement(t);
-	  }
-	}
-	*/
+//	Enumeration enm = temp.getObjects().elements();
+//	while (enm.hasMoreElements()) {
+//	  UnionLattice object = (UnionLattice)enm.nextElement();
+//	  if (object.contains(n)) {
+//	    Triple t = new Triple(object,fieldDecl,uniqueNode);
+//	    // System.out.println("  adding " + tripleToString(t));
+//	    fieldStore = (UnionLattice)fieldStore.addElement(t);
+//	  }
+//	}
+
       } catch (SetException ex) {
 	return this;
       }
@@ -545,7 +544,7 @@ public class Store extends RecordLattice {
     UnionLattice fieldStore = temp.getFieldStore();
     try {
       Iterator it = new EnumerationIterator(fieldStore.elements());
-      fieldStore.addElements(new FilterIterator(it) {
+      fieldStore = (UnionLattice) fieldStore.addElements(new FilterIterator(it) {
 		@Override
 		protected Object select(Object o) {
 			Triple t = (Triple) o;
@@ -728,7 +727,7 @@ public class Store extends RecordLattice {
     try {
       // Changed to avoid set ops by not adding one at a time
       Iterator it = new EnumerationIterator(objects.elements());
-      newObjects.addElements(new FilterIterator(it) {
+      newObjects = (UnionLattice) newObjects.addElements(new FilterIterator(it) {
 		@Override
 		protected Object select(Object o) {
 			if (f.filter((UnionLattice) o)) {
@@ -752,7 +751,7 @@ public class Store extends RecordLattice {
     try {
       // Changed to avoid set ops by not adding one at a time
       Iterator it = new EnumerationIterator(fieldStore.elements());
-      newFieldStore.addElements(new FilterIterator(it) {
+      newFieldStore = (UnionLattice) newFieldStore.addElements(new FilterIterator(it) {
     	  @Override
     	  protected Object select(Object o) {    	
     		  Triple t = (Triple)o;
