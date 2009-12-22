@@ -102,13 +102,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	@Override
 	protected void clearCaches() {
 	  intermediateResultDrops.clear();
-	  
-	  // Remove any control flow drops that aren't used for anything
-	  for (final ResultDropBuilder cfDrop : controlFlowDrops) {
-	    if (cfDrop.getChecks().isEmpty()) {
-	      cfDrop.invalidate();
-	    }
-	  }
 	  cachedControlFlow.clear();
 	  controlFlowDrops.clear();
 	  
@@ -126,7 +119,15 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 
 	@Override
 	public IRNode[] analyzeEnd(IIRProject p) {
-		finishBuild();
+    // Remove any control flow drops that aren't used for anything
+    for (final ResultDropBuilder cfDrop : controlFlowDrops) {
+      if (cfDrop.getChecks().isEmpty()) {
+        cfDrop.invalidate();
+      }
+    }
+
+    // Create the drops from the drop builders
+    finishBuild();
 		
 		// FIX only clearing some of the threads?
 		if (getAnalysis() != null) {
