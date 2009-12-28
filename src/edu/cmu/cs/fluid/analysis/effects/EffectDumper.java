@@ -126,7 +126,10 @@ public final class EffectDumper extends AbstractWholeIRAnalysisModule
          */
         if (!JavaNode.getModifier(member, JavaNode.ABSTRACT)
             && !JavaNode.getModifier(member, JavaNode.NATIVE)) {
-          final Set<Effect> implFx = effectsVisitor.getEffects(member);
+          /* Can use null for the constructor context because member IS a
+           * constructor or method declaration.
+           */
+          final Set<Effect> implFx = effectsVisitor.getEffects(member, null);
           InfoDrop info = new WarningDrop();
           setLockResultDep(info, member);
           info.setMessage("Inferred: " + effectSetToString(implFx));
