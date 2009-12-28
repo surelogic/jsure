@@ -278,7 +278,7 @@ implements IBinderClient {
       new ForwardAnalysis(
         "unique analysis",
         store,
-        new UniqueTransfer(this, binder, effectsVisitor), 
+        new UniqueTransfer(this, flowNode, binder, effectsVisitor), 
         DebugUnparser.viewer) {
       @Override
       protected void usePorts(
@@ -310,10 +310,12 @@ class UniqueTransfer extends JavaEvaluationTransfer {
 	  SLLogger.getLogger("FLUID.analysis.unique.transfer");
 
   private final EffectsVisitor effects;
-
-  public UniqueTransfer(UniqueAnalysis ua, IBinder b, EffectsVisitor ev) {
+  private final IRNode flowUnit;
+  
+  public UniqueTransfer(UniqueAnalysis ua, IRNode fu, IBinder b, EffectsVisitor ev) {
     super(ua, b);
     effects = ev;
+    flowUnit = fu;
   }
 
   /** Pop and discard value from top of stack */
@@ -647,7 +649,7 @@ class UniqueTransfer extends JavaEvaluationTransfer {
         considerEffects(
           receiverNode,
           actuals,
-          effects.getRawMethodCallEffects(node),
+          effects.getRawMethodCallEffects(node, flowUnit),
           s);
     }
     // we have to possibly compromise arguments:
@@ -897,7 +899,7 @@ class TestUniqueTransfer {
   static IRNode root = new PlainIRNode();
   static FakeBinder fb = new FakeBinder(root);
   static UniqueTransfer ut = 
-    new UniqueTransfer(null, fb,
+    new UniqueTransfer(null, null, fb,
         new EffectsVisitor(fb, new BindingContextAnalysis(fb)));
 
   public static void main(String[] args) {

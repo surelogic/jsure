@@ -304,14 +304,15 @@ public final class LockUtils {
    * final expression. Chain should contain links to the field/var declaration
    * showing that the variable is not declared to be final, etc.
    */
-  public boolean isFinalExpression(final IRNode expr, final IRNode sync) {
+  public boolean isFinalExpression(
+      final IRNode expr, final IRNode sync, final IRNode constructorContext) {
     final Operator op = JJNode.tree.getOperator(expr);
     if (CastExpression.prototype.includes(op)) {
       // Final if the nested expression is final
-      return isFinalExpression(CastExpression.getExpr(expr), sync);
+      return isFinalExpression(CastExpression.getExpr(expr), sync, constructorContext);
     } else if (ParenExpression.prototype.includes(op)) {
       // Final if the nested expression is final
-      return isFinalExpression(ParenExpression.getOp(expr), sync);
+      return isFinalExpression(ParenExpression.getOp(expr), sync, constructorContext);
     } else if (MethodCall.prototype.includes(op)) {
       MethodCall mcall = (MethodCall) op;
       /* Object expression must be final or method must be static, and the method
@@ -320,7 +321,7 @@ public final class LockUtils {
        */
       final IRNode mdecl = binder.getBinding(expr);
       if (TypeUtil.isStatic(mdecl)
-          || isFinalExpression(mcall.get_Object(expr), sync)) {
+          || isFinalExpression(mcall.get_Object(expr), sync, constructorContext)) {
         return (getReturnedLock(mdecl) != null) || isReadWriteLockClassUsage(expr);
       }
     } else if (ClassExpression.prototype.includes(op)) {
@@ -340,7 +341,7 @@ public final class LockUtils {
       if (TypeUtil.isFinal(id)) {
         return true;
       } else {
-        return !isLockExpressionChangedBySyncBlock(expr, sync);
+        return !isLockExpressionChangedBySyncBlock(expr, sync, constructorContext);
       }
     } else if (FieldRef.prototype.includes(op)) {
       /* Field must be final (or protected by a lock and not modified by the
@@ -351,7 +352,7 @@ public final class LockUtils {
 
       /* Check that the object expression is final (or static) */
       if (TypeUtil.isStatic(id)
-          || isFinalExpression(FieldRef.getObject(expr), sync)) {
+          || isFinalExpression(FieldRef.getObject(expr), sync, constructorContext)) {
         // Check if the field is final
         if (TypeUtil.isFinal(id)) {
           return true;
@@ -360,7 +361,7 @@ public final class LockUtils {
            * the body of the synchronized block.
            */
           return getLockForFieldRef(expr) != null
-              && !isLockExpressionChangedBySyncBlock(expr, sync);
+              && !isLockExpressionChangedBySyncBlock(expr, sync, constructorContext);
         }
       }
     } else if (ArrayRefExpression.prototype.includes(op)) {
@@ -370,8 +371,8 @@ public final class LockUtils {
        */
       final IRNode array = ArrayRefExpression.getArray(expr);
       final IRNode idx = ArrayRefExpression.getIndex(expr);
-      if (isFinalExpression(array, sync) && isFinalExpression(idx, sync)) {
-        return !isArrayChangedBySyncBlock(array, sync, expr);
+      if (isFinalExpression(array, sync, constructorContext) && isFinalExpression(idx, sync, constructorContext)) {
+        return !isArrayChangedBySyncBlock(array, sync, expr, constructorContext);
       }
     } else if (IntLiteral.prototype.includes(op)) {
       /* Integer constants are final.  We do not consider float, boolean, or
@@ -399,10 +400,11 @@ public final class LockUtils {
    * this always returns {@code true} because we do not have a well-defined
    * syntactic scope inside of which to limit the usage of the lock expression.
    */
-  private boolean isLockExpressionChangedBySyncBlock(final IRNode expr, final IRNode sync) {
+  private boolean isLockExpressionChangedBySyncBlock(
+      final IRNode expr, final IRNode sync, final IRNode constructorContext) {
     if (sync != null) {
-      final Set<Effect> bodyEffects = effectsVisitor.getEffects(sync);
-      final Set<Effect> exprEffects = effectsVisitor.getEffects(expr);
+      final Set<Effect> bodyEffects = effectsVisitor.getEffects(sync, constructorContext);
+      final Set<Effect> exprEffects = effectsVisitor.getEffects(expr, constructorContext);
       return conflicter.mayConflict(bodyEffects, exprEffects, expr);
     } else {
       
@@ -410,12 +412,13 @@ public final class LockUtils {
     }
   }
 
-  private boolean isArrayChangedBySyncBlock(final IRNode array, final IRNode sync,
-      final IRNode compareBeforeNode) {
+  private boolean isArrayChangedBySyncBlock(
+      final IRNode array, final IRNode sync, final IRNode compareBeforeNode,
+      final IRNode constructorContext) {
     if (sync != null) {
       final Set<Effect> exprEffects =
         Collections.singleton(Effect.newRead(targetFactory.createInstanceTarget(array, elementRegion)));
-      final Set<Effect> bodyEffects = effectsVisitor.getEffects(sync);
+      final Set<Effect> bodyEffects = effectsVisitor.getEffects(sync, constructorContext);
       return conflicter.mayConflict(bodyEffects, exprEffects, compareBeforeNode);
     } else {
       return true;

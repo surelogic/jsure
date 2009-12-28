@@ -414,8 +414,83 @@ implements IBinderClient {
    */
   private boolean ctxtIsLHS = false;
   
-  
-  
+  /**
+   * This is <code>true</code> if visiting on behalf of a constructor, but not
+   * inside the constructor body itself. That is, we are inside a field
+   * declaration or instance initializer block and have gotten there via the
+   * initialization helper.
+   */
+  private boolean ctxtOnBehalfOfConstructor = false;
+
+  /**
+   * If non-<code>null</code> this refers to the constructor that is
+   * currently being analyzed. This is needed so that analysis of field
+   * declarations and instance initializers can properly report back on whose
+   * behalf they are being analyzed.
+   * 
+   * <p>
+   * It is intended that this field is testing against to determine if analysis
+   * is proceeding on behalf of a constructor.
+   */
+  private IRNode ctxtInsideConstructor = null;
+
+  /**
+   * If {@link #ctxtInsideConstructor} is non-<code>null</code> then this
+   * refers to a one-element array whose single element is the name of the
+   * constructor. This is used as a parameter to
+   * {@link MessageFormat#format(java.lang.String, java.lang.Object[])}. We
+   * create it once because it is silly to repeatedly recompute it for each
+   * assurance result.
+   * 
+   * @see #ctxtInsideConstructor
+   */
+  private Object[] ctxtConstructorName = null;
+
+  /**
+   * When analyzing the body of a constructor (including any initialization
+   * blocks or field initializers), this value is non- {@value null} and indicates
+   * whether the current constructor was found to be singl-threaded or not.
+   * Otherwise this value is {@value null}.
+   */
+  private Boolean ctxtConstructorIsSingleThreaded = null;
+
+  /**
+   * The receiver declaration node of the constructor/method/field
+   * initializer/class initializer currently being analyzed. Every expression we
+   * want to analyze should be inside one of these things. We need to keep track
+   * of this because the {@link #initHelper instance initialization helper}
+   * re-enters this analysis on behalf of constructor declarations, and we want
+   * any field declarations and instance initializers to report their receivers
+   * in terms of the current constructor; this makes life easier for consumers
+   * of the effect results.
+   * 
+   * <p>
+   * This field is updated whenever analysis enters a method declaration,
+   * constructor declaration, or <em>static</em> initializer. It is
+   * <em>not</em> updated when analysis enters a field declaration or instance
+   * initializer, because in those cases analysis is proceeding on behalf of a
+   * particular constructor, and we want to use the receiver node from that
+   * constructor. (This works because analysis <em>does not</em> proceed
+   * inside of nested classes.)
+   */
+  private IRNode ctxtTheReceiverNode = null;
+
+  /**
+   * When the initializers of an anonymous class expression are being 
+   * analyzed, this reference is non-<code>null</code> and points to the 
+   * object that manages the relevant immediately enclosing instance references
+   * to be used when back-mapping the lock references from the body of the
+   * anonymous class expression to the context in which the anonymous class
+   * expression appears.
+   */
+  private MethodCallUtils.EnclosingRefs ctxtEnclosingRefs = null;
+
+  /**
+   * True if the body of an anonymous class expression is being recursively
+   * visited.
+   */
+  private boolean ctxtInsideAnonClassExpr = false;
+
   /**
    * Cache used by {@link #isSafeType} to store the result. Avoids having to
    * repeatedly climb the type hierarchy.
@@ -477,85 +552,6 @@ implements IBinderClient {
    * constructors.
    */
   private final InstanceInitVisitor<Void> initHelper;
-
-  /**
-   * This is <code>true</code> if visiting on behalf of a constructor, but not
-   * inside the constructor body itself. That is, we are inside a field
-   * declaration or instance initializer block and have gotten there via the
-   * initialization helper.
-   */
-  private boolean ctxtOnBehalfOfConstructor = false;
-
-  /**
-   * If non-<code>null</code> this refers to the constructor that is
-   * currently being analyzed. This is needed so that analysis of field
-   * declarations and instance initializers can properly report back on whose
-   * behalf they are being analyzed.
-   * 
-   * <p>
-   * It is intended that this field is testing against to determine if analysis
-   * is proceeding on behalf of a constructor.
-   */
-  private IRNode ctxtInsideConstructor = null;
-
-  /**
-   * If {@link #ctxtInsideConstructor} is non-<code>null</code> then this
-   * refers to a one-element array whose single element is the name of the
-   * constructor. This is used as a parameter to
-   * {@link MessageFormat#format(java.lang.String, java.lang.Object[])}. We
-   * create it once because it is silly to repeatedly recompute it for each
-   * assurance result.
-   * 
-   * @see #ctxtInsideConstructor
-   */
-  private Object[] ctxtConstructorName = null;
-
-  /**
-   * When analyzing the body of a constructor (including any initialization
-   * blocks or field initializers), this value is non- {@value null} and indicates
-   * whether the current constructor was found to be singl-threaded or not.
-   * Otherwise this value is {@value null}.
-   */
-  private Boolean ctxtConstructorIsSingleThreaded = null;
-  
-  /**
-   * The receiver declaration node of the constructor/method/field
-   * initializer/class initializer currently being analyzed. Every expression we
-   * want to analyze should be inside one of these things. We need to keep track
-   * of this because the {@link #initHelper instance initialization helper}
-   * re-enters this analysis on behalf of constructor declarations, and we want
-   * any field declarations and instance initializers to report their receivers
-   * in terms of the current constructor; this makes life easier for consumers
-   * of the effect results.
-   * 
-   * <p>
-   * This field is updated whenever analysis enters a method declaration,
-   * constructor declaration, or <em>static</em> initializer. It is
-   * <em>not</em> updated when analysis enters a field declaration or instance
-   * initializer, because in those cases analysis is proceeding on behalf of a
-   * particular constructor, and we want to use the receiver node from that
-   * constructor. (This works because analysis <em>does not</em> proceed
-   * inside of nested classes.)
-   */
-  private IRNode ctxtTheReceiverNode = null;
-
-  /**
-   * When the initializers of an anonymous class expression are being 
-   * analyzed, this reference is non-<code>null</code> and points to the 
-   * object that manages the relevant immediately enclosing instance references
-   * to be used when back-mapping the lock references from the body of the
-   * anonymous class expression to the context in which the anonymous class
-   * expression appears.
-   */
-  private MethodCallUtils.EnclosingRefs ctxtEnclosingRefs = null;
-  
-  /**
-   * True if the body of an anonymous class expression is being recursively
-   * visited.
-   */
-  private boolean ctxtInsideAnonClassExpr = false;
-  
-  // ----------------------------------------------------------------------
 
   /**
    * Record that is pushed onto the
@@ -1069,59 +1065,17 @@ implements IBinderClient {
   }
 
   private Set<HeldLock> convertLockExpr(
-      final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src) {
+      final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src,
+      final IRNode constructorContext) {
     final IRNode sync = SynchronizedStatement.prototype
         .includes(JJNode.tree.getOperator(src)) ? src : null;
-    if (lockUtils.isFinalExpression(lockExpr, sync)) {
+    if (lockUtils.isFinalExpression(lockExpr, sync, constructorContext)) {
       final Set<HeldLock> result = new HashSet<HeldLock>();
       lockUtils.convertIntrinsicLockExpr(lockExpr, enclosingDecl, src, result);
       return result;
     }
     return Collections.emptySet();
   }
-
-//  /**
-//   * Given a synchronized method, return the locks it acquires. 
-//   * 
-//   * @param mdecl
-//   *          The declaration node for the synchronized method. This method does
-//   *          <em>not</em> test whether the method is declared to be
-//   *          synchronized.  This method assumes it is being called from a context
-//   *          in which the body of mdecl is being analyzed, and thus the 
-//   *          field {@link #ctxtTheReceiverNode} refers to the canonical receiver
-//   *          for this method.
-//   * @param cdecl
-//   *          The class declaration node for the class in which it is declared.
-//   * @param lockStack
-//   *          A linked list of locks that that is modified as a result of this
-//   *          method. The locks corresponding to the synchronization are added
-//   *          to the front of the list.
-//   */
-//  private void convertSynchronizedMethod(
-//      final IRNode mdecl, final IJavaDeclaredType clazz,
-//      final IRNode cdecl, final LockStackFrame stackFrame) {
-//    // is the method static?
-//    if (TypeUtil.isStatic(mdecl)) {
-//      // Look up the class definition (which is used to represent the class
-//      // lock)
-//      final Set<AbstractLockRecord> records =
-//        sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(clazz, cdecl);
-//      for (final AbstractLockRecord lr : records) {
-//        // Synchronized methods use intrinsic locks, so they are always write locks
-//        stackFrame.push(
-//            heldLockFactory.createStaticLock(lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
-//      }
-//    } else {
-//      // is the receiver a known lock?
-//      final Set<AbstractLockRecord> records =
-//        sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(clazz, GlobalLockModel.THIS);
-//      for (final AbstractLockRecord lr : records) {
-//        // Synchronized methods use intrinsic locks, so they are always write locks
-//        stackFrame.push(
-//            heldLockFactory.createInstanceLock(ctxtTheReceiverNode, lr.lockDecl, mdecl, null, false, Type.MONOTLITHIC));
-//      }
-//    }
-//  }
 
   /**
    * Get the locks held by a static initializer block. These are all the
@@ -1928,35 +1882,6 @@ implements IBinderClient {
           }          
         }
       }
-      
-///*** old ***/      
-//      // Deal with "single threaded" constructors
-//      if (LockRules.isSingleThreaded(cdecl)) {
-//        final SingleThreadedPromiseDrop stDrop = LockRules.getSingleThreadedDrop(cdecl);
-//        if (stDrop == null) {
-//          LOG.severe("NULL SingleThreaded drop in visitConstructorDeclaration");
-//        }
-//
-//        if (isSingleThreaded) {
-//          final ResultDrop r = makeResultDrop(cdecl, stDrop, true,
-//              DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG);
-//          if (isUniqueReturn) {
-//            r.addTrustedPromise_or("by unique return", uDrop);
-//          }
-//          if (isBorrowedThis) {
-//            r.addTrustedPromise_or("by borrowed receiver", bDrop);
-//          }
-//          if (isEffects) {
-//            // Note: "by effects" has to be the same string to "and" the "or"
-//            r.addTrustedPromise_or("by effects", eDrop);
-//            r.addTrustedPromise_or("by effects", teDrop);
-//          }
-//        } else {
-//          makeResultDrop(cdecl, stDrop, false,
-//              DS_SYNCHRONIZED_CONSTRUCTOR_NOT_ASSURED_MSG);
-//        }
-//      } // end of single-threaded issues
-///*** end of old ***/      
 
       // Add locks from lock preconditions to the lock context
       final LockStackFrame reqFrame = ctxtTheHeldLocks.pushNewFrame();
@@ -2003,8 +1928,6 @@ implements IBinderClient {
     this.ctxtIsLHS = false;
     
     dereferencesSafeObject(fieldRef);
-//    assureRegionRef(
-//        fieldRef, lockUtils.getLockForFieldRef(fieldRef, isWrite));
     
     // Only non-final fields need to be protected
     final IRNode id = binder.getBinding(fieldRef);
@@ -2059,7 +1982,7 @@ implements IBinderClient {
       makeWarningDrop(DSC_NOT_A_LOCK_METHOD, expr, DS_MASQUERADING_CALL, DebugUnparser.toString(expr));
     } else if (lockMethod != LockMethods.NOT_A_LOCK_METHOD) {
       final IRNode object = call.get_Object(expr);
-      if (lockUtils.isFinalExpression(object, null) ) {
+      if (lockUtils.isFinalExpression(object, null, ctxtInsideConstructor) ) {
         final Set<HeldLock> lockSet = new HashSet<HeldLock>();
         lockUtils.convertJUCLockExpr(object, getEnclosingMethod(expr), null, lockSet);
         if (lockSet.isEmpty()) {
@@ -2311,8 +2234,11 @@ implements IBinderClient {
       /* XXX: This is not entirely correct for ReadWriteLocks, although it
        * works.  
        */
-      // ctxtInsideMethod must be non-null because "return" can only be inside of a method
-      for (HeldLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt)) {
+      /* ctxtInsideMethod must be non-null because "return" can only be inside
+       * of a method.  Furthormore, we can pass null to as the constructor
+       * context to convertLockExpr(), because we must be inside a method.
+       */
+      for (HeldLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt, null)) {
         correct |= ctxtReturnedLock.mustAlias(lock, thisExprBinder, binder);
       }
 //      for (StackLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt)) {
@@ -2367,7 +2293,7 @@ implements IBinderClient {
         lockIsIdentifiable = false;
       } else { // possible intrinsic lock
         // Only decode the lock if it is a final expression
-        if (lockUtils.isFinalExpression(lockExpr, syncBlock)) {
+        if (lockUtils.isFinalExpression(lockExpr, syncBlock, ctxtInsideConstructor)) {
           // Push the acquired locks into the lock context
 //          convertLockExpr(lockExpr, getEnclosingMethod(lockExpr), syncBlock, syncFrame);
           final Set<HeldLock> heldLocks = new HashSet<HeldLock>();

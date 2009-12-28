@@ -23,17 +23,21 @@ public class EqPredicate extends Predicate {
   private final EffectsVisitor effectsVisitor;
   private final boolean equal;
   private final IRNode expr1, expr2;
+  private final IRNode constructorContext;
   
-  public EqPredicate(IBinder b, EffectsVisitor ev, boolean eq, IRNode e1, IRNode e2) {
+  public EqPredicate(
+      IBinder b, EffectsVisitor ev, boolean eq, IRNode e1, IRNode e2,
+      final IRNode cc) {
     binder = b;
     effectsVisitor = ev;
     equal = eq;
     expr1 = e1;
     expr2 = e2;
+    constructorContext = cc;
   }
   public static Predicate create(IBinder b, EffectsVisitor ev, boolean eq,
-				 IRNode e1, IRNode e2) {
-    return cache(new EqPredicate(b,ev,eq,e1,e2));
+				 IRNode e1, IRNode e2, final IRNode cc) {
+    return cache(new EqPredicate(b,ev,eq,e1,e2, cc));
   }
 
   @Override
@@ -127,13 +131,13 @@ public class EqPredicate extends Predicate {
       if (equal || p.equal) {
         boolean andeq = equal & p.equal;
         if (compareExpressions(expr1,p.expr1) == 1)
-          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr2,p.expr2));
+          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr2,p.expr2,constructorContext));
         else if (compareExpressions(expr2,p.expr2) == 1)
-          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr1,p.expr1));
+          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr1,p.expr1,constructorContext));
         else if (compareExpressions(expr1,p.expr2) == 1)
-          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr2,p.expr1));
+          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr2,p.expr1,constructorContext));
         else if (compareExpressions(expr2,p.expr1) == 1)
-          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr1,p.expr2));
+          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr1,p.expr2,constructorContext));
       }
     }
     return EmptyIterator.prototype();
@@ -142,8 +146,8 @@ public class EqPredicate extends Predicate {
   @Override
   public Set<Effect> effects() {
     final Set<Effect> effects = new HashSet<Effect>();
-    effects.addAll( effectsVisitor.getEffects(expr1) );
-    effects.addAll( effectsVisitor.getEffects(expr2) );
+    effects.addAll( effectsVisitor.getEffects(expr1, constructorContext) );
+    effects.addAll( effectsVisitor.getEffects(expr2, constructorContext) );
     return Collections.unmodifiableSet( effects );
   }
 

@@ -83,6 +83,15 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
     return (V) getAnalysisResultsBefore(node);
   }
 
+  public static IRNode getFlowUnit(final IRNode node, final IRNode context) {
+    final IRNode flowUnit = getFlowUnit(node);
+    if (InitDeclaration.prototype.includes(flowUnit) && context != null) {
+      return context;
+    } else {
+      return flowUnit;
+    }
+  }
+
   /** return the FlowUnit node that includes this node's component. */
   public static IRNode getFlowUnit(IRNode n) {
     /* We have a problem: The ClassBodyDeclInterface test below triggers a
@@ -132,7 +141,6 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
     	    	  
         final IRNode classDecl = tree.getParent(tree.getParent(node));
         final Operator cdOp = tree.getOperator(classDecl);
-//        final boolean isClass = ClassDeclaration.prototype.includes(cdOp);
         final boolean isInterface = InterfaceDeclaration.prototype.includes(cdOp);
         if (JavaNode.getModifier(node, JavaNode.STATIC) || isInterface) {
           /* We found a static field/method in a class or an (implicitly) static field

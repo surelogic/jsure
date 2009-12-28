@@ -31,6 +31,7 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.InstanceInitVisitor;
+import edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -53,7 +54,6 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
-import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
@@ -71,6 +71,113 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 public final class EffectsVisitor extends VoidTreeWalkVisitor 
 implements IBinderClient {
+  /**
+   * Class stores the details about the particular visitation being performed.
+   * Initialized by one of the public entry methods:
+   * {@link #getEffects} {@link #getLHSEffects}, {@link #getMethodCallEffects},
+   * or {@link #getRawMethodCallEffects}.
+   */
+  private static final class Context {
+    /**
+     * The set of accumulated effects.  This field has a value only when a 
+     * traversal is being performed; otherwise it is <code>null</code>.
+     */
+    private final Set<Effect> theEffects;
+    
+    /**
+     * The receiver declaration node of the constructor/method/field
+     * initializer/class initializer currently being analyzed. Every expression we
+     * want to analyze should be inside one of these things. We need to keep track
+     * of this because the {@link #initHelper instance initialization  helper}
+     * re-enters this analysis on behalf of constructor declarations, and we want
+     * any field declarations and instance initializers to report their receivers
+     * in terms of the current constructor; this makes life easier for consumers
+     * of the effect results.
+     */
+    private final IRNode theReceiverNode;
+    
+    /**
+     * The method that encloses the current node.  This is either a
+     * ConstructorDeclaration, MethodDeclaration, ClassInitDeclaration, or
+     * in the case of an anonymous class expression, an InitDeclation.  In 
+     * most cases nodes that are part of an instance initializer block or 
+     * an instance field declaration are considered to be enclosed by a 
+     * particular constructor.  This constructor is specified by the
+     * <code>constructorContext</code> argument to the public entry methods
+     * of this class.
+     */
+    private final IRNode enclosingMethod;
+    
+    /**
+     * This field is checked on entry to an expression to determine if the effect
+     * should be a write effect. It is always immediately restored to
+     * <code>false</code> after being checked.
+     * 
+     * <p>
+     * The field represents whether the expression is the left-hand side of an
+     * assignment expression. Has the following relationship with the
+     * <code>read</code> parameter of
+     * {@link Effect#newEffect(IRNode, boolean, Target)}:
+     * <code>read == !isLHS</code> because if it's on the LHS it is being
+     * assigned to.
+     * 
+     * <p>
+     * This field is set by when visiting the parent of the lhs node. It is thus
+     * important that the parent node set this flag immediately before visiting the
+     * node that represents the left-hand side of the assignment expression.
+     */
+    private boolean isLHS;
+
+    
+    
+    /**
+     * Create a new context.
+     * 
+     * @param node
+     *          The node that is the root of the analysis.
+     * @param constructorContext
+     *          The constructor declaration that is controlling the analysis if
+     *          the node is part of an instance initializer block or field
+     *          initializer. Otherwise, this should be <code>null</code>.
+     */
+    private Context(final IRNode enclosingMethod) {
+      this.theEffects = new HashSet<Effect>();
+      this.isLHS = false;
+      this.enclosingMethod = enclosingMethod;
+      this.theReceiverNode = JavaPromise.getReceiverNodeOrNull(enclosingMethod);
+    }
+ 
+    public static Context getNormal(final IRNode node, final IRNode constructorContext) {
+      return new Context(IntraproceduralAnalysis.getFlowUnit(node, constructorContext));
+    }
+    
+    public static Context getForAnonClass(final IRNode anonClassInitMethod) {
+      return new Context(anonClassInitMethod);
+    }
+    
+    
+    
+    public void setLHS() {
+      isLHS = true;
+    }
+    
+    public boolean isRead() {
+      final boolean isRead = !this.isLHS;
+      this.isLHS = false;
+      return isRead;
+    }
+    
+    public void addEffect(final Effect effect) {
+      theEffects.add(effect);
+    }
+    
+    public void addEffects(final Set<Effect> effects) {
+      theEffects.addAll(effects);
+    }
+  }
+  
+  
+  
   private final RegionModel ARRAY_ELEMENT;
 
   /**
@@ -84,74 +191,17 @@ implements IBinderClient {
   private final BindingContextAnalysis bca;
   
   /**
-   * The set of accumulated effects.  This field has a value only when a 
-   * traversal is being performed; otherwise it is <code>null</code>.
-   */
-  private Set<Effect> theEffects = null;
-  
-  /**
-   * This field is checked on entry to an expression to determine if the effect
-   * should be a write effect. It is always immediately restored to
-   * <code>false</code> after being checked. This isn't the best way of doing
-   * things, but I think it is better than the way I used to do it in
-   * EffectsWalker.
-   * 
-   * <p>
-   * The field represents whether the expression is the left-hand side of an
-   * assignment expression. Has the following relationship with the
-   * <code>read</code> parameter of
-   * {@link Effect#newEffect(IRNode, boolean, Target)}:
-   * <code>read == !isLHS</code> because if it's on the LHS it is being
-   * assigned to.
-   * 
-   * <p>
-   * This field is set by when visiting the parent of the lhs node. It is thus
-   * important that the parent node set this flag immediately before visiting the
-   * node that represents the left-hand side of the assignment expression.
-   */
-  private boolean isLHS = false;
-  
-  /**
    * Helper traversal for capturing the effects of field declarations 
    * and instance initializers so that they are included in the effects
    * of constructors.
    */
-  private InstanceInitVisitor<Void> initHelper = null;
-  
-  /**
-   * The receiver declaration node of the constructor/method/field
-   * initializer/class initializer currently being analyzed. Every expression we
-   * want to analyze should be inside one of these things. We need to keep track
-   * of this because the {@link #initHelper instance initialization  helper}
-   * re-enters this analysis on behalf of constructor declarations, and we want
-   * any field declarations and instance initializers to report their receivers
-   * in terms of the current constructor; this makes life easier for consumers
-   * of the effect results.
-   */
-  private IRNode theReceiverNode;
-  
-  /**
-   * The enclosing method a la {@link PromiseUtil#getEnclosingMethod(IRNode)}.
-   * We keep this around to get QualifiedReceiverDeclaration nodes 
-   * in {@link #fixThisExpression(IRNode)}.  This works correctly for 
-   * field initializers and instance initializers because 
-   * <ul>
-   * <li>{@link #getEffects(IRNode)} Can only invoked on a node that inside
-   * a method or constructor body.
-   * <li>The instance initialization helper reenters this visitor and
-   * this field will therefore still be the constructor we are analyzing. 
-   * </ul>
-   * <p>Thus, qualified receivers used in the initializers will be 
-   * canonicalized appropriate to the constructor being analyzed.
-   */
-  private IRNode enclosingMethod;
-  
-  
+  private final InstanceInitVisitor<Void> initHelper;
   
   private final ThisExpressionBinder thisExprBinder;
+
   private final TargetFactory targetFactory;
   
-  
+  private Context context;
   
   //----------------------------------------------------------------------
   
@@ -164,9 +214,11 @@ implements IBinderClient {
   public EffectsVisitor(final IBinder b, final BindingContextAnalysis bca) {
     this.binder = b;
     this.bca = bca;
+    this.initHelper = new InstanceInitVisitor<Void>(this);
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     this.ARRAY_ELEMENT = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);    
+    this.context = null; // Set by one of the public entry methods
   }
   
   public void clearCaches() {
@@ -200,20 +252,13 @@ implements IBinderClient {
     public Set<Effect> run(IRNode node);
   }
 
-  private Set<Effect> setUpContextAndRun(final IRNode node, final Body body) {
+  private Set<Effect> setUpContextAndRun(
+      final IRNode node, final IRNode constructorContext, final Body body) {
+    context = Context.getNormal(node, constructorContext);
     try {
-      theEffects = new HashSet<Effect>();
-      enclosingMethod = PromiseUtil.getEnclosingMethod(node);
-      if (enclosingMethod != null) {
-        theReceiverNode = JavaPromise.getReceiverNodeOrNull(enclosingMethod);
-      } else {
-        theReceiverNode = null;
-      }
       return body.run(node);
     } finally {
-      theEffects = null;
-      enclosingMethod = null;
-      theReceiverNode = null;
+      context = null;
     }
   }
 
@@ -232,30 +277,12 @@ implements IBinderClient {
    *          of a ClassBodyDeclarationNode.
    * @return An unmodifiable set of effects.
    */
-  public Set<Effect> getEffects(final IRNode node) {
-    return setUpContextAndRun(node, new Body() {
+  public Set<Effect> getEffects(
+      final IRNode node, final IRNode constructorContext) {
+    return setUpContextAndRun(node, constructorContext, new Body() {
       public Set<Effect> run(final IRNode node) {
         doAccept(node);
-        final Set<Effect> returnValue = Collections.unmodifiableSet(theEffects);
-        return returnValue;
-      }
-    });
-  }
-
-  /**
-   * Clients should call this method to get the effects of an expression that
-   * appears on the LHS of an assignment.
-   * 
-   * @param node
-   *          The root node of the expression whose effects should be obtained.
-   * @return An unmodifiable set of effects.
-   */
-  public Set<Effect> getLHSEffects(final IRNode node) {
-    return setUpContextAndRun(node, new Body() {
-      public Set<Effect> run(final IRNode node) {
-        getLvalueEffects(node);
-        final Set<Effect> returnValue = Collections.unmodifiableSet(theEffects);
-        return returnValue;
+        return Collections.unmodifiableSet(context.theEffects);
       }
     });
   }
@@ -264,10 +291,11 @@ implements IBinderClient {
    * Clients should call this method to get the effects of executing
    * a specific method/constructor call.
    */
-  public Set<Effect> getMethodCallEffects(final IRNode call) {
-    return setUpContextAndRun(call, new Body() {
+  public Set<Effect> getMethodCallEffects(
+      final IRNode call, final IRNode constructorContext) {
+    return setUpContextAndRun(call, constructorContext, new Body() {
       public Set<Effect> run(final IRNode call) {
-        return getMethodCallEffectsInternal(call, enclosingMethod);
+        return getMethodCallEffectsInternal(call, context.enclosingMethod);
       }
     });
   }
@@ -276,10 +304,11 @@ implements IBinderClient {
    * Clients should call this method to get the raw effects of executing
    * a specific method/constructor call.
    */
-  public Set<Effect> getRawMethodCallEffects(final IRNode call) {
-    return setUpContextAndRun(call, new Body() {
+  public Set<Effect> getRawMethodCallEffects(
+      final IRNode call, final IRNode constructorContext) {
+    return setUpContextAndRun(call, constructorContext, new Body() {
       public Set<Effect> run(final IRNode call) {
-        return getRawMethodCallEffectsInternal(call, enclosingMethod);
+        return getRawMethodCallEffectsInternal(call, context.enclosingMethod);
       }
     });
   }
@@ -304,12 +333,12 @@ implements IBinderClient {
 
     @Override
     protected IRNode bindReceiver(IRNode node) {
-      return theReceiverNode;
+      return context.theReceiverNode;
     }
     
     @Override
     protected IRNode bindQualifiedReceiver(IRNode outerType, IRNode node) {
-      return JavaPromise.getQualifiedReceiverNodeByName(enclosingMethod, outerType);
+      return JavaPromise.getQualifiedReceiverNodeByName(context.enclosingMethod, outerType);
     }    
   }
   
@@ -323,29 +352,6 @@ implements IBinderClient {
 
   private Operator getOperator(final IRNode node) {
     return JJNode.tree.getOperator(node);
-  }
-  
-  /**
-   * Get the effects of an expression as if it were on the left hand side 
-   * of an assignment.
-   * 
-   * @param lvalue
-   *          The node representing the lhs of the assignment expression
-   * @exception IllegalArgumentException
-   *              Thrown if <code>lvalue</code> is not an ArrayRefExpression,
-   *              FieldRef, or VariableUseExpression
-   */
-  private void getLvalueEffects(final IRNode lvalue) {
-    final Operator op = getOperator(lvalue);
-    if (ArrayRefExpression.prototype.includes(op)
-        || FieldRef.prototype.includes(op)
-        || VariableUseExpression.prototype.includes(op)) {
-      this.isLHS = true;
-      this.doAccept(lvalue);
-    } else {
-      throw new IllegalArgumentException("Operator " + op.name()
-          + " appears on the lhs of an assignment");
-    }
   }
 
   /**
@@ -544,7 +550,8 @@ implements IBinderClient {
 
   private Set<Effect> getMethodCallEffectsInternal(
       final IRNode call, final IRNode callingMethodDecl) {
-    return getMethodCallEffects(bca, targetFactory, binder, call, callingMethodDecl);
+    return getMethodCallEffects(
+        bca, targetFactory, binder, call, callingMethodDecl);
   }
 
   
@@ -718,8 +725,7 @@ implements IBinderClient {
     // Get the effects of the evaluating the arguments
     doAccept(AnonClassExpression.getArgs(expr));
     // Get the effects of the super-class constructor
-    theEffects.addAll(
-        getMethodCallEffectsInternal(expr, enclosingMethod));
+    context.addEffects(getMethodCallEffectsInternal(expr, context.enclosingMethod));
 
     /* Need to get the effects of the instance field initializers and the
      * instance initializers of the anonymous class. Effects will come back
@@ -730,35 +736,26 @@ implements IBinderClient {
      */
 
     final IRNode anonClassInitMethod = JavaPromise.getInitMethodOrNull(expr);
-    final IRNode anonClassReceiver = JavaPromise.getReceiverNodeOrNull(anonClassInitMethod);
     
-    /* Get the effects of initialization.  First we have to make "theRecieverNode"
-     * refer to the receiver of the anonymous class, and not that of the current
+    /* Get the effects of initialization.  Reset the context to the anonymous
      * class.
      */
-    final IRNode oldReceiver = theReceiverNode;
-    final IRNode oldEnclosingMethod = enclosingMethod;
-    final Set<Effect> oldEffects = theEffects;
-    final Set<Effect> initEffects;
+    final Context oldContext = context;
+    final Context newContext = Context.getForAnonClass(anonClassInitMethod);
+    context = newContext;
     try {
-      enclosingMethod = anonClassInitMethod;
-      theReceiverNode = anonClassReceiver;
-      theEffects = new HashSet<Effect>();
       final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
       initVisitor.doAccept(AnonClassExpression.getBody(expr));
-      initEffects = theEffects;
     } finally {
-      enclosingMethod = oldEnclosingMethod;
-      theReceiverNode = oldReceiver;
-      theEffects = oldEffects;
+      context = oldContext;
     }
     
     final MethodCallUtils.EnclosingRefs enclosing = 
       MethodCallUtils.getEnclosingInstanceReferences(
-          binder, thisExprBinder, expr, theReceiverNode, enclosingMethod);
-    for (final Effect initEffect : initEffects) {
+          binder, thisExprBinder, expr, oldContext.theReceiverNode, oldContext.enclosingMethod);
+    for (final Effect initEffect : newContext.theEffects) {
       if (!(initEffect.isMaskable(binder) || 
-          initEffect.affectsReceiver(anonClassReceiver))) {
+          initEffect.affectsReceiver(newContext.theReceiverNode))) {
         final Target target = initEffect.getTarget();
         if (target instanceof InstanceTarget) {
           final IRNode ref = target.getReference();
@@ -775,9 +772,9 @@ implements IBinderClient {
           }
           elaborateInstanceTargetEffects(
               bca, targetFactory, binder, expr, initEffect.isReadEffect(),
-              newTarget, theEffects);
+              newTarget, context.theEffects);
         } else {
-          theEffects.add(initEffect.setSource(expr));
+          context.addEffect(initEffect.setSource(expr));
         }
       }
     }
@@ -791,11 +788,10 @@ implements IBinderClient {
   @Override
   public Void visitArrayRefExpression(final IRNode expr) {
     final IRNode array = ArrayRefExpression.getArray(expr);
-    final boolean isRead = !this.isLHS;
-    this.isLHS = false;
+    final boolean isRead = context.isRead();
     elaborateInstanceTargetEffects(
         bca, targetFactory, binder, expr, isRead,
-        targetFactory.createInstanceTarget(array, ARRAY_ELEMENT), theEffects);
+        targetFactory.createInstanceTarget(array, ARRAY_ELEMENT), context.theEffects);
     doAcceptForChildren(expr);
     return null;
   }
@@ -804,7 +800,7 @@ implements IBinderClient {
 
   @Override
   public Void visitAssignExpression(final IRNode expr) {
-    this.isLHS = true;
+    context.setLHS();
     this.doAccept(AssignExpression.getOp1(expr));
     this.doAccept(AssignExpression.getOp2(expr));
     return null;
@@ -822,8 +818,8 @@ implements IBinderClient {
 
   @Override
   public Void visitConstructorCall(final IRNode expr) {
-    if (initHelper != null) initHelper.doVisitInstanceInits(expr);
-    theEffects.addAll(getMethodCallEffectsInternal(expr, enclosingMethod));
+    initHelper.doVisitInstanceInits(expr);
+    context.addEffects(getMethodCallEffectsInternal(expr, context.enclosingMethod));
     doAcceptForChildren(expr);
     return null;
   }
@@ -832,16 +828,10 @@ implements IBinderClient {
 
   @Override
   public Void visitConstructorDeclaration(final IRNode expr) {
-    final InstanceInitVisitor<Void> saveInitHelper = initHelper;
-    try {
-      initHelper = new InstanceInitVisitor<Void>(this);
-      // Get the effects from field declarations and initializers
-      initHelper.doVisitInstanceInits(expr);
-      // Get the rest of the effects
-      doAcceptForChildren(expr);
-    } finally {
-      initHelper = saveInitHelper;
-    }
+    // Get the effects from field declarations and initializers
+    initHelper.doVisitInstanceInits(expr);
+    // Get the rest of the effects
+    doAcceptForChildren(expr);
     return null;
   }
   
@@ -857,19 +847,18 @@ implements IBinderClient {
 
   @Override
   public Void visitFieldRef(final IRNode expr) {
-    final boolean isRead = !this.isLHS;
-    this.isLHS = false;
-    
+    final boolean isRead = context.isRead();    
     final IRNode id = binder.getBinding(expr);
     if (!TypeUtil.isFinal(id)) {
       if (TypeUtil.isStatic(id)) {
-        theEffects.add(Effect.newEffect(expr, isRead, targetFactory.createClassTarget(id)));
+        context.addEffect(
+            Effect.newEffect(expr, isRead, targetFactory.createClassTarget(id)));
       } else {
         final IRNode obj = FieldRef.getObject(expr);
         final Target initTarget = 
           targetFactory.createInstanceTarget(obj, RegionModel.getInstance(id));
         elaborateInstanceTargetEffects(
-            bca, targetFactory, binder, expr, isRead, initTarget, theEffects);
+            bca, targetFactory, binder, expr, isRead, initTarget, context.theEffects);
       }
     }
     doAcceptForChildren(expr);
@@ -888,7 +877,7 @@ implements IBinderClient {
 
   @Override 
   public Void visitMethodCall(final IRNode expr) {
-    theEffects.addAll(getMethodCallEffectsInternal(expr, enclosingMethod));
+    context.addEffects(getMethodCallEffectsInternal(expr, context.enclosingMethod));
     doAcceptForChildren(expr);
     return null;
   }
@@ -897,7 +886,7 @@ implements IBinderClient {
 
   @Override
   public Void visitNewExpression(final IRNode expr) {
-    theEffects.addAll(getMethodCallEffectsInternal(expr, enclosingMethod));
+    context.addEffects(getMethodCallEffectsInternal(expr, context.enclosingMethod));
     doAcceptForChildren(expr);
     return null;
   }
@@ -906,7 +895,7 @@ implements IBinderClient {
 
   @Override
   public Void visitOpAssignExpression(final IRNode expr) {
-    this.isLHS = true;
+    context.setLHS();
     this.doAccept(OpAssignExpression.getOp1(expr));
     this.doAccept(OpAssignExpression.getOp2(expr));
     return null;
@@ -916,7 +905,7 @@ implements IBinderClient {
 
   @Override
   public Void visitPostDecrementExpression(final IRNode expr) {
-    this.isLHS = true;
+    context.setLHS();
     this.doAccept(PostDecrementExpression.getOp(expr));
     return null;
   }
@@ -925,7 +914,7 @@ implements IBinderClient {
 
   @Override
   public Void visitPostIncrementExpression(final IRNode expr) {
-    this.isLHS = true;
+    context.setLHS();
     this.doAccept(PostIncrementExpression.getOp(expr));
     return null;
   }
@@ -934,7 +923,7 @@ implements IBinderClient {
 
   @Override
   public Void visitPreDecrementExpression(final IRNode expr) {
-    this.isLHS = true;
+    context.setLHS();
     this.doAccept(PreDecrementExpression.getOp(expr));
     return null;
   }
@@ -943,7 +932,7 @@ implements IBinderClient {
 
   @Override
   public Void visitPreIncrementExpression(final IRNode expr) {
-    this.isLHS = true;
+    context.setLHS();
     this.doAccept(PreIncrementExpression.getOp(expr));
     return null;
   }
@@ -955,8 +944,9 @@ implements IBinderClient {
     // Here we are directly fixing the ThisExpression to be the receiver node
     final IRNode outerType =
       binder.getBinding(QualifiedThisExpression.getType(expr));
-    theEffects.add(Effect.newRead(expr, targetFactory.createLocalTarget(
-        JavaPromise.getQualifiedReceiverNodeByName(enclosingMethod, outerType))));
+    context.addEffect(
+        Effect.newRead(expr, targetFactory.createLocalTarget(
+            JavaPromise.getQualifiedReceiverNodeByName(context.enclosingMethod, outerType))));
     return null;
   }
 
@@ -965,7 +955,7 @@ implements IBinderClient {
   @Override 
   public Void visitSuperExpression(final IRNode expr) {
     // Here we are directly fixing the ThisExpression to be the receiver node
-    theEffects.add(Effect.newRead(expr, targetFactory.createLocalTarget(theReceiverNode)));
+    context.addEffect(Effect.newRead(expr, targetFactory.createLocalTarget(context.theReceiverNode)));
     return null;
   }
 
@@ -974,7 +964,7 @@ implements IBinderClient {
   @Override 
   public Void visitThisExpression(final IRNode expr) {
     // Here we are directly fixing the ThisExpression to be the receiver node
-    theEffects.add(Effect.newRead(expr, targetFactory.createLocalTarget(theReceiverNode)));
+    context.addEffect(Effect.newRead(expr, targetFactory.createLocalTarget(context.theReceiverNode)));
     return null;
   }
   
@@ -990,11 +980,9 @@ implements IBinderClient {
 
   @Override
   public Void visitVariableUseExpression(final IRNode expr) {
-    final boolean isRead = !this.isLHS;
-    this.isLHS = false;
-    
+    final boolean isRead = context.isRead();
     final IRNode id = getBinding(expr);
-    theEffects.add(Effect.newEffect(expr, isRead, targetFactory.createLocalTarget(id)));
+    context.addEffect(Effect.newEffect(expr, isRead, targetFactory.createLocalTarget(id)));
     return null;
   }
 
@@ -1010,15 +998,15 @@ implements IBinderClient {
           /* LOCAL VARIABLE: 'expr' is already the declaration of the variable,
            * so we don't have to bind it.
            */
-          theEffects.add(Effect.newWrite(expr, targetFactory.createLocalTarget(expr)));
+          context.addEffect(Effect.newWrite(expr, targetFactory.createLocalTarget(expr)));
         } else { // FieldDeclaration
           if (TypeUtil.isStatic(expr)) {
-            theEffects.add(Effect.newWrite(expr, targetFactory.createClassTarget(expr)));
+            context.addEffect(Effect.newWrite(expr, targetFactory.createClassTarget(expr)));
           } else {
-            theEffects.add(Effect.newRead(expr, targetFactory.createLocalTarget(theReceiverNode)));
+            context.addEffect(Effect.newRead(expr, targetFactory.createLocalTarget(context.theReceiverNode)));
             // This never needs elaborating because it is not a use expression or a field reference expression
-            final Target t = targetFactory.createInstanceTarget(theReceiverNode, RegionModel.getInstance(expr));
-            theEffects.add(Effect.newWrite(expr, t));
+            final Target t = targetFactory.createInstanceTarget(context.theReceiverNode, RegionModel.getInstance(expr));
+            context.addEffect(Effect.newWrite(expr, t));
           }
         }
       }

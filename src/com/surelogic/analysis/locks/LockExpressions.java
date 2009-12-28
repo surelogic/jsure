@@ -4,20 +4,12 @@ package com.surelogic.analysis.locks;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.surelogic.analysis.effects.Effect;
-import com.surelogic.analysis.effects.EffectsVisitor;
-import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
-import com.surelogic.annotation.rules.LockRules;
-import com.surelogic.annotation.rules.MethodEffectsRules;
-import com.surelogic.annotation.rules.ThreadEffectsRules;
-import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -222,6 +214,7 @@ final class LockExpressions {
     // Set as a side-effect of visitConstructorDeclaration
     private SingleThreadedData singleThreadedData = null;
     
+    private IRNode constructorContext = null;
     
     public LockExpressionVisitor(final LockUtils lu, final HeldLockFactory hlf) {
       super();
@@ -285,8 +278,13 @@ final class LockExpressions {
       }
       
       // Analyze the initialization of the instance
-      final InitializationVisitor helper = new InitializationVisitor(false);
-      helper.doAcceptForChildren(JJNode.tree.getParent(cdecl));
+      constructorContext = cdecl;
+      try {
+        final InitializationVisitor helper = new InitializationVisitor(false);
+        helper.doAcceptForChildren(JJNode.tree.getParent(cdecl));
+      } finally {
+        constructorContext = null;
+      }
       // Analyze the body of the constructor
       doAcceptForChildren(cdecl);
       return null;
@@ -399,7 +397,7 @@ final class LockExpressions {
     
     private Set<HeldLock> processLockExpression(final HowToProcessLocks howTo,
         final IRNode lockExpr, final IRNode syncBlock) {
-      if (lockUtils.isFinalExpression(lockExpr, syncBlock)) {
+      if (lockUtils.isFinalExpression(lockExpr, syncBlock, constructorContext)) {
         // Get the locks for the lock expression
         final Set<HeldLock> lockSet = new HashSet<HeldLock>();
         lockUtils.convertLockExpr(
