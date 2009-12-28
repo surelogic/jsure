@@ -88,7 +88,6 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.UniqueID;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
 /**
@@ -794,8 +793,7 @@ implements IBinderClient {
    */
   public LockVisitor(final IBinder b, final EffectsVisitor effectsVisitor,
       final IAliasAnalysis aliasAnalysis, final BindingContextAnalysis bca,
-      final AtomicReference<GlobalLockModel> glmRef)
-      throws SlotAlreadyRegisteredException {
+      final AtomicReference<GlobalLockModel> glmRef) {
     binder = b;
     bindingContextAnalysis = bca;
     sysLockModelHandle = glmRef;
@@ -813,8 +811,7 @@ implements IBinderClient {
     jucLockUsageManager = new JUCLockUsageManager(lockUtils, heldLockFactory);
     
     // Create the subsidiary flow analyses
-    UniqueID uid = new UniqueID();
-    nonNullAnalylsis = new SimpleNonnullAnalysis("Non Null Analysis for "+this+" "+uid, binder);
+    nonNullAnalylsis = new SimpleNonnullAnalysis(binder);
 //    intrinsicLock = new IntrinsicLockAnalysis(b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     mustRelease = new MustReleaseAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
     mustHold = new MustHoldAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
@@ -830,7 +827,7 @@ implements IBinderClient {
     lockUtils.clear();
     bindingContextAnalysis.clear();
     mustRelease.clear();
-    mustHold.cleanup();
+    mustHold.clear();
     nonNullAnalylsis.clear();
     jucLockUsageManager.clear();
     initHelper.clear();

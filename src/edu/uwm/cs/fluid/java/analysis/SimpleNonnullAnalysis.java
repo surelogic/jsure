@@ -4,13 +4,9 @@ package edu.uwm.cs.fluid.java.analysis;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
-import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
@@ -43,13 +39,9 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
  * @author boyland
  */
 public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
-  private static final Logger LOG = SLLogger.getLogger();
-	
-  public SimpleNonnullAnalysis(String name, IBinder b) throws SlotAlreadyRegisteredException {
-    super(name, null, b);
-  }
+//  private static final Logger LOG = SLLogger.getLogger();
 
-  protected SimpleNonnullAnalysis(IBinder b) {
+  public SimpleNonnullAnalysis(IBinder b) {
     super(b);
   }
 

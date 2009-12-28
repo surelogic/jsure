@@ -254,11 +254,6 @@ implements IBinderClient {
     }
   }
 
-  @Override
-  public Boolean getSlotValue(IRNode node) {
-    return isUnique(node) ? Boolean.TRUE : Boolean.FALSE;
-  }
-
   /**
 	 * Create a flow analysis to check unique references. We gather together all
 	 * the locals (including parameters) and create a store. Fortunately most of

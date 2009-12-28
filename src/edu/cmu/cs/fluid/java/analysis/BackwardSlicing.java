@@ -11,8 +11,6 @@ import edu.cmu.cs.fluid.control.FlowAnalysis;
 import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.control.UnknownLabel;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.IRType;
-import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FlowUnit;
@@ -33,18 +31,7 @@ public class BackwardSlicing<V> extends IntraproceduralAnalysis<PairLattice.Type
 		super(b);
 		// TODO Auto-generated constructor stub
 	}
-	/**
-	 * @param name
-	 * @param type
-	 * @param b
-	 * @throws SlotAlreadyRegisteredException
-	 */
-	public BackwardSlicing(String name, IRType<V> type, IBinder b)
-			throws SlotAlreadyRegisteredException 
-	{
-		super(name, type, b);
-		// TODO Auto-generated constructor stub
-	}
+
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis#createAnalysis(edu.cmu.cs.fluid.ir.IRNode)
 	 */

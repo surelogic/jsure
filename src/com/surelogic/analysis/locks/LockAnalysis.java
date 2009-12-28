@@ -3,7 +3,6 @@ package com.surelogic.analysis.locks;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.analysis.*;
@@ -82,16 +81,9 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 	
 	@Override
 	protected LockVisitor constructIRAnalysis(IBinder binder) {		
-		try {
-			final BindingContextAnalysis bca = new BindingContextAnalysis(binder);
-			return new LockVisitor(binder, 
-					                      new EffectsVisitor(binder, bca), 
-					                      new TypeBasedAliasAnalysis(binder),
-					                      bca, lockModelHandle);
-		} catch (SlotAlreadyRegisteredException e) {
-			LOG.log(Level.SEVERE, "Couldn't create lock visitor!", e);
-			return null;
-		}
+	  final BindingContextAnalysis bca = new BindingContextAnalysis(binder);
+    return new LockVisitor(binder, new EffectsVisitor(binder, bca),
+        new TypeBasedAliasAnalysis(binder), bca, lockModelHandle);
 	}
 	
 	@Override

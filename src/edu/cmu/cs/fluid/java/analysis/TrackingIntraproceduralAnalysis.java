@@ -3,9 +3,7 @@
  */
 package edu.cmu.cs.fluid.java.analysis;
 
-import edu.cmu.cs.fluid.ir.IRType;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.control.ControlEdge;
@@ -42,18 +40,6 @@ public abstract class TrackingIntraproceduralAnalysis<T,V> extends Intraprocedur
 		latest = null;
 		userSet = null;
     }
-
-	/**
-	 * @param name
-	 * @param type
-	 * @param b
-	 * @throws SlotAlreadyRegisteredException
-	 */
-	public TrackingIntraproceduralAnalysis(String name, IRType<V> type, IBinder b)
-		throws SlotAlreadyRegisteredException {
-		super(name, type, b);
-		latest = null;
-	}
 
 	public ControlEdge getLatestEdge(){
 		return latest;

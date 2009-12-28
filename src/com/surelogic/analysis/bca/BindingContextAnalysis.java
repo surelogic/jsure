@@ -118,11 +118,6 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
     BindingContext bc = (BindingContext) super.getAnalysisResultsAfter(expr);
     return bc.expressionObjects(expr);
   }
-
-  @Override
-  public ImmutableHashOrderSet<IRNode> getSlotValue(IRNode node) {
-    return expressionObjects(node);
-  }
 }
 
 class BindingContextTransfer extends JavaForwardTransfer<IRNode,ImmutableHashOrderSet<IRNode>> {

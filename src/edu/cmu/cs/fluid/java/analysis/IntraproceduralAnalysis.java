@@ -32,7 +32,7 @@ import edu.cmu.cs.fluid.version.Version;
  * SlotInfo interface and also caches recent analyses (which are kept in an LRU
  * queue).
  */
-public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
+public abstract class IntraproceduralAnalysis<T,V> {
   /** Logger instance for debugging. */
   protected static final Logger LOG = SLLogger.getLogger("FLUID.analysis.flow");
 
@@ -52,37 +52,8 @@ public abstract class IntraproceduralAnalysis<T,V> extends DerivedSlotInfo<V> {
     binder = b;
   }
 
-  /**
-	 * Allocate a register a new analysis by name.
-	 * 
-	 * @param name
-	 *          The name under which to register the slots.
-	 * @exception SlotAlreadyRegisteredException
-	 *              If slots have already been registered under this name.
-	 *              @precondition nonNull(name)
-	 */
-  public IntraproceduralAnalysis(String name, IRType<V> type, IBinder b)
-    throws SlotAlreadyRegisteredException {
-    super(name, type);
-    binder = b;
-  }
-
-  @Override
-  protected boolean valueExists(IRNode n) {
-    // for now:
-    return true;
-  }
-
-  /**
-	 * Get the analysis results as a slot, This is a default implementation, it
-	 * may be redefined in subclasses.
-	 */
-  @Override
-  @SuppressWarnings("unchecked")
-  public V getSlotValue(IRNode node) {
-    return (V) getAnalysisResultsBefore(node);
-  }
-
+  
+  
   public static IRNode getFlowUnit(final IRNode node, final IRNode context) {
     final IRNode flowUnit = getFlowUnit(node);
     if (InitDeclaration.prototype.includes(flowUnit) && context != null) {

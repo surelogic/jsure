@@ -30,7 +30,7 @@ import edu.cmu.cs.fluid.version.Version;
  * queue).
  * This approach uses lattice poisoning and requires a postpass to find problems.
  */
-public abstract class IntraproceduralAnalysis<T> extends DerivedSlotInfo<T> {
+public abstract class IntraproceduralAnalysis<T> {
   /** Logger instance for debugging. */
   protected static final Logger LOG = SLLogger.getLogger("FLUID.analysis.flow");
 
@@ -50,36 +50,7 @@ public abstract class IntraproceduralAnalysis<T> extends DerivedSlotInfo<T> {
     binder = b;
   }
 
-  /**
-	 * Allocate a register a new analysis by name.
-	 * 
-	 * @param name
-	 *          The name under which to register the slots.
-	 * @exception SlotAlreadyRegisteredException
-	 *              If slots have already been registered under this name.
-	 *              @precondition nonNull(name)
-	 */
-  public IntraproceduralAnalysis(String name, IRType<T> type, IBinder b)
-    throws SlotAlreadyRegisteredException {
-    super(name, type);
-    binder = b;
-  }
-
-  @Override
-  protected boolean valueExists(IRNode n) {
-    // for now:
-    return true;
-  }
-
-  /**
-	 * Get the analysis results as a slot, This is a default implementation, it
-	 * may be redefined in subclasses.
-	 */
-  @Override
-  public T getSlotValue(IRNode node) {
-    return getAnalysisResultsBefore(node);
-  }
-
+  
 
   /**
 	 * Return the analysis results after a particular port of the component for
