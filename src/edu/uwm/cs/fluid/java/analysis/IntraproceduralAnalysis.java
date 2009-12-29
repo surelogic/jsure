@@ -25,8 +25,8 @@ import edu.uwm.cs.fluid.control.LabeledLattice.LabeledValue;
 import edu.cmu.cs.fluid.version.Version;
 
 /**
- * A general purpose framework for analysis of a single method. It provides a
- * SlotInfo interface and also caches recent analyses (which are kept in an LRU
+ * A general purpose framework for analysis of a single method. It
+ * caches recent analyses (which are kept in an LRU
  * queue).
  * This approach uses lattice poisoning and requires a postpass to find problems.
  */

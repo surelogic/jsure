@@ -28,9 +28,8 @@ import edu.cmu.cs.fluid.util.Lattice;
 import edu.cmu.cs.fluid.version.Version;
 
 /**
- * A general purpose framework for analysis of a single method. It provides a
- * SlotInfo interface and also caches recent analyses (which are kept in an LRU
- * queue).
+ * A general purpose framework for analysis of a single method. It 
+ * caches recent analyses (which are kept in an LRU queue).
  */
 public abstract class IntraproceduralAnalysis<T,V> {
   /** Logger instance for debugging. */
@@ -81,12 +80,12 @@ public abstract class IntraproceduralAnalysis<T,V> {
      * that happens we return the appropriate promise node for the single 
      * Class initializer method or instance initializer method.
      */
-	boolean skippedACE = false;
-	IRNode start = n;
-	if (AnonClassExpression.prototype.includes(n)) {
-		start = JJNode.tree.getParent(n);
-		skippedACE = true;
-	} 
+    boolean skippedACE = false;
+    IRNode start = n;
+    if (AnonClassExpression.prototype.includes(n)) {
+      start = JJNode.tree.getParent(n);
+      skippedACE = true;
+    }
 
     final Iterator<IRNode> e = tree.rootWalk(start);
     Operator lastOp = null;
@@ -96,26 +95,28 @@ public abstract class IntraproceduralAnalysis<T,V> {
       final Operator op = tree.getOperator(node);
       if (op instanceof FlowUnit)
         return node;
-      if (op instanceof ClassBodyDeclInterface) { 
-    	if (!skippedACE && AnonClassExpression.prototype.includes(op)) {
-    		// Check if we're part of the arguments to the ACE
-    		if (!NewExpression.prototype.includes(lastOp) || 
-    			!(last2Op == null || Arguments.prototype.includes(last2Op))) {
-    			LOG.warning("Trying to get flow unit from ACE's "+lastOp.name()+
-    					    ", "+last2Op.name());
-    		}
-    		skippedACE = true;
-    		last2Op = lastOp;
-    		lastOp = op;
-    		continue;
-    	}
-    	    	  
+      if (op instanceof ClassBodyDeclInterface) {
+        if (!skippedACE && AnonClassExpression.prototype.includes(op)) {
+          // Check if we're part of the arguments to the ACE
+          if (!NewExpression.prototype.includes(lastOp)
+              || !(last2Op == null || Arguments.prototype.includes(last2Op))) {
+            LOG.warning("Trying to get flow unit from ACE's " + lastOp.name()
+                + ", " + last2Op.name());
+          }
+          skippedACE = true;
+          last2Op = lastOp;
+          lastOp = op;
+          continue;
+        }
+
         final IRNode classDecl = tree.getParent(tree.getParent(node));
         final Operator cdOp = tree.getOperator(classDecl);
-        final boolean isInterface = InterfaceDeclaration.prototype.includes(cdOp);
+        final boolean isInterface =
+          InterfaceDeclaration.prototype.includes(cdOp);
         if (JavaNode.getModifier(node, JavaNode.STATIC) || isInterface) {
-          /* We found a static field/method in a class or an (implicitly) static field
-           * in an interface.
+          /*
+           * We found a static field/method in a class or an (implicitly) static
+           * field in an interface.
            */
           return ClassInitDeclaration.getClassInitMethod(classDecl);
         } else {
