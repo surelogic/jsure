@@ -1,18 +1,15 @@
 package com.surelogic.nonnull;
 
 import java.util.Set;
-import java.util.logging.Level;
 
 import org.eclipse.core.resources.IProject;
 
 import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -87,13 +84,7 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 			public void run() {
 				binder = Eclipse.getDefault().getTypeEnv(getProject())
 						.getBinder();
-				try {
-					nonNullAnalysis = new SimpleNonnullAnalysis(
-							"Non Null Analysis", binder);
-				} catch (SlotAlreadyRegisteredException e) {
-					SLLogger.getLogger().log(Level.SEVERE,
-							"Problem creating Non Null Analysis", e);
-				}
+				nonNullAnalysis = new SimpleNonnullAnalysis(binder);
 			}
 		});
 	}
