@@ -315,7 +315,7 @@ public abstract class IntraproceduralAnalysis<T,V> {
 	 */
   protected final Lattice<T> getAfter(
       final IRNode node, final WhichPort port) {
-    final FlowAnalysis<T> a = getAnalysis(node);
+    final FlowAnalysis<T> a = getAnalysis(getFlowUnit(node));
     return a == null ? null : a.getAfter(node, port);
   }
 
