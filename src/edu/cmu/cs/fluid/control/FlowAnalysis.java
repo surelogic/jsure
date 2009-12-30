@@ -9,9 +9,12 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.FluidInterruptedException;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.AssocList;
 import edu.cmu.cs.fluid.util.Lattice;
@@ -89,6 +92,48 @@ public abstract class FlowAnalysis<T> {
     debug = true;
   }
 
+  /**
+   * Return the analysis results after a particular port of the component for
+   * the node. If the node isn't evaluated, this method returns null.
+   */
+  public final Lattice<T> getAfter(final IRNode node, final WhichPort port) {
+    final Component comp = JavaComponentFactory.getComponent(node, true);
+    if (comp == null) {
+      return null;
+    }
+
+    final ControlNode cn = port.getPort(comp);
+    if (cn instanceof BlankOutputPort) {
+      return null;
+    }
+    
+    Lattice<T> val = null;
+    try {
+      for (ControlEdgeIterator outs = cn.getOutputs();
+        outs.hasNext();
+        ) {
+        final ControlEdge e = outs.nextControlEdge();
+        final Lattice<T> next = this.getInfo(e);
+        if (val == null) {
+          val = next;
+        } else if (next != null) {
+          val = val.meet(next);
+        }
+      }
+    } catch (Exception ex) {
+      LOG.log(
+        Level.SEVERE,
+        "Exception occurred for " + DebugUnparser.toString(node),
+        ex);
+      ex.printStackTrace();
+    }
+    if (val == null) {
+      val = this.getLattice().top();
+    }
+    return val;
+  }
+
+  
   private final Map<ControlEdge,AssocList<LabelList,Lattice<T>>> currentInfo = 
     new HashMap<ControlEdge,AssocList<LabelList,Lattice<T>>>();
 

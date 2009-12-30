@@ -16,6 +16,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.*;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
@@ -51,8 +52,38 @@ public abstract class IntraproceduralAnalysis<T,V> {
     binder = b;
   }
 
-  
-  
+  /**
+   * Get the flow unit that contains the given node, corrected to current
+   * constructor context if necessary. Specifically, if the given node turns out
+   * to be inside an instance field initializer or an instance initialization
+   * block, then {@value context} is returned instead of the actual flow unit
+   * (which would be in the InitDeclaration pseudo-method). This allows the node
+   * to be properly integrated into the flow control because the flow graph for
+   * every constructor includes the flow through the instance field initializers
+   * and instance initialization blocks, so we need to use the flow graph for
+   * the correct constructor.
+   * 
+   * <p>
+   * If {@value context} null} is {@value null} or the node is not in an
+   * instance field initializer or instance initializer block then this method
+   * returns the same value as {@code getRawFlowUnit(node)}.
+   * 
+   * <p>
+   * The one instance where we actually want to use the InitDeclaration as the
+   * flow unit is when analyzing the constructor of an anonymous class
+   * expression. In this case there is exactly one unnamed constructor, and
+   * there is no other flow unit that makes sense to use at this point. The
+   * caller of this method is responsible for supplying a null} context in this
+   * situation.
+   * 
+   * @param node
+   *          The node whose flow unit should be returned.
+   * @param context
+   *          The ConstructorDeclaration of the constructor currently being
+   *          analyzed, or <code>null</code> if no constructor is currently
+   *          being analyzed.
+   * @return The flow unit that contains the given node, as described above.
+   */
   public static IRNode getFlowUnit(final IRNode node, final IRNode context) {
     final IRNode flowUnit = getFlowUnit(node);
     if (InitDeclaration.prototype.includes(flowUnit) && context != null) {
@@ -130,19 +161,7 @@ public abstract class IntraproceduralAnalysis<T,V> {
   }
 
   /**
-	 * Return the method declaration, constructor declaration or class
-	 * initialization routine that this node is in, or return null.
-	 * 
-	 * @deprecated use getFlowUnit. (The meaning of this method is unclear given
-	 *             different kinds of flow units.)
-	 */
-  @Deprecated
-  public static IRNode getMethodDecl(IRNode n) {
-    return getFlowUnit(n);
-  }
-
-  /**
-	 * Enumerate the tree nodes within a a flow graph. It omits nodes within
+	 * Enumerate the tree nodes within a flow graph. It omits nodes within
 	 * nested flow units. This enumeration is not protected from changes; it is
 	 * intended only to be used side-effect free analyses.
 	 */
@@ -293,61 +312,11 @@ public abstract class IntraproceduralAnalysis<T,V> {
   /**
 	 * Return the analysis results after a particular port of the component for
 	 * the node. If the node isn't evaluated, this method returns null.
-	 * 
-	 * @param port
-	 *          one of
-	 *          <ul>
-	 *          <li>0 (entry port)
-	 *          <li>1 (normal exit port)
-	 *          <li>2 (abrupt exit port)
-	 *          </ul>
 	 */
-  protected Lattice<T> getAfter(IRNode node, int port) {
-    Component comp = JavaComponentFactory.getComponent(node, true);
-    if (comp == null)
-      return null;
-    IRNode flowUnit = getFlowUnit(node);
-    if (flowUnit == null)
-      return null;
-    FlowAnalysis<T> a = getAnalysis(flowUnit);
-    ControlNode cn;
-    switch (port) {
-      case 0 :
-        cn = comp.getEntryPort();
-        break;
-      case 1 :
-        cn = comp.getNormalExitPort();
-        break;
-      case 2 :
-        cn = comp.getAbruptExitPort();
-        break;
-      default :
-        throw new FluidError("unknown port designator: " + port);
-    }
-    if (cn instanceof BlankOutputPort)
-      return null;
-    Lattice<T> val = null;
-    try {
-      for (ControlEdgeIterator outs = cn.getOutputs();
-        outs.hasNext();
-        ) {
-        ControlEdge e = outs.nextControlEdge();
-        Lattice<T> next = a.getInfo(e);
-        if (val == null)
-          val = next;
-        else if (next != null)
-          val = val.meet(next);
-      }
-    } catch (Exception ex) {
-      LOG.log(
-        Level.SEVERE,
-        "Exception occurred for " + DebugUnparser.toString(node),
-        ex);
-      ex.printStackTrace();
-    }
-    if (val == null)
-      val = a.getLattice().top();
-    return val;
+  protected final Lattice<T> getAfter(
+      final IRNode node, final WhichPort port) {
+    final FlowAnalysis<T> a = getAnalysis(node);
+    return a == null ? null : a.getAfter(node, port);
   }
 
   /**
@@ -355,9 +324,16 @@ public abstract class IntraproceduralAnalysis<T,V> {
 	 * analysis for the current version for the method including the node passed.
 	 * Then we find the analysis information on the control-flow edge entering
 	 * the control-flow component for the node. This value is returned.
+	 * 
+   * @param constructorContext
+   *          The constructor declaration, if any, that is currently being
+   *          analyzed. if non-<code>null</code>, this is used as the flow unit
+   *          if it turns out that the node <code>node</code> is part of an
+   *          instance field initializer or instance initialization block.
 	 */
-  public Lattice<T> getAnalysisResultsBefore(IRNode node) {
-    return getAfter(node, 0);
+  public final Lattice<T> getAnalysisResultsBefore(
+      final IRNode node) {
+    return getAfter(node, WhichPort.ENTRY);
   }
 
   /**
@@ -365,9 +341,16 @@ public abstract class IntraproceduralAnalysis<T,V> {
 	 * analysis for the current version for the method including the node passed.
 	 * Then we find the analysis information on the (first)control-flow edge
 	 * exiting the control-flow component for the node. This value is returned.
+   * 
+   * @param constructorContext
+   *          The constructor declaration, if any, that is currently being
+   *          analyzed. if non-<code>null</code>, this is used as the flow unit
+   *          if it turns out that the node <code>node</code> is part of an
+   *          instance field initializer or instance initialization block.
 	 */
-  public Lattice<T> getAnalysisResultsAfter(IRNode node) {
-    return getAfter(node, 1);
+  public final Lattice<T> getAnalysisResultsAfter(
+      final IRNode node) {
+    return getAfter(node, WhichPort.NORMAL_EXIT);
   }
 
   /**
@@ -375,9 +358,16 @@ public abstract class IntraproceduralAnalysis<T,V> {
 	 * analysis for the current version for the method including the node passed.
 	 * Then we find the analysis information on the (first)control-flow edge
 	 * abruptly exiting the control-flow component for the node. This value is returned.
+   * 
+   * @param constructorContext
+   *          The constructor declaration, if any, that is currently being
+   *          analyzed. if non-<code>null</code>, this is used as the flow unit
+   *          if it turns out that the node <code>node</code> is part of an
+   *          instance field initializer or instance initialization block.
 	 */
-  public Lattice<T> getAnalysisResultsAbrupt(IRNode node) {
-    return getAfter(node, 2);
+  public final Lattice<T> getAnalysisResultsAbrupt(
+      final IRNode node) {
+    return getAfter(node, WhichPort.ABRUPT_EXIT);
   }
 
   /*
@@ -415,9 +405,12 @@ public abstract class IntraproceduralAnalysis<T,V> {
   
   /**
 	 * Return analysis done for a particular method. If it has not yet been
-	 * computed, analysis is performed.
+	 * computed, analysis is performed.  
+	 * @param flowUnit The flow unit whose analysis component should be 
+	 * returned.  It is assumed the flow unit has already been corrected for
+	 * the correct constructor context: see {@link #getFlowUnit(IRNode, IRNode)}.
 	 */
-  public FlowAnalysis<T> getAnalysis(IRNode flowUnit) {
+  public final FlowAnalysis<T> getAnalysis(IRNode flowUnit) {
     final boolean debug = LOG.isLoggable(Level.FINE);
     
     Version v = Version.getVersion();
@@ -479,7 +472,7 @@ public abstract class IntraproceduralAnalysis<T,V> {
  * A list of recently performed analyses. The last accessed is at the head of
  * the list. The list is circular and doubly linked.
  */
-class IntraproceduralAnalysisCache<T> {
+final class IntraproceduralAnalysisCache<T> {
   final IRNode flowUnit;
   final Version version;
   final FlowAnalysis<T> analysis;

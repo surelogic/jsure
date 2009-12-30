@@ -17,6 +17,33 @@ import edu.cmu.cs.fluid.tree.*;
  */
 
 public class Component {
+  public static enum WhichPort {
+    ENTRY {
+      @Override
+      public ComponentPort getPort(final Component c) {
+        return c.getEntryPort();
+      }
+    },
+    
+    NORMAL_EXIT {
+      @Override
+      public ComponentPort getPort(final Component c) {
+        return c.getNormalExitPort();
+      }
+    },
+
+    ABRUPT_EXIT {
+      @Override
+      public ComponentPort getPort(final Component c) {
+        return c.getAbruptExitPort();
+      }
+    };
+    
+    public abstract ComponentPort getPort(Component c);
+  }
+  
+  
+  
   /** The syntax node for this component. */
   protected IRNode syntax;
 
