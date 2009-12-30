@@ -8,8 +8,8 @@ import com.surelogic.RegionLock;
 
 @RegionLock("DataLock is rwLock protects data" /* is CONSISTENT */)
 public class C {
-  protected ReadWriteLock rwLock = new ReentrantReadWriteLock();
-  protected Lock wLock = rwLock.writeLock();
+  protected final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+  protected final Lock wLock = rwLock.writeLock();
   
   protected int data;
 }
