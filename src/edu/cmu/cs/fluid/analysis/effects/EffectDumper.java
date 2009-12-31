@@ -13,7 +13,7 @@ import org.eclipse.core.resources.IProject;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effect;
-import com.surelogic.analysis.effects.EffectsVisitor;
+import com.surelogic.analysis.effects.Effects;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
@@ -43,7 +43,7 @@ public final class EffectDumper extends AbstractWholeIRAnalysisModule
   private Drop resultDependUpon = null;
 
   private IBinder binder;
-  private EffectsVisitor effectsVisitor;
+  private Effects effects;
 
   private static EffectDumper INSTANCE;
 
@@ -70,7 +70,7 @@ public final class EffectDumper extends AbstractWholeIRAnalysisModule
     runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
       public void run() {
         binder = Eclipse.getDefault().getTypeEnv(getProject()).getBinder();
-        effectsVisitor = new EffectsVisitor(binder, new BindingContextAnalysis(binder));
+        effects = new Effects(binder, new BindingContextAnalysis(binder));
       }
     });    
   }
@@ -129,7 +129,7 @@ public final class EffectDumper extends AbstractWholeIRAnalysisModule
           /* Can use null for the constructor context because member IS a
            * constructor or method declaration.
            */
-          final Set<Effect> implFx = effectsVisitor.getEffects(member, null);
+          final Set<Effect> implFx = effects.getEffects(member, null);
           InfoDrop info = new WarningDrop();
           setLockResultDep(info, member);
           info.setMessage("Inferred: " + effectSetToString(implFx));
