@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {	
+public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects> {	
 	public EffectsAnalysis() {
 		super("EffectAssurance2");
 	}
@@ -31,8 +31,8 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {
 	}
 
 	@Override
-	protected EffectsVisitor constructIRAnalysis(IBinder binder) {
-        return new EffectsVisitor(binder, new BindingContextAnalysis(binder));
+	protected Effects constructIRAnalysis(final IBinder binder) {
+        return new Effects(binder, new BindingContextAnalysis(binder));
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {
 			final boolean isMethod = MethodDeclaration.prototype.includes(op);
 			if (isConstructor || isMethod) {
 				final Set<Effect> declFx =
-					EffectsVisitor.getDeclaredMethodEffects(member, member);
+					Effects.getDeclaredMethodEffects(member, member);
 
 				/*
 				 * Compare the declared effects to the actual effects of the
@@ -72,7 +72,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<EffectsVisitor> {
 						&& !JavaNode.getModifier(member, JavaNode.NATIVE)) {
 					// only assure if there is declared intent
 					if (declFx != null) {
-					  /* Can use null as the constructor context becuase member IS a 
+					  /* Can use null as the constructor context because member IS a 
 					   * constructor or method declaration.
 					   */
 						final Set<Effect> implFx = getAnalysis().getEffects(member, null);

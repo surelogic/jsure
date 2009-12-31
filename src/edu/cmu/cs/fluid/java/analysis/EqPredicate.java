@@ -6,7 +6,7 @@ package edu.cmu.cs.fluid.java.analysis;
 import java.util.*;
 
 import com.surelogic.analysis.effects.Effect;
-import com.surelogic.analysis.effects.EffectsVisitor;
+import com.surelogic.analysis.effects.Effects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -20,24 +20,24 @@ public class EqPredicate extends Predicate {
   public static final SyntaxTreeInterface tree = JJNode.tree;
 
   private final IBinder binder;
-  private final EffectsVisitor effectsVisitor;
+  private final Effects effects;
   private final boolean equal;
   private final IRNode expr1, expr2;
   private final IRNode constructorContext;
   
   public EqPredicate(
-      IBinder b, EffectsVisitor ev, boolean eq, IRNode e1, IRNode e2,
+      IBinder b, Effects e, boolean eq, IRNode e1, IRNode e2,
       final IRNode cc) {
     binder = b;
-    effectsVisitor = ev;
+    effects = e;
     equal = eq;
     expr1 = e1;
     expr2 = e2;
     constructorContext = cc;
   }
-  public static Predicate create(IBinder b, EffectsVisitor ev, boolean eq,
+  public static Predicate create(IBinder b, Effects e, boolean eq,
 				 IRNode e1, IRNode e2, final IRNode cc) {
-    return cache(new EqPredicate(b,ev,eq,e1,e2, cc));
+    return cache(new EqPredicate(b,e,eq,e1,e2, cc));
   }
 
   @Override
@@ -131,13 +131,13 @@ public class EqPredicate extends Predicate {
       if (equal || p.equal) {
         boolean andeq = equal & p.equal;
         if (compareExpressions(expr1,p.expr1) == 1)
-          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr2,p.expr2,constructorContext));
+          return new SingletonIterator<Predicate>(create(binder,effects,andeq,expr2,p.expr2,constructorContext));
         else if (compareExpressions(expr2,p.expr2) == 1)
-          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr1,p.expr1,constructorContext));
+          return new SingletonIterator<Predicate>(create(binder,effects,andeq,expr1,p.expr1,constructorContext));
         else if (compareExpressions(expr1,p.expr2) == 1)
-          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr2,p.expr1,constructorContext));
+          return new SingletonIterator<Predicate>(create(binder,effects,andeq,expr2,p.expr1,constructorContext));
         else if (compareExpressions(expr2,p.expr1) == 1)
-          return new SingletonIterator<Predicate>(create(binder,effectsVisitor,andeq,expr1,p.expr2,constructorContext));
+          return new SingletonIterator<Predicate>(create(binder,effects,andeq,expr1,p.expr2,constructorContext));
       }
     }
     return EmptyIterator.prototype();
@@ -145,10 +145,10 @@ public class EqPredicate extends Predicate {
 
   @Override
   public Set<Effect> effects() {
-    final Set<Effect> effects = new HashSet<Effect>();
-    effects.addAll( effectsVisitor.getEffects(expr1, constructorContext) );
-    effects.addAll( effectsVisitor.getEffects(expr2, constructorContext) );
-    return Collections.unmodifiableSet( effects );
+    final Set<Effect> result = new HashSet<Effect>();
+    result.addAll( effects.getEffects(expr1, constructorContext) );
+    result.addAll( effects.getEffects(expr2, constructorContext) );
+    return Collections.unmodifiableSet( result );
   }
 
   /** Compare two expressions syntactically.
@@ -158,7 +158,6 @@ public class EqPredicate extends Predicate {
    * <li> 0: unknown
    * </ul>
    */
-  @SuppressWarnings("fallthrough")
   public int compareExpressions(IRNode n1, IRNode n2) {
     // This routine could be made very smart, but I'm going to
     // try to keep it simple. It doesn't handle x != x+1, for instance.
@@ -168,7 +167,7 @@ public class EqPredicate extends Predicate {
     if (op == IntLiteral.prototype) {
       String s1 = IntLiteral.getToken(n1);
       String s2 = IntLiteral.getToken(n2);
-      // punt on octal or hexidecimal
+      // punt on octal or hexadecimal
       if (s1.charAt(0) == '0' || s2.charAt(0) == '0')
         return 0;
       return s1.equals(s2) ? 1 : -1;
@@ -189,26 +188,6 @@ public class EqPredicate extends Predicate {
           return equal ? 1 : -1;
         }
       }
-      
-//      boolean equal = true;
-//      switch (compareExpressions(BinopExpression.getOp1(n1), BinopExpression
-//          .getOp1(n2))) {
-//      default:
-//        return 0;
-//      case -1:
-//        equal = false;
-//        /* fall through */
-//      case 1:
-//        switch (compareExpressions(BinopExpression.getOp2(n1), BinopExpression
-//            .getOp2(n2))) {
-//        default:
-//          return 0;
-//        case -1:
-//          return equal ? -1 : 0;
-//        case 1:
-//          return equal ? 1 : -1;
-//        }
-//      }
     } else if (BinopExpression.prototype.includes(op)) {
       return (compareExpressions(BinopExpression.getOp1(n1), BinopExpression
           .getOp1(n2)) == 1 && compareExpressions(BinopExpression.getOp2(n1),

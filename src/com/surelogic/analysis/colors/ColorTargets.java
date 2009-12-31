@@ -360,7 +360,7 @@ public class ColorTargets {
   // TODO: Fix the call sites
   private static Set<Target> getTargetsForMethodAsRegionRef(final IRNode mcall) {
     final Set<Target> result = new HashSet<Target>();
-    final Set<Effect> methodFx = EffectsVisitor.getMethodCallEffects(bindingContextAnalysis, targetFactory, binder, mcall,
+    final Set<Effect> methodFx = Effects.getMethodCallEffects(bindingContextAnalysis, targetFactory, binder, mcall,
         // This is no worse than before changing MethodCallUtils.constructFormalToActualMap() to take the enclosing decl, but it is probably not correct: you need to make sure this works properly with initialization traversals.
         PromiseUtil.getEnclosingMethod(mcall));
     final Operator callOp = getOperator(mcall);
@@ -424,7 +424,7 @@ public class ColorTargets {
    * @return
    */
   public static Set<Target> getTargetsForMethodCall(final IRNode mCall, final IRNode mDecl) {
-    Set<Effect> callFX = EffectsVisitor.getDeclaredEffectsWM(mCall, mDecl);
+    Set<Effect> callFX = Effects.getDeclaredEffectsWM(mCall, mDecl);
     // callFX is now null only when mCall and mDecl are in the same module, AND that
     // module is not TheWorld. Require same module, because can only use declared 
     // effects across modules. Require not TheWorld, because we can't count on TheWorld

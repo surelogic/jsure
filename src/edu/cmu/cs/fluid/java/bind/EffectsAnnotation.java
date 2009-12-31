@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.surelogic.analysis.effects.Effect;
-import com.surelogic.analysis.effects.EffectsVisitor;
+import com.surelogic.analysis.effects.Effects;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
@@ -64,6 +64,7 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
   }
 
   private EffectsAnnotation() {
+    super();
   }
 
   private static final EffectsAnnotation instance = new EffectsAnnotation();
@@ -318,6 +319,7 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
       return true;
     }
 
+    @SuppressWarnings("unused")
     private AnalysisContext analysisContext;
 
     /**
@@ -389,7 +391,7 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
       analysisContext = AnalysisContext.getContext(
           IDE.getInstance().getTypeEnv().getBinder());
       final Set<Effect> declFx = 
-        EffectsVisitor.getDeclaredMethodEffects(promisedFor, promisedFor);
+        Effects.getDeclaredMethodEffects(promisedFor, promisedFor);
       
       MethodEffectsPromiseDrop med = getMethodEffectsDrop(promisedFor);
       if (med != null) {

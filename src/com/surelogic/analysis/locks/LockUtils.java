@@ -5,6 +5,7 @@ import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.ClassTarget;
@@ -170,7 +171,10 @@ public final class LockUtils {
   private final IBinder binder;
   
   /** The effects analysis to use. */
-  private final EffectsVisitor effectsVisitor;
+  private final Effects effects;
+  
+  /** The binding context analysis to use. */
+  private final BindingContextAnalysis bca;
   
   private final ConflictChecker conflicter;
   
@@ -240,12 +244,14 @@ public final class LockUtils {
    * @param ea The effects analysis to use.
    */
   public LockUtils(final AtomicReference<GlobalLockModel> glmRef,
-      final IBinder b, final EffectsVisitor ev, final IAliasAnalysis aliasAnalysis,
+      final IBinder b, final BindingContextAnalysis bca, 
+      final Effects e, final IAliasAnalysis aliasAnalysis,
       final HeldLockFactory hlf, final NeededLockFactory nlf,
       final ThisExpressionBinder thisExprBinder) {
     sysLockModelHandle = glmRef;
     binder = b;
-    effectsVisitor = ev;
+    this.bca = bca;
+    effects = e;
     conflicter = new ConflictChecker(b, aliasAnalysis);
     heldLockFactory = hlf;
     neededLockFactory = nlf;
@@ -403,8 +409,8 @@ public final class LockUtils {
   private boolean isLockExpressionChangedBySyncBlock(
       final IRNode expr, final IRNode sync, final IRNode constructorContext) {
     if (sync != null) {
-      final Set<Effect> bodyEffects = effectsVisitor.getEffects(sync, constructorContext);
-      final Set<Effect> exprEffects = effectsVisitor.getEffects(expr, constructorContext);
+      final Set<Effect> bodyEffects = effects.getEffects(sync, constructorContext);
+      final Set<Effect> exprEffects = effects.getEffects(expr, constructorContext);
       return conflicter.mayConflict(bodyEffects, exprEffects, expr);
     } else {
       
@@ -418,7 +424,7 @@ public final class LockUtils {
     if (sync != null) {
       final Set<Effect> exprEffects =
         Collections.singleton(Effect.newRead(targetFactory.createInstanceTarget(array, elementRegion)));
-      final Set<Effect> bodyEffects = effectsVisitor.getEffects(sync, constructorContext);
+      final Set<Effect> bodyEffects = effects.getEffects(sync, constructorContext);
       return conflicter.mayConflict(bodyEffects, exprEffects, compareBeforeNode);
     } else {
       return true;
@@ -592,7 +598,7 @@ public final class LockUtils {
       final boolean isRead, final Target target,
       final Set<NeededLock> neededLocks) {
     final Set<Effect> elaboratedEffects =
-      effectsVisitor.elaborateEffect(targetFactory, srcNode, isRead, target);
+      Effects.elaborateEffect(bca, targetFactory, binder, srcNode, isRead, target);
     for (final Effect effect : elaboratedEffects) {
       getLocksFromEffect(effect, neededLocks);
     }
@@ -704,8 +710,10 @@ public final class LockUtils {
      * method would cause an unneeded crawl up the parse tree to find the
      * enclosing method declaration.
      */
-    final Set<Effect> callFx = EffectsVisitor.getMethodCallEffects(
-        effectsVisitor.getBCA(), targetFactory, binder, mcall, enclosingDecl);
+    final Set<Effect> callFx = effects.getMethodCallEffects(mcall, enclosingDecl, false); 
+//      
+//      Effects.getMethodCallEffects(
+//        effectsVisitor.getBCA(), targetFactory, binder, mcall, enclosingDecl);
 
     for (final Effect effect : callFx) {
       if (effect.isTargetAggregated()) {
@@ -1341,7 +1349,7 @@ public final class LockUtils {
     final Effect writesInstance = Effect.newWrite(
         DefaultTargetFactory.PROTOTYPE.createInstanceTarget(rcvrDecl, INSTANCE));
 
-    final Set<Effect> declFx = EffectsVisitor.getDeclaredMethodEffects(cdecl, cdecl);
+    final Set<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);
     final RegionEffectsPromiseDrop eDrop = MethodEffectsRules.getRegionEffectsDrop(cdecl);
     final StartsPromiseDrop teDrop = ThreadEffectsRules.getStartsSpec(cdecl);
     boolean isEffectsWork = teDrop != null;

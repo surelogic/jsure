@@ -81,13 +81,13 @@ implements IBinderClient {
 	 */
   public static final String NOT_AN_ERROR = "Usage is correct.";
 
-  private final EffectsVisitor effectsVisitor;
+  private final Effects effects;
   
   
   
-  public UniqueAnalysis(IBinder binder, EffectsVisitor ev) {
+  public UniqueAnalysis(IBinder binder, Effects e) {
     super(new FixBinder(binder)); // avoid crashes.
-    effectsVisitor = ev;
+    effects = e;
   }
 
   public IBinder getBinder() {
@@ -95,7 +95,7 @@ implements IBinderClient {
   }
   
   public void clearCaches() {
-	  effectsVisitor.clearCaches();
+	  effects.clearCaches();
 	  clear();
   }
   
@@ -273,7 +273,7 @@ implements IBinderClient {
       new ForwardAnalysis(
         "unique analysis",
         store,
-        new UniqueTransfer(this, flowNode, binder, effectsVisitor), 
+        new UniqueTransfer(this, flowNode, binder, effects), 
         DebugUnparser.viewer) {
       @Override
       protected void usePorts(
@@ -304,12 +304,12 @@ class UniqueTransfer extends JavaEvaluationTransfer {
   private static final Logger LOG =
 	  SLLogger.getLogger("FLUID.analysis.unique.transfer");
 
-  private final EffectsVisitor effects;
+  private final Effects effects;
   private final IRNode flowUnit;
   
-  public UniqueTransfer(UniqueAnalysis ua, IRNode fu, IBinder b, EffectsVisitor ev) {
+  public UniqueTransfer(UniqueAnalysis ua, IRNode fu, IBinder b, Effects e) {
     super(ua, b);
-    effects = ev;
+    effects = e;
     flowUnit = fu;
   }
 
@@ -644,7 +644,7 @@ class UniqueTransfer extends JavaEvaluationTransfer {
         considerEffects(
           receiverNode,
           actuals,
-          effects.getRawMethodCallEffects(node, flowUnit),
+          effects.getMethodCallEffects(node, flowUnit, true),
           s);
     }
     // we have to possibly compromise arguments:
@@ -895,7 +895,7 @@ class TestUniqueTransfer {
   static FakeBinder fb = new FakeBinder(root);
   static UniqueTransfer ut = 
     new UniqueTransfer(null, null, fb,
-        new EffectsVisitor(fb, new BindingContextAnalysis(fb)));
+        new Effects(fb, new BindingContextAnalysis(fb)));
 
   public static void main(String[] args) {
 	  initRoot();
@@ -1197,7 +1197,7 @@ class TestUniqueAnalysis {
   
   static FakeBinder fb = new FakeBinder(root);
   static UniqueAnalysis ua = 
-    new UniqueAnalysis(fb, new EffectsVisitor(fb, new BindingContextAnalysis(fb)));
+    new UniqueAnalysis(fb, new Effects(fb, new BindingContextAnalysis(fb)));
 
   public void reportError(String msg) {
     System.out.println(msg);

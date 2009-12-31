@@ -11,7 +11,7 @@ import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.effects.EffectsVisitor;
+import com.surelogic.analysis.effects.Effects;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -77,7 +77,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		//System.out.println(Thread.currentThread()+" : Constructed Unique for "+
 		//           binder.getTypeEnvironment().getProject());
 		return new UniqueAnalysis(binder,
-				new EffectsVisitor(binder, new BindingContextAnalysis(binder)));
+				new Effects(binder, new BindingContextAnalysis(binder)));
 	}
 	
 	/*

@@ -13,7 +13,7 @@ import com.surelogic.analysis.DefaultThisExpressionBinder;
 import com.surelogic.analysis.effects.AggregationUtils;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effect;
-import com.surelogic.analysis.effects.EffectsVisitor;
+import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
@@ -26,7 +26,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -69,6 +68,7 @@ public class ColorTargets {
     
     if (INSTANCE == null) {
       // Get the Instance region
+      @SuppressWarnings("unused")
       final IRNode objectDecl = 
         binder.getTypeEnvironment().findNamedType(JAVA_LANG_OBJECT);
       INSTANCE = RegionModel.getInstance(RegionModel.INSTANCE);
@@ -359,7 +359,7 @@ public class ColorTargets {
   private static Set<Target> getTargetsForMethodAsRegionRef(final IRNode mcall) {
     final Set<Target> result = new HashSet<Target>();
     final Set<Effect> methodFx =
-      EffectsVisitor.getRawMethodCallEffects(
+      Effects.getRawMethodCallEffects(
           new ThisBindingTargetFactory(new DefaultThisExpressionBinder(binder)),
           // This is no worse than before changing MethodCallUtils.constructFormalToActualMap() to take the enclosing decl, but it is probably not correct: you need to make sure this works properly with initialization traversals.
           binder, mcall, PromiseUtil.getEnclosingMethod(mcall));
@@ -430,7 +430,7 @@ public class ColorTargets {
    */
   public static Set<Target> getTargetsForMethodCall(final IRNode mCall, final IRNode mDecl) {
     String name = JavaNames.genMethodConstructorName(mDecl);
-    Set<Effect> callFX = EffectsVisitor.getDeclaredEffectsWM(mCall, mDecl);
+    Set<Effect> callFX = Effects.getDeclaredEffectsWM(mCall, mDecl);
     // callFX is now null only when mCall and mDecl are in the same module, AND that
     // module is not TheWorld. Require same module, because can only use declared 
     // effects across modules. Require not TheWorld, because we can't count on TheWorld

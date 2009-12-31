@@ -791,7 +791,7 @@ implements IBinderClient {
    *          The Binder to use to look up names.
    * @throws SlotAlreadyRegisteredException 
    */
-  public LockVisitor(final IBinder b, final EffectsVisitor effectsVisitor,
+  public LockVisitor(final IBinder b, final Effects e,
       final IAliasAnalysis aliasAnalysis, final BindingContextAnalysis bca,
       final AtomicReference<GlobalLockModel> glmRef) {
     binder = b;
@@ -806,7 +806,7 @@ implements IBinderClient {
     heldLockFactory = new HeldLockFactory(thisExprBinder);
     neededLockFactory = new NeededLockFactory(thisExprBinder);
     
-    lockUtils = new LockUtils(glmRef, b, effectsVisitor, aliasAnalysis,
+    lockUtils = new LockUtils(glmRef, b, bca, e, aliasAnalysis,
         heldLockFactory, neededLockFactory, thisExprBinder);
     jucLockUsageManager = new JUCLockUsageManager(lockUtils, heldLockFactory);
     

@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.effects.EffectsVisitor;
+import com.surelogic.analysis.effects.Effects;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.analysis.TypeBasedAliasAnalysis;
@@ -82,7 +82,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 	@Override
 	protected LockVisitor constructIRAnalysis(IBinder binder) {		
 	  final BindingContextAnalysis bca = new BindingContextAnalysis(binder);
-    return new LockVisitor(binder, new EffectsVisitor(binder, bca),
+    return new LockVisitor(binder, new Effects(binder, bca),
         new TypeBasedAliasAnalysis(binder), bca, lockModelHandle);
 	}
 	
