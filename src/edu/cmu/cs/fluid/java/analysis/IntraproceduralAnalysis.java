@@ -85,7 +85,7 @@ public abstract class IntraproceduralAnalysis<T,V> {
    * @return The flow unit that contains the given node, as described above.
    */
   public static IRNode getFlowUnit(final IRNode node, final IRNode context) {
-    final IRNode flowUnit = getFlowUnit(node);
+    final IRNode flowUnit = getRawFlowUnit(node);
     if (InitDeclaration.prototype.includes(flowUnit) && context != null) {
       return context;
     } else {
@@ -93,6 +93,11 @@ public abstract class IntraproceduralAnalysis<T,V> {
     }
   }
 
+  // XXX Rename getFlowUnit(IRNode) to getRawFlowUnit(IRNode) when done
+  public static IRNode getRawFlowUnit(final IRNode n) {
+    return getFlowUnit(n);
+  }
+  
   /** return the FlowUnit node that includes this node's component. */
   public static IRNode getFlowUnit(IRNode n) {
     /* We have a problem: The ClassBodyDeclInterface test below triggers a
@@ -312,10 +317,16 @@ public abstract class IntraproceduralAnalysis<T,V> {
   /**
 	 * Return the analysis results after a particular port of the component for
 	 * the node. If the node isn't evaluated, this method returns null.
+   * 
+   * @param constructorContext
+   *          The constructor declaration, if any, that is currently being
+   *          analyzed. if non-<code>null</code>, this is used as the flow unit
+   *          if it turns out that the node <code>node</code> is part of an
+   *          instance field initializer or instance initialization block.
 	 */
-  protected final Lattice<T> getAfter(
-      final IRNode node, final WhichPort port) {
-    final FlowAnalysis<T> a = getAnalysis(getFlowUnit(node));
+  private final Lattice<T> getAfter(
+      final IRNode node, final IRNode constructorContext, final WhichPort port) {
+    final FlowAnalysis<T> a = getAnalysis(getFlowUnit(node, constructorContext));
     return a == null ? null : a.getAfter(node, port);
   }
 
@@ -332,8 +343,8 @@ public abstract class IntraproceduralAnalysis<T,V> {
    *          instance field initializer or instance initialization block.
 	 */
   public final Lattice<T> getAnalysisResultsBefore(
-      final IRNode node) {
-    return getAfter(node, WhichPort.ENTRY);
+      final IRNode node, final IRNode constructorContext) {
+    return getAfter(node, constructorContext, WhichPort.ENTRY);
   }
 
   /**
@@ -349,8 +360,8 @@ public abstract class IntraproceduralAnalysis<T,V> {
    *          instance field initializer or instance initialization block.
 	 */
   public final Lattice<T> getAnalysisResultsAfter(
-      final IRNode node) {
-    return getAfter(node, WhichPort.NORMAL_EXIT);
+      final IRNode node, final IRNode constructorContext) {
+    return getAfter(node, constructorContext, WhichPort.NORMAL_EXIT);
   }
 
   /**
@@ -366,9 +377,29 @@ public abstract class IntraproceduralAnalysis<T,V> {
    *          instance field initializer or instance initialization block.
 	 */
   public final Lattice<T> getAnalysisResultsAbrupt(
-      final IRNode node) {
-    return getAfter(node, WhichPort.ABRUPT_EXIT);
+      final IRNode node, final IRNode constructorContext) {
+    return getAfter(node, constructorContext, WhichPort.ABRUPT_EXIT);
   }
+
+  // ========================================================================
+  // === Temporary
+  // ========================================================================
+
+  public final Lattice<T> getAnalysisResultsBefore(final IRNode node) {
+    return getAfter(node, null, WhichPort.ENTRY);
+  }
+
+  public final Lattice<T> getAnalysisResultsAfter(final IRNode node) {
+    return getAfter(node, null, WhichPort.NORMAL_EXIT);
+  }
+
+  public final Lattice<T> getAnalysisResultsAbrupt(final IRNode node) {
+    return getAfter(node, null, WhichPort.ABRUPT_EXIT);
+  }
+
+  // ========================================================================
+  // === End Temporary
+  // ========================================================================
 
   /*
 	 * Start with a cache with a sentinel. This element will eventually be

@@ -360,9 +360,12 @@ public class ColorTargets {
   // TODO: Fix the call sites
   private static Set<Target> getTargetsForMethodAsRegionRef(final IRNode mcall) {
     final Set<Target> result = new HashSet<Target>();
-    final Set<Effect> methodFx = Effects.getMethodCallEffects(bindingContextAnalysis, targetFactory, binder, mcall,
-        // This is no worse than before changing MethodCallUtils.constructFormalToActualMap() to take the enclosing decl, but it is probably not correct: you need to make sure this works properly with initialization traversals.
-        PromiseUtil.getEnclosingMethod(mcall));
+    // This is no worse than before changing MethodCallUtils.constructFormalToActualMap() to take the enclosing decl, but it is probably not correct: you need to make sure this works properly with initialization traversals.
+    final IRNode enclosingMethod = PromiseUtil.getEnclosingMethod(mcall);
+
+    final Set<Effect> methodFx = Effects.getMethodCallEffects(
+        bindingContextAnalysis.getExpressionObjectsQuery(enclosingMethod),
+        targetFactory, binder, mcall, enclosingMethod);
     final Operator callOp = getOperator(mcall);
     
     // Process all the actual parameters

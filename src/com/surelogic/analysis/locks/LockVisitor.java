@@ -395,10 +395,20 @@ implements IBinderClient {
    * {@link #visitReturnStatement(IRNode) analyzing return statements} to know
    * when method the return statement belongs to.
    * 
+   * <p>This can refer to ClassInitDeclaration or, in the case of an
+   * anonymous class expression, and InitDeclaration.  It will never be a 
+   * ConstructorDeclaration; see {@link #ctxtInsideConstructor}.
    * @see #ctxtReturnedLock
    * @see #ctxtReturnsLockDrop
    */
   private IRNode ctxtInsideMethod = null;
+  
+  /**
+   * The binding context analysis query focused to the current flow 
+   * unit being analyzed.  This needs to be updated whenever
+   * {@link #ctxtInsideMethod} or {@link #ctxtInsideConstructor} is updated.
+   */
+  private BindingContextAnalysis.Query ctxtBcaQuery = null;
   
   /**
    * This field is checked on entry to an expression to determine if the effect
@@ -806,7 +816,7 @@ implements IBinderClient {
     heldLockFactory = new HeldLockFactory(thisExprBinder);
     neededLockFactory = new NeededLockFactory(thisExprBinder);
     
-    lockUtils = new LockUtils(glmRef, b, bca, e, aliasAnalysis,
+    lockUtils = new LockUtils(glmRef, b, e, aliasAnalysis,
         heldLockFactory, neededLockFactory, thisExprBinder);
     jucLockUsageManager = new JUCLockUsageManager(lockUtils, heldLockFactory);
     
@@ -1562,7 +1572,8 @@ implements IBinderClient {
      * <code>this.Q</code> and that therefore the lock <code>L</code> must
      * be held.
      */
-    final Set<NeededLock> neededLocks = lockUtils.getLocksForMethodAsRegionRef(call, enclosingMethod);
+    final Set<NeededLock> neededLocks =
+      lockUtils.getLocksForMethodAsRegionRef(ctxtBcaQuery, call, enclosingMethod);
     final LockChecker indirectAccessChecker = new LockChecker(call) {
       @Override
       protected LockModel getPromiseDrop(final NeededLock neededLock) {
@@ -1588,16 +1599,13 @@ implements IBinderClient {
    * the special instance initializer method.
    */
   private IRNode getEnclosingMethod(final IRNode node) {
-    if (ctxtInsideConstructor != null) {
-      return ctxtInsideConstructor;
-    } else if (ctxtInsideMethod != null) {
+    if (ctxtInsideMethod != null) {
+      // Method or class initializer
       return ctxtInsideMethod;
+    } else if (ctxtInsideConstructor != null) {
+      return ctxtInsideConstructor;
     } else {
-      /* We are inside a static field or a static initializer block,
-       * get the class init node associated with the class
-       */
-      final IRNode classDecl = VisitUtil.getClosestType(node);
-      return ClassInitDeclaration.getClassInitMethod(classDecl);
+      throw new UnsupportedOperationException("No enclosing method for " + DebugUnparser.toString(node));
     }
   }
   
@@ -1679,6 +1687,7 @@ implements IBinderClient {
     final IRNode oldTypeDecl = ctxtTypeDecl;
     final IJavaDeclaredType oldJavaType = ctxtJavaType;
     final IRNode oldInsideMethod = ctxtInsideMethod;
+    final BindingContextAnalysis.Query oldBcaQuery = ctxtBcaQuery;
     final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
     final IRNode oldInsideConstructor = ctxtInsideConstructor;
     final Boolean oldConstructorIsSingleThreaded = ctxtConstructorIsSingleThreaded;
@@ -1723,6 +1732,7 @@ implements IBinderClient {
        * for the class.  We set the receiver accordingly.
        */
       ctxtInsideMethod = JavaPromise.getInitMethodOrNull(expr);
+      ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
       ctxtOnBehalfOfConstructor = false;
       ctxtInsideConstructor = null;
       ctxtConstructorIsSingleThreaded = null;
@@ -1740,6 +1750,7 @@ implements IBinderClient {
       ctxtTypeDecl = oldTypeDecl;
       ctxtJavaType = oldJavaType;
       ctxtInsideMethod = oldInsideMethod;
+      ctxtBcaQuery = oldBcaQuery;
       ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
       ctxtInsideConstructor = oldInsideConstructor;
       ctxtConstructorIsSingleThreaded = oldConstructorIsSingleThreaded;
@@ -1760,7 +1771,7 @@ implements IBinderClient {
     dereferencesSafeObject(expr);
 //    assureRegionRef(expr, lockUtils.getLockForArrayRef(expr, isWrite));
     assureRegionRef(expr, 
-        lockUtils.getLocksForDirectRegionAccess(expr, !isWrite,
+        lockUtils.getLocksForDirectRegionAccess(ctxtBcaQuery, expr, !isWrite,
             lockUtils.createInstanceTarget(
                 ArrayRefExpression.getArray(expr),
                 lockUtils.getElementRegion())));
@@ -1793,14 +1804,20 @@ implements IBinderClient {
   public Void visitClassInitializer(final IRNode expr) {
     if (TypeUtil.isStatic(expr)) {
       // always go inside of static initializers
+      final IRNode classDecl = VisitUtil.getClosestType(expr);
+      ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
+      ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
       // The receiver is non-existent
       ctxtTheReceiverNode = null;
+      
       try {
         final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
         convertStaticInitializerBlock(expr, ctxtJavaType, syncFrame);
         doAcceptForChildren(expr);
       } finally {
         ctxtTheHeldLocks.popFrame();
+        ctxtInsideMethod = null;
+        ctxtBcaQuery = null;
       }
     } else {
       /*
@@ -1835,6 +1852,7 @@ implements IBinderClient {
       // First thing: update the receiver node
       ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(cdecl);
       ctxtInsideConstructor = cdecl;
+      ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(cdecl);
       ctxtConstructorName =
         new Object[] { JavaNames.genMethodConstructorName(cdecl) };
 
@@ -1898,6 +1916,7 @@ implements IBinderClient {
     } finally {
       ctxtTheReceiverNode = null;
       ctxtInsideConstructor = null;
+      ctxtBcaQuery = null;
       ctxtConstructorName = null;
       ctxtConstructorIsSingleThreaded = null;
       
@@ -1938,7 +1957,8 @@ implements IBinderClient {
         target = lockUtils.createInstanceTarget(FieldRef.getObject(fieldRef), fieldAsRegion);
       }    
       assureRegionRef(fieldRef, 
-          lockUtils.getLocksForDirectRegionAccess(fieldRef, !isWrite, target));
+          lockUtils.getLocksForDirectRegionAccess(
+              ctxtBcaQuery, fieldRef, !isWrite, target));
     }
     
     // continue into the expression
@@ -2124,6 +2144,7 @@ implements IBinderClient {
        * visitReturnStatement().
        */
       ctxtInsideMethod = mdecl;
+      ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(mdecl);
       final ReturnsLockPromiseDrop returnedLockName = LockUtils.getReturnedLock(mdecl);
       if (returnedLockName != null) {
         ctxtReturnsLockDrop = returnedLockName;
@@ -2151,6 +2172,7 @@ implements IBinderClient {
       // Cleanup the state used for checking returns
       ctxtTheReceiverNode = null;
       ctxtInsideMethod = null;
+      ctxtBcaQuery = null;
       ctxtReturnsLockDrop = null;
       ctxtReturnedLock = null;
 
@@ -2231,8 +2253,8 @@ implements IBinderClient {
       /* XXX: This is not entirely correct for ReadWriteLocks, although it
        * works.  
        */
-      /* ctxtInsideMethod must be non-null because "return" can only be inside
-       * of a method.  Furthormore, we can pass null to as the constructor
+      /* ctxtInsideMethod must be non-null, and will not refer to a ClassInitDeclaration because "return" can only be inside
+       * of a method.  Furthermore, we can pass null to as the constructor
        * context to convertLockExpr(), because we must be inside a method.
        */
       for (HeldLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt, null)) {
@@ -2443,16 +2465,25 @@ implements IBinderClient {
       /* Analyze the field initialization if we are inside a constructor, inside
        * an anonymous class expression or visiting a static field.
        */
-      if (ctxtInsideAnonClassExpr || ctxtInsideConstructor != null || TypeUtil.isStatic(varDecl)) {
+      final boolean isStaticDeclaration = TypeUtil.isStatic(varDecl);
+      if (ctxtInsideAnonClassExpr || ctxtInsideConstructor != null || isStaticDeclaration) {
         // okay, at this point we know we are inside a field declaration
-        // that is being analyzed on behalf of a constructor
+        // that is being analyzed on behalf of a constructor or a static initializer.
         final IRNode init = VariableDeclarator.getInit(varDecl);
         // Don't worry about uninitialized fields
         if (!NoInitialization.prototype.includes(JJNode.tree.getOperator(init))) {
+          /* If the initialization is static, we have to update the enclosing 
+           * method to the class init declaration. 
+           */
+          if (isStaticDeclaration) {
+            final IRNode classDecl = VisitUtil.getClosestType(varDecl);
+            ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
+            ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+          }
           // Don't worry about initialization of final variables/fields
+          final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
           try {
-            final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
-            if (TypeUtil.isStatic(varDecl)) {
+            if (isStaticDeclaration) {
               convertStaticInitializerBlock(varDecl, ctxtJavaType, syncFrame);
             }
             // Only non-final fields need to be protected
@@ -2465,12 +2496,16 @@ implements IBinderClient {
                 target = lockUtils.createInstanceTarget(ctxtTheReceiverNode, fieldAsRegion);
               }    
               assureRegionRef(varDecl, 
-                  lockUtils.getLocksForDirectRegionAccess(varDecl, false, target));
+                  lockUtils.getLocksForDirectRegionAccess(ctxtBcaQuery, varDecl, false, target));
             }
             // analyze the the RHS of the initialization
             doAcceptForChildren(varDecl);
           } finally {
             ctxtTheHeldLocks.popFrame();
+            if (isStaticDeclaration) {
+              ctxtInsideMethod = null;
+              ctxtBcaQuery = null;
+            }
           }
         }
       }

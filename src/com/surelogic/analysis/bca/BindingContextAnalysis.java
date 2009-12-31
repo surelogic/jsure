@@ -15,8 +15,10 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.control.FlowAnalysis;
 import edu.cmu.cs.fluid.control.ForwardAnalysis;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.cmu.cs.fluid.java.analysis.JavaForwardTransfer;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -39,6 +41,10 @@ import edu.cmu.cs.fluid.util.*;
  */
 
 public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,ImmutableHashOrderSet<IRNode>> {
+  public static interface Query extends AnalysisQuery<ImmutableHashOrderSet<IRNode>> {
+    // Implemented just to formalize the return type
+  }
+  
   public BindingContextAnalysis(IBinder b) {
     super(b);
   }
@@ -46,7 +52,8 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
   @Override
   public FlowAnalysis<IRNode> createAnalysis(IRNode flowNode) {
     FlowUnit op = (FlowUnit) tree.getOperator(flowNode);
-    IRNode methodDecl = getFlowUnit(flowNode);
+    // XXX This is suspicious.  Come back to this in the future
+    IRNode methodDecl = getRawFlowUnit(flowNode);
     ImmutableHashOrderSet<IRNode> localset =
       methodDeclLocals(methodDecl, CachedSet.<IRNode>getEmpty());
     localset = filterNonObjectTypedLocals(localset);
@@ -113,10 +120,36 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
   /**
 	 * Return a set of object identifiers for a particular expression. This is
 	 * the purpose of binding context analysis.
+   * 
+   * @param constructorContext
+   *          The constructor declaration, if any, that is currently being
+   *          analyzed. if non-<code>null</code>, this is used as the flow unit
+   *          if it turns out that the node <code>node</code> is part of an
+   *          instance field initializer or instance initialization block.
 	 */
-  public ImmutableHashOrderSet<IRNode> expressionObjects(IRNode expr) {
-    BindingContext bc = (BindingContext) super.getAnalysisResultsAfter(expr);
-    return bc.expressionObjects(expr);
+  public ImmutableHashOrderSet<IRNode> expressionObjects(
+      final IRNode expr, final IRNode constructorContext) {
+    return getExpressionsFromLattice(
+        getAnalysisResultsAfter(expr, constructorContext), expr);
+  }
+  
+  /**
+   * Get an query object tailored to a specific flow unit.
+   */
+  public Query getExpressionObjectsQuery(final IRNode flowUnit) {
+    return new Query() {
+      private final FlowAnalysis<IRNode> a = getAnalysis(flowUnit);
+
+      public ImmutableHashOrderSet<IRNode> getResultFor(final IRNode expr) {
+        return getExpressionsFromLattice(
+            a.getAfter(expr, WhichPort.NORMAL_EXIT), expr);
+      }
+    };
+  }
+  
+  private static ImmutableHashOrderSet<IRNode> getExpressionsFromLattice(
+      final Lattice<IRNode> lv, final IRNode expr) {
+    return ((BindingContext) lv).expressionObjects(expr);
   }
 }
 

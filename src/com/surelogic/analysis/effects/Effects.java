@@ -226,22 +226,19 @@ public final class Effects implements IBinderClient {
   //----------------------------------------------------------------------
   // -- Get the effects of a method call
   //----------------------------------------------------------------------
-  
-  
+
   /**
    * Get the effects of a method/constructor call.
    * 
    * @param call
    *          The node of the call. This node must have an operator type that
    *          implements {@link #CallInterface}.
+   * @param caller
+   *          The node of the method declaration or constructor declaration that
+   *          contains the call.
    * @param returnRaw
    *          Whether the raw effects should be return. If so, then effects are
    *          not elaborated. Normally this should be <code>false</code>.
-   * @param constructorContext
-   *          The constructor declaration, if any, that is currently being
-   *          analyzed. if non-<code>null</code>, this is used as the flow unit
-   *          if it turns out that the node <code>node</code> is part of an
-   *          instance field initializer or instance initialization block.
    * @return An unmodifiable set of effects.
    */
   public Set<Effect> getMethodCallEffects(final IRNode call,
@@ -259,8 +256,8 @@ public final class Effects implements IBinderClient {
         return JavaPromise.getQualifiedReceiverNodeByName(caller, outerType);
       }
     };
-    return getMethodCallEffects(bca, new ThisBindingTargetFactory(teb),
-        binder, call, caller, returnRaw);
+    return getMethodCallEffects(bca.getExpressionObjectsQuery(caller),
+        new ThisBindingTargetFactory(teb), binder, call, caller, returnRaw);
   }
 
   /**
@@ -280,10 +277,10 @@ public final class Effects implements IBinderClient {
    *          had better be an instance of {@link ThisBindingTargetFactory}.
    */
   public static Set<Effect> getMethodCallEffects(
-      final BindingContextAnalysis bca, final TargetFactory targetFactory,
+      final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
       final IBinder binder, final IRNode call, final IRNode callingMethodDecl) {
     return getMethodCallEffects(
-        bca, targetFactory, binder, call, callingMethodDecl, false);
+        bcaQuery, targetFactory, binder, call, callingMethodDecl, false);
   }
 
   /**
@@ -308,9 +305,15 @@ public final class Effects implements IBinderClient {
         null, targetFactory, binder, call, callingMethodDecl, true);
   }
   
+  /* The bcaQuery needs to be focused to the flow unit represented by callingMethodDecl.
+   * It is up to the caller to make sure these values are consistent.  Although
+   * we could instead take the bca and force the query to be consistent here,
+   * we do not because not doing so allows the query to be cached by the callers
+   * and thus not created over and over again for each use.
+   */
   // BCA is unused if returnRaw == true
   static Set<Effect> getMethodCallEffects(
-      final BindingContextAnalysis bca, final TargetFactory targetFactory,
+      final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
       final IBinder binder, final IRNode call, final IRNode callingMethodDecl, 
       final boolean returnRaw) {    
     // Get the node of the method/constructor declaration
@@ -344,7 +347,7 @@ public final class Effects implements IBinderClient {
             methodEffects.add(Effect.newEffect(call, eff.isReadEffect(), newTarg));
           } else {
             elaborateInstanceTargetEffects(
-                bca, targetFactory, binder, call, eff.isReadEffect(),
+                bcaQuery, targetFactory, binder, call, eff.isReadEffect(),
                 newTarg, methodEffects);
           }
         } else { // See if ref is a QualifiedReceiverDeclaration
@@ -373,13 +376,14 @@ public final class Effects implements IBinderClient {
   // ----------------------------------------------------------------------
   
   public static Set<Effect> elaborateEffect(
-      final BindingContextAnalysis bca, final TargetFactory targetFactory,
+      final BindingContextAnalysis.Query bcaQuery,
+      final TargetFactory targetFactory,
       final IBinder binder, final IRNode src, final boolean isRead,
       final Target target) {
     if (target instanceof InstanceTarget) {
       final Set<Effect> elaboratedEffects = new HashSet<Effect>();
-      Effects.elaborateInstanceTargetEffects(
-          bca, targetFactory, binder, src, isRead, target, elaboratedEffects);
+      elaborateInstanceTargetEffects(
+          bcaQuery, targetFactory, binder, src, isRead, target, elaboratedEffects);
       return Collections.unmodifiableSet(elaboratedEffects);
     } else {
       return Collections.singleton(Effect.newEffect(src, isRead, target));
@@ -387,17 +391,18 @@ public final class Effects implements IBinderClient {
   }
 
   static void elaborateInstanceTargetEffects(
-      final BindingContextAnalysis bca, final TargetFactory targetFactory,
+      final BindingContextAnalysis.Query bcaQuery,
+      final TargetFactory targetFactory,
       final IBinder binder, final IRNode src, final boolean isRead,
       final Target initTarget, final Set<Effect> outEffects) {
-    final TargetElaborator te = new TargetElaborator(bca, targetFactory, binder);
+    final TargetElaborator te = new TargetElaborator(bcaQuery, targetFactory, binder);
     for (final Target t : te.elaborateTarget(initTarget)) {
       outEffects.add(Effect.newEffect(src, isRead, t));
     }
   }
   
   private static class TargetElaborator {
-    private final BindingContextAnalysis bca;
+    private final BindingContextAnalysis.Query bcaQuery;
     private final TargetFactory targetFactory;
     private final IBinder binder;
     /**
@@ -406,9 +411,9 @@ public final class Effects implements IBinderClient {
      */
     private final Set<Target> elaborated = new HashSet<Target>();
     
-    public TargetElaborator(final BindingContextAnalysis bca,
+    public TargetElaborator(final BindingContextAnalysis.Query bcaQuery,
         final TargetFactory targetFactory, final IBinder binder) {
-      this.bca = bca;
+      this.bcaQuery = bcaQuery;
       this.targetFactory = targetFactory;
       this.binder = binder;
     }
@@ -454,7 +459,7 @@ public final class Effects implements IBinderClient {
         final IRNode expr, final Target target, final Set<Target> targets,
         final Set<Target> newTargets) {
       final IRegion region = target.getRegion();
-      for (final IRNode n : bca.expressionObjects(expr)) {
+      for (final IRNode n : bcaQuery.getResultFor(expr)) {
         // BCA already binds receivers to ReceiverDeclaration and QualifiedReceiverDeclaration nodes
         final BCAEvidence evidence = new BCAEvidence(target, expr, n);        
         final Target newTarget =

@@ -82,6 +82,12 @@ implements IBinderClient {
     private final IRNode enclosingMethod;
     
     /**
+     * The current binding context analysis query engine.  This is BCA focused
+     * to the flow unit represented by {@link #enclosingMethod}.
+     */
+    private final BindingContextAnalysis.Query bcaQuery;
+    
+    /**
      * This field is checked on entry to an expression to determine if the effect
      * should be a write effect. It is always immediately restored to
      * <code>false</code> after being checked.
@@ -113,10 +119,11 @@ implements IBinderClient {
      *          the node is part of an instance initializer block or field
      *          initializer. Otherwise, this should be <code>null</code>.
      */
-    public Context(final IRNode enclosingMethod) {
+    public Context(final BindingContextAnalysis bca, final IRNode enclosingMethod) {
       this.theEffects = new HashSet<Effect>();
       this.isLHS = false;
       this.enclosingMethod = enclosingMethod;
+      this.bcaQuery = bca.getExpressionObjectsQuery(enclosingMethod);
       this.theReceiverNode = JavaPromise.getReceiverNodeOrNull(enclosingMethod);
     }
     
@@ -191,7 +198,7 @@ implements IBinderClient {
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     this.ARRAY_ELEMENT = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);    
-    this.context = new Context(flowUnit);
+    this.context = new Context(bca, flowUnit);
   }
   
   public Set<Effect> getTheEffects() {
@@ -240,10 +247,15 @@ implements IBinderClient {
     return JJNode.tree.getOperator(node);
   }
 
-  private Set<Effect> getMethodCallEffects(
-      final IRNode call, final IRNode callingMethodDecl) {
-    return Effects.getMethodCallEffects(
-        bca, targetFactory, binder, call, callingMethodDecl, false);
+  /**
+   * Assumes that the enclosing method/constructor of the call is the
+   * method/constructor declaration represented by
+   * {@link Context#enclosingMethod enclosing method} of the current
+   * {@link #context context.}.
+   */
+  private Set<Effect> getMethodCallEffects(final IRNode call) {
+    return Effects.getMethodCallEffects(context.bcaQuery,
+        targetFactory, binder, call, context.enclosingMethod, false);
   }
 
 
@@ -253,7 +265,7 @@ implements IBinderClient {
     // Get the effects of the evaluating the arguments
     doAccept(AnonClassExpression.getArgs(expr));
     // Get the effects of the super-class constructor
-    context.addEffects(getMethodCallEffects(expr, context.enclosingMethod));
+    context.addEffects(getMethodCallEffects(expr));
 
     /* Need to get the effects of the instance field initializers and the
      * instance initializers of the anonymous class. Effects will come back
@@ -269,7 +281,7 @@ implements IBinderClient {
      * class.
      */
     final Context oldContext = context;
-    final Context newContext = new Context(anonClassInitMethod);
+    final Context newContext = new Context(bca, anonClassInitMethod);
     context = newContext;
     try {
       final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
@@ -299,7 +311,7 @@ implements IBinderClient {
                 (IJavaReferenceType) type, target.getRegion());
           }
           Effects.elaborateInstanceTargetEffects(
-              bca, targetFactory, binder, expr, initEffect.isReadEffect(),
+              context.bcaQuery, targetFactory, binder, expr, initEffect.isReadEffect(),
               newTarget, context.theEffects);
         } else {
           context.addEffect(initEffect.setSource(expr));
@@ -318,7 +330,7 @@ implements IBinderClient {
     final IRNode array = ArrayRefExpression.getArray(expr);
     final boolean isRead = context.isRead();
     Effects.elaborateInstanceTargetEffects(
-        bca, targetFactory, binder, expr, isRead,
+        context.bcaQuery, targetFactory, binder, expr, isRead,
         targetFactory.createInstanceTarget(array, ARRAY_ELEMENT), context.theEffects);
     doAcceptForChildren(expr);
     return null;
@@ -347,7 +359,7 @@ implements IBinderClient {
   @Override
   public Void visitConstructorCall(final IRNode expr) {
     initHelper.doVisitInstanceInits(expr);
-    context.addEffects(getMethodCallEffects(expr, context.enclosingMethod));
+    context.addEffects(getMethodCallEffects(expr));
     doAcceptForChildren(expr);
     return null;
   }
@@ -386,7 +398,7 @@ implements IBinderClient {
         final Target initTarget = 
           targetFactory.createInstanceTarget(obj, RegionModel.getInstance(id));
         Effects.elaborateInstanceTargetEffects(
-            bca, targetFactory, binder, expr, isRead, initTarget, context.theEffects);
+            context.bcaQuery, targetFactory, binder, expr, isRead, initTarget, context.theEffects);
       }
     }
     doAcceptForChildren(expr);
@@ -405,7 +417,7 @@ implements IBinderClient {
 
   @Override 
   public Void visitMethodCall(final IRNode expr) {
-    context.addEffects(getMethodCallEffects(expr, context.enclosingMethod));
+    context.addEffects(getMethodCallEffects(expr));
     doAcceptForChildren(expr);
     return null;
   }
@@ -414,7 +426,7 @@ implements IBinderClient {
 
   @Override
   public Void visitNewExpression(final IRNode expr) {
-    context.addEffects(getMethodCallEffects(expr, context.enclosingMethod));
+    context.addEffects(getMethodCallEffects(expr));
     doAcceptForChildren(expr);
     return null;
   }

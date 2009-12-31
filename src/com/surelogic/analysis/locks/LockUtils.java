@@ -173,9 +173,6 @@ public final class LockUtils {
   /** The effects analysis to use. */
   private final Effects effects;
   
-  /** The binding context analysis to use. */
-  private final BindingContextAnalysis bca;
-  
   private final ConflictChecker conflicter;
   
   /** Factory for creating held locks */
@@ -244,13 +241,11 @@ public final class LockUtils {
    * @param ea The effects analysis to use.
    */
   public LockUtils(final AtomicReference<GlobalLockModel> glmRef,
-      final IBinder b, final BindingContextAnalysis bca, 
-      final Effects e, final IAliasAnalysis aliasAnalysis,
+      final IBinder b, final Effects e, final IAliasAnalysis aliasAnalysis,
       final HeldLockFactory hlf, final NeededLockFactory nlf,
       final ThisExpressionBinder thisExprBinder) {
     sysLockModelHandle = glmRef;
     binder = b;
-    this.bca = bca;
     effects = e;
     conflicter = new ConflictChecker(b, aliasAnalysis);
     heldLockFactory = hlf;
@@ -587,18 +582,20 @@ public final class LockUtils {
   // == Methods for getting the necessary locks
   // ========================================================================
   
-  public Set<NeededLock> getLocksForDirectRegionAccess(final IRNode srcNode,
+  public Set<NeededLock> getLocksForDirectRegionAccess(
+      final BindingContextAnalysis.Query bcaQuery, final IRNode srcNode,
       final boolean isRead, final Target target) {
     final Set<NeededLock> neededLocks = new HashSet<NeededLock>();
-    getLocksForDirectRegionAccess(srcNode, isRead, target, neededLocks);
+    getLocksForDirectRegionAccess(bcaQuery, srcNode, isRead, target, neededLocks);
     return Collections.unmodifiableSet(neededLocks);
   }
 
-  private void getLocksForDirectRegionAccess(final IRNode srcNode,
+  private void getLocksForDirectRegionAccess(
+      final BindingContextAnalysis.Query bcaQuery, final IRNode srcNode,
       final boolean isRead, final Target target,
       final Set<NeededLock> neededLocks) {
     final Set<Effect> elaboratedEffects =
-      Effects.elaborateEffect(bca, targetFactory, binder, srcNode, isRead, target);
+      Effects.elaborateEffect(bcaQuery, targetFactory, binder, srcNode, isRead, target);
     for (final Effect effect : elaboratedEffects) {
       getLocksFromEffect(effect, neededLocks);
     }
@@ -654,6 +651,7 @@ public final class LockUtils {
    *          The constructor/method decl of the constructor/method that contains mcall
    */
   public Set<NeededLock> getLocksForMethodAsRegionRef(
+      final BindingContextAnalysis.Query bcaQuery,
       final IRNode mcall, final IRNode enclosingDecl) {
     final Set<NeededLock> result = new HashSet<NeededLock>();
     
@@ -723,7 +721,7 @@ public final class LockUtils {
         if (target instanceof ClassTarget || target instanceof AnyInstanceTarget) {
           for (final Target exposedTarget : exposedTargets) {
             if (conflicter.doTargetsOverlap(target, exposedTarget, exposedTarget.getReference())) {
-              getLocksForDirectRegionAccess(mcall, effect.isReadEffect(), exposedTarget, result);
+              getLocksForDirectRegionAccess(bcaQuery, mcall, effect.isReadEffect(), exposedTarget, result);
             }
           }
         }
