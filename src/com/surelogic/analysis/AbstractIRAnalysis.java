@@ -31,7 +31,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient> implements IIR
 	private static final ForkJoinExecutor pool   = singleThreaded ? null : new ForkJoinPool(threadCount);  
 	
 	// TODO use ThreadLocal trick to collect all the builders
-	private List<AbstractDropBuilder> builders = new Vector<AbstractDropBuilder>();
+	private final List<AbstractDropBuilder> builders = new Vector<AbstractDropBuilder>();
 	
 	protected <E> void runInParallel(Class<E> type, Collection<E> c, Procedure<E> proc) {
 		if (c.isEmpty()) {
