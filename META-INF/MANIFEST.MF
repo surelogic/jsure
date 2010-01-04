@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JSure/Fluid Analysis/Transformation Core
 Bundle-SymbolicName: edu.cmu.cs.fluid
-Bundle-Version: 3.1.0.qualifier
+Bundle-Version: 3.1.1.qualifier
 Bundle-ClassPath: fluid.jar,
  lib/jars/sablejbdd-0.02.jar,
  lib/jars/collections-generic-4.0.jar,
