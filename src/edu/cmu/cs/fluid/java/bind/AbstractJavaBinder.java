@@ -237,14 +237,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     final Map<IRNode,IGranuleBindings> granuleBindings =
   	  needFullInfo ? allGranuleBindings : partialGranuleBindings;
     IGranuleBindings bindings;
+    // FIX deadlock 
+    // Issue: we alternate between locking on the IGranuleBinding and the Binder 
     synchronized (this) {     
       bindings = granuleBindings.get(gr);
-      if (bindings == null || bindings.isDestroyed()) {
-        bindings = makeGranuleBindings(gr);
-        bindings.setContainsFullInfo(needFullInfo);
-        granuleBindings.put(gr,bindings);
-      }
     }
+    if (bindings == null || bindings.isDestroyed()) {
+    	bindings = makeGranuleBindings(gr);
+    	bindings.setContainsFullInfo(needFullInfo);
+    	synchronized (this) {
+    		granuleBindings.put(gr,bindings);
+    	}
+    }
+    
     // FIX hack to be able to use just derived info (e.g. a binding for a NamedType)
     // to compute other info (e.g. a binding for a ParameterizedType containing the
     // NamedType)
