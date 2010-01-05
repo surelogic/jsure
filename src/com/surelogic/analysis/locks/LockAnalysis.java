@@ -36,7 +36,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 	
 	@Override
 	protected boolean runInParallel() {
-		return true && !singleThreaded;
+		return false && !singleThreaded;
 	}
 	
 	@Override
