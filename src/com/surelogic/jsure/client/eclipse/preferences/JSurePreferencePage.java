@@ -4,6 +4,7 @@ import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.IntegerFieldEditor;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -11,6 +12,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 
+import com.surelogic.common.XUtil;
 import com.surelogic.common.eclipse.preferences.AbstractCommonPreferencePage;
 import com.surelogic.common.i18n.I18N;
 
@@ -18,6 +20,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
   private BooleanFieldEditor f_autoOpenModelingProblemsView;
   private BooleanFieldEditor f_allowJavadocAnnos;
   private IntegerFieldEditor f_analysisThreadCount;
+  private BooleanFieldEditor f_regionModelCap;
+  private BooleanFieldEditor f_regionModelCommonString;
+  private StringFieldEditor f_regionModelSuffix;
+  private BooleanFieldEditor f_lockModelCap;
+  private StringFieldEditor f_lockModelSuffix;
 
   public JSurePreferencePage() {
     super("jsure.eclipse.", PreferenceConstants.prototype);
@@ -57,6 +64,56 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
         com.surelogic.fluid.eclipse.preferences.PreferenceConstants
             .getPreferenceStore());
 
+    if (XUtil.useExperimental()) {
+      final Group modelNamingGroup = createGroup(panel,
+          "preference.page.group.modelNaming");
+      modelNamingGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true,
+          false));
+
+      f_regionModelCap = new BooleanFieldEditor(
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants.P_REGION_MODEL_NAME_CAP,
+          I18N.msg("jsure.eclipse.preference.page.regionModelNameCap"),
+          modelNamingGroup);
+      setupEditor(modelNamingGroup, f_regionModelCap,
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants
+              .getPreferenceStore());
+      f_regionModelCap.fillIntoGrid(modelNamingGroup, 2);
+      f_regionModelCommonString = new BooleanFieldEditor(
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants.P_REGION_MODEL_NAME_COMMON_STRING,
+          I18N.msg("jsure.eclipse.preference.page.regionModelNameCommonString"),
+          modelNamingGroup);
+      setupEditor(modelNamingGroup, f_regionModelCommonString,
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants
+              .getPreferenceStore());
+      f_regionModelCommonString.fillIntoGrid(modelNamingGroup, 2);
+      f_regionModelSuffix = new StringFieldEditor(
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants.P_REGION_MODEL_NAME_SUFFIX,
+          I18N.msg("jsure.eclipse.preference.page.regionModelNameSuffix"),
+          modelNamingGroup);
+      setupEditor(modelNamingGroup, f_regionModelSuffix,
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants
+              .getPreferenceStore());
+      f_regionModelSuffix.fillIntoGrid(modelNamingGroup, 2);
+      f_lockModelCap = new BooleanFieldEditor(
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants.P_LOCK_MODEL_NAME_CAP,
+          I18N.msg("jsure.eclipse.preference.page.lockModelNameCap"),
+          modelNamingGroup);
+      setupEditor(modelNamingGroup, f_lockModelCap,
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants
+              .getPreferenceStore());
+      f_lockModelCap.fillIntoGrid(modelNamingGroup, 2);
+      f_lockModelSuffix = new StringFieldEditor(
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants.P_LOCK_MODEL_NAME_SUFFIX,
+          I18N.msg("jsure.eclipse.preference.page.lockModelNameSuffix"),
+          modelNamingGroup);
+      setupEditor(modelNamingGroup, f_lockModelSuffix,
+          com.surelogic.fluid.eclipse.preferences.PreferenceConstants
+              .getPreferenceStore());
+      f_lockModelSuffix.fillIntoGrid(modelNamingGroup, 2);
+
+      modelNamingGroup.setLayout(new GridLayout(2, false));
+    }
+
     return panel;
   }
 
@@ -79,6 +136,13 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_autoOpenModelingProblemsView.loadDefault();
     f_allowJavadocAnnos.loadDefault();
     f_analysisThreadCount.loadDefault();
+    if (XUtil.useExperimental()) {
+      f_regionModelCap.loadDefault();
+      f_regionModelCommonString.loadDefault();
+      f_regionModelSuffix.loadDefault();
+      f_lockModelCap.loadDefault();
+      f_lockModelSuffix.loadDefault();
+    }
     super.performDefaults();
   }
 
@@ -87,6 +151,13 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_autoOpenModelingProblemsView.store();
     f_allowJavadocAnnos.store();
     f_analysisThreadCount.store();
+    if (XUtil.useExperimental()) {
+      f_regionModelCap.store();
+      f_regionModelCommonString.store();
+      f_regionModelSuffix.store();
+      f_lockModelCap.store();
+      f_lockModelSuffix.store();
+    }
     return super.performOk();
   }
 }
