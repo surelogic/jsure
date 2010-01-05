@@ -286,7 +286,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				Entity n = it.next();
 				for(Entity o : old) {
 					if (m.match(n, o)) {
-						out.println("\t"+label+": "+toString(n));
+						if (!"Exact  ".equals(label)) {
+							out.println("\t"+label+": "+toString(n));
+						}
 						old.remove(o);
 						it.remove();
 						break;
