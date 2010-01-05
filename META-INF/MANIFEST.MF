@@ -12,6 +12,7 @@ Require-Bundle: org.eclipse.ui,
  com.surelogic.xml.results.viewer,
  com.surelogic.common,
  com.surelogic.jsure.client.eclipse,
- com.surelogic.common.eclipse
+ com.surelogic.common.eclipse,
+ com.surelogic.jsure.message
 Eclipse-LazyStart: true
 Bundle-ClassPath: jsure-debug-views.jar
