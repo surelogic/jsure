@@ -1,8 +1,10 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/LockAnalysis.java,v 1.5 2008/09/08 19:12:16 chance Exp $*/
 package com.surelogic.analysis.locks;
 
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+
+import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.analysis.*;
@@ -30,6 +32,11 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 	public void init(IIRAnalysisEnvironment env) {
 		env.ensureClassIsLoaded(LockUtils.JAVA_UTIL_CONCURRENT_LOCKS_LOCK);
 		env.ensureClassIsLoaded(LockUtils.JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK);
+	}
+	
+	@Override
+	protected boolean runInParallel() {
+		return true && !singleThreaded;
 	}
 	
 	@Override
@@ -82,7 +89,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 	@Override
 	protected LockVisitor constructIRAnalysis(IBinder binder) {		
 	  final BindingContextAnalysis bca = new BindingContextAnalysis(binder);
-    return new LockVisitor(binder, new Effects(binder, bca),
+    return new LockVisitor(this, binder, new Effects(binder, bca),
         new TypeBasedAliasAnalysis(binder), bca, lockModelHandle);
 	}
 	
@@ -94,14 +101,25 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 	@Override
 	public boolean doAnalysisOnAFile(CUDrop cud, final IRNode compUnit, IAnalysisMonitor monitor) {
 		// FIX factor out?
-		final Visitor<Void> topLevel = new TopLevelVisitor(getAnalysis(),
-				                                           getResultDependUponDrop());
+		final TopLevelVisitor topLevel = new TopLevelVisitor(getAnalysis(),
+				getResultDependUponDrop());
 		topLevel.doAccept(compUnit);	
+		if (runInParallel()) {
+			runInParallel(IRNode.class, topLevel.getTypeBodies(), new Procedure<IRNode>() {
+				public void op(IRNode type) {
+					System.out.println("Parallel Lock: "+type);
+					getAnalysis().analyzeClass(type,
+							getResultDependUponDrop());
+				}				
+			});
+		}
 		return true;
 	}
 
 	@Override
 	public void postAnalysis(IIRProject p) {
+		finishBuild();
+		
 		lockModelHandle.set(null);
 		// FIX only clearing some of the threads?
 		if (getAnalysis() != null) {
@@ -109,43 +127,52 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 		}
 	}
 	
-	private static final class TopLevelVisitor extends VoidTreeWalkVisitor {
+	private final class TopLevelVisitor extends VoidTreeWalkVisitor {
 		private final LockVisitor lockVisitor;
 		private final Drop resultsDependUpon;
+		private final List<IRNode> types = new ArrayList<IRNode>();
 
 		public TopLevelVisitor(final LockVisitor lv, final Drop rd) {
 			lockVisitor = lv;
 			resultsDependUpon = rd;
 		}
 
+		public Collection<IRNode> getTypeBodies() {
+			return types;
+		}
+		
+		private void analyzeClass(IRNode cbody) {
+			if (runInParallel()) {
+				types.add(cbody);
+			} else {
+				lockVisitor.analyzeClass(cbody,	resultsDependUpon);
+			}
+		}
+		
 		@Override
 		public Void visitAnonClassExpression(final IRNode node) {
-			lockVisitor.analyzeClass(AnonClassExpression.getBody(node),
-					resultsDependUpon);
+			analyzeClass(AnonClassExpression.getBody(node));
 			doAcceptForChildren(node);
 			return null;
 		}
 
 		@Override
 		public Void visitClassDeclaration(final IRNode node) {
-			lockVisitor.analyzeClass(ClassDeclaration.getBody(node),
-					resultsDependUpon);
+			analyzeClass(ClassDeclaration.getBody(node));
 			doAcceptForChildren(node);
 			return null;
 		}
 
 		@Override
 		public Void visitEnumDeclaration(final IRNode node) {
-			lockVisitor.analyzeClass(EnumDeclaration.getBody(node),
-					resultsDependUpon);
+			analyzeClass(EnumDeclaration.getBody(node));
 			doAcceptForChildren(node);
 			return null;
 		}
 
 		@Override
 		public Void visitInterfaceDeclaration(final IRNode node) {
-			lockVisitor.analyzeClass(InterfaceDeclaration.getBody(node),
-					resultsDependUpon);
+			analyzeClass(InterfaceDeclaration.getBody(node));
 			doAcceptForChildren(node);
 			return null;
 		}

@@ -20,6 +20,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
@@ -76,17 +77,12 @@ import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Category;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
-import edu.cmu.cs.fluid.sea.InfoDrop;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.WarningDrop;
+import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
+import edu.cmu.cs.fluid.sea.proxy.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
@@ -307,6 +303,8 @@ implements IBinderClient {
 
   private final ThisExpressionBinder thisExprBinder;
 
+  private final IIRAnalysis analysisRoot;
+  
   /**
    * The binder to use.
    */
@@ -801,9 +799,10 @@ implements IBinderClient {
    *          The Binder to use to look up names.
    * @throws SlotAlreadyRegisteredException 
    */
-  public LockVisitor(final IBinder b, final Effects e,
+  public LockVisitor(final IIRAnalysis a, final IBinder b, final Effects e,
       final IAliasAnalysis aliasAnalysis, final BindingContextAnalysis bca,
       final AtomicReference<GlobalLockModel> glmRef) {
+    analysisRoot = a;
     binder = b;
     bindingContextAnalysis = bca;
     sysLockModelHandle = glmRef;
@@ -889,42 +888,45 @@ implements IBinderClient {
   // Drop management methods
   // ----------------------------------------------------------------------
 
-  private void setLockResultDep(final IRReferenceDrop drop, final IRNode node) {
+  private void setLockResultDep(final AbstractDropBuilder drop, final IRNode node) {
     drop.setNodeAndCompilationUnitDependency(node);
     if (resultDependUpon != null && resultDependUpon.isValid()) {
-      resultDependUpon.addDependent(drop);
+    	drop.addDependUponDrop(resultDependUpon);
     } else {
       LOG.log(Level.SEVERE,
           "setLockResultDep found invalid or null resultDependUpon drop");
     }
   }
 
-  private InfoDrop makeInfoDrop(final Category category,
+  private InfoDropBuilder makeInfoDrop(final Category category,
       final IRNode context, final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final InfoDrop info = new InfoDrop(Messages.getName(msgTemplate));
+    final InfoDropBuilder info = 
+    	InfoDropBuilder.create(analysisRoot, Messages.getName(msgTemplate), false);
     setLockResultDep(info, context);
     info.setMessage(msg);
     info.setCategory(category);
     return info;
   }
 
-  private InfoDrop makeWarningDrop(final Category category,
+  private InfoDropBuilder makeWarningDrop(final Category category,
       final IRNode context, final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final InfoDrop info = new WarningDrop(Messages.getName(msgTemplate));
+    final InfoDropBuilder info = 
+    	InfoDropBuilder.create(analysisRoot, Messages.getName(msgTemplate), true);
     setLockResultDep(info, context);
     info.setMessage(msg);
     info.setCategory(category);
     return info;
   }
 
-  private ResultDrop makeResultDrop(final IRNode context,
+  private ResultDropBuilder makeResultDrop(final IRNode context,
       final PromiseDrop<? extends IAASTRootNode> p,
       final boolean isConsistent, final String msgTemplate,
       final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final ResultDrop result = new ResultDrop(Messages.getName(msgTemplate));
+    final ResultDropBuilder result = 
+    	ResultDropBuilder.create(analysisRoot, Messages.getName(msgTemplate));
     setLockResultDep(result, context);
     result.setMessage(msg);
     result.addCheckedPromise(p);
@@ -936,7 +938,7 @@ implements IBinderClient {
     return result;
   }
 
-  private void addSupportingInformation(final IRReferenceDrop drop,
+  private void addSupportingInformation(final AbstractDropBuilder drop,
       final IRNode link, final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
     drop.addSupportingInformation(msg, link);
@@ -955,7 +957,7 @@ implements IBinderClient {
    */
   private void addTrustedLockDrop(
       final LockStack intrinsicLocks, final Set<HeldLock> jucLocks,
-      final NeededLock needed, final ResultDrop result) {
+      final NeededLock needed, final ResultDropBuilder result) {
     final String lockKey = CommonStrings.intern(needed.getName());
     for (final StackLock lock : intrinsicLocks) {
       if (lock.key == lockKey) {
@@ -983,7 +985,7 @@ implements IBinderClient {
   }
 
   private void addLockAcquisitionInformation(
-      final IRReferenceDrop drop, final LockStack intrinsicLocks,
+      final AbstractDropBuilder drop, final LockStack intrinsicLocks,
       final Set<HeldLock> jucLocks) {
     for (final StackLock has : intrinsicLocks) {
       addSupportingInformation(drop, has.lock.getSource(),
@@ -1166,7 +1168,7 @@ implements IBinderClient {
       }
       
       @Override
-      protected void addAdditionalEvidence(final ResultDrop resultDrop) {
+      protected void addAdditionalEvidence(final ResultDropBuilder resultDrop) {
         // No additional evidence to add
       }
     };
@@ -1233,7 +1235,7 @@ implements IBinderClient {
             /* For each lock declared in the class of e'.f', attach a warning
              * that it is not protecting the field f. 
              */
-            final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
+            final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
                 fieldRef, DS_AGGREGATION_NEEDED, DebugUnparser.toString(fieldRef));
 
             final IJavaType rcvrType = binder.getJavaType(FieldRef.getObject(objExpr));
@@ -1242,7 +1244,7 @@ implements IBinderClient {
                 sysLockModelHandle.get().getRegionAndPolicyLocksInClass((IJavaDeclaredType) rcvrType);
               for (final AbstractLockRecord lockRecord : records) {
                 if (!lockRecord.lockDecl.equals(lockUtils.getMutex())) {
-                  lockRecord.lockDecl.addDependent(info);
+                  info.addDependUponDrop(lockRecord.lockDecl);
                 }
               }
             }
@@ -1256,9 +1258,9 @@ implements IBinderClient {
             /* For the lock required for e'.f', attach a warning that it is not
              * protecting the field f. 
              */
-            final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
+            final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
                 fieldRef, DS_AGGREGATION_NEEDED, DebugUnparser.toString(fieldRef));
-            innerLock.lockDecl.addDependent(info);
+            info.addDependUponDrop(innerLock.lockDecl);
           }
         }
       } 
@@ -1348,7 +1350,7 @@ implements IBinderClient {
           if (isFinalOrVolatile(actualRcvr)) {
             if (mayBeAccessedByManyThreads(actualRcvr)) {
               // final/volatile field in a lock protected class
-              final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
+              final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
                   actualRcvr, DS_AGGREGATION_NEEDED2,
                   DebugUnparser.toString(actualRcvr));
               
@@ -1358,7 +1360,7 @@ implements IBinderClient {
                   sysLockModelHandle.get().getRegionAndPolicyLocksInClass((IJavaDeclaredType) rcvrType);
                 for (final AbstractLockRecord lockRecord : records) {
                   if (!lockRecord.lockDecl.equals(lockUtils.getMutex())) {
-                    lockRecord.lockDecl.addDependent(info);
+                    info.addDependUponDrop(lockRecord.lockDecl);
                   }
                 }
               }
@@ -1367,10 +1369,10 @@ implements IBinderClient {
             final RegionLockRecord neededLock = lockUtils.getLockForFieldRef(actualRcvr);
             if (neededLock != null) {
               // Lock protected field
-              final InfoDrop info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
+              final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
                   actualRcvr, DS_AGGREGATION_NEEDED2,
                   DebugUnparser.toString(actualRcvr));
-              neededLock.lockDecl.addDependent(info);
+              info.addDependUponDrop(neededLock.lockDecl);
             }
           }
         }
@@ -1450,7 +1452,7 @@ implements IBinderClient {
           alternativeLock = null;
         }
         
-        final ResultDrop resultDrop;
+        final ResultDropBuilder resultDrop;
         // Test for the needed lock
         if (isLockSatisfied(neededLock, heldJUCLocks)) {
           resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), true,
@@ -1510,7 +1512,7 @@ implements IBinderClient {
     protected abstract PromiseDrop<? extends IAASTRootNode> getPromiseDrop(
         NeededLock neededLock);
     
-    protected abstract void addAdditionalEvidence(ResultDrop resultDrop);
+    protected abstract void addAdditionalEvidence(ResultDropBuilder resultDrop);
   }
 
   
@@ -1540,7 +1542,7 @@ implements IBinderClient {
       }
       
       @Override
-      protected void addAdditionalEvidence(final ResultDrop resultDrop) {
+      protected void addAdditionalEvidence(final ResultDropBuilder resultDrop) {
         // No additional evidence to add
       }
     };
@@ -1550,7 +1552,7 @@ implements IBinderClient {
     
     // Locks that cannot be resolved lead to assurance failures
     for (final LockSpecificationNode lockSpec : locks.badLocks) {
-      final ResultDrop result =
+      final ResultDropBuilder result =
         makeResultDrop(call, rlDrop, false,
           DS_PRECONDITION_NOT_RESOLVABLE_MSG, lockSpec.toString(),
           DebugUnparser.toString(call));
@@ -1581,7 +1583,7 @@ implements IBinderClient {
       }
       
       @Override
-      protected void addAdditionalEvidence(final ResultDrop resultDrop) {
+      protected void addAdditionalEvidence(final ResultDropBuilder resultDrop) {
         // TODO: Add rationale based on method effects and region mapping
       }
     };
@@ -1866,7 +1868,7 @@ implements IBinderClient {
         final Iterator<StackLock> locks = syncFrame.iterator();
         final Set<HeldLock> jucLocks = jucLockUsageManager.getJUCSingleThreaded(cdecl);
         if (locks.hasNext() || !jucLocks.isEmpty()) { // May not have any locks at all
-          final ResultDrop result = new ResultDrop(
+          final ResultDropBuilder result = ResultDropBuilder.create(analysisRoot,
               Messages.getName(DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG));
           result.setMessage(MessageFormat.format(
               DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG,
@@ -2011,22 +2013,22 @@ implements IBinderClient {
         if (lockMethod.isLock) {
           final Set<IRNode> unlocks = mustRelease.getUnlocksFor(expr);
           if (unlocks == null) { // POISONED!
-            final InfoDrop match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_LOCK_CALL, lockMethod.name);
+            final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_LOCK_CALL, lockMethod.name);
             for (HeldLock lock : lockSet) {
-              lock.getLockPromise().addDependent(match);
+            	match.addDependUponDrop(lock.getLockPromise());
             }
           } else {
             if (unlocks.isEmpty()) {
-              final InfoDrop match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_UNLOCKS, lockMethod.name);
+            	final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_UNLOCKS, lockMethod.name);
               for (HeldLock lock : lockSet) {
-                lock.getLockPromise().addDependent(match);
+            	  match.addDependUponDrop(lock.getLockPromise());
               }
             } else {
               for (IRNode n : unlocks) {
-                final InfoDrop match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_MATCHING_UNLOCK,
+            	  final InfoDropBuilder match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_MATCHING_UNLOCK,
                     lockMethod.name, JavaNode.getSrcRef(n).getLineNumber());
                 for (HeldLock lock : lockSet) {
-                  lock.getLockPromise().addDependent(match);
+                	match.addDependUponDrop(lock.getLockPromise());
                 }
               }
             }
@@ -2037,22 +2039,22 @@ implements IBinderClient {
         if (lockMethod == LockMethods.UNLOCK) {
           final Set<IRNode> locks = mustHold.getLocksFor(expr);
           if (locks == null) { // POISONED!
-            final InfoDrop match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_UNLOCK_CALL);
+        	  final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_UNLOCK_CALL);
             for (HeldLock lock : lockSet) {
-              lock.getLockPromise().addDependent(match);
+            	match.addDependUponDrop(lock.getLockPromise());
             }
           } else {
             if (locks.isEmpty()) {
-              final InfoDrop match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_LOCKS);
+              final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_LOCKS);
               for (HeldLock lock : lockSet) {
-                lock.getLockPromise().addDependent(match);
+            	  match.addDependUponDrop(lock.getLockPromise());
               }
             } else {
               for (IRNode n : locks) {
-                final InfoDrop match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_MATCHING_LOCK,
+                final InfoDropBuilder match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_MATCHING_LOCK,
                     MethodCall.getMethod(n), JavaNode.getSrcRef(n).getLineNumber());
                 for (HeldLock lock : lockSet) {
-                  lock.getLockPromise().addDependent(match);
+                	match.addDependUponDrop(lock.getLockPromise());
                 }
               }
             }
@@ -2160,10 +2162,10 @@ implements IBinderClient {
        */
       if (syncLockIsIdentifiable && !syncLockIsPolicyLock
           && !syncFrame.isNeeded()) {
-        final InfoDrop info = makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING,
+        final InfoDropBuilder info = makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING,
             mdecl, DS_SYNCHRONIZED_UNUSED_MSG, syncFrame);
         for (final StackLock stackLock : syncFrame) {
-          stackLock.lock.getLockPromise().addDependent(info);
+          info.addDependUponDrop(stackLock.lock.getLockPromise());
         }
       }
 
@@ -2266,7 +2268,7 @@ implements IBinderClient {
 
       if (correct) {
         if (ctxtReturnsLockDrop != null) {
-          final ResultDrop result = makeResultDrop(rstmt,
+          final ResultDropBuilder result = makeResultDrop(rstmt,
               ctxtReturnsLockDrop, true, DS_RETURN_ASSURED_MSG,
               ctxtReturnedLock);
           result.setCategory(DSC_RETURN_ASSURED);
@@ -2275,7 +2277,7 @@ implements IBinderClient {
         }
       } else {
         if (ctxtReturnsLockDrop != null) {
-          final ResultDrop result = makeResultDrop(rstmt,
+          final ResultDropBuilder result = makeResultDrop(rstmt,
               ctxtReturnsLockDrop, false, DS_RETURN_NOT_ASSURED_MSG,
               ctxtReturnedLock);
           result.setCategory(DSC_RETURN_NOT_ASSURED);
@@ -2332,9 +2334,9 @@ implements IBinderClient {
   
             // Complain if the lock acquisition is potentially redundant
             if (ctxtTheHeldLocks.oldFramesContainLock(guard.lock, thisExprBinder, binder)) {
-              final InfoDrop info = makeWarningDrop(DSC_REDUNDANT_SYNCHRONIZED, syncBlock,
+              final InfoDropBuilder info = makeWarningDrop(DSC_REDUNDANT_SYNCHRONIZED, syncBlock,
                   DS_REDUNDANT_SYNCHRONIZED_MSG, guard.lock);
-              guard.lock.getLockPromise().addDependent(info);
+              info.addDependUponDrop(guard.lock.getLockPromise());
             }
           }
           if (justMUTEX && !lockIsPolicyLock) {
@@ -2373,13 +2375,13 @@ implements IBinderClient {
                   for (AbstractLockRecord lockRecord : 
                     sysLockModel.getRegionAndPolicyLocksForLockImpl(
                         (IJavaDeclaredType) typeOfLockExpr, varDecl)) {
-                    final InfoDrop warning = makeWarningDrop(
+                    final InfoDropBuilder warning = makeWarningDrop(
                         DSC_MIXED_PARADIGM, lockExpr,
                         DS_DECLARED_JUC_LOCK_FIELD,
                         DebugUnparser.toString(lockExpr),
                         VariableDeclarator.getId(lockRecord.lockImpl),
                         lockRecord.name);
-                    lockRecord.lockDecl.addDependent(warning);
+                    warning.addDependUponDrop(lockRecord.lockDecl);
                   }
                 }
               }
@@ -2401,10 +2403,10 @@ implements IBinderClient {
 
       // check to see if the synchronization was used for anything
       if (lockIsIdentifiable && !lockIsPolicyLock && !syncFrame.isNeeded()) {
-        final InfoDrop info = makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING,
+        final InfoDropBuilder info = makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING,
             syncBlock, DS_SYNCHRONIZED_UNUSED_MSG, syncFrame);
         for (final StackLock stackLock : syncFrame) {
-          stackLock.lock.getLockPromise().addDependent(info);
+        	info.addDependUponDrop(stackLock.lock.getLockPromise());
         }
       }
     } finally {
