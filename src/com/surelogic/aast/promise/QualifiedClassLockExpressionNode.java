@@ -38,8 +38,10 @@ public class QualifiedClassLockExpressionNode extends ClassLockExpressionNode {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("QualifiedClassLockExpression\n");
+    if (debug) { 
+    	indent(sb, indent);     
+    	sb.append("QualifiedClassLockExpression\n");
+    }
     sb.append(getType().unparse(debug, indent+2));
     return sb.toString();
   }
