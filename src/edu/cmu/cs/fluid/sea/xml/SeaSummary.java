@@ -110,7 +110,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return unparse.hashCode();
 	}
 	
-	public static void diff(String project, final Sea sea, File location)
+	public static Diff diff(String project, final Sea sea, File location)
 	throws Exception {
 		// Load up current contents
 		final Listener l = new Listener();
@@ -132,8 +132,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			}
 		}
 		//Collections.sort(newDrops, EntityComparator.prototype);
-		
-		diff(oldDrops, newDrops);
+		Diff d = new Diff(oldDrops, newDrops);
+		d.diff();
+		return d;
 	}
 
 	static class Listener implements IXMLResultListener {
@@ -177,20 +178,51 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		
 	}
 	
-	private static void diff(List<Entity> oldDrops, List<Entity> newDrops) {
+	public static class Diff {
+		final List<Entity> oldDrops;
+		final List<Entity> newDrops;
+		final Categories categories = new Categories();
+		
+		Diff(List<Entity> old, List<Entity> newD) {
+			oldDrops = old;
+			newDrops = newD;
+		}
+		
+		public Category[] getCategories() {
+			if (categories.isEmpty()) {
+				separate();
+			}
+			List<Category> l = new ArrayList<Category>();
+			for(Category c : categories.elements()) {
+				if (c.isEmpty()) {
+					continue;
+				}
+				l.add(c);
+			}
+			return l.toArray(new Category[l.size()]);			
+		}
+		
 		// Separate into categories
-		Categories categories = new Categories();
-		for(Entity e : oldDrops) {
-			Category c = categories.getOrCreate(e);
-			c.addOld(e);
+		private void separate() {
+			for(Entity e : oldDrops) {
+				Category c = categories.getOrCreate(e);
+				c.addOld(e);
+			}
+			for(Entity e : newDrops) {
+				Category c = categories.getOrCreate(e);
+				c.addNew(e);
+			}
 		}
-		for(Entity e : newDrops) {
-			Category c = categories.getOrCreate(e);
-			c.addNew(e);
-		}
-		for(Category c : categories.elements()) {
-			System.out.println("Category: "+c.name+" in "+c.file);
-			c.match(System.out);
+		
+		void diff() {
+			if (categories.isEmpty()) {
+				separate();
+			}
+			
+			for(Category c : categories.elements()) {
+				System.out.println("Category: "+c.name+" in "+c.file);
+				c.match(System.out);
+			}
 		}
 	}
 	
@@ -210,15 +242,19 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	/**
 	 * Storage for old and new drops that might match
 	 */
-	static class Category {
-		final String file;
-		final String name;		
+	public static class Category {
+		public final String file;
+		public final String name;		
 		final Set<Entity> old = new HashSet<Entity>();
 		final Set<Entity> newer = new HashSet<Entity>();
 		
 		public Category(String file, String name) {
 			this.file = file;
 			this.name = name;
+		}
+
+		public boolean isEmpty() {
+			return old.isEmpty() && newer.isEmpty();
 		}
 
 		public void addOld(Entity e) {
@@ -259,8 +295,26 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			}
 		}
 		
-		static String toString(Entity e) {
+		public static String toString(Entity e) {
 			return e.getAttribute(OFFSET_ATTR)+" - "+e.getAttribute(MESSAGE_ATTR);
+		}
+
+		public boolean hasChildren() {
+			return !old.isEmpty() || !newer.isEmpty();
+		}
+
+		public Entity[] getChildren() {
+			Entity[] a = new Entity[old.size() + newer.size()];
+			int i=0;
+			for(Entity o : old) {
+				a[i] = o;
+				i++;
+			}
+			for(Entity o : newer) {
+				a[i] = o;
+				i++;
+			}
+			return a;
 		}
 	}
 	
