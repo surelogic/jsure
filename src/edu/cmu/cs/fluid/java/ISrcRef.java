@@ -61,7 +61,7 @@ public interface ISrcRef {
    * Returns the line number the source reference begins on, or 0 if
    * the line number is unknown.
    * 
-   * @return the line number the source reference begins on,  or 0 if
+   * @return the line number the source reference begins on, or 0 if
    * the line number is unknown
    */
   int getLineNumber();
