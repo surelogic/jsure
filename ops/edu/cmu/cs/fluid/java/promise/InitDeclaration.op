@@ -26,7 +26,7 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
       classBody = ClassDeclaration.getBody(classDecl);
     } else if (AnonClassExpression.prototype.includes(op)) {
       classBody = AnonClassExpression.getBody(classDecl);
-      System.err.println( "getSource: " + DebugUnparser.toString(classDecl) );
+      //System.err.println( "getSource: " + DebugUnparser.toString(classDecl) );
     }
     return ClassBody.prototype.getSource(classBody);
   }
