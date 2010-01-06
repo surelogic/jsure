@@ -11,7 +11,6 @@ import java.util.logging.Level;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.debug.DebugUtil;
 import edu.cmu.cs.fluid.ir.ExplicitSlotFactory;
@@ -20,7 +19,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRSequence;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -154,8 +152,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       if (allValid.contains(v)) return;
       allTables = new ArrayList<JavaMemberTable>(tables.values());
     }
-    for (Iterator it = allTables.iterator(); it.hasNext(); ) {
-      JavaMemberTable jmt = (JavaMemberTable)it.next();
+    for (Iterator<JavaMemberTable> it = allTables.iterator(); it.hasNext(); ) {
+      JavaMemberTable jmt = it.next();
       if (jmt == placeholder) continue;
       if (!JJNode.tree.isNode(jmt.typeDeclaration)) {
           // if the node is not valid in this version, don't bother updating it.
@@ -498,8 +496,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    */
   public void notifyAllUses(Version v) {
     synchronized (entries) {
-      for (Iterator it = entries.values().iterator(); it.hasNext();) {
-        Entry entry = (Entry)it.next();
+      for (Iterator<Entry> it = entries.values().iterator(); it.hasNext();) {
+        Entry entry = it.next();
         entry.notifyUses(v);
       }
     }
@@ -814,24 +812,34 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     		  context = DebugUnparser.toString(typeDeclaration);
     	  }
     	  if (debug) {
-    	    LOG.finer("Re-populating member table: "+context);
+    		  LOG.finer("Re-populating member table: "+context);
     	  }
-    	  populateDeNovo();
+    	  synchronized (this) {
+    		  populateDeNovo();
+    	  }
     	  members = getDeclarationsFromUse(name,useSite);
       }
-      if (members.hasNext()) {
-        return new FilterIterator<IRNode, IBinding>(members) {
-          @Override
-          public Object select(IRNode n) {
-            if (selector.select(n)) {
-              if (debug) {
-                LOG.finer("Selected node from " + Scope.this);
-              }
-              return IBinding.Util.makeBinding(n);
-            }
-            return noElement;
-          }
-        };        
+      synchronized (this) {
+    	  if (members.hasNext()) {
+    		  // Copy iterator to avoid CoModExceptions
+    		  final List<IRNode> temp = new ArrayList<IRNode>();
+    		  while (members.hasNext()) {
+    			  IRNode n = members.next();
+    			  temp.add(n);
+    		  }
+    		  return new FilterIterator<IRNode, IBinding>(temp.iterator()) {
+    			  @Override
+    			  public Object select(IRNode n) {
+    				  if (selector.select(n)) {
+    					  if (debug) {
+    						  LOG.finer("Selected node from " + Scope.this);
+    					  }
+    					  return IBinding.Util.makeBinding(n);
+    				  }
+    				  return noElement;
+    			  }
+    		  };        
+    	  }
       }
       return EMPTY_BINDINGS_ITERATOR;
     }
