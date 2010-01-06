@@ -153,7 +153,9 @@ public class PromisesJarUtility {
 					handleError(shell, " while adding "
 							+ LibResources.PROMISES_JAR, e);
 				}
-				EclipseJob.getInstance().schedule(finish);
+				if (finish != null) {
+					EclipseJob.getInstance().schedule(finish);
+				}
 				if (!onlyAddJar) {
 					ConfirmPerspectiveSwitch.prototype.submitUIJob();
 					// Already started by nature change
