@@ -12,6 +12,6 @@ public operator NestedInterfaceDeclaration extends InterfaceDeclaration implemen
   }
   
   @Override public Component createComponent(IRNode node) {
-    return ClassDeclaration.createTypeDeclComponent(node,2,true);
-  } 
+    return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,false);
+  }
 }
