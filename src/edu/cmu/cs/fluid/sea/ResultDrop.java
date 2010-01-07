@@ -371,7 +371,7 @@ public class ResultDrop extends ProofDrop {
 		if (type != null) {
 			s.addAttribute("result-type", type);
 		} else {
-			System.out.println("result-type is null");
+			System.out.println("ResultDrop result-type is null");
 		}
 	}
 

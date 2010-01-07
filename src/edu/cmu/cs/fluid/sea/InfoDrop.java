@@ -22,7 +22,7 @@ public class InfoDrop extends IRReferenceDrop {
 		if (type != null) {
 			s.addAttribute("result-type", type);
 		} else {
-			System.out.println("result-type is null");
+			System.out.println("InfoDrop result-type is null");
 		}
 	}
 }
