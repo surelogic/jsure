@@ -47,7 +47,7 @@ public abstract class AbstractConcurrencyDetector extends
 			throws JavaModelException;
 
 	protected final void reportInference(Category c, String msg, IRNode loc) {
-		InfoDrop id = new InfoDrop();
+		InfoDrop id = new InfoDrop("concurrencyDetector");
 		// rd.addCheckedPromise(pd);
 		id.setNodeAndCompilationUnitDependency(loc);
 		id.setMessage(msg);
