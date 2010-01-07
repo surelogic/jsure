@@ -162,11 +162,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			} else if (runInParallel()) {
 				runInParallel(IRNode.class, methods, new Procedure<IRNode>() {
 					public void op(IRNode node) {
+						final String name = JavaNames.genRelativeFunctionName(node);
 						if (monitor != null) {
-							monitor.subTask("Checking [ Uniqueness Assurance ] "+
-									        JavaNames.genRelativeFunctionName(node));
+							monitor.subTask("Checking [ Uniqueness Assurance ] "+name);
 						}
-						System.out.println("Parallel: "+JavaNames.genRelativeFunctionName(node));
+						System.out.println("Parallel: "+name);
 						analyzeSubtree(node);
 					}
 				});
@@ -196,7 +196,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	 * @param reporter
 	 * @param decl
 	 */
-	private void analyzeSubtree(final IRNode decl) {
+	void analyzeSubtree(final IRNode decl) {
 		final Iterator<IRNode> nodes = JJNode.tree.topDown(decl);
 		while (nodes.hasNext()) {
 			final IRNode currentNode = nodes.next();
