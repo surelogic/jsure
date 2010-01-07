@@ -99,6 +99,12 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	 * PromiseWarningDrop), <code>false</code> otherwise.
 	 */
 	boolean f_isPromiseWarning = false;
+	
+	/**
+	 * A reference to the original node.
+	 * Non-null only if it's a backedge
+	 */
+	Content cloneOf = null;	
 
 	Content(String msg, Collection<Content> content) {
 		f_message = msg;
@@ -130,6 +136,7 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 		Content clone = shallowCopy();
 		if (clone != null) {
 			clone.f_status = Status.BACKEDGE;
+			clone.cloneOf = this;
 		}
 		return clone;
 	}

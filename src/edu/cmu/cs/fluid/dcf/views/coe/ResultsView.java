@@ -114,6 +114,24 @@ public class ResultsView extends AbstractDoubleCheckerView {
       }
     }
   };
+  
+  private final Action f_actionLinkToOriginal = new Action() {
+	  @Override
+	  public void run() {
+	      final ISelection selection = viewer.getSelection();
+	      if (selection == null || selection == StructuredSelection.EMPTY) {
+	        treeViewer.collapseAll();
+	      } else {
+	        final Object obj = ((IStructuredSelection) selection).getFirstElement();
+	        if (obj instanceof Content) {
+	        	Content c = (Content) obj;
+	        	if (c.cloneOf != null) {
+	        		treeViewer.reveal(c.cloneOf);
+	        	}
+	        }
+	      }
+	  }
+  };
 
   private final Action f_copy = new Action() {
     @Override
@@ -270,6 +288,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
     manager.add(f_actionExpand);
     manager.add(f_actionCollapse);
     if (!s.isEmpty()) {
+      final Content c = (Content) s.getFirstElement();
+      if (c.cloneOf != null) {
+    	  manager.add(f_actionLinkToOriginal);
+      }
       manager.add(new Separator());
       manager.add(f_copy);
     }
@@ -325,6 +347,9 @@ public class ResultsView extends AbstractDoubleCheckerView {
     f_actionCollapseAll.setImageDescriptor(SLImages
         .getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
+    f_actionLinkToOriginal.setText("Link to Original");
+    f_actionLinkToOriginal.setToolTipText("Link to the node that this backedge would reference");
+    
     f_copy.setText("Copy");
     f_copy
         .setToolTipText("Copy the selected verification result to the clipboard");

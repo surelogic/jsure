@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.dcf.views.coe;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -856,7 +857,12 @@ public class ResultsViewContentProvider extends
 		}
 		onPath.add(node);
 
-		final List<Content> children = new ArrayList<Content>(node.children());
+		final List<Content> children = new ArrayList<Content>(node.children());		
+		Collections.sort(children, new Comparator<Content>(){
+			public int compare(Content o1, Content o2) {
+				return o1.getMessage().compareTo(o2.getMessage());
+			}			
+		});
 		final int size = children.size();
 		for (int i = 0; i < size; i++) {
 			Content item = children.get(i);
