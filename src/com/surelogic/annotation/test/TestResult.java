@@ -139,6 +139,7 @@ public class TestResult implements ITest {
     result.drop = d;
   }
   
+  @SuppressWarnings("unchecked")
   public static void checkConsistency() {
     for(Object o : AnnotationRules.XML_LOG.getUnreported()) {
       TestResult result = (TestResult) o; 
@@ -151,7 +152,7 @@ public class TestResult implements ITest {
         continue; 
       }
       else if (result.drop instanceof IDerivedDropCreator) {
-    	System.err.println("Ignoring IDerivedDropCreator: "+result.promise);
+    	//System.err.println("Ignoring IDerivedDropCreator: "+result.promise);
     	continue;
       }
       TestResultType actual = result.drop.provedConsistent() ? TestResultType.CONSISTENT : TestResultType.INCONSISTENT;
