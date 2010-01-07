@@ -3,6 +3,9 @@ package edu.cmu.cs.fluid.dcf.views.coe;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,6 +57,7 @@ import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.util.SingletonIterator;
 
 public class ResultsView extends AbstractDoubleCheckerView {
 
@@ -124,9 +128,32 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	      } else {
 	        final Object obj = ((IStructuredSelection) selection).getFirstElement();
 	        if (obj instanceof Content) {
-	        	Content c = (Content) obj;
+	        	final Content c = (Content) obj;
 	        	if (c.cloneOf != null) {
 	        		treeViewer.reveal(c.cloneOf);
+	        		treeViewer.setSelection(new IStructuredSelection() {
+						public boolean isEmpty() {
+							return false;
+						}						
+						public List toList() {
+							return Collections.singletonList(c.cloneOf);
+						}						
+						public Object[] toArray() {
+							Object[] rv = new Object[1];
+							rv[0] = c.cloneOf;
+							return rv;
+						}						
+						public int size() {
+							return 1;
+						}						
+						public Iterator iterator() {
+							// TODO Auto-generated method stub
+							return new SingletonIterator(c.cloneOf);
+						}						
+						public Object getFirstElement() {
+							return c.cloneOf;
+						}
+					});
 	        	}
 	        }
 	      }
