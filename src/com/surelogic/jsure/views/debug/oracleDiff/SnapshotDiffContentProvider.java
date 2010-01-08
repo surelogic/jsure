@@ -24,6 +24,7 @@ public class SnapshotDiffContentProvider implements ITreeContentProvider, ILabel
 			if (rv.length == 0) {
 				return nothingToShow;
 			}
+			return rv;
 		}
 		return noElements;
 	}
