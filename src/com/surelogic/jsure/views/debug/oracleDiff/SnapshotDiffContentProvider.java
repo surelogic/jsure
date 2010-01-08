@@ -1,5 +1,7 @@
 package com.surelogic.jsure.views.debug.oracleDiff;
 
+import static com.surelogic.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
+
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 
@@ -58,7 +60,16 @@ public class SnapshotDiffContentProvider implements ITreeContentProvider, ILabel
 			return c.name+"  in  "+c.file;
 		}
 		else if (element instanceof Entity) {
-			return Category.toString((Entity) element);
+			Entity e = (Entity) element;
+			StringBuilder sb = new StringBuilder();
+			if (e.isNewer()) {
+				sb.append("New: ");
+			}
+			else if (e.isOld()) {
+				sb.append("Old: ");
+			}
+			sb.append(e.getAttribute(MESSAGE_ATTR));
+			return sb.toString();
 		}
 		return null;
 	}	
