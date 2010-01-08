@@ -220,7 +220,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			}
 			
 			for(Category c : categories.elements()) {
-				System.out.println("Category: "+c.name+" in "+c.file);
+				//System.out.println("Category: "+c.name+" in "+c.file);
 				c.match(System.out);
 			}
 		}
@@ -266,12 +266,15 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 		
 		public void match(PrintStream out) {
-			match(out, EXACT,  "Exact  ");
-			match(out, HASHED, "Hashed ");
+			String title = "Category: "+name+" in "+file;
+			title = match(title, out, EXACT,  "Exact  ");
+			title = match(title, out, HASHED, "Hashed ");
 			if ("ResultDrop".equals(name)) {
-				match(out, RESULT, "Results");
+				title = match(title, out, RESULT, "Results");
 			}
-			
+			if (title != null && hasChildren()) {
+				out.println(title);
+			}
 			for(Entity o : old) {
 				out.println("\tOld    : "+toString(o));
 			}
@@ -279,14 +282,18 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				out.println("\tNewer  : "+toString(o));
 			}
 		}
-
-		private void match(PrintStream out, Matcher m, String label) {
+		
+		private String match(String title, PrintStream out, Matcher m, String label) {
 			Iterator<Entity> it = newer.iterator();
 			while (it.hasNext()) {
 				Entity n = it.next();
 				for(Entity o : old) {
 					if (m.match(n, o)) {
 						if (!"Exact  ".equals(label)) {
+							if (title != null) {
+								out.println(title);
+								title = null;
+							}
 							out.println("\t"+label+": "+toString(n));
 						}
 						old.remove(o);
@@ -295,6 +302,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					}
 				}
 			}
+			return title;
 		}
 		
 		public static String toString(Entity e) {
