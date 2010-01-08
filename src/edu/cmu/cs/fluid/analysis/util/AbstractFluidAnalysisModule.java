@@ -210,10 +210,20 @@ public abstract class AbstractFluidAnalysisModule extends
     return (resource.getType() == IResource.FILE && resource.getName().equals(
         "package.java"));
   }
+  
+  public static boolean isJavaSource(IResource resource) {
+	    return (resource.getType() == IResource.FILE && resource.getName().endsWith(
+	        ".java"));
+	  }
 
   public static boolean isDotProject(IResource resource) {
     return (resource.getType() == IResource.FILE && resource.getFullPath()
         .toString().equals(".project"));
+  }
+  
+  public static boolean isDotClasspath(IResource resource) {
+	    return (resource.getType() == IResource.FILE && resource.getFullPath()
+	        .toString().equals(".classpath"));
   }
 
   public static boolean isFluidProperties(IResource resource) {

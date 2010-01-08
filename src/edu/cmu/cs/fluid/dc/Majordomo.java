@@ -22,6 +22,7 @@ import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
+import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 
@@ -223,8 +224,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 
 	private void doBuild(Map<Object, Object> args) throws CoreException {
 		try {
-			IJavaProject javaProject = JavaCore.create(getProject());
-			if (noCompilationErrors(javaProject)) {
+			IJavaProject javaProject = JavaCore.create(getProject());			
+			if (noCompilationErrors(javaProject) && projectCache.hasInterestingFilesToBuild()) {
 				// we are OK to do analysis -- no errors
 				NotificationHub.notifyAnalysisStarting();
 				final long start = System.currentTimeMillis();
@@ -236,7 +237,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 					long end = System.currentTimeMillis();
 					System.err.println("Time to analyze code = "+(end-start)+" ms");
 					projectCache.reset(); // wipe the cache for this project					
-				}
+				}			
 			} else {
 				NotificationHub.notifyAnalysisPostponed();
 			}
@@ -597,6 +598,58 @@ public final class Majordomo extends AbstractJavaBuilder implements
 				if (LOG.isLoggable(Level.FINE))
 					LOG.fine("Ended using " + Plugin.memoryUsed() + " bytes");
 			}
+		}
+		
+		boolean hasInterestingFilesToBuild() {
+			if (doRebuild) {
+				return true;
+			}
+			for (CacheEntry e : resourceCache) {
+				if (isInteresting(e)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private boolean isInteresting(CacheEntry e) {
+			if (e.resource.getParent() instanceof IProject) {
+				return 
+				AbstractFluidAnalysisModule.isFluidProperties(e.resource) ||
+				AbstractFluidAnalysisModule.isDotProject(e.resource) ||
+				AbstractFluidAnalysisModule.isDotClasspath(e.resource) ||
+				false;				
+			}
+			else if (isOnClassPath(e.resource)) {
+				return
+				AbstractFluidAnalysisModule.isJavaSource(e.resource) ||
+				AbstractFluidAnalysisModule.isPromisesXML(e.resource) ||
+				false;				
+			}
+			return false;
+		}
+
+		private boolean isOnClassPath(IResource resource) {
+			final IJavaElement jElement = JavaCore.create(resource);
+			if (jElement != null) {
+				final IJavaProject prj = jElement.getJavaProject();
+				if (prj != null) { 
+					final String resPath = resource.getFullPath().toString();
+					try {
+						for(IPackageFragmentRoot root : prj.getAllPackageFragmentRoots()) {
+							if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
+								String srcPath = root.getRawClasspathEntry().getPath().toString();
+								if (resPath.startsWith(srcPath)) {
+									return true;
+								}
+							}
+						}
+					} catch (JavaModelException e) {
+						LOG.log(Level.SEVERE, "Error trying to find "+resource+" on classpath", e);
+					}
+				}
+			}
+			return false;
 		}
 	}
 
