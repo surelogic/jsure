@@ -54,14 +54,14 @@ public class NonNull extends IntraproceduralAnalysis implements INullAnalysis{
 	 * Only applies to array and class types.	 
 	 */
   
-  public boolean isNonNullExpr(IRNode expr){
-    NonNullLattice nn = (NonNullLattice)getAnalysisResultsBefore(expr);
+  public boolean isNonNullExpr(IRNode expr, IRNode constructorContext){
+    NonNullLattice nn = (NonNullLattice)getAnalysisResultsBefore(expr, constructorContext);
     return is_nn_expr(expr,nn);
   }
 
   
-   public boolean isNonNullExprWithChecks(IRNode expr){
-		NonNullLattice nn = (NonNullLattice)getAnalysisResultsBefore(expr);
+   public boolean isNonNullExprWithChecks(IRNode expr, IRNode constructorContext){
+		NonNullLattice nn = (NonNullLattice)getAnalysisResultsBefore(expr, constructorContext);
     reporting_off = false;
     this.getAnalysis(getFlowUnit(expr)).reworkAll();
     reporting_off = true;
@@ -69,7 +69,8 @@ public class NonNull extends IntraproceduralAnalysis implements INullAnalysis{
 	}
 
    public void checkNotNull(IRNode flowUnit){
-     getAnalysisResultsBefore(flowUnit);
+     // we already have the flow unit
+     getAnalysisResultsBefore(flowUnit, null);
      reporting_off = false;
      this.getAnalysis(getFlowUnit(flowUnit)).reworkAll();
      reporting_off = true;
@@ -91,7 +92,7 @@ public class NonNull extends IntraproceduralAnalysis implements INullAnalysis{
   IsAssignedNNDrop getAssignDrop(IRNode tExpr, IRNode aExpr, NonNullLattice nn){
     if(reporting_off) return null;
     boolean consistent = is_nn_expr(aExpr,nn);
-    IsAssignedNNDrop nnd = new IsAssignedNNDrop(tExpr,aExpr,getNNdrops(aExpr,nn),getFlowUnit(tExpr),consistent);
+    IsAssignedNNDrop nnd = new IsAssignedNNDrop(tExpr,aExpr,getNNdrops(aExpr,nn),getRawFlowUnit(tExpr),consistent);
     return nnd;
   }
   
@@ -129,8 +130,8 @@ public class NonNull extends IntraproceduralAnalysis implements INullAnalysis{
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.java.analysis.INullAnalysis#maybeNull(edu.cmu.cs.fluid.ir.IRNode)
 	 */
-	public boolean maybeNull(IRNode expr) {
-		return !isNonNullExpr(expr);
+	public boolean maybeNull(IRNode expr, IRNode constructorContext) {
+		return !isNonNullExpr(expr, constructorContext);
 	}
 
 }

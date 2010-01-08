@@ -5,6 +5,7 @@
 package edu.cmu.cs.fluid.java.analysis;
 
 import edu.cmu.cs.fluid.control.*;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.EffectsAnnotation;
@@ -948,18 +949,21 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
 	}
 	
 	
-	public AssuranceLogger logAfter(IRNode node){
-		getAnalysisResultsAfter(node);
-		return log(getFlowUnit(node));
+	public AssuranceLogger logAfter(final IRNode node, final IRNode constructorContext){
+		getAnalysisResultsAfter(node, constructorContext);
+		return log(getFlowUnit(node, constructorContext));
 	}
 
 	public AssuranceLogger resultsForMethod(IRNode mDecl){
-		FlowAnalysis fa = getAnalysis(getFlowUnit(mDecl));
+	  /* mDecl is a method declaration so we don't have to worry about the
+	   * constructor context
+	   */
+		FlowAnalysis fa = getAnalysis(getRawFlowUnit(mDecl));
 		AssuranceLogger log = ((FullPermissionLattice)fa.getLattice()).log;
 		PermissionDropMediator pdm = getPDM(mDecl);
 		log.stopCollection();
 		pdm.stopReporting();
-		getAnalysisResultsAfter(mDecl);
+		fa.getAfter(mDecl, WhichPort.NORMAL_EXIT); // was: getAnalysisResultsAfter(mDecl, null);
 		pdm.startReporting();
 		log.startCollection();
 		fa.reworkAll();
@@ -998,8 +1002,8 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
 	/* 
 	 * @see edu.cmu.cs.fluid.java.analysis.INullAnalysis#maybeNull(edu.cmu.cs.fluid.ir.IRNode)
 	 */
-	public boolean maybeNull(IRNode expr) {
-		FullPermissionLattice results = (FullPermissionLattice)getAnalysisResultsBefore(expr);
+	public boolean maybeNull(IRNode expr, IRNode constructorContext) {
+		FullPermissionLattice results = (FullPermissionLattice)getAnalysisResultsBefore(expr, constructorContext);
 		LocationMap lm = results.getLoc();
 		SimpleLocation l = lm.getLocation(expr);
 		SimpleLocation n = lm.nulLoc();
@@ -1010,11 +1014,13 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
   class IsWrittenVisitor extends VoidTreeWalkVisitor{
 
     boolean isWritten(IRNode block){
-      return PermissionAnalysis.this.isWritten(expr,block) == 1;
+      return query.getResultFor(block) == 1;
+//      return PermissionAnalysis.this.isWritten(expr,block) == 1;
     }
     
     final IRNode expr;
     final Set<IRNode> writes;
+    AnalysisQuery<Integer> query;
     boolean localWrite;
     
     IsWrittenVisitor(IRNode expr){
@@ -1022,8 +1028,9 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
       writes = new HashSet<IRNode>();
     }
     
-    Set<IRNode> writtenIn(IRNode root){
+    Set<IRNode> writtenIn(IRNode root, IRNode constructorContext){
       writes.clear();
+      query = PermissionAnalysis.this.getIsWrittenQuery(expr, getFlowUnit(root, constructorContext));
       localWrite = false;
       this.doAccept(root);
       if(localWrite) return null;
@@ -1075,22 +1082,43 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
     
   }
   
-  Set<IRNode> methodsThatSouldntWrite(IRNode expr, IRNode block){
-    return (new IsWrittenVisitor(expr)).writtenIn(block);
+  Set<IRNode> methodsThatSouldntWrite(IRNode expr, IRNode block, IRNode constructorContext){
+    return (new IsWrittenVisitor(expr)).writtenIn(block, constructorContext);
   }
-  int isWritten(IRNode expr, IRNode block){
-    final FullPermissionLattice lat =
-      ((FullPermissionLattice)getAnalysisResultsBefore(block));
-    final LocationMap lm = lat.getLoc();
-    final FullPermissionLattice after =
-      (FullPermissionLattice)getAnalysisResultsAfter(block);
-    final LocationMap lma = after.getLoc();
-    final ConjunctiveFactLattice cfl = after.getFacts();
-    if(cfl.getEquiv(lm.getLocation(expr)).contains(lma.getLocation(expr))){
-      return 0;
-    }
-    return 1;
+//  int isWritten(IRNode expr, IRNode block, IRNode constructorContext){
+//    final FullPermissionLattice lat =
+//      ((FullPermissionLattice)getAnalysisResultsBefore(block, constructorContext));
+//    final LocationMap lm = lat.getLoc();
+//    final FullPermissionLattice after =
+//      (FullPermissionLattice)getAnalysisResultsAfter(block, constructorContext);
+//    final LocationMap lma = after.getLoc();
+//    final ConjunctiveFactLattice cfl = after.getFacts();
+//    if(cfl.getEquiv(lm.getLocation(expr)).contains(lma.getLocation(expr))){
+//      return 0;
+//    }
+//    return 1;
+//  }
+  
+  AnalysisQuery<Integer> getIsWrittenQuery(final IRNode expr, final IRNode flowUnit) {
+    return new AnalysisQuery<Integer>() {
+      private final FlowAnalysis a = getAnalysis(flowUnit);
+      
+      public Integer getResultFor(final IRNode block) {
+        final FullPermissionLattice lat =
+          (FullPermissionLattice) a.getAfter(block, WhichPort.ENTRY);
+        final LocationMap lm = lat.getLoc();
+        final FullPermissionLattice after =
+          (FullPermissionLattice) a.getAfter(block, WhichPort.NORMAL_EXIT);
+        final LocationMap lma = after.getLoc();
+        final ConjunctiveFactLattice cfl = after.getFacts();
+        if(cfl.getEquiv(lm.getLocation(expr)).contains(lma.getLocation(expr))){
+          return 0;
+        }
+        return 1;
+      }
+    };
   }
+  
 }
 @Deprecated
 class PermissionTransfer extends JavaEvaluationTransfer{

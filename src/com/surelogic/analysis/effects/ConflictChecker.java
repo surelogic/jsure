@@ -16,14 +16,14 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * @see ConflictingEffects
  */
 public final class ConflictChecker {
-  final IBinder binder;
-  final IAliasAnalysis aliasAnalysis;
+  private final IBinder binder;
+  private final IAliasAnalysis.MethodFactory methodFactory; 
   
   
   
-  public ConflictChecker(final IBinder b, final IAliasAnalysis aa) {
+  public ConflictChecker(final IBinder b, final IAliasAnalysis aa, final IRNode flowUnit) {
     binder = b;
-    aliasAnalysis = aa;
+    methodFactory = aa.getMethodFactory(flowUnit);
   }
   
   
@@ -31,7 +31,7 @@ public final class ConflictChecker {
   public ConflictingEffects getMayConflictingEffects(
     final Set<Effect> s1, final Set<Effect> s2, final IRNode before) {
     return new ConflictingEffects(
-        aliasAnalysis.getMayAliasMethod(before), binder, s1, s2);
+        methodFactory.getMayAliasMethod(before), binder, s1, s2);
   }
 
   public boolean mayConflict(
@@ -42,7 +42,7 @@ public final class ConflictChecker {
   public ConflictingEffects getMustConflictingEffects(
     final Set<Effect> s1, final Set<Effect> s2, final IRNode before) {
     return new ConflictingEffects(
-        aliasAnalysis.getMustAliasMethod(before), binder, s1, s2);
+        methodFactory.getMustAliasMethod(before), binder, s1, s2);
   }
 
   public boolean mustConflict(
@@ -51,6 +51,6 @@ public final class ConflictChecker {
   }
   
   public boolean doTargetsOverlap(final Target t1, final Target t2, final IRNode before) {
-    return t1.overlapsWith(aliasAnalysis.getMayAliasMethod(before), binder, t2).getTargetRelationship() != TargetRelationships.UNRELATED;
+    return t1.overlapsWith(methodFactory.getMayAliasMethod(before), binder, t2).getTargetRelationship() != TargetRelationships.UNRELATED;
   }
 }

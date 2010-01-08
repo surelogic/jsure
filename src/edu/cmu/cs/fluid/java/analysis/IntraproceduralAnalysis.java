@@ -99,7 +99,7 @@ public abstract class IntraproceduralAnalysis<T,V> {
   }
   
   /** return the FlowUnit node that includes this node's component. */
-  public static IRNode getFlowUnit(IRNode n) {
+  public static IRNode getFlowUnit(final IRNode n) {
     /* We have a problem: The ClassBodyDeclInterface test below triggers a
      * match for anonymous class expressions.  This is not what we want if our 
      * starting node 'n' is the anonymous class expression.  In that case, we
@@ -385,17 +385,17 @@ public abstract class IntraproceduralAnalysis<T,V> {
   // === Temporary
   // ========================================================================
 
-  public final Lattice<T> getAnalysisResultsBefore(final IRNode node) {
-    return getAfter(node, null, WhichPort.ENTRY);
-  }
-
-  public final Lattice<T> getAnalysisResultsAfter(final IRNode node) {
-    return getAfter(node, null, WhichPort.NORMAL_EXIT);
-  }
-
-  public final Lattice<T> getAnalysisResultsAbrupt(final IRNode node) {
-    return getAfter(node, null, WhichPort.ABRUPT_EXIT);
-  }
+//  public final Lattice<T> getAnalysisResultsBefore(final IRNode node) {
+//    return getAfter(node, null, WhichPort.ENTRY);
+//  }
+//
+//  public final Lattice<T> getAnalysisResultsAfter(final IRNode node) {
+//    return getAfter(node, null, WhichPort.NORMAL_EXIT);
+//  }
+//
+//  public final Lattice<T> getAnalysisResultsAbrupt(final IRNode node) {
+//    return getAfter(node, null, WhichPort.ABRUPT_EXIT);
+//  }
 
   // ========================================================================
   // === End Temporary

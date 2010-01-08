@@ -310,8 +310,6 @@ implements IBinderClient {
    */
   private final IBinder binder;
   
-  // Not used right now, but should be used in the future when I stop using
-  // getRawMethodCallEffects()
   private final BindingContextAnalysis bindingContextAnalysis;
 
   /**
@@ -407,6 +405,13 @@ implements IBinderClient {
    * {@link #ctxtInsideMethod} or {@link #ctxtInsideConstructor} is updated.
    */
   private BindingContextAnalysis.Query ctxtBcaQuery = null;
+  
+  /**
+   * The conflict checker to use, focused on the current flow analysis being
+   * analyzed.  This needs to be updated whenever
+   * {@link #ctxtInsideMethod} or {@link #ctxtInsideConstructor} is updated.
+   */
+  private ConflictChecker ctxtConflicter = null;
   
   /**
    * This field is checked on entry to an expression to determine if the effect
@@ -508,6 +513,11 @@ implements IBinderClient {
    * The non null analysis
    */
   private final SimpleNonnullAnalysis nonNullAnalylsis;
+  
+  /**
+   * The alias analysis to use.
+   */
+  private final IAliasAnalysis aliasAnalysis;
   
 //  /**
 //   * The intrinsic lock flow analysis. 
@@ -805,6 +815,7 @@ implements IBinderClient {
     analysisRoot = a;
     binder = b;
     bindingContextAnalysis = bca;
+    this.aliasAnalysis = aliasAnalysis;
     sysLockModelHandle = glmRef;
     ctxtTypeDecl = null; // this will be set by analyzeClass()
     ctxtJavaType = null; // this will be set by analyzeClass()
@@ -815,8 +826,8 @@ implements IBinderClient {
     heldLockFactory = new HeldLockFactory(thisExprBinder);
     neededLockFactory = new NeededLockFactory(thisExprBinder);
     
-    lockUtils = new LockUtils(glmRef, b, e, aliasAnalysis,
-        heldLockFactory, neededLockFactory, thisExprBinder);
+    lockUtils = new LockUtils(
+        glmRef, b, e, aliasAnalysis, heldLockFactory, neededLockFactory, thisExprBinder);
     jucLockUsageManager = new JUCLockUsageManager(lockUtils, heldLockFactory);
     
     // Create the subsidiary flow analyses
@@ -1074,11 +1085,10 @@ implements IBinderClient {
   }
 
   private Set<HeldLock> convertLockExpr(
-      final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src,
-      final IRNode constructorContext) {
+      final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src) {
     final IRNode sync = SynchronizedStatement.prototype
         .includes(JJNode.tree.getOperator(src)) ? src : null;
-    if (lockUtils.isFinalExpression(lockExpr, sync, constructorContext)) {
+    if (lockUtils.getFinalExpressionChecker(enclosingDecl, sync).isFinal(lockExpr)) {
       final Set<HeldLock> result = new HashSet<HeldLock>();
       lockUtils.convertIntrinsicLockExpr(lockExpr, enclosingDecl, src, result);
       return result;
@@ -1522,7 +1532,7 @@ implements IBinderClient {
    *          NewExpression
    */
   private void assureCall(final IRNode call) {
-    final IRNode enclosingMethod = getEnclosingMethod(call);
+    final IRNode enclosingMethod = getEnclosingMethod();
 
     // Get the JUC locks that are held at entry to the method call
     final Set<HeldLock> heldJUCLocks = getHeldJUCLocks(call);
@@ -1575,7 +1585,8 @@ implements IBinderClient {
      * be held.
      */
     final Set<NeededLock> neededLocks =
-      lockUtils.getLocksForMethodAsRegionRef(ctxtBcaQuery, call, enclosingMethod);
+      lockUtils.getLocksForMethodAsRegionRef(
+          ctxtBcaQuery, ctxtConflicter, call, enclosingMethod);
     final LockChecker indirectAccessChecker = new LockChecker(call) {
       @Override
       protected LockModel getPromiseDrop(final NeededLock neededLock) {
@@ -1600,19 +1611,19 @@ implements IBinderClient {
    * Using {@code PromiseUtil.getEnclosingMethod} in such cases would return
    * the special instance initializer method.
    */
-  private IRNode getEnclosingMethod(final IRNode node) {
+  private IRNode getEnclosingMethod() {
     if (ctxtInsideMethod != null) {
       // Method or class initializer
       return ctxtInsideMethod;
     } else if (ctxtInsideConstructor != null) {
       return ctxtInsideConstructor;
     } else {
-      throw new UnsupportedOperationException("No enclosing method for " + DebugUnparser.toString(node));
+      throw new UnsupportedOperationException("No enclosing method");
     }
   }
   
   private Set<HeldLock> getHeldJUCLocks(final IRNode node) {
-    final IRNode decl = getEnclosingMethod(node);
+    final IRNode decl = getEnclosingMethod();
     if (decl != null) {
       final IRNode constructorContext =
         ConstructorDeclaration.prototype.includes(decl) ? decl : null;
@@ -1690,6 +1701,7 @@ implements IBinderClient {
     final IJavaDeclaredType oldJavaType = ctxtJavaType;
     final IRNode oldInsideMethod = ctxtInsideMethod;
     final BindingContextAnalysis.Query oldBcaQuery = ctxtBcaQuery;
+    final ConflictChecker oldConflicter = ctxtConflicter;
     final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
     final IRNode oldInsideConstructor = ctxtInsideConstructor;
     final Boolean oldConstructorIsSingleThreaded = ctxtConstructorIsSingleThreaded;
@@ -1701,8 +1713,7 @@ implements IBinderClient {
       ctxtInsideAnonClassExpr = true;
       // Create the substitution map
       ctxtEnclosingRefs = MethodCallUtils.getEnclosingInstanceReferences(
-          binder, thisExprBinder, expr, oldTheReceiverNode,
-          getEnclosingMethod(expr));
+          binder, thisExprBinder, expr, oldTheReceiverNode, getEnclosingMethod());
 
       /* Update the type being analyzed to be the anonymous class expression */
       ctxtTypeDecl = expr;
@@ -1735,6 +1746,7 @@ implements IBinderClient {
        */
       ctxtInsideMethod = JavaPromise.getInitMethodOrNull(expr);
       ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+      ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
       ctxtOnBehalfOfConstructor = false;
       ctxtInsideConstructor = null;
       ctxtConstructorIsSingleThreaded = null;
@@ -1743,6 +1755,9 @@ implements IBinderClient {
       
       // Begin the recursive visit of the anonymous class's initialization
       final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
+      /* Call doAccept directly instead of using doVisitInstanceInits because
+       * there is no explicit constructor.
+       */
       initVisitor.doAccept(AnonClassExpression.getBody(expr));
     } finally {
       // restore the global state
@@ -1753,6 +1768,7 @@ implements IBinderClient {
       ctxtJavaType = oldJavaType;
       ctxtInsideMethod = oldInsideMethod;
       ctxtBcaQuery = oldBcaQuery;
+      ctxtConflicter = oldConflicter;
       ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
       ctxtInsideConstructor = oldInsideConstructor;
       ctxtConstructorIsSingleThreaded = oldConstructorIsSingleThreaded;
@@ -1809,6 +1825,7 @@ implements IBinderClient {
       final IRNode classDecl = VisitUtil.getClosestType(expr);
       ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
       ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+      ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideConstructor);
       // The receiver is non-existent
       ctxtTheReceiverNode = null;
       
@@ -1820,6 +1837,7 @@ implements IBinderClient {
         ctxtTheHeldLocks.popFrame();
         ctxtInsideMethod = null;
         ctxtBcaQuery = null;
+        ctxtConflicter = null;
       }
     } else {
       /*
@@ -1855,6 +1873,7 @@ implements IBinderClient {
       ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(cdecl);
       ctxtInsideConstructor = cdecl;
       ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(cdecl);
+      ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, cdecl);
       ctxtConstructorName =
         new Object[] { JavaNames.genMethodConstructorName(cdecl) };
 
@@ -1902,28 +1921,31 @@ implements IBinderClient {
 
       // Add locks from lock preconditions to the lock context
       final LockStackFrame reqFrame = ctxtTheHeldLocks.pushNewFrame();
-      processLockPreconditions(cdecl, reqFrame);
-
-      // Check the field declarations and initializers
       try {
-        ctxtOnBehalfOfConstructor = true;
-        initHelper.doVisitInstanceInits(cdecl);
+        processLockPreconditions(cdecl, reqFrame);
+  
+        // Check the field declarations and initializers
+        try {
+          ctxtOnBehalfOfConstructor = true;
+          initHelper.doVisitInstanceInits(cdecl);
+        } finally {
+          ctxtOnBehalfOfConstructor = false;
+        }
+        // Check the rest of the constructor
+        doAcceptForChildren(cdecl);
       } finally {
-        ctxtOnBehalfOfConstructor = false;
+        // remove the the lock preconditions
+        ctxtTheHeldLocks.popFrame();
       }
-      // Check the rest of the constructor
-      doAcceptForChildren(cdecl);
-
-      // TODO: Check if any of the lock preconditions are useless
+      // TODO: Check if any of the lock preconditions are useless (why?)
     } finally {
       ctxtTheReceiverNode = null;
       ctxtInsideConstructor = null;
       ctxtBcaQuery = null;
+      ctxtConflicter = null;
       ctxtConstructorName = null;
       ctxtConstructorIsSingleThreaded = null;
-      
-      // remove the lock from the context
-      ctxtTheHeldLocks.popFrame();
+      // Remove single-threaded locks 
       ctxtTheHeldLocks.popFrame();
     }
 
@@ -2001,9 +2023,10 @@ implements IBinderClient {
       makeWarningDrop(DSC_NOT_A_LOCK_METHOD, expr, DS_MASQUERADING_CALL, DebugUnparser.toString(expr));
     } else if (lockMethod != LockMethods.NOT_A_LOCK_METHOD) {
       final IRNode object = call.get_Object(expr);
-      if (lockUtils.isFinalExpression(object, null, ctxtInsideConstructor) ) {
+      final IRNode enclosingMethod = getEnclosingMethod();
+      if (lockUtils.getFinalExpressionChecker(enclosingMethod, null).isFinal(object)) {
         final Set<HeldLock> lockSet = new HashSet<HeldLock>();
-        lockUtils.convertJUCLockExpr(object, getEnclosingMethod(expr), null, lockSet);
+        lockUtils.convertJUCLockExpr(object, enclosingMethod, null, lockSet);
         if (lockSet.isEmpty()) {
           makeWarningDrop(DSC_UNIDENTIFIABLE_LOCK_WARNING, object,
               DS_UNIDENTIFIABLE_LOCK_MSG, DebugUnparser.toString(object));
@@ -2147,6 +2170,7 @@ implements IBinderClient {
        */
       ctxtInsideMethod = mdecl;
       ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(mdecl);
+      ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, mdecl);
       final ReturnsLockPromiseDrop returnedLockName = LockUtils.getReturnedLock(mdecl);
       if (returnedLockName != null) {
         ctxtReturnsLockDrop = returnedLockName;
@@ -2175,6 +2199,7 @@ implements IBinderClient {
       ctxtTheReceiverNode = null;
       ctxtInsideMethod = null;
       ctxtBcaQuery = null;
+      ctxtConflicter = null;
       ctxtReturnsLockDrop = null;
       ctxtReturnedLock = null;
 
@@ -2259,7 +2284,7 @@ implements IBinderClient {
        * of a method.  Furthermore, we can pass null to as the constructor
        * context to convertLockExpr(), because we must be inside a method.
        */
-      for (HeldLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt, null)) {
+      for (HeldLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt)) {
         correct |= ctxtReturnedLock.mustAlias(lock, thisExprBinder, binder);
       }
 //      for (StackLock lock : convertLockExpr(expr, ctxtInsideMethod, rstmt)) {
@@ -2314,11 +2339,12 @@ implements IBinderClient {
         lockIsIdentifiable = false;
       } else { // possible intrinsic lock
         // Only decode the lock if it is a final expression
-        if (lockUtils.isFinalExpression(lockExpr, syncBlock, ctxtInsideConstructor)) {
+        final IRNode enclosingMethod = getEnclosingMethod();
+        if (lockUtils.getFinalExpressionChecker(enclosingMethod, syncBlock).isFinal(lockExpr)) {
           // Push the acquired locks into the lock context
 //          convertLockExpr(lockExpr, getEnclosingMethod(lockExpr), syncBlock, syncFrame);
           final Set<HeldLock> heldLocks = new HashSet<HeldLock>();
-          lockUtils.convertIntrinsicLockExpr(lockExpr, getEnclosingMethod(lockExpr), syncBlock, heldLocks);
+          lockUtils.convertIntrinsicLockExpr(lockExpr, enclosingMethod, syncBlock, heldLocks);
           syncFrame.push(heldLocks);
           
           lockIsPolicyLock = isPolicyLockExpr(lockExpr);
@@ -2481,6 +2507,7 @@ implements IBinderClient {
             final IRNode classDecl = VisitUtil.getClosestType(varDecl);
             ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
             ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+            ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
           }
           // Don't worry about initialization of final variables/fields
           final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
@@ -2507,6 +2534,7 @@ implements IBinderClient {
             if (isStaticDeclaration) {
               ctxtInsideMethod = null;
               ctxtBcaQuery = null;
+              ctxtConflicter = null;
             }
           }
         }

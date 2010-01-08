@@ -22,6 +22,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
+import edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.cmu.cs.fluid.java.analysis.TypeBasedAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -39,7 +40,7 @@ public class ColorTargets {
   private static IBinder binder = null;
   private static TargetFactory targetFactory = null;
   private static BindingContextAnalysis bindingContextAnalysis = null;
-  private static ConflictChecker conflicter = null;
+//  private static ConflictChecker conflicter = null;
   private static IAliasAnalysis tbAlias = null;
   
 
@@ -64,7 +65,7 @@ public class ColorTargets {
     targetFactory = new ThisBindingTargetFactory(new DefaultThisExpressionBinder(b));
 
     tbAlias = new TypeBasedAliasAnalysis(b);
-    conflicter = new ConflictChecker(b, tbAlias);
+//    conflicter = new ConflictChecker(b, tbAlias);
     bindingContextAnalysis = new BindingContextAnalysis(b);
    
     if (INSTANCE == null) {
@@ -411,7 +412,12 @@ public class ColorTargets {
           final Target t = targetFactory.createInstanceTarget(actual, mappedRegion);
           final Effect e = Effect.newWrite(mcall, t); // bogus src expression
           final Set<Effect> eAsSet = Collections.singleton(e);
-          if (conflicter.mayConflict(eAsSet, methodFx, mcall)) {
+          /* XXX: This is just as broken as it was before we cared about the
+           * constructor context.  To fix this, the caller of this method needs
+           * to track the current flow unit of interest.
+           */
+          if (new ConflictChecker(binder, tbAlias, IntraproceduralAnalysis.getRawFlowUnit(mcall)).mayConflict(eAsSet, methodFx, mcall)) {
+// was:          if (conflicter.mayConflict(eAsSet, methodFx, mcall)) {
             getTargetsFromAggregation(mcall, actual, mappedRegion, true, outTargets);            
           }
         }
@@ -467,8 +473,15 @@ public class ColorTargets {
     final Set<Target> res = new HashSet<Target>(1);
     for (Target tgt : tgts) {
       for (Effect eff : intRegionWrites) {
+        /* XXX This should produce the same wrong behavior as before we cared
+         * about the constructor context.  To fix this we need to have the 
+         * clients of this method track the current flow unit.
+         */ 
         final TargetRelationship trel = 
-          tgt.overlapsWith(tbAlias.getMayAliasMethod(before), binder, eff.getTarget());
+          tgt.overlapsWith(
+              tbAlias.getMethodFactory(
+                  IntraproceduralAnalysis.getRawFlowUnit(before)).getMayAliasMethod(before),
+              binder, eff.getTarget());
         if (trel.getTargetRelationship() != TargetRelationships.UNRELATED ) {
           res.add(eff.getTarget());
           

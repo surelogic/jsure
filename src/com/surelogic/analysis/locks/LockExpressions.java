@@ -214,7 +214,7 @@ final class LockExpressions {
     // Set as a side-effect of visitConstructorDeclaration
     private SingleThreadedData singleThreadedData = null;
     
-    private IRNode constructorContext = null;
+    private IRNode enclosingFlowUnit = null;
     
     public LockExpressionVisitor(final LockUtils lu, final HeldLockFactory hlf) {
       super();
@@ -278,15 +278,15 @@ final class LockExpressions {
       }
       
       // Analyze the initialization of the instance
-      constructorContext = cdecl;
+      enclosingFlowUnit = cdecl;
       try {
         final InitializationVisitor helper = new InitializationVisitor(false);
         helper.doAcceptForChildren(JJNode.tree.getParent(cdecl));
+        // Analyze the body of the constructor
+        doAcceptForChildren(cdecl);
       } finally {
-        constructorContext = null;
+        enclosingFlowUnit = null;
       }
-      // Analyze the body of the constructor
-      doAcceptForChildren(cdecl);
       return null;
     }
 
@@ -307,7 +307,12 @@ final class LockExpressions {
         lockUtils.convertSynchronizedMethod(mdecl, rcvr, clazz, classDecl, intrinsicAssumedLocks);
       }
       
-      doAcceptForChildren(mdecl);
+      enclosingFlowUnit = mdecl;
+      try {
+        doAcceptForChildren(mdecl);
+      } finally {
+        enclosingFlowUnit = null;
+      }
       return null; 
     }
     
@@ -397,7 +402,7 @@ final class LockExpressions {
     
     private Set<HeldLock> processLockExpression(final HowToProcessLocks howTo,
         final IRNode lockExpr, final IRNode syncBlock) {
-      if (lockUtils.isFinalExpression(lockExpr, syncBlock, constructorContext)) {
+      if (lockUtils.getFinalExpressionChecker(enclosingFlowUnit, syncBlock).isFinal(lockExpr)) {
         // Get the locks for the lock expression
         final Set<HeldLock> lockSet = new HashSet<HeldLock>();
         lockUtils.convertLockExpr(

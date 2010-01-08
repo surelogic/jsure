@@ -40,7 +40,7 @@ public class WholeModuleFXDrop extends PhantomDrop {
   private static final Set<IRegion> currentInterestingRegions = new HashSet<IRegion>();
   private static final Set<Effect> interestingRegionWriteFX = new HashSet<Effect>();
   
-  private static ConflictChecker conflictChecker = null;
+//  private static ConflictChecker conflictChecker = null;
   private static IBinder binder = null;
   
   private final Set<Effect> methodFX;
@@ -108,38 +108,38 @@ public class WholeModuleFXDrop extends PhantomDrop {
   
   private static final boolean filteringNYI = false;
   
-  public void filterFX() {
-    // globally filter the computed effects to include only those that are relevant
-    // to the "interesting regions."  This may be done either before or after
-    // computing the local effects. It must be done before computing the fixed point.
-    // We will end up using the union of all the interesting regions as a filter to
-    // shrink the problem before computing a fixed point.
-    
-    if (filteringNYI || currentInterestingRegions.isEmpty()) {
-      filteredMethodFX.addAll(methodFX);
-    } else {      
-      filteredMethodFX.addAll(filterSomeFX(methodFX));
-    }
-  }
-  
-  public static Set<Effect> filterSomeFX(Set< Effect> fxToFilter) {
-    Set<Effect> res = new HashSet<Effect>(1);
-    
-    if (fxToFilter == null || fxToFilter.isEmpty()) {
-      // nothing to do
-    } else if (filteringNYI || currentInterestingRegions.isEmpty()) {
-      res.addAll(fxToFilter);
-    } else {
-      final Set<Effect> intRegionWrites = getInterestingRegionWriteFX();
-      
-      for (Effect efx : fxToFilter) {
-        if (conflictChecker.mayConflict(intRegionWrites, Collections.singleton(efx), null)) {
-          res.add(efx);
-        }
-      }
-    }
-    return res;
-  }
+//  public void filterFX() {
+//    // globally filter the computed effects to include only those that are relevant
+//    // to the "interesting regions."  This may be done either before or after
+//    // computing the local effects. It must be done before computing the fixed point.
+//    // We will end up using the union of all the interesting regions as a filter to
+//    // shrink the problem before computing a fixed point.
+//    
+//    if (filteringNYI || currentInterestingRegions.isEmpty()) {
+//      filteredMethodFX.addAll(methodFX);
+//    } else {      
+//      filteredMethodFX.addAll(filterSomeFX(methodFX));
+//    }
+//  }
+//  
+//  public static Set<Effect> filterSomeFX(Set< Effect> fxToFilter) {
+//    Set<Effect> res = new HashSet<Effect>(1);
+//    
+//    if (fxToFilter == null || fxToFilter.isEmpty()) {
+//      // nothing to do
+//    } else if (filteringNYI || currentInterestingRegions.isEmpty()) {
+//      res.addAll(fxToFilter);
+//    } else {
+//      final Set<Effect> intRegionWrites = getInterestingRegionWriteFX();
+//      
+//      for (Effect efx : fxToFilter) {
+//        if (conflictChecker.mayConflict(intRegionWrites, Collections.singleton(efx), null)) {
+//          res.add(efx);
+//        }
+//      }
+//    }
+//    return res;
+//  }
   
   /**
    * Starting a new analysis run.  Blow away any invalid WMFXdrops completely, 
@@ -161,7 +161,7 @@ public class WholeModuleFXDrop extends PhantomDrop {
   
   public static void resetAnalysis(IBinder b) {
     binder = b;
-    conflictChecker = new ConflictChecker(b, new TypeBasedAliasAnalysis(b));
+//    conflictChecker = new ConflictChecker(b, new TypeBasedAliasAnalysis(b));
   }
 
   /* (non-Javadoc)

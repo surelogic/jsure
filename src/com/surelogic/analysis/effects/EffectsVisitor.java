@@ -285,6 +285,9 @@ implements IBinderClient {
     context = newContext;
     try {
       final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
+      /* Call doAccept directly instead of using doVisitInstanceInits because
+       * there is no explicit constructor.
+       */
       initVisitor.doAccept(AnonClassExpression.getBody(expr));
     } finally {
       context = oldContext;

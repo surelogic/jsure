@@ -64,7 +64,7 @@ public class ColorTargets {
   public static void initColorTargets(final AnalysisContext ac) {
     binder = ac.binder;
     ColorTargets.ac = ac;
-    conflictChecker = new ConflictChecker(binder, new TypeBasedAliasAnalysis(binder));
+//    conflictChecker = new ConflictChecker(binder, new TypeBasedAliasAnalysis(binder));
     
     if (INSTANCE == null) {
       // Get the Instance region
@@ -471,8 +471,12 @@ public class ColorTargets {
     final Set<Target> res = new HashSet<Target>(1);
     for (Target tgt : tgts) {
       for (Effect eff : intRegionWrites) {
+        /* XXX: This is just as broken as it was before we cared about the 
+         * constructor context.  Ideally the caller should be tracking the 
+         * current flow unit we care about.
+         */
         final TargetRelationship trel = 
-          tgt.overlapsWith(ac.tbAlias.getMayAliasMethod(before), binder, eff.getTarget());
+          tgt.overlapsWith(ac.tbAlias.getMethodFactory(IntraproceduralAnalysis.getRawFlowUnit(before)).getMayAliasMethod(before), binder, eff.getTarget());
         if (trel.getTargetRelationship() != TargetRelationships.UNRELATED ) {
           res.add(eff.getTarget());
           

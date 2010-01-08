@@ -15,10 +15,14 @@ import com.surelogic.analysis.effects.Effects;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
+import edu.cmu.cs.fluid.control.FlowAnalysis;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.analysis.InstanceInitVisitor;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
@@ -141,51 +145,33 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		clearPromiseRecordCache();
 
 		try {
-			final Set<IRNode> methods = shouldAnalyzeCompilationUnit(compUnit);
-			if (methods == null) {
-				// Analyze everything!
-				final IRNode typeDecls =
-					edu.cmu.cs.fluid.java.operator.CompilationUnit.getDecls(compUnit);
-				final Iterator<IRNode> decls =
-					TypeDeclarations.getTypesIterator(typeDecls);
-				
-				while (decls.hasNext()) {
-					final IRNode typeDecl = decls.next();
-					if (monitor != null) {
-						monitor.subTask("Checking [ Uniqueness Assurance ] "+
-								        JavaNames.getFullTypeName(typeDecl));
-					}
-					//System.out.println("Analyzing "+JavaNames.getFullTypeName(typeDecl));
-					analyzeSubtree(typeDecl);
-				}
-				return true;
-			} else if (runInParallel()) {
-				runInParallel(IRNode.class, methods, new Procedure<IRNode>() {
-					public void op(IRNode node) {
-						final String name = JavaNames.genRelativeFunctionName(node);
-						if (monitor != null) {
-							monitor.subTask("Checking [ Uniqueness Assurance ] "+name);
-						}
-						System.out.println("Parallel: "+name);
-						analyzeSubtree(node);
-					}
-				});
-				return !methods.isEmpty();				
-			} else {
-				// Analyze the given nodes
-				for (Iterator<IRNode> iter = methods.iterator(); iter.hasNext();) {
-					final IRNode node = iter.next();
-					
-					if (monitor != null) {
-						monitor.subTask("Checking [ Uniqueness Assurance ] "+
-								        JavaNames.genRelativeFunctionName(node));
-					}
-					//System.out.println("Sequential: "+JavaNames.genRelativeFunctionName(node));
+			final Set<TypeAndMethod> methods = shouldAnalyzeCompilationUnit(compUnit);
 
-					analyzeSubtree(node);
-				}
-				return !methods.isEmpty();
-			}
+      if (runInParallel()) {
+        runInParallel(TypeAndMethod.class, methods, new Procedure<TypeAndMethod>() {
+          public void op(TypeAndMethod node) {
+            final String methodName = JavaNames.genRelativeFunctionName(node.methodDecl);
+            if (monitor != null) {
+              monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+            }
+            System.out.println("Parallel: " + methodName);
+            analzyePseudoMethodDeclaration(node);
+          }
+        });
+        return !methods.isEmpty();
+      } else {
+        // Analyze the given nodes
+        for (Iterator<TypeAndMethod> iter = methods.iterator(); iter.hasNext();) {
+          final TypeAndMethod node = iter.next();
+          final String methodName = JavaNames.genQualifiedMethodConstructorName(node.methodDecl);
+          if (monitor != null) {
+            monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+          }
+          System.out.println("Sequential: " + methodName);
+          analzyePseudoMethodDeclaration(node);
+        }
+        return !methods.isEmpty();
+      }
 		} catch (Exception e) {
 			LOG.log(Level.SEVERE, "Exception in unique assurance", e); //$NON-NLS-1$
 		}
@@ -193,179 +179,222 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	}
 
 	/**
-	 * @param reporter
-	 * @param decl
+	 * @param decl A constructor declaration, method declaration, init declaration,
+	 * or class init declaration node.
 	 */
-	void analyzeSubtree(final IRNode decl) {
-		final Iterator<IRNode> nodes = JJNode.tree.topDown(decl);
-		while (nodes.hasNext()) {
-			final IRNode currentNode = nodes.next();
-			final IRNode insideBlock = getContainingBlock(currentNode);
-			if (insideBlock != null) {
-				final PromiseRecord pr = getCachedPromiseRecord(insideBlock);
-				checkMethodCall(currentNode, pr);
-				checkForError(currentNode, pr);
-			}
-		}
-	}
-
-	/**
-	 * Returns <code>null</code> if the compilation unit contains the
-	 * declaration or use of a unique field. Otherwise returns the set of the
-	 * methods in the CU that need to be analyzed because they have borrowed or
-	 * unique annotations or because they invoke a method that has unique
-	 * parameter requirements.
-	 *
-	 * @param compUnit
-	 *          A compilation unit node.
-	 * @return <code>null</code> or a set of method/constructor declarations.
-	 */
-	private Set<IRNode> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
-		final Set<IRNode> rootNodesForAnalysis = new HashSet<IRNode>();
-
-		final IRNode typeDecls = edu.cmu.cs.fluid.java.operator.CompilationUnit
-		.getDecls(compUnit);
-		final Iterator<IRNode> decls = TypeDeclarations.getTypesIterator(typeDecls);
-		while (decls.hasNext()) {
-			final IRNode decl = decls.next();
-			final Iterator<IRNode> nodes = JJNode.tree.topDown(decl);
-			while (nodes.hasNext()) {
-				final IRNode currentNode = nodes.next();
-				final Operator op = JJNode.tree.getOperator(currentNode);
-
-				// Ignore Annotation elements
-				if (AnnotationElement.prototype.includes(op)) {
-					continue;
-				}
-
-				/*
-				 * We are searching for (1) the declarations of an unique field (2) the
-				 * use of an unique field, (3) the declaration of a method that has
-				 * borrowed parameters, unique parameters, or a unique return value, or
-				 * (4) the invocation of a method that has unique parameter requirements.
-				 */
-
-				/*
-				 * NEW Case 1: Initializer of an unique field declaration. This
-				 * represents an implicit assignment to the field, and needs to be
-				 * captured so we can get the control-flow dependency.
-				 */
-				if (Initialization.prototype.includes(op)) {
-					final IRNode variableDeclarator = JJNode.tree.getParent(currentNode);
-					final IRNode variableDeclarators = JJNode.tree.getParent(variableDeclarator);
-					final IRNode possibleFieldDeclaration = JJNode.tree.getParent(variableDeclarators);
-					if (FieldDeclaration.prototype.includes(
-							JJNode.tree.getOperator(possibleFieldDeclaration))) {
-						if (UniquenessRules.isUnique(variableDeclarator)) {
-							rootNodesForAnalysis.add(possibleFieldDeclaration);
-						}
-					}
-				}
-
-				/*
-				 * Case 2
-				 */
-				if (FieldRef.prototype.equals(op)) {
-					if (UniquenessRules.isUnique(getBinder().getBinding(currentNode))) {
-						rootNodesForAnalysis.add(getContainingBlock(currentNode));
-					}
-				}
-
-				if (ConstructorDeclaration.prototype.equals(op)
-						|| MethodDeclaration.prototype.equals(op)) {
-					boolean hasBorrowedParam = false;
-					boolean hasUniqueParam = false;
-					boolean returnsUnique = false;
-
-					// Case 3a: returns unique
-					if (MethodDeclaration.prototype.equals(op)) {
-						final IRNode retDecl = JavaPromise.getReturnNodeOrNull(currentNode);
-						returnsUnique = (retDecl == null) ? false : UniquenessRules
-								.isUnique(retDecl);
-					}
-
-					// Case 3b: borrowed/unique parameter
-          if (ConstructorDeclaration.prototype.includes(op)) {
-            hasBorrowedParam |= UniquenessRules.constructorYieldsUnaliasedObject(currentNode);
-            // Cannot have a unique receiver
-          } else {
-            if (!TypeUtil.isStatic(currentNode)) { // non-static method
-              final IRNode self = JavaPromise.getReceiverNode(currentNode);
-              hasBorrowedParam |= UniquenessRules.isBorrowed(self);
-              hasUniqueParam |= UniquenessRules.isUnique(self);
-            }
+	private void analzyePseudoMethodDeclaration(final TypeAndMethod node) {
+    final PromiseRecord pr = getCachedPromiseRecord(node);
+    final Operator blockOp = JJNode.tree.getOperator(node.methodDecl);
+    final boolean isInit = InitDeclaration.prototype.includes(blockOp);
+    final boolean isClassInit = ClassInitDeclaration.prototype.includes(blockOp);
+    final boolean isConstructorDecl = ConstructorDeclaration.prototype.includes(blockOp);
+    final boolean isMethodDecl = MethodDeclaration.prototype.includes(blockOp);
+	  
+    /* if decl is a constructor declaration or initializer declaration, we need to
+     * scan the containing type and process the field declarations and
+     * initializer blocks.
+     */
+    if (isInit || isClassInit || isConstructorDecl) {
+      for (final IRNode bodyDecl : ClassBody.getDeclIterator(TypeDeclaration.getBody(node.typeDecl))) {
+        if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
+          if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
+            analyzeSubtree(node.methodDecl, pr, bodyDecl);
           }
-					IRNode formals = null;
-					if (ConstructorDeclaration.prototype.includes(op)) {
-						formals = ConstructorDeclaration.getParams(currentNode);
-					} else {
-						formals = MethodDeclaration.getParams(currentNode);
-					}
-					for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
-            final IRNode param = JJNode.tree.getChild(formals, i);
-            hasBorrowedParam |= UniquenessRules.isBorrowed(param);
-            hasUniqueParam |= UniquenessRules.isUnique(param);
-					}
-					if (returnsUnique || hasBorrowedParam || hasUniqueParam)
-						rootNodesForAnalysis.add(currentNode);
-				}
-
-				// Case 4: invoking method with unique parameter
-				if (op instanceof CallInterface) {
-					final IRNode declNode = getBinder().getBinding(currentNode);
-
-					if (declNode != null) {
-						final Operator declOp = JJNode.tree.getOperator(declNode);
-						IRNode formals = null;
-
-						if (declOp instanceof ConstructorDeclaration) {
-							formals = ConstructorDeclaration.getParams(declNode);
-						} else if (declOp instanceof MethodDeclaration) {
-							formals = MethodDeclaration.getParams(declNode);
-						}
-						if (formals != null) {
-							boolean hasUniqueParam = false;
-
-							if (!TypeUtil.isStatic(declNode)) {
-								final IRNode self = JavaPromise.getReceiverNode(declNode);
-								hasUniqueParam |= UniquenessRules.isUnique(self);
-							}
-							for (int i = 0; !hasUniqueParam
-							&& (i < JJNode.tree.numChildren(formals)); i++) {
-								hasUniqueParam = UniquenessRules.isUnique(JJNode.tree
-										.getChild(formals, i));
-							}
-							if (hasUniqueParam) {
-								final IRNode currentMethod = getContainingBlock(currentNode);
-								if (currentMethod != null) {
-									rootNodesForAnalysis.add(currentMethod);
-								} else {
-									// method call not in a method! analyze everything!
-									return null;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return rootNodesForAnalysis;
+        }
+      }
+    }
+    
+    if (isConstructorDecl || isMethodDecl) {
+      analyzeSubtree(node.methodDecl, pr, node.methodDecl);
+    }
 	}
 
-	private void checkForError(final IRNode node, final PromiseRecord pr) {
-		if (isInvalid(node)) {
+	private void analyzeSubtree(
+	    final IRNode decl, final PromiseRecord pr, final IRNode root) {
+    final Iterator<IRNode> nodes = JJNode.tree.topDown(root);
+    while (nodes.hasNext()) {
+      final IRNode currentNode = nodes.next();
+      checkMethodCall(decl, currentNode, pr);
+      checkForError(decl, currentNode, pr);
+    }
+	}
+
+  /**
+   * Returns the method/constructor/initializer declarations contained in the
+   * given compilation that need to be analyzed because they contain structures
+   * that depend on unique annotations.
+   * 
+   * @param compUnit
+   *          A compilation unit node.
+   * @return A set of method/constructor declarations. May include
+   *         InitDeclaration nodes in the case of anonymous class expressions
+   *         and ClassInitDeclaration nodes in the case of static initializers.
+   */
+	private Set<TypeAndMethod> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
+	  final ShouldAnalyzeVisitor visitor = new ShouldAnalyzeVisitor(getBinder());
+	  visitor.doAccept(compUnit);
+	  return visitor.getResults();
+	}
+	
+//	/**
+//	 * Returns <code>null</code> if the compilation unit contains the
+//	 * declaration or use of a unique field. Otherwise returns the set of the
+//	 * methods in the CU that need to be analyzed because they have borrowed or
+//	 * unique annotations or because they invoke a method that has unique
+//	 * parameter requirements.
+//	 *
+//	 * @param compUnit
+//	 *          A compilation unit node.
+//	 * @return <code>null</code> or a set of method/constructor declarations.
+//	 */
+//	private Set<IRNode> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
+//		final Set<IRNode> rootNodesForAnalysis = new HashSet<IRNode>();
+//
+//		final IRNode typeDecls =
+//		  edu.cmu.cs.fluid.java.operator.CompilationUnit.getDecls(compUnit);
+//		final Iterator<IRNode> decls = TypeDeclarations.getTypesIterator(typeDecls);
+//		while (decls.hasNext()) {
+//			final IRNode decl = decls.next();
+//			final Iterator<IRNode> nodes = JJNode.tree.topDown(decl);
+//			while (nodes.hasNext()) {
+//				final IRNode currentNode = nodes.next();
+//				final Operator op = JJNode.tree.getOperator(currentNode);
+//
+//				// Ignore Annotation elements
+//				if (AnnotationElement.prototype.includes(op)) {
+//					continue;
+//				}
+//
+//				/*
+//				 * We are searching for (1) the declarations of an unique field (2) the
+//				 * use of an unique field, (3) the declaration of a method that has
+//				 * borrowed parameters, unique parameters, or a unique return value, or
+//				 * (4) the invocation of a method that has unique parameter requirements.
+//				 */
+//
+//				/*
+//				 * NEW Case 1: Initializer of an unique field declaration. This
+//				 * represents an implicit assignment to the field, and needs to be
+//				 * captured so we can get the control-flow dependency.
+//				 */
+//				if (Initialization.prototype.includes(op)) {
+//					final IRNode variableDeclarator = JJNode.tree.getParent(currentNode);
+//					final IRNode variableDeclarators = JJNode.tree.getParent(variableDeclarator);
+//					final IRNode possibleFieldDeclaration = JJNode.tree.getParent(variableDeclarators);
+//					if (FieldDeclaration.prototype.includes(
+//							JJNode.tree.getOperator(possibleFieldDeclaration))) {
+//						if (UniquenessRules.isUnique(variableDeclarator)) {
+//							rootNodesForAnalysis.add(possibleFieldDeclaration);
+//						}
+//					}
+//				}
+//
+//				/*
+//				 * Case 2
+//				 */
+//				if (FieldRef.prototype.equals(op)) {
+//					if (UniquenessRules.isUnique(getBinder().getBinding(currentNode))) {
+//						rootNodesForAnalysis.add(getContainingBlock(currentNode));
+//					}
+//				}
+//
+//				if (ConstructorDeclaration.prototype.equals(op)
+//						|| MethodDeclaration.prototype.equals(op)) {
+//					boolean hasBorrowedParam = false;
+//					boolean hasUniqueParam = false;
+//					boolean returnsUnique = false;
+//
+//					// Case 3a: returns unique
+//					if (MethodDeclaration.prototype.equals(op)) {
+//						final IRNode retDecl = JavaPromise.getReturnNodeOrNull(currentNode);
+//						returnsUnique = (retDecl == null) ? false : UniquenessRules
+//								.isUnique(retDecl);
+//					}
+//
+//					// Case 3b: borrowed/unique parameter
+//          if (ConstructorDeclaration.prototype.includes(op)) {
+//            hasBorrowedParam |= UniquenessRules.constructorYieldsUnaliasedObject(currentNode);
+//            // Cannot have a unique receiver
+//          } else {
+//            if (!TypeUtil.isStatic(currentNode)) { // non-static method
+//              final IRNode self = JavaPromise.getReceiverNode(currentNode);
+//              hasBorrowedParam |= UniquenessRules.isBorrowed(self);
+//              hasUniqueParam |= UniquenessRules.isUnique(self);
+//            }
+//          }
+//					IRNode formals = null;
+//					if (ConstructorDeclaration.prototype.includes(op)) {
+//						formals = ConstructorDeclaration.getParams(currentNode);
+//					} else {
+//						formals = MethodDeclaration.getParams(currentNode);
+//					}
+//					for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
+//            final IRNode param = JJNode.tree.getChild(formals, i);
+//            hasBorrowedParam |= UniquenessRules.isBorrowed(param);
+//            hasUniqueParam |= UniquenessRules.isUnique(param);
+//					}
+//					if (returnsUnique || hasBorrowedParam || hasUniqueParam)
+//						rootNodesForAnalysis.add(currentNode);
+//				}
+//
+//				// Case 4: invoking method with unique parameter
+//				if (op instanceof CallInterface) {
+//					final IRNode declNode = getBinder().getBinding(currentNode);
+//
+//					if (declNode != null) {
+//						final Operator declOp = JJNode.tree.getOperator(declNode);
+//						IRNode formals = null;
+//
+//						if (declOp instanceof ConstructorDeclaration) {
+//							formals = ConstructorDeclaration.getParams(declNode);
+//						} else if (declOp instanceof MethodDeclaration) {
+//							formals = MethodDeclaration.getParams(declNode);
+//						}
+//						if (formals != null) {
+//							boolean hasUniqueParam = false;
+//
+//							if (!TypeUtil.isStatic(declNode)) {
+//								final IRNode self = JavaPromise.getReceiverNode(declNode);
+//								hasUniqueParam |= UniquenessRules.isUnique(self);
+//							}
+//							for (int i = 0; !hasUniqueParam
+//							&& (i < JJNode.tree.numChildren(formals)); i++) {
+//								hasUniqueParam = UniquenessRules.isUnique(JJNode.tree
+//										.getChild(formals, i));
+//							}
+//							if (hasUniqueParam) {
+//								final IRNode currentMethod = getContainingBlock(currentNode);
+//								if (currentMethod != null) {
+//									rootNodesForAnalysis.add(currentMethod);
+//								} else {
+//									// method call not in a method! analyze everything!
+//									return null;
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		return rootNodesForAnalysis;
+//	}
+
+	private void checkForError(
+	    final IRNode insideDecl, final IRNode node, final PromiseRecord pr) {
+		if (isInvalid(insideDecl, node)) {
 		  final ResultDropBuilder cfDrop = pr.controlFlow;
 		  cfDrop.setInconsistent();
-		  cfDrop.addSupportingInformation(getErrorMessage(node), node);
+		  cfDrop.addSupportingInformation(getErrorMessage(insideDecl, node), node);
 		}
 	}
 
-	public void checkMethodCall(final IRNode node, final PromiseRecord pr) {
+	public void checkMethodCall(
+	    final IRNode insideDecl, final IRNode node, final PromiseRecord pr) {
 		if (JJNode.tree.getOperator(node) instanceof CallInterface) {
 			final Set<ResultDropBuilder> callDrops = pr.callsToDrops.get(node);
 			
-			if (getAnalysis().isPositivelyAssured(node)) {
+			if (getAnalysis().isPositivelyAssured(node, insideDecl)) {
 				for (ResultDropBuilder callDrop : callDrops) {
 					callDrop.setConsistent();
 					if (pr.calledUniqueParams.contains(callDrop)) {
@@ -376,7 +405,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			} else {
 				for (ResultDropBuilder callDrop : callDrops) {
 					callDrop.setInconsistent();
-          callDrop.addSupportingInformation(getErrorMessage(node), node);
+          callDrop.addSupportingInformation(getErrorMessage(insideDecl, node), node);
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setMessage(Messages.uniqueParametersUnsatisfied, DebugUnparser.toString(node));
 					  callDrop.setCategory(DSC_UNIQUE_PARAMS_UNSATISFIED);
@@ -389,19 +418,19 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	/**
 	 * Is the node the source of a uniqueness problem?
 	 */
-	private boolean isInvalid(final IRNode node) {
+	private boolean isInvalid(final IRNode insideDecl, final IRNode node) {
 		final UniqueAnalysis a = getAnalysis();
 		//System.out.println("Unique using "+a.binder.getTypeEnvironment().getProject());
 		
 		/* Definitely not erroneous */
-		if (!a.isInvalid(node))
+		if (!a.isInvalid(node, insideDecl))
 			return false;
 
 		/* Node is erroneous, but does the error come from a child? */
 		for (Iterator<IRNode> ch = JJNode.tree.children(node); ch.hasNext();) {
 			final IRNode n = ch.next();
 			/* Problem comes from a child, so parent is not to blame */
-			if (a.isInvalid(n))
+			if (a.isInvalid(n, insideDecl))
 				return false;
 		}
 		/* Not a problem from a child. */
@@ -411,9 +440,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	/**
 	 * Assumes that isInvalid( n ) is true
 	 */
-	private String getErrorMessage(final IRNode n) {
-		final String normErr = getAnalysis().getNormalErrorMessage(n);
-		final String abruptErr = getAnalysis().getAbruptErrorMessage(n);
+	@SuppressWarnings("unchecked")
+  private String getErrorMessage(final IRNode insideDecl, final IRNode n) {
+	  final FlowAnalysis a = getAnalysis().getAnalysis(insideDecl);
+		final String normErr = getAnalysis().getNormalErrorMessage(a, n);
+		final String abruptErr = getAnalysis().getAbruptErrorMessage(a, n);
 
 		if (normErr != UniqueAnalysis.NOT_AN_ERROR) {
 			if (abruptErr != UniqueAnalysis.NOT_AN_ERROR) {
@@ -428,27 +459,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		return UniqueAnalysis.NOT_AN_ERROR;
 	}
 
-	/**
-	 * If node is inside a method/constructor body, then return the
-	 * MethodDeclaration or ConstructorDeclaration node. If node is inside an
-	 * instance or static initializer block, return the ClassInitializer node. if
-	 * it's inside a field initializer, return the FieldDeclaration node. Otherwise
-	 * return <code>null</code>.
-	 */
-	private IRNode getContainingBlock(IRNode node) {
-		while (node != null) {
-			final Operator op = JJNode.tree.getOperator(node);
-			if (ConstructorDeclaration.prototype.includes(op)
-					|| MethodDeclaration.prototype.includes(op)
-					|| ClassInitializer.prototype.includes(op)
-					|| FieldDeclaration.prototype.includes(op)) {
-				return node;
-			}
-			node = JJNode.tree.getParentOrNull(node);
-		}
-		return null;
-	}
-
 	private Map<IRNode, PromiseRecord> cachedPromiseRecord = null;
 
 	private void clearPromiseRecordCache() {
@@ -457,19 +467,19 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 
 	/**
 	 * @param block
-	 *          A MethodDeclaration, ConstructorDeclaration, or ClassInitializer.
+	 *          A MethodDeclaration, ConstructorDeclaration, InitDeclaration, or ClassInitDeclaration.
 	 */
-	private PromiseRecord getCachedPromiseRecord(final IRNode block) {
+	private PromiseRecord getCachedPromiseRecord(final TypeAndMethod block) {
 		/*
 		String name = DebugUnparser.toString(block);
 		if (name.contains("GameMap getMap()")) {
 			System.out.println("Found: "+name);
 		}
 		*/
-		PromiseRecord pr = cachedPromiseRecord.get(block);
+		PromiseRecord pr = cachedPromiseRecord.get(block.methodDecl);
 		if (pr == null) {
 			pr = createPromiseRecordFor(block);
-			cachedPromiseRecord.put(block, pr);
+			cachedPromiseRecord.put(block.methodDecl, pr);
 		}
 		return pr;
 	}
@@ -479,6 +489,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	 * MethodDeclaration, ConstructorDeclaration, ClassInitializer, or Initialzer.
 	 */
 	private class PromiseRecord {
+    /**
+     * The method/constructor declaration, or init declaration, or class init
+     * declaration this information is for.
+     */
+	  public final IRNode methodDecl;
+	  
 		/** The unique parameters declared by this method/constructor */
 		public final Set<UniquePromiseDrop> myUniqueParams;
 
@@ -517,6 +533,26 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		/** Drop for control-flow within this block */
 		public final ResultDropBuilder controlFlow;
 
+    /**
+     * Result drop that aggregates together all the unique field promise drops.
+     * Created lazily.
+     */
+    private ResultDropBuilder aggregatedUniqueFields;
+    
+    /** Need a separate flag because aggregatedUniqueFields is allowed to be null;
+     */
+    private boolean isAggregatedUniqueFieldsSet = false;
+
+    /**
+     * Result drop that aggregates together all the unique parameter promise drops.
+     * Created lazily.
+     */
+    private ResultDropBuilder aggregatedUniqueParams;
+    
+    /** Need a separate flag because aggregatedUniqueParams is allowed to be null;
+     */
+    private boolean isAggregatedUniqueParamsSet = false;
+		
 		/**
 		 * Map from method/constructor calls to the set of result drops that
 		 * represent the calls.
@@ -526,6 +562,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		private String name;
 		
 		public PromiseRecord(final IRNode block) {
+		  methodDecl = block;
 			myUniqueParams = new HashSet<UniquePromiseDrop>();
 			myBorrowedParams = new HashSet<BorrowedPromiseDrop>();
 			myUniqueReturn = new HashSet<UniquePromiseDrop>();
@@ -549,6 +586,50 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		public String toString() {
 			return name;
 		}
+		
+		// Can return null
+		public synchronized ResultDropBuilder getAggregatedUniqueFields() {
+		  if (!isAggregatedUniqueFieldsSet) {
+		    if (uniqueFields.isEmpty()) {
+		      aggregatedUniqueFields = null;
+		    } else {
+          final ResultDropBuilder middleDrop = ResultDropBuilder.create(
+              UniquenessAnalysisModule.this, "aggregatedUniqueFields");
+          middleDrop.setConsistent();
+          middleDrop.setNode(methodDecl);
+          middleDrop.setMessage(Messages.aggregatedUniqueFields, JavaNames.genQualifiedMethodConstructorName(methodDecl));
+          setResultDependUponDrop(middleDrop);
+          for (final UniquePromiseDrop ud : uniqueFields) {
+            middleDrop.addTrustedPromise(ud);
+          }       
+          aggregatedUniqueFields = middleDrop;
+		    }
+		    isAggregatedUniqueFieldsSet = true;
+		  }
+		  return aggregatedUniqueFields;
+		}
+    
+    // Can return null
+    public synchronized ResultDropBuilder getAggregatedUniqueParams() {
+      if (!isAggregatedUniqueParamsSet) {
+        if (myUniqueParams.isEmpty()) {
+          aggregatedUniqueParams = null;
+        } else {
+          final ResultDropBuilder middleDrop = ResultDropBuilder.create(
+              UniquenessAnalysisModule.this, "aggregatedUniqueParams");
+          middleDrop.setConsistent();
+          middleDrop.setNode(methodDecl);
+          middleDrop.setMessage(Messages.aggregatedUniqueParams, JavaNames.genQualifiedMethodConstructorName(methodDecl));
+          setResultDependUponDrop(middleDrop);
+          for (final UniquePromiseDrop ud : myUniqueParams) {
+            middleDrop.addTrustedPromise(ud);
+          }       
+          aggregatedUniqueParams = middleDrop;
+        }
+        isAggregatedUniqueParamsSet = true;
+      }
+      return aggregatedUniqueParams;
+    }
 	}
 
 	private final Map<IRNode, ResultDropBuilder> cachedControlFlow = new HashMap<IRNode, ResultDropBuilder>();
@@ -590,145 +671,86 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
     }
     return drop;
 	}
-	
-	@SuppressWarnings("unchecked")
-  private PromiseRecord createPromiseRecordFor(final IRNode block) {
-		final PromiseRecord pr = new PromiseRecord(block);
-		final Operator blockOp = JJNode.tree.getOperator(block);
 
-		/*
-		 * If the block is a FieldDeclaration, see if it contains any unique fields.
-		 */
-		if (FieldDeclaration.prototype.includes(blockOp)) {
-			final IRNode variableDeclarators = FieldDeclaration.getVars(block);
-			for (IRNode varDecl : VariableDeclarators.getVarIterator(variableDeclarators)) {
-				if (UniquenessRules.isUnique(varDecl)) {
-					pr.uniqueFields.add(UniquenessRules.getUniqueDrop(varDecl));
-				}
-			}
+  /**
+   * @param block
+   *          A constructor declaration, method declaration, init declaration,
+   *          or class init declaration node.
+   */
+  private PromiseRecord createPromiseRecordFor(final TypeAndMethod block) {
+		final PromiseRecord pr = new PromiseRecord(block.methodDecl);
+		final Operator blockOp = JJNode.tree.getOperator(block.methodDecl);
+    final boolean isInit = InitDeclaration.prototype.includes(blockOp);
+    final boolean isClassInit = ClassInitDeclaration.prototype.includes(blockOp);
+    final boolean isConstructorDecl = ConstructorDeclaration.prototype.includes(blockOp);
+    final boolean isMethodDecl = MethodDeclaration.prototype.includes(blockOp);
+
+    /*
+     * If the block is a constructor declaration or InitDeclaration or
+     * ClassInitDeclaration we need to gather up the unique field declarations.
+     */		
+    if (isConstructorDecl || isInit || isClassInit) {
+		  for (final IRNode bodyDecl : ClassBody.getDeclIterator(TypeDeclaration.getBody(block.typeDecl))) {
+		    if (FieldDeclaration.prototype.includes(bodyDecl)) {
+		      if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
+  		      final IRNode variableDeclarators = FieldDeclaration.getVars(bodyDecl);
+  		      for (IRNode varDecl : VariableDeclarators.getVarIterator(variableDeclarators)) {
+  		        if (UniquenessRules.isUnique(varDecl)) {
+  		          pr.uniqueFields.add(UniquenessRules.getUniqueDrop(varDecl));
+  		        }
+  		      }
+		      }
+		    }
+		  }
 		}
 
 		/* If the block is a method or constructor declaration, get promise
 		 * information from it.
 		 */
-		final boolean isConDecl = ConstructorDeclaration.prototype.includes(blockOp);
-    if (isConDecl || MethodDeclaration.prototype.includes(blockOp)) {
+    if (isConstructorDecl || isMethodDecl) {
       // don't care about my effects, use a throw-away set here
-      getPromisesFromMethodDecl(block, pr.myUniqueReturn,
+      getPromisesFromMethodDecl(block.methodDecl, pr.myUniqueReturn,
           pr.myBorrowedParams, new HashSet<BorrowedPromiseDrop>(),
           pr.myUniqueParams, new HashSet<RegionEffectsPromiseDrop>());
     }
 
-		// Look at the guts of the method/constructor/initializer
-		final Iterator<IRNode> nodes = JJNode.tree.topDown(block);
-		while (nodes.hasNext()) {
-			final IRNode currentNode = nodes.next();
-			final Operator op = JJNode.tree.getOperator(currentNode);
-
-			// is it a unique field access?
-			if (FieldRef.prototype.equals(op)) {
-				final IRNode fdecl = getBinder().getBinding(currentNode);
-				if (UniquenessRules.isUnique(fdecl)) {
-					pr.uniqueFields.add(UniquenessRules.getUniqueDrop(fdecl));
-				}
-			}
-
-			// Is it a method call
-			if (op instanceof CallInterface) {
-				final IRNode declNode = getBinder().getBinding(currentNode);
-				if (declNode == null) {
-					LOG.warning("No binding for "+DebugUnparser.toString(currentNode));
-					continue;
-				}
-				final boolean isConstructorCall = 
-				  ConstructorDeclaration.prototype.includes(declNode);
-				
-				// get the info for the called method
-				final Set<UniquePromiseDrop> uniqueReturns = new HashSet<UniquePromiseDrop>();
-        final Set<BorrowedPromiseDrop> borrowedParams = new HashSet<BorrowedPromiseDrop>();
-        final Set<BorrowedPromiseDrop> borrowedReceiver = new HashSet<BorrowedPromiseDrop>();
-				final Set<UniquePromiseDrop> uniqueParams = new HashSet<UniquePromiseDrop>();
-				final Set<RegionEffectsPromiseDrop> effects = new HashSet<RegionEffectsPromiseDrop>();
-				getPromisesFromMethodDecl(
-				    declNode, uniqueReturns, borrowedParams, borrowedReceiver,
-						uniqueParams, effects);
-
-				// Create the method call drops
-				final Set<ResultDropBuilder> allCallDrops = new HashSet<ResultDropBuilder>();
-				final String label = DebugUnparser.toString(currentNode);
-				if (!uniqueReturns.isEmpty()) {
-					final ResultDropBuilder callDrop = getMethodCallDrop("uniqueReturnDrop",
-					    MessageFormat.format(Messages.uniqueReturnDrop, label),
-					    currentNode, uniqueReturns);
-					if (!isConstructorCall) {
-  					allCallDrops.add(callDrop);
-  					// Unique returns is a singleton set
-  					pr.calledUniqueReturns.put(callDrop, uniqueReturns.iterator().next());
-					} else {
-	          /* Unique return on constructor should be treated like a borrowed
-	           * receiver 
-	           */
-					  allCallDrops.add(callDrop);
-					  pr.calledBorrowedReceiverAsUniqueReturn.add(callDrop);
-					  pr.calledUniqueConstructors.put(callDrop, uniqueReturns.iterator().next());
-					}
-				}
-				if (!borrowedParams.isEmpty()) {
-					final ResultDropBuilder callDrop = getMethodCallDrop("borrowedParametersDrop",
-					    MessageFormat.format(Messages.borrowedParametersDrop, label),
-							currentNode, borrowedParams);
-					allCallDrops.add(callDrop);
-					pr.calledBorrowedParams.add(callDrop);
-					
-					if (isConstructorCall && !borrowedReceiver.isEmpty()) {
-					  // Borrowed receivers is a singleton set
-					  pr.calledBorrowedConstructors.put(callDrop, borrowedReceiver.iterator().next());
-					}
-				}
-				if (!uniqueParams.isEmpty()) {
-				  /* Here we hold off setting the message and category until the 
-				   * call is actually assured in checkMethodCall()
-				   */
-					final ResultDropBuilder callDrop = ResultDropBuilder.create(this, "uniqueParametersDrop");
-					callDrop.setConsistent();
-          setResultDependUponDrop(callDrop, currentNode);
-          // This result checks the uniqueness promises of the parameters
-          for (final UniquePromiseDrop uniqueParam : uniqueParams) {
-            callDrop.addCheckedPromise(uniqueParam);
+		/* Look at the guts of the method/constructor/initializer.  If the block
+		 * is a constructor or instance init declaration, we also look at all the 
+		 * field declarations and initializer blocks.
+		 */
+    if (isConstructorDecl || isMethodDecl) {
+      populatePromiseRecord(pr, block.methodDecl);
+    }
+    if (isInit || isClassInit || isConstructorDecl) {
+      for (final IRNode bodyDecl : ClassBody.getDeclIterator(TypeDeclaration.getBody(block.typeDecl))) {
+        if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
+          if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
+            populatePromiseRecord(pr, bodyDecl);
           }
-					allCallDrops.add(callDrop);
-					pr.calledUniqueParams.add(callDrop);
-				}
-				if (!effects.isEmpty()) {
-					final ResultDropBuilder callDrop = getMethodCallDrop("effectOfCallDrop",
-					    MessageFormat.format(Messages.effectOfCallDrop, label),
-					    currentNode, effects);
-					allCallDrops.add(callDrop);
-					pr.calledEffects.add(callDrop);
-				}
+        }
+      }
+    }
 
-				// Add to the map of calls to drops
-				pr.callsToDrops.put(currentNode, allCallDrops);
-			}
-		}
 
+    
     /*
      * Set up the borrowed dependencies. Each parameter of the method that is
      * declared to be borrowed trusts the @borrowed annotations (including
      * @Unique("return") annotations on constructors) of any methods called by
      * the body of this method.
      */
-		{
+		if (!pr.myBorrowedParams.isEmpty() ||
+		    (isConstructorDecl && !pr.myUniqueReturn.isEmpty())) {
 			final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>(pr.calledBorrowedParams);
 			dependsOnResults.addAll(pr.calledBorrowedReceiverAsUniqueReturn);
 			dependsOnResults.add(pr.controlFlow);
-      addDependencies(pr.myBorrowedParams, intermediateResultDrops,
-          Collections.<PromiseDrop>emptySet(), dependsOnResults);
+      addDependencies(
+          pr.myBorrowedParams, intermediateResultDrops, dependsOnResults);
       /* If we are a constructor, we treat unique("return") like @borrowed("this")
        */
-      if (isConDecl) {
-        addDependencies(pr.myUniqueReturn, intermediateResultDrops,
-            Collections.<PromiseDrop>emptySet(), dependsOnResults);
+      if (isConstructorDecl) {
+        addDependencies(
+            pr.myUniqueReturn, intermediateResultDrops, dependsOnResults);
       }
 		}
 
@@ -740,12 +762,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		 * fields accessed by this method, the effects of methods w/borrowed
 		 * parameters, and the control-flow of the method itself.
 		 */
-		{
-			final Set<PromiseDrop<? extends IAASTRootNode>> dependsOnPromises =
-				new HashSet<PromiseDrop<? extends IAASTRootNode>>();
-			dependsOnPromises.addAll(pr.myUniqueParams);
-			dependsOnPromises.addAll(pr.uniqueFields);
-			final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>();
+		if (!pr.uniqueFields.isEmpty()) {
+      final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>();
+      final ResultDropBuilder aggregatedUniqueParams = pr.getAggregatedUniqueParams();
+      if (aggregatedUniqueParams != null) dependsOnResults.add(aggregatedUniqueParams);
+			final ResultDropBuilder aggregatedUniqueFields = pr.getAggregatedUniqueFields();
+			if (aggregatedUniqueFields != null) dependsOnResults.add(aggregatedUniqueFields);
 			dependsOnResults.add(pr.controlFlow);
       dependsOnResults.addAll(pr.calledUniqueReturns.keySet());
       dependsOnResults.addAll(pr.calledBorrowedConstructors.keySet());
@@ -753,7 +775,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 			dependsOnResults.addAll(pr.calledBorrowedParams);
 			dependsOnResults.addAll(pr.calledBorrowedReceiverAsUniqueReturn);
 			dependsOnResults.addAll(pr.calledEffects);
-			addDependencies(pr.uniqueFields, intermediateResultDrops, dependsOnPromises, dependsOnResults);
+			addDependencies(pr.uniqueFields, intermediateResultDrops, dependsOnResults);
 		}
 
 		/*
@@ -762,35 +784,29 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		 * methods, the unique fields accessed by this method, and the control-flow
 		 * of the method itself.
 		 */
-		{
-			final Set<PromiseDrop<? extends IAASTRootNode>> dependsOnPromises =
-				new HashSet<PromiseDrop<? extends IAASTRootNode>>();
-			dependsOnPromises.addAll(pr.myUniqueParams);
-			dependsOnPromises.addAll(pr.uniqueFields);
-			final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>();
+		if (!isConstructorDecl && !pr.myUniqueReturn.isEmpty()) {
+      final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>();
+      final ResultDropBuilder aggregatedUniqueParams = pr.getAggregatedUniqueParams();
+      if (aggregatedUniqueParams != null) dependsOnResults.add(aggregatedUniqueParams);
+      final ResultDropBuilder aggregatedUniqueFields = pr.getAggregatedUniqueFields();
+      if (aggregatedUniqueFields != null) dependsOnResults.add(aggregatedUniqueFields);
 	    dependsOnResults.add(pr.controlFlow);
   		dependsOnResults.addAll(pr.calledUniqueReturns.keySet());
       dependsOnResults.addAll(pr.calledBorrowedConstructors.keySet());
       dependsOnResults.addAll(pr.calledUniqueConstructors.keySet());
-  		/* If this is from a constructor than unique("return") should be 
-  		 * treated as borrowed("this")
-  		 */
-  		if (!isConDecl) {
-  		  addDependencies(pr.myUniqueReturn, intermediateResultDrops,
-  		      dependsOnPromises, dependsOnResults);
-  		}
+      addDependencies(
+          pr.myUniqueReturn, intermediateResultDrops, dependsOnResults);
 		}
 
 		/* Set up the dependencies for this method's unique parameters.  They can
 		 * be compromised and turned non-unique during the execution of the method.
 		 * Depends on the the control-flow of the method.
 		 */
-		{
-      final Set<PromiseDrop<? extends IAASTRootNode>> dependsOnPromises =
-        new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+		if (!pr.myUniqueParams.isEmpty()) {
       final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>();
       dependsOnResults.add(pr.controlFlow);
-		  addDependencies(pr.myUniqueParams, intermediateResultDrops, dependsOnPromises, dependsOnResults);
+		  addDependencies(
+		      pr.myUniqueParams, intermediateResultDrops, dependsOnResults);
 		}
 		
 		/*
@@ -845,6 +861,100 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		return pr;
 	}
 
+	private void populatePromiseRecord(final PromiseRecord pr, final IRNode root) {
+    final Iterator<IRNode> nodes = JJNode.tree.topDown(root);
+    while (nodes.hasNext()) {
+      final IRNode currentNode = nodes.next();
+      final Operator op = JJNode.tree.getOperator(currentNode);
+
+      // is it a unique field access?
+      if (FieldRef.prototype.equals(op)) {
+        final IRNode fdecl = getBinder().getBinding(currentNode);
+        if (UniquenessRules.isUnique(fdecl)) {
+          pr.uniqueFields.add(UniquenessRules.getUniqueDrop(fdecl));
+        }
+      }
+
+      // Is it a method call
+      if (op instanceof CallInterface) {
+        final IRNode declNode = getBinder().getBinding(currentNode);
+        if (declNode == null) {
+          LOG.warning("No binding for "+DebugUnparser.toString(currentNode));
+          continue;
+        }
+        final boolean isConstructorCall = 
+          ConstructorDeclaration.prototype.includes(declNode);
+        
+        // get the info for the called method
+        final Set<UniquePromiseDrop> uniqueReturns = new HashSet<UniquePromiseDrop>();
+        final Set<BorrowedPromiseDrop> borrowedParams = new HashSet<BorrowedPromiseDrop>();
+        final Set<BorrowedPromiseDrop> borrowedReceiver = new HashSet<BorrowedPromiseDrop>();
+        final Set<UniquePromiseDrop> uniqueParams = new HashSet<UniquePromiseDrop>();
+        final Set<RegionEffectsPromiseDrop> effects = new HashSet<RegionEffectsPromiseDrop>();
+        getPromisesFromMethodDecl(
+            declNode, uniqueReturns, borrowedParams, borrowedReceiver,
+            uniqueParams, effects);
+
+        // Create the method call drops
+        final Set<ResultDropBuilder> allCallDrops = new HashSet<ResultDropBuilder>();
+        final String label = DebugUnparser.toString(currentNode);
+        if (!uniqueReturns.isEmpty()) {
+          final ResultDropBuilder callDrop = getMethodCallDrop("uniqueReturnDrop",
+              MessageFormat.format(Messages.uniqueReturnDrop, label),
+              currentNode, uniqueReturns);
+          if (!isConstructorCall) {
+            allCallDrops.add(callDrop);
+            // Unique returns is a singleton set
+            pr.calledUniqueReturns.put(callDrop, uniqueReturns.iterator().next());
+          } else {
+            /* Unique return on constructor should be treated like a borrowed
+             * receiver 
+             */
+            allCallDrops.add(callDrop);
+            pr.calledBorrowedReceiverAsUniqueReturn.add(callDrop);
+            pr.calledUniqueConstructors.put(callDrop, uniqueReturns.iterator().next());
+          }
+        }
+        if (!borrowedParams.isEmpty()) {
+          final ResultDropBuilder callDrop = getMethodCallDrop("borrowedParametersDrop",
+              MessageFormat.format(Messages.borrowedParametersDrop, label),
+              currentNode, borrowedParams);
+          allCallDrops.add(callDrop);
+          pr.calledBorrowedParams.add(callDrop);
+          
+          if (isConstructorCall && !borrowedReceiver.isEmpty()) {
+            // Borrowed receivers is a singleton set
+            pr.calledBorrowedConstructors.put(callDrop, borrowedReceiver.iterator().next());
+          }
+        }
+        if (!uniqueParams.isEmpty()) {
+          /* Here we hold off setting the message and category until the 
+           * call is actually assured in checkMethodCall()
+           */
+          final ResultDropBuilder callDrop = ResultDropBuilder.create(this, "uniqueParametersDrop");
+          callDrop.setConsistent();
+          setResultDependUponDrop(callDrop, currentNode);
+          // This result checks the uniqueness promises of the parameters
+          for (final UniquePromiseDrop uniqueParam : uniqueParams) {
+            callDrop.addCheckedPromise(uniqueParam);
+          }
+          allCallDrops.add(callDrop);
+          pr.calledUniqueParams.add(callDrop);
+        }
+        if (!effects.isEmpty()) {
+          final ResultDropBuilder callDrop = getMethodCallDrop("effectOfCallDrop",
+              MessageFormat.format(Messages.effectOfCallDrop, label),
+              currentNode, effects);
+          allCallDrops.add(callDrop);
+          pr.calledEffects.add(callDrop);
+        }
+
+        // Add to the map of calls to drops
+        pr.callsToDrops.put(currentNode, allCallDrops);
+      }
+    }
+	}
+	
 	/**
 	 * Collect the promise drops from the given method/constructor declaration.
 	 * Also, if <code>callRD</code> is non-null, it adds each unique parameter
@@ -926,38 +1036,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		return rd;
 	}
 
-	private <PD1 extends PromiseDrop<? extends IAASTRootNode>,
-	PD2 extends PromiseDrop<? extends IAASTRootNode>>
+	private <PD1 extends PromiseDrop<? extends IAASTRootNode>>
 	void addDependencies(final Set<PD1> promises,
       final Map<PromiseDrop<? extends IAASTRootNode>, ResultDropBuilder> intermediateDrops,
-			final Set<PD2> dependsOnPromises,
 			final Set<ResultDropBuilder> dependsOnResults) {
-		if (!dependsOnPromises.isEmpty() || !dependsOnResults.isEmpty()) {
+		if (!dependsOnResults.isEmpty()) {
 			for (final PD1 promiseToCheck : promises) {
-				/* Add depended upon promises, skipping ourself (avoid direct
-				 * self-dependency).  So we proceed if dependsOnPromises contains
-				 * promiseToCheck but has size >= 2, or if dependsOnPromises has size >= 1.
-				 */
-			  if (dependsOnPromises.contains(promiseToCheck) ? dependsOnPromises.size() >= 2 : dependsOnPromises.size() >= 1) {
-				  ResultDropBuilder middleDrop = intermediateDrops.get(promiseToCheck);
-				  if (middleDrop == null) {
-				    middleDrop = ResultDropBuilder.create(this, "dependencyDrop");
-	          middleDrop.setNode(promiseToCheck.getNode());
-	          middleDrop.setConsistent();
-	          middleDrop.setMessage(Messages.dependencyDrop);
-	          middleDrop.addCheckedPromise(promiseToCheck);
-	          intermediateDrops.put(promiseToCheck, middleDrop);
-				  }
-
-					for (final PD2 trustedPD : dependsOnPromises) {
-						// Avoid self-dependency
-						if ((trustedPD != null) && (promiseToCheck != trustedPD)) {
-							middleDrop.addTrustedPromise(trustedPD);
-							setResultDependUponDrop(middleDrop);
-						}
-					}
-				}
-
 				// Add depended on method calls, etc.
 				if (!dependsOnResults.isEmpty()) {
 					for (ResultDropBuilder rd : dependsOnResults) {
@@ -966,5 +1050,405 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				}
 			}
 		}
+	}
+	
+	
+	
+	private static final class TypeAndMethod {
+	  public final IRNode typeDecl;
+	  public final IRNode methodDecl;
+	  
+	  public TypeAndMethod(final IRNode td, final IRNode md) {
+	    typeDecl = td;
+	    methodDecl = md;
+	  }
+	  
+	  @Override
+    public boolean equals(final Object other) {
+	    if (other instanceof TypeAndMethod) {
+	      final TypeAndMethod tan = (TypeAndMethod) other;
+	      return typeDecl == tan.typeDecl && methodDecl == tan.methodDecl;
+	    } else {
+	      return false;
+	    }
+	  }
+	  
+	  @Override
+	  public int hashCode() {
+	    int result = 17;
+	    result = 31 * result + typeDecl.hashCode();
+	    result = 31 * result + methodDecl.hashCode();
+	    return result;
+	  }
+	}
+	
+  /*
+   * We are searching for (1) the declarations of an unique field (2) the
+   * use of an unique field, (3) the declaration of a method that has
+   * borrowed parameters, unique parameters, or a unique return value, or
+   * (4) the invocation of a method that has unique parameter requirements.
+   */
+	private static final class ShouldAnalyzeVisitor extends VoidTreeWalkVisitor {
+	  private final IBinder binder;
+	  private final InstanceInitVisitor<Void> initHelper;
+	  
+	  private boolean isAnonClassExpression = false;
+	  
+	  /**
+	   * The current type declaration we are inside of.
+	   */
+	  private IRNode enclosingType = null;
+	  
+	  /**
+	   * The current method/constructor declaration that we are inside of.
+	   */
+	  private IRNode enclosingDecl = null;
+	  
+	  /**
+	   * Whether we are inside a constructor declaration.  Also true if we 
+	   * are analyzing the InitDeclaration associated with the construction of
+	   * an anonymous class.
+	   */
+	  private boolean insideConstructor = false;
+	  
+	  /**
+	   * The output of the visitation: the set of method/constructor declarations
+	   * that should receive additional scrutiny by the uniqueness analysyis.
+	   */
+	  private final Set<TypeAndMethod> results = new HashSet<TypeAndMethod>();
+	  
+	  
+	  
+	  public ShouldAnalyzeVisitor(final IBinder binder) {
+	    this.binder = binder;
+	    this.initHelper = new InstanceInitVisitor<Void>(this);
+	  }
+
+	  
+	  
+	  public Set<TypeAndMethod> getResults() {
+	    return results;
+	  }
+	  
+	  
+	  
+	  private void visitNonAnnotationTypeDeclaration(final IRNode typeDecl) {
+      final IRNode prevEnclosingType = enclosingType;
+      final IRNode prevEnclosingDecl = enclosingDecl;
+      final boolean prevInsideConstructor = insideConstructor;
+      try {
+        enclosingType = typeDecl;
+        enclosingDecl = null;
+        insideConstructor = false;
+        doAcceptForChildren(typeDecl);
+      } finally {
+        enclosingType = prevEnclosingType;
+        enclosingDecl = prevEnclosingDecl;
+        insideConstructor = prevInsideConstructor;
+      }
+	  }
+	  
+    /* Case 4: invoking method with unique parameter or borrowed parameters.
+	   * We care about borrowed parameters because then can affect the 
+	   * validity of unique fields passed to them.
+	   */
+    private void visitCallInterface(final IRNode call) {
+      final IRNode declNode = binder.getBinding(call);
+
+      if (declNode != null) {
+        final Operator declOp = JJNode.tree.getOperator(declNode);
+        IRNode formals = null;
+//        boolean hasBorrowed = false;
+        boolean hasUnique = false;
+        if (declOp instanceof ConstructorDeclaration) {
+          formals = ConstructorDeclaration.getParams(declNode);
+//          hasBorrowed = UniquenessRules.constructorYieldsUnaliasedObject(declNode);
+        } else if (declOp instanceof MethodDeclaration) {
+          formals = MethodDeclaration.getParams(declNode);
+          if (!TypeUtil.isStatic(declNode)) {
+            final IRNode self = JavaPromise.getReceiverNode(declNode);
+//            hasBorrowed = UniquenessRules.isBorrowed(self);
+            hasUnique = UniquenessRules.isUnique(self);
+          }
+        }
+        if (formals != null) {
+          for (int i = 0; !hasUnique // && !hasBorrowed
+              && (i < JJNode.tree.numChildren(formals)); i++) {
+            final IRNode param = JJNode.tree.getChild(formals, i);
+            hasUnique = UniquenessRules.isUnique(param);
+//            hasBorrowed = UniquenessRules.isBorrowed(param);
+          }
+          if (hasUnique /*|| hasBorrowed*/) {
+            results.add(new TypeAndMethod(enclosingType, enclosingDecl));
+          }
+        }
+      }
+    }
+	  
+    
+	  
+	  @Override
+	  public Void visitAllocationCallExpression(final IRNode call) {
+	    visitCallInterface(call);
+	    /* The guts of an anonymous class expression are visited specially
+	     * by visitAnonClassExpression().  If we do this traversal here
+	     * with an anonymous class expression, we will get a NullPointerException.
+	     */
+	    if (!isAnonClassExpression) {
+	      doAcceptForChildren(call);
+	    }
+	    return null;
+	  }
+	  
+	  @Override
+	  public Void visitAnonClassExpression(final IRNode expr) {
+	    // Traverse into the arguments, but *not* the body
+	    doAccept(AnonClassExpression.getArgs(expr));
+	    
+	    /* We are going to recursively re-enter this class via the use of an
+	     * InstanceInitVisitor instance.
+	     */
+	    final IRNode prevEnclosingType = enclosingType;
+      final boolean prevInsideConstructor = insideConstructor;
+      final IRNode prevEnclosingDecl = enclosingDecl;
+	    try {
+	      enclosingType = expr; // Now inside the anonymous type declaration
+	      insideConstructor = false; // start by assuming we are not in the constructor
+	      
+	      try {
+	        enclosingDecl = JavaPromise.getInitMethodOrNull(expr); // Inside the <init> method
+	        insideConstructor = true; // We are inside the constructor of the anonymous class
+	      
+	        // Begin the recursive visit of the anonymous class's initialization
+	        final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
+	        /* Call doAccept directly instead of using doVisitInstanceInits because
+	         * there is no explicit constructor.
+	         */
+	        initVisitor.doAccept(AnonClassExpression.getBody(expr));
+	      } finally {
+	        insideConstructor = false;	        
+	      }
+	      
+        /* Now visit the rest of the anonymous class, so we reset the
+         * enclosing declaration to null.
+         */
+	      try {
+	        enclosingDecl = null; // We a
+	        doAccept(AnonClassExpression.getBody(expr));
+	      } finally {
+	        enclosingDecl = prevEnclosingDecl; // finally restore to the original value
+	      }
+	    } finally {
+	      // restore the global state
+	      enclosingType = prevEnclosingType;
+	      insideConstructor = prevInsideConstructor;
+	    }
+	    
+	    /* Call super implementation so we also process this as an allocation call
+	     * expression. 
+	     */
+	    try {
+	      isAnonClassExpression = true;
+	      return super.visitAnonClassExpression(expr);
+	    } finally {
+	      isAnonClassExpression = false;
+	    }
+	  }
+
+    @Override
+    public Void visitCall(final IRNode call) {
+      visitCallInterface(call);
+      doAcceptForChildren(call);
+      return null;
+    }
+
+    @Override
+	  public Void visitClassDeclaration(final IRNode classDecl) {
+	    visitNonAnnotationTypeDeclaration(classDecl);
+      return null;
+	  }
+	  
+	  @Override
+	  public Void visitClassInitializer(final IRNode expr) {
+	    if (TypeUtil.isStatic(expr)) {
+	      enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
+	      try {
+	        doAcceptForChildren(expr);
+	      } finally {
+	        enclosingDecl = null;
+	      }
+	    } else {
+	      /* Only go inside of instance initializers if we are being called by the
+	       * InstanceInitVisitor! In this case, the InstanceInitVisitor directly
+	       * traverses into the children of the ClassInitializer, so we don't even
+	       * get here.
+	       */
+	    }
+	    return null;
+	  }
+
+	  @Override
+	  public Void visitConstructorCall(final IRNode expr) {
+	    // Make sure we account for the super class's field inits, etc
+	    initHelper.doVisitInstanceInits(expr);
+
+	    // continue into the expression
+	    doAcceptForChildren(expr);
+	    return null;
+	  }
+	  
+	  @Override
+	  public Void visitConstructorDeclaration(final IRNode cdecl) {
+      enclosingDecl = cdecl;
+      insideConstructor = true;
+      try {
+        initHelper.doVisitInstanceInits(cdecl);
+        
+        // Case 3b: borrowed/unique parameter
+        boolean hasBorrowedParam = false;
+        boolean hasUniqueParam = false;
+        hasBorrowedParam |= UniquenessRules.constructorYieldsUnaliasedObject(cdecl);
+        // Cannot have a unique receiver
+
+        final IRNode formals = ConstructorDeclaration.getParams(cdecl);
+        for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
+          final IRNode param = JJNode.tree.getChild(formals, i);
+          hasBorrowedParam |= UniquenessRules.isBorrowed(param);
+          hasUniqueParam |= UniquenessRules.isUnique(param);
+        }
+        if (hasBorrowedParam || hasUniqueParam) {
+          results.add(new TypeAndMethod(enclosingType, cdecl));
+        }
+              
+        // Check the rest of the constructor
+        doAcceptForChildren(cdecl);
+      } finally {
+        enclosingDecl = null;
+        insideConstructor = false;
+      }
+      return null;
+	  }
+
+    @Override
+    public Void visitEnumDeclaration(final IRNode enumDecl) {
+      visitNonAnnotationTypeDeclaration(enumDecl);
+      return null;
+    }
+
+    @Override
+    public Void visitFieldRef(final IRNode fieldRef) {
+      /* Case (2): A use of a unique field. */
+      if (UniquenessRules.isUnique(binder.getBinding(fieldRef))) {
+        results.add(new TypeAndMethod(enclosingType, enclosingDecl));
+      }
+      return null;
+    }
+    
+    @Override
+    public Void visitInterfaceDeclaration(final IRNode interfaceDecl) {
+      visitNonAnnotationTypeDeclaration(interfaceDecl);
+      return null;
+    }
+    
+    @Override
+    public Void visitMethodDeclaration(final IRNode mdecl) {
+      enclosingDecl = mdecl;
+      try {
+        // Case 3a: returns unique
+        final IRNode retDecl = JavaPromise.getReturnNodeOrNull(mdecl);
+        final boolean returnsUnique =
+          (retDecl == null) ? false : UniquenessRules.isUnique(retDecl);
+
+        // Case 3b: borrowed/unique parameter
+        boolean hasBorrowedParam = false;
+        boolean hasUniqueParam = false;
+        if (!TypeUtil.isStatic(mdecl)) { // non-static method
+          final IRNode self = JavaPromise.getReceiverNode(mdecl);
+          hasBorrowedParam |= UniquenessRules.isBorrowed(self);
+          hasUniqueParam |= UniquenessRules.isUnique(self);
+        }
+        final IRNode formals = MethodDeclaration.getParams(mdecl);
+        for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
+          final IRNode param = JJNode.tree.getChild(formals, i);
+          hasBorrowedParam |= UniquenessRules.isBorrowed(param);
+          hasUniqueParam |= UniquenessRules.isUnique(param);
+        }
+        if (returnsUnique || hasBorrowedParam || hasUniqueParam) {
+          results.add(new TypeAndMethod(enclosingType, mdecl));
+        }
+      
+        doAcceptForChildren(mdecl);
+      } finally {
+        enclosingDecl = null;
+      }
+      return null;
+    }
+    
+    @Override
+    public Void visitSomeFunctionCall(final IRNode call) {
+      visitCallInterface(call);
+      doAcceptForChildren(call);
+      return null;
+    }
+
+	  @Override
+	  public Void visitVariableDeclarator(final IRNode varDecl) {
+	    /* If this is inside a FieldDeclaration, then we only want to run if we are
+	     * being executed on behalf of the InstanceInitHelper or if we are part of a
+	     * static field declaration.
+	     * 
+	     * If this inside a DeclStatement, then we always want to run, and we don't
+	     * do anything special at all. (I would like to avoid having to climb up the
+	     * parse tree, but I don't have a choice because InstanceInitHelper does not
+	     * call back into FieldDeclaration, but into the children of
+	     * FieldDeclaration.)
+	     */
+	    if (FieldDeclaration.prototype.includes(
+	        JJNode.tree.getOperator(
+	            JJNode.tree.getParentOrNull(
+	                JJNode.tree.getParentOrNull(varDecl))))) {      
+        /* Analyze the field initialization if we are inside a constructor or
+         * visiting a static field.
+         */
+	      final boolean isStaticDeclaration = TypeUtil.isStatic(varDecl);
+	      if (insideConstructor || isStaticDeclaration) {
+	        /* At this point we know we are inside a field declaration that is
+	         * being analyzed on behalf of a constructor or a static initializer.
+	         */
+	        final IRNode init = VariableDeclarator.getInit(varDecl);
+	        // Don't worry about uninitialized fields
+	        if (!NoInitialization.prototype.includes(JJNode.tree.getOperator(init))) {
+	          /* If the initialization is static, we have to update the enclosing 
+	           * method to the class init declaration. 
+	           */
+	          if (isStaticDeclaration) {
+	            enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
+	          }
+	          try {
+	            /* We have a non-empty initialization of a field inside on
+	             * behalf of a constructor or class initializer.  This counts as
+	             * a use of the field.  CASE (1): If the field is UNIQUE then we
+	             * add the current enclosing declaration to the results.
+	             */
+	            if (UniquenessRules.isUnique(varDecl)) {
+	              results.add(new TypeAndMethod(enclosingType, enclosingDecl));
+	            }
+	            // analyze the the RHS of the initialization
+	            doAcceptForChildren(varDecl);
+	          } finally {
+	            if (isStaticDeclaration) {
+	              enclosingDecl = null;
+	            }
+	          }
+	        }
+	      }
+	    } else {
+	      /* Not a field declaration: so we are in a local variable declaration.
+	       * Always analyze its contents.
+	       */
+	      doAcceptForChildren(varDecl);
+	    }
+	    return null;
+	  }
 	}
 }

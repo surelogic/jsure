@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.java.analysis;
 
 import edu.cmu.cs.fluid.control.*;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -14,6 +15,10 @@ import edu.cmu.cs.fluid.util.*;
  * local variable use.  
  */
 public class ReachingDefAnalysis<V> extends IntraproceduralAnalysis<IRNode,V> {
+  public static interface Query extends AnalysisQuery<SetLattice> {
+    // empty
+  }
+  
   public ReachingDefAnalysis(final IBinder b) {
     super(b);
   }
@@ -37,20 +42,6 @@ public class ReachingDefAnalysis<V> extends IntraproceduralAnalysis<IRNode,V> {
       }
     }
 
-    /*
-        for( int i = 0; i < locals.length; i++ ) {
-          SetLattice s = (SetLattice)init.getValue( i );
-          System.out.println( "Elt " + i + ":" ); 
-          try {
-            for( int j = 0; j < s.size(); j++ ) {
-              final IRNode n = (IRNode)s.elementAt( j ); 
-              System.out.println( "    " + JavaNode.toString( n ) + ": " + DebugUnparser.toString( n ) );
-            }
-            System.out.println();
-          } catch( SetException e ) { }
-        }
-    */
-
     analysis.initialize(op.getSource(flowNode).getOutput(), init);
     return analysis;
   }
@@ -66,16 +57,21 @@ public class ReachingDefAnalysis<V> extends IntraproceduralAnalysis<IRNode,V> {
    * @exception IllegalArgumentException
    * Thrown if <code>use</code> is not a use expression.
    */
-  public SetLattice getReachingDef(final IRNode use) {
+  public SetLattice getReachingDef(final IRNode use, final IRNode constructorContext) {
     final Operator op = tree.getOperator(use);
     if (VariableUseExpression.prototype.includes(op)) {
       IRNode binding = binder.getBinding(use);
       IRNode loc = use;
       for (;;) {
-        final ReachingDefs rd = (ReachingDefs) getAnalysisResultsBefore(loc);
+        final ReachingDefs rd = (ReachingDefs) getAnalysisResultsBefore(loc, constructorContext);
         try {
           return rd.getReachingDefsFor(binding);
         } catch (IllegalArgumentException e) {
+          /* John added this stuff back in 2005 to try to deal with references
+           * in Anonymous classes to external state.  Not sure if this works.
+           * See bug 235.  Probably would be better to update the lattice to
+           * handle this.
+           */
           LOG.info("Cannot find local " + JJNode.getInfo(use)
               + " locally, looking outward");
           loc = IntraproceduralAnalysis.getFlowUnit(loc);
@@ -85,6 +81,22 @@ public class ReachingDefAnalysis<V> extends IntraproceduralAnalysis<IRNode,V> {
       }
     }
     throw new IllegalArgumentException("Node isn't a use expression");
+  }
+  
+  public Query getReachingDefQuery(final IRNode flowUnit) {
+    return new Query() {
+      private final FlowAnalysis<IRNode> a = getAnalysis(flowUnit);
+
+      public SetLattice getResultFor(final IRNode use) {
+        if (VariableUseExpression.prototype.includes(use)) {
+          final IRNode binding = binder.getBinding(use);
+          final ReachingDefs rd = (ReachingDefs) a.getAfter(use, WhichPort.ENTRY);
+          return rd.getReachingDefsFor(binding);
+        } else {
+          throw new IllegalArgumentException("Node is not a variable use expression");
+        }
+      }
+    };
   }
 
   //---------------------------------------------------------

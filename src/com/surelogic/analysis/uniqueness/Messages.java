@@ -29,6 +29,11 @@ public class Messages extends AbstractMessages {
 
   public static final String dependencyDrop = "Assurance conservatively depends on other annotations";
 
+  public static final String aggregatedUniqueFields = "Assurance conservatively depends on the unique fields accessed in method {0}";
+
+  public static final String aggregatedUniqueParams = "Assurance conservatively depends on the unique parameters of method {0}";
+
+  
   
   public static final String uniqueParametersSatisfied = "Uniqueness preconditions satisfied when calling {0}";
   

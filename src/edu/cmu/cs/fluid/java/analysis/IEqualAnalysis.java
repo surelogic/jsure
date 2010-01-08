@@ -19,8 +19,8 @@ public interface IEqualAnalysis {
 	 *        node that includes both expr1 and expr2 as executable
 	 *        expressions.
 	 */
-	public boolean mayEqual(IRNode expr1, IRNode expr2, IRNode block);
+	public boolean mayEqual(IRNode expr1, IRNode expr2, IRNode block, IRNode construtorContext);
    
 	/** Something useful */
-	public boolean mustEqual(IRNode expr1, IRNode expr2, IRNode block);
+	public boolean mustEqual(IRNode expr1, IRNode expr2, IRNode block, IRNode constructorContext);
 }

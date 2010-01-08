@@ -10,6 +10,6 @@ public interface INullAnalysis {
 	 * ever evaluate to null.  
 	 * @param expr an executable expression node in a Java class.
 	 */
-	public boolean maybeNull(IRNode expr);
+	public boolean maybeNull(IRNode expr, IRNode constructorContext);
 
 }

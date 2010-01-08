@@ -8,6 +8,7 @@ import edu.cmu.cs.fluid.control.FlowAnalysis;
 import edu.cmu.cs.fluid.control.ForwardAnalysis;
 import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.EntryPort;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -60,28 +61,28 @@ public class BasicPermissionAnalysis extends IntraproceduralAnalysis {
 		asserted.clearAssurances();
 	}
 	
-	public AssuranceLogger getLogAfter(IRNode node){
+	public AssuranceLogger getLogAfter(IRNode node, IRNode constructorContext){
 //		clearAssertions();
-		getAnalysisResultsAfter(node);
+		getAnalysisResultsAfter(node, constructorContext);
 		return log();
 	}
 	
-	public AssuranceLogger getLogBefore(IRNode node){
-		getAnalysisResultsBefore(node);
+	public AssuranceLogger getLogBefore(IRNode node, IRNode constructorContext){
+		getAnalysisResultsBefore(node, constructorContext);
 		return log();
 	}
 	
-	public AssuranceLogger getLogAbrupt(IRNode node){
-		getAnalysisResultsAbrupt(node);
+	public AssuranceLogger getLogAbrupt(IRNode node, IRNode constructorContext){
+		getAnalysisResultsAbrupt(node, constructorContext);
 		return log();
 	}
 	
-	public Set getNegativeFor(IRNode node){
-		return getLogAfter(node).getNegativeAssurancesFor(node);
+	public Set getNegativeFor(IRNode node, IRNode constructorContext){
+		return getLogAfter(node, constructorContext).getNegativeAssurancesFor(node);
 	}
 
-	public Set getPositiveFor(IRNode node){
-		return getLogAfter(node).getPositiveAssurancesFor(node);
+	public Set getPositiveFor(IRNode node, IRNode constructorContext){
+		return getLogAfter(node, constructorContext).getPositiveAssurancesFor(node);
 	}
 
 	static final int passed = 0;
@@ -192,23 +193,23 @@ public class BasicPermissionAnalysis extends IntraproceduralAnalysis {
 	@Override
   protected FlowAnalysis createAnalysis(IRNode flowUnit) {
 		return new ForwardAnalysis("Oversimplified permission analysis", 
-															new PermissionSet(), new BasicPermissionTransfer(this,binder),
+															new PermissionSet(), new BasicPermissionTransfer(this,binder, flowUnit),
                               DebugUnparser.viewer);
 	}
 
 
-	ILocationMap mapBefore(IRNode node){
-		return (ILocationMap)lfa.getAnalysisResultsBefore(node);
-	}
-	ILocationMap mapAfter(IRNode node){
-		return (ILocationMap)lfa.getAnalysisResultsAfter(node);
-	}
-	AliasFactLattice aliasingBefore(IRNode node){
-		return (AliasFactLattice)lfa.getAnalysisResultsBefore(node);
-	}
-	AliasFactLattice aliasingAfter(IRNode node){
-		return (AliasFactLattice)lfa.getAnalysisResultsAfter(node);
-	}
+//	ILocationMap mapBefore(IRNode node){
+//		return (ILocationMap)lfa.getAnalysisResultsBefore(node);
+//	}
+//	ILocationMap mapAfter(IRNode node){
+//		return (ILocationMap)lfa.getAnalysisResultsAfter(node);
+//	}
+//	AliasFactLattice aliasingBefore(IRNode node){
+//		return (AliasFactLattice)lfa.getAnalysisResultsBefore(node);
+//	}
+//	AliasFactLattice aliasingAfter(IRNode node){
+//		return (AliasFactLattice)lfa.getAnalysisResultsAfter(node);
+//	}
 
 /*	boolean assertRead(SimpleLocation loc, IRNode fdecl,IRNode expr, IRNode locale){
 		PermissionSet ps = (PermissionSet)getAnalysisResultsBefore(locale);		
@@ -217,11 +218,14 @@ public class BasicPermissionAnalysis extends IntraproceduralAnalysis {
 }
 @Deprecated
 class BasicPermissionTransfer extends JavaForwardTransfer{
+	private final FlowAnalysis focusedLFA;
 	
 	public BasicPermissionTransfer(
 		IntraproceduralAnalysis base,
-		IBinder binder) {
+		IBinder binder,
+		IRNode flowUnit) {
 		super(base, binder);
+		focusedLFA = lfa().getAnalysis(flowUnit);
 	}
 
 	LocationFactAnalysis lfa(){
@@ -233,16 +237,19 @@ class BasicPermissionTransfer extends JavaForwardTransfer{
 	}
 
 	ILocationMap mapBefore(IRNode node){
-		return (ILocationMap)lfa().getAnalysisResultsBefore(node);
+	  return (ILocationMap) focusedLFA.getAfter(node, WhichPort.ENTRY);
+//		return (ILocationMap)lfa().getAnalysisResultsBefore(node);
 	}
-	ILocationMap mapAfter(IRNode node){
-		return (ILocationMap)lfa().getAnalysisResultsAfter(node);
-	}
+//	ILocationMap mapAfter(IRNode node){
+//		return (ILocationMap)lfa().getAnalysisResultsAfter(node);
+//	}
 	AliasFactLattice aliasingBefore(IRNode node){
-		return (AliasFactLattice)lfa().getAnalysisResultsBefore(node);
+    return (AliasFactLattice) focusedLFA.getAfter(node, WhichPort.ENTRY);
+//		return (AliasFactLattice)lfa().getAnalysisResultsBefore(node);
 	}
 	AliasFactLattice aliasingAfter(IRNode node){
-		return (AliasFactLattice)lfa().getAnalysisResultsAfter(node);
+    return (AliasFactLattice) focusedLFA.getAfter(node, WhichPort.NORMAL_EXIT);
+//		return (AliasFactLattice)lfa().getAnalysisResultsAfter(node);
 	}
 
 /**/

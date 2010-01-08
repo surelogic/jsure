@@ -41,7 +41,7 @@ public class TestLocationAnalysis extends TrackingIntraproceduralAnalysis {
   protected FlowAnalysis createAnalysis(IRNode flowUnit) {
 		LocationGenerator gen = new LocationGenerator(this);
 		FlowUnit op = (FlowUnit)tree.getOperator(flowUnit);
-		IRNode methodDecl = getFlowUnit(flowUnit);
+		IRNode methodDecl = getRawFlowUnit(flowUnit);
 		LocationMap lm = new LocationMap(methodDecl,binder,gen);
 		FlowAnalysis analysis =
 			new TrackingForwardAnalysis("test of location analysis",

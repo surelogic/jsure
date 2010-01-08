@@ -30,6 +30,7 @@ import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
@@ -49,6 +50,12 @@ import edu.cmu.cs.fluid.tree.Operator;
  * Interface to the region effects analysis.
  */
 public final class Effects implements IBinderClient {
+  public interface EffectQuery extends AnalysisQuery<Set<Effect>> {
+    // nothing
+  }
+  
+  
+  
   private final IBinder binder;
   private final BindingContextAnalysis bca;
   
@@ -99,7 +106,15 @@ public final class Effects implements IBinderClient {
     return Collections.unmodifiableSet(visitor.getTheEffects());
   }
 
-  
+  public EffectQuery getEffectsQuery(final IRNode flowUnit) {
+    return new EffectQuery() {
+      public Set<Effect> getResultFor(final IRNode expr) {
+        final EffectsVisitor visitor = new EffectsVisitor(binder, bca, flowUnit);
+        visitor.doAccept(expr);
+        return Collections.unmodifiableSet(visitor.getTheEffects());
+      }
+    }; 
+  }
   
 
   //----------------------------------------------------------------------

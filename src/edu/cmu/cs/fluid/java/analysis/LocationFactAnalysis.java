@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.java.analysis;
 import edu.cmu.cs.fluid.control.FlowAnalysis;
 import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.EntryPort;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -35,27 +36,34 @@ public class LocationFactAnalysis extends TrackingIntraproceduralAnalysis
 		super(b);
 	}
 
-      
-      public Method getMayAliasMethod(final IRNode before) {
-        return new Method() {
-          public boolean aliases(final IRNode e1, final IRNode e2) {
-            return mayAlias(e1, e2, before);
-          }
-        };
-      }
+	public MethodFactory getMethodFactory(final IRNode flowUnit) {
+	  return new MethodFactory() {
+      private final FlowAnalysis a = getAnalysis(flowUnit);
       
       public Method getMustAliasMethod(final IRNode before) {
         return new Method() {
-          public boolean aliases(final IRNode e1, final IRNode e2) {
-            return mustAlias(e1, e2, before);
+          public boolean aliases(final IRNode expr1, final IRNode expr2) {
+            return mustAliasInternal(a, expr1, expr2, before);
           }
         };
       }
+      
+      public Method getMayAliasMethod(final IRNode before) {
+        return new Method() {
+          public boolean aliases(final IRNode expr1, final IRNode expr2) {
+            return mayAliasInternal(a, expr1, expr2, before);
+          }
+        };
+      }
+    };
+	}
 
+	
+	
 	@Override
   protected FlowAnalysis createAnalysis(IRNode flowUnit) {
 		LocationGenerator gen = new LocationGenerator(this);
-		IRNode methodDecl = getFlowUnit(flowUnit);
+		IRNode methodDecl = getRawFlowUnit(flowUnit);
 
 		LocationFactLattice dbi = new LocationFactLattice(methodDecl,binder,gen);
 			FlowAnalysis analysis =
@@ -111,27 +119,35 @@ public class LocationFactAnalysis extends TrackingIntraproceduralAnalysis
 	/* 
 	 * @see edu.cmu.cs.fluid.java.analysis.IAliasAnalysis
 	 */
-	public boolean mayAlias(IRNode expr1, IRNode expr2, IRNode before) {
-		ILocationFactLattice results = 
-							(ILocationFactLattice)getAnalysisResultsAfter(before);
-		SimpleLocation l1 = results.getLocation(expr1);
-		SimpleLocation l2 = results.getLocation(expr2);
-		return !(results.doesNotAlias(l1,l2));// && (compatibleTypes(expr1,expr2));
+	public boolean mayAlias(IRNode expr1, IRNode expr2, IRNode before, IRNode constructorContext) {
+	  return mayAliasInternal(getAnalysis(getFlowUnit(before, constructorContext)), expr1, expr2, before);
 	}
+
+	 private boolean mayAliasInternal(FlowAnalysis a, IRNode expr1, IRNode expr2, IRNode before) {
+	    ILocationFactLattice results = 
+	              (ILocationFactLattice) a.getAfter(before, WhichPort.NORMAL_EXIT);
+	    SimpleLocation l1 = results.getLocation(expr1);
+	    SimpleLocation l2 = results.getLocation(expr2);
+	    return !(results.doesNotAlias(l1,l2));// && (compatibleTypes(expr1,expr2));
+	  }
 
 	/* 
 	 * @see edu.cmu.cs.fluid.java.analysis.IAliasAnalysis
 	 */
-	public boolean mustAlias(IRNode expr1, IRNode expr2, IRNode before) {
-		ILocationFactLattice results = 
-							(ILocationFactLattice)getAnalysisResultsAfter(before);
-		SimpleLocation l1 = results.getLocation(expr1);
-		SimpleLocation l2 = results.getLocation(expr2);
-		return results.doesAlias(l1,l2);
+	public boolean mustAlias(IRNode expr1, IRNode expr2, IRNode before, IRNode constructorContext) {
+    return mustAliasInternal(getAnalysis(getFlowUnit(before, constructorContext)), expr1, expr2, before);
 	}
 
-	public boolean mustAliasOneOf(IRNode before, IRNode var, Set<IRNode> bunchOfVars){
-		ILocationFactLattice results = (ILocationFactLattice)getAnalysisResultsAfter(before);
+  private boolean mustAliasInternal(FlowAnalysis a, IRNode expr1, IRNode expr2, IRNode before) {
+     ILocationFactLattice results = 
+               (ILocationFactLattice) a.getAfter(before, WhichPort.NORMAL_EXIT);
+     SimpleLocation l1 = results.getLocation(expr1);
+     SimpleLocation l2 = results.getLocation(expr2);
+     return results.doesAlias(l1,l2);
+   }
+
+	public boolean mustAliasOneOf(IRNode before, IRNode var, Set<IRNode> bunchOfVars, IRNode constructorContext){
+		ILocationFactLattice results = (ILocationFactLattice)getAnalysisResultsAfter(before, constructorContext);
 		SimpleLocation l = results.getLocation(var);
 		final Set<SimpleLocation> locs = new HashSet<SimpleLocation>();
 		for(Iterator<IRNode> i = bunchOfVars.iterator();i.hasNext();){
@@ -172,15 +188,16 @@ public class LocationFactAnalysis extends TrackingIntraproceduralAnalysis
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.java.analysis.IEqualAnalysis
 	 */
-	public boolean mayEqual(IRNode expr1, IRNode expr2, IRNode block) {
+	public boolean mayEqual(IRNode expr1, IRNode expr2, IRNode block, IRNode constructorContext) {
 		if(isBlockSafe(expr1,block) && isBlockSafe(expr2,block)){
-			ILocationFactLattice res1 = (ILocationFactLattice)getAnalysisResultsBefore(expr1);
+			ILocationFactLattice res1 = (ILocationFactLattice)getAnalysisResultsBefore(expr1, constructorContext);
 			SimpleLocation loc1 = res1.getLocation(expr1);
 			SimpleLocation loc2 = res1.getLocation(expr2);
 			if(res1.doesNotAlias(loc1,loc2)){
 				return false;
 			}
-			ILocationFactLattice res2 = (ILocationFactLattice)getAnalysisResultsBefore(expr1);
+      // XXX: SHouldn't this be expr2???  (noted by Aaron Greenhouse 2010-01-04)
+			ILocationFactLattice res2 = (ILocationFactLattice)getAnalysisResultsBefore(expr1, constructorContext);
 			SimpleLocation l1 = res2.getLocation(expr1);
 			SimpleLocation l2 = res2.getLocation(expr2);
 			if(res2.doesNotAlias(l1,l2)){
@@ -195,15 +212,16 @@ public class LocationFactAnalysis extends TrackingIntraproceduralAnalysis
 	 *
 	 *	Ultraconservative implementation
 	 */
-	public boolean mustEqual(IRNode expr1, IRNode expr2, IRNode block) {
+	public boolean mustEqual(IRNode expr1, IRNode expr2, IRNode block, IRNode constructorContext) {
 		if(isBlockSafe(expr1,block) && isBlockSafe(expr2,block)){
-			ILocationFactLattice res1 = (ILocationFactLattice)getAnalysisResultsBefore(expr1);
+			ILocationFactLattice res1 = (ILocationFactLattice)getAnalysisResultsBefore(expr1, constructorContext);
 			SimpleLocation loc1 = res1.getLocation(expr1);
 			SimpleLocation loc2 = res1.getLocation(expr2);
 			if(!loc1.equals(loc2)){
 				return false;
 			}
-			ILocationFactLattice res2 = (ILocationFactLattice)getAnalysisResultsBefore(expr1);
+			// XXX: SHouldn't this be expr2???  (noted by Aaron Greenhouse 2010-01-04)
+			ILocationFactLattice res2 = (ILocationFactLattice)getAnalysisResultsBefore(expr1, constructorContext);
 			SimpleLocation l1 = res2.getLocation(expr1);
 			SimpleLocation l2 = res2.getLocation(expr2);
 			if(!l1.equals(l2)){
@@ -217,8 +235,8 @@ public class LocationFactAnalysis extends TrackingIntraproceduralAnalysis
 	/* 
 	 * @see edu.cmu.cs.fluid.java.analysis.INullAnalysis#maybeNull(edu.cmu.cs.fluid.ir.IRNode)
 	 */
-	public boolean maybeNull(IRNode expr) {
-		ILocationFactLattice results = (ILocationFactLattice)getAnalysisResultsAfter(expr);
+	public boolean maybeNull(IRNode expr, IRNode constructorContext) {
+		ILocationFactLattice results = (ILocationFactLattice)getAnalysisResultsAfter(expr, constructorContext);
 		SimpleLocation l = results.getLocation(expr);
 		SimpleLocation n = results.nulLoc();
 		return results.doesAlias(l,n) || (!results.doesNotAlias(l,n));

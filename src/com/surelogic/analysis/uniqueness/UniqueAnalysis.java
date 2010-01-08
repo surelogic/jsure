@@ -20,6 +20,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.*;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.PlainIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -103,8 +104,8 @@ implements IBinderClient {
 	 * Return whether the evaluation of this expression always is a unique
 	 * reference.
 	 */
-  public boolean isUnique(IRNode node) {
-    Store s = (Store) getAnalysisResultsAfter(node);
+  public boolean isUnique(IRNode node, final IRNode constructorContext) {
+    Store s = (Store) getAnalysisResultsAfter(node, constructorContext);
     if (s == null)
       return false;
     if (!s.isValid())
@@ -117,8 +118,8 @@ implements IBinderClient {
 	 * Return whether the evaluation of this expression always is storeable (not
 	 * limited)
 	 */
-  public boolean isStoreable(IRNode node) {
-    Store s = (Store) getAnalysisResultsAfter(node);
+  public boolean isStoreable(IRNode node, final IRNode constructorContext) {
+    Store s = (Store) getAnalysisResultsAfter(node, constructorContext);
     if (s == null)
       return false;
     if (!s.isValid())
@@ -130,8 +131,8 @@ implements IBinderClient {
   /*****************************************************************************
 	 * Return whether the expression is *not
 	 */
-  public boolean isLimited(IRNode node) {
-    Store s = (Store) getAnalysisResultsAfter(node);
+  public boolean isLimited(IRNode node, final IRNode constructorContext) {
+    Store s = (Store) getAnalysisResultsAfter(node, constructorContext);
     if (s == null)
       return false;
     if (!s.isValid())
@@ -144,10 +145,11 @@ implements IBinderClient {
 	 * Return whether the evaluation of this expression leads to a problem (store
 	 * being made invalid).
 	 */
-  public boolean isInvalid(IRNode node) {
-    Store sbefore = (Store) getAnalysisResultsBefore(node);
-    Store safter = (Store) getAnalysisResultsAfter(node);
-    Store sabrupt = (Store) getAnalysisResultsAbrupt(node);
+  public boolean isInvalid(final IRNode node, final IRNode flowUnit) {
+    final FlowAnalysis a = getAnalysis(flowUnit);
+    final Store sbefore = (Store) a.getAfter(node, WhichPort.ENTRY);
+    final Store safter = (Store) a.getAfter(node, WhichPort.NORMAL_EXIT);
+    final Store sabrupt = (Store) a.getAfter(node, WhichPort.ABRUPT_EXIT);
 
     // A node is invalid if things were OK when the store
     // came in, but are wrong now that control is leaving.
@@ -192,10 +194,13 @@ implements IBinderClient {
 	 *          An parse node representing the expression to test.
 	 * @return (Fill this in)
 	 */
-  public boolean isPositivelyAssured(final IRNode node) {
-    final Store safter = (Store) getAnalysisResultsAfter(node);
-    final Store sabrupt = (Store) getAnalysisResultsAbrupt(node);
-    final boolean afterOK = (safter != null) && safter.isValid();
+  public boolean isPositivelyAssured(final IRNode node, final IRNode flowUnit) {
+    final FlowAnalysis a = getAnalysis(flowUnit);
+    final Store safter = (Store) a.getAfter(node, WhichPort.NORMAL_EXIT);
+    final Store sabrupt = (Store) a.getAfter(node, WhichPort.ABRUPT_EXIT);
+    final boolean afterOK =
+      (safter == null) || safter.equals(sabrupt.top()) || safter.isValid();
+//      (safter != null) && safter.isValid();
     final boolean abruptOK =
       (sabrupt == null) || sabrupt.equals(sabrupt.top()) || sabrupt.isValid();
 
@@ -217,8 +222,8 @@ implements IBinderClient {
 	 * @see #NOT_AN_ERROR
 	 */
   /* Based on implementation of isInvalid. Make sure to keep in sync! */
-  public String getNormalErrorMessage(final IRNode node) {
-    Store safter = (Store) getAnalysisResultsAfter(node);
+  public String getNormalErrorMessage(final FlowAnalysis a, final IRNode node) {
+    final Store safter = (Store) a.getAfter(node, WhichPort.NORMAL_EXIT);
     // If the state coming out for normal termination is bad, an error:
     if (safter != null && !safter.equals(safter.top()) && !safter.isValid()) {
       return safter.toString();
@@ -242,8 +247,8 @@ implements IBinderClient {
 	 * @see #NOT_AN_ERROR
 	 */
   /* Based on implementation of isInvalid. Make sure to keep in sync! */
-  public String getAbruptErrorMessage(final IRNode node) {
-    Store sabrupt = (Store) getAnalysisResultsAbrupt(node);
+  public String getAbruptErrorMessage(final FlowAnalysis a, final IRNode node) {
+    final Store sabrupt = (Store) a.getAfter(node, WhichPort.ABRUPT_EXIT);
     // If the state coming out for normal termination is bad, an error:
     if (sabrupt != null
       && !sabrupt.equals(sabrupt.top())
@@ -1236,7 +1241,7 @@ class TestUniqueAnalysis {
       IRNode node = nodes.next();
       System.out.println(">> " + DebugUnparser.toString(node) + " <<");
       if (Initializer.prototype.includes(JJNode.tree.getOperator(node))) {
-        Lattice b = ua.getAnalysisResultsBefore(node);
+        Lattice b = ua.getAnalysisResultsBefore(node, null);
         IRNode fu = IntraproceduralAnalysis.getFlowUnit(node);
         FlowUnit fuo = (FlowUnit) JJNode.tree.getOperator(fu);
         System.out.println("Flow unit = " + DebugUnparser.toString(fu));
@@ -1246,8 +1251,8 @@ class TestUniqueAnalysis {
         }
         System.out.println("For node: " + DebugUnparser.toString(node));
         System.out.println("before " + b);
-        System.out.println("after " + ua.getAnalysisResultsAfter(node));
-        System.out.println("abrupt " + ua.getAnalysisResultsAbrupt(node));
+        System.out.println("after " + ua.getAnalysisResultsAfter(node, null));
+        System.out.println("abrupt " + ua.getAnalysisResultsAbrupt(node, null));
       }
     }
   }
