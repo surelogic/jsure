@@ -141,9 +141,11 @@ public class PlainIRNode implements IRNode, Serializable {
    * If the slot is not initialized with a value.
    */
   public <T> T getSlotValue(SlotInfo<T> si) throws SlotUndefinedException {
+	/*
     if (si == null) {
       throw new NullPointerException();
     }
+    */
     try { 
       return si.getSlotValue(this);
     }
