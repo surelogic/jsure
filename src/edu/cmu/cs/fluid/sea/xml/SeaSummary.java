@@ -49,10 +49,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		pw.println("</"+ROOT+">\n");
 		pw.close();
 	}
-
+	@SuppressWarnings("unchecked")
 	private static IRReferenceDrop checkIfReady(Drop d) {
 		if (d instanceof PromiseDrop) {
-			@SuppressWarnings("unchecked")
 			PromiseDrop pd = (PromiseDrop) d;
 			if (!pd.isFromSrc()) {
 				// no need to do anything
@@ -318,10 +317,12 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			int i=0;
 			for(Entity o : old) {
 				a[i] = o;
+				o.setAsOld();
 				i++;
 			}
 			for(Entity o : newer) {
 				a[i] = o;
+				o.setAsNewer();
 				i++;
 			}
 			return a;
