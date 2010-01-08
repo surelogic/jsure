@@ -8,6 +8,10 @@ import com.surelogic.jsure.xml.Entity;
 
 public class SnapshotDiffContentProvider implements ITreeContentProvider, ILabelProvider {
 	private static final Object[] noElements = new Object[0];
+	private static final Object[] nothingToShow = new Object[1];
+	static {
+		nothingToShow[0] = new Category(null, "No differences");
+	}	
 	private Diff diff;
 	
 	public void setDiff(Diff d) {
@@ -16,7 +20,10 @@ public class SnapshotDiffContentProvider implements ITreeContentProvider, ILabel
 	
 	public Object[] getElements(Object input) {
 		if (diff != null) {
-			return diff.getCategories();
+			Object[] rv = diff.getCategories();
+			if (rv.length == 0) {
+				return nothingToShow;
+			}
 		}
 		return noElements;
 	}
@@ -44,6 +51,9 @@ public class SnapshotDiffContentProvider implements ITreeContentProvider, ILabel
 	public String getText(Object element) {
 		if (element instanceof Category) {
 			Category c = (Category) element;
+			if (c.file == null) {
+				return c.name;
+			}
 			return c.name+"  in  "+c.file;
 		}
 		else if (element instanceof Entity) {
