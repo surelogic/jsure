@@ -10,5 +10,8 @@ import com.surelogic.Regions;
   @Region("public R4")
 })
 public class C {
-  // do nothing
+  @com.surelogic.Unique("return") // don't use import because I don't want to change the line numbers of the region declarations
+  public C() {
+  	super();
+  }
 }

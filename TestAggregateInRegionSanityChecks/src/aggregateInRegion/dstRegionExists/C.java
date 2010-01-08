@@ -1,5 +1,10 @@
 package aggregateInRegion.dstRegionExists;
 
+import com.surelogic.Unique;
+
 public class C {
-  // do nothing
+  @Unique("return")
+  public C() {
+  	super();
+  }
 }
