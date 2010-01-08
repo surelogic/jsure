@@ -28,7 +28,8 @@ public class DeclaredPermissionIntentVisitor extends VoidTreeWalkVisitor {
   
   public boolean usesDeclaredIntent(IRNode n){
     declaredIntent = false;
-    this.doAccept(IntraproceduralAnalysis.getFlowUnit(n));
+    // XXX: This is broken: We should take the constructorContext into account
+    this.doAccept(IntraproceduralAnalysis.getRawFlowUnit(n));
     return declaredIntent;
   }
 

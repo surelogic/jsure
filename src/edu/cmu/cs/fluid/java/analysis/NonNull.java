@@ -63,7 +63,7 @@ public class NonNull extends IntraproceduralAnalysis implements INullAnalysis{
    public boolean isNonNullExprWithChecks(IRNode expr, IRNode constructorContext){
 		NonNullLattice nn = (NonNullLattice)getAnalysisResultsBefore(expr, constructorContext);
     reporting_off = false;
-    this.getAnalysis(getFlowUnit(expr)).reworkAll();
+    this.getAnalysis(getFlowUnit(expr, constructorContext)).reworkAll();
     reporting_off = true;
 		return is_nn_expr(expr,nn);
 	}
@@ -72,7 +72,7 @@ public class NonNull extends IntraproceduralAnalysis implements INullAnalysis{
      // we already have the flow unit
      getAnalysisResultsBefore(flowUnit, null);
      reporting_off = false;
-     this.getAnalysis(getFlowUnit(flowUnit)).reworkAll();
+     this.getAnalysis(getRawFlowUnit(flowUnit)).reworkAll();
      reporting_off = true;
    }
    
@@ -423,7 +423,8 @@ final class MaybeNullDropGenerator{
   public MaybeNullDrop getMNDrop(IRNode use){
     MaybeNullDrop m = cache.get(use);
     if(m == null){
-      IRNode flow = IntraproceduralAnalysis.getFlowUnit(use);
+      // probably this is wrong: we need to consider the constructor context
+      IRNode flow = IntraproceduralAnalysis.getRawFlowUnit(use);
       m = new MaybeNullDrop(use,flow);
     }
     return m;

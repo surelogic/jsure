@@ -74,7 +74,7 @@ public class ReachingDefAnalysis<V> extends IntraproceduralAnalysis<IRNode,V> {
            */
           LOG.info("Cannot find local " + JJNode.getInfo(use)
               + " locally, looking outward");
-          loc = IntraproceduralAnalysis.getFlowUnit(loc);
+          loc = IntraproceduralAnalysis.getFlowUnit(loc, constructorContext);
           loc = JJNode.tree.getParent(loc);
           // try here now
         }

@@ -938,14 +938,17 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
 	//protected final AssuranceLogger log;
 		
 	public AssuranceLogger log(IRNode flowUnit){
-		return ((FullPermissionLattice)getAnalysis(getFlowUnit(flowUnit)).getLattice()).log;
+		return ((FullPermissionLattice)getAnalysis(getRawFlowUnit(flowUnit)).getLattice()).log;
 	}
 
 	protected PermissionDropMediator getPDM(FlowAnalysis fa){
 	  return ((FullPermissionLattice)fa.getLattice()).pdm;
 	}
 	protected PermissionDropMediator getPDM(IRNode flowUnit){
-	  return getPDM(getAnalysis(getFlowUnit(flowUnit)));
+	  /* XXX: pretty sure this second call to getRawFlowUnit is useless, especially
+	   * becuase flowUnit is only going to be a method declaration in actual practice. 
+	   */
+	  return getPDM(getAnalysis(getRawFlowUnit(flowUnit)));
 	}
 	
 	
@@ -972,8 +975,8 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
 		return log;
 	}
 	
-	protected void reworkAll(IRNode node){
-		getAnalysis(getFlowUnit(node)).reworkAll();
+	protected void reworkAll(IRNode node, IRNode constructorContext){
+		getAnalysis(getFlowUnit(node, constructorContext)).reworkAll();
 	}
 
 	/**
@@ -996,7 +999,7 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
 		
 		return new TrackingForwardAnalysis("Permission Analysis",
 			new FullPermissionLattice(flowUnit,binder,lg,log, pdm,this),
-			new PermissionTransfer(this, binder,lg,log, pdm, mr));
+			new PermissionTransfer(this, binder,lg,log, pdm, mr, flowUnit));
 		}
 
 	/* 
@@ -1125,17 +1128,20 @@ class PermissionTransfer extends JavaEvaluationTransfer{
 	protected final AssuranceLogger log;
 	protected final PermissionDropMediator pdm;
 	protected final PermProcDrop methodResults;
+	protected final IRNode flowUnit;
+	
 	/**
 	 * @param ba
 	 * @param binder
 	 */
 	public PermissionTransfer(IntraproceduralAnalysis ba, IBinder binder, 
 	    LocationGenerator lg, AssuranceLogger lo, 
-	    PermissionDropMediator pm, PermProcDrop rd) {
+	    PermissionDropMediator pm, PermProcDrop rd, final IRNode fu) {
 		super(ba, binder);
 		log = lo;
 		pdm = pm;
 		methodResults = rd;
+		flowUnit = fu;
 	}
 
 	/* 
@@ -1726,7 +1732,7 @@ class PermissionTransfer extends JavaEvaluationTransfer{
 	@Override
   protected Lattice transferReturn(IRNode node, Lattice val) {
     FullPermissionLattice before = (FullPermissionLattice)val;
-    final IRNode  methodDecl = /*tree.getParent*/(IntraproceduralAnalysis.getFlowUnit(node));
+    final IRNode  methodDecl = flowUnit; // /*tree.getParent*/(IntraproceduralAnalysis.getFlowUnit(node));
     ResultDrop rd = pdm.createRetDrop(methodDecl,methodResults);
 
     if(MethodDeclaration.prototype.includes(JJNode.tree.getOperator(methodDecl))

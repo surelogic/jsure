@@ -219,6 +219,7 @@ public class BasicPermissionAnalysis extends IntraproceduralAnalysis {
 @Deprecated
 class BasicPermissionTransfer extends JavaForwardTransfer{
 	private final FlowAnalysis focusedLFA;
+	private final IRNode flowUnit;
 	
 	public BasicPermissionTransfer(
 		IntraproceduralAnalysis base,
@@ -226,6 +227,7 @@ class BasicPermissionTransfer extends JavaForwardTransfer{
 		IRNode flowUnit) {
 		super(base, binder);
 		focusedLFA = lfa().getAnalysis(flowUnit);
+		this.flowUnit = flowUnit;
 	}
 
 	LocationFactAnalysis lfa(){
@@ -282,7 +284,7 @@ class BasicPermissionTransfer extends JavaForwardTransfer{
 			IRNode fdecl = binder.getBinding(expr);
 			return makeAssertion(loc,fdecl,locale,expr,ps,assertCode);
 		}else if(ThisExpression.prototype.includes(op)){
-			IRNode d = JavaPromise.getReceiverNode(IntraproceduralAnalysis.getFlowUnit(expr));
+			IRNode d = JavaPromise.getReceiverNode(flowUnit);
 			return makeAssertion(lm.nulLoc(),d,locale,expr,ps,assertCode);
 		}else{
 			return makeAssertion(lm.nulLoc(),expr,locale,expr,ps,assertCode);
