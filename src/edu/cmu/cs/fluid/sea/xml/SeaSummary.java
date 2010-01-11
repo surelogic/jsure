@@ -104,6 +104,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		String unparse = DebugUnparser.toString(node);
 		if (parent != null) {
 			String unparse2 = DebugUnparser.toString(parent);
+			if (unparse.contains("@") || unparse2.contains("@")) {
+				System.out.println("Found promise");
+			}
 			return unparse.hashCode() + (long) unparse2.hashCode();
 		}	
 		return unparse.hashCode();
@@ -198,6 +201,15 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				}
 				l.add(c);
 			}
+			Collections.sort(l, new Comparator<Category>() {
+				public int compare(Category o1, Category o2) {
+					int rv = o1.file.compareTo(o2.file);
+					if (rv == 0) {
+						rv = o1.name.compareTo(o2.name);
+					}
+					return rv;
+				}
+			});
 			return l.toArray(new Category[l.size()]);			
 		}
 		
@@ -325,6 +337,15 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				o.setAsNewer();
 				i++;
 			}
+			Arrays.sort(a, new Comparator<Entity>() {
+				public int compare(Entity o1, Entity o2) {
+					int rv = o1.getAttribute(MESSAGE_ATTR).compareTo(o2.getAttribute(MESSAGE_ATTR));
+					if (rv == 0) {
+						return o1.getDiffStatus().compareTo(o2.getDiffStatus());
+					}
+					return rv;
+				}				
+			});
 			return a;
 		}
 	}
