@@ -8,4 +8,10 @@ public operator Annotation extends ElementValue
     bindsTo=Annotation
   }
   public String getName(IRNode n) { return null; }
+  
+  public void unparseWrapper(IRNode node, JavaUnparser unparser) {
+      if (unparser.getStyle().unparsePromises()) {
+          super.unparseWrapper(node, unparser);
+      }
+  }
 }

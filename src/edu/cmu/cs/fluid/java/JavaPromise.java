@@ -1030,7 +1030,7 @@ public class JavaPromise extends JavaNode {
 		final Operator op = u.getTree().getOperator(node);
 		final Iterator<TokenInfo> tokenInfos = PromiseFramework.getInstance().getTokenInfos(op);
 
-		while (tokenInfos.hasNext()) {
+		while (style.unparsePromises() && tokenInfos.hasNext()) {
 			final TokenInfo info = tokenInfos.next();
 			final IRType type = info.si.getType();
 

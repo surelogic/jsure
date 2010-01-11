@@ -146,6 +146,15 @@ public class JavaUnparseStyle {
 
   public static final JavaUnparseStyle prototype = new JavaUnparseStyle();
 
+  private boolean unparsePromises;
+  
+  JavaUnparseStyle() {
+	  this(true);
+  }
+  
+  public JavaUnparseStyle(boolean unparse) {
+	  unparsePromises = unparse;
+  }
 	// private Set unparsePromiseSet = new HashSet();
 
 //  private void setUnparsePromises(boolean b, String s) {
@@ -160,12 +169,17 @@ public class JavaUnparseStyle {
 //    return unparsePromiseSet.contains(s);
 //  }
   
+  public boolean unparsePromises() {
+	  return unparsePromises;
+  }
+  
   public void setUnparsePromises(boolean b) {
   	/*
   	for(int i=0; i<JavaPromise.promiseLabels.length; i++) {
       setUnparsePromises(b, JavaPromise.promiseLabels[i]);
   	}
   	*/
+	  unparsePromises = b;
   }
   
 	/*
@@ -279,7 +293,7 @@ public class JavaUnparseStyle {
   */
   public boolean unparsePromiseEffects() {
     //return getUnparsePromises(JavaPromise.EFFECTS);
-  	return true;
+  	return unparsePromises;
   }
   /*
   public boolean unparsePromiseClassRegion() {

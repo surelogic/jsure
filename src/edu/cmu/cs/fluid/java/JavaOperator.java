@@ -152,7 +152,7 @@ public class JavaOperator extends JJOperator {
 
   /**
 	 * This method is called to unparse a node. It is overridden by hand-written
-	 * code to perform special ations around the basic unparsing actions.
+	 * code to perform special actions around the basic unparsing actions.
 	 * 
 	 * @see #unparse
 	 */
