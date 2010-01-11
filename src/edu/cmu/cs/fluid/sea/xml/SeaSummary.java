@@ -301,6 +301,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			String title = "Category: "+name+" in "+file;
 			title = match(title, out, EXACT,  "Exact  ");
 			title = match(title, out, HASHED, "Hashed ");
+			//title = match(title, out, SAME_LINE,  "Line   ");
 			if ("ResultDrop".equals(name)) {
 				title = match(title, out, RESULT, "Results");
 			}
@@ -398,6 +399,13 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		@Override
 		boolean match(Entity n, Entity o) {
 			return super.match(n, o) && match(n, o, HASH_ATTR);
+		}
+	};
+	
+	static final Matcher SAME_LINE = new Matcher() {
+		@Override
+		boolean match(Entity n, Entity o) {
+			return super.match(n, o) && match(n, o, LINE_ATTR);
 		}
 	};
 	
