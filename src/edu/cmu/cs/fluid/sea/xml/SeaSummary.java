@@ -17,6 +17,7 @@ import com.surelogic.jsure.xml.JSureSummaryXMLReader;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaUnparseStyle;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.util.Hashtable2;
@@ -93,21 +94,41 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		ISrcRef ref = id.getSrcRef();
 		addLocation(ref);
 		addAttribute(OFFSET_ATTR, (long) ref.getOffset());
-		addAttribute(HASH_ATTR, computeHash(id.getNode()));
+		addAttribute(HASH_ATTR, computeHash(id.getNode(), false));
 		// Omitting supporting info
-
+		/*
+		if (id.getMessage().contains("copyStat")) {
+			computeHash(id.getNode(), true);
+		}
+        */		
 		id.snapshotAttrs(this);
 	}
 
-	private long computeHash(IRNode node) {			
+	private static final JavaUnparseStyle noPromisesStyle = new JavaUnparseStyle(false);
+	private static final DebugUnparser unparser = new DebugUnparser(5, JJNode.tree) {
+		@Override
+		public JavaUnparseStyle getStyle() {
+			return noPromisesStyle;
+		}
+	};
+	
+	private long computeHash(IRNode node, boolean debug) {			
 		IRNode parent  = JJNode.tree.getParentOrNull(node);
-		String unparse = DebugUnparser.toString(node);
+		String unparse = unparser.unparseString(node);
+		if (debug) {
+			System.out.println(unparse);
+		}
 		if (parent != null) {
-			String unparse2 = DebugUnparser.toString(parent);
+			String unparse2 = unparser.unparseString(parent);
+			if (debug) {
+				System.out.println(unparse2);
+			}
+			/*
 			if (unparse.contains("@") || unparse2.contains("@")) {
 				System.out.println("Found promise");
 			}
-			return unparse.hashCode() + (long) unparse2.hashCode();
+            */
+			return (long) unparse.hashCode() + (long) unparse2.hashCode();
 		}	
 		return unparse.hashCode();
 	}
@@ -317,7 +338,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 		
 		public static String toString(Entity e) {
-			return e.getAttribute(OFFSET_ATTR)+" - "+e.getAttribute(MESSAGE_ATTR);
+			return e.getAttribute(OFFSET_ATTR)+" - "+
+			       e.getAttribute(HASH_ATTR)+" - "+e.getAttribute(MESSAGE_ATTR);
 		}
 
 		public boolean hasChildren() {
