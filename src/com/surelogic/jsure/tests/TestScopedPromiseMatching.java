@@ -68,7 +68,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			ConstructorDeclPatternNode cNode = createConstructorDeclPattern("'reads Instance' for public Foo.new ()");
+			ConstructorDeclPatternNode cNode = createConstructorDeclPattern("@Reads(Instance) for public new () in Foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode constructor : VisitUtil.getClassConstructors(typeDecl)) {
@@ -87,7 +87,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for Foo.new()");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for new() in Foo");
 
 			int count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -101,7 +101,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for public Foo.new(int)");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for public new(int) in Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -115,7 +115,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for private Foo.new()");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for private new() in Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -129,7 +129,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for protected Foo.new()");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for protected new() in Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -143,7 +143,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for Foo.new(**)");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for new(**) in Foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode constructor : VisitUtil.getClassConstructors(typeDecl)) {
@@ -151,7 +151,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for private Foo.new()");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for private new() in Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -176,7 +176,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for private Foo.new(**) ");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for private new(**) in Foo");
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode constructor : VisitUtil.getClassConstructors(typeDecl)) {
@@ -207,7 +207,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			ConstructorDeclPatternNode cNode = createConstructorDeclPattern("'reads Instance' for public new () in com.surelogic.foo.Foo");
+			ConstructorDeclPatternNode cNode = createConstructorDeclPattern("@Reads(Instance) for public new () in com.surelogic.foo.Foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode constructor : VisitUtil.getClassConstructors(typeDecl)) {
@@ -219,7 +219,7 @@ public class TestScopedPromiseMatching extends TestCase {
 					+ "public Foo(){}\n" + "}";
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			cNode = createConstructorDeclPattern("'reads Instance' for public new () in Foo in com.surelogic.foo");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for public new () in Foo in com.surelogic.foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode constructor : VisitUtil.getClassConstructors(typeDecl)) {
@@ -239,7 +239,7 @@ public class TestScopedPromiseMatching extends TestCase {
 			}
 
 			// TODO should this fail b/c there is only one '*'??
-			cNode = createConstructorDeclPattern("'reads Instance' for new() in **.Foo");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for new() in **.Foo");
 
 			int count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -253,7 +253,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for public new(int) in Foo in **");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for public new(int) in Foo in **");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -268,7 +268,7 @@ public class TestScopedPromiseMatching extends TestCase {
 			}
 
 			// Fail, bad package name
-			cNode = createConstructorDeclPattern("'reads Instance' for private new() in *Foo* in com.*");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for private new() in *Foo* in com.*");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -278,7 +278,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for protected new() in Foo in **.foo");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for protected new() in Foo in **.foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -292,7 +292,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for new(**) in Foo in com.*.foo");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for new(**) in Foo in com.*.foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode constructor : VisitUtil.getClassConstructors(typeDecl)) {
@@ -300,7 +300,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for new(**) in Foo in com.*");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for new(**) in Foo in com.*");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode constructor : VisitUtil.getClassConstructors(typeDecl)) {
@@ -308,7 +308,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for new() in **");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for new() in **");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -349,7 +349,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'Reads Instance' for new(**) in *Foo* in com.**");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for new(**) in *Foo* in com.**");
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode constructor : VisitUtil.getClassConstructors(typeDecl)) {
@@ -358,7 +358,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			cNode = createConstructorDeclPattern("'reads Instance' for new(**) in **.foo.*");
+			cNode = createConstructorDeclPattern("@Reads(Instance) for new(**) in **.foo.*");
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode constructor : VisitUtil.getClassConstructors(typeDecl)) {
@@ -385,7 +385,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			MethodDeclPatternNode mNode = createMethodDeclPattern("'reads Instance' for public bar()");
+			MethodDeclPatternNode mNode = createMethodDeclPattern("@Reads(Instance) for public bar()");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassMethods(typeDecl)) {
@@ -412,7 +412,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar()");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar()");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -428,7 +428,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar(int)");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar(int)");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -444,7 +444,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar(**)");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar(**)");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -456,7 +456,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for public bar(**) ");
+			mNode = createMethodDeclPattern("@Reads(Instance) for public bar(**) ");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -473,7 +473,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			mNode = createMethodDeclPattern("'reads Instance' for *(**) ");
+			mNode = createMethodDeclPattern("@Reads(Instance) for *(**) ");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -499,7 +499,7 @@ public class TestScopedPromiseMatching extends TestCase {
 					+ "protected String bar() {}\n" + "public void bar(int i){}\n" + "}";
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			mNode = createMethodDeclPattern("'reads Instance' for protected foo*(**) ");
+			mNode = createMethodDeclPattern("@Reads(Instance) for protected foo*(**) ");
 			
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -515,7 +515,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			mNode = createMethodDeclPattern("'reads Instance' for protected *bar(**) ");
+			mNode = createMethodDeclPattern("@Reads(Instance) for protected *bar(**) ");
 			
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -531,7 +531,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar()");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar()");
 
 			testCode = "package com.surelogic.foo;\n" + "public class Foo{\n"
 					+ "public Foo(){}\n" + "private void bar(){}\n"
@@ -574,7 +574,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			MethodDeclPatternNode mNode = createMethodDeclPattern("'reads Instance' for public bar() in com.surelogic.foo.Foo");
+			MethodDeclPatternNode mNode = createMethodDeclPattern("@Reads(Instance) for public bar() in com.surelogic.foo.Foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassMethods(typeDecl)) {
@@ -601,7 +601,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar() in com.surelogic.*.Foo");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar() in com.surelogic.*.Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -617,7 +617,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar(int) in Foo in com.surelogic.foo");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar(int) in Foo in com.surelogic.foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -633,7 +633,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar(**) in Foo in **");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar(**) in Foo in **");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -645,7 +645,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar(**) in * in com.surelogic.*");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar(**) in * in com.surelogic.*");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -657,7 +657,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar(**) in F*o in **.foo");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar(**) in F*o in **.foo");
 
 			testCode = "package com.surelogic.foo;\n" + "public class Foo{\n"
 					+ "public Foo(){}\n" + "private void bar(){}\n"
@@ -683,7 +683,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			mNode = createMethodDeclPattern("'reads Instance' for bar() in *Foo in *.surelogic.*");
+			mNode = createMethodDeclPattern("@Reads(Instance) for bar() in *Foo in *.surelogic.*");
 
 			testCode = "package com.surelogic.foo;\n" + "public class Foo{\n"
 					+ "public Foo(){}\n" + "private void bar(){}\n"
@@ -728,7 +728,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			FieldDeclPatternNode fNode = createFieldDeclPattern("'reads Instance' for String Foo.string");
+			FieldDeclPatternNode fNode = createFieldDeclPattern("@Reads(Instance) for String string in Foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -757,7 +757,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for public * Foo.*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for public * * in Foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -765,7 +765,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for private * Foo.*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for private * * in Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -776,7 +776,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for static * Foo.*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for static * * in Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -790,7 +790,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for Foo Foo.instance");
+			fNode = createFieldDeclPattern("@Reads(Instance) for Foo instance in Foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -805,7 +805,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for static * Foo.*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for static * * in Foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -821,7 +821,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * Foo.*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * * in Foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -833,7 +833,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * Foo.st*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * st* in Foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -849,7 +849,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * Foo.*ing");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * *ing in Foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -865,7 +865,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * Foo.s*g");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * s*g in Foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -881,7 +881,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * Bar.*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * * in Bar");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -903,7 +903,7 @@ public class TestScopedPromiseMatching extends TestCase {
 					+ "protected String bar() {}\n" + "public void bar(int i){}\n" + "}";
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
-			fNode = createFieldDeclPattern("'reads Instance' for private String Foo.*1 ");
+			fNode = createFieldDeclPattern("@Reads(Instance) for private String *1 in Foo");
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -937,7 +937,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			FieldDeclPatternNode fNode = createFieldDeclPattern("'reads Instance' for String string in com.surelogic.foo.Foo");
+			FieldDeclPatternNode fNode = createFieldDeclPattern("@Reads(Instance) for String string in com.surelogic.foo.Foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -945,7 +945,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in Foo in com.surelogic.foo");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in Foo in com.surelogic.foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -953,7 +953,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in **.Foo ");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in **.Foo ");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -961,7 +961,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in Foo in **");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in Foo in **");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -969,7 +969,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in Foo in *");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in Foo in *");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -978,7 +978,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in Foo in com.**");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in Foo in com.**");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -986,7 +986,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in Foo in com.surelogic*.**");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in Foo in com.surelogic*.**");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -994,7 +994,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in *Foo* in com.surelogic.**");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in *Foo* in com.surelogic.**");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -1002,7 +1002,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in Foo in **.foo");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in Foo in **.foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -1010,7 +1010,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in com.surelogic.*.Foo ");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in com.surelogic.*.Foo ");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -1018,7 +1018,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for String string in com.*.Foo ");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in com.*.Foo ");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -1026,7 +1026,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 			
-			fNode = createFieldDeclPattern("'reads Instance' for String string in Foo ");
+			fNode = createFieldDeclPattern("@Reads(Instance) for String string in Foo ");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -1051,7 +1051,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for public * * in Foo in **");
+			fNode = createFieldDeclPattern("@Reads(Instance) for public * * in Foo in **");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -1059,7 +1059,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for private * * in Foo in **.foo");
+			fNode = createFieldDeclPattern("@Reads(Instance) for private * * in Foo in **.foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1070,7 +1070,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for static * * in **.foo.Foo");
+			fNode = createFieldDeclPattern("@Reads(Instance) for static * * in **.foo.Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1084,7 +1084,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for Foo instance in com.**.Foo");
+			fNode = createFieldDeclPattern("@Reads(Instance) for Foo instance in com.**.Foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -1099,7 +1099,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for static * * in **.Foo");
+			fNode = createFieldDeclPattern("@Reads(Instance) for static * * in **.Foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -1115,7 +1115,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * * in Foo in com.surelogic.*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * * in Foo in com.surelogic.*");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -1127,7 +1127,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * st* in com.surelogic.foo*.*Foo*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * st* in com.surelogic.foo*.*Foo*");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -1143,7 +1143,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * *ing in * in com.surelogic.foo");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * *ing in * in com.surelogic.foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -1159,7 +1159,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * s*g in Foo in com.sure*.*");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * s*g in Foo in com.sure*.*");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -1175,7 +1175,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			fNode = createFieldDeclPattern("'reads Instance' for * * in Bar in com.surelogic.foo");
+			fNode = createFieldDeclPattern("@Reads(Instance) for * * in Bar in com.surelogic.foo");
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 			count = 0;
@@ -1197,7 +1197,7 @@ public class TestScopedPromiseMatching extends TestCase {
 					+ "protected String bar() {}\n" + "public void bar(int i){}\n" + "}";
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
-			fNode = createFieldDeclPattern("'reads Instance' for private String *1 in com*.surelogic*.foo*.Foo");
+			fNode = createFieldDeclPattern("@Reads(Instance) for private String *1 in com*.surelogic*.foo*.Foo");
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassFieldDecls(typeDecl)) {
@@ -1230,7 +1230,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			TypeDeclPatternNode tNode = createTypeDeclPattern("'reads Instance' for Foo");
+			TypeDeclPatternNode tNode = createTypeDeclPattern("@Reads(Instance) for Foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				if (TypeDeclaration.prototype.includes(typeDecl)) {
@@ -1256,7 +1256,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for Bar");
+			tNode = createTypeDeclPattern("@Reads(Instance) for Bar");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1271,7 +1271,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for private Foo");
+			tNode = createTypeDeclPattern("@Reads(Instance) for private Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1281,7 +1281,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for protected Foo");
+			tNode = createTypeDeclPattern("@Reads(Instance) for protected Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1291,7 +1291,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for public static Foo");
+			tNode = createTypeDeclPattern("@Reads(Instance) for public static Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1301,7 +1301,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for *");
+			tNode = createTypeDeclPattern("@Reads(Instance) for *");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1322,7 +1322,7 @@ public class TestScopedPromiseMatching extends TestCase {
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			tNode = createTypeDeclPattern("'reads Instance' for *Foo");
+			tNode = createTypeDeclPattern("@Reads(Instance) for *Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1356,7 +1356,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			TypeDeclPatternNode tNode = createTypeDeclPattern("'reads Instance' for Foo in com.surelogic.foo");
+			TypeDeclPatternNode tNode = createTypeDeclPattern("@Reads(Instance) for Foo in com.surelogic.foo");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				if (TypeDeclaration.prototype.includes(typeDecl)) {
@@ -1382,7 +1382,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for Bar in com.surelogic.foo");
+			tNode = createTypeDeclPattern("@Reads(Instance) for Bar in com.surelogic.foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1397,7 +1397,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for private Foo in com.**");
+			tNode = createTypeDeclPattern("@Reads(Instance) for private Foo in com.**");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1407,7 +1407,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for protected Foo in com.*.foo");
+			tNode = createTypeDeclPattern("@Reads(Instance) for protected Foo in com.*.foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1417,7 +1417,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for public static * in com.surelogic.foo");
+			tNode = createTypeDeclPattern("@Reads(Instance) for public static * in com.surelogic.foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1427,7 +1427,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			tNode = createTypeDeclPattern("'reads Instance' for * in com.**");
+			tNode = createTypeDeclPattern("@Reads(Instance) for * in com.**");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1448,7 +1448,7 @@ public class TestScopedPromiseMatching extends TestCase {
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			tNode = createTypeDeclPattern("'reads Instance' for *Foo in **");
+			tNode = createTypeDeclPattern("@Reads(Instance) for *Foo in **");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1483,7 +1483,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			AndTargetNode aNode = createAndTargetNode("'reads Instance' for String string & bar()");
+			AndTargetNode aNode = createAndTargetNode("@Reads(Instance) for String string & bar()");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassMethods(typeDecl)) {
@@ -1510,7 +1510,7 @@ public class TestScopedPromiseMatching extends TestCase {
 					+ "protected String bar() {}\n" + "public void bar(int i){}\n" + "}";
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
-			aNode = createAndTargetNode("'reads Instance' for private String *1 & !(private String *31)");
+			aNode = createAndTargetNode("@Reads(Instance) for private String *1 & !(private String *31)");
 
 			int count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1530,7 +1530,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			aNode = createAndTargetNode("'reads Instance' for private String string* & !(private String *3)");
+			aNode = createAndTargetNode("@Reads(Instance) for private String string* & !(private String *3)");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1569,7 +1569,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			OrTargetNode oNode = createOrTargetNode("'reads Instance' for String string | bar()");
+			OrTargetNode oNode = createOrTargetNode("@Reads(Instance) for String string | bar()");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassMethods(typeDecl)) {
@@ -1592,7 +1592,7 @@ public class TestScopedPromiseMatching extends TestCase {
 					+ "protected String bar() {}\n" + "public void bar(int i){}\n" + "}";
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
-			oNode = createOrTargetNode("'reads Instance' for private String * | public Integer *");
+			oNode = createOrTargetNode("@Reads(Instance) for private String * | public Integer *");
 
 			int count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1612,7 +1612,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			oNode = createOrTargetNode("'reads Instance' for bar(**) | public Foo");
+			oNode = createOrTargetNode("@Reads(Instance) for bar(**) | public Foo");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1653,7 +1653,7 @@ public class TestScopedPromiseMatching extends TestCase {
 		try {
 			IRNode compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
 
-			NotTargetNode nNode = createNotTargetNode("'reads Instance' for !(String string)");
+			NotTargetNode nNode = createNotTargetNode("@Reads(Instance) for !(String string)");
 
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
 				for (IRNode method : VisitUtil.getClassMethods(typeDecl)) {
@@ -1676,7 +1676,7 @@ public class TestScopedPromiseMatching extends TestCase {
 					+ "protected String bar() {}\n" + "public void bar(int i){}\n" + "}";
 
 			compUnit = AstGen.genCompilationUnit(new StringReader(testCode));
-			nNode = createNotTargetNode("'reads Instance' for !(private String *)");
+			nNode = createNotTargetNode("@Reads(Instance) for !(private String *)");
 
 			int count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
@@ -1696,7 +1696,7 @@ public class TestScopedPromiseMatching extends TestCase {
 				}
 			}
 
-			nNode = createNotTargetNode("'reads Instance' for !(bar(int))");
+			nNode = createNotTargetNode("@Reads(Instance) for !(bar(int))");
 
 			count = 0;
 			for (IRNode typeDecl : VisitUtil.getAllTypeDecls(compUnit)) {
