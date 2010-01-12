@@ -72,7 +72,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     if (testModule != null) {      
       importProject(testModule);
       
-      if (extraModules != null) {
+      if (extraModules != null && !extraModules.startsWith("${")) {
         // FIX if there's more than one
         importProject(extraModules);
       }
@@ -124,7 +124,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
         ret = files[0];
       }
     }
-    System.out.println("Found .project File: " + ret.getAbsolutePath());
+    if (ret != null) {
+    	System.out.println("Found .project File: " + ret.getAbsolutePath());
+    }
     return ret;
   }
   
