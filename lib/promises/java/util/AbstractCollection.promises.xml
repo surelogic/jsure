@@ -1,16 +1,12 @@
 <package name="java.util">
- <class name="List">
-  <method name="add" params="java.lang.Object">
-    <borrowed>this</borrowed>
-    <RegionEffects>writes Instance</RegionEffects>
-  </method>
+ <class name="AbstractList">
+  <constructor>
+   <borrowed>this</borrowed>
+   <regionEffects>none</regionEffects>
+  </constructor>
 
   <method name="iterator">
-   <borrowed>this</borrowed>  <!-- not really true -->
-   <RegionEffects>reads this:Instance</RegionEffects>
-  </method>
-
-  <method name="listIterator">
+   <starts>nothing</starts>
    <borrowed>this</borrowed>  <!-- not really true -->
    <RegionEffects>reads this:Instance</RegionEffects>
   </method>

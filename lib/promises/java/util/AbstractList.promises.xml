@@ -16,5 +16,10 @@
    <borrowed>this</borrowed>  <!-- not really true -->
    <RegionEffects>reads this:Instance</RegionEffects>
   </method>
+  
+  <method name="isEmpty">
+   <borrowed>this</borrowed>  
+   <RegionEffects>reads this:Instance</RegionEffects>
+  </method>
  </class>
 </package>

@@ -1,0 +1,13 @@
+<package name="java.util">
+ <class name="LinkedList">
+  <constructor>
+   <borrowed>this</borrowed>
+   <regionEffects>none</regionEffects>
+  </constructor>
+ 
+  <method name="add" params="java.lang.Object">
+    <borrowed>this</borrowed>
+    <RegionEffects>writes Instance</RegionEffects>
+  </method>
+ </class>
+</package>
