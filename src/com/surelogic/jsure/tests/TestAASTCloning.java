@@ -179,7 +179,7 @@ public class TestAASTCloning extends TestCase {
 	
 	public void testScopedPromiseCloning(){
 		try{
-			ConstructorDeclPatternNode node = (ConstructorDeclPatternNode)createScopedPromise("'reads Instance' for public new(int, String, char) in Foo");
+			ConstructorDeclPatternNode node = (ConstructorDeclPatternNode)createScopedPromise("@Reads(Instance) for public new(int, String, char) in Foo");
 			ConstructorDeclPatternNode clone = (ConstructorDeclPatternNode)node.cloneTree();
 			
 			assertFalse(node == clone);

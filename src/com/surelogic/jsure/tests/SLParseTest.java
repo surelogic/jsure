@@ -1553,16 +1553,17 @@ public class SLParseTest extends TestCase {
 						           "  Reads\n" +
 											 "    EffectSpecification\n" +
 											 "      isWrite=false\n"+
-											 "      ThisExpression\n"+
+											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
 										"reads region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
+						String result = node.unparse();
 						System.out.println(expected);
-						System.out.println(node.unparse());
-						assertTrue(node.unparse().equals(expected));
+						System.out.println(result);
+						assertTrue(result.equals(expected));
 				} catch (RecognitionException e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1636,24 +1637,31 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				*/
+		}
+		
+		public void testGoodRegionEffects2() {
+				String expected; 
 				try {
 						expected = "RegionEffects\n"+
 						           "  Reads\n" +
 											 "    EffectSpecification\n" +
 											 "      isWrite=false\n"+
-											 "      ThisExpression\n"+
+											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n"+
 											 "    EffectSpecification\n" +
 											 "      isWrite=false\n"+
-											 "      ThisExpression\n"+
+											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region2\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
 										"reads region1, region2").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
-						assertTrue(node.unparse().equals(expected));
+						String result = node.unparse();
+						System.out.println(expected);
+						System.out.println(result);
+						assertTrue(result.equals(expected));
 				} catch (RecognitionException e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1732,7 +1740,7 @@ public class SLParseTest extends TestCase {
 						           "  Writes\n" +
 											 "    EffectSpecification\n" +
 											 "      isWrite=false\n"+
-											 "      ThisExpression\n"+
+											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
@@ -1818,12 +1826,12 @@ public class SLParseTest extends TestCase {
 						           "  Writes\n" +
 											 "    EffectSpecification\n" +
 											 "      isWrite=false\n"+
-											 "      ThisExpression\n"+
+											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n"+
 											 "    EffectSpecification\n" +
 											 "      isWrite=false\n"+
-											 "      ThisExpression\n"+
+											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region2\n";
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
