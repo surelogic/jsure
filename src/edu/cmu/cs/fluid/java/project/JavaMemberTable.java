@@ -796,50 +796,57 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return null;
     }
     
+    private List<IRNode> copyIterator(Iterator<IRNode> it) {
+    	if (!it.hasNext()) {
+    		return Collections.emptyList();
+    	}
+    	final List<IRNode> temp = new ArrayList<IRNode>();
+    	while (it.hasNext()) {
+    		IRNode n = it.next();
+    		temp.add(n);
+    	}
+    	return temp;
+    }
+    
     public Iterator<IBinding> lookupAll(String name, final IRNode useSite, final Selector selector) {
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) {
         LOG.finer("Looking for all " + name + " in " + this);
         //new FluidError("no error").printStackTrace();
       }
-      JavaMemberTable.this.ensureDerived();
-      Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
-      if (!JJNode.versioningIsOn && !members.hasNext() && 
-    	  !repopulated.contains(typeDeclaration)) {   
-    	  repopulated.add(typeDeclaration);
-    	  String context = JJNode.getInfoOrNull(typeDeclaration);
-    	  if (context == null) {
-    		  context = DebugUnparser.toString(typeDeclaration);
-    	  }
-    	  if (debug) {
-    		  LOG.finer("Re-populating member table: "+context);
-    	  }
-    	  synchronized (this) {
-    		  populateDeNovo();
-    	  }
-    	  members = getDeclarationsFromUse(name,useSite);
-      }
-      synchronized (this) {
-    	  if (members.hasNext()) {
-    		  // Copy iterator to avoid CoModExceptions
-    		  final List<IRNode> temp = new ArrayList<IRNode>();
-    		  while (members.hasNext()) {
-    			  IRNode n = members.next();
-    			  temp.add(n);
+      List<IRNode> tempMembers;
+      synchronized (JavaMemberTable.this) {
+    	  JavaMemberTable.this.ensureDerived();      
+    	  Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
+    	  if (!JJNode.versioningIsOn && !members.hasNext() && 
+    			  !repopulated.contains(typeDeclaration)) {   
+    		  repopulated.add(typeDeclaration);
+    		  String context = JJNode.getInfoOrNull(typeDeclaration);
+    		  if (context == null) {
+    			  context = DebugUnparser.toString(typeDeclaration);
     		  }
-    		  return new FilterIterator<IRNode, IBinding>(temp.iterator()) {
-    			  @Override
-    			  public Object select(IRNode n) {
-    				  if (selector.select(n)) {
-    					  if (debug) {
-    						  LOG.finer("Selected node from " + Scope.this);
-    					  }
-    					  return IBinding.Util.makeBinding(n);
-    				  }
-    				  return noElement;
-    			  }
-    		  };        
+    		  if (debug) {
+    			  LOG.finer("Re-populating member table: "+context);
+    		  }
+    		  populateDeNovo();
+    		  
+    		  members = getDeclarationsFromUse(name,useSite);
     	  }
+    	  tempMembers = copyIterator(members);
+      }
+      if (!tempMembers.isEmpty()) {
+    	  return new FilterIterator<IRNode, IBinding>(tempMembers.iterator()) {
+    		  @Override
+    		  public Object select(IRNode n) {
+    			  if (selector.select(n)) {
+    				  if (debug) {
+    					  LOG.finer("Selected node from " + Scope.this);
+    				  }
+    				  return IBinding.Util.makeBinding(n);
+    			  }
+    			  return noElement;
+    		  }
+    	  };        
       }
       return EMPTY_BINDINGS_ITERATOR;
     }
