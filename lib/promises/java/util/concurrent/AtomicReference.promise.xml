@@ -1,0 +1,24 @@
+<package name="java.util.concurrent">
+ <class name="AtomicReference">
+  <constructor>
+   <borrowed>this</borrowed>
+   <regionEffects>none</regionEffects>
+  </constructor>
+  
+  <constructor params="java.lang.Object">
+   <borrowed>this</borrowed>
+   <regionEffects>writes this:Instance</regionEffects>
+  </constructor>
+
+  <method name="get">
+   <starts>nothing</starts>
+   <borrowed>this</borrowed> 
+   <RegionEffects>reads this:Instance</RegionEffects>
+  </method>
+  
+  <method name="set">
+   <borrowed>this</borrowed>  
+   <RegionEffects>writes this:Instance</RegionEffects>
+  </method>
+ </class>
+</package>
