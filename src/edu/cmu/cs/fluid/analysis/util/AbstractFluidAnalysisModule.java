@@ -381,6 +381,11 @@ public abstract class AbstractFluidAnalysisModule extends
 
   protected void queueForLaterProcessing(String qname) {
     LOG.info("Queueing " + qname);
+    /*
+    if (qname.indexOf('.') < 0) {
+    	System.out.println("No qualified name");
+    }
+    */
     if (qname.indexOf('$') >= 0) {
       //System.out.println("$");
       qname = qname.replace('$', '.');
