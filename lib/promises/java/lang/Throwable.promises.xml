@@ -1,0 +1,24 @@
+<package name="java.lang">
+ <class name="Throwable">
+  <constructor>
+   <borrowed>this</borrowed>
+   <regionEffects>none</regionEffects>
+  </constructor>
+  
+  <constructor params="java.lang.String">
+   <borrowed>this</borrowed>
+   <regionEffects>reads arg0:Instance</regionEffects>
+  </constructor>
+  
+  <constructor params="java.lang.Throwable">
+   <borrowed>this</borrowed>
+   <regionEffects>reads arg0:Instance</regionEffects>
+  </constructor>
+
+  <method name="printStackTrace">
+   <starts>nothing</starts>
+   <borrowed>this</borrowed>  
+   <RegionEffects>reads this:Instance</RegionEffects>
+  </method>
+ </class>
+</package>

@@ -1,0 +1,7 @@
+<package name="java.io">
+ <class name="FileInputStream">
+  <constructor params="java.io.File">
+    <borrowed>this</borrowed>
+  </constructor>
+ </class>
+</package>
