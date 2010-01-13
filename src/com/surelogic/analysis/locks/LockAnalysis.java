@@ -12,6 +12,7 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effects;
 
 import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.TypeBasedAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -107,7 +108,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {
 		if (runInParallel()) {
 			runInParallel(IRNode.class, topLevel.getTypeBodies(), new Procedure<IRNode>() {
 				public void op(IRNode type) {
-					System.out.println("Parallel Lock: "+type);
+					System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(type));
 					getAnalysis().analyzeClass(type,
 							getResultDependUponDrop());
 				}				
