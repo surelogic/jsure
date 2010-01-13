@@ -157,6 +157,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 	private boolean jloChanged = false;
 
 	private static final String MODULE_PREFIX = "Module.";
+	private static final String PROJECT_KEY = "Project";
 
 	/**
 	 * 
@@ -190,10 +191,11 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 		Properties props = IDE.getInstance().getProperties();
 
 		// If no properties, try to read them in
-		if (props == null) {
+		if (props == null || props.get(PROJECT_KEY) != p) {
 			if (fp.exists()) {
 				String location = fp.getLocation().toOSString();
 				props = new Properties();
+				props.put(PROJECT_KEY, p);
 
 				try {
 					InputStream is = new FileInputStream(new File(location));
