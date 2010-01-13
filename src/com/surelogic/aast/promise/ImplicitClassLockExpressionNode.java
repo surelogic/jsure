@@ -13,7 +13,7 @@ public class ImplicitClassLockExpressionNode extends ClassLockExpressionNode {
   public static final AbstractSingleNodeFactory factory =
     new AbstractSingleNodeFactory("ImplicitClassLockExpression") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         return new ImplicitClassLockExpressionNode (_start        );
       }
