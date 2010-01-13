@@ -1,0 +1,29 @@
+<package name="java.util.concurrent.atomic">
+ <class name="AtomicLong">
+  <constructor>
+   <borrowed>this</borrowed>
+   <regionEffects>none</regionEffects>
+  </constructor>
+  
+  <constructor params="int">
+   <borrowed>this</borrowed>
+   <regionEffects>none</regionEffects>
+  </constructor>
+
+  <method name="get">
+   <starts>nothing</starts>
+   <borrowed>this</borrowed> 
+   <RegionEffects>reads this:Instance</RegionEffects>
+  </method>
+  
+  <method name="set" params="int">
+   <starts>nothing</starts>
+   <borrowed>this</borrowed>  
+   <RegionEffects>writes this:Instance</RegionEffects>
+  </method>
+  
+  <promise>@Starts(nothing) for *And*(**)</promise>
+  <promise>@Borrowed(this) for *And*(**)</promise>
+  <promise>@RegionEffects(writes this:Instance) for *And*(**)</promise>
+ </class>
+</package>

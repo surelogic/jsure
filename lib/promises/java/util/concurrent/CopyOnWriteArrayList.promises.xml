@@ -1,0 +1,11 @@
+<package name="java.util.concurrent">
+ <class name="CopyOnWriteArrayList">
+  <promise>@Unique(return) for new(**)</promise>
+  
+  <constructor>
+   <regionEffects>none</regionEffects>
+  </constructor>
+  
+  <promise>@RegionEffects(writes arg0:Instance) for new(*)</promise>
+ </class>
+</package>
