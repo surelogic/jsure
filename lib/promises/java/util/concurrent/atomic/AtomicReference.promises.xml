@@ -1,13 +1,13 @@
-<package name="java.util.concurrent">
+<package name="java.util.concurrent.atomic">
  <class name="AtomicReference">
   <constructor>
    <borrowed>this</borrowed>
    <regionEffects>none</regionEffects>
   </constructor>
   
-  <constructor params="java.lang.Object">
+  <constructor genericParams="V extends java.lang.Object in AtomicReference" params="java.lang.Object">
    <borrowed>this</borrowed>
-   <regionEffects>writes this:Instance</regionEffects>
+   <regionEffects>none</regionEffects>
   </constructor>
 
   <method name="get">
@@ -16,7 +16,7 @@
    <RegionEffects>reads this:Instance</RegionEffects>
   </method>
   
-  <method name="set">
+  <method genericParams="V extends java.lang.Object in AtomicReference" params="java.lang.Object" name="set">
    <borrowed>this</borrowed>  
    <RegionEffects>writes this:Instance</RegionEffects>
   </method>
