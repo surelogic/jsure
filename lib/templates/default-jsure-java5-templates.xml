@@ -82,6 +82,12 @@
     @Starts("nothing")</template>
   
   <!-- Uniqueness annotations -->
+    <template name="Unique" 
+            description="Unique and Aggregate" 
+            id="com.surelogic.jsure.templates.unique" context="java" 
+            enabled="true">Unique
+    @Aggregate")</template>  
+  
   <template name="Unique" 
             description="Unique and aggregated Object" 
             id="com.surelogic.jsure.templates.unique" context="java" 
