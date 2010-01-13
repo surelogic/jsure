@@ -1,5 +1,6 @@
 <package name="java.util">
  <class name="ArrayList">
+ 
   <constructor params="int">
    <borrowed>this</borrowed>
    <regionEffects>none</regionEffects>
@@ -15,6 +16,7 @@
 
   <constructor>
    <borrowed>this</borrowed>
+   <regionEffects>none</regionEffects>
   </constructor>
   
   <method name="size">
