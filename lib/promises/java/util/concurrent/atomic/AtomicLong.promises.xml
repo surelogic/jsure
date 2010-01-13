@@ -5,7 +5,7 @@
    <regionEffects>none</regionEffects>
   </constructor>
   
-  <constructor params="int">
+  <constructor params="long">
    <borrowed>this</borrowed>
    <regionEffects>none</regionEffects>
   </constructor>
@@ -16,7 +16,7 @@
    <RegionEffects>reads this:Instance</RegionEffects>
   </method>
   
-  <method name="set" params="int">
+  <method name="set" params="long">
    <starts>nothing</starts>
    <borrowed>this</borrowed>  
    <RegionEffects>writes this:Instance</RegionEffects>
