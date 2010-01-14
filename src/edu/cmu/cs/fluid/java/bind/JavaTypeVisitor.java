@@ -657,7 +657,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     if (b == null) return null;
     IRNode n = b.getNode();
     if (b.getContextType() != null) {
-      LOG.warning("expected binding of local to have empty content: " + b);
+      LOG.info("expected binding of local to have empty content: " + b);
     }
     return b.convertType(doAccept( n )); // probably a NOP
   }
