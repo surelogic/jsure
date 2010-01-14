@@ -1640,7 +1640,11 @@ implements IBinderClient {
     } else if (ctxtInsideConstructor != null) {
       return ctxtInsideConstructor;
     } else {
-      throw new UnsupportedOperationException("No enclosing method");
+      // XXX: this is not really the right thing to do, but it seems to work
+      // We have to deal with Enumerations correctly, but don't have time for
+      // that now
+      return ClassInitDeclaration.getClassInitMethod(ctxtTypeDecl);
+//      throw new UnsupportedOperationException("No enclosing method");
     }
   }
   
