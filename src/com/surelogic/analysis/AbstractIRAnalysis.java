@@ -36,22 +36,43 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> implements 
 	 * Used to queue up work across comp units before running in parallel
 	 */
 	private final IParallelArray<Q> workQueue;
-	private final Procedure<Q> workProc;
+	private Procedure<Q> workProc;
+	private static final int FLUSH_SIZE = 10*threadCount;
 	
-	protected AbstractIRAnalysis(Class<Q> type, Procedure<Q> proc) {		
-		if (type != null && proc != null) {
-			workProc = proc;
+	protected AbstractIRAnalysis(Class<Q> type) {		
+		if (type != null) {
+			System.out.println("Threads: "+threadCount);
+			System.out.println("Singlethreaded? "+singleThreaded);
 			workQueue = createIParallelArray(type);
 		} else {
-			workProc = null;
 			workQueue = null;
 		}
 	}
 	
-	private void flushWorkQueue() {
+	protected final void setWorkProcedure(Procedure<Q> proc) {
+		workProc = proc;
+	}
+	
+	protected final Procedure<Q> getWorkProcedure() {
+		return workProc;
+	}
+	
+	protected void queueWork(Collection<Q> work) {
 		if (workQueue != null) {
+			List<Q> l = workQueue.asList();
+			l.addAll(work);
+			if (l.size() > FLUSH_SIZE) {
+				flushWorkQueue();
+			}
+		}
+	}
+	
+	private void flushWorkQueue() {
+		if (workQueue != null && workProc != null) {
+			List<Q> l = workQueue.asList();
+			System.out.println("Flushing: "+l.size());
 			workQueue.apply(workProc);
-			workQueue.asList().clear();
+			l.clear();
 		}
 	}
 	

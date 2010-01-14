@@ -4,8 +4,6 @@ package com.surelogic.analysis;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import jsr166y.forkjoin.Ops.Procedure;
-
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -28,11 +26,11 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	private Drop resultDependUpon = null;
 	
 	protected AbstractWholeIRAnalysis(String logName) {
-		this(null, null, logName);
+		this(null, logName);
 	}
 	
-	protected AbstractWholeIRAnalysis(Class<Q> type, Procedure<Q> proc, String logName) {
-		super(type, proc);
+	protected AbstractWholeIRAnalysis(Class<Q> type, String logName) {
+		super(type);
 		LOG = SLLogger.getLogger(logName);
 	}
 	

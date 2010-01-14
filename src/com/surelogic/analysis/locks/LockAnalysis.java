@@ -22,12 +22,23 @@ import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
-public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,Void> {	
+public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {	
+	private static boolean runInParallel = false;
+	private static boolean queueWork = runInParallel && true;
+	
 	private final AtomicReference<GlobalLockModel> lockModelHandle = 
 		new AtomicReference<GlobalLockModel>(null);
 	
 	public LockAnalysis() {
-		super("LockAssurance");
+		super(queueWork ? IRNode.class : null, "LockAssurance");
+		if (runInParallel) {
+			setWorkProcedure(new Procedure<IRNode>() {
+				public void op(IRNode type) {
+					System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(type));
+					getAnalysis().analyzeClass(type, getResultDependUponDrop());
+				}
+			});
+		}      
 	}
 	
 	public void init(IIRAnalysisEnvironment env) {
@@ -37,7 +48,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,Void> {
 	
 	@Override
 	protected boolean runInParallel() {
-		return false && !singleThreaded;
+		return runInParallel && !singleThreaded;
 	}
 	
 	@Override
@@ -106,17 +117,15 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,Void> {
 				getResultDependUponDrop());
 		topLevel.doAccept(compUnit);	
 		if (runInParallel()) {
-			runInParallel(IRNode.class, topLevel.getTypeBodies(), new Procedure<IRNode>() {
-				public void op(IRNode type) {
-					System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(type));
-					getAnalysis().analyzeClass(type,
-							getResultDependUponDrop());
-				}				
-			});
+			if (queueWork) {
+				queueWork(topLevel.getTypeBodies());
+			} else {
+				runInParallel(IRNode.class, topLevel.getTypeBodies(), getWorkProcedure());
+			}
 		}
 		return true;
 	}
-
+	
 	@Override
 	public void postAnalysis(IIRProject p) {
 		finishBuild();
