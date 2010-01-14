@@ -143,13 +143,13 @@ public class DefaultPipeline extends LinkedList<Callable>
 
 
     @SingleThreaded
-    @Borrowed("this"/*is INCONSISTENT*/)
+    @Borrowed("this"/*is CONSISTENT*/)
     public DefaultPipeline(){
         super();
     }
 
     @SingleThreaded
-    @Borrowed("this"/*is INCONSISTENT*/)
+    @Borrowed("this"/*is CONSISTENT*/)
     public DefaultPipeline(int maxThreads, int minThreads, String name,
             int port, int priority){
 
@@ -166,7 +166,7 @@ public class DefaultPipeline extends LinkedList<Callable>
 
 
     @SingleThreaded
-    @Borrowed("this"/*is INCONSISTENT*/)
+    @Borrowed("this"/*is CONSISTENT*/)
     public DefaultPipeline(int maxThreads, int minThreads, String name,
             int port){
         this(maxThreads,minThreads,name,port,Thread.NORM_PRIORITY);
