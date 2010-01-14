@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects> {	
+public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {	
 	public EffectsAnalysis() {
 		super("EffectAssurance2");
 	}

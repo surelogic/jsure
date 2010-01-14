@@ -33,7 +33,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnalysis> {
+public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnalysis,Void> {
   private static final Category DSC_UNIQUE_PARAMS_SATISFIED =
     Category.getInstance(Messages.Category_uniqueParametersSatisfied);
   

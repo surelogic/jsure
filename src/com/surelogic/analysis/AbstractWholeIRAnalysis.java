@@ -4,6 +4,8 @@ package com.surelogic.analysis;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import jsr166y.forkjoin.Ops.Procedure;
+
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -13,7 +15,7 @@ import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.util.CachedSet;
 
-public abstract class AbstractWholeIRAnalysis<T extends IBinderClient> extends AbstractIRAnalysis<T> {
+public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extends AbstractIRAnalysis<T,Q> {
 	static private class ResultsDepDrop extends Drop {
 		// Place holder class
 	}
@@ -26,6 +28,11 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient> extends A
 	private Drop resultDependUpon = null;
 	
 	protected AbstractWholeIRAnalysis(String logName) {
+		this(null, null, logName);
+	}
+	
+	protected AbstractWholeIRAnalysis(Class<Q> type, Procedure<Q> proc, String logName) {
+		super(type, proc);
 		LOG = SLLogger.getLogger(logName);
 	}
 	

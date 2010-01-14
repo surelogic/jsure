@@ -22,7 +22,7 @@ import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
-public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor> {	
+public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,Void> {	
 	private final AtomicReference<GlobalLockModel> lockModelHandle = 
 		new AtomicReference<GlobalLockModel>(null);
 	

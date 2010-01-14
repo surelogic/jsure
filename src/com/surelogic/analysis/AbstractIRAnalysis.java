@@ -20,7 +20,7 @@ import edu.cmu.cs.fluid.sea.proxy.AbstractDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public abstract class AbstractIRAnalysis<T extends IBinderClient> implements IIRAnalysis {
+public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> implements IIRAnalysis {
 	private IIRProject project;
 	private IBinder binder;
 	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
@@ -32,13 +32,40 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient> implements IIR
 	
 	// TODO use ThreadLocal trick to collect all the builders
 	private final List<AbstractDropBuilder> builders = new Vector<AbstractDropBuilder>();
+	/**
+	 * Used to queue up work across comp units before running in parallel
+	 */
+	private final IParallelArray<Q> workQueue;
+	private final Procedure<Q> workProc;
+	
+	protected AbstractIRAnalysis(Class<Q> type, Procedure<Q> proc) {		
+		if (type != null && proc != null) {
+			workProc = proc;
+			workQueue = createIParallelArray(type);
+		} else {
+			workProc = null;
+			workQueue = null;
+		}
+	}
+	
+	private void flushWorkQueue() {
+		if (workQueue != null) {
+			workQueue.apply(workProc);
+			workQueue.asList().clear();
+		}
+	}
+	
+	private <E> IParallelArray<E> createIParallelArray(Class<E> type) {
+		final IParallelArray<E> array = runInParallel() ? 
+				new NonParallelArray<E>() : ParallelArray.create(0, type, pool);	
+		return array;
+	}
 	
 	protected <E> void runInParallel(Class<E> type, Collection<E> c, Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;
 		}
-		final IParallelArray<E> array = singleThreaded ? 
-				new NonParallelArray<E>() : ParallelArray.create(0, type, pool);	
+		final IParallelArray<E> array = createIParallelArray(type);
 		array.asList().addAll(c);
 		/*
 		for(Procedure<E> p : procs) {
@@ -73,6 +100,8 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient> implements IIR
 	}
 	
 	protected final void finishBuild() {
+		flushWorkQueue();
+		
 		for(AbstractDropBuilder b : builders) {
 			b.build();
 		}
