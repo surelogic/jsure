@@ -22,7 +22,7 @@ import edu.cmu.cs.fluid.util.SingletonIterator;
  * @author boyland
  */
 public class VersionedChangeRecord extends AbstractChangeRecord implements ChangeRecord, Observer {
-  private IRNodeHashedMap<VersionSet> changeLog = new IRNodeHashedMap<VersionSet>();
+  private final IRNodeHashedMap<VersionSet> changeLog = new IRNodeHashedMap<VersionSet>();
   
   private List<IRNode> backlog1 = new ArrayList<IRNode>();
   private List<Version> backlog2 = new ArrayList<Version>();

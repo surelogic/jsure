@@ -28,12 +28,12 @@ public abstract class Template
   /**
    * Listeners for <code>TemplateEvent</code> messages.
    */
-  private Vector listeners;
+  private final Vector listeners;
   
   /**
    * Listeners for <code>TemplateSpawnedEvent</code> messages.
    */
-  private Vector spawnedListeners;
+  private final Vector spawnedListeners;
 
   /**
    * If <code>completed</code> is <code>true</code>, then

@@ -396,7 +396,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   /**
    * A table from names to Entries. This table is is externally immutable
    */
-  private HashMap<String,Entry> entries = new HashMap<String,Entry>();
+  private final HashMap<String,Entry> entries = new HashMap<String,Entry>();
 
   /**
    * Get entry associated with the name.

@@ -32,7 +32,7 @@ class Task implements ITask {
 
 	// Used when finding cycles
 	private boolean marked = false;
-	private Object markLock = new Object();
+	private final Object markLock = new Object();
 
 	// Counts the number of dependencies that haven't been met
 	private int dependencyCount;

@@ -3,6 +3,7 @@ package com.surelogic.analysis.uniqueness;
 
 import java.util.*;
 
+import com.surelogic.*;
 import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -40,6 +41,8 @@ import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
  * </ul>
  */
 @SuppressWarnings("unchecked")
+@Region("static StackSizes")
+@RegionLock("L is class protects StackSizes")
 public class Store extends RecordLattice {
   private final IRNode[] locals;
   private final UnionLattice<Object> nodeSet;
@@ -62,7 +65,8 @@ public class Store extends RecordLattice {
   public static final PseudoVariable sharedVariable =
        new PseudoVariable("shared",STATE_SHARED);
 
-
+  @Unique
+  @AggregateInRegion("StackSizes")
   public static final Vector<FlatLattice> stackSizes = new Vector<FlatLattice>();
   static {
     stackSizes.addElement(new FlatLattice(new Integer(0)));

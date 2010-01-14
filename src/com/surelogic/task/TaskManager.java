@@ -67,14 +67,14 @@ public class TaskManager extends ThreadPoolExecutor {
 	 * The collection of ITaskListeners that wish to be notified of the state
 	 * changes of this manager.
 	 */
-	private CopyOnWriteArrayList<ITaskListener> listeners =
+	private final CopyOnWriteArrayList<ITaskListener> listeners =
 		new CopyOnWriteArrayList<ITaskListener>();
 
 	// Protects the listeners collection
-	private Object listenerLock = new Object();
+	private final Object listenerLock = new Object();
 
 	// Protects the task graph and taskNameTable
-	private Object taskLock = new Object();
+	private final Object taskLock = new Object();
 
 	// Used by execute(boolean) to wait for all tasks to be executed before it
 	// returns

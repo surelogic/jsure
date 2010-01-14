@@ -56,7 +56,7 @@ public class JavaProjectClassTable extends AbstractJavaClassTable implements IJa
   /**
    * map fully qualified strings to Entry objects.
    */
-  private Map<String,Entry> rep = new HashMap<String,Entry>();
+  private final Map<String,Entry> rep = new HashMap<String,Entry>();
   
   class Entry extends JavaIncrementalBinder.Dependency {
     VersionedDerivedSlot<IRNode> compNodeSlot;

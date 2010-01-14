@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import com.surelogic.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -44,6 +45,9 @@ import edu.cmu.cs.fluid.util.*;
  * </p>
  */
 @SuppressWarnings("unchecked")
+@Region("ListState")
+@InRegion("seq, initialSize, sizeSlot into ListState")
+@RegionLock("ListLock is this protects ListState")
 public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   
   private static final Logger LOG = SLLogger.getLogger("FLUID.ir");
@@ -57,7 +61,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   public IRList() {
     this(0);
   }
-
+  
   public IRList(int startingSize) {
     this(null,startingSize);
   }
@@ -70,7 +74,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   /*public SlotFactory getSlotFactory() {
     return slotFactory;
   }*/
-  
+
   public IRList(IRState parent, int startingSize) {
     super(parent);
     // slotFactory = sf;

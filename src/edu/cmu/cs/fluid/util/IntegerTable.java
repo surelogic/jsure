@@ -1,21 +1,21 @@
 package edu.cmu.cs.fluid.util;
 
+import com.surelogic.*;
+
 /** This class provides a way to store and reuse boxed integers.
  * It can be used to store other boxed types.  The only requirement
  * is that the hashCode() method return a unique value.
- * 
- * @lock L is this protects Instance
  */
+@RegionLock("L is this protects Instance")
 public class IntegerTable {
+  @Unique
+  @Aggregate
   private Bucket[] buckets;
     { //@ unique(buckets); //Can't handle yet: unique(buckets[0]);
     }
   private int size = 0;
 
-  /**
-   * @singleThreaded
-   * @borrowed this
-   */
+  @Unique("return")
   public IntegerTable() { //@ limited(this);
     buckets = new Bucket[10]; 
   }
@@ -36,13 +36,12 @@ public class IntegerTable {
   }
 
   /** Create a new boxed integer (of the desired type). */
+  @RequiresLock("L")
   protected Object box(int v) {
     return new Integer(v);
   }
 
-  /**
-   * @requiresLock L  
-   */
+  @RequiresLock("L")
   protected void rehash() { //@ limited(this);
     Bucket[] newBuckets = new Bucket[buckets.length*2];
     for (int i=0; i < buckets.length; ++i) {
