@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.java;
 
-import java.util.Hashtable;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +28,7 @@ public class JavaComponentFactory extends ComponentFactory {
 	 * stored in the following table. The structures are transient, and so there
 	 * is no need to use slots. @type Hashtable[IRNode,Component]
 	 */
-  private static Hashtable<IRNode,Component> components = new Hashtable<IRNode,Component>();
+  private static Map<IRNode,Component> components = new ConcurrentHashMap<IRNode,Component>();
   
   public static void clearCache() {
 	  components.clear();

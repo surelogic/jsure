@@ -3,10 +3,9 @@
  */
 package edu.cmu.cs.fluid.util;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 
 /**
  * Keeping track of the number of things created.
@@ -21,40 +20,32 @@ public class CountInstances {
    * @unique
    * @aggregate Instance into Counts  
    */
-  private static Map<String,IntCell> counts = new HashMap<String,IntCell>();
+  private static Map<String,AtomicInteger> counts = new ConcurrentHashMap<String,AtomicInteger>();
   
   public CountInstances() {
     add(this);
   }
   
-  public static synchronized void add(Object x) {
+  public static void add(Object x) {
     String n = x.getClass().getName();
-    IntCell c = counts.get(n);
+    AtomicInteger c = counts.get(n);
     if (c == null) {
-      c = new IntCell();
+      c = new AtomicInteger();
       counts.put(n,c);
     }
-    ++c.value;
+    c.incrementAndGet();
   }
   
-  public static synchronized void reset() {
-    for (Iterator it = counts.entrySet().iterator(); it.hasNext();) {
-      Map.Entry e = (Map.Entry)it.next();
-      IntCell c = (IntCell)e.getValue();
-      c.value = 0;
+  public static void reset() {
+    for (Map.Entry<String,AtomicInteger> e : counts.entrySet()) {
+      AtomicInteger c = e.getValue();
+      c.set(0);
     }
   }
   
-  public static synchronized void report() {
-    for (Iterator it = counts.entrySet().iterator(); it.hasNext();) {
-      Map.Entry e = (Map.Entry)it.next();
-      System.out.println(e.getKey() +": " + e.getValue());
-    }
-  }
-  
-  private static class IntCell {
-    public int value;
-    @Override
-    public String toString() { return Integer.toString(value); }
+  public static void report() {
+	for (Map.Entry<String,AtomicInteger> e : counts.entrySet()) {
+	  System.out.println(e.getKey() +": " + e.getValue().intValue());
+	}
   }
 }
