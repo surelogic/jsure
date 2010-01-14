@@ -154,7 +154,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
             if (monitor != null) {
               monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
             }
-            System.out.println("Parallel: " + methodName);
+            //System.out.println("Parallel: " + methodName);
             analzyePseudoMethodDeclaration(node);
           }
         });
