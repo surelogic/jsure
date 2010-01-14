@@ -41,8 +41,8 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> implements 
 	
 	protected AbstractIRAnalysis(Class<Q> type) {		
 		if (type != null) {
-			System.out.println("Threads: "+threadCount);
-			System.out.println("Singlethreaded? "+singleThreaded);
+			//System.out.println("Threads: "+threadCount);
+			//System.out.println("Singlethreaded? "+singleThreaded);
 			workQueue = createIParallelArray(type);
 		} else {
 			workQueue = null;
@@ -70,7 +70,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> implements 
 	private void flushWorkQueue() {
 		if (workQueue != null && workProc != null) {
 			List<Q> l = workQueue.asList();
-			System.out.println("Flushing: "+l.size());
+			//System.out.println("Flushing: "+l.size());
 			workQueue.apply(workProc);
 			l.clear();
 		}
