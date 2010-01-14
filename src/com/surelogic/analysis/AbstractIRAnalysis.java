@@ -37,7 +37,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> implements 
 	 */
 	private final IParallelArray<Q> workQueue;
 	private Procedure<Q> workProc;
-	private static final int FLUSH_SIZE = 10*threadCount;
+	private static final int FLUSH_SIZE = 20*threadCount;
 	
 	protected AbstractIRAnalysis(Class<Q> type) {		
 		if (type != null) {
@@ -78,7 +78,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> implements 
 	
 	private <E> IParallelArray<E> createIParallelArray(Class<E> type) {
 		final IParallelArray<E> array = runInParallel() ? 
-				new NonParallelArray<E>() : ParallelArray.create(0, type, pool);	
+				ParallelArray.create(0, type, pool) : new NonParallelArray<E>();	
 		return array;
 	}
 	
