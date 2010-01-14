@@ -100,31 +100,31 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	}
 
 	protected void checkNonNullForFile(final IRNode compUnit) {
-		/*
-		 * Run around the tree looking for variable use expressions.
-		 */
-		for (IRNode node : JJNode.tree.topDown(compUnit)) {
-			final Operator op = JJNode.tree.getOperator(node);
-			if (VariableUseExpression.prototype.includes(op)) {
-				// See if the current variable is a primitive or not
-				final IJavaType type = binder.getJavaType(node);
-				if (type instanceof IJavaReferenceType) {
-					// See if the current variable is considered to be null or
-					// not
-					final Set<IRNode> nonNull = nonNullAnalysis
-							.getNonnullBefore(node);
-					final IRNode varDecl = binder.getBinding(node);
-					final InfoDrop drop = new InfoDrop();
-					setLockResultDep(drop, node);
-					drop.setCategory(NONNULL_CATEGORY);
-					final String varName = VariableUseExpression.getId(node);
-					if (nonNull.contains(varDecl)) {
-						drop.setMessage(varName + " IS NOT null");
-					} else {
-						drop.setMessage(varName + " may be null");
-					}
-				}
-			}
-		}
+//		/*
+//		 * Run around the tree looking for variable use expressions.
+//		 */
+//		for (IRNode node : JJNode.tree.topDown(compUnit)) {
+//			final Operator op = JJNode.tree.getOperator(node);
+//			if (VariableUseExpression.prototype.includes(op)) {
+//				// See if the current variable is a primitive or not
+//				final IJavaType type = binder.getJavaType(node);
+//				if (type instanceof IJavaReferenceType) {
+//					// See if the current variable is considered to be null or
+//					// not
+//					final Set<IRNode> nonNull = nonNullAnalysis
+//							.getNonnullBefore(node);
+//					final IRNode varDecl = binder.getBinding(node);
+//					final InfoDrop drop = new InfoDrop();
+//					setLockResultDep(drop, node);
+//					drop.setCategory(NONNULL_CATEGORY);
+//					final String varName = VariableUseExpression.getId(node);
+//					if (nonNull.contains(varDecl)) {
+//						drop.setMessage(varName + " IS NOT null");
+//					} else {
+//						drop.setMessage(varName + " may be null");
+//					}
+//				}
+//			}
+//		}
 	}
 }
