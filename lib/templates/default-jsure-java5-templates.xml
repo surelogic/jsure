@@ -86,7 +86,7 @@
             description="Unique and Aggregate" 
             id="com.surelogic.jsure.templates.unique" context="java" 
             enabled="true">Unique
-    @Aggregate")</template>  
+    @Aggregate</template>  
   
   <template name="Unique" 
             description="Unique and aggregated Object" 
