@@ -1,13 +1,14 @@
-/*$Header: /cvs/fluid/fluid/src/edu/uwm/cs/fluid/java/analysis/SimpleNonnullAnalysis.java,v 1.2 2007/09/12 00:41:24 boyland Exp $*/
 package edu.uwm.cs.fluid.java.analysis;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
@@ -38,7 +39,11 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
  * the initialization of final variables).
  * @author boyland
  */
-public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+  public static interface Query extends AnalysisQuery<ImmutableSet<IRNode>> {
+    // do nothing;
+  }
+  
 //  private static final Logger LOG = SLLogger.getLogger();
 
   public SimpleNonnullAnalysis(IBinder b) {
@@ -55,16 +60,26 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
    * @param node node in AST to denote where to check
    * @return variables that are not null at this execution point.
    */
-  public ImmutableSet<IRNode> getNonnullBefore(IRNode node) {
-    return super.getAnalysisResultsBefore(node).second();
+  public ImmutableSet<IRNode> getNonnullBefore(IRNode node, IRNode constructorContext) {
+    return getAnalysisResultsBefore(node, constructorContext).second();
   }
 
+  public Query getNonnullBeforeQuery(final IRNode flowUnit) {
+    return new Query() {
+      private final FlowAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> a = getAnalysis(flowUnit);
+
+      public ImmutableSet<IRNode> getResultFor(final IRNode expr) {
+        return a.getAfter(expr, WhichPort.ENTRY).second();
+      }
+    };
+  }
+  
 
   public static enum NullInfo {
     IMPOSSIBLE, NOTNULL, NULL, MAYBENULL;
   }
   
-  public static class NullLattice extends AbstractLattice<NullInfo> {
+  public static final class NullLattice extends AbstractLattice<NullInfo> {
     private static final NullLattice instance = new NullLattice();
 
     public static NullLattice getInstance() {
@@ -97,7 +112,7 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
     return new Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>(o1,o2);
   }
   
-  private static class Lattice extends PairLattice<ImmutableList<NullInfo>,ImmutableSet<IRNode>> {
+  private static final class Lattice extends PairLattice<ImmutableList<NullInfo>,ImmutableSet<IRNode>> {
 
     public Lattice() {
       super(new ListLattice<NullLattice,NullInfo>(NullLattice.getInstance()), new IntersectionLattice<IRNode>(){
@@ -136,7 +151,7 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
     }
   }
   
-  private static class Transfer extends JavaEvaluationTransfer<Lattice,Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+  private static final class Transfer extends JavaEvaluationTransfer<Lattice,Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
 
     private static final NullLattice nullLattice = NullLattice.getInstance();
     
@@ -403,7 +418,7 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
     
   }
   
-  private static class Analysis extends ForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+  private static final class Analysis extends ForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
 
     public Analysis(String name, Lattice l, Transfer t, IRNodeViewer nv) {
       super(name, l, t, nv);
@@ -417,7 +432,7 @@ public class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Immutabl
     
   }
   
-  public static class Test extends TestFlowAnalysis {
+  public static final class Test extends TestFlowAnalysis {
 
     @Override
     protected FlowAnalysis<?> createAnalysis(IRNode flowUnit, IBinder binder) {

@@ -16,7 +16,10 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -26,6 +29,7 @@ import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
+import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * A record of the lock expressions used in a method/constructor.  Specifically,
@@ -147,11 +151,25 @@ final class LockExpressions {
   }
   
   /**
+   * Does the method explicitly acquire or release any JUC locks?
+   */
+  public boolean invokesJUCLockMethods() {
+    return !jucLockExprsToLockSets.isEmpty();
+  }
+  
+  /**
    * Does the method use any intrinsic locks?
    */
   public boolean usesIntrinsicLocks() {
     return !syncBlocks.isEmpty()
         || !intrinsicAssumedLocks.isEmpty();
+  }
+  
+  /**
+   * Does the method have any sync blocks?
+   */
+  public boolean usesSynchronizedBlocks() {
+    return !syncBlocks.isEmpty();
   }
   
   /**
@@ -280,12 +298,28 @@ final class LockExpressions {
       // Analyze the initialization of the instance
       enclosingFlowUnit = cdecl;
       try {
-        final InitializationVisitor helper = new InitializationVisitor(false);
-        helper.doAcceptForChildren(JJNode.tree.getParent(cdecl));
+        // we now analyze the initializers from visitConstructorCall
+//        final InitializationVisitor helper = new InitializationVisitor(false);
+//        helper.doAcceptForChildren(JJNode.tree.getParent(cdecl));
         // Analyze the body of the constructor
         doAcceptForChildren(cdecl);
       } finally {
         enclosingFlowUnit = null;
+      }
+      return null;
+    }
+    
+    @Override
+    public Void visitConstructorCall(final IRNode constructorCall) {
+      // First process the constructor call and it's arguments
+      doAcceptForChildren(constructorCall);
+      
+      final IRNode conObject = ConstructorCall.getObject(constructorCall);
+      final Operator conObjectOp = JJNode.tree.getOperator(conObject);
+      if (SuperExpression.prototype.includes(conObjectOp)) {
+        // Visit the initializers.
+        final InitializationVisitor helper = new InitializationVisitor(false);
+        helper.doAcceptForChildren(JJNode.tree.getParent(enclosingFlowUnit));
       }
       return null;
     }
@@ -453,34 +487,17 @@ final class LockExpressions {
       
       
       @Override
-      public Void visitClassDeclaration(final IRNode node) {
-        /* STOP: we've encountered a class declaration.  We don't want to enter
+      public Void visitTypeDeclaration(final IRNode node) {
+        /* STOP: we've encountered a type declaration.  We don't want to enter
          * the method declarations of nested class definitions.
          */
         return null;
       }
-
-      @Override
-      public Void visitInterfaceDeclaration(final IRNode node) {
-        /* STOP: we've encountered a class declaration.  We don't want to enter
-         * the method declarations of nested class definitions.
-         */
-        return null;
-      }
-
-      @Override
-      public Void visitEnumDeclaration(final IRNode node) {
-        /* STOP: we've encountered a class declaration.  We don't want to enter
-         * the method declarations of nested class definitions.
-         */
-        return null;
-      }
-
-      @Override
-      public Void visitAnonClassExpression(final IRNode node) {
-        /* STOP: we've encountered a class declaration.  We don't want to enter
-         * the method declarations of nested class definitions.
-         */
+      
+      @Override 
+      public Void visitAnonClassExpression(final IRNode expr) {
+        // Traverse into the arguments, but *not* the body
+        doAccept(AnonClassExpression.getArgs(expr));
         return null;
       }
 

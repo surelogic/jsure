@@ -56,7 +56,7 @@ public class BackwardAnalysis<T> extends FlowAnalysis<T> {
   /** Logger instance for debugging. */
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
 
-  final BackwardTransfer<T> trans;
+  protected final BackwardTransfer<T> trans;
 
   /** Create an instance of backward control-flow analysis.
    * @param t the transfer function for semantics-specific nodes.

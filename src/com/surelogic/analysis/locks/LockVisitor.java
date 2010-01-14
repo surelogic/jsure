@@ -45,6 +45,8 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.analysis.InstanceInitVisitor;
+import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor;
+import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor.Action;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaIntersectionType;
@@ -57,7 +59,6 @@ import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
-import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
@@ -70,6 +71,7 @@ import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
@@ -405,6 +407,20 @@ implements IBinderClient {
    * {@link #ctxtInsideMethod} or {@link #ctxtInsideConstructor} is updated.
    */
   private BindingContextAnalysis.Query ctxtBcaQuery = null;
+  
+  /**
+   * The must hold analysis query focused to the current flow 
+   * unit being analyzed.  This needs to be updated whenever
+   * {@link #ctxtInsideMethod} or {@link #ctxtInsideConstructor} is updated.
+   */
+  private MustHoldAnalysis.Queries ctxtMustHoldQueries = null;
+  
+  /**
+   * The must release analysis query focused to the current flow 
+   * unit being analyzed.  This needs to be updated whenever
+   * {@link #ctxtInsideMethod} or {@link #ctxtInsideConstructor} is updated.
+   */
+  private MustReleaseAnalysis.Query ctxtMustReleaseQuery = null;
   
   /**
    * The conflict checker to use, focused on the current flow analysis being
@@ -837,6 +853,13 @@ implements IBinderClient {
     mustHold = new MustHoldAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
   }
 
+  private void updateJUCAnalysisQueries(final IRNode flowUnit, final boolean initializer) {
+    final LockExpressions lockExprs =
+      jucLockUsageManager.getLockExpressionsFor(flowUnit);
+    ctxtMustHoldQueries = lockExprs.usesJUCLocks() ? mustHold.getQueries(flowUnit, initializer) : null;
+    ctxtMustReleaseQuery = lockExprs.invokesJUCLockMethods() ? mustRelease.getUnlocksForQuery(flowUnit, initializer) : null;
+  }
+  
   public IBinder getBinder() {
 	  return this.binder;
   }
@@ -849,7 +872,6 @@ implements IBinderClient {
     mustRelease.clear();
     mustHold.clear();
     nonNullAnalylsis.clear();
-    jucLockUsageManager.clear();
     initHelper.clear();
     clear();
   }
@@ -1624,17 +1646,11 @@ implements IBinderClient {
   
   private Set<HeldLock> getHeldJUCLocks(final IRNode node) {
     final IRNode decl = getEnclosingMethod();
-    if (decl != null) {
-      final IRNode constructorContext =
-        ConstructorDeclaration.prototype.includes(decl) ? decl : null;
-      if (jucLockUsageManager.usesJUCLocks(decl)) {
-        return mustHold.getHeldLocks(node, constructorContext);
-      } else {
-        return Collections.emptySet();
-      }      
+    if (jucLockUsageManager.usesJUCLocks(decl)) {
+      return ctxtMustHoldQueries.getHeldLocks(node); // mustHold.getHeldLocks(node, constructorContext);
+    } else {
+      return Collections.emptySet();
     }
-    // Shouldn't get here?
-    throw new IllegalStateException("Shouldn't get here");
   }
   
 //  private Set<HeldLock> getHeldIntrinsicLocks(final IRNode node) {
@@ -1701,6 +1717,8 @@ implements IBinderClient {
     final IJavaDeclaredType oldJavaType = ctxtJavaType;
     final IRNode oldInsideMethod = ctxtInsideMethod;
     final BindingContextAnalysis.Query oldBcaQuery = ctxtBcaQuery;
+    final MustHoldAnalysis.Queries oldMHQ = ctxtMustHoldQueries;
+    final MustReleaseAnalysis.Query oldMRQ = ctxtMustReleaseQuery;
     final ConflictChecker oldConflicter = ctxtConflicter;
     final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
     final IRNode oldInsideConstructor = ctxtInsideConstructor;
@@ -1709,72 +1727,150 @@ implements IBinderClient {
     final IRNode oldTheReceiverNode = ctxtTheReceiverNode;
     final MethodCallUtils.EnclosingRefs oldEnclosingRefs = ctxtEnclosingRefs;
     final boolean oldCtxtInsideAnonClassExpr = ctxtInsideAnonClassExpr;
-    try {
-      ctxtInsideAnonClassExpr = true;
-      // Create the substitution map
-      ctxtEnclosingRefs = MethodCallUtils.getEnclosingInstanceReferences(
-          binder, thisExprBinder, expr, oldTheReceiverNode, getEnclosingMethod());
+    InstanceInitializationVisitor.processAnonClassExpression(expr, this,
+        new Action() {
+          public void tryBefore() {
+            ctxtInsideAnonClassExpr = true;
+            // Create the substitution map
+            ctxtEnclosingRefs = MethodCallUtils.getEnclosingInstanceReferences(
+                binder, thisExprBinder, expr, oldTheReceiverNode, getEnclosingMethod());
 
-      /* Update the type being analyzed to be the anonymous class expression */
-      ctxtTypeDecl = expr;
-      ctxtJavaType = JavaTypeFactory.getMyThisType(ctxtTypeDecl);
-      
-      /* We have to push any JUC locks held at the point of the anonymous class
-       * expression onto the lock stack.  This is because the control flow
-       * analysis inside the anonymous class expression is distinct from that
-       * in the calling context.  Specifically, in the control flow analysis 
-       * in the anonymous class expression will only be of the <init> method.
-       * The easiest way to make the locks held at the calling context visible
-       * inside the recursive analysis is to push them on the stack.
-       */
-      // XXX: Need to do this before we update ctxtInsideMethod, ctxtInsideConstructor
-      // XXX: because they are used by getEnclosingMethod(), which is called by
-      // XXX: getHeldJUCLocks.
-      final LockStackFrame frame = ctxtTheHeldLocks.pushNewFrame();
-      frame.push(getHeldJUCLocks(expr));
+            /* Update the type being analyzed to be the anonymous class expression */
+            ctxtTypeDecl = expr;
+            ctxtJavaType = JavaTypeFactory.getMyThisType(ctxtTypeDecl);
+            
+            /* We have to push any JUC locks held at the point of the anonymous class
+             * expression onto the lock stack.  This is because the control flow
+             * analysis inside the anonymous class expression is distinct from that
+             * in the calling context.  Specifically, in the control flow analysis 
+             * in the anonymous class expression will only be of the <init> method.
+             * The easiest way to make the locks held at the calling context visible
+             * inside the recursive analysis is to push them on the stack.
+             */
+            // XXX: Need to do this before we update ctxtInsideMethod, ctxtInsideConstructor
+            // XXX: because they are used by getEnclosingMethod(), which is called by
+            // XXX: getHeldJUCLocks.
+            final LockStackFrame frame = ctxtTheHeldLocks.pushNewFrame();
+            frame.push(getHeldJUCLocks(expr));
 
-      /* The information needed for checking returned locks can be preserved, it 
-       * is not needed by the recursive visitation because we will only visit
-       * field initializers and instance initializers.
-       */
-      // ctxtReturnedLock = ctxtReturnedLock;
-      // ctxtReturnsLockDrop = ctxtReturnsLockDrop;
-      /* left hand side is irrelevant here. */
-      // ctxtIsLHS = ctxtIsLHS;
-      /* The recursive visit is analyzing as the implicit initialization method 
-       * for the class.  We set the receiver accordingly.
-       */
-      ctxtInsideMethod = JavaPromise.getInitMethodOrNull(expr);
-      ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
-      ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
-      ctxtOnBehalfOfConstructor = false;
-      ctxtInsideConstructor = null;
-      ctxtConstructorIsSingleThreaded = null;
-      ctxtConstructorName = null;
-      ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(ctxtInsideMethod);
-      
-      // Begin the recursive visit of the anonymous class's initialization
-      final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
-      /* Call doAccept directly instead of using doVisitInstanceInits because
-       * there is no explicit constructor.
-       */
-      initVisitor.doAccept(AnonClassExpression.getBody(expr));
-    } finally {
-      // restore the global state
-      ctxtTheHeldLocks.popFrame();
-      ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
-      ctxtEnclosingRefs = oldEnclosingRefs;
-      ctxtTypeDecl = oldTypeDecl;
-      ctxtJavaType = oldJavaType;
-      ctxtInsideMethod = oldInsideMethod;
-      ctxtBcaQuery = oldBcaQuery;
-      ctxtConflicter = oldConflicter;
-      ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
-      ctxtInsideConstructor = oldInsideConstructor;
-      ctxtConstructorIsSingleThreaded = oldConstructorIsSingleThreaded;
-      ctxtConstructorName = oldConstructorName;
-      ctxtTheReceiverNode = oldTheReceiverNode;
-    }
+            /* The information needed for checking returned locks can be preserved, it 
+             * is not needed by the recursive visitation because we will only visit
+             * field initializers and instance initializers.
+             */
+            /* left hand side is irrelevant here. */
+            /* The recursive visit is analyzing as the implicit initialization method 
+             * for the class.  We set the receiver accordingly.
+             */
+            ctxtInsideMethod = JavaPromise.getInitMethodOrNull(expr);
+            /* MUST update receiver node before creating the flow analyses because
+             * they indirectly use this field via the this expression binder object
+             * used by the lock factories.  They have access to this factories via
+             * the lock utils object and the juc lock usage manager.
+             */
+            ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(ctxtInsideMethod);
+            ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+            updateJUCAnalysisQueries(ctxtInsideMethod, false);
+            ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
+            ctxtOnBehalfOfConstructor = false;
+            ctxtInsideConstructor = null;
+            ctxtConstructorIsSingleThreaded = null;
+            ctxtConstructorName = null;
+          }
+          
+          public void finallyAfter() {
+            // restore the global state
+            ctxtTheHeldLocks.popFrame();
+            ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
+            ctxtEnclosingRefs = oldEnclosingRefs;
+            ctxtTypeDecl = oldTypeDecl;
+            ctxtJavaType = oldJavaType;
+            ctxtInsideMethod = oldInsideMethod;
+            ctxtBcaQuery = oldBcaQuery;
+            ctxtMustHoldQueries = oldMHQ;
+            ctxtMustReleaseQuery = oldMRQ;
+            ctxtConflicter = oldConflicter;
+            ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
+            ctxtInsideConstructor = oldInsideConstructor;
+            ctxtConstructorIsSingleThreaded = oldConstructorIsSingleThreaded;
+            ctxtConstructorName = oldConstructorName;
+            ctxtTheReceiverNode = oldTheReceiverNode;
+          }
+        });
+    
+//    try {
+//      ctxtInsideAnonClassExpr = true;
+//      // Create the substitution map
+//      ctxtEnclosingRefs = MethodCallUtils.getEnclosingInstanceReferences(
+//          binder, thisExprBinder, expr, oldTheReceiverNode, getEnclosingMethod());
+//
+//      /* Update the type being analyzed to be the anonymous class expression */
+//      ctxtTypeDecl = expr;
+//      ctxtJavaType = JavaTypeFactory.getMyThisType(ctxtTypeDecl);
+//      
+//      /* We have to push any JUC locks held at the point of the anonymous class
+//       * expression onto the lock stack.  This is because the control flow
+//       * analysis inside the anonymous class expression is distinct from that
+//       * in the calling context.  Specifically, in the control flow analysis 
+//       * in the anonymous class expression will only be of the <init> method.
+//       * The easiest way to make the locks held at the calling context visible
+//       * inside the recursive analysis is to push them on the stack.
+//       */
+//      // XXX: Need to do this before we update ctxtInsideMethod, ctxtInsideConstructor
+//      // XXX: because they are used by getEnclosingMethod(), which is called by
+//      // XXX: getHeldJUCLocks.
+//      final LockStackFrame frame = ctxtTheHeldLocks.pushNewFrame();
+//      frame.push(getHeldJUCLocks(expr));
+//
+//      /* The information needed for checking returned locks can be preserved, it 
+//       * is not needed by the recursive visitation because we will only visit
+//       * field initializers and instance initializers.
+//       */
+//      // ctxtReturnedLock = ctxtReturnedLock;
+//      // ctxtReturnsLockDrop = ctxtReturnsLockDrop;
+//      /* left hand side is irrelevant here. */
+//      // ctxtIsLHS = ctxtIsLHS;
+//      /* The recursive visit is analyzing as the implicit initialization method 
+//       * for the class.  We set the receiver accordingly.
+//       */
+//      ctxtInsideMethod = JavaPromise.getInitMethodOrNull(expr);
+//      /* MUST update receiver node before creating the flow analyses because
+//       * they indirectly use this field via the this expression binder object
+//       * used by the lock factories.  They have access to this factories via
+//       * the lock utils object and the juc lock usage manager.
+//       */
+//      ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(ctxtInsideMethod);
+//      ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+//      updateJUCAnalysisQueries(ctxtInsideMethod, false);
+//      ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
+//      ctxtOnBehalfOfConstructor = false;
+//      ctxtInsideConstructor = null;
+//      ctxtConstructorIsSingleThreaded = null;
+//      ctxtConstructorName = null;
+//      
+//      // Begin the recursive visit of the anonymous class's initialization
+//      final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
+//      /* Call doAccept directly instead of using doVisitInstanceInits because
+//       * there is no explicit constructor.
+//       */
+//      initVisitor.doAccept(AnonClassExpression.getBody(expr));
+//    } finally {
+//      // restore the global state
+//      ctxtTheHeldLocks.popFrame();
+//      ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
+//      ctxtEnclosingRefs = oldEnclosingRefs;
+//      ctxtTypeDecl = oldTypeDecl;
+//      ctxtJavaType = oldJavaType;
+//      ctxtInsideMethod = oldInsideMethod;
+//      ctxtBcaQuery = oldBcaQuery;
+//      ctxtMustHoldQueries = oldMHQ;
+//      ctxtMustReleaseQuery = oldMRQ;
+//      ctxtConflicter = oldConflicter;
+//      ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
+//      ctxtInsideConstructor = oldInsideConstructor;
+//      ctxtConstructorIsSingleThreaded = oldConstructorIsSingleThreaded;
+//      ctxtConstructorName = oldConstructorName;
+//      ctxtTheReceiverNode = oldTheReceiverNode;
+//    }
     
     return null;
   }
@@ -1825,6 +1921,7 @@ implements IBinderClient {
       final IRNode classDecl = VisitUtil.getClosestType(expr);
       ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
       ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+      updateJUCAnalysisQueries(ctxtInsideMethod, false);
       ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideConstructor);
       // The receiver is non-existent
       ctxtTheReceiverNode = null;
@@ -1837,6 +1934,8 @@ implements IBinderClient {
         ctxtTheHeldLocks.popFrame();
         ctxtInsideMethod = null;
         ctxtBcaQuery = null;
+        ctxtMustHoldQueries = null;
+        ctxtMustReleaseQuery = null;
         ctxtConflicter = null;
       }
     } else {
@@ -1856,11 +1955,28 @@ implements IBinderClient {
 
   @Override
   public Void visitConstructorCall(final IRNode expr) {
-    // Make sure we account for the super class's field inits, etc
-    initHelper.doVisitInstanceInits(expr);
+    // First process the constructor call and it's arguments
     assureCall(expr);
-    // continue into the expression
     doAcceptForChildren(expr);
+    
+    // visit initializers next
+    final MustHoldAnalysis.Queries oldCtxtMustHoldQueries = ctxtMustHoldQueries;
+    final MustReleaseAnalysis.Query oldCtxtMustReleaseQuery = ctxtMustReleaseQuery;
+    InstanceInitializationVisitor.processConstructorCall(
+        expr, TypeDeclaration.getBody(ctxtTypeDecl), this,
+        new Action() {
+          public void tryBefore() {
+            ctxtOnBehalfOfConstructor = true;
+            updateJUCAnalysisQueries(ctxtInsideConstructor, true);
+          }
+          
+          public void finallyAfter() {
+            ctxtOnBehalfOfConstructor = false;
+            ctxtMustHoldQueries = oldCtxtMustHoldQueries;
+            ctxtMustReleaseQuery = oldCtxtMustReleaseQuery;
+          }
+        });
+
     return null;
   }
 
@@ -1907,7 +2023,7 @@ implements IBinderClient {
             result.addTrustedPromise_or(DS_SINGLE_THREADED_EFFECTS, singleThreadedData.teDrop);
           }
           
-          // Handle the instrinsic locks
+          // Handle the intrinsic locks
           while (locks.hasNext()) {
             final StackLock sl = locks.next();
             result.addCheckedPromise(sl.lock.getLockPromise());
@@ -1923,16 +2039,14 @@ implements IBinderClient {
       final LockStackFrame reqFrame = ctxtTheHeldLocks.pushNewFrame();
       try {
         processLockPreconditions(cdecl, reqFrame);
-  
-        // Check the field declarations and initializers
+        // ConstructorCall handles visiting initializers now
         try {
-          ctxtOnBehalfOfConstructor = true;
-          initHelper.doVisitInstanceInits(cdecl);
+          updateJUCAnalysisQueries(cdecl, false);
+          doAcceptForChildren(cdecl);
         } finally {
-          ctxtOnBehalfOfConstructor = false;
+          ctxtMustHoldQueries = null;
+          ctxtMustReleaseQuery = null;
         }
-        // Check the rest of the constructor
-        doAcceptForChildren(cdecl);
       } finally {
         // remove the the lock preconditions
         ctxtTheHeldLocks.popFrame();
@@ -2034,7 +2148,7 @@ implements IBinderClient {
         
         /* If it is a lock() call, look for the matching unlock() calls. */
         if (lockMethod.isLock) {
-          final Set<IRNode> unlocks = mustRelease.getUnlocksFor(expr);
+          final Set<IRNode> unlocks = ctxtMustReleaseQuery.getResultFor(expr); //  mustRelease.getUnlocksFor(expr);
           if (unlocks == null) { // POISONED!
             final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_LOCK_CALL, lockMethod.name);
             for (HeldLock lock : lockSet) {
@@ -2060,7 +2174,7 @@ implements IBinderClient {
   
         /* If it is an unlock() call, look for the matching lock() calls. */
         if (lockMethod == LockMethods.UNLOCK) {
-          final Set<IRNode> locks = mustHold.getLocksFor(expr);
+          final Set<IRNode> locks = ctxtMustHoldQueries.getLocksFor(expr); // mustHold.getLocksFor(expr);
           if (locks == null) { // POISONED!
         	  final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_UNLOCK_CALL);
             for (HeldLock lock : lockSet) {
@@ -2170,6 +2284,7 @@ implements IBinderClient {
        */
       ctxtInsideMethod = mdecl;
       ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(mdecl);
+      updateJUCAnalysisQueries(mdecl, false);
       ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, mdecl);
       final ReturnsLockPromiseDrop returnedLockName = LockUtils.getReturnedLock(mdecl);
       if (returnedLockName != null) {
@@ -2199,6 +2314,8 @@ implements IBinderClient {
       ctxtTheReceiverNode = null;
       ctxtInsideMethod = null;
       ctxtBcaQuery = null;
+      ctxtMustHoldQueries = null;
+      ctxtMustReleaseQuery = null;
       ctxtConflicter = null;
       ctxtReturnsLockDrop = null;
       ctxtReturnedLock = null;
@@ -2507,6 +2624,7 @@ implements IBinderClient {
             final IRNode classDecl = VisitUtil.getClosestType(varDecl);
             ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
             ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+            updateJUCAnalysisQueries(ctxtInsideMethod, false);
             ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
           }
           // Don't worry about initialization of final variables/fields
@@ -2534,6 +2652,8 @@ implements IBinderClient {
             if (isStaticDeclaration) {
               ctxtInsideMethod = null;
               ctxtBcaQuery = null;
+              ctxtMustHoldQueries = null;
+              ctxtMustReleaseQuery = null;
               ctxtConflicter = null;
             }
           }

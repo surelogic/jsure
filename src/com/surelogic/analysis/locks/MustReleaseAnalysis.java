@@ -1,23 +1,14 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/MustReleaseAnalysis.java,v 1.34 2008/08/20 15:40:34 chance Exp $*/
 package com.surelogic.analysis.locks;
 
-//import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Set;
-//import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.common.logging.SLLogger;
-//import java.util.logging.Logger;
 
-//import com.surelogic.logging.FluidLogger;
-
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -33,25 +24,33 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.control.BackwardAnalysis;
+import edu.uwm.cs.fluid.control.BackwardTransfer;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
+import edu.uwm.cs.fluid.java.control.JavaBackwardTransfer;
+import edu.uwm.cs.fluid.util.Lattice;
 
 public final class MustReleaseAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> {
-  private static final Logger LOGGER =
-    SLLogger.getLogger("com.surelogic.analysis.locks.MustReleaseAnalysis");
-      
-//  static {
-//    try {
-//      final FileHandler handler = new FileHandler("%h/trace%u.log");
-//      LOGGER.addHandler(handler);
-//      LOGGER.setLevel(Level.ALL);
-//      handler.setLevel(Level.ALL);
-//      handler.setFormatter(new FluidLogger());
-//    } catch (final IOException e) {
-//      // swallow
-//    }
-//  }
+  public static interface Query extends AnalysisQuery<Set<IRNode>> {
+    // adds nothing
+  }
+  
+  private static final class Analysis extends BackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> {
+    public Analysis(final String name,
+        final Lattice<ImmutableList<ImmutableSet<IRNode>>[]> l,
+        final BackwardTransfer<ImmutableList<ImmutableSet<IRNode>>[]> t,
+        final IRNodeViewer nv) {
+      super(name, l, t, nv);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public Analysis getSubAnalysis() {
+      return (Analysis) ((JavaBackwardTransfer) trans).getSubAnalysis();
+    }
+  }
+
+  
   
   private final ThisExpressionBinder thisExprBinder; 
   private final LockUtils lockUtils;
@@ -70,33 +69,18 @@ public final class MustReleaseAnalysis extends
   }
 
   
-  
-  // For debugging
-  private static void log(
-      final Level level, final String messageTemplate, final Object... args) {
-//    LOGGER.log(level, MessageFormat.format(messageTemplate, args));
-  }
-  
-  
-  
-  private MustReleaseLattice getLatticeFor(final IRNode node) {
-    IRNode flowUnit = edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(node);
-    if (flowUnit == null)
-      return null;
-    final FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> a = getAnalysis(flowUnit);
-    final MustReleaseLattice mrl = (MustReleaseLattice) a.getLattice();
-    return mrl;
-  }
-
-  
   @Override
-  protected FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> createAnalysis(final IRNode flowUnit) {
+  protected FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> createAnalysis(
+      final IRNode flowUnit) {
     final MustReleaseLattice mustReleaseLattice =
       MustReleaseLattice.createForFlowUnit(flowUnit, thisExprBinder, binder, jucLockUsageManager);    
     final FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> analysis =
-      new BackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[]>(
+      new Analysis(
           "Must Release Analysis", mustReleaseLattice,
-          new MustReleaseTransfer(thisExprBinder, binder, lockUtils, mustReleaseLattice, nonNullAnalysis), DebugUnparser.viewer);
+          new MustReleaseTransfer(
+              flowUnit, thisExprBinder, binder, lockUtils, mustReleaseLattice,
+              nonNullAnalysis),
+          DebugUnparser.viewer);
     return analysis;
   }
 
@@ -104,17 +88,15 @@ public final class MustReleaseAnalysis extends
    * Get the matching unlock.
    * @return The IRNode of the matching unlock method call.
    */
-  public Set<IRNode> getUnlocksFor(final IRNode mcall) {
-    MethodCall call = (MethodCall) tree.getOperator(mcall);
-    final ImmutableList<ImmutableSet<IRNode>>[] value = getAnalysisResultsAfter(mcall);
-    final MustReleaseLattice mrl = getLatticeFor(mcall);
-    
-    log(Level.INFO, "getUnlocksFor({0} at {1}) == {2}",
-        MethodCall.getMethod(mcall), JavaNode.getSrcRef(mcall).getLineNumber(),
-        mrl.toString(value));
-   
+  public Set<IRNode> getUnlocksFor(final IRNode mcall, final IRNode context) {
+    final FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> a = getAnalysis(
+        edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
+            mcall, context));
+    final MustReleaseLattice lattice = (MustReleaseLattice) a.getLattice();   
+    final MethodCall call = (MethodCall) tree.getOperator(mcall);
+    final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.NORMAL_EXIT);
     final Set<IRNode> unlockCalls =
-      mrl.getUnlocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
+      lattice.getUnlocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
     /* Remove ourself from the set---this will happen in the case of a 
      * tryLock() embedded in an if-statement, see 
      * MustReleaseTransfer.transferConditional().
@@ -123,24 +105,68 @@ public final class MustReleaseAnalysis extends
     return unlockCalls;
   }
   
+  /**
+   * @param flowUnit
+   *          The MethodDeclaration, ConstructorDeclaration,
+   *          ClassInitDeclaration, or InitDeclaration to be analyzed.
+   * @param initializer
+   *          Must be <code>false</code> if <code>flowUnit</code> is not a
+   *          ConstructorDeclaration. Otherwise, this indicates whether we are
+   *          actually interested in looking at the contents of the field
+   *          initializers and instance initializers visited on behalf of the
+   *          constructor.
+   */
+  public Query getUnlocksForQuery(
+      final IRNode flowUnit, final boolean initializer) {
+    return new Query() {
+      private final FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> a;
+      {
+        final Analysis t = (Analysis) getAnalysis(flowUnit);
+        a = initializer ? t.getSubAnalysis() : t;
+      }
+      
+      private final MustReleaseLattice lattice = (MustReleaseLattice) a.getLattice();
+      
+      public Set<IRNode> getResultFor(final IRNode mcall) {
+        final MethodCall call = (MethodCall) tree.getOperator(mcall);
+        final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.NORMAL_EXIT);
+        final Set<IRNode> unlockCalls =
+          lattice.getUnlocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
+        /* Remove ourself from the set---this will happen in the case of a 
+         * tryLock() embedded in an if-statement, see 
+         * MustReleaseTransfer.transferConditional().
+         */
+        if (unlockCalls != null) unlockCalls.remove(mcall);
+        return unlockCalls;
+      }
+    };
+  }
   
   
-  static final class MustReleaseTransfer extends
+  
+  private static final class MustReleaseTransfer extends
       edu.uwm.cs.fluid.java.control.JavaBackwardTransfer<
           MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
-    private final SimpleNonnullAnalysis nonNullAnalysis;
+    private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
 
-    public MustReleaseTransfer(
+    public MustReleaseTransfer(final IRNode flowUnit,
         final ThisExpressionBinder teb, final IBinder binder, final LockUtils lu,
         final MustReleaseLattice lattice, final SimpleNonnullAnalysis sna) {
       super(binder, lattice);
       thisExprBinder = teb;
       lockUtils = lu;
-      nonNullAnalysis = sna;
+      nonNullAnalysisQuery = sna.getNonnullBeforeQuery(flowUnit);
     }
 
+    private MustReleaseTransfer(final MustReleaseTransfer other) {
+      super(other.binder, other.lattice);
+      thisExprBinder = other.thisExprBinder;
+      lockUtils = other.lockUtils;
+      nonNullAnalysisQuery = other.nonNullAnalysisQuery;
+    }
+    
     /**
      * Is the method declared to return a lock?
      */
@@ -157,13 +183,7 @@ public final class MustReleaseAnalysis extends
       if (!lattice.isNormal(after)) {
         return after;
       }
-      final boolean logInfo = LOGGER.isLoggable(Level.INFO);
-      ISrcRef ref = logInfo ? JavaNode.getSrcRef(node) : null;
-      final String header = !logInfo ? "" : MessageFormat.format(
-          "transferConditional({0} at {1}, {2}, {3})",
-          DebugUnparser.toString(node), ref == null ? "?" :ref.getLineNumber(),
-          flag, lattice.toString(after));
-          
+
       /* We only do interesting things if node is a method call node for
        * a tryLock() call.
        */
@@ -185,20 +205,12 @@ public final class MustReleaseAnalysis extends
              */
             final ImmutableList<ImmutableSet<IRNode>>[] newValue =
               lattice.foundUnlock(after, node, thisExprBinder, binder);
-            if (logInfo) {
-            	log(Level.INFO, "{0} == {1} [push fake unlock]",
-            		header, lattice.toString(newValue));
-            }
             return newValue;
           }
         }
       }
       
       // Normal case, always return what came into the conditional
-      if (logInfo) {
-    	  log(Level.INFO, "{0} == {1} [unchanged]",
-    		  header, lattice.toString(after));
-      }
       return after;
     }
     
@@ -211,11 +223,6 @@ public final class MustReleaseAnalysis extends
         return value;
       }
       
-      final ISrcRef srcRef = JavaNode.getSrcRef(node);
-      final String header = 
-        MessageFormat.format("transferIsObject({0} at {1}, {2}, {3})",
-        DebugUnparser.toString(node), srcRef == null ? 0 : srcRef.getLineNumber(),
-        flag, lattice.toString(value));        
       if (!flag) {
         /* Abrupt case. Return BOTTOM if we can determine that the object must
          * not be null. We determine the object is non-null (1) if the object is
@@ -237,8 +244,6 @@ public final class MustReleaseAnalysis extends
               // (1a) Initialized to new object
               if (NewExpression.prototype.includes(initValueOp) ||
                   AnonClassExpression.prototype.includes(initValueOp)) {
-                log(Level.INFO, "{0} == {1} [not null by initialization: return BOTTOM]",
-                    header, lattice.toString(bottom));
                 return lattice.bottom();
               }
               
@@ -247,8 +252,6 @@ public final class MustReleaseAnalysis extends
                */
               if (MethodCall.prototype.includes(initValueOp) &&
                   lockUtils.isJUCRWMethod(initValue)) {
-                log(Level.INFO, "{0} == {1} [not null by initialization: return BOTTOM]",
-                    header, lattice.toString(bottom));
                 return lattice.bottom();
               }
 
@@ -257,22 +260,16 @@ public final class MustReleaseAnalysis extends
         } else if (MethodCall.prototype.includes(operator)) {
           if (isLockGetterMethod(node) || lockUtils.isJUCRWMethod(node)) {
             // Lock getter methods do not return null values.
-            log(Level.INFO, "{0} == {1} [not null by lock getter method: return BOTTOM]",
-                header, lattice.toString(bottom));
             return bottom;
           }
         } else if (VariableUseExpression.prototype.includes(operator)) {
-          final Set<IRNode> nonNull = nonNullAnalysis.getNonnullBefore(node);
+          final Set<IRNode> nonNull = nonNullAnalysisQuery.getResultFor(node);
           final IRNode varDecl = binder.getBinding(node);
           if (nonNull.contains(varDecl)) {
-            log(Level.INFO, "{0} == {1} [not null by nonNullAnalysis: return BOTTOM]",
-                header, lattice.toString(bottom));
             return bottom;
           }
         }
       }
-      log(Level.INFO, "{0} == {1} [value unchanged]",
-          header, lattice.toString(value));
       return value;
     }
 
@@ -288,13 +285,6 @@ public final class MustReleaseAnalysis extends
       
       final Operator op = tree.getOperator(call);
       if (op instanceof MethodCall) {
-    	final boolean logInfo = LOGGER.isLoggable(Level.INFO);
-    	ISrcRef ref = logInfo ? JavaNode.getSrcRef(call) : null;
-        final String header = !logInfo ? null :
-          MessageFormat.format("transferCall({0} at {1}, {2}, {3})",
-              DebugUnparser.toString(call), ref == null ? "?" : ref.getLineNumber(),
-              flag, lattice.toString(value));
-        
         // Method call: check to see if it is a lock or an unlock
         final LockMethods lockMethod = lockUtils.whichLockMethod(call);
         if (lockMethod != LockMethods.NOT_A_LOCK_METHOD && lockMethod != LockMethods.IDENTICALLY_NAMED_METHOD) {
@@ -303,26 +293,14 @@ public final class MustReleaseAnalysis extends
             if (flag) {
               final ImmutableList<ImmutableSet<IRNode>>[] newValue =
                 lattice.foundLock(value, call, thisExprBinder, binder);
-              if (logInfo) {
-            	  log(Level.INFO, "{0} == {1} [pop lock stack]",
-            			  header, lattice.toString(newValue));
-              }
               return newValue;
             } else {
-              if (logInfo) {
-            	  log(Level.INFO, "{0} == {1} [abrupt termination, unchanged]",
-            			  header, lattice.toString(value));
-              }
               return value;
             }
           } else { // Must be unlock()
             // The lock is always released, even for abrupt termination.
             final ImmutableList<ImmutableSet<IRNode>>[] newValue =
               lattice.foundUnlock(value, call, thisExprBinder, binder);
-            if (logInfo) {
-            	log(Level.INFO, "{0} == {1} [push unlock call]",
-            			header, lattice.toString(newValue));
-            }
             return newValue;
           }
         } else {
@@ -332,10 +310,6 @@ public final class MustReleaseAnalysis extends
              * methods don't throw exceptions.
              */
             final ImmutableList<ImmutableSet<IRNode>>[] newValue = (flag ? value : lattice.bottom());
-            if (logInfo) {
-            	log(Level.INFO, "{0} == {1} [Lock getter method: {2}]",
-            			header, newValue, flag ? "normal termination: unchanged" : "abrupt termination: bottom");
-            }
             return newValue;
           } else {
             // Otherwise, not interesting
@@ -348,16 +322,29 @@ public final class MustReleaseAnalysis extends
       }
     }
 
+    /**
+     * We cache the subanalysis we create so that both normal and abrupt paths
+     * are stored in the same analysis. Plus this puts more force behind an
+     * assumption made by
+     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
+     * 
+     * <p>
+     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
+     */
+    private Analysis subAnalysis = null;
+    
     @Override
     protected FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> createAnalysis(IBinder binder) {
-      return new BackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[]>(
-          "Must Release Analysis", lattice, this, DebugUnparser.viewer);
+      if (subAnalysis == null) {
+        subAnalysis = new Analysis(
+          "Must Release Analysis (sub-analysis)", lattice,
+          new MustReleaseTransfer(this), DebugUnparser.viewer);
+      }
+      return subAnalysis;
     }
 
     public ImmutableList<ImmutableSet<IRNode>>[] transferComponentSink(IRNode node, boolean normal) {
       final ImmutableList<ImmutableSet<IRNode>>[] emptyValue = lattice.getEmptyValue();
-      log(Level.INFO, "transferComponentSink({0}) == {1}",
-          normal, lattice.toString(emptyValue));
       return emptyValue;
     }
   }

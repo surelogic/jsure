@@ -32,7 +32,7 @@ final class JUCLockUsageManager {
     heldLockFactory = hlf;
   }
   
-  private LockExpressions getLockExpressionsFor(final IRNode mdecl) {
+  public LockExpressions getLockExpressionsFor(final IRNode mdecl) {
     LockExpressions lockExprs = lockExpressions.get(mdecl);
     if (lockExprs == null) {
       lockExprs = new LockExpressions(mdecl, lockUtils, heldLockFactory);
@@ -58,10 +58,24 @@ final class JUCLockUsageManager {
   }
   
   /**
+   * Does the method explicitly acquire or release any JUC locks?
+   */
+  public boolean invokesJUCLockMethods(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).invokesJUCLockMethods();
+  }
+  
+  /**
    * Does a method/constructor use intrinsic locks
    */
   public boolean usesIntrinsicLocks(final IRNode mdecl) {
     return getLockExpressionsFor(mdecl).usesIntrinsicLocks();
+  }
+  
+  /**
+   * Does the method have any sync blocks?
+   */
+  public boolean usesSynchronizedBlocks(final IRNode mdecl) {
+    return getLockExpressionsFor(mdecl).usesSynchronizedBlocks();
   }
   
   /**

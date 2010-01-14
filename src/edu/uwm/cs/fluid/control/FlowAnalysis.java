@@ -12,9 +12,11 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.FluidInterruptedException;
+import edu.cmu.cs.fluid.control.BlankInputPort;
 import edu.cmu.cs.fluid.control.Component;
 import edu.cmu.cs.fluid.control.ComponentNode;
 import edu.cmu.cs.fluid.control.ControlEdge;
+import edu.cmu.cs.fluid.control.ControlEdgeIterator;
 import edu.cmu.cs.fluid.control.ControlNode;
 import edu.cmu.cs.fluid.control.Flow;
 import edu.cmu.cs.fluid.control.InputPort;
@@ -25,9 +27,12 @@ import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.uwm.cs.fluid.util.Lattice;
 import edu.uwm.cs.fluid.control.LabeledLattice.Combiner;
@@ -135,6 +140,44 @@ public abstract class FlowAnalysis<T> implements Cloneable, IFlowAnalysis<T> {
     debug = true;
   }
 
+  public final T getAfter(final IRNode node, final WhichPort port) {
+    Component comp = JavaComponentFactory.getComponent(node, true);
+    if (comp == null) {
+      return null;
+    }
+    
+    final ControlNode cn = port.getPort(comp);
+    if (cn instanceof BlankInputPort) {
+      return null;
+    }
+    
+    T val = null;
+    try {
+      for (ControlEdgeIterator ins = cn.getInputs();
+        ins.hasNext();
+        ) {
+        final ControlEdge e = ins.nextControlEdge();
+        final T next = this.getInfo(e);
+        if (val == null) {
+          val = next;
+        } else if (next != null) {
+          val = lattice.join(val,next);
+        }
+      }
+    } catch (Exception ex) {
+      LOG.log(
+        Level.SEVERE,
+        "Exception occurred for " + DebugUnparser.toString(node),
+        ex);
+      ex.printStackTrace();
+    }
+    if (val == null) {
+      val = lattice.bottom();
+    }
+    return val;
+  }
+
+  
   // should be treated as private!
   protected Map<ControlEdge,LabeledLattice.LabeledValue<T>> infoMap =
     new HashMap<ControlEdge,LabeledLattice.LabeledValue<T>>();

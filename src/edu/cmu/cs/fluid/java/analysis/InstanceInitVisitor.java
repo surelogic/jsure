@@ -18,6 +18,10 @@ import edu.cmu.cs.fluid.tree.Operator;
 /**
  * Visitor for traversing non-static Instance initializers. Call
  * doVisitInstanceInits from your traversal's visitConstructorDecl method.
+ *
+ * <p><em>This class does not work as advertised.  It didn't make sense to fix
+ * it.  Instead a new class {@link InstanceInitializationVisitor} should be 
+ * used.</em>
  * 
  * <p>Your visitor must do three things:
  * 
@@ -83,6 +87,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author dfsuther
  * 
  */
+@Deprecated
 public class InstanceInitVisitor<T> extends Visitor<T> {
 
   // by default, do nothing

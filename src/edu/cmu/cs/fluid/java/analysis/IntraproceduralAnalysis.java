@@ -495,6 +495,9 @@ public abstract class IntraproceduralAnalysis<T,V> {
 	 * Create the appropriate flow analysis instance. Any interesting
 	 * initialization should be done as well. (The input and output ports will be
 	 * initialized in any case.)
+   * @param flowUnit The flow unit whose analysis component should be 
+   * returned.  It is assumed the flow unit has already been corrected for
+   * the correct constructor context: see {@link #getFlowUnit(IRNode, IRNode)}.
 	 */
   protected abstract FlowAnalysis<T> createAnalysis(IRNode flowUnit);
 }

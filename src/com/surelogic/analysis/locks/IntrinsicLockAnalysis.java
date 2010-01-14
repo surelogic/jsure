@@ -1,12 +1,13 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/MustHoldAnalysis.java,v 1.28 2008/04/30 20:55:48 aarong Exp $*/
 package com.surelogic.analysis.locks;
 
 import java.util.Set;
 
 import com.surelogic.analysis.locks.locks.HeldLock;
 
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -26,31 +27,15 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class IntrinsicLockAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<Object[]> {
+  public static interface Query extends AnalysisQuery<Set<HeldLock>> {
+    // adds nothing
+  }
+  
   private final LockUtils lockUtils;
   private final JUCLockUsageManager jucLockUsageManager;
   private final SimpleNonnullAnalysis nonNullAnalysis;
   
-  /**
-   * This field is a horrible hack, but I don't know how else do solve the
-   * problem. The problem is that I would like to analyze instance field
-   * declarations, their associated initializers especially, and instance
-   * initializer blocks in the context of a particular constructor. Flow
-   * analysis doesn't support this. This is important when getting the held
-   * locks because I need to take into account whether a constructor is single
-   * threaded or not. Instance field declarations and instance initializers are
-   * given an InitDeclaration node as their FlowUnit. This puts all the instance
-   * initialization gobledygook in a single flow unit. Unfortunately, it is
-   * stand alone. So when getting the held locks, the caller,
-   * {@link LockVisitor}, provides the constructor that is of interest. This
-   * constructor is stored here, to be used by {@link #createAnalysis(IRNode)}
-   * instead of the normally provided flowUnit when initializing the lattice.
-   * This way the lattice state is initialized from the constructor, picking up
-   * whatever lock information is on the constructor.
-   * 
-   * <p>
-   * Otherwise, this field is left {@code null}.
-   */
-  private IRNode constructorContext = null;
+  
   
   public IntrinsicLockAnalysis(final IBinder b, final LockUtils lu,
       final JUCLockUsageManager lockMgr, final SimpleNonnullAnalysis sna) {
@@ -60,28 +45,16 @@ public final class IntrinsicLockAnalysis extends
     nonNullAnalysis = sna;
     
   }
-
-  private IntrinsicLockLattice getLatticeFor(final IRNode node) {
-    final IRNode flowUnit =
-      edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(node);
-    if (flowUnit == null) {
-      return null;
-    } else {
-      final FlowAnalysis<Object[]> a = getAnalysis(flowUnit);
-      final IntrinsicLockLattice ill = (IntrinsicLockLattice) a.getLattice();
-      return ill;
-    }
-  }
   
   @Override
   protected FlowAnalysis<Object[]> createAnalysis(final IRNode flowUnit) {
-    final IRNode actualFlowUnit = (constructorContext == null) ? flowUnit : constructorContext;
     final IntrinsicLockLattice intrinsicLockLattice =
-      IntrinsicLockLattice.createForFlowUnit(actualFlowUnit, jucLockUsageManager);    
+      IntrinsicLockLattice.createForFlowUnit(flowUnit, jucLockUsageManager);    
     final FlowAnalysis<Object[]> analysis =
       new ForwardAnalysis<Object[]>(
           "Intrinsic Lock Analysis", intrinsicLockLattice,
-          new IntrinsicLockTransfer(binder, lockUtils, intrinsicLockLattice, nonNullAnalysis),
+          new IntrinsicLockTransfer(
+              flowUnit, binder, lockUtils, intrinsicLockLattice, nonNullAnalysis),
           DebugUnparser.viewer);
     return analysis;
   }
@@ -91,15 +64,22 @@ public final class IntrinsicLockAnalysis extends
    * entry to the node.
    */
   public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
-    final Object[] value;
-    constructorContext = context;
-    try {
-      value = getAnalysisResultsBefore(node);
-    } finally {
-      constructorContext = null;
-    }
-    final IntrinsicLockLattice ill = getLatticeFor(node);
-    return ill.getHeldLocks(value);
+    final FlowAnalysis<Object[]> a = getAnalysis(
+        edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
+            node, context));
+    final IntrinsicLockLattice ill = (IntrinsicLockLattice) a.getLattice();
+    return ill.getHeldLocks(a.getAfter(node, WhichPort.ENTRY));
+  }
+  
+  public Query getHeldLocksQuery(final IRNode flowUnit) {
+    return new Query() {
+      private final FlowAnalysis<Object[]> a = getAnalysis(flowUnit);
+      private final IntrinsicLockLattice lattice = (IntrinsicLockLattice) a.getLattice();
+
+      public Set<HeldLock> getResultFor(final IRNode expr) {
+        return lattice.getHeldLocks(a.getAfter(expr, WhichPort.ENTRY));
+      }
+    };
   }
   
   
@@ -107,13 +87,14 @@ public final class IntrinsicLockAnalysis extends
   private static final class IntrinsicLockTransfer extends
       JavaForwardTransfer<IntrinsicLockLattice, Object[]> {
     private final LockUtils lockUtils;
-    private final SimpleNonnullAnalysis nonNullAnalysis;
+    private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
     
-    public IntrinsicLockTransfer(final IBinder binder, final LockUtils lu,
+    public IntrinsicLockTransfer(final IRNode flowUnit,
+        final IBinder binder, final LockUtils lu,
         final IntrinsicLockLattice lattice, final SimpleNonnullAnalysis sna) {
       super(binder, lattice);
       lockUtils = lu;
-      nonNullAnalysis = sna;
+      nonNullAnalysisQuery = sna.getNonnullBeforeQuery(flowUnit);
     }
 
     /**
@@ -165,7 +146,7 @@ public final class IntrinsicLockAnalysis extends
             return lattice.bottom();
           }
         } else if (VariableUseExpression.prototype.includes(operator)) {
-          final Set<IRNode> nonNull = nonNullAnalysis.getNonnullBefore(node);
+          final Set<IRNode> nonNull = nonNullAnalysisQuery.getResultFor(node);
           final IRNode varDecl = binder.getBinding(node);
           if (nonNull.contains(varDecl)) {
             return lattice.bottom();

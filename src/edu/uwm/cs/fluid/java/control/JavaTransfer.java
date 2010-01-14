@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
+import edu.cmu.cs.fluid.control.UnknownLabel;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -44,11 +45,25 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
   protected final IBinder binder;
   protected final L lattice;
 
+  /**
+   * If this transfer function is for a constructor declaration (or instance
+   * init declaration??) then we have a sub analysis that holds the results for
+   * instance initializer blocks and instance field initializers.  This is 
+   * non-<code>null</code> if we have one.
+   */
+  private FlowAnalysis<T> subAnalysis = null;
+  
+  
+  
   public JavaTransfer(IBinder b, L l) {
     binder = b;
     lattice = l;
   }
 
+  public final FlowAnalysis<T> getSubAnalysis() {
+    return subAnalysis;
+  }
+  
   public T transferComponentFlow(
     IRNode node,
     Object info,
@@ -551,7 +566,15 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
     T initial,
     boolean terminationNormal) {
     FlowUnit op = (FlowUnit) tree.getOperator(classBody);
+    /* In most cases implementations of createAnalysis() should cache the
+     * result.  That is, only ever create one new sub analysis object.
+     * This won't work though if we ever get smart work lists.  Probably won't
+     * work for side-effecting analyses either.  But it merges the abrupt and 
+     * normal cases for BackwardAnalyses that way, and saves a lot of trouble. 
+     */
     FlowAnalysis<T> fa = createAnalysis(binder);
+    // Save the sub analysis so we can access its results later on
+    subAnalysis = fa;
     Source source = op.getSource(classBody);
     Sink sink;
     if (terminationNormal) {
@@ -568,7 +591,10 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
       e1 = source.getOutput();
       e2 = sink.getInput();
     }
-    LabelList ll = LabelList.empty;
+    /* This was wrong.  Was "LabelList.empty", but that made things not work
+     * right on backwards analyses.  John and I fixed this on 2010-01-12.
+     */
+    LabelList ll = LabelList.empty.addLabel(UnknownLabel.prototype); 
     fa.initialize(e1, ll, initial);
     // I'm worried that the analysis may wish to call (say)
     // transferComponentSource and then wonder why bottom() isn't

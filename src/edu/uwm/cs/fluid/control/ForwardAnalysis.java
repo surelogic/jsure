@@ -58,7 +58,7 @@ public class ForwardAnalysis<T> extends FlowAnalysis<T> {
   /** Logger instance for debugging. */
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
   
-  final ForwardTransfer<T> trans;
+  protected final ForwardTransfer<T> trans;
   
   // a whole family of transfer operations to be used with labeled lattices.
   
