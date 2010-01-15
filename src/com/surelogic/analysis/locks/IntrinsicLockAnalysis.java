@@ -20,22 +20,32 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class IntrinsicLockAnalysis extends
-    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<Object[]> {
+    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<Object[], IntrinsicLockLattice, IntrinsicLockAnalysis.Analysis> {
   public static interface Query extends AnalysisQuery<Set<HeldLock>> {
     // adds nothing
   }
   
+  public static final class Analysis extends ForwardAnalysis<Object[], IntrinsicLockLattice, IntrinsicLockTransfer> {
+    private Analysis(
+        final String name, final IntrinsicLockLattice l, final IntrinsicLockTransfer t) {
+      super(name, l, t, DebugUnparser.viewer);
+    }
+    
+    public Analysis getSubAnalysis() {
+      return trans.getSubAnalysis();
+    }
+  }
+  
+  
+  
   private final LockUtils lockUtils;
   private final JUCLockUsageManager jucLockUsageManager;
   private final SimpleNonnullAnalysis nonNullAnalysis;
-  
-  
   
   public IntrinsicLockAnalysis(final IBinder b, final LockUtils lu,
       final JUCLockUsageManager lockMgr, final SimpleNonnullAnalysis sna) {
@@ -47,15 +57,13 @@ public final class IntrinsicLockAnalysis extends
   }
   
   @Override
-  protected FlowAnalysis<Object[]> createAnalysis(final IRNode flowUnit) {
+  protected Analysis createAnalysis(final IRNode flowUnit) {
     final IntrinsicLockLattice intrinsicLockLattice =
       IntrinsicLockLattice.createForFlowUnit(flowUnit, jucLockUsageManager);    
-    final FlowAnalysis<Object[]> analysis =
-      new ForwardAnalysis<Object[]>(
-          "Intrinsic Lock Analysis", intrinsicLockLattice,
-          new IntrinsicLockTransfer(
-              flowUnit, binder, lockUtils, intrinsicLockLattice, nonNullAnalysis),
-          DebugUnparser.viewer);
+    final Analysis analysis = new Analysis(
+        "Intrinsic Lock Analysis", intrinsicLockLattice,
+        new IntrinsicLockTransfer(
+            flowUnit, binder, lockUtils, intrinsicLockLattice, nonNullAnalysis));
     return analysis;
   }
   
@@ -64,17 +72,21 @@ public final class IntrinsicLockAnalysis extends
    * entry to the node.
    */
   public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
-    final FlowAnalysis<Object[]> a = getAnalysis(
+    final Analysis a = getAnalysis(
         edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
             node, context));
-    final IntrinsicLockLattice ill = (IntrinsicLockLattice) a.getLattice();
+    final IntrinsicLockLattice ill = a.getLattice();
     return ill.getHeldLocks(a.getAfter(node, WhichPort.ENTRY));
   }
   
-  public Query getHeldLocksQuery(final IRNode flowUnit) {
+  public Query getHeldLocksQuery(final IRNode flowUnit, final boolean initializer) {
     return new Query() {
-      private final FlowAnalysis<Object[]> a = getAnalysis(flowUnit);
-      private final IntrinsicLockLattice lattice = (IntrinsicLockLattice) a.getLattice();
+      private final Analysis a;
+      {
+        final Analysis t = getAnalysis(flowUnit);
+        a = initializer ? t.getSubAnalysis() : t;
+      }
+      private final IntrinsicLockLattice lattice = a.getLattice();
 
       public Set<HeldLock> getResultFor(final IRNode expr) {
         return lattice.getHeldLocks(a.getAfter(expr, WhichPort.ENTRY));
@@ -85,9 +97,22 @@ public final class IntrinsicLockAnalysis extends
   
   
   private static final class IntrinsicLockTransfer extends
-      JavaForwardTransfer<IntrinsicLockLattice, Object[]> {
+      JavaForwardTransfer<Analysis, IntrinsicLockLattice, Object[]> {
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
+    
+    /**
+     * We cache the subanalysis we create so that both normal and abrupt paths
+     * are stored in the same analysis. Plus this puts more force behind an
+     * assumption made by
+     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
+     * 
+     * <p>
+     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
+     */
+    private Analysis subAnalysis = null;
+
+    
     
     public IntrinsicLockTransfer(final IRNode flowUnit,
         final IBinder binder, final LockUtils lu,
@@ -96,7 +121,15 @@ public final class IntrinsicLockAnalysis extends
       lockUtils = lu;
       nonNullAnalysisQuery = sna.getNonnullBeforeQuery(flowUnit);
     }
+    
+    
+    
+    public Analysis getSubAnalysis() {
+      return subAnalysis;
+    }
 
+    
+    
     /**
      * Is the method declared to return a lock?
      */
@@ -168,9 +201,12 @@ public final class IntrinsicLockAnalysis extends
     }
     
     @Override
-    protected FlowAnalysis<Object[]> createAnalysis(IBinder binder) {
-      return new ForwardAnalysis<Object[]>(
-          "Intrinsic Lock Analysis", lattice, this, DebugUnparser.viewer);
+    protected Analysis createAnalysis(
+        final IBinder binder, final boolean terminationNormal) {
+      if (subAnalysis == null) {
+        subAnalysis = new Analysis("Intrinsic Lock Analysis", lattice, this);
+      }
+      return subAnalysis;
     }
 
     public Object[] transferComponentSource(IRNode node) {
@@ -179,4 +215,3 @@ public final class IntrinsicLockAnalysis extends
     }
   }
 }
-

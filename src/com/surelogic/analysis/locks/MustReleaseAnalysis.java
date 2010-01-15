@@ -6,7 +6,6 @@ import com.surelogic.analysis.ThisExpressionBinder;
 
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -24,29 +23,23 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.control.BackwardAnalysis;
-import edu.uwm.cs.fluid.control.BackwardTransfer;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaBackwardTransfer;
-import edu.uwm.cs.fluid.util.Lattice;
 
 public final class MustReleaseAnalysis extends
-    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> {
+    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice, MustReleaseAnalysis.Analysis> {
   public static interface Query extends AnalysisQuery<Set<IRNode>> {
     // adds nothing
   }
   
-  private static final class Analysis extends BackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> {
-    public Analysis(final String name,
-        final Lattice<ImmutableList<ImmutableSet<IRNode>>[]> l,
-        final BackwardTransfer<ImmutableList<ImmutableSet<IRNode>>[]> t,
-        final IRNodeViewer nv) {
-      super(name, l, t, nv);
+  public static final class Analysis extends BackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice, MustReleaseTransfer> {
+    private Analysis(
+        final String name, final MustReleaseLattice l, final MustReleaseTransfer t) {
+      super(name, l, t, DebugUnparser.viewer);
     }
     
-    @SuppressWarnings("unchecked")
     public Analysis getSubAnalysis() {
-      return (Analysis) ((JavaBackwardTransfer) trans).getSubAnalysis();
+      return trans.getSubAnalysis();
     }
   }
 
@@ -70,17 +63,14 @@ public final class MustReleaseAnalysis extends
 
   
   @Override
-  protected FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> createAnalysis(
-      final IRNode flowUnit) {
+  protected Analysis createAnalysis(final IRNode flowUnit) {
     final MustReleaseLattice mustReleaseLattice =
       MustReleaseLattice.createForFlowUnit(flowUnit, thisExprBinder, binder, jucLockUsageManager);    
-    final FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> analysis =
-      new Analysis(
-          "Must Release Analysis", mustReleaseLattice,
-          new MustReleaseTransfer(
-              flowUnit, thisExprBinder, binder, lockUtils, mustReleaseLattice,
-              nonNullAnalysis),
-          DebugUnparser.viewer);
+    final Analysis analysis = new Analysis(
+        "Must Release Analysis", mustReleaseLattice,
+        new MustReleaseTransfer(
+            flowUnit, thisExprBinder, binder, lockUtils, mustReleaseLattice,
+            nonNullAnalysis));
     return analysis;
   }
 
@@ -89,10 +79,10 @@ public final class MustReleaseAnalysis extends
    * @return The IRNode of the matching unlock method call.
    */
   public Set<IRNode> getUnlocksFor(final IRNode mcall, final IRNode context) {
-    final FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> a = getAnalysis(
+    final Analysis a = getAnalysis(
         edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
             mcall, context));
-    final MustReleaseLattice lattice = (MustReleaseLattice) a.getLattice();   
+    final MustReleaseLattice lattice = a.getLattice();   
     final MethodCall call = (MethodCall) tree.getOperator(mcall);
     final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.NORMAL_EXIT);
     final Set<IRNode> unlockCalls =
@@ -119,13 +109,13 @@ public final class MustReleaseAnalysis extends
   public Query getUnlocksForQuery(
       final IRNode flowUnit, final boolean initializer) {
     return new Query() {
-      private final FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> a;
+      private final Analysis a;
       {
-        final Analysis t = (Analysis) getAnalysis(flowUnit);
+        final Analysis t = getAnalysis(flowUnit);
         a = initializer ? t.getSubAnalysis() : t;
       }
       
-      private final MustReleaseLattice lattice = (MustReleaseLattice) a.getLattice();
+      private final MustReleaseLattice lattice = a.getLattice();
       
       public Set<IRNode> getResultFor(final IRNode mcall) {
         final MethodCall call = (MethodCall) tree.getOperator(mcall);
@@ -145,12 +135,24 @@ public final class MustReleaseAnalysis extends
   
   
   private static final class MustReleaseTransfer extends
-      edu.uwm.cs.fluid.java.control.JavaBackwardTransfer<
-          MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
+      JavaBackwardTransfer<Analysis, MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
 
+    /**
+     * We cache the subanalysis we create so that both normal and abrupt paths
+     * are stored in the same analysis. Plus this puts more force behind an
+     * assumption made by
+     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
+     * 
+     * <p>
+     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
+     */
+    private Analysis subAnalysis = null;
+
+    
+    
     public MustReleaseTransfer(final IRNode flowUnit,
         final ThisExpressionBinder teb, final IBinder binder, final LockUtils lu,
         final MustReleaseLattice lattice, final SimpleNonnullAnalysis sna) {
@@ -166,6 +168,14 @@ public final class MustReleaseAnalysis extends
       lockUtils = other.lockUtils;
       nonNullAnalysisQuery = other.nonNullAnalysisQuery;
     }
+    
+    
+    
+    public Analysis getSubAnalysis() {
+      return subAnalysis;
+    }
+    
+    
     
     /**
      * Is the method declared to return a lock?
@@ -322,23 +332,12 @@ public final class MustReleaseAnalysis extends
       }
     }
 
-    /**
-     * We cache the subanalysis we create so that both normal and abrupt paths
-     * are stored in the same analysis. Plus this puts more force behind an
-     * assumption made by
-     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
-     * 
-     * <p>
-     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
-     */
-    private Analysis subAnalysis = null;
-    
     @Override
-    protected FlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[]> createAnalysis(IBinder binder) {
+    protected Analysis createAnalysis(
+        final IBinder binder, final boolean terminationNormal) {
       if (subAnalysis == null) {
-        subAnalysis = new Analysis(
-          "Must Release Analysis (sub-analysis)", lattice,
-          new MustReleaseTransfer(this), DebugUnparser.viewer);
+        subAnalysis = new Analysis("Must Release Analysis (sub-analysis)",
+            lattice, new MustReleaseTransfer(this));
       }
       return subAnalysis;
     }

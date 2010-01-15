@@ -29,7 +29,7 @@ import edu.cmu.cs.fluid.version.Version;
  * queue).
  * This approach uses lattice poisoning and requires a postpass to find problems.
  */
-public abstract class IntraproceduralAnalysis<T> {
+public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends FlowAnalysis<T, L>> {
   /** Logger instance for debugging. */
   protected static final Logger LOG = SLLogger.getLogger("FLUID.analysis.flow");
 
@@ -62,7 +62,7 @@ public abstract class IntraproceduralAnalysis<T> {
    *          instance field initializer or instance initialization block.
    */
   private final T getAfter(final IRNode node, final IRNode constructorContext, final WhichPort port) {
-    final FlowAnalysis<T> a = getAnalysis(
+    final A a = getAnalysis(
         edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
             node, constructorContext));
     return a == null ? null : a.getAfter(node, port);
@@ -125,11 +125,11 @@ public abstract class IntraproceduralAnalysis<T> {
 	 * Start with a cache with a sentinel. This element will eventually be
 	 * evicted since it is never used.
 	 */
-  private IntraproceduralAnalysisCache<T> cache =
-    new IntraproceduralAnalysisCache<T>(null, null, null);
+  private IntraproceduralAnalysisCache<T, L, A> cache =
+    new IntraproceduralAnalysisCache<T, L, A>(null, null, null);
 
   public void clear() {
-    cache = new IntraproceduralAnalysisCache<T>(null, null, null);
+    cache = new IntraproceduralAnalysisCache<T, L, A>(null, null, null);
   }
   
   /**
@@ -140,22 +140,22 @@ public abstract class IntraproceduralAnalysis<T> {
    * the correct constructor context: see
    * {@link edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis#getFlowUnit(IRNode, IRNode)}.
 	 */
-  public final FlowAnalysis<T> getAnalysis(IRNode flowUnit) {
+  public final A getAnalysis(IRNode flowUnit) {
     final boolean debug = LOG.isLoggable(Level.FINE);
     
     Version v = Version.getVersion();
-    IntraproceduralAnalysisCache<T> c = cache;
+    IntraproceduralAnalysisCache<T, L, A> c = cache;
     int cached = 0;
     while (c.flowUnit != flowUnit || c.version != v) {
       // System.out.println("Rejecting " + c.toString());
       c = c.getNext();
       if (c == cache) { // back to the front; no analysis found
         FlowUnit op = (FlowUnit) tree.getOperator(flowUnit);
-        FlowAnalysis<T> fa = createAnalysis(flowUnit);
+        A fa = createAnalysis(flowUnit);
         fa.initialize(op.getSource(flowUnit));
         fa.initialize(op.getNormalSink(flowUnit));
         fa.initialize(op.getAbruptSink(flowUnit));
-        c = new IntraproceduralAnalysisCache<T>(flowUnit, v, fa);
+        c = new IntraproceduralAnalysisCache<T, L, A>(flowUnit, v, fa);
 
         try {
           if (debug) {
@@ -189,7 +189,7 @@ public abstract class IntraproceduralAnalysis<T> {
     return c.analysis;
   }
 
-  protected void printAllAnalysisResults(FlowAnalysis<T> fa, IRNode body) {
+  protected void printAllAnalysisResults(A fa, IRNode body) {
     for (IRNode n : JJNode.tree.topDown(body)) {
       if (true) {
         printAnalysisResults(fa, n);
@@ -197,7 +197,7 @@ public abstract class IntraproceduralAnalysis<T> {
     }
   }
 
-  protected void printAnalysisResults(FlowAnalysis<T> fa, IRNode node) {
+  protected void printAnalysisResults(A fa, IRNode node) {
     Component cfgComp = JavaComponentFactory.prototype.getComponent(node);
     if (cfgComp.getEntryPort() instanceof BlankInputPort) return;
     System.out.println("\nNode: " + DebugUnparser.toString(node));
@@ -207,15 +207,15 @@ public abstract class IntraproceduralAnalysis<T> {
     printAnalysisResults(fa, cfgComp.getAbruptExitPort().getOutputs(), "Abrupt exit");
   }
 
-  protected void printAnalysisResults(FlowAnalysis<T> fa, ControlEdgeIterator edges, String name) {
+  protected void printAnalysisResults(A fa, ControlEdgeIterator edges, String name) {
     for (int i=1; edges.hasNext(); ++i) {
       System.out.print("  " + name + " " + i + ": ");
       printAnalysisResults(fa,(ControlEdge)edges.next());
     }
   }
   
-  protected void printAnalysisResults(FlowAnalysis<T> fa, ControlEdge e) {
-    Lattice<T> l = fa.getLattice();
+  protected void printAnalysisResults(A fa, ControlEdge e) {
+    L l = fa.getLattice();
     LabeledValue<T> rawInfo = fa.getRawInfo(e);
     if (rawInfo == null) {
       System.out.println();
@@ -233,33 +233,33 @@ public abstract class IntraproceduralAnalysis<T> {
    * the correct constructor context: see
    * {@link edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis#getFlowUnit(IRNode, IRNode)}.
 	 */
-  protected abstract FlowAnalysis<T> createAnalysis(IRNode flowUnit);
+  protected abstract A createAnalysis(IRNode flowUnit);
 }
 
 /**
  * A list of recently performed analyses. The last accessed is at the head of
  * the list. The list is circular and doubly linked.
  */
-final class IntraproceduralAnalysisCache<T> {
+final class IntraproceduralAnalysisCache<T, L extends Lattice<T>, A extends FlowAnalysis<T, L>> {
   final IRNode flowUnit;
   final Version version;
-  final FlowAnalysis<T> analysis;
+  final A analysis;
 
   private static SyntaxTreeInterface tree = JJNode.tree;
 
-  private IntraproceduralAnalysisCache<T> prev = null, next = null;
+  private IntraproceduralAnalysisCache<T, L, A> prev = null, next = null;
 
-  IntraproceduralAnalysisCache(IRNode unit, Version v, FlowAnalysis<T> a) {
+  IntraproceduralAnalysisCache(IRNode unit, Version v, A a) {
     flowUnit = unit;
     version = v;
     analysis = a;
     prev = next = this;
   }
 
-  IntraproceduralAnalysisCache<T> getNext() {
+  IntraproceduralAnalysisCache<T, L, A> getNext() {
     return next;
   }
-  IntraproceduralAnalysisCache<T> getPrev() {
+  IntraproceduralAnalysisCache<T, L, A> getPrev() {
     return prev;
   }
 
@@ -271,7 +271,7 @@ final class IntraproceduralAnalysisCache<T> {
     }
   }
 
-  void link(IntraproceduralAnalysisCache<T> before) {
+  void link(IntraproceduralAnalysisCache<T, L, A> before) {
     if (before != null) {
       prev = before.prev;
       next = before;

@@ -17,6 +17,7 @@ public class BufferWorklist implements Worklist {
   private Buffer<ControlNode> queue = new UnboundedFifoBuffer<ControlNode>();
   
   public BufferWorklist() {
+    super();
   }
 
   public void initialize() {

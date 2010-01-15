@@ -35,7 +35,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  * @see JavaForwardTransfer
  * @see JavaBackwardTransfer
  */
-public abstract class JavaTransfer<L extends Lattice<T>,T> {
+public abstract class JavaTransfer<A extends FlowAnalysis<T, L>, L extends Lattice<T>,T> {
   /**
 	 * Logger for this class
 	 */
@@ -44,24 +44,12 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
   protected SyntaxTreeInterface tree = JJNode.tree;
   protected final IBinder binder;
   protected final L lattice;
-
-  /**
-   * If this transfer function is for a constructor declaration (or instance
-   * init declaration??) then we have a sub analysis that holds the results for
-   * instance initializer blocks and instance field initializers.  This is 
-   * non-<code>null</code> if we have one.
-   */
-  private FlowAnalysis<T> subAnalysis = null;
   
   
   
   public JavaTransfer(IBinder b, L l) {
     binder = b;
     lattice = l;
-  }
-
-  public final FlowAnalysis<T> getSubAnalysis() {
-    return subAnalysis;
   }
   
   public T transferComponentFlow(
@@ -561,40 +549,25 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
 	 *          result of abrupt termination.
 	 */
   protected final T runClassInitializer(
-    IRNode caller,
-    IRNode classBody,
-    T initial,
-    boolean terminationNormal) {
+    final IRNode caller, final IRNode classBody,
+    final T initial, final boolean terminationNormal) {
     FlowUnit op = (FlowUnit) tree.getOperator(classBody);
-    /* In most cases implementations of createAnalysis() should cache the
-     * result.  That is, only ever create one new sub analysis object.
-     * This won't work though if we ever get smart work lists.  Probably won't
-     * work for side-effecting analyses either.  But it merges the abrupt and 
-     * normal cases for BackwardAnalyses that way, and saves a lot of trouble. 
-     */
-    FlowAnalysis<T> fa = createAnalysis(binder);
-    // Save the sub analysis so we can access its results later on
-    subAnalysis = fa;
-    Source source = op.getSource(classBody);
-    Sink sink;
-    if (terminationNormal) {
-      sink = op.getNormalSink(classBody);
-    } else {
-      sink = op.getAbruptSink(classBody);
-    }
-    ControlEdge e1;
-    ControlEdge e2;
-    if (this instanceof BackwardTransfer) {
-      e1 = sink.getInput();
-      e2 = source.getOutput();
-    } else {
-      e1 = source.getOutput();
-      e2 = sink.getInput();
-    }
+    final FlowAnalysis<T, L> fa = createAnalysis(binder, terminationNormal);
+    final Source source = op.getSource(classBody);
+    final Sink sink = terminationNormal ? op.getNormalSink(classBody) : op.getAbruptSink(classBody);
+    final ControlEdge e1 = getStartEdge(source, sink);
+    final ControlEdge e2 = getEndEdge(source, sink);
+//    if (this instanceof BackwardTransfer) {
+//      e1 = sink.getInput();
+//      e2 = source.getOutput();
+//    } else {
+//      e1 = source.getOutput();
+//      e2 = sink.getInput();
+//    }
     /* This was wrong.  Was "LabelList.empty", but that made things not work
      * right on backwards analyses.  John and I fixed this on 2010-01-12.
      */
-    LabelList ll = LabelList.empty.addLabel(UnknownLabel.prototype); 
+    final LabelList ll = LabelList.empty.addLabel(UnknownLabel.prototype); 
     fa.initialize(e1, ll, initial);
     // I'm worried that the analysis may wish to call (say)
     // transferComponentSource and then wonder why bottom() isn't
@@ -605,9 +578,37 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
   }
   
   /**
-   * Create a new copy of the analysis for use in call initializers
+   * Return copy of the analysis for use in call initializers. For
+   * non&ndash;side-effecting analysis, this should method should be idempotent,
+   * always returning the same analysis object (although there should be one
+   * sub-analysis object for each constructor declaration flow unit). Backward
+   * analyses should currently ignore the {@code terminationNormal} argument as
+   * well, although in some cases it may be worthwhile to create different
+   * sub-analyses for the normal and abrupt cases.
+   * 
+   * <p>
+   * This approach won't work if we ever get smart work lists. In this case we
+   * will have to create a fresh sub-analysis each time.
+   * 
    * @param binder
-   * @return new analysis
+   *          The binder to use.
+   * @param terminationNormal
+   *          if true then return result of normal termination, otherwise result
+   *          of abrupt termination.
+   * @return an analysis
    */
-  protected abstract FlowAnalysis<T> createAnalysis(IBinder binder);
+  protected abstract A createAnalysis(
+      IBinder binder, boolean terminationNormal);
+  
+  /**
+   * Get the starting edge for the analysis of call initializers.  This is the
+   * edge that will be used to initialize the analysis.
+   */
+  protected abstract ControlEdge getStartEdge(Source src, Sink sink);
+  
+  /**
+   * Get the ending edge for the analysis of call initializers.  This is the
+   * edge that will be queried for the analysis result.
+   */
+  protected abstract ControlEdge getEndEdge(Source src, Sink sink);
 }

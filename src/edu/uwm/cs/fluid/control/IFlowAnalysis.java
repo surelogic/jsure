@@ -5,11 +5,11 @@ import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlNode;
 import edu.uwm.cs.fluid.util.Lattice;
 
-public interface IFlowAnalysis<T> {
+public interface IFlowAnalysis<T, L extends Lattice<T>> {
 
   public abstract String getName();
 
-  public abstract Lattice<T> getLattice();
+  public abstract L getLattice();
 
   public abstract void initialize(ControlNode n);
 

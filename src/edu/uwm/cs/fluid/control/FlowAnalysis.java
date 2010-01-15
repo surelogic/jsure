@@ -28,7 +28,6 @@ import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
 import edu.cmu.cs.fluid.control.Component.WhichPort;
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -52,9 +51,9 @@ import edu.uwm.cs.fluid.control.LabeledLattice.UnaryOp;
  * @see ForwardAnalysis
  * @see BackwardAnalysis
  */
-public abstract class FlowAnalysis<T> implements Cloneable, IFlowAnalysis<T> {
+public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable, IFlowAnalysis<T, L> {
   public final String name;
-  protected final Lattice<T> lattice;
+  protected final L lattice;
   protected final LabeledLattice<T> infoLattice;
   private Worklist worklist;
 
@@ -69,19 +68,27 @@ public abstract class FlowAnalysis<T> implements Cloneable, IFlowAnalysis<T> {
    * @param l the lattice of values for the analysis.
    * @see #getInfo
    */
-  protected FlowAnalysis(String n, Lattice<T> l, IRNodeViewer nv) {
+  protected FlowAnalysis(String n, L l, IRNodeViewer nv) {
     name = n;
     lattice = l;
     infoLattice = new LabeledLattice<T>(l);
-    worklist = Worklist.Factory.makeWorklist(this instanceof ForwardAnalysis);
+    worklist = createWorklist();
+// WAS:
+//    worklist = Worklist.Factory.makeWorklist(this instanceof ForwardAnalysis);
     nodeViewer = (nv == null) ? IRNodeViewer.defaultViewer : nv;
   }
   
+  /**
+   * Create the worklist to be used by this analysis.  Called from the
+   * constructor, so don't do anything crazy.
+   */
+  protected abstract Worklist createWorklist();
+  
   @Override
   @SuppressWarnings("unchecked")
-  public IFlowAnalysis<T> clone() {
+  public IFlowAnalysis<T, L> clone() {
     try {
-      FlowAnalysis<T> copy = (FlowAnalysis<T>) super.clone();
+      FlowAnalysis<T, L> copy = (FlowAnalysis<T, L>) super.clone();
       copy.worklist = copy.worklist.clone();
       copy.infoMap = new HashMap<ControlEdge,LabeledLattice.LabeledValue<T>>();
       copy.iterations = 0;
@@ -101,7 +108,7 @@ public abstract class FlowAnalysis<T> implements Cloneable, IFlowAnalysis<T> {
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#getLattice()
    */
-  public Lattice<T> getLattice() {
+  public L getLattice() {
     return lattice;
   }
 
@@ -209,13 +216,17 @@ public abstract class FlowAnalysis<T> implements Cloneable, IFlowAnalysis<T> {
       LOG.finer("new value '" + infoLattice.toString(lv) + "' replaces '" + infoLattice.toString(old) + "'");
     }
     infoMap.put(edge,lv);
-    if (this instanceof BackwardAnalysis) {
-      worklist.add(edge.getSource());
-    } else {
-      worklist.add(edge.getSink());
-    }
+    worklist.add(getNodeFromEdgeForWorklist(edge));
+// WAS:    
+//    if (this instanceof BackwardAnalysis) {
+//      worklist.add(edge.getSource());
+//    } else {
+//      worklist.add(edge.getSink());
+//    }
   }
 
+  protected abstract ControlNode getNodeFromEdgeForWorklist(ControlEdge edge);
+  
   protected void setInfo(ControlEdge edge, LabelList ll, T value) {
     if (edge == null) {
       throw new FluidError("setInfo got null edge");

@@ -26,7 +26,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  * Side-effecting analysis using lattice ADT.
  * @author boyland
  */
-public abstract class CachedFlowAnalysis<T, R extends CachedFlowAnalysis.FlowAnalysisResults<T>> extends
+public abstract class CachedFlowAnalysis<T, L extends Lattice<T>, R extends CachedFlowAnalysis.FlowAnalysisResults<T,L>> extends
     CachedProceduralAnalysis<T, R> {
   private static final Logger LOG = SLLogger.getLogger("fluid.java.analysis");
 
@@ -41,7 +41,7 @@ public abstract class CachedFlowAnalysis<T, R extends CachedFlowAnalysis.FlowAna
   @Override
   protected R computeResults(IRNode procedure) {
     FlowUnit op = (FlowUnit) JJNode.tree.getOperator(procedure);
-    SideEffectingFlowAnalysis<T,R> fa = createAnalysis(procedure);
+    SideEffectingFlowAnalysis<T,L,R> fa = createAnalysis(procedure);
     fa.initialize(op.getSource(procedure));
     fa.initialize(op.getNormalSink(procedure));
     fa.initialize(op.getAbruptSink(procedure));
@@ -52,7 +52,7 @@ public abstract class CachedFlowAnalysis<T, R extends CachedFlowAnalysis.FlowAna
     return results;
   }
 
-  protected abstract R createResults(SideEffectingFlowAnalysis<T,R> analysis);
+  protected abstract R createResults(SideEffectingFlowAnalysis<T,L,R> analysis);
   
   protected T getAfter(IRNode node) {
     IRNode proc = getProcedure(node);
@@ -68,9 +68,9 @@ public abstract class CachedFlowAnalysis<T, R extends CachedFlowAnalysis.FlowAna
    * Create the appropriate flow analysis instance. 
    * Initialization will be done using the transfer function.
    */
-  protected abstract SideEffectingFlowAnalysis<T,R> createAnalysis(IRNode procedure);
+  protected abstract SideEffectingFlowAnalysis<T,L,R> createAnalysis(IRNode procedure);
 
-  public static interface SideEffectingFlowAnalysis<T,R extends FlowAnalysisResults<T>> extends IFlowAnalysis<T> {
+  public static interface SideEffectingFlowAnalysis<T, L extends Lattice<T>, R extends FlowAnalysisResults<T, L>> extends IFlowAnalysis<T, L> {
     /**
      * Indicate that this analysis should start collecting results.
      */
@@ -83,11 +83,11 @@ public abstract class CachedFlowAnalysis<T, R extends CachedFlowAnalysis.FlowAna
    * so the analysis could be garbage collected.
    * @author boyland
    */
-  static class FlowAnalysisResults<T> implements Results<T> {
+  static class FlowAnalysisResults<T, L extends Lattice<T>> implements Results<T> {
     final IRNode procedure;
-    final SideEffectingFlowAnalysis<T,FlowAnalysisResults<T>> analysis;
+    final SideEffectingFlowAnalysis<T,L,FlowAnalysisResults<T, L>> analysis;
     
-    public FlowAnalysisResults(IRNode proc, SideEffectingFlowAnalysis<T,FlowAnalysisResults<T>> fa) {
+    public FlowAnalysisResults(IRNode proc, SideEffectingFlowAnalysis<T,L,FlowAnalysisResults<T,L>> fa) {
       procedure = proc;
       analysis = fa;
     }

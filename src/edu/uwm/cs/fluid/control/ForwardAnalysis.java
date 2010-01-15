@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.control.ComponentPort;
 import edu.cmu.cs.fluid.control.ComponentSource;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlLabel;
+import edu.cmu.cs.fluid.control.ControlNode;
 import edu.cmu.cs.fluid.control.DoubleInputPort;
 import edu.cmu.cs.fluid.control.DoubleOutputPort;
 import edu.cmu.cs.fluid.control.DynamicSplit;
@@ -54,11 +55,11 @@ import edu.uwm.cs.fluid.util.Lattice;
  * @see ForwardTransfer
  * @see edu.uwm.cs.fluid.util.Lattice
  */
-public class ForwardAnalysis<T> extends FlowAnalysis<T> {
+public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransfer<T>> extends FlowAnalysis<T, L> {
   /** Logger instance for debugging. */
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
   
-  protected final ForwardTransfer<T> trans;
+  protected final XFER trans;
   
   // a whole family of transfer operations to be used with labeled lattices.
   
@@ -185,11 +186,22 @@ public class ForwardAnalysis<T> extends FlowAnalysis<T> {
    *          the transfer functions for semantics-specific nodes.
    * @see FlowAnalysis
    */
-  public ForwardAnalysis(String name, Lattice<T> l, ForwardTransfer<T> t, IRNodeViewer nv) {
+  public ForwardAnalysis(String name, L l, XFER t, IRNodeViewer nv) {
     super(name, l, nv);
     trans = t;
   }
+
+  @Override
+  protected final Worklist createWorklist() {
+    return Worklist.Factory.makeWorklist(true);
+  }
   
+  @Override
+  protected final ControlNode getNodeFromEdgeForWorklist(
+      final ControlEdge edge) {
+    return edge.getSink();
+  }
+
   
   @Override
   protected void transferFlow(Flow node) {

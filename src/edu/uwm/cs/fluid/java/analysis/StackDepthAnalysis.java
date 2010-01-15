@@ -7,9 +7,7 @@ import java.io.IOException;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
-import edu.uwm.cs.fluid.control.ForwardTransfer;
 import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
 import edu.uwm.cs.fluid.util.FlatLattice;
 
@@ -18,13 +16,13 @@ import edu.uwm.cs.fluid.util.FlatLattice;
  * A class to test the default transfer functions of {@link edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer}
  * @author boyland
  */
-public class StackDepthAnalysis extends ForwardAnalysis<Object> {
+public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, StackDepthAnalysis.StackDepthTransfer> {
   /**
    * @param name
    * @param l
    * @param t
    */
-  public StackDepthAnalysis(ForwardTransfer<Object> t) {
+  public StackDepthAnalysis(StackDepthTransfer t) {
     super("Stack depth",FlatLattice.prototype,t,DebugUnparser.viewer);
   }
   
@@ -33,13 +31,13 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object> {
   }
   
   
-  static class StackDepthTransfer extends JavaEvaluationTransfer<FlatLattice,Object> {
+  public static class StackDepthTransfer extends JavaEvaluationTransfer<StackDepthAnalysis, FlatLattice,Object> {
     
     /**
      * @param binder
      * @param lattice
      */
-    public StackDepthTransfer(IBinder binder) {
+    private StackDepthTransfer(IBinder binder) {
       super(binder,FlatLattice.prototype);
     }
     
@@ -77,7 +75,8 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object> {
      * @see edu.uwm.cs.fluid.java.control.JavaTransfer#createAnalysis(edu.cmu.cs.fluid.java.bind.IBinder)
      */
     @Override
-    protected FlowAnalysis<Object> createAnalysis(IBinder binder) {
+    protected StackDepthAnalysis createAnalysis(
+        final IBinder binder, final boolean terminationNormal) {
       return StackDepthAnalysis.create(binder);
     }
     
@@ -90,9 +89,9 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object> {
   }
 }
 
-class TestStackDepthAnalysis extends TestFlowAnalysis {
+class TestStackDepthAnalysis extends TestFlowAnalysis<Object, FlatLattice, StackDepthAnalysis> {
   @Override
-  protected FlowAnalysis<Object> createAnalysis(IRNode ignored, IBinder binder) {
+  protected StackDepthAnalysis createAnalysis(IRNode ignored, IBinder binder) {
     return StackDepthAnalysis.create(binder);
   }
   

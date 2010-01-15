@@ -17,6 +17,7 @@ public class QueueWorklist implements Worklist {
   private Queue<ControlNode> queue = new LinkedList<ControlNode>();
   
   public QueueWorklist() {
+    super();
   }
 
   public void initialize() {

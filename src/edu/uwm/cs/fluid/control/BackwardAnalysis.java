@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.control.ComponentFlow;
 import edu.cmu.cs.fluid.control.ComponentSink;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlLabel;
+import edu.cmu.cs.fluid.control.ControlNode;
 import edu.cmu.cs.fluid.control.DoubleInputPort;
 import edu.cmu.cs.fluid.control.DoubleOutputPort;
 import edu.cmu.cs.fluid.control.DynamicSplit;
@@ -52,21 +53,32 @@ import edu.uwm.cs.fluid.util.Lattice;
  * @see BackwardTransfer
  * @see edu.uwm.cs.fluid.util.Lattice
  */
-public class BackwardAnalysis<T> extends FlowAnalysis<T> {
+public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTransfer<T>> extends FlowAnalysis<T, L> {
   /** Logger instance for debugging. */
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
 
-  protected final BackwardTransfer<T> trans;
+  protected final XFER trans;
 
   /** Create an instance of backward control-flow analysis.
    * @param t the transfer function for semantics-specific nodes.
    * @see FlowAnalysis
    */
-  public BackwardAnalysis(String name, Lattice<T> l, BackwardTransfer<T> t, IRNodeViewer nv) {
+  public BackwardAnalysis(String name, L l, XFER t, IRNodeViewer nv) {
     super(name,l,nv);
     trans = t;
   }
 
+  @Override
+  protected final Worklist createWorklist() {
+    return Worklist.Factory.makeWorklist(false);
+  }
+  
+  @Override
+  protected final ControlNode getNodeFromEdgeForWorklist(
+      final ControlEdge edge) {
+    return edge.getSource();
+  }
+  
   @Override
   public void performAnalysis() {
     super.performAnalysis();

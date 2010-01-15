@@ -24,7 +24,6 @@ import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.Pair;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
 import edu.uwm.cs.fluid.util.*;
@@ -33,13 +32,13 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
 
 /**
  * A class that does intra-procedural non-null checking.  It doesn't
- * use any information from outside the method (no annotations, ignroes field, etc).
+ * use any information from outside the method (no annotations, ignores field, etc).
  * If one wants a smarter analysis, one should use permission analysis which takes
  * into account annotations as well as raw annotations (needed before one can trust
  * the initialization of final variables).
  * @author boyland
  */
-public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice, SimpleNonnullAnalysis.Analysis> {
   public static interface Query extends AnalysisQuery<ImmutableSet<IRNode>> {
     // do nothing;
   }
@@ -51,7 +50,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
   }
 
   @Override
-  protected FlowAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> createAnalysis(IRNode flowUnit) {
+  protected Analysis createAnalysis(IRNode flowUnit) {
     return Analysis.createAnalysis("Java.Nonnull", binder);
   }
 
@@ -66,7 +65,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
   public Query getNonnullBeforeQuery(final IRNode flowUnit) {
     return new Query() {
-      private final FlowAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> a = getAnalysis(flowUnit);
+      private final Analysis a = getAnalysis(flowUnit);
 
       public ImmutableSet<IRNode> getResultFor(final IRNode expr) {
         return a.getAfter(expr, WhichPort.ENTRY).second();
@@ -112,9 +111,9 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     return new Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>(o1,o2);
   }
   
-  private static final class Lattice extends PairLattice<ImmutableList<NullInfo>,ImmutableSet<IRNode>> {
+  public static final class Lattice extends PairLattice<ImmutableList<NullInfo>,ImmutableSet<IRNode>> {
 
-    public Lattice() {
+    private Lattice() {
       super(new ListLattice<NullLattice,NullInfo>(NullLattice.getInstance()), new IntersectionLattice<IRNode>(){
 
         @Override
@@ -151,7 +150,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     }
   }
   
-  private static final class Transfer extends JavaEvaluationTransfer<Lattice,Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+  private static final class Transfer extends JavaEvaluationTransfer<Analysis, Lattice,Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
 
     private static final NullLattice nullLattice = NullLattice.getInstance();
     
@@ -162,7 +161,8 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     }
 
     @Override
-    protected FlowAnalysis<Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>>> createAnalysis(IBinder binder) {
+    protected Analysis
+    createAnalysis(final IBinder binder, final boolean terminationNormal) {
       return Analysis.createAnalysis("sub analysis", binder);
     }
 
@@ -418,9 +418,9 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     
   }
   
-  private static final class Analysis extends ForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+  public static final class Analysis extends ForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice, Transfer> {
 
-    public Analysis(String name, Lattice l, Transfer t, IRNodeViewer nv) {
+    private Analysis(String name, Lattice l, Transfer t, IRNodeViewer nv) {
       super(name, l, t, nv);
     }
     
@@ -432,10 +432,10 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     
   }
   
-  public static final class Test extends TestFlowAnalysis {
+  public static final class Test extends TestFlowAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice, Analysis> {
 
     @Override
-    protected FlowAnalysis<?> createAnalysis(IRNode flowUnit, IBinder binder) {
+    protected Analysis createAnalysis(IRNode flowUnit, IBinder binder) {
       return Analysis.createAnalysis("nonnll", binder);
     }
     

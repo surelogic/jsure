@@ -19,14 +19,13 @@ import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.util.UnionLattice;
 import edu.uwm.cs.fluid.control.BackwardAnalysis;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 
 
 /**
  * The simplest flow analysis -- live variables.
  * @author boyland
  */
-public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>> {
+public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>, UnionLattice<IRNode>, LiveVariableAnalysis.Transfer> {
   /**
    * In order to keep our analysis transfer functions strict, 
    * we put this node in when initializing.  It should be ignored when getting information
@@ -72,7 +71,7 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>>
     return new LiveVariableAnalysis(l,t);
   }
   
-  private static class Transfer extends JavaBackwardTransfer<UnionLattice<IRNode>,ImmutableSet<IRNode>> {
+  public static class Transfer extends JavaBackwardTransfer<LiveVariableAnalysis, UnionLattice<IRNode>,ImmutableSet<IRNode>> {
 
     public ImmutableSet<IRNode> transferConditional(IRNode node, boolean flag,
         ImmutableSet<IRNode> after) {
@@ -80,7 +79,7 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>>
       return after;
     }
 
-    public Transfer(UnionLattice<IRNode> l, IBinder b) {
+    private Transfer(UnionLattice<IRNode> l, IBinder b) {
       super(b,l);
     }
     @Override 
@@ -125,19 +124,19 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>>
      * @see edu.uwm.cs.fluid.java.control.JavaTransfer#createAnalysis(edu.cmu.cs.fluid.java.bind.IBinder)
      */
     @Override
-    protected LiveVariableAnalysis createAnalysis(IBinder binder) {
+    protected LiveVariableAnalysis createAnalysis(IBinder binder, boolean terminationNormal) {
       return new LiveVariableAnalysis(lattice,this);
     }
   }
 }
 
-class TestLiveVariables extends TestFlowAnalysis {
+class TestLiveVariables extends TestFlowAnalysis<ImmutableSet<IRNode>, UnionLattice<IRNode>, LiveVariableAnalysis> {
 
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.java.analysis.TestFlowAnalysis#createAnalysis(edu.cmu.cs.fluid.java.bind.IBinder)
    */
   @Override
-  protected FlowAnalysis<?> createAnalysis(IRNode ignored, IBinder binder) {
+  protected LiveVariableAnalysis createAnalysis(IRNode ignored, IBinder binder) {
     return LiveVariableAnalysis.create(binder);
   }
   

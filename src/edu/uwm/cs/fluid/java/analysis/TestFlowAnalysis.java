@@ -7,11 +7,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.StringTokenizer;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.BlankInputPort;
@@ -19,11 +16,9 @@ import edu.cmu.cs.fluid.control.Component;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRPersistent;
-import edu.cmu.cs.fluid.ir.IRRegion;
 import edu.cmu.cs.fluid.ir.PlainIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.JavaCanonicalizer;
 import edu.cmu.cs.fluid.java.operator.Annotations;
@@ -43,7 +38,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.parse.ParseException;
 import edu.cmu.cs.fluid.project.Project;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.EnumerationIterator;
 import edu.cmu.cs.fluid.util.FileLocator;
 import edu.cmu.cs.fluid.util.PathFileLocator;
 import edu.cmu.cs.fluid.util.ZipFileLocator;
@@ -66,7 +60,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  * </ul>
  * @author boyland
  */
-public abstract class TestFlowAnalysis {
+public abstract class TestFlowAnalysis<T, L extends Lattice<T>, A extends FlowAnalysis<T, L>> {
 
   private final Project allClasses;
   private final IRNode addedClassesRootNode;
@@ -238,7 +232,7 @@ public abstract class TestFlowAnalysis {
   
   public void analyzeFunction(IRNode node) {
     FlowUnit op = (FlowUnit)JJNode.tree.getOperator(node);
-    FlowAnalysis<?> fa = createAnalysis(node,binder);
+    A fa = createAnalysis(node,binder);
     fa.initialize(op.getSource(node));
     fa.initialize(op.getNormalSink(node));
     fa.initialize(op.getAbruptSink(node));
@@ -251,9 +245,9 @@ public abstract class TestFlowAnalysis {
     }
   }
   
-  protected abstract FlowAnalysis<?> createAnalysis(IRNode flowUnit, IBinder binder);
+  protected abstract A createAnalysis(IRNode flowUnit, IBinder binder);
   
-  protected void printAnalysisResults(FlowAnalysis<?> fa, IRNode node) {
+  protected void printAnalysisResults(A fa, IRNode node) {
     Component cfgComp = JavaComponentFactory.prototype.getComponent(node);
     if (cfgComp.getEntryPort() instanceof BlankInputPort) return;
     System.out.println("\nNode: " + DebugUnparser.toString(node));
@@ -265,8 +259,8 @@ public abstract class TestFlowAnalysis {
     printAnalysisResults(fa,(ControlEdge)cfgComp.getAbruptExitPort().getOutputs().next());
   }
   
-  protected <T> void printAnalysisResults(FlowAnalysis<T> fa, ControlEdge e) {
-    Lattice<T> l = fa.getLattice();
+  protected void printAnalysisResults(A fa, ControlEdge e) {
+    L l = fa.getLattice();
     LabeledValue<T> rawInfo = fa.getRawInfo(e);
     if (rawInfo == null) {
       System.out.println();
