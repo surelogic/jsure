@@ -6,6 +6,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryNotificationInfo;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,7 +30,7 @@ public final class ThresholdMemoryPolicy extends AbstractMemoryPolicy {
 	final double margin;
 	final double threshold;
 	boolean registered = false;
-	boolean lowOnMemory = false;
+	final AtomicBoolean lowOnMemory = new AtomicBoolean(false);
 
 	ThresholdMemoryPolicy(double margin) {
 		this.margin = margin;
@@ -52,9 +53,7 @@ public final class ThresholdMemoryPolicy extends AbstractMemoryPolicy {
 				if (LOG.isLoggable(Level.FINE))
 					LOG.fine("Got a low memory event in "
 							+ Thread.currentThread());
-				synchronized (ThresholdMemoryPolicy.this) {
-					lowOnMemory = true;
-				}
+				lowOnMemory.set(true);				
 			}
 		}
 	}
@@ -112,10 +111,10 @@ public final class ThresholdMemoryPolicy extends AbstractMemoryPolicy {
 		return biggest;
 	}
 
-	public synchronized void checkIfLowOnMemory() {
-		if (lowOnMemory /* || memoryUsed() > threshold * memoryLimit() */) {
+	public void checkIfLowOnMemory() {
+		final boolean lowMem = lowOnMemory.getAndSet(false);
+		if (lowMem /* || memoryUsed() > threshold * memoryLimit() */) {
 			handleLowMemory();
-			lowOnMemory = false;
 		}
 	}
 
