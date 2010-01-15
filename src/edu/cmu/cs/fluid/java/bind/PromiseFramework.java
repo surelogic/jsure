@@ -672,7 +672,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     }
     context.createIfNone = createIfNone;
     context.onlyAssume = onlyAssume;
-    typeContexts.push(context);
+    typeContexts.get().push(context);
     return context;
   }
 
@@ -681,7 +681,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * reset to not create proxy nodes
    */
   public Map popTypeContext() {
-    MyMap map = typeContexts.pop();
+    MyMap map = typeContexts.get().pop();
     map.createIfNone = false;
     map.onlyAssume = false;
     if (map.size() > 0) {
@@ -707,10 +707,11 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * @return Non-null
    */
   private MyMap getCurrentTypeContext() {
-    if (typeContexts.isEmpty()) {
+	final Stack<MyMap> contexts = typeContexts.get();
+    if (contexts.isEmpty()) {
       return EMPTY;
     }
-    MyMap m = typeContexts.peek();
+    MyMap m = contexts.peek();
     return m;
   }
 
@@ -765,7 +766,12 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     return getCurrentTypeContext().onlyAssume;
   }
 
-  private Stack<MyMap> typeContexts = new Stack<MyMap>(); 
+  private ThreadLocal<Stack<MyMap>> typeContexts = new ThreadLocal<Stack<MyMap>>() {
+	  @Override
+	  protected Stack<MyMap> initialValue() {
+		  return new Stack<MyMap>();
+	  }
+  }; 
 
   private Map<IRNode, MyMap> contextMap = new HashMap<IRNode, MyMap>(); 
   
