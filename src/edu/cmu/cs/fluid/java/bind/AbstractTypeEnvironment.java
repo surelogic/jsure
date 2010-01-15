@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -9,7 +10,6 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -26,7 +26,8 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java");
   private static final boolean debug = LOG.isLoggable(Level.FINE);
   
-  private IJavaDeclaredType objectType = null;
+  private final AtomicReference<IJavaDeclaredType> objectType =
+      new AtomicReference<IJavaDeclaredType>(null);
   private final Map<IRNode,IJavaType> convertedTypeCache = 
 	  new ConcurrentHashMap<IRNode,IJavaType>();
   private IBindHelper helper;
@@ -54,7 +55,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  new Hashtable2<IJavaType, IJavaType, Boolean>();
   */
   public void clearCaches(boolean clearAll) {
-	  objectType = null;
+	  objectType.set(null);
 	  stringType = null;
 	  convertedTypeCache.clear();
 	  //subTypeCache.clear();
@@ -89,13 +90,20 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  return result;
   }
   
-  public synchronized IJavaDeclaredType getObjectType() {
-    if (objectType == null) {
+  public IJavaDeclaredType getObjectType() {
+	IJavaDeclaredType oType = objectType.get();
+    while (oType == null) {
       // this method has to be synchronized because otherwise, another thread
       // may see an uninitialized IJavaDeclaredType:
       IRNode jlo = findNamedType("java.lang.Object");
       assert(jlo != null);
-      objectType = JavaTypeFactory.getDeclaredType(jlo, null, null);
+      oType = JavaTypeFactory.getDeclaredType(jlo, null, null);
+      
+      final boolean set = objectType.compareAndSet(null, oType);
+      if (!set) {
+    	  // Get new value
+    	  oType = objectType.get();
+      }
     }
     if (debug) {
     	IRNode jlo = findNamedType("java.lang.Object");
@@ -105,7 +113,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
     		throw new Error("j.l.O not equal");
     	}
     }
-    return objectType;
+    return oType;
   }
 
   private IRNode arrayClassDeclaration = null;
