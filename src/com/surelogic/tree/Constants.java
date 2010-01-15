@@ -30,4 +30,5 @@ class Constants {
   };
   static final ISrcRef undefinedSrcRef = DummySrcRef.undefined;
   static final String undefinedString = new String();
+  static final Integer undefinedInteger = new Integer(JavaNode.ILLEGAL_MOD);
 }
