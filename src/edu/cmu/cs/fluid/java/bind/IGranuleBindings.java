@@ -39,4 +39,6 @@ public interface IGranuleBindings extends IDerivedInformation {
   boolean isDestroyed();
   
   void destroy();
+  
+  IRNode getNode();
 }

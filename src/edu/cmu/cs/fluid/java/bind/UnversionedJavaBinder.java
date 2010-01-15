@@ -223,6 +223,10 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       methodOverridesAttr = f.newLabeledAttribute("CompUnitBindings.methodOverrides", null);
     }
 
+    public IRNode getNode() {
+    	return unit;
+    }
+    
     public synchronized boolean isDestroyed() {
     	return isDestroyed;
     }

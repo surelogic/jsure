@@ -267,6 +267,10 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
       methodOverridesAttr = f.newAttribute(null);
     }
 
+    public IRNode getNode() {
+    	return unit;
+    }
+    
     public synchronized boolean isDestroyed() {
     	return isDestroyed;
     }
