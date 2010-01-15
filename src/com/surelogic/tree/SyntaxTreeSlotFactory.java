@@ -12,15 +12,16 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   public static final SyntaxTreeSlotFactory prototype = new SyntaxTreeSlotFactory();
 
   static class Storage<T> extends ImplicitSlotStorage<T> {
-    Storage(SyntaxTreeSlotFactory factory, T val) {
-      super(factory, val);
+    Storage(SyntaxTreeSlotFactory factory, T undefVal) {
+      super(factory, undefVal);
     }  
     @Override
     public T getUndefinedValue() {
       return super.getUndefinedValue();
-    }
-    
+    }    
   }
+  
+  // TODO this only works because it's undefined
   private final Storage<Operator> opStorage = 
     new Storage<Operator>(this, Constants.undefinedOperator);
   
@@ -32,12 +33,27 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   
   private final Storage<ISrcRef> srcRefStorage = 
     new Storage<ISrcRef>(this, Constants.undefinedSrcRef);
-  
-  private final Storage<String> stringStorage = 
-	    new Storage<String>(this, Constants.undefinedString);
-  
+
   private final Storage<IRNode> nodeStorage = 
 	    new Storage<IRNode>(this, Constants.undefinedNode);
+  
+  private SlotInfo<Integer> makeModifiersSI(String name, Integer defaultVal, 
+		  StoredSlotInfo<Integer,Integer> backupSI) 
+		  throws SlotAlreadyRegisteredException {
+	  return new NodeStoredSlotInfo<Integer>(JavaNode.MODIFIERS_ID, name, IRIntegerType.prototype, 
+			  new Storage<Integer>(SyntaxTreeSlotFactory.this, defaultVal), 
+			  defaultVal, backupSI) { 
+		  @Override
+		  protected Integer getSlot(SyntaxTreeNode n) {
+			  return n.modifiers;
+		  }
+
+		  @Override
+		  protected void setSlot(SyntaxTreeNode n, Integer slotState) {
+			  n.modifiers = slotState;
+		  }
+	  };
+  }
   
   private SlotInfo<Operator> makeOperatorSI(String name, Operator defaultVal,
 		                                    StoredSlotInfo<Operator,Operator> backupSI) 
@@ -135,7 +151,8 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
 		                              StoredSlotInfo<String,String> backupSI) 
   throws SlotAlreadyRegisteredException {
 	  return new NodeStoredSlotInfo<String>(infoName, name, IRStringType.prototype, 
-			                                stringStorage, defaultVal, backupSI) { 
+			  new Storage<String>(SyntaxTreeSlotFactory.this, defaultVal), 
+			                                defaultVal, backupSI) { 
 		  @Override
 		  protected String getSlot(SyntaxTreeNode n) {
 			  return n.info;
@@ -177,6 +194,11 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   private final <T> SlotInfo<T> newAttribute(String name, IRType<T> type, 
 		                                     T defaultValue, boolean undefined) 
   throws SlotAlreadyRegisteredException {
+	/*
+	if (!undefined) {
+		System.out.println("Default to: "+defaultValue);
+	}
+	*/
 	SlotInfo<T> backupSI;
     if (type == IROperatorType.prototype && name.endsWith(SyntaxTree.OPERATOR)) {
       Operator def = undefined ? Constants.undefinedOperator : (Operator) defaultValue;
@@ -219,6 +241,11 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
     	String def = undefined ? Constants.undefinedString : (String) defaultValue;
     	backupSI = makeBackupSI(name, type, defaultValue, undefined);
     	return (SlotInfo<T>) makeInfoSI(name, def, (StoredSlotInfo<String, String>) backupSI);
+    }
+    else if (type instanceof IRIntegerType && JavaNode.MODIFIERS_ID.equals(name)) {
+     	Integer def = undefined ? Constants.undefinedInteger : (Integer) defaultValue;
+    	backupSI = makeBackupSI(name, type, defaultValue, undefined);
+    	return (SlotInfo<T>) makeModifiersSI(name, def, (StoredSlotInfo<Integer, Integer>) backupSI);
     }
     
     if (undefined) {    	

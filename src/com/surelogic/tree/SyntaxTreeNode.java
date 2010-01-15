@@ -4,10 +4,7 @@ package com.surelogic.tree;
 import java.util.*;
 
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.JavaFileStatus;
-import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.tree.*;
 
 public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
@@ -18,8 +15,9 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
   IRNode parent; 
   IRLocation loc; 
   Operator op;
-  ISrcRef srcRef; // Added for free, due to rounding
+  ISrcRef srcRef; // Added for free on x86, due to rounding for cache line alignment
   String info;
+  Integer modifiers;  // Added on x64, more to avoid lock contention
   
   public SyntaxTreeNode(Operator op, IRNode[] children) {
     super(tree, op, children);
@@ -49,6 +47,9 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
     }
     if (this.info == null) {
         this.info = Constants.undefinedString;
+    }
+    if (this.modifiers == null) {
+    	this.modifiers = Constants.undefinedInteger;
     }
   }
   
