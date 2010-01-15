@@ -2,6 +2,7 @@
 package edu.cmu.cs.fluid.ir;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** An abstract point within a sequence.
  * A location has no meaning apart from its sequence.
@@ -32,7 +33,8 @@ public class IRLocation {
     return id;
   }
 
-  private static final List<IRLocation> locations = new ArrayList<IRLocation>();
+  private static final List<IRLocation> locations = new CopyOnWriteArrayList<IRLocation>();
+  private static final List<IRLocation> tempLocations = new ArrayList<IRLocation>();
   private static final IRLocation sentinel = new IRLocation(-2);
 
   @SuppressWarnings("unchecked")
@@ -40,12 +42,21 @@ public class IRLocation {
     if (i == -1) return null;
 	if (i == -2) return sentinel;
 	
-	synchronized (locations) {
-	  // Add locations for the next location up to i
-      for(int j=locations.size(); j<=i; j++) {
-    	  locations.add(new IRLocation(j));
-      }
-	  return locations.get(i);
+	try {
+		return locations.get(i);
+	} catch(IndexOutOfBoundsException e) {
+		// Make sure only one thread changes 'locations' at a time	
+		synchronized (locations) {
+			tempLocations.clear();
+			
+			// Add locations for the next location up to i
+			for(int j=locations.size(); j<=i; j++) {
+				tempLocations.add(new IRLocation(j));
+			}
+			locations.addAll(tempLocations);
+			tempLocations.clear();
+		}
+		return locations.get(i);
 	}
   }
   
