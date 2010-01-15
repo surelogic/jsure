@@ -109,17 +109,17 @@ public abstract class IDE {
    * Code to support polling to see if analysis got cancelled
    **************************************************************/
 
-  private boolean cancelled = false;
+  private volatile boolean cancelled = false;
 
-  public synchronized void clearCancelled() {
+  public void clearCancelled() {
     cancelled = false;
   }
 
-  public synchronized void setCancelled() {
+  public void setCancelled() {
     cancelled = true;
   }
 
-  public synchronized boolean isCancelled() {
+  public boolean isCancelled() {
     memPolicy.checkIfLowOnMemory();
     return cancelled;
   }
