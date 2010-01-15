@@ -2,6 +2,7 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.*;
 
 import com.surelogic.analysis.IIRProject;
@@ -86,13 +87,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   protected final IJavaClassTable classTable;
   protected final ITypeEnvironment typeEnvironment;
   protected final Map<IRNode,IGranuleBindings> allGranuleBindings = 
-    new HashMap<IRNode,IGranuleBindings>();
+    new ConcurrentHashMap<IRNode,IGranuleBindings>();
   
   /**
    * Granule bindings to track if the first visitor pass has been done
    */
   protected final Map<IRNode,IGranuleBindings> partialGranuleBindings = 
-    new HashMap<IRNode,IGranuleBindings>();
+    new ConcurrentHashMap<IRNode,IGranuleBindings>();
   
   protected AbstractJavaBinder(IJavaClassTable table) {
     classTable      = table;
@@ -195,7 +196,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		// TODO how to protect against destroyed bindings?
     		if (bindings.isDestroyed()) {
     			return getIBinding(node);
-    		} else {
+    		} else {    		
     			IBinding binding = node.getSlotValue(bindings.getUseToDeclAttr());
     			return binding;
     		}
@@ -239,15 +240,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     IGranuleBindings bindings;
     // FIX deadlock 
     // Issue: we alternate between locking on the IGranuleBinding and the Binder 
-    synchronized (this) {     
-      bindings = granuleBindings.get(gr);
-    }
+    bindings = granuleBindings.get(gr);
+    
     if (bindings == null || bindings.isDestroyed()) {
     	bindings = makeGranuleBindings(gr);
-    	bindings.setContainsFullInfo(needFullInfo);
-    	synchronized (this) {
-    		granuleBindings.put(gr,bindings);
-    	}
+    	bindings.setContainsFullInfo(needFullInfo);    	
+    	granuleBindings.put(gr,bindings);    	
     }
     
     // FIX hack to be able to use just derived info (e.g. a binding for a NamedType)
