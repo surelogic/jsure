@@ -175,7 +175,7 @@ public class JavaNode extends JJNode {
 
   public static void setModifiers(IRNode node, int i) {
     int prev = getModifiers(node);
-    if (prev != i) { // FIX space optimization (more time)
+    if (prev != i) { // TODO space optimization (more time)
       node.setSlotValue(modifiersSlotInfo, i);
     }
   }
@@ -188,7 +188,8 @@ public class JavaNode extends JJNode {
   }
 
   private static final int LASTMODIFIER = AS_BINARY;
-
+  public static final int ILLEGAL_MOD = AS_BINARY << 1;
+	  
   static final String[] modifiers = {"abstract", "final", "native", "private",
       "protected", "public", "static", "synchronized", "transient", "volatile",
       "strictfp", "", // implicit
