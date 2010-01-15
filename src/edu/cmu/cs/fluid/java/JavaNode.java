@@ -79,7 +79,7 @@ public class JavaNode extends JJNode {
   /*
    %- SlotInit stuff
    */
-  public static SlotInfo getSlotInfo(String slotName) {
+  public static <T> SlotInfo<T> getSlotInfo(String slotName) {
     try {
       //! Will need to give a real type when we want it to persist.
       return SimpleSlotFactory.prototype.newAttribute(slotName, null);
@@ -160,8 +160,10 @@ public class JavaNode extends JJNode {
     AS_BINARY,
   };
 
+  public static final String MODIFIERS_ID =  "Java.modifiers";
+  
   private static final SlotInfo<Integer> modifiersSlotInfo = getVersionedSlotInfo(
-      "Java.modifiers", IRIntegerType.prototype, new Integer(ALL_FALSE));
+		  MODIFIERS_ID, IRIntegerType.prototype, new Integer(ALL_FALSE));
 
   public final void setModifiers(int i) {
     setModifiers(this, i);
@@ -567,6 +569,7 @@ public class JavaNode extends JJNode {
           }
         }
       } catch (SlotUndefinedException e) {
+    	  // Ignore it
       }
       sb.append(JJNode.toString(node));
       try {
