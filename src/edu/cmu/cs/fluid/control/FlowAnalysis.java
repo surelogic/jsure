@@ -143,10 +143,11 @@ public abstract class FlowAnalysis<T> {
    * now taken into account.
    */
   public void performAnalysis() {
+	final IDE ide = IDE.getInstance();
     LOG.finer("About to start analysis: " + this);
     try {
       while (!worklist.isEmpty()) {
-        if (IDE.getInstance().isCancelled()) {
+        if (ide.isCancelled()) {
           throw new FluidInterruptedException();
         }
         
