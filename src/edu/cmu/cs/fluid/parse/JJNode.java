@@ -311,7 +311,7 @@ class JJNodeBoot {
   
   public static final QuickProperties.Flag specializeFlag = 
     new QuickProperties.Flag(LOG, "fluid.specializeForSyntaxTree", "Tree",
-                             false, false);
+                             true, true);
 
   /**
 	 * Slot Factory used to define tree
