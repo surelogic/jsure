@@ -35,7 +35,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  * @see JavaForwardTransfer
  * @see JavaBackwardTransfer
  */
-public abstract class JavaTransfer<A extends FlowAnalysis<T, L>, L extends Lattice<T>,T> {
+public abstract class JavaTransfer<L extends Lattice<T>,T> {
   /**
 	 * Logger for this class
 	 */
@@ -597,7 +597,7 @@ public abstract class JavaTransfer<A extends FlowAnalysis<T, L>, L extends Latti
    *          of abrupt termination.
    * @return an analysis
    */
-  protected abstract A createAnalysis(
+  protected abstract FlowAnalysis<T, L> createAnalysis(
       IBinder binder, boolean terminationNormal);
   
   /**

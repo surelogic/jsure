@@ -5,7 +5,6 @@ import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlLabel;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.control.ForwardTransfer;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.LabelMatch;
@@ -17,11 +16,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  * of Java-specific transfer routines.  Because it inherits most of the
  * work, it needs only define the remaining generic routines.
  */
-/* Would like to have "A extends ForwardAnalysis<...>", but I cannot do that
- * because ForwardAnalysis is parameterized by the transfer function, and we
- * cannot refer to the self type, JavaForwardTransfer<...>, in Java.
- */
-public abstract class JavaForwardTransfer<A extends FlowAnalysis<T, L>, L extends Lattice<T>,T> extends JavaTransfer<A, L,T>
+public abstract class JavaForwardTransfer<L extends Lattice<T>,T> extends JavaTransfer<L,T>
      implements ForwardTransfer<T>
 {
   public JavaForwardTransfer(IBinder binder, L lattice) {

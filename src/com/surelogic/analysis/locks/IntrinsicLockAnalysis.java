@@ -97,7 +97,7 @@ public final class IntrinsicLockAnalysis extends
   
   
   private static final class IntrinsicLockTransfer extends
-      JavaForwardTransfer<Analysis, IntrinsicLockLattice, Object[]> {
+      JavaForwardTransfer<IntrinsicLockLattice, Object[]> {
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
     

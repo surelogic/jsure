@@ -150,7 +150,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     }
   }
   
-  private static final class Transfer extends JavaEvaluationTransfer<Analysis, Lattice,Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+  private static final class Transfer extends JavaEvaluationTransfer<Lattice,Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
 
     private static final NullLattice nullLattice = NullLattice.getInstance();
     

@@ -11,7 +11,6 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.util.Lattice;
 
 /**
@@ -21,7 +20,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  * more). The push and pop stack methods are abstract and must be implemented
  * by any concrete subclasses.
  */
-public abstract class JavaEvaluationTransfer<A extends FlowAnalysis<T, L>, L extends Lattice<T>,T> extends JavaForwardTransfer<A, L,T> {
+public abstract class JavaEvaluationTransfer<L extends Lattice<T>,T> extends JavaForwardTransfer<L,T> {
   public JavaEvaluationTransfer(IBinder binder, L lattice) {
     super(binder,lattice);
   }

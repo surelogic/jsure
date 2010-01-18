@@ -71,7 +71,7 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>,
     return new LiveVariableAnalysis(l,t);
   }
   
-  public static class Transfer extends JavaBackwardTransfer<LiveVariableAnalysis, UnionLattice<IRNode>,ImmutableSet<IRNode>> {
+  public static class Transfer extends JavaBackwardTransfer<UnionLattice<IRNode>,ImmutableSet<IRNode>> {
 
     public ImmutableSet<IRNode> transferConditional(IRNode node, boolean flag,
         ImmutableSet<IRNode> after) {

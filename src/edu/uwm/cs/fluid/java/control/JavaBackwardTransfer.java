@@ -2,7 +2,6 @@
 package edu.uwm.cs.fluid.java.control;
 
 import edu.uwm.cs.fluid.control.BackwardTransfer;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlLabel;
 import edu.cmu.cs.fluid.control.Sink;
@@ -11,11 +10,7 @@ import edu.cmu.cs.fluid.java.analysis.LabelMatch;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.uwm.cs.fluid.util.Lattice;
 
-/* Would like to have "A extends BackwardAnalysis<...>", but I cannot do that
- * because BackwardAnalysis is parameterized by the transfer function, and we
- * cannot refer to the self type, JavaBackwardTransfer<...>, in Java.
- */
-public abstract class JavaBackwardTransfer<A extends FlowAnalysis<T, L>, L extends Lattice<T>,T> extends JavaTransfer<A, L,T>
+public abstract class JavaBackwardTransfer<L extends Lattice<T>,T> extends JavaTransfer<L,T>
      implements BackwardTransfer<T>
 {
   public JavaBackwardTransfer(IBinder binder, L lattice) {

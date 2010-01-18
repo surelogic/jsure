@@ -135,7 +135,7 @@ public final class MustReleaseAnalysis extends
   
   
   private static final class MustReleaseTransfer extends
-      JavaBackwardTransfer<Analysis, MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
+      JavaBackwardTransfer<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;

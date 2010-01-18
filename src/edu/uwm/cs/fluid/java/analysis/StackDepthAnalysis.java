@@ -31,7 +31,7 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
   }
   
   
-  public static class StackDepthTransfer extends JavaEvaluationTransfer<StackDepthAnalysis, FlatLattice,Object> {
+  public static class StackDepthTransfer extends JavaEvaluationTransfer<FlatLattice,Object> {
     
     /**
      * @param binder

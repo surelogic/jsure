@@ -166,7 +166,7 @@ public final class MustHoldAnalysis extends
   
   
   private static final class MustHoldTransfer extends
-      JavaForwardTransfer<Analysis, MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
+      JavaForwardTransfer<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
