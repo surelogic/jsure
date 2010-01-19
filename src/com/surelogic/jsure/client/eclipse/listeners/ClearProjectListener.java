@@ -10,6 +10,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 
+import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.dc.Nature;
@@ -121,10 +122,11 @@ public class ClearProjectListener implements IResourceChangeListener {
 			BinaryCUDrop.invalidateAll();
 			PackageDrop.invalidateAll();
 			IDE.getInstance().clearAll();
+			AnnotationRules.XML_LOG.reset();
 		}
 		for (IClearProjectHelper h : helpers) {
 			if (h != null) {
-				h.clearResults();
+				h.clearResults(clearAll);
 			}
 		}
 		Sea.getDefault().notifySeaObservers();

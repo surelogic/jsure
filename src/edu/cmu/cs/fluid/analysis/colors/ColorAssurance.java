@@ -78,7 +78,7 @@ public final class ColorAssurance
   /**
    * Should be protected.
    */
-  public void clearResults() {
+  public void clearResults(boolean clearAll) {
     if (resultDependUpon != null) {
       resultDependUpon.invalidate();
       resultDependUpon = null;
