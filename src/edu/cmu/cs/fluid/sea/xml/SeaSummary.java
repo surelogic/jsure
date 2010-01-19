@@ -96,6 +96,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		addLocation(ref);
 		addAttribute(OFFSET_ATTR, (long) ref.getOffset());
 		addAttribute(HASH_ATTR, computeHash(id.getNode(), false));
+		addAttribute(CONTEXT_ATTR, computeContext(id.getNode(), false));
 		// Omitting supporting info
 		/*
 		if (id.getMessage().contains("copyStat")) {
@@ -118,6 +119,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		if (debug) {
 			System.out.println("Unparse: "+unparse);
 		}
+		return unparse.hashCode();
+	}
+	
+	private long computeContext(IRNode node, boolean debug) {			
 		final String context = JavaNames.computeContextId(node);
 		if (context != null) {
 			if (debug) {
@@ -128,9 +133,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				System.out.println("Found promise");
 			}
             */
-			return (long) unparse.hashCode() + (long) context.hashCode();
+			return context.hashCode();
 		}	
-		return unparse.hashCode();
+		return 0;
 	}
 	
 	public static Diff diff(String project, final Sea sea, File location)
@@ -301,6 +306,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			String title = "Category: "+name+" in "+file;
 			title = match(title, out, EXACT,  "Exact  ");
 			title = match(title, out, HASHED, "Hashed ");
+			title = match(title, out, HASHED2, "Hashed2");
 			//title = match(title, out, SAME_LINE,  "Line   ");
 			if ("ResultDrop".equals(name)) {
 				title = match(title, out, RESULT, "Results");
@@ -396,6 +402,14 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	};
 	
 	static final Matcher HASHED = new Matcher() {
+		@Override
+		boolean match(Entity n, Entity o) {
+			return super.match(n, o) && match(n, o, HASH_ATTR) &&
+			       match(n, o, CONTEXT_ATTR);
+		}
+	};
+	
+	static final Matcher HASHED2 = new Matcher() {
 		@Override
 		boolean match(Entity n, Entity o) {
 			return super.match(n, o) && match(n, o, HASH_ATTR);
