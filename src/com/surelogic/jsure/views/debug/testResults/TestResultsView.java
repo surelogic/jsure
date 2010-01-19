@@ -19,6 +19,8 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.eclipse.SLImages;
+import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
+import com.surelogic.jsure.client.eclipse.listeners.IClearProjectHelper;
 import com.surelogic.jsure.views.debug.testResults.model.Root;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsLabelProvider;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsTreeContentProvider;
@@ -51,20 +53,27 @@ public final class TestResultsView extends ViewPart {
     }
   };
   
-
+  private final IClearProjectHelper clearHelper = new IClearProjectHelper() {
+	@Override
+	public void clearResults(boolean clearAll) {
+		if (clearAll) {
+			reset();
+		}
+	}
+  };
   
   public TestResultsView() {
     shouldReset = false;
     stringWriter = new StringWriter();
     printWriter = new PrintWriter(stringWriter);
+    ClearProjectListener.addHelper(clearHelper);
   }
 
-  private void reset() {
+  void reset() {
     shouldReset = false;
     stringWriter.getBuffer().setLength(0);
     root.clear();
   }
-  
   
   @Override
   public void createPartControl(final Composite parent) {
