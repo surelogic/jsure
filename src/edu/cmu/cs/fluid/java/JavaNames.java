@@ -396,14 +396,15 @@ public final class JavaNames {
   }
 
   public static String getFullName(IRNode node) {
-    Operator op = JJNode.tree.getOperator(node);
+    final Operator op = JJNode.tree.getOperator(node);
     if (SomeFunctionDeclaration.prototype.includes(op)) {
       return genQualifiedMethodConstructorName(node);
     }
     if (op instanceof TypeDeclInterface) {
       return getFullTypeName(node);
     }
-    return getFieldDecl(node);
+    final IRNode type = VisitUtil.getEnclosingType(node);
+    return getFullTypeName(type)+'.'+getFieldDecl(node);
   }
 
   public static String unparseType(IRNode type) {
@@ -411,5 +412,27 @@ public final class JavaNames {
       return unparseType(TypeRef.getBase(type))+"."+TypeRef.getId(type);
     }
     return DebugUnparser.toString(type);
+  }
+  
+  /**
+   * Used to compute a context id for the given node
+   */
+  public static String computeContextId(IRNode node) {
+	  final StringBuilder sb = new StringBuilder(); 
+	  //VisitUtil.getEnclosingDecl(node);
+	  for(IRNode n : VisitUtil.rootWalk(node)) {
+		  final Operator op = getOperator(n);
+		  if (Declaration.prototype.includes(op)) {
+			  sb.append(getFullName(n));			  
+			  break;
+		  } else {
+			  String info = JJNode.getInfoOrNull(n);
+			  if (info != null && !info.isEmpty()) {
+				  sb.append(info);
+				  sb.append(", ");				  
+			  }
+		  }
+	  }
+	  return sb.toString();
   }
 }

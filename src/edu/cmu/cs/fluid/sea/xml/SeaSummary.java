@@ -17,6 +17,7 @@ import com.surelogic.jsure.xml.JSureSummaryXMLReader;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaUnparseStyle;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
@@ -113,22 +114,21 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	};
 	
 	private long computeHash(IRNode node, boolean debug) {			
-		IRNode parent  = JJNode.tree.getParentOrNull(node);
-		String unparse = unparser.unparseString(node);
+		final String unparse = unparser.unparseString(node);
 		if (debug) {
-			System.out.println(unparse);
+			System.out.println("Unparse: "+unparse);
 		}
-		if (parent != null) {
-			String unparse2 = unparser.unparseString(parent);
+		final String context = JavaNames.computeContextId(node);
+		if (context != null) {
 			if (debug) {
-				System.out.println(unparse2);
+				System.out.println("Context: "+context);
 			}
 			/*
-			if (unparse.contains("@") || unparse2.contains("@")) {
+			if (unparse.contains("@") {
 				System.out.println("Found promise");
 			}
             */
-			return (long) unparse.hashCode() + (long) unparse2.hashCode();
+			return (long) unparse.hashCode() + (long) context.hashCode();
 		}	
 		return unparse.hashCode();
 	}
