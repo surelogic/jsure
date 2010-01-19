@@ -845,18 +845,15 @@ implements IBinderClient {
     mustHold = new MustHoldAnalysis(thisExprBinder, b, lockUtils, jucLockUsageManager, nonNullAnalylsis);
   }
 
-  private void updateJUCAnalysisQueries(final IRNode flowUnit, final boolean initializer) {
+  private void updateJUCAnalysisQueries(final IRNode flowUnit) {
     final LockExpressions lockExprs =
       jucLockUsageManager.getLockExpressionsFor(flowUnit);
     if (lockExprs.usesJUCLocks()) {
-      final MustHoldAnalysis.HeldLocksQuery hlq = mustHold.getHeldLocksQuery(flowUnit);
-      final MustHoldAnalysis.LocksForQuery lfq = mustHold.getLocksForQuery(flowUnit);
-      ctxtHeldLocksQuery = initializer ? hlq.getSubAnalysisQuery() : hlq;
-      ctxtLocksForQuery = initializer ? lfq.getSubAnalysisQuery() : lfq;
+      ctxtHeldLocksQuery = mustHold.getHeldLocksQuery(flowUnit);
+      ctxtLocksForQuery = mustHold.getLocksForQuery(flowUnit);
     }
     if (lockExprs.invokesJUCLockMethods()) {
-      final MustReleaseAnalysis.Query mrq = mustRelease.getUnlocksForQuery(flowUnit);
-      ctxtMustReleaseQuery = initializer ? mrq.getSubAnalysisQuery() : mrq;
+      ctxtMustReleaseQuery = mustRelease.getUnlocksForQuery(flowUnit);
     }
   }
   
@@ -1773,7 +1770,7 @@ implements IBinderClient {
              */
             ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(ctxtInsideMethod);
             ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
-            updateJUCAnalysisQueries(ctxtInsideMethod, false);
+            updateJUCAnalysisQueries(ctxtInsideMethod);
             ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
             ctxtOnBehalfOfConstructor = false;
             ctxtInsideConstructor = null;
@@ -1926,7 +1923,7 @@ implements IBinderClient {
       final IRNode classDecl = VisitUtil.getClosestType(expr);
       ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
       ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
-      updateJUCAnalysisQueries(ctxtInsideMethod, false);
+      updateJUCAnalysisQueries(ctxtInsideMethod);
       ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideConstructor);
       // The receiver is non-existent
       ctxtTheReceiverNode = null;
@@ -1974,7 +1971,9 @@ implements IBinderClient {
         new Action() {
           public void tryBefore() {
             ctxtOnBehalfOfConstructor = true;
-            updateJUCAnalysisQueries(ctxtInsideConstructor, true);
+            ctxtHeldLocksQuery = (ctxtHeldLocksQuery == null) ? null : ctxtHeldLocksQuery.getSubAnalysisQuery();
+            ctxtLocksForQuery = (ctxtLocksForQuery == null) ? null : ctxtLocksForQuery.getSubAnalysisQuery();
+            ctxtMustReleaseQuery = (ctxtMustReleaseQuery == null) ? null : ctxtMustReleaseQuery.getSubAnalysisQuery();
           }
           
           public void finallyAfter() {
@@ -2049,7 +2048,7 @@ implements IBinderClient {
         processLockPreconditions(cdecl, reqFrame);
         // ConstructorCall handles visiting initializers now
         try {
-          updateJUCAnalysisQueries(cdecl, false);
+          updateJUCAnalysisQueries(cdecl);
           doAcceptForChildren(cdecl);
         } finally {
           ctxtHeldLocksQuery = null;
@@ -2293,7 +2292,7 @@ implements IBinderClient {
        */
       ctxtInsideMethod = mdecl;
       ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(mdecl);
-      updateJUCAnalysisQueries(mdecl, false);
+      updateJUCAnalysisQueries(mdecl);
       ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, mdecl);
       final ReturnsLockPromiseDrop returnedLockName = LockUtils.getReturnedLock(mdecl);
       if (returnedLockName != null) {
@@ -2634,7 +2633,7 @@ implements IBinderClient {
             final IRNode classDecl = VisitUtil.getClosestType(varDecl);
             ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
             ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
-            updateJUCAnalysisQueries(ctxtInsideMethod, false);
+            updateJUCAnalysisQueries(ctxtInsideMethod);
             ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
           }
           // Don't worry about initialization of final variables/fields
