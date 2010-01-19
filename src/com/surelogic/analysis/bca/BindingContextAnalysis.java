@@ -41,8 +41,25 @@ import edu.cmu.cs.fluid.util.*;
  */
 
 public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,ImmutableHashOrderSet<IRNode>> {
-  public static interface Query extends AnalysisQuery<ImmutableHashOrderSet<IRNode>> {
-    // Implemented just to formalize the return type
+  public final class Query implements AnalysisQuery<ImmutableHashOrderSet<IRNode>> {
+    private final FlowAnalysis<IRNode> a;
+
+    public Query(final IRNode flowUnit) {
+      a = getAnalysis(flowUnit);
+    }
+    
+    public ImmutableHashOrderSet<IRNode> getResultFor(final IRNode expr) {
+      return getExpressionsFromLattice(
+          a.getAfter(expr, WhichPort.NORMAL_EXIT), expr);
+    }
+
+    public AnalysisQuery<ImmutableHashOrderSet<IRNode>> getSubAnalysisQuery() {
+      return null;
+    }
+
+    public boolean hasSubAnalysisQuery() {
+      return false;
+    }
   }
   
   public BindingContextAnalysis(IBinder b) {
@@ -137,14 +154,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
    * Get an query object tailored to a specific flow unit.
    */
   public Query getExpressionObjectsQuery(final IRNode flowUnit) {
-    return new Query() {
-      private final FlowAnalysis<IRNode> a = getAnalysis(flowUnit);
-
-      public ImmutableHashOrderSet<IRNode> getResultFor(final IRNode expr) {
-        return getExpressionsFromLattice(
-            a.getAfter(expr, WhichPort.NORMAL_EXIT), expr);
-      }
-    };
+    return new Query(flowUnit);
   }
   
   private static ImmutableHashOrderSet<IRNode> getExpressionsFromLattice(

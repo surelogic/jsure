@@ -39,8 +39,33 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
  * @author boyland
  */
 public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice, SimpleNonnullAnalysis.Analysis> {
-  public static interface Query extends AnalysisQuery<ImmutableSet<IRNode>> {
-    // do nothing;
+  public final class Query implements AnalysisQuery<ImmutableSet<IRNode>> {
+    private final Analysis a;
+    
+    public Query(final IRNode flowUnit) {
+      a = getAnalysis(flowUnit);
+    }
+
+    private Query(final Analysis s) {
+      a = s;
+    }
+    
+    public ImmutableSet<IRNode> getResultFor(final IRNode expr) {
+      return a.getAfter(expr, WhichPort.ENTRY).second();
+    }
+
+    public Query getSubAnalysisQuery() {
+      final Analysis sub = a.getSubAnalysis();
+      if (sub == null) {
+        throw new UnsupportedOperationException();
+      } else {
+        return new Query(sub);
+      }
+    }
+
+    public boolean hasSubAnalysisQuery() {
+      return a.getSubAnalysis() != null;
+    }
   }
   
 //  private static final Logger LOG = SLLogger.getLogger();
@@ -64,13 +89,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
   }
 
   public Query getNonnullBeforeQuery(final IRNode flowUnit) {
-    return new Query() {
-      private final Analysis a = getAnalysis(flowUnit);
-
-      public ImmutableSet<IRNode> getResultFor(final IRNode expr) {
-        return a.getAfter(expr, WhichPort.ENTRY).second();
-      }
-    };
+    return new Query(flowUnit);
   }
   
 
@@ -156,14 +175,38 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     
     private static final SyntaxTreeInterface tree = JJNode.tree; 
     
+    /**
+     * We cache the subanalysis we create so that both normal and abrupt paths
+     * are stored in the same analysis. Plus this puts more force behind an
+     * assumption made by
+     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
+     * 
+     * <p>
+     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
+     */
+    private Analysis subAnalysis = null;
+
+    
+    
     public Transfer(IBinder binder, Lattice lattice) {
       super(binder, lattice);
     }
+    
+    
+    
+    public Analysis getSubAnalysis() {
+      return subAnalysis;
+    }
 
+    
+    
     @Override
     protected Analysis
     createAnalysis(final IBinder binder, final boolean terminationNormal) {
-      return Analysis.createAnalysis("sub analysis", binder);
+      if (subAnalysis == null) {
+        subAnalysis = Analysis.createAnalysis("sub analysis", binder);
+      }
+      return subAnalysis;
     }
 
     public Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferComponentSource(IRNode node) {
@@ -430,6 +473,9 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       return new Analysis(name, l, t, DebugUnparser.viewer);
     }
     
+    public Analysis getSubAnalysis() {
+      return trans.getSubAnalysis();
+    }
   }
   
   public static final class Test extends TestFlowAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice, Analysis> {

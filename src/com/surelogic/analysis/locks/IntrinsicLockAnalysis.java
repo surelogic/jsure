@@ -26,9 +26,40 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class IntrinsicLockAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<Object[], IntrinsicLockLattice, IntrinsicLockAnalysis.Analysis> {
-  public static interface Query extends AnalysisQuery<Set<HeldLock>> {
-    // adds nothing
+  public class Query implements AnalysisQuery<Set<HeldLock>> {
+    private final Analysis analysis;
+    private final IntrinsicLockLattice lattice; 
+    
+    public Query(final IRNode flowUnit) {
+      this(getAnalysis(flowUnit));
+    }
+    
+    private Query(final Analysis a) {
+      analysis = a;
+      lattice = a.getLattice();
+    }
+    
+    
+    
+    public Set<HeldLock> getResultFor(final IRNode expr) {
+      return lattice.getHeldLocks(analysis.getAfter(expr, WhichPort.ENTRY));
+    }
+
+    public Query getSubAnalysisQuery() {
+      final Analysis sub = analysis.getSubAnalysis();
+      if (sub == null) {
+        throw new UnsupportedOperationException();
+      } else {
+        return new Query(sub);
+      }
+    }
+
+    public boolean hasSubAnalysisQuery() {
+      return analysis.getSubAnalysis() != null;
+    }
   }
+  
+  
   
   public static final class Analysis extends ForwardAnalysis<Object[], IntrinsicLockLattice, IntrinsicLockTransfer> {
     private Analysis(
@@ -62,8 +93,8 @@ public final class IntrinsicLockAnalysis extends
       IntrinsicLockLattice.createForFlowUnit(flowUnit, jucLockUsageManager);    
     final Analysis analysis = new Analysis(
         "Intrinsic Lock Analysis", intrinsicLockLattice,
-        new IntrinsicLockTransfer(
-            flowUnit, binder, lockUtils, intrinsicLockLattice, nonNullAnalysis));
+        new IntrinsicLockTransfer(binder, lockUtils, intrinsicLockLattice,
+            nonNullAnalysis.getNonnullBeforeQuery(flowUnit)));
     return analysis;
   }
   
@@ -79,19 +110,8 @@ public final class IntrinsicLockAnalysis extends
     return ill.getHeldLocks(a.getAfter(node, WhichPort.ENTRY));
   }
   
-  public Query getHeldLocksQuery(final IRNode flowUnit, final boolean initializer) {
-    return new Query() {
-      private final Analysis a;
-      {
-        final Analysis t = getAnalysis(flowUnit);
-        a = initializer ? t.getSubAnalysis() : t;
-      }
-      private final IntrinsicLockLattice lattice = a.getLattice();
-
-      public Set<HeldLock> getResultFor(final IRNode expr) {
-        return lattice.getHeldLocks(a.getAfter(expr, WhichPort.ENTRY));
-      }
-    };
+  public Query getHeldLocksQuery(final IRNode flowUnit) {
+    return new Query(flowUnit);
   }
   
   
@@ -114,12 +134,11 @@ public final class IntrinsicLockAnalysis extends
 
     
     
-    public IntrinsicLockTransfer(final IRNode flowUnit,
-        final IBinder binder, final LockUtils lu,
-        final IntrinsicLockLattice lattice, final SimpleNonnullAnalysis sna) {
+    public IntrinsicLockTransfer(final IBinder binder, final LockUtils lu,
+        final IntrinsicLockLattice lattice, final SimpleNonnullAnalysis.Query query) {
       super(binder, lattice);
       lockUtils = lu;
-      nonNullAnalysisQuery = sna.getNonnullBeforeQuery(flowUnit);
+      nonNullAnalysisQuery = query;
     }
     
     
@@ -204,7 +223,9 @@ public final class IntrinsicLockAnalysis extends
     protected Analysis createAnalysis(
         final IBinder binder, final boolean terminationNormal) {
       if (subAnalysis == null) {
-        subAnalysis = new Analysis("Intrinsic Lock Analysis", lattice, this);
+        subAnalysis = new Analysis("Intrinsic Lock Analysis", lattice,
+            new IntrinsicLockTransfer(binder, this.lockUtils, this.lattice,
+                this.nonNullAnalysisQuery.getSubAnalysisQuery()));
       }
       return subAnalysis;
     }

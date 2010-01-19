@@ -25,7 +25,6 @@ import edu.cmu.cs.fluid.java.analysis.AliasFactLattice.AggregatingClaim;
 
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.EffectSpecification;
-import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -934,7 +933,41 @@ final class SharedField extends LocationField{
 @SuppressWarnings("unchecked")
 @Deprecated
 public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implements INullAnalysis {
+  public final class Query implements AnalysisQuery<Integer> {
+    private final FlowAnalysis a;
+    private final IRNode expr;
+    
+    public Query(final IRNode expr, final IRNode flowUnit) {
+      this.a = getAnalysis(flowUnit);
+      this.expr = expr;
+    }
+    
+    public Integer getResultFor(final IRNode block) {
+      final FullPermissionLattice lat =
+        (FullPermissionLattice) a.getAfter(block, WhichPort.ENTRY);
+      final LocationMap lm = lat.getLoc();
+      final FullPermissionLattice after =
+        (FullPermissionLattice) a.getAfter(block, WhichPort.NORMAL_EXIT);
+      final LocationMap lma = after.getLoc();
+      final ConjunctiveFactLattice cfl = after.getFacts();
+      if(cfl.getEquiv(lm.getLocation(expr)).contains(lma.getLocation(expr))){
+        return 0;
+      }
+      return 1;
+    }
 
+    public AnalysisQuery<Integer> getSubAnalysisQuery() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    public boolean hasSubAnalysisQuery() {
+      // TODO Auto-generated method stub
+      return false;
+    }
+  }
+
+  
 	//protected final AssuranceLogger log;
 		
 	public AssuranceLogger log(IRNode flowUnit){
@@ -1103,23 +1136,7 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
 //  }
   
   AnalysisQuery<Integer> getIsWrittenQuery(final IRNode expr, final IRNode flowUnit) {
-    return new AnalysisQuery<Integer>() {
-      private final FlowAnalysis a = getAnalysis(flowUnit);
-      
-      public Integer getResultFor(final IRNode block) {
-        final FullPermissionLattice lat =
-          (FullPermissionLattice) a.getAfter(block, WhichPort.ENTRY);
-        final LocationMap lm = lat.getLoc();
-        final FullPermissionLattice after =
-          (FullPermissionLattice) a.getAfter(block, WhichPort.NORMAL_EXIT);
-        final LocationMap lma = after.getLoc();
-        final ConjunctiveFactLattice cfl = after.getFacts();
-        if(cfl.getEquiv(lm.getLocation(expr)).contains(lma.getLocation(expr))){
-          return 0;
-        }
-        return 1;
-      }
-    };
+    return new Query(expr, flowUnit);
   }
   
 }

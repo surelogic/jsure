@@ -320,7 +320,7 @@ public final class LockUtils {
      * showing that the variable is not declared to be final, etc.
      */
     return new FinalExpressionChecker() {
-      final Effects.EffectQuery fxQuery = effects.getEffectsQuery(flowUnit);
+      final Effects.Query fxQuery = effects.getEffectsQuery(flowUnit);
       final ConflictChecker conflicter = new ConflictChecker(binder, aliasAnalysis, flowUnit);
       
       public boolean isFinal(final IRNode expr) {
@@ -524,7 +524,7 @@ public final class LockUtils {
    * syntactic scope inside of which to limit the usage of the lock expression.
    */
   private boolean isLockExpressionChangedBySyncBlock(
-      final Effects.EffectQuery fxQuery, final ConflictChecker conflicter,
+      final Effects.Query fxQuery, final ConflictChecker conflicter,
       final IRNode expr, final IRNode sync) {
     if (sync != null) {
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
@@ -537,7 +537,7 @@ public final class LockUtils {
   }
 
   private boolean isArrayChangedBySyncBlock(
-      final Effects.EffectQuery fxQuery, final ConflictChecker conflicter, 
+      final Effects.Query fxQuery, final ConflictChecker conflicter, 
       final IRNode array, final IRNode sync, final IRNode compareBeforeNode) {
     if (sync != null) {
       final Set<Effect> exprEffects =

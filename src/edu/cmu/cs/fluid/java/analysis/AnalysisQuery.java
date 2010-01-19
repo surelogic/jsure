@@ -1,14 +1,35 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package edu.cmu.cs.fluid.java.analysis;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
 /**
- * Abstraction of a query to an analysis.  Implementations of
- * {@link IntraproceduralAnalysis} have getter methods that return instances
- * of these.  This class is primarily intended to abstract away the 
- * constructor context parameter.
+ * Abstraction of a query to an analysis. Implementations of
+ * {@link IntraproceduralAnalysis} have getter methods that return instances of
+ * these. This class is primarily intended to abstract away the constructor
+ * context parameter and whether the initializer block is being analyzed or not.
+ * 
+ * @param <R>
+ *          The type of the analysis result.
  */
-public interface AnalysisQuery<T> {
-  public T getResultFor(IRNode expr);
+public interface AnalysisQuery<R> {
+  /**
+   * Get the analysis result for the given node.
+   */
+  public R getResultFor(IRNode expr);
+
+  /**
+   * Can the query provide a query based on the initializer block subanalysis
+   * that may be associated with the analysis being used by this query.
+   */
+  public boolean hasSubAnalysisQuery();
+
+  /**
+   * Get the query that is based on the initializer block subanalysis associated
+   * with the analysis used by this query.
+   * 
+   * @exception UnsupportedOperationException
+   *              Thrown if the query does not have a subanalysis query because
+   *              the analysis does not have a subanalysis.
+   */
+  public AnalysisQuery<R> getSubAnalysisQuery();
 }

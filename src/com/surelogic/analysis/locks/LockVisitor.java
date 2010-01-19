@@ -44,7 +44,6 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
-import edu.cmu.cs.fluid.java.analysis.InstanceInitVisitor;
 import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor;
 import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor.Action;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -413,7 +412,8 @@ implements IBinderClient {
    * unit being analyzed.  This needs to be updated whenever
    * {@link #ctxtInsideMethod} or {@link #ctxtInsideConstructor} is updated.
    */
-  private MustHoldAnalysis.Queries ctxtMustHoldQueries = null;
+  private MustHoldAnalysis.HeldLocksQuery ctxtHeldLocksQuery = null;
+  private MustHoldAnalysis.LocksForQuery ctxtLocksForQuery = null;
   
   /**
    * The must release analysis query focused to the current flow 
@@ -578,13 +578,6 @@ implements IBinderClient {
   // ----------------------------------------------------------------------
   // -- Helpers for dealing with field initialization and instance initializers
   // ----------------------------------------------------------------------
-
-  /**
-   * Helper traversal for capturing the effects of field declarations and
-   * instance initializers so that they are included in the effects of
-   * constructors.
-   */
-  private final InstanceInitVisitor<Void> initHelper;
 
   /**
    * Record that is pushed onto the
@@ -835,7 +828,6 @@ implements IBinderClient {
     sysLockModelHandle = glmRef;
     ctxtTypeDecl = null; // this will be set by analyzeClass()
     ctxtJavaType = null; // this will be set by analyzeClass()
-    initHelper = new InstanceInitVisitor<Void>(this);
     isSafeTypeCache = new HashMap<IJavaType, Boolean>();
 
     thisExprBinder = new LVThisExpressionBinder(b);
@@ -856,8 +848,16 @@ implements IBinderClient {
   private void updateJUCAnalysisQueries(final IRNode flowUnit, final boolean initializer) {
     final LockExpressions lockExprs =
       jucLockUsageManager.getLockExpressionsFor(flowUnit);
-    ctxtMustHoldQueries = lockExprs.usesJUCLocks() ? mustHold.getQueries(flowUnit, initializer) : null;
-    ctxtMustReleaseQuery = lockExprs.invokesJUCLockMethods() ? mustRelease.getUnlocksForQuery(flowUnit, initializer) : null;
+    if (lockExprs.usesJUCLocks()) {
+      final MustHoldAnalysis.HeldLocksQuery hlq = mustHold.getHeldLocksQuery(flowUnit);
+      final MustHoldAnalysis.LocksForQuery lfq = mustHold.getLocksForQuery(flowUnit);
+      ctxtHeldLocksQuery = initializer ? hlq.getSubAnalysisQuery() : hlq;
+      ctxtLocksForQuery = initializer ? lfq.getSubAnalysisQuery() : lfq;
+    }
+    if (lockExprs.invokesJUCLockMethods()) {
+      final MustReleaseAnalysis.Query mrq = mustRelease.getUnlocksForQuery(flowUnit);
+      ctxtMustReleaseQuery = initializer ? mrq.getSubAnalysisQuery() : mrq;
+    }
   }
   
   public IBinder getBinder() {
@@ -872,7 +872,6 @@ implements IBinderClient {
     mustRelease.clear();
     mustHold.clear();
     nonNullAnalylsis.clear();
-    initHelper.clear();
     clear();
   }
   
@@ -1651,7 +1650,7 @@ implements IBinderClient {
   private Set<HeldLock> getHeldJUCLocks(final IRNode node) {
     final IRNode decl = getEnclosingMethod();
     if (jucLockUsageManager.usesJUCLocks(decl)) {
-      return ctxtMustHoldQueries.getHeldLocks(node); // mustHold.getHeldLocks(node, constructorContext);
+      return ctxtHeldLocksQuery.getResultFor(node); // mustHold.getHeldLocks(node, constructorContext);
     } else {
       return Collections.emptySet();
     }
@@ -1721,7 +1720,8 @@ implements IBinderClient {
     final IJavaDeclaredType oldJavaType = ctxtJavaType;
     final IRNode oldInsideMethod = ctxtInsideMethod;
     final BindingContextAnalysis.Query oldBcaQuery = ctxtBcaQuery;
-    final MustHoldAnalysis.Queries oldMHQ = ctxtMustHoldQueries;
+    final MustHoldAnalysis.HeldLocksQuery oldHeldLocksQuery = ctxtHeldLocksQuery;
+    final MustHoldAnalysis.LocksForQuery oldLocksForQuery = ctxtLocksForQuery;
     final MustReleaseAnalysis.Query oldMRQ = ctxtMustReleaseQuery;
     final ConflictChecker oldConflicter = ctxtConflicter;
     final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
@@ -1790,7 +1790,8 @@ implements IBinderClient {
             ctxtJavaType = oldJavaType;
             ctxtInsideMethod = oldInsideMethod;
             ctxtBcaQuery = oldBcaQuery;
-            ctxtMustHoldQueries = oldMHQ;
+            ctxtHeldLocksQuery = oldHeldLocksQuery;
+            ctxtLocksForQuery = oldLocksForQuery;
             ctxtMustReleaseQuery = oldMRQ;
             ctxtConflicter = oldConflicter;
             ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
@@ -1938,7 +1939,8 @@ implements IBinderClient {
         ctxtTheHeldLocks.popFrame();
         ctxtInsideMethod = null;
         ctxtBcaQuery = null;
-        ctxtMustHoldQueries = null;
+        ctxtHeldLocksQuery = null;
+        ctxtLocksForQuery = null;
         ctxtMustReleaseQuery = null;
         ctxtConflicter = null;
       }
@@ -1964,7 +1966,8 @@ implements IBinderClient {
     doAcceptForChildren(expr);
     
     // visit initializers next
-    final MustHoldAnalysis.Queries oldCtxtMustHoldQueries = ctxtMustHoldQueries;
+    final MustHoldAnalysis.HeldLocksQuery oldHeldLocksQuery = ctxtHeldLocksQuery;
+    final MustHoldAnalysis.LocksForQuery oldLocksForQuery = ctxtLocksForQuery;
     final MustReleaseAnalysis.Query oldCtxtMustReleaseQuery = ctxtMustReleaseQuery;
     InstanceInitializationVisitor.processConstructorCall(
         expr, TypeDeclaration.getBody(ctxtTypeDecl), this,
@@ -1976,7 +1979,8 @@ implements IBinderClient {
           
           public void finallyAfter() {
             ctxtOnBehalfOfConstructor = false;
-            ctxtMustHoldQueries = oldCtxtMustHoldQueries;
+            ctxtHeldLocksQuery = oldHeldLocksQuery;
+            ctxtLocksForQuery = oldLocksForQuery;
             ctxtMustReleaseQuery = oldCtxtMustReleaseQuery;
           }
         });
@@ -2048,7 +2052,8 @@ implements IBinderClient {
           updateJUCAnalysisQueries(cdecl, false);
           doAcceptForChildren(cdecl);
         } finally {
-          ctxtMustHoldQueries = null;
+          ctxtHeldLocksQuery = null;
+          ctxtLocksForQuery = null;
           ctxtMustReleaseQuery = null;
         }
       } finally {
@@ -2178,7 +2183,7 @@ implements IBinderClient {
   
         /* If it is an unlock() call, look for the matching lock() calls. */
         if (lockMethod == LockMethods.UNLOCK) {
-          final Set<IRNode> locks = ctxtMustHoldQueries.getLocksFor(expr); // mustHold.getLocksFor(expr);
+          final Set<IRNode> locks = ctxtLocksForQuery.getResultFor(expr); // mustHold.getLocksFor(expr);
           if (locks == null) { // POISONED!
         	  final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_UNLOCK_CALL);
             for (HeldLock lock : lockSet) {
@@ -2318,7 +2323,8 @@ implements IBinderClient {
       ctxtTheReceiverNode = null;
       ctxtInsideMethod = null;
       ctxtBcaQuery = null;
-      ctxtMustHoldQueries = null;
+      ctxtHeldLocksQuery = null;
+      ctxtLocksForQuery = null;
       ctxtMustReleaseQuery = null;
       ctxtConflicter = null;
       ctxtReturnsLockDrop = null;
@@ -2656,7 +2662,8 @@ implements IBinderClient {
             if (isStaticDeclaration) {
               ctxtInsideMethod = null;
               ctxtBcaQuery = null;
-              ctxtMustHoldQueries = null;
+              ctxtHeldLocksQuery = null;
+              ctxtLocksForQuery = null;
               ctxtMustReleaseQuery = null;
               ctxtConflicter = null;
             }

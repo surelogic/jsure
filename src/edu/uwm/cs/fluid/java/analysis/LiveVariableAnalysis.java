@@ -72,6 +72,16 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>,
   }
   
   public static class Transfer extends JavaBackwardTransfer<UnionLattice<IRNode>,ImmutableSet<IRNode>> {
+    /**
+     * We cache the subanalysis we create so that both normal and abrupt paths
+     * are stored in the same analysis. Plus this puts more force behind an
+     * assumption made by
+     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
+     * 
+     * <p>
+     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
+     */
+    private LiveVariableAnalysis subAnalysis = null;
 
     public ImmutableSet<IRNode> transferConditional(IRNode node, boolean flag,
         ImmutableSet<IRNode> after) {
@@ -125,7 +135,11 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>,
      */
     @Override
     protected LiveVariableAnalysis createAnalysis(IBinder binder, boolean terminationNormal) {
-      return new LiveVariableAnalysis(lattice,this);
+      if (subAnalysis == null) {
+        subAnalysis = new LiveVariableAnalysis(
+            lattice, new Transfer(lattice, binder));
+      }
+      return subAnalysis;
     }
   }
 }

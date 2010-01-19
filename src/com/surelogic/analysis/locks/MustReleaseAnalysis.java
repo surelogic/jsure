@@ -28,8 +28,44 @@ import edu.uwm.cs.fluid.java.control.JavaBackwardTransfer;
 
 public final class MustReleaseAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice, MustReleaseAnalysis.Analysis> {
-  public static interface Query extends AnalysisQuery<Set<IRNode>> {
-    // adds nothing
+  public final class Query implements AnalysisQuery<Set<IRNode>> {
+    private final Analysis a;
+    private final MustReleaseLattice lattice;
+      
+    public Query(final IRNode flowUnit) {
+      this(getAnalysis(flowUnit));
+    }
+    
+    private Query(final Analysis a) {
+      this.a = a;
+      lattice = a.getLattice();
+    }
+    
+    public Set<IRNode> getResultFor(final IRNode mcall) {
+      final MethodCall call = (MethodCall) tree.getOperator(mcall);
+      final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.NORMAL_EXIT);
+      final Set<IRNode> unlockCalls =
+        lattice.getUnlocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
+      /* Remove ourself from the set---this will happen in the case of a 
+       * tryLock() embedded in an if-statement, see 
+       * MustReleaseTransfer.transferConditional().
+       */
+      if (unlockCalls != null) unlockCalls.remove(mcall);
+      return unlockCalls;
+    }
+
+    public Query getSubAnalysisQuery() {
+      final Analysis sub = a.getSubAnalysis();
+      if (sub == null) {
+        throw new UnsupportedOperationException();
+      } else {
+        return new Query(sub);
+      }
+    }
+
+    public boolean hasSubAnalysisQuery() {
+      return a.getSubAnalysis() != null;
+    }
   }
   
   public static final class Analysis extends BackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice, MustReleaseTransfer> {
@@ -69,8 +105,8 @@ public final class MustReleaseAnalysis extends
     final Analysis analysis = new Analysis(
         "Must Release Analysis", mustReleaseLattice,
         new MustReleaseTransfer(
-            flowUnit, thisExprBinder, binder, lockUtils, mustReleaseLattice,
-            nonNullAnalysis));
+            thisExprBinder, binder, lockUtils, mustReleaseLattice,
+            nonNullAnalysis.getNonnullBeforeQuery(flowUnit)));
     return analysis;
   }
 
@@ -106,30 +142,8 @@ public final class MustReleaseAnalysis extends
    *          initializers and instance initializers visited on behalf of the
    *          constructor.
    */
-  public Query getUnlocksForQuery(
-      final IRNode flowUnit, final boolean initializer) {
-    return new Query() {
-      private final Analysis a;
-      {
-        final Analysis t = getAnalysis(flowUnit);
-        a = initializer ? t.getSubAnalysis() : t;
-      }
-      
-      private final MustReleaseLattice lattice = a.getLattice();
-      
-      public Set<IRNode> getResultFor(final IRNode mcall) {
-        final MethodCall call = (MethodCall) tree.getOperator(mcall);
-        final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.NORMAL_EXIT);
-        final Set<IRNode> unlockCalls =
-          lattice.getUnlocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
-        /* Remove ourself from the set---this will happen in the case of a 
-         * tryLock() embedded in an if-statement, see 
-         * MustReleaseTransfer.transferConditional().
-         */
-        if (unlockCalls != null) unlockCalls.remove(mcall);
-        return unlockCalls;
-      }
-    };
+  public Query getUnlocksForQuery(final IRNode flowUnit) {
+    return new Query(flowUnit);
   }
   
   
@@ -153,20 +167,21 @@ public final class MustReleaseAnalysis extends
 
     
     
-    public MustReleaseTransfer(final IRNode flowUnit,
+    public MustReleaseTransfer(
         final ThisExpressionBinder teb, final IBinder binder, final LockUtils lu,
-        final MustReleaseLattice lattice, final SimpleNonnullAnalysis sna) {
+        final MustReleaseLattice lattice,
+        final SimpleNonnullAnalysis.Query query) {
       super(binder, lattice);
       thisExprBinder = teb;
       lockUtils = lu;
-      nonNullAnalysisQuery = sna.getNonnullBeforeQuery(flowUnit);
+      nonNullAnalysisQuery = query;
     }
 
     private MustReleaseTransfer(final MustReleaseTransfer other) {
       super(other.binder, other.lattice);
       thisExprBinder = other.thisExprBinder;
       lockUtils = other.lockUtils;
-      nonNullAnalysisQuery = other.nonNullAnalysisQuery;
+      nonNullAnalysisQuery = other.nonNullAnalysisQuery.getSubAnalysisQuery();
     }
     
     

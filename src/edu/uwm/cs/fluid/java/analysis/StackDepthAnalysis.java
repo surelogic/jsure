@@ -32,6 +32,16 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
   
   
   public static class StackDepthTransfer extends JavaEvaluationTransfer<FlatLattice,Object> {
+    /**
+     * We cache the subanalysis we create so that both normal and abrupt paths
+     * are stored in the same analysis. Plus this puts more force behind an
+     * assumption made by
+     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
+     * 
+     * <p>
+     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
+     */
+    private StackDepthAnalysis subAnalysis = null;
     
     /**
      * @param binder
@@ -77,7 +87,10 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
     @Override
     protected StackDepthAnalysis createAnalysis(
         final IBinder binder, final boolean terminationNormal) {
-      return StackDepthAnalysis.create(binder);
+      if (subAnalysis == null) {
+        subAnalysis = StackDepthAnalysis.create(binder);
+      }
+      return subAnalysis;
     }
     
     /* (non-Javadoc)

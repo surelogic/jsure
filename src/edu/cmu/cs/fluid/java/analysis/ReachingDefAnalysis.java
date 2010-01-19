@@ -14,9 +14,32 @@ import edu.cmu.cs.fluid.util.*;
  * Analysis that determines what definitions reach each 
  * local variable use.  
  */
+@SuppressWarnings("unchecked")
 public class ReachingDefAnalysis<V> extends IntraproceduralAnalysis<IRNode,V> {
-  public static interface Query extends AnalysisQuery<SetLattice> {
-    // empty
+  public final class Query implements AnalysisQuery<SetLattice> {
+    private final FlowAnalysis<IRNode> a;
+    
+    public Query(final IRNode flowUnit) {
+      a = getAnalysis(flowUnit);
+    }
+
+    public SetLattice getResultFor(final IRNode use) {
+      if (VariableUseExpression.prototype.includes(use)) {
+        final IRNode binding = binder.getBinding(use);
+        final ReachingDefs rd = (ReachingDefs) a.getAfter(use, WhichPort.ENTRY);
+        return rd.getReachingDefsFor(binding);
+      } else {
+        throw new IllegalArgumentException("Node is not a variable use expression");
+      }
+    }
+
+    public AnalysisQuery<SetLattice> getSubAnalysisQuery() {
+      return null;
+    }
+
+    public boolean hasSubAnalysisQuery() {
+      return false;
+    }
   }
   
   public ReachingDefAnalysis(final IBinder b) {
@@ -84,19 +107,7 @@ public class ReachingDefAnalysis<V> extends IntraproceduralAnalysis<IRNode,V> {
   }
   
   public Query getReachingDefQuery(final IRNode flowUnit) {
-    return new Query() {
-      private final FlowAnalysis<IRNode> a = getAnalysis(flowUnit);
-
-      public SetLattice getResultFor(final IRNode use) {
-        if (VariableUseExpression.prototype.includes(use)) {
-          final IRNode binding = binder.getBinding(use);
-          final ReachingDefs rd = (ReachingDefs) a.getAfter(use, WhichPort.ENTRY);
-          return rd.getReachingDefsFor(binding);
-        } else {
-          throw new IllegalArgumentException("Node is not a variable use expression");
-        }
-      }
-    };
+    return new Query(flowUnit);
   }
 
   //---------------------------------------------------------

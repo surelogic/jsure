@@ -50,8 +50,26 @@ import edu.cmu.cs.fluid.tree.Operator;
  * Interface to the region effects analysis.
  */
 public final class Effects implements IBinderClient {
-  public interface EffectQuery extends AnalysisQuery<Set<Effect>> {
-    // nothing
+  public final class Query implements AnalysisQuery<Set<Effect>> {
+    private final IRNode flowUnit;
+    
+    public Query(final IRNode fu) {
+      flowUnit = fu;
+    }
+    
+    public Set<Effect> getResultFor(final IRNode expr) {
+      final EffectsVisitor visitor = new EffectsVisitor(binder, bca, flowUnit);
+      visitor.doAccept(expr);
+      return Collections.unmodifiableSet(visitor.getTheEffects());
+    }
+
+    public AnalysisQuery<Set<Effect>> getSubAnalysisQuery() {
+      return null;
+    }
+
+    public boolean hasSubAnalysisQuery() {
+      return false;
+    }
   }
   
   
@@ -106,14 +124,8 @@ public final class Effects implements IBinderClient {
     return Collections.unmodifiableSet(visitor.getTheEffects());
   }
 
-  public EffectQuery getEffectsQuery(final IRNode flowUnit) {
-    return new EffectQuery() {
-      public Set<Effect> getResultFor(final IRNode expr) {
-        final EffectsVisitor visitor = new EffectsVisitor(binder, bca, flowUnit);
-        visitor.doAccept(expr);
-        return Collections.unmodifiableSet(visitor.getTheEffects());
-      }
-    }; 
+  public Query getEffectsQuery(final IRNode flowUnit) {
+    return new Query(flowUnit);
   }
   
 
