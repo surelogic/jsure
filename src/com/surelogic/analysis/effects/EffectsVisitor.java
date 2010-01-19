@@ -15,7 +15,8 @@ import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.analysis.InstanceInitVisitor;
+import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor;
+import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor.Action;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -162,13 +163,6 @@ implements IBinderClient {
    */
   private final BindingContextAnalysis bca;
   
-  /**
-   * Helper traversal for capturing the effects of field declarations 
-   * and instance initializers so that they are included in the effects
-   * of constructors.
-   */
-  private final InstanceInitVisitor<Void> initHelper;
-  
   private final ThisExpressionBinder thisExprBinder;
 
   private final TargetFactory targetFactory;
@@ -194,7 +188,6 @@ implements IBinderClient {
       final IRNode flowUnit) {
     this.binder = b;
     this.bca = bca;
-    this.initHelper = new InstanceInitVisitor<Void>(this);
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     this.ARRAY_ELEMENT = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);    
@@ -273,6 +266,10 @@ implements IBinderClient {
      * for constructors, masking out the effects on the receiver of the new
      * object), instantiated based on the current enclosing instances, and then
      * have any "dangling" instance effects turned into any instance effects.
+     * 
+     * We have to do this because there is no named constructor being called
+     * that can be annotated with the effects of the initialization.  Instead
+     * this is the one case where we have to infer effects.  
      */
 
     final IRNode anonClassInitMethod = JavaPromise.getInitMethodOrNull(expr);
@@ -280,18 +277,31 @@ implements IBinderClient {
     /* Get the effects of initialization.  Reset the context to the anonymous
      * class.
      */
-    final Context oldContext = context;
     final Context newContext = new Context(bca, anonClassInitMethod);
-    context = newContext;
-    try {
-      final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
-      /* Call doAccept directly instead of using doVisitInstanceInits because
-       * there is no explicit constructor.
-       */
-      initVisitor.doAccept(AnonClassExpression.getBody(expr));
-    } finally {
-      context = oldContext;
-    }
+    final Context oldContext = context;
+    InstanceInitializationVisitor.processAnonClassExpression(expr, this,
+        new Action() {
+          public void tryBefore() {
+            context = newContext;
+          }
+          
+          public void finallyAfter() {
+            context = oldContext;
+          }
+        });
+    
+    
+//    final Context newContext = new Context(bca, anonClassInitMethod);
+//    context = newContext;
+//    try {
+//      final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
+//      /* Call doAccept directly instead of using doVisitInstanceInits because
+//       * there is no explicit constructor.
+//       */
+//      initVisitor.doAccept(AnonClassExpression.getBody(expr));
+//    } finally {
+//      context = oldContext;
+//    }
     
     final MethodCallUtils.EnclosingRefs enclosing = 
       MethodCallUtils.getEnclosingInstanceReferences(
@@ -361,9 +371,12 @@ implements IBinderClient {
 
   @Override
   public Void visitConstructorCall(final IRNode expr) {
-    initHelper.doVisitInstanceInits(expr);
+//    initHelper.doVisitInstanceInits(expr);
     context.addEffects(getMethodCallEffects(expr));
     doAcceptForChildren(expr);
+    
+    // Deal with instance initialization if needed
+    InstanceInitializationVisitor.processConstructorCall(expr, this);
     return null;
   }
   
@@ -371,8 +384,6 @@ implements IBinderClient {
 
   @Override
   public Void visitConstructorDeclaration(final IRNode expr) {
-    // Get the effects from field declarations and initializers
-    initHelper.doVisitInstanceInits(expr);
     // Get the rest of the effects
     doAcceptForChildren(expr);
     return null;
