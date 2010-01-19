@@ -112,7 +112,7 @@ public class CyclicBarrier implements Barrier {
    * and the given command to run at each barrier point.
    * @exception IllegalArgumentException if parties less than or equal to zero.
    **/
-  @SingleThreaded
+  @SingleThreaded  @RegionEffects("none") // keep on this line to avoid changing line numbers
   public CyclicBarrier(int parties, Runnable command) { 
     if (parties <= 0) throw new IllegalArgumentException();
     parties_ = parties; 
