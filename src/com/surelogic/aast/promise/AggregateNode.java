@@ -37,10 +37,15 @@ public class AggregateNode extends AASTRootNode
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("AggregateNode\n");
-    indent(sb, indent+2);
-    sb.append(getSpec().unparse(debug, indent+2));
+    if (debug) { 
+    	indent(sb, indent); 
+    	sb.append("AggregateNode\n");
+    	indent(sb, indent+2);
+    	sb.append(getSpec().unparse(debug, indent+2));
+    } else {
+    	sb.append("@Aggregate ");
+    	sb.append(getSpec().unparse(debug, indent+2));
+    }
     return sb.toString();
   }
 
