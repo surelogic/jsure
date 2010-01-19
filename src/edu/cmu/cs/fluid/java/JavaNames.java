@@ -396,6 +396,12 @@ public final class JavaNames {
   }
 
   public static String getFullName(IRNode node) {
+	if (node == null) {
+		return "Null";
+	}
+	if (node.identity() == IRNode.destroyedNode) { 
+		return "Destroyed";
+	}
     final Operator op = JJNode.tree.getOperator(node);
     if (SomeFunctionDeclaration.prototype.includes(op)) {
       return genQualifiedMethodConstructorName(node);
@@ -404,6 +410,9 @@ public final class JavaNames {
       return getFullTypeName(node);
     }
     final IRNode type = VisitUtil.getEnclosingType(node);
+    if (type == null) {
+    	return getFieldDecl(node);
+    }
     return getFullTypeName(type)+'.'+getFieldDecl(node);
   }
 

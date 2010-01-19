@@ -143,6 +143,14 @@ public class TestResult implements ITest {
   public static void checkConsistency() {
     for(Object o : AnnotationRules.XML_LOG.getUnreported()) {
       TestResult result = (TestResult) o; 
+      if (result.getNode() == null) {
+    	  AnnotationRules.XML_LOG.reportFailure(result, "No node associated with "+result.promise);
+    	  continue;
+      } 
+      if (result.getNode().identity() == IRNode.destroyedNode) {     
+    	  AnnotationRules.XML_LOG.reportFailure(result, "Invalidated node associated with "+result.promise);
+    	  continue;
+      }
       if (result.drop == null) {
         AnnotationRules.XML_LOG.reportFailure(result, "No drop associated with "+result.promise);
         continue; 
