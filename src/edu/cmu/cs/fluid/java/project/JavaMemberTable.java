@@ -662,17 +662,18 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    *@param binder binder to use on demand to look up super types.
    */
   public IJavaScope asScope(AbstractJavaBinder binder) {
-    synchronized (this) {
-      if (binder != cachedBinder) {
+	  if (binder != cachedBinder) {
         cachedFullScope = new IJavaScope.ExtendScope(asLocalScope(),new SuperScope(binder));
         cachedBinder = binder;
-      }
-      return cachedFullScope;
-    }
+	  }
+      return cachedFullScope;    
   }
  
-  private IJavaScope cachedFullScope = null;
-  private IBinder cachedBinder = null;
+  /**
+   * Only used in asScope() above
+   */
+  private volatile IJavaScope cachedFullScope = null;
+  private volatile IBinder cachedBinder = null;
   
   /**
    * Return a scope that only mimics the member table, not looking at superclasses.
