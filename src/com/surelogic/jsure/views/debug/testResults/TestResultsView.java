@@ -54,12 +54,11 @@ public final class TestResultsView extends ViewPart {
   };
   
   private final IClearProjectHelper clearHelper = new IClearProjectHelper() {
-	@Override
-	public void clearResults(boolean clearAll) {
-		if (clearAll) {
-			reset();
-		}
-	}
+    public void clearResults(boolean clearAll) {
+      if (clearAll) {
+        reset();
+      }
+    }
   };
   
   public TestResultsView() {
