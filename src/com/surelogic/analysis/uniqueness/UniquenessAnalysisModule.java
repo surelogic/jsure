@@ -18,7 +18,8 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import edu.cmu.cs.fluid.control.FlowAnalysis;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.analysis.InstanceInitVisitor;
+import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor;
+import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor.Action;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
@@ -1090,7 +1091,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
    */
 	private static final class ShouldAnalyzeVisitor extends VoidTreeWalkVisitor {
 	  private final IBinder binder;
-	  private final InstanceInitVisitor<Void> initHelper;
 	  
 	  private boolean isAnonClassExpression = false;
 	  
@@ -1121,7 +1121,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	  
 	  public ShouldAnalyzeVisitor(final IBinder binder) {
 	    this.binder = binder;
-	    this.initHelper = new InstanceInitVisitor<Void>(this);
 	  }
 
 	  
@@ -1158,27 +1157,22 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
       if (declNode != null) {
         final Operator declOp = JJNode.tree.getOperator(declNode);
         IRNode formals = null;
-//        boolean hasBorrowed = false;
         boolean hasUnique = false;
         if (declOp instanceof ConstructorDeclaration) {
           formals = ConstructorDeclaration.getParams(declNode);
-//          hasBorrowed = UniquenessRules.constructorYieldsUnaliasedObject(declNode);
         } else if (declOp instanceof MethodDeclaration) {
           formals = MethodDeclaration.getParams(declNode);
           if (!TypeUtil.isStatic(declNode)) {
             final IRNode self = JavaPromise.getReceiverNode(declNode);
-//            hasBorrowed = UniquenessRules.isBorrowed(self);
             hasUnique = UniquenessRules.isUnique(self);
           }
         }
         if (formals != null) {
-          for (int i = 0; !hasUnique // && !hasBorrowed
-              && (i < JJNode.tree.numChildren(formals)); i++) {
+          for (int i = 0; !hasUnique && (i < JJNode.tree.numChildren(formals)); i++) {
             final IRNode param = JJNode.tree.getChild(formals, i);
             hasUnique = UniquenessRules.isUnique(param);
-//            hasBorrowed = UniquenessRules.isBorrowed(param);
           }
-          if (hasUnique /*|| hasBorrowed*/) {
+          if (hasUnique) {
             results.add(new TypeAndMethod(enclosingType, enclosingDecl));
           }
         }
@@ -1212,28 +1206,41 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
       final boolean prevInsideConstructor = insideConstructor;
       final IRNode prevEnclosingDecl = enclosingDecl;
 	    try {
-	      enclosingType = expr; // Now inside the anonymous type declaration
-	      insideConstructor = false; // start by assuming we are not in the constructor
+        enclosingType = expr; // Now inside the anonymous type declaration
+        insideConstructor = false; // start by assuming we are not in the constructor
+        
+        InstanceInitializationVisitor.processAnonClassExpression(expr, this,
+            new Action() {
+              public void tryBefore() {
+                enclosingDecl = JavaPromise.getInitMethodOrNull(expr); // Inside the <init> method
+                insideConstructor = true; // We are inside the constructor of the anonymous class
+              }
+              
+              public void finallyAfter() {
+                enclosingDecl = prevEnclosingDecl; // Restore to the original value
+                insideConstructor = false;
+              }
+            });
+        
+//	      try {
+//	        enclosingDecl = JavaPromise.getInitMethodOrNull(expr); // Inside the <init> method
+//	        insideConstructor = true; // We are inside the constructor of the anonymous class
+//	      
+//	        // Begin the recursive visit of the anonymous class's initialization
+//	        final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
+//	        /* Call doAccept directly instead of using doVisitInstanceInits because
+//	         * there is no explicit constructor.
+//	         */
+//	        initVisitor.doAccept(AnonClassExpression.getBody(expr));
+//	      } finally {
+//	        insideConstructor = false;	        
+//	      }
 	      
-	      try {
-	        enclosingDecl = JavaPromise.getInitMethodOrNull(expr); // Inside the <init> method
-	        insideConstructor = true; // We are inside the constructor of the anonymous class
-	      
-	        // Begin the recursive visit of the anonymous class's initialization
-	        final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
-	        /* Call doAccept directly instead of using doVisitInstanceInits because
-	         * there is no explicit constructor.
-	         */
-	        initVisitor.doAccept(AnonClassExpression.getBody(expr));
-	      } finally {
-	        insideConstructor = false;	        
-	      }
-	      
-        /* Now visit the rest of the anonymous class, so we reset the
-         * enclosing declaration to null.
+        /* Now visit the rest of the anonymous class looking for additional
+         * classes to analyze, so we reset the enclosing declaration to null.
          */
 	      try {
-	        enclosingDecl = null; // We a
+	        enclosingDecl = null; // We are not inside of any method or constructor
 	        doAccept(AnonClassExpression.getBody(expr));
 	      } finally {
 	        enclosingDecl = prevEnclosingDecl; // finally restore to the original value
@@ -1289,11 +1296,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 
 	  @Override
 	  public Void visitConstructorCall(final IRNode expr) {
-	    // Make sure we account for the super class's field inits, etc
-	    initHelper.doVisitInstanceInits(expr);
-
 	    // continue into the expression
 	    doAcceptForChildren(expr);
+
+	    // Make sure we account for the super class's field inits, etc
+      InstanceInitializationVisitor.processConstructorCall(expr, TypeDeclaration.getBody(enclosingType), this);
+
 	    return null;
 	  }
 	  
@@ -1302,8 +1310,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
       enclosingDecl = cdecl;
       insideConstructor = true;
       try {
-        initHelper.doVisitInstanceInits(cdecl);
-        
         // Case 3b: borrowed/unique parameter
         boolean hasBorrowedParam = false;
         boolean hasUniqueParam = false;
