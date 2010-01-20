@@ -98,7 +98,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitArrayCreationExpression(IRNode node) {
     IRNode n           = ArrayCreationExpression.getBase( node );
-    IJavaType baseType = JavaTypeFactory.convertNodeTypeToIJavaType( n, binder );
+    IJavaType baseType = binder.getTypeEnvironment().convertNodeTypeToIJavaType( n );
     IRNode dimEs       = ArrayCreationExpression.getAllocated( node );
     int dims           = ArrayCreationExpression.getUnallocated(node) +
                          JJNode.tree.numChildren(dimEs);
@@ -143,7 +143,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitArrayType(IRNode node) {
-    return JavaTypeFactory.convertNodeTypeToIJavaType( node, binder );
+    return binder.getTypeEnvironment().convertNodeTypeToIJavaType( node );
   }
   
   @Override
@@ -621,7 +621,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitTypeRef(IRNode node) {
-    return JavaTypeFactory.convertNodeTypeToIJavaType( node, binder );
+    return binder.getTypeEnvironment().convertNodeTypeToIJavaType( node );
   }
   
   @Override

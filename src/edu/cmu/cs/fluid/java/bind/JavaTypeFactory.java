@@ -841,7 +841,7 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
       return tEnv.getObjectType();
     }
     IRNode first = MoreBounds.getBound(bounds, 0);
-    return (IJavaReferenceType)JavaTypeFactory.convertNodeTypeToIJavaType(first, tEnv.getBinder());
+    return (IJavaReferenceType)tEnv.convertNodeTypeToIJavaType(first);
   }
 
   @Override
@@ -1156,7 +1156,7 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       return null;
     if (ClassDeclaration.prototype.includes(op)) {
       IRNode extension = ClassDeclaration.getExtension(declaration);
-      IJavaType t = JavaTypeFactory.convertNodeTypeToIJavaType(extension,tEnv.getBinder());
+      IJavaType t = tEnv.convertNodeTypeToIJavaType(extension);
       // TODO: What if we extend a nested class from our superclass?
       // A: The type factory should correctly insert type actuals
       // for the nesting (if any).  Actually maybe the canonicalizer should.
@@ -1175,7 +1175,7 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       return JavaTypeFactory.getDeclaredType(ed, params, null);
     } else if (AnonClassExpression.prototype.includes(op)) {
       IRNode nodeType = AnonClassExpression.getType(declaration);
-      IJavaType t = JavaTypeFactory.convertNodeTypeToIJavaType(nodeType, tEnv.getBinder());
+      IJavaType t = tEnv.convertNodeTypeToIJavaType(nodeType);
       /*if (!(t instanceof IJavaDeclaredType)) {
         LOG.severe("Classes can only extend other classes");
         return null;
@@ -1187,7 +1187,7 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       return dt;
     } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
       IRNode enumD = VisitUtil.getEnclosingType(declaration);
-      return (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(enumD, tEnv.getBinder());
+      return (IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(enumD);
     } else {
       LOG.severe("Don't know what sort of declation node this is: " + DebugUnparser.toString(declaration));
       return null;

@@ -2342,8 +2342,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         return null;
       }    	
       visit(node); // bind types      
-      IJavaType ty = JavaTypeFactory.convertNodeTypeToIJavaType(node,
-          AbstractJavaBinder.this);
+      IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(node);
       bind(node, ((IJavaDeclaredType) ty).getDeclaration());
        return null;
     }
@@ -2526,7 +2525,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         return null;
       }    	
       visit(node); // bind base type
-      IJavaScope tScope = typeScope(JavaTypeFactory.convertNodeTypeToIJavaType(TypeRef.getBase(node),AbstractJavaBinder.this));
+      IJavaScope tScope = typeScope(typeEnvironment.convertNodeTypeToIJavaType(TypeRef.getBase(node)));
       boolean success = bind(node,tScope,IJavaScope.Util.isTypeDecl);
       if (!success) {
         bind(node,tScope,IJavaScope.Util.isTypeDecl);
