@@ -9,6 +9,9 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * results from the visitation methods, consider subclassing
  * {@link TreeWalkVisitor} instead.
  * 
+ * <p>{@link #visit(IRNode)} is reimplemented to visit the children of the node
+ * instead of to do nothing.
+ * 
  * <p>
  * This class is intended to be subclassed.
  * 

@@ -216,6 +216,7 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
   @Override
   public Void visitClassInitializer(final IRNode node) {
     if (!JavaNode.getModifier(node, JavaNode.STATIC)) {
+      // TODO: change this call analysisWeAreHelping.visitClassInitiaizer()
       // no null-check, because we want to fail fast.
       analysisWeAreHelping.doAcceptForChildren(node);
     }
@@ -225,6 +226,7 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
   @Override
   public Void visitFieldDeclaration(final IRNode node) {
     if (!JavaNode.getModifier(node, JavaNode.STATIC)) {
+      // TODO: change this call analysisWeAreHelping.visitFieldDeclaration()
       // no null-check, because we wish to fail fast if wrong!
       analysisWeAreHelping.doAcceptForChildren(node);
     }

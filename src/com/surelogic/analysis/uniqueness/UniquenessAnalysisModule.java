@@ -1221,21 +1221,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
                 insideConstructor = false;
               }
             });
-        
-//	      try {
-//	        enclosingDecl = JavaPromise.getInitMethodOrNull(expr); // Inside the <init> method
-//	        insideConstructor = true; // We are inside the constructor of the anonymous class
-//	      
-//	        // Begin the recursive visit of the anonymous class's initialization
-//	        final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
-//	        /* Call doAccept directly instead of using doVisitInstanceInits because
-//	         * there is no explicit constructor.
-//	         */
-//	        initVisitor.doAccept(AnonClassExpression.getBody(expr));
-//	      } finally {
-//	        insideConstructor = false;	        
-//	      }
-	      
+        	      
         /* Now visit the rest of the anonymous class looking for additional
          * classes to analyze, so we reset the enclosing declaration to null.
          */
