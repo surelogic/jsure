@@ -1,8 +1,7 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/util/AbstractCachedSet.java,v 1.11 2007/10/10 02:09:12 boyland Exp $ */
 package edu.cmu.cs.fluid.util;
 
-import java.util.Hashtable;
-import java.util.Iterator;
+import java.util.*;
 
 /** A cached set is only allocated once for each array of elements.
  * This way we can use == to test set equality.  It also saves
@@ -17,8 +16,8 @@ public abstract class AbstractCachedSet<T> extends ImmutableHashOrderSet<T> {
     super(elements,inverse);
   }
 
-  /** Return the shared table used to hold instances. */
-  protected abstract Hashtable<ImmutableHashOrderSet<T>, AbstractCachedSet<T>> getTable();
+  /** Return the shared/thread-safe table used to hold instances. */
+  protected abstract Map<ImmutableHashOrderSet<T>, AbstractCachedSet<T>> getTable();
 
   public int cacheSize() { return getTable().size(); }
 
@@ -27,7 +26,7 @@ public abstract class AbstractCachedSet<T> extends ImmutableHashOrderSet<T> {
 
   @SuppressWarnings("unchecked")
   public AbstractCachedSet<T> cacheSet(ImmutableHashOrderSet<T> s) {
-    Hashtable<ImmutableHashOrderSet<T>, AbstractCachedSet<T>> t = getTable();
+    Map<ImmutableHashOrderSet<T>, AbstractCachedSet<T>> t = getTable();
     AbstractCachedSet<T> c = t.get(s);
     if (c == null) {
       c = newSet(s.elements,s.inverse);

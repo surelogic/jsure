@@ -1,7 +1,7 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/util/SetLattice.java,v 1.9 2007/10/10 02:09:12 boyland Exp $ */
 package edu.cmu.cs.fluid.util;
 
-import java.util.Hashtable;
+import java.util.*;
 
 /** Abstract class for lattices over sets.
  * It is implemented using a cached set type, and a new cache
@@ -39,7 +39,7 @@ public abstract class SetLattice<T> extends AbstractCachedSet<T> implements Latt
 				       boolean inverse);
 
   @Override
-  protected Hashtable<ImmutableHashOrderSet<T>, AbstractCachedSet<T>> getTable() {
-    return (Hashtable<ImmutableHashOrderSet<T>, AbstractCachedSet<T>>) cache;
+  protected Map<ImmutableHashOrderSet<T>, AbstractCachedSet<T>> getTable() {
+    return (Map<ImmutableHashOrderSet<T>, AbstractCachedSet<T>>) cache;
   }
 }

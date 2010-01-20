@@ -1,7 +1,8 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/util/CachedSet.java,v 1.8 2007/10/10 02:09:12 boyland Exp $ */
 package edu.cmu.cs.fluid.util;
 
-import java.util.Hashtable;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** A simple implementation of AbstractCachedSet with a static hashtable.
  */
@@ -29,8 +30,8 @@ public final class CachedSet<T> extends AbstractCachedSet<T> {
   }
 
   /** Return the shared table used to hold instances. */
-  private static Hashtable<ImmutableHashOrderSet, AbstractCachedSet> table = 
-    new Hashtable<ImmutableHashOrderSet, AbstractCachedSet>();
+  private static Map<ImmutableHashOrderSet, AbstractCachedSet> table = 
+    new ConcurrentHashMap<ImmutableHashOrderSet, AbstractCachedSet>();
   
   @SuppressWarnings("cast")
   @Override
@@ -39,7 +40,7 @@ public final class CachedSet<T> extends AbstractCachedSet<T> {
   }
 
   public static void clearCache() {
-    table = new Hashtable<ImmutableHashOrderSet, AbstractCachedSet>();
+    table = new ConcurrentHashMap<ImmutableHashOrderSet, AbstractCachedSet>();
     ++current_generation;
   }
 
