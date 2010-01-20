@@ -358,7 +358,7 @@ private long parseIntLiteral(String token) {
    */
   public Iteratable<IJavaType> getSuperTypes(IJavaType ty) {
     //IBinder binder               = getBinder();
-    IJavaType javalangobjectType = getObjectType();
+    final IJavaType javalangobjectType = getObjectType();
     if (ty == javalangobjectType || !(ty instanceof IJavaReferenceType) || ty instanceof IJavaNullType) {
       return EmptyIterator.prototype();
     }
@@ -418,8 +418,7 @@ private long parseIntLiteral(String token) {
       superinterfaces = InterfaceDeclaration.getExtensions(tdecl);
     } else if (op instanceof EnumDeclaration) {
       IRNode ed = findNamedType("java.lang.Enum");      
-      List<IJavaType> params = new ArrayList<IJavaType>(1);
-      params.add(ty);
+      List<IJavaType> params = Collections.singletonList(ty);
       superclass = JavaTypeFactory.getDeclaredType(ed, params, null);
       superinterfaces = EnumDeclaration.getImpls(tdecl);
     } else if (op instanceof AnonClassExpression) {
