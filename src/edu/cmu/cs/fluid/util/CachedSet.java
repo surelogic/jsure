@@ -35,8 +35,8 @@ public final class CachedSet<T> extends AbstractCachedSet<T> {
   
   @SuppressWarnings("cast")
   @Override
-  protected Hashtable<ImmutableHashOrderSet<T>, AbstractCachedSet<T>> getTable() {
-    return (Hashtable<ImmutableHashOrderSet<T>, AbstractCachedSet<T>>) (Hashtable) table;
+  protected Map<ImmutableHashOrderSet<T>, AbstractCachedSet<T>> getTable() {
+    return (Map<ImmutableHashOrderSet<T>, AbstractCachedSet<T>>) (Map) table;
   }
 
   public static void clearCache() {
