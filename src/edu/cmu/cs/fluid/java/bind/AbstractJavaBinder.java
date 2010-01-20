@@ -529,7 +529,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     protected boolean isBatch = true; // by default we have a batch binder
     protected boolean isFullPass = false; // by default we start in the preliminary pass
     protected final boolean debug = LOG.isLoggable(Level.FINER);        
-    private Hashtable2<IJavaType,IJavaType,Boolean> callCompatCache = 
+    private final Hashtable2<IJavaType,IJavaType,Boolean> callCompatCache = 
     	new Hashtable2<IJavaType,IJavaType,Boolean>();
     
     /**
