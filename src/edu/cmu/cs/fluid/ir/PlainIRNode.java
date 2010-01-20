@@ -59,14 +59,14 @@ public class PlainIRNode implements IRNode, Serializable {
   /**
    * @mapInto State
    */
-  private int hash = IRNodeUtils.hash(super.hashCode());
+  private volatile int hash = IRNodeUtils.hash(super.hashCode());
   
   /**
    * Modified to allow this hash to be directly used
    * by a hashtable like JDK 1.4's HashMap
    */
   @Override
-  public synchronized int hashCode() {
+  public int hashCode() {
     /*
     if (destroyed()) return DESTROYED_HASH;
     return super.hashCode();
