@@ -710,7 +710,7 @@ public final class ColorFirstPass {
     ColorStaticBlockish currBlockish = null;
     ColorStaticWithChildren currStruct = null;
     
-    InstanceInitVisitor<Void> initHelper = null;
+//    InstanceInitVisitor<Void> initHelper = null;
     
     
     
@@ -866,7 +866,9 @@ public final class ColorFirstPass {
      */
     @Override
     public Void visitConstructorCall(IRNode node) {
-      return handleCallLikeOps(node);
+      handleCallLikeOps(node);
+      InstanceInitializationVisitor.processConstructorCall(node, structureBuilder);
+      return null;
     }
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitConstructorDeclaration(edu.cmu.cs.fluid.ir.IRNode)
@@ -877,7 +879,7 @@ public final class ColorFirstPass {
       final ColorStaticWithChildren saveCurrStruct = currStruct;
       final ColorStaticBlockish saveCurrBlockish = currBlockish;
       
-      final InstanceInitVisitor<Void> saveInitHelper = initHelper;
+//      final InstanceInitVisitor<Void> saveInitHelper = initHelper;
       final String name = JavaNames.genMethodConstructorName(node);
       Void res = null;
       try {
@@ -887,18 +889,18 @@ public final class ColorFirstPass {
         currMethStruct = theMeth;
         currBlockish = theMeth;
         
-        initHelper = new InstanceInitVisitor<Void>(structureBuilder);
-        // note that doVisitInstanceInits will only do the traversal when
-        // appropriate, and will call back into this visitor to traverse the
-        // inits themselves.
-        initHelper.doVisitInstanceInits(node);
+//        initHelper = new InstanceInitVisitor<Void>(structureBuilder);
+//        // note that doVisitInstanceInits will only do the traversal when
+//        // appropriate, and will call back into this visitor to traverse the
+//        // inits themselves.
+//        initHelper.doVisitInstanceInits(node);
 
         res = super.visitConstructorDeclaration(node);
         
       } finally {
         currMethStruct = saveCurrMethStruct;
         currStruct = saveCurrStruct;
-        initHelper = saveInitHelper;
+//        initHelper = saveInitHelper;
         currBlockish = saveCurrBlockish;
       }
       return res;

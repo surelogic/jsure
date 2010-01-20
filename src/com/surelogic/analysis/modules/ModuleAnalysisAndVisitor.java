@@ -18,7 +18,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.analysis.InstanceInitVisitor;
+//import edu.cmu.cs.fluid.java.analysis.InstanceInitVisitor;
+import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -87,7 +88,7 @@ public class ModuleAnalysisAndVisitor {
     
     final MAVisitor INSTANCE = this;
 
-    InstanceInitVisitor<Void> initHelper = null;
+//    InstanceInitVisitor<Void> initHelper = null;
     
     public ModuleModel currMod = null;
     
@@ -194,16 +195,18 @@ public class ModuleAnalysisAndVisitor {
       
       super.visitConstructorCall(node);
       
-      if (initHelper != null) {
-        // initHelper is non-null only when we are traversing tree somewere
-        // inside
-        // a constructorDeclaration. That means that the ConstructorCall we're
-        // looking at right now may possibly be the call to super() at the
-        // beginning
-        // of the constructorDeclaration. If it is, we need to traverse the init
-        // code right now. The call below will do that, if necessary.
-        initHelper.doVisitInstanceInits(node);
-      }
+      InstanceInitializationVisitor.processConstructorCall(node, getInstance());
+      
+//      if (initHelper != null) {
+//        // initHelper is non-null only when we are traversing tree somewere
+//        // inside
+//        // a constructorDeclaration. That means that the ConstructorCall we're
+//        // looking at right now may possibly be the call to super() at the
+//        // beginning
+//        // of the constructorDeclaration. If it is, we need to traverse the init
+//        // code right now. The call below will do that, if necessary.
+//        initHelper.doVisitInstanceInits(node);
+//      }
       return null;
     }
 
@@ -214,21 +217,22 @@ public class ModuleAnalysisAndVisitor {
     public Void visitConstructorDeclaration(IRNode node) {
       final IRNode saveCurrMeth = currMethod;
       final String saveCurrMethName = currMethName;
-      final InstanceInitVisitor<Void> saveInitHelper = initHelper;
+//      final InstanceInitVisitor<Void> saveInitHelper = initHelper;
       currMethod = node;
       currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);
       
       Void res = null;
       try {
-        initHelper = new InstanceInitVisitor<Void>(getInstance());
-        // note that doVisitInstanceInits will only do the traversal when
-        // appropriate, and will call back into this visitor to travers the
-        // inits themselves.
-        initHelper.doVisitInstanceInits(node);
+        // Replaced with call to InstanceInitializationVisitor in visitConstructorCall
+//        initHelper = new InstanceInitVisitor<Void>(getInstance());
+//        // note that doVisitInstanceInits will only do the traversal when
+//        // appropriate, and will call back into this visitor to travers the
+//        // inits themselves.
+//        initHelper.doVisitInstanceInits(node);
         
         res = super.visitConstructorDeclaration(node);
       } finally {
-        initHelper = saveInitHelper;
+//        initHelper = saveInitHelper;
         currMethod = saveCurrMeth;
         currMethName = saveCurrMethName;
       }
@@ -454,8 +458,8 @@ public class ModuleAnalysisAndVisitor {
     final SimpleCallGraphDrop calleeDrop = 
       SimpleCallGraphDrop.getCGDropFor(callee);
 
-    final String callerName = JavaNames.genMethodConstructorName(caller);
-    final String calleeName = JavaNames.genMethodConstructorName(callee);
+//    final String callerName = JavaNames.genMethodConstructorName(caller);
+//    final String calleeName = JavaNames.genMethodConstructorName(callee);
     calleeDrop.numCallSitesSeen += 1;
 
     final boolean isStatic = JavaNode.getModifier(callee, JavaNode.STATIC);
@@ -508,6 +512,7 @@ public class ModuleAnalysisAndVisitor {
     return info;
   }
   
+  @SuppressWarnings("unchecked")
   public static ResultDrop makeResultDrop(
       final IRNode context, final PromiseDrop p, final boolean isConsistent,
       final String msgTemplate, final Object... msgArgs) {

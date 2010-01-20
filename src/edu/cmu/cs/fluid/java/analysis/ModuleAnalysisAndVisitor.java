@@ -84,7 +84,7 @@ public class ModuleAnalysisAndVisitor {
     
     final MAVisitor INSTANCE = this;
 
-    InstanceInitVisitor<Void> initHelper = null;
+//    InstanceInitVisitor<Void> initHelper = null;
     
     public ModuleModel currMod = null;
     
@@ -190,17 +190,17 @@ public class ModuleAnalysisAndVisitor {
       checkVisibility(node, mDecl);
       
       super.visitConstructorCall(node);
-      
-      if (initHelper != null) {
-        // initHelper is non-null only when we are traversing tree somewere
-        // inside
-        // a constructorDeclaration. That means that the ConstructorCall we're
-        // looking at right now may possibly be the call to super() at the
-        // beginning
-        // of the constructorDeclaration. If it is, we need to traverse the init
-        // code right now. The call below will do that, if necessary.
-        initHelper.doVisitInstanceInits(node);
-      }
+      InstanceInitializationVisitor.processConstructorCall(node, getInstance());
+//      if (initHelper != null) {
+//        // initHelper is non-null only when we are traversing tree somewere
+//        // inside
+//        // a constructorDeclaration. That means that the ConstructorCall we're
+//        // looking at right now may possibly be the call to super() at the
+//        // beginning
+//        // of the constructorDeclaration. If it is, we need to traverse the init
+//        // code right now. The call below will do that, if necessary.
+//        initHelper.doVisitInstanceInits(node);
+//      }
       return null;
     }
 
@@ -211,21 +211,21 @@ public class ModuleAnalysisAndVisitor {
     public Void visitConstructorDeclaration(IRNode node) {
       final IRNode saveCurrMeth = currMethod;
       final String saveCurrMethName = currMethName;
-      final InstanceInitVisitor<Void> saveInitHelper = initHelper;
+//      final InstanceInitVisitor<Void> saveInitHelper = initHelper;
       currMethod = node;
       currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);
       
       Void res = null;
       try {
-        initHelper = new InstanceInitVisitor<Void>(getInstance());
-        // note that doVisitInstanceInits will only do the traversal when
-        // appropriate, and will call back into this visitor to travers the
-        // inits themselves.
-        initHelper.doVisitInstanceInits(node);
+//        initHelper = new InstanceInitVisitor<Void>(getInstance());
+//        // note that doVisitInstanceInits will only do the traversal when
+//        // appropriate, and will call back into this visitor to travers the
+//        // inits themselves.
+//        initHelper.doVisitInstanceInits(node);
         
         res = super.visitConstructorDeclaration(node);
       } finally {
-        initHelper = saveInitHelper;
+//        initHelper = saveInitHelper;
         currMethod = saveCurrMeth;
         currMethName = saveCurrMethName;
       }
