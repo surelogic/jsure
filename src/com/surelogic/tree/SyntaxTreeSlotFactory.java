@@ -151,7 +151,7 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
 		                              StoredSlotInfo<String,String> backupSI) 
   throws SlotAlreadyRegisteredException {
 	  return new NodeStoredSlotInfo<String>(infoName, name, IRStringType.prototype, 
-			  new Storage<String>(SyntaxTreeSlotFactory.this, defaultVal), 
+			  new Storage<String>(SyntaxTreeSlotFactory.this, Constants.undefinedString), 
 			                                defaultVal, backupSI) { 
 		  @Override
 		  protected String getSlot(SyntaxTreeNode n) {
