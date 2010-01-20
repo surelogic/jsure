@@ -19,7 +19,6 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
@@ -265,6 +264,7 @@ public class ModuleAnalysisAndVisitor {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitFieldRef(edu.cmu.cs.fluid.ir.IRNode)
      */
+    @SuppressWarnings("deprecation")
     @Override
     public Void visitFieldRef(IRNode node) {
       final IRNode field = binder.getBinding(node);
@@ -451,8 +451,8 @@ public class ModuleAnalysisAndVisitor {
     final SimpleCallGraphDrop calleeDrop = 
       SimpleCallGraphDrop.getCGDropFor(callee);
 
-    final String callerName = JavaNames.genMethodConstructorName(caller);
-    final String calleeName = JavaNames.genMethodConstructorName(callee);
+//    final String callerName = JavaNames.genMethodConstructorName(caller);
+//    final String calleeName = JavaNames.genMethodConstructorName(callee);
     calleeDrop.numCallSitesSeen += 1;
 
     final boolean isStatic = JavaNode.getModifier(callee, JavaNode.STATIC);
@@ -505,6 +505,7 @@ public class ModuleAnalysisAndVisitor {
     return info;
   }
   
+  @SuppressWarnings("unchecked")
   public static ResultDrop makeResultDrop(
       final IRNode context, final PromiseDrop p, final boolean isConsistent,
       final String msgTemplate, final Object... msgArgs) {
