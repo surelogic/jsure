@@ -822,11 +822,11 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	  if (!JJNode.versioningIsOn && !members.hasNext() && 
     			  !repopulated.contains(typeDeclaration)) {   
     		  repopulated.add(typeDeclaration);
-    		  String context = JJNode.getInfoOrNull(typeDeclaration);
-    		  if (context == null) {
-    			  context = DebugUnparser.toString(typeDeclaration);
-    		  }
     		  if (debug) {
+    			  String context = JJNode.getInfoOrNull(typeDeclaration);
+    			  if (context == null) {
+    				  context = DebugUnparser.toString(typeDeclaration);
+    			  }
     			  LOG.finer("Re-populating member table: "+context);
     		  }
     		  populateDeNovo();
