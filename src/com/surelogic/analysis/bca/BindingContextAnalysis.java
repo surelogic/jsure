@@ -73,7 +73,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
     IRNode methodDecl = getRawFlowUnit(flowNode);
     ImmutableHashOrderSet<IRNode> localset =
       methodDeclLocals(methodDecl, CachedSet.<IRNode>getEmpty());
-    localset = filterNonObjectTypedLocals(localset);
+    //localset = filterNonObjectTypedLocals(localset);
     try {
       int n = localset.size();
       IRNode[] locals = new IRNode[n];
@@ -105,6 +105,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
   /**
    * @param localset
    */
+  /*
   private ImmutableHashOrderSet<IRNode> filterNonObjectTypedLocals(
       final ImmutableHashOrderSet<IRNode> localset) {
     ImmutableHashOrderSet<IRNode> locals = CachedSet.getEmpty();
@@ -115,19 +116,25 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
     }
     return locals;
   }
+  */
 
-  public ImmutableHashOrderSet<IRNode> methodDeclLocals(
+  /**
+   * Changed to also filter out non-Object typed locals
+   */
+  private ImmutableHashOrderSet<IRNode> methodDeclLocals(
     IRNode methodDecl,
     ImmutableHashOrderSet<IRNode> s) {
     //!! does not work for class initialization methods:
+	// TODO switch to using a Visitor?
     Iterator<IRNode> e = tree.bottomUp(methodDecl);
     try {
       while (true) {
         IRNode node = e.next();
         Operator op = tree.getOperator(node);
-        if (VariableDeclarator.prototype.includes(op)
-            || ParameterDeclaration.prototype.includes(op))
+        if (VariableDeclaration.prototype.includes(op) &&
+        	binder.getJavaType(node) instanceof IJavaReferenceType) {
           s = s.addElement(node);
+        }
       }
     } catch (NoSuchElementException ex) {
       return s;
