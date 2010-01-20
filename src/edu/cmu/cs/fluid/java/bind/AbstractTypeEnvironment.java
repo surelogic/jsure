@@ -51,14 +51,15 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   
   /*
   static int cached, total;
+  */
   private final Hashtable2<IJavaType, IJavaType, Boolean> subTypeCache = 
 	  new Hashtable2<IJavaType, IJavaType, Boolean>();
-  */
+  
   public void clearCaches(boolean clearAll) {
 	  objectType.set(null);
 	  stringType = null;
 	  convertedTypeCache.clear();
-	  //subTypeCache.clear();
+	  subTypeCache.clear();
   }
   
   public static void printStats() {
@@ -464,16 +465,14 @@ private long parseIntLiteral(String token) {
   }
   
   private boolean isSubType(IJavaType s, IJavaType t, final boolean ignoreGenerics) {
-	/*
 	if (!ignoreGenerics) {
-		total++;
+		//total++;
 		Boolean result = subTypeCache.get(s, t);
 		if (result != null) {
-			cached++;
+			//cached++;
 			return result.booleanValue();
 		}
 	}
-	*/
 	if (s == null || t == null) {
 		// LOG.severe("isSubType() s = "+s+", t = "+t);
 		return false; // nonsense
@@ -554,11 +553,9 @@ private long parseIntLiteral(String token) {
 		}
 		return result = false;
 	} finally {
-		/*
 		if (!ignoreGenerics) {
 			subTypeCache.put(s, t, result);
 		}
-		*/	
 	}
   }
 
