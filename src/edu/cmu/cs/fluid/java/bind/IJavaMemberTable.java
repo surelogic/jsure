@@ -9,4 +9,5 @@ public interface IJavaMemberTable {
   Iterator<IRNode> getDeclarationsFromUse(String info, IRNode overrider);
   
   IJavaScope asScope(AbstractJavaBinder binder);
+  IJavaScope asLocalScope();
 }

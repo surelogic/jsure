@@ -135,14 +135,15 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
     if (op instanceof DemandName) {
       return new Pair<IJavaScope,String>(resolveAsScope(JJNode.getInfo(node),useSite),null);
     } else if (op instanceof StaticDemandName) {
+      //System.out.println("Got "+DebugUnparser.toString(node));
       IRNode tNode = StaticDemandName.getType(node);
-      return new Pair<IJavaScope,String>(resolveTypeAsLocalScope(tNode,useSite),null);
+      return new Pair<IJavaScope,String>(resolveTypeAsScope(tNode,useSite,false),null);
     } else if (op instanceof NameType) {
       IRNode nameNode = NameType.getName(node);
       String name = JJNode.getInfo(nameNode);
       if (JJNode.tree.getOperator(nameNode) instanceof QualifiedName) {
         IRNode prefix = QualifiedName.getBase(nameNode);
-        return new Pair<IJavaScope,String>(resolveNameAsLocalScope(prefix,useSite),name);
+        return new Pair<IJavaScope,String>(resolveNameAsScope(prefix,useSite,true),name);
       } else {
         //return new Pair<IJavaScope,String>(tEnv.getClassTable().packageScope(""),name);
     	return resolveNamedType(useSite, name);
@@ -153,18 +154,18 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
     } else if (op instanceof TypeRef) {
       IRNode tNode = TypeRef.getBase(node);
       String name = JJNode.getInfo(node);
-      IJavaScope sc = resolveTypeAsLocalScope(tNode,useSite);
+      IJavaScope sc = resolveTypeAsScope(tNode,useSite,true);
       if (sc == null) {
-        resolveTypeAsLocalScope(tNode,useSite);
+        resolveTypeAsScope(tNode,useSite,true);
       }
       return new Pair<IJavaScope,String>(sc,name);
     } else if (op instanceof StaticImport) {
       IRNode tNode = StaticImport.getType(node);
       String name = JJNode.getInfo(node);
-      return new Pair<IJavaScope,String>(resolveTypeAsLocalScope(tNode,useSite),name);
+      return new Pair<IJavaScope,String>(resolveTypeAsScope(tNode,useSite,true),name);
     } else if (op instanceof TypedDemandName) {
       IRNode tNode = TypedDemandName.getType(node);
-      return new Pair<IJavaScope,String>(resolveTypeAsLocalScope(tNode,useSite),null);
+      return new Pair<IJavaScope,String>(resolveTypeAsScope(tNode,useSite,true),null);
     } else {
       LOG.severe("Import not handled: " + op + " -- " + DebugUnparser.toString(node));
       return new Pair<IJavaScope,String>(null,null);
@@ -181,29 +182,30 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
       return new Pair<IJavaScope,String>(resolveAsScope(scopeName,useSite),name);
 }
   
-  protected final IJavaScope resolveTypeAsLocalScope(IRNode node, IRNode useSite) {
+  protected final IJavaScope resolveTypeAsScope(IRNode node, IRNode useSite, boolean asLocal) {
     Operator op = JJNode.tree.getOperator(node);
     if (op instanceof NameType) {
-      return resolveNameAsLocalScope(NameType.getName(node),useSite);
+      return resolveNameAsScope(NameType.getName(node),useSite,asLocal);
     } else if (op instanceof NamedType) {
       return resolveAsScope(JJNode.getInfo(node),useSite);
     } else if (op instanceof TypeRef) {
-      IJavaScope scope = resolveTypeAsLocalScope(TypeRef.getBase(node),useSite);
+      IJavaScope scope = resolveTypeAsScope(TypeRef.getBase(node),useSite,asLocal);
       IBinding tbind = IJavaScope.Util.lookupType(scope,JJNode.getInfo(node),useSite);
       if (tbind == null) return null;
       assert tbind.getContextType() == null;
-      return JavaMemberTable.get(tbind.getNode()).asLocalScope();
+      IJavaMemberTable table = getMemberTable(tbind);
+      return asLocal ? table.asLocalScope() : table.asScope(binder);
     } else {
       LOG.severe("Import from type not handled: " + DebugUnparser.toString(node));
       return null;
     }
   }
   
-  protected final IJavaScope resolveNameAsLocalScope(IRNode node, IRNode useSite) {
+  protected final IJavaScope resolveNameAsScope(IRNode node, IRNode useSite, boolean asLocal) {
     Operator op = JJNode.tree.getOperator(node);
     if (op instanceof QualifiedName) {
-      IJavaScope scope = resolveNameAsLocalScope(QualifiedName.getBase(node),useSite);
-      return resolveAsLocalScope(scope,QualifiedName.getId(node),useSite);
+      IJavaScope scope = resolveNameAsScope(QualifiedName.getBase(node),useSite,asLocal);
+      return resolveAsScope(scope,QualifiedName.getId(node),useSite,asLocal);
     } else {
       return resolveAsScope(JJNode.getInfo(node),useSite);
     }
@@ -217,14 +219,20 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
    * @param useSite place on whose behalf we are looking up
    * @return scope for name (or null)
    */
-  protected final IJavaScope resolveAsLocalScope(IJavaScope scope, String name, IRNode useSite) {
+  protected final IJavaScope resolveAsScope(IJavaScope scope, String name, IRNode useSite, boolean asLocal) {
     IBinding pbind = IJavaScope.Util.lookupPackage(scope,name,useSite);
     if (pbind != null) {
       return tEnv.getClassTable().packageScope(pbind.getNode());
     }
     IBinding tbind = IJavaScope.Util.lookupType(scope,name,useSite);
     if (tbind == null) return null;
-    return JavaMemberTable.get(tbind.getNode()).asLocalScope();
+    IJavaMemberTable table = getMemberTable(tbind);
+    return asLocal ? table.asLocalScope() : table.asScope(binder);
+  }
+  
+  private IJavaMemberTable getMemberTable(IBinding tbind) {
+	  IJavaType t = JavaTypeFactory.getMyThisType(tbind.getNode());
+	  return binder.typeMemberTable((IJavaSourceRefType) t);
   }
   
   /**
@@ -246,7 +254,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
       String scopeName = qName.substring(0,dot);
       IJavaScope scope = resolveAsScope(scopeName,useSite);
       if (scope == null) return null;
-      return resolveAsLocalScope(scope,name,useSite);
+      return resolveAsScope(scope,name,useSite,true);
     }
     if (Util.isTypeDecl(outerNode)) { 
       IJavaType outerType = JavaTypeFactory.getMyThisType(outerNode);
