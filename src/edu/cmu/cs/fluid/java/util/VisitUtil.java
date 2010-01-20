@@ -105,23 +105,41 @@ public class VisitUtil implements JavaGlobals {
   }
   
   /// getEnclosingType - for any node
-  public static IRNode getEnclosingType(IRNode here) {
+  public static IRNode getEnclosingType(final IRNode here) {
     IRNode type  = OpSearch.typeSearch.findEnclosing(here);
     if (type == null) {
       // LOG.info("Couldn't find enclosing type for "+DebugUnparser.toString(here));
       return null;
     }
+    return checkForAnonClass(type, here);
+  }
+  
+  private static IRNode checkForAnonClass(IRNode type, final IRNode start) {
     Operator top = jtree.getOperator(type);
     if (AnonClassExpression.prototype.includes(top)) {
       // here could be in one of the arguments, which really 
       // belongs in the anon class' enclosing type, so check for that      
-      if (isAncestor(AnonClassExpression.getArgs(type), here)) {
+      if (isAncestor(AnonClassExpression.getArgs(type), start)) {
         // find the anon class' enclosing type instead
         type = OpSearch.typeSearch.findEnclosing(type);
       }
       // otherwise, it's in the body of the anon class 
     }
     return type;
+  }
+  
+  /**
+   * Also handles the case that 'here' is in a promise
+   */
+  public static IRNode getEnclosingTypeForPromise(final IRNode here) {
+	  final IRNode start = JavaPromise.getParentOrPromisedFor(here);
+	  for(final IRNode n : rootWalk(start)) {
+		  Operator op = jtree.getOperator(n);
+		  if (op instanceof TypeDeclInterface) {
+			  return checkForAnonClass(n, here);
+		  }
+	  }
+	  return null;
   }
 
   /// getEnclosingTypes

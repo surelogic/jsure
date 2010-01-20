@@ -470,8 +470,10 @@ public class JavaTypeFactory implements IRType, Cleanable {
    * @return type of this at this point.
    */
   public static IJavaDeclaredType getThisType(IRNode n) {
-    IRNode p = VisitUtil.getEnclosingType(n);
-    if (p == null) return null;
+    IRNode p = VisitUtil.getEnclosingTypeForPromise(n);
+    if (p == null) {
+    	return null;
+    }
     return getMyThisType(p);
   }
   

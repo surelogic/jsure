@@ -17,7 +17,7 @@ public class OpSearch implements JavaGlobals {
 	return rv;
       }
       last = here;
-      here = JavaPromise.getParentOrPromisedFor(here);
+      here = jtree.getParentOrNull(here);
     }
     return null;    
   }
