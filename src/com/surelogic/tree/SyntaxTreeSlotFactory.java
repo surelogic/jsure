@@ -41,7 +41,7 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
 		  StoredSlotInfo<Integer,Integer> backupSI) 
 		  throws SlotAlreadyRegisteredException {
 	  return new NodeStoredSlotInfo<Integer>(JavaNode.MODIFIERS_ID, name, IRIntegerType.prototype, 
-			  new Storage<Integer>(SyntaxTreeSlotFactory.this, defaultVal), 
+			  new Storage<Integer>(this, defaultVal), 
 			  defaultVal, backupSI) { 
 		  @Override
 		  protected Integer getSlot(SyntaxTreeNode n) {
