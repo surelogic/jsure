@@ -232,7 +232,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
    *         and ClassInitDeclaration nodes in the case of static initializers.
    */
 	private Set<TypeAndMethod> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
-	  final ShouldAnalyzeVisitor visitor = new ShouldAnalyzeVisitor(getBinder());
+//    final ShouldAnalyzeVisitor visitor = new ShouldAnalyzeVisitor(getBinder());
+    final NewShouldAnalyzeVisitor visitor = new NewShouldAnalyzeVisitor(getBinder());
 	  visitor.doAccept(compUnit);
 	  return visitor.getResults();
 	}
@@ -1081,6 +1082,176 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	    result = 31 * result + methodDecl.hashCode();
 	    return result;
 	  }
+	}
+	
+  /*
+   * We are searching for (1) the declarations of an unique field (2) the
+   * use of an unique field, (3) the declaration of a method that has
+   * borrowed parameters, unique parameters, or a unique return value, or
+   * (4) the invocation of a method that has unique parameter requirements.
+   */
+	private static final class NewShouldAnalyzeVisitor extends JavaSemanticsVisitor {
+    private final IBinder binder;
+    
+    /**
+     * The output of the visitation: the set of method/constructor declarations
+     * that should receive additional scrutiny by the uniqueness analysyis.
+     */
+    private final Set<TypeAndMethod> results = new HashSet<TypeAndMethod>();
+    
+    
+    
+    public NewShouldAnalyzeVisitor(final IBinder binder) {
+      super(true);
+      this.binder = binder;
+    }
+
+    
+    
+    public Set<TypeAndMethod> getResults() {
+      return results;
+    }
+    
+    
+    
+    /* Case 4: invoking method with unique parameter or borrowed parameters.
+     * We care about borrowed parameters because then can affect the 
+     * validity of unique fields passed to them.
+     */
+    private void visitCallInterface(final IRNode call) {
+      final IRNode declNode = binder.getBinding(call);
+
+      if (declNode != null) {
+        final Operator declOp = JJNode.tree.getOperator(declNode);
+        IRNode formals = null;
+        boolean hasUnique = false;
+        if (declOp instanceof ConstructorDeclaration) {
+          formals = ConstructorDeclaration.getParams(declNode);
+        } else if (declOp instanceof MethodDeclaration) {
+          formals = MethodDeclaration.getParams(declNode);
+          if (!TypeUtil.isStatic(declNode)) {
+            final IRNode self = JavaPromise.getReceiverNode(declNode);
+            hasUnique = UniquenessRules.isUnique(self);
+          }
+        }
+        if (formals != null) {
+          for (int i = 0; !hasUnique && (i < JJNode.tree.numChildren(formals)); i++) {
+            final IRNode param = JJNode.tree.getChild(formals, i);
+            hasUnique = UniquenessRules.isUnique(param);
+          }
+          if (hasUnique) {
+            results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
+          }
+        }
+      }
+    }
+    
+    
+    
+    @Override
+    public Void visitAllocationCallExpression(final IRNode call) {
+      visitCallInterface(call);
+      return null;
+    }
+    
+    @Override
+    protected void handleAnonClassExpression(final IRNode expr) {
+      doAccept(AnonClassExpression.getArgs(expr));
+      // Handle as a AllocationCallExpression (CallInterface really)
+      visitCallInterface(expr);
+    }
+
+    @Override
+    protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
+      // We want to visit the initializers, but there is nothing 
+      // interesting to do with the action
+      return NULL_ACTION;
+    }
+
+    @Override
+    public Void visitCall(final IRNode call) {
+      visitCallInterface(call);
+      doAcceptForChildren(call);
+      return null;
+    }
+
+    @Override
+    protected void handleConstructorDeclaration(final IRNode cdecl) {
+      // Case 3b: borrowed/unique parameter
+      boolean hasBorrowedParam = false;
+      boolean hasUniqueParam = false;
+      hasBorrowedParam |= UniquenessRules.constructorYieldsUnaliasedObject(cdecl);
+      // Cannot have a unique receiver
+
+      final IRNode formals = ConstructorDeclaration.getParams(cdecl);
+      for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
+        final IRNode param = JJNode.tree.getChild(formals, i);
+        hasBorrowedParam |= UniquenessRules.isBorrowed(param);
+        hasUniqueParam |= UniquenessRules.isUnique(param);
+      }
+      if (hasBorrowedParam || hasUniqueParam) {
+        results.add(new TypeAndMethod(getEnclosingType(), cdecl));
+      }
+            
+      // Check the rest of the constructor
+      doAcceptForChildren(cdecl);
+    }
+
+    @Override
+    public Void visitFieldRef(final IRNode fieldRef) {
+      /* Case (2): A use of a unique field. */
+      if (UniquenessRules.isUnique(binder.getBinding(fieldRef))) {
+        results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
+      }
+      return null;
+    }
+    
+    @Override
+    protected void handleMethodDeclaration(final IRNode mdecl) {
+      // Case 3a: returns unique
+      final IRNode retDecl = JavaPromise.getReturnNodeOrNull(mdecl);
+      final boolean returnsUnique =
+        (retDecl == null) ? false : UniquenessRules.isUnique(retDecl);
+
+      // Case 3b: borrowed/unique parameter
+      boolean hasBorrowedParam = false;
+      boolean hasUniqueParam = false;
+      if (!TypeUtil.isStatic(mdecl)) { // non-static method
+        final IRNode self = JavaPromise.getReceiverNode(mdecl);
+        hasBorrowedParam |= UniquenessRules.isBorrowed(self);
+        hasUniqueParam |= UniquenessRules.isUnique(self);
+      }
+      final IRNode formals = MethodDeclaration.getParams(mdecl);
+      for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
+        final IRNode param = JJNode.tree.getChild(formals, i);
+        hasBorrowedParam |= UniquenessRules.isBorrowed(param);
+        hasUniqueParam |= UniquenessRules.isUnique(param);
+      }
+      if (returnsUnique || hasBorrowedParam || hasUniqueParam) {
+        results.add(new TypeAndMethod(getEnclosingType(), mdecl));
+      }
+    
+      doAcceptForChildren(mdecl);
+    }
+    
+    @Override
+    public Void visitSomeFunctionCall(final IRNode call) {
+      visitCallInterface(call);
+      doAcceptForChildren(call);
+      return null;
+    }
+    
+    @Override
+    protected void handleFieldInitialization(final IRNode varDecl, final boolean isStatic) {
+      /* CASE (1): If the field is UNIQUE then we
+       * add the current enclosing declaration to the results.
+       */
+      if (UniquenessRules.isUnique(varDecl)) {
+        results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
+      }
+      // analyze the the RHS of the initialization
+      doAcceptForChildren(varDecl);
+    }
 	}
 	
   /*

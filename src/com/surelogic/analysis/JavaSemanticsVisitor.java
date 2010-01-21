@@ -92,7 +92,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     public void afterVisit();
   }
   
-  private static final InstanceInitAction NULL_ACTION = new InstanceInitAction() {
+  protected static final InstanceInitAction NULL_ACTION = new InstanceInitAction() {
     public void tryBefore() { /* do nothing */ }
     public void finallyAfter() { /* do nothing */ }
     public void afterVisit() { /* do nothing */ }
@@ -544,9 +544,10 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     handleConstructorCall(expr);
     
     // 2.  Make sure we account for the super class's field initializers, etc
+    final InstanceInitAction action = getConstructorCallInitAction(expr);
     InstanceInitializationVisitor.processConstructorCall(
-        expr, TypeDeclaration.getBody(enclosingType), this);
-  
+        expr, TypeDeclaration.getBody(enclosingType), this, action);
+    action.afterVisit();
     return null;
   }
 
