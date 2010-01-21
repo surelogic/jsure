@@ -559,7 +559,10 @@ public class JavaCanonicalizer {
     
     @Override
     public Boolean visitArguments(IRNode node) {
+		final int numArgs = tree.numChildren(node);
+    	final IRNode lastArg = numArgs > 0 ? tree.getChild(node, numArgs-1) : null;
     	boolean changed = super.visitArguments(node);
+    	
     	// Check for var args
     	IRNode call   = tree.getParent(node);
     	IBinding b    = binder.getIBinding(call);
@@ -576,11 +579,19 @@ public class JavaCanonicalizer {
     		// Reorganize arguments
     		final IRNode[] newArgs = new IRNode[numParams];
     		final int numLastParam = numParams - 1;
-    		final int numArgs      = tree.numChildren(node);
     		List<IRNode> varArgs;
     		if (numArgs == numLastParam) {
     			varArgs = Collections.emptyList();
     		} else {
+    			if (numArgs == numParams) {
+    				// Check if using an array for the var args parameter
+    				IJavaType paramType = binder.getJavaType(lastP);
+    				IJavaType argType   = binder.getJavaType(lastArg);    			
+    				if (tEnv.isCallCompatible(paramType, argType)) {
+    					// The last arg matches the var arg type, so no need to do anything
+    					return changed;
+    				}
+    			}    			
     			varArgs = new ArrayList<IRNode>(numArgs - numLastParam);
     		}
     		
@@ -593,9 +604,10 @@ public class JavaCanonicalizer {
     			}
     			i++;
     		}
-    		tree.removeChildren(node);
+    		tree.removeChildren(node);    		
     		newArgs[numLastParam] = VarArgsExpression.createNode(varArgs.toArray(new IRNode[varArgs.size()]));
     		tree.replaceSubtree(node, Arguments.createNode(newArgs));
+    		changed = true;
     	}
     	return changed;
     }
