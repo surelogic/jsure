@@ -210,7 +210,7 @@ public abstract class SlotInfo<T> extends IRObservable {
 	}
 
 	public static synchronized void gc() {
-		if (!PlainIRNode.checkIfNumDestroyed(1000)) {
+		if (!AbstractIRNode.checkIfNumDestroyed(1000)) {
 			return;
 		}
 		for (SlotInfo si : anonSIs) {

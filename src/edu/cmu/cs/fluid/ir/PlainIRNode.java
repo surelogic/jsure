@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.cmu.cs.fluid.*;
 import edu.cmu.cs.fluid.util.CountInstances;
 import edu.cmu.cs.fluid.util.ThreadGlobal;
 
@@ -23,17 +21,8 @@ import edu.cmu.cs.fluid.util.ThreadGlobal;
  * @region private State
  * @lock StateLock is this protects State
  */
-public class PlainIRNode implements IRNode, Serializable {
+public class PlainIRNode extends AbstractIRNode implements Serializable {
   private static final ThreadGlobal<IRRegion> regionVar = new ThreadGlobal<IRRegion>(null);
-  private static final AtomicInteger destroyedNodes = new AtomicInteger();
-  
-  public static boolean checkIfNumDestroyed(int num) {
-	  int current = destroyedNodes.get();
-	  if (current > num) {
-		  return destroyedNodes.compareAndSet(current, 0);
-	  }
-	  return false;
-  }
   
   /** Set the current region.
    * By default, newly created nodes are in this region.
@@ -51,47 +40,6 @@ public class PlainIRNode implements IRNode, Serializable {
     regionVar.popValue();
   }
 
-  public Object identity() {
-    if (destroyed()) return destroyedNode;
-    return this;
-  }
-
-  /**
-   * @mapInto State
-   */
-  private volatile int hash = IRNodeUtils.hash(super.hashCode());
-  
-  /**
-   * Modified to allow this hash to be directly used
-   * by a hashtable like JDK 1.4's HashMap
-   */
-  @Override
-  public int hashCode() {
-    /*
-    if (destroyed()) return DESTROYED_HASH;
-    return super.hashCode();
-    */
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    if (destroyed()) {
-      return other == destroyedNode || (other != null && other.equals(destroyedNode));
-    }
-    // not destroyed
-    if (other instanceof IRNode) {
-      return this == ((IRNode) other).identity();
-    } else {
-      return false;
-    }
-  }
-
-  private static int nodesCreated = 0;
-
-  public static int getTotalNodesCreated() {
-    return nodesCreated;
-  }
 
   /** Create a new IRNode.  Add it to current region, if any.
    */
@@ -103,7 +51,6 @@ public class PlainIRNode implements IRNode, Serializable {
    * @param region region to add node to.
    */
   public PlainIRNode(IRRegion region) {
-    nodesCreated++;
     if (region != null) {
       region.saveNode(this);
     } else {
@@ -126,120 +73,27 @@ public class PlainIRNode implements IRNode, Serializable {
   final int getIndexInRegion() { return index; }
   final void setIndexInRegion(int i) { index = i; }
 
-  /** Get the slot's value for a particular node.
-   * @typeparam Value
-   * @param si Description of slot to be accessed.
-   * <dl purpose=fluid>
-   *   <dt>type<dd> SlotInfo[Value]
-   * </dl>
-   * @precondition nonNull(si)
-   * @return the value of the slot associated with this node.
-   * <dl purpose=fluid>
-   *   <dt>type<dd> Value
-   * </dl>
-   * @exception SlotUndefinedException
-   * If the slot is not initialized with a value.
-   */
-  public <T> T getSlotValue(SlotInfo<T> si) throws SlotUndefinedException {
-	/*
-    if (si == null) {
-      throw new NullPointerException();
-    }
-    */
-    try { 
-      return si.getSlotValue(this);
-    }
-    catch (SlotUndefinedException e) {
-      if (this.identity() == destroyedNode) {
-        throw new FluidError("Trying to access a destroyed node");
-      }
-      throw e;
-    }
-  }
-
-  /** Change the value stored in the slot.
-   * @typeparam Value
-   * @param si Description of slot to be accessed.
-   * <dl purpose=fluid>
-   *   <dt>type<dd> SlotInfo[Value]
-   * </dl>
-   * @param newValue value to store in the slot.
-   * <dl purpose=fluid>
-   *   <dt>type<dd> Value
-   *   <dt>capabilities<dd> store
-   * </dl>
-   */
-  public <T> void setSlotValue(SlotInfo<T> si, T newValue)
-    throws SlotImmutableException {
-    if (si == null) {
-      throw new NullPointerException();
-    }
-    si.setSlotValue(this, newValue);
-  }
-
-  // for convenience:
-  public int getIntSlotValue(SlotInfo<Integer> si) {
-    return (this.<Integer>getSlotValue(si)).intValue();
-  }
-  // for convenience
-  public void setSlotValue(SlotInfo<Integer> si, int newValue) {
-    setSlotValue(si, (Integer)(newValue));
-  }
-
-  /** Check if a value is defined for a particular node.
-   * @typeparam Value
-   * @param si Description of slot to be accessed.
-   * <dl purpose=fluid>
-   *   <dt>type<dd> SlotInfo[Value]
-   * </dl>
-   * @precondition nonNull(si)
-   * @return true if getSlotValue would return a value, false otherwise
-   */
-  public <T> boolean valueExists(SlotInfo<T> si) {
-    return si.valueExists(this);
-  }
-
   /** If the node is not in a region, mark it as destroyed.
    * Otherwise, the whole region needs to be destroyed.
    */
+  @Override
   public void destroy() {
     synchronized (this) {
       if (ownerInfo instanceof IRRegion) return;
       index = -1;
       ownerInfo = null;
-      --nodesCreated; // I suppose
-      
-      hash = DESTROYED_HASH;
-      destroyedNodes.incrementAndGet();
+      super.destroy();
     }
   }
-  
-  /** True for a node that has been destroyed. */
-  private final boolean destroyed() {
-    return getIndexInRegion() == -1;
-  }
-
-  /**
-   * True if the node has been destroyed, works for any {@link IRNode}.
-   * @param n node to test
-   * @return true if this node has been destoryed.
-   */
-  public static boolean isDestroyed(IRNode n) {
-    return n.identity() == IRNode.destroyedNode;
-  }
-
 
   /** If in a region, then self-identify */
   @Override
-  public String toString() {
-    if (destroyed()) {
-      return "Destroyed" + super.toString();
-    }
+  protected String toString_internal() {
     IRRegion reg = IRRegion.getOwnerOrNull(this);
     if (reg != null) {
       return reg + " #" + IRRegion.getOwnerIndex(this);
     } else {
-      return super.toString();
+      return super.toString_internal();
     }
   }
 

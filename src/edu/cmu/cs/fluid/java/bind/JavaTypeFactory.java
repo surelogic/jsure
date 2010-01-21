@@ -819,7 +819,7 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   
   @Override
   public boolean isValid() {
-    return !PlainIRNode.isDestroyed(declaration);
+    return !AbstractIRNode.isDestroyed(declaration);
   }
   
   /*******************************************************
@@ -1237,7 +1237,7 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   @Override
   public boolean isValid() {
     if (declaration == null) return true;
-    if (PlainIRNode.isDestroyed(declaration)) return false;
+    if (AbstractIRNode.isDestroyed(declaration)) return false;
     for (IJavaType jt : parameters) {
       if (!((JavaType)jt).isValid()) return false;
     }
