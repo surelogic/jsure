@@ -107,7 +107,11 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 	
 	@Override
 	protected void clearCaches() {
-		getAnalysis().clearCaches();
+		if (!runInParallel()) {
+			getAnalysis().clearCaches();
+		} else {
+			analyses.clearCaches();
+		}
 	}
 	
 	@Override
