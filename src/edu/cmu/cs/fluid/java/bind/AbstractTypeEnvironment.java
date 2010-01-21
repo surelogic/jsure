@@ -91,6 +91,26 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  return result;
   }
   
+  public IJavaDeclaredType getMyThisType(IRNode typeDecl) {
+	  if (typeDecl == null) {
+		  return null;
+	  }
+	  IJavaDeclaredType result = (IJavaDeclaredType) convertedTypeCache.get(typeDecl);
+	  if (result == null) {
+		  result = JavaTypeFactory.getMyThisType(typeDecl);
+		  if (result != null) {
+			  convertedTypeCache.put(typeDecl, result);		 
+		  } else {
+			  LOG.severe("Null type for "+DebugUnparser.toString(typeDecl));
+			  JavaTypeFactory.getMyThisType(typeDecl);
+		  }
+	  } else {
+		  //cached++;
+	  }
+	  //total++;
+	  return result;
+  }
+  
   public IJavaDeclaredType getObjectType() {
 	IJavaDeclaredType oType = objectType.get();
     while (oType == null) {

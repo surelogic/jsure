@@ -1588,7 +1588,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  LOG.finer("visiting getClassBody(IRNode)"); 
       }
       IRNode parent = JJNode.tree.getParent(node);
-      IJavaType type = JavaTypeFactory.getMyThisType(parent);
+      IJavaType type = typeEnvironment.getMyThisType(parent);
       IJavaScope classScope = typeScope(type);
       doAcceptForChildren(node, new IJavaScope.ShadowingScope(classScope,scope));
       return null;

@@ -209,7 +209,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitEnumDeclaration(IRNode node) {
-    return JavaTypeFactory.getMyThisType( node );
+    return binder.getTypeEnvironment().getMyThisType( node );
   }
   
   @Override

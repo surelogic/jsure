@@ -257,7 +257,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
       return resolveAsScope(scope,name,useSite,true);
     }
     if (Util.isTypeDecl(outerNode)) { 
-      IJavaType outerType = JavaTypeFactory.getMyThisType(outerNode);
+      IJavaType outerType = tEnv.getMyThisType(outerNode);
       return binder.typeScope(outerType);
     }
     if (IJavaScope.Util.isPackageDecl(outerNode)) { return classTable.packageScope(qName); }

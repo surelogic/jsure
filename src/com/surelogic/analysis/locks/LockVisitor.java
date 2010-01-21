@@ -901,7 +901,7 @@ implements IBinderClient {
     if (ClassBody.prototype.includes(op)) {
       resultDependUpon = rd;
       ctxtTypeDecl = JJNode.tree.getParentOrNull(node);
-      ctxtJavaType = JavaTypeFactory.getMyThisType(ctxtTypeDecl);
+      ctxtJavaType = binder.getTypeEnvironment().getMyThisType(ctxtTypeDecl);
       ctxtTheHeldLocks = new LockStack();
       this.doAccept(node);
     } else {

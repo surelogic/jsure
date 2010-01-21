@@ -549,10 +549,11 @@ public final class GlobalLockModel {
     } else { 
       if (TypeDeclaration.prototype.includes(JJNode.tree.getOperator(lockImpl))) {
         // The class whose field is a lock is the named class
-        classDefiningLock = getClassRecord(JavaTypeFactory.getMyThisType(lockImpl));
+        classDefiningLock = getClassRecord(binder.getTypeEnvironment().getMyThisType(lockImpl));
       } else {
         // The class whose field is the lock is the class that contains the field declaration
-        classDefiningLock = getClassRecord(JavaTypeFactory.getMyThisType(VisitUtil.getEnclosingType(lockImpl)));
+        classDefiningLock = 
+        	getClassRecord(binder.getTypeEnvironment().getMyThisType(VisitUtil.getEnclosingType(lockImpl)));
       }
     }
     return classDefiningLock;
