@@ -575,7 +575,8 @@ public class JavaCanonicalizer {
     	IRLocation last = tree.lastChildLocation(params);    	
     	IRNode lastP  = tree.getChild(params, last);
     	if (VarArgsType.prototype.includes(ParameterDeclaration.getType(lastP))) {
-    		System.out.println("Var binding: "+DebugUnparser.toString(b.getNode()));
+    		//System.out.println("Var binding: "+DebugUnparser.toString(b.getNode()));
+    		
     		// Reorganize arguments
     		final IRNode[] newArgs = new IRNode[numParams];
     		final int numLastParam = numParams - 1;
