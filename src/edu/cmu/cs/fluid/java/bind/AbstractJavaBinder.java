@@ -2324,14 +2324,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode rv;
       //decl = JavaPromise.getInitMethodOrNull(type);
       
-      if (contextTypeB != null) {
+      if (contextTypeB != null && contextTypeB != type) {
         rv = JavaPromise.getQualifiedReceiverNodeByName(type, contextTypeB);
       } else {
         rv = JavaPromise.getReceiverNodeOrNull(type);
       }
       if (type == null || decl == null || rv == null) {
         LOG.severe("Got nulls while binding "+DebugUnparser.toString(n));
-        JavaNames.getFullTypeName(contextTypeB);
+        JavaPromise.getQualifiedReceiverNodeByName(type, contextTypeB);
       }
       return rv;
     }
