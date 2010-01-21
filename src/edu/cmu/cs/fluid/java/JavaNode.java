@@ -213,16 +213,16 @@ public class JavaNode extends JJNode {
   }
   
   public static boolean getModifier(int mods, int mod) {
-    return ((mods & mod) > 0);
+    return ((mods & mod) != 0);
   }
 
   // FIX?
   public static int setModifier(int mods, int mod, boolean accumulate) {
     checkMod(mod);
     if (accumulate) {
-      mods |= mod;
+    	mods |= mod;  // Add this
     } else {
-      mods &= mod;
+    	mods &= ~mod; // Keep all but this
     }
     return mods;
   }
