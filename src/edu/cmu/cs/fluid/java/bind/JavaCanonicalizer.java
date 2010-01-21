@@ -558,6 +558,49 @@ public class JavaCanonicalizer {
     }
     
     @Override
+    public Boolean visitArguments(IRNode node) {
+    	boolean changed = super.visitArguments(node);
+    	// Check for var args
+    	IRNode call   = tree.getParent(node);
+    	IBinding b    = binder.getIBinding(call);
+    	IRNode params = SomeFunctionDeclaration.getParams(b.getNode());
+    	int numParams = tree.numChildren(params);
+    	if (numParams == 0) {
+    		// No varargs
+    		return changed; 
+    	}
+    	IRLocation last = tree.lastChildLocation(params);    	
+    	IRNode lastP  = tree.getChild(params, last);
+    	if (VarArgsType.prototype.includes(ParameterDeclaration.getType(lastP))) {
+    		System.out.println("Var binding: "+DebugUnparser.toString(b.getNode()));
+    		// Reorganize arguments
+    		final IRNode[] newArgs = new IRNode[numParams];
+    		final int numLastParam = numParams - 1;
+    		final int numArgs      = tree.numChildren(node);
+    		List<IRNode> varArgs;
+    		if (numArgs == numLastParam) {
+    			varArgs = Collections.emptyList();
+    		} else {
+    			varArgs = new ArrayList<IRNode>(numArgs - numLastParam);
+    		}
+    		
+    		int i = 0;
+    		for(IRNode arg : tree.children(node)) {    			
+    			if (i < numLastParam) {
+    				newArgs[i] = arg;
+    			} else {
+    				varArgs.add(arg);
+    			}
+    			i++;
+    		}
+    		tree.removeChildren(node);
+    		newArgs[numLastParam] = VarArgsExpression.createNode(varArgs.toArray(new IRNode[varArgs.size()]));
+    		tree.replaceSubtree(node, Arguments.createNode(newArgs));
+    	}
+    	return changed;
+    }
+    
+    @Override
     public Boolean visitAssignExpression(IRNode node) {
       boolean changed = generateBoxUnbox(node);
       // we must visit the RHS first or else the box-unbox code for the RHS will see
