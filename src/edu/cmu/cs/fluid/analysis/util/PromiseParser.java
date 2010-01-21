@@ -114,15 +114,16 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 	@Override
 	public void preBuild(IProject p) {
 		super.preBuild(p);
-		ScopedPromisesLexer.init();
-		SLAnnotationsLexer.init();
-		SLColorAnnotationsLexer.init();
+		// Was initializing lexer state
 	}
 
 	@Override
 	public void analyzeBegin(IProject p) {
 		super.analyzeBegin(p);
-
+		ScopedPromisesLexer.init();
+		SLAnnotationsLexer.init();
+		SLColorAnnotationsLexer.init();
+		
 		/*
 		 * Some code needs java.lang.Object as promises are parsed, so
 		 * we need to parse its promises early
@@ -279,9 +280,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule
 	@Override
 	public void postBuild(IProject project) {
 		super.postBuild(project);
-		ScopedPromisesLexer.clear();
-		SLAnnotationsLexer.clear();
-		SLColorAnnotationsLexer.clear();
+		// Was clearing lexer state -- moved to Scrubber.analyzeEnd()
 	}
 	
 	/**

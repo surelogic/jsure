@@ -4,8 +4,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.annotation.parse.SLAnnotationsLexer;
+import com.surelogic.annotation.parse.SLColorAnnotationsLexer;
+import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.XMLGenerator;
@@ -205,6 +209,9 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
     AnnotationRules.scrub();    
     RegionModel.purgeUnusedRegions();
     LockModel.purgeUnusedLocks();
+	ScopedPromisesLexer.clear();
+	SLAnnotationsLexer.clear();
+	SLColorAnnotationsLexer.clear();
     return rv;
   }
   
