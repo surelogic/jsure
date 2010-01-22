@@ -57,13 +57,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
   
   
   public UniquenessAnalysisModule() {
-		super("UniqueAnalysis");
+		super(true && !singleThreaded, null, "UniqueAnalysis");
 	}
-
-  @Override
-  protected boolean runInParallel() {
-	  return true && !singleThreaded;
-  }
   
 	public void init(IIRAnalysisEnvironment env) {
 		// Nothing to do
