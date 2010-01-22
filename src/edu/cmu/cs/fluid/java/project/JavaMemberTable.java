@@ -474,7 +474,9 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * @return
    */
   public Iterator<IRNode> getDeclarationsFromUse(String name, IRNode useNode) {
-    ensureDerived();
+	if (isVersioned) {
+		ensureDerived();
+	}
     Entry entry = getEntry(name);
     if (useNode != null) {
       entry.addUse(useNode);
@@ -782,12 +784,16 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   static Set<IRNode> repopulated = new ConcurrentHashSet<IRNode>();
   
   public class Scope implements IJavaScope {
-    protected Scope() {}
+    protected Scope() {
+    	// Nothing to do here
+    }
     
     public IBinding lookup(String name, final IRNode useSite, final Selector selector) {
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) LOG.fine("Looking for " + name + " in " + this);
-      JavaMemberTable.this.ensureDerived();
+      if (isVersioned) {
+    	  JavaMemberTable.this.ensureDerived();
+      }
       Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
       while (members.hasNext()) {
         IRNode n = members.next();
@@ -817,7 +823,9 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       }
       List<IRNode> tempMembers;
       synchronized (JavaMemberTable.this) {
-    	  JavaMemberTable.this.ensureDerived();      
+    	  if (isVersioned) {
+    		  JavaMemberTable.this.ensureDerived();      
+    	  }
     	  Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
     	  if (!JJNode.versioningIsOn && !members.hasNext() && 
     			  !repopulated.contains(typeDeclaration)) {   
