@@ -27,11 +27,11 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	private Drop resultDependUpon = null;
 	
 	protected AbstractWholeIRAnalysis(String logName) {
-		this(null, logName);
+		this(false, null, logName);
 	}
 	
-	protected AbstractWholeIRAnalysis(Class<Q> type, String logName) {
-		super(type);
+	protected AbstractWholeIRAnalysis(boolean inParallel, Class<Q> type, String logName) {
+		super(inParallel, type);
 		LOG = SLLogger.getLogger(logName);
 	}
 	
