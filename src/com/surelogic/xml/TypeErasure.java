@@ -35,17 +35,20 @@ public class TypeErasure {
 //			System.out.println(parts[i] + " ");
 //		System.out.println("\\n");
 		
-		try {
-			IJavaType javaType = tEnv.findJavaTypeByName(parts[0]);
-			
-			/* This is probably not a generic if this worked */
-			if(javaType != null)
-				return parts[0];			
-			
-		} catch (NullPointerException n) {
-			// Just means this type was not found
-		}
+		if (parts.length <= 1 || !"extends".equals(parts[1])) {
+			try {
+				IJavaType javaType = tEnv.findJavaTypeByName(parts[0]);
 
+				/* This is probably not a generic if this worked */
+				if(javaType != null)
+					return parts[0];			
+
+			} catch (NullPointerException n) {
+				// Just means this type was not found
+			}
+		} else {
+			// Definitely a type variable
+		}
 		for(int i = 1; i < parts.length; i++) {
 			
 			if(parts[i].equals("extends") && (i + 1 < parts.length)) {
