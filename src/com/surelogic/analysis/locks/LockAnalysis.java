@@ -26,6 +26,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {	
 	private static boolean runInParallel = true;
 	private static boolean queueWork = runInParallel && true;
+	private static boolean byCompUnit = queueWork && true; // otherwise by type
 	
 	private final AtomicReference<GlobalLockModel> lockModelHandle = 
 		new AtomicReference<GlobalLockModel>(null);
@@ -34,9 +35,16 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 		super(queueWork ? IRNode.class : null, "LockAssurance");
 		if (runInParallel) {
 			setWorkProcedure(new Procedure<IRNode>() {
-				public void op(IRNode type) {
-					//System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(type));
-					getAnalysis().analyzeClass(type, getResultDependUponDrop());
+				public void op(IRNode n) {
+					if (byCompUnit) {
+						//System.out.println("Parallel Lock: "+JavaNames.genPrimaryTypeName(n));
+						final TopLevelVisitor topLevel = 
+							new TopLevelVisitor(getAnalysis(), getResultDependUponDrop());
+						topLevel.doAccept(n);	
+					} else {
+						//System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(n));
+						getAnalysis().analyzeClass(n, getResultDependUponDrop());
+					}
 				}
 			});
 		}      
@@ -117,6 +125,13 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 	
 	@Override
 	public boolean doAnalysisOnAFile(CUDrop cud, final IRNode compUnit, IAnalysisMonitor monitor) {
+		if (byCompUnit) {
+			boolean flushed = queueWork(compUnit);
+			if (flushed) {
+				JavaComponentFactory.clearCache();
+			}
+			return true;
+		}
 		// FIX factor out?
 		final TopLevelVisitor topLevel = new TopLevelVisitor(getAnalysis(),
 				getResultDependUponDrop());
@@ -157,7 +172,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 		}
 		
 		private void analyzeClass(IRNode cbody) {
-			if (runInParallel()) {
+			if (runInParallel() && !byCompUnit) {
 				types.add(cbody);
 			} else {
 				lockVisitor.analyzeClass(cbody,	resultsDependUpon);

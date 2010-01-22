@@ -57,6 +57,20 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> implements 
 		return workProc;
 	}
 	
+	protected boolean queueWork(Q work) {
+		if (workQueue != null) {
+			List<Q> l = workQueue.asList();
+			l.add(work);
+			if (l.size() > FLUSH_SIZE) {
+				flushWorkQueue();
+				
+				//System.out.println("#builders    : "+builders.size());
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	protected boolean queueWork(Collection<Q> work) {
 		if (workQueue != null) {
 			List<Q> l = workQueue.asList();
