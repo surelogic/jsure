@@ -32,7 +32,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 		new AtomicReference<GlobalLockModel>(null);
 	
 	public LockAnalysis() {
-		super(queueWork ? IRNode.class : null, "LockAssurance");
+		super(runInParallel && !singleThreaded, queueWork ? IRNode.class : null, "LockAssurance");
 		if (runInParallel) {
 			setWorkProcedure(new Procedure<IRNode>() {
 				public void op(IRNode n) {
@@ -53,11 +53,6 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 	public void init(IIRAnalysisEnvironment env) {
 		env.ensureClassIsLoaded(LockUtils.JAVA_UTIL_CONCURRENT_LOCKS_LOCK);
 		env.ensureClassIsLoaded(LockUtils.JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK);
-	}
-	
-	@Override
-	protected boolean runInParallel() {
-		return runInParallel && !singleThreaded;
 	}
 	
 	@Override
