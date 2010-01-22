@@ -139,10 +139,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 		finishBuild();
 		
 		lockModelHandle.set(null);
-		// FIX only clearing some of the threads?
-		if (getAnalysis() != null) {
-			getAnalysis().clearCaches();
-		}
+		super.postAnalysis(p);
 	}
 	
 	private final class TopLevelVisitor extends VoidTreeWalkVisitor {
