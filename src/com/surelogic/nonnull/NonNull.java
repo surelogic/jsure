@@ -1,25 +1,26 @@
 package com.surelogic.nonnull;
 
+import java.util.LinkedList;
 import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
-import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 
 public final class NonNull extends AbstractWholeIRAnalysisModule {
@@ -100,31 +101,82 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	}
 
 	protected void checkNonNullForFile(final IRNode compUnit) {
-//		/*
-//		 * Run around the tree looking for variable use expressions.
-//		 */
-//		for (IRNode node : JJNode.tree.topDown(compUnit)) {
-//			final Operator op = JJNode.tree.getOperator(node);
-//			if (VariableUseExpression.prototype.includes(op)) {
-//				// See if the current variable is a primitive or not
-//				final IJavaType type = binder.getJavaType(node);
-//				if (type instanceof IJavaReferenceType) {
-//					// See if the current variable is considered to be null or
-//					// not
-//					final Set<IRNode> nonNull = nonNullAnalysis
-//							.getNonnullBefore(node);
-//					final IRNode varDecl = binder.getBinding(node);
-//					final InfoDrop drop = new InfoDrop();
-//					setLockResultDep(drop, node);
-//					drop.setCategory(NONNULL_CATEGORY);
-//					final String varName = VariableUseExpression.getId(node);
-//					if (nonNull.contains(varDecl)) {
-//						drop.setMessage(varName + " IS NOT null");
-//					} else {
-//						drop.setMessage(varName + " may be null");
-//					}
-//				}
-//			}
-//		}
+	  final NonNullVisitor v = new NonNullVisitor();
+	  v.doAccept(compUnit);
+	}
+	
+	private final class NonNullVisitor extends JavaSemanticsVisitor {
+	  private SimpleNonnullAnalysis.Query query = null;
+	  private final LinkedList<SimpleNonnullAnalysis.Query> oldQueries =
+	    new LinkedList<SimpleNonnullAnalysis.Query>();
+	  
+	  public NonNullVisitor() {
+	    super(true);
+	  }
+	  
+	  
+	  
+	  private void newQuery(final SimpleNonnullAnalysis.Query q) {
+	    oldQueries.addFirst(query);
+	    query = q;
+	  }
+	  
+	  private void restoreQuery() {
+	    query = oldQueries.removeFirst();
+	  }
+	  	  
+	  
+	  
+	  @Override
+	  protected void enteringEnclosingDecl(final IRNode newDecl) {
+	    System.out.println("Running non null on " + JavaNames.genQualifiedMethodConstructorName(newDecl));
+	    newQuery(nonNullAnalysis.getNonnullBeforeQuery(newDecl));
+	  }
+	  
+	  @Override
+	  protected void leavingEnclosingDecl(final IRNode oldDecl) {
+	    restoreQuery();
+	  }
+	  
+	  @Override
+	  protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
+	    return new InstanceInitAction() {
+        public void tryBefore() {
+          newQuery(query.getSubAnalysisQuery());
+        }
+        
+        public void finallyAfter() {
+          restoreQuery();
+        }
+        
+        public void afterVisit() {
+          // do nothing
+        }
+      };
+	  }
+	  
+	  
+	  
+	  @Override
+	  public Void visitVariableUseExpression(final IRNode use) {
+	    // See if the current variable is a primitive or not
+	    final IJavaType type = binder.getJavaType(use);
+	    if (type instanceof IJavaReferenceType) {
+         // See if the current variable is considered to be null or not
+	      final Set<IRNode> nonNull = query.getResultFor(use);
+	      final IRNode varDecl = binder.getBinding(use);
+        final InfoDrop drop = new InfoDrop();
+        setLockResultDep(drop, use);
+        drop.setCategory(NONNULL_CATEGORY);
+        final String varName = VariableUseExpression.getId(use);
+        if (nonNull.contains(varDecl)) {
+          drop.setMessage(varName + " IS NOT null");
+        } else {
+          drop.setMessage(varName + " may be null");
+        }
+	    }
+	    
+	    return null;
+	  }
 	}
 }
