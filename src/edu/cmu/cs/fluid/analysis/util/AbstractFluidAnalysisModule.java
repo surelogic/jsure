@@ -82,6 +82,14 @@ public abstract class AbstractFluidAnalysisModule<Q> extends
     return javaFile;
   }
    
+  public AbstractFluidAnalysisModule() {
+	  super();
+  }
+  
+  public AbstractFluidAnalysisModule(boolean inParallel, Class<Q> type) {
+	  super(inParallel, type);
+  }
+  
   @Override
   public boolean needsAST() {
     return false; // TODO fix to take advantage of what Majordomo does
