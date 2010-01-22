@@ -57,4 +57,8 @@ public class ParseHelper {
     ParseStatus s = cache.get(key);   
     return s;
   }
+  
+  public void clearCache() {
+	  cache.clear();
+  }
 }

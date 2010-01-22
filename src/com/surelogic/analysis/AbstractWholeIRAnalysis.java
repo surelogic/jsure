@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
 
+import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -80,6 +81,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	public void postAnalysis(IIRProject p) {
 		clearCaches();
 		CachedSet.clearCache();
+		LabelList.clearCache();
 	}
 	
 	protected abstract void clearCaches();

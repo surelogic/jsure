@@ -21,6 +21,10 @@ public class LabelList {
   ControlLabel label = null;
   LabelList shorter = null;
 
+  public static void clearCache() {
+	  longer.clear();
+  }
+  
   public LabelList addLabel(ControlLabel l) {
 	LabelList ll;
 	synchronized (LabelList.class) {
