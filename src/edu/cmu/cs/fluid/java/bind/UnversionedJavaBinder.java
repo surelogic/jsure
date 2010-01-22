@@ -55,6 +55,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   
   @Override
   public IRNode getBinding(IRNode node) {	  
+	/*
     Operator op = JJNode.tree.getOperator(node);
     if (NamedType.prototype.includes(op)) {
       String name = NamedType.getType(node);
@@ -72,6 +73,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
         }
       }
     }
+    */
     try {
       return super.getBinding(node);
     }
