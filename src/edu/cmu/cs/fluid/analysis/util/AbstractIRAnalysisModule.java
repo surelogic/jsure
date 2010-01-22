@@ -56,8 +56,6 @@ public abstract class AbstractIRAnalysisModule extends
   protected CompilationUnit f_ast;
   
   private String msgPrefix = null;
-
-  private Set<IRNode> alreadyAnalyzed = new HashSet<IRNode>();
   
   protected AbstractIRAnalysisModule(ParserNeed parserNeed) {
     switch (parserNeed) {
@@ -94,7 +92,6 @@ public abstract class AbstractIRAnalysisModule extends
   @Override
   public void analyzeBegin(IProject p) {
     super.analyzeBegin(p);
-    clearAnalyzeStatus();
     msgPrefix = "Running " + getLabel() + " on file: ";
     
     if (lastProjectAnalyzed != p) {
@@ -249,9 +246,7 @@ public abstract class AbstractIRAnalysisModule extends
     boolean notEmpty = false;
     for (IRNode cu : iAble) {
       notEmpty = true;
-      if (wasAnalyzed(cu)) {
-        continue;
-      }
+
       CUDrop d = CUDrop.queryCU(cu);
       if (d instanceof SourceCUDrop) {
         if (resources == null) {
@@ -282,13 +277,5 @@ public abstract class AbstractIRAnalysisModule extends
    */
   protected Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
     return NONE_TO_ANALYZE;
-  }
-  
-  private void clearAnalyzeStatus() {
-    alreadyAnalyzed.clear();
-  }
-  
-  private boolean wasAnalyzed(IRNode cu) {
-    return false; //alreadyAnalyzed.contains(cu);
   }
 }
