@@ -41,6 +41,9 @@ import edu.cmu.cs.fluid.parse.JJNode;
  * subclass to take action on this methods, <code>handleXXX</code> methods are
  * provided for the subclass to implement instead. (Example here.)
  * 
+ * <p>The visitor tracks the current enclosing method/constructor declaration...
+ * 
+ * <p>The visitor tracks the current enclosing type declaration...
  * 
  */
 // TODO: Expand to deal with LValue
@@ -87,11 +90,16 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   }
   
   
-  
+  /**
+   * TODO Fill in purpose.
+   */
   protected static interface InstanceInitAction extends InstanceInitializationVisitor.Action {
     public void afterVisit();
   }
-  
+
+  /**
+   * Action that does nothing.
+   */
   protected static final InstanceInitAction NULL_ACTION = new InstanceInitAction() {
     public void tryBefore() { /* do nothing */ }
     public void finallyAfter() { /* do nothing */ }
@@ -357,6 +365,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *       enclosing method is set to the anonymous class's <code>&lt;init&gt;</code>
    *       method as represented by an InitDeclaration node, and we
    *       record that we are inside of a constructor.
+   *       <li>The {@link #enteringEnclosingDecl(IRNode)} method is called
+   *       and passed the InitDeclaration node as the new enclosing 
+   *       declaration.
    *       <li>The {@link InstanceInitAction#tryBefore()} method of the 
    *       init helper is called immediately before the recursive visit is
    *       begin.
@@ -365,6 +376,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *       <li>The {@link InstanceInitAction#finallyAfter() method of the
    *       init helper is called immediately after the recursive visit 
    *       ends (whether normally or with an exception).
+   *       <li>The {@link #leavingEnclosingDecl(IRNode)} method is called
+   *       and passed the InitDeclaration node as the enclosing declaration
+   *       we are leaving.
    *       <li>We restore the original enclosing type and method, and set
    *       that we are no longer inside a constructor.
    *       <li>The {@link InstanceInitAction#afterVisit() method of the
@@ -395,7 +409,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * <p>The default implementation of {@link #getAnonClassInitAction} 
    * returns <code>null</code>.
    * 
-   * <p>The default implementaton of {@link #handleAnonClassAsTypeDeclaration}
+   * <p>The default implementation of {@link #handleAnonClassAsTypeDeclaration}
    * visits the class body of the anonymous class expression by calling 
    * <code>doAccept(AnonClassExpression.getBody(expr))</code>.  This class
    * does not do anything to share actions between {@link #handleNonAnnotationTypeDeclaration(IRNode)}
@@ -419,16 +433,16 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
           new Action() {
             public void tryBefore() {
               enclosingType = expr; // Now inside the anonymous type declaration
-              enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr)); // Inside the <init> method
               insideConstructor = true; // We are inside the constructor of the anonymous class
+              enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr)); // Inside the <init> method
               action.tryBefore();
             }
   
             public void finallyAfter() {
               action.finallyAfter();
-              enclosingType = prevEnclosingType;
               leaveEnclosingDecl(prevEnclosingDecl);
               insideConstructor = prevInsideConstructor;
+              enclosingType = prevEnclosingType;
             }
           });
        action.afterVisit();
@@ -560,9 +574,13 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * If the initializer is <code>static</code>, we
    * <ol>
    *   <li>Set the enclosing method to the
-   * class initialization method of the current class.
+   *   class initialization method of the current class.
+   *   <li>Call {@link #enteringEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
+   *   we are entering.
    *   <li>Visit the contents
-   * of the initializer by calling {@link #handleStaticInitializer}.
+   *   of the initializer by calling {@link #handleStaticInitializer}.
+   *   <li>Call {@link #leavingEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
+   *   we are leaving.
    * </ol>
    * 
    * <p>Otherwise, we do nothing: the contents of the
@@ -576,12 +594,10 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   public final Void visitClassInitializer(final IRNode expr) {
     if (TypeUtil.isStatic(expr)) {
       enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType));
-//      enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
       try {
         handleStaticInitializer(expr);
       } finally {
         leaveEnclosingDecl(null);
-//        enclosingDecl = null;
       }
     } else {
       /* XXX Should have a handleInstanceInitialzer() too, but the InstanceInitializationVisitor
@@ -707,9 +723,13 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * Visit a constructor declaration. The order of operations is
    * <ol>
    *   <li>Record that we are inside a constructor, and the identity of that constructor.
+   *   <li>Call {@link #enteringEnclosingDecl(IRNode)} with 
+   *   <code>cdecl</code> as the new enclosing declaration.
    *   <li>Visit the constructor declaration node itself by calling
    *   {@link #handleConstructorDeclaration}.
    *   <li>Record that we are no longer inside of a constructor.
+   *   <li>Call {@link #leavingEnclosingDecl(IRNode)} with 
+   *   <code>cdecl</code> as the enclosing declaration we are leaving.
    * </ol>
    * 
    * <p>The default implementation of {@link #handleConstructorDeclaration}
@@ -720,14 +740,12 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     // 1. Record that we are inside a constructor
     insideConstructor = true;
     enterEnclosingDecl(cdecl);
-//    enclosingDecl = cdecl;
     try {
       // 2. Process the constructor declaration
       handleConstructorDeclaration(cdecl);
     } finally {
       // 3. Record we are no longer in a constructor
       leaveEnclosingDecl(null);
-      enclosingDecl = null;
       insideConstructor = false;
     }
     return null;
@@ -819,13 +837,17 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   protected void handleInterfaceDeclaration(final IRNode intDecl) {
     handleNonAnnotationTypeDeclaration(intDecl);
   }
-
+  
   /**
    * Visit a method declaration. The order of operations is
    * <ol>
    *   <li>Record that we are inside a method, and the identity of that method.
+   *   <li>Call {@link #enteringEnclosingDecl(IRNode)} with 
+   *   <code>mdecl</code> as the new enclosing declaration.
    *   <li>Visit the method declaration node itself by calling
    *   {@link #handleMethodDeclaration}.
+   *   <li>Call {@link #leavingEnclosingDecl(IRNode)} with 
+   *   <code>mdecl</code> as the enclosing declaration we are leaving.
    *   <li>Record that we are no longer inside of a method.
    * </ol>
    * 
@@ -836,14 +858,12 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   public final Void visitMethodDeclaration(final IRNode mdecl) {
     // 1. Record we are inside a method
     enterEnclosingDecl(mdecl);
-//    enclosingDecl = mdecl;
     try {
       // 2. Visit the method declaration
       handleMethodDeclaration(mdecl);
     } finally {
       // 3. Record we are no longer inside a method
       leaveEnclosingDecl(null);
-//      enclosingDecl = null;
     }
     return null;
   }
@@ -973,9 +993,14 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * initializer at all: <code>!NoInitialization.prototype.includes(VariableDeclaration.getInit(varDecl))</code>.  If the
    * field has an initializer, we then
    * <ol>
-   *   <li>If the field is <code>static</code> set the enclosing method to the class initializer of the current type.
+   *   <li>Set the enclosing method to the class initializer of the current type
+   *   and call {@link #enteringEnclosingDecl(IRNode)} with 
+   *   the ClassInitDeclaration as the new enclosing declaration if the field
+   *   is <code>static</code>.
    *   <li>Visit the declaration by calling {@link #handleFieldInitialization(IRNode, boolean)}.
-   *   <li>If the field is <code>static</code> clear the enclosing method.
+   *   <li>Call {@link #leavingEnclosingDecl(IRNode)} with the ClassInitDeclaration
+   *   as the enclosing declaration we are leaving and clear the enclosing method
+   *   if the field is <code>static</code>.
    * </ol>
    * 
    * <p>If we are 
@@ -1021,14 +1046,12 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
            */
           if (isStaticDeclaration) {
             enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType));
-//            enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
           }
           try {
             handleFieldInitialization(varDecl, isStaticDeclaration);
           } finally {
             if (isStaticDeclaration) {
               leaveEnclosingDecl(null);
-              enclosingDecl = null;
             }
           }
         }
