@@ -31,9 +31,14 @@ public class JavaComponentFactory extends ComponentFactory {
   private static Map<IRNode,Component> components = new ConcurrentHashMap<IRNode,Component>();
   
   public static void clearCache() {
+	  //checkCache();
 	  components.clear();
   }
-
+  /*
+  public static void checkCache() {
+	  System.out.println("JavaComponentFactory: "+components.size());
+  }
+  */
   public static Component lookupComponent(IRNode node) {
     return (components.get(node));
   }
