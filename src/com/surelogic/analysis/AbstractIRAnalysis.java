@@ -4,13 +4,7 @@ package com.surelogic.analysis;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import jsr166y.forkjoin.*;
-import jsr166y.forkjoin.Ops.*;
-
-import org.apache.commons.lang.SystemUtils;
-
-import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.ide.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
@@ -20,96 +14,16 @@ import edu.cmu.cs.fluid.sea.proxy.AbstractDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> implements IIRAnalysis {
+public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends ConcurrentAnalysis<Q> implements IIRAnalysis {
 	private IIRProject project;
 	private IBinder binder;
 	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
 	
-    public static final boolean singleThreaded  = false || SystemUtils.IS_JAVA_1_5;
-    private static final int threadCount = 
-    	IDE.getInstance().getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
-	private static final ForkJoinExecutor pool   = singleThreaded ? null : new ForkJoinPool(threadCount);  
-	
 	// TODO use ThreadLocal trick to collect all the builders
 	private final List<AbstractDropBuilder> builders = new Vector<AbstractDropBuilder>();
-	/**
-	 * Used to queue up work across comp units before running in parallel
-	 */
-	private final IParallelArray<Q> workQueue;
-	private Procedure<Q> workProc;
-	private static final int FLUSH_SIZE = 20*threadCount;
 	
-	protected AbstractIRAnalysis(Class<Q> type) {		
-		if (type != null) {
-			//System.out.println("Threads: "+threadCount);
-			//System.out.println("Singlethreaded? "+singleThreaded);
-			workQueue = createIParallelArray(type);
-		} else {
-			workQueue = null;
-		}
-	}
-	
-	protected final void setWorkProcedure(Procedure<Q> proc) {
-		workProc = proc;
-	}
-	
-	protected final Procedure<Q> getWorkProcedure() {
-		return workProc;
-	}
-	
-	protected boolean queueWork(Q work) {
-		if (workQueue != null) {
-			List<Q> l = workQueue.asList();
-			l.add(work);
-			if (l.size() > FLUSH_SIZE) {
-				flushWorkQueue();
-				
-				//System.out.println("#builders    : "+builders.size());
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	protected boolean queueWork(Collection<Q> work) {
-		if (workQueue != null) {
-			List<Q> l = workQueue.asList();
-			l.addAll(work);
-			if (l.size() > FLUSH_SIZE) {
-				flushWorkQueue();
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	private void flushWorkQueue() {
-		if (workQueue != null && workProc != null) {
-			List<Q> l = workQueue.asList();
-			//System.out.println("Flushing: "+l.size());
-			workQueue.apply(workProc);
-			l.clear();
-		}
-	}
-	
-	private <E> IParallelArray<E> createIParallelArray(Class<E> type) {
-		final IParallelArray<E> array = runInParallel() ? 
-				ParallelArray.create(0, type, pool) : new NonParallelArray<E>();	
-		return array;
-	}
-	
-	protected <E> void runInParallel(Class<E> type, Collection<E> c, Procedure<E> proc) {
-		if (c.isEmpty()) {
-			return;
-		}
-		final IParallelArray<E> array = createIParallelArray(type);
-		array.asList().addAll(c);
-		/*
-		for(Procedure<E> p : procs) {
-			array.apply(p);
-		}
-		*/
-		array.apply(proc);
+	protected AbstractIRAnalysis(boolean inParallel, Class<Q> type) {		
+		super(inParallel, type);
 	}
 	
 	protected IBinder getBinder() {
@@ -121,10 +35,6 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> implements 
 	}
 	
 	protected boolean flushAnalysis() {
-		return false;
-	}
-	
-	protected boolean runInParallel() {
 		return false;
 	}
 	
