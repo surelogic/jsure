@@ -101,6 +101,7 @@ public abstract class AbstractFluidAnalysisModule extends
   @Override
   public void postBuild(IProject project) {
     Eclipse.getDefault().setInProgress(false);
+    clearQueues();
   }
 
   @Override

@@ -569,9 +569,9 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule {
 
 	private static final int BATCH_SIZE = 100;
 	private static final boolean batch = (BATCH_SIZE > 1);
-	private List<ICompilationUnit> batchQ = new ArrayList<ICompilationUnit>(
+	private final List<ICompilationUnit> batchQ = new ArrayList<ICompilationUnit>(
 			BATCH_SIZE);
-	private Set<ICodeFile> justLoaded = new HashSet<ICodeFile>();
+	private final Set<ICodeFile> justLoaded = new HashSet<ICodeFile>();
 
 	// private ICompilationUnit[] temp = new ICompilationUnit[BATCH_SIZE];
 

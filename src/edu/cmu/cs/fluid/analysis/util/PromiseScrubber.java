@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.annotation.parse.ParseHelper;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
 import com.surelogic.annotation.parse.SLColorAnnotationsLexer;
 import com.surelogic.annotation.parse.ScopedPromisesLexer;
@@ -212,6 +213,7 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
 	ScopedPromisesLexer.clear();
 	SLAnnotationsLexer.clear();
 	SLColorAnnotationsLexer.clear();
+	ParseHelper.getInstance().clearCache();
     return rv;
   }
   
