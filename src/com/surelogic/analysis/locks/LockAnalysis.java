@@ -12,6 +12,7 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effects;
 
 import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.TypeBasedAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -23,7 +24,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {	
-	private static boolean runInParallel = false;
+	private static boolean runInParallel = true;
 	private static boolean queueWork = runInParallel && true;
 	
 	private final AtomicReference<GlobalLockModel> lockModelHandle = 
@@ -122,7 +123,10 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 		topLevel.doAccept(compUnit);	
 		if (runInParallel()) {
 			if (queueWork) {
-				queueWork(topLevel.getTypeBodies());
+				boolean flushed = queueWork(topLevel.getTypeBodies());
+				if (flushed) {
+					JavaComponentFactory.clearCache();
+				}
 			} else {
 				runInParallel(IRNode.class, topLevel.getTypeBodies(), getWorkProcedure());
 			}
