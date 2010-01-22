@@ -148,6 +148,56 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     return enclosingType;
   }
 
+//  /**
+//   * Called whenever the visitor enters a new type declaration.  This is 
+//   * called after the internal record of the enclosing type has updated, 
+//   * so that <code>getEnclosingType() == newType</code>.  This will eventually
+//   * be followed by a matched call to {@link #leavingEnclosingType} when the
+//   * visit of the type is completed.
+//   * 
+//   * <p>The default implementation does nothing.
+//   * 
+//   * @param newType
+//   *          The IRNode of the new enclosing type, either a suboperator of
+//   *          TypeDeclaration or an AnonClassExpression node.  Will never be
+//   *          <code>null</code>.
+//   */
+//  protected void enteringEnclosingType(final IRNode newType) {
+//    // do nothing
+//  }
+//
+//  /**
+//   * Called whenever the visitor leaves a type declaration. This is called after
+//   * the internal record of the enclosing type has updated, so that
+//   * <code>getEnclosingType() == newType</code>. This always follows a call to
+//   * {@link #enteringEnclosingType}.
+//   * 
+//   * <p>
+//   * The default implementation does nothing.
+//   * 
+//   * @param leavingType
+//   *          The IRNode of the type whose visitation was just completed, either
+//   *          a suboperator of TypeDeclaration or an AnonClassExpression node.
+//   *          Will never be <code>null</code>.
+//   * @param newType
+//   *          The IRNode of the type to which visitation is resuming, if the
+//   *          previous type was a nested type, or <code>null</code> if the
+//   *          previous type was a top-level type.
+//   */
+//  protected void leavingEnclosingType(final IRNode leavingType, final IRNode newType) {
+//    // do nothing
+//  }
+//
+//  private void enterEnclosingType(final IRNode newType) {
+//    enclosingType = newType;
+//    enteringEnclosingType(newType);
+//  }
+//  
+//  private void leaveEnclosingType(final IRNode leavingType, final IRNode newType) {
+//    enclosingType = newType;
+//    leavingEnclosingType(leavingType, newType);
+//  }
+  
   /**
    * Get the current method/constructor declaration, if any, the visitation is
    * inside of.
@@ -159,6 +209,54 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   protected IRNode getEnclosingDecl() {
     return enclosingDecl;
+  }
+
+  /**
+   * Called whenever the visitor enters a new method/constructor declaration.
+   * This is called after the internal record of the enclosing declaration has
+   * been updated, so that <code>getEnclosingDecl() == enteringDecl</code>.  This
+   * will always be followed by a call to {@link #leavingEnclosingDecl}.
+   * 
+   * <p>
+   * The default implementation does nothing.
+   * 
+   * @param enteringDecl
+   *          The IRNode of the new enclosing type, either a MethodDeclaration,
+   *          ConstructorDeclaration, ClassInitDeclaration, or InitDeclaration.
+   *          This will never be <code>null</code>.
+   */
+  protected void enteringEnclosingDecl(final IRNode enteringDecl) {
+    // do nothing
+  }
+
+  /**
+   * Called whenever the visitor finishes visiting a method/constructor
+   * declaration. This is called before the internal record of the enclosing
+   * declaration has been updated, so that
+   * <code>getEnclosingDecl() == leavingDecl</code>. This always follows a
+   * call to {@link #enteringEnclosingDecl}.
+   * 
+   * <p>
+   * The default implementation does nothing.
+   * 
+   * @param leavingDecl
+   *          The IRNode of the declaration whose visitation has completed,
+   *          either a MethodDeclaration, ConstructorDeclaration,
+   *          ClassInitDeclaration, or InitDeclaration. This will never be
+   *          <code>null</code>.
+   */
+  protected void leavingEnclosingDecl(final IRNode leavingDecl) {
+    // do nothing
+  }
+  
+  private void enterEnclosingDecl(final IRNode enteringDecl) {
+    enclosingDecl = enteringDecl;
+    enteringEnclosingDecl(enteringDecl);
+  }
+  
+  private void leaveEnclosingDecl(final IRNode returningToDecl) {
+    leavingEnclosingDecl(enclosingDecl);
+    enclosingDecl = returningToDecl;
   }
   
   
@@ -196,13 +294,20 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       final boolean prevInsideConstructor = insideConstructor;
       try {
         enclosingType = typeDecl;
+        /* We aren't entering a method/constructor declaration here, so we
+         * don't want to call enteringEnclosingDecl(). 
+         */
         enclosingDecl = null;
         insideConstructor = false;
         action.visit(this, typeDecl);
       } finally {
-        enclosingType = prevEnclosingType;
+        /* We will have already left a method/constructor declaration before
+         * getting here, so leavingEnclosingDecl() will have already been
+         * called. 
+         */
         enclosingDecl = prevEnclosingDecl;
         insideConstructor = prevInsideConstructor;
+        enclosingType = prevEnclosingType;
       }
     }
   }
@@ -314,7 +419,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
           new Action() {
             public void tryBefore() {
               enclosingType = expr; // Now inside the anonymous type declaration
-              enclosingDecl = JavaPromise.getInitMethodOrNull(expr); // Inside the <init> method
+              enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr)); // Inside the <init> method
               insideConstructor = true; // We are inside the constructor of the anonymous class
               action.tryBefore();
             }
@@ -322,7 +427,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
             public void finallyAfter() {
               action.finallyAfter();
               enclosingType = prevEnclosingType;
-              enclosingDecl = prevEnclosingDecl; 
+              leaveEnclosingDecl(prevEnclosingDecl);
               insideConstructor = prevInsideConstructor;
             }
           });
@@ -333,7 +438,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     if (visitInsideTypes) {
       try {
         enclosingType = expr;
-        enclosingDecl = null; // We are not inside of any method or constructor
+        enclosingDecl = null; // We are not inside of any method or constructor -- see comments in visitNonAnnotationTypeDeclaration()
         insideConstructor = false;
         handleAnonClassAsTypeDeclaration(expr);
       } finally {
@@ -470,11 +575,13 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   @Override
   public final Void visitClassInitializer(final IRNode expr) {
     if (TypeUtil.isStatic(expr)) {
-      enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
+      enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType));
+//      enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
       try {
         handleStaticInitializer(expr);
       } finally {
-        enclosingDecl = null;
+        leaveEnclosingDecl(null);
+//        enclosingDecl = null;
       }
     } else {
       /* XXX Should have a handleInstanceInitialzer() too, but the InstanceInitializationVisitor
@@ -605,19 +712,21 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *   <li>Record that we are no longer inside of a constructor.
    * </ol>
    * 
-   * <p>The default implememnation of {@link #handleConstructorDeclaration}
+   * <p>The default implementation of {@link #handleConstructorDeclaration}
    * simply visits the children of the node.
    */
   @Override
   public final Void visitConstructorDeclaration(final IRNode cdecl) {
     // 1. Record that we are inside a constructor
-    enclosingDecl = cdecl;
     insideConstructor = true;
+    enterEnclosingDecl(cdecl);
+//    enclosingDecl = cdecl;
     try {
       // 2. Process the constructor declaration
       handleConstructorDeclaration(cdecl);
     } finally {
       // 3. Record we are no longer in a constructor
+      leaveEnclosingDecl(null);
       enclosingDecl = null;
       insideConstructor = false;
     }
@@ -720,19 +829,21 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *   <li>Record that we are no longer inside of a method.
    * </ol>
    * 
-   * <p>The default implememnation of {@link #handleMethodDeclaration} simply
+   * <p>The default implementation of {@link #handleMethodDeclaration} simply
    * visits the children of the node.
    */
   @Override
   public final Void visitMethodDeclaration(final IRNode mdecl) {
     // 1. Record we are inside a method
-    enclosingDecl = mdecl;
+    enterEnclosingDecl(mdecl);
+//    enclosingDecl = mdecl;
     try {
       // 2. Visit the method declaration
       handleMethodDeclaration(mdecl);
     } finally {
       // 3. Record we are no longer inside a method
-      enclosingDecl = null;
+      leaveEnclosingDecl(null);
+//      enclosingDecl = null;
     }
     return null;
   }
@@ -909,12 +1020,14 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
            * method to the class initialization declaration. 
            */
           if (isStaticDeclaration) {
-            enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
+            enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType));
+//            enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
           }
           try {
             handleFieldInitialization(varDecl, isStaticDeclaration);
           } finally {
             if (isStaticDeclaration) {
+              leaveEnclosingDecl(null);
               enclosingDecl = null;
             }
           }
