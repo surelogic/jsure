@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
+import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.analysis.IAnalysisMonitor;
 
 /**
@@ -14,8 +15,14 @@ import com.surelogic.analysis.IAnalysisMonitor;
  * new analysis modules. Analysis modules are singleton classes that implement
  * the {@link IAnalysis}interface.
  */
-public class AbstractAnalysisModule implements IAnalysis {
-
+public class AbstractAnalysisModule<Q> extends ConcurrentAnalysis<Q> implements IAnalysis {
+  public AbstractAnalysisModule() {
+	  super(false, null);
+  }
+  public AbstractAnalysisModule(boolean inParallel, Class<Q> type) {
+	  super(inParallel, type);
+  }
+	
   /**
    * The label from the plugin.xml that defined this analysis module. It is
    * passed in via {@link #setLabel(String)}by {@link Majordomo}and retrieved

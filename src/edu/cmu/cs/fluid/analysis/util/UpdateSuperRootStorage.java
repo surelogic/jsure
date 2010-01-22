@@ -23,7 +23,7 @@ import edu.cmu.cs.fluid.ide.IDE;
  * 
  * Recast as a prepass to converting FAST to IR
  */
-public final class UpdateSuperRootStorage extends AbstractFluidAnalysisModule {
+public final class UpdateSuperRootStorage extends AbstractFluidAnalysisModule<Void> {
 
 	private static UpdateSuperRootStorage INSTANCE;
 

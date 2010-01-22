@@ -53,8 +53,8 @@ import edu.cmu.cs.fluid.util.SimpleRemovelessIterator;
 /**
  * A module that contains the basics to drive most Fluid analyses using the IR.
  */
-public abstract class AbstractFluidAnalysisModule extends
-    AbstractAnalysisModule implements IWarningReport {
+public abstract class AbstractFluidAnalysisModule<Q> extends
+    AbstractAnalysisModule<Q> implements IWarningReport {
   static {
     Eclipse.initialize();
   }

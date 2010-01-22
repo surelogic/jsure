@@ -19,7 +19,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
 
 @Deprecated
-public final class ConcurrencyDetector extends AbstractFluidAnalysisModule
+public final class ConcurrencyDetector extends AbstractFluidAnalysisModule<Void>
 {
   private static final Logger LOG = SLLogger.getLogger("analysis.threads");
 

@@ -45,7 +45,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  *         loaded.
  */
 public final class PackageLevelPreprocessing extends
-		AbstractFluidAnalysisModule {
+		AbstractFluidAnalysisModule<Void> {
 	private static PackageLevelPreprocessing INSTANCE;
 	private final ASTParser parser = ASTParser.newParser(AST.JLS3);
 	private Dependencies dependencies;

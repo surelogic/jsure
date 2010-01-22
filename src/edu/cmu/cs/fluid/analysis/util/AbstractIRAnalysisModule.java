@@ -34,7 +34,7 @@ import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
  * @author chance
  */
 public abstract class AbstractIRAnalysisModule extends
-    AbstractFluidAnalysisModule { 
+    AbstractFluidAnalysisModule<Void> { 
   protected enum ParserNeed {
     EITHER, OLD, NEW 
   }

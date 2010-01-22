@@ -74,7 +74,7 @@ import edu.cmu.cs.fluid.version.Version;
 /**
  * Analysis module to maintain Eclipse Java projects within the Fluid IR.
  */
-public final class ConvertToIR extends AbstractFluidAnalysisModule {
+public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 	private static ConvertToIR INSTANCE;
 
 	private static final Logger LOG = SLLogger

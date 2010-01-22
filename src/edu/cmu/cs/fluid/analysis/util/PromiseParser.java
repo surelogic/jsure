@@ -49,7 +49,7 @@ import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 import edu.cmu.cs.fluid.util.QuickProperties;
 
-public final class PromiseParser extends AbstractFluidAnalysisModule
+public final class PromiseParser extends AbstractFluidAnalysisModule<Void>
 {
 	/**
 	 * Logger for this class

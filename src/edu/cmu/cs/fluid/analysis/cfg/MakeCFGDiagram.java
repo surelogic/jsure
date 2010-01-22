@@ -104,7 +104,7 @@ import edu.cmu.cs.fluid.util.QuickProperties;
 /**
  * @author yangzhao
  */
-public final class MakeCFGDiagram extends AbstractFluidAnalysisModule {
+public final class MakeCFGDiagram extends AbstractFluidAnalysisModule<Void> {
 	// private static final String REPORT_CATEGORY = "CFG Diagram Maker";
 
 	/**
