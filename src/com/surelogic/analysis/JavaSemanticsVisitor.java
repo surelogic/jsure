@@ -156,55 +156,51 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     return enclosingType;
   }
 
-//  /**
-//   * Called whenever the visitor enters a new type declaration.  This is 
-//   * called after the internal record of the enclosing type has updated, 
-//   * so that <code>getEnclosingType() == newType</code>.  This will eventually
-//   * be followed by a matched call to {@link #leavingEnclosingType} when the
-//   * visit of the type is completed.
-//   * 
-//   * <p>The default implementation does nothing.
-//   * 
-//   * @param newType
-//   *          The IRNode of the new enclosing type, either a suboperator of
-//   *          TypeDeclaration or an AnonClassExpression node.  Will never be
-//   *          <code>null</code>.
-//   */
-//  protected void enteringEnclosingType(final IRNode newType) {
-//    // do nothing
-//  }
-//
-//  /**
-//   * Called whenever the visitor leaves a type declaration. This is called after
-//   * the internal record of the enclosing type has updated, so that
-//   * <code>getEnclosingType() == newType</code>. This always follows a call to
-//   * {@link #enteringEnclosingType}.
-//   * 
-//   * <p>
-//   * The default implementation does nothing.
-//   * 
-//   * @param leavingType
-//   *          The IRNode of the type whose visitation was just completed, either
-//   *          a suboperator of TypeDeclaration or an AnonClassExpression node.
-//   *          Will never be <code>null</code>.
-//   * @param newType
-//   *          The IRNode of the type to which visitation is resuming, if the
-//   *          previous type was a nested type, or <code>null</code> if the
-//   *          previous type was a top-level type.
-//   */
-//  protected void leavingEnclosingType(final IRNode leavingType, final IRNode newType) {
-//    // do nothing
-//  }
-//
-//  private void enterEnclosingType(final IRNode newType) {
-//    enclosingType = newType;
-//    enteringEnclosingType(newType);
-//  }
-//  
-//  private void leaveEnclosingType(final IRNode leavingType, final IRNode newType) {
-//    enclosingType = newType;
-//    leavingEnclosingType(leavingType, newType);
-//  }
+  /**
+   * Called whenever the visitor enters a new type declaration.  This is 
+   * called after the internal record of the enclosing type has been updated, 
+   * so that <code>getEnclosingType() == newType</code>.  This will eventually
+   * be followed by a matched call to {@link #leavingEnclosingType} when the
+   * visit of the type is completed.
+   * 
+   * <p>The default implementation does nothing.
+   * 
+   * @param newType
+   *          The IRNode of the new enclosing type, either a suboperator of
+   *          TypeDeclaration or an AnonClassExpression node.  Will never be
+   *          <code>null</code>.
+   */
+  protected void enteringEnclosingType(final IRNode newType) {
+    // do nothing
+  }
+
+  /**
+   * Called whenever the visitor leaves a type declaration. This is called before
+   * the internal record of the enclosing type has been updated, so that
+   * <code>getEnclosingType() == leavingType</code>. This always follows a call to
+   * {@link #enteringEnclosingType}.
+   * 
+   * <p>
+   * The default implementation does nothing.
+   * 
+   * @param leavingType
+   *          The IRNode of the type whose visitation was just completed, either
+   *          a suboperator of TypeDeclaration or an AnonClassExpression node.
+   *          Will never be <code>null</code>.
+   */
+  protected void leavingEnclosingType(final IRNode leavingType) {
+    // do nothing
+  }
+
+  private void enterEnclosingType(final IRNode newType) {
+    enclosingType = newType;
+    enteringEnclosingType(newType);
+  }
+  
+  private void leaveEnclosingType(final IRNode returningToType) {
+    leavingEnclosingType(enclosingType);
+    enclosingType = returningToType;
+  }
   
   /**
    * Get the current method/constructor declaration, if any, the visitation is
@@ -279,10 +275,14 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * not visit into types. Otherwise, it
    * <ol>
    * <li>Saves the current enclosing type and method information
-   * <li>Sets the enclosing type to the new type.
-   * <li>Visits the new type by calling the {@link VisitTypeAction#visit(JavaSemanticsVisitor, IRNode)} method of the
+   * <li>Sets the enclosing type to the new type, and calls
+   * {@link #enteringEnclosingType(IRNode)}.
+   * <li>Visits the new type by calling the
+   * {@link VisitTypeAction#visit(JavaSemanticsVisitor, IRNode)} method of the
    * <code>action</code> parameter.
-   * <li>Restores the previous enclosing type and method information.
+   * <li>Restores the previous enclosing method information.
+   * <li>Calls {@link #leavingEnclosingType(IRNode)} and then restores the
+   * previous enclosing type information.
    * </ol>
    * 
    * @param typeDecl
@@ -301,7 +301,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       final IRNode prevEnclosingDecl = enclosingDecl;
       final boolean prevInsideConstructor = insideConstructor;
       try {
-        enclosingType = typeDecl;
+        enterEnclosingType(typeDecl);
         /* We aren't entering a method/constructor declaration here, so we
          * don't want to call enteringEnclosingDecl(). 
          */
@@ -315,7 +315,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
          */
         enclosingDecl = prevEnclosingDecl;
         insideConstructor = prevInsideConstructor;
-        enclosingType = prevEnclosingType;
+        leaveEnclosingType(prevEnclosingType);
       }
     }
   }
@@ -356,44 +356,54 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *   <li>Visits the expression itself by calling {@link #handleAnonClassExpression}.
    *   <li>Calls {@link #getAnonClassInitAction} to get a helper for visiting
    *   the initialization of the anonymous class.
-   *   <li>If {@link #getAnonClassInitAction} is not null, then the initialization
+   *   <li>If the initialization helper is not <code>null</code>, or the visitor
+   *   is set to visit inside types then the initialization
    *   of the anonymous class is recursively visited using an 
    *   {@link #InstanceInitializationVisitor}.  
    *     <ol>
    *       <li>The current enclosing type and method are saved.
-   *       <li>The enclosing type is set to the anonymous class, the
-   *       enclosing method is set to the anonymous class's <code>&lt;init&gt;</code>
-   *       method as represented by an InitDeclaration node, and we
-   *       record that we are inside of a constructor.
-   *       <li>The {@link #enteringEnclosingDecl(IRNode)} method is called
-   *       and passed the InitDeclaration node as the new enclosing 
-   *       declaration.
-   *       <li>The {@link InstanceInitAction#tryBefore()} method of the 
-   *       init helper is called immediately before the recursive visit is
-   *       begin.
-   *       <li>We recursively visit the anonymous class to visit the instance
-   *       initializers. 
-   *       <li>The {@link InstanceInitAction#finallyAfter() method of the
-   *       init helper is called immediately after the recursive visit 
-   *       ends (whether normally or with an exception).
-   *       <li>The {@link #leavingEnclosingDecl(IRNode)} method is called
-   *       and passed the InitDeclaration node as the enclosing declaration
-   *       we are leaving.
-   *       <li>We restore the original enclosing type and method, and set
-   *       that we are no longer inside a constructor.
-   *       <li>The {@link InstanceInitAction#afterVisit() method of the
-   *       init helper is called so that the results of the recursive visit
-   *       can be integrated into the results of the main visit.
-   *     </ol>
-   *   <li>Finally, if the bodies of type declarations are supposed to be
-   *   visited, then the body of the anonymous class is visited:
-   *     <ol>
-   *       <li>We save the original enclosing type and method.
-   *       <li>We set the enclosing type to the anonymous class and clear the
-   *       enclosing method.
-   *       <li>We visit the body of the anonymous class by calling 
-   *       {@link #handleAnonClassAsTypeDeclaration}.
-   *       <li>We restore the enclosing type and method to their original values.
+   *       <li>The enclosing type is set to the anonymous class and
+   *       {@link #enterEnclosingType(IRNode)}} is called.
+   *       <li>If the initialization helper is not <code>null</code> we visit
+   *       the instance initializers of the anonymous class:
+   *         <ol>
+   *           <li>The
+   *           enclosing method is set to the anonymous class's <code>&lt;init&gt;</code>
+   *           method as represented by an InitDeclaration node, and we
+   *           record that we are inside of a constructor.
+   *           <li>The {@link #enteringEnclosingDecl(IRNode)} method is called
+   *           and passed the InitDeclaration node as the new enclosing 
+   *           declaration.
+   *           <li>The {@link InstanceInitAction#tryBefore()} method of the 
+   *           initialization helper is called immediately before the recursive visit is
+   *           begin.
+   *           <li>We recursively visit the anonymous class to visit the instance
+   *           initializers. 
+   *           <li>The {@link InstanceInitAction#finallyAfter() method of the
+   *           initialization helper is called immediately after the recursive visit 
+   *           ends (whether normally or with an exception).
+   *           <li>The {@link #leavingEnclosingDecl(IRNode)} method is called
+   *           and passed the InitDeclaration node as the enclosing declaration
+   *           we are leaving.
+   *           <li>We restore the original enclosing method, and set
+   *           that we are no longer inside a constructor.
+   *           <li>The {@link InstanceInitAction#afterVisit() method of the
+   *           initialization helper is called so that the results of the recursive visit
+   *           can be integrated into the results of the main visit.
+   *         </ol>
+   *       <li>If the bodies of type declarations are supposed to be
+   *       visited, then the body of the anonymous class is visited:
+   *         <ol>
+   *           <li>We save the original enclosing type and method.
+   *           <li>We set the enclosing type to the anonymous class and clear the
+   *           enclosing method.  <em>{@link #enteringEnclosingDecl(IRNode)} is not called.</em>
+   *           <li>We visit the body of the anonymous class by calling 
+   *           {@link #handleAnonClassAsTypeDeclaration}.
+   *           <li>We restore the enclosing type and method to their original values.
+   *            <em>{@link #leavingEnclosingDecl(IRNode)} is not called.</em>
+   *         </ol>
+   *       <li>{@link #leavingEnclosingType(IRNode)} is called and the original
+   *       enclosing type is restored.
    *     </ol>
    * </ol>
    * 
@@ -423,42 +433,50 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   
     // Prepare to recursively visit the initialization, if required
     final InstanceInitAction action = getAnonClassInitAction(expr);
-    final IRNode prevEnclosingType = enclosingType;
-    final IRNode prevEnclosingDecl = enclosingDecl;
-    final boolean prevInsideConstructor = insideConstructor;
   
     // Should we recursively visit?
-    if (action != null) {
-      InstanceInitializationVisitor.processAnonClassExpression(expr, this,
-          new Action() {
-            public void tryBefore() {
-              enclosingType = expr; // Now inside the anonymous type declaration
-              insideConstructor = true; // We are inside the constructor of the anonymous class
-              enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr)); // Inside the <init> method
-              action.tryBefore();
-            }
-  
-            public void finallyAfter() {
-              action.finallyAfter();
-              leaveEnclosingDecl(prevEnclosingDecl);
-              insideConstructor = prevInsideConstructor;
-              enclosingType = prevEnclosingType;
-            }
-          });
-       action.afterVisit();
-    }
-    
-    // Visit the type body if required
-    if (visitInsideTypes) {
+    if (action != null || visitInsideTypes) {
+      final IRNode prevEnclosingType = enclosingType;
+      final IRNode prevEnclosingDecl = enclosingDecl;
+      final boolean prevInsideConstructor = insideConstructor;
+
+      // Now inside the anonymous type declaration
+      enterEnclosingType(expr);
       try {
-        enclosingType = expr;
-        enclosingDecl = null; // We are not inside of any method or constructor -- see comments in visitNonAnnotationTypeDeclaration()
-        insideConstructor = false;
-        handleAnonClassAsTypeDeclaration(expr);
+        if (action != null) {
+          InstanceInitializationVisitor.processAnonClassExpression(expr, this,
+              new Action() {
+                public void tryBefore() {
+                  insideConstructor = true; // We are inside the constructor of the anonymous class
+                  enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr)); // Inside the <init> method
+                  action.tryBefore();
+                }
+      
+                public void finallyAfter() {
+                  action.finallyAfter();
+                  leaveEnclosingDecl(prevEnclosingDecl);
+                  insideConstructor = prevInsideConstructor;
+                }
+              });
+           action.afterVisit();
+        }
+
+        // Still inside the anonymous class expression
+        
+        // Visit the type body if required
+        if (visitInsideTypes) {
+          try {
+            insideConstructor = false;
+            enclosingDecl = null; // We are not inside of any method or constructor -- see comments in visitNonAnnotationTypeDeclaration()
+            handleAnonClassAsTypeDeclaration(expr);
+          } finally {
+            enclosingDecl = prevEnclosingDecl;
+            insideConstructor = prevInsideConstructor;
+          }
+        }
       } finally {
-        enclosingType = prevEnclosingType;
-        enclosingDecl = prevEnclosingDecl;
-        insideConstructor = prevInsideConstructor;
+        // Leaving the anonymous type expression
+        leaveEnclosingType(prevEnclosingType);
       }
     }
     return null;
@@ -547,6 +565,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * 
    * <p>The default implementation of {@link JavaSemanticsVisitor#handleClassDeclaration(IRNode)}
    * calls {@link #handleNonAnnotationTypeDeclaration(IRNode)}.
+   * 
+   * @see {@link #handleNonAnnotationTypeDeclaration(IRNode)} for more information
+   * on the order of operations.
    */
   @Override
   public final Void visitClassDeclaration(final IRNode classDecl) {
@@ -780,6 +801,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * 
    * <p>The default implementation of {@link JavaSemanticsVisitor#handleEnumDeclaration(IRNode)}
    * calls {@link #handleNonAnnotationTypeDeclaration(IRNode)}.
+   * 
+   * @see {@link #handleNonAnnotationTypeDeclaration(IRNode)} for more information
+   * on the order of operations.
    */
   @Override
   public final Void visitEnumDeclaration(final IRNode enumDecl) {
@@ -815,6 +839,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * 
    * <p>The default implementation of {@link JavaSemanticsVisitor#handleInterfaceDeclaration(IRNode)}
    * calls {@link #handleNonAnnotationTypeDeclaration(IRNode)}.
+   * 
+   * @see {@link #handleNonAnnotationTypeDeclaration(IRNode)} for more information
+   * on the order of operations.
    */
   @Override
   public final Void visitInterfaceDeclaration(final IRNode intDecl) {
@@ -897,6 +924,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * 
    * <p>The default implementation of {@link JavaSemanticsVisitor#handleNestedClassDeclaration(IRNode)}
    * calls {@link #handleClassDeclaration(IRNode)}.
+   * 
+   * @see {@link #handleNonAnnotationTypeDeclaration(IRNode)} for more information
+   * on the order of operations.
    */
   @Override
   public final Void visitNestedClassDeclaration(final IRNode classDecl) {
@@ -929,6 +959,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * 
    * <p>The default implementation of {@link JavaSemanticsVisitor#handleNestedEnumDeclaration(IRNode)}
    * calls {@link #handleEnumDeclaration(IRNode)}.
+   * 
+   * @see {@link #handleNonAnnotationTypeDeclaration(IRNode)} for more information
+   * on the order of operations.
    */
   @Override
   public final Void visitNestedEnumDeclaration(final IRNode enumDecl) {
@@ -961,6 +994,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * 
    * <p>The default implementation of {@link JavaSemanticsVisitor#handleNestedInterfaceDeclaration(IRNode)}
    * calls {@link #handleInterfaceDeclaration(IRNode)}.
+   * 
+   * @see {@link #handleNonAnnotationTypeDeclaration(IRNode)} for more information
+   * on the order of operations.
    */
   @Override
   public final Void visitNestedInterfaceDeclaration(final IRNode intDecl) {
