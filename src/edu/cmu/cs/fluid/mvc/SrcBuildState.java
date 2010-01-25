@@ -4,6 +4,8 @@
  */
 package edu.cmu.cs.fluid.mvc;
 
+import com.surelogic.RequiresLock;
+
 /**
  * Instances of this class keep track of the rebuild state of source
  * models.  To keep things simple for subclasses of
@@ -111,6 +113,7 @@ public final class SrcBuildState {
    * @param src The model to remove from the set.
    */
   //@ requires lock Lock
+  @RequiresLock("MUTEX")
   private void removeModel(final Model src) {  	
     // find the location of src in the array
     int where = 0;
