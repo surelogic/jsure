@@ -622,6 +622,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 									file.getHandleIdentifier());
 					final boolean source = ModuleUtil.treatedAsSource(file);
 					final boolean warn = loaded && !source;
+					//System.out.println("Adapting: "+javaOSFileName);
 					if (batch && !warn) {
 						cu = null;
 						batchQ.add(javaFile);
