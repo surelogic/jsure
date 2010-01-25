@@ -49,7 +49,7 @@ import edu.cmu.cs.fluid.util.*;
 @InRegion("seq, initialSize, sizeSlot into ListState")
 @RegionLock("ListLock is this protects ListState")
 public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
-  
+	
   private static final Logger LOG = SLLogger.getLogger("FLUID.ir");
   public final ES noSlot = getElemStorage().newSlot(new IRLocation(-1));
   //private final SlotFactory slotFactory;
@@ -74,7 +74,8 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   /*public SlotFactory getSlotFactory() {
     return slotFactory;
   }*/
-
+  
+  @Unique("return")
   public IRList(IRState parent, int startingSize) {
     super(parent);
     // slotFactory = sf;
@@ -82,7 +83,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     // initializeSizeSlot(startingSize); // trying to remove this
     if (startingSize > 0) initialize(startingSize,false);
   }
-
+  @RequiresLock("ListLock")
   private void initializeSizeSlot(int size) {
     sizeSlot = getIntSlotStorage().newSlot(IntegerTable.newInteger(size));
   }
@@ -121,6 +122,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   /**
    * Called before we add the first element
    */
+  @RequiresLock("ListLock")
   private void initialize(int size, boolean reverse) {
     if (sizeSlot == null) initializeSizeSlot(size);
     SlotStorage<S,T> st = getSlotStorage();
@@ -136,10 +138,11 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       seq = new AppendHeader(slots);
     }
   }
-  
+  @RequiresLock("ListLock")
   private void checkInitialized(boolean reverse) {
     if (seq instanceof EmptyHeader) noLongerEmpty(reverse);
   }
+  @RequiresLock("ListLock")
   private void noLongerEmpty(boolean reverse) {
     initialize(0,reverse);
   }
@@ -147,12 +150,14 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   /**
    * Called before wendo an operation that requires that the header be fully general
    */
+  @RequiresLock("ListLock")
   private void checkGeneral(String reason) {
     checkInitialized(false);
     if (seq instanceof IRList.FullHeader) return;
     LOG.fine("Need to generalize list because of " + reason + " operation");
     generalize();
   }
+  @RequiresLock("ListLock")
   private void generalize() {
     seq = seq.generalize();
   }
@@ -187,7 +192,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     // LOG.info("size = " + s);
     return s;
   }
-  
+  @RequiresLock("ListLock")
   private void setSize(int s) {
     // if the size dips below the initial size before
     // converting this list to use a full header, 
@@ -320,7 +325,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   public synchronized int locationIndex(IRLocation loc) {
     return seq.locate(validateLocation(loc));
   }
-
+  @RequiresLock("ListLock")
   private IRLocation validateLocation(IRLocation loc) {
     IRLocation loc2 = seq.validateLocation(loc);
     if (loc != null && loc2 == null) {
@@ -1055,7 +1060,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     public int comparePlacements(IRLocation loc1, IRLocation loc2) {
       return loc1.getID() - loc2.getID();
     }
-
+    @RequiresLock("IRList.this:ListLock")
     public IRLocation append(T elem) {
       if (elemSlots.size() != size()) {
         checkGeneral("append (bad)");
@@ -1064,7 +1069,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       addElem(elem);
       return IRLocation.get(elemSlots.size()-1);
     }
-
+    @RequiresLock("IRList.this:ListLock")
     public IRLocation insert(T x) {
       checkGeneral("insert");
       return seq.insert(x);
@@ -1130,11 +1135,12 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       return loc2.getID() - loc1.getID();
     }
 
+    @RequiresLock("IRList.this:ListLock")
     public IRLocation append(T elem) {
       checkGeneral("append");
       return seq.append(elem);
     }
-
+    @RequiresLock("IRList.this:ListLock")
     public IRLocation insert(T elem) {
       if (elemSlots.size() != size()) {
         // can't handle this
@@ -1211,6 +1217,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     // private int nextid = 0;		// next cell id in free list
     protected final List<Element> elements; // index from cell-id to cell
 
+    @Unique("return")
     public FullHeader(List<S> elemSlots, boolean reverse) {
       int maxSize = elemSlots.size();
       elements = new Vector<Element>(maxSize);
@@ -1223,6 +1230,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     }
 
     /** Allocate a new sequence cell and put at end of free list. */
+    @Borrowed("this")
     void alloc() {
       int nextid = elements.size();
       SlotStorage<ES,IRLocation> ls = getElemStorage();
@@ -1258,6 +1266,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
      * until we know what its <em>initial</em> value will be,
      * @see #newElement()
      */
+    @Borrowed("this")
     void allocFirst() {
       alloc(); // does all the work for us.
     }
@@ -1271,6 +1280,8 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
      * the initial size and never greater than the number of slots (maxSize).
      * @param maxSize the number of slots in the append header previously
      */
+    @RequiresLock("IRList.this:ListLock")
+    @Borrowed("this")
     protected void initForward(int maxSize) {
       //int size = size();
       SlotStorage<ES,IRLocation> ls = getElemStorage();
@@ -1306,6 +1317,8 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
      * slots were originally in an {@link InsertHeader}.
      * @param maxSize size of slot list in insert header
      */
+    @RequiresLock("IRList.this:ListLock")
+    @Borrowed("this")
     protected void initBackward(int maxSize) {
       //int size = size();
       SlotStorage<ES,IRLocation> ls = getElemStorage();
@@ -1438,7 +1451,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       // (was synchronized, but moved to the whole method for simplicity)
       { free = ls.setSlotValue(free,le); }
     }
-
+    @RequiresLock("IRList.this:ListLock")
     public int locate(IRLocation loc) {
       if (!(loc instanceof IRList.Element)) {
         LOG.warning("expected branch");
@@ -1454,7 +1467,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       if (e == null) return -1;
       else return i;
     }
-
+    @RequiresLock("IRList.this:ListLock")
     public IRLocation at(int i) {
       if (i == -1) return null;
       IRLocation loc = first();
@@ -1484,7 +1497,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       }
       return (Element)l;
     }
-    
+    @RequiresLock("IRList.this:ListLock")
     public Element next(IRLocation loc) {
       Element e;
       if (loc instanceof IRList.Element) {
@@ -1496,6 +1509,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       }
       return e.getNext();
     }
+    @RequiresLock("IRList.this:ListLock")
     public Element prev(IRLocation loc) {
       Element e;
       if (loc instanceof IRList.Element) {
@@ -1515,7 +1529,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
         e = (Element)ls.getSlotValue(e.next);
       }
     }
-
+    @RequiresLock("IRList.this:ListLock")
     public int comparePlacements(IRLocation e1, IRLocation e2) {
       // could do a little better, but always worst case O(n)
       return locate(e1) - locate(e2);
@@ -1594,7 +1608,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       }
       return elem;
     }
-
+    @RequiresLock("IRList.this:ListLock")
     public void remove(IRLocation loc) {
       noSentinelsBeforeMutation();
       Element le = (Element)loc;
@@ -1801,6 +1815,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       elem = aSlotState;
     }
 
+    @RequiresLock("IRList.this:ListLock")
     Element getPrev() {
       IRLocation loc = (getElemStorage().getSlotValue(prev));
       // handle backward header extras
@@ -1813,6 +1828,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
       return (Element) loc;
     }
 
+    @RequiresLock("IRList.this:ListLock")
     Element getNext() {
       IRLocation loc = (getElemStorage().getSlotValue(next));
       // handle forward header extras

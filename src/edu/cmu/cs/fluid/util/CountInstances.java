@@ -6,6 +6,7 @@ package edu.cmu.cs.fluid.util;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
+import com.surelogic.*;
 
 /**
  * Keeping track of the number of things created.
@@ -22,11 +23,12 @@ public class CountInstances {
    */
   private static Map<String,AtomicInteger> counts = new ConcurrentHashMap<String,AtomicInteger>();
   
+  @Unique("return")
   public CountInstances() {
     add(this);
   }
   
-  public static void add(Object x) {
+  public static void add(@Borrowed Object x) {
     String n = x.getClass().getName();
     AtomicInteger c = counts.get(n);
     if (c == null) {

@@ -3,6 +3,8 @@
  */
 package edu.cmu.cs.fluid.ir;
 
+import com.surelogic.*;
+
 import edu.cmu.cs.fluid.FluidError;
 
 /**
@@ -52,11 +54,13 @@ public abstract class IRAbstractState<T> implements IRStoredState<T> {
    * @SingleThreaded
    * @Borrowed this
    */
+  @Unique("return")
   public IRAbstractState(IRState p) {
     if (p == null) p = createDefaultStateParent();
     parent = p;
   }
 
+  @Borrowed("this")
   protected IRState createDefaultStateParent() {
 	  return getDefaultStateParent();
   }

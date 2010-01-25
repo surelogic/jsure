@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import com.surelogic.Unique;
+
 import edu.cmu.cs.fluid.util.ListIteratable;
 import edu.cmu.cs.fluid.util.SubList;
 
@@ -15,6 +17,7 @@ implements IRSequence<T>, List<T> {
   // Implementation of List
   //===========================================================
 
+  @Unique("return")
   public IRAbstractSequence(IRState parent) {
     super(parent);
   }
