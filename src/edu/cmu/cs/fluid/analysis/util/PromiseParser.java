@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import jsr166y.forkjoin.Ops.Procedure;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.*;
@@ -49,7 +51,7 @@ import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 import edu.cmu.cs.fluid.util.QuickProperties;
 
-public final class PromiseParser extends AbstractFluidAnalysisModule<Void>
+public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 {
 	/**
 	 * Logger for this class
@@ -71,13 +73,19 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<Void>
 		return INSTANCE;
 	}
 
-	private QueuingSrcNotifyListener listener = new QueuingSrcNotifyListener("PromiseParser");
-
+	private final QueuingSrcNotifyListener listener = new QueuingSrcNotifyListener("PromiseParser");
+	private ITypeEnvironment tEnv;
+	
 	public PromiseParser() {
+		super(false, CodeInfo.class);
 		INSTANCE = this;
 		ConvertToIR.register(listener);
+		setWorkProcedure(new Procedure<CodeInfo>()  {			
+			public void op(CodeInfo info) {
+				processCodeInfo(info);				
+			}
+		});
 	}
-
 
 	void processCompUnit(ITypeEnvironment te, IRNode cu, String name, String src) {
 		if (IDE.getInstance().isCancelled()) {
@@ -115,6 +123,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<Void>
 	public void preBuild(IProject p) {
 		super.preBuild(p);
 		// Was initializing lexer state
+		tEnv = Eclipse.getDefault().getTypeEnv(p);
 	}
 
 	@Override
@@ -211,34 +220,39 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<Void>
 		return true;
 	}
 
+	private void processCodeInfo(CodeInfo info) {
+		if (info.getProperty(CodeInfo.DONE) == Boolean.TRUE) {
+			return;
+		}
+		//System.out.println("Parsing promises for "+info.getFileName());
+		String name = info.getFileName();
+		IRNode cu   = info.getNode();
+		processCompUnit(tEnv, cu, name, info.getSource());
+	}
+	
 	/**
 	 * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
 	 */
 	@Override
 	public IResource[] analyzeEnd(IProject p, IAnalysisMonitor monitor) {
-		final ITypeEnvironment te = Eclipse.getDefault().getTypeEnv(p);
-		runVersioned(new AbstractRunner() {
-			public void run() {
-				final Iterator<CodeInfo> it     = listener.infos();
-				while (it.hasNext()) {
-					CodeInfo info = it.next();
-					if (info.getProperty(CodeInfo.DONE) == Boolean.TRUE) {
-						continue;
+		if (runInParallel()) {
+			queueWork(listener.infos());
+		} else {
+			runVersioned(new AbstractRunner() {
+				public void run() {
+					for(CodeInfo info : listener.infos()) {
+						processCodeInfo(info);
 					}
-					//System.out.println("Parsing promises for "+info.getFileName());
-					String name = info.getFileName();
-					IRNode cu   = info.getNode();
-					processCompUnit(te, cu, name, info.getSource());
 				}
-			}
-		});
+			});
+		}
 		listener.clear();
 
 		runVersioned(new AbstractRunner() {
       public void run() {
         handleWaitQueue(new IQueueHandler() {
           public void handle(String qname) {
-            IRNode n = te.findNamedType(qname);
+            IRNode n = tEnv.findNamedType(qname);
             if (n == null) {
               PackageDrop p = PackageDrop.findPackage(qname);
               if (p != null) {
@@ -257,11 +271,14 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<Void>
               System.out.println("Couldn't find a drop for "+qname);
             }
             String src = (d instanceof SourceCUDrop) ? ((SourceCUDrop) d).source : null;
-            processCompUnit(te, cu, d.javaOSFileName, src);
+            processCompUnit(tEnv, cu, d.javaOSFileName, src);
           }
         });
       }
 		});
+		
+		flushWorkQueue();
+		
 		if (IJavaFileLocator.useIRPaging) {
 			//*
 			try {

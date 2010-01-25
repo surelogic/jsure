@@ -52,7 +52,7 @@ public abstract class AbstractQueuedIRAnalysisModule extends AbstractIRAnalysisM
   @Override
   public Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
     //System.err.println("Starting iterator for "+this);    
-    final Iterator<CodeInfo> it = listener.infos();
+    final Iterator<CodeInfo> it = listener.infos().iterator();
     while (it.hasNext()) {
       try {
         final CodeInfo info = it.next();
@@ -65,7 +65,7 @@ public abstract class AbstractQueuedIRAnalysisModule extends AbstractIRAnalysisM
     
     runInVersion(new AbstractRunner() {
       public void run() {
-        final Iterator<CodeInfo> it = listener.infos();
+        final Iterator<CodeInfo> it = listener.infos().iterator();
         while (it.hasNext()) {
           try {
             final CodeInfo info = it.next();

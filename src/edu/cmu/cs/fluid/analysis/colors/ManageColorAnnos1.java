@@ -67,7 +67,7 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
         ColorFirstPass.getInstance().cfpStart(binder);
 
 
-        final Iterator<CodeInfo> it = listener.infos();
+        final Iterator<CodeInfo> it = listener.infos().iterator();
         while (it.hasNext()) {
           info = it.next();
           if (info.getProperty(CodeInfo.DONE) == Boolean.TRUE) {
