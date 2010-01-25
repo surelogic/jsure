@@ -57,8 +57,20 @@ public class ConcurrentAnalysis<Q> {
 			l.add(work);
 			if (l.size() > FLUSH_SIZE) {
 				flushWorkQueue();
-				
-				//System.out.println("#builders    : "+builders.size());
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	protected boolean queueWork(Iterable<Q> work) {
+		if (workQueue != null) {
+			List<Q> l = workQueue.asList();
+			for(Q w : work) {
+				l.add(w);
+			}
+			if (l.size() > FLUSH_SIZE) {
+				flushWorkQueue();
 				return true;
 			}
 		}
