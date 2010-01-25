@@ -4,6 +4,8 @@
   <Region>public Instance extends All</Region>
   <Region>public WaitQueue</Region>
   <RegionLock>MUTEX is this protects WaitQueue</RegionLock>
+  
+  <!-- promise>@Borrowed(this) for *(**)</promise -->
   <constructor>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
@@ -11,6 +13,7 @@
    <transparent/>
   </constructor>
   <method name="clone">
+   <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
    <transparent/>
@@ -27,11 +30,13 @@
    <transparent/>
   </method>
   <method name="getClass">
+   <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
    <transparent/>
   </method>
   <method name="hashCode">
+   <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
    <transparent/>
