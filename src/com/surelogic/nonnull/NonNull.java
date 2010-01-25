@@ -126,7 +126,16 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	  }
 	  	  
 	  
-	  
+    @Override
+    protected void enteringEnclosingType(final IRNode newType) {
+      System.out.println(">>> Entering type " + JavaNames.getTypeName(newType));
+    }
+    
+    @Override
+    protected void leavingEnclosingType(final IRNode newType) {
+      System.out.println("<<< Leaving type " + JavaNames.getTypeName(newType));
+    }
+    
 	  @Override
 	  protected void enteringEnclosingDecl(final IRNode newDecl) {
 	    System.out.println("Running non null on " + JavaNames.genQualifiedMethodConstructorName(newDecl));

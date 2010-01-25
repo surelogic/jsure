@@ -43,8 +43,8 @@ import edu.cmu.cs.fluid.eclipse.adapter.CompUnitPattern;
 import edu.cmu.cs.fluid.eclipse.adapter.ModuleUtil;
 import edu.cmu.cs.fluid.eclipse.adapter.TypeBindings;
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ir.AbstractIRNode;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.PlainIRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
@@ -338,7 +338,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine(label + " #Modifiers = "
 					+ AbstractJavaAdapter.getModsCount());
-			LOG.fine(label + " #Nodes = " + PlainIRNode.getTotalNodesCreated());
+			LOG.fine(label + " #Nodes = " + AbstractIRNode.getTotalNodesCreated());
 			LOG.fine(label + " #Slots = " + SlotInfo.totalSize());
 			// AssocList.printTotal();
 			// NodeFactories.printUsage();
@@ -484,7 +484,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		super.analyzeBegin(p);
 		IDE.getInstance().setAdapting();
 		used = edu.cmu.cs.fluid.dc.Plugin.memoryUsed();
-		nodes = PlainIRNode.getTotalNodesCreated();
+		nodes = AbstractIRNode.getTotalNodesCreated();
 		compUnits = 0;
 		justLoaded.clear();
 
@@ -712,7 +712,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 	@Override
 	public IResource[] analyzeEnd(final IProject p, final IAnalysisMonitor monitor) {
 		final long used2 = edu.cmu.cs.fluid.dc.Plugin.memoryUsed();
-		final int nodes2 = PlainIRNode.getTotalNodesCreated();
+		final int nodes2 = AbstractIRNode.getTotalNodesCreated();
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("BEFORE nodes = " + nodes + ", memory = " + used);
 			LOG.fine("AFTER  nodes = " + nodes2 + ", memory = " + used2);
@@ -762,7 +762,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		});
 
 		final long used3 = edu.cmu.cs.fluid.dc.Plugin.memoryUsed();
-		final int nodes3 = PlainIRNode.getTotalNodesCreated();
+		final int nodes3 = AbstractIRNode.getTotalNodesCreated();
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("BEFORE nodes = " + nodes2 + ", memory = " + used2);
 			LOG.fine("AFTER  nodes = " + nodes3 + ", memory = " + used3);
