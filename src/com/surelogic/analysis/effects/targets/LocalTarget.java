@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -162,7 +163,9 @@ public final class LocalTarget extends AbstractTarget {
   @Override
   public StringBuilder toString(final StringBuilder sb) {
     final Operator op = JJNode.tree.getOperator(var);
-    if (ParameterDeclaration.prototype.includes(op)) {
+    if (VariableDeclarator.prototype.includes(op)) {
+      sb.append(VariableDeclarator.getId(var));
+    } else if (ParameterDeclaration.prototype.includes(op)) {
       sb.append(ParameterDeclaration.getId(var));
     } else if (ReceiverDeclaration.prototype.includes(op)) {
       sb.append("this");
