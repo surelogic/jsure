@@ -217,8 +217,27 @@ public class JavaTypeFactory implements IRType, Cleanable {
     return res;
   }
   
-  // declared types
-  private static JavaDeclaredType rootType = new RootType();
+  // declared types  
+  private static final int NUM_ROOTS = 1 << 2;
+  private static final int ROOT_MASK = NUM_ROOTS - 1;
+  private static final JavaDeclaredType[] rootTypes = new JavaDeclaredType[NUM_ROOTS];
+  static {
+	  initRootTypes();
+  }  
+  
+  private static void initRootTypes() {
+	  for(int i=0; i<NUM_ROOTS; i++) {
+		  rootTypes[i] = new RootType();
+	  }
+  }
+  
+  private static int cleanupRootTypes() {
+	  int sum = 0;
+	  for(int i=0; i<NUM_ROOTS; i++) {
+		  sum += rootTypes[i].cleanup();
+	  }
+	  return sum;
+  }
   
   private static class RootType extends JavaDeclaredType {
     @Override public String toString() { return ""; }
@@ -240,7 +259,8 @@ public class JavaTypeFactory implements IRType, Cleanable {
       throw new NullPointerException("type declaration is null!");
     }
     if (outer == null) {
-    	outer = rootType;
+    	int i = decl.hashCode() & ROOT_MASK;
+    	outer = rootTypes[i];
     }
     if (params == null || params.isEmpty()) {
       params = Collections.emptyList();
@@ -297,7 +317,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
 	  arrayTypes.clear();
 	  lowerBounded.clear();
 	  upperBounded.clear();
-	  rootType = new RootType();
+	  initRootTypes();
   }
   
   /**
@@ -569,7 +589,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
        captureTypes.cleanup() +
        upperBounded.cleanup() +
        lowerBounded.cleanup() + 
-       rootType.cleanup();
+       cleanupRootTypes();
   }
   
   public int cleanup() {
