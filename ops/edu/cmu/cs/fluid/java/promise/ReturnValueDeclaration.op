@@ -25,7 +25,11 @@ public operator ReturnValueDeclaration {
     if (node != null) {
       return node;
     }
-    node = JavaPromise.makeJavaPromise(prototype);
+    return makeReturnNode(methodNode);
+  }
+  
+  public static IRNode makeReturnNode(IRNode methodNode) {
+    IRNode node = JavaPromise.makeJavaPromise(prototype);
     JavaPromise.setReturnNode(methodNode,node);
     return node;
   }

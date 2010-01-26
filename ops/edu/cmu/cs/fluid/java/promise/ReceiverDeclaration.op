@@ -30,24 +30,30 @@ public operator ReceiverDeclaration implements edu.cmu.cs.fluid.java.bind.IHasTy
     }
     throw new edu.cmu.cs.fluid.FluidError("Illegal use of receiver node promise");
   }
+  
   public static IRNode getReceiverNode(IRNode declNode) {
     IRNode node = JavaPromise.getReceiverNodeOrNull(declNode);
     if (node != null) {
       return node;
     }
+    return makeReceiverNode(declNode);
+  }
+  
+  public static IRNode makeReceiverNode(IRNode declNode) {
     Operator op = tree.getOperator(declNode);
     if (op instanceof IHasReceiverDecl) {
-      return makeReceiverNode(declNode);
+      return makeReceiverNode_internal(declNode);
     }
     else if (SomeFunctionDeclaration.prototype.includes(op)) {
       if (JavaNode.getModifier(declNode,JavaNode.STATIC)) {
         throw new edu.cmu.cs.fluid.FluidRuntimeException("static "+op.name()+"s have no receiver");
       }
-      return makeReceiverNode(declNode);
+      return makeReceiverNode_internal(declNode);
     }
     throw new edu.cmu.cs.fluid.FluidRuntimeException("No receiver on "+op.name());    
   }
-  private static IRNode makeReceiverNode(IRNode declNode) {
+  
+  private static IRNode makeReceiverNode_internal(IRNode declNode) {
     IRNode node = JavaPromise.makeJavaPromise(prototype);
     JavaPromise.setReceiverNode(declNode,node);
     return node;
