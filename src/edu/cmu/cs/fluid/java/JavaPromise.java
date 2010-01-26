@@ -7,7 +7,6 @@ package edu.cmu.cs.fluid.java;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
-import java.util.regex.Pattern;
 
 import com.surelogic.tree.SyntaxTreeNode;
 
@@ -226,11 +225,18 @@ public class JavaPromise extends JavaNode {
 		if (n == null) {
 			return null;
 		}
+		/* Functional, but slower by not optimizing for the common case
 		if (n.valueExists(si)) {
 			return n.getSlotValue(si);
 		}
 		return null;
-	}
+        */
+		try {
+			return n.getSlotValue(si);
+		} catch (SlotUndefinedException e) {
+			return null;
+		}		
+ 	}
 
 	/* A back reference to the node the promise node is for. */
 
