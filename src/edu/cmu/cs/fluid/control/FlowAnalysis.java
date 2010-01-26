@@ -137,6 +137,8 @@ public abstract class FlowAnalysis<T> {
   private final Map<ControlEdge,AssocList<LabelList,Lattice<T>>> currentInfo = 
     new HashMap<ControlEdge,AssocList<LabelList,Lattice<T>>>();
 
+  private static final int COUNT_BEFORE_CHECK = 10;
+  
   /** Perform the analysis as specified.
    * NB: If new initializations have been performed since
    * the last time analysis was done, they will be
@@ -146,13 +148,18 @@ public abstract class FlowAnalysis<T> {
 	final IDE ide = IDE.getInstance();
     LOG.finer("About to start analysis: " + this);
     try {
+      int count = COUNT_BEFORE_CHECK;
       while (!worklist.isEmpty()) {
-        if (ide.isCancelled()) {
-          throw new FluidInterruptedException();
-        }
-        
+        if (count == 0) {
+        	count = COUNT_BEFORE_CHECK;
+        	
+        	if (ide.isCancelled()) {        
+        		throw new FluidInterruptedException();
+        	}
+        }        
         /* should the worklist include label too ? */
         work((ControlEdge)worklist.dequeue());
+        count--;
       }
     } catch (RuntimeException e1) {
       LOG.log(Level.WARNING, "Problem while analyzing", e1);
