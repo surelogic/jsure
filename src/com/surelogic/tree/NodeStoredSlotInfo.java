@@ -9,7 +9,7 @@ import edu.cmu.cs.fluid.ir.*;
  * @author Edwin
  */
 abstract class NodeStoredSlotInfo<T> extends StoredSlotInfo<T,T> {  
-  private final Adapter<T,T> adapter;
+  protected final Adapter<T,T> adapter;
 	
   protected final T undefinedValue;
   private final StoredSlotInfo<T,T> backupSI;
@@ -68,7 +68,7 @@ abstract class NodeStoredSlotInfo<T> extends StoredSlotInfo<T,T> {
   protected abstract void setSlot(SyntaxTreeNode n, T value);
   
   @Override
-  protected final T getSlot(IRNode node) {
+  protected T getSlot(IRNode node) {
 	T slot;
 	try {
 		SyntaxTreeNode n = (SyntaxTreeNode) node;
