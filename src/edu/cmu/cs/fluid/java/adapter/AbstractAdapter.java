@@ -120,9 +120,9 @@ public class AbstractAdapter {
 	}
 	
 	protected void createRequiredMethodNodes(boolean isStatic, IRNode result) {
-		ReturnValueDeclaration.getReturnNode(result);
+		ReturnValueDeclaration.makeReturnNode(result);
 		if (!isStatic) {
-			ReceiverDeclaration.getReceiverNode(result);
+			ReceiverDeclaration.makeReceiverNode(result);
 		}
 	}
 
@@ -133,8 +133,8 @@ public class AbstractAdapter {
 
 	protected void createRequiredAnonClassNodes(IRNode result) {
 		IRNode init = InitDeclaration.getInitMethod(result);
-		ReceiverDeclaration.getReceiverNode(init);
-		ReceiverDeclaration.getReceiverNode(result);
+		ReceiverDeclaration.makeReceiverNode(init);
+		ReceiverDeclaration.makeReceiverNode(result);
 	}
 
 	protected void createRequiredInterfaceNodes(IRNode result) {

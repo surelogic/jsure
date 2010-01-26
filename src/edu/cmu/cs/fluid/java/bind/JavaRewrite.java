@@ -604,7 +604,7 @@ public class JavaRewrite implements JavaGlobals {
 		IRNode body = MethodBody.createNode(block);
 		IRNode constructor = CogenUtil.makeConstructorDecl(noNodes, mods,
 				noNodes, cName, params, throwsC, body);
-		ReceiverDeclaration.getReceiverNode(constructor);
+		ReceiverDeclaration.makeReceiverNode(constructor);
 		return constructor;
 	}
 
@@ -616,7 +616,7 @@ public class JavaRewrite implements JavaGlobals {
 		IRNode body        = MethodBody.createNode(block);
 		IRNode constructor = CogenUtil.makeConstructorDecl(noNodes, mods,
 				noNodes, cName, noNodes, noNodes, body);
-		ReceiverDeclaration.getReceiverNode(constructor);
+		ReceiverDeclaration.makeReceiverNode(constructor);
 		return constructor;
 	}
 	

@@ -218,8 +218,8 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       createArrayRegion(PromiseConstants.REGION_ELEMENT_NAME);
       createArrayRegion(PromiseConstants.REGION_LENGTH_NAME);
       ReturnValueDeclaration.getReturnNode(privateCloneMethod);
-      ReceiverDeclaration.getReceiverNode(privateCloneMethod);
-      ReceiverDeclaration.getReceiverNode(privateArrayType);
+      ReceiverDeclaration.makeReceiverNode(privateCloneMethod);
+      ReceiverDeclaration.makeReceiverNode(privateArrayType);
     }
     
     static void createArrayRegion(String name) {
