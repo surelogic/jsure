@@ -33,8 +33,9 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
   
   private Drop resultDependUpon = null;
 
-  private void setResultDependUponDrop(IRReferenceDrop drop, IRNode node) {
+  private void setResultDependUponDrop(IRReferenceDrop drop, IRNode node, int resultNum, String arg) {
     drop.setNode(node);
+    drop.setResultMessage(resultNum, arg);
     if (resultDependUpon != null && resultDependUpon.isValid()) {
       resultDependUpon.addDependent(drop);
     } else {
@@ -147,9 +148,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       ResultDrop r = new ResultDrop("ThreadEffectsAnalysis_noThreadsDrop");
       r.setConsistent();
       r.addCheckedPromise(pd);
-      setResultDependUponDrop(r, block);
-      r.setMessage(Messages.ThreadEffectsAnalysis_noThreadsDrop, JavaNames
-          .genMethodConstructorName(block));
+      setResultDependUponDrop(r, block, 1, JavaNames.genMethodConstructorName(block));
     }
   }
 
@@ -200,9 +199,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
               ResultDrop rd = new ResultDrop("ThreadEffectsAnalysis_threadEffectDrop");
               rd.setInconsistent();
               rd.addCheckedPromise(pd);
-              setResultDependUponDrop(rd, node);
-              rd.setMessage(Messages.ThreadEffectsAnalysis_threadEffectDrop,
-                  DebugUnparser.toString(node));
+              setResultDependUponDrop(rd, node, 2, DebugUnparser.toString(node));
               problem = true;
             }
           }
@@ -243,17 +240,13 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       ResultDrop rd = new ResultDrop("ThreadEffectsAnalysis_callPromiseDrop");
       rd.addCheckedPromise(pd);
       rd.addTrustedPromise(callp);
-      setResultDependUponDrop(rd, node);
+      setResultDependUponDrop(rd, node, 3, DebugUnparser.toString(node));
       rd.setConsistent();
-      rd.setMessage(Messages.ThreadEffectsAnalysis_callPromiseDrop,
-          DebugUnparser.toString(node)); //$NON-NLS-1$
     } else {
       ResultDrop rd = new ResultDrop("ThreadEffectsAnalysis_callNotPromiseDrop");
       rd.addCheckedPromise(pd);
       rd.setInconsistent();
-      setResultDependUponDrop(rd, node);
-      rd.setMessage(Messages.ThreadEffectsAnalysis_callNotPromiseDrop,
-          DebugUnparser.toString(node)); //$NON-NLS-1$
+      setResultDependUponDrop(rd, node, 4, DebugUnparser.toString(node));
     }
   }
 

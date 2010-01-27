@@ -16,14 +16,6 @@ public class Messages extends AbstractMessages {
 
   public static String ColorSecondPass_colorContextDrop = "{0} is accessed from color context {1}";
 
-  public static String ThreadEffectsAnalysis_noThreadsDrop = "No threads started within {0}";
-
-  public static String ThreadEffectsAnalysis_threadEffectDrop = "Thread effect declaration prohibits: {0}";
-
-  public static String ThreadEffectsAnalysis_callPromiseDrop = "Call \"{0}\" promises to start nothing";
-
-  public static String ThreadEffectsAnalysis_callNotPromiseDrop = "Call \"{0}\" does not promise to start nothing";
-
   // Drop-sea category messages
   public static String LockAnalysis_dsc_AggregationNeeded = "protected reference(s) to a possibly shared unprotected object; possible race condition detected";
 
