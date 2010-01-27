@@ -19,7 +19,7 @@ import edu.uwm.cs.fluid.util.FlatLattice;
  * lattice is an array of flags.  Each array element corresponds to a specific
  * synchronized statement in the method being analyzed. The flag indicates
  * whether the synchronized statement is active or not.  We can use this
- * simplisitic structure because of the syntactic constraints on 
+ * simplistic structure because of the syntactic constraints on 
  * synchronized blocks.
  */
 final class IntrinsicLockLattice extends ArrayLattice<FlatLattice, Object> {

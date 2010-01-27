@@ -31,8 +31,6 @@ import edu.cmu.cs.fluid.util.ImmutableSet;
  * {@link #foundLock(ImmutableList[], IRNode, IBinder)}, respectively.
  * 
  * TODO: Say more about this.
- * 
- * @author aarong
  */
 final class MustReleaseLattice extends AbstractLockStackLattice {
   /**

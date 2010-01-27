@@ -57,7 +57,7 @@ abstract class AbstractLockStackLattice extends
   
   /**
    * Singleton set of the {@link #IGNORE_ME bogus method call} that
-   * we must onto each lock stack so that we can differentiate an empty 
+   * we must push onto each lock stack so that we can differentiate an empty 
    * value from bottom. 
    */
   protected static final ImmutableSet<IRNode> IGNORE_ME_SINGLETON_SET =
