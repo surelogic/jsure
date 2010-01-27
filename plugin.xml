@@ -124,7 +124,7 @@
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.threads.IRConcurrencyDetector">
 		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
 		</prerequisite>
 	</extension>
 	<extension id="Static State Detector" name="Static state detector"
@@ -146,7 +146,7 @@
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule">
 		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		<prerequisite id="com.surelogic.jsure.client.eclipse.LockAssurance3">
 		</prerequisite>
 	</extension>
 	<extension id="MakeCFGDiagram" name="CFG diagram Maker"
@@ -162,7 +162,7 @@
 		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis"
 			production="false">
 		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
 		</prerequisite>
 	</extension>
 	<extension id="ModuleAnalysis2" name="Module Visibility Analyzer"
@@ -170,14 +170,14 @@
 		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis2"
 			production="false">
 		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
 		</prerequisite>
 	</extension>
 	<extension id="EffectAssurance2" name="Greenhouse &amp; Boyland Effects"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.effects.EffectsAnalysis">
 		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
 		</prerequisite>
 	</extension>
 	<extension id="EffectDumper" name="Effect Dumper"
@@ -199,7 +199,7 @@
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.threads.ThreadEffectsModule">
 		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
 		</prerequisite>
 	</extension>
 	<extension id="StructureAnalysis" name="Program Static Structure Verification"
