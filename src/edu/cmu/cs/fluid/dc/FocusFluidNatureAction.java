@@ -5,50 +5,18 @@ import java.util.logging.*;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.IObjectActionDelegate;
-import org.eclipse.ui.IViewActionDelegate;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPart;
 
+
+import com.surelogic.common.eclipse.actions.AbstractSingleProjectAction;
 import com.surelogic.common.logging.SLLogger;
-
-import edu.cmu.cs.fluid.sea.drops.colors.ColorReqSummaryDrop.Status;
 
 /**
  * Implements a context menu action for IProject and IJavaProject that sets the
  * Fluid nature for the project.
  */
-public class FocusFluidNatureAction implements IViewActionDelegate,
-		IObjectActionDelegate {
+public class FocusFluidNatureAction extends AbstractSingleProjectAction {
 	private static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.dc");
-
-	private IProject project;
-
-	public void setActivePart(final IAction action,
-			final IWorkbenchPart targetPart) {
-		// do nothing
-	}
-
-	public void init(final IViewPart view) {
-		// do nothing
-	}
-
-	public void selectionChanged(final IAction action,
-			final ISelection selection) {
-		if (selection instanceof IStructuredSelection) {
-			Object obj = (((IStructuredSelection) selection).getFirstElement());
-			if (obj != null) {
-				project = (IProject) ((IAdaptable) obj)
-						.getAdapter(IProject.class);
-			} else {
-				project = null;
-			}
-		}
-	}
 
 	public void run(final IAction action) {
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
