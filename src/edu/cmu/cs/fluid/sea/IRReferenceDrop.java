@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.surelogic.common.i18n.JavaSourceReference;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -235,5 +237,11 @@ public abstract class IRReferenceDrop extends Drop {
 	  for(SupportingInformation si : getSupportingInformation()) {
 		  s.addSupportingInfo(si);
 	  }
+  }
+  
+  @Override
+  protected JavaSourceReference createSourceRef() {
+	  final ISrcRef ref = getSrcRef();	  
+	  return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
   }
 }

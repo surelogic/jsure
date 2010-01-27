@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.common.i18n.AnalysisResultMessage;
+import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -67,6 +69,30 @@ public abstract class Drop {
 	}
 
 	/**
+	 * Gets this drop's result message
+	 */
+	public AnalysisResultMessage getResultMessage() {
+		return resultMessage;
+	}
+	 
+	/**
+	 * For now, this depends on the drop having the info to create a JavaSourceReference
+	 */
+	public void setResultMessage(int number, Object... args) {
+		if (number < 1) {
+			LOG.warning("Ignoring negative result number: "+number);
+			return;
+		}
+		JavaSourceReference srcRef = createSourceRef();
+		this.resultMessage = AnalysisResultMessage.getInstance(srcRef, number, args);
+		this.message = resultMessage.getResultString();		
+	}
+	
+	protected JavaSourceReference createSourceRef() {
+		throw new UnsupportedOperationException();
+	}
+	
+	/**
 	 * Gets this drop's message.
 	 * 
 	 * @return the message set for this drop, usually used by the UI.
@@ -83,6 +109,7 @@ public abstract class Drop {
 	 */
 	public void setMessage(String message) {
 		this.message = message;
+		this.resultMessage = null;
 	}
 
 	/**
@@ -103,6 +130,7 @@ public abstract class Drop {
 	public void setMessage(String message, Object... args) {
 		this.message = (args.length == 0) ? message : MessageFormat.format(
 				message, args);
+		this.resultMessage = null;
 	}
 
 	/**
@@ -293,7 +321,9 @@ public abstract class Drop {
 		mySea.notify(this, DropEvent.Invalidated);
 	}
 
-	protected void invalidate_internal() {}
+	protected void invalidate_internal() {
+		// Nothing to do right now
+	}
 	
 	/**
 	 * Returns whether this drop is valid or not. A drop being valid indicates
@@ -449,6 +479,11 @@ public abstract class Drop {
 	 * A mutable text message about this drop, usually used by the UI.
 	 */
 	private String message = this.getClass().getSimpleName()+" (EMPTY)";
+	
+	/**
+	 * A mutable result message about this drop, usually used by the UI.
+	 */
+	private AnalysisResultMessage resultMessage;
 
 	/**
 	 * The set of drops whose truth depends upon this drop.
