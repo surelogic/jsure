@@ -46,11 +46,11 @@ public abstract class AbstractConcurrencyDetector extends
 	protected abstract boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor)
 			throws JavaModelException;
 
-	protected final void reportInference(Category c, String msg, IRNode loc) {
+	protected final void reportInference(Category c, int number, String arg, IRNode loc) {
 		InfoDrop id = new InfoDrop("concurrencyDetector");
 		// rd.addCheckedPromise(pd);
 		id.setNodeAndCompilationUnitDependency(loc);
-		id.setMessage(msg);
+		id.setResultMessage(number, arg);
 		id.setCategory(c);
 	}
 

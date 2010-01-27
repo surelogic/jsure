@@ -82,13 +82,11 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 			IJavaDeclaredType type = (IJavaDeclaredType) t;
 			IRNode decl = type.getDeclaration();
 			if (isThreadSubtype(type)) {
-				reportInference(threadCreationCategory, JavaNames
-						.getTypeName(decl)
-						+ " instance created", n);
+				reportInference(threadCreationCategory, 50, 
+						        JavaNames.getTypeName(decl), n);
 			} else if (implementsRunnable(type)) {
-				reportInference(runnableCreationCategory, JavaNames
-						.getTypeName(decl)
-						+ " instance created", n);
+				reportInference(runnableCreationCategory, 50, 
+				                JavaNames.getTypeName(decl), n);
 			}
 			return null;
 		}
@@ -109,9 +107,8 @@ public final class IRConcurrencyDetector extends AbstractConcurrencyDetector {
 						tEnv.getBinder());
 				if (type instanceof IJavaDeclaredType
 						&& isThreadStart(m, (IJavaDeclaredType) type)) {
-					reportInference(threadStartsCategory, JavaNames
-							.getTypeName(t)
-							+ " started", n);
+					reportInference(threadStartsCategory, 51, 
+							        JavaNames.getTypeName(t), n);
 				}
 			}
 			return null;

@@ -67,11 +67,9 @@ public final class TypedAstConcurrencyDetector extends AbstractConcurrencyDetect
       ISourceRefType t = (ISourceRefType) tb;
       IDeclarationNode decl   = t.getNode();
       if (isThreadSubtype(t)) {
-        reportInference(threadCreationCategory, getDeclName(decl)
-            + " instance created", toNode(n));
+        reportInference(threadCreationCategory, 50, getDeclName(decl), toNode(n));
       } else if (implementsRunnable(t)) {
-        reportInference(runnableCreationCategory, getDeclName(decl)
-            + " instance created", toNode(n));
+        reportInference(runnableCreationCategory, 50, getDeclName(decl), toNode(n));
       }
       return null;
     }
@@ -87,8 +85,7 @@ public final class TypedAstConcurrencyDetector extends AbstractConcurrencyDetect
 
         if (isThreadStart(mb)) {
           String typeName = getDeclName(mb.getContextType().getNode());
-          reportInference(threadStartsCategory, typeName
-              + " started", toNode(n));
+          reportInference(threadStartsCategory, 51, typeName, toNode(n));
         }
       }
       return null;
