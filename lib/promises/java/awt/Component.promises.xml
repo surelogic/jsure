@@ -35,6 +35,16 @@
 
     <Promise>@Color(AWT) for process*Event(*)</Promise>
 	  
+    <method name="getFont" params="">
+    	<borrowed>this</borrowed>
+    </method>
+    <method name="getFontMetrics" params="java.awt.Font">
+    	<borrowed>this</borrowed>
+    </method>
+    <method name="getToolkit" params="">
+    	<borrowed>this</borrowed>
+    </method>
+
     <method name="update" params="java.awt.Graphics">
     	<Color>AWT</Color>
     </method>
@@ -63,6 +73,15 @@
       <Transparent/>
       <Reads>Instance</Reads>
     </method>
-
+    <method name="setBackground" params="java.awt.Color">
+    	<borrowed>this</borrowed>
+    </method>
+    <method name="setCursor" params="java.awt.Cursor">
+    	<borrowed>this</borrowed>
+    </method>
+    <method name="setFont" params="java.awt.Font">
+    	<borrowed>this</borrowed>
+    </method>
+   
     </class>  
 </package>
