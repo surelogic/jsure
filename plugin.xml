@@ -484,6 +484,18 @@
 		<viewContribution id="org.cmu.cs.fluid.dc.projectexplorer.actions"
 			targetID="org.eclipse.jdt.ui.PackageExplorer">
 
+<!--
+	        <action
+				id="com.surelogic.jsure.client.eclipse.actions.TestCopyProjectAction"
+				label="Test Copy Project"
+                toolbarPath="JSure" menubarPath="additions"
+				class="com.surelogic.jsure.client.eclipse.actions.TestCopyProjectAction"
+				enablesFor="1">
+				<enablement>
+					<objectClass name="org.eclipse.jdt.core.IJavaProject" />
+				</enablement>
+			</action>
+-->
 			<action
 				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
 				label="Focus Verification on this Project"
