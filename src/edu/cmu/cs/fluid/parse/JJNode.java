@@ -11,7 +11,6 @@ import com.surelogic.tree.SyntaxTreeSlotFactory;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.PropagateUpTree;
@@ -172,11 +171,11 @@ public class JJNode extends PlainIRNode implements Node {
   }
 
   // unused methods
-  public void jjtOpen() {
+  public void jjtOpen() { // unused
   }
-  public void jjtClose() {
+  public void jjtClose() { // unused
   }
-  public void jjtSetParent(Node n) {
+  public void jjtSetParent(Node n) { // unused
   }
 
   public void jjtAddChild(Node n) {
@@ -249,9 +248,9 @@ public class JJNode extends PlainIRNode implements Node {
       s.println("null");
     } else {
       s.println(toString(root));
-      Iterator children = tree.children(root);
+      Iterator<IRNode> children = tree.children(root);
       while (children.hasNext()) {
-        IRNode child = (IRNode) children.next();
+        IRNode child = children.next();
         dumpTree(s, child, indent + 1);
       }
     }
@@ -289,7 +288,7 @@ public class JJNode extends PlainIRNode implements Node {
       b.describe(System.out);
   }
   
-  public static void ensureLoaded() {}
+  public static void ensureLoaded() { /* do nothing */ }
 }
 
 /**
@@ -298,7 +297,6 @@ public class JJNode extends PlainIRNode implements Node {
  * Bundle. In JJNode, the bundle is assumed to be already stored, and is
  * loaded.
  */
-@SuppressWarnings("deprecation")
 class JJNodeBoot {
   /**
 	 * Logger for this class
