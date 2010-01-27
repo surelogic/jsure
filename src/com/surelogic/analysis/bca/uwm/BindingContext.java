@@ -6,6 +6,7 @@ import java.util.List;
 import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IndependentIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -31,6 +32,7 @@ import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.CachedSet;
+import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.util.ArrayLattice;
 import edu.uwm.cs.fluid.util.UnionLattice;
@@ -55,8 +57,44 @@ import edu.uwm.cs.fluid.util.UnionLattice;
  * </ul>
  * The set can be used to determine all the parameters or new constructor calls
  * an expression could evaluate to.
+ * 
+ * <p>The lattice values are arrays of sets of IRNodes.  Each array index
+ * corresponds to a local variable or parameter declaration in the method.  The
+ * sets are initialization values that reach the variable.
+ * 
+ * <p>To allow an empty value to be distinguished from bottom, we actually
+ * add an extra array index to each lattice that maps to fixed set of a single
+ * bogus element.  Because the bottom value is an array of all empty sets, this
+ * prevents our empty value, an array with all empty sets but one, from being
+ * equal to bottom.  It also avoids adding any complication to the rest of the 
+ * use of the lattice because by adding it to the end of the array, it's an
+ * element that will never actually be used.
  */
 final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>> {
+  // =========================================================================
+  // == Bogus values for differentiation empty from bottom
+  // =========================================================================
+  
+  /**
+   * In order to keep our analysis transfer functions strict, we need to create
+   * a dummy value that we use as a set element for a dummy array location.
+   * @see #IGNORE_ME_SINGLETON_SET
+   */
+  protected static final IRNode IGNORE_ME = new IndependentIRNode();
+  static {
+    JJNode.setInfo(IGNORE_ME, "<ignore>");
+  }
+  
+  /**
+   * Singleton set of the {@link #IGNORE_ME bogus node} that
+   * we reference from an additional array element to distinguish empty
+   * from bottom.
+   */
+  protected static final ImmutableSet<IRNode> IGNORE_ME_SINGLETON_SET =
+    ImmutableHashOrderSet.<IRNode>emptySet().addCopy(IGNORE_ME);
+
+
+  
   // =========================================================================
   // == Helper inner classes
   // =========================================================================
@@ -318,7 +356,8 @@ final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, ImmutableS
   @SuppressWarnings("unchecked")
   private BindingContext(
       final IRNode md, final IRNode[] locals, final IBinder binder) {
-    super(new UnionLattice<IRNode>(), locals.length, new ImmutableSet[0]);
+    // We add one to the # of locals to make room for our bogus element
+    super(new UnionLattice<IRNode>(), locals.length + 1, new ImmutableSet[0]);
     this.methodDecl = md;
     this.locals = locals;
     this.binder = binder;
@@ -343,6 +382,45 @@ final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, ImmutableS
   // == Extra lattice value methods
   // =========================================================================
 
+  /**
+   * Get the empty value for the lattice.  This is value has the last index
+   * refer to {@link #IGNORE_ME_SINGLETON_SET}, and the rest of the values 
+   * refer to the empty set.
+   */
+  @SuppressWarnings("unchecked")
+  public ImmutableSet<IRNode>[] getEmptyValue() {
+    final ImmutableSet<IRNode>[] empty = new ImmutableSet[locals.length + 1];
+    for (int i = 0; i < locals.length; i++) {
+      empty[i] = ImmutableHashOrderSet.<IRNode>emptySet();
+    }
+    empty[locals.length] = IGNORE_ME_SINGLETON_SET;
+    return empty;
+  }
+  
+  /**
+   * Get the initial value; that is, the lattice value for use on entry to
+   * the method.
+   */
+  public ImmutableSet<IRNode>[] getInitialValue() {
+    ImmutableSet<IRNode>[] initValue = getEmptyValue();
+    for (int i = 0; i < locals.length; i++) {
+      final IRNode local = locals[i];
+      if (ParameterDeclaration.prototype.includes(JJNode.tree.getOperator(local))) {
+        initValue = this.updateDeclaration(initValue, local,
+            ImmutableHashOrderSet.<IRNode>emptySet().addCopy(local));
+      }
+    }
+    return initValue;
+  }
+  
+  /**
+   * Is the lattice value normal, that is, neither top nor bottom?
+   */
+  public boolean isNormal(final ImmutableSet<IRNode>[] value) {
+    /* Value is good as long as the bogus element is the special ignore set. */
+    return value[locals.length] == IGNORE_ME_SINGLETON_SET;
+  }
+  
   /**
    * Search the list of local variable declarations and return the index of the
    * given declaration.
