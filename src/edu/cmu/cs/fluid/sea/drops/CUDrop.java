@@ -4,10 +4,13 @@ package edu.cmu.cs.fluid.sea.drops;
 import java.util.*;
 
 import com.surelogic.ast.java.operator.ICompilationUnitNode;
+import com.surelogic.common.i18n.JavaSourceReference;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.CodeInfo;
+import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -167,4 +170,11 @@ public abstract class CUDrop extends Drop {
 	  System.out.println("Invalidating "+javaOSFileName);
   }
   */
+  
+  @Override
+  protected JavaSourceReference createSourceRef() {
+	  final ISrcRef ref = JavaNode.getSrcRef(cu);	  
+	  return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref.getLineNumber(), ref.getOffset());
+ 
+  }
 }
