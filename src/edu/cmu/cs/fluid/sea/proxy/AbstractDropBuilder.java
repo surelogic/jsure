@@ -13,6 +13,8 @@ public abstract class AbstractDropBuilder {
 	private boolean isValid = true;
 	private IRNode node;
 	private String message;
+	private int messageNum;
+	private Object[] args;
 	private Category category;
 	private List<Drop> dependUponDrops = new ArrayList<Drop>();
 	private List<Pair<String,IRNode>> supportingInfos =
@@ -45,6 +47,12 @@ public abstract class AbstractDropBuilder {
 	public void setMessage(String msg, Object... args) {
 		message = (args.length == 0) ? msg : 
 			MessageFormat.format(msg, args);
+		messageNum = -1;
+	}
+	
+	public void setResultMessage(int num, Object... args) {
+		messageNum = num;
+		this.args = args;
 	}
 	
 	public void setCategory(Category c) {
@@ -62,7 +70,11 @@ public abstract class AbstractDropBuilder {
 	void buildDrop(IRReferenceDrop d) {
 		//System.out.println("Making: "+message);
 		d.setNode(node);
-		d.setMessage(message);
+		if (messageNum < 0) {
+			d.setMessage(message);
+		} else {
+			d.setResultMessage(messageNum, args);
+		}
 		d.setCategory(category);
 		for(Drop deponent : dependUponDrops) {
 			deponent.addDependent(d);

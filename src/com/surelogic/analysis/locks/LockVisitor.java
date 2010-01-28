@@ -185,53 +185,53 @@ implements IBinderClient {
   // ////////////////////////////////////////////////////////////////////////////
   // D R O P - S E A L O C K A N A L Y S I S R E S U L T M E S S A G E S
 
-  private static final String DS_AGGREGATION_NEEDED = Messages.LockAnalysis_ds_AggregationNeeded;
+  private static final int DS_AGGREGATION_NEEDED = Messages.LockAnalysis_ds_AggregationNeeded;
 
-  private static final String DS_AGGREGATION_NEEDED2 = Messages.LockAnalysis_ds_AggregationNeeded2;
+  private static final int DS_AGGREGATION_NEEDED2 = Messages.LockAnalysis_ds_AggregationNeeded2;
 
-  private static final String DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG = Messages.LockAnalysis_ds_SynchronizedConstructorAssured;
+  private static final int DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG = Messages.LockAnalysis_ds_SynchronizedConstructorAssured;
 
-  private static final String DS_FIELD_ACCESS_ASSURED_MSG = Messages.LockAnalysis_ds_FieldAccessAssured;
+  private static final int DS_FIELD_ACCESS_ASSURED_MSG = Messages.LockAnalysis_ds_FieldAccessAssured;
 
-  private static final String DS_FIELD_ACCESS_ASSURED_ALT_MSG = Messages.LockAnalysis_ds_FieldAccessAssuredAlternative;
+  private static final int DS_FIELD_ACCESS_ASSURED_ALT_MSG = Messages.LockAnalysis_ds_FieldAccessAssuredAlternative;
 
-  private static final String DS_FIELD_ACCESS_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_FieldAccessNotAssured;
+  private static final int DS_FIELD_ACCESS_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_FieldAccessNotAssured;
 
-  private static final String DS_FIELD_ACCESS_NOT_RESOLVABLE_MSG = Messages.LockAnalysis_ds_FieldAccessNotResolvable;
+  private static final int DS_FIELD_ACCESS_NOT_RESOLVABLE_MSG = Messages.LockAnalysis_ds_FieldAccessNotResolvable;
   
-  private static final String DS_PRECONDITIONS_ASSURED_MSG = Messages.LockAnalysis_ds_PreconditionsAssured;
+  private static final int DS_PRECONDITIONS_ASSURED_MSG = Messages.LockAnalysis_ds_PreconditionsAssured;
 
-  private static final String DS_PRECONDITIONS_ASSURED_ALT_MSG = Messages.LockAnalysis_ds_PreconditionsAssuredAlternative;
+  private static final int DS_PRECONDITIONS_ASSURED_ALT_MSG = Messages.LockAnalysis_ds_PreconditionsAssuredAlternative;
 
-  private static final String DS_PRECONDITIONS_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_PreconditionsNotAssured;
+  private static final int DS_PRECONDITIONS_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_PreconditionsNotAssured;
   
-  private static final String DS_PRECONDITION_NOT_RESOLVABLE_MSG = Messages.LockAnalysis_ds_PreconditionNotResolvable;
+  private static final int DS_PRECONDITION_NOT_RESOLVABLE_MSG = Messages.LockAnalysis_ds_PreconditionNotResolvable;
 
-  private static final String DS_INDIRECT_FIELD_ACCESS_ASSURED_MSG = Messages.LockAnalysis_ds_IndirectFieldAccessAssured;
+  private static final int DS_INDIRECT_FIELD_ACCESS_ASSURED_MSG = Messages.LockAnalysis_ds_IndirectFieldAccessAssured;
 
-  private static final String DS_INDIRECT_FIELD_ACCESS_ASSURED_ALT_MSG = Messages.LockAnalysis_ds_IndirectFieldAccessAssuredAlternative;
+  private static final int DS_INDIRECT_FIELD_ACCESS_ASSURED_ALT_MSG = Messages.LockAnalysis_ds_IndirectFieldAccessAssuredAlternative;
 
-  private static final String DS_INDIRECT_FIELD_ACCESS_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_IndirectFieldAccessNotAssured;
+  private static final int DS_INDIRECT_FIELD_ACCESS_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_IndirectFieldAccessNotAssured;
 
-  private static final String DS_RETURN_ASSURED_MSG = Messages.LockAnalysis_ds_ReturnAssured;
+  private static final int DS_RETURN_ASSURED_MSG = Messages.LockAnalysis_ds_ReturnAssured;
 
-  private static final String DS_RETURN_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_ReturnNotAssured;
+  private static final int DS_RETURN_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_ReturnNotAssured;
 
-  private static final String DS_SYNCHRONIZED_METHOD_WARNING_MSG = Messages.LockAnalysis_ds_SynchronizedMethodWarningDetails;
+  private static final int DS_SYNCHRONIZED_METHOD_WARNING_MSG = Messages.LockAnalysis_ds_SynchronizedMethodWarningDetails;
 
-  private static final String DS_SYNCHRONIZED_STATIC_METHOD_WARNING_MSG = Messages.LockAnalysis_ds_SynchronizedStaticMethodWarningDetails;
+  private static final int DS_SYNCHRONIZED_STATIC_METHOD_WARNING_MSG = Messages.LockAnalysis_ds_SynchronizedStaticMethodWarningDetails;
 
-  private static final String DS_SYNCHRONIZED_UNUSED_MSG = Messages.LockAnalysis_ds_SynchronizationUnused;
+  private static final int DS_SYNCHRONIZED_UNUSED_MSG = Messages.LockAnalysis_ds_SynchronizationUnused;
 
-  private static final String DS_NONFINAL_EXPRESSION_MSG = Messages.LockAnalysis_ds_NonfinalExpression;
+  private static final int DS_NONFINAL_EXPRESSION_MSG = Messages.LockAnalysis_ds_NonfinalExpression;
 
-  private static final String DS_UNIDENTIFIABLE_LOCK_MSG = Messages.LockAnalysis_ds_UnidentifiableLock;
+  private static final int DS_UNIDENTIFIABLE_LOCK_MSG = Messages.LockAnalysis_ds_UnidentifiableLock;
 
-  private static final String DS_REDUNDANT_SYNCHRONIZED_MSG = Messages.LockAnalysis_ds_RedundantSynchronized;
+  private static final int DS_REDUNDANT_SYNCHRONIZED_MSG = Messages.LockAnalysis_ds_RedundantSynchronized;
 
   private static final String DS_ON_BEHALF_OF_CONSTRUCTOR_MSG = Messages.LockAnalysis_ds_OnBehalfOfConstructor;
 
-  private static final String DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_ConstructorIsSingleThreaded;
+  private static final int DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_ConstructorIsSingleThreaded;
   
   private static final String DS_ENCLOSING_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_EnclosingConstructorIsSingleThreaded;
   
@@ -243,27 +243,29 @@ implements IBinderClient {
 
   private static final String DS_JUC_LOCK_HELD_MSG = Messages.LockAnalysis_ds_HeldJUCLock;
 
-  private static final String DS_SYNCED_JUCLOCK = Messages.LockAnalysis_ds_SyncedJUCLock;
+  private static final int DS_SYNCED_JUCLOCK = Messages.LockAnalysis_ds_SyncedJUCLock;
   
-  private static final String DS_MASQUERADING_CALL = Messages.LockAnalysis_ds_MasqueradingCall;
+  private static final int DS_MASQUERADING_CALL = Messages.LockAnalysis_ds_MasqueradingCall;
 
-  private static final String DS_MASQUERADING_CALL2 = Messages.LockAnalysis_ds_MasqueradingCall2;
+  private static final int DS_MASQUERADING_CALL2 = Messages.LockAnalysis_ds_MasqueradingCall2;
   
-  private static final String DS_JUC_LOCK_FIELDS = Messages.LockAnalysis_ds_JUCLockFields;
+  private static final int DS_JUC_LOCK_FIELDS = Messages.LockAnalysis_ds_JUCLockFields;
   
-  private static final String DS_DECLARED_JUC_LOCK_FIELD = Messages.LockAnalysis_ds_DeclaredJUCLockField;
+  private static final int DS_JUC_LOCK_FIELDS2 = Messages.LockAnalysis_ds_JUCLockFields;
+  
+  private static final int DS_DECLARED_JUC_LOCK_FIELD = Messages.LockAnalysis_ds_DeclaredJUCLockField;
 
-  private static final String DS_POISONED_LOCK_CALL = Messages.LockAnalysis_ds_PoisonedLockCall;
+  private static final int DS_POISONED_LOCK_CALL = Messages.LockAnalysis_ds_PoisonedLockCall;
   
-  private static final String DS_NO_MATCHING_UNLOCKS = Messages.LockAnalysis_ds_NoMatchingUnlocks;
+  private static final int DS_NO_MATCHING_UNLOCKS = Messages.LockAnalysis_ds_NoMatchingUnlocks;
   
-  private static final String DS_MATCHING_UNLOCK = Messages.LockAnalysis_ds_MatchingUnlock;
+  private static final int DS_MATCHING_UNLOCK = Messages.LockAnalysis_ds_MatchingUnlock;
   
-  private static final String DS_POISONED_UNLOCK_CALL = Messages.LockAnalysis_ds_PoisonedUnlockCall;
+  private static final int DS_POISONED_UNLOCK_CALL = Messages.LockAnalysis_ds_PoisonedUnlockCall;
   
-  private static final String DS_NO_MATCHING_LOCKS = Messages.LockAnalysis_ds_NoMatchingLocks;
+  private static final int DS_NO_MATCHING_LOCKS = Messages.LockAnalysis_ds_NoMatchingLocks;
   
-  private static final String DS_MATCHING_LOCK = Messages.LockAnalysis_ds_MatchingLock;
+  private static final int DS_MATCHING_LOCK = Messages.LockAnalysis_ds_MatchingLock;
 
   private static final String DS_SINGLE_THREADED_UNIQUE_RETURN = Messages.LockAnalysis_ds_SingleThreadedUniqueReturn;
   
@@ -928,36 +930,33 @@ implements IBinderClient {
   }
 
   private InfoDropBuilder makeInfoDrop(final Category category,
-      final IRNode context, final String msgTemplate, final Object... msgArgs) {
-    final String msg = MessageFormat.format(msgTemplate, msgArgs);
+      final IRNode context, final int msgTemplate, final Object... msgArgs) {
     final InfoDropBuilder info = 
-    	InfoDropBuilder.create(analysisRoot, Messages.getName(msgTemplate), false);
+    	InfoDropBuilder.create(analysisRoot, Integer.toString(msgTemplate), false);
     setLockResultDep(info, context);
-    info.setMessage(msg);
+    info.setResultMessage(msgTemplate, msgArgs);
     info.setCategory(category);
     return info;
   }
 
   private InfoDropBuilder makeWarningDrop(final Category category,
-      final IRNode context, final String msgTemplate, final Object... msgArgs) {
-    final String msg = MessageFormat.format(msgTemplate, msgArgs);
+      final IRNode context, final int msgTemplate, final Object... msgArgs) {
     final InfoDropBuilder info = 
-    	InfoDropBuilder.create(analysisRoot, Messages.getName(msgTemplate), true);
+    	InfoDropBuilder.create(analysisRoot, Integer.toString(msgTemplate), true);
     setLockResultDep(info, context);
-    info.setMessage(msg);
+    info.setResultMessage(msgTemplate, msgArgs);
     info.setCategory(category);
     return info;
   }
 
   private ResultDropBuilder makeResultDrop(final IRNode context,
       final PromiseDrop<? extends IAASTRootNode> p,
-      final boolean isConsistent, final String msgTemplate,
+      final boolean isConsistent, final int msgTemplate,
       final Object... msgArgs) {
-    final String msg = MessageFormat.format(msgTemplate, msgArgs);
     final ResultDropBuilder result = 
-    	ResultDropBuilder.create(analysisRoot, Messages.getName(msgTemplate));
+    	ResultDropBuilder.create(analysisRoot, Integer.toString(msgTemplate));
     setLockResultDep(result, context);
-    result.setMessage(msg);
+    result.setResultMessage(msgTemplate, msgArgs);
     result.addCheckedPromise(p);
     if (isConsistent) {
       result.setConsistent();
@@ -1462,8 +1461,8 @@ implements IBinderClient {
     public final void assureNeededLocks(
         final Set<NeededLock> neededLocks, final Set<HeldLock> heldJUCLocks,
 //        final Set<HeldLock> heldIntrinsicLocks,
-        final String goodMsgTemplate, final String goodAltMsgTemplate, final Category goodCategory,
-        final String badMsgTemplate, final Category badCategory) {
+        final int goodMsgTemplate, final int goodAltMsgTemplate, final Category goodCategory,
+        final int badMsgTemplate, final Category badCategory) {
       for (final NeededLock neededLock : neededLocks) {
         /* See if this lock might be available under a different name in an
          * outer context.  This is only possible when we are inside an anonymous
@@ -1493,8 +1492,8 @@ implements IBinderClient {
               if (isLockSatisfied(alternativeLock, heldJUCLocks)) {
                 // The alternative exists and is held, so we have the "held as" message
                 resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock),
-                    true, goodAltMsgTemplate, neededLock,
-                    DebugUnparser.toString(useSite), alternativeLock);
+                    true, goodAltMsgTemplate, neededLock, alternativeLock,
+                    DebugUnparser.toString(useSite));
                 resultDrop.setCategory(goodCategory);
               } else {
                 // The alternative exists, but is not held, so we have the normal not held error
@@ -2011,10 +2010,9 @@ implements IBinderClient {
         final Set<HeldLock> jucLocks = jucLockUsageManager.getJUCSingleThreaded(cdecl);
         if (locks.hasNext() || !jucLocks.isEmpty()) { // May not have any locks at all
           final ResultDropBuilder result = ResultDropBuilder.create(analysisRoot,
-              Messages.getName(DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG));
-          result.setMessage(MessageFormat.format(
-              DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG,
-              JavaNames.genMethodConstructorName(cdecl)));
+              Integer.toString(DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG));
+          result.setResultMessage(DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG,
+              JavaNames.genMethodConstructorName(cdecl));
           setLockResultDep(result, cdecl);
           result.setConsistent();
           
@@ -2512,10 +2510,10 @@ implements IBinderClient {
              */
             final List<IRNode> lockFields = getJUCLockFields(lockExpr);
             if (!lockFields.isEmpty()) {
-              // (1)
+              // (1)            
               makeWarningDrop(DSC_MIXED_PARADIGM, lockExpr,
-                  DS_JUC_LOCK_FIELDS,
-                  DebugUnparser.toString(lockExpr), lockFields.size(),
+            	  lockFields.size()>1 ? DS_JUC_LOCK_FIELDS2 : DS_JUC_LOCK_FIELDS,
+                  DebugUnparser.toString(lockExpr), 
                   fieldsToString(lockFields));
               
               /* Now (2) --- we already know from (1) there are JUC lock fields

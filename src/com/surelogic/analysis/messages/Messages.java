@@ -50,66 +50,67 @@ public class Messages extends AbstractMessages {
   public static String LockAnalysis_dsc_MatchingCalls = "lock()\u2013unlock() matches";
   
   // Drop-sea result messages
-  public static String LockAnalysis_ds_SynchronizedConstructorAssured = "single-threaded constructor supported";
+  public static int LockAnalysis_ds_SynchronizedConstructorAssured = 200;
 
-  public static String LockAnalysis_ds_AggregationNeeded = "Field reference \"{0}\" may be to a shared unprotected object";
+  public static int LockAnalysis_ds_AggregationNeeded = 201;
 
-  public static String LockAnalysis_ds_AggregationNeeded2 = "Receiver \"{0}\" may be a shared unprotected object";
+  public static int LockAnalysis_ds_AggregationNeeded2 = 202;
 
-  public static String LockAnalysis_ds_FieldAccessAssured = "Lock \"{0}\" held when accessing {1}";
+  public static int LockAnalysis_ds_FieldAccessAssured = 203;
 
-  public static String LockAnalysis_ds_FieldAccessAssuredAlternative = "Lock \"{0}\" held as \"{2}\" when accessing {1}";
+  public static int LockAnalysis_ds_FieldAccessAssuredAlternative = 204;
 
-  public static String LockAnalysis_ds_FieldAccessNotAssured = "Lock \"{0}\" not held when accessing {1}";
+  public static int LockAnalysis_ds_FieldAccessNotAssured = 205;
 
-  public static String LockAnalysis_ds_FieldAccessNotResolvable = "Lock \"{0}\", needed for accessing {1}, is not held within the anonymous class and cannot be resolved in the calling context; lock must be held within the anonymous class";
+  public static int LockAnalysis_ds_FieldAccessNotResolvable = 206;
 
-  public static String LockAnalysis_ds_PreconditionsAssured = "Lock \"{0}\" held when invoking {1}; precondition satisfied";
+  public static int LockAnalysis_ds_PreconditionsAssured = 207;
 
-  public static String LockAnalysis_ds_PreconditionsAssuredAlternative = "Lock \"{0}\" held as \"{2}\" when invoking {1}; precondition satisfied";
+  public static int LockAnalysis_ds_PreconditionsAssuredAlternative = 208;
 
-  public static String LockAnalysis_ds_PreconditionsNotAssured = "Lock \"{0}\" not held when invoking {1}; precondition unsatisfied";
+  public static int LockAnalysis_ds_PreconditionsNotAssured = 209;
 
-  public static String LockAnalysis_ds_PreconditionNotResolvable = "Lock specification \"{0}\" cannot be resolved in the calling context for {1}; precondition unsatisfied";
+  public static int LockAnalysis_ds_PreconditionNotResolvable = 210;
 
-  public static String LockAnalysis_ds_IndirectFieldAccessAssured = "Lock \"{0}\" held when invoking {1}";
+  public static int LockAnalysis_ds_IndirectFieldAccessAssured = 211;
 
-  public static String LockAnalysis_ds_IndirectFieldAccessAssuredAlternative = "Lock \"{0}\" held as \"{2}\" when invoking {1}";
+  public static int LockAnalysis_ds_IndirectFieldAccessAssuredAlternative = 212;
 
-  public static String LockAnalysis_ds_IndirectFieldAccessNotAssured = "Lock \"{0}\" not held when invoking {1}";
+  public static int LockAnalysis_ds_IndirectFieldAccessNotAssured = 213;
 
-  public static String LockAnalysis_ds_ReturnAssured = "Return statement correctly returns lock \"{0}\"";
+  public static int LockAnalysis_ds_ReturnAssured = 214;
 
-  public static String LockAnalysis_ds_ReturnNotAssured = "Return statement expected to return lock \"{0}\"";
+  public static int LockAnalysis_ds_ReturnNotAssured = 215;
 
-  public static String LockAnalysis_ds_SynchronizedMethodWarningDetails = "Synchronized method {0}: \"this\" is not identifiable as a programmer-declared lock";
-
-  public static String LockAnalysis_ds_SynchronizedStaticMethodWarningDetails = "Synchronized method {0}: \"{1}.class\" is not identifiable as a programmer-declared lock";
-
-  public static String LockAnalysis_ds_SynchronizationUnused = "Locks {0} not needed by body of synchronized block";
-
-  public static String LockAnalysis_ds_NonfinalExpression = "Lock expression \"{0}\" is not final";
-
-  public static String LockAnalysis_ds_UnidentifiableLock = "Lock expression \"{0}\" does not name a programmer-declared lock; consider declaring what state is protected by the referenced lock";
-
-  public static String LockAnalysis_ds_RedundantSynchronized = "Acquisition of lock \"{0}\" may be redundant";
-
-  public static String LockAnalysis_ds_SyncedJUCLock = "Using a java.util.concurrent.locks lock object \"{0}\" in a syncronized statement";
-
-  public static String LockAnalysis_ds_MasqueradingCall = "\"{0}\" does not call a method from java.util.concurrent.locks.Lock";
-
-  public static String LockAnalysis_ds_MasqueradingCall2 = "\"{0}\" does not call a method from java.util.concurrent.locks.ReadWriteLock";
-
-  public static String LockAnalysis_ds_JUCLockFields = "The object referenced by \"{0}\" is not a known lock, but its {1,choice,1#field|1<fields} {2} {1,choice,1#is a|1<are} java.util.concurrent {1,choice,1#lock|1<locks}.";
+  public static int LockAnalysis_ds_SynchronizedMethodWarningDetails = 216;
   
-  public static String LockAnalysis_ds_DeclaredJUCLockField = "The object referenced by \"{0}\" is not a known lock, but its field \"{1}\" is declared to be java.util.concurrent lock \"{2}\".";
+  public static int LockAnalysis_ds_SynchronizedStaticMethodWarningDetails = 217;
   
+  public static int LockAnalysis_ds_SynchronizationUnused = 218;
+
+  public static int LockAnalysis_ds_NonfinalExpression = 219;
+
+  public static int LockAnalysis_ds_UnidentifiableLock = 220;
+  
+  public static int LockAnalysis_ds_RedundantSynchronized = 221;
+  
+  public static int LockAnalysis_ds_SyncedJUCLock = 222;
+  
+  public static int LockAnalysis_ds_MasqueradingCall = 223;
+  
+  public static int LockAnalysis_ds_MasqueradingCall2 = 224;
+  
+  public static int LockAnalysis_ds_JUCLockFields = 225;
+  
+  public static int LockAnalysis_ds_JUCLockFields2 = 226;
+  
+  public static int LockAnalysis_ds_DeclaredJUCLockField = 227;
   
   
   // Drop-sea Supporting information messages
   public static String LockAnalysis_ds_OnBehalfOfConstructor = "Analyzed on behalf of constructor \"{0}\"";
 
-  public static String LockAnalysis_ds_ConstructorIsSingleThreaded = "Constructor \"{0}\" is single-threaded";
+  public static int LockAnalysis_ds_ConstructorIsSingleThreaded = 234;
   
   public static String LockAnalysis_ds_EnclosingConstructorIsSingleThreaded = "Enclosing constructor \"{0}\" is single-threaded";
   
@@ -123,19 +124,19 @@ public class Messages extends AbstractMessages {
 
   public static String LockAnalysis_ds_HeldJUCLock = "java.util.concurrent lock \"{0}\" is held";
 
-  public static String LockAnalysis_ds_PoisonedLockCall="{0}() call has a different number of matching unlock() calls along different control paths";
+  public static int LockAnalysis_ds_PoisonedLockCall=227;
   
-  public static String LockAnalysis_ds_NoMatchingUnlocks="{0}() call has no matching unlock() calls";
+  public static int LockAnalysis_ds_NoMatchingUnlocks=228;
   
-  public static String LockAnalysis_ds_MatchingUnlock="{0}() call has matching unlock() call at line {1}";
+  public static int LockAnalysis_ds_MatchingUnlock=229;
   
-  public static String LockAnalysis_ds_PoisonedUnlockCall="unlock() call has a different number of matching lock() calls along different control paths";
+  public static int LockAnalysis_ds_PoisonedUnlockCall=230;
   
-  public static String LockAnalysis_ds_NoMatchingLocks="unlock() call has no matching lock() calls";
+  public static int LockAnalysis_ds_NoMatchingLocks=231;
   
-  public static String LockAnalysis_ds_MatchingLock="unlock() call has matching {0}() call at line {1}";
+  public static int LockAnalysis_ds_MatchingLock=232;
 
-  public static String LockAnalysis_ds_AggregationEvidence="Method effect {0} affects region {1} of {2} which is aggregated into region {3}";
+  public static int LockAnalysis_ds_AggregationEvidence=233;
   
   
   // Labels for the single-threaded result disjunction
