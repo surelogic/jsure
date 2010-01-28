@@ -23,6 +23,6 @@ public final class NotThreadSafePromiseDrop extends BooleanPromiseDrop<NotThread
   @Override
   protected void computeBasedOnAST() {
     String name = JavaNames.getTypeName(getNode());
-    setMessage(Messages.LockAnnotation_notThreadSafeDrop, name);
+    setResultMessage(Messages.LockAnnotation_notThreadSafeDrop, name);
   }
 }

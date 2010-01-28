@@ -23,6 +23,6 @@ public final class ImmutablePromiseDrop extends BooleanPromiseDrop<ImmutableNode
   @Override
   protected void computeBasedOnAST() {
     String name = JavaNames.getTypeName(getNode());
-    setMessage(Messages.LockAnnotation_immutableDrop, name);
+    setResultMessage(Messages.LockAnnotation_immutableDrop, name);
   }
 }

@@ -57,7 +57,7 @@ implements IDerivedDropCreator<InRegionPromiseDrop>
       fieldNames.append(reg);
     }
     String regionName = getAST().getTo().toString();
-    setMessage(Messages.RegionAnnotation_mapFieldsDrop, fieldNames,
+    setResultMessage(Messages.RegionAnnotation_mapFieldsDrop, fieldNames,
                regionName);
   }
   

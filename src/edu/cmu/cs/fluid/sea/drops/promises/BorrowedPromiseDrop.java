@@ -24,7 +24,7 @@ public final class BorrowedPromiseDrop extends BooleanPromiseDrop<BorrowedNode> 
   @Override
   protected void computeBasedOnAST() {
     final IRNode node = getNode();
-    setMessage(Messages.UniquenessAnnotation_borrowedDrop, 
+    setResultMessage(Messages.UniquenessAnnotation_borrowedDrop, 
                JavaNames.getFieldDecl(node), 
                JavaNames.genMethodConstructorName(VisitUtil.getEnclosingClassBodyDecl(node))); //$NON-NLS-1$
   }

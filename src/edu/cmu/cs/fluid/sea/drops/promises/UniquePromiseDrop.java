@@ -57,7 +57,7 @@ implements MaybeTopLevel {
   protected void computeBasedOnAST() {
     final IRNode node = getNode();
     if (VariableDeclarator.prototype.includes(node)) {
-      setMsg(Messages.UniquenessAnnotation_uniqueDrop1, 
+    	setResultMessage(Messages.UniquenessAnnotation_uniqueDrop1, 
              JavaNames.getFieldDecl(node)); //$NON-NLS-1$
     } else {
       IRNode method = VisitUtil.getEnclosingClassBodyDecl(node);
@@ -65,7 +65,7 @@ implements MaybeTopLevel {
         // Assume that it is a method
         method = node;
       }
-      setMsg(Messages.UniquenessAnnotation_uniqueDrop2, 
+      setResultMessage(Messages.UniquenessAnnotation_uniqueDrop2, 
              JavaNames.getFieldDecl(node), 
              JavaNames.genMethodConstructorName(method)); //$NON-NLS-1$
     }

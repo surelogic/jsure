@@ -68,7 +68,7 @@ public class UniquenessAnnotation extends AbstractPromiseAnnotation {
       if (isBorrowed(node)) {
         BorrowedPromiseDrop drop = new BorrowedPromiseDrop(null);
         drop.setCategory(JavaGlobals.UNIQUENESS_CAT);
-        drop.setMessage(Messages.UniquenessAnnotation_borrowedDrop, JavaNames
+        drop.setResultMessage(Messages.UniquenessAnnotation_borrowedDrop, JavaNames
             .getFieldDecl(node), JavaNames.genMethodConstructorName(VisitUtil
             .getEnclosingClassBodyDecl(node))); //$NON-NLS-1$
         return drop;

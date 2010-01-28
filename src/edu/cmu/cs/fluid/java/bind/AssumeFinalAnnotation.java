@@ -20,7 +20,7 @@ public class AssumeFinalAnnotation extends AbstractPromiseAnnotation {
       if (isAssumeFinal(node)) {
         AssumeFinalPromiseDrop drop = new AssumeFinalPromiseDrop(null);
         drop.setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-        drop.setMessage(Messages.AssumeFinalAnnotation_finalFieldDrop, JavaNames.getFieldDecl(node));
+        drop.setResultMessage(Messages.AssumeFinalAnnotation_finalFieldDrop, JavaNames.getFieldDecl(node));
         return drop;
       }
       return null;

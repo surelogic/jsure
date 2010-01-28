@@ -42,7 +42,7 @@ public final class ReturnsLockPromiseDrop extends PromiseDrop<ReturnsLockNode> {
   protected void computeBasedOnAST() {
     if (getAST() != null) {
       IRNode mdecl = VisitUtil.getEnclosingClassBodyDecl(getAST().getPromisedFor());
-      setMessage(Messages.LockAnnotation_returnsLockDrop,
+      setResultMessage(Messages.LockAnnotation_returnsLockDrop,
           getAST().getLock(),
           JavaNames.genMethodConstructorName(mdecl));
     }

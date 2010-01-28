@@ -1,6 +1,5 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import java.text.MessageFormat;
 import java.util.*;
 
 import com.surelogic.aast.bind.IRegionBinding;
@@ -76,12 +75,11 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
       throw new IllegalArgumentException("RegionModel doesn't match field decl: "+n);
     }
     model.setNodeAndCompilationUnitDependency(region.getNode());
-    model.setMessage(
-        generateMessage(region.isStatic(), region.getVisibility(), qname));
+    setResultMessage(model, region.isStatic(), region.getVisibility(), qname);
     return model;
   }
   
-  private static String generateMessage(
+  private static void setResultMessage(RegionModel model, 
       final boolean isStatic, final int viz, final String name) {
     final String stat = isStatic ? " static" : "";
     
@@ -98,7 +96,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
       break;
     }
     
-    return MessageFormat.format(
+    model.setResultMessage(
         Messages.RegionAnnotation_regionDrop, visibility,  stat, name);
   }
   
@@ -231,7 +229,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
     if (ast == null) {
 			return;
 		}
-		setMessage(generateMessage(ast.isStatic(), ast.getVisibility(), regionName));
+        setResultMessage(this, ast.isStatic(), ast.getVisibility(), regionName);
 	}
 
 	public RegionModel getModel() {

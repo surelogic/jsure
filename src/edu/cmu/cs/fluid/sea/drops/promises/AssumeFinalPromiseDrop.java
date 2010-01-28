@@ -15,6 +15,6 @@ public class AssumeFinalPromiseDrop extends BooleanPromiseDrop<AssumeFinalNode> 
   public AssumeFinalPromiseDrop(AssumeFinalNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
-    setMessage(Messages.AssumeFinalAnnotation_finalFieldDrop, JavaNames.getFieldDecl(getNode()));
+    setResultMessage(Messages.AssumeFinalAnnotation_finalFieldDrop, JavaNames.getFieldDecl(getNode()));
   }
 }

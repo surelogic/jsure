@@ -237,7 +237,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
         visibility = " public "; //$NON-NLS-1$
         break;
       }
-      model.setMessage(Messages.RegionAnnotation_regionDrop, visibility,
+      model.setResultMessage(Messages.RegionAnnotation_regionDrop, visibility,
           getRegionName(regionNode), JavaNames.getTypeName(VisitUtil
               .getEnclosingType(regionNode)));
       regionNode.setSlotValue(regionDrop, model);
@@ -697,7 +697,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
           // check the target region?
 
           RegionModel model = getRegionDrop(parentDecl);
-          mfp.setMessage(Messages.RegionAnnotation_mapFieldsDrop, fieldNames,
+          mfp.setResultMessage(Messages.RegionAnnotation_mapFieldsDrop, fieldNames,
               model.regionName); //$NON-NLS-1$
           model.addDependent(mfp);
         } else {
@@ -827,7 +827,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
         }
         RegionModel model = getRegionDrop(parentDecl);
         InRegionPromiseDrop mip = getInRegionDrop(promisedFor);
-        mip.setMessage(Messages.RegionAnnotation_inRegionDrop, model.regionName,
+        mip.setResultMessage(Messages.RegionAnnotation_inRegionDrop, model.regionName,
             name); //$NON-NLS-1$
         mip.setNode(parentRegion);
         mip.dependUponCompilationUnitOf(promisedFor);

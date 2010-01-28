@@ -25,6 +25,6 @@ public class NotUniquePromiseDrop extends BooleanPromiseDrop<NotUniqueNode> {
 	@Override
 	protected void computeBasedOnAST(){
 		String name = JavaNames.genMethodConstructorName(getNode());
-		setMessage(Messages.UniquenessAnnotation_notUniqueDrop, name);
+		setResultMessage(Messages.UniquenessAnnotation_notUniqueDrop, name);
 	}
 }

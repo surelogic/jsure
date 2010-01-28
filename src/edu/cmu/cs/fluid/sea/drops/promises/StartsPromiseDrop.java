@@ -26,7 +26,7 @@ public final class StartsPromiseDrop extends PromiseDrop<StartsSpecificationNode
 
   @Override
   protected void computeBasedOnAST() {
-    setMsg(Messages.StartsAnnotation_startNothingDrop, 
+    setResultMessage(Messages.StartsAnnotation_startNothingDrop, 
            JavaNames.genMethodConstructorName(getNode()));
   }
 }

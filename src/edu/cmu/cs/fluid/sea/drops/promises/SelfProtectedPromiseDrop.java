@@ -23,6 +23,6 @@ public final class SelfProtectedPromiseDrop extends BooleanPromiseDrop<SelfProte
   @Override
   protected void computeBasedOnAST() {
     String name = JavaNames.getTypeName(getNode());
-    setMessage(Messages.LockAnnotation_selfProtectedDrop, name);
+    setResultMessage(Messages.LockAnnotation_selfProtectedDrop, name);
   }
 }

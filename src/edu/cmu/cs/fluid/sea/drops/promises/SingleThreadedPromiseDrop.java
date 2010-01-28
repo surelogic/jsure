@@ -23,6 +23,6 @@ public final class SingleThreadedPromiseDrop extends BooleanPromiseDrop<SingleTh
   @Override
   protected void computeBasedOnAST() {
     String name = JavaNames.genMethodConstructorName(getNode());
-    setMessage(Messages.LockAnnotation_singleThreadedDrop, name);
+    setResultMessage(Messages.LockAnnotation_singleThreadedDrop, name);
   }
 }
