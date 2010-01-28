@@ -188,13 +188,20 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="NonNull" name="Non Null Analysis"
+	<extension id="BCA" name="Binding Context Analysis"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.nonnull.NonNull" production="false">
+		<run class="com.surelogic.bca.BCA" production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
+  <extension id="NonNull" name="Non Null Analysis"
+    point="com.surelogic.jsure.client.eclipse.analysisModule">
+    <run class="com.surelogic.nonnull.NonNull" production="false">
+    </run>
+    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+    </prerequisite>
+  </extension>
 	<extension id="ThreadEffectAssurance2" name="Halloran Thread Effects"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.threads.ThreadEffectsModule">
