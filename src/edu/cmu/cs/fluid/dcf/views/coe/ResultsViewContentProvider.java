@@ -48,7 +48,7 @@ import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProofDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.SupportingInformation;
+import edu.cmu.cs.fluid.sea.ISupportingInformation;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
 import edu.cmu.cs.fluid.sea.drops.PleaseCount;
@@ -150,14 +150,14 @@ public class ResultsViewContentProvider extends
 	 */
 	private void addSupportingInformation(Content mutableContentSet,
 			IRReferenceDrop about) {
-		Collection<SupportingInformation> supportingInformation = about
+		Collection<ISupportingInformation> supportingInformation = about
 				.getSupportingInformation();
 		int size = supportingInformation.size();
 		if (size == 0) {
 			// no supporting information, thus bail out
 			return;
 		} else if (size == 1) {
-			SupportingInformation si = supportingInformation.iterator().next();
+			ISupportingInformation si = supportingInformation.iterator().next();
 			Content informationItem = new Content("supporting information: "
 					+ si.getMessage(), si.getLocation());
 			informationItem.setBaseImageName(CommonImages.IMG_INFO);
@@ -168,9 +168,9 @@ public class ResultsViewContentProvider extends
 		Content siFolder = new Content("supporting information:");
 		siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 
-		for (Iterator<SupportingInformation> i = supportingInformation
+		for (Iterator<ISupportingInformation> i = supportingInformation
 				.iterator(); i.hasNext();) {
-			SupportingInformation si = i.next();
+			ISupportingInformation si = i.next();
 			Content informationItem = new Content(si.getMessage(), si
 					.getLocation());
 			informationItem.setBaseImageName(CommonImages.IMG_INFO);
