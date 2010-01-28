@@ -17,27 +17,25 @@ public class Messages extends AbstractMessages {
   
   
   
-  public static final String methodControlFlow = "Control flow of {0} {1}";
+  public static final int methodControlFlow = 300;
 
-  public static final String uniqueReturnDrop = "Unique return value of call {0}";
+  public static final int uniqueReturnDrop = 301;
 
-  public static final String borrowedParametersDrop = "Borrowed parameters of call {0}";
+  public static final int borrowedParametersDrop = 302;
 
-  public static final String uniqueParametersDrop = "Unique parameters of call {0}";
+  public static final int uniqueParametersDrop = 303;
 
-  public static final String effectOfCallDrop = "Effects of call {0}";
+  public static final int effectOfCallDrop = 304;
 
-  public static final String dependencyDrop = "Assurance conservatively depends on other annotations";
+  public static final int dependencyDrop = 305;
 
-  public static final String aggregatedUniqueFields = "Assurance conservatively depends on the unique fields accessed in method {0}";
+  public static final int aggregatedUniqueFields = 306;
 
-  public static final String aggregatedUniqueParams = "Assurance conservatively depends on the unique parameters of method {0}";
-
+  public static final int aggregatedUniqueParams = 307;
   
+  public static final int uniqueParametersSatisfied = 308;
   
-  public static final String uniqueParametersSatisfied = "Uniqueness preconditions satisfied when calling {0}";
-  
-  public static final String uniqueParametersUnsatisfied = "Uniqueness preconditions not satisfied when calling {0}";
+  public static final int uniqueParametersUnsatisfied = 309;
   
   
   public static final String uniqueReturnValue = "May depend on unique return value of {0}";

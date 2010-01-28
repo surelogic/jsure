@@ -392,7 +392,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				for (ResultDropBuilder callDrop : callDrops) {
 					callDrop.setConsistent();
 					if (pr.calledUniqueParams.contains(callDrop)) {
-					  callDrop.setMessage(Messages.uniqueParametersSatisfied, DebugUnparser.toString(node));
+					  callDrop.setResultMessage(Messages.uniqueParametersSatisfied, DebugUnparser.toString(node));
 					  callDrop.setCategory(DSC_UNIQUE_PARAMS_SATISFIED);
 					}
 				}
@@ -401,7 +401,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					callDrop.setInconsistent();
           callDrop.addSupportingInformation(getErrorMessage(insideDecl, node), node);
 					if (pr.calledUniqueParams.contains(callDrop)) {
-					  callDrop.setMessage(Messages.uniqueParametersUnsatisfied, DebugUnparser.toString(node));
+					  callDrop.setResultMessage(Messages.uniqueParametersUnsatisfied, DebugUnparser.toString(node));
 					  callDrop.setCategory(DSC_UNIQUE_PARAMS_UNSATISFIED);
 					}
 				}
@@ -591,7 +591,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
               UniquenessAnalysisModule.this, "aggregatedUniqueFields");
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
-          middleDrop.setMessage(Messages.aggregatedUniqueFields, JavaNames.genQualifiedMethodConstructorName(methodDecl));
+          middleDrop.setResultMessage(Messages.aggregatedUniqueFields, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           setResultDependUponDrop(middleDrop);
           for (final UniquePromiseDrop ud : uniqueFields) {
             middleDrop.addTrustedPromise(ud);
@@ -613,7 +613,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
               UniquenessAnalysisModule.this, "aggregatedUniqueParams");
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
-          middleDrop.setMessage(Messages.aggregatedUniqueParams, JavaNames.genQualifiedMethodConstructorName(methodDecl));
+          middleDrop.setResultMessage(Messages.aggregatedUniqueParams, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           setResultDependUponDrop(middleDrop);
           for (final UniquePromiseDrop ud : myUniqueParams) {
             middleDrop.addTrustedPromise(ud);
@@ -635,31 +635,27 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
       drop.setConsistent();
       setResultDependUponDrop(drop, block);
 
-      final String message;
+      final String label, unparse;
       final Operator op = JJNode.tree.getOperator(block);
       if (ConstructorDeclaration.prototype.includes(op)) {
-        message = MessageFormat.format(
-            Messages.methodControlFlow, "constructor",
-            JavaNames.genMethodConstructorName(block));
+        label = "constructor";
+        unparse = JavaNames.genMethodConstructorName(block);
       } else if (MethodDeclaration.prototype.includes(op)) {
-        message = MessageFormat.format(
-            Messages.methodControlFlow, "method",
-            JavaNames.genMethodConstructorName(block));
+    	  label = "method";
+    	  unparse = JavaNames.genMethodConstructorName(block);
         /*
         if (message.endsWith("getMap()")) {
         	System.out.println("Found: "+message);
         }
         */
       } else if (ClassInitializer.prototype.includes(op)) {
-        message = MessageFormat.format(
-            Messages.methodControlFlow, "initializer",
-            DebugUnparser.toString(block));
+    	  label = "initializer";
+    	  unparse = DebugUnparser.toString(block);
       } else { // Field declaration
-        message = MessageFormat.format(
-            Messages.methodControlFlow, "field initializer",
-            DebugUnparser.toString(block));
+    	  label = "field initializer";
+    	  unparse = DebugUnparser.toString(block);
       }
-      drop.setMessage(message);
+      drop.setResultMessage(Messages.methodControlFlow, label, unparse);
       cachedControlFlow.put(block, drop);
       controlFlowDrops.add(drop);
     }
@@ -894,8 +890,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
         final String label = DebugUnparser.toString(currentNode);
         if (!uniqueReturns.isEmpty()) {
           final ResultDropBuilder callDrop = getMethodCallDrop("uniqueReturnDrop",
-              MessageFormat.format(Messages.uniqueReturnDrop, label),
-              currentNode, uniqueReturns);
+              currentNode, uniqueReturns, Messages.uniqueReturnDrop, label);
           if (!isConstructorCall) {
             allCallDrops.add(callDrop);
             // Unique returns is a singleton set
@@ -911,8 +906,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
         }
         if (!borrowedParams.isEmpty()) {
           final ResultDropBuilder callDrop = getMethodCallDrop("borrowedParametersDrop",
-              MessageFormat.format(Messages.borrowedParametersDrop, label),
-              currentNode, borrowedParams);
+              currentNode, borrowedParams, Messages.borrowedParametersDrop, label);
           allCallDrops.add(callDrop);
           pr.calledBorrowedParams.add(callDrop);
           
@@ -937,8 +931,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
         }
         if (!effects.isEmpty()) {
           final ResultDropBuilder callDrop = getMethodCallDrop("effectOfCallDrop",
-              MessageFormat.format(Messages.effectOfCallDrop, label),
-              currentNode, effects);
+              currentNode, effects, Messages.effectOfCallDrop, label);
           allCallDrops.add(callDrop);
           pr.calledEffects.add(callDrop);
         }
@@ -1019,10 +1012,10 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	}
 
 	private <D extends PromiseDrop<? extends IAASTNode>> ResultDropBuilder
-	getMethodCallDrop(final String type, final String label, final IRNode n, final Set<D> promises) {
+	getMethodCallDrop(final String type, final IRNode n, final Set<D> promises, int num, Object... args) {
 		final ResultDropBuilder rd = ResultDropBuilder.create(this, type);
 		rd.setConsistent();
-		rd.setMessage(label);
+		rd.setResultMessage(num, args);
 		setResultDependUponDrop(rd, n);
 		for (final D pd : promises) {
 			rd.addTrustedPromise(pd);
