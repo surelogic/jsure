@@ -3,6 +3,7 @@ package com.surelogic.analysis.bca.uwm;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.annotation.rules.UniquenessRules;
 
+import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IndependentIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -116,6 +117,16 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    */
   private final IRNode[] locals;
   
+  /**
+   * The VariableDeclaration and ParamterDeclaration nodes of all the final
+   * parameters and local variables declared in external contexts that are
+   * visible within the method/constructor being analyzed.  These will
+   * exist if the method/constructor is part of a nested class declared within
+   * another method/constructor.  We don't track these declarations in the 
+   * analysis, but we list them here so that we can allow queries about them.  
+   */
+  private final IRNode[] external;
+  
 
   
   // =========================================================================
@@ -125,11 +136,12 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   /** Create a new BindingContext lattice for a particular method. */
   @SuppressWarnings("unchecked")
   private BindingContext(
-      final IRNode md, final IRNode[] locals, final IBinder binder) {
+      final IRNode md, final IRNode[] locals, final IRNode[] external, final IBinder binder) {
     // We add one to the # of locals to make room for our bogus element
     super(new UnionLattice<IRNode>(), locals.length + 1, new ImmutableSet[0]);
     this.methodDecl = md;
     this.locals = locals;
+    this.external = external;
     this.binder = binder;
   }
 
@@ -143,8 +155,10 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   public static BindingContext createForFlowUnit(
       final IRNode flowUnit, final IBinder binder) {
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
-    final IRNode[] p = new IRNode[lvd.getLocal().size()];
-    return new BindingContext(flowUnit, lvd.getLocal().toArray(p), binder);
+    final IRNode[] local = new IRNode[lvd.getLocal().size()];
+    final IRNode[] external = new IRNode[lvd.getExternal().size()];
+    return new BindingContext(flowUnit, lvd.getLocal().toArray(local),
+        lvd.getExternal().toArray(external), binder);
   }
   
 
@@ -201,9 +215,25 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    * @return The index of the declaration in {@link #locals} or <code>-1</code>
    *         if the declaration is not found.
    */
-  private int findLocal(final IRNode local) {
+  private int findLocal(final IRNode decl) {
     for (int i = 0; i < locals.length; ++i) {
-      if (locals[i].equals(local)) return i;
+      if (locals[i].equals(decl)) return i;
+    }
+    return -1;
+  }
+  
+  /**
+   * Search the list of external variable declarations and return the index of
+   * the given declaration.
+   * 
+   * @param local
+   *          The declaration to look for.
+   * @return The index of the declaration in {@link #external} or <code>-1</code>
+   *         if the declaration is not found.
+   */
+  private int findExternal(final IRNode decl) {
+    for (int i = 0; i < external.length; ++i) {
+      if (external[i].equals(decl)) return i;
     }
     return -1;
   }
@@ -221,10 +251,21 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
 
   private ImmutableSet<IRNode> localObjects(
       final ImmutableSet<IRNode>[] value, final IRNode decl) {
-    /* We don't trap for -1 from findLocal.  We want analysis to die if the
-     * variable is not found because it indicates a serious problem.
+    /* First check the local declarations, and if we find it, use the
+     * value stored in the lattice.  Otherwise, check the external declarations.
+     * If we find a match there, we return the empty set.  Otherwise we 
+     * throw an exception.   
      */
-    return value[findLocal(decl)];
+    final int localIdx = findLocal(decl);
+    if (localIdx != -1) {
+      return value[findLocal(decl)];
+    } else {
+      if (findExternal(decl) != -1) {
+        return ImmutableHashOrderSet.<IRNode>emptySet();
+      } else {
+        throw new FluidRuntimeException("Variable declaration " + DebugUnparser.toString(decl) + " is unknown in lattice");
+      }
+    }
   }
   
   /**
