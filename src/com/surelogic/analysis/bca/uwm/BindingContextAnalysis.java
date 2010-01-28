@@ -1,5 +1,7 @@
 package com.surelogic.analysis.bca.uwm;
 
+import java.text.MessageFormat;
+
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -140,10 +142,17 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
     @Override
     public ImmutableSet<IRNode>[] transferAssignment(
         final IRNode node, final ImmutableSet<IRNode>[] before) {
+//      System.out.println(MessageFormat.format("*********************\n***** transferAssignment(\"{0}\")", DebugUnparser.toString(node)));
+//      System.out.println("before lattice:");
+//      System.out.println(lattice.toString(before));
+      
       // Be strict
       if (!lattice.isNormal(before)) {
+//        System.out.println("Lattice is not normal, skip");
         return before;
       }
+      
+      ImmutableSet<IRNode>[] out = before;
       
       final AssignmentInterface op = (AssignmentInterface) tree.getOperator(node);
       final IRNode lhs = op.getTarget(node);
@@ -151,18 +160,29 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
       if (VariableUseExpression.prototype.includes(lhsOp)) {
         final IRNode decl = binder.getBinding(lhs);
         final ImmutableSet<IRNode> rhsObjects = lattice.expressionObjects(before, op.getSource(node));
-        return lattice.updateDeclaration(before, decl, rhsObjects);
+        out = lattice.updateDeclaration(before, decl, rhsObjects);
       }
-      return before;
+      
+//      System.out.println("after lattice:");
+//      System.out.println(lattice.toString(out));
+      
+      return out;
     }
     
     @Override
     public ImmutableSet<IRNode>[] transferInitialization(
         final IRNode node, final ImmutableSet<IRNode>[] before) {
+//      System.out.println(MessageFormat.format("*********************\n***** transferInitialization(\"{0}\")", DebugUnparser.toString(node)));
+//      System.out.println("before lattice:");
+//      System.out.println(lattice.toString(before));
+
       // Be strict
       if (!lattice.isNormal(before)) {
+//        System.out.println("Lattice is not normal, skip");
         return before;
       }
+      
+      ImmutableSet<IRNode>[] out = before;
       
       if (VariableDeclarator.prototype.includes(tree.getOperator(node))) {
         // Make sure it's NOT a field initialization
@@ -172,10 +192,14 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
                     JJNode.tree.getParentOrNull(node))))) {
           final ImmutableSet<IRNode> initObjects =
             lattice.expressionObjects(before, VariableDeclarator.getInit(node));
-          return lattice.updateDeclaration(before, node, initObjects);
+          out = lattice.updateDeclaration(before, node, initObjects);
         }
       }
-      return before;
+      
+//      System.out.println("after lattice:");
+//      System.out.println(lattice.toString(out));
+
+      return out;
     }
   }
 }

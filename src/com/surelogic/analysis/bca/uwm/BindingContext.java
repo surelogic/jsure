@@ -27,7 +27,6 @@ import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.CachedSet;
-import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.util.ArrayLattice;
 import edu.uwm.cs.fluid.util.UnionLattice;
@@ -86,7 +85,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    * from bottom.
    */
   protected static final ImmutableSet<IRNode> IGNORE_ME_SINGLETON_SET =
-    ImmutableHashOrderSet.<IRNode>emptySet().addCopy(IGNORE_ME);
+    CachedSet.<IRNode>getEmpty().addElement(IGNORE_ME);
 
   
   
@@ -176,7 +175,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   public ImmutableSet<IRNode>[] getEmptyValue() {
     final ImmutableSet<IRNode>[] empty = new ImmutableSet[locals.length + 1];
     for (int i = 0; i < locals.length; i++) {
-      empty[i] = ImmutableHashOrderSet.<IRNode>emptySet();
+      empty[i] = CachedSet.<IRNode>getEmpty();
     }
     empty[locals.length] = IGNORE_ME_SINGLETON_SET;
     return empty;
@@ -192,7 +191,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
       final IRNode local = locals[i];
       if (ParameterDeclaration.prototype.includes(JJNode.tree.getOperator(local))) {
         initValue = this.updateDeclaration(initValue, local,
-            ImmutableHashOrderSet.<IRNode>emptySet().addCopy(local));
+            CachedSet.<IRNode>getEmpty().addElement(local));
       }
     }
     return initValue;
@@ -203,7 +202,8 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    */
   public boolean isNormal(final ImmutableSet<IRNode>[] value) {
     /* Value is good as long as the bogus element is the special ignore set. */
-    return value[locals.length] == IGNORE_ME_SINGLETON_SET;
+    final boolean result = value[locals.length] == IGNORE_ME_SINGLETON_SET;
+    return result;
   }
   
   /**
@@ -261,7 +261,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
       return value[findLocal(decl)];
     } else {
       if (findExternal(decl) != -1) {
-        return ImmutableHashOrderSet.<IRNode>emptySet();
+        return CachedSet.<IRNode>getEmpty();
       } else {
         throw new FluidRuntimeException("Variable declaration " + DebugUnparser.toString(decl) + " is unknown in lattice");
       }
@@ -300,7 +300,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
     } else if (CastExpression.prototype.includes(op)) {
       return expressionObjects(value, CastExpression.getExpr(expr));
     } else if (NullLiteral.prototype.includes(op)) {
-      return CachedSet.getEmpty();
+      return CachedSet.<IRNode>getEmpty();
     } else if (FieldRef.prototype.includes(op)) {
       /* XXX: John says "I find this dubious, but currently it doesn't do
        * anything because even if the field is NOT unique, the same thing is
