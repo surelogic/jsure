@@ -108,21 +108,21 @@ public class Messages extends AbstractMessages {
   
   
   // Drop-sea Supporting information messages
-  public static String LockAnalysis_ds_OnBehalfOfConstructor = "Analyzed on behalf of constructor \"{0}\"";
+  public static int LockAnalysis_ds_OnBehalfOfConstructor = 235;
 
   public static int LockAnalysis_ds_ConstructorIsSingleThreaded = 234;
   
-  public static String LockAnalysis_ds_EnclosingConstructorIsSingleThreaded = "Enclosing constructor \"{0}\" is single-threaded";
+  public static int LockAnalysis_ds_EnclosingConstructorIsSingleThreaded = 236;
   
-  public static String LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded = "Enclosing constructor \"{0}\" cannot be proven to be single-threaded";
+  public static int LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded = 237;
     
-  public static String LockAnalysis_ds_FieldDeclaration = "Field Declaration: {0}";
+  public static int LockAnalysis_ds_FieldDeclaration = 238;
   
-  public static String LockAnalysis_ds_AssumedHeld = "Assuming lock \"{0}\" is held";
+  public static int LockAnalysis_ds_AssumedHeld = 239;
 
-  public static String LockAnalysis_ds_HeldLock = "Intrinsic lock \"{0}\" is held";
-
-  public static String LockAnalysis_ds_HeldJUCLock = "java.util.concurrent lock \"{0}\" is held";
+  public static int LockAnalysis_ds_HeldLock = 240;
+  
+  public static int LockAnalysis_ds_HeldJUCLock = 241;
 
   public static int LockAnalysis_ds_PoisonedLockCall=227;
   

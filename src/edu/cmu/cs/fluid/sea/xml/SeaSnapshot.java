@@ -98,7 +98,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		b.append("/>\n");
 	}
 	
-	public void addSupportingInfo(SupportingInformation si) {
+	public void addSupportingInfo(ISupportingInformation si) {
 		b.append("    ");
 		Entities.start(SUPPORTING_INFO, b);
 		addAttribute(Drop.MESSAGE, si.getMessage());

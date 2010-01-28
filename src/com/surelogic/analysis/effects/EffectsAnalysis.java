@@ -189,10 +189,9 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 					final IRNode actual = binding.getValue();
 					final String actualString = DebugUnparser.toString(actual);
 
-					rd.addSupportingInformation(
-					    I18N.res(Messages.EffectAssurance_msgParameterEvidence,
-					        formalString, actualString),
-					    actual);
+					rd.addSupportingInformation(actual, 
+                            Messages.EffectAssurance_msgParameterEvidence,
+					        formalString, actualString);
 				}
 			}
 		}

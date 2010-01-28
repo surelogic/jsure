@@ -7,6 +7,7 @@ import java.util.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.util.Pair;
+import edu.cmu.cs.fluid.util.Triple;
 
 public abstract class AbstractDropBuilder {
 	final String type;
@@ -18,7 +19,9 @@ public abstract class AbstractDropBuilder {
 	private Category category;
 	private List<Drop> dependUponDrops = new ArrayList<Drop>();
 	private List<Pair<String,IRNode>> supportingInfos =
-		new ArrayList<Pair<String,IRNode>>();
+		new ArrayList<Pair<String,IRNode>>();	
+	private List<Triple<IRNode,Integer,Object[]>> supportingInfos2 =
+		new ArrayList<Triple<IRNode,Integer,Object[]>>();
 	
 	AbstractDropBuilder(String type) {		
 		this.type = type;
@@ -67,6 +70,10 @@ public abstract class AbstractDropBuilder {
 		supportingInfos.add(new Pair<String,IRNode>(msg, context));
 	}
 	
+	public void addSupportingInformation(IRNode context, int num, Object... args) {
+		supportingInfos2.add(new Triple<IRNode,Integer,Object[]>(context, num, args));
+	}
+	
 	void buildDrop(IRReferenceDrop d) {
 		//System.out.println("Making: "+message);
 		d.setNode(node);
@@ -81,6 +88,9 @@ public abstract class AbstractDropBuilder {
 		}
 		for(Pair<String,IRNode> p : supportingInfos) {
 			d.addSupportingInformation(p.first(), p.second());
+		}
+		for(Triple<IRNode,Integer,Object[]> p : supportingInfos2) {
+			d.addSupportingInformation(p.first(), p.second(), p.third());
 		}
 	}
 	

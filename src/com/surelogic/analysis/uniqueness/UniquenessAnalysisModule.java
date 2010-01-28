@@ -822,25 +822,25 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					// Add depended on method calls
 					for (Map.Entry<ResultDropBuilder, UniquePromiseDrop> entry : pr.calledUniqueReturns.entrySet()) {
 					  final IRNode methodCall = entry.getKey().getNode();
-					  callToCheck.addSupportingInformation(
-					      MessageFormat.format(Messages.uniqueReturnValue,
-					          DebugUnparser.toString(methodCall)), methodCall);
+					  callToCheck.addSupportingInformation(methodCall,
+							  Messages.uniqueReturnValue,
+					          DebugUnparser.toString(methodCall));
 					  callToCheck.addTrustedPromise(entry.getValue());
 					}
 
           // Add depended on contructors with borrowed("this") or unique("return")
           for (Map.Entry<ResultDropBuilder, BorrowedPromiseDrop> entry : pr.calledBorrowedConstructors.entrySet()) {
             final IRNode constructorCall = entry.getKey().getNode();
-            callToCheck.addSupportingInformation(
-                MessageFormat.format(Messages.borrowedConstructor,
-                    DebugUnparser.toString(constructorCall)), constructorCall);
+            callToCheck.addSupportingInformation(constructorCall,
+            		Messages.borrowedConstructor,
+                    DebugUnparser.toString(constructorCall));
             callToCheck.addTrustedPromise(entry.getValue());
           }
           for (Map.Entry<ResultDropBuilder, UniquePromiseDrop> entry : pr.calledUniqueConstructors.entrySet()) {
             final IRNode constructorCall = entry.getKey().getNode();
-            callToCheck.addSupportingInformation(
-                MessageFormat.format(Messages.borrowedConstructor,
-                    DebugUnparser.toString(constructorCall)), constructorCall);
+            callToCheck.addSupportingInformation(constructorCall,
+            		Messages.borrowedConstructor,
+                    DebugUnparser.toString(constructorCall));
             callToCheck.addTrustedPromise(entry.getValue());
           }
 				}

@@ -189,7 +189,7 @@ implements IBinderClient {
 
   private static final int DS_AGGREGATION_NEEDED2 = Messages.LockAnalysis_ds_AggregationNeeded2;
 
-  private static final int DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG = Messages.LockAnalysis_ds_SynchronizedConstructorAssured;
+  //private static final int DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG = Messages.LockAnalysis_ds_SynchronizedConstructorAssured;
 
   private static final int DS_FIELD_ACCESS_ASSURED_MSG = Messages.LockAnalysis_ds_FieldAccessAssured;
 
@@ -229,19 +229,19 @@ implements IBinderClient {
 
   private static final int DS_REDUNDANT_SYNCHRONIZED_MSG = Messages.LockAnalysis_ds_RedundantSynchronized;
 
-  private static final String DS_ON_BEHALF_OF_CONSTRUCTOR_MSG = Messages.LockAnalysis_ds_OnBehalfOfConstructor;
+  private static final int DS_ON_BEHALF_OF_CONSTRUCTOR_MSG = Messages.LockAnalysis_ds_OnBehalfOfConstructor;
 
   private static final int DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_ConstructorIsSingleThreaded;
   
-  private static final String DS_ENCLOSING_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_EnclosingConstructorIsSingleThreaded;
+  private static final int DS_ENCLOSING_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_EnclosingConstructorIsSingleThreaded;
   
-  private static final String DS_ENCLOSING_CONSTRUCTOR_NOT_PROVEN_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded; 
+  private static final int DS_ENCLOSING_CONSTRUCTOR_NOT_PROVEN_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded; 
   
-  private static final String DS_ASSUMED_HELD_MSG = Messages.LockAnalysis_ds_AssumedHeld;
+  private static final int DS_ASSUMED_HELD_MSG = Messages.LockAnalysis_ds_AssumedHeld;
   
-  private static final String DS_LOCK_HELD_MSG = Messages.LockAnalysis_ds_HeldLock;
+  private static final int DS_LOCK_HELD_MSG = Messages.LockAnalysis_ds_HeldLock;
 
-  private static final String DS_JUC_LOCK_HELD_MSG = Messages.LockAnalysis_ds_HeldJUCLock;
+  private static final int DS_JUC_LOCK_HELD_MSG = Messages.LockAnalysis_ds_HeldJUCLock;
 
   private static final int DS_SYNCED_JUCLOCK = Messages.LockAnalysis_ds_SyncedJUCLock;
   
@@ -967,9 +967,8 @@ implements IBinderClient {
   }
 
   private void addSupportingInformation(final AbstractDropBuilder drop,
-      final IRNode link, final String msgTemplate, final Object... msgArgs) {
-    final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    drop.addSupportingInformation(msg, link);
+      final IRNode link, final int msgTemplate, final Object... msgArgs) {
+    drop.addSupportingInformation(link, msgTemplate, msgArgs);
   }
 
   /**

@@ -152,14 +152,37 @@ public abstract class IRReferenceDrop extends Drop {
     return cus.iterator().next();
   }
 
-  private static List<SupportingInformation> noSupportingInfo = 
+  private static List<ISupportingInformation> noSupportingInfo = 
 	  Collections.emptyList();
   
   /**
    * A set of supporting information about this drop, all elements are of
-   *   type {@link edu.cmu.cs.fluid.sea.SupportingInformation}
+   *   type {@link edu.cmu.cs.fluid.sea.ISupportingInformation}
    */
-  private List<SupportingInformation> supportingInformation = null;
+  private List<ISupportingInformation> supportingInformation = null;
+
+  /**
+   * Reports an item of supporting information about this drop.  This can be
+   * used to add any curio about the drop.
+   * 
+   * @param link an fAST node, can be <code>null</code>, to reference
+   * @param num The message number for the user interface
+   */
+  public void addSupportingInformation(IRNode link, int num, Object... args) {
+    if (num >= 0) {
+      if (supportingInformation == null) {
+        supportingInformation = new ArrayList<ISupportingInformation>(1);
+      }
+      for (ISupportingInformation si : supportingInformation) {
+        if (si.sameAs(link, num, args)) {
+          LOG.fine("Duplicate supporting information");
+          return;
+        }
+      }
+      ISupportingInformation info = new SupportingInformation2(link, num, args);
+      supportingInformation.add(info);
+    }
+  }
 
   /**
    * Reports an item of supporting information about this drop.  This can be
@@ -171,11 +194,10 @@ public abstract class IRReferenceDrop extends Drop {
   public void addSupportingInformation(String message, IRNode link) {
     if (message != null) {
       if (supportingInformation == null) {
-        supportingInformation = new ArrayList<SupportingInformation>(1);
+        supportingInformation = new ArrayList<ISupportingInformation>(1);
       }
-      for (SupportingInformation si : supportingInformation) {
-        if (message.equals(si.message) && 
-            si.location != null && (si.location == link || si.location.equals(link))) {
+      for (ISupportingInformation si : supportingInformation) {
+        if (si.sameAs(link, message)) {
           LOG.fine("Duplicate supporting information");
           return;
         }
@@ -185,13 +207,13 @@ public abstract class IRReferenceDrop extends Drop {
       info.message = message;
       supportingInformation.add(info);
     }
-  }
-
+  }  
+  
   /**
    * @return the set of supporting information about this drop, all elements
    *   are of type {@link edu.cmu.cs.fluid.sea.SupportingInformation}
    */
-  public List<SupportingInformation> getSupportingInformation() {
+  public List<ISupportingInformation> getSupportingInformation() {
 	if (supportingInformation == null) {
 		return noSupportingInfo;
 	}
@@ -236,16 +258,18 @@ public abstract class IRReferenceDrop extends Drop {
   public void snapshotRefs(SeaSnapshot s) {
 	  super.snapshotRefs(s);
 	  s.addSrcRef(getNode(), getSrcRef());
-	  for(SupportingInformation si : getSupportingInformation()) {
+	  for(ISupportingInformation si : getSupportingInformation()) {
 		  s.addSupportingInfo(si);
 	  }
   }
   
   @Override
   protected JavaSourceReference createSourceRef() {
-	  final ISrcRef ref = getSrcRef();	  
+	  return createSourceRef(getNode(), getSrcRef()); 
+  }
+  
+  public static JavaSourceReference createSourceRef(IRNode n, ISrcRef ref) {
 	  if (ref == null) {
-		  IRNode n = getNode();
 		  IRNode cu = VisitUtil.getEnclosingCUorHere(n);
 		  String pkg = VisitUtil.getPackageName(cu);
 		  IRNode type = VisitUtil.getPrimaryType(cu);
