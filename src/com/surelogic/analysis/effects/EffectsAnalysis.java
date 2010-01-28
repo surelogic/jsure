@@ -7,6 +7,7 @@ import java.util.*;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.annotation.rules.MethodEffectsRules;
+import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
@@ -87,7 +88,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 							rd.addCheckedPromise(declaredEffectsDrop);
 							setResultDependUponDrop(rd, member);
 							rd.setConsistent();
-							rd.setMessage(Messages.EffectAssurance_msgEmptyEffects);
+							rd.setResultMessage(Messages.EffectAssurance_msgEmptyEffects);
 						} else {
 							if (isConstructor) {
 								checkConstructor(declaredEffectsDrop, member, declFx, maskedFx,
@@ -149,10 +150,9 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	 * @param eff
 	 */
 	private void constructResultDrop(final RegionEffectsPromiseDrop declEffDrop,
-			final boolean isConsistent, final Effect eff, final String msgTemplate,
+			final boolean isConsistent, final Effect eff, final int msgTemplate,
 			final Object... msgArgs) {
-		final String msg = MessageFormat.format(msgTemplate, msgArgs);
-		final ResultDrop rd = new ResultDrop(Messages.getName(msgTemplate));
+		final ResultDrop rd = new ResultDrop(Integer.toString(msgTemplate));
 		rd.addCheckedPromise(declEffDrop);
 
 		final IRNode src = eff.getSource();
@@ -190,7 +190,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 					final String actualString = DebugUnparser.toString(actual);
 
 					rd.addSupportingInformation(
-					    MessageFormat.format(Messages.EffectAssurance_msgParameterEvidence,
+					    I18N.res(Messages.EffectAssurance_msgParameterEvidence,
 					        formalString, actualString),
 					    actual);
 				}
@@ -202,7 +202,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 		// Finish the drop
 		setResultDependUponDrop(rd, src);
 		rd.setConsistent(isConsistent);
-		rd.setMessage(msg);
+		rd.setResultMessage(msgTemplate, msgArgs);
 	}
 	
 	/**
