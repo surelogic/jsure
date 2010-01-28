@@ -28,6 +28,7 @@ import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
 import edu.cmu.cs.fluid.control.Component.WhichPort;
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -242,16 +243,24 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     setInfo(edge,old);
   }
 
+  private static final int COUNT_BEFORE_CHECK = 10;
+
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#performAnalysis()
    */
   public void performAnalysis() {
+    final IDE ide = IDE.getInstance();
     worklist.start();
+    int count = COUNT_BEFORE_CHECK;
     while (worklist.hasNext()) {
-      if (Thread.interrupted()) {
-        throw new FluidInterruptedException();
+      if (count == 0) {
+        count = COUNT_BEFORE_CHECK;
+        if (ide.isCancelled()) {
+          throw new FluidInterruptedException();
+        }
       }
       work(worklist.next());
+      count -= 1;
     }
   }
 
