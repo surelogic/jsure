@@ -120,6 +120,8 @@ public abstract class IDE {
   }
 
   public boolean isCancelled() {
+	// TODO change to use Thread.interrupted()?
+	// Issue: how do I find out which thread to interrupt?
     memPolicy.checkIfLowOnMemory();
     return cancelled;
   }
