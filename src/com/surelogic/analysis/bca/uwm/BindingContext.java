@@ -1,21 +1,16 @@
 package com.surelogic.analysis.bca.uwm;
 
-import java.util.LinkedList;
-import java.util.List;
-
+import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IndependentIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.ConditionalExpression;
-import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
@@ -26,7 +21,6 @@ import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -70,7 +64,7 @@ import edu.uwm.cs.fluid.util.UnionLattice;
  * use of the lattice because by adding it to the end of the array, it's an
  * element that will never actually be used.
  */
-final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>> {
+public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>> {
   // =========================================================================
   // == Bogus values for differentiation empty from bottom
   // =========================================================================
@@ -93,231 +87,7 @@ final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, ImmutableS
   protected static final ImmutableSet<IRNode> IGNORE_ME_SINGLETON_SET =
     ImmutableHashOrderSet.<IRNode>emptySet().addCopy(IGNORE_ME);
 
-
   
-  // =========================================================================
-  // == Helper inner classes
-  // =========================================================================
-  
-  /**
-   * Crawl a method declaration to find all the local variable and parameter
-   * declarations. {@link #doAccept(IRNode)} must only be called with a
-   * MethodDeclaration, ConstructorDeclaration, InitDeclaration, or
-   * ClassInitDeclaration.
-   */
-  private static class FindDeclarationsVisitor extends VoidTreeWalkVisitor {
-    // =========================================================================
-    // == Helper inner class for the inner class!
-    // =========================================================================
-    
-    private final class InitializationVisitor extends VoidTreeWalkVisitor {
-      /**
-       * The outer visitation.
-       */
-      private final FindDeclarationsVisitor outer;
-  
-      /** 
-       * Are we matching static initializers?  If <code>false</code> we match
-       * instance initializers.
-       */
-      private final boolean isStatic; 
-  
-  
-      
-      public InitializationVisitor(
-          final FindDeclarationsVisitor fdv, final boolean matchStatic) {
-        outer = fdv;
-        isStatic = matchStatic;
-      }
-      
-      
-      
-      @Override
-      public Void visitTypeDeclaration(final IRNode node) {
-        /* STOP: we've encountered a type declaration.  We don't want to enter
-         * the method declarations of nested class definitions.
-         */
-        return null;
-      }
-      
-      @Override 
-      public Void visitAnonClassExpression(final IRNode expr) {
-        // Traverse into the arguments, but *not* the body
-        doAccept(AnonClassExpression.getArgs(expr));
-        return null;
-      }
-  
-      @Override
-      public Void visitMethodDeclaration(final IRNode node) {
-        /* STOP: we've encountered a method declaration. 
-         */
-        return null;
-      }
-  
-      @Override
-      public Void visitConstructorDeclaration(final IRNode node) {
-        /* STOP: we've encountered a method declaration. 
-         */
-        return null;
-      }
-      
-      @Override
-      public Void visitClassInitializer(final IRNode expr) {
-        /* Only go inside an initializer if it matches the kind of initializer
-         * we are looking for.
-         */
-        if (JavaNode.getModifier(expr, JavaNode.STATIC) == isStatic) {
-          outer.doAcceptForChildren(expr);
-        }
-        return null;
-      }
-    }
- 
-
-    
-    // =========================================================================
-    // == Fields
-    // =========================================================================
-    
-    private final List<IRNode> declarations = new LinkedList<IRNode>();
-    
-    private IRNode currentConstructor = null;
- 
-
-    
-    // =========================================================================
-    // == Constructor and static factory method
-    // =========================================================================
-    
-    private FindDeclarationsVisitor() {
-      super();
-    }
-    
-    
-    
-    /**
-     * @param mdecl A MethodDeclaration, ConstructorDeclaration, 
-     * InitDeclaration, or ClassInitDeclaration node.
-     */
-    public static IRNode[] getDeclarationsFor(final IRNode mdecl) {
-      final FindDeclarationsVisitor v = new FindDeclarationsVisitor();
-      v.doAccept(mdecl);
-      final IRNode[] result = new IRNode[v.declarations.size()];
-      return v.declarations.toArray(result);
-    }
-
-    
-    
-    // =========================================================================
-    // == Visitor methods
-    // =========================================================================
-    
-    @Override
-    public Void visitParameterDeclaration(final IRNode node) {
-      declarations.add(node);
-      return null;
-    }
-    
-    @Override
-    public Void visitVariableDeclarator(final IRNode node) {
-      declarations.add(node);
-      return null;
-    }
-    
-    @Override
-    public Void visitClassDeclaration(final IRNode node) {
-      /* STOP: we've encountered a class declaration.  We don't want to enter
-       * the method declarations of nested class definitions.
-       */
-      return null;
-    }
-  
-    @Override
-    public Void visitInterfaceDeclaration(final IRNode node) {
-      /* STOP: we've encountered a class declaration.  We don't want to enter
-       * the method declarations of nested class definitions.
-       */
-      return null;
-    }
-  
-    @Override
-    public Void visitEnumDeclaration(final IRNode node) {
-      /* STOP: we've encountered a class declaration.  We don't want to enter
-       * the method declarations of nested class definitions.
-       */
-      return null;
-    }
-  
-    @Override
-    public Void visitAnonClassExpression(final IRNode node) {
-      /* STOP: we've encountered a class declaration.  We don't want to enter
-       * the method declarations of nested class definitions.
-       */
-      return null;
-    }
-    
-    @Override
-    public Void visitClassInitializer(final IRNode node) {
-      // Ignore, these are handled recursively
-      return null;
-    }
-    
-    @Override
-    public Void visitClassInitDeclaration(final IRNode node) {
-      /* We have the node for the static initializer, recursively find
-       * all the static initializer blocks in the class. 
-       */
-      final InitializationVisitor iv = new InitializationVisitor(this, true);
-      /* Must use accept for children because InitializationVisitor doesn't do anything
-       * for ClassDeclaration nodes.  It's better this way anyhow because we only care
-       * about the children of the class declaration to begin with.
-       */ 
-      iv.doAcceptForChildren(JavaPromise.getPromisedFor(node));
-      return null;
-    }
-    
-    @Override
-    public Void visitInitDeclaration(final IRNode node) {
-      /* We have the node for the instance initializer because we are executing
-       * on behalf of an anonymous class expression; recursively find
-       * all the instance initializer blocks in the class. 
-       */
-      final InitializationVisitor iv = new InitializationVisitor(this, false);
-      /* Must use accept for children because InitializationVisitor doesn't do anything
-       * for ClassDeclaration nodes.  It's better this way anyhow because we only care
-       * about the children of the class declaration to begin with.
-       */ 
-      iv.doAcceptForChildren(JavaPromise.getPromisedFor(node));
-      return null;
-    }
-  
-    @Override
-    public Void visitConstructorDeclaration(final IRNode node) {
-      currentConstructor = node;
-      try {
-        doAcceptForChildren(node);
-      } finally {
-        currentConstructor = null;
-      }
-      return null;
-    }
-    
-    @Override
-    public Void visitConstructorCall(final IRNode node) {
-      // Would process the call itself first, but we don't care about it
-      
-      final IRNode conObject = ConstructorCall.getObject(node);
-      final Operator conObjectOp = JJNode.tree.getOperator(conObject);
-      if (SuperExpression.prototype.includes(conObjectOp)) {
-        // Visit the initializers.
-        final InitializationVisitor helper = new InitializationVisitor(this, false);
-        helper.doAcceptForChildren(JJNode.tree.getParent(currentConstructor));
-      }
-      return null;
-    }
-  }
-  
-
   
   // =========================================================================
   // == Fields
@@ -372,8 +142,9 @@ final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, ImmutableS
    */
   public static BindingContext createForFlowUnit(
       final IRNode flowUnit, final IBinder binder) {
-    final IRNode[] locals = FindDeclarationsVisitor.getDeclarationsFor(flowUnit);
-    return new BindingContext(flowUnit, locals, binder);
+    final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
+    final IRNode[] p = new IRNode[lvd.getLocal().size()];
+    return new BindingContext(flowUnit, lvd.getLocal().toArray(p), binder);
   }
   
 
@@ -546,7 +317,7 @@ final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, ImmutableS
     }
   }
 
-  private static String setToString(ImmutableSet<IRNode> s) {
+  public static String setToString(ImmutableSet<IRNode> s) {
     final StringBuilder sb = new StringBuilder();
     if (s.isInfinite()) {
       sb.append("~");

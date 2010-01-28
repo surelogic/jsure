@@ -6,8 +6,10 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
@@ -163,9 +165,15 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
       }
       
       if (VariableDeclarator.prototype.includes(tree.getOperator(node))) {
-        final ImmutableSet<IRNode> initObjects =
-          lattice.expressionObjects(before, VariableDeclarator.getInit(node));
-        return lattice.updateDeclaration(before, node, initObjects);
+        // Make sure it's NOT a field initialization
+        if (!FieldDeclaration.prototype.includes(
+            JJNode.tree.getOperator(
+                JJNode.tree.getParentOrNull(
+                    JJNode.tree.getParentOrNull(node))))) {
+          final ImmutableSet<IRNode> initObjects =
+            lattice.expressionObjects(before, VariableDeclarator.getInit(node));
+          return lattice.updateDeclaration(before, node, initObjects);
+        }
       }
       return before;
     }
