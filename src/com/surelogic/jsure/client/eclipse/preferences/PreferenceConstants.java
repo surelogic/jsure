@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.preferences;
 
+import java.io.File;
+
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.common.eclipse.preferences.IPreferenceConstants;
@@ -47,6 +49,26 @@ public class PreferenceConstants implements IPreferenceConstants {
         P_AUTO_OPEN_MODELING_PROBLEMS_VIEW, value);
   }
 
+  public static final String P_DATA_DIRECTORY = PREFIX + DATA_DIRECTORY;
+  
+  public static File getJSureDataDirectory() {
+	  final String path = Activator.getDefault().getPluginPreferences()
+	  .getString(P_DATA_DIRECTORY);
+	  if (path.length() == 0 || path == null) {
+		  return null;
+	  }
+	  return new File(path);
+  }
+
+  public static void setJSureDataDirectory(final File dir) {
+	  if (dir != null && dir.exists() && dir.isDirectory()) {
+		  Activator.getDefault().getPluginPreferences().setValue(
+				  P_DATA_DIRECTORY, dir.getAbsolutePath());
+	  } else {
+		  throw new IllegalArgumentException("Bad directory: " + dir);
+	  }
+  }
+  
   private PreferenceConstants() {
     // Nothing to do
   }
