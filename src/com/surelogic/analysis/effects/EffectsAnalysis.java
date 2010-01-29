@@ -113,8 +113,9 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			return Collections.emptySet();
 		}
 		final Set<Effect> newEffects = new HashSet<Effect>();
+    final IBinder binder = getBinder();
 		for (final Effect e : effects) {
-			if (!e.isMaskable(getBinder())) newEffects.add(e);
+      if (!e.isMaskable(binder)) newEffects.add(e);
 		}
 		return Collections.unmodifiableSet(newEffects);
 	}
