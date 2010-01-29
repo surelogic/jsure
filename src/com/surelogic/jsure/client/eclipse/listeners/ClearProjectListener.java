@@ -35,28 +35,28 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 public class ClearProjectListener implements IResourceChangeListener {
 	public static final boolean clearAfterChange = true;
 	private static IProject lastProject = null;
-	
-	public void resourceChanged(IResourceChangeEvent event) {
+
+	public void resourceChanged(final IResourceChangeEvent event) {
 		synchronized (ClearProjectListener.class) {
 			if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
 				if (lastProject != null) {
 					lastProject = null;
 					clearJSureState();
 				}
-			}
-			else if (event.getResource() instanceof IProject) {
-				IProject p = (IProject) event.getResource();
+			} else if (event.getResource() instanceof IProject) {
+				final IProject p = (IProject) event.getResource();
 				if (!p.getName().equals(ProjectDrop.getProject())) {
 					return; // Not the current project, so ignore this
 				}
 				switch (event.getType()) {
 				case IResourceChangeEvent.PRE_CLOSE:
-				case IResourceChangeEvent.PRE_DELETE:		
+				case IResourceChangeEvent.PRE_DELETE:
 					if (clearAfterChange) {
 						lastProject = p;
 					} else {
 						clearJSureState();
 					}
+					return;
 				default:
 					return;
 				}
@@ -67,43 +67,43 @@ public class ClearProjectListener implements IResourceChangeListener {
 	/**
 	 * Otherwise, clear the current project
 	 */
-	private static final boolean clearAll = true;	
-	
+	private static final boolean clearAll = true;
+
 	public static void clearJSureState() {
 		try {
 			clearDropSea(clearAll);
 			/*
-			for(Drop d : Sea.getDefault().getDrops()) {
-				System.out.println(d.getMessage());
-			}
-			*/
+			 * for(Drop d : Sea.getDefault().getDrops()) {
+			 * System.out.println(d.getMessage()); }
+			 */
 			// System.out.println("Clearing all comp units");
 			Binding.clearCompUnits(clearAll);
 			TypeBindings.clearAll();
 
 			if (clearAll) {
 				JavaTypeFactory.clearAll();
-			}			
+			}
 			// Go ahead and garbage collect the IR.
 			SlotInfo.gc();
-		} catch (Exception e) {
-			SLLogger.getLogger().log(Level.SEVERE, "Problem while clearing JSure state", e);
+		} catch (final Exception e) {
+			SLLogger.getLogger().log(Level.SEVERE,
+					"Problem while clearing JSure state", e);
 		}
 	}
 
 	private static Set<IClearProjectHelper> helpers = new HashSet<IClearProjectHelper>();
 
-	public static void addHelper(IClearProjectHelper h) {
+	public static void addHelper(final IClearProjectHelper h) {
 		helpers.add(h);
 	}
 
 	private static void clearDropSea(final boolean clearAll) {
 		// FIX to clear out drops for a given project
-		for (RegionModel region : Sea.getDefault().getDropsOfExactType(
+		for (final RegionModel region : Sea.getDefault().getDropsOfExactType(
 				RegionModel.class)) {
-			IRNode n = region.getNode();
-			IRNode root = VisitUtil.findRoot(n);
-			CUDrop drop = CUDrop.queryCU(root);
+			final IRNode n = region.getNode();
+			final IRNode root = VisitUtil.findRoot(n);
+			final CUDrop drop = CUDrop.queryCU(root);
 			if (drop instanceof SourceCUDrop) {
 				// System.out.println(region.getMessage());
 				region.invalidate();
@@ -117,14 +117,14 @@ public class ClearProjectListener implements IResourceChangeListener {
 				DropPredicateFactory.matchType(WarningDrop.class));
 		Sea.getDefault().invalidateMatching(
 				DropPredicateFactory.matchType(PromiseWarningDrop.class));
-		
+
 		if (clearAll) {
 			BinaryCUDrop.invalidateAll();
 			PackageDrop.invalidateAll();
 			IDE.getInstance().clearAll();
 			AnnotationRules.XML_LOG.reset();
 		}
-		for (IClearProjectHelper h : helpers) {
+		for (final IClearProjectHelper h : helpers) {
 			if (h != null) {
 				h.clearResults(clearAll);
 			}
@@ -144,7 +144,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 				.getProjects();
 		IProject first = null;
 
-		for (IProject p : projects) {
+		for (final IProject p : projects) {
 			if (p.isOpen() && Nature.hasNature(p)) {
 				if (first == null) {
 					first = p;
@@ -163,14 +163,15 @@ public class ClearProjectListener implements IResourceChangeListener {
 		// Handle projects that are still active
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
 				.getProjects();
-		if (projects == null)
+		if (projects == null) {
 			return;
+		}
 
-		for (IProject p : projects) {
+		for (final IProject p : projects) {
 			if (p.isOpen() && Nature.hasNature(p)) {
 				try {
 					Nature.removeNatureFromProject(p);
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					SLLogger.getLogger().log(
 							Level.SEVERE,
 							"CoreException trying to remove the JSure nature from "
