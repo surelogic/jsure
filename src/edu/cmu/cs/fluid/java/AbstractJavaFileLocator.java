@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ide.*;
@@ -50,11 +51,27 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
   protected abstract JavaCanonicalizer getCanonicalizer(P proj);
   protected abstract ITypeEnvironment getTypeEnvironment(P proj);
   
+  protected abstract File getDataDirectory();
+  
+  private void archiveFileLocator(FileLocator flocPath) {
+	  if (flocPath instanceof ZipFileLocator) {
+		  ZipFileLocator zip = (ZipFileLocator) flocPath;
+		  File target = new File(getDataDirectory(), "temp"); // TODO fix to use project name
+		  FileUtility.copy(zip.getCorrespondingFile(), target);
+	  } else {
+		  throw new IllegalStateException("archiveFileLocator() called on "+flocPath);
+	  }
+	  
+  }
+  
   protected static File createTempFile() throws IOException {
 	  File tempFile = File.createTempFile("JSure", ".tmp");
 	  return tempFile;
   }
   
+  /**
+   * Deletes all temp files created by JSure
+   */
   protected static void cleanupTempFiles() {
 	  try {
 		  File tmpDir = createTempFile().getParentFile();
@@ -89,6 +106,9 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	  };
   }
   
+  /**
+   * Add to the existing set of FileLocator(s)
+   */
   private void addToFlocPath(ZipFileLocator zfl) {
 	  if (flocPath == null) {
 		  flocPath = zfl;
@@ -100,6 +120,10 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	  }
   }
 
+  /**
+   * Make sure all writes are complete
+   * @param force If true, this archive replaces the existing set of FileLocator(s)
+   */
   protected long commitCurrentArchive(boolean force) throws IOException {
 	  if (currentArchive == null || numWritten == 0) {
 		  return 0;
@@ -208,6 +232,7 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 
   public synchronized void persistAll() throws IOException {
 	  persistAll(true);
+	  //archiveFileLocator(flocPath);
   }
   
   private void persistAll(boolean force) throws IOException {
