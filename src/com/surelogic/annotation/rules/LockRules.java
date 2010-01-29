@@ -745,6 +745,7 @@ public class LockRules extends AnnotationRules {
         }
         
         final LockModel model = LockModel.getInstance(qualifiedName);
+        model.setAST(lockDecl);
         model.setResultMessage(Messages.LockAnnotation_policyLockModel,
             model.getQualifiedName(), lockDecl.getField(), JavaNames.getTypeName(lockDecl
                 .getPromisedFor()));
