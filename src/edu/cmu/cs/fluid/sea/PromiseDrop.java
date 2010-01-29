@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.i18n.JavaSourceReference;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -494,4 +495,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 		s.addAttribute("from-src", isFromSrc());
 		s.addAttribute("virtual", isVirtual());
 	}
+	
+	  @Override
+	  protected JavaSourceReference createSourceRef() {	  
+		  IRNode n = getNode();
+		  if (n == null) {
+			  n = getAST().getPromisedFor();
+		  }
+		  return createSourceRef(n, getSrcRef()); 
+	  }
 }
