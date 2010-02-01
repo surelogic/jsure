@@ -2,6 +2,8 @@ package edu.cmu.cs.fluid.java;
 
 import java.io.*;
 
+import com.surelogic.common.xml.Entities;
+import com.surelogic.jsure.xml.Entity;
 import com.surelogic.tree.SyntaxTreeRegion;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -14,8 +16,8 @@ import edu.cmu.cs.fluid.util.*;
 public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {  
   private static final Bundle javaBundle = JavaNode.getBundle();
   private static final Bundle parseBundle = JJNode.getBundle();
-  private final IRRegion astRegion   = JJNode.specializeForSyntaxTree ? new SyntaxTreeRegion() : new IRRegion();
-  private final IRRegion canonRegion = JJNode.specializeForSyntaxTree ? new SyntaxTreeRegion() : new IRRegion();
+  private final IRRegion astRegion;
+  private final IRRegion canonRegion;
   private final AbstractJavaFileLocator<T,P> locator;
   private final P project;
   private final T id;
@@ -55,8 +57,58 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     this.root  = root;
     this.type  = type;
     
+    if (JJNode.specializeForSyntaxTree) {
+    	astRegion = new SyntaxTreeRegion();
+    	canonRegion = new SyntaxTreeRegion();
+    } else {
+    	astRegion = new IRRegion();
+    	canonRegion = new IRRegion();
+    }
+    
     // This is really the earliest we can do this
     putInRegion(astRegion, root);
+  }
+
+  public JavaFileStatus(AbstractJavaFileLocator<T, P> loc, P proj, T id,
+		String label, long time, Type type, UniqueID astId, UniqueID canonId) 
+  throws IOException {
+	  if (id == null) {
+		  throw new IllegalArgumentException("null resource");
+	  }
+	  if (type == null) {
+		  throw new IllegalArgumentException("no type for resource "+id);
+	  }
+	  locator    = loc;
+	  project    = proj;
+	  this.id    = id;
+	  this.label = label;
+	  modTime    = time;
+	  this.type  = type;
+	  
+	  if (JJNode.specializeForSyntaxTree) {
+		  astRegion = SyntaxTreeRegion.getRegion(astId);
+		  canonRegion = SyntaxTreeRegion.getRegion(canonId);
+	  } else {
+		  astRegion = IRRegion.getRegion(astId);
+		  canonRegion = IRRegion.getRegion(canonId);
+	  }
+	  astRegion.load(locator.flocPath);
+	  canonRegion.load(locator.flocPath);
+	  root = astRegion.getNode(1);
+	  
+	  // Setup chunks
+	  astChunk1 = astRegion.createChunk(parseBundle);
+	  astChunk2 = astRegion.createChunk(javaBundle);
+	  canonChunk1 = canonRegion.createChunk(parseBundle);
+	  canonChunk2 = canonRegion.createChunk(javaBundle);	  
+	  astChunk1.load(locator.flocPath);
+	  astChunk2.load(locator.flocPath);
+	  canonChunk1.load(locator.flocPath);
+	  canonChunk2.load(locator.flocPath);
+	  loaded = false;
+	  canonical = true;
+	  persistent = true;
+	  //System.out.println("Recreated "+label+": "+root);
   }
 
   public static <T> boolean isPersisted(SlotInfo<T> si ) {
@@ -106,7 +158,8 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     // Needs to be stored again if canonicalized
     astChunk1.store(floc);
     astChunk2.store(floc);
-  
+    astRegion.store(floc);
+    
     if (canonical) {
       if (canonChunk1 == null) { 
         canonChunk1 = canonRegion.createChunk(parseBundle);
@@ -114,6 +167,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
       }
       canonChunk1.store(floc);
       canonChunk2.store(floc);
+      canonRegion.store(floc);
     }
     persistent = true;
     return true;
@@ -279,6 +333,42 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
 
   void dumpRegions() {
     System.out.println(label+" : "+astRegion+", "+canonRegion);
+  }
+
+  void indexXML(PrintWriter pw, StringBuilder b) {
+	  Entities.start("file-status", b);		 
+	  Entities.addAttribute("project", locator.getProjectHandle(project), b);
+	  b.append("\r\n");
+	  Entities.addAttribute("id", locator.getIdHandle(id), b);
+	  b.append("\r\n");
+	  Entities.addAttribute("label", label, b);
+	  b.append("\r\n");
+	  Entities.addAttribute("modTime", modTime, b);
+	  b.append("\r\n");
+	  Entities.addAttribute("type", type.name(), b);
+	  b.append("\r\n");
+	  Entities.addAttribute("ast-id", astRegion.getID().toString(), b);
+	  b.append("\r\n");
+	  Entities.addAttribute("canon-id", canonRegion.getID().toString(), b);
+	  b.append("/>\n");
+	  AbstractJavaFileLocator.flushBuffer(pw, b);
+  }
+  
+  static <T,P> JavaFileStatus<T,P> recreate(AbstractJavaFileLocator<T,P> locator, Entity e) {
+	  P proj = locator.getProjectFromHandle(e.getAttribute("project"));
+	  T id = locator.getIdFromHandle(e.getAttribute("id"));
+	  String label = e.getAttribute("label");
+	  long time = Long.parseLong(e.getAttribute("modTime"));
+	  Type type = Type.valueOf(e.getAttribute("type"));
+	  try {
+		  UniqueID astId = UniqueID.parseUniqueID(e.getAttribute("ast-id"));
+		  UniqueID canonId = UniqueID.parseUniqueID(e.getAttribute("canon-id"));
+		  JavaFileStatus<T,P> status = new JavaFileStatus<T, P>(locator, proj, id, label, time, type, astId, canonId);
+		  return status;
+	  } catch (IOException e1) {
+		  e1.printStackTrace();
+		  return null;
+	  }
   }
 }
 
