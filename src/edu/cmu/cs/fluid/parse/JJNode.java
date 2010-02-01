@@ -116,6 +116,11 @@ public class JJNode extends PlainIRNode implements Node {
     nextChild = operator.numChildren() < 0 ? -1 : 0;
   }
 
+  protected JJNode(SyntaxTreeInterface tree) {
+	super();
+	nextChild = -1;
+  }
+  
   /**
 	 * Create a new node with a minimum number of children (when varying).
 	 */
@@ -264,16 +269,16 @@ public class JJNode extends PlainIRNode implements Node {
 
   private static Bundle jjbundle = null;
   static {
+	final UniqueID id = UniqueID.parseUniqueID("parse");  
     try {
       jjbundle =
-        Bundle.loadBundle(
-          UniqueID.parseUniqueID("parse"),
+        Bundle.loadBundle(id,          
           IRPersistent.fluidFileLocator);
     } catch (IOException ex) {
       JavaGlobals.PARSE.fine(ex.toString());
 
       // temp
-      jjbundle = new Bundle();
+      jjbundle = Bundle.findBundle(id);
       JJNodeBoot.saveAttributes(jjbundle);
     }
   }
