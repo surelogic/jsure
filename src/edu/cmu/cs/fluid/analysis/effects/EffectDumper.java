@@ -61,6 +61,7 @@ public final class EffectDumper extends AbstractWholeIRAnalysisModule
    * module is created.
    */
   public EffectDumper() {
+	super(ParserNeed.EITHER);
     INSTANCE = this;
   }
 
