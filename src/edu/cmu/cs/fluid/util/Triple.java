@@ -37,6 +37,16 @@ public class Triple<T1,T2,T3> {
   }
   
   private int computeHash() {
-    return elem1.hashCode() + elem2.hashCode() + elem3.hashCode();
+	int hash = 0;
+	if (elem1 != null) {
+		hash += elem1.hashCode();
+	}
+	if (elem2 != null) {
+		hash += elem2.hashCode();
+	}
+	if (elem3 != null) {
+		hash += elem3.hashCode();
+	}
+    return hash;
   }
 }
