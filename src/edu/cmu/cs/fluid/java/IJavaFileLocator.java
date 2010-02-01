@@ -88,6 +88,8 @@ public interface IJavaFileLocator<T,P> extends Iterable<IJavaFileStatus<T>> {
    */
   void persistAll() throws IOException;
   
+  void loadArchiveIndex() throws IOException;
+  
   void printSummary(PrintWriter pw);
   
   /**

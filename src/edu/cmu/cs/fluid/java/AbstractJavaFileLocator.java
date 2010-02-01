@@ -1,17 +1,20 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/AbstractJavaFileLocator.java,v 1.7 2008/08/25 19:07:36 chance Exp $*/
 package edu.cmu.cs.fluid.java;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.xml.sax.Attributes;
+
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.xml.Entities;
+import com.surelogic.jsure.xml.AbstractXMLReader;
+import com.surelogic.jsure.xml.Entity;
+import com.surelogic.jsure.xml.IXMLResultListener;
 
 import edu.cmu.cs.fluid.ide.*;
 import edu.cmu.cs.fluid.ir.*;
@@ -31,6 +34,7 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
   final SlotHandler slotHandler = new SlotHandler();
   final MemoryHandler memHandler = new MemoryHandler();
   protected boolean okToCanonicalize = false;
+  private boolean loadedFromArchive = true;
 	
   /**
    * Path for locating archives
@@ -50,14 +54,18 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
   }
   protected abstract JavaCanonicalizer getCanonicalizer(P proj);
   protected abstract ITypeEnvironment getTypeEnvironment(P proj);
-  
+  protected abstract String getProjectHandle(P proj);
+  protected abstract String getIdHandle(T id);
+  protected abstract P getProjectFromHandle(String handle);
+  protected abstract T getIdFromHandle(String handle);
   protected abstract File getDataDirectory();
   
   private void archiveFileLocator(FileLocator flocPath) {
 	  if (flocPath instanceof ZipFileLocator) {
 		  ZipFileLocator zip = (ZipFileLocator) flocPath;
-		  File target = new File(getDataDirectory(), "temp"); // TODO fix to use project name
+		  File target = new File(getDataDirectory(), "temp.zip"); // TODO fix to use project name		  
 		  FileUtility.copy(zip.getCorrespondingFile(), target);
+		  System.out.println("Final zip: "+(target.length()/1024.0)+" KB");
 	  } else {
 		  throw new IllegalStateException("archiveFileLocator() called on "+flocPath);
 	  }
@@ -231,8 +239,19 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
   }
 
   public synchronized void persistAll() throws IOException {
+	  if (loadedFromArchive) {
+		  return;
+	  }
+	  
+	  // To prevent duplicates
+	  commitCurrentArchive(false);
+	  
+	  final long start = System.currentTimeMillis();
 	  persistAll(true);
-	  //archiveFileLocator(flocPath);
+	  final long end = System.currentTimeMillis();
+	  System.out.println("Final zip: "+(end-start)+" ms");
+	  
+	  archiveFileLocator(flocPath);
   }
   
   private void persistAll(boolean force) throws IOException {
@@ -250,6 +269,11 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 			  num++;
 		  }
 	  }
+	  numWritten += num;
+	  
+	  if (force == true) {
+		  createArchiveIndex();		  
+	  }
 	  long length = commitCurrentArchive(force);
 	  long end = System.nanoTime();
 	  if (LOG.isLoggable(Level.FINE)) {
@@ -263,6 +287,76 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	  }
 	  IDE.getInstance().getMemoryPolicy().addLowMemoryHandler(memHandler);
 	  IR.addUndefinedSlotHandler(slotHandler);
+  }
+  
+  private void createArchiveIndex() {
+	  final OutputStream out = currentArchive.openFileWriteOrNull("archive.index");
+	  if (out != null) {
+		  final PrintWriter pw = new PrintWriter(out); 
+		  final StringBuilder b = new StringBuilder();
+		  Entities.start("archive", b);		  
+		  Entities.addAttribute("size", resources.size(), b);
+		  b.append(">\n");
+		  flushBuffer(pw, b);
+		  
+		  for (JavaFileStatus<T,P> s : resources.values()) {
+			  s.indexXML(pw, b);
+		  }
+		  pw.println("</archive>");
+		  pw.close();
+	  }
+  }
+  
+  public synchronized void loadArchiveIndex() throws IOException {
+	  // Check for an archive
+	  final File archive = new File(getDataDirectory(), "temp.zip"); // TODO fix to use project name	
+	  flocPath = new ZipFileLocator(archive, ZipFileLocator.READ);
+
+	  final long start = System.currentTimeMillis();
+	  final InputStream in = flocPath.openFileReadOrNull("archive.index");
+	  if (in != null) {
+		  IndexHandler h = new IndexHandler();
+		  try {
+			  h.read(in);
+			  final long end = System.currentTimeMillis();
+			  System.out.println("Reloaded index: "+(end-start)+" ms");
+			  
+			  loadedFromArchive = true;
+		  } catch (Exception e) {
+			  e.printStackTrace();
+		  }
+	  } else {
+		  flocPath = null;
+	  }
+  }
+  
+  class IndexHandler extends AbstractXMLReader implements IXMLResultListener {
+	@Override
+	protected String checkForRoot(String name, Attributes attributes) {
+		if ("archive".equals(name)) {
+			return "archive"; // TODO fix to be unique
+		}
+		return null;
+	}
+
+	public void start(String uid, String project) {
+		// Nothing to do
+	}
+
+	public void notify(Entity e) {
+		JavaFileStatus<T,P> s = JavaFileStatus.recreate(AbstractJavaFileLocator.this, e);
+		resources.put(s.id(), s);
+	}
+	
+	public void done() {
+		// Nothing to do
+	}
+  }
+  
+  static void flushBuffer(PrintWriter pw, StringBuilder b) {
+	  pw.append(b);
+	  System.out.println(b.toString());
+	  b.setLength(0);
   }
   
   private void complainIfNotAllCanonical() {
@@ -292,6 +386,8 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 
   public synchronized IJavaFileStatus<T> register(P project, T handle,
 		  String label, long modTime, IRNode root, Type type) {
+	  loadedFromArchive = false;
+	  
 	  JavaFileStatus<T,P> s = new JavaFileStatus<T,P>(this, project, handle, label, 
 			                                          modTime, root, type);
 	  JavaFileStatus<T,P> s2 = resources.put(handle, s);
