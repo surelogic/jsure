@@ -43,6 +43,9 @@ public class Bundle extends IRPersistent {
     return b;
   }
 
+  public static Bundle findBundle(UniqueID id) {
+	return (Bundle) find(id);
+  }
     
   private Vector<SlotInfo> attributes = new Vector<SlotInfo>();
 
