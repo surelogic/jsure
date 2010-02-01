@@ -308,9 +308,9 @@ public class JavaPromise extends JavaNode {
 
 	public static IRNode getReceiverNode(IRNode methodNode)
 	throws SlotUndefinedException {
-	  if (InitDeclaration.prototype.includes(methodNode)) {
-	    throw new IllegalArgumentException("No receiver on an init method");
-	  }
+//	  if (InitDeclaration.prototype.includes(methodNode)) {
+//	    throw new IllegalArgumentException("No receiver on an init method");
+//	  }
 		try {
 			return methodNode.getSlotValue(receiverNodeSlotInfo);
 		} catch (SlotUndefinedException e) {
