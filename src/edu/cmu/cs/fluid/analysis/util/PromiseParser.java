@@ -282,7 +282,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 		if (IJavaFileLocator.useIRPaging) {
 			//*
 			try {
-				IDE.getInstance().getJavaFileLocator().persistNew();
+				IDE.getInstance().getJavaFileLocator().persistAll();
 				// EclipseFileLocator loc = (EclipseFileLocator) Eclipse.getInstance().getJavaFileLocator();
 				// loc.testUnload(false);
 				// loc.testReload();
