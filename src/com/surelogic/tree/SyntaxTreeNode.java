@@ -28,6 +28,11 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
     super(tree, op);
     initFields();
   }
+  
+  public SyntaxTreeNode() {
+	super(tree);
+	initFields();
+  }
 
   private void initFields() {
     /*
