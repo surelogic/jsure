@@ -8,6 +8,7 @@ import com.surelogic.annotation.rules.RegionRules;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -48,7 +49,11 @@ public class FieldRegion extends AbstractRegion {
   }
   
   public String getName() {
-    return VariableDeclarator.getId(field);
+    if (EnumConstantDeclaration.prototype.includes(field)) {
+      return EnumConstantDeclaration.getId(field);
+    } else {
+      return VariableDeclarator.getId(field);
+    }
   }
   
   public int getVisibility() {
