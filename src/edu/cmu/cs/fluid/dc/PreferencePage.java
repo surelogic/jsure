@@ -7,8 +7,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtension;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
@@ -52,6 +50,8 @@ public final class PreferencePage extends
 	// .getProperties().getProperty("dc.show.private", "false").equals(
 	// "true");
 
+	private static IAnalysisContainer container = Plugin.getDefault();
+	
 	CheckboxTreeViewer checktree;
 
 	AnalysisModuleContentProvider analysisModuleContentProvider;
@@ -132,7 +132,7 @@ public final class PreferencePage extends
 		// "real")
 
 		// only valid in "real" nodes
-		IExtension am = null; // analysis module extension point information
+		IAnalysisInfo am = null; // analysis module extension point information
 
 		boolean isOn = false; // boolean isGrey = false;
 
@@ -147,7 +147,7 @@ public final class PreferencePage extends
 	 */
 	final class AnalysisModuleContentProvider extends LabelProvider implements
 			ICheckStateListener, ITreeContentProvider, ITreeViewerListener {
-
+		
 		/**
 		 * The contents for the viewer.
 		 */
@@ -157,7 +157,7 @@ public final class PreferencePage extends
 		 * A map used to link the {@link IExtension}list from the double-checker
 		 * plugin to the root level of the {@link PreferenceTreeNode}.
 		 */
-		private Map<IExtension, PreferenceTreeNode> m_originalMap;
+		private Map<IAnalysisInfo, PreferenceTreeNode> m_originalMap;
 
 		/**
 		 * Provides the list of analysis module identifiers that have been
@@ -180,22 +180,17 @@ public final class PreferencePage extends
 		 * Constructs the content provider including reading the valid analysis
 		 * modules and which have been excluded from the double-checker plugin.
 		 */
-		AnalysisModuleContentProvider() {
+		AnalysisModuleContentProvider() {			
 			// read information from the double-checker plugin
-			IExtension[] ams = Plugin.getDefault().allAnalysisExtensions;
 			m_checktreeContents = new HashSet<PreferenceTreeNode>();
-			m_originalMap = new HashMap<IExtension, PreferenceTreeNode>();
+			m_originalMap = new HashMap<IAnalysisInfo, PreferenceTreeNode>();
 			// Create core contents (ones we care about)
-			for (IExtension am : ams) {
+			for (IAnalysisInfo am : container.getAllAnalysisInfo()) {
 				PreferenceTreeNode node = new PreferenceTreeNode();
 				node.am = am;
 				node.original = node;
 				node.isAMirror = false;
-				for (String id : Plugin.getDefault().m_includedExtensions) {
-					if (node.am.getUniqueIdentifier().equals(id)) {
-						node.isOn = true;
-					}
-				}
+				node.isOn = am.isIncluded();
 				node.isVisible = computeVisibility(am);
 				m_checktreeContents.add(node);
 				m_originalMap.put(am, node);
@@ -216,11 +211,11 @@ public final class PreferencePage extends
 		 *         specified prerequisites for the analysis module
 		 *         <code>extension</code>
 		 */
-		private Set<PreferenceTreeNode> addPrereqs(IExtension extension) {
+		private Set<PreferenceTreeNode> addPrereqs(IAnalysisInfo extension) {
 			Set<PreferenceTreeNode> result = new HashSet<PreferenceTreeNode>();
-			Set<IExtension> prereqs = Plugin.getDefault()
+			Set<IAnalysisInfo> prereqs = container
 					.getPrerequisiteAnalysisExtensionPoints(extension);
-			for (IExtension prereq : prereqs) {
+			for (IAnalysisInfo prereq : prereqs) {
 				PreferenceTreeNode node = new PreferenceTreeNode();
 				node.am = null;
 				node.original = m_originalMap.get(prereq);
@@ -235,25 +230,11 @@ public final class PreferencePage extends
 		/**
 		 * @return false if not production, or if category=required
 		 */
-		private boolean computeVisibility(IExtension am) {
+		private boolean computeVisibility(IAnalysisInfo am) {
 			if (showPrivate) {
 				return true;
 			}
-			IConfigurationElement[] cfgs = am.getConfigurationElements();
-			for (int i = 0; i < cfgs.length; i++) {
-				if (cfgs[i].getName().equalsIgnoreCase("run")) {
-					final String production = cfgs[i]
-							.getAttribute("production");
-					if (production != null && production.equals("false")) {
-						return false;
-					}
-					final String category = cfgs[i].getAttribute("category");
-					if (category != null && category.equals("required")) {
-						return false;
-					}
-				}
-			}
-			return true;
+			return am.isProduction() && !"required".equals(am.getCategory());
 		}
 
 		private PreferenceTreeNode[] filterNodes(Set<PreferenceTreeNode> nodes) {
@@ -351,17 +332,12 @@ public final class PreferencePage extends
 		 */
 		private void restoreDefaults() {
 			for (PreferenceTreeNode node : m_checktreeContents) {
-				IExtension e = (node.isAMirror ? node.original.am : node.am);
+				IAnalysisInfo e = (node.isAMirror ? node.original.am : node.am);
 				if (e == null) {
 					throw new IllegalStateException(
 							"analysis module should not be null");
 				}
-				node.isOn = true; // assume it is production
-				for (IExtension nonProductionExtension : Plugin.getDefault().m_nonProductionAnalysisExtensions) {
-					if (nonProductionExtension == e) {
-						node.isOn = false; // not production
-					}
-				}
+				node.isOn = e.isProduction();
 			}
 			setState();
 		}
@@ -455,31 +431,22 @@ public final class PreferencePage extends
 		@Override
 		public String getText(Object element) {
 			PreferenceTreeNode node = (PreferenceTreeNode) element;
-			IExtension am = node.original.am;
-			IConfigurationElement[] cfgs = am.getConfigurationElements();
-			for (int i = 0; i < cfgs.length; i++) {
-				if (cfgs[i].getName().equalsIgnoreCase("run")) {
-					final String production = cfgs[i]
-							.getAttribute("production");
-					final String category = cfgs[i].getAttribute("category");
-					String label;
-					if (production != null && production.equals("false")) {
-						label = "experimental";
-					} else {
-						label = null;
-					}
-					if (category != null) {
-						if (label == null) {
-							label = category;
-						} else {
-							label = label + ", " + category;
-						}
-					}
-					return (label == null) ? am.getLabel() : am.getLabel()
-							+ " (" + label + ")";
+			IAnalysisInfo am = node.original.am;
+			String label;
+			if (am.isProduction()) {
+				label = "experimental";
+			} else {
+				label = null;
+			}
+			if (am.getCategory() != null) {
+				if (label == null) {
+					label = am.getCategory();
+				} else {
+					label = label + ", " + am.getCategory();
 				}
 			}
-			return am.getLabel();
+			return (label == null) ? am.getLabel() : am.getLabel()
+					+ " (" + label + ")";
 		}
 
 		/**
@@ -530,7 +497,7 @@ public final class PreferencePage extends
 	@Override
 	public boolean performOk() {
 		final Set<String> onIds = analysisModuleContentProvider.getOnIds();
-		if (Plugin.getDefault().isIncludedExtensionsChanged(onIds)) {
+		if (container.isIncludedExtensionsChanged(onIds)) {
 			// save the excluded list from the dialog into the main plugin
 			MessageDialog
 					.openInformation(
@@ -541,7 +508,7 @@ public final class PreferencePage extends
 									+ " turned something off.  If you ignore this warning (i.e.,"
 									+ " for testing), please perform \"Project | Clean...\" for "
 									+ "all open projects");
-			Plugin.getDefault().updateIncludedExtensions(onIds);
+			container.updateIncludedExtensions(onIds);
 		}
 		return true;
 	}

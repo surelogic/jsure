@@ -40,7 +40,7 @@ import edu.cmu.cs.fluid.java.CommonStrings;
  * <i>builder</i> that drives assurance analysis. The class also provides a
  * facade to the Eclipse error reporting facilities.
  */
-public class Plugin {
+public class Plugin implements IAnalysisContainer {
 
 	public static final boolean testing = System.getProperty("dc.testing",
 			"false").equals("true");
@@ -79,6 +79,8 @@ public class Plugin {
 	 * order.
 	 */
 	IExtension[] allAnalysisExtensions;
+	
+	Map<String,IAnalysisInfo> idToInfoMap;
 
 	/**
 	 * The list of included (by the user) analysis module extensions. All
@@ -547,8 +549,75 @@ public class Plugin {
 				Plugin.DOUBLE_CHECKER_PLUGIN_ID,
 				Plugin.ANALYSIS_MODULE_EXTENSION_POINT_ID);
 		allAnalysisExtensions = extensionPoint.getExtensions();
+		idToInfoMap = convertFromExtensions(allAnalysisExtensions);
 	}
 
+	private Map<String,IAnalysisInfo> convertFromExtensions(IExtension[] all) {
+		Map<String,IAnalysisInfo> map = new HashMap<String,IAnalysisInfo>();
+		for(IExtension ext : all) {
+			IAnalysisInfo info = createAnalysisInfo(ext);
+			map.put(info.getUniqueIdentifier(), info);
+		}
+		return map;
+	}
+	
+	private IAnalysisInfo createAnalysisInfo(IExtension am) {
+		IConfigurationElement[] cfgs = am.getConfigurationElements();
+		for (int i = 0; i < cfgs.length; i++) {
+			if (cfgs[i].getName().equalsIgnoreCase("run")) {
+				final String production = cfgs[i].getAttribute("production");
+				final boolean isProduction = 
+					production == null || !production.equals("false");
+				final String category = cfgs[i].getAttribute("category");
+				return new AnalysisInfo(am) {
+					@Override public boolean isProduction() {
+						return isProduction;
+					}
+					@Override public String getCategory() {
+						return category;
+					}
+				};
+			}
+		}
+		return new AnalysisInfo(am);
+	}
+
+	class AnalysisInfo implements IAnalysisInfo {
+		final IExtension ext;
+		
+		AnalysisInfo(IExtension e) {
+			ext = e;
+		}
+
+		public boolean isProduction() {
+			return true;
+		}
+		
+		public boolean isIncluded() {
+			return m_includedExtensions.contains(ext.getUniqueIdentifier());
+		}
+		
+		public String getUniqueIdentifier() {
+			return ext.getUniqueIdentifier();
+		}
+		
+		public String getLabel() {
+			return ext.getLabel();
+		}
+		
+		public String getCategory() {
+			return null;
+		}
+	}
+	
+	private IAnalysisInfo getAnalysisInfo(String id) {
+		return idToInfoMap.get(id);
+	}
+
+	public Iterable<IAnalysisInfo> getAllAnalysisInfo() {
+		return idToInfoMap.values();
+	}
+	
 	/**
 	 * Builds an array of all all analysis extension points that are marked in
 	 * the XML as being non-production (i.e., production="false"). Adds each
@@ -776,17 +845,18 @@ public class Plugin {
 	 * @return the set of analysis module extension points that are
 	 *         prerequisites for <code>analysisExtension</code>
 	 */
-	Set<IExtension> getPrerequisiteAnalysisExtensionPoints(
-			IExtension analysisExtension) {
-		Set<IExtension> result = new HashSet<IExtension>();
-		Set<String> ids = getPrerequisiteAnalysisIdSet(analysisExtension);
+	public Set<IAnalysisInfo> getPrerequisiteAnalysisExtensionPoints(
+			IAnalysisInfo info) {
+		Set<IAnalysisInfo> result = new HashSet<IAnalysisInfo>();
+		IExtension ext = getAnalysisModuleExtensionPoint(info.getUniqueIdentifier());
+		Set<String> ids = getPrerequisiteAnalysisIdSet(ext);
 		for (String id : ids) {
-			IExtension ext = getAnalysisModuleExtensionPoint(id);
-			if (ext == null) {
+			IAnalysisInfo ext2 = getAnalysisInfo(id);
+			if (ext2 == null) {
 				// System.out.println("null");
 				continue;
 			}
-			result.add(ext);
+			result.add(ext2);
 		}
 		return result;
 	}
@@ -865,7 +935,7 @@ public class Plugin {
 	 *            the set of included extension identifiers (all must be
 	 *            interned)
 	 */
-	void updateIncludedExtensions(Set<String> includedExtensions) {
+	public void updateIncludedExtensions(Set<String> includedExtensions) {
 		// Have we really changed anything?
 		if (isIncludedExtensionsChanged(includedExtensions)) {
 			m_includedExtensions.clear();
@@ -889,7 +959,7 @@ public class Plugin {
 	 * @return <code>true</code> if the parameter is different than the
 	 *         current plugin state, <code>false</code> if they are the same
 	 */
-	boolean isIncludedExtensionsChanged(Set<String> includedExtensions) {
+	public boolean isIncludedExtensionsChanged(Set<String> includedExtensions) {
 		return !m_includedExtensions.equals(includedExtensions);
 	}
 
