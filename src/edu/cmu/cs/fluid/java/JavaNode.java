@@ -31,6 +31,13 @@ public class JavaNode extends JJNode {
   
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.JavaNode");
 
+  /**
+   * Only to be called by SyntaxTreeNode() 
+   */
+  protected JavaNode(SyntaxTreeInterface tree) {
+	super(tree);
+  }
+	  
   protected JavaNode(SyntaxTreeInterface tree, Operator operator) {
     super(tree, operator);
   }
@@ -626,13 +633,14 @@ public class JavaNode extends JJNode {
 
   private static Bundle javabundle = null;
   static {
+	final UniqueID id = UniqueID.parseUniqueID("javanode");
     try {
-      javabundle = Bundle.loadBundle(UniqueID.parseUniqueID("javanode"),
+      javabundle = Bundle.loadBundle(id,
           IRPersistent.fluidFileLocator);
     } catch (IOException ex) {
       JavaGlobals.PARSE.fine(ex.toString());
       // temp
-      javabundle = new Bundle();
+      javabundle = Bundle.findBundle(id);
       saveAttributes(javabundle);
     }
   }
