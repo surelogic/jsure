@@ -270,6 +270,9 @@ public abstract class IRReferenceDrop extends Drop {
   
   public static JavaSourceReference createSourceRef(IRNode n, ISrcRef ref) {
 	  if (ref == null) {
+		  if (n == null) {
+			  return null;
+		  }
 		  IRNode cu = VisitUtil.getEnclosingCUorHere(n);
 		  String pkg = VisitUtil.getPackageName(cu);
 		  IRNode type = VisitUtil.getPrimaryType(cu);
