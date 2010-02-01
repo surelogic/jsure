@@ -48,6 +48,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
+import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
@@ -386,6 +387,14 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 			if (k == IncrementalProjectBuilder.CLEAN_BUILD
 					|| k == IncrementalProjectBuilder.FULL_BUILD) {
 				ClearProjectListener.clearJSureState();
+				if (IJavaFileLocator.useIRPaging) {
+					try {
+						IDE.getInstance().getJavaFileLocator().loadArchiveIndex();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 		ProjectDrop.ensureDrop(getProject().getName(), getProject());
@@ -732,13 +741,14 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 				IRNode object = Eclipse.getDefault().getTypeEnv(p)
 						.findNamedType("java.lang.Object");
 				IRNode cu = VisitUtil.getEnclosingCompilationUnit(object);
-				CUDrop drop = CUDrop.queryCU(cu);
-				if (drop == null) {
+				CUDrop drop = CUDrop.queryCU(cu);				
+				if (drop == null && object != null) {
 					// Need to make sure it gets processed right
 					CodeInfo info = CodeInfo.createMatchTemplate(cu,
 							"java.lang.Object");
 					registerClass(info);
 				}
+								
 				// process pre-fetch list first (so their bindings also get
 				// loaded)
 				processPrefetchList();
