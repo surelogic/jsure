@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.java;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -88,7 +89,7 @@ public interface IJavaFileLocator<T,P> extends Iterable<IJavaFileStatus<T>> {
    */
   void persistAll() throws IOException;
   
-  void loadArchiveIndex() throws IOException;
+  List<CodeInfo> loadArchiveIndex() throws IOException;
   
   void printSummary(PrintWriter pw);
   

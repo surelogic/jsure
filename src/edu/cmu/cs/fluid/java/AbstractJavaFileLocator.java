@@ -310,11 +310,11 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	  }
   }
   
-  public synchronized void loadArchiveIndex() throws IOException {
+  public synchronized List<CodeInfo> loadArchiveIndex() throws IOException {
 	  // Check for an archive
 	  final File archive = new File(getDataDirectory(), "temp.zip"); // TODO fix to use project name	
 	  if (!archive.isFile()) {
-		  return;
+		  return Collections.emptyList();
 	  }
 	  flocPath = new ZipFileLocator(archive, ZipFileLocator.READ);
 
@@ -328,15 +328,18 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 			  System.out.println("Reloaded index: "+(end-start)+" ms");
 			  
 			  loadedFromArchive = true;
+			  return h.infos;
 		  } catch (Exception e) {
 			  e.printStackTrace();
 		  }
 	  } else {
 		  flocPath = null;
 	  }
+	  return Collections.emptyList();
   }
   
   class IndexHandler extends AbstractXMLReader implements IXMLResultListener {
+    final List<CodeInfo> infos = new ArrayList<CodeInfo>();
 	  
 	  @Override
 	protected String checkForRoot(String name, Attributes attributes) {
@@ -359,8 +362,8 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	}
 
 	private void setupCUDrop(final JavaFileStatus<T, P> s) {
-		String javaOSFileName = s.label();
-		CodeInfo info = 
+		final String javaOSFileName = s.label();
+		final CodeInfo info = 
 			new CodeInfo(new ICodeFile() {
 				public String getPackage() {
 					return VisitUtil.getPackageName(s.root());
@@ -386,6 +389,7 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 		default:
 			new BinaryCUDrop(info);
 		}
+		infos.add(info);
 	}
 	
 	public void done() {
