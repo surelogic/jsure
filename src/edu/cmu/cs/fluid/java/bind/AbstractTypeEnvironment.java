@@ -71,6 +71,10 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  return 0; // TODO
   }
   
+  public void addTypesInCU(IRNode root) {
+	  throw new UnsupportedOperationException();
+  }
+  
   public IJavaType convertNodeTypeToIJavaType(IRNode nodeType) {
 	  if (nodeType == null) {
 		  return null;

@@ -206,4 +206,6 @@ public interface ITypeEnvironment {
 	void clearCaches(boolean clearAll);
 	
 	IIRProject getProject();
+
+	void addTypesInCU(IRNode root);
 }
