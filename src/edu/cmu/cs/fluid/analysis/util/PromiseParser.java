@@ -96,7 +96,8 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 
 		AnnotationVisitor v = new AnnotationVisitor(te, name);
 		v.doAccept(cu);
-
+		
+		System.out.print("Looking for promises for "+name);
 		try {
 			//int num = 
 			TestXMLParser.process(cu, name + ".promises.xml");
@@ -129,9 +130,6 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 	@Override
 	public void analyzeBegin(IProject p) {
 		super.analyzeBegin(p);
-		ScopedPromisesLexer.init();
-		SLAnnotationsLexer.init();
-		SLColorAnnotationsLexer.init();
 		
 		/*
 		 * Some code needs java.lang.Object as promises are parsed, so

@@ -29,6 +29,9 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.annotation.parse.SLAnnotationsLexer;
+import com.surelogic.annotation.parse.SLColorAnnotationsLexer;
+import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
@@ -497,6 +500,10 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		compUnits = 0;
 		justLoaded.clear();
 
+		ScopedPromisesLexer.init();
+		SLAnnotationsLexer.init();
+		SLColorAnnotationsLexer.init();
+		
 		IDE.runVersioned(new AbstractRunner() {
 			public void run() {
 				// pre-load Object
