@@ -19,6 +19,12 @@ public class SLParse {
         System.out.println("WARNING: No factory for "+token);
       }
     }  
+    printAST(initParser("is is nothing").policyLock().tree);
+    printAST(initParser("protects is any").policyLock().tree);
+    printAST(initParser("into is readLock").policyLock().tree);
+    printAST(initParser("writeLock is none").policyLock().tree);
+    printAST(initParser("reads is writes").policyLock().tree);
+    
     printAST(initParser("static DefaultRegion").region().tree);
     printAST(initParser("DefaultRegion").region().tree);
     

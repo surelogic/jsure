@@ -207,10 +207,10 @@ public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, 
  */
 
 testResult
-  : 'is' IDENTIFIER '&' IDENTIFIER ':' -> ^(TestResult IDENTIFIER '&' IDENTIFIER ':')
-  | 'is' IDENTIFIER ':' -> ^(TestResult IDENTIFIER ':')
-  | 'is' IDENTIFIER '&' IDENTIFIER EOF -> ^(TestResult IDENTIFIER '&' IDENTIFIER)
-  | 'is' IDENTIFIER EOF -> ^(TestResult IDENTIFIER)
+  : 'is' identifier '&' identifier ':' -> ^(TestResult identifier '&' identifier ':')
+  | 'is' identifier ':' -> ^(TestResult identifier ':')
+  | 'is' identifier '&' identifier EOF -> ^(TestResult identifier '&' identifier)
+  | 'is' identifier EOF -> ^(TestResult identifier)
   ;
   
 testResultComment
@@ -293,7 +293,7 @@ lockJava5
 	;
 
 lock
-	:IDENTIFIER 'is' lockExpression PROTECTS regionName EOF -> ^(LockDeclaration IDENTIFIER lockExpression regionName)
+	:identifier 'is' lockExpression PROTECTS regionName EOF -> ^(LockDeclaration identifier lockExpression regionName)
 	;
 
 requiresLock
@@ -321,7 +321,7 @@ returnsLock
 /************* Locking supporting rules **************************/
 
 policyLockDeclaration
-	: IDENTIFIER 'is' lockExpression EOF -> ^(PolicyLockDeclaration IDENTIFIER lockExpression)
+	: identifier 'is' lockExpression EOF -> ^(PolicyLockDeclaration identifier lockExpression)
 	;
 
 lockSpecifications
@@ -368,7 +368,7 @@ qualifiedLockName
 	;
 	
 parameterLockName
-  : simpleExpression ':' IDENTIFIER -> ^(QualifiedLockName simpleExpression IDENTIFIER)  
+  : simpleExpression ':' identifier -> ^(QualifiedLockName simpleExpression identifier)  
 	;
 
 qualifiedLockExpressian
@@ -402,14 +402,14 @@ region
 	
 regionDecl
   : /* FIX This next line shouldn't be necessary */
-	  IDENTIFIER -> ^(NewRegionDeclaration IDENTIFIER)  
-  | accessModifiers IDENTIFIER -> ^(NewRegionDeclaration accessModifiers IDENTIFIER)
+	  identifier -> ^(NewRegionDeclaration identifier)  
+  | accessModifiers identifier -> ^(NewRegionDeclaration accessModifiers identifier)
   ;
 	
 fullRegionDecl
   /* FIX This next line shouldn't be necessary */
-  : IDENTIFIER EXTENDS regionSpecification -> ^(NewRegionDeclaration IDENTIFIER regionSpecification)
-  | accessModifiers IDENTIFIER EXTENDS regionSpecification -> ^(NewRegionDeclaration accessModifiers IDENTIFIER regionSpecification)
+  : identifier EXTENDS regionSpecification -> ^(NewRegionDeclaration identifier regionSpecification)
+  | accessModifiers identifier EXTENDS regionSpecification -> ^(NewRegionDeclaration accessModifiers identifier regionSpecification)
   ;
 	
 inRegion
@@ -453,19 +453,19 @@ simpleRegionSpecification
 	;
 
 innerClassLockName
-	: qualifiedThisExpression ':' IDENTIFIER -> ^(QualifiedLockName qualifiedThisExpression IDENTIFIER)
+	: qualifiedThisExpression ':' identifier -> ^(QualifiedLockName qualifiedThisExpression identifier)
 	;
 
 typeQualifiedLockName
-	: typeExpression ':' IDENTIFIER -> ^(QualifiedLockName typeExpression IDENTIFIER)
+	: typeExpression ':' identifier -> ^(QualifiedLockName typeExpression identifier)
 	;
 
 simpleLockName
-	: IDENTIFIER -> ^(SimpleLockName IDENTIFIER)
+	: identifier -> ^(SimpleLockName identifier)
 	;
 	
 regionName
-	: IDENTIFIER -> ^(RegionName IDENTIFIER)
+	: identifier -> ^(RegionName identifier)
 	;
 	
 mappedRegionSpecification
@@ -481,8 +481,8 @@ regionMapping
 	;
 	
 qualifiedRegionName
-	: qualifiedNamedType ':' IDENTIFIER -> ^(QualifiedRegionName qualifiedNamedType IDENTIFIER)
-	| simpleNamedType ':' IDENTIFIER -> ^(QualifiedRegionName simpleNamedType IDENTIFIER)
+	: qualifiedNamedType ':' identifier -> ^(QualifiedRegionName qualifiedNamedType identifier)
+	| simpleNamedType ':' identifier -> ^(QualifiedRegionName simpleNamedType identifier)
 	;
 	
 effectsSpecification
@@ -540,8 +540,8 @@ fieldRef
   ;
 
 qualifiedFieldRef
-	: typeExpression '.' IDENTIFIER -> ^(FieldRef typeExpression IDENTIFIER)
-	| qualifiedThisExpression '.' IDENTIFIER -> ^(FieldRef qualifiedThisExpression IDENTIFIER)
+	: typeExpression '.' identifier -> ^(FieldRef typeExpression identifier)
+	| qualifiedThisExpression '.' identifier -> ^(FieldRef qualifiedThisExpression identifier)
 	;
 
 namedType
@@ -554,22 +554,22 @@ qualifiedNamedType
 	;
 
 typeName
-  	: {isType("", SLAnnotationsParser.this.input.LT(1))}? IDENTIFIER
+  	: {isType("", SLAnnotationsParser.this.input.LT(1))}? identifier
   	| qualifiedTypeName  	 	
   	;
 
 qualifiedTypeName
-	: IDENTIFIER ({isType($qualifiedTypeName.text, SLAnnotationsParser.this.input.LT(2))}? 
-	              '.' IDENTIFIER)*	              
+	: identifier ({isType($qualifiedTypeName.text, SLAnnotationsParser.this.input.LT(2))}? 
+	              '.' identifier)*	              
 	;
 
 simpleNamedType	
-	: IDENTIFIER -> ^(NamedType IDENTIFIER)
+	: identifier -> ^(NamedType identifier)
 	;
 	
 simpleFieldRef
-  : thisExpr DOT IDENTIFIER -> ^(FieldRef thisExpr IDENTIFIER) 
-	| IDENTIFIER -> ^(FieldRef ^(ThisExpression THIS) IDENTIFIER)
+  : thisExpr DOT identifier -> ^(FieldRef thisExpr identifier) 
+	| identifier -> ^(FieldRef ^(ThisExpression THIS) identifier)
 	;	
 
 /*************************************************************************************
@@ -582,7 +582,7 @@ simpleExpression
 	;
 
 varUse
-    	: IDENTIFIER ->	^(VariableUseExpression IDENTIFIER)
+    	: identifier ->	^(VariableUseExpression identifier)
     	;
 
 classExpr 
@@ -611,12 +611,18 @@ accessModifiers
  *************************************************************************************/	
 
 qualifiedName
-	: IDENTIFIER ( options {greedy=false;} : ('.' IDENTIFIER))+ 
+	: identifier ( options {greedy=false;} : ('.' identifier))+ 
 	;
 	
 simpleName
-     	: IDENTIFIER	
+     	: identifier	
      	;	
+
+identifier
+      : IDENTIFIER | 'is' | 'protects' | 
+        'none' | 'reads' | 'writes' | 'any' | 'readLock' | 'writeLock' |
+        'into' | 'nothing'
+      ;
 
 /*************************************************************************************
  * Standard Java tokens
