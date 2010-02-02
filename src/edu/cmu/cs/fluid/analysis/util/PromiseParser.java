@@ -97,7 +97,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 		AnnotationVisitor v = new AnnotationVisitor(te, name);
 		v.doAccept(cu);
 		
-		System.out.print("Looking for promises for "+name);
+		//System.out.println("Looking for promises for "+name);
 		try {
 			//int num = 
 			TestXMLParser.process(cu, name + ".promises.xml");
