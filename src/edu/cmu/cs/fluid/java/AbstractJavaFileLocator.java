@@ -19,7 +19,10 @@ import com.surelogic.jsure.xml.IXMLResultListener;
 import edu.cmu.cs.fluid.ide.*;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
+import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
 import edu.cmu.cs.fluid.util.*;
 
 public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T,P> {
@@ -310,6 +313,9 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
   public synchronized void loadArchiveIndex() throws IOException {
 	  // Check for an archive
 	  final File archive = new File(getDataDirectory(), "temp.zip"); // TODO fix to use project name	
+	  if (!archive.isFile()) {
+		  return;
+	  }
 	  flocPath = new ZipFileLocator(archive, ZipFileLocator.READ);
 
 	  final long start = System.currentTimeMillis();
@@ -331,7 +337,8 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
   }
   
   class IndexHandler extends AbstractXMLReader implements IXMLResultListener {
-	@Override
+	  
+	  @Override
 	protected String checkForRoot(String name, Attributes attributes) {
 		if ("archive".equals(name)) {
 			return "archive"; // TODO fix to be unique
@@ -344,8 +351,41 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	}
 
 	public void notify(Entity e) {
-		JavaFileStatus<T,P> s = JavaFileStatus.recreate(AbstractJavaFileLocator.this, e);
+		final JavaFileStatus<T,P> s = JavaFileStatus.recreate(AbstractJavaFileLocator.this, e);
 		resources.put(s.id(), s);
+		
+		getTypeEnvironment(s.project()).addTypesInCU(s.root());
+		setupCUDrop(s);
+	}
+
+	private void setupCUDrop(final JavaFileStatus<T, P> s) {
+		String javaOSFileName = s.label();
+		CodeInfo info = 
+			new CodeInfo(new ICodeFile() {
+				public String getPackage() {
+					return VisitUtil.getPackageName(s.root());
+				}				
+				public Object getHostEnvResource() {
+					return s.id();
+				}
+				@Override public int hashCode() {
+					return s.id().hashCode();
+				}
+				@Override public boolean equals(Object o) {
+					if (o instanceof ICodeFile) { 
+				    	ICodeFile o2 = (ICodeFile) o;
+				    	return s.id() == o2.getHostEnvResource();
+				    }
+					return false;
+				}
+			}, s.root(), null, javaOSFileName, null, s.getType());
+		switch (s.getType()) {
+		case SOURCE:
+			new SourceCUDrop(info);
+			break;
+		default:
+			new BinaryCUDrop(info);
+		}
 	}
 	
 	public void done() {
