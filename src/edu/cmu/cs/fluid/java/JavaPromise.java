@@ -821,6 +821,10 @@ public class JavaPromise extends JavaNode {
 	public static void saveAttributes(Bundle b) {
 		b.saveAttribute(promisedForSlotInfo);
 		b.saveAttribute(isWriteSlotInfo);
+		
+		for(SlotInfo si : promiseChildrenInfo) {
+			b.saveAttribute(si);
+		}
 		/*
     for (int i = 0; i < promiseBooleanInfo.length; i++) {
       b.saveAttribute(promiseBooleanInfo[i]);
