@@ -35,6 +35,14 @@
 
     <Promise>@Color(AWT) for process*Event(*)</Promise>
 	  
+	  
+    <constructor>
+      <starts>nothing</starts>
+      <RegionEffects>none</RegionEffects>
+      <unique>return</unique>
+      <transparent/>
+    </constructor>
+	  
     <method name="getFont" params="">
     	<borrowed>this</borrowed>
     </method>

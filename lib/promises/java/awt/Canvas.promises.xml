@@ -1,0 +1,10 @@
+<package name="java.awt">
+	<class name="Canvas">
+    <constructor>
+      <starts>nothing</starts>
+      <RegionEffects>none</RegionEffects>
+      <unique>return</unique>
+      <transparent/>
+    </constructor>
+  </class>  
+</package>
