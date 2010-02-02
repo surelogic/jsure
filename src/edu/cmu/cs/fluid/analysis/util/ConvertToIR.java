@@ -390,14 +390,9 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 			if (k == IncrementalProjectBuilder.CLEAN_BUILD
 					|| k == IncrementalProjectBuilder.FULL_BUILD) {
 				ClearProjectListener.clearJSureState();
-				if (IJavaFileLocator.useIRPaging) {
-					try {
-						IDE.getInstance().getJavaFileLocator().loadArchiveIndex();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
+				IDE.getInstance().getProperties().put(Majordomo.BUILD_KIND, kind);
+			} else {
+				IDE.getInstance().getProperties().remove(Majordomo.BUILD_KIND);
 			}
 		}
 		ProjectDrop.ensureDrop(getProject().getName(), getProject());
@@ -503,6 +498,22 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		ScopedPromisesLexer.init();
 		SLAnnotationsLexer.init();
 		SLColorAnnotationsLexer.init();
+	
+		if (IJavaFileLocator.useIRPaging &&
+			IDE.getInstance().getProperties().containsKey(Majordomo.BUILD_KIND)) {
+			try {
+				List<CodeInfo> infos = 
+					IDE.getInstance().getJavaFileLocator().loadArchiveIndex();
+				for(CodeInfo info : infos) {
+					if (info.getType() != IJavaFileLocator.Type.SOURCE) {
+						javaFileLoaded(info);
+					}
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		
 		IDE.runVersioned(new AbstractRunner() {
 			public void run() {
