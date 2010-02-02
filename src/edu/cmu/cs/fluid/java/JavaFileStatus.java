@@ -117,9 +117,11 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
   
   private static class PromiseSaver extends AbstractNodePromiseProcessor {
     final IRRegion region;
+    final boolean includePromises;
     
     PromiseSaver(IRRegion r, boolean include) {
       region = r;
+      includePromises = include;
     }
     public String getIdentifier() {
       return "Promise Saver";
@@ -127,7 +129,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
 
     @Override
     protected void process(IRNode root) {
-      for(IRNode n : JavaPromise.bottomUp(root)) {
+      for(IRNode n : includePromises ? JavaPromise.bottomUp(root) : JJNode.tree.topDown(root)) {
         region.saveNode(n);
       }
     }
