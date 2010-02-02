@@ -315,6 +315,7 @@ public class IRRegion extends IRPersistent {
    */
   public synchronized boolean saveNode(IRNode node) {
     if (isComplete()) return false;
+    if (node == null) return false;
     define();
     synchronized (node) {
       if (node.equals(IRNode.destroyedNode)) return false;
