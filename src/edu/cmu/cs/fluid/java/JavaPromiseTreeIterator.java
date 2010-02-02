@@ -9,6 +9,10 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.DepthFirstSearch;
 
+/**
+ * TODO only goes one level deep into promises
+ * @author Edwin
+ */
 public class JavaPromiseTreeIterator extends DepthFirstSearch {
   /* more state */
   private int promiseIndex;
