@@ -844,15 +844,16 @@ public class JavaPromise extends JavaNode {
 
 	public static Bundle getBundle() {
 		if (promisebundle == null) {
+			UniqueID id = UniqueID.parseUniqueID("javapromise");
 			try {
 				promisebundle =
 					Bundle.loadBundle(
-						UniqueID.parseUniqueID("javapromise"),
+						id,
 						IRPersistent.fluidFileLocator);
 			} catch (Throwable t) {
 				JavaGlobals.JAVA.fine(t.toString());
 
-				promisebundle = new Bundle();
+				promisebundle = Bundle.findBundle(id);
 				saveAttributes(promisebundle);
 			}
 		}
