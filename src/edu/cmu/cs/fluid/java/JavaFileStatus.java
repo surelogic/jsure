@@ -9,11 +9,15 @@ import com.surelogic.tree.SyntaxTreeRegion;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
 import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
+import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {  
+  private static final Bundle promiseBundle = JavaPromise.getBundle();
   private static final Bundle javaBundle = JavaNode.getBundle();
   private static final Bundle parseBundle = JJNode.getBundle();
   private final IRRegion astRegion;
@@ -33,6 +37,8 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
   IRChunk canonChunk1 = null;
   IRChunk astChunk2 = null;
   IRChunk canonChunk2 = null;
+  IRChunk astChunk3 = null;
+  IRChunk canonChunk3 = null;
   int unloadCount = 0;
 
   public JavaFileStatus(AbstractJavaFileLocator<T,P> loc, P proj, T id, 
@@ -99,12 +105,17 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
 	  // Setup chunks
 	  astChunk1 = astRegion.createChunk(parseBundle);
 	  astChunk2 = astRegion.createChunk(javaBundle);
+	  astChunk3 = astRegion.createChunk(promiseBundle);
 	  canonChunk1 = canonRegion.createChunk(parseBundle);
 	  canonChunk2 = canonRegion.createChunk(javaBundle);	  
+	  canonChunk3 = canonRegion.createChunk(promiseBundle);
 	  astChunk1.load(locator.flocPath);
 	  astChunk2.load(locator.flocPath);
+	  astChunk3.load(locator.flocPath);
 	  canonChunk1.load(locator.flocPath);
 	  canonChunk2.load(locator.flocPath);
+	  canonChunk3.load(locator.flocPath);
+	  //System.out.println("Nodes = "+canonRegion.getNumNodes()+", "+astChunk3)
 	  loaded = false;
 	  canonical = true;
 	  persistent = true;
@@ -130,7 +141,20 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     @Override
     protected void process(IRNode root) {
       for(IRNode n : includePromises ? JavaPromise.bottomUp(root) : JJNode.tree.topDown(root)) {
-        region.saveNode(n);
+    	  region.saveNode(n);
+    	  /*
+        if (region.saveNode(n) && includePromises) {
+        	System.out.println(n+": "+JJNode.tree.getOperator(n).name());
+        }
+        */
+    	  if (InitDeclaration.prototype.includes(n)) {
+    		  region.saveNode(JavaPromise.getReceiverNodeOrNull(n));
+    		  for(IRNode qrd : JavaPromise.getQualifiedReceiverNodes(n)) {
+    			  for(IRNode n2 : JJNode.tree.topDown(qrd)) {
+    				  region.saveNode(n2);
+    			  }
+    		  }
+    	  }
       }
     }
   }
@@ -156,6 +180,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     if (astChunk1 == null) { 
       astChunk1 = astRegion.createChunk(parseBundle);
       astChunk2 = astRegion.createChunk(javaBundle);
+      astChunk3 = astRegion.createChunk(promiseBundle);
     }
     // Needs to be stored again if canonicalized
     astChunk1.store(floc);
@@ -166,9 +191,12 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
       if (canonChunk1 == null) { 
         canonChunk1 = canonRegion.createChunk(parseBundle);
         canonChunk2 = canonRegion.createChunk(javaBundle);
+        canonChunk3 = canonRegion.createChunk(promiseBundle);
       }
+      astChunk3.store(floc);
       canonChunk1.store(floc);
       canonChunk2.store(floc);
+      canonChunk3.store(floc);
       canonRegion.store(floc);
     }
     persistent = true;
@@ -189,8 +217,10 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     astChunk1.unload();
     astChunk2.unload();
     if (canonChunk1 != null) {
+      astChunk3.unload();
       canonChunk1.unload();
       canonChunk2.unload();
+      canonChunk3.unload();
     }
     //System.out.println("Unloaded "+label);
     unloadCount++;
@@ -210,8 +240,10 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     astChunk1.load(floc);
     astChunk2.load(floc);
     if (canonChunk1 != null) {
+      astChunk3.load(floc);
       canonChunk1.load(floc);
       canonChunk2.load(floc);
+      canonChunk3.load(floc);
     }
     loaded = true;
     return true;

@@ -502,8 +502,10 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 		  // TODO cleanup -- unload?
 		  destroy(s.astChunk1);
 		  destroy(s.astChunk2);
+		  destroy(s.astChunk3);
 		  destroy(s.canonChunk1);
 		  destroy(s.canonChunk2);
+		  destroy(s.canonChunk3);
 	  }
 	  return s;
   }
