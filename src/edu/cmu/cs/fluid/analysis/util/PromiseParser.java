@@ -15,9 +15,6 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseHelper;
-import com.surelogic.annotation.parse.SLAnnotationsLexer;
-import com.surelogic.annotation.parse.SLColorAnnotationsLexer;
-import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.TestXMLParser;
 
@@ -37,8 +34,7 @@ import edu.cmu.cs.fluid.java.bind.ModulePromises;
 import edu.cmu.cs.fluid.java.bind.ScopedPromises;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarations;
-import edu.cmu.cs.fluid.java.util.PromiseUtil;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.java.xml.XML;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
@@ -114,7 +110,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 
 	void postProcessFAST(ITypeEnvironment te, IRNode cu) {
 		IDE.getInstance().getJavaFileLocator().getStatusForAST(cu).canonicalize();
-		PromiseUtil.activateRequiredCuPromises(te.getBinder(), te.getBindHelper(), cu);
+		
 		if (LOG.isLoggable(Level.FINER)) {
 			LOG.finer("Finished activating promises on " + DebugUnparser.toString(cu));
 		}
