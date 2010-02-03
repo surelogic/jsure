@@ -148,6 +148,7 @@ public class AbstractAdapter {
 					&& !JavaNode.getModifier(n, JavaNode.STATIC)) {
 				PromiseUtil.addReceiverDecls(n);
 			} else if (ConstructorDeclaration.prototype.includes(op)) {
+				ReturnValueDeclaration.getReturnNode(n);
 				PromiseUtil.addReceiverDecls(n);
 			} else if (ClassDeclaration.prototype.includes(op)
 					|| AnonClassExpression.prototype.includes(op)
