@@ -30,7 +30,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.team.cvs.core,
  org.eclipse.team.core,
  com.surelogic.xml.results.viewer,
- org.junit
+ org.junit,
+ com.surelogic.fluid.javac
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: com.surelogic.jsure.client.eclipse,
