@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.java;
 
+import java.net.URI;
+
 import edu.cmu.cs.fluid.ir.IRObjectType;
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 
@@ -40,6 +42,8 @@ public interface ISrcRef {
    * @return the file that this source reference is contained within
    */
   Object getEnclosingFile();
+  
+  URI getEnclosingURI();
 
   /**
    * Returns either the leading Javadoc comment, if the node is

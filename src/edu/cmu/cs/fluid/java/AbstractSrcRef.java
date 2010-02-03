@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/AbstractSrcRef.java,v 1.6 2008/08/11 12:44:19 chance Exp $*/
 package edu.cmu.cs.fluid.java;
 
+import java.net.URI;
+
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 
 public abstract class AbstractSrcRef implements ISrcRef {
@@ -12,6 +14,10 @@ public abstract class AbstractSrcRef implements ISrcRef {
     // TODO Auto-generated method stub
     return null;
   }
+  public URI getEnclosingURI() {
+	return null;
+  }
+  
   public IJavadocElement getJavadoc() {
     // TODO Auto-generated method stub
     return null;

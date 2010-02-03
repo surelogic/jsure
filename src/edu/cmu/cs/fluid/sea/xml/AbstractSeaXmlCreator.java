@@ -5,6 +5,7 @@ import static com.surelogic.jsure.xml.AbstractXMLReader.FILE_ATTR;
 import static com.surelogic.jsure.xml.AbstractXMLReader.LINE_ATTR;
 
 import java.io.*;
+import java.net.URI;
 import java.util.*;
 
 import com.surelogic.common.xml.Entities;
@@ -64,11 +65,16 @@ public class AbstractSeaXmlCreator {
 	
 	protected void addLocation(ISrcRef ref) {
 		addAttribute(LINE_ATTR, (long) ref.getLineNumber());
-		Object file = ref.getEnclosingFile();
-		if (file instanceof String) {
+		URI file = ref.getEnclosingURI();
+		if (file != null) {
 			addAttribute(FILE_ATTR, file.toString());
 		} else {
-			addAttribute(FILE_ATTR, file.toString());
+			Object o = ref.getEnclosingFile();
+			if (o instanceof String) {
+				addAttribute(FILE_ATTR, o.toString());
+			} else {
+				addAttribute(FILE_ATTR, o.toString());
+			}
 		}
 	}
 }

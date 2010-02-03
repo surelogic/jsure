@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.sea;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -422,6 +423,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 			return null;
 		}
 		return super.getSrcRef().getEnclosingFile();
+	}
+	
+	public URI getEnclosingURI() {
+		if (super.getSrcRef() == null) {
+			return null;
+		}
+		return super.getSrcRef().getEnclosingURI();
 	}
 
 	public IJavadocElement getJavadoc() {

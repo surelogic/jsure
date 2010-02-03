@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import java.net.URI;
+
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;
 
@@ -54,6 +56,10 @@ implements ISrcRef
 
   public Object getEnclosingFile() {
     return super.getSrcRef().getEnclosingFile();
+  }
+  
+  public URI getEnclosingURI() {
+	  return super.getSrcRef().getEnclosingURI();
   }
 
   public IJavadocElement getJavadoc() {
