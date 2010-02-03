@@ -13,7 +13,9 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.CogenUtil;
+import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -66,8 +68,10 @@ public class JavaRewrite implements JavaGlobals {
 		JJNode.tree.insertSubtree(cbody, constructor); // add to front
 		markAsAdded(cbody, constructor);
 		
-		//IRNode type = 
-		VisitUtil.getEnclosingType(cbody);
+		ReturnValueDeclaration.getReturnNode(constructor);
+		PromiseUtil.addReceiverDecls(constructor);
+		
+		//IRNode type = VisitUtil.getEnclosingType(cbody);
 		//System.out.println("Created default constructor for "+JavaNames.getFullTypeName(type));
 	}
 
@@ -363,6 +367,8 @@ public class JavaRewrite implements JavaGlobals {
 		final IRNode body = EnumDeclaration.getBody(ed);
 		JJNode.tree.appendSubtree(body, values);
 		JJNode.tree.appendSubtree(body, valueOf);
+				
+		
 		markAsAdded(body, values);
 		markAsAdded(body, valueOf);
 		/*
@@ -387,6 +393,7 @@ public class JavaRewrite implements JavaGlobals {
 		IRNode body = OmittedMethodBody.prototype.jjtCreate();
 		IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type,
 				"values", noNodes, noNodes, body);
+		ReturnValueDeclaration.makeReturnNode(rv);
 		return rv;
 	}
 
@@ -398,6 +405,7 @@ public class JavaRewrite implements JavaGlobals {
 		IRNode body = OmittedMethodBody.prototype.jjtCreate();
 		IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type,
 				"valueOf", params, noNodes, body);
+		ReturnValueDeclaration.makeReturnNode(rv);
 		return rv;
 	}
 
@@ -460,7 +468,9 @@ public class JavaRewrite implements JavaGlobals {
 			}
 		}
 		// Add a default constructor since there isn't one
-		insertDefaultConstructor(cbody, makeEmptyConstructor());
+		IRNode dc = makeEmptyConstructor();
+		insertDefaultConstructor(cbody, dc);
+		
 		if (LOG.isLoggable(Level.FINER)) {
 			LOG.finer("Adding default constructor to " + JJNode.getInfo(type));
 		}
@@ -493,11 +503,14 @@ public class JavaRewrite implements JavaGlobals {
 
 		// Add a default constructor if there aren't any
 		if (!someCon) {
+			final IRNode dc;
 			if (EnumDeclaration.prototype.includes(type)) {
-				insertDefaultConstructor(cbody, makeDefaultEnumConstructor(type));
+				dc = makeDefaultEnumConstructor(type);
 			} else {
-				insertDefaultConstructor(cbody, makeDefaultConstructor(type));
+				dc = makeDefaultConstructor(type);
 			}
+			insertDefaultConstructor(cbody, dc);
+			
 			if (LOG.isLoggable(Level.FINER)) {
 			    String qname = JavaNames.getFullTypeName(type);			    
 				LOG.finer("Adding default constructor to "+qname);
@@ -635,6 +648,7 @@ public class JavaRewrite implements JavaGlobals {
 
 				dc = makeDefaultConstructor(sdecl);
 				insertDefaultConstructor(body, dc);
+				
 				IDE.getInstance().notifyASTChanged(
 						VisitUtil.getEnclosingCompilationUnit(sdecl));
 			}
