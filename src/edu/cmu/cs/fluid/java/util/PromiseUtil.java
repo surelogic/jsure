@@ -117,7 +117,6 @@ public final class PromiseUtil {
         VisitUtil.getEnclosingTypes(here);
         return;
       }
-      types.next(); // FIX skip "this"?
     }
     while (types.hasNext()) {
       IRNode type  = types.next();
