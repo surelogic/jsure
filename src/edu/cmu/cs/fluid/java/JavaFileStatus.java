@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.*;
@@ -143,10 +144,16 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
       for(IRNode n : includePromises ? JavaPromise.bottomUp(root) : JJNode.tree.topDown(root)) {
     	  region.saveNode(n);
     	  /*
-        if (region.saveNode(n) && includePromises) {
-        	System.out.println(n+": "+JJNode.tree.getOperator(n).name());
+        if (region.saveNode(n)) {
+        	if (includePromises) {
+        		System.out.println(n+": "+JJNode.tree.getOperator(n).name());
+        	}
+        } else if (JJNode.tree.getOperator(n) instanceof JavaPromiseOperator &&
+        		   !IRRegion.hasOwner(n)){
+        	System.out.println("No owner: "+n+" -- "+DebugUnparser.toString(n));
         }
         */
+        
     	  if (InitDeclaration.prototype.includes(n)) {
     		  region.saveNode(JavaPromise.getReceiverNodeOrNull(n));
     		  for(IRNode qrd : JavaPromise.getQualifiedReceiverNodes(n)) {
@@ -318,6 +325,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     	}
     }
     persistent = false;
+	PromiseUtil.activateRequiredCuPromises(env.getBinder(), env.getBindHelper(), root);
     locator.canonicalize(this);
     canonical = true;    
     
