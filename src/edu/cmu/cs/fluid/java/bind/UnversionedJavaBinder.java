@@ -325,7 +325,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
         PackageDrop pd = PackageDrop.findPackage(pkg);
         IRNode p = null;
         if (pd == null) {
-        	System.out.println("unknown package: "+pkg);     
+        	//System.out.println("unknown package: "+pkg);     
         	// Could be a type for a "static" demand name?
         } else {
         	p = pd.node;
