@@ -60,6 +60,12 @@
 		</decorator>
 	</extension>
 
+	<extension id="AnalysisDriver" name="Analysis Driver"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver"
+			category="required">
+		</run>
+	</extension>
 	<extension id="UpdateSuperRootStorage" name="UWM Bridge"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.util.UpdateSuperRootStorage"
