@@ -372,24 +372,25 @@ public abstract class IDE {
    * Code to deal properly with versioning
    *************************************************************/
 
-  private final Era era = new Era(Version.getInitialVersion());
-  {
+  private static final Era era = new Era(Version.getInitialVersion());
+  static {
     Version.setDefaultEra(era);
   }
 
-  private final VersionedRegion region = new VersionedRegion();
+  private static final VersionedRegion region = new VersionedRegion();
 
-  protected final Bundle bundle = new Bundle();
+  protected static final Bundle bundle = new Bundle();
 
-  private final VersionSpaceModel vspace = SimpleForestApp.createVersionSpace(
+  
+  private static final VersionSpaceModel vspace = SimpleForestApp.createVersionSpace(
       "Version space for Eclipse", Version.getInitialVersion());
 
-  private final VersionTrackerModel tracker = (VersionTrackerModel) vspace
+  private static final VersionTrackerModel tracker = (VersionTrackerModel) vspace
       .getCursors().elementAt(0);
 
-  private final ModificationManager modManager = new ModificationManagerWrapper(
+  private static final ModificationManager modManager = new ModificationManagerWrapper(
       ModificationManagerFactory.prototype.create(vspace, tracker));
-  {
+  static {
     try {
       Version v1 = Version.getVersion();
       // get version created by VersionedRegion constructor
@@ -478,7 +479,7 @@ public abstract class IDE {
     return IDE.getInstance().tracker.getVersion();
   }
 
-  private final class ModificationManagerWrapper implements ModificationManager {
+  private static final class ModificationManagerWrapper implements ModificationManager {
     private final ModificationManager manager;
 
     ModificationManagerWrapper(ModificationManager mm) {
