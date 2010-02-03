@@ -84,6 +84,6 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 		resources.clear();
 		cus.clear();
 		
-		JavacDriver.getInstance().doBuild(p);
+		//JavacDriver.getInstance().doBuild(p);
 	}
 }
