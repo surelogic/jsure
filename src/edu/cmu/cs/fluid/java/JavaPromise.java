@@ -297,6 +297,11 @@ public class JavaPromise extends JavaNode {
 	}
 	public static void setReturnNode(IRNode methodNode, IRNode returnNode)
 	throws SlotImmutableException {
+	    /*
+		if (IRRegion.hasOwner(methodNode)) {
+			System.out.println("Making return node on "+methodNode);
+		}
+        */
 		methodNode.setSlotValue(returnNodeSlotInfo, returnNode);
 		attachPromiseNode(methodNode, returnNode);
 	}
