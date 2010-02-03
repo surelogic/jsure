@@ -1,9 +1,15 @@
 package com.surelogic.jsure.client.eclipse.analysis;
 
+import java.io.File;
 import java.util.*;
 
 import org.eclipse.core.resources.*;
-import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.core.runtime.*;
+import org.eclipse.jdt.core.*;
+
+import com.surelogic.common.eclipse.JDTUtility;
+import com.surelogic.fluid.javac.Config;
+import com.surelogic.fluid.javac.Util;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.util.*;
@@ -49,6 +55,59 @@ public class JavacDriver {
 			return allCompUnits;			
 		}
 		
+		Config makeConfig() throws JavaModelException {
+			Config config = new Config(project.getName());
+			for(ICompilationUnit icu : getAllCompUnits()) {
+				final File f = icu.getResource().getLocation().toFile();
+				for(IPackageDeclaration pd : icu.getPackageDeclarations()) {
+					config.addPackage(pd.getElementName());
+				}	
+				config.addFile(new Pair<String, File>(icu.getElementName(), f));
+			}			
+			addDependencies(config, project);
+			return config;
+		}
+		
+		static void addDependencies(Config config, IProject p) throws JavaModelException {
+			final boolean isDependency = !config.getProject().equals(p.getName());
+			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
+			for(IClasspathEntry cpe : jp.getResolvedClasspath(true)) {
+				switch (cpe.getEntryKind()) {
+				case IClasspathEntry.CPE_SOURCE:
+					if (isDependency) {
+						final File dir = resolveIPath(cpe.getPath());
+						final File[] excludes = new File[cpe.getExclusionPatterns().length];
+						int i=0;
+						for(IPath xp : cpe.getExclusionPatterns()) {
+							excludes[i] = resolveIPath(xp);
+							i++;
+						}
+						Util.addJavaFiles(dir, config, true, excludes);
+					}
+					break;
+				case IClasspathEntry.CPE_LIBRARY:
+					config.addJar(resolveIPath(cpe.getPath()).getAbsolutePath());
+					break;
+				case IClasspathEntry.CPE_PROJECT:
+					String projName = cpe.getPath().lastSegment();
+					IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
+					addDependencies(config, proj);
+					break;
+				default:
+					System.out.println("Unexpected: "+cpe);
+				}
+			}
+		}
+		
+		static File resolveIPath(IPath path) {
+			File loc = path.toFile();
+			if (!loc.exists()) {
+				IResource res = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
+				loc = res.getLocation().toFile();
+			}
+			return loc;
+		}
+		
 		/**
 		 * Either add/remove as needed
 		 */
@@ -90,7 +149,18 @@ public class JavacDriver {
 		}
 	}
 	
-	void doBuild() {
-		// TODO Run javac!
+	void doBuild(IProject p) {
+		final ProjectInfo info = projects.get(p);
+		if (info == null) {
+			return; // No info!
+		}
+		// TODO in a job!
+		try {
+			final Config config = info.makeConfig();
+			Util.openFiles(config);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
