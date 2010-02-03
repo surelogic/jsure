@@ -1,13 +1,10 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/effects/EffectsAnalysis.java,v 1.94 2009/02/20 19:58:39 aarong Exp $*/
 package com.surelogic.analysis.effects;
 
-import java.text.MessageFormat;
 import java.util.*;
 
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.annotation.rules.MethodEffectsRules;
-import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
@@ -139,9 +136,9 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			 * affecting the Instance region of the receiver.
 			 */
 			if (eff.affectsReceiver(receiverNode)) {
-				constructResultDrop(declEffDrop, true, eff, Messages.EffectAssurance_msgContructorRule, eff);
+				constructResultDrop(constructor, declEffDrop, true, eff, Messages.EffectAssurance_msgContructorRule, eff);
 			} else {
-				checkEffect(declEffDrop, eff, declFx, modelName);
+				checkEffect(constructor, declEffDrop, eff, declFx, modelName);
 			}
 		}
 	}
@@ -150,7 +147,8 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	 * @param declEffDrop
 	 * @param eff
 	 */
-	private void constructResultDrop(final RegionEffectsPromiseDrop declEffDrop,
+	private void constructResultDrop(
+	    final IRNode methodBeingChecked, final RegionEffectsPromiseDrop declEffDrop,
 			final boolean isConsistent, final Effect eff, final int msgTemplate,
 			final Object... msgArgs) {
 		final ResultDrop rd = new ResultDrop(Integer.toString(msgTemplate));
@@ -172,7 +170,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 							// and instance inits, but this is not possible from here. Yet
 							// another reason why I need to chang the EffectsVisitor to build
 							// it's own COE.
-							getBinder(), src, getBinder().getBinding(src), PromiseUtil.getEnclosingMethod(src));
+							getBinder(), src, getBinder().getBinding(src), methodBeingChecked);
 				for (final Map.Entry<IRNode, IRNode> binding : bindings.entrySet()) {
 					final IRNode formal = binding.getKey();
 					final Operator formalOp = JJNode.tree.getOperator(formal);
@@ -226,11 +224,8 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	 */
 	private void checkMethod(final RegionEffectsPromiseDrop declEffDrop, final IRNode method,
 			final Set<Effect> declFx, final Set<Effect> implFx, String modelName) {
-		/*
-		 * method parameter is currently unused, but may be useful in the future.
-		 */
 	  for (final Effect eff : implFx) {
-			checkEffect(declEffDrop, eff, declFx, modelName);
+			checkEffect(method, declEffDrop, eff, declFx, modelName);
 		}
 	}
 
@@ -243,7 +238,8 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	 * @param declFx
 	 * @param implEff
 	 */
-	private void checkEffect(final RegionEffectsPromiseDrop declEffDrop, final Effect implEff,
+	private void checkEffect(final IRNode methodBeingChecked,
+	    final RegionEffectsPromiseDrop declEffDrop, final Effect implEff,
 			final Set<Effect> declFx, String modelName) {
 		boolean checked = false;
 		final Iterator<Effect> iter = declFx.iterator();
@@ -251,12 +247,12 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			final Effect eff2 = iter.next();
 			if (implEff.checkEffect(getBinder(), eff2)) {
 				checked = true;
-				constructResultDrop(declEffDrop, true, implEff,
+				constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
 						Messages.EffectAssurance_msgCheckedBy, implEff, eff2);
 			}
 		}
 		if (!checked) {
-			constructResultDrop(declEffDrop, false, implEff,
+			constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
 					Messages.EffectAssurance_msgUnaccountedFor, implEff);
 		}
 	}
