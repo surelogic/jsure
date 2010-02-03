@@ -7,6 +7,7 @@ import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
 
+import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.Util;
@@ -76,18 +77,18 @@ public class JavacDriver {
 				switch (cpe.getEntryKind()) {
 				case IClasspathEntry.CPE_SOURCE:
 					if (isDependency) {
-						final File dir = resolveIPath(cpe.getPath());
+						final File dir = EclipseUtility.resolveIPath(cpe.getPath());
 						final File[] excludes = new File[cpe.getExclusionPatterns().length];
 						int i=0;
 						for(IPath xp : cpe.getExclusionPatterns()) {
-							excludes[i] = resolveIPath(xp);
+							excludes[i] = EclipseUtility.resolveIPath(xp);
 							i++;
 						}
 						Util.addJavaFiles(dir, config, true, excludes);
 					}
 					break;
 				case IClasspathEntry.CPE_LIBRARY:
-					config.addJar(resolveIPath(cpe.getPath()).getAbsolutePath());
+					config.addJar(EclipseUtility.resolveIPath(cpe.getPath()).getAbsolutePath());
 					break;
 				case IClasspathEntry.CPE_PROJECT:
 					String projName = cpe.getPath().lastSegment();
@@ -98,15 +99,6 @@ public class JavacDriver {
 					System.out.println("Unexpected: "+cpe);
 				}
 			}
-		}
-		
-		static File resolveIPath(IPath path) {
-			File loc = path.toFile();
-			if (!loc.exists()) {
-				IResource res = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
-				loc = res.getLocation().toFile();
-			}
-			return loc;
 		}
 		
 		/**
