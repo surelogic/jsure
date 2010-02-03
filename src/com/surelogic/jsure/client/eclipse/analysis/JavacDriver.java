@@ -12,6 +12,7 @@ import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.Util;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
+import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver {
@@ -150,6 +151,7 @@ public class JavacDriver {
 	}
 	
 	void doBuild(IProject p) {
+		ProjectDrop.ensureDrop(p.getName(), p);
 		final ProjectInfo info = projects.get(p);
 		if (info == null) {
 			return; // No info!
