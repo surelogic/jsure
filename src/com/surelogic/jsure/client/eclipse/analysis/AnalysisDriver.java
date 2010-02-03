@@ -74,8 +74,8 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	/**
 	 * @see IAnalysis#postBuild(IProject)
 	 */
-	public void postBuild(IProject project) {
-		if (project != this.project) {
+	public void postBuild(IProject p) {
+		if (p != this.project) {
 			throw new IllegalStateException("Project doesn't match");
 		}
 		JavacDriver.getInstance().registerBuild(project, args, resources, cus);
@@ -83,5 +83,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 		args = null;
 		resources.clear();
 		cus.clear();
+		
+		JavacDriver.getInstance().doBuild(p);
 	}
 }
