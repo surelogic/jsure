@@ -1,5 +1,7 @@
 package com.surelogic.jsure.views.debug.oracleDiff;
 
+import java.io.File;
+
 import org.eclipse.core.resources.*;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -75,9 +77,15 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 			IFile file = p.getFile(name + SeaSnapshot.SUFFIX);
 			if (file.exists()) {
 				try {
+					IFile newFile = p.getFile(name + ".new" + SeaSnapshot.SUFFIX);
+					File newFile2 = newFile.getLocation().toFile();
+					if (!newFile2.isFile()) {
+						SeaSummary.summarize(name, Sea.getDefault(), newFile2);
+					}
+					
 					Diff d = SeaSummary.diff(name, Sea.getDefault(), 
 							                 file.getLocation().toFile());
-					f_contentProvider.setDiff(d);
+					f_contentProvider.setDiff(d);					
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
