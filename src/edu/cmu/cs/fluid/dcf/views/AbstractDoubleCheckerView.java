@@ -53,6 +53,7 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
+import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.dc.IAnalysisListener;
@@ -279,10 +280,18 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (srcRef != null) {
 			try {
 				Object f = srcRef.getEnclosingFile();
-				if (!(f instanceof IFile)) {
+				IFile file;
+				if (f instanceof IFile) {
+					file = (IFile) f;
+				} else if (f instanceof String) {
+					String s = (String) f;
+					if (s.indexOf('/') < 0) {
+						return; // probably not a file
+					}
+					file = EclipseUtility.resolveIFile(s);
+				} else {
 					return;
 				}
-				IFile file = (IFile) f;
 				if (file != null) {
 					IJavaElement elt = JavaCore.create(file);
 					if (elt != null) {
