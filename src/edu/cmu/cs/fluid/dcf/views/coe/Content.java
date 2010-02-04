@@ -200,6 +200,12 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 			if (f instanceof IResource) {
 				IResource file = (IResource) f;
 				name = file.getName();
+			} else if (f instanceof String) {
+				name = (String) f;
+				int lastSlash = name.lastIndexOf('/');
+				if (lastSlash >= 0) {
+					name = name.substring(lastSlash+1);
+				}
 			} else if (f != null) {
 				name = f.toString();
 			}
