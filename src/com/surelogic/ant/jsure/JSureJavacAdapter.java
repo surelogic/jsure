@@ -166,7 +166,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			if (f.exists()) {
 				//System.out.println("Adding "+elt);
 				if (f.isDirectory()) {
-					Util.addJavaFiles(f, config.asBinary, config.pkgs);
+					Util.addJavaFiles(f, config, true);
 				} else {
 					config.addJar(elt);
 				}
@@ -273,7 +273,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 		String srcPath = findSrcDir(path);
 		if (srcPath != null) {
 			String qname = computeQualifiedName(path.substring(srcPath.length()+1));
-			config.files.add(new Pair<String,File>(qname, file));
+			config.addFile(new Pair<String,File>(qname, file));
 			//System.out.println(qname+": "+file.getAbsolutePath());
 			
 			final int lastDot = qname.lastIndexOf('.');
