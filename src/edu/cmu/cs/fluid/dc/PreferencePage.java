@@ -67,7 +67,7 @@ public final class PreferencePage extends
 		gridLayout.numColumns = 2;
 		composite.setLayout(gridLayout);
 		Label label1 = new Label(composite, SWT.NONE);
-		label1.setText("Analysis modules invoked on double-checked projects:");
+		label1.setText("Analysis modules invoked on verified projects:");
 		GridData data = new GridData();
 		data.horizontalAlignment = GridData.FILL;
 		data.horizontalSpan = 2;
@@ -85,8 +85,6 @@ public final class PreferencePage extends
 		data = new GridData();
 		data.horizontalAlignment = GridData.FILL;
 		data.grabExcessHorizontalSpace = true;
-		data.verticalAlignment = GridData.FILL;
-		data.grabExcessVerticalSpace = true;
 		checktree.getControl().setLayoutData(data);
 		Composite buttonHolder = new Composite(composite, SWT.NONE);
 		RowLayout rowLayout = new RowLayout();
