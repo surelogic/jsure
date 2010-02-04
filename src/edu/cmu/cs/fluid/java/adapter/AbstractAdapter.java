@@ -18,6 +18,7 @@ import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.*;
 import edu.cmu.cs.fluid.unparse.TokenArray;
@@ -142,6 +143,13 @@ public class AbstractAdapter {
 	}
 
 	protected void createLastMinuteNodes(IRNode root) {
+		createLastMinuteNodes(root, false);
+	}
+	
+	protected void createLastMinuteNodes(IRNode root, boolean makeSrcRefs) {
+		final String pkg  = makeSrcRefs ? VisitUtil.getPackageName(root) : null;
+		final IRNode type = makeSrcRefs ? VisitUtil.getPrimaryType(root) : null;
+		final String cu   = makeSrcRefs ? JavaNames.getTypeName(type) : null; 
 		for (IRNode n : JJNode.tree.topDown(root)) {
 			Operator op = JJNode.tree.getOperator(n);
 			if (MethodDeclaration.prototype.includes(op)
@@ -156,6 +164,12 @@ public class AbstractAdapter {
 				IRNode init = InitDeclaration.getInitMethod(n);
 				PromiseUtil.addReceiverDecls(n);
 				PromiseUtil.addReceiverDecls(init);
+
+				if (makeSrcRefs) {
+					String name = JavaNames.getFullTypeName(n);
+					ISrcRef ref = new NamedSrcRef(name, pkg, cu);
+					n.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
+				}
 			}
 		}
 	}
