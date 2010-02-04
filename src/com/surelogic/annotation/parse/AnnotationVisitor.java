@@ -346,6 +346,9 @@ public class AnnotationVisitor extends Visitor<Void> {
     
     ISrcRef src = JavaNode.getSrcRef(here);
     int offset  = src == null ? 0 : src.getOffset();  
+    if (c.startsWith("\"") && c.endsWith("\"")) {
+    	c = c.substring(1, c.length()-1);
+    }
     return createPromise(here, promise, c, AnnotationSource.JAVA_5, offset);
   }
   
