@@ -67,6 +67,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			if (ref == null) {
 				if (!d.getMessage().contains("java.lang.Object")) {
 					System.out.println("No src ref for "+d.getMessage());
+				} else {
+					//System.currentTimeMillis();
 				}
 				return null;				
 			}	
@@ -97,6 +99,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		addAttribute(OFFSET_ATTR, (long) ref.getOffset());
 		addAttribute(HASH_ATTR, computeHash(id.getNode(), false));
 		addAttribute(CONTEXT_ATTR, computeContext(id.getNode(), false));
+		//addAttribute("unparse", unparser.unparseString(id.getNode()));
 		// Omitting supporting info
 		/*
 		if (id.getMessage().contains("copyStat")) {
@@ -328,7 +331,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				Entity n = it.next();
 				for(Entity o : old) {
 					if (m.match(n, o)) {
-						if (!"Exact  ".equals(label)) {
+						if (!"Exact  ".equals(label) && !"Hashed ".equals(label)) {
 							if (title != null) {
 								out.println(title);
 								title = null;
