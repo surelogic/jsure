@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -157,6 +158,15 @@ public class JavaCanonicalizer {
     }
   }
   
+  protected void replaceSubtree(IRNode orig, IRNode sub) {
+	  tree.replaceSubtree(orig, sub);
+	  // Copy src ref
+	  ISrcRef ref = JavaNode.getSrcRef(orig);
+	  if (ref != null) {
+		  sub.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
+	  }
+  }
+  
   // To avoid binding problems, we can do analysis pre-order (before changes)
   // but perform the changes themselves post-order.
   // 
@@ -224,7 +234,7 @@ public class JavaCanonicalizer {
         LOG.fine("Adding unboxing around " + DebugUnparser.toString(node));
       }
       IRNode newUnbox = JavaNode.makeJavaNode(UnboxExpression.prototype);
-      tree.replaceSubtree(node, newUnbox);
+      replaceSubtree(node, newUnbox);
       UnboxExpression.setOp(newUnbox, node);
     }
 
@@ -237,7 +247,7 @@ public class JavaCanonicalizer {
         LOG.fine("Adding boxing around " + DebugUnparser.toString(node));
       }
       IRNode newBox = JavaNode.makeJavaNode(BoxExpression.prototype);
-      tree.replaceSubtree(node, newBox);
+      replaceSubtree(node, newBox);
       BoxExpression.setOp(newBox, node);
     }
 
@@ -269,7 +279,7 @@ public class JavaCanonicalizer {
       IRNode newArgs = Arguments.createNode(noNodes);
       JavaNode.setImplicit(newArgs);
       IRNode mc = JavaNode.makeJavaNode(NonPolymorphicMethodCall.prototype);
-      tree.replaceSubtree(node, mc);
+      replaceSubtree(node, mc);
       finishToString(mc, node, newArgs);
       return true;
     }
@@ -284,7 +294,7 @@ public class JavaCanonicalizer {
       IRNode te = TypeExpression.createNode(nt);
       JavaNode.setImplicit(te);
       IRNode mc = JavaNode.makeJavaNode(NonPolymorphicMethodCall.prototype);
-      tree.replaceSubtree(node, mc);
+      replaceSubtree(node, mc);
       
       IRNode args = Arguments.createNode(new IRNode[] { node });
       finishToString(mc, te, args);
@@ -395,7 +405,7 @@ public class JavaCanonicalizer {
       // first replace it and then set the nodes (so we don't lose our place in the tree!)
       // XXX: have OOS been moved around when AnonClassExpression was rearranged?
       IRNode newOOS = JavaNode.makeJavaNode(OuterObjectSpecifier.prototype);
-      tree.replaceSubtree(call,newOOS);
+      replaceSubtree(call,newOOS);
       OuterObjectSpecifier.setCall(newOOS,call);
       OuterObjectSpecifier.setObject(newOOS,thisNode);
       return true;
@@ -543,7 +553,7 @@ public class JavaCanonicalizer {
         tree.removeSubtree(op1);
         tree.removeSubtree(op2);
         IRNode scnode = StringConcat.createNode(op1, op2);
-        tree.replaceSubtree(node, scnode);
+        replaceSubtree(node, scnode);
         visitStringConcat(scnode); 
         return true;
       } else {
@@ -607,7 +617,7 @@ public class JavaCanonicalizer {
     		}
     		tree.removeChildren(node);    		
     		newArgs[numLastParam] = VarArgsExpression.createNode(varArgs.toArray(new IRNode[varArgs.size()]));
-    		tree.replaceSubtree(node, Arguments.createNode(newArgs));
+    		replaceSubtree(node, Arguments.createNode(newArgs));
     		changed = true;
     	}
     	return changed;
@@ -720,7 +730,7 @@ public class JavaCanonicalizer {
         } else { // Assume to be Iterable
         	result = createIterableLoopFromForEach(stmt, (IJavaDeclaredType) t);
         }
-        tree.replaceSubtree(stmt, result);
+        replaceSubtree(stmt, result);
         return true;
     }
     
@@ -899,7 +909,7 @@ public class JavaCanonicalizer {
     public Boolean visitImplicitReceiver(IRNode node) {
       IRNode parent = tree.getParent(node);
       IRNode method = binder.getBinding(parent);
-      tree.replaceSubtree(node, getImplicitSource(node, method));
+      replaceSubtree(node, getImplicitSource(node, method));
       return true;
     }
 
@@ -914,13 +924,13 @@ public class JavaCanonicalizer {
       IRNode name = NameExpression.getName(node);
       if (binder.getIBinding(node).getNode() == null) return false;
       IRNode replacement = nameToExpr(name);
-      tree.replaceSubtree(node, replacement);
+      replaceSubtree(node, replacement);
       return true;
     }
 
     @Override
     public Boolean visitNameType(IRNode node) {
-      tree.replaceSubtree(node, nameToType(NameType.getName(node)));
+      replaceSubtree(node, nameToType(NameType.getName(node)));
       return true;
     }
 
