@@ -9,6 +9,7 @@ import org.apache.tools.ant.taskdefs.compilers.*;
 import org.apache.tools.ant.types.*;
 import org.apache.tools.ant.util.StringUtils;
 
+import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.Util;
 
@@ -40,7 +41,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			/*
 			ToolUtil.scan(config, new Monitor(), true);
 			*/
-			Util.openFiles(config);
+			Util.openFiles(config, new NullSLProgressMonitor());
 		} catch (Throwable t) {
 			t.printStackTrace();
 			throw new BuildException("Exception while scanning", t);
