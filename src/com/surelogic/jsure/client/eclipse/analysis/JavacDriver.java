@@ -9,6 +9,7 @@ import org.eclipse.jdt.core.*;
 
 import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.JDTUtility;
+import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.Util;
 
@@ -142,7 +143,7 @@ public class JavacDriver {
 		}
 	}
 	
-	void doBuild(IProject p) {
+	void doBuild(IProject p, SLProgressMonitor monitor) {
 		ProjectDrop.ensureDrop(p.getName(), p);
 		final ProjectInfo info = projects.get(p);
 		if (info == null) {
@@ -151,7 +152,7 @@ public class JavacDriver {
 		// TODO in a job!
 		try {
 			final Config config = info.makeConfig();
-			Util.openFiles(config);
+			Util.openFiles(config, monitor);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
