@@ -30,6 +30,7 @@ import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 
 public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnalysis,Void> {
   private static final Category DSC_UNIQUE_PARAMS_SATISFIED =
@@ -148,7 +149,13 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
               monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
             }
             //System.out.println("Parallel: " + methodName);
+        	final DebugUnparser unparser = new DebugUnparser(10, JJNode.tree);
+            String s = unparser.unparseString(node.methodDecl);
+            final long start = System.currentTimeMillis();
             analzyePseudoMethodDeclaration(node);
+            final long end = System.currentTimeMillis();
+            System.out.println("Parallel: " + methodName + " -- "+(end-start)+" ms");
+            ImmutableHashOrderSet.clearCaches();
           }
         });
         return !methods.isEmpty();
@@ -163,6 +170,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
           System.out.println("Sequential: " + methodName);
           analzyePseudoMethodDeclaration(node);
         }
+        ImmutableHashOrderSet.clearCaches();
         return !methods.isEmpty();
       }
 		} catch (Exception e) {

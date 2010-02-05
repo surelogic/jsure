@@ -324,6 +324,10 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
                                            + " does not support clear()" );
   }
 
+  public static void clearCaches() {
+	  SortedArray.clearCaches();
+  }
+  
   /** True if this set includes every element
    * in the argument set.
    */
@@ -581,31 +585,35 @@ class SortedArray {
   }
   
   public static void main(String[] args) {
-    int num = 250; 
-    Object[] a = new Object[num];
-    for(int i=0; i<a.length; i++) {
-      a[i] = new Object();
-    }
-    Object[] b = new Object[num];
-    for(int i=0; i<a.length; i++) {
-      b[i] = a[i];
-    }
+	Random r = new Random();
+	for(int t=0; t<100; t++) {
+		int num = r.nextInt(100000); 
+		System.out.println("Sorting "+num+" elements");
+		Object[] a = new Object[num];
+		for(int i=0; i<a.length; i++) {
+			a[i] = new Object();
+		}
+		Object[] b = new Object[num];
+		for(int i=0; i<a.length; i++) {
+			b[i] = a[i];
+		}
 
-    final long start = System.currentTimeMillis();
-    sort(a);
-    System.out.println("Total time (in ms) = "+
-		       (System.currentTimeMillis() - start));
+		final long start = System.currentTimeMillis();
+		sort(a);
+		System.out.println("Total time (in ms) = "+
+				(System.currentTimeMillis() - start));
 
-    final long start2 = System.currentTimeMillis();
-    sort3(b);
-    System.out.println("Total time (in ms) = "+
-		       (System.currentTimeMillis() - start2));
+		final long start2 = System.currentTimeMillis();
+		sort2(b);
+		System.out.println("Total time (in ms) = "+
+				(System.currentTimeMillis() - start2));
 
-    for(int i=0; i<a.length; i++) {
-      if (b[i] != a[i]) {
-	System.out.println("Element "+i+" is not the same");
-      }
-    }
+		for(int i=0; i<a.length; i++) {
+			if (b[i] != a[i]) {
+				System.out.println("Element "+i+" is not the same");
+			}
+		}
+	}
   }
   
   /** Sort in place the contents of an unsorted array. */
@@ -628,7 +636,7 @@ class SortedArray {
 
   static final Comparator hashCompare = new Comparator() {
       public int compare(Object o1, Object o2) {
-	return (o1.hashCode() - o2.hashCode());
+    	  return (o1.hashCode() - o2.hashCode());
       }
     };
 
@@ -665,6 +673,11 @@ class SortedArray {
 		  return new Object[300];
 	  }
   }; 
+  
+  static void clearCaches() {
+	  lastArray.remove();
+	  tempList.remove();
+  }
   
   // Only used by sort()
   private static <V> V[] cloneArray(V[] a) {
@@ -712,6 +725,7 @@ class SortedArray {
       lastArray = a;
     }
     */
+	//Arrays.fill(a, null);
     lastArray.set(a);
   }  
   private static final int SHELL_INCREMENT = 4;
