@@ -160,7 +160,10 @@ public class JavaCanonicalizer {
   
   protected void replaceSubtree(IRNode orig, IRNode sub) {
 	  tree.replaceSubtree(orig, sub);
-	  // Copy src ref
+	  copySrcRef(orig, sub);
+  }
+
+  protected void copySrcRef(IRNode orig, IRNode sub) {
 	  ISrcRef ref = JavaNode.getSrcRef(orig);
 	  if (ref != null) {
 		  sub.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
@@ -787,10 +790,13 @@ public class JavaCanonicalizer {
       private IRNode makeEquivWhileLoop(IRNode stmt, IRNode cond, IRNode paramInit) {
           // Combine parameter and original body into the new body of the while loop
           IRNode paramDecl = adaptParamDeclToDeclStatement(ForEachStatement.getVar(stmt), paramInit);    
+          copySrcRef(stmt, paramDecl);
+          
           IRNode origBody  = ForEachStatement.getLoop(stmt);
           tree.removeSubtree(origBody);
           IRNode body      = BlockStatement.createNode(new IRNode[] { paramDecl, origBody });          
-          IRNode whileLoop = edu.cmu.cs.fluid.java.operator.WhileStatement.createNode(cond, body);   
+          IRNode whileLoop = edu.cmu.cs.fluid.java.operator.WhileStatement.createNode(cond, body);
+          copySrcRef(stmt, whileLoop);
           return whileLoop;
       }
     
@@ -889,17 +895,25 @@ public class JavaCanonicalizer {
         IRNode collection      = ForEachStatement.getCollection(stmt);
      	tree.removeSubtree(collection);
         IRNode iterableDecl    = makeDecl(iterable, collection, collT);
-          
+        copySrcRef(stmt, iterableDecl);
+        
         // Create decl for iterator
         final String it     = "it"+stmt.hashCode();
         final IRNode itType = CogenUtil.createType(binder.getTypeEnvironment(), itTB);
-        IRNode itDecl       = makeDecl(it, makeSimpleCall(iterable, "iterator"), itType);
+        IRNode itCall       = makeSimpleCall(iterable, "iterator");
+        copySrcRef(stmt, itCall);
+        
+        IRNode itDecl       = makeDecl(it, itCall, itType);
+        copySrcRef(stmt, itDecl);
         
         // Create condition for while loop
         IRNode cond      = makeSimpleCall(it, "hasNext"); 
+        copySrcRef(stmt, cond);
         
         // Create initializer for parameter
-        IRNode paramInit = makeSimpleCall(it, "next");                                                      
+        IRNode paramInit = makeSimpleCall(it, "next");     
+        copySrcRef(stmt, paramInit);
+        
         IRNode whileLoop = makeEquivWhileLoop(stmt, cond, paramInit); 
         IRNode result    = BlockStatement.createNode(new IRNode[] { iterableDecl, itDecl, whileLoop });
         return result;
