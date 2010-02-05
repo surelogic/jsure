@@ -149,12 +149,16 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
               monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
             }
             //System.out.println("Parallel: " + methodName);
+            /*
         	final DebugUnparser unparser = new DebugUnparser(10, JJNode.tree);
             String s = unparser.unparseString(node.methodDecl);
             final long start = System.currentTimeMillis();
+            */
             analzyePseudoMethodDeclaration(node);
+            /*
             final long end = System.currentTimeMillis();
             System.out.println("Parallel: " + methodName + " -- "+(end-start)+" ms");
+            */
             ImmutableHashOrderSet.clearCaches();
           }
         });
