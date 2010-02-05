@@ -12,6 +12,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.SLImages;
 
 import edu.cmu.cs.fluid.eclipse.ui.ITableContentProvider;
@@ -115,9 +116,18 @@ public final class ProblemsViewContentProvider implements ITableContentProvider 
 		if (o instanceof IFile) {
 			IFile f = (IFile) o;
 			return f.getFullPath().toPortableString();
-		} else {
+		} else if (o instanceof String) {
+			String name = (String) o;
+			if (name.indexOf('/') < 0) {
+				// probably not a file
+				return name;
+			}
+			IFile f = EclipseUtility.resolveIFile(name);
+			return f.getFullPath().toPortableString();
+		} else if (o != null) {
 			return o.toString();
 		}
+		return "";
 	}
 
 	private int getLine(PromiseWarningDrop d) {
