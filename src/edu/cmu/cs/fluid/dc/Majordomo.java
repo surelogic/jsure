@@ -23,6 +23,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
+import edu.cmu.cs.fluid.ir.AbstractIRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 
@@ -236,6 +237,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 				} finally {
 					long end = System.currentTimeMillis();
 					System.err.println("Time to analyze code = "+(end-start)+" ms");
+					//System.out.println("Total nodes          = "+AbstractIRNode.getTotalNodesCreated());
 					projectCache.reset(); // wipe the cache for this project					
 				}			
 			} else {
