@@ -89,6 +89,7 @@ public class JavacDriver {
 					}
 					break;
 				case IClasspathEntry.CPE_LIBRARY:
+					//System.out.println("Adding "+cpe.getPath()+" for "+p.getName());
 					config.addJar(EclipseUtility.resolveIPath(cpe.getPath()).getAbsolutePath());
 					break;
 				case IClasspathEntry.CPE_PROJECT:
