@@ -356,7 +356,9 @@ public final class LabeledLattice<T> {
         nlv2 = lv2;
         v2 = getValue(lv2,ll,lattice.bottom());
       }
-      if (!lattice.equals(lv1.value,v2)) return false;
+      if (!lattice.lessEq(lv1.value,v2)) {
+        return false;
+      }
       lv2 = nlv2;
       lv1 = lv1.next;
     }
