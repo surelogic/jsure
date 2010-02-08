@@ -20,6 +20,8 @@ import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.Util;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.util.*;
 
@@ -159,9 +161,11 @@ public class JavacDriver {
 			return; // No info!
 		}
 		try {
-		    final Config config = info.makeConfig();
-		    File zips   = null; // TODO where will we copy to
-		    File target = null; // TODO where will we copy to
+		    final Config config = info.makeConfig();		    
+		    final File dataDir = 
+		        new File(IDE.getInstance().getStringPreference(IDEPreferences.DATA_DIRECTORY));
+		    File zips   = new File(dataDir, p.getName()+"/zips");
+		    File target = new File(dataDir, p.getName()+"/srcs");
 		    AnalysisJob analysis = new AnalysisJob(config, target);
 		    CopyJob copy = new CopyJob(config, target, zips, analysis);
 		    // TODO fix to lock the workspace
@@ -233,6 +237,7 @@ public class JavacDriver {
             if (zipFile.isFile()) {
                 return false;
             }
+            zipFile.getParentFile().mkdirs();
             srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
 
             targetDir.mkdir();
