@@ -1,15 +1,21 @@
 package com.surelogic.jsure.client.eclipse.analysis;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
 
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.JDTUtility;
-import com.surelogic.common.jobs.SLProgressMonitor;
+import com.surelogic.common.eclipse.SourceZip;
+import com.surelogic.common.eclipse.jobs.EclipseJob;
+import com.surelogic.common.jobs.*;
 import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.Util;
 
@@ -95,7 +101,9 @@ public class JavacDriver {
 				case IClasspathEntry.CPE_PROJECT:
 					String projName = cpe.getPath().lastSegment();
 					IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
-					addDependencies(config, proj);
+					if (config.addProject(projName)) {
+					    addDependencies(config, proj);
+					}
 					break;
 				default:
 					System.out.println("Unexpected: "+cpe);
@@ -150,13 +158,112 @@ public class JavacDriver {
 		if (info == null) {
 			return; // No info!
 		}
-		// TODO in a job!
 		try {
-			final Config config = info.makeConfig();
-			Util.openFiles(config, monitor);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		    final Config config = info.makeConfig();
+		    File zips   = null; // TODO where will we copy to
+		    File target = null; // TODO where will we copy to
+		    AnalysisJob analysis = new AnalysisJob(config, target);
+		    CopyJob copy = new CopyJob(config, target, zips, analysis);
+		    // TODO fix to lock the workspace
+		    EclipseJob.getInstance().schedule(copy);
+		} catch(JavaModelException e) {
+		    System.err.println("Unable to make config for JSure");
+		    e.printStackTrace();
+		    return;
 		}
+	}
+	
+	abstract class Job extends AbstractSLJob {
+	    final Config config;
+	    /**
+	     * Where the source files will be copied to
+	     */
+	    final File targetDir;
+	    
+	    Job(String name, Config config, File target) {
+	        super(name);
+            this.config = config;
+            targetDir = target;
+        }
+	}
+	
+	class CopyJob extends Job {
+	    private final SLJob afterJob;
+	    /**
+	     * Where the source zips will be created
+	     */
+	    private final File zipDir;
+	    
+        CopyJob(Config config, File target, File zips, SLJob after) {
+            super("Copying project info for "+config.getProject(), config, target);
+            afterJob = after;
+            zipDir = zips;
+        }
+
+        public SLStatus run(SLProgressMonitor monitor) {
+            for(String proj : config.getProjects()) {
+                IProject ip = ResourcesPlugin.getWorkspace().getRoot().getProject(proj);
+                try {
+                    copySources(ip);
+                } catch (IOException e) {
+                    return SLStatus.createErrorStatus("Problem while copying sources", e);
+                }
+            }            
+            // TODO projects need separate lists of jars
+            for(String jar : config.getJars()) {
+                final String name;
+                final int lastSlash = jar.lastIndexOf('/');
+                if (lastSlash < 0) {
+                    name = jar;
+                } else {
+                    name = jar.substring(lastSlash+1);
+                }
+                FileUtility.copy(new File(jar), new File(targetDir, name));
+            }
+            
+            if (afterJob != null) {
+                EclipseJob.getInstance().schedule(afterJob);
+            }
+            return SLStatus.OK_STATUS;
+        }
+            
+        boolean copySources(IProject project) throws IOException {
+            final SourceZip srcZip = new SourceZip(project);
+            File zipFile           = new File(zipDir, project.getName()+".zip");
+            if (zipFile.isFile()) {
+                return false;
+            }
+            srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
+
+            targetDir.mkdir();
+            File projectDir = new File(targetDir, project.getName());
+            ZipFile zf = new ZipFile(zipFile);
+            Enumeration<? extends ZipEntry> e = zf.entries();
+            while (e.hasMoreElements()) {
+                ZipEntry ze = e.nextElement();
+                File f = new File(projectDir, ze.getName());
+                f.getParentFile().mkdirs();
+                FileUtility.copy(ze.getName(), zf.getInputStream(ze), f);
+            }
+            zf.close();
+            
+            return true;
+        }	    
+	}
+	
+	class AnalysisJob extends Job {
+        AnalysisJob(Config config, File target) {
+            super("Running JSure on "+config.getProject(), config, target);
+        }
+
+        public SLStatus run(SLProgressMonitor monitor) {
+            try {
+                Util.openFiles(config, monitor);
+            } catch (Exception e) {
+                return SLStatus.createErrorStatus("Problem while running JSure", e);
+            }
+            return SLStatus.OK_STATUS;
+        }
+	    
 	}
 }
