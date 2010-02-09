@@ -164,6 +164,29 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       return (ListLattice<NullLattice, NullInfo>) lattice1; 
     }
     
+    @Override
+    @SuppressWarnings("unused")
+    public Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> join(
+        Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> v1,
+        Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> v2) {
+      final String s1 = toString(v1);
+      final String s2 = toString(v2);
+
+      Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> join = super.join(v1, v2);
+      if (isNormal(join)) return join;
+      if (join.equals(top())) return join;
+      if (join.equals(bottom())) return join;
+      System.out.println("Found a non-normal non bottom/top: " + toString(join));
+      
+      Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> jj = super.join(v1, v2);
+      final boolean n = isNormal(jj);
+      
+      if (v1.first() == getLL().top()) return top();
+      else if (v1.first() == getLL().bottom()) return bottom();
+      System.out.println("Internal assertion error: " + toString(join));
+      return top();
+    }
+    
     public boolean isNormal(Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> val) {
       return getLL().isList(val.first());
     }
@@ -247,11 +270,16 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       return newPair(lattice.getLL().push(val.first(),NullInfo.MAYBENULL),val.second());
     }
 
+    protected Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> push(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val, NullInfo ni) {
+      if (!lattice.isNormal(val)) return val;
+      return newPair(lattice.getLL().push(val.first(), ni),val.second());
+    }
+    
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> dup(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
       if (!lattice.isNormal(val)) return val;
       NullInfo ni = lattice.getLL().peek(val.first());
-      return newPair(lattice.getLL().push(val.first(),ni),val.second());
+      return push(val,ni);
     }
 
     @Override
@@ -264,8 +292,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferAllocation(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
-      if (!lattice.isNormal(val)) return val;
-      return newPair(lattice.getLL().push(val.first(),NullInfo.NOTNULL),val.second());
+      return push(val,NullInfo.NOTNULL);
     }
 
 
@@ -277,7 +304,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferAssignVar(IRNode use, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
-      if (!lattice.isNormal(val)) return val;
+//      if (!lattice.isNormal(val)) return val;
       IRNode var = binder.getIBinding(use).getNode();
       return transferSetVar(var, val);
     }
@@ -294,11 +321,17 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       NullInfo ni = ll.peek(val.first());
       
       if (val.second().contains(var)) {
-        if (!nullLattice.lessEq(ni,NullInfo.NOTNULL)) return newPair(val.first(),val.second().removeCopy(var));
+        if (!nullLattice.lessEq(ni,NullInfo.NOTNULL)) {
+          System.out.println(JJNode.getInfo(var) + " is no longer non null after being assigned.");
+          return newPair(val.first(),val.second().removeCopy(var));
+        }
         if (LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
         // otherwise, do nothing: not null before, not null afterwards
       } else {
-        if (nullLattice.lessEq(ni,NullInfo.NOTNULL)) return newPair(val.first(),val.second().addCopy(var));
+        if (nullLattice.lessEq(ni,NullInfo.NOTNULL)) {
+          System.out.println(JJNode.getInfo(var) + " is now non null after beign assigned.");
+          return newPair(val.first(),val.second().addCopy(var));
+        }
         if (LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
         // do nothing : maybe null before, maybe null afterwards
       }
@@ -315,8 +348,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferDefaultInit(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
       if (!lattice.isNormal(val)) return val;
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      return newPair(ll.push(val.first(),NullInfo.NULL),val.second());
+      return push(val,NullInfo.NULL);
     }
 
     @Override
@@ -328,15 +360,17 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       NullInfo ni2 = ll.peek(stack);
       stack = ll.pop(stack);
       NullInfo ni1 = ll.peek(stack);
+      stack = ll.pop(stack);
+      stack = ll.push(stack, NullInfo.MAYBENULL);
       // don't pop the second: we don't care what the top of the stack has for primitives
       // if the condition is impossible, we propagate bottom
       if (nullLattice.meet(ni1,ni2) == nullLattice.bottom()) {
-        if (flag) return null; else return val;
-      }
+        if (flag) return null; // else fall through to end
+      } else
       // if the comparison is guaranteed true, we propagate bottom for false:
       if (nullLattice.lessEq(ni1,NullInfo.NULL) && nullLattice.lessEq(ni2, NullInfo.NULL)) {
-        if (flag) return val; else return null;
-      }
+        if (!flag) return null; // else fall through to end
+      } else
       // if we have an *inequality* comparison with null:
       if (!flag) {
         if (nullLattice.lessEq(ni1,NullInfo.NULL)) {
@@ -363,9 +397,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferImplicitArrayCreation(IRNode arrayInitializer, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
-      if (!lattice.isNormal(val)) return val;
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      return newPair(ll.push(val.first(),NullInfo.NOTNULL),val.second());
+      return push(val,NullInfo.NOTNULL);
     }
 
     @Override
@@ -459,6 +491,18 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     }
     
     
+    @Override
+    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferConcat(
+        IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+      if (!lattice.isNormal(val)) return val;
+      // pop the values of the stack and push a non-null
+      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
+      ImmutableList<NullInfo> stack = val.first();
+      stack = ll.pop(stack);
+      stack = ll.pop(stack);
+      stack = ll.push(stack, NullInfo.NOTNULL);
+      return newPair(stack, val.second());
+    }
   }
   
   public static final class Analysis extends ForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice, Transfer> {
