@@ -50,7 +50,7 @@ public final class NotificationHub {
    * 
    * @see Majordomo#build(int, Map, IProgressMonitor)
    */
-  static synchronized void notifyAnalysisCompleted() {
+  public static synchronized void notifyAnalysisCompleted() {
     m_hasAnalysisEverRun = true;
     for (IAnalysisListener subscriber : m_subscribers) {
       subscriber.analysisCompleted();
@@ -62,7 +62,7 @@ public final class NotificationHub {
    * 
    * @see Majordomo#build(int, Map, IProgressMonitor)
    */
-  static synchronized void notifyAnalysisStarting() {
+  public static synchronized void notifyAnalysisStarting() {
     for (IAnalysisListener subscriber : m_subscribers) {
       subscriber.analysisStarting();
     }
@@ -74,7 +74,7 @@ public final class NotificationHub {
    * 
    * @see Majordomo#build(int, Map, IProgressMonitor)
    */
-  static synchronized void notifyAnalysisPostponed() {
+  public static synchronized void notifyAnalysisPostponed() {
     for (IAnalysisListener subscriber : m_subscribers) {
       subscriber.analysisPostponed();
     }
