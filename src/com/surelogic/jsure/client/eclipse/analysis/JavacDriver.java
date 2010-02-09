@@ -10,16 +10,20 @@ import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
 
+import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.common.eclipse.SourceZip;
 import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
+import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.Util;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
+import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
@@ -154,18 +158,22 @@ public class JavacDriver {
 		}
 	}
 	
-	void doBuild(IProject p, SLProgressMonitor monitor) {
+	void doBuild(IProject p, SLProgressMonitor monitor) {	    
 		ProjectDrop.ensureDrop(p.getName(), p);
 		final ProjectInfo info = projects.get(p);
 		if (info == null) {
 			return; // No info!
 		}
+        JavacEclipse.initialize();
 		try {
 		    final Config config = info.makeConfig();		    
 		    final File dataDir = 
-		        new File(IDE.getInstance().getStringPreference(IDEPreferences.DATA_DIRECTORY));
-		    File zips   = new File(dataDir, p.getName()+"/zips");
-		    File target = new File(dataDir, p.getName()+"/srcs");
+		        //new File(IDE.getInstance().getStringPreference(IDEPreferences.DATA_DIRECTORY));
+		        PreferenceConstants.getJSureDataDirectory();
+		    final String time = SLUtility.toStringHMS(new Date());
+		    final String name = p.getName()+' '+time.replace(':', '-');
+		    File zips   = new File(dataDir, name+"/zips");
+		    File target = new File(dataDir, name+"/srcs");
 		    AnalysisJob analysis = new AnalysisJob(config, target);
 		    CopyJob copy = new CopyJob(config, target, zips, analysis);
 		    // TODO fix to lock the workspace
@@ -243,22 +251,51 @@ public class JavacDriver {
         boolean copySources(List<Pair<String, File>> srcFiles, IProject project) throws IOException {
             final SourceZip srcZip = new SourceZip(project);
             File zipFile           = new File(zipDir, project.getName()+".zip");
-            if (zipFile.isFile()) {
-                return false;
+            if (!zipFile.exists()) {
+                zipFile.getParentFile().mkdirs();
+                srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
             }
-            zipFile.getParentFile().mkdirs();
-            srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
 
             targetDir.mkdir();
             File projectDir = new File(targetDir, project.getName());
             ZipFile zf = new ZipFile(zipFile);
+            
+            // Get class mapping (qname->zip path)
+            Properties props = new Properties();
+            ZipEntry mapping = zf.getEntry(AbstractJavaZip.CLASS_MAPPING);            
+            props.load(zf.getInputStream(mapping));
+
+            // Reverse mapping
+            Map<String,List<String>> path2qnames = new HashMap<String,List<String>>();
+            for(Map.Entry<Object,Object> e : props.entrySet()) {
+                String path = (String) e.getValue();
+                List<String> l = path2qnames.get(path);
+                if (l == null) {
+                    l = new ArrayList<String>();
+                    path2qnames.put(path, l);
+                }                
+                l.add((String) e.getKey());
+            }
+            
             Enumeration<? extends ZipEntry> e = zf.entries();
             while (e.hasMoreElements()) {
                 ZipEntry ze = e.nextElement();
                 File f = new File(projectDir, ze.getName());
                 f.getParentFile().mkdirs();
                 FileUtility.copy(ze.getName(), zf.getInputStream(ze), f);
-                srcFiles.add(new Pair<String,File>(project.getName()+'/'+ze.getName(), f));
+                if (ze.getName().endsWith(".java")) {
+                    final List<String> names = path2qnames.get(ze.getName());
+                    if (names != null) {
+                        for(String name : names) {
+                            //System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
+                            srcFiles.add(new Pair<String,File>(name.replace('$', '.'), f));
+                        }
+                    } else if (ze.getName().endsWith("/package-info.java")) {
+                        // TODO what to do about this?
+                    } else {
+                        throw new IllegalStateException("Unable to get qname for "+ze.getName());
+                    }
+                }
             }
             zf.close();
             
@@ -273,11 +310,14 @@ public class JavacDriver {
 
         public SLStatus run(SLProgressMonitor monitor) {
             JavacEclipse.initialize();
+            NotificationHub.notifyAnalysisStarting();
             try {
                 Util.openFiles(config, monitor);
             } catch (Exception e) {
+                NotificationHub.notifyAnalysisPostponed();
                 return SLStatus.createErrorStatus("Problem while running JSure", e);
             }
+            NotificationHub.notifyAnalysisCompleted();
             return SLStatus.OK_STATUS;
         }
 	    
