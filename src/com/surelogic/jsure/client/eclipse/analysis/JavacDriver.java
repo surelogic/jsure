@@ -205,34 +205,42 @@ public class JavacDriver {
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
+            final List<Pair<String, File>> srcFiles = new ArrayList<Pair<String, File>>();
+            final List<Pair<String, File>> auxFiles = new ArrayList<Pair<String, File>>();
             for(String proj : config.getProjects()) {
                 IProject ip = ResourcesPlugin.getWorkspace().getRoot().getProject(proj);
                 try {
-                    copySources(ip);
+                    copySources(proj.equals(config.getProject()) ? srcFiles : auxFiles, ip);
                 } catch (IOException e) {
                     return SLStatus.createErrorStatus("Problem while copying sources", e);
                 }
             }            
-            /*
             // TODO projects need separate lists of jars
+            final Map<String,String> jarMapping = new HashMap<String,String>();
             for(String jar : config.getJars()) {
                 final String name;
-                final int lastSlash = jar.lastIndexOf('/');
+                final int lastSlash = jar.lastIndexOf(File.separatorChar);
                 if (lastSlash < 0) {
                     name = jar;
                 } else {
                     name = jar.substring(lastSlash+1);
                 }
+                File target = new File(targetDir, name);
                 FileUtility.copy(new File(jar), new File(targetDir, name));
+                //System.out.println("Copying "+new File(jar)+" to "+new File(targetDir, name));               
+                jarMapping.put(jar, target.getAbsolutePath());
             }
-            */
+            config.setFiles(srcFiles, false);
+            config.setFiles(auxFiles, true);
+            config.relocateJars(jarMapping);            
+            
             if (afterJob != null) {
                 EclipseJob.getInstance().schedule(afterJob);
             }
             return SLStatus.OK_STATUS;
         }
             
-        boolean copySources(IProject project) throws IOException {
+        boolean copySources(List<Pair<String, File>> srcFiles, IProject project) throws IOException {
             final SourceZip srcZip = new SourceZip(project);
             File zipFile           = new File(zipDir, project.getName()+".zip");
             if (zipFile.isFile()) {
@@ -250,6 +258,7 @@ public class JavacDriver {
                 File f = new File(projectDir, ze.getName());
                 f.getParentFile().mkdirs();
                 FileUtility.copy(ze.getName(), zf.getInputStream(ze), f);
+                srcFiles.add(new Pair<String,File>(project.getName()+'/'+ze.getName(), f));
             }
             zf.close();
             
