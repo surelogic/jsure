@@ -213,6 +213,7 @@ public class JavacDriver {
                     return SLStatus.createErrorStatus("Problem while copying sources", e);
                 }
             }            
+            /*
             // TODO projects need separate lists of jars
             for(String jar : config.getJars()) {
                 final String name;
@@ -224,7 +225,7 @@ public class JavacDriver {
                 }
                 FileUtility.copy(new File(jar), new File(targetDir, name));
             }
-            
+            */
             if (afterJob != null) {
                 EclipseJob.getInstance().schedule(afterJob);
             }
@@ -262,6 +263,7 @@ public class JavacDriver {
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
+            JavacEclipse.initialize();
             try {
                 Util.openFiles(config, monitor);
             } catch (Exception e) {
