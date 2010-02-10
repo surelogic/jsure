@@ -243,6 +243,7 @@ public class JavacDriver {
                     return SLStatus.createErrorStatus("Problem while zipping sources", e);
                 }
             }             
+            copyJars();
             
             if (afterJob != null) {
                 EclipseJob.getInstance().schedule(afterJob);
@@ -258,6 +259,25 @@ public class JavacDriver {
                 srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
             }
         }   
+        
+        void copyJars() {
+            // TODO projects need separate lists of jars
+            final Map<String,String> jarMapping = new HashMap<String,String>();
+            for(String jar : config.getJars()) {
+                final String name;
+                final int lastSlash = jar.lastIndexOf(File.separatorChar);
+                if (lastSlash < 0) {
+                    name = jar;
+                } else {
+                    name = jar.substring(lastSlash+1);
+                }
+                File target = new File(targetDir, name);
+                FileUtility.copy(new File(jar), new File(targetDir, name));
+                //System.out.println("Copying "+new File(jar)+" to "+new File(targetDir, name));               
+                jarMapping.put(jar, target.getAbsolutePath());
+            }
+            config.relocateJars(jarMapping);  
+        }
 	}
 	
 	class AnalysisJob extends Job {
@@ -294,24 +314,8 @@ public class JavacDriver {
                     return SLStatus.createErrorStatus("Problem while copying sources", e);
                 }
             }            
-            // TODO projects need separate lists of jars
-            final Map<String,String> jarMapping = new HashMap<String,String>();
-            for(String jar : config.getJars()) {
-                final String name;
-                final int lastSlash = jar.lastIndexOf(File.separatorChar);
-                if (lastSlash < 0) {
-                    name = jar;
-                } else {
-                    name = jar.substring(lastSlash+1);
-                }
-                File target = new File(targetDir, name);
-                FileUtility.copy(new File(jar), new File(targetDir, name));
-                //System.out.println("Copying "+new File(jar)+" to "+new File(targetDir, name));               
-                jarMapping.put(jar, target.getAbsolutePath());
-            }
             config.setFiles(srcFiles, false);
             config.setFiles(auxFiles, true);
-            config.relocateJars(jarMapping);  
             return null;
         }
 
