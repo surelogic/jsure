@@ -31,7 +31,7 @@ public class AnnotationVisitor extends Visitor<Void> {
   //private static final boolean allowJavadoc = true;
   public static final boolean onlyUseAnnotate = true;
 
-  final boolean inEclipse = IDE.getInstance().getClass().getName().contains("Eclipse");
+  final boolean inEclipse = !IDE.getInstance().getClass().getSimpleName().startsWith("Javac");
   final ITypeEnvironment tEnv;
   final String name;
   TestResult nextResult = null;
