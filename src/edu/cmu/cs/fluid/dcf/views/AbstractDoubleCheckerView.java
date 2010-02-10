@@ -55,6 +55,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.IAnalysisListener;
 import edu.cmu.cs.fluid.dc.Nature;
@@ -288,14 +289,19 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					if (s.indexOf('/') < 0) {
 						return; // probably not a file
 					}
+					s = JSureHistoricalSourceView.tryToMapPath(s);
 					file = EclipseUtility.resolveIFile(s);
 				} else {
 					return;
 				}
+                JSureHistoricalSourceView.tryToOpenInEditor(srcRef.getPackage(), 
+                        srcRef.getCUName(), srcRef.getLineNumber());
+				
 				if (file != null) {
 					IJavaElement elt = JavaCore.create(file);
-					if (elt != null) {
-						IEditorPart ep = JavaUI.openInEditor(elt);
+					if (elt != null) {					    
+						IEditorPart ep = JavaUI.openInEditor(elt);						
+						
 						IMarker location = null;
 						try {
 							location = ResourcesPlugin.getWorkspace().getRoot()

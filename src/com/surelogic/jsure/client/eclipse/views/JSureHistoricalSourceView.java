@@ -10,24 +10,32 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     
     @Override
     protected ISourceZipFileHandles findSources(String run) {
-        if (config.getRun().equals(run)) {
+        //if (config.getRun().equals(run)) {
             return zips;
-        }
-        return null;
+        //}
+        //return null;
     }
 
-    public static void tryToOpenInEditor(final String run, final String pkg,
+    public static void tryToOpenInEditor(final String pkg,
             final String type, int lineNumber) {
-        tryToOpenInEditor(JSureHistoricalSourceView.class, run, pkg, type, lineNumber);      
+        tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type, lineNumber);      
     }
     
-    public static void tryToOpenInEditor(final String run, final String pkg,
+    public static void tryToOpenInEditor(final String pkg,
             final String type, final String field) {
-        tryToOpenInEditor(JSureHistoricalSourceView.class, run, pkg, type, field);       
+        tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type, field);       
     }
 
     public static void setLastRun(Config cfg, ISourceZipFileHandles handles) {
         config = cfg;
         zips = handles;
+    }
+
+    public static String tryToMapPath(String path) {
+        String mapped = config.mapPath(path);
+        if (mapped != null) {
+            return mapped;
+        }
+        return path;
     }
 }
