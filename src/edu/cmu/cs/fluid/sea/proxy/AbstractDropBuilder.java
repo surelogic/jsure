@@ -76,7 +76,7 @@ public abstract class AbstractDropBuilder {
 	
 	void buildDrop(IRReferenceDrop d) {
 		//System.out.println("Making: "+message);
-		d.setNode(node);
+		d.setNodeAndCompilationUnitDependency(node);
 		if (messageNum < 0) {
 			d.setMessage(message);
 		} else {
