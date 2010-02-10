@@ -24,8 +24,6 @@ import com.surelogic.fluid.javac.Util;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.dc.NotificationHub;
-import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.util.*;
 
@@ -158,7 +156,7 @@ public class JavacDriver {
 		}
 	}
 	
-	void doBuild(IProject p, SLProgressMonitor monitor) {	    
+	public void doBuild(IProject p) {	    
 		ProjectDrop.ensureDrop(p.getName(), p);
 		final ProjectInfo info = projects.get(p);
 		if (info == null) {
