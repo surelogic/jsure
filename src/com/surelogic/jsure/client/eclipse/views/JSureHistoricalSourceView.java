@@ -2,11 +2,17 @@ package com.surelogic.jsure.client.eclipse.views;
 
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.eclipse.views.AbstractHistoricalSourceView;
+import com.surelogic.fluid.javac.Config;
 
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
+    private static Config config;
+    private static ISourceZipFileHandles zips;
+    
     @Override
     protected ISourceZipFileHandles findSources(String run) {
-        // TODO Auto-generated method stub
+        if (config.getRun().equals(run)) {
+            return zips;
+        }
         return null;
     }
 
@@ -18,5 +24,10 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     public static void tryToOpenInEditor(final String run, final String pkg,
             final String type, final String field) {
         tryToOpenInEditor(JSureHistoricalSourceView.class, run, pkg, type, field);       
+    }
+
+    public static void setLastRun(Config cfg, ISourceZipFileHandles handles) {
+        config = cfg;
+        zips = handles;
     }
 }

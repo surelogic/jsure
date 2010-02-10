@@ -12,6 +12,7 @@ import org.eclipse.jdt.core.*;
 
 import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.JDTUtility;
@@ -21,9 +22,11 @@ import com.surelogic.common.jobs.*;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.Util;
+import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.dc.NotificationHub;
+import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.util.*;
 
@@ -169,9 +172,20 @@ public class JavacDriver {
 		        //new File(IDE.getInstance().getStringPreference(IDEPreferences.DATA_DIRECTORY));
 		        PreferenceConstants.getJSureDataDirectory();
 		    final String time = SLUtility.toStringHMS(new Date());
-		    final String name = p.getName()+' '+time.replace(':', '-');
-		    File zips   = new File(dataDir, name+"/zips");
-		    File target = new File(dataDir, name+"/srcs");
+		    final String name = p.getName()+' '+time.replace(':', '-');		   		    
+		    final File zips   = new File(dataDir, name+"/zips");
+		    final File target = new File(dataDir, name+"/srcs");
+		    config.setRun(name);
+		    for(JavacRunDrop d : Sea.getDefault().getDropsOfExactType(JavacRunDrop.class)) {
+		        d.invalidate();
+		    }
+		    new JavacRunDrop(config);
+		    JSureHistoricalSourceView.setLastRun(config, new ISourceZipFileHandles() {
+                public Iterable<File> getSourceZips() {
+                    return Arrays.asList(zips.listFiles());
+                }		        
+		    });
+		    
 		    AnalysisJob analysis = new AnalysisJob(config, target);
 		    CopyJob copy = new CopyJob(config, target, zips, analysis);
 		    // TODO fix to lock the workspace
