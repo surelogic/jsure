@@ -195,7 +195,7 @@ public class JavacDriver {
                 }		        
 		    });
 		    
-		    AnalysisJob analysis = new AnalysisJob(config, target);
+		    AnalysisJob analysis = new AnalysisJob(config, target, zips);
 		    CopyJob copy = new CopyJob(config, target, zips, analysis);
 		    // TODO fix to lock the workspace
 		    EclipseJob.getInstance().schedule(copy);
@@ -213,29 +213,79 @@ public class JavacDriver {
 	     */
 	    final File targetDir;
 	    
-	    Job(String name, Config config, File target) {
+	    /**
+         * Where the source zips will be created
+         */
+        final File zipDir;
+	    
+	    Job(String name, Config config, File target, File zips) {
 	        super(name);
             this.config = config;
             targetDir = target;
+            zipDir = zips;
         }
 	}
 	
 	class CopyJob extends Job {
 	    private final SLJob afterJob;
-	    /**
-	     * Where the source zips will be created
-	     */
-	    private final File zipDir;
-	    
+
         CopyJob(Config config, File target, File zips, SLJob after) {
-            super("Copying project info for "+config.getProject(), config, target);
+            super("Copying project info for "+config.getProject(), config, target, zips);
             afterJob = after;
-            zipDir = zips;
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
+            for(String proj : config.getProjects()) {
+                IProject ip = ResourcesPlugin.getWorkspace().getRoot().getProject(proj);
+                try {
+                    zipSources(ip);
+                } catch (IOException e) {
+                    return SLStatus.createErrorStatus("Problem while zipping sources", e);
+                }
+            }             
+            
+            if (afterJob != null) {
+                EclipseJob.getInstance().schedule(afterJob);
+            }
+            return SLStatus.OK_STATUS;
+        }
+            
+        void zipSources(IProject project) throws IOException {
+            final SourceZip srcZip = new SourceZip(project);
+            File zipFile           = new File(zipDir, project.getName()+".zip");
+            if (!zipFile.exists()) {
+                zipFile.getParentFile().mkdirs();
+                srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
+            }
+        }   
+	}
+	
+	class AnalysisJob extends Job {
+        AnalysisJob(Config config, File target, File zips) {
+            super("Running JSure on "+config.getProject(), config, target, zips);
+        }
+
+        public SLStatus run(SLProgressMonitor monitor) {
+            SLStatus s = prepSources();
+            if (s != null) {
+                return s;
+            }
+            
+            JavacEclipse.initialize();
+            NotificationHub.notifyAnalysisStarting();
+            try {
+                Util.openFiles(config, monitor);
+            } catch (Exception e) {
+                NotificationHub.notifyAnalysisPostponed();
+                return SLStatus.createErrorStatus("Problem while running JSure", e);
+            }
+            NotificationHub.notifyAnalysisCompleted();
+            return SLStatus.OK_STATUS;
+        }
+	    
+        SLStatus prepSources() {
             final List<Pair<String, File>> srcFiles = new ArrayList<Pair<String, File>>();
-            final List<Pair<String, File>> auxFiles = new ArrayList<Pair<String, File>>();
+            final List<Pair<String, File>> auxFiles = new ArrayList<Pair<String, File>>();            
             for(String proj : config.getProjects()) {
                 IProject ip = ResourcesPlugin.getWorkspace().getRoot().getProject(proj);
                 try {
@@ -261,25 +311,15 @@ public class JavacDriver {
             }
             config.setFiles(srcFiles, false);
             config.setFiles(auxFiles, true);
-            config.relocateJars(jarMapping);            
-            
-            if (afterJob != null) {
-                EclipseJob.getInstance().schedule(afterJob);
-            }
-            return SLStatus.OK_STATUS;
+            config.relocateJars(jarMapping);  
+            return null;
         }
-            
-        boolean copySources(List<Pair<String, File>> srcFiles, IProject project) throws IOException {
-            final SourceZip srcZip = new SourceZip(project);
-            File zipFile           = new File(zipDir, project.getName()+".zip");
-            if (!zipFile.exists()) {
-                zipFile.getParentFile().mkdirs();
-                srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
-            }
 
+        boolean copySources(List<Pair<String, File>> srcFiles, IProject project) throws IOException {            
             targetDir.mkdir();
             File projectDir = new File(targetDir, project.getName());
-            ZipFile zf = new ZipFile(zipFile);
+            File zipFile    = new File(zipDir, project.getName()+".zip");
+            ZipFile zf      = new ZipFile(zipFile);
             
             // Get class mapping (qname->zip path)
             Properties props = new Properties();
@@ -321,26 +361,6 @@ public class JavacDriver {
             zf.close();
             
             return true;
-        }	    
-	}
-	
-	class AnalysisJob extends Job {
-        AnalysisJob(Config config, File target) {
-            super("Running JSure on "+config.getProject(), config, target);
-        }
-
-        public SLStatus run(SLProgressMonitor monitor) {
-            JavacEclipse.initialize();
-            NotificationHub.notifyAnalysisStarting();
-            try {
-                Util.openFiles(config, monitor);
-            } catch (Exception e) {
-                NotificationHub.notifyAnalysisPostponed();
-                return SLStatus.createErrorStatus("Problem while running JSure", e);
-            }
-            NotificationHub.notifyAnalysisCompleted();
-            return SLStatus.OK_STATUS;
-        }
-	    
+        }    
 	}
 }
