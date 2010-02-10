@@ -75,10 +75,19 @@ public class JavacDriver {
 			Config config = new Config(project.getName());
 			for(ICompilationUnit icu : getAllCompUnits()) {
 				final File f = icu.getResource().getLocation().toFile();
+				String pkg = null;
 				for(IPackageDeclaration pd : icu.getPackageDeclarations()) {
 					config.addPackage(pd.getElementName());
-				}	
-				config.addFile(new Pair<String, File>(icu.getElementName(), f));
+					pkg = pd.getElementName();
+				}
+				String qname = icu.getElementName();
+				if (qname.endsWith(".java")) {
+				    qname = qname.substring(0, qname.length()-5);
+				}
+				if (pkg != null) {
+				    qname = pkg+'.'+qname;
+				}
+				config.addFile(new Pair<String, File>(qname, f));
 			}			
 			addDependencies(config, project);
 			return config;
