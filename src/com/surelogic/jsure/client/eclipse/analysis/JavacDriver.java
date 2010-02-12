@@ -184,6 +184,7 @@ public class JavacDriver {
 		    final String name = p.getName()+' '+time.replace(':', '-');		   		    
 		    final File zips   = new File(dataDir, name+"/zips");
 		    final File target = new File(dataDir, name+"/srcs");
+		    target.mkdirs();
 		    config.setRun(name);
 		    for(JavacRunDrop d : Sea.getDefault().getDropsOfExactType(JavacRunDrop.class)) {
 		        d.invalidate();
@@ -271,8 +272,8 @@ public class JavacDriver {
                 } else {
                     name = jar.substring(lastSlash+1);
                 }
-                File target = new File(targetDir, name);
-                FileUtility.copy(new File(jar), new File(targetDir, name));
+                File target = new File(targetDir, name);                
+                FileUtility.copy(new File(jar), target);
                 //System.out.println("Copying "+new File(jar)+" to "+new File(targetDir, name));               
                 jarMapping.put(jar, target.getAbsolutePath());
             }
