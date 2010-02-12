@@ -407,12 +407,12 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>,T> extends Jav
 
   /**
    * Transfer a lattice value over String addition. 
-   * By default, @{link #transferToString} (which does a pop)
+   * By default, @{link #transferToString}
    * both things on the stack and push an unknown value. 
    * <strong>leaf</strong>
    */
   protected T transferConcat(IRNode node, T value) {
-    return push(transferToString(node,transferToString(node,value)));
+    return push(pop(transferToString(node, pop(transferToString(node, value)))));
   }
 
   /**
@@ -786,7 +786,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>,T> extends Jav
    * <strong>leaf</strong>
    */
   protected T transferToString(IRNode node, T val) {
-    return pop(val);
+    return push(pop(val));
   }
 
 
