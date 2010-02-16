@@ -236,7 +236,8 @@ public class JavacDriver {
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
-            for(String proj : config.getProjects()) {
+        	final long start = System.currentTimeMillis();
+        	for(String proj : config.getProjects()) {
                 IProject ip = ResourcesPlugin.getWorkspace().getRoot().getProject(proj);
                 try {
                     zipSources(ip);
@@ -245,6 +246,8 @@ public class JavacDriver {
                 }
             }             
             copyJars();
+            final long end = System.currentTimeMillis();
+            System.out.println("Copying = "+(end-start)+" ms");
             
             if (afterJob != null) {
                 EclipseJob.getInstance().schedule(afterJob);
