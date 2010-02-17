@@ -72,7 +72,7 @@ public class JavacDriver {
 		}
 		
 		Config makeConfig() throws JavaModelException {
-			Config config = new ZippedConfig(project.getName());
+			Config config = new ZippedConfig(project.getName(), false);
 			for(ICompilationUnit icu : getAllCompUnits()) {
 				final File f = icu.getResource().getLocation().toFile();
 				String pkg = null;
@@ -94,8 +94,14 @@ public class JavacDriver {
 		}
 		
 		static void addDependencies(Config config, IProject p, boolean addSource) throws JavaModelException {
-			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
-			for(IClasspathEntry cpe : jp.getResolvedClasspath(true)) {
+			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());			
+			// TODO what export rules?
+			
+			for(IClasspathEntry cpe : jp.getResolvedClasspath(true)) {				
+				// TODO ignorable since they'll be handled by the compiler
+				//cpe.getAccessRules();
+				//cpe.combineAccessRules();
+				
 				switch (cpe.getEntryKind()) {
 				case IClasspathEntry.CPE_SOURCE:
 					if (addSource) {
@@ -112,14 +118,14 @@ public class JavacDriver {
 					break;
 				case IClasspathEntry.CPE_LIBRARY:
 					//System.out.println("Adding "+cpe.getPath()+" for "+p.getName());
-					config.addJar(EclipseUtility.resolveIPath(cpe.getPath()));
+					config.addJar(EclipseUtility.resolveIPath(cpe.getPath()), cpe.isExported());
 					break;
 				case IClasspathEntry.CPE_PROJECT:
 					String projName = cpe.getPath().lastSegment();
 					IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
-					Config dep = new ZippedConfig(projName);					
-					addDependencies(dep, proj, true);			
+					Config dep = new ZippedConfig(projName, cpe.isExported());	
 					config.addToClassPath(dep);
+					addDependencies(dep, proj, true);								
 					break;
 				default:
 					System.out.println("Unexpected: "+cpe);
@@ -208,8 +214,8 @@ public class JavacDriver {
 	}
 	
 	static class ZippedConfig extends Config {
-		ZippedConfig(String name) {
-			super(name);
+		ZippedConfig(String name, boolean isExported) {
+			super(name, isExported);
 		}
 		@Override
 		public void zipSources(File zipDir) throws IOException {
