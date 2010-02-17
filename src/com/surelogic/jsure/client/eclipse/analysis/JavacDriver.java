@@ -72,7 +72,7 @@ public class JavacDriver {
 		}
 		
 		Config makeConfig() throws JavaModelException {
-			Config config = new Config(project.getName());
+			Config config = new ZippedConfig(project.getName());
 			for(ICompilationUnit icu : getAllCompUnits()) {
 				final File f = icu.getResource().getLocation().toFile();
 				String pkg = null;
@@ -89,17 +89,16 @@ public class JavacDriver {
 				}
 				config.addFile(new Pair<String, File>(qname, f));
 			}			
-			addDependencies(config, project);
+			addDependencies(config, project, false);
 			return config;
 		}
 		
-		static void addDependencies(Config config, IProject p) throws JavaModelException {
-			final boolean isDependency = !config.getProject().equals(p.getName());
+		static void addDependencies(Config config, IProject p, boolean addSource) throws JavaModelException {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
 			for(IClasspathEntry cpe : jp.getResolvedClasspath(true)) {
 				switch (cpe.getEntryKind()) {
 				case IClasspathEntry.CPE_SOURCE:
-					if (isDependency) {
+					if (addSource) {
 						final File dir = EclipseUtility.resolveIPath(cpe.getPath());
 						final File[] excludes = new File[cpe.getExclusionPatterns().length];
 						int i=0;
@@ -107,19 +106,20 @@ public class JavacDriver {
 							excludes[i] = EclipseUtility.resolveIPath(xp);
 							i++;
 						}
-						Util.addJavaFiles(dir, config, true, excludes);
+						Util.addJavaFiles(dir, config, excludes);
 					}
+					config.addToClassPath(config);
 					break;
 				case IClasspathEntry.CPE_LIBRARY:
 					//System.out.println("Adding "+cpe.getPath()+" for "+p.getName());
-					config.addJar(EclipseUtility.resolveIPath(cpe.getPath()).getAbsolutePath());
+					config.addJar(EclipseUtility.resolveIPath(cpe.getPath()));
 					break;
 				case IClasspathEntry.CPE_PROJECT:
 					String projName = cpe.getPath().lastSegment();
 					IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
-					if (config.addProject(projName)) {
-					    addDependencies(config, proj);
-					}
+					Config dep = new ZippedConfig(projName);					
+					addDependencies(dep, proj, true);			
+					config.addToClassPath(dep);
 					break;
 				default:
 					System.out.println("Unexpected: "+cpe);
@@ -207,6 +207,79 @@ public class JavacDriver {
 		}
 	}
 	
+	static class ZippedConfig extends Config {
+		ZippedConfig(String name) {
+			super(name);
+		}
+		@Override
+		public void zipSources(File zipDir) throws IOException {
+			final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(getProject());
+			final SourceZip srcZip = new SourceZip(project);
+			File zipFile           = new File(zipDir, project.getName()+".zip");
+			if (!zipFile.exists()) {
+				zipFile.getParentFile().mkdirs();
+				srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
+			}
+			
+			super.zipSources(zipDir);
+		}
+		@Override
+		public void copySources(File zipDir, File targetDir) throws IOException {
+            final List<Pair<String, File>> srcFiles = new ArrayList<Pair<String, File>>();
+            final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(getProject());
+            targetDir.mkdir();
+            
+            File projectDir = new File(targetDir, project.getName());
+            File zipFile    = new File(zipDir, project.getName()+".zip");
+            ZipFile zf      = new ZipFile(zipFile);
+            
+            // Get class mapping (qname->zip path)
+            Properties props = new Properties();
+            ZipEntry mapping = zf.getEntry(AbstractJavaZip.CLASS_MAPPING);            
+            props.load(zf.getInputStream(mapping));
+
+            // Reverse mapping
+            Map<String,List<String>> path2qnames = new HashMap<String,List<String>>();
+            for(Map.Entry<Object,Object> e : props.entrySet()) {
+                String path = (String) e.getValue();
+                List<String> l = path2qnames.get(path);
+                if (l == null) {
+                    l = new ArrayList<String>();
+                    path2qnames.put(path, l);
+                }                
+                l.add((String) e.getKey());
+            }
+            
+            Enumeration<? extends ZipEntry> e = zf.entries();
+            while (e.hasMoreElements()) {
+                ZipEntry ze = e.nextElement();
+                File f = new File(projectDir, ze.getName());
+                if (f.exists()) {
+                	continue;
+                }
+                f.getParentFile().mkdirs();
+                FileUtility.copy(ze.getName(), zf.getInputStream(ze), f);
+                if (ze.getName().endsWith(".java")) {
+                    final List<String> names = path2qnames.get(ze.getName());
+                    if (names != null) {
+                        for(String name : names) {
+                            //System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
+                            srcFiles.add(new Pair<String,File>(name.replace('$', '.'), f));
+                        }
+                    } else if (ze.getName().endsWith("/package-info.java")) {
+                        // TODO what to do about this?
+                    } else {
+                        throw new IllegalStateException("Unable to get qname for "+ze.getName());
+                    }
+                }
+            }
+            zf.close();
+            
+            this.setFiles(srcFiles);
+            super.copySources(zipDir, targetDir);
+        }  
+	}
+	
 	abstract class Job extends AbstractSLJob {
 	    final Config config;
 	    /**
@@ -237,15 +310,16 @@ public class JavacDriver {
 
         public SLStatus run(SLProgressMonitor monitor) {
         	final long start = System.currentTimeMillis();
-        	for(String proj : config.getProjects()) {
-                IProject ip = ResourcesPlugin.getWorkspace().getRoot().getProject(proj);
-                try {
-                    zipSources(ip);
-                } catch (IOException e) {
-                    return SLStatus.createErrorStatus("Problem while zipping sources", e);
-                }
-            }             
-            copyJars();
+        	try {
+        		config.zipSources(zipDir);           
+            } catch (IOException e) {
+                return SLStatus.createErrorStatus("Problem while zipping sources", e);
+            }
+            try {
+				config.relocateJars(targetDir);
+			} catch (IOException e) {
+                return SLStatus.createErrorStatus("Problem while copying jars", e);
+			}
             final long end = System.currentTimeMillis();
             System.out.println("Copying = "+(end-start)+" ms");
             
@@ -253,35 +327,7 @@ public class JavacDriver {
                 EclipseJob.getInstance().schedule(afterJob);
             }
             return SLStatus.OK_STATUS;
-        }
-            
-        void zipSources(IProject project) throws IOException {
-            final SourceZip srcZip = new SourceZip(project);
-            File zipFile           = new File(zipDir, project.getName()+".zip");
-            if (!zipFile.exists()) {
-                zipFile.getParentFile().mkdirs();
-                srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
-            }
         }   
-        
-        void copyJars() {
-            // TODO projects need separate lists of jars
-            final Map<String,String> jarMapping = new HashMap<String,String>();
-            for(String jar : config.getJars()) {
-                final String name;
-                final int lastSlash = jar.lastIndexOf(File.separatorChar);
-                if (lastSlash < 0) {
-                    name = jar;
-                } else {
-                    name = jar.substring(lastSlash+1);
-                }
-                File target = new File(targetDir, name);                
-                FileUtility.copy(new File(jar), target);
-                //System.out.println("Copying "+new File(jar)+" to "+new File(targetDir, name));               
-                jarMapping.put(jar, target.getAbsolutePath());
-            }
-            config.relocateJars(jarMapping);  
-        }
 	}
 	
 	class AnalysisJob extends Job {
@@ -290,9 +336,10 @@ public class JavacDriver {
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
-            SLStatus s = prepSources();
-            if (s != null) {
-                return s;
+        	try {
+        		config.copySources(zipDir, targetDir);
+            } catch (IOException e) {
+                return SLStatus.createErrorStatus("Problem while copying sources", e);
             }
             
             JavacEclipse.initialize();
@@ -305,70 +352,6 @@ public class JavacDriver {
             }
             NotificationHub.notifyAnalysisCompleted();
             return SLStatus.OK_STATUS;
-        }
-	    
-        SLStatus prepSources() {
-            final List<Pair<String, File>> srcFiles = new ArrayList<Pair<String, File>>();
-            final List<Pair<String, File>> auxFiles = new ArrayList<Pair<String, File>>();            
-            for(String proj : config.getProjects()) {
-                IProject ip = ResourcesPlugin.getWorkspace().getRoot().getProject(proj);
-                try {
-                    copySources(proj.equals(config.getProject()) ? srcFiles : auxFiles, ip);
-                } catch (IOException e) {
-                    return SLStatus.createErrorStatus("Problem while copying sources", e);
-                }
-            }            
-            config.setFiles(srcFiles, false);
-            config.setFiles(auxFiles, true);
-            return null;
-        }
-
-        boolean copySources(List<Pair<String, File>> srcFiles, IProject project) throws IOException {            
-            targetDir.mkdir();
-            File projectDir = new File(targetDir, project.getName());
-            File zipFile    = new File(zipDir, project.getName()+".zip");
-            ZipFile zf      = new ZipFile(zipFile);
-            
-            // Get class mapping (qname->zip path)
-            Properties props = new Properties();
-            ZipEntry mapping = zf.getEntry(AbstractJavaZip.CLASS_MAPPING);            
-            props.load(zf.getInputStream(mapping));
-
-            // Reverse mapping
-            Map<String,List<String>> path2qnames = new HashMap<String,List<String>>();
-            for(Map.Entry<Object,Object> e : props.entrySet()) {
-                String path = (String) e.getValue();
-                List<String> l = path2qnames.get(path);
-                if (l == null) {
-                    l = new ArrayList<String>();
-                    path2qnames.put(path, l);
-                }                
-                l.add((String) e.getKey());
-            }
-            
-            Enumeration<? extends ZipEntry> e = zf.entries();
-            while (e.hasMoreElements()) {
-                ZipEntry ze = e.nextElement();
-                File f = new File(projectDir, ze.getName());
-                f.getParentFile().mkdirs();
-                FileUtility.copy(ze.getName(), zf.getInputStream(ze), f);
-                if (ze.getName().endsWith(".java")) {
-                    final List<String> names = path2qnames.get(ze.getName());
-                    if (names != null) {
-                        for(String name : names) {
-                            //System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
-                            srcFiles.add(new Pair<String,File>(name.replace('$', '.'), f));
-                        }
-                    } else if (ze.getName().endsWith("/package-info.java")) {
-                        // TODO what to do about this?
-                    } else {
-                        throw new IllegalStateException("Unable to get qname for "+ze.getName());
-                    }
-                }
-            }
-            zf.close();
-            
-            return true;
-        }    
+        }  
 	}
 }
