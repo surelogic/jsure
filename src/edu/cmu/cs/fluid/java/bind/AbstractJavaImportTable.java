@@ -87,7 +87,7 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
     IJavaScope scope = pr.first();
     String name = pr.second();
     if (scope == null) {
-      LOG.warning("addImport has no effect: " + DebugUnparser.toString(importNode));
+      LOG.info("addImport has no effect: " + DebugUnparser.toString(importNode));
       resolveImport(itemNode,importNode);
       return; // nothing to add
     }
