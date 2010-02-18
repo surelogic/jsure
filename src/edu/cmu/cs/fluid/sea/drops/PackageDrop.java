@@ -105,8 +105,10 @@ public class PackageDrop extends CUDrop {
   
   public static PackageDrop createPackage(String name, IRNode root) {
     final PackageDrop pd = findPackage(name);
-    if (pd != null && pd.isValid()) {
-      return pd;
+    if (root == null) {
+    	if (pd != null && pd.isValid()) {    
+    		return pd;
+    	}
     }
 
     name = CommonStrings.intern(name);
