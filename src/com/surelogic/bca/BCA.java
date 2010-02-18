@@ -110,6 +110,7 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	protected void runOverFile(final IRNode compUnit) {
 	  final BCAVisitor v = new BCAVisitor();
 	  v.doAccept(compUnit);
+	  bca.clear();
 	}
 	
 	private final class BCAVisitor extends JavaSemanticsVisitor {

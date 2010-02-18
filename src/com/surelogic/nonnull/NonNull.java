@@ -103,6 +103,7 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	protected void checkNonNullForFile(final IRNode compUnit) {
 	  final NonNullVisitor v = new NonNullVisitor();
 	  v.doAccept(compUnit);
+	  nonNullAnalysis.clear();
 	}
 	
 	private final class NonNullVisitor extends JavaSemanticsVisitor {
