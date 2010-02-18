@@ -209,7 +209,7 @@ public class ResultsViewContentProvider extends
 		if (count < 1)
 			return;
 		Content preconditionFolder = new Content(count
-				+ (count > 1 ? " preconditions:" : " precondition:"));
+				+ (count > 1 ? " prerequisite assertions:" : " prerequisite assertion:"));
 		int flags = 0; // assume no adornments
 		flags |= (result.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
 		boolean elementsProvedConsistent = true; // assume true
@@ -248,7 +248,7 @@ public class ResultsViewContentProvider extends
 		// Create a folder to contain the choices
 		Set<String> or_TrustLabels = result.get_or_TrustLabelSet();
 		Content orContentFolder = new Content(or_TrustLabels.size()
-				+ " precondition choice(s):");
+				+ " choice(s) of prerequisite assertions:");
 		int flags = 0; // assume no adornments
 		flags |= (result.get_or_proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
 		flags |= (result.get_or_provedConsistent() ? CoE_Constants.CONSISTENT
