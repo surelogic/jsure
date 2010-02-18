@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
+import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
@@ -299,6 +300,9 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferArrayCreation(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
       if (!lattice.isNormal(val)) return val;
+      if (tree.getOperator(node) instanceof DimExprs) {
+        val = pop(val, tree.numChildren(node));
+      }
       return newPair(lattice.getLL().push(val.first(),NullInfo.NOTNULL),val.second());
     }
 
