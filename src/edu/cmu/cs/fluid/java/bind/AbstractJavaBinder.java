@@ -1645,6 +1645,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitCompilationUnit(IRNode node) {
       scope = getImportTable(node);
+      /*
+      String unparse = DebugUnparser.toString(node);
+      if (!unparse.contains("class") && !unparse.contains("interface") && !unparse.contains("enum")) {
+    	  System.out.println(unparse);
+      }
+      */
       doAcceptForChildren(node);
       return null;
     }
@@ -2071,6 +2077,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public Void visitNamedPackageDeclaration(IRNode node) {
       String pkgName = NamedPackageDeclaration.getId(node);
       bindToPackage(node, pkgName);
+      doAcceptForChildren(node);
       return null;
     }
 
