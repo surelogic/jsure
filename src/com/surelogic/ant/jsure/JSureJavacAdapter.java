@@ -58,7 +58,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 	}
 
 	private Config createConfig() throws IOException {
-		Config config = new Config(scan.getProjectName());
+		Config config = new Config(scan.getProjectName(), false);
 		setupConfig(config, false);
 		logAndAddFilesToCompile(config);
 		/*
@@ -167,7 +167,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			if (f.exists()) {
 				//System.out.println("Adding "+elt);
 				if (f.isDirectory()) {
-					Util.addJavaFiles(f, config, true);
+					Util.addJavaFiles(f, config);
 				} else {
 					config.addJar(elt);
 				}
@@ -212,8 +212,10 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 				bootClasspath.add(new Path(getProject(), st.nextToken()));
 			}			
 		}
-		addPath(cmd, bootClasspath);
-		addPath(cmd, classpath);
+		Config binaries = new Config("Dependencies", true);
+		addPath(binaries, bootClasspath);
+		addPath(binaries, classpath);
+		cmd.addToClassPath(binaries);
 		
 		// If the buildfile specifies sourcepath="", then don't
 		// output any sourcepath.
