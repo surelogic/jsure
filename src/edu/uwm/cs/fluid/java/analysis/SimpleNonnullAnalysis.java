@@ -77,7 +77,9 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
   @Override
   protected Analysis createAnalysis(IRNode flowUnit) {
-    return Analysis.createAnalysis("Java.Nonnull", binder);
+    final Lattice l = new Lattice();
+    final Transfer t = new Transfer(binder,l);
+    return new Analysis("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
 
   /**
@@ -228,7 +230,8 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     protected Analysis
     createAnalysis(final IBinder binder, final boolean terminationNormal) {
       if (subAnalysis == null) {
-        subAnalysis = Analysis.createAnalysis("sub analysis", binder);
+        Transfer t = new Transfer(binder, lattice);
+        subAnalysis = new Analysis("sub analysis", lattice, t, DebugUnparser.viewer);
       }
       return subAnalysis;
     }
@@ -515,12 +518,6 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       super(name, l, t, nv);
     }
     
-    static Analysis createAnalysis(String name, IBinder binder) {
-      Lattice l = new Lattice();
-      Transfer t = new Transfer(binder,l);
-      return new Analysis(name, l, t, DebugUnparser.viewer);
-    }
-    
     public Analysis getSubAnalysis() {
       return trans.getSubAnalysis();
     }
@@ -530,7 +527,9 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
     @Override
     protected Analysis createAnalysis(IRNode flowUnit, IBinder binder) {
-      return Analysis.createAnalysis("nonnll", binder);
+      final Lattice l = new Lattice();
+      final Transfer t = new Transfer(binder,l);
+      return new Analysis("nonnll", l, t, DebugUnparser.viewer);
     }
     
     public static void main(String[] args)  {
