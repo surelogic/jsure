@@ -551,29 +551,50 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
   protected final T runClassInitializer(
     final IRNode caller, final IRNode classBody,
     final T initial, final boolean terminationNormal) {
+//    System.out.println("**** Run class Initializer " + terminationNormal + " (start) ****");
     FlowUnit op = (FlowUnit) tree.getOperator(classBody);
     final FlowAnalysis<T, L> fa = createAnalysis(binder, terminationNormal);
     final Source source = op.getSource(classBody);
     final Sink sink = terminationNormal ? op.getNormalSink(classBody) : op.getAbruptSink(classBody);
     final ControlEdge e1 = getStartEdge(source, sink);
     final ControlEdge e2 = getEndEdge(source, sink);
-//    if (this instanceof BackwardTransfer) {
-//      e1 = sink.getInput();
-//      e2 = source.getOutput();
-//    } else {
-//      e1 = source.getOutput();
-//      e2 = sink.getInput();
-//    }
+    
     /* This was wrong.  Was "LabelList.empty", but that made things not work
      * right on backwards analyses.  John and I fixed this on 2010-01-12.
      */
-    final LabelList ll = LabelList.empty.addLabel(UnknownLabel.prototype); 
-    fa.initialize(e1, ll, initial);
+    final LabelList ll = LabelList.empty.addLabel(UnknownLabel.prototype);
+
+    /* We used to just initialize with the 'initial' value.  Turns out this 
+     * is problematic because the same subanalysis object is returned by 
+     * createAnalysis() in most (currently all) cases.  We ran into a case
+     * where the initial values for the normal and exceptional cases where
+     * sufficiently different as to create a monotonicity failure:
+     * (1) the normal case would proceed and the subanalysi would be initialized
+     * for the first time with the initial value V1.
+     * (2) the exceptional case would proceed and the subanalysis would be 
+     * reinitialized with a different initial value v2.  This was okay because 
+     * V1 was less than or equal to V2.
+     * (3) The flow analysis would iterate again, and revisit the normal case,
+     * reinitializing with V1.  This would trigger a monotonicity error because
+     * V2 was not less than or equal to V1.
+     * 
+     * So now we join the 'initial' value with the existing value.
+     */
+    final T existingValue = fa.getInfo(e1, ll);
+    final T joined;
+    if (initial != null && existingValue != null) { 
+      joined = lattice.join(initial, existingValue);
+    } else {
+      joined = initial;
+    }
+    fa.initialize(e1, ll, joined);
+    
     // I'm worried that the analysis may wish to call (say)
     // transferComponentSource and then wonder why bottom() isn't
     // the same as what we put here.  We may need to hook this little
     // CFG into the main CFG
     fa.performAnalysis();
+//    System.out.println("**** Run class Initializer " + terminationNormal + " (end) ****");
     return fa.getInfo(e2, ll);
   }
   
