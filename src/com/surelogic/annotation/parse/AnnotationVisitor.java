@@ -382,7 +382,7 @@ public class AnnotationVisitor extends Visitor<Void> {
 	  final int start = text.startsWith("@") ? 1 : 0;
 	  final String tag = text.substring(start, startContents).trim();
 	  final String contents = text.substring(startContents+2, endContents);
-	  System.out.println("Trying to parse: "+tag+" -- "+contents);
+	  //System.out.println("Trying to parse: "+tag+" -- "+contents);
 	  return createPromise(decl, tag, contents, AnnotationSource.JAVADOC, offset);
   }
 
