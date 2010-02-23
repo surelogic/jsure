@@ -379,8 +379,10 @@ public class AnnotationVisitor extends Visitor<Void> {
 			  return false;
 		  }
 	  }
-	  final String tag = text.substring(0, startContents).trim();
+	  final int start = text.startsWith("@") ? 1 : 0;
+	  final String tag = text.substring(start, startContents).trim();
 	  final String contents = text.substring(startContents+2, endContents);
+	  System.out.println("Trying to parse: "+tag+" -- "+contents);
 	  return createPromise(decl, tag, contents, AnnotationSource.JAVADOC, offset);
   }
 
@@ -388,7 +390,10 @@ public class AnnotationVisitor extends Visitor<Void> {
    * Assumes that text looks like Foo (e.g. no parameters)
    */
   private boolean handleSimpleJavadocPromise(IRNode decl, String text, int offset) {
-	  final String tag = text.trim();
+	  String tag = text.trim();
+	  if (tag.startsWith("@")) {
+		  tag = tag.substring(1).trim();
+	  }
 	  // Check if legal identifier
 	  boolean first = true;
 	  for(int i=0; i<tag.length(); i++) {
@@ -397,8 +402,13 @@ public class AnnotationVisitor extends Visitor<Void> {
 			  Character.isJavaIdentifierPart(ch);
 		  first = false;
 		  if (!legal) {
-			  SimpleAnnotationParsingContext.reportError(decl, offset, 
-					  "Not a legal annotation name: "+tag);
+			  String msg;
+			  if (tag.indexOf('(') >= 0 || tag.lastIndexOf(')') >= 0) {
+				  msg = "Syntax not matching Foo(\"...\"): "+text;
+			  } else {
+				  msg = "Not a legal annotation name: "+text;
+			  }
+			  SimpleAnnotationParsingContext.reportError(decl, offset, msg);
 			  return false;				  
 		  }
 	  }
