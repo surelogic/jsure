@@ -9,7 +9,10 @@ import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.util.Lattice;
 
@@ -339,7 +342,16 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>,T> extends Jav
     IRNode actuals = ((CallInterface) op).get_Args(node);
     boolean q = hasOuterObject(node);
     // pop actuals
-    value = pop(value, tree.numChildren(actuals));
+    // trickier than you might expect because of var args!
+    for (int i = 0; i < tree.numChildren(actuals); i++) {
+      final IRNode arg = tree.getChild(actuals, i);
+      if (VarArgsExpression.prototype.includes(arg)) {
+        value = pop(value, tree.numChildren(arg));
+      } else {
+        value = pop(value);
+      }
+    }
+
     // if constructor, pop qualifications
     // while leaving receiver in place:
     if (q) {
@@ -348,9 +360,13 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>,T> extends Jav
       }
       value = popSecond(value);
     }
+    
     // now if a method call, pop receiver and push return value
     if (mcall) {
       value = pop(value);
+      /* Push value even for "void" methods.  The extraneous stack value will
+       * be popped by the surrounding "ExpressionStatement" node.
+       */
       value = push(value);
     }
     return value;
