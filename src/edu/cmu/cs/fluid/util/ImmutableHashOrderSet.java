@@ -269,8 +269,24 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * @return <code>true</code> iff all the elements of <code>c</code>
    * are contained in this set.
    */
+  @SuppressWarnings("unchecked")
   public boolean containsAll( final Collection c )
   {
+    // Quick and dirty checks for some of the easy infinite cases
+    
+    // True if this set is the universe
+    if (inverse && elements.length == 0) {
+      return true;
+    }
+
+    // This set is not the universe, so result is false if the other set is the universe
+    if (c instanceof ImmutableHashOrderSet) {
+      final ImmutableHashOrderSet other = (ImmutableHashOrderSet) c;
+      if (other.inverse && other.elements.length == 0) {
+        return false;
+      }
+    }
+    
     boolean flag = true;
     final Iterator elts = c.iterator();
     while( flag && elts.hasNext() )
