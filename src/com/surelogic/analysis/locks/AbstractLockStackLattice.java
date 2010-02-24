@@ -273,8 +273,17 @@ abstract class AbstractLockStackLattice extends
       for (final HeldLock lock : lockSet) {
         final int idx = getIndexOf(lock, thisExprBinder, binder);
         if (idx != -1) {
-          // Replace the stack at the index with the popped version of the stack
-          result = replaceValue(result, idx, getBaseLattice().pop(result[idx]));
+          /* If the stack is empty (size == 1 because of the bogus value), then
+           * don't do anything.  This prevents the lattice from getting screwed
+           * up.  Could return bottom instead, but that would screw up matching
+           * for any valid pairs that come after this missed pairing.
+           */
+          if (result[idx].size() == 1) {
+            return result;
+          } else {
+            // Replace the stack at the index with the popped version of the stack
+            result = replaceValue(result, idx, getBaseLattice().pop(result[idx]));
+          }
         }
       }
     }
@@ -350,6 +359,12 @@ abstract class AbstractLockStackLattice extends
   @Override
   public final String toString(
       final ImmutableList<ImmutableSet<IRNode>>[] value) {
+    if (value == top()) {
+      return "top";
+    } 
+    if (value == bottom()) {
+      return "bottom";      
+    }
     final StringBuilder sb = new StringBuilder();
     sb.append('[');
     for (int i = 0; i < locks.length; i++) {
@@ -372,7 +387,7 @@ abstract class AbstractLockStackLattice extends
   protected final void stackToString(
       final ImmutableList<ImmutableSet<IRNode>> stack, final StringBuilder sb) {
     if (stack == null) {
-      sb.append("NULL");
+      sb.append("NULL STACK");
     } else {
       for (final Iterator<ImmutableSet<IRNode>> stackIter = stack.iterator(); stackIter.hasNext();) {
         final ImmutableSet<IRNode> set = stackIter.next();
