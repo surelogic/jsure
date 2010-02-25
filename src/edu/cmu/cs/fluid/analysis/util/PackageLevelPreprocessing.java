@@ -298,8 +298,18 @@ public final class PackageLevelPreprocessing extends
 				findCUDropDeponents(deponent);
 			}
 		}
+		/**
+		 * Collect CU deponents of promise warnings
+		 */
+		private void processPromiseWarningDrops() {
+			for(Drop d : Sea.getDefault().getDropsOfType(PromiseWarningDrop.class)) {				
+				findCUDropDeponents(d);
+			}
+		}
 		
 		void finish() {
+			processPromiseWarningDrops();
+			
 			reprocess.removeAll(changed);			
 			/*
 			for(CUDrop d : changed) {
