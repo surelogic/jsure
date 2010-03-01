@@ -50,7 +50,13 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 			  return b;
 		  }	
 	  }
-	  return super.getIBinding(node);
+	  try {
+		  return super.getIBinding(node);
+	  }
+	  catch (SlotUndefinedException e) {
+		  //LOG.log(Level.SEVERE, "Unable to get binding");//, e);
+		  return null;
+	  }
   }
   
   @Override
@@ -78,7 +84,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       return super.getBinding(node);
     }
     catch (SlotUndefinedException e) {
-      LOG.log(Level.SEVERE, "Unable to get binding", e);
+      //LOG.log(Level.SEVERE, "Unable to get binding");//, e);
       return null;
     }
   }
