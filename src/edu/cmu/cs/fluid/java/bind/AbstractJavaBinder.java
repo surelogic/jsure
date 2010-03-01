@@ -202,8 +202,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		}
     	}
     } catch (SlotUndefinedException e) {
+    	// TODO cache erroreous nodes?
+    
       // debugging
-      LOG.severe("no binding for " + node + " = " + DebugUnparser.toString(node) + " in version " + Version.getVersion());
+      IRNode granule = getGranule(node);
+      if (granule == node) {
+    	  IRNode parent = JJNode.tree.getParentOrNull(node);
+    	  LOG.severe("no binding for " + node + " = " + DebugUnparser.toString(node)+" ("+JJNode.tree.getOperator(parent).name()+")");
+    			  //" in version " + Version.getVersion());
+      } else {
+    	  LOG.severe("no binding for " + node + " = " + DebugUnparser.toString(node) + 
+    			  //" in version " + Version.getVersion());
+    			  "\n\tin granule " + DebugUnparser.toString(granule));
+      }
 //      System.out.println("Operator is " + JJNode.tree.getOperator(node));
 //      System.out.println(DebugUnparser.toString(node));
 //      if (handlePromises) {
@@ -373,6 +384,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       long start = System.currentTimeMillis();
       
       //System.out.println("Full:\t"+DebugUnparser.toString(unit));
+      /*
+      if (AnonClassExpression.prototype.includes(unit)) {
+    	  System.out.println("Binding ACE: "+DebugUnparser.toString(unit));
+      }
+      */
       binderVisitor.start();
 
       long end = System.currentTimeMillis();
@@ -524,7 +540,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   protected class BinderVisitor extends Visitor<Void> {
     protected IJavaScope scope;
     protected final IGranuleBindings bindings;
-    protected List<IRNode> pathToTarget; // if non-null only visit these nodes (in reverse order)
+    protected Collection<IRNode> pathToTarget; // if non-null only visit these nodes (in reverse order)
     protected final IRNode targetGranule;
     protected boolean isBatch = true; // by default we have a batch binder
     protected boolean isFullPass = false; // by default we start in the preliminary pass
@@ -559,7 +575,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       bindings = cu;
       scope = null;
       targetGranule = gr;
-      pathToTarget = new ArrayList<IRNode>();
+      pathToTarget = new HashSet<IRNode>();
     }
     
     /**
@@ -655,18 +671,25 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	}
         return null;
       }
+      //System.out.println("doAccept on "+JJNode.tree.getOperator(node).name()+" -- "+DebugUnparser.toString(node));
       if (pathToTarget != null) {
         // trying to find our target granule
         if (node == targetGranule) {
-          List<IRNode> saved = pathToTarget;
+          Collection<IRNode> saved = pathToTarget;
           pathToTarget = null;
           doAcceptIfChanged(node);
           pathToTarget = saved;
           return null;
         }
         final int size = pathToTarget.size();
-        if (size > 0 && pathToTarget.get(size-1) == node) {
-          pathToTarget.remove(size-1);
+        /*
+        if (size > 0) {
+        	System.out.println("Comparing last path: "+DebugUnparser.toString(pathToTarget.get(size-1)));
+        	System.out.println("            to node: "+DebugUnparser.toString(node));
+        }
+        */
+        if (size > 0 && pathToTarget.contains(node)) {
+          pathToTarget.remove(node);
           doAcceptIfChanged(node);
           return null;
         }
@@ -680,13 +703,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           //return super.doAccept(node);          
           return ((IAcceptor) op).accept(node, this);
         } else if (debug) {
-          Operator o = size > 0 ? JJNode.tree.getOperator(pathToTarget.get(size-1)) : null;
-          LOG.finer("Skipping node not on path (next = " + o + ") " + DebugUnparser.toString(node));
+            LOG.finer("Skipping node not on path -- " + DebugUnparser.toString(node));
         }
+
         return null;
       }
       final Operator op = JJNode.tree.getOperator(node);
       if (isGranule(op, node)) {
+    	//System.out.println("Skipping granule "+DebugUnparser.toString(node));
         return null; // skip granule nested in this one
       }
       if (debug && LOG.isLoggable(Level.FINEST) && okToAccess(node)) {
@@ -839,8 +863,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * @param node node at which to set the binding
      * @param binding binding to bind to.
      */
-    private boolean bind(IRNode node, IBinding binding) {
-      if (pathToTarget != null) return true; // don't bind: not in the target granule
+    private boolean bind(IRNode node, IBinding binding) {      
+      if (pathToTarget != null) {
+    	  //System.out.println("Throwing away binding for "+DebugUnparser.toString(node));
+    	  return false; // don't bind: not in the target granule
+      }      
       if (binding == null) {
         LOG.warning("Cannot find a binding for " + DebugUnparser.toString(node));
         if (storeNullBindings) {
@@ -856,6 +883,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
             DebugUnparser.toString(binding.getNode()) + getInVersionString());
       }
       node.setSlotValue(bindings.getUseToDeclAttr(),binding);
+      /*
+      if (!node.valueExists(bindings.getUseToDeclAttr())) {
+    	  System.out.println("Didn't successfully create binding");
+    	  node.setSlotValue(bindings.getUseToDeclAttr(),binding);
+      }
+      */
       return true;
     }
 
@@ -945,12 +978,23 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return argTypes;
     }
     
+    /**
+     * @return true if bound
+     */
     protected boolean bindCall(IRNode call, IRNode targs, IRNode args, String name, IJavaType recType) {
       return bindCall(call, targs, args, name, typeScope(recType));
     }
     
+    /**
+     * @return true if bound
+     */
     protected boolean bindCall(final IRNode call, IRNode targs, IRNode args, String name, IJavaScope sc) {
-      if (pathToTarget != null) return true; // skip the work   
+      /*
+      if (pathToTarget != null) {
+    	  System.out.println("Not computing binding for call: "+DebugUnparser.toString(call));
+    	  return false; // skip the work   
+      }
+      */
       final int numTypeArgs = numChildrenOrZero(targs);
       final IJavaType[] argTypes = getArgTypes(args);
       if (debug) {
@@ -1465,7 +1509,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
             }
             
             // Only skip debugging default calls          
-            if (!success /*&& 
+            if (!success && pathToTarget == null /*&& 
                 (!JavaCanonicalizer.isActive() || JJNode.tree.numChildren(args) > 0)*/) {
               bindCall(node,targs,args,tname, recType);
             }
@@ -1549,7 +1593,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         IJavaScope old = scope; 
         try {
           scope = sc;
-          bindAllocation(node, type, targs, args);
+          //System.out.println("Trying to bind ACE: "+DebugUnparser.toString(node));
+          boolean success = bindAllocation(node, type, targs, args);
+          if (!success && pathToTarget == null) {
+        	  System.out.println("Couldn't bind "+DebugUnparser.toString(node));
+          }
         } finally {
           scope = old;
         }        
@@ -1831,7 +1879,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
             if (newType2 != recType) {
               success = bindCall(node,targs,args,name, newType2);
             }
-            if (!success) {
+            if (!success && pathToTarget == null) {
               getJavaType(receiver);
               bindCall(node,targs,args,name, toUse);
             }
@@ -2178,10 +2226,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       doAccept(args);
       boolean success = bindAllocation(alloc,type,((IRNode)null), args);
       if (success && isACE) { 
-        // bind NewE inside of ACE
-        IBinding b = alloc.getSlotValue(bindings.getUseToDeclAttr());
-        bind(AnonClassExpression.getAlloc(alloc), b);
-      }
+    	  // bind NewE inside of ACE
+    	  try {
+    		  IBinding b = alloc.getSlotValue(bindings.getUseToDeclAttr());
+        	  bind(AnonClassExpression.getAlloc(alloc), b);
+    	  } catch (SlotUndefinedException e) {
+        	  bindAllocation(alloc,type,((IRNode)null), args);
+    		  alloc.getSlotValue(bindings.getUseToDeclAttr());
+    	  }
+      /*
+      } else if (!success && isACE) {
+    	  System.out.println("ACE not bound: "+DebugUnparser.toString(node));
+      */
+      }      
       if (body != null) {
         doAccept(body);
       }
