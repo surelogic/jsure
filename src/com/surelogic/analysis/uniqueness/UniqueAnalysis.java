@@ -645,11 +645,20 @@ class UniqueTransfer extends JavaEvaluationTransfer {
     }
     IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
     if (mdecl != null) {
+      /* If the flowunit is a class body, then we are dealing with instance
+       * initialization and the caller is the <init> method.
+       */
+      final IRNode caller; 
+      if (ClassBody.prototype.includes(flowUnit)) {
+        caller = JavaPromise.getInitMethod(JJNode.tree.getParent(flowUnit));
+      } else {
+        caller = flowUnit;
+      }
       s =
         considerEffects(
           receiverNode,
           actuals,
-          effects.getMethodCallEffects(node, flowUnit, true),
+          effects.getMethodCallEffects(node, caller, true),
           s);
     }
     // we have to possibly compromise arguments:
