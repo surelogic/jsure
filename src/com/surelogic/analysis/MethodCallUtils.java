@@ -147,7 +147,20 @@ public class MethodCallUtils {
   public static Map<IRNode, IRNode> constructFormalToActualMap(
       final IBinder binder, final IRNode call, final IRNode mdecl,
       final IRNode callingMethodDecl) {
-    final IRNode callParent = JJNode.tree.getParentOrNull(call);
+    /* We may want to check the parent of the call node to see if it is an
+     * OuterObjectSpecifier.  However, if the call node is part of an
+     * AnonClassExpression, then we want to check the grandparent of the call
+     * node.
+     */
+    final IRNode potentialOOS;
+    {
+      final IRNode callParent = JJNode.tree.getParentOrNull(call);
+      if (AnonClassExpression.prototype.includes(callParent)) {
+        potentialOOS = JJNode.tree.getParentOrNull(callParent);
+      } else {
+        potentialOOS = callParent;
+      }
+    }
 
     // ==== Step 1: map the formal -> actual parameters
     
@@ -264,8 +277,8 @@ public class MethodCallUtils {
           // Get the reference to the enclosing instance in the called method
           enclosingInstanceRef = JavaPromise.getQualifiedReceiverNodeByName_Bug1392WorkAround(mdecl, enclosingType);
           // Get the actual enclosing object in the calling context
-          if (OuterObjectSpecifier.prototype.includes(callParent)) {
-            enclosingInstanceActual = OuterObjectSpecifier.getObject(callParent);
+          if (OuterObjectSpecifier.prototype.includes(potentialOOS)) {
+            enclosingInstanceActual = OuterObjectSpecifier.getObject(potentialOOS);
           } else {
             enclosingInstanceActual = JavaPromise.getQualifiedReceiverNodeByName_Bug1392WorkAround(callingMethodDecl, enclosingType);
           }
@@ -295,7 +308,7 @@ public class MethodCallUtils {
     
     // First JLS 8.8.7.1 "Explicit constructor invocation"
     if (ConstructorCall.prototype.includes(callOp)) {
-      if (OuterObjectSpecifier.prototype.includes(callParent)) { // o. super(...)
+      if (OuterObjectSpecifier.prototype.includes(potentialOOS)) { // o. super(...)
         // typeS is the super type S being constructed
         final IRNode typeS = VisitUtil.getEnclosingType(mdecl);
         // typeS is a direct inner class of typeSO -- this must exist, because the code compiles
@@ -303,7 +316,7 @@ public class MethodCallUtils {
         // Get the reference to the immediately enclosing instance with respect to typeS
         enclosingInstanceWRTSRef = JavaPromise.getQualifiedReceiverNodeByName_Bug1392WorkAround(mdecl, typeSO);
         // The actual enclosing instance with respect to typeS is specified by the OuterObjectSpecifier
-        enclosingInstanceWRTSActual = OuterObjectSpecifier.getObject(callParent);
+        enclosingInstanceWRTSActual = OuterObjectSpecifier.getObject(potentialOOS);
         // (See [+]): The receiver is "this"
         copyQualifiedReceiversAcrossContexts = isReceiverNode(enclosingInstanceWRTSActual);
       } else {
@@ -331,9 +344,9 @@ public class MethodCallUtils {
         } else { // typeS is an inner member class
           // Get the reference to the immediately enclosing instance with respect to typeS
           enclosingInstanceWRTSRef = JavaPromise.getQualifiedReceiverNodeByName_Bug1392WorkAround(mdecl, typeO);
-          if (OuterObjectSpecifier.prototype.includes(callParent)) { // o. super(...) { ... }
+          if (OuterObjectSpecifier.prototype.includes(potentialOOS)) { // o. super(...) { ... }
             // The actual enclosing instance with respect to typeS is specified by the OuterObjectSpecifier
-            enclosingInstanceWRTSActual = OuterObjectSpecifier.getObject(callParent);
+            enclosingInstanceWRTSActual = OuterObjectSpecifier.getObject(potentialOOS);
           } else {
             // The actual enclosing instance with respect to typeS is implied by context
             enclosingInstanceWRTSActual = JavaPromise.getQualifiedReceiverNodeByName_Bug1392WorkAround(callingMethodDecl, typeO);
