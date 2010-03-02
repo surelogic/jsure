@@ -646,7 +646,11 @@ private long parseIntLiteral(String token) {
     return getClassTable().getOuterClass(qname,null);
   }
 
-
+  public Iterable<IRNode> getRawSubclasses(IRNode type) {
+	  // Optional method
+	  return new EmptyIterator<IRNode>();
+  }  
+  
   public IRNode findPackage(String name) {
     return getClassTable().getOuterClass(name,null);
   }

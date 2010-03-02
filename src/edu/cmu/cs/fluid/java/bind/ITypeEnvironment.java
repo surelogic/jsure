@@ -40,6 +40,8 @@ public interface ITypeEnvironment {
 	 * @return The corresponding AST */
 	IRNode findNamedType(String qname);
 
+	public Iterable<IRNode> getRawSubclasses(IRNode type);
+	
 	/*
 	 * @param baseType The base type for the array (e.g., Object for Object[][])
 	 * @param dims The number of dimensions (e.g., 2 for Object[][])
