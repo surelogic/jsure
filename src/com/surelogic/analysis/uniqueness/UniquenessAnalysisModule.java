@@ -1,6 +1,5 @@
 package com.surelogic.analysis.uniqueness;
 
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -200,7 +199,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
      * initializer blocks.
      */
     if (isInit || isClassInit || isConstructorDecl) {
-      for (final IRNode bodyDecl : ClassBody.getDeclIterator(TypeDeclaration.getBody(node.typeDecl))) {
+      for (final IRNode bodyDecl : ClassBody.getDeclIterator(node.getClassBody())) {
         if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
           if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
             analyzeSubtree(node.methodDecl, pr, bodyDecl);
@@ -236,156 +235,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
    *         and ClassInitDeclaration nodes in the case of static initializers.
    */
 	private Set<TypeAndMethod> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
-//    final ShouldAnalyzeVisitor visitor = new ShouldAnalyzeVisitor(getBinder());
     final NewShouldAnalyzeVisitor visitor = new NewShouldAnalyzeVisitor(getBinder());
 	  visitor.doAccept(compUnit);
 	  return visitor.getResults();
 	}
 	
-//	/**
-//	 * Returns <code>null</code> if the compilation unit contains the
-//	 * declaration or use of a unique field. Otherwise returns the set of the
-//	 * methods in the CU that need to be analyzed because they have borrowed or
-//	 * unique annotations or because they invoke a method that has unique
-//	 * parameter requirements.
-//	 *
-//	 * @param compUnit
-//	 *          A compilation unit node.
-//	 * @return <code>null</code> or a set of method/constructor declarations.
-//	 */
-//	private Set<IRNode> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
-//		final Set<IRNode> rootNodesForAnalysis = new HashSet<IRNode>();
-//
-//		final IRNode typeDecls =
-//		  edu.cmu.cs.fluid.java.operator.CompilationUnit.getDecls(compUnit);
-//		final Iterator<IRNode> decls = TypeDeclarations.getTypesIterator(typeDecls);
-//		while (decls.hasNext()) {
-//			final IRNode decl = decls.next();
-//			final Iterator<IRNode> nodes = JJNode.tree.topDown(decl);
-//			while (nodes.hasNext()) {
-//				final IRNode currentNode = nodes.next();
-//				final Operator op = JJNode.tree.getOperator(currentNode);
-//
-//				// Ignore Annotation elements
-//				if (AnnotationElement.prototype.includes(op)) {
-//					continue;
-//				}
-//
-//				/*
-//				 * We are searching for (1) the declarations of an unique field (2) the
-//				 * use of an unique field, (3) the declaration of a method that has
-//				 * borrowed parameters, unique parameters, or a unique return value, or
-//				 * (4) the invocation of a method that has unique parameter requirements.
-//				 */
-//
-//				/*
-//				 * NEW Case 1: Initializer of an unique field declaration. This
-//				 * represents an implicit assignment to the field, and needs to be
-//				 * captured so we can get the control-flow dependency.
-//				 */
-//				if (Initialization.prototype.includes(op)) {
-//					final IRNode variableDeclarator = JJNode.tree.getParent(currentNode);
-//					final IRNode variableDeclarators = JJNode.tree.getParent(variableDeclarator);
-//					final IRNode possibleFieldDeclaration = JJNode.tree.getParent(variableDeclarators);
-//					if (FieldDeclaration.prototype.includes(
-//							JJNode.tree.getOperator(possibleFieldDeclaration))) {
-//						if (UniquenessRules.isUnique(variableDeclarator)) {
-//							rootNodesForAnalysis.add(possibleFieldDeclaration);
-//						}
-//					}
-//				}
-//
-//				/*
-//				 * Case 2
-//				 */
-//				if (FieldRef.prototype.equals(op)) {
-//					if (UniquenessRules.isUnique(getBinder().getBinding(currentNode))) {
-//						rootNodesForAnalysis.add(getContainingBlock(currentNode));
-//					}
-//				}
-//
-//				if (ConstructorDeclaration.prototype.equals(op)
-//						|| MethodDeclaration.prototype.equals(op)) {
-//					boolean hasBorrowedParam = false;
-//					boolean hasUniqueParam = false;
-//					boolean returnsUnique = false;
-//
-//					// Case 3a: returns unique
-//					if (MethodDeclaration.prototype.equals(op)) {
-//						final IRNode retDecl = JavaPromise.getReturnNodeOrNull(currentNode);
-//						returnsUnique = (retDecl == null) ? false : UniquenessRules
-//								.isUnique(retDecl);
-//					}
-//
-//					// Case 3b: borrowed/unique parameter
-//          if (ConstructorDeclaration.prototype.includes(op)) {
-//            hasBorrowedParam |= UniquenessRules.constructorYieldsUnaliasedObject(currentNode);
-//            // Cannot have a unique receiver
-//          } else {
-//            if (!TypeUtil.isStatic(currentNode)) { // non-static method
-//              final IRNode self = JavaPromise.getReceiverNode(currentNode);
-//              hasBorrowedParam |= UniquenessRules.isBorrowed(self);
-//              hasUniqueParam |= UniquenessRules.isUnique(self);
-//            }
-//          }
-//					IRNode formals = null;
-//					if (ConstructorDeclaration.prototype.includes(op)) {
-//						formals = ConstructorDeclaration.getParams(currentNode);
-//					} else {
-//						formals = MethodDeclaration.getParams(currentNode);
-//					}
-//					for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
-//            final IRNode param = JJNode.tree.getChild(formals, i);
-//            hasBorrowedParam |= UniquenessRules.isBorrowed(param);
-//            hasUniqueParam |= UniquenessRules.isUnique(param);
-//					}
-//					if (returnsUnique || hasBorrowedParam || hasUniqueParam)
-//						rootNodesForAnalysis.add(currentNode);
-//				}
-//
-//				// Case 4: invoking method with unique parameter
-//				if (op instanceof CallInterface) {
-//					final IRNode declNode = getBinder().getBinding(currentNode);
-//
-//					if (declNode != null) {
-//						final Operator declOp = JJNode.tree.getOperator(declNode);
-//						IRNode formals = null;
-//
-//						if (declOp instanceof ConstructorDeclaration) {
-//							formals = ConstructorDeclaration.getParams(declNode);
-//						} else if (declOp instanceof MethodDeclaration) {
-//							formals = MethodDeclaration.getParams(declNode);
-//						}
-//						if (formals != null) {
-//							boolean hasUniqueParam = false;
-//
-//							if (!TypeUtil.isStatic(declNode)) {
-//								final IRNode self = JavaPromise.getReceiverNode(declNode);
-//								hasUniqueParam |= UniquenessRules.isUnique(self);
-//							}
-//							for (int i = 0; !hasUniqueParam
-//							&& (i < JJNode.tree.numChildren(formals)); i++) {
-//								hasUniqueParam = UniquenessRules.isUnique(JJNode.tree
-//										.getChild(formals, i));
-//							}
-//							if (hasUniqueParam) {
-//								final IRNode currentMethod = getContainingBlock(currentNode);
-//								if (currentMethod != null) {
-//									rootNodesForAnalysis.add(currentMethod);
-//								} else {
-//									// method call not in a method! analyze everything!
-//									return null;
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-//
-//		return rootNodesForAnalysis;
-//	}
-
 	private void checkForError(
 	    final IRNode insideDecl, final IRNode node, final PromiseRecord pr) {
 		if (isInvalid(insideDecl, node)) {
@@ -692,7 +546,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
      * ClassInitDeclaration we need to gather up the unique field declarations.
      */		
     if (isConstructorDecl || isInit || isClassInit) {
-		  for (final IRNode bodyDecl : ClassBody.getDeclIterator(TypeDeclaration.getBody(block.typeDecl))) {
+		  for (final IRNode bodyDecl : ClassBody.getDeclIterator(block.getClassBody())) {
 		    if (FieldDeclaration.prototype.includes(bodyDecl)) {
 		      if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
   		      final IRNode variableDeclarators = FieldDeclaration.getVars(bodyDecl);
@@ -724,7 +578,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
       populatePromiseRecord(pr, block.methodDecl);
     }
     if (isInit || isClassInit || isConstructorDecl) {
-      for (final IRNode bodyDecl : ClassBody.getDeclIterator(TypeDeclaration.getBody(block.typeDecl))) {
+      for (final IRNode bodyDecl : ClassBody.getDeclIterator(block.getClassBody())) {
         if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
           if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
             populatePromiseRecord(pr, bodyDecl);
@@ -1062,6 +916,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	    methodDecl = md;
 	  }
 	  
+    public IRNode getClassBody() {
+      return AnonClassExpression.prototype.includes(typeDecl) ?
+          AnonClassExpression.getBody(typeDecl) : TypeDeclaration.getBody(typeDecl);
+
+    }
+	  
 	  @Override
     public boolean equals(final Object other) {
 	    if (other instanceof TypeAndMethod) {
@@ -1250,365 +1110,4 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
       doAcceptForChildren(varDecl);
     }
 	}
-	
-//  /*
-//   * We are searching for (1) the declarations of an unique field (2) the
-//   * use of an unique field, (3) the declaration of a method that has
-//   * borrowed parameters, unique parameters, or a unique return value, or
-//   * (4) the invocation of a method that has unique parameter requirements.
-//   */
-//	private static final class ShouldAnalyzeVisitor extends VoidTreeWalkVisitor {
-//	  private final IBinder binder;
-//	  
-//	  private boolean isAnonClassExpression = false;
-//	  
-//	  /**
-//	   * The current type declaration we are inside of.
-//	   */
-//	  private IRNode enclosingType = null;
-//	  
-//	  /**
-//	   * The current method/constructor declaration that we are inside of.
-//	   */
-//	  private IRNode enclosingDecl = null;
-//	  
-//	  /**
-//	   * Whether we are inside a constructor declaration.  Also true if we 
-//	   * are analyzing the InitDeclaration associated with the construction of
-//	   * an anonymous class.
-//	   */
-//	  private boolean insideConstructor = false;
-//	  
-//	  /**
-//	   * The output of the visitation: the set of method/constructor declarations
-//	   * that should receive additional scrutiny by the uniqueness analysyis.
-//	   */
-//	  private final Set<TypeAndMethod> results = new HashSet<TypeAndMethod>();
-//	  
-//	  
-//	  
-//	  public ShouldAnalyzeVisitor(final IBinder binder) {
-//	    this.binder = binder;
-//	  }
-//
-//	  
-//	  
-//	  public Set<TypeAndMethod> getResults() {
-//	    return results;
-//	  }
-//	  
-//	  
-//	  
-//	  private void visitNonAnnotationTypeDeclaration(final IRNode typeDecl) {
-//      final IRNode prevEnclosingType = enclosingType;
-//      final IRNode prevEnclosingDecl = enclosingDecl;
-//      final boolean prevInsideConstructor = insideConstructor;
-//      try {
-//        enclosingType = typeDecl;
-//        enclosingDecl = null;
-//        insideConstructor = false;
-//        doAcceptForChildren(typeDecl);
-//      } finally {
-//        enclosingType = prevEnclosingType;
-//        enclosingDecl = prevEnclosingDecl;
-//        insideConstructor = prevInsideConstructor;
-//      }
-//	  }
-//	  
-//    /* Case 4: invoking method with unique parameter or borrowed parameters.
-//	   * We care about borrowed parameters because then can affect the 
-//	   * validity of unique fields passed to them.
-//	   */
-//    private void visitCallInterface(final IRNode call) {
-//      final IRNode declNode = binder.getBinding(call);
-//
-//      if (declNode != null) {
-//        final Operator declOp = JJNode.tree.getOperator(declNode);
-//        IRNode formals = null;
-//        boolean hasUnique = false;
-//        if (declOp instanceof ConstructorDeclaration) {
-//          formals = ConstructorDeclaration.getParams(declNode);
-//        } else if (declOp instanceof MethodDeclaration) {
-//          formals = MethodDeclaration.getParams(declNode);
-//          if (!TypeUtil.isStatic(declNode)) {
-//            final IRNode self = JavaPromise.getReceiverNode(declNode);
-//            hasUnique = UniquenessRules.isUnique(self);
-//          }
-//        }
-//        if (formals != null) {
-//          for (int i = 0; !hasUnique && (i < JJNode.tree.numChildren(formals)); i++) {
-//            final IRNode param = JJNode.tree.getChild(formals, i);
-//            hasUnique = UniquenessRules.isUnique(param);
-//          }
-//          if (hasUnique) {
-//            results.add(new TypeAndMethod(enclosingType, enclosingDecl));
-//          }
-//        }
-//      }
-//    }
-//	  
-//    
-//	  
-//	  @Override
-//	  public Void visitAllocationCallExpression(final IRNode call) {
-//	    visitCallInterface(call);
-//	    /* The guts of an anonymous class expression are visited specially
-//	     * by visitAnonClassExpression().  If we do this traversal here
-//	     * with an anonymous class expression, we will get a NullPointerException.
-//	     */
-//	    if (!isAnonClassExpression) {
-//	      doAcceptForChildren(call);
-//	    }
-//	    return null;
-//	  }
-//	  
-//	  @Override
-//	  public Void visitAnonClassExpression(final IRNode expr) {
-//	    // Traverse into the arguments, but *not* the body
-//	    doAccept(AnonClassExpression.getArgs(expr));
-//	    
-//	    /* We are going to recursively re-enter this class via the use of an
-//	     * InstanceInitVisitor instance.
-//	     */
-//	    final IRNode prevEnclosingType = enclosingType;
-//      final boolean prevInsideConstructor = insideConstructor;
-//      final IRNode prevEnclosingDecl = enclosingDecl;
-//	    try {
-//        enclosingType = expr; // Now inside the anonymous type declaration
-//        insideConstructor = false; // start by assuming we are not in the constructor
-//        
-//        InstanceInitializationVisitor.processAnonClassExpression(expr, this,
-//            new Action() {
-//              public void tryBefore() {
-//                enclosingDecl = JavaPromise.getInitMethodOrNull(expr); // Inside the <init> method
-//                insideConstructor = true; // We are inside the constructor of the anonymous class
-//              }
-//              
-//              public void finallyAfter() {
-//                enclosingDecl = prevEnclosingDecl; // Restore to the original value
-//                insideConstructor = false;
-//              }
-//            });
-//        	      
-//        /* Now visit the rest of the anonymous class looking for additional
-//         * classes to analyze, so we reset the enclosing declaration to null.
-//         */
-//	      try {
-//	        enclosingDecl = null; // We are not inside of any method or constructor
-//	        doAccept(AnonClassExpression.getBody(expr));
-//	      } finally {
-//	        enclosingDecl = prevEnclosingDecl; // finally restore to the original value
-//	      }
-//	    } finally {
-//	      // restore the global state
-//	      enclosingType = prevEnclosingType;
-//	      insideConstructor = prevInsideConstructor;
-//	    }
-//	    
-//	    /* Call super implementation so we also process this as an allocation call
-//	     * expression. 
-//	     */
-//	    try {
-//	      isAnonClassExpression = true;
-//	      return super.visitAnonClassExpression(expr);
-//	    } finally {
-//	      isAnonClassExpression = false;
-//	    }
-//	  }
-//
-//    @Override
-//    public Void visitCall(final IRNode call) {
-//      visitCallInterface(call);
-//      doAcceptForChildren(call);
-//      return null;
-//    }
-//
-//    @Override
-//	  public Void visitClassDeclaration(final IRNode classDecl) {
-//	    visitNonAnnotationTypeDeclaration(classDecl);
-//      return null;
-//	  }
-//	  
-//	  @Override
-//	  public Void visitClassInitializer(final IRNode expr) {
-//	    if (TypeUtil.isStatic(expr)) {
-//	      enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
-//	      try {
-//	        doAcceptForChildren(expr);
-//	      } finally {
-//	        enclosingDecl = null;
-//	      }
-//	    } else {
-//	      /* Only go inside of instance initializers if we are being called by the
-//	       * InstanceInitVisitor! In this case, the InstanceInitVisitor directly
-//	       * traverses into the children of the ClassInitializer, so we don't even
-//	       * get here.
-//	       */
-//	    }
-//	    return null;
-//	  }
-//
-//	  @Override
-//	  public Void visitConstructorCall(final IRNode expr) {
-//	    // continue into the expression
-//	    doAcceptForChildren(expr);
-//
-//	    // Make sure we account for the super class's field inits, etc
-//      InstanceInitializationVisitor.processConstructorCall(expr, TypeDeclaration.getBody(enclosingType), this);
-//
-//	    return null;
-//	  }
-//	  
-//	  @Override
-//	  public Void visitConstructorDeclaration(final IRNode cdecl) {
-//      enclosingDecl = cdecl;
-//      insideConstructor = true;
-//      try {
-//        // Case 3b: borrowed/unique parameter
-//        boolean hasBorrowedParam = false;
-//        boolean hasUniqueParam = false;
-//        hasBorrowedParam |= UniquenessRules.constructorYieldsUnaliasedObject(cdecl);
-//        // Cannot have a unique receiver
-//
-//        final IRNode formals = ConstructorDeclaration.getParams(cdecl);
-//        for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
-//          final IRNode param = JJNode.tree.getChild(formals, i);
-//          hasBorrowedParam |= UniquenessRules.isBorrowed(param);
-//          hasUniqueParam |= UniquenessRules.isUnique(param);
-//        }
-//        if (hasBorrowedParam || hasUniqueParam) {
-//          results.add(new TypeAndMethod(enclosingType, cdecl));
-//        }
-//              
-//        // Check the rest of the constructor
-//        doAcceptForChildren(cdecl);
-//      } finally {
-//        enclosingDecl = null;
-//        insideConstructor = false;
-//      }
-//      return null;
-//	  }
-//
-//    @Override
-//    public Void visitEnumDeclaration(final IRNode enumDecl) {
-//      visitNonAnnotationTypeDeclaration(enumDecl);
-//      return null;
-//    }
-//
-//    @Override
-//    public Void visitFieldRef(final IRNode fieldRef) {
-//      /* Case (2): A use of a unique field. */
-//      if (UniquenessRules.isUnique(binder.getBinding(fieldRef))) {
-//        results.add(new TypeAndMethod(enclosingType, enclosingDecl));
-//      }
-//      return null;
-//    }
-//    
-//    @Override
-//    public Void visitInterfaceDeclaration(final IRNode interfaceDecl) {
-//      visitNonAnnotationTypeDeclaration(interfaceDecl);
-//      return null;
-//    }
-//    
-//    @Override
-//    public Void visitMethodDeclaration(final IRNode mdecl) {
-//      enclosingDecl = mdecl;
-//      try {
-//        // Case 3a: returns unique
-//        final IRNode retDecl = JavaPromise.getReturnNodeOrNull(mdecl);
-//        final boolean returnsUnique =
-//          (retDecl == null) ? false : UniquenessRules.isUnique(retDecl);
-//
-//        // Case 3b: borrowed/unique parameter
-//        boolean hasBorrowedParam = false;
-//        boolean hasUniqueParam = false;
-//        if (!TypeUtil.isStatic(mdecl)) { // non-static method
-//          final IRNode self = JavaPromise.getReceiverNode(mdecl);
-//          hasBorrowedParam |= UniquenessRules.isBorrowed(self);
-//          hasUniqueParam |= UniquenessRules.isUnique(self);
-//        }
-//        final IRNode formals = MethodDeclaration.getParams(mdecl);
-//        for (int i = 0; i < JJNode.tree.numChildren(formals); i++) {
-//          final IRNode param = JJNode.tree.getChild(formals, i);
-//          hasBorrowedParam |= UniquenessRules.isBorrowed(param);
-//          hasUniqueParam |= UniquenessRules.isUnique(param);
-//        }
-//        if (returnsUnique || hasBorrowedParam || hasUniqueParam) {
-//          results.add(new TypeAndMethod(enclosingType, mdecl));
-//        }
-//      
-//        doAcceptForChildren(mdecl);
-//      } finally {
-//        enclosingDecl = null;
-//      }
-//      return null;
-//    }
-//    
-//    @Override
-//    public Void visitSomeFunctionCall(final IRNode call) {
-//      visitCallInterface(call);
-//      doAcceptForChildren(call);
-//      return null;
-//    }
-//
-//	  @Override
-//	  public Void visitVariableDeclarator(final IRNode varDecl) {
-//	    /* If this is inside a FieldDeclaration, then we only want to run if we are
-//	     * being executed on behalf of the InstanceInitHelper or if we are part of a
-//	     * static field declaration.
-//	     * 
-//	     * If this inside a DeclStatement, then we always want to run, and we don't
-//	     * do anything special at all. (I would like to avoid having to climb up the
-//	     * parse tree, but I don't have a choice because InstanceInitHelper does not
-//	     * call back into FieldDeclaration, but into the children of
-//	     * FieldDeclaration.)
-//	     */
-//	    if (FieldDeclaration.prototype.includes(
-//	        JJNode.tree.getOperator(
-//	            JJNode.tree.getParentOrNull(
-//	                JJNode.tree.getParentOrNull(varDecl))))) {      
-//        /* Analyze the field initialization if we are inside a constructor or
-//         * visiting a static field.
-//         */
-//	      final boolean isStaticDeclaration = TypeUtil.isStatic(varDecl);
-//	      if (insideConstructor || isStaticDeclaration) {
-//	        /* At this point we know we are inside a field declaration that is
-//	         * being analyzed on behalf of a constructor or a static initializer.
-//	         */
-//	        final IRNode init = VariableDeclarator.getInit(varDecl);
-//	        // Don't worry about uninitialized fields
-//	        if (!NoInitialization.prototype.includes(JJNode.tree.getOperator(init))) {
-//	          /* If the initialization is static, we have to update the enclosing 
-//	           * method to the class init declaration. 
-//	           */
-//	          if (isStaticDeclaration) {
-//	            enclosingDecl = ClassInitDeclaration.getClassInitMethod(enclosingType);
-//	          }
-//	          try {
-//	            /* We have a non-empty initialization of a field inside on
-//	             * behalf of a constructor or class initializer.  This counts as
-//	             * a use of the field.  CASE (1): If the field is UNIQUE then we
-//	             * add the current enclosing declaration to the results.
-//	             */
-//	            if (UniquenessRules.isUnique(varDecl)) {
-//	              results.add(new TypeAndMethod(enclosingType, enclosingDecl));
-//	            }
-//	            // analyze the the RHS of the initialization
-//	            doAcceptForChildren(varDecl);
-//	          } finally {
-//	            if (isStaticDeclaration) {
-//	              enclosingDecl = null;
-//	            }
-//	          }
-//	        }
-//	      }
-//	    } else {
-//	      /* Not a field declaration: so we are in a local variable declaration.
-//	       * Always analyze its contents.
-//	       */
-//	      doAcceptForChildren(varDecl);
-//	    }
-//	    return null;
-//	  }
-//	}
 }
