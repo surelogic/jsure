@@ -246,9 +246,11 @@ public class ResultsViewContentProvider extends
 		}
 
 		// Create a folder to contain the choices
-		Set<String> or_TrustLabels = result.get_or_TrustLabelSet();
-		Content orContentFolder = new Content(or_TrustLabels.size()
-				+ " choice(s) of prerequisite assertions:");
+		final Set<String> or_TrustLabels = result.get_or_TrustLabelSet();
+		final int or_TrustLabelsSize = or_TrustLabels.size();
+		Content orContentFolder = new Content(or_TrustLabelsSize
+				+ (or_TrustLabelsSize > 1 ? " possible prerequisite assertion choices:"
+						: " possible prerequisite assertion choice:"));
 		int flags = 0; // assume no adornments
 		flags |= (result.get_or_proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
 		flags |= (result.get_or_provedConsistent() ? CoE_Constants.CONSISTENT
