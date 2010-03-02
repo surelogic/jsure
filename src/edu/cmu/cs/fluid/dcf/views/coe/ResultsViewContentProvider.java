@@ -956,7 +956,7 @@ public class ResultsViewContentProvider extends
 					}
 				}
 				if (type != null) {
-					typeName = JavaNames.getQualifiedTypeName(type);
+					typeName = JavaNames.getTypeName(type);
 					final Operator top = JavaNames.getOperator(type);
 					typeIsAnInterface = InterfaceDeclaration.prototype
 							.includes(top);
