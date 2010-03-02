@@ -27,6 +27,7 @@ import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
+import com.surelogic.analysis.locks.MustHoldAnalysis.HeldLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
 import com.surelogic.analysis.locks.locks.NeededLock;
@@ -182,102 +183,7 @@ implements IBinderClient {
   
 
   
-  // ////////////////////////////////////////////////////////////////////////////
-  // D R O P - S E A L O C K A N A L Y S I S R E S U L T M E S S A G E S
-
-  private static final int DS_AGGREGATION_NEEDED = Messages.LockAnalysis_ds_AggregationNeeded;
-
-  private static final int DS_AGGREGATION_NEEDED2 = Messages.LockAnalysis_ds_AggregationNeeded2;
-
-  //private static final int DS_SYNCHRONIZED_CONSTRUCTOR_ASSURED_MSG = Messages.LockAnalysis_ds_SynchronizedConstructorAssured;
-
-  private static final int DS_FIELD_ACCESS_ASSURED_MSG = Messages.LockAnalysis_ds_FieldAccessAssured;
-
-  private static final int DS_FIELD_ACCESS_ASSURED_ALT_MSG = Messages.LockAnalysis_ds_FieldAccessAssuredAlternative;
-
-  private static final int DS_FIELD_ACCESS_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_FieldAccessNotAssured;
-
-  private static final int DS_FIELD_ACCESS_NOT_RESOLVABLE_MSG = Messages.LockAnalysis_ds_FieldAccessNotResolvable;
   
-  private static final int DS_PRECONDITIONS_ASSURED_MSG = Messages.LockAnalysis_ds_PreconditionsAssured;
-
-  private static final int DS_PRECONDITIONS_ASSURED_ALT_MSG = Messages.LockAnalysis_ds_PreconditionsAssuredAlternative;
-
-  private static final int DS_PRECONDITIONS_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_PreconditionsNotAssured;
-  
-  private static final int DS_PRECONDITION_NOT_RESOLVABLE_MSG = Messages.LockAnalysis_ds_PreconditionNotResolvable;
-
-  private static final int DS_INDIRECT_FIELD_ACCESS_ASSURED_MSG = Messages.LockAnalysis_ds_IndirectFieldAccessAssured;
-
-  private static final int DS_INDIRECT_FIELD_ACCESS_ASSURED_ALT_MSG = Messages.LockAnalysis_ds_IndirectFieldAccessAssuredAlternative;
-
-  private static final int DS_INDIRECT_FIELD_ACCESS_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_IndirectFieldAccessNotAssured;
-
-  private static final int DS_RETURN_ASSURED_MSG = Messages.LockAnalysis_ds_ReturnAssured;
-
-  private static final int DS_RETURN_NOT_ASSURED_MSG = Messages.LockAnalysis_ds_ReturnNotAssured;
-
-  private static final int DS_SYNCHRONIZED_METHOD_WARNING_MSG = Messages.LockAnalysis_ds_SynchronizedMethodWarningDetails;
-
-  private static final int DS_SYNCHRONIZED_STATIC_METHOD_WARNING_MSG = Messages.LockAnalysis_ds_SynchronizedStaticMethodWarningDetails;
-
-  private static final int DS_SYNCHRONIZED_UNUSED_MSG = Messages.LockAnalysis_ds_SynchronizationUnused;
-
-  private static final int DS_NONFINAL_EXPRESSION_MSG = Messages.LockAnalysis_ds_NonfinalExpression;
-
-  private static final int DS_UNIDENTIFIABLE_LOCK_MSG = Messages.LockAnalysis_ds_UnidentifiableLock;
-
-  private static final int DS_REDUNDANT_SYNCHRONIZED_MSG = Messages.LockAnalysis_ds_RedundantSynchronized;
-
-  private static final int DS_ON_BEHALF_OF_CONSTRUCTOR_MSG = Messages.LockAnalysis_ds_OnBehalfOfConstructor;
-
-  private static final int DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_ConstructorIsSingleThreaded;
-  
-  private static final int DS_ENCLOSING_CONSTRUCTOR_IS_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_EnclosingConstructorIsSingleThreaded;
-  
-  private static final int DS_ENCLOSING_CONSTRUCTOR_NOT_PROVEN_SINGLE_THREADED_MSG = Messages.LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded; 
-  
-  private static final int DS_ASSUMED_HELD_MSG = Messages.LockAnalysis_ds_AssumedHeld;
-  
-  private static final int DS_LOCK_HELD_MSG = Messages.LockAnalysis_ds_HeldLock;
-
-  private static final int DS_JUC_LOCK_HELD_MSG = Messages.LockAnalysis_ds_HeldJUCLock;
-
-  private static final int DS_SYNCED_JUCLOCK = Messages.LockAnalysis_ds_SyncedJUCLock;
-  
-  private static final int DS_MASQUERADING_CALL = Messages.LockAnalysis_ds_MasqueradingCall;
-
-  private static final int DS_MASQUERADING_CALL2 = Messages.LockAnalysis_ds_MasqueradingCall2;
-  
-  private static final int DS_JUC_LOCK_FIELDS = Messages.LockAnalysis_ds_JUCLockFields;
-  
-  private static final int DS_JUC_LOCK_FIELDS2 = Messages.LockAnalysis_ds_JUCLockFields;
-  
-  private static final int DS_DECLARED_JUC_LOCK_FIELD = Messages.LockAnalysis_ds_DeclaredJUCLockField;
-
-  private static final int DS_POISONED_LOCK_CALL = Messages.LockAnalysis_ds_PoisonedLockCall;
-  
-  private static final int DS_NO_MATCHING_UNLOCKS = Messages.LockAnalysis_ds_NoMatchingUnlocks;
-  
-  private static final int DS_MATCHING_UNLOCK = Messages.LockAnalysis_ds_MatchingUnlock;
-  
-  private static final int DS_POISONED_UNLOCK_CALL = Messages.LockAnalysis_ds_PoisonedUnlockCall;
-  
-  private static final int DS_NO_MATCHING_LOCKS = Messages.LockAnalysis_ds_NoMatchingLocks;
-  
-  private static final int DS_MATCHING_LOCK = Messages.LockAnalysis_ds_MatchingLock;
-
-  private static final String DS_SINGLE_THREADED_UNIQUE_RETURN = Messages.LockAnalysis_ds_SingleThreadedUniqueReturn;
-  
-  private static final String DS_SINGLE_THREADED_EFFECTS = Messages.LockAnalysis_ds_SingleThreadedEffects;
-  
-  private static final String DS_SINGLE_THREADED_BORROWED_RECEIVER = Messages.LockAnalysis_ds_SingleThreadedBorrowedThis;
-
-    
-  // ////////////////////////////////////////////////////////////////////////////
-
-  // ========================================================================
-
   private final class LVThisExpressionBinder extends AbstractThisExpressionBinder {
     public LVThisExpressionBinder(final IBinder b) {
       super(b);
@@ -361,10 +267,33 @@ implements IBinderClient {
    * multiple times. This repetition isn't useful for the analysis, but it makes
    * the implementation simpler because visitor methods can use block-structured
    * push/pop operations to add and remove to the lock context with out having
-   * to worry about duplication.
+   * to worry about duplication.  This stack only contains those locks held due
+   * to
+   * <ul>
+   * <li>A method being declared <code>synchronized</code>
+   * <li>A method being annotated with lock preconditions
+   * <li>A lock being acquired via a <code>synchronized</code> statement.
+   * </ul>
+   * 
+   * <p>Locks that we pretend are held because of a constructor being
+   * thread confined or because of the special semantics of class initialization
+   * are recorded in the fields {@link #ctxtThreadConfinedLocks} and
+   * {@link #ctxtClassInitializationLocks} respectively.
    */
   private LockStack ctxtTheHeldLocks = null;
 
+  /**
+   * The named locks that do not need to be explicitly acquired because the
+   * constructor being analyzed is thread-confined.
+   */
+  private Set<HeldLock> ctxtThreadConfinedLocks = null;
+  
+  /**
+   * The named locks that do not need to be explicitly acquired because we
+   * are analyzing a static initializer.
+   */
+  private Set<HeldLock> ctxtClassInitializationLocks = null;
+  
   /**
    * If we are analyzing the inside of a method declaration then this refers to
    * the lock (if any) that the method is supposed to return. If we are not
@@ -478,11 +407,11 @@ implements IBinderClient {
 
   /**
    * When analyzing the body of a constructor (including any initialization
-   * blocks or field initializers), this value is non- {@value null} and indicates
-   * whether the current constructor was found to be singl-threaded or not.
-   * Otherwise this value is {@value null}.
+   * blocks or field initializers), this value is non- {@value null} and 
+   * contains information about whether the constructor is single-thread 
+   * (thread-confined) or not.
    */
-  private Boolean ctxtConstructorIsSingleThreaded = null;
+  private LockExpressions.SingleThreadedData ctxtSingleThreadedData = null;
 
   /**
    * The receiver declaration node of the constructor/method/field
@@ -879,13 +808,15 @@ implements IBinderClient {
     ctxtTypeDecl = null;
     ctxtJavaType = null;
     ctxtTheHeldLocks = null;
+    ctxtClassInitializationLocks = null;
+    ctxtThreadConfinedLocks = null;
     ctxtReturnedLock = null;
     ctxtReturnsLockDrop = null;
     ctxtIsLHS = false;
     ctxtInsideMethod = null;
     ctxtOnBehalfOfConstructor = false;
     ctxtInsideConstructor = null;
-    ctxtConstructorIsSingleThreaded = null;
+    ctxtSingleThreadedData = null;
     ctxtConstructorName = null;
     ctxtTheReceiverNode = null;
     ctxtEnclosingRefs = null;
@@ -965,7 +896,7 @@ implements IBinderClient {
     }
     return result;
   }
-
+  
   private void addSupportingInformation(final AbstractDropBuilder drop,
       final IRNode link, final int msgTemplate, final Object... msgArgs) {
     drop.addSupportingInformation(link, msgTemplate, msgArgs);
@@ -1016,11 +947,11 @@ implements IBinderClient {
       final Set<HeldLock> jucLocks) {
     for (final StackLock has : intrinsicLocks) {
       addSupportingInformation(drop, has.lock.getSource(),
-          has.lock.isAssumed() ? DS_ASSUMED_HELD_MSG : DS_LOCK_HELD_MSG, has.lock);
+          has.lock.isAssumed() ? Messages.LockAnalysis_ds_AssumedHeld : Messages.LockAnalysis_ds_HeldLock, has.lock);
     }
     for (final HeldLock lock : jucLocks) {
       addSupportingInformation(drop, lock.getSource(), 
-          lock.isAssumed() ? DS_ASSUMED_HELD_MSG : DS_JUC_LOCK_HELD_MSG, lock);
+          lock.isAssumed() ? Messages.LockAnalysis_ds_AssumedHeld : Messages.LockAnalysis_ds_HeldJUCLock, lock);
     }
 //    for (final HeldLock lock : il) {
 //      addSupportingInformation(drop, lock.getSource(), 
@@ -1122,11 +1053,11 @@ implements IBinderClient {
    * @param clazz
    *          The type representation of the containing class
    */
-  private void convertStaticInitializerBlock(final IRNode initBlock,
-      final IJavaDeclaredType clazz, final LockStackFrame stackFrame) {
+  private Set<HeldLock> convertStaticInitializerBlock(
+      final IRNode initBlock, final IJavaDeclaredType clazz) {
     final Set<HeldLock> assumedLocks = new HashSet<HeldLock>();
     lockUtils.getClassInitLocks(HowToProcessLocks.INTRINSIC, initBlock, clazz, assumedLocks);
-    stackFrame.push(assumedLocks);
+    return assumedLocks;
   }
 
   /**
@@ -1143,11 +1074,11 @@ implements IBinderClient {
    * @param classDecl
    *          The declaration node for the containing class
    */
-  private void convertSingleThreadedConstructor(final IRNode conDecl,
-      final IJavaDeclaredType clazz, final LockStackFrame stackFrame) {
+  private Set<HeldLock> convertSingleThreadedConstructor(
+      final IRNode conDecl, final IJavaDeclaredType clazz) {
     final Set<HeldLock> assumedLocks = new HashSet<HeldLock>();
     lockUtils.getSingleThreadedLocks(HowToProcessLocks.INTRINSIC, conDecl, clazz, ctxtTheReceiverNode, assumedLocks);
-    stackFrame.push(assumedLocks);
+    return assumedLocks;
   }
 
   /**
@@ -1183,8 +1114,8 @@ implements IBinderClient {
    */
   private void assureRegionRef(
       final IRNode regionAccess, final Set<NeededLock> neededLocks) {
-    // Get the JUC locks that are held at entry to the method call
-    final Set<HeldLock> heldJUCLocks = getHeldJUCLocks(regionAccess);
+    // Get the JUC locks that are held at the point of the region access
+    final MustHoldAnalysis.HeldLocks heldJUCLocks = getHeldJUCLocks(regionAccess);
 //    final Set<HeldLock> il = getHeldIntrinsicLocks(regionAccess);
     
     final LockChecker regionRefChecker = new LockChecker(regionAccess) {
@@ -1199,8 +1130,11 @@ implements IBinderClient {
       }
     };
     regionRefChecker.assureNeededLocks(neededLocks, heldJUCLocks,
-        DS_FIELD_ACCESS_ASSURED_MSG, DS_FIELD_ACCESS_ASSURED_ALT_MSG, DSC_FIELD_ACCESS_ASSURED,
-        DS_FIELD_ACCESS_NOT_ASSURED_MSG, DSC_FIELD_ACCESS_NOT_ASSURED);
+        DSC_FIELD_ACCESS_ASSURED, DSC_FIELD_ACCESS_NOT_ASSURED,
+        Messages.LockAnalysis_ds_FieldAccessAssured, Messages.LockAnalysis_ds_FieldAccessAssuredAlternative,
+        Messages.LockAnalysis_ds_FieldAccessOkayClassInit, Messages.LockAnalysis_ds_FieldAccessOkayClassInitAlternative,
+        Messages.LockAnalysis_ds_FieldAccessOkayThreadConfined, Messages.LockAnalysis_ds_FieldAccessOkayThreadConfinedAlternative,
+        Messages.LockAnalysis_ds_FieldAccessNotAssured, Messages.LockAnalysis_ds_FieldAccessNotResolvable);
   }
 
   /**
@@ -1262,7 +1196,7 @@ implements IBinderClient {
              * that it is not protecting the field f. 
              */
             final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
-                fieldRef, DS_AGGREGATION_NEEDED, DebugUnparser.toString(fieldRef));
+                fieldRef, Messages.LockAnalysis_ds_AggregationNeeded, DebugUnparser.toString(fieldRef));
 
             final IJavaType rcvrType = binder.getJavaType(FieldRef.getObject(objExpr));
             if (rcvrType instanceof IJavaDeclaredType) {
@@ -1285,7 +1219,7 @@ implements IBinderClient {
              * protecting the field f. 
              */
             final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
-                fieldRef, DS_AGGREGATION_NEEDED, DebugUnparser.toString(fieldRef));
+                fieldRef, Messages.LockAnalysis_ds_AggregationNeeded, DebugUnparser.toString(fieldRef));
             info.addDependUponDrop(innerLock.lockDecl);
           }
         }
@@ -1377,7 +1311,7 @@ implements IBinderClient {
             if (mayBeAccessedByManyThreads(actualRcvr)) {
               // final/volatile field in a lock protected class
               final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
-                  actualRcvr, DS_AGGREGATION_NEEDED2,
+                  actualRcvr, Messages.LockAnalysis_ds_AggregationNeeded2,
                   DebugUnparser.toString(actualRcvr));
               
               final IJavaType rcvrType = binder.getJavaType(FieldRef.getObject(actualRcvr));
@@ -1396,7 +1330,7 @@ implements IBinderClient {
             if (neededLock != null) {
               // Lock protected field
               final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
-                  actualRcvr, DS_AGGREGATION_NEEDED2,
+                  actualRcvr, Messages.LockAnalysis_ds_AggregationNeeded2,
                   DebugUnparser.toString(actualRcvr));
               info.addDependUponDrop(neededLock.lockDecl);
             }
@@ -1441,6 +1375,77 @@ implements IBinderClient {
   }
 
   
+  private enum LockHeldResult {
+    NOT_HELD {
+      @Override
+      public ResultDropBuilder getResult(LockVisitor lv,
+          PromiseDrop<? extends IAASTRootNode> promise, Category badCategory,
+          Category goodCategory, int badMsg, int goodMsg, int classInitMsg,
+          int threadConfinedMsg, NeededLock lock, IRNode useSite,
+          NeededLock altLock) {
+        final ResultDropBuilder result = lv.makeResultDrop(
+            useSite, promise, false,
+            badMsg, lock, DebugUnparser.toString(useSite), altLock);
+        result.setCategory(badCategory);
+        return result;
+      }
+    },
+    
+    HELD {
+      @Override
+      public ResultDropBuilder getResult(LockVisitor lv,
+          PromiseDrop<? extends IAASTRootNode> promise, Category badCategory,
+          Category goodCategory, int badMsg, int goodMsg, int classInitMsg,
+          int threadConfinedMsg, NeededLock lock, IRNode useSite,
+          NeededLock altLock) {
+        final ResultDropBuilder result = lv.makeResultDrop(
+            useSite, promise, true,
+            goodMsg, lock, DebugUnparser.toString(useSite), altLock);
+        result.setCategory(goodCategory);
+        return result;
+      }
+    },
+    
+    CLASS_INIT {
+      @Override
+      public ResultDropBuilder getResult(LockVisitor lv,
+          PromiseDrop<? extends IAASTRootNode> promise, Category badCategory,
+          Category goodCategory, int badMsg, int goodMsg, int classInitMsg,
+          int threadConfinedMsg, NeededLock lock, IRNode useSite,
+          NeededLock altLock) {
+        final ResultDropBuilder result = lv.makeResultDrop(
+            useSite, promise, true,
+            classInitMsg, lock, DebugUnparser.toString(useSite), altLock);
+        result.setCategory(goodCategory);
+        return result;
+      }
+    },
+    
+    THREAD_CONFINED {
+      @Override
+      public ResultDropBuilder getResult(LockVisitor lv,
+          PromiseDrop<? extends IAASTRootNode> promise, Category badCategory,
+          Category goodCategory, int badMsg, int goodMsg, int classInitMsg,
+          int threadConfinedMsg, NeededLock lock, IRNode useSite,
+          NeededLock altLock) {
+        final ResultDropBuilder result = lv.makeResultDrop(
+            useSite, promise, true,
+            threadConfinedMsg, lock, DebugUnparser.toString(useSite), altLock);
+        result.setCategory(goodCategory);
+        return result;
+      }
+    };
+    
+    public abstract ResultDropBuilder getResult(LockVisitor lv,
+        PromiseDrop<? extends IAASTRootNode> promise,
+        Category badCategory, Category goodCategory,
+        int badMsg, int goodMsg,
+        int classInitMsg, int threadConfinedMsg,
+        NeededLock lock, IRNode useSite,
+        NeededLock altLock);
+        
+  }
+  
   private abstract class LockChecker {
     /** The code site that requires a lock that is being checked. */
     protected final IRNode useSite;
@@ -1449,19 +1454,54 @@ implements IBinderClient {
       this.useSite = useSite;
     }
     
-    private boolean isLockSatisfied(
-        final NeededLock neededLock, final Set<HeldLock> heldJUCLocks) { //, final Set<HeldLock> heldIntrinsicLocks) {
-      return ctxtTheHeldLocks.satisfiesLock(neededLock, thisExprBinder, binder, true)
-        || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder, binder);
-//      return neededLock.isSatisfiedByLockSet(heldIntrinsicLocks, thisExprBinder, binder)
-//        || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder, binder);
+    private LockHeldResult isLockSatisfied(
+        final NeededLock neededLock, final MustHoldAnalysis.HeldLocks heldJUCLocks) {
+      // Check if the lock is explicitly held
+      if (ctxtTheHeldLocks.satisfiesLock(neededLock, thisExprBinder, binder, true)) {
+        return LockHeldResult.HELD;
+      }
+      if (neededLock.isSatisfiedByLockSet(heldJUCLocks.heldLocks, thisExprBinder, binder)) {
+        return LockHeldResult.HELD;
+      }
+      
+      // Check if the lock does not need to be held because we are in the class initializer
+      if (ctxtClassInitializationLocks != null && 
+          neededLock.isSatisfiedByLockSet(ctxtClassInitializationLocks, thisExprBinder, binder)) {
+        return LockHeldResult.CLASS_INIT;
+      }
+      if (neededLock.isSatisfiedByLockSet(heldJUCLocks.classInitLocks, thisExprBinder, binder)) {
+        return LockHeldResult.CLASS_INIT;
+      }
+      
+      // Check if the lock does not need to be held because we are in a thread-confined constructor
+      if (ctxtThreadConfinedLocks != null &&
+          neededLock.isSatisfiedByLockSet(ctxtThreadConfinedLocks, thisExprBinder, binder)) {
+        return LockHeldResult.THREAD_CONFINED;
+      }
+      if (neededLock.isSatisfiedByLockSet(heldJUCLocks.singleThreadedLocks, thisExprBinder, binder)) {
+        return LockHeldResult.THREAD_CONFINED;
+      }
+      
+      // Otherwise, the lock is not satisfied
+      return LockHeldResult.NOT_HELD;
     }
     
+//    private boolean isLockSatisfied(
+//        final NeededLock neededLock, final Set<HeldLock> heldJUCLocks) { //, final Set<HeldLock> heldIntrinsicLocks) {
+//      return ctxtTheHeldLocks.satisfiesLock(neededLock, thisExprBinder, binder, true)
+//        || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder, binder);
+////      return neededLock.isSatisfiedByLockSet(heldIntrinsicLocks, thisExprBinder, binder)
+////        || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder, binder);
+//    }
+    
     public final void assureNeededLocks(
-        final Set<NeededLock> neededLocks, final Set<HeldLock> heldJUCLocks,
-//        final Set<HeldLock> heldIntrinsicLocks,
-        final int goodMsgTemplate, final int goodAltMsgTemplate, final Category goodCategory,
-        final int badMsgTemplate, final Category badCategory) {
+        final Set<NeededLock> neededLocks,
+        final MustHoldAnalysis.HeldLocks heldJUCLocks,
+        final Category goodCategory, final Category badCategory,
+        final int goodMsg, final int goodAltMsg,
+        final int classInitMsg, final int classInitAltMsg,
+        final int threadConfinedMsg, final int threadConfinedAltMsg,
+        final int badMsg, final int unresolvableMsg) {
       for (final NeededLock neededLock : neededLocks) {
         /* See if this lock might be available under a different name in an
          * outer context.  This is only possible when we are inside an anonymous
@@ -1477,60 +1517,99 @@ implements IBinderClient {
           mayHaveAlternativeLock = false;
           alternativeLock = null;
         }
-        
+                
+        /* Test for the needed lock.  First try the lock, and if that doesn't
+         * work, try the alternative, if it exists.
+         */
         final ResultDropBuilder resultDrop;
-        // Test for the needed lock
-        if (isLockSatisfied(neededLock, heldJUCLocks)) {
-          resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), true,
-              goodMsgTemplate, neededLock, DebugUnparser.toString(useSite));
-          resultDrop.setCategory(goodCategory);
-        } else {
-          // Needed lock is not held.  Might we have an alternative?
+        final PromiseDrop<? extends IAASTRootNode> promise = getPromiseDrop(neededLock); 
+        LockHeldResult lhr = isLockSatisfied(neededLock, heldJUCLocks);
+        if (lhr == LockHeldResult.NOT_HELD) {
+          // Needed locks is not held.  Might we have an alternative?
           if (mayHaveAlternativeLock) {
             if (alternativeLock != null) {
-              if (isLockSatisfied(alternativeLock, heldJUCLocks)) {
-                // The alternative exists and is held, so we have the "held as" message
-                resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock),
-                    true, goodAltMsgTemplate, neededLock, alternativeLock,
-                    DebugUnparser.toString(useSite));
-                resultDrop.setCategory(goodCategory);
-              } else {
-                // The alternative exists, but is not held, so we have the normal not held error
-                resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), false,
-                    badMsgTemplate, neededLock, DebugUnparser.toString(useSite));
-                resultDrop.setCategory(badCategory);
-              }
+              lhr = isLockSatisfied(alternativeLock, heldJUCLocks);
+              resultDrop = lhr.getResult(LockVisitor.this, promise,
+                  badCategory, goodCategory, badMsg,
+                  goodAltMsg, classInitAltMsg, threadConfinedAltMsg,
+                  neededLock, useSite, alternativeLock);
             } else {
               // We might, but don't, have an alternative, so we have a not resolvable error 
-              resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), false,
-                  DS_FIELD_ACCESS_NOT_RESOLVABLE_MSG,  neededLock, 
-                  DebugUnparser.toString(useSite));
+              resultDrop = makeResultDrop(useSite, promise, false,
+                  unresolvableMsg, neededLock, DebugUnparser.toString(useSite));
               resultDrop.setCategory(badCategory);
             }
           } else {
             // No alternative, so normal lock is not held error
-            resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), false,
-                badMsgTemplate, neededLock, DebugUnparser.toString(useSite));
-            resultDrop.setCategory(badCategory);
+            resultDrop = lhr.getResult(LockVisitor.this, promise,
+                badCategory, goodCategory, badMsg, goodMsg, classInitMsg,
+                threadConfinedMsg, neededLock, useSite, alternativeLock);
           }
+        } else {
+          resultDrop = lhr.getResult(LockVisitor.this, promise,
+              badCategory, goodCategory, badMsg, goodMsg, classInitMsg,
+              threadConfinedMsg, neededLock, useSite, alternativeLock);
         }
         
-        addLockAcquisitionInformation(resultDrop, ctxtTheHeldLocks, heldJUCLocks);
+        
+//        if (isLockSatisfied(neededLock, heldJUCLocks)) {
+//          resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), true,
+//              goodMsgTemplate, neededLock, DebugUnparser.toString(useSite));
+//          resultDrop.setCategory(goodCategory);
+//        } else {
+//          // Needed lock is not held.  Might we have an alternative?
+//          if (mayHaveAlternativeLock) {
+//            if (alternativeLock != null) {
+//              if (isLockSatisfied(alternativeLock, heldJUCLocks)) {
+//                // The alternative exists and is held, so we have the "held as" message
+//                resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock),
+//                    true, goodAltMsgTemplate, neededLock, alternativeLock,
+//                    DebugUnparser.toString(useSite));
+//                resultDrop.setCategory(goodCategory);
+//              } else {
+//                // The alternative exists, but is not held, so we have the normal not held error
+//                resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), false,
+//                    badMsgTemplate, neededLock, DebugUnparser.toString(useSite));
+//                resultDrop.setCategory(badCategory);
+//              }
+//            } else {
+//              // We might, but don't, have an alternative, so we have a not resolvable error 
+//              resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), false,
+//                  Messages.LockAnalysis_ds_FieldAccessNotResolvable,  neededLock, 
+//                  DebugUnparser.toString(useSite));
+//              resultDrop.setCategory(badCategory);
+//            }
+//          } else {
+//            // No alternative, so normal lock is not held error
+//            resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), false,
+//                badMsgTemplate, neededLock, DebugUnparser.toString(useSite));
+//            resultDrop.setCategory(badCategory);
+//          }
+//        }
+        
+        addLockAcquisitionInformation(resultDrop, ctxtTheHeldLocks, heldJUCLocks.heldLocks);
         if (ctxtOnBehalfOfConstructor) {
           addSupportingInformation(resultDrop, ctxtInsideConstructor,
-              DS_ON_BEHALF_OF_CONSTRUCTOR_MSG, ctxtConstructorName);
+              Messages.LockAnalysis_ds_OnBehalfOfConstructor, ctxtConstructorName);
         }
-        if (ctxtConstructorIsSingleThreaded != null) {
-          if (ctxtConstructorIsSingleThreaded) {
-            addSupportingInformation(resultDrop, ctxtInsideConstructor,
-                DS_ENCLOSING_CONSTRUCTOR_IS_SINGLE_THREADED_MSG, ctxtConstructorName);
-          } else {
-            addSupportingInformation(resultDrop, ctxtInsideConstructor,
-                DS_ENCLOSING_CONSTRUCTOR_NOT_PROVEN_SINGLE_THREADED_MSG,
-                ctxtConstructorName);
-          }
+        if (lhr == LockHeldResult.THREAD_CONFINED) {
+          /* ctxtSingleThreadedData must be non-null and 
+           * ctxtSingleThreadedData.isSingleThreaded must be true for this to
+           * be the case. 
+           */
+          ctxtSingleThreadedData.addSingleThreadedEvidence(resultDrop);
         }
-        addTrustedLockDrop(ctxtTheHeldLocks, heldJUCLocks, neededLock, resultDrop);
+//        if (ctxtConstructorIsSingleThreaded != null) {
+//          if (ctxtConstructorIsSingleThreaded) {
+//            addSupportingInformation(resultDrop, ctxtInsideConstructor,
+//                Messages.LockAnalysis_ds_EnclosingConstructorIsSingleThreaded, ctxtConstructorName);
+//          } else {
+//            addSupportingInformation(resultDrop, ctxtInsideConstructor,
+//                Messages.LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded,
+//                ctxtConstructorName);
+//          }
+//        }
+        addTrustedLockDrop(ctxtTheHeldLocks, heldJUCLocks.heldLocks, neededLock, resultDrop);
         addAdditionalEvidence(resultDrop);
       }
     }
@@ -1551,7 +1630,7 @@ implements IBinderClient {
     final IRNode enclosingMethod = getEnclosingMethod();
 
     // Get the JUC locks that are held at entry to the method call
-    final Set<HeldLock> heldJUCLocks = getHeldJUCLocks(call);
+    final MustHoldAnalysis.HeldLocks heldJUCLocks = getHeldJUCLocks(call);
 //    final Set<HeldLock> il = getHeldIntrinsicLocks(call);
     
     // Check that we hold the correct locks to call the method
@@ -1573,14 +1652,17 @@ implements IBinderClient {
       }
     };
     callChecker.assureNeededLocks(locks.goodLocks, heldJUCLocks,
-        DS_PRECONDITIONS_ASSURED_MSG, DS_PRECONDITIONS_ASSURED_ALT_MSG, DSC_PRECONDITIONS_ASSURED,
-        DS_PRECONDITIONS_NOT_ASSURED_MSG, DSC_PRECONDITIONS_NOT_ASSURED);
+        DSC_PRECONDITIONS_ASSURED, DSC_PRECONDITIONS_NOT_ASSURED,
+        Messages.LockAnalysis_ds_PreconditionsAssured, Messages.LockAnalysis_ds_PreconditionsAssuredAlternative,
+        Messages.LockAnalysis_ds_PreconditionsOkayClassInit, Messages.LockAnalysis_ds_PreconditionsOkayClassInitAlternative,
+        Messages.LockAnalysis_ds_PreconditionsOkayThreadConfined, Messages.LockAnalysis_ds_PreconditionsOkayThreadConfinedAlternative,
+        Messages.LockAnalysis_ds_PreconditionsNotAssured, Messages.LockAnalysis_ds_PreconditionsNotResolvable);
     
     // Locks that cannot be resolved lead to assurance failures
     for (final LockSpecificationNode lockSpec : locks.badLocks) {
       final ResultDropBuilder result =
         makeResultDrop(call, rlDrop, false,
-          DS_PRECONDITION_NOT_RESOLVABLE_MSG, lockSpec.toString(),
+          Messages.LockAnalysis_ds_PreconditionNotResolvable, lockSpec.toString(),
           DebugUnparser.toString(call));
       result.setCategory(DSC_PRECONDITIONS_NOT_ASSURED);
     }
@@ -1615,8 +1697,11 @@ implements IBinderClient {
       }
     };
     indirectAccessChecker.assureNeededLocks(neededLocks, heldJUCLocks,
-        DS_INDIRECT_FIELD_ACCESS_ASSURED_MSG, DS_INDIRECT_FIELD_ACCESS_ASSURED_ALT_MSG, DSC_INDIRECT_FIELD_ACCESS_ASSURED,
-        DS_INDIRECT_FIELD_ACCESS_NOT_ASSURED_MSG, DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED);
+        DSC_INDIRECT_FIELD_ACCESS_ASSURED, DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED,
+        Messages.LockAnalysis_ds_IndirectFieldAccessAssured, Messages.LockAnalysis_ds_IndirectFieldAccessAssuredAlternative,
+        Messages.LockAnalysis_ds_IndirectFieldAccessOkayClassInit, Messages.LockAnalysis_ds_IndirectFieldAccessOkayClassInitAlternative,
+        Messages.LockAnalysis_ds_IndirectFieldAccessOkayThreadConfined, Messages.LockAnalysis_ds_IndirectFieldAccessOkayThreadConfinedAlternative,
+        Messages.LockAnalysis_ds_IndirectFieldAccessNotAssured, Messages.LockAnalysis_ds_IndirectFieldAccessNotResolvable);
   }
 
   /**
@@ -1642,12 +1727,12 @@ implements IBinderClient {
     }
   }
   
-  private Set<HeldLock> getHeldJUCLocks(final IRNode node) {
+  private MustHoldAnalysis.HeldLocks getHeldJUCLocks(final IRNode node) {
     final IRNode decl = getEnclosingMethod();
     if (jucLockUsageManager.usesJUCLocks(decl)) {
       return ctxtHeldLocksQuery.getResultFor(node); // mustHold.getHeldLocks(node, constructorContext);
     } else {
-      return Collections.emptySet();
+      return MustHoldAnalysis.EMPTY_HELD_LOCKS;
     }
   }
   
@@ -1711,6 +1796,11 @@ implements IBinderClient {
      * preserve state that is used to determine locks that are currently held.
      */
 
+    /* We back up the sets of class initializer locks and thread-confined locks
+     * because we have to add the juc locks to them.
+     */
+    final Set<HeldLock> oldClassInitializationLocks = ctxtClassInitializationLocks;
+    final Set<HeldLock> oldThreadConfinedLocks = ctxtThreadConfinedLocks;
     final IRNode oldTypeDecl = ctxtTypeDecl;
     final IJavaDeclaredType oldJavaType = ctxtJavaType;
     final IRNode oldInsideMethod = ctxtInsideMethod;
@@ -1721,7 +1811,16 @@ implements IBinderClient {
     final ConflictChecker oldConflicter = ctxtConflicter;
     final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
     final IRNode oldInsideConstructor = ctxtInsideConstructor;
-    final Boolean oldConstructorIsSingleThreaded = ctxtConstructorIsSingleThreaded;
+    /* If we had some way of marking the constructor of the anonymous class 
+     * as being thread-confining, which we currently don't because we cannot
+     * but annotations on anonymous class expressions, then we would want to
+     * maintain a stack of the SingleThreadedData objects.  But since the only
+     * constructor that could possibly be single threaded is the outer most 
+     * one from a non-anonymous class, there is no point in doing that.
+     * We simply maintain the ctxtSingleThreadedData value while analyzing the
+     * initializer of the anonymous class expression. 
+     */
+//    final LockExpressions.SingleThreadedData oldSingleThreadedData = ctxtSingleThreadedData;
     final Object[] oldConstructorName = ctxtConstructorName;
     final IRNode oldTheReceiverNode = ctxtTheReceiverNode;
     final MethodCallUtils.EnclosingRefs oldEnclosingRefs = ctxtEnclosingRefs;
@@ -1745,13 +1844,26 @@ implements IBinderClient {
              * in the anonymous class expression will only be of the <init> method.
              * The easiest way to make the locks held at the calling context visible
              * inside the recursive analysis is to push them on the stack.
+             * 
+             * Also, for the same reason we add the class initializer and
+             * thread-confined locks to the existing parallel sets of intrinsic 
+             * locks.
              */
             // XXX: Need to do this before we update ctxtInsideMethod, ctxtInsideConstructor
             // XXX: because they are used by getEnclosingMethod(), which is called by
             // XXX: getHeldJUCLocks.
+            final HeldLocks heldJUCLocks = getHeldJUCLocks(expr);
             final LockStackFrame frame = ctxtTheHeldLocks.pushNewFrame();
-            frame.push(getHeldJUCLocks(expr));
-
+            frame.push(heldJUCLocks.heldLocks);
+            
+            ctxtClassInitializationLocks = new HashSet<HeldLock>();
+            if (oldClassInitializationLocks != null) ctxtClassInitializationLocks.addAll(oldClassInitializationLocks);
+            ctxtClassInitializationLocks.addAll(heldJUCLocks.classInitLocks);
+            
+            ctxtThreadConfinedLocks = new HashSet<HeldLock>();
+            if (oldThreadConfinedLocks != null) ctxtThreadConfinedLocks.addAll(oldThreadConfinedLocks);
+            ctxtThreadConfinedLocks.addAll(heldJUCLocks.singleThreadedLocks);
+            
             /* The information needed for checking returned locks can be preserved, it 
              * is not needed by the recursive visitation because we will only visit
              * field initializers and instance initializers.
@@ -1772,12 +1884,13 @@ implements IBinderClient {
             ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
             ctxtOnBehalfOfConstructor = false;
             ctxtInsideConstructor = null;
-            ctxtConstructorIsSingleThreaded = null;
             ctxtConstructorName = null;
           }
           
           public void finallyAfter() {
             // restore the global state
+            ctxtClassInitializationLocks = oldClassInitializationLocks;
+            ctxtThreadConfinedLocks = oldThreadConfinedLocks;
             ctxtTheHeldLocks.popFrame();
             ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
             ctxtEnclosingRefs = oldEnclosingRefs;
@@ -1791,87 +1904,11 @@ implements IBinderClient {
             ctxtConflicter = oldConflicter;
             ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
             ctxtInsideConstructor = oldInsideConstructor;
-            ctxtConstructorIsSingleThreaded = oldConstructorIsSingleThreaded;
             ctxtConstructorName = oldConstructorName;
             ctxtTheReceiverNode = oldTheReceiverNode;
           }
         });
-    
-//    try {
-//      ctxtInsideAnonClassExpr = true;
-//      // Create the substitution map
-//      ctxtEnclosingRefs = MethodCallUtils.getEnclosingInstanceReferences(
-//          binder, thisExprBinder, expr, oldTheReceiverNode, getEnclosingMethod());
-//
-//      /* Update the type being analyzed to be the anonymous class expression */
-//      ctxtTypeDecl = expr;
-//      ctxtJavaType = JavaTypeFactory.getMyThisType(ctxtTypeDecl);
-//      
-//      /* We have to push any JUC locks held at the point of the anonymous class
-//       * expression onto the lock stack.  This is because the control flow
-//       * analysis inside the anonymous class expression is distinct from that
-//       * in the calling context.  Specifically, in the control flow analysis 
-//       * in the anonymous class expression will only be of the <init> method.
-//       * The easiest way to make the locks held at the calling context visible
-//       * inside the recursive analysis is to push them on the stack.
-//       */
-//      // XXX: Need to do this before we update ctxtInsideMethod, ctxtInsideConstructor
-//      // XXX: because they are used by getEnclosingMethod(), which is called by
-//      // XXX: getHeldJUCLocks.
-//      final LockStackFrame frame = ctxtTheHeldLocks.pushNewFrame();
-//      frame.push(getHeldJUCLocks(expr));
-//
-//      /* The information needed for checking returned locks can be preserved, it 
-//       * is not needed by the recursive visitation because we will only visit
-//       * field initializers and instance initializers.
-//       */
-//      // ctxtReturnedLock = ctxtReturnedLock;
-//      // ctxtReturnsLockDrop = ctxtReturnsLockDrop;
-//      /* left hand side is irrelevant here. */
-//      // ctxtIsLHS = ctxtIsLHS;
-//      /* The recursive visit is analyzing as the implicit initialization method 
-//       * for the class.  We set the receiver accordingly.
-//       */
-//      ctxtInsideMethod = JavaPromise.getInitMethodOrNull(expr);
-//      /* MUST update receiver node before creating the flow analyses because
-//       * they indirectly use this field via the this expression binder object
-//       * used by the lock factories.  They have access to this factories via
-//       * the lock utils object and the juc lock usage manager.
-//       */
-//      ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(ctxtInsideMethod);
-//      ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
-//      updateJUCAnalysisQueries(ctxtInsideMethod, false);
-//      ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
-//      ctxtOnBehalfOfConstructor = false;
-//      ctxtInsideConstructor = null;
-//      ctxtConstructorIsSingleThreaded = null;
-//      ctxtConstructorName = null;
-//      
-//      // Begin the recursive visit of the anonymous class's initialization
-//      final InstanceInitVisitor<Void> initVisitor = new InstanceInitVisitor<Void>(this);
-//      /* Call doAccept directly instead of using doVisitInstanceInits because
-//       * there is no explicit constructor.
-//       */
-//      initVisitor.doAccept(AnonClassExpression.getBody(expr));
-//    } finally {
-//      // restore the global state
-//      ctxtTheHeldLocks.popFrame();
-//      ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
-//      ctxtEnclosingRefs = oldEnclosingRefs;
-//      ctxtTypeDecl = oldTypeDecl;
-//      ctxtJavaType = oldJavaType;
-//      ctxtInsideMethod = oldInsideMethod;
-//      ctxtBcaQuery = oldBcaQuery;
-//      ctxtMustHoldQueries = oldMHQ;
-//      ctxtMustReleaseQuery = oldMRQ;
-//      ctxtConflicter = oldConflicter;
-//      ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
-//      ctxtInsideConstructor = oldInsideConstructor;
-//      ctxtConstructorIsSingleThreaded = oldConstructorIsSingleThreaded;
-//      ctxtConstructorName = oldConstructorName;
-//      ctxtTheReceiverNode = oldTheReceiverNode;
-//    }
-    
+        
     return null;
   }
 
@@ -1883,7 +1920,6 @@ implements IBinderClient {
     this.ctxtIsLHS = false;
 
     dereferencesSafeObject(expr);
-//    assureRegionRef(expr, lockUtils.getLockForArrayRef(expr, isWrite));
     assureRegionRef(expr, 
         lockUtils.getLocksForDirectRegionAccess(ctxtBcaQuery, expr, !isWrite,
             lockUtils.createInstanceTarget(
@@ -1925,13 +1961,16 @@ implements IBinderClient {
       ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideConstructor);
       // The receiver is non-existent
       ctxtTheReceiverNode = null;
+      // We the static locks are held
+      ctxtClassInitializationLocks = convertStaticInitializerBlock(expr, ctxtJavaType);
       
       try {
-        final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
-        convertStaticInitializerBlock(expr, ctxtJavaType, syncFrame);
+//        final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
+//        convertStaticInitializerBlock(expr, ctxtJavaType, syncFrame);
         doAcceptForChildren(expr);
       } finally {
-        ctxtTheHeldLocks.popFrame();
+//        ctxtTheHeldLocks.popFrame();
+        ctxtClassInitializationLocks = null;
         ctxtInsideMethod = null;
         ctxtBcaQuery = null;
         ctxtHeldLocksQuery = null;
@@ -1997,46 +2036,42 @@ implements IBinderClient {
       ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, cdecl);
       ctxtConstructorName =
         new Object[] { JavaNames.genMethodConstructorName(cdecl) };
-
-      final LockExpressions.SingleThreadedData singleThreadedData =
-        jucLockUsageManager.getSingleThreadedData(cdecl);
-      final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
-      ctxtConstructorIsSingleThreaded =
-        Boolean.valueOf(singleThreadedData.isSingleThreaded);
-      if (singleThreadedData.isSingleThreaded) {
-        convertSingleThreadedConstructor(cdecl, ctxtJavaType, syncFrame);
-        final Iterator<StackLock> locks = syncFrame.iterator();
-        final Set<HeldLock> jucLocks = jucLockUsageManager.getJUCSingleThreaded(cdecl);
-        if (locks.hasNext() || !jucLocks.isEmpty()) { // May not have any locks at all
-          final ResultDropBuilder result = ResultDropBuilder.create(analysisRoot,
-              Integer.toString(DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG));
-          result.setResultMessage(DS_CONSTRUCTOR_IS_SINGLE_THREADED_MSG,
-              JavaNames.genMethodConstructorName(cdecl));
-          setLockResultDep(result, cdecl);
-          result.setConsistent();
-          
-          if (singleThreadedData.isUniqueReturn) {
-            result.addTrustedPromise_or(DS_SINGLE_THREADED_UNIQUE_RETURN, singleThreadedData.uDrop);
-          }
-          if (singleThreadedData.isBorrowedThis) {
-            result.addTrustedPromise_or(DS_SINGLE_THREADED_BORROWED_RECEIVER, singleThreadedData.bDrop);
-          }
-          if (singleThreadedData.isEffects) {
-            // Note: "by effects" has to be the same string to "and" the "or"
-            result.addTrustedPromise_or(DS_SINGLE_THREADED_EFFECTS, singleThreadedData.eDrop);
-            result.addTrustedPromise_or(DS_SINGLE_THREADED_EFFECTS, singleThreadedData.teDrop);
-          }
-          
-          // Handle the intrinsic locks
-          while (locks.hasNext()) {
-            final StackLock sl = locks.next();
-            result.addCheckedPromise(sl.lock.getLockPromise());
-          }
-          // Handle the juc locks
-          for (final HeldLock hl : jucLocks) {
-            result.addCheckedPromise(hl.getLockPromise());
-          }          
-        }
+      ctxtSingleThreadedData = jucLockUsageManager.getSingleThreadedData(cdecl);
+      
+      if (ctxtSingleThreadedData.isSingleThreaded) {
+        ctxtThreadConfinedLocks = convertSingleThreadedConstructor(cdecl, ctxtJavaType);
+//        final Iterator<StackLock> locks = syncFrame.iterator();
+//        final Set<HeldLock> jucLocks = jucLockUsageManager.getJUCSingleThreaded(cdecl);
+//        if (locks.hasNext() || !jucLocks.isEmpty()) { // May not have any locks at all
+//          final ResultDropBuilder result = ResultDropBuilder.create(analysisRoot,
+//              Integer.toString(Messages.LockAnalysis_ds_ConstructorIsSingleThreaded));
+//          result.setResultMessage(Messages.LockAnalysis_ds_ConstructorIsSingleThreaded,
+//              JavaNames.genMethodConstructorName(cdecl));
+//          setLockResultDep(result, cdecl);
+//          result.setConsistent();
+//          
+//          if (singleThreadedData.isUniqueReturn) {
+//            result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedUniqueReturn, singleThreadedData.uDrop);
+//          }
+//          if (singleThreadedData.isBorrowedThis) {
+//            result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedBorrowedThis, singleThreadedData.bDrop);
+//          }
+//          if (singleThreadedData.isEffects) {
+//            // Note: "by effects" has to be the same string to "and" the "or"
+//            result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedEffects, singleThreadedData.eDrop);
+//            result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedEffects, singleThreadedData.teDrop);
+//          }
+//          
+//          // Handle the intrinsic locks
+//          while (locks.hasNext()) {
+//            final StackLock sl = locks.next();
+//            result.addCheckedPromise(sl.lock.getLockPromise());
+//          }
+//          // Handle the juc locks
+//          for (final HeldLock hl : jucLocks) {
+//            result.addCheckedPromise(hl.getLockPromise());
+//          }          
+//        }
       }
 
       // Add locks from lock preconditions to the lock context
@@ -2063,9 +2098,8 @@ implements IBinderClient {
       ctxtBcaQuery = null;
       ctxtConflicter = null;
       ctxtConstructorName = null;
-      ctxtConstructorIsSingleThreaded = null;
-      // Remove single-threaded locks 
-      ctxtTheHeldLocks.popFrame();
+      ctxtSingleThreadedData = null;
+      ctxtThreadConfinedLocks = null;
     }
 
     return null;
@@ -2139,7 +2173,7 @@ implements IBinderClient {
     final LockMethods lockMethod = lockUtils.whichLockMethod(expr);
     if (lockMethod == LockMethods.IDENTICALLY_NAMED_METHOD) {
       // Warn about the use of lock()/unlock() methods that aren't from the lock class
-      makeWarningDrop(DSC_NOT_A_LOCK_METHOD, expr, DS_MASQUERADING_CALL, DebugUnparser.toString(expr));
+      makeWarningDrop(DSC_NOT_A_LOCK_METHOD, expr, Messages.LockAnalysis_ds_MasqueradingCall, DebugUnparser.toString(expr));
     } else if (lockMethod != LockMethods.NOT_A_LOCK_METHOD) {
       final IRNode object = call.get_Object(expr);
       final IRNode enclosingMethod = getEnclosingMethod();
@@ -2148,26 +2182,26 @@ implements IBinderClient {
         lockUtils.convertJUCLockExpr(object, enclosingMethod, null, lockSet);
         if (lockSet.isEmpty()) {
           makeWarningDrop(DSC_UNIDENTIFIABLE_LOCK_WARNING, object,
-              DS_UNIDENTIFIABLE_LOCK_MSG, DebugUnparser.toString(object));
+              Messages.LockAnalysis_ds_UnidentifiableLock, DebugUnparser.toString(object));
         }
         
         /* If it is a lock() call, look for the matching unlock() calls. */
         if (lockMethod.isLock) {
           final Set<IRNode> unlocks = ctxtMustReleaseQuery.getResultFor(expr); //  mustRelease.getUnlocksFor(expr);
           if (unlocks == null) { // POISONED!
-            final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_LOCK_CALL, lockMethod.name);
+            final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, Messages.LockAnalysis_ds_PoisonedLockCall, lockMethod.name);
             for (HeldLock lock : lockSet) {
             	match.addDependUponDrop(lock.getLockPromise());
             }
           } else {
             if (unlocks.isEmpty()) {
-            	final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_UNLOCKS, lockMethod.name);
+            	final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, Messages.LockAnalysis_ds_NoMatchingUnlocks, lockMethod.name);
               for (HeldLock lock : lockSet) {
             	  match.addDependUponDrop(lock.getLockPromise());
               }
             } else {
               for (IRNode n : unlocks) {
-            	  final InfoDropBuilder match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_MATCHING_UNLOCK,
+            	  final InfoDropBuilder match = makeInfoDrop(DSC_MATCHING_CALLS, expr, Messages.LockAnalysis_ds_MatchingUnlock,
                     lockMethod.name, JavaNode.getSrcRef(n).getLineNumber());
                 for (HeldLock lock : lockSet) {
                 	match.addDependUponDrop(lock.getLockPromise());
@@ -2181,19 +2215,19 @@ implements IBinderClient {
         if (lockMethod == LockMethods.UNLOCK) {
           final Set<IRNode> locks = ctxtLocksForQuery.getResultFor(expr); // mustHold.getLocksFor(expr);
           if (locks == null) { // POISONED!
-        	  final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_POISONED_UNLOCK_CALL);
+        	  final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, Messages.LockAnalysis_ds_PoisonedUnlockCall);
             for (HeldLock lock : lockSet) {
             	match.addDependUponDrop(lock.getLockPromise());
             }
           } else {
             if (locks.isEmpty()) {
-              final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, DS_NO_MATCHING_LOCKS);
+              final InfoDropBuilder match = makeWarningDrop(DSC_MATCHING_CALLS, expr, Messages.LockAnalysis_ds_NoMatchingLocks);
               for (HeldLock lock : lockSet) {
             	  match.addDependUponDrop(lock.getLockPromise());
               }
             } else {
               for (IRNode n : locks) {
-                final InfoDropBuilder match = makeInfoDrop(DSC_MATCHING_CALLS, expr, DS_MATCHING_LOCK,
+                final InfoDropBuilder match = makeInfoDrop(DSC_MATCHING_CALLS, expr, Messages.LockAnalysis_ds_MatchingLock,
                     MethodCall.getMethod(n), JavaNode.getSrcRef(n).getLineNumber());
                 for (HeldLock lock : lockSet) {
                 	match.addDependUponDrop(lock.getLockPromise());
@@ -2204,7 +2238,7 @@ implements IBinderClient {
         }
       } else {
         makeWarningDrop(DSC_NONFINAL_EXPRESSION_WARNING, expr,
-            DS_NONFINAL_EXPRESSION_MSG, DebugUnparser.toString(expr));
+            Messages.LockAnalysis_ds_NonfinalExpression, DebugUnparser.toString(expr));
       }
     }
     
@@ -2212,7 +2246,7 @@ implements IBinderClient {
     final ReadWriteLockMethods rwLockMethod = lockUtils.whichReadWriteLockMethod(expr);
     if (rwLockMethod == ReadWriteLockMethods.IDENTICALLY_NAMED_METHOD) {
       // Warn about the use of lock()/unlock() methods that aren't from the lock class
-      makeWarningDrop(DSC_NOT_A_LOCK_METHOD, expr, DS_MASQUERADING_CALL2, DebugUnparser.toString(expr));
+      makeWarningDrop(DSC_NOT_A_LOCK_METHOD, expr, Messages.LockAnalysis_ds_MasqueradingCall2, DebugUnparser.toString(expr));
     }
     
     /* Proceed with normal assurance of the method call */
@@ -2265,12 +2299,12 @@ implements IBinderClient {
         if (justMUTEX && !syncLockIsPolicyLock) {
           if (TypeUtil.isStatic(mdecl)) {
             makeWarningDrop(DSC_UNIDENTIFIABLE_LOCK_WARNING, mdecl,
-                DS_SYNCHRONIZED_STATIC_METHOD_WARNING_MSG,
+                Messages.LockAnalysis_ds_SynchronizedStaticMethodWarningDetails,
                 JavaNames.genMethodConstructorName(mdecl),
                 JavaNames.getTypeName(ctxtTypeDecl));
           } else {
             makeWarningDrop(DSC_UNIDENTIFIABLE_LOCK_WARNING, mdecl,
-                DS_SYNCHRONIZED_METHOD_WARNING_MSG,
+                Messages.LockAnalysis_ds_SynchronizedMethodWarningDetails,
                 JavaNames.genMethodConstructorName(mdecl));
           }
         } else {
@@ -2307,7 +2341,7 @@ implements IBinderClient {
       if (syncLockIsIdentifiable && !syncLockIsPolicyLock
           && !syncFrame.isNeeded()) {
         final InfoDropBuilder info = makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING,
-            mdecl, DS_SYNCHRONIZED_UNUSED_MSG, syncFrame);
+            mdecl, Messages.LockAnalysis_ds_SynchronizationUnused, syncFrame);
         for (final StackLock stackLock : syncFrame) {
           info.addDependUponDrop(stackLock.lock.getLockPromise());
         }
@@ -2417,7 +2451,7 @@ implements IBinderClient {
       if (correct) {
         if (ctxtReturnsLockDrop != null) {
           final ResultDropBuilder result = makeResultDrop(rstmt,
-              ctxtReturnsLockDrop, true, DS_RETURN_ASSURED_MSG,
+              ctxtReturnsLockDrop, true, Messages.LockAnalysis_ds_ReturnAssured,
               ctxtReturnedLock);
           result.setCategory(DSC_RETURN_ASSURED);
         } else {
@@ -2426,7 +2460,7 @@ implements IBinderClient {
       } else {
         if (ctxtReturnsLockDrop != null) {
           final ResultDropBuilder result = makeResultDrop(rstmt,
-              ctxtReturnsLockDrop, false, DS_RETURN_NOT_ASSURED_MSG,
+              ctxtReturnsLockDrop, false, Messages.LockAnalysis_ds_ReturnNotAssured,
               ctxtReturnedLock);
           result.setCategory(DSC_RETURN_NOT_ASSURED);
         } else {
@@ -2458,7 +2492,7 @@ implements IBinderClient {
       if (lockUtils.implementsLock(typeOfLockExpr) ||
           lockUtils.implementsReadWriteLock(typeOfLockExpr)) {
         makeWarningDrop(DSC_MIXED_PARADIGM, lockExpr,
-            DS_SYNCED_JUCLOCK, DebugUnparser.toString(lockExpr));
+            Messages.LockAnalysis_ds_SyncedJUCLock, DebugUnparser.toString(lockExpr));
         lockIsIdentifiable = false;
       } else { // possible intrinsic lock
         // Only decode the lock if it is a final expression
@@ -2484,7 +2518,7 @@ implements IBinderClient {
             // Complain if the lock acquisition is potentially redundant
             if (ctxtTheHeldLocks.oldFramesContainLock(guard.lock, thisExprBinder, binder)) {
               final InfoDropBuilder info = makeWarningDrop(DSC_REDUNDANT_SYNCHRONIZED, syncBlock,
-                  DS_REDUNDANT_SYNCHRONIZED_MSG, guard.lock);
+                  Messages.LockAnalysis_ds_RedundantSynchronized, guard.lock);
               info.addDependUponDrop(guard.lock.getLockPromise());
             }
           }
@@ -2511,7 +2545,7 @@ implements IBinderClient {
             if (!lockFields.isEmpty()) {
               // (1)            
               makeWarningDrop(DSC_MIXED_PARADIGM, lockExpr,
-            	  lockFields.size()>1 ? DS_JUC_LOCK_FIELDS2 : DS_JUC_LOCK_FIELDS,
+            	  lockFields.size()>1 ? Messages.LockAnalysis_ds_JUCLockFields : Messages.LockAnalysis_ds_JUCLockFields,
                   DebugUnparser.toString(lockExpr), 
                   fieldsToString(lockFields));
               
@@ -2526,7 +2560,7 @@ implements IBinderClient {
                         (IJavaDeclaredType) typeOfLockExpr, varDecl)) {
                     final InfoDropBuilder warning = makeWarningDrop(
                         DSC_MIXED_PARADIGM, lockExpr,
-                        DS_DECLARED_JUC_LOCK_FIELD,
+                        Messages.LockAnalysis_ds_DeclaredJUCLockField,
                         DebugUnparser.toString(lockExpr),
                         VariableDeclarator.getId(lockRecord.lockImpl),
                         lockRecord.name);
@@ -2536,13 +2570,13 @@ implements IBinderClient {
               }
             } else {
               makeWarningDrop(DSC_UNIDENTIFIABLE_LOCK_WARNING, lockExpr,
-                  DS_UNIDENTIFIABLE_LOCK_MSG, DebugUnparser.toString(lockExpr));
+                  Messages.LockAnalysis_ds_UnidentifiableLock, DebugUnparser.toString(lockExpr));
             }
             lockIsIdentifiable = false;
           }
         } else { // Non-final lock expression -> warning!
           makeWarningDrop(DSC_NONFINAL_EXPRESSION_WARNING, lockExpr,
-              DS_NONFINAL_EXPRESSION_MSG, DebugUnparser.toString(lockExpr));
+              Messages.LockAnalysis_ds_NonfinalExpression, DebugUnparser.toString(lockExpr));
           lockIsIdentifiable = false;
         }
       }
@@ -2553,7 +2587,7 @@ implements IBinderClient {
       // check to see if the synchronization was used for anything
       if (lockIsIdentifiable && !lockIsPolicyLock && !syncFrame.isNeeded()) {
         final InfoDropBuilder info = makeWarningDrop(DSC_SYNCHRONIZED_UNUSED_WARNING,
-            syncBlock, DS_SYNCHRONIZED_UNUSED_MSG, syncFrame);
+            syncBlock, Messages.LockAnalysis_ds_SynchronizationUnused, syncFrame);
         for (final StackLock stackLock : syncFrame) {
         	info.addDependUponDrop(stackLock.lock.getLockPromise());
         }
@@ -2632,13 +2666,14 @@ implements IBinderClient {
             ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
             updateJUCAnalysisQueries(ctxtInsideMethod);
             ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
+            ctxtClassInitializationLocks = convertStaticInitializerBlock(varDecl, ctxtJavaType);
           }
           // Don't worry about initialization of final variables/fields
-          final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
+//          final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
           try {
-            if (isStaticDeclaration) {
-              convertStaticInitializerBlock(varDecl, ctxtJavaType, syncFrame);
-            }
+//            if (isStaticDeclaration) {
+//              convertStaticInitializerBlock(varDecl, ctxtJavaType, syncFrame);
+//            }
             // Only non-final fields need to be protected
             if (!TypeUtil.isFinal(varDecl)) {
               final IRegion fieldAsRegion = RegionModel.getInstance(varDecl);
@@ -2654,8 +2689,9 @@ implements IBinderClient {
             // analyze the the RHS of the initialization
             doAcceptForChildren(varDecl);
           } finally {
-            ctxtTheHeldLocks.popFrame();
+//            ctxtTheHeldLocks.popFrame();
             if (isStaticDeclaration) {
+              ctxtClassInitializationLocks = null;
               ctxtInsideMethod = null;
               ctxtBcaQuery = null;
               ctxtHeldLocksQuery = null;

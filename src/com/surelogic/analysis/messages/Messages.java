@@ -64,12 +64,30 @@ public class Messages extends AbstractMessages {
 
   public static int LockAnalysis_ds_FieldAccessNotResolvable = 206;
 
+  public static int LockAnalysis_ds_FieldAccessOkayClassInit = 244;
+  
+  public static int LockAnalysis_ds_FieldAccessOkayThreadConfined = 245;
+  
+  public static int LockAnalysis_ds_FieldAccessOkayClassInitAlternative = 246;
+  
+  public static int LockAnalysis_ds_FieldAccessOkayThreadConfinedAlternative = 247;
+  
   public static int LockAnalysis_ds_PreconditionsAssured = 207;
 
   public static int LockAnalysis_ds_PreconditionsAssuredAlternative = 208;
 
   public static int LockAnalysis_ds_PreconditionsNotAssured = 209;
 
+  public static int LockAnalysis_ds_PreconditionsNotResolvable = 242;
+  
+  public static int LockAnalysis_ds_PreconditionsOkayClassInit = 248;
+  
+  public static int LockAnalysis_ds_PreconditionsOkayThreadConfined = 249;
+  
+  public static int LockAnalysis_ds_PreconditionsOkayClassInitAlternative = 250;
+  
+  public static int LockAnalysis_ds_PreconditionsOkayThreadConfinedAlternative = 251;
+  
   public static int LockAnalysis_ds_PreconditionNotResolvable = 210;
 
   public static int LockAnalysis_ds_IndirectFieldAccessAssured = 211;
@@ -78,6 +96,16 @@ public class Messages extends AbstractMessages {
 
   public static int LockAnalysis_ds_IndirectFieldAccessNotAssured = 213;
 
+  public static int LockAnalysis_ds_IndirectFieldAccessNotResolvable = 243;
+  
+  public static int LockAnalysis_ds_IndirectFieldAccessOkayClassInit = 252;
+  
+  public static int LockAnalysis_ds_IndirectFieldAccessOkayThreadConfined = 253;
+  
+  public static int LockAnalysis_ds_IndirectFieldAccessOkayClassInitAlternative = 254;
+  
+  public static int LockAnalysis_ds_IndirectFieldAccessOkayThreadConfinedAlternative = 255;
+  
   public static int LockAnalysis_ds_ReturnAssured = 214;
 
   public static int LockAnalysis_ds_ReturnNotAssured = 215;

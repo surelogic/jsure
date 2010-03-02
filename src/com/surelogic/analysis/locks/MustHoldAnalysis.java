@@ -1,5 +1,6 @@
 package com.surelogic.analysis.locks;
 
+import java.util.Collections;
 import java.util.Set;
 
 import com.surelogic.analysis.ThisExpressionBinder;
@@ -30,6 +31,24 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class MustHoldAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice, MustHoldAnalysis.Analysis> {
+  public final static HeldLocks EMPTY_HELD_LOCKS = new HeldLocks(
+      Collections.<HeldLock>emptySet(),
+      Collections.<HeldLock>emptySet(),
+      Collections.<HeldLock>emptySet());
+  
+  public final static class HeldLocks {
+    public final Set<HeldLock> heldLocks;
+    public final Set<HeldLock> classInitLocks;
+    public final Set<HeldLock> singleThreadedLocks;
+    
+    public HeldLocks(final Set<HeldLock> held, final Set<HeldLock> classInit,
+        final Set<HeldLock> singleThreaded) {
+      heldLocks = held;
+      classInitLocks = classInit;
+      singleThreadedLocks = singleThreaded;
+    }
+  }
+  
   public final class LocksForQuery implements AnalysisQuery<Set<IRNode>> {
     private final Analysis analysis;
     private final MustHoldLattice lattice;
@@ -63,7 +82,7 @@ public final class MustHoldAnalysis extends
     }
   }
   
-  public final class HeldLocksQuery implements AnalysisQuery<Set<HeldLock>> {
+  public final class HeldLocksQuery implements AnalysisQuery<HeldLocks> {
     private final Analysis analysis;
     private final MustHoldLattice lattice;
     
@@ -76,9 +95,12 @@ public final class MustHoldAnalysis extends
       this(getAnalysis(flowUnit));
     }
     
-    public Set<HeldLock> getResultFor(final IRNode node) {
+    public HeldLocks getResultFor(final IRNode node) {
       final ImmutableList<ImmutableSet<IRNode>>[] value = analysis.getAfter(node, WhichPort.ENTRY);
-      return lattice.getHeldLocks(value);
+      return new HeldLocks(
+          lattice.getHeldLocks(value),
+          lattice.getClassInit(),
+          lattice.getSingleThreaded());
     }
 
     public HeldLocksQuery getSubAnalysisQuery() {
@@ -391,25 +413,25 @@ public final class MustHoldAnalysis extends
         }
       }
       
-      for (HeldLock stLock : lattice.getSingleThreaded()) {
-        final int idx = lattice.getIndexOf(stLock, thisExprBinder, binder);
-        if (idx != -1) {
-          // Push lock (from being a single-threaded constructor) onto the stack as a new singleton set
-          initValue = lattice.replaceValue(initValue, idx,
-              lattice.getBaseLattice().push(initValue[idx],
-                  ImmutableHashOrderSet.<IRNode>emptySet().addCopy(flowUnit)));
-        }
-      }
+//      for (HeldLock stLock : lattice.getSingleThreaded()) {
+//        final int idx = lattice.getIndexOf(stLock, thisExprBinder, binder);
+//        if (idx != -1) {
+//          // Push lock (from being a single-threaded constructor) onto the stack as a new singleton set
+//          initValue = lattice.replaceValue(initValue, idx,
+//              lattice.getBaseLattice().push(initValue[idx],
+//                  ImmutableHashOrderSet.<IRNode>emptySet().addCopy(flowUnit)));
+//        }
+//      }
       
-      for (HeldLock ciLock : lattice.getClassInit()) {
-        final int idx = lattice.getIndexOf(ciLock, thisExprBinder, binder);
-        if (idx != -1) {
-          // Push lock (from being a class initializer) onto the stack as a new singleton set
-          initValue = lattice.replaceValue(initValue, idx,
-              lattice.getBaseLattice().push(initValue[idx],
-                  ImmutableHashOrderSet.<IRNode>emptySet().addCopy(flowUnit)));
-        }
-      }
+//      for (HeldLock ciLock : lattice.getClassInit()) {
+//        final int idx = lattice.getIndexOf(ciLock, thisExprBinder, binder);
+//        if (idx != -1) {
+//          // Push lock (from being a class initializer) onto the stack as a new singleton set
+//          initValue = lattice.replaceValue(initValue, idx,
+//              lattice.getBaseLattice().push(initValue[idx],
+//                  ImmutableHashOrderSet.<IRNode>emptySet().addCopy(flowUnit)));
+//        }
+//      }
       
       return initValue;
     }

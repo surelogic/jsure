@@ -1539,7 +1539,7 @@ public final class LockUtils {
   public void getClassInitLocks(
       final HowToProcessLocks howTo, final IRNode classInitDecl,
       final IJavaDeclaredType classBeingInitialized, final Set<HeldLock> assumedLocks) {
-    /* Go through all the STATE locks in the class and pick out all the JUC
+    /* Go through all the STATE locks in the class and pick out all the
      * locks that protect static regions. 
      */
     final Set<RegionLockRecord> records =

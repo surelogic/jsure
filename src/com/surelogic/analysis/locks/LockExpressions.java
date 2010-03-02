@@ -10,6 +10,7 @@ import java.util.Set;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
+import com.surelogic.analysis.messages.Messages;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -29,6 +30,7 @@ import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
+import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -77,6 +79,20 @@ final class LockExpressions {
       this.eDrop = eDrop;
       this.teDrop = teDrop;
       this.isSingleThreaded = isUniqueReturn || isBorrowedThis || isEffects;
+    }
+    
+    public void addSingleThreadedEvidence(final ResultDropBuilder result) {
+      if (isUniqueReturn) {
+        result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedUniqueReturn, uDrop);
+      }
+      if (isBorrowedThis) {
+        result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedBorrowedThis, bDrop);
+      }
+      if (isEffects) {
+        // Note: "by effects" has to be the same string to "and" the "or"
+        result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedEffects, eDrop);
+        result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedEffects, teDrop);
+      }
     }
   }
   
@@ -298,9 +314,6 @@ final class LockExpressions {
       // Analyze the initialization of the instance
       enclosingFlowUnit = cdecl;
       try {
-        // we now analyze the initializers from visitConstructorCall
-//        final InitializationVisitor helper = new InitializationVisitor(false);
-//        helper.doAcceptForChildren(JJNode.tree.getParent(cdecl));
         // Analyze the body of the constructor
         doAcceptForChildren(cdecl);
       } finally {
