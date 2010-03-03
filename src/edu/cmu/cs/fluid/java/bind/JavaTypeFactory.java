@@ -270,7 +270,8 @@ public class JavaTypeFactory implements IRType, Cleanable {
     		throw new IllegalArgumentException();
     	}
     }
-    if (TypeFormal.prototype.includes(decl)) {
+    Operator op = JJNode.tree.getOperator(decl);
+    if (TypeFormal.prototype.includes(op) || !(op instanceof TypeDeclaration || op instanceof AnonClassExpression)) {
       throw new IllegalArgumentException();
     }
     IJavaDeclaredType result = ((JavaDeclaredType)outer).getNestedType(decl,params);
