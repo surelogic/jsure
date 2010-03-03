@@ -196,6 +196,8 @@ public final class LocalTarget extends AbstractTarget {
 	 */
   @Override
   public int hashCode() {
-    return var.hashCode();
+    int result = 17;
+    result = 31 * result + var.hashCode();
+    return result;
   }
 }

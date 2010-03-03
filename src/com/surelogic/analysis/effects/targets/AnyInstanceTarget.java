@@ -225,6 +225,9 @@ public final class AnyInstanceTarget extends AbstractTarget {
    */
   @Override
   public int hashCode() {
-    return clazz.hashCode() + region.hashCode();
+    int result = 17;
+    result = 31 * result + clazz.hashCode();
+    result = 31 * result + region.hashCode();
+    return result;
   }
 }

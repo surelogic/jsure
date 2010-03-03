@@ -194,6 +194,8 @@ public final class ClassTarget extends AbstractTarget {
 	 */
   @Override
   public int hashCode() {
-    return region.hashCode();
+    int result = 17;
+    result = 31 * result + region.hashCode();
+    return result;
   }
 }

@@ -311,8 +311,9 @@ public final class InstanceTarget extends AbstractTarget {
 	 */
   @Override
   public int hashCode() {
-    final int hc1 = (reference == null) ? 0 : reference.hashCode();
-    final int hc2 = (region == null) ? 0 : region.hashCode();
-    return hc1 + hc2;
+    int result = 17;
+    result = 31 * result + ((reference == null) ? 0 : reference.hashCode());
+    result = 31 * result + ((region == null) ? 0 : region.hashCode());
+    return result;
   }
 }
