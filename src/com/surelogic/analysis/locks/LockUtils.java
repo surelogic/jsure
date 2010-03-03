@@ -541,7 +541,7 @@ public final class LockUtils {
       final IRNode array, final IRNode sync, final IRNode compareBeforeNode) {
     if (sync != null) {
       final Set<Effect> exprEffects =
-        Collections.singleton(Effect.newRead(targetFactory.createInstanceTarget(array, elementRegion)));
+        Collections.singleton(Effect.newRead(null, targetFactory.createInstanceTarget(array, elementRegion)));
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
       return conflicter.mayConflict(bodyEffects, exprEffects, compareBeforeNode);
     } else {
@@ -720,7 +720,9 @@ public final class LockUtils {
     final Set<Effect> elaboratedEffects =
       Effects.elaborateEffect(bcaQuery, targetFactory, binder, srcNode, isRead, target);
     for (final Effect effect : elaboratedEffects) {
-      getLocksFromEffect(effect, neededLocks);
+      if (!effect.isEmpty()) {
+        getLocksFromEffect(effect, neededLocks);
+      }
     }
   }
 
@@ -828,14 +830,16 @@ public final class LockUtils {
      */
     final Set<Effect> callFx = effects.getMethodCallEffects(mcall, enclosingDecl, false); 
     for (final Effect effect : callFx) {
-      if (effect.isTargetAggregated()) {
+      if (effect.isEmpty()) {
+        continue;
+      } else if (effect.isTargetAggregated()) {
         getLocksFromEffect(effect, result);
       } else {
         final Target target = effect.getTarget();
         if (target instanceof ClassTarget || target instanceof AnyInstanceTarget) {
           for (final Target exposedTarget : exposedTargets) {
             if (conflicter.doTargetsOverlap(target, exposedTarget, exposedTarget.getReference())) {
-              getLocksForDirectRegionAccess(bcaQuery, mcall, effect.isReadEffect(), exposedTarget, result);
+              getLocksForDirectRegionAccess(bcaQuery, mcall, effect.isRead(), exposedTarget, result);
             }
           }
         }
@@ -891,7 +895,7 @@ public final class LockUtils {
       }
     }
     
-    final boolean isWrite = effect.isWriteEffect();
+    final boolean isWrite = effect.isWrite();
     for (Target t : targets) {
       /* BCA only helps us if it yields a FieldRef expression that can then be
        * used with aggregation.  If aggregation doesn't occur after a BCA,
@@ -1458,7 +1462,7 @@ public final class LockUtils {
      * We can use the default target factory here because we are passing it the
      * receiver declaration node directly.
      */
-    final Effect writesInstance = Effect.newWrite(
+    final Effect writesInstance = Effect.newWrite(null,
         DefaultTargetFactory.PROTOTYPE.createInstanceTarget(rcvrDecl, INSTANCE));
 
     final Set<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);
@@ -1469,8 +1473,8 @@ public final class LockUtils {
       final Iterator<Effect> iter = declFx.iterator();
       while (isEffectsWork && iter.hasNext()) {
         final Effect effect = iter.next();
-        if (effect.isWriteEffect()) {
-          isEffectsWork &= effect.checkEffect(binder, writesInstance);
+        if (effect.isWrite()) {
+          isEffectsWork &= effect.isCheckedBy(binder, writesInstance);
         }
       }
     }

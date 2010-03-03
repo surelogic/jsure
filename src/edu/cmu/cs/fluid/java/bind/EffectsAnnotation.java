@@ -106,10 +106,10 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
     int writeCt = 0;
     for (Iterator<Effect> i = effects.iterator(); i.hasNext();) {
       Effect eff = i.next();
-      if (eff.isReadEffect()) {
+      if (eff.isRead()) {
         reads += (readCt++ > 0 ? ", " : "") + eff.getTarget().getName();
       }
-      if (eff.isWriteEffect()) {
+      if (eff.isWrite()) {
         writes += (writeCt++ > 0 ? ", " : "") + eff.getTarget().getName();
       }
     }

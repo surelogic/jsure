@@ -200,6 +200,9 @@ public final class Effects implements IBinderClient {
           result.add(eff);
         }
       }
+      if (result.isEmpty()) {
+        result.add(Effect.newEmpty(callSite));
+      }
       return Collections.unmodifiableSet(result);
     }
   }
@@ -371,10 +374,10 @@ public final class Effects implements IBinderClient {
           final Target newTarg =
             targetFactory.createInstanceTarget(val, t.getRegion());
           if (returnRaw) {
-            methodEffects.add(Effect.newEffect(call, eff.isReadEffect(), newTarg));
+            methodEffects.add(Effect.newEffect(call, eff.isRead(), newTarg));
           } else {
             elaborateInstanceTargetEffects(
-                bcaQuery, targetFactory, binder, call, eff.isReadEffect(),
+                bcaQuery, targetFactory, binder, call, eff.isRead(),
                 newTarg, methodEffects);
           }
         } else { // See if ref is a QualifiedReceiverDeclaration
@@ -382,7 +385,7 @@ public final class Effects implements IBinderClient {
             final IRNode type = QualifiedReceiverDeclaration.getType(binder, ref);
             final Target newTarg = targetFactory.createAnyInstanceTarget(
                 JavaTypeFactory.getMyThisType(type), t.getRegion()); 
-            methodEffects.add(Effect.newEffect(call, eff.isReadEffect(), newTarg));
+            methodEffects.add(Effect.newEffect(call, eff.isRead(), newTarg));
           } else {
             // something went wrong          
             throw new IllegalStateException("Unmappable instance target: " + t);

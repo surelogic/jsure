@@ -373,8 +373,12 @@ class UniqueTransfer extends JavaEvaluationTransfer {
     for (Iterator<Effect> fx = effects.iterator(); fx.hasNext();) {
       try {
         Effect f = fx.next();
-
-        if (f.isReadEffect()) {
+        if (f.isEmpty()) {
+          // Empty effects are harmless
+          continue;
+        }
+        
+        if (f.isRead()) {
           // case 1: using permissions:
           // we only can bury aliases if we have write permission,
           // so we can ignore this case.

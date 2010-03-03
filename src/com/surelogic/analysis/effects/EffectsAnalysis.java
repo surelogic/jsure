@@ -241,20 +241,26 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	private void checkEffect(final IRNode methodBeingChecked,
 	    final RegionEffectsPromiseDrop declEffDrop, final Effect implEff,
 			final Set<Effect> declFx, String modelName) {
-		boolean checked = false;
-		final Iterator<Effect> iter = declFx.iterator();
-		while (!checked && iter.hasNext()) {
-			final Effect eff2 = iter.next();
-			if (implEff.checkEffect(getBinder(), eff2)) {
-				checked = true;
-				constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
-						Messages.EffectAssurance_msgCheckedBy, implEff, eff2);
-			}
-		}
-		if (!checked) {
-			constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
-					Messages.EffectAssurance_msgUnaccountedFor, implEff);
-		}
+	  if (implEff.isEmpty()) {
+	    constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
+	        Messages.EffectsAssurance_msgNoEffects,
+	        DebugUnparser.toString(implEff.getSource()));
+	  } else {
+  		boolean checked = false;
+  		final Iterator<Effect> iter = declFx.iterator();
+  		while (!checked && iter.hasNext()) {
+  			final Effect eff2 = iter.next();
+  			if (implEff.isCheckedBy(getBinder(), eff2)) {
+  				checked = true;
+  				constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
+  						Messages.EffectAssurance_msgCheckedBy, implEff, eff2);
+  			}
+  		}
+  		if (!checked) {
+  			constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
+  					Messages.EffectAssurance_msgUnaccountedFor, implEff);
+  		}
+	  }
 	}
 
 	/**
@@ -287,10 +293,10 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 		int writeCt = 0;
 		for (Iterator<Effect> i = effects.iterator(); i.hasNext();) {
 			Effect eff = i.next();
-			if (eff.isReadEffect()) {
+			if (eff.isRead()) {
 				reads += (readCt++ > 0 ? ", " : " ") + eff.getTarget().getName();
 			}
-			if (eff.isWriteEffect()) {
+			if (eff.isWrite()) {
 				writes += (writeCt++ > 0 ? ", " : " ") + eff.getTarget().getName();
 			}
 		}

@@ -100,7 +100,7 @@ public class WholeModuleFXDrop extends PhantomDrop {
       
       final IJavaReferenceType jRefType = (IJavaReferenceType) jType;
       final Target t = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(jRefType, r);
-      final Effect e = Effect.newWrite(t); // bogus src expression
+      final Effect e = Effect.newWrite(null, t); // bogus src expression
       interestingRegionWriteFX.add(e);
     }
     return interestingRegionWriteFX;

@@ -11,6 +11,8 @@ public class Messages {
 
   public static final int EffectAssurance_msgParameterEvidence = 154;
   
+  public static final int EffectsAssurance_msgNoEffects = 155;
+  
   private Messages() {
     // private constructor to prevent instantiation
   }

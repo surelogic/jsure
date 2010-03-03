@@ -311,7 +311,7 @@ implements IBinderClient {
                 (IJavaReferenceType) type, target.getRegion());
           }
           Effects.elaborateInstanceTargetEffects(
-              context.bcaQuery, targetFactory, binder, expr, initEffect.isReadEffect(),
+              context.bcaQuery, targetFactory, binder, expr, initEffect.isRead(),
               newTarget, context.theEffects);
         } else {
           context.addEffect(initEffect.setSource(expr));
