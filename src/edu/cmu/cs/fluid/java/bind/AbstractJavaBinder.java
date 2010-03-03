@@ -2273,7 +2273,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         LOG.severe("scope is null for " + DebugUnparser.toString(node));
         return null;
       }
-      bind(node,scope,IJavaScope.Util.isntCallable);
+      boolean isType  = isNameType(node); // or Expression
+      Selector select = isType ? IJavaScope.Util.isPkgTypeDecl : IJavaScope.Util.isntCallable;
+      bind(node,scope,select);
       return null;
     }
     
@@ -2518,8 +2520,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		  IJavaScope.NestedScope switchScope = new IJavaScope.NestedScope(scope);
     		  IJavaDeclaredType switchDT         = (IJavaDeclaredType) switchType;
     		  for(IRNode n : VisitUtil.getClassBodyMembers(switchDT.getDeclaration())) {
+
     			  if (EnumConstantDeclaration.prototype.includes(n)) {
+        			  System.out.println("Adding:   "+DebugUnparser.toString(n));
     				  switchScope.add(n);
+    			  } else {
+        			  System.out.println("Rejected: "+DebugUnparser.toString(n));
     			  }
     		  }
         	  doAccept(SwitchStatement.getBlock(node), switchScope);
