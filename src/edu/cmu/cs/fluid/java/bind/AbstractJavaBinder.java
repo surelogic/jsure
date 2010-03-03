@@ -2522,10 +2522,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		  for(IRNode n : VisitUtil.getClassBodyMembers(switchDT.getDeclaration())) {
 
     			  if (EnumConstantDeclaration.prototype.includes(n)) {
-        			  System.out.println("Adding:   "+DebugUnparser.toString(n));
+        			  //System.out.println("Adding:   "+DebugUnparser.toString(n));
     				  switchScope.add(n);
     			  } else {
-        			  System.out.println("Rejected: "+DebugUnparser.toString(n));
+        			  //System.out.println("Rejected: "+DebugUnparser.toString(n));
     			  }
     		  }
         	  doAccept(SwitchStatement.getBlock(node), switchScope);
