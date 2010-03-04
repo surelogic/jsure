@@ -8,6 +8,8 @@ import java.util.List;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
@@ -28,14 +30,16 @@ public final class LocalVariableDeclarations {
   // =========================================================================
   
   /**
-   * Variables declared local to the method.
+   * Variables declared local to the method.  A list of 
+   * ParameterDeclaration and VariableDeclarator nodes.
    */
   private List<IRNode> local = new ArrayList<IRNode>();
 
   /**
    * Variables accessible in the method, but that are declared in an outer
    * context. These are only possible if the method is part of an nested class
-   * declared inside another method.
+   * declared inside another method.  A list of 
+   * ParameterDeclaration and VariableDeclarator nodes.
    */
   private List<IRNode> external = new ArrayList<IRNode>();
   
@@ -436,6 +440,16 @@ public final class LocalVariableDeclarations {
   // == Methods
   // =========================================================================
  
+  /**
+   * Does the parameter/variable declaration have a reference type?
+   * @param binder The binder
+   * @param decl a ParamterDeclaratin or VariableDeclarator node.
+   * @return {@code true} if the declaration has a reference (object) type.
+   */
+  public static boolean hasReferenceType(final IBinder binder, final IRNode decl) {
+    return binder.getJavaType(decl) instanceof IJavaReferenceType;
+  }
+  
   /**
    * Get the local variable and parameter declarations for a particular
    * method/constructor or initializer.
