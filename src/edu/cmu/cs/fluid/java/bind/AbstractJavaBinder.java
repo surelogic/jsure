@@ -2144,7 +2144,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public Void visitNameExpression(IRNode node) {
       if (isFullPass) {
         visit(node); // don't visit names in expressions yet.
-        bind(node,getIBinding(NameExpression.getName(node)));
+        IBinding b = getIBinding(NameExpression.getName(node)); 
+        /*
+        if ("commands".equals(DebugUnparser.toString(node)) &&
+        	VariableDeclarator.prototype.includes(b.getNode())) {  
+        	IRNode parent = JJNode.tree.getParentOrNull(b.getNode());
+        	IRNode gparent = JJNode.tree.getParentOrNull(parent);
+        	String unparse = DebugUnparser.toString(gparent);
+        	if (unparse.contains("HashSet")) {
+        		visit(node);
+        	}
+        }
+        */
+        bind(node,b);
       }
       return null;
     }
