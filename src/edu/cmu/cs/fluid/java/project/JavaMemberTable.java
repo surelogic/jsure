@@ -21,6 +21,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
@@ -665,7 +666,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    */
   public IJavaScope asScope(AbstractJavaBinder binder) {
 	  if (binder != cachedBinder) {
-        cachedFullScope = new IJavaScope.ExtendScope(asLocalScope(),new SuperScope(binder));
+        cachedFullScope = new IJavaScope.ExtendScope(asLocalScope(binder.getTypeEnvironment()),
+        		                                     new SuperScope(binder));
         cachedBinder = binder;
 	  }
       return cachedFullScope;    
@@ -681,8 +683,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * Return a scope that only mimics the member table, not looking at superclasses.
    * @return scope for members in this table.
    */
-  public Scope asLocalScope() {
-    return new Scope();
+  public Scope asLocalScope(ITypeEnvironment tEnv) {
+    return new Scope(tEnv);
   }
   
   /**
@@ -784,8 +786,10 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   static Set<IRNode> repopulated = new ConcurrentHashSet<IRNode>();
   
   public class Scope implements IJavaScope {
-    protected Scope() {
-    	// Nothing to do here
+	final ITypeEnvironment tEnv;
+
+	protected Scope(ITypeEnvironment te) {
+    	tEnv = te;
     }
     
     public IBinding lookup(String name, final IRNode useSite, final Selector selector) {
@@ -798,7 +802,9 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       while (members.hasNext()) {
         IRNode n = members.next();
         if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
-        if (selector.select(n)) return IBinding.Util.makeBinding(n);
+        if (selector.select(n) && BindUtil.isAccessible(tEnv, n, useSite)) {
+        	return IBinding.Util.makeBinding(n);
+        }
       }
       return null;
     }

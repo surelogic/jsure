@@ -194,7 +194,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
       if (tbind == null) return null;
       assert tbind.getContextType() == null;
       IJavaMemberTable table = getMemberTable(tbind);
-      return asLocal ? table.asLocalScope() : table.asScope(binder);
+      return asLocal ? table.asLocalScope(binder.typeEnvironment) : table.asScope(binder);
     } else {
       LOG.severe("Import from type not handled: " + DebugUnparser.toString(node));
       return null;
@@ -227,7 +227,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     IBinding tbind = IJavaScope.Util.lookupType(scope,name,useSite);
     if (tbind == null) return null;
     IJavaMemberTable table = getMemberTable(tbind);
-    return asLocal ? table.asLocalScope() : table.asScope(binder);
+    return asLocal ? table.asLocalScope(binder.getTypeEnvironment()) : table.asScope(binder);
   }
   
   private IJavaMemberTable getMemberTable(IBinding tbind) {
