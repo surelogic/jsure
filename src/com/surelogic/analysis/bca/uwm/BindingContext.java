@@ -1,5 +1,10 @@
 package com.surelogic.analysis.bca.uwm;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -112,19 +117,27 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    * The VariableDeclarator and ParameterDeclaration nodes of all the parameters
    * and local variables declared in the method/constructor.  The position of a
    * declaration in this array is used to index into appropriate array lattice
-   * position.
+   * position.  If we are ignoring primitively typed variables, then they are
+   * not including in this list, but are included in the {@link #ignore} 
+   * list.
    */
   private final IRNode[] locals;
   
   /**
-   * The VariableDeclaration and ParamterDeclaration nodes of all the final
+   * The VariableDeclaration and ParamterDeclaration nodes of all the variables
+   * visible in the scope, but not being tracked by analysis.  This includes
+   * two classes of variables: 
+   * <ul>
+   * <li>The final
    * parameters and local variables declared in external contexts that are
    * visible within the method/constructor being analyzed.  These will
    * exist if the method/constructor is part of a nested class declared within
-   * another method/constructor.  We don't track these declarations in the 
-   * analysis, but we list them here so that we can allow queries about them.  
+   * another method/constructor.
+   * <li>All the primitively typed parameters and local variables if we are not
+   * tracking them.
+   * </ul>  
    */
-  private final IRNode[] external;
+  private final IRNode[] ignore;
   
 
   
@@ -135,12 +148,12 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   /** Create a new BindingContext lattice for a particular method. */
   @SuppressWarnings("unchecked")
   private BindingContext(
-      final IRNode md, final IRNode[] locals, final IRNode[] external, final IBinder binder) {
+      final IRNode md, final IRNode[] locals, final IRNode[] ignore, final IBinder binder) {
     // We add one to the # of locals to make room for our bogus element
     super(new UnionLattice<IRNode>(), locals.length + 1, new ImmutableSet[0]);
     this.methodDecl = md;
     this.locals = locals;
-    this.external = external;
+    this.ignore = ignore;
     this.binder = binder;
   }
 
@@ -151,13 +164,29 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    * The flow unit needs to be a MethodDeclaration, ConstructorDeclaration,
    * ClassInitDeclaration, or InitDeclaration.
    */
-  public static BindingContext createForFlowUnit(
+  public static BindingContext createForFlowUnit(final boolean ignorePrimitives,
       final IRNode flowUnit, final IBinder binder) {
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
-    final IRNode[] local = new IRNode[lvd.getLocal().size()];
-    final IRNode[] external = new IRNode[lvd.getExternal().size()];
-    return new BindingContext(flowUnit, lvd.getLocal().toArray(local),
-        lvd.getExternal().toArray(external), binder);
+    
+    final List<IRNode> localsOfInterest = new LinkedList<IRNode>(lvd.getLocal());
+    final List<IRNode> ignore = new ArrayList<IRNode>(lvd.getExternal());
+    if (ignorePrimitives) {
+      final Iterator<IRNode> localsItr = localsOfInterest.iterator();
+      while (localsItr.hasNext()) {
+        final IRNode lcl = localsItr.next();
+        if (!LocalVariableDeclarations.hasReferenceType(binder, lcl)) {
+          localsItr.remove();
+          ignore.add(lcl);
+        }
+      }
+    }
+    
+    final IRNode[] localArray = new IRNode[localsOfInterest.size()];
+    final IRNode[] ignoreArray = new IRNode[ignore.size()];
+    return new BindingContext(flowUnit,
+        localsOfInterest.toArray(localArray),
+        ignore.toArray(ignoreArray),
+        binder);
   }
   
 
@@ -223,17 +252,17 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   }
   
   /**
-   * Search the list of external variable declarations and return the index of
+   * Search the list of ignored variable declarations and return the index of
    * the given declaration.
    * 
    * @param local
    *          The declaration to look for.
-   * @return The index of the declaration in {@link #external} or <code>-1</code>
+   * @return The index of the declaration in {@link #ignore} or <code>-1</code>
    *         if the declaration is not found.
    */
-  private int findExternal(final IRNode decl) {
-    for (int i = 0; i < external.length; ++i) {
-      if (external[i].equals(decl)) return i;
+  private int findIgnored(final IRNode decl) {
+    for (int i = 0; i < ignore.length; ++i) {
+      if (ignore[i].equals(decl)) return i;
     }
     return -1;
   }
@@ -246,7 +275,21 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
     /* We don't trap for -1 from findLocal.  We want analysis to die if the
      * variable is not found because it indicates a serious problem.
      */
-    return replaceValue(oldValue, findLocal(decl), objects);
+    /* If findLocal() == -1, then we have two cases (1) the variables is 
+     * being ignored by analysis, or (2) we have an error.  To rule out (2), 
+     * we really should check if findIgnored() != -1, but this is expensive to
+     * do every time.   We may want to control this with a debug flag. 
+     */
+    final int localIdx = findLocal(decl);
+    if (localIdx != -1) {
+      return replaceValue(oldValue, findLocal(decl), objects);
+    } else {
+      if (findIgnored(decl) != -1) {
+        return oldValue;
+      } else {
+        throw new FluidRuntimeException("Variable declaration " + DebugUnparser.toString(decl) + " is unknown in lattice");
+      }
+    }
   }
 
   private ImmutableSet<IRNode> localObjects(
@@ -260,7 +303,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
     if (localIdx != -1) {
       return value[findLocal(decl)];
     } else {
-      if (findExternal(decl) != -1) {
+      if (findIgnored(decl) != -1) {
         return CachedSet.<IRNode>getEmpty();
       } else {
         throw new FluidRuntimeException("Variable declaration " + DebugUnparser.toString(decl) + " is unknown in lattice");

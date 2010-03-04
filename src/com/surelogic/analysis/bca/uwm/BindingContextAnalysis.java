@@ -1,7 +1,5 @@
 package com.surelogic.analysis.bca.uwm;
 
-import java.text.MessageFormat;
-
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -77,13 +75,24 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
   }
   
   
-  public BindingContextAnalysis(final IBinder b) {
+  
+  /**
+   * Whether primitively typed variables should be tracked.  Normally we don't
+   * care about them, but we could used BCA as a use-def analysis, and then
+   * we might care about primitively typed variables.
+   */
+  private final boolean ignorePrimitives;
+  
+  
+  
+  public BindingContextAnalysis(final IBinder b, final boolean ignoreP) {
     super(b);
+    ignorePrimitives = ignoreP;
   }
   
   @Override
   public Analysis createAnalysis(final IRNode flowUnit) {
-    final BindingContext bc = BindingContext.createForFlowUnit(flowUnit, binder);
+    final BindingContext bc = BindingContext.createForFlowUnit(ignorePrimitives, flowUnit, binder);
     return new Analysis("BCA", bc, new Transfer(binder, bc));
   }
 
