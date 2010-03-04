@@ -26,13 +26,13 @@ import edu.cmu.cs.fluid.unparse.TokenView;
 
 public class AbstractAdapter {
 	protected interface Function<T> {
-		IRNode call(T t, int i, int n);
+		IRNode call(T t, CodeContext context, int i, int n);
 	}
 	protected static abstract class AbstractFunction<T> implements Function<T> {
-		public final IRNode call(T t, int i, int n) {
-			return call(t);
+		public final IRNode call(T t, CodeContext context, int i, int n) {
+			return call(t, context);
 		}
-		public abstract IRNode call(T t);
+		public abstract IRNode call(T t, CodeContext context);
 	}
 	
 	protected static final SyntaxTreeInterface tree = JJNode.tree;
@@ -321,7 +321,7 @@ public class AbstractAdapter {
 		return Annotations.createNode(noNodes);
 	}
 
-	protected <T> IRNode[] map(Function<T> f, List<? extends T> trees) {
+	protected <T> IRNode[] map(Function<T> f, List<? extends T> trees, CodeContext context) {
 		if (trees == null) {
 			return null;
 		}
@@ -332,12 +332,12 @@ public class AbstractAdapter {
 		
 		IRNode[] result = new IRNode[size];
 		for(int i=0; i<size; i++) {
-			result[i] = f.call(trees.get(i), i, size);
+			result[i] = f.call(trees.get(i), context, i, size);
 		}
 		return result;
 	}
 	
-	protected <T> IRNode[] map(Function<T> f, T[] trees) {
+	protected <T> IRNode[] map(Function<T> f, T[] trees, CodeContext context) {
 		if (trees == null) {
 			return noNodes;
 		}
@@ -347,7 +347,7 @@ public class AbstractAdapter {
 		}
 		IRNode[] result = new IRNode[size];
 		for(int i=0; i<size; i++) {
-			result[i] = f.call(trees[i], i, size);
+			result[i] = f.call(trees[i], context, i, size);
 		}
 		return result;
 	}
