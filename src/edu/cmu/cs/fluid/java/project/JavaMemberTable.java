@@ -802,7 +802,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       while (members.hasNext()) {
         IRNode n = members.next();
         if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
-        if (selector.select(n) && BindUtil.isAccessible(tEnv, n, useSite)) {
+        if (selector.select(n) && 
+        	(selector == IJavaScope.Util.isTypeDecl || BindUtil.isAccessible(tEnv, n, useSite))) {
         	return IBinding.Util.makeBinding(n);
         }
       }
