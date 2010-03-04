@@ -2287,7 +2287,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       boolean isType  = isNameType(node); // or Expression
       Selector select = isType ? IJavaScope.Util.isPkgTypeDecl : IJavaScope.Util.isntCallable;
-      bind(node,scope,select);
+      boolean success = bind(node,scope,select);
+      if (!success) {
+    	  bind(node,scope,select);
+      }
       return null;
     }
     
