@@ -1,8 +1,3 @@
-/*
- * $Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/LockRules.java,v
- * 1.18 2007/06/29 14:42:33 chance Exp $
- */
-
 package com.surelogic.annotation.rules;
 
 import java.text.MessageFormat;
@@ -24,7 +19,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 //import edu.cmu.cs.fluid.java.analysis.*;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -33,7 +27,10 @@ import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class LockRules extends AnnotationRules {
-	private static final String LOCK = "RegionLock";
+  private static final Category DSC_LOCK_VIZ = Category.getInstance(
+      com.surelogic.analysis.messages.Messages.LockAnalysis_dsc_LockViz);
+
+  private static final String LOCK = "RegionLock";
 	private static final String IS_LOCK = "IsLock";
 	private static final String REQUIRES_LOCK = "RequiresLock";
 	private static final String RETURNS_LOCK = "ReturnsLock";
@@ -1469,12 +1466,17 @@ public class LockRules extends AnnotationRules {
       final int lockViz = getLockFieldVisibility(lockDecl, context.getBinder());
       final int regionViz = regionBinding.getModel().getVisibility();
       if (!BindUtil.isMoreVisibleThan(lockViz, regionViz)) { // (5)
-        context.reportWarning(
-            MessageFormat.format("Lock field \"{0}\" is less visible than region \"{1}\"; consider protecting a less visible region or adding a lock getter method",
-                field, region), lockDecl);
-//        context.reportWarning("lock field \"" //$NON-NLS-1$
-//            + field + "\" is less visible than region \"" //$NON-NLS-1$
-//            + region + "\"", lockDecl); //$NON-NLS-1$
+        /* We create this as a warning drop instead of a modeling error because
+         * it doesn't break anything, it only means that the lock model isn't
+         * as useful as they probably mean it to be.
+         */
+        final String qualifiedName = computeQualifiedName(lockDecl);
+        final LockModel model = LockModel.getInstance(qualifiedName); 
+        final WarningDrop wd = new WarningDrop(Integer.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_LockViz));
+        wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_LockViz, field, region);
+        wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
+        wd.setCategory(DSC_LOCK_VIZ);
+        model.addDependent(wd);
       }
     }
   }

@@ -17,6 +17,8 @@ public class Messages extends AbstractMessages {
   public static String ColorSecondPass_colorContextDrop = "{0} is accessed from color context {1}";
 
   // Drop-sea category messages
+  public static String LockAnalysis_dsc_LockViz = "lock field(s) less visible than the region(s) being protected";
+  
   public static String LockAnalysis_dsc_AggregationNeeded = "protected reference(s) to a possibly shared unprotected object; possible race condition detected";
 
   public static String LockAnalysis_dsc_FieldAccessNotAssured = "unprotected field access(es); possible race condition detected";
@@ -174,6 +176,9 @@ public class Messages extends AbstractMessages {
   
   public static String LockAnalysis_ds_SingleThreadedBorrowedThis = "by borrowed receiver";
 
+  
+  
+  public static int LockAnalysis_ds_LockViz = 256;
   
   
   private static final Map<String,String> value2field = new HashMap<String,String>();
