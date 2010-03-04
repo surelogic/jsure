@@ -92,7 +92,7 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			public void run() {
 				binder = Eclipse.getDefault().getTypeEnv(getProject()).getBinder();
-				bca = new BindingContextAnalysis(binder);
+				bca = new BindingContextAnalysis(binder, true);
 			}
 		});
 	}
