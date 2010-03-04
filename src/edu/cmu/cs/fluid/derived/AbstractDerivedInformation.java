@@ -34,8 +34,14 @@ public abstract class AbstractDerivedInformation implements IDerivedInformation 
   // use it, as well as notice if it's trying to re-derive
   public synchronized final void ensureDerived() throws UnavailableException {
 	//final String label = getLabel();
+	/*
+	if ("AccessibleJFrame".equals(label)) {
+		System.out.println("Got AccessibleJFrame");
+	}
+	*/
 	boolean alreadyDeriving = isDeriving.getAndSet(true);
 	if (alreadyDeriving) {
+		//System.out.println("Already deriving "+label);
 		throw new DerivationException(); 
 	}
 	/*
