@@ -53,6 +53,7 @@ public abstract class AnnotationRules {
    *  Constants
    * *************************************************/
  
+  protected static final String[] noStrings = new String[0];
   protected static final SyntaxTreeInterface tree = JJNode.tree;
   
   /* *************************************************

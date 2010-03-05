@@ -23,15 +23,19 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.AssumePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ScopedPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ScopedPromiseRules extends AnnotationRules {
+	public static final String ASSUME = "Assume";
 	public static final String PROMISE = "Promise";
 	public static final String PACKAGE_PROMISE = "Package Promise";
 
 	private static final AnnotationRules instance = new ScopedPromiseRules();
+	
+	private static final Assume_ParseRule assumeRule = new Assume_ParseRule();
 
 	private static final Promise_ParseRule promiseRule = new Promise_ParseRule();
 
@@ -47,6 +51,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 
 	@Override
 	public void register(PromiseFramework fw) {
+		registerParseRuleStorage(fw, assumeRule);
 		registerParseRuleStorage(fw, promiseRule);
 		registerScrubber(fw, packageScrubber);		
 	}
@@ -63,23 +68,22 @@ public class ScopedPromiseRules extends AnnotationRules {
 
 		@Override
 		protected ScopedPromisesParser initParser(String contents) throws Exception {
+			if (contents == null) {
+				System.out.println("Null contents");
+			}
 			return ScopedPromiseParse.initParser(contents);
 		}
-	}
-
-	static class Promise_ParseRule extends
-			ScopedPromiseRule<ScopedPromiseNode, PromisePromiseDrop> {
-		protected Promise_ParseRule() {
-			super(PROMISE, anyOp, ScopedPromiseNode.class);
-		}
-
+		
 		@Override
 		protected Object parse(IAnnotationParsingContext context,
 				ScopedPromisesParser parser) throws RecognitionException {
 			Object rv = parser.scopedPromise().getTree();
 			return rv;
 		}
-
+		
+		/**
+		 * Used to pre-check the embedded annotation
+		 */
 		@Override
 		protected AASTNode finalizeAST(IAnnotationParsingContext c,
 				AbstractNodeAdaptor.Node tn) {
@@ -110,29 +114,79 @@ public class ScopedPromiseRules extends AnnotationRules {
 				return null;
 			}
 			
+			return rewrap(c, sp);
+		}
+
+		protected abstract AASTNode rewrap(IAnnotationParsingContext c, ScopedPromiseNode sp);
+	}
+
+	static class Assume_ParseRule extends 
+	        ScopedPromiseRule<AssumeScopedPromiseNode, AssumePromiseDrop> {
+		protected Assume_ParseRule() {
+			super(ASSUME, methodOrClassDeclOps, AssumeScopedPromiseNode.class);
+		}
+		
+		@Override
+		protected AASTNode rewrap(IAnnotationParsingContext c, ScopedPromiseNode sp) {
+			return new AssumeScopedPromiseNode(sp.getOffset(), sp.getPromise(), sp.getTargets());
+		}
+		
+		@Override
+		protected IPromiseDropStorage<AssumePromiseDrop> makeStorage() {
+			return PromiseDropSeqStorage.create(name(), AssumePromiseDrop.class);
+		}
+		
+		@Override
+		protected IAnnotationScrubber<AssumeScopedPromiseNode> makeScrubber() {
+			return new AbstractAASTScrubber<AssumeScopedPromiseNode>(this, ScrubberType.UNORDERED, 
+					                                                 noStrings, ScrubberOrder.FIRST) {
+				@Override
+				protected boolean customScrub(AssumeScopedPromiseNode a) {
+					return checkTargets(a);
+				}
+				
+				@Override
+				protected PromiseDrop<ScopedPromiseNode> makePromiseDrop(
+						AssumeScopedPromiseNode a) {
+					AssumePromiseDrop d = new AssumePromiseDrop(a);
+					boolean worked = applyAssumptions(d);					
+					if (!worked) {
+					  d.invalidate();
+					  return null;
+					}
+					return storeDropIfNotNull(getStorage(), a, d);
+				}
+			};
+		}
+	}
+	
+	static class Promise_ParseRule extends
+			ScopedPromiseRule<ScopedPromiseNode, PromisePromiseDrop> {
+		protected Promise_ParseRule() {
+			super(PROMISE, anyOp, ScopedPromiseNode.class);
+		}
+		
+		@Override
+		protected AASTNode rewrap(IAnnotationParsingContext c, ScopedPromiseNode sp) {
 			if (NamedPackageDeclaration.prototype.includes(c.getOp())) {
-			  // Repackage as PackageScopedPromiseNode
-			  return new PackageScopedPromiseNode(sp.getOffset(), sp.getPromise(), sp.getTargets());
+				// Repackage as PackageScopedPromiseNode
+				return new PackageScopedPromiseNode(sp.getOffset(), sp.getPromise(), sp.getTargets());
 			}
 			return sp;
 		}
-
+		
 		@Override
 		protected IPromiseDropStorage<PromisePromiseDrop> makeStorage() {
 			return PromiseDropSeqStorage.create(name(), PromisePromiseDrop.class);
 		}		
-		
+				
 		@Override
 		protected IAnnotationScrubber<ScopedPromiseNode> makeScrubber() {
 			return new AbstractAASTScrubber<ScopedPromiseNode>(this, ScrubberType.UNORDERED, 
-			                                                   new String[0], ScrubberOrder.FIRST) {
+					                                           noStrings, ScrubberOrder.FIRST) {
 				@Override
 				protected boolean customScrub(ScopedPromiseNode a) {
-					// Check for inconsistency
-					if (a.getTargets().appliesTo() == null) {
-						return false;
-					}
-					return new TargetVisitor().doAccept(a.getTargets());					
+					return checkTargets(a);
 				}
 				
 				@Override
@@ -148,6 +202,14 @@ public class ScopedPromiseRules extends AnnotationRules {
 				}
 			};
 		}
+	}
+	
+	static boolean checkTargets(ScopedPromiseNode a) {
+		// Check for inconsistency
+		if (a.getTargets().appliesTo() == null) {
+			return false;
+		}
+		return new TargetVisitor().doAccept(a.getTargets());	
 	}
 	
 	static class TargetVisitor extends DescendingVisitor<Boolean> {
@@ -195,7 +257,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 	 * @param scopedPromise
 	 *          The AAST representing the scoped promise contained in the code
 	 */
-	public static <A extends ScopedPromiseDrop> boolean applyScopedPromises(
+	static <A extends ScopedPromiseDrop> boolean applyScopedPromises(
 			A scopedPromiseDrop) {
 		final IRNode promisedFor = scopedPromiseDrop.getAST().getPromisedFor();
 		boolean success = true;
@@ -489,5 +551,10 @@ public class ScopedPromiseRules extends AnnotationRules {
     for(IRNode type : pkg.getTypes()) {
       applyPromiseOnType(type, d); 
     }
+  }
+  
+  static boolean applyAssumptions(AssumePromiseDrop d) {
+	  // TODO Auto-generated method stub
+	  return true;
   }
 }
