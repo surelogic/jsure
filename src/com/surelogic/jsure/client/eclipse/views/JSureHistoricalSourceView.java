@@ -7,6 +7,7 @@ import com.surelogic.fluid.javac.Config;
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     private static Config config;
     private static ISourceZipFileHandles zips;
+    private static boolean viewIsEnabled = false;
     
     @Override
     protected ISourceZipFileHandles findSources(String run) {
@@ -18,12 +19,16 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
 
     public static void tryToOpenInEditor(final String pkg,
             final String type, int lineNumber) {
-        tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type, lineNumber);      
+    	if (viewIsEnabled) {
+    		tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type, lineNumber);      
+    	}
     }
     
     public static void tryToOpenInEditor(final String pkg,
             final String type, final String field) {
-        tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type, field);       
+    	if (viewIsEnabled) {
+    		tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type, field);       
+    	}
     }
 
     public static void setLastRun(Config cfg, ISourceZipFileHandles handles) {
