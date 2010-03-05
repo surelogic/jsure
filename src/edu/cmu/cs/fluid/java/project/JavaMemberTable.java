@@ -803,7 +803,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
         IRNode n = members.next();
         if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
         if (selector.select(n) && 
-        	(selector == IJavaScope.Util.isTypeDecl || BindUtil.isAccessible(tEnv, n, useSite))) {
+        	(TypeDeclaration.prototype.includes(n) || BindUtil.isAccessible(tEnv, n, useSite))) {
         	return IBinding.Util.makeBinding(n);
         }
       }
