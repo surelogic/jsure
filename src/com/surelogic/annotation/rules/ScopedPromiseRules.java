@@ -1,6 +1,9 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/ScopedPromiseRules.java,v 1.23 2009/01/15 15:53:05 aarong Exp $*/
 package com.surelogic.annotation.rules;
 
+import java.util.*;
+import java.util.logging.Level;
+
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.*;
@@ -13,12 +16,19 @@ import com.surelogic.parse.AbstractNodeAdaptor;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.PromiseDropSeqStorage;
 
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IHasBinding;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -138,23 +148,42 @@ public class ScopedPromiseRules extends AnnotationRules {
 		
 		@Override
 		protected IAnnotationScrubber<AssumeScopedPromiseNode> makeScrubber() {
-			return new AbstractAASTScrubber<AssumeScopedPromiseNode>(this, ScrubberType.UNORDERED, 
+			return new AbstractAASTScrubber<AssumeScopedPromiseNode>(this, ScrubberType.BY_TYPE, 
 					                                                 noStrings, ScrubberOrder.FIRST) {
+				final PromiseFramework frame = PromiseFramework.getInstance();
+				Set<IRNode> bindings = null;
+				
+				@Override
+				protected boolean useAssumptions() {
+					return false;
+				}
+				@Override
+				protected void startScrubbingType(IRNode decl) {
+					final IRNode cu = VisitUtil.getEnclosingCompilationUnit(decl);
+					bindings = collectBoundDecls(cu);
+					frame.clearTypeContext(cu);
+					frame.pushTypeContext(cu, true, true); // create one if there isn't one
+				}
+
 				@Override
 				protected boolean customScrub(AssumeScopedPromiseNode a) {
 					return checkTargets(a);
 				}
-				
 				@Override
 				protected PromiseDrop<ScopedPromiseNode> makePromiseDrop(
 						AssumeScopedPromiseNode a) {
 					AssumePromiseDrop d = new AssumePromiseDrop(a);
-					boolean worked = applyAssumptions(d);					
+					boolean worked = applyAssumptions(bindings, d);					
 					if (!worked) {
 					  d.invalidate();
 					  return null;
 					}
 					return storeDropIfNotNull(getStorage(), a, d);
+				}
+				@Override
+				protected void finishScrubbingType(IRNode decl) {
+					frame.popTypeContext();
+					bindings = null;
 				}
 			};
 		}
@@ -295,6 +324,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 	 *          The TypeDeclaration IRNode that the scoped promise is promised on
 	 * @param scopedPromise
 	 *          The scoped promise
+	 * @return true if no failure
 	 */
 	private static <A extends ScopedPromiseDrop> boolean applyPromiseOnType(
 			IRNode promisedFor, A scopedPromiseDrop) {
@@ -472,7 +502,11 @@ public class ScopedPromiseRules extends AnnotationRules {
 		 * @see com.surelogic.annotation.scrub.ValidatedDropCallback#validated(edu.cmu.cs.fluid.sea.PromiseDrop)
 		 */
 		public void validated(PromiseDrop pd) {
-			pd.setVirtual(true);
+			if (scopedPromiseDrop instanceof AssumePromiseDrop) {
+				pd.setAssumed(true);
+			} else {
+				pd.setVirtual(true);
+			}
 			pd.setSourceDrop(scopedPromiseDrop);
 		}
 		
@@ -553,8 +587,98 @@ public class ScopedPromiseRules extends AnnotationRules {
     }
   }
   
-  static boolean applyAssumptions(AssumePromiseDrop d) {
-	  // TODO Auto-generated method stub
-	  return true;
+  /**
+   * Collect up all unique bindings in the type
+   * -- not including those in enclosed types (TODO?)
+   * -- compensating for those that aren't ClassBodyDecls
+   * 
+   * TODO what about bindings in promises themselves?
+   */
+  private static Set<IRNode> collectBoundDecls(IRNode cu) {
+	  final IBinder binder = IDE.getInstance().getTypeEnv().getBinder();
+	  return collectBoundDecls(binder, cu, false);
+  }
+  
+  private static Set<IRNode> collectBoundDecls(IBinder binder, final IRNode cu, final boolean includeOriginal) {
+  	final Set<IRNode> decls = new HashSet<IRNode>();
+    
+  	final Iterator<IRNode> nodes = tree.bottomUp(cu);
+  	while (nodes.hasNext()) {
+  		final IRNode n = nodes.next();
+  		final Operator op = tree.getOperator(n);
+
+  		if (op instanceof IHasBinding) {
+  			IRNode decl = binder.getBinding(n);        
+  			if (decl == null) {
+  				continue;
+  			}
+  			IRNode decl2 = findEnclosingDecl(decl);
+  			if (decl2 != null) {
+  				decl = decl2;          
+  			}
+  			decls.add(decl);
+  		}
+  	}
+    if (LOG.isLoggable(Level.FINE)) {
+      final Iterator<IRNode> it = decls.iterator();
+      while (it.hasNext()) {
+        final IRNode decl = it.next();        
+        LOG.fine("Collected binding: "+DebugUnparser.toString(decl));
+      }
+    }  
+  	return decls; // Collections.EMPTY_SET;
+  }
+  
+  /**
+   * Normalize if inside a class body decl
+   * 
+   * TODO still needed with changes for Java 5 annos?
+   */
+  private static IRNode findEnclosingDecl(IRNode decl) {
+	  final Operator dop = tree.getOperator(decl);
+	  IRNode decl2 = null;
+
+	  if (ReturnType.prototype.includes(dop) ||
+			  ClassBodyDeclaration.prototype.includes(dop) ||
+			  TypeDeclaration.prototype.includes(dop) ||
+			  PackageDeclaration.prototype.includes(dop)) {
+		  return null;
+	  } 
+	  decl2 = VisitUtil.getEnclosingClassBodyDecl(decl);
+	  if (decl2 == null) {
+		  final IRNode parent = JavaPromise.getParentOrPromisedFor(decl);
+		  if (parent == null) {
+			  return null;
+		  }
+		  final Operator pop  = tree.getOperator(parent);
+		  if (ReceiverDeclaration.prototype.includes(dop) && 
+				  InitDeclaration.prototype.includes(pop)) {
+			  LOG.info("Ignoring receiver node of init decl"); 
+		  } else {
+			  LOG.warning("Not inside a ClassBodyDecl: "+DebugUnparser.toString(decl)+
+					  " inside parent = "+
+					  DebugUnparser.toString(JavaPromise.getParentOrPromisedFor(decl)));
+		  }
+		  return null;
+	  }           
+	  return decl2;       
+  }
+  
+  /**
+   * @return true if no failure
+   */
+  static boolean applyAssumptions(Collection<IRNode> bindings, AssumePromiseDrop d) {	  
+	  final ScopedPromiseCallback callback = new ScopedPromiseCallback(d);
+	  boolean success = true;
+	  for(IRNode decl : bindings) {
+		  Operator op = JJNode.tree.getOperator(decl);
+		  if (callback.parseRule.declaredOnValidOp(op)) {
+			  if (!callback.parseAndApplyPromise(decl, op)) {
+				  success = false;
+				  break;
+			  }
+		  }
+	  }
+	  return success;
   }
 }
