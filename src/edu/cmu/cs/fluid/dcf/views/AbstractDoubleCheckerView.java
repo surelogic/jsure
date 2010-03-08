@@ -98,6 +98,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	private Action doubleClickAction;
 
 	private final boolean f_useTable;
+	
+	private final int f_extraStyle;
 
 	/**
 	 * The view title from the XML, or {@code null} if we couldn't get it.
@@ -107,9 +109,14 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	protected AbstractDoubleCheckerView() {
 		this(false);
 	}
-
+	
 	protected AbstractDoubleCheckerView(boolean useTable) {
+		this(useTable, SWT.NONE);
+	}
+
+	protected AbstractDoubleCheckerView(boolean useTable, int extraStyle) {
 		f_useTable = useTable;
+		f_extraStyle = extraStyle;
 	}
 
 	@Override
@@ -119,10 +126,10 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		f_noResultsToShowLabel.setText(NO_RESULTS);
 		if (f_useTable) {
 			viewer = tableViewer = new TableViewer(f_viewerbook, SWT.H_SCROLL
-					| SWT.V_SCROLL | SWT.FULL_SELECTION);
+					| SWT.V_SCROLL | SWT.FULL_SELECTION | f_extraStyle);
 		} else {
 			viewer = treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL
-					| SWT.V_SCROLL);
+					| SWT.V_SCROLL | f_extraStyle);
 		}
 		setupViewer();
 		clipboard = new Clipboard(getSite().getShell().getDisplay());

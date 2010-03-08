@@ -1,66 +1,69 @@
 package edu.cmu.cs.fluid.dcf.views.coe;
 
-import org.eclipse.jface.action.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.actions.ActionFactory;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 public class ProposedPromiseView extends AbstractDoubleCheckerView {
 
 	private final ProposedPromiseContentProvider f_content = new ProposedPromiseContentProvider();
 
-	private final Action f_copy = new Action() {
+	private final Action f_annotate = new Action() {
 		@Override
 		public void run() {
-			clipboard.setContents(new Object[] { getSelectedText() },
-					new Transfer[] { TextTransfer.getInstance() });
+			final List<ProposedPromiseDrop> selected = getSelectedRows();
+			if (selected.isEmpty())
+				return;
+			/*
+			 * TODO Proposed the edit to the code in the dialog HERE (you are in
+			 * the SWT thread)
+			 */
+			for (ProposedPromiseDrop pp : selected) {
+				// there are lots of getters use just get the whole annotation
+				// here
+				System.out
+						.println("proposed promise " + pp.getJavaAnnotation());
+			}
 		}
 	};
 
 	public ProposedPromiseView() {
-		super(true);
+		super(true, SWT.MULTI);
 	}
 
-	protected String getSelectedText() {
+	protected List<ProposedPromiseDrop> getSelectedRows() {
 		IStructuredSelection selection = (IStructuredSelection) viewer
 				.getSelection();
-		StringBuilder sb = new StringBuilder();
-		for (Object elt : selection.toList()) {
-			if (sb.length() > 0) {
-				sb.append('\n');
-			}
-			for (int i = 0; i < 3; i++) {
-				if (i > 0) {
-					sb.append(' ');
-				}
-				sb.append(f_content.getColumnText(elt, i));
+		final List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>();
+		for (Object element : selection.toList()) {
+			if (element instanceof ProposedPromiseDrop) {
+				result.add((ProposedPromiseDrop) element);
 			}
 		}
-		return sb.toString();
+		return result;
 	}
 
 	@Override
 	protected void makeActions() {
-		f_copy.setText("Copy");
-		f_copy.setToolTipText("Copy the selected problem to the clipboard");
-	}
-
-	@Override
-	protected void fillGlobalActionHandlers(IActionBars bars) {
-		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
+		f_annotate.setText("Add promises to code...");
+		f_annotate
+				.setToolTipText("Add the selected proposed promises as annotations in the code.");
 	}
 
 	@Override
 	protected void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
 		if (!s.isEmpty()) {
-			manager.add(f_copy);
+			manager.add(f_annotate);
 		}
 	}
 
