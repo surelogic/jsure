@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.sea;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -23,7 +24,10 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 	 *            the contents of the Java annotation being proposed. For
 	 *            <code>@Starts("nothing")</code> the value of this string would
 	 *            be {@code "nothing"}. For <code>@Borrowed</code>, which has no
-	 *            contents, the value of this string would be {@code null}.
+	 *            contents, the value of this string would be {@code null}. The
+	 *            contents placed into this string should not be escaped. Any
+	 *            embedded quotations or backward slashes will be escaped before
+	 *            output.
 	 * @param at
 	 *            the proposed location for the promise, a declaration.
 	 * @param from
@@ -67,6 +71,9 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 	 * <code>@Starts("nothing")</code> the value of this string would be {@code
 	 * "nothing"}. For <code>@Borrowed</code>, which has no contents, the value
 	 * of this string would be {@code null}.
+	 * <p>
+	 * The contents placed into this string should not be escaped. Any embedded
+	 * quotations or backward slashes will be escaped before output.
 	 */
 	private final String f_contents;
 
@@ -81,7 +88,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 	}
 
 	/**
-	 * Gets the contents of the Java annotation being proposed. For
+	 * Gets the raw contents of the Java annotation being proposed. For
 	 * <code>@Starts("nothing")</code> the value of this string would be {@code
 	 * "nothing"}. For <code>@Borrowed</code>, which has no contents, the value
 	 * of this string would be {@code null}.
@@ -91,5 +98,35 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 	 */
 	public String getContents() {
 		return f_contents;
+	}
+
+	/**
+	 * Gets the escaped contents of the Java annotation being proposed. For
+	 * <code>@Starts("nothing")</code> the value of this string would be {@code
+	 * "nothing"}. For <code>@Borrowed</code>, which has no contents, the value
+	 * of this string would be {@code null}.
+	 * 
+	 * @return the contents of the Java annotation being proposed, or {code
+	 *         null} if none.
+	 * 
+	 * @see SLUtility#escapeJavaStringForQuoting(String)
+	 */
+	public String getEscapedContents() {
+		return SLUtility.escapeJavaStringForQuoting(f_contents);
+	}
+
+	public String getJavaAnnotationNoAtSign() {
+		return f_annotation
+				+ (f_contents == null ? "" : "(\"" + getEscapedContents()
+						+ "\")");
+	}
+
+	public String getJavaAnnotation() {
+		return "@" + getJavaAnnotationNoAtSign();
+	}
+
+	@Override
+	public String toString() {
+		return getJavaAnnotation();
 	}
 }
