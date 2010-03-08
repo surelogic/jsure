@@ -972,6 +972,8 @@ public class ResultsViewContentProvider extends
 			} else if (TextFile.prototype.includes(op)) {
 				typeName = TextFile.getId(node);
 				packageName = null;
+			} else if (node.identity() == IRNode.destroyedNode){
+				System.out.println("Ignoring destroyed node: "+drop.getMessage());
 			} else {
 				LOG.warning("Unable to get Java context for "
 						+ DebugUnparser.toString(node));
