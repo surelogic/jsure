@@ -9,6 +9,10 @@ package com.surelogic.annotation.scrub;
 public enum ScrubberType {
   UNORDERED,
   /**
+   * All the AASTs on a given type will be processed before those of another type
+   */
+  BY_TYPE,
+  /**
    * AASTs on a superclass will be examined before those on a subclass
    * (no particular order within a class)
    */

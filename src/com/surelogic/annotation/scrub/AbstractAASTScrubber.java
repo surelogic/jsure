@@ -18,6 +18,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
@@ -327,10 +328,15 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 				}
 				switch (type) {
 				case UNORDERED:
+					/* Eliminated due to @Assume's need to process by type
 					scrub(cls);
 					return;
+					*/
+				case BY_TYPE:
+					scrubByPromisedFor_Type(cls);
+					return;
 				case BY_HIERARCHY:
-					scrubByPromisedFor(cls);
+					scrubByPromisedFor_Hierarchy(cls);
 					return;
 				case OTHER:
 					throw new UnsupportedOperationException();
@@ -348,26 +354,83 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		}
 	}
 
+	protected void startScrubbingType(IRNode decl) {
+		// Nothing to do right now		
+	}
+	
+	protected void finishScrubbingType(IRNode decl) {
+		// Nothing to do right now
+	}
+	/**
+	 * Use assumptions while scrubbing
+	 * @return
+	 */
+	protected boolean useAssumptions() {
+		return true;
+	}
+	private void startScrubbingType_internal(IRNode decl) {
+		startScrubbingType(decl);	
+		if (useAssumptions()) {
+			final IRNode cu = VisitUtil.getEnclosingCompilationUnit(decl);
+			PromiseFramework.getInstance().pushTypeContext(cu);
+		}
+	}
+	
+	private void finishScrubbingType_internal(IRNode decl) {
+		if (useAssumptions()) {
+			PromiseFramework.getInstance().popTypeContext();
+		}
+		finishScrubbingType(decl);
+	}
+	
+	private void scrubByPromisedFor_Type(Class<A> c) {
+		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
+		organizeByType(c, byType);
+		
+		for(Map.Entry<IRNode, List<A>> e : byType.entrySet()) {
+			List<A> l = e.getValue();
+			if (l != null && !l.isEmpty()) {
+				final IRNode decl = e.getKey();
+				startScrubbingType_internal(decl);
+				try {
+					for(A a : l) {
+						processAAST(a);
+					}
+				} finally {
+					finishScrubbingType_internal(decl);
+				}
+			}
+		}
+	}
+	
+	private void organizeByType(Class<A> c, Map<IRNode, List<A>> byType) {
+		// Organize by promisedFor
+		for (A a : AASTStore.getASTsByClass(c)) {
+			IRNode promisedFor = a.getPromisedFor();
+			IRNode type = VisitUtil.getClosestType(promisedFor);
+			if (type == null) {
+				type = VisitUtil.getEnclosingCompilationUnit(promisedFor);
+			}
+			else if (!TypeDeclaration.prototype.includes(type)) {
+				throw new IllegalArgumentException("Not a type decl: "
+						+ DebugUnparser.toString(type));
+			}
+			List<A> l = byType.get(type);
+			if (l == null) {
+				l = new ArrayList<A>();
+				byType.put(type, l);
+			}
+			l.add(a);
+		}
+	}
+	
 	private class HierarchyWalk {
 		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv();
 		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
 		final Set<IRNode> done = new HashSet<IRNode>();
 
 		void init(Class<A> c) {
-			// Organize by promisedFor
-			for (A a : AASTStore.getASTsByClass(c)) {
-				IRNode type = a.getPromisedFor();
-				if (!TypeDeclaration.prototype.includes(type)) {
-					throw new IllegalArgumentException("Not a type decl: "
-							+ DebugUnparser.toString(type));
-				}
-				List<A> l = byType.get(type);
-				if (l == null) {
-					l = new ArrayList<A>();
-					byType.put(type, l);
-				}
-				l.add(a);
-			}
+			organizeByType(c, byType);
 		}
 
 		/**
@@ -394,6 +457,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			// process this type
 			List<A> l = byType.get(decl);
 			if (l != null) {
+				startScrubbingType_internal(decl);
 				if (l.size() > 1) {
 					Collections.sort(l, aastComparator);
 					/*
@@ -401,8 +465,12 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 					 * System.out.println();
 					 */
 				}
-				for (A a : l) {
-					processAAST(a);
+				try {
+					for(A a : l) {
+						processAAST(a);
+					}
+				} finally {
+					finishScrubbingType_internal(decl);
 				}
 			}
 			// Mark as done
@@ -433,12 +501,12 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	 * Scrub the bindings of the specified kind in order of the position of
 	 * their promisedFor (assumed to be a type decl) in the type hierarchy
 	 */
-	private void scrubByPromisedFor(Class<A> c) {
+	private void scrubByPromisedFor_Hierarchy(Class<A> c) {
 		HierarchyWalk walk = new HierarchyWalk();
 		walk.init(c);
 		walk.walkHierarchy();
 		walk.checkState();
 	}
-
+	
 	protected abstract PromiseDrop<? super A> makePromiseDrop(A ast);
 }
