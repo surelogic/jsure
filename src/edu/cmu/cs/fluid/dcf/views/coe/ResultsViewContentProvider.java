@@ -46,6 +46,7 @@ import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.ProofDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.ISupportingInformation;
@@ -209,7 +210,8 @@ public class ResultsViewContentProvider extends
 		if (count < 1)
 			return;
 		Content preconditionFolder = new Content(count
-				+ (count > 1 ? " prerequisite assertions:" : " prerequisite assertion:"));
+				+ (count > 1 ? " prerequisite assertions:"
+						: " prerequisite assertion:"));
 		int flags = 0; // assume no adornments
 		flags |= (result.proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
 		boolean elementsProvedConsistent = true; // assume true
@@ -248,9 +250,10 @@ public class ResultsViewContentProvider extends
 		// Create a folder to contain the choices
 		final Set<String> or_TrustLabels = result.get_or_TrustLabelSet();
 		final int or_TrustLabelsSize = or_TrustLabels.size();
-		Content orContentFolder = new Content(or_TrustLabelsSize
-				+ (or_TrustLabelsSize > 1 ? " possible prerequisite assertion choices:"
-						: " possible prerequisite assertion choice:"));
+		Content orContentFolder = new Content(
+				or_TrustLabelsSize
+						+ (or_TrustLabelsSize > 1 ? " possible prerequisite assertion choices:"
+								: " possible prerequisite assertion choice:"));
 		int flags = 0; // assume no adornments
 		flags |= (result.get_or_proofUsesRedDot() ? CoE_Constants.REDDOT : 0);
 		flags |= (result.get_or_provedConsistent() ? CoE_Constants.CONSISTENT
@@ -859,11 +862,11 @@ public class ResultsViewContentProvider extends
 		}
 		onPath.add(node);
 
-		final List<Content> children = new ArrayList<Content>(node.children());		
-		Collections.sort(children, new Comparator<Content>(){
+		final List<Content> children = new ArrayList<Content>(node.children());
+		Collections.sort(children, new Comparator<Content>() {
 			public int compare(Content o1, Content o2) {
 				return o1.getMessage().compareTo(o2.getMessage());
-			}			
+			}
 		});
 		final int size = children.size();
 		for (int i = 0; i < size; i++) {
@@ -972,8 +975,9 @@ public class ResultsViewContentProvider extends
 			} else if (TextFile.prototype.includes(op)) {
 				typeName = TextFile.getId(node);
 				packageName = null;
-			} else if (node.identity() == IRNode.destroyedNode){
-				System.out.println("Ignoring destroyed node: "+drop.getMessage());
+			} else if (node.identity() == IRNode.destroyedNode) {
+				System.out.println("Ignoring destroyed node: "
+						+ drop.getMessage());
 			} else {
 				LOG.warning("Unable to get Java context for "
 						+ DebugUnparser.toString(node));
@@ -1032,11 +1036,11 @@ public class ResultsViewContentProvider extends
 				.getDropsOfType(PromiseDrop.class);
 		for (PromiseDrop pd : promiseDrops) {
 			if (pd.isFromSrc()) {
-				//System.out.println("Considering: "+pd.getMessage());
+				// System.out.println("Considering: "+pd.getMessage());
 				if (!pd.hasMatchingDeponents(predicate) || shouldBeTopLevel(pd)) {
 					root.add(encloseDrop(pd));
 				} else {
-					//System.out.println("Rejected: "+pd.getMessage());
+					// System.out.println("Rejected: "+pd.getMessage());
 				}
 			}
 		}
@@ -1076,6 +1080,26 @@ public class ResultsViewContentProvider extends
 			}
 		}
 
+		final Set<? extends ProposedPromiseDrop> proposedPromiseDrops = Sea
+				.getDefault().getDropsOfType(ProposedPromiseDrop.class);
+		if (!proposedPromiseDrops.isEmpty()) {
+			/*
+			 * We have modeling problems...make sure the view that shows them is
+			 * visible to the user.
+			 */
+			if (PreferenceConstants.prototype.getAutoOpenProposedPromiseView()) {
+				final UIJob job = new SLUIJob() {
+					@Override
+					public IStatus runInUIThread(IProgressMonitor monitor) {
+						ViewUtility.showView(ProposedPromiseView.class
+								.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
+						return Status.OK_STATUS;
+					}
+				};
+				job.schedule();
+			}
+		}
+
 		final Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(
 				ResultDrop.class);
 		for (ResultDrop id : resultDrops) {
@@ -1102,10 +1126,11 @@ public class ResultsViewContentProvider extends
 	}
 
 	private static boolean shouldBeTopLevel(Drop d) {
-		//System.out.println("???: "+d.getMessage());
-		return d instanceof MaybeTopLevel && ((MaybeTopLevel) d).requestTopLevel();
+		// System.out.println("???: "+d.getMessage());
+		return d instanceof MaybeTopLevel
+				&& ((MaybeTopLevel) d).requestTopLevel();
 	}
-	
+
 	public Object[] getLastElements() {
 		synchronized (ResultsViewContentProvider.class) {
 			return (isShowInferences() ? m_lastRoot : Content

@@ -17,6 +17,7 @@ import com.surelogic.common.eclipse.preferences.AbstractCommonPreferencePage;
 import com.surelogic.common.i18n.I18N;
 
 public class JSurePreferencePage extends AbstractCommonPreferencePage {
+  private BooleanFieldEditor f_autoOpenProposedPromiseView;
   private BooleanFieldEditor f_autoOpenModelingProblemsView;
   private BooleanFieldEditor f_allowJavadocAnnos;
   private IntegerFieldEditor f_analysisThreadCount;
@@ -39,6 +40,13 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     final Group diGroup = createGroup(panel, "preference.page.group.app");
 
     setupForPerspectiveSwitch(diGroup);
+    
+    f_autoOpenProposedPromiseView = new BooleanFieldEditor(
+            PreferenceConstants.P_AUTO_OPEN_PROPOSED_PROMISE_VIEW, I18N
+                .msg("jsure.eclipse.preference.page.autoOpenProposedPromiseView"),
+            diGroup);
+        setupEditor(diGroup, f_autoOpenProposedPromiseView,
+            PreferenceConstants.prototype.getPreferenceStore());
 
     f_autoOpenModelingProblemsView = new BooleanFieldEditor(
         PreferenceConstants.P_AUTO_OPEN_MODELING_PROBLEMS_VIEW, I18N
@@ -133,6 +141,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
   @Override
   protected void performDefaults() {
+    f_autoOpenProposedPromiseView.loadDefault();
     f_autoOpenModelingProblemsView.loadDefault();
     f_allowJavadocAnnos.loadDefault();
     f_analysisThreadCount.loadDefault();
@@ -148,6 +157,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
   @Override
   public boolean performOk() {
+    f_autoOpenProposedPromiseView.store();
     f_autoOpenModelingProblemsView.store();
     f_allowJavadocAnnos.store();
     f_analysisThreadCount.store();
