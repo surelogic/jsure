@@ -117,6 +117,7 @@ public abstract class IRReferenceDrop extends Drop {
   }
   
   protected void computeBasedOnAST() {
+	  // behavior extended by subclasses
   }
   
   /**

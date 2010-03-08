@@ -5,7 +5,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.messages.Messages;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.logging.SLLogger;
 
@@ -20,6 +19,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -247,6 +247,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       rd.addCheckedPromise(pd);
       rd.setInconsistent();
       setResultDependUponDrop(rd, node, 4, DebugUnparser.toString(node));
+      new ProposedPromiseDrop("Starts", "nothing", declaration, node);
     }
   }
 
