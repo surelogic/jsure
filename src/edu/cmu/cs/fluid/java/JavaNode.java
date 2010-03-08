@@ -471,7 +471,9 @@ public class JavaNode extends JJNode {
     unparseComment(node, u);
     // leave catching to debug unparser, or else leave some record in unparser.
     //try {
+    if (node.identity() != IRNode.destroyedNode) {
       ((JavaOperator) u.getTree().getOperator(node)).unparseWrapper(node, u);
+    }
     /*} catch(SlotUndefinedException e) {
       if (JJNode.tree != u.getTree()) {
         LOG.severe("unparse died trying to unparse: "+DebugUnparser.toString(node));
