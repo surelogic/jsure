@@ -147,9 +147,10 @@ public final class ProblemsViewContentProvider implements ITableContentProvider 
 			return getResource(d);
 		case 2:
 			int line = getLine(d);
-			if (line != Integer.MAX_VALUE) {
+			if (line > 0 && line < Integer.MAX_VALUE)
 				return Integer.toString(line);
-			}
+			else
+				return "(binary)";
 		}
 		return "";
 	}
