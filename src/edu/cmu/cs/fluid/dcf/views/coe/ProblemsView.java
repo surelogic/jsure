@@ -2,12 +2,16 @@ package edu.cmu.cs.fluid.dcf.views.coe;
 
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.actions.ActionFactory;
+
+import com.surelogic.common.eclipse.ColumnViewerSorter;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
@@ -81,11 +85,15 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void setupViewer() {
+		int i=0;
 		for (String label : ProblemsViewContentProvider.COLUMN_LABELS) {
 			final TableViewerColumn column = new TableViewerColumn(tableViewer,
 					SWT.LEFT);
 			column.getColumn().setText(label);
 			column.getColumn().setWidth(40 * label.length());
+			
+			setupSorter(column, i);
+			i++;
 		}
 
 		viewer.setContentProvider(f_content);
@@ -93,6 +101,23 @@ public class ProblemsView extends AbstractDoubleCheckerView {
 		tableViewer.getTable().setLinesVisible(true);
 		tableViewer.getTable().setHeaderVisible(true);
 		tableViewer.getTable().pack();
+	}
+
+	protected void setupSorter(TableViewerColumn column, final int colIdx) {
+		final boolean intSort = "Line".equals(column.getColumn().getText());
+		new ColumnViewerSorter<PromiseWarningDrop>(tableViewer, column.getColumn()) {
+			@Override
+			protected int doCompare(Viewer viewer, PromiseWarningDrop e1, PromiseWarningDrop e2) {
+				ITableLabelProvider lp = ((ITableLabelProvider) tableViewer.getLabelProvider());
+				String t1 = lp.getColumnText(e1, colIdx);
+				String t2 = lp.getColumnText(e2, colIdx);
+				if (intSort) {
+					return Integer.parseInt(t1) - Integer.parseInt(t2);
+				}
+				return t1.compareTo(t2);
+			}
+			
+		};
 	}
 
 	@Override
