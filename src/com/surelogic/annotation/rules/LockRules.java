@@ -30,7 +30,7 @@ public class LockRules extends AnnotationRules {
   private static final Category DSC_LOCK_VIZ = Category.getInstance(
       com.surelogic.analysis.messages.Messages.LockAnalysis_dsc_LockViz);
 
-  private static final String LOCK = "RegionLock";
+  public static final String LOCK = "RegionLock";
 	private static final String IS_LOCK = "IsLock";
 	private static final String REQUIRES_LOCK = "RequiresLock";
 	private static final String RETURNS_LOCK = "ReturnsLock";
