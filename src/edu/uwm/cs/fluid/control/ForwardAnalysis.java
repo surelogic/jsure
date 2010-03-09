@@ -37,6 +37,7 @@ import edu.cmu.cs.fluid.control.SimpleOutputPort;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
+import edu.cmu.cs.fluid.control.SubcomponentChoice;
 import edu.cmu.cs.fluid.control.SubcomponentFlow;
 import edu.cmu.cs.fluid.control.TrackLabel;
 import edu.cmu.cs.fluid.control.TrackedDemerge;
@@ -99,10 +100,24 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
       return trans.transferComponentChoice(arg.getSyntax(),arg.getInfo(),true,x);
     }
   };
+  final LabeledLattice.UnaryOp<T,SubcomponentChoice> subcomponentChoiceTrueTransfer =
+    new LabeledLattice.UnaryOp<T,SubcomponentChoice>() {
+    public T operate(T x, SubcomponentChoice arg) {
+      LOG.finer("calling componentChoiceTrueTransfer (for subcomponent choice)");
+      return trans.transferComponentChoice(arg.getSyntax(),arg.getInfo(),true,x);
+    }
+  };
   final LabeledLattice.UnaryOp<T,ComponentChoice> componentChoiceFalseTransfer =
     new LabeledLattice.UnaryOp<T,ComponentChoice>() {
     public T operate(T x, ComponentChoice arg) {
       LOG.finer("calling componentChoiceFalseTransfer");
+      return trans.transferComponentChoice(arg.getSyntax(),arg.getInfo(),false,x);
+    }
+  };
+  final LabeledLattice.UnaryOp<T,SubcomponentChoice> subcomponentChoiceFalseTransfer =
+    new LabeledLattice.UnaryOp<T,SubcomponentChoice>() {
+    public T operate(T x, SubcomponentChoice arg) {
+      LOG.finer("calling componentChoiceFalseTransfer (for subcomponent choice)");
       return trans.transferComponentChoice(arg.getSyntax(),arg.getInfo(),false,x);
     }
   };
@@ -276,6 +291,9 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
       } else if (node instanceof ComponentChoice) {
         doTransfer(in,out1,componentChoiceTrueTransfer,(ComponentChoice)node);
         doTransfer(in,out2,componentChoiceFalseTransfer,(ComponentChoice)node);
+      } else if (node instanceof SubcomponentChoice) {
+        doTransfer(in,out1,subcomponentChoiceTrueTransfer,(SubcomponentChoice)node);
+        doTransfer(in,out2,subcomponentChoiceFalseTransfer,(SubcomponentChoice)node);
       } else {
         LOG.severe("Unknown Choice node " + node);
       }
