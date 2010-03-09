@@ -43,6 +43,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	private final ScrubberOrder order;
 	private final String[] dependencies;
 	private final String[] runsBefore;
+	@SuppressWarnings("unchecked")
 	private final IPromiseDropStorage stor;
 
 	/**
@@ -61,6 +62,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	 * @param before
 	 *            Any scrubbers that this should run before
 	 */
+	@SuppressWarnings("unchecked")
 	public AbstractAASTScrubber(String name, Class<A> c,
 			IPromiseDropStorage stor, ScrubberType type, String[] before,
 			ScrubberOrder order, String... deps) {
@@ -76,12 +78,12 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		this.dependencies = deps;
 		this.runsBefore = before;
 	}
-
+	@SuppressWarnings("unchecked")
 	public AbstractAASTScrubber(String name, Class<A> c,
 			IPromiseDropStorage stor, ScrubberType type, String... deps) {
 		this(name, c, stor, type, NONE, ScrubberOrder.NORMAL, deps);
 	}
-
+	@SuppressWarnings("unchecked")
 	public AbstractAASTScrubber(String name, Class<A> c,
 			IPromiseDropStorage stor, ScrubberType type, ScrubberOrder order,
 			String... deps) {
@@ -91,6 +93,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	/**
 	 * Defaults to unordered with no dependencies
 	 */
+	@SuppressWarnings("unchecked")
 	public AbstractAASTScrubber(String name, Class<A> c,
 			IPromiseDropStorage stor) {
 		this(name, c, stor, ScrubberType.UNORDERED, NONE, ScrubberOrder.NORMAL,
@@ -348,6 +351,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	/**
 	 * Scrub the bindings of the specified kind in no particular order
 	 */
+	@SuppressWarnings("unused")
 	private void scrub(Class<A> c) {
 		for (A a : AASTStore.getASTsByClass(c)) {
 			processAAST(a);

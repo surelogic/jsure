@@ -100,7 +100,12 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 		  if (n != null) {
 			  context.reportAAST(n.getOffset(), relativeLocation, n);
 		  }
-		}
+		}		
+		catch (IndexOutOfBoundsException e) {
+			//context.reportException(IAnnotationParsingContext.UNKNOWN, e);
+			context.reportError(IAnnotationParsingContext.UNKNOWN, "Unable to create promise: @"+this.name+' '+contents);
+			return ParseResult.FAIL;
+		}		
 		catch (RecognitionException e) {
 		  handleRecognitionException(context, contents, e);
 		  return ParseResult.FAIL;

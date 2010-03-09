@@ -75,6 +75,9 @@ tokens {
   NamedTypePattern;
   Parameters;
   Throws;
+  MethodCall;
+  GuardedBy;
+  Itself;
   END_IMAGINARY;
   
 	//Locking
@@ -105,6 +108,7 @@ tokens {
 	READ_LOCK='readLock';
 	WRITE_LOCK='writeLock';
   INSTANCE;
+  ITSELF='itself';
 }
 @header{
 package com.surelogic.annotation.parse;
@@ -517,11 +521,32 @@ writesEffect
 	:'writes' effectsSpecification -> ^(Writes effectsSpecification)
 	;
 
+/*************************************************************************************
+ * @GuardedBy
+ *************************************************************************************/ 
+
+guardedBy
+  : guardedBySpec EOF -> ^(GuardedBy guardedBySpec)
+  ;
+  
+guardedBySpec
+  : thisExpr
+  | qualifiedThisExpression
+  | ITSELF -> ^(Itself ITSELF)
+  | simpleFieldRef
+  | staticFieldRef  
+  | qualifiedClassExpression
+  | noArgsMethod
+  ;
 
 /*************************************************************************************
  * All Rules Supporting rules
  *************************************************************************************/	
- 
+
+noArgsMethod
+  : identifier '(' ')' -> ^(MethodCall ^(ThisExpression THIS) identifier ^(Parameters))
+  ;
+
 qualifiedClassExpression
 	: namedType '.' CLASS -> ^(ClassExpression namedType)
 	; 
@@ -540,9 +565,13 @@ fieldRef
   ;
 
 qualifiedFieldRef
-	: typeExpression '.' identifier -> ^(FieldRef typeExpression identifier)
+	: staticFieldRef
 	| qualifiedThisExpression '.' identifier -> ^(FieldRef qualifiedThisExpression identifier)
 	;
+
+staticFieldRef
+  : typeExpression '.' identifier -> ^(FieldRef typeExpression identifier)  
+  ;
 
 namedType
   	: simpleNamedType
@@ -621,7 +650,7 @@ simpleName
 identifier
       : IDENTIFIER | 'is' | 'protects' | 
         'none' | 'reads' | 'writes' | 'any' | 'readLock' | 'writeLock' |
-        'into' | 'nothing'
+        'into' | 'nothing' | 'itself'
       ;
 
 /*************************************************************************************

@@ -121,4 +121,7 @@ public interface INodeVisitor<T> {
 	T visit(RegionEffectsNode regionEffectsNode);
 	T visit(AggregateInRegionNode n);
 	T visit(VouchSpecificationNode n);
+	T visit(MethodCallNode methodCallNode);
+	T visit(GuardedByNode guardedByNode);
+	T visit(ItselfNode itselfNode);
 }

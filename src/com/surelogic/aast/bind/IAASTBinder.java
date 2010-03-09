@@ -16,6 +16,10 @@ public interface IAASTBinder {
   
   boolean isResolvable(VariableUseExpressionNode here);
   
+  boolean isResolvable(MethodCallNode node);
+  
+  boolean isResolvable(ItselfNode node);
+  
   boolean isResolvable(FieldRefNode node);
   
   boolean isResolvable(RegionNameNode node);
@@ -32,6 +36,8 @@ public interface IAASTBinder {
 
   IBinding resolve(AASTNode node);
 
+  IMethodBinding resolve(MethodCallNode node);
+  
   IVariableBinding resolve(ThisExpressionNode node);
   
   IVariableBinding resolve(SuperExpressionNode node);
@@ -39,6 +45,8 @@ public interface IAASTBinder {
   IVariableBinding resolve(QualifiedThisExpressionNode node);
 
   IVariableBinding resolve(FieldRefNode node);
+  
+  IVariableBinding resolve(ItselfNode node);
 
   IVariableBinding resolve(VariableUseExpressionNode node);
 

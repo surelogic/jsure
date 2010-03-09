@@ -34,6 +34,10 @@ public class CommonAASTBinder extends AASTBinder {
     return (t == null) ? false : t.fieldExists(node.getId());
   }
   
+  public boolean isResolvable(ItselfNode node) {
+	  return true; // It has to have a field decl to hang off of
+  }
+  
   public ISourceRefType resolveType(ImplicitQualifierNode node) {
     final IRNode tdecl = findNearestType(node);
     return createISourceRefType(tdecl);
@@ -210,6 +214,19 @@ public class CommonAASTBinder extends AASTBinder {
     return t.findField(node.getId());
   }
   
+  public IVariableBinding resolve(final ItselfNode node) {
+	  return new IVariableBinding() {		
+		public IRNode getNode() {
+			return node.getPromisedFor();
+		}
+		
+		public IJavaType getJavaType() {
+			IRNode n = getNode();
+			return eb.getJavaType(n);
+		}
+	};
+  }
+  
   public IRegionBinding resolve(RegionNameNode node) {
     if (node.getParent() instanceof EffectSpecificationNode) {
       EffectSpecificationNode effect = (EffectSpecificationNode) node.getParent();
@@ -382,5 +399,29 @@ public class CommonAASTBinder extends AASTBinder {
 
   public Iterable<ISourceRefType> resolveType(TypeDeclPatternNode node) {
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
+  }
+
+  public IMethodBinding resolve(MethodCallNode node) {
+	  final IRNode fast  = node.getPromisedFor();
+      final IRNode tdecl = VisitUtil.getClosestType(fast);
+      for(final IRNode method : VisitUtil.getClassMethods(tdecl)) {
+    	  if (!MethodDeclaration.prototype.includes(method)) {
+    		  continue;
+    	  }
+    	  // Look for no-args method with same name
+    	  if (node.getId().equals(MethodDeclaration.getId(method)) &&
+    	      JJNode.tree.numChildren(MethodDeclaration.getParams(method)) == 0) {
+    		  return new IMethodBinding() {
+    			  public IRNode getNode() {
+    				  return method;
+    			  }		  
+    		  };
+    	  }
+      }
+      return null;
+  }
+
+  public boolean isResolvable(MethodCallNode node) {
+	  return resolve(node) != null;
   }
 }

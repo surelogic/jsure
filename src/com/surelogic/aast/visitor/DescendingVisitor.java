@@ -677,4 +677,16 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(VouchSpecificationNode n) {
 	  return defaultValue;
   }
+  
+  public T visit(MethodCallNode n) {
+	  return doAccept(n.getObject());
+  }
+
+  public T visit(GuardedByNode n) {
+	  return doAccept(n.getLock());
+  }
+
+  public T visit(ItselfNode itselfNode) {
+	  return defaultValue;
+  }
 }
