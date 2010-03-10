@@ -3,8 +3,7 @@ package edu.cmu.cs.fluid.analysis.util;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.*;
 
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.parse.ParseHelper;
@@ -87,7 +86,7 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
   protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) {
 	/*
 	for(IRNode n : JJNode.tree.bottomUp(cu)) {
-		IRNodeUtil.convert(n);
+		IRNodeUtil.convert(binder, n);
 	}
 	*/
     if (testBinder) {
