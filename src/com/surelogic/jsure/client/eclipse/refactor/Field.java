@@ -7,10 +7,10 @@ package com.surelogic.jsure.client.eclipse.refactor;
  * 
  */
 public class Field implements IJavaDeclaration {
-	private final Type type;
+	private final TypeContext type;
 	private final String field;
 
-	public Field(final Type type, final String field) {
+	public Field(final TypeContext type, final String field) {
 		this.type = type;
 		this.field = field;
 	}
@@ -20,7 +20,7 @@ public class Field implements IJavaDeclaration {
 	 * 
 	 * @return
 	 */
-	public Type getType() {
+	public TypeContext getType() {
 		return type;
 	}
 

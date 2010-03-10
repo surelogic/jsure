@@ -51,7 +51,7 @@ public class ProposedPromisesRefactoring extends Refactoring {
 		final CompositeChange root = new CompositeChange(String.format(
 				"Changes to %s", info.getSelectedProject().getProject()
 						.getName()));
-		info.addToChange(root);
+
 		return root;
 	}
 

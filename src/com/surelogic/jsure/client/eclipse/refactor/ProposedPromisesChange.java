@@ -3,8 +3,6 @@ package com.surelogic.jsure.client.eclipse.refactor;
 import java.util.List;
 
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.ltk.core.refactoring.Change;
-import org.eclipse.text.edits.TextEditGroup;
 
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
@@ -25,14 +23,6 @@ public class ProposedPromisesChange {
 
 	public List<ProposedPromiseDrop> getDrops() {
 		return drops;
-	}
-
-	public void addToChange(final Change change) {
-		TextEditGroup g = new TextEditGroup("Proposed Changes");
-		
-		for(ProposedPromiseDrop drop : drops) {
-			
-		}
 	}
 
 }

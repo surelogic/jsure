@@ -10,12 +10,20 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.SWT;
 
 import com.surelogic.common.eclipse.ColumnViewerSorter;
+import com.surelogic.common.eclipse.JDTUtility;
+import com.surelogic.common.eclipse.SWTUtility;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesChange;
+import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoring;
+import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringWizard;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 
 public class ProposedPromiseView extends AbstractDoubleCheckerView {
 
@@ -32,11 +40,21 @@ public class ProposedPromiseView extends AbstractDoubleCheckerView {
 			 * TODO Proposed the edit to the code in the dialog HERE (you are in
 			 * the SWT thread)
 			 */
-			for (final ProposedPromiseDrop pp : selected) {
-				// there are lots of getters use just get the whole annotation
-				// here
-				System.out
-						.println("proposed promise " + pp.getJavaAnnotation());
+
+			final ProposedPromisesChange info = new ProposedPromisesChange(
+					JDTUtility.getJavaProject(ProjectDrop.getProject()),
+					selected);
+			final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(
+					info);
+			final ProposedPromisesRefactoringWizard wizard = new ProposedPromisesRefactoringWizard(
+					refactoring, info);
+			final RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(
+					wizard);
+			try {
+				op.run(SWTUtility.getShell(), I18N
+						.msg("flashlight.recommend.refactor.regionIsThis"));
+			} catch (final InterruptedException e) {
+				// Operation was cancelled. Whatever floats their boat.
 			}
 		}
 	};
@@ -89,13 +107,13 @@ public class ProposedPromiseView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void setupViewer() {
-		int i=0;
+		int i = 0;
 		for (final String label : ProblemsViewContentProvider.COLUMN_LABELS) {
 			final TableViewerColumn column = new TableViewerColumn(tableViewer,
 					SWT.LEFT);
 			column.getColumn().setText(label);
 			column.getColumn().setWidth(40 * label.length());
-			
+
 			setupSorter(column, i);
 			i++;
 		}
@@ -107,23 +125,26 @@ public class ProposedPromiseView extends AbstractDoubleCheckerView {
 		tableViewer.getTable().pack();
 	}
 
-	protected void setupSorter(TableViewerColumn column, final int colIdx) {
+	protected void setupSorter(final TableViewerColumn column, final int colIdx) {
 		final boolean intSort = "Line".equals(column.getColumn().getText());
-		new ColumnViewerSorter<ProposedPromiseDrop>(tableViewer, column.getColumn()) {
+		new ColumnViewerSorter<ProposedPromiseDrop>(tableViewer, column
+				.getColumn()) {
 			@Override
-			protected int doCompare(Viewer viewer, ProposedPromiseDrop e1, ProposedPromiseDrop e2) {
-				ITableLabelProvider lp = ((ITableLabelProvider) tableViewer.getLabelProvider());
-				String t1 = lp.getColumnText(e1, colIdx);
-				String t2 = lp.getColumnText(e2, colIdx);
+			protected int doCompare(final Viewer viewer,
+					final ProposedPromiseDrop e1, final ProposedPromiseDrop e2) {
+				final ITableLabelProvider lp = (ITableLabelProvider) tableViewer
+						.getLabelProvider();
+				final String t1 = lp.getColumnText(e1, colIdx);
+				final String t2 = lp.getColumnText(e2, colIdx);
 				if (intSort) {
 					return Integer.parseInt(t1) - Integer.parseInt(t2);
 				}
 				return t1.compareTo(t2);
 			}
-			
+
 		};
 	}
-	
+
 	@Override
 	protected void updateView() {
 		f_content.build();

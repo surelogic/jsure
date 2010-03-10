@@ -9,19 +9,19 @@ import java.util.Arrays;
  * 
  */
 public class Method implements IJavaDeclaration {
-	private final Type type;
+	private final TypeContext type;
 	private final String method;
 	private final String[] params;
 
 	/**
-	 * Construct a new method with the given type and param classesn
+	 * Construct a new method with the given type and param classes
 	 * 
 	 * @param type
 	 * @param params
-	 *            the simple names of each parameter class, or an empty array if
-	 *            there are no parameters
+	 *            the class name of the parameter, or an empty array if there
+	 *            are no parameters
 	 */
-	Method(final Type type, final String method, final String[] params) {
+	Method(final TypeContext type, final String method, final String[] params) {
 		this.type = type;
 		this.method = method;
 		this.params = params;
@@ -32,7 +32,7 @@ public class Method implements IJavaDeclaration {
 	 * 
 	 * @return
 	 */
-	public Type getType() {
+	public TypeContext getType() {
 		return type;
 	}
 
