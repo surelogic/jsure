@@ -1807,7 +1807,7 @@ public class TestScopedPromiseMatching extends TestCase {
 
 	private PromiseTargetNode createScopedPromise(String annoText)
 			throws RecognitionException, Exception {
-		ScopedPromiseAdaptor.Node root = (ScopedPromiseAdaptor.Node) ScopedPromiseParse
+		ScopedPromiseAdaptor.Node root = (ScopedPromiseAdaptor.Node) ScopedPromiseParse.prototype
 				.initParser(annoText).scopedPromise().getTree();
 
 //		ScopedPromiseParse.printAST(root);

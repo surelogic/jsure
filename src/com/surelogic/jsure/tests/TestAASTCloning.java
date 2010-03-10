@@ -48,7 +48,7 @@ public class TestAASTCloning extends TestCase {
 
 	public void testLockCloning() {
 		try {
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 					"L1 is lock protects region").lock().getTree();
 
 			LockDeclarationNode node = (LockDeclarationNode) root
@@ -71,7 +71,7 @@ public class TestAASTCloning extends TestCase {
 
 	public void testAggregateCloning() {
 		try {
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("region1 into SuperRegion")
+			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("region1 into SuperRegion")
 					.aggregate().getTree();
 			AggregateNode anode = (AggregateNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -111,7 +111,7 @@ public class TestAASTCloning extends TestCase {
 
 	public void testPolicyLockCloning(){
 		try{
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("lock is this.class")
+			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("lock is this.class")
 					.policyLock().getTree();
 			PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -131,7 +131,7 @@ public class TestAASTCloning extends TestCase {
 	
 	public void testRegionCloning(){
 		try{
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("protected region1 extends region2")
+			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("protected region1 extends region2")
 					.region().getTree();
 			RegionDeclarationNode node = (RegionDeclarationNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -149,7 +149,7 @@ public class TestAASTCloning extends TestCase {
 	
 	public void testRequiresLock(){
 		try{
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("lock1, lock2, lock3, lock4")
+			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("lock1, lock2, lock3, lock4")
 					.requiresLock().getTree();
 			RequiresLockNode node = (RequiresLockNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -207,7 +207,7 @@ public class TestAASTCloning extends TestCase {
 	
 	private PromiseTargetNode createScopedPromise(String annoText)
 			throws RecognitionException, Exception {
-		ScopedPromiseAdaptor.Node root = (ScopedPromiseAdaptor.Node) ScopedPromiseParse
+		ScopedPromiseAdaptor.Node root = (ScopedPromiseAdaptor.Node) ScopedPromiseParse.prototype
 				.initParser(annoText).scopedPromise().getTree();
 
 		// ScopedPromiseParse.printAST(root);

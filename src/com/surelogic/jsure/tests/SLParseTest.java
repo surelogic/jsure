@@ -63,7 +63,7 @@ public class SLParseTest extends TestCase {
 		private String tryLockAAST(final String text, final String expected) {
 			try {
 				AASTAdaptor.Node root = 
-					(AASTAdaptor.Node) SLParse.initParser(text).lock().getTree();
+					(AASTAdaptor.Node) SLParse.prototype.initParser(text).lock().getTree();
 				LockDeclarationNode ldn = 
 					(LockDeclarationNode) root.finalizeAST(IAnnotationParsingContext.nullPrototype);
 				if (expected != null) {
@@ -112,7 +112,7 @@ public class SLParseTest extends TestCase {
 				/*
 				try {
 						expected = "LockDeclaration\n  id=L1\n  FieldRef\n    ThisExpression\n    id=lock\n  QualifiedRegionName\n    NamedType\n      type=Class1\n    id=region\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"L1 is lock protects Class1:region").lock().getTree();
 						LockDeclarationNode ldn = (LockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -127,7 +127,7 @@ public class SLParseTest extends TestCase {
 
 				try {
 						expected = "LockDeclaration\n  id=L1\n  FieldRef\n    TypeExpression\n      NamedType\n        type=Class1\n    id=lock\n  QualifiedRegionName\n    NamedType\n      type=Class1\n    id=region\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"L1 is Class1.lock protects Class1:region").lock()
 										.getTree();
 						LockDeclarationNode ldn = (LockDeclarationNode) root
@@ -153,7 +153,7 @@ public class SLParseTest extends TestCase {
 												"    NamedType\n"+
 												"      type=Class1.region\n"+
 												"    id=region\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"L1 is outer.inner.lock protects Class1.region:region")
 										.lock().getTree();
 						LockDeclarationNode ldn = (LockDeclarationNode) root
@@ -171,7 +171,7 @@ public class SLParseTest extends TestCase {
 
 				try {
 						expected = "LockDeclaration\n  id=L1\n  FieldRef\n    ThisExpression\n    id=lock\n  RegionName\n    id=[]\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"L1 is lock protects []").lock().getTree();
 						LockDeclarationNode ldn = (LockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -211,7 +211,7 @@ public class SLParseTest extends TestCase {
 
 				/*
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"L1 is this.class protects region").lock().getTree();
 						LockDeclarationNode ldn = (LockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -260,7 +260,7 @@ public class SLParseTest extends TestCase {
 						expected = "NewRegionDeclaration\n" +
 											 "  modifiers=" + JavaNode.PUBLIC + "\n" +
 											 "  id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"public region1").region().getTree();
 						RegionDeclarationNode ldn = (RegionDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -278,7 +278,7 @@ public class SLParseTest extends TestCase {
 											 "  id=region1\n" +
 											 "  RegionName\n" +
 											 "    id=region2\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"protected region1 extends region2").region().getTree();
 						RegionDeclarationNode ldn = (RegionDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -294,7 +294,7 @@ public class SLParseTest extends TestCase {
 						expected = "NewRegionDeclaration\n" +
 											 "  modifiers=" + (JavaNode.PRIVATE | JavaNode.STATIC) + "\n" +
 											 "  id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"private static region1").region().getTree();
 						RegionDeclarationNode ldn = (RegionDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -310,7 +310,7 @@ public class SLParseTest extends TestCase {
 						expected = "NewRegionDeclaration\n" +
 											 "  modifiers="+ JavaNode.STATIC + "\n" +
 											 "  id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"static region1").region().getTree();
 						RegionDeclarationNode ldn = (RegionDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -328,7 +328,7 @@ public class SLParseTest extends TestCase {
 											 "  id=region1\n" +
 											 "  RegionName\n" +
 											 "    id=region2\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"public static region1 extends region2").region().getTree();
 						RegionDeclarationNode ldn = (RegionDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -348,7 +348,7 @@ public class SLParseTest extends TestCase {
 											 "    NamedType\n" +
 											 "      type=Class2\n" +
 											 "    id=region2\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"public static region1 extends Class2:region2").region()
 										.getTree();
 						RegionDeclarationNode ldn = (RegionDeclarationNode) root
@@ -369,7 +369,7 @@ public class SLParseTest extends TestCase {
 											 "    NamedType\n" +
 											 "      type=inner.inner2\n" +
 											 "    id=region2\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"public static region1 extends inner.inner2:region2")
 										.region().getTree();
 						RegionDeclarationNode ldn = (RegionDeclarationNode) root
@@ -388,7 +388,7 @@ public class SLParseTest extends TestCase {
 											 "  id=region1\n" +
 											 "  RegionName\n" +
 											 "    id=[]\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"public static region1 extends []").region().getTree();
 						RegionDeclarationNode ldn = (RegionDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -407,7 +407,7 @@ public class SLParseTest extends TestCase {
 
 		public void testBadRegionAAST() {
 				try {
-						SLParse.initParser("").region().getTree();
+						SLParse.prototype.initParser("").region().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
 				} catch (Exception e) {
@@ -415,13 +415,13 @@ public class SLParseTest extends TestCase {
 						fail("Should have thrown a recognition exception.");
 				}
 				/*
-				 * try { SLParse.initParser("1region").region().getTree(); fail("Should
+				 * try { SLParse.prototype.initParser("1region").region().getTree(); fail("Should
 				 * have thrown an exception."); } catch (RecognitionException e) { }
 				 * catch (Exception e) { e.printStackTrace(); fail("Should have thrown a
 				 * recognition exception."); }
 				 */
 				try {
-						SLParse.initParser("static public region1 extends").region()
+						SLParse.prototype.initParser("static public region1 extends").region()
 										.getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
@@ -430,7 +430,7 @@ public class SLParseTest extends TestCase {
 						fail("Should have thrown a recognition exception.");
 				}
 				try {
-						SLParse.initParser("private region1 extends this:[]").region()
+						SLParse.prototype.initParser("private region1 extends this:[]").region()
 										.getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
@@ -439,7 +439,7 @@ public class SLParseTest extends TestCase {
 						fail("Should have thrown a recognition exception.");
 				}
 				try {
-						SLParse.initParser("region1 extends this.region").region()
+						SLParse.prototype.initParser("region1 extends this.region").region()
 										.getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
@@ -449,7 +449,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						SLParse.initParser("public this.region1 extends this.region")
+						SLParse.prototype.initParser("public this.region1 extends this.region")
 										.region().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
@@ -458,7 +458,7 @@ public class SLParseTest extends TestCase {
 						fail("Should have thrown a recognition exception.");
 				}
 				try {
-						SLParse.initParser("public region1 extends this:region").region()
+						SLParse.prototype.initParser("public region1 extends this:region").region()
 										.getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
@@ -467,7 +467,7 @@ public class SLParseTest extends TestCase {
 						fail("Should have thrown a recognition exception.");
 				}
 				try {
-						SLParse.initParser("final region1").region().getTree();
+						SLParse.prototype.initParser("final region1").region().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
 				} catch (Exception e) {
@@ -482,7 +482,7 @@ public class SLParseTest extends TestCase {
 						expected = "RequiresLockNode\n"+
 											 "  SimpleLockName\n"+
 											 "    id=lock1\n\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock1").requiresLock().getTree();
 						RequiresLockNode ldn = (RequiresLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -504,7 +504,7 @@ public class SLParseTest extends TestCase {
 											 "  SimpleLockName\n"+
 											 "    id=lock2\n" +
 											 "\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock1, lock2").requiresLock().getTree();
 						RequiresLockNode ldn = (RequiresLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -529,7 +529,7 @@ public class SLParseTest extends TestCase {
 											 "  SimpleLockName\n"+
 											 "    id=lock3\n" +
 											 "\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock1, lock2, lock3").requiresLock().getTree();
 						RequiresLockNode ldn = (RequiresLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -557,7 +557,7 @@ public class SLParseTest extends TestCase {
 											 "      id=Type\n"+
 											 "    id=lock3\n"+
 											 "\n" ;
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock1, lock2, Type:lock3").requiresLock().getTree();
 						RequiresLockNode ldn = (RequiresLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -579,7 +579,7 @@ public class SLParseTest extends TestCase {
 											 "        type=Type\n"+
 											 "    id=lock1\n"+
 											 "\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"Type.this:lock1").requiresLock().getTree();
 						RequiresLockNode ldn = (RequiresLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -597,7 +597,7 @@ public class SLParseTest extends TestCase {
 
 		public void testBadRequiresLockAAST() {
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"this.lock1").requiresLock().getTree();
 						RequiresLockNode ldn = (RequiresLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -609,7 +609,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						SLParse.initParser("lock1,").requiresLock().getTree();
+						SLParse.prototype.initParser("lock1,").requiresLock().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
 				} catch (Exception e) {
@@ -618,7 +618,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						SLParse.initParser(":lock1").requiresLock().getTree();
+						SLParse.prototype.initParser(":lock1").requiresLock().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
 				} catch (Exception e) {
@@ -627,7 +627,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						SLParse.initParser("Type:this.lock1").requiresLock().getTree();
+						SLParse.prototype.initParser("Type:this.lock1").requiresLock().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
 				} catch (Exception e) {
@@ -642,7 +642,7 @@ public class SLParseTest extends TestCase {
 						expected = "ReturnsLockNode\n"+
 											 "    SimpleLockName\n"+
 											 "    id=lock1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock1").returnsLock().getTree();
 						ReturnsLockNode ldn = (ReturnsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -661,7 +661,7 @@ public class SLParseTest extends TestCase {
 											 "      NamedType\n"+
 											 "        type=Type\n"+
 											 "    id=lock1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"Type.this:lock1").returnsLock().getTree();
 						ReturnsLockNode ldn = (ReturnsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -678,7 +678,7 @@ public class SLParseTest extends TestCase {
 
 		public void testBadReturnsLockAAST() {
 				try {
-						SLParse.initParser("").returnsLock().getTree();
+						SLParse.prototype.initParser("").returnsLock().getTree();
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
 				} catch (Exception e) {
@@ -686,7 +686,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"this.lock1").returnsLock().getTree();
 						ReturnsLockNode ldn = (ReturnsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -697,13 +697,13 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				/*
-				 * try { SLParse.initParser("1lock").returnsLock().getTree();
+				 * try { SLParse.prototype.initParser("1lock").returnsLock().getTree();
 				 * fail("Should have thrown a RecognitionException"); } catch
 				 * (RecognitionException e) { } catch (Exception e) {
 				 * e.printStackTrace(); fail("Unexpected exception"); }
 				 */
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock1, lock2").returnsLock().getTree();
 						ReturnsLockNode ldn = (ReturnsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -721,7 +721,7 @@ public class SLParseTest extends TestCase {
 						expected = "InRegionNode\n"+
 											 "    RegionName\n"+
 											 "    id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"region1").inRegion().getTree();
 						InRegionNode ldn = (InRegionNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -741,7 +741,7 @@ public class SLParseTest extends TestCase {
 											 "    NamedType\n"+
 											 "      type=Type\n"+
 											 "    id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"Type:region1").inRegion().getTree();
 						InRegionNode ldn = (InRegionNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -759,7 +759,7 @@ public class SLParseTest extends TestCase {
 											 "    NamedType\n"+
 											 "      type=Type.type2\n"+
 											 "    id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"Type.type2:region1").inRegion().getTree();
 						InRegionNode ldn = (InRegionNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -775,7 +775,7 @@ public class SLParseTest extends TestCase {
 						expected = "InRegionNode\n"+
 											 "    RegionName\n"+
 											 "    id=[]\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("[]")
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("[]")
 										.inRegion().getTree();
 						InRegionNode ldn = (InRegionNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -793,7 +793,7 @@ public class SLParseTest extends TestCase {
 
 		public void testBadMapIntoAAST() {
 				try {
-						SLParse.initParser("").inRegion().getTree();
+						SLParse.prototype.initParser("").inRegion().getTree();
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
 				} catch (Exception e) {
@@ -801,7 +801,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						SLParse.initParser(":region1").inRegion().getTree();
+						SLParse.prototype.initParser(":region1").inRegion().getTree();
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
 				} catch (Exception e) {
@@ -810,7 +810,7 @@ public class SLParseTest extends TestCase {
 				}
 				
 				try {
-						SLParse.initParser("region1, region2").inRegion().getTree();
+						SLParse.prototype.initParser("region1, region2").inRegion().getTree();
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
 				} catch (Exception e) {
@@ -821,7 +821,7 @@ public class SLParseTest extends TestCase {
 
 		/*
 		 * public void testGoodMapFields(){ try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1 into
 		 * SuperRegion").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype); }
 		 * catch(RecognitionException e){ e.printStackTrace(); fail("Unexpected
@@ -829,7 +829,7 @@ public class SLParseTest extends TestCase {
 		 * exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1, region2 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1, region2 into
 		 * SuperRegion").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype); }
 		 * catch(RecognitionException e){ e.printStackTrace(); fail("Unexpected
@@ -837,7 +837,7 @@ public class SLParseTest extends TestCase {
 		 * exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1, region2, region3 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1, region2, region3 into
 		 * SuperRegion").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype); }
 		 * catch(RecognitionException e){ e.printStackTrace(); fail("Unexpected
@@ -845,7 +845,7 @@ public class SLParseTest extends TestCase {
 		 * exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1 into
 		 * []").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype); }
 		 * catch(RecognitionException e){ e.printStackTrace(); fail("Unexpected
@@ -853,7 +853,7 @@ public class SLParseTest extends TestCase {
 		 * exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1, region2, region3 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1, region2, region3 into
 		 * []").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype); }
 		 * catch(RecognitionException e){ e.printStackTrace(); fail("Unexpected
@@ -861,7 +861,7 @@ public class SLParseTest extends TestCase {
 		 * exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1 into
 		 * Type:SuperRegion").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype); }
 		 * catch(RecognitionException e){ e.printStackTrace(); fail("Unexpected
@@ -869,7 +869,7 @@ public class SLParseTest extends TestCase {
 		 * exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1 into
 		 * Type.this:SuperRegion").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype); }
 		 * catch(RecognitionException e){ e.printStackTrace(); fail("Unexpected
@@ -877,7 +877,7 @@ public class SLParseTest extends TestCase {
 		 * exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1 into
 		 * Type.type2:SuperRegion").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype); }
 		 * catch(RecognitionException e){ e.printStackTrace(); fail("Unexpected
@@ -887,7 +887,7 @@ public class SLParseTest extends TestCase {
 
 		/*
 		 * public void testBadMapFields(){ try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("").mapFields().getTree();
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("").mapFields().getTree();
 		 * MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		 * fail("Should have thrown a RecognitionException"); }
@@ -895,7 +895,7 @@ public class SLParseTest extends TestCase {
 		 * fail("Unexpected exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1, region2 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1, region2 into
 		 * ").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		 * fail("Should have thrown a RecognitionException"); }
@@ -903,7 +903,7 @@ public class SLParseTest extends TestCase {
 		 * fail("Unexpected exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1, region2, region3 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1, region2, region3 into
 		 * this.SuperRegion").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		 * fail("Should have thrown a RecognitionException"); }
@@ -911,7 +911,7 @@ public class SLParseTest extends TestCase {
 		 * fail("Unexpected exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1 into
 		 * Array[]").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		 * fail("Should have thrown a RecognitionException"); }
@@ -919,7 +919,7 @@ public class SLParseTest extends TestCase {
 		 * fail("Unexpected exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1, region2, region3 into
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1, region2, region3 into
 		 * Type:[]").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		 * fail("Should have thrown a RecognitionException"); }
@@ -927,7 +927,7 @@ public class SLParseTest extends TestCase {
 		 * fail("Unexpected exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1").mapFields().getTree();
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1").mapFields().getTree();
 		 * MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		 * fail("Should have thrown a RecognitionException"); }
@@ -935,7 +935,7 @@ public class SLParseTest extends TestCase {
 		 * fail("Unexpected exception"); }
 		 * 
 		 * try{ AASTAdaptor.Node root =
-		 * (AASTAdaptor.Node)SLParse.initParser("region1, region2,
+		 * (AASTAdaptor.Node)SLParse.prototype.initParser("region1, region2,
 		 * region3").mapFields().getTree(); MapFieldsNode node =
 		 * (MapFieldsNode)root.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		 * fail("Should have thrown a RecognitionException"); }
@@ -953,7 +953,7 @@ public class SLParseTest extends TestCase {
 											 "        id=region1\n" +
 											 "      RegionName\n"+
 											 "        id=SuperRegion1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"region1 into SuperRegion1").aggregate().getTree();
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -979,7 +979,7 @@ public class SLParseTest extends TestCase {
 											 "        id=region2\n" +
 											 "      RegionName\n"+
 											 "        id=SuperRegion1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"region1 into SuperRegion1, region2 into SuperRegion1")
 										.aggregate().getTree();
 						AggregateNode node = (AggregateNode) root
@@ -1011,7 +1011,7 @@ public class SLParseTest extends TestCase {
 											 "        id=region3\n" +
 											 "      RegionName\n"+
 											 "        id=SuperRegion1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 										.initParser(
 														"region1 into SuperRegion1, region2 into SuperRegion1, region3 into SuperRegion1")
 										.aggregate().getTree();
@@ -1076,7 +1076,7 @@ public class SLParseTest extends TestCase {
 											 "        NamedType\n"	+
 											 "          type=Type\n" +
 											 "        id=SuperRegion1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 										.initParser(
 														"region1 into Type:SuperRegion1, region2 into Type:SuperRegion1")
 										.aggregate().getTree();
@@ -1141,7 +1141,7 @@ public class SLParseTest extends TestCase {
 											 "        NamedType\n"	+
 											 "          type=Type.Region\n" +
 											 "        id=SuperRegion1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 										.initParser(
 														"region1 into Type.Region:SuperRegion1, region2 into Type.Region:SuperRegion1")
 										.aggregate().getTree();
@@ -1169,7 +1169,7 @@ public class SLParseTest extends TestCase {
 											 "        id=[]\n" +
 											 "      RegionName\n"+
 											 "        id=SuperRegion1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"[] into SuperRegion1, [] into SuperRegion1").aggregate()
 										.getTree();
 						AggregateNode node = (AggregateNode) root
@@ -1198,7 +1198,7 @@ public class SLParseTest extends TestCase {
 											 "        id=region2\n" +
 											 "      RegionName\n"+
 											 "        id=[]\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"region1 into [], region2 into []")
 										.aggregate().getTree();
 						AggregateNode node = (AggregateNode) root
@@ -1225,7 +1225,7 @@ public class SLParseTest extends TestCase {
 											 "        id=[]\n" +
 											 "      RegionName\n"+
 											 "        id=[]\n";
-					AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+					AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"[] into [], [] into []").aggregate().getTree();
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1242,7 +1242,7 @@ public class SLParseTest extends TestCase {
 
 		public void testBadAggregate() {
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("")
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("")
 										.aggregate().getTree();
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1253,7 +1253,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"region1 into SuperRegion1, SuperRegion1").aggregate()
 										.getTree();
 						AggregateNode node = (AggregateNode) root
@@ -1265,7 +1265,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"region1, region2 into SuperRegion1").aggregate().getTree();
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1276,7 +1276,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"Type.region1 into SuperRegion1 ").aggregate().getTree();
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1287,7 +1287,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"region1 into Type:Type:SuperRegion1").aggregate()
 										.getTree();
 						AggregateNode node = (AggregateNode) root
@@ -1299,7 +1299,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"Type.Region.region1 into this.SuperRegion1").aggregate()
 										.getTree();
 						AggregateNode node = (AggregateNode) root
@@ -1311,7 +1311,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"region1 into SuperRegion1 region2 into SuperRegion1")
 										.aggregate().getTree();
 						AggregateNode node = (AggregateNode) root
@@ -1329,7 +1329,7 @@ public class SLParseTest extends TestCase {
 						expected = "PolicyLockDeclaration\n"+
 											 "  id=lock\n"+
 											 "  ThisExpression\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is this").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1346,7 +1346,7 @@ public class SLParseTest extends TestCase {
 						expected = "PolicyLockDeclaration\n"+
 											 "  id=lock\n"+
 											 "  ImplicitClassLockExpression\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is class").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1363,7 +1363,7 @@ public class SLParseTest extends TestCase {
 						expected = "PolicyLockDeclaration\n"+
 											 "  id=lock\n"+
 											 "  ImplicitClassLockExpression\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is this.class").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1382,7 +1382,7 @@ public class SLParseTest extends TestCase {
 											 "  FieldRef\n"+
 											 "    ThisExpression\n" +
 											 "    id=Lock\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is Lock").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1403,7 +1403,7 @@ public class SLParseTest extends TestCase {
 											 "      NamedType\n"+
 											 "        type=Type\n"+
 											 "    id=Lock\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is Type.Lock").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1424,7 +1424,7 @@ public class SLParseTest extends TestCase {
 											 "      NamedType\n"+
 											 "        type=Type.lock\n"+
 											 "    id=Lock\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is Type.lock.Lock").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1443,7 +1443,7 @@ public class SLParseTest extends TestCase {
 											 "  QualifiedThisExpression\n"+
 											 "    NamedType\n"+
 											 "      type=Type\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is Type.this").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1459,7 +1459,7 @@ public class SLParseTest extends TestCase {
 
 		public void testBadPolicyLock() {
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("")
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("")
 										.policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1471,7 +1471,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1483,7 +1483,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is ").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1495,7 +1495,7 @@ public class SLParseTest extends TestCase {
 				}
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										" is this").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1508,7 +1508,7 @@ public class SLParseTest extends TestCase {
 
 				/*
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is this.class").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1520,7 +1520,7 @@ public class SLParseTest extends TestCase {
 				}
 */
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock is Type:this").policyLock().getTree();
 						PolicyLockDeclarationNode node = (PolicyLockDeclarationNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1536,7 +1536,7 @@ public class SLParseTest extends TestCase {
 				String expected;
 				try {
 						expected = "RegionEffects\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"none").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1556,7 +1556,7 @@ public class SLParseTest extends TestCase {
 											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1581,7 +1581,7 @@ public class SLParseTest extends TestCase {
 											 "          type=Type\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads any(Type):region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1603,7 +1603,7 @@ public class SLParseTest extends TestCase {
 											 "          type=Type.type\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads any(Type.type):region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1624,7 +1624,7 @@ public class SLParseTest extends TestCase {
 											 "      SuperExpression\n"+
 											 "      RegionName\n"+
 											 "        id=Region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads super:Region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1654,7 +1654,7 @@ public class SLParseTest extends TestCase {
 											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region2\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads region1, region2").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1679,7 +1679,7 @@ public class SLParseTest extends TestCase {
 											 "          type=Class\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads Class.this:region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1701,7 +1701,7 @@ public class SLParseTest extends TestCase {
 											 "          type=Class\n"+
 											 "      RegionName\n"+
 											 "        id=[]\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads Class.this:[]").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1721,7 +1721,7 @@ public class SLParseTest extends TestCase {
 											 "      ThisExpression\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads this:region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1743,7 +1743,7 @@ public class SLParseTest extends TestCase {
 											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1765,7 +1765,7 @@ public class SLParseTest extends TestCase {
 											 "          type=Type\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes any(Type):region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1787,7 +1787,7 @@ public class SLParseTest extends TestCase {
 											 "          type=Type.type\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes any(Type.type):region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1808,7 +1808,7 @@ public class SLParseTest extends TestCase {
 											 "      SuperExpression\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes super:region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1834,7 +1834,7 @@ public class SLParseTest extends TestCase {
 											 "      ImplicitQualifier\n"+
 											 "      RegionName\n"+
 											 "        id=region2\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes region1, region2").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1856,7 +1856,7 @@ public class SLParseTest extends TestCase {
 											 "          type=Class\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes Class.this:region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1878,7 +1878,7 @@ public class SLParseTest extends TestCase {
 											 "          type=Class\n"+
 											 "      RegionName\n"+
 											 "        id=[]\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes Class.this:[]").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1898,7 +1898,7 @@ public class SLParseTest extends TestCase {
 											 "      ThisExpression\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes this:region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1922,7 +1922,7 @@ public class SLParseTest extends TestCase {
 											 "      RegionName\n"+
 											 "        id=region1\n"+
 											 "  Reads\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes Class.this:region1; reads nothing").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1952,7 +1952,7 @@ public class SLParseTest extends TestCase {
 											 "          type=Class\n"+
 											 "      RegionName\n"+
 											 "        id=[]\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"writes Class.this:[]; reads Class.this:[]").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -1985,7 +1985,7 @@ public class SLParseTest extends TestCase {
 											 "      ThisExpression\n"+
 											 "      RegionName\n"+
 											 "        id=region1\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads this:region, com.sun.java.Test:Region; writes this:region1").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2003,7 +2003,7 @@ public class SLParseTest extends TestCase {
 		public void testBadRegionEffects() {
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("")
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("")
 										.regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2014,7 +2014,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads any(Type).region").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2025,7 +2025,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads region1, nothing").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2036,7 +2036,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads Type.this.region.[]").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2050,7 +2050,7 @@ public class SLParseTest extends TestCase {
 
 		public void testBadWrites() {
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("")
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("")
 										.regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2061,7 +2061,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"any(Type).region").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2072,7 +2072,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"region1, nothing").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2083,7 +2083,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"Type.this.region.[]").regionEffects().getTree();
 						RegionEffectsNode node = (RegionEffectsNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2102,7 +2102,7 @@ public class SLParseTest extends TestCase {
 						expected = "IsLockNode\n"+
 											 "    SimpleLockName\n"+
 											 "    id=L\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("L")
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("L")
 										.isLock().getTree();
 						IsLockNode node = (IsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2118,7 +2118,7 @@ public class SLParseTest extends TestCase {
 						expected = "IsLockNode\n"+
 											 "    SimpleLockName\n"+
 											 "    id=lock\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock").isLock().getTree();
 						IsLockNode node = (IsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2134,7 +2134,7 @@ public class SLParseTest extends TestCase {
 						expected = "IsLockNode\n"+
 											 "    SimpleLockName\n"+
 											 "    id=myLock\n";
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"myLock").isLock().getTree();
 						IsLockNode node = (IsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2151,7 +2151,7 @@ public class SLParseTest extends TestCase {
 		public void testBadIsLock() {
 
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser("")
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("")
 										.isLock().getTree();
 						IsLockNode node = (IsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2162,7 +2162,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"lock1, lock2").isLock().getTree();
 						IsLockNode node = (IsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2173,7 +2173,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"this.lock").isLock().getTree();
 						IsLockNode node = (IsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2184,7 +2184,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"this.class").isLock().getTree();
 						IsLockNode node = (IsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
@@ -2195,7 +2195,7 @@ public class SLParseTest extends TestCase {
 						fail("Unexpected exception");
 				}
 				try {
-						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.initParser(
+						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"Type:lock").isLock().getTree();
 						IsLockNode node = (IsLockNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
