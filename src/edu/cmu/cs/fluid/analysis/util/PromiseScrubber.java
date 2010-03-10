@@ -13,6 +13,7 @@ import com.surelogic.annotation.parse.SLColorAnnotationsLexer;
 import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
+//import com.surelogic.jsure.client.eclipse.refactor.IRNodeUtil;
 import com.surelogic.xml.XMLGenerator;
 
 import edu.cmu.cs.fluid.eclipse.Eclipse;
@@ -84,6 +85,11 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
    */
   @Override
   protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) {
+	/*
+	for(IRNode n : JJNode.tree.bottomUp(cu)) {
+		IRNodeUtil.convert(n);
+	}
+	*/
     if (testBinder) {
       for(IRNode n : JJNode.tree.bottomUp(cu)) {
         Operator op = JJNode.tree.getOperator(n);
