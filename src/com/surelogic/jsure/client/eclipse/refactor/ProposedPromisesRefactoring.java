@@ -25,9 +25,9 @@ import com.surelogic.common.logging.SLLogger;
 public class ProposedPromisesRefactoring extends Refactoring {
 	private static final Logger LOG = SLLogger
 			.getLoggerFor(ProposedPromisesRefactoring.class);
-	private final ProposedPromisesInfo info;
+	private final ProposedPromisesChange info;
 
-	ProposedPromisesRefactoring(final ProposedPromisesInfo info) {
+	public ProposedPromisesRefactoring(final ProposedPromisesChange info) {
 		this.info = info;
 	}
 
@@ -51,7 +51,7 @@ public class ProposedPromisesRefactoring extends Refactoring {
 		final CompositeChange root = new CompositeChange(String.format(
 				"Changes to %s", info.getSelectedProject().getProject()
 						.getName()));
-
+		info.addToChange(root);
 		return root;
 	}
 

@@ -10,7 +10,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
-import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.i18n.I18N;
 
@@ -27,9 +26,9 @@ public class ProposedPromisesRefactoringAction implements
 
 	public void run(final IAction action) {
 
-		final ProposedPromisesInfo info = new ProposedPromisesInfo(JDTUtility
-				.getJavaProjects(), null);
-		info.setSelectedProject(f_javaProject);
+		final ProposedPromisesChange info = new ProposedPromisesChange(
+				f_javaProject, null);
+
 		final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(
 				info);
 		final ProposedPromisesRefactoringWizard wizard = new ProposedPromisesRefactoringWizard(

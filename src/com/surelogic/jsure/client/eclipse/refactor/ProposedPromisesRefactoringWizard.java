@@ -5,10 +5,10 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
 public class ProposedPromisesRefactoringWizard extends RefactoringWizard {
 
-	private final ProposedPromisesInfo info;
+	private final ProposedPromisesChange info;
 
 	public ProposedPromisesRefactoringWizard(final Refactoring refactoring,
-			final ProposedPromisesInfo info) {
+			final ProposedPromisesChange info) {
 		super(refactoring, RefactoringWizard.DIALOG_BASED_USER_INTERFACE);
 		this.info = info;
 	}
