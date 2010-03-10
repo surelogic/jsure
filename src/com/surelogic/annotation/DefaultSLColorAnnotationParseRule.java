@@ -18,18 +18,9 @@ extends AbstractAntlrParseRule<A, P, SLColorAnnotationsParser>  {
       super(name, ops, dt, loc);
     }
 
-    protected DefaultSLColorAnnotationParseRule(String name, Operator op,
-      Class<A> dt, AnnotationLocation loc) {
-      super(name, op, dt, loc);
-    }
-
     protected DefaultSLColorAnnotationParseRule(String name, Operator[] ops,
       Class<A> dt) {
       this(name, ops, dt, AnnotationLocation.DECL);
-    }
-
-    protected DefaultSLColorAnnotationParseRule(String name, Operator op, Class<A> dt) {
-      this(name, op, dt, AnnotationLocation.DECL);
     }
 
     @Override

@@ -38,21 +38,6 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 		relativeLocation = loc;
 	}
 
-	protected AbstractAntlrParseRule(String name, Operator op,
-		Class<A> dt, AnnotationLocation loc) {
-		super(name, op, dt);
-		relativeLocation = loc;
-	}
-
-	protected AbstractAntlrParseRule(String name, Operator[] ops,
-		Class<A> dt) {
-		this(name, ops, dt, AnnotationLocation.DECL);
-	}
-
-	protected AbstractAntlrParseRule(String name, Operator op, Class<A> dt) {
-		this(name, op, dt, AnnotationLocation.DECL);
-	}
-
 	/**
 	 * Parses a string containing the 'meat' of the annotation into an AAST
 	 * 

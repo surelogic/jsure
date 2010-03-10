@@ -114,7 +114,7 @@ public class ModuleRules extends AnnotationRules {
   
   public static class Module_ParseRule extends DefaultSLColorAnnotationParseRule<ModuleChoiceNode, ModulePromiseDrop> {
     public Module_ParseRule() {
-      super(MODULE, PackageDeclaration.prototype, ModuleChoiceNode.class);
+      super(MODULE, packageOps, ModuleChoiceNode.class);
     }
  
     

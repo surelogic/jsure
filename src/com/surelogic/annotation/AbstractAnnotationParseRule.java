@@ -27,13 +27,6 @@ implements ISingleAnnotationParseRule<A,P> {
   private final Class<A> aastType;
   private final IPromiseDropStorage<P> storage;
   private final IAnnotationScrubber<A> scrubber;
-  
-  protected AbstractAnnotationParseRule(String name, Operator op, Class<A> dt) {
-    super(name, op);
-    aastType = dt;
-    storage  = makeStorage();
-    scrubber = makeScrubber();
-  }
 
   protected AbstractAnnotationParseRule(String name, Operator[] ops, Class<A> dt) {
     super(name, ops);

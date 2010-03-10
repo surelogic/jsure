@@ -113,7 +113,7 @@ public interface PromiseConstants {
     FieldDeclaration.prototype, ParameterDeclaration.prototype,
     SomeFunctionDeclaration.prototype, };
   
-  public static final Operator[] fieldDeclOp = { FieldDeclaration.prototype, VariableDeclarator.prototype };
+  public static final Operator[] fieldDeclOp = { FieldDeclaration.prototype, /*VariableDeclarator.prototype*/ };
 
   public static final Operator[] fieldOrTypeOp = { 
     FieldDeclaration.prototype, 
@@ -139,6 +139,10 @@ public interface PromiseConstants {
 		    Statement.prototype,
   };
 
+  public static final Operator[] packageOps = {
+		PackageDeclaration.prototype,
+  };
+  
   public static final Operator[] statementOps =
     {
       AssertMessageStatement.prototype,

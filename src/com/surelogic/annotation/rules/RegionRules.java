@@ -217,7 +217,7 @@ public class RegionRules extends AnnotationRules {
   public static class InRegion_ParseRule 
   extends DefaultSLAnnotationParseRule<InRegionNode,InRegionPromiseDrop> {
     protected InRegion_ParseRule() {
-      super(IN_REGION, FieldDeclaration.prototype, InRegionNode.class);
+      super(IN_REGION, fieldDeclOp, InRegionNode.class);
     }
   
     @Override
@@ -372,7 +372,7 @@ public class RegionRules extends AnnotationRules {
   public static class Aggregate_ParseRule
   extends DefaultSLAnnotationParseRule<AggregateNode,AggregatePromiseDrop> {
     protected Aggregate_ParseRule() {
-      super(AGGREGATE, FieldDeclaration.prototype, AggregateNode.class);
+      super(AGGREGATE, fieldDeclOp, AggregateNode.class);
     }
     @Override
     protected SLAnnotationsParser initParser(String contents) throws Exception {
@@ -573,7 +573,7 @@ public class RegionRules extends AnnotationRules {
   public static class AggregateInRegion_ParseRule 
   extends DefaultSLAnnotationParseRule<AggregateInRegionNode,AggregateInRegionPromiseDrop> {
     protected AggregateInRegion_ParseRule() {
-      super(AGGREGATE_IN_REGION, FieldDeclaration.prototype, AggregateInRegionNode.class);
+      super(AGGREGATE_IN_REGION, fieldDeclOp, AggregateInRegionNode.class);
     }
   
     @Override

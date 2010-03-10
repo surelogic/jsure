@@ -24,10 +24,6 @@ extends AbstractAnnotationParseRule<A,P> {
   protected DefaultBooleanAnnotationParseRule(String name, Operator[] ops, Class<A> dt) {
     super(name, ops, dt);
   }
-
-  protected DefaultBooleanAnnotationParseRule(String name, Operator op, Class<A> dt) {
-    super(name, op, dt);
-  }
   
   /**
    * Assumes that parsed text specifies where the annotations should go

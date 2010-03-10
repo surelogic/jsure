@@ -30,18 +30,9 @@ public abstract class DefaultSLAnnotationParseRule<A extends IAASTRootNode, P ex
 		super(name, ops, dt, loc);
 	}
 
-	protected DefaultSLAnnotationParseRule(String name, Operator op,
-		Class<A> dt, AnnotationLocation loc) {
-		super(name, op, dt, loc);
-	}
-
 	protected DefaultSLAnnotationParseRule(String name, Operator[] ops,
 		Class<A> dt) {
 		this(name, ops, dt, AnnotationLocation.DECL);
-	}
-
-	protected DefaultSLAnnotationParseRule(String name, Operator op, Class<A> dt) {
-		this(name, op, dt, AnnotationLocation.DECL);
 	}
 
 	@Override

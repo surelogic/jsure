@@ -72,10 +72,6 @@ public class ScopedPromiseRules extends AnnotationRules {
 			super(name, ops, dt, AnnotationLocation.DECL);
 		}
 
-		protected ScopedPromiseRule(String name, Operator op, Class<A> dt) {
-			super(name, op, dt, AnnotationLocation.DECL);
-		}
-
 		@Override
 		protected ScopedPromisesParser initParser(String contents) throws Exception {
 			if (contents == null) {
