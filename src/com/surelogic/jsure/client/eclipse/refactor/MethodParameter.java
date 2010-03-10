@@ -6,7 +6,7 @@ package com.surelogic.jsure.client.eclipse.refactor;
  * @author nathan
  * 
  */
-public class MethodParameter {
+public class MethodParameter implements IJavaDeclaration {
 
 	private final int param;
 	private final Method method;

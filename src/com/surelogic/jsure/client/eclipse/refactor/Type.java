@@ -6,7 +6,7 @@ package com.surelogic.jsure.client.eclipse.refactor;
  * @author nathan
  * 
  */
-public class Type {
+public class Type implements IJavaDeclaration {
 
 	private final Type parent;
 	private final String name;
@@ -23,6 +23,11 @@ public class Type {
 	Type(final String name) {
 		this.parent = null;
 		this.name = name;
+	}
+
+	public Type(Method m, String id) {
+		this(m.getType(), id);
+		// TODO what to do with the method part?
 	}
 
 	public Type getParent() {

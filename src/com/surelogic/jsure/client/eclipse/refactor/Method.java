@@ -8,7 +8,7 @@ import java.util.Arrays;
  * @author nathan
  * 
  */
-public class Method {
+public class Method implements IJavaDeclaration {
 	private final Type type;
 	private final String method;
 	private final String[] params;

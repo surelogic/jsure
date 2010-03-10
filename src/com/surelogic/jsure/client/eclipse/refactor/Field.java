@@ -6,7 +6,7 @@ package com.surelogic.jsure.client.eclipse.refactor;
  * @author nathan
  * 
  */
-public class Field {
+public class Field implements IJavaDeclaration {
 	private final Type type;
 	private final String field;
 
