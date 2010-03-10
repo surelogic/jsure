@@ -24,9 +24,12 @@ public class IRNodeUtil {
 			}
 			if (TypeDeclaration.prototype.includes(op)) {
 				// TODO fix to handle method/initializer as parent
+				if (parent == null) {
+					return new Type(TypeDeclaration.getId(decl));
+				}
 				if (parent instanceof Method) {
 					return new Type((Method) parent, TypeDeclaration.getId(decl));
-				}
+				}				
 				return new Type((Type) parent, TypeDeclaration.getId(decl));
 			}
 			if (VariableDeclarator.prototype.includes(op)) {
@@ -50,6 +53,9 @@ public class IRNodeUtil {
 		} 
 		else if (AnonClassExpression.prototype.includes(op)) {
 			// TODO is this the right name?
+			if (parent instanceof Method) {
+				return new Type((Method) parent, JJNode.getInfoOrNull(decl));
+			}				
 			return new Type((Type) parent, JJNode.getInfoOrNull(decl));
 		}
 		return parent;
