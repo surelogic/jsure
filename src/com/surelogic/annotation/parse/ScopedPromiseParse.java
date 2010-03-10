@@ -1,15 +1,18 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/parse/ScopedPromiseParse.java,v 1.27 2008/09/19 20:58:42 chance Exp $*/
 package com.surelogic.annotation.parse;
 
-import java.io.*;
-
 import org.antlr.runtime.*;
 
 import com.surelogic.parse.*;
-import com.surelogic.annotation.IAnnotationParsingContext;
 
-public class ScopedPromiseParse {
+public class ScopedPromiseParse extends AbstractParse<ScopedPromisesParser> {
+  public static final ScopedPromiseParse prototype = new ScopedPromiseParse();
+
   public static void main(String[] args) throws Exception {
+	prototype.test();
+  }
+
+  private void test() throws Exception {
     for(int i=ScopedPromisesParser.START_IMAGINARY+1; i<ScopedPromisesParser.END_IMAGINARY; i++) {
       final String token = ScopedPromisesParser.tokenNames[i];
       if (!ASTFactory.getInstance().handles(token)) {
@@ -269,50 +272,19 @@ public class ScopedPromiseParse {
     printAST(initParser("private String *1 & !(private String *3)").andTarget().tree);
   }
 
-  public static ScopedPromisesParser initParser(String text) throws Exception { 
-    @SuppressWarnings("deprecation")
-    InputStream is = new StringBufferInputStream(text);
-    
-    // create a CharStream that reads from the stream above
-    ANTLRInputStream input = new ANTLRInputStream(is);
-
-    // create a lexer that feeds off of input CharStream
-    ScopedPromisesLexer lexer = new ScopedPromisesLexer(input);
-
-    // create a buffer of tokens pulled from the lexer
-    CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-    // create a parser that feeds off the tokens buffer
-    ScopedPromisesParser parser = new ScopedPromisesParser(tokens);
-
-    ScopedPromiseAdaptor adaptor = new ScopedPromiseAdaptor();
-
-    parser.setTreeAdaptor(adaptor);
-    return parser;
+  @Override
+  protected TokenSource newLexer(CharStream input) {
+	  return new ScopedPromisesLexer(input);
   }
 
-  public static void printAST(Object node) {
-    printAST(node, true);
-  }
-  
-  public static void printAST(Object node, boolean asAST) {
-    if (node == null) {
-      System.out.println("Null node");
-      return;
-    }
-    if (node instanceof TreeToken) {
-      TreeToken t = (TreeToken) node;
-      System.out.println("token = "+t.getText());
-      return;
-    }
+  @Override
+  protected ScopedPromisesParser newParser(TokenStream tokens) {
+	  ScopedPromisesParser parser = new ScopedPromisesParser(tokens);
 
-    ScopedPromiseAdaptor.Node root = (ScopedPromiseAdaptor.Node) node;
-    System.out.println(root.toStringTree()); 
-    if (asAST) {
-      System.out.println(root.finalizeAST(IAnnotationParsingContext.nullPrototype).unparse(true));
-    } else {
-      System.out.println(root.finalizeId());
-    }
+	  ScopedPromiseAdaptor adaptor = new ScopedPromiseAdaptor();
+
+	  parser.setTreeAdaptor(adaptor);
+	  return parser;
   }
 }
 

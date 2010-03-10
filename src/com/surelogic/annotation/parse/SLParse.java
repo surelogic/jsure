@@ -1,18 +1,18 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/parse/SLParse.java,v 1.26 2008/09/19 20:58:02 chance Exp $*/
 package com.surelogic.annotation.parse;
 
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
+import org.antlr.runtime.*;
 
-import org.antlr.runtime.ANTLRInputStream;
-import org.antlr.runtime.CommonTokenStream;
+import com.surelogic.parse.*;
 
-import com.surelogic.annotation.IAnnotationParsingContext;
-import com.surelogic.parse.ASTFactory;
-import com.surelogic.parse.TreeToken;
-
-public class SLParse {
+public class SLParse extends AbstractParse<SLAnnotationsParser> {
+  public static final SLParse prototype = new SLParse();
+	
   public static void main(String[] args) throws Exception {
+	 prototype.test();
+  }
+  
+  private void test() throws Exception {
     for(int i=SLAnnotationsParser.START_IMAGINARY+1; i<SLAnnotationsParser.END_IMAGINARY; i++) {
       final String token = SLAnnotationsParser.tokenNames[i];
       if (!ASTFactory.getInstance().handles(token)) {
@@ -91,50 +91,19 @@ public class SLParse {
     printAST(initParser(" none ").regionEffects().tree, true);
   }
 
-  public static SLAnnotationsParser initParser(String text) throws Exception { 
-    @SuppressWarnings("deprecation")
-    InputStream is = new StringBufferInputStream(text);
-    
-    // create a CharStream that reads from the stream above
-    ANTLRInputStream input = new ANTLRInputStream(is);
-
-    // create a lexer that feeds off of input CharStream
-    SLAnnotationsLexer lexer = new SLAnnotationsLexer(input);
-
-    // create a buffer of tokens pulled from the lexer
-    CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-    // create a parser that feeds off the tokens buffer
-    SLAnnotationsParser parser = new SLAnnotationsParser(tokens);
-
-    AASTAdaptor adaptor = new AASTAdaptor();
-
-    parser.setTreeAdaptor(adaptor);
-    return parser;
+  @Override
+  protected TokenSource newLexer(CharStream input) {
+	  return  new SLAnnotationsLexer(input);
   }
 
-  public static void printAST(Object node) {
-    printAST(node, true);
-  }
-  
-  public static void printAST(Object node, boolean asAST) {
-    if (node == null) {
-      System.out.println("Null node");
-      return;
-    }
-    if (node instanceof TreeToken) {
-      TreeToken t = (TreeToken) node;
-      System.out.println("token = "+t.getText());
-      return;
-    }
+  @Override
+  protected SLAnnotationsParser newParser(TokenStream tokens) {
+	  SLAnnotationsParser parser = new SLAnnotationsParser(tokens);
 
-    AASTAdaptor.Node root = (AASTAdaptor.Node) node;
-    System.out.println(root.toStringTree()); 
-    if (asAST) {
-      System.out.println(root.finalizeAST(IAnnotationParsingContext.nullPrototype).unparse(true));
-    } else {
-      System.out.println(root.finalizeId());
-    }
+	  AASTAdaptor adaptor = new AASTAdaptor();
+
+	  parser.setTreeAdaptor(adaptor);
+	  return parser;
   }
 }
 

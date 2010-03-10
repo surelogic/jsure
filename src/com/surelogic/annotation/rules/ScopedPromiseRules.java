@@ -81,7 +81,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 			if (contents == null) {
 				System.out.println("Null contents");
 			}
-			return ScopedPromiseParse.initParser(contents);
+			return ScopedPromiseParse.prototype.initParser(contents);
 		}
 		
 		@Override

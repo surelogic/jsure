@@ -36,7 +36,7 @@ public class TestRules extends AnnotationRules {
     public ParseResult parse(IAnnotationParsingContext context, String contents) {
       try {
         ITestAnnotationParsingContext testContext = (ITestAnnotationParsingContext) context;
-        AASTAdaptor.Node tn = parse(context, SLParse.initParser(contents));
+        AASTAdaptor.Node tn = parse(context, SLParse.prototype.initParser(contents));
         if (tn == null) {
           return ParseResult.FAIL;
         }

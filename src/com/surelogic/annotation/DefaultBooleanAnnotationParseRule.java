@@ -40,7 +40,7 @@ extends AbstractAnnotationParseRule<A,P> {
       return ParseResult.FAIL;
     }
     try {
-      AASTAdaptor.Node tn    = (AASTAdaptor.Node) parse(context, SLParse.initParser(contents));
+      AASTAdaptor.Node tn    = (AASTAdaptor.Node) parse(context, SLParse.prototype.initParser(contents));
       if (tn == null) {
         return ParseResult.FAIL;
       }

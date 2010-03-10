@@ -46,6 +46,6 @@ public abstract class DefaultSLAnnotationParseRule<A extends IAASTRootNode, P ex
 
 	@Override
 	protected SLAnnotationsParser initParser(String contents) throws Exception {
-	  return SLParse.initParser(contents);
+	  return SLParse.prototype.initParser(contents);
 	}
 }

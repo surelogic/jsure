@@ -34,7 +34,7 @@ extends AbstractAntlrParseRule<A, P, SLColorAnnotationsParser>  {
 
     @Override
     protected SLColorAnnotationsParser initParser(String contents) throws Exception {
-      return SLColorParse.initParser(contents);
+      return SLColorParse.prototype.initParser(contents);
     }
 
     @Override

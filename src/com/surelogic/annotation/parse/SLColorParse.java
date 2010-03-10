@@ -1,19 +1,18 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/parse/SLColorParse.java,v 1.4 2007/10/24 15:18:09 dfsuther Exp $*/
 package com.surelogic.annotation.parse;
 
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
+import org.antlr.runtime.*;
 
-import org.antlr.runtime.ANTLRInputStream;
-import org.antlr.runtime.CommonTokenStream;
+import com.surelogic.parse.*;
 
+public class SLColorParse extends AbstractParse<SLColorAnnotationsParser> {
+  public static final SLColorParse prototype = new SLColorParse();
 
-import com.surelogic.annotation.IAnnotationParsingContext;
-import com.surelogic.parse.ASTFactory;
-import com.surelogic.parse.TreeToken;
-
-public class SLColorParse {
   public static void main(String[] args) throws Exception {
+	prototype.test();
+  }
+	  
+  private void test() throws Exception {
     for(int i=SLColorAnnotationsParser.START_IMAGINARY+1; i<SLColorAnnotationsParser.END_IMAGINARY; i++) {
       final String token = SLColorAnnotationsParser.tokenNames[i];
       if (!ASTFactory.getInstance().handles(token)) {
@@ -44,53 +43,20 @@ public class SLColorParse {
     printAST(initParser("Instance").colorized().tree);
     
     printAST(initParser(" ").colorTransparent().tree);
-
   }
 
-  public static SLColorAnnotationsParser initParser(String text) throws Exception { 
-    @SuppressWarnings("deprecation")
-    InputStream is = new StringBufferInputStream(text);
-    
-    // create a CharStream that reads from the stream above
-    ANTLRInputStream input = new ANTLRInputStream(is);
-
-    // create a lexer that feeds off of input CharStream
-    SLColorAnnotationsLexer lexer = new SLColorAnnotationsLexer(input);
-
-    // create a buffer of tokens pulled from the lexer
-    CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-    // create a parser that feeds off the tokens buffer
-    SLColorAnnotationsParser parser = new SLColorAnnotationsParser(tokens);
-
-    SLColorAdaptor adaptor = new SLColorAdaptor();
-
-    parser.setTreeAdaptor(adaptor);
-    return parser;
+  @Override
+  protected TokenSource newLexer(CharStream input) {
+	  return new SLColorAnnotationsLexer(input);
   }
 
-  public static void printAST(Object node) {
-    printAST(node, true);
-  }
-  
-  public static void printAST(Object node, boolean asAST) {
-    if (node == null) {
-      System.out.println("Null node");
-      return;
-    }
-    if (node instanceof TreeToken) {
-      TreeToken t = (TreeToken) node;
-      System.out.println("token = "+t.getText());
-      return;
-    }
+  @Override
+  protected SLColorAnnotationsParser newParser(TokenStream tokens) {
+	  SLColorAnnotationsParser parser = new SLColorAnnotationsParser(tokens);
 
-    SLColorAdaptor.Node root = (SLColorAdaptor.Node) node;
-    System.out.println(root.toStringTree()); 
-    if (asAST) {
-      System.out.println(root.finalizeAST(IAnnotationParsingContext.nullPrototype).unparse(true));
-    } else {
-      System.out.println(root.finalizeId());
-    }
-  }
+	  SLColorAdaptor adaptor = new SLColorAdaptor();
 
+	  parser.setTreeAdaptor(adaptor);
+	  return parser;
+  }
 }
