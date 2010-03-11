@@ -10,7 +10,6 @@ import java.util.logging.Level;
 
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -18,24 +17,21 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
-import org.eclipse.jdt.core.dom.ArrayType;
+import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.ParameterizedType;
-import org.eclipse.jdt.core.dom.PrimitiveType;
-import org.eclipse.jdt.core.dom.QualifiedType;
-import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.StringLiteral;
-import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
+import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
 import com.surelogic.common.logging.SLLogger;
@@ -45,7 +41,6 @@ public class AnnotationRewriter {
 	private final ASTParser parser;
 	private ASTNode ast;
 	private ASTRewrite rewrite;
-	private String pakkage;
 
 	public AnnotationRewriter(final IJavaProject project) {
 		parser = ASTParser.newParser(AST.JLS3);
@@ -62,21 +57,37 @@ public class AnnotationRewriter {
 	 */
 	public void setCompilationUnit(final ICompilationUnit cu) {
 		parser.setSource(cu);
+		parser.setResolveBindings(true);
+		parser.setBindingsRecovery(true);
+		parser.setStatementsRecovery(true);
 		ast = parser.createAST(null);
 		rewrite = ASTRewrite.create(ast.getAST());
-		try {
-			final IPackageDeclaration[] packageDeclarations = cu
-					.getPackageDeclarations();
-			this.pakkage = packageDeclarations.length == 0 ? ""
-					: packageDeclarations[0].getElementName();
-		} catch (final JavaModelException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 
-	void rewriteAnnotations(final Collection<AnnotationDescription> descs) {
-		// FIXME add edit group
-		ast.accept(new AnnotationVisitor(descs, null));
+	public void rewriteAnnotations(final Collection<AnnotationDescription> descs) {
+		rewriteAnnotations(descs, null);
+	}
+
+	public void rewriteAnnotations(
+			final Collection<AnnotationDescription> descs,
+			final TextEditGroup editGroup) {
+		ast.accept(new AnnotationVisitor(descs, editGroup));
+	}
+
+	/**
+	 * Produce a TextEdit representing the set of rewrites made to this
+	 * compilation unit
+	 * 
+	 * @return
+	 */
+	public TextEdit getTextEdit() {
+		try {
+			return rewrite.rewriteAST();
+		} catch (final JavaModelException e) {
+			throw new IllegalStateException(e);
+		} catch (final IllegalArgumentException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	private class AnnotationVisitor extends ASTVisitor {
@@ -110,7 +121,8 @@ public class AnnotationRewriter {
 			} else {
 				type = new TypeContext(inMethod, name);
 			}
-			rewriteNode(node, targetMap.get(type));
+			rewriteNode(node, TypeDeclaration.MODIFIERS2_PROPERTY, targetMap
+					.get(type));
 			return true;
 		}
 
@@ -138,7 +150,6 @@ public class AnnotationRewriter {
 				type = new TypeContext(inMethod, name);
 			}
 			return true;
-
 		}
 
 		@Override
@@ -155,6 +166,12 @@ public class AnnotationRewriter {
 		}
 
 		@Override
+		public void endVisit(final Initializer node) {
+			// TODO Auto-generated method stub
+			super.endVisit(node);
+		}
+
+		@Override
 		public boolean visit(final MethodDeclaration node) {
 			final IMethodBinding mB = node.resolveBinding();
 			final ITypeBinding[] paramDecls = mB.getParameterTypes();
@@ -163,17 +180,18 @@ public class AnnotationRewriter {
 				params[i] = fromType(paramDecls[i]);
 			}
 			inMethod = new Method(type, node.getName().getIdentifier(), params);
-			rewriteNode(node, targetMap.get(inMethod));
+			rewriteNode(node, MethodDeclaration.MODIFIERS2_PROPERTY, targetMap
+					.get(inMethod));
 			return true;
 		}
 
 		private void rewriteNode(final ASTNode node,
+				final ChildListPropertyDescriptor prop,
 				final List<AnnotationDescription> list) {
 			if (list != null) {
 				Collections.sort(list);
 				for (final AnnotationDescription desc : list) {
-					final ListRewrite lrw = rewrite.getListRewrite(node,
-							TypeDeclaration.MODIFIERS2_PROPERTY);
+					final ListRewrite lrw = rewrite.getListRewrite(node, prop);
 					// Add annotation
 					final AST ast = node.getAST();
 					if (desc.hasContents()) {
@@ -196,21 +214,6 @@ public class AnnotationRewriter {
 			return t.getQualifiedName().replaceAll("<.*>", "");
 		}
 
-		private String fromType(final Type t) {
-			if (t.isArrayType()) {
-				return fromType(((ArrayType) t).getComponentType()) + "[]";
-			} else if (t.isParameterizedType()) {
-				return fromType(((ParameterizedType) t).getType());
-			} else if (t.isPrimitiveType()) {
-				return ((PrimitiveType) t).getPrimitiveTypeCode().toString();
-			} else if (t.isQualifiedType()) {
-				return ((QualifiedType) t).getName().getIdentifier();
-			} else if (t.isSimpleType()) {
-				return ((SimpleType) t).getName().getFullyQualifiedName();
-			}
-			throw new IllegalStateException("Unexpected type: " + t.toString());
-		}
-
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean visit(final FieldDeclaration node) {
@@ -226,7 +229,7 @@ public class AnnotationRewriter {
 				}
 			}
 			if (!list.isEmpty()) {
-				rewriteNode(node, list);
+				rewriteNode(node, FieldDeclaration.MODIFIERS2_PROPERTY, list);
 			}
 			return false;
 		}

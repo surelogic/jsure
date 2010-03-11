@@ -27,7 +27,7 @@ public class ProposedPromisesRefactoringAction implements
 	public void run(final IAction action) {
 
 		final ProposedPromisesChange info = new ProposedPromisesChange(
-				f_javaProject, null);
+				f_javaProject, null, null);
 
 		final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(
 				info);

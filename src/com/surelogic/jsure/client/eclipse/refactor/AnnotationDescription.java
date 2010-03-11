@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.refactor;
 
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 /**
@@ -14,8 +15,8 @@ public class AnnotationDescription implements Comparable<AnnotationDescription> 
 	private final String annotation;
 	private final String contents;
 
-	AnnotationDescription(final ProposedPromiseDrop drop) {
-		target = null;// TODO
+	AnnotationDescription(final ProposedPromiseDrop drop, final IBinder b) {
+		target = IRNodeUtil.convert(b, drop.getNode());
 		annotation = drop.getAnnotation();
 		contents = drop.getContents();
 	}
@@ -30,6 +31,11 @@ public class AnnotationDescription implements Comparable<AnnotationDescription> 
 
 	public String getContents() {
 		return contents;
+	}
+
+	@Override
+	public String toString() {
+		return annotation + "(" + contents + ")";
 	}
 
 	@Override

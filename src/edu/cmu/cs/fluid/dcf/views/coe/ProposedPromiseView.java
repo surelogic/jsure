@@ -22,6 +22,8 @@ import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoring;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringWizard;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 
@@ -40,9 +42,10 @@ public class ProposedPromiseView extends AbstractDoubleCheckerView {
 			 * TODO Proposed the edit to the code in the dialog HERE (you are in
 			 * the SWT thread)
 			 */
-
+			final IBinder b = IDE.getInstance().getTypeEnv(
+					ProjectDrop.getDrop().getIIRProject()).getBinder();
 			final ProposedPromisesChange info = new ProposedPromisesChange(
-					JDTUtility.getJavaProject(ProjectDrop.getProject()),
+					JDTUtility.getJavaProject(ProjectDrop.getProject()), b,
 					selected);
 			final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(
 					info);
