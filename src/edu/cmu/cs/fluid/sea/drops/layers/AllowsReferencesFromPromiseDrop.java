@@ -9,4 +9,8 @@ public class AllowsReferencesFromPromiseDrop extends PromiseDrop<AllowsReference
 	public AllowsReferencesFromPromiseDrop(AllowsReferencesFromNode a) {
 		super(a);
 	}
+	@Override
+	protected void computeBasedOnAST() {
+		setMessage(getAST().toString());
+	}
 }

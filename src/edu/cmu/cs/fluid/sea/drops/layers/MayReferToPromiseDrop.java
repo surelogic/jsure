@@ -9,4 +9,8 @@ public class MayReferToPromiseDrop extends PromiseDrop<MayReferToNode> {
 	public MayReferToPromiseDrop(MayReferToNode a) {
 		super(a);
 	}
+	@Override
+	protected void computeBasedOnAST() {
+		setMessage(getAST().toString());
+	}
 }

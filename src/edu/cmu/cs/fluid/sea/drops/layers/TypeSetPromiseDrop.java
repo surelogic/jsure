@@ -9,4 +9,8 @@ public class TypeSetPromiseDrop extends PromiseDrop<TypeSetNode> {
 	public TypeSetPromiseDrop(TypeSetNode a) {
 		super(a);
 	}
+	@Override
+	protected void computeBasedOnAST() {
+		setMessage(getAST().toString());
+	}
 }

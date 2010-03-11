@@ -9,4 +9,8 @@ public class InLayerPromiseDrop extends PromiseDrop<InLayerNode> {
 	public InLayerPromiseDrop(InLayerNode a) {
 		super(a);
 	}
+	@Override
+	protected void computeBasedOnAST() {
+		setMessage(getAST().toString());
+	}
 }

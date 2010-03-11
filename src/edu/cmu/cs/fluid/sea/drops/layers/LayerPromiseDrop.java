@@ -9,4 +9,8 @@ public class LayerPromiseDrop extends PromiseDrop<LayerNode> {
 	public LayerPromiseDrop(LayerNode a) {
 		super(a);
 	}
+	@Override
+	protected void computeBasedOnAST() {
+		setMessage(getAST().toString());
+	}
 }
