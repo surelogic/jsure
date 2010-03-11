@@ -5,9 +5,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.aast.promise.*;
-import com.surelogic.annotation.parse.ColorFactoryRefs;
-import com.surelogic.annotation.parse.FactoryRefs;
-import com.surelogic.annotation.parse.MoreFactoryRefs;
+import com.surelogic.annotation.parse.*;
 import com.surelogic.common.logging.SLLogger;
 
 public class ASTFactory extends AbstractASTFactory {
@@ -28,6 +26,7 @@ public class ASTFactory extends AbstractASTFactory {
 		FactoryRefs.register(prototype);
 		MoreFactoryRefs.register(prototype);
 		ColorFactoryRefs.register(prototype);
+		LayerFactoryRefs.register(prototype);
 
 		// These two lines are added so that opgen doesn't have to be modified
 		// for these exceptions

@@ -6,7 +6,7 @@ import org.antlr.runtime.Token;
 import com.surelogic.parse.AbstractNodeAdaptor;
 import com.surelogic.parse.TreeToken;
 
-public class SLColorAdaptor extends AbstractNodeAdaptor {
+public class SLLayerAdaptor extends AbstractNodeAdaptor {
   @Override
   protected Node newNode(String t, int type) {
     return new Node(t, type);
@@ -15,8 +15,8 @@ public class SLColorAdaptor extends AbstractNodeAdaptor {
   @Override
   protected boolean isRealToken(Token t) {
     int type = t.getType();
-    return type < SLColorAnnotationsParser.START_IMAGINARY
-        || type > SLColorAnnotationsParser.END_IMAGINARY;
+    return type < LayerPromisesParser.START_IMAGINARY
+        || type > LayerPromisesParser.END_IMAGINARY;
   }
 
   public class Node extends AbstractNodeAdaptor.Node {
@@ -49,9 +49,5 @@ public class SLColorAdaptor extends AbstractNodeAdaptor {
       return false;
     }
   }
-   
-  
-  
-  
 }
 

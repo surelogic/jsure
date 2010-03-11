@@ -3,22 +3,24 @@ package com.surelogic.annotation.rules;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.*;
-import com.surelogic.annotation.parse.SLAnnotationsParser;
+import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.tree.Operator;
 
-public class JcipRules extends AnnotationRules {
-	public static final String GUARDED_BY = "GuardedBy";
+public class LayerRules extends AnnotationRules {
+	public static final String MAY_REFER_TO = "MayReferTo";
 
-	private static final AnnotationRules instance = new JcipRules();
+	private static final AnnotationRules instance = new LayerRules();
 
-	private static final GuardedBy_ParseRule guardedByRule = new GuardedBy_ParseRule();
+	private static final MayReferTo_ParseRule mayReferToRule = new MayReferTo_ParseRule();
 
 	public static AnnotationRules getInstance() {
 		return instance;
@@ -53,20 +55,31 @@ public class JcipRules extends AnnotationRules {
 
 	@Override
 	public void register(PromiseFramework fw) {
-		registerParseRuleStorage(fw, guardedByRule);
+		registerParseRuleStorage(fw, mayReferToRule);
 	}
 
-	static class GuardedBy_ParseRule
-			extends
-			DefaultSLAnnotationParseRule<GuardedByNode, GuardedByPromiseDrop> {
-		protected GuardedBy_ParseRule() {
-			super(GUARDED_BY, fieldDeclOp, GuardedByNode.class);
+	static abstract class AbstractLayersParseRule<A extends IAASTRootNode, 
+	                                              P extends PromiseDrop<? super A>> 
+	extends AbstractAntlrParseRule<A,P,LayerPromisesParser> {
+		protected AbstractLayersParseRule(String name, Operator[] ops, Class<A> dt) {
+			super(name, ops, dt, AnnotationLocation.DECL);
+		}		
+		@Override
+		protected LayerPromisesParser initParser(String contents) throws Exception {
+			return SLLayerParse.prototype.initParser(contents);
+		}
+	}
+ 	
+	static class MayReferTo_ParseRule
+	extends	AbstractLayersParseRule<GuardedByNode, GuardedByPromiseDrop> {
+		protected MayReferTo_ParseRule() {
+			super(MAY_REFER_TO, typeDeclOps, GuardedByNode.class);
 		}
 
 		@Override
 		protected Object parse(IAnnotationParsingContext context,
-				SLAnnotationsParser parser) throws RecognitionException {
-			return parser.guardedBy().getTree();
+				LayerPromisesParser parser) throws RecognitionException {
+			return parser.name().getTree();
 		}
 
 		@Override

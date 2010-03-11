@@ -6,6 +6,13 @@ import java.util.List;
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.INodeVisitor;
 import com.surelogic.aast.java.*;
+import com.surelogic.aast.layers.AllowsReferencesFromNode;
+import com.surelogic.aast.layers.InLayerNode;
+import com.surelogic.aast.layers.LayerNode;
+import com.surelogic.aast.layers.MayReferToNode;
+import com.surelogic.aast.layers.TypeSetNode;
+import com.surelogic.aast.layers.UnidentifiedTargetNode;
+import com.surelogic.aast.layers.UnionTargetNode;
 import com.surelogic.aast.promise.*;
 
 public class DescendingVisitor<T> implements INodeVisitor<T> {
@@ -688,5 +695,37 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 
   public T visit(ItselfNode itselfNode) {
 	  return defaultValue;
+  }
+
+  public T visit(UnidentifiedTargetNode n) {
+	  return defaultValue;
+  }
+
+  public T visit(UnionTargetNode n) {
+	  T rv = defaultValue;
+	  for(AASTNode c : n.getUnion()) {
+		  rv = combineResults(rv, doAccept(c));
+	  }
+	  return rv;
+  }
+
+  public T visit(InLayerNode n) {
+	  return defaultValue;
+  }
+
+  public T visit(MayReferToNode n) {
+	  return doAccept(n.getTarget());
+  }
+
+  public T visit(AllowsReferencesFromNode n) {
+	  return doAccept(n.getTarget());
+  }
+
+  public T visit(LayerNode n) {
+	  return doAccept(n.getTarget());
+  }
+
+  public T visit(TypeSetNode n) {
+	  return doAccept(n.getTarget());
   }
 }

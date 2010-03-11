@@ -2,6 +2,13 @@
 package com.surelogic.aast;
 
 import com.surelogic.aast.java.*;
+import com.surelogic.aast.layers.AllowsReferencesFromNode;
+import com.surelogic.aast.layers.InLayerNode;
+import com.surelogic.aast.layers.LayerNode;
+import com.surelogic.aast.layers.MayReferToNode;
+import com.surelogic.aast.layers.TypeSetNode;
+import com.surelogic.aast.layers.UnidentifiedTargetNode;
+import com.surelogic.aast.layers.UnionTargetNode;
 import com.surelogic.aast.promise.*;
 
 public interface INodeVisitor<T> {
@@ -124,4 +131,11 @@ public interface INodeVisitor<T> {
 	T visit(MethodCallNode methodCallNode);
 	T visit(GuardedByNode guardedByNode);
 	T visit(ItselfNode itselfNode);
+	T visit(UnidentifiedTargetNode unidentifiedTargetNode);
+	T visit(UnionTargetNode unionTargetNode);
+	T visit(InLayerNode inLayerNode);
+	T visit(MayReferToNode mayReferToNode);
+	T visit(AllowsReferencesFromNode allowsReferencesFromNode);
+	T visit(LayerNode layerNode);
+	T visit(TypeSetNode typeSetNode);
 }

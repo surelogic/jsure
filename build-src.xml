@@ -123,6 +123,7 @@
 	<macrodef name="gen-factory-refs">
 		<attribute name="parsername" />
 		<attribute name="outputname" />
+	    <attribute name="importname" default="promise"/>
 		<sequential>
 			<echo message="Starting to generate factory refs" />
 			<java classname="com.surelogic.antlr.GenerateFactoryRefs" output="${gensrc}/com/surelogic/annotation/parse/@{outputname}.java">
@@ -133,6 +134,7 @@
 				</classpath>
 				<arg value="${gensrc}/com/surelogic/annotation/parse/@{parsername}.tokens" />
 				<arg value="com/surelogic/annotation/parse" />
+				<arg value="@{importname}" />
 				<arg value="@{outputname}" />
 			</java>
 			<echo message="Done generating factory refs" />
@@ -303,9 +305,11 @@
 		<genAntlr target="${src}/com/surelogic/parse/JavaPrimitives.g" outputdir="${gensrc}/com/surelogic/parse" />
 		<genAntlr target="${src}/com/surelogic/annotation/parse/SLAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
 		<genAntlr target="${src}/com/surelogic/annotation/parse/ScopedPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/LayerPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />		
 		<genAntlr target="${src}/com/surelogic/annotation/parse/SLColorAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
 		<gen-factory-refs parsername="SLAnnotations" outputname="FactoryRefs" />
 		<gen-factory-refs parsername="ScopedPromises" outputname="MoreFactoryRefs" />
+		<gen-factory-refs parsername="LayerPromises" outputname="LayerFactoryRefs" importname="layers"/>
 		<gen-factory-refs parsername="SLColorAnnotations" outputname="ColorFactoryRefs" />
 	</target>
 
