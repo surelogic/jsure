@@ -13,12 +13,20 @@ public class AntlrLexerTokens {
     LineNumberReader lr           = new LineNumberReader(r);
     String line;
     while ((line = lr.readLine()) != null) {
-      StringTokenizer st = new StringTokenizer(line, "=");
-      String token = st.nextToken();
-      Integer num  = Integer.valueOf(st.nextToken());
-      if (st.hasMoreTokens()) {
-        throw new IllegalArgumentException("Wrong format: "+line);
+      String token;
+      Integer num;
+      if (line.startsWith("'='=")) {
+    	  token = "'='";
+    	  num = Integer.valueOf(line.substring(4));
+      } else {
+    	  StringTokenizer st = new StringTokenizer(line, "=");
+    	  token = st.nextToken();
+    	  num  = Integer.valueOf(st.nextToken());
+          if (st.hasMoreTokens()) {
+              throw new IllegalArgumentException("Wrong format: "+line);
+          }
       }
+
       //System.out.println(token+" => "+num);
       map.put(num, token);
       if ("START_IMAGINARY".equals(token)) {
