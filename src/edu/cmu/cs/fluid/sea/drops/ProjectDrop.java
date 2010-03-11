@@ -1,17 +1,21 @@
 package edu.cmu.cs.fluid.sea.drops;
 
+import com.surelogic.analysis.IIRProject;
+
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.xml.*;
 
 public class ProjectDrop extends Drop {
   final String projectName;
+  final IIRProject project;
   
-  private ProjectDrop(String project, Object p) {
-	  projectName = project;
+  private ProjectDrop(String name, IIRProject p) {
+	  projectName = name;
+	  project = p;
   }
 
-  public static void ensureDrop(String project, Object p) {
+  public static void ensureDrop(String project, IIRProject p) {
 	  for(ProjectDrop pd : Sea.getDefault().getDropsOfExactType(ProjectDrop.class)) {
 		  if (project.equals(pd.getName())) {
 			  return;
@@ -35,17 +39,25 @@ public class ProjectDrop extends Drop {
 	  return projectName;
   }
   
-  public static String getProject() {
-	  String p = null;
+  public IIRProject getIIRProject() {
+	  return project;
+  }
+  
+  public static ProjectDrop getDrop() {
+	  ProjectDrop p = null;
 	  for (ProjectDrop pd : Sea.getDefault().getDropsOfExactType(
 			  ProjectDrop.class)) {
 		  if (p == null) {
-			  p = pd.getName();
+			  p = pd;
 		  } else {
 			  LOG.warning("Multiple projects analyzed for JSure: "
 					  + pd.getName());
 		  }
 	  }
 	  return p;
+  }
+  
+  public static String getProject() {
+	  return getDrop().getName();
   }
 }
