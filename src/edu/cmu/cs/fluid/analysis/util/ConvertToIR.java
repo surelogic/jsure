@@ -395,7 +395,8 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 				IDE.getInstance().getProperties().remove(Majordomo.BUILD_KIND);
 			}
 		}
-		ProjectDrop.ensureDrop(getProject().getName(), getProject());
+		ProjectDrop.ensureDrop(getProject().getName(), 
+				               Eclipse.getDefault().makeClassPath(getProject()));
 
 		final Iterator<Map.Entry<String, String>> it = args.entrySet()
 				.iterator();

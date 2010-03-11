@@ -175,7 +175,7 @@ public class JavacDriver {
 	}
 	
 	public void doBuild(IProject p) {	    
-		ProjectDrop.ensureDrop(p.getName(), p);
+		//ProjectDrop.ensureDrop(p.getName(), p);
 		final ProjectInfo info = projects.get(p);
 		if (info == null) {
 			return; // No info!
