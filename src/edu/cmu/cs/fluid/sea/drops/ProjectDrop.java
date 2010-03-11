@@ -58,6 +58,10 @@ public class ProjectDrop extends Drop {
   }
   
   public static String getProject() {
-	  return getDrop().getName();
+	  ProjectDrop pd = getDrop();
+	  if (pd == null) {
+		  return null;
+	  }
+	  return pd.getName();
   }
 }
