@@ -3,6 +3,7 @@ package com.surelogic.aast.layers;
 import java.util.List;
 
 import com.surelogic.aast.*;
+import com.surelogic.aast.promise.PromiseTargetNode;
 import com.surelogic.parse.*;
 
 public class LayerNode extends AbstractLayerMatchDeclNode {
@@ -11,11 +12,11 @@ public class LayerNode extends AbstractLayerMatchDeclNode {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			
-			return new LayerNode(_start, _id, (AbstractLayerMatchTarget) _kids.get(0));
+			return new LayerNode(_start, _id, (PromiseTargetNode) _kids.get(0));
 		}
 	};
 	
-	LayerNode(int offset, String name, AbstractLayerMatchTarget target) {
+	LayerNode(int offset, String name, PromiseTargetNode target) {
 		super(offset, name, target);
 	}
 	

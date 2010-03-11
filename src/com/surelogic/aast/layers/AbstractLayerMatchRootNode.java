@@ -1,6 +1,7 @@
 package com.surelogic.aast.layers;
 
 import com.surelogic.aast.*;
+import com.surelogic.aast.promise.*;
 
 /**
  * Superclass for @MayReferTo, @AllowsReferencesTo, ...
@@ -8,15 +9,15 @@ import com.surelogic.aast.*;
  * @author Edwin
  */
 public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
-  private final AbstractLayerMatchTarget target;
+  private final PromiseTargetNode target;
 	
   // Constructors
-  AbstractLayerMatchRootNode(int offset, AbstractLayerMatchTarget t) {
+  AbstractLayerMatchRootNode(int offset, PromiseTargetNode t) {
     super(offset);
     target = t;
   }
 
-  public AbstractLayerMatchTarget getTarget() {
+  public PromiseTargetNode getTarget() {
 	  return target;
   }
 

@@ -146,7 +146,7 @@ mayReferTo
   ;
 
 layer
-  : identifier 'may' 'refer' 'to' typeTarget EOF -> ^(identifier typeTarget)
+  : identifier 'may' 'refer' 'to' typeTarget EOF -> ^(Layer identifier typeTarget)
   ;
 
 inLayer
@@ -189,7 +189,7 @@ unidentifiedTarget
   ;
 
 unionTargets
-  : unidentifiedTarget (',' unidentifiedTarget)*
+  : unidentifiedTarget (',' unidentifiedTarget)* -> unidentifiedTarget (unidentifiedTarget)*
   ;
 
 /******************************************************************
@@ -203,7 +203,7 @@ simpleNamePattern
   ;
   
 qualifiedName
-  : IDENTIFIER (DOT IDENTIFIER)+
+  : IDENTIFIER (DOT IDENTIFIER)*
   ;
 
 namedTypes

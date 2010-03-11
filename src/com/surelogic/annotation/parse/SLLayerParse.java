@@ -19,8 +19,18 @@ public class SLLayerParse extends AbstractParse<LayerPromisesParser> {
         System.out.println("WARNING: No factory for "+token);
       }
     }
-
-    //printAST(initParser(" foo ").name().tree, false);
+    printAST(initParser("java.util").mayReferTo().tree, true);
+    printAST(initParser("edu.afit.smallworld.{model,persistence} | java.io.File").mayReferTo().tree, true);
+    printAST(initParser("edu.afit.smallworld.model | org.jdom+ | java.{io,net,util}").mayReferTo().tree, true);
+    printAST(initParser("UTIL = java.util & !(java.util.{Enumeration,Hashtable,Vector})").typeSet().tree, true);
+    printAST(initParser("XML = org.jdom+ | UTIL  | java.{io,net}").typeSet().tree, true);
+    printAST(initParser("UTIL").typeTarget().tree, true);
+    printAST(initParser("MODEL may refer to UTIL").layer().tree, true);
+    printAST(initParser("PERSISTENCE may refer to MODEL | XML").layer().tree, true);
+    printAST(initParser("CONTROLLER may refer to MODEL | PERSISTENCE | java.io.File").layer().tree, true);
+    printAST(initParser("edu.afit.smallworld.MODEL").inLayer().tree, true);
+    printAST(initParser("edu.afit.smallworld.PERSISTENCE").inLayer().tree, true);
+    printAST(initParser("edu.afit.smallworld.CONTROLLER").inLayer().tree, true);
   }
   
   @Override

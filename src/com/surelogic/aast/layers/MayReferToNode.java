@@ -4,6 +4,7 @@ package com.surelogic.aast.layers;
 import java.util.List;
 
 import com.surelogic.aast.*;
+import com.surelogic.aast.promise.*;
 import com.surelogic.parse.*;
 
 public class MayReferToNode extends AbstractLayerMatchRootNode {
@@ -12,11 +13,11 @@ public class MayReferToNode extends AbstractLayerMatchRootNode {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			
-			return new MayReferToNode(_start, (AbstractLayerMatchTarget) _kids.get(0));
+			return new MayReferToNode(_start, (PromiseTargetNode) _kids.get(0));
 		}
 	};
 	
-	MayReferToNode(int offset, AbstractLayerMatchTarget target) {
+	MayReferToNode(int offset, PromiseTargetNode target) {
 		super(offset, target);
 	}
 	

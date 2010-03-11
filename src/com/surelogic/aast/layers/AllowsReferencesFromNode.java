@@ -4,6 +4,7 @@ package com.surelogic.aast.layers;
 import java.util.List;
 
 import com.surelogic.aast.*;
+import com.surelogic.aast.promise.PromiseTargetNode;
 import com.surelogic.parse.*;
 
 public class AllowsReferencesFromNode extends AbstractLayerMatchRootNode {
@@ -12,11 +13,11 @@ public class AllowsReferencesFromNode extends AbstractLayerMatchRootNode {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			
-			return new AllowsReferencesFromNode(_start, (AbstractLayerMatchTarget) _kids.get(0));
+			return new AllowsReferencesFromNode(_start, (PromiseTargetNode) _kids.get(0));
 		}
 	};
 	
-	AllowsReferencesFromNode(int offset, AbstractLayerMatchTarget target) {
+	AllowsReferencesFromNode(int offset, PromiseTargetNode target) {
 		super(offset, target);
 	}
 	

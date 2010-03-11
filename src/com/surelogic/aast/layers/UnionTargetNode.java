@@ -71,9 +71,13 @@ public class UnionTargetNode extends AbstractLayerMatchTarget {
 		    indent(sb, indent);		    
 		    sb.append("UnionTargetNode\n");
 		    indent(sb, indent + 2);
-		    sb.append("qname=").append(qname);
-		    // TODO
+		    sb.append("qname=").append(qname);		    
 		    sb.append("\n");
+		    for(UnidentifiedTargetNode ut : union) {
+		    	indent(sb, indent + 2);
+			    sb.append(ut.unparse(debug, indent+2));		    
+			    sb.append("\n");
+		    }
 		} else {
 			sb.append(qname);
 			if (union.size() > 1) {
