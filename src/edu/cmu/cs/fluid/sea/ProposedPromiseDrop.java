@@ -35,14 +35,17 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 	 *            that this proposed promise is needed. This is used to remove
 	 *            this proposed promise if the compilation unit is reanalyzed.
 	 */
-	public ProposedPromiseDrop(String annotation, String contents, IRNode at,
-			IRNode from) {
-		if (at == null)
+	public ProposedPromiseDrop(final String annotation, final String contents,
+			final IRNode at, final IRNode from) {
+		if (at == null) {
 			throw new IllegalArgumentException(I18N.err(44, "at"));
-		if (from == null)
+		}
+		if (from == null) {
 			throw new IllegalArgumentException(I18N.err(44, "from"));
-		if (annotation == null)
+		}
+		if (annotation == null) {
 			throw new IllegalArgumentException(I18N.err(44, "annotation"));
+		}
 		f_annotation = annotation;
 		f_contents = contents;
 		setNode(at);
@@ -90,8 +93,8 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 	/**
 	 * Gets the raw contents of the Java annotation being proposed. For
 	 * <code>@Starts("nothing")</code> the value of this string would be {@code
-	 * "nothing"}. For <code>@Borrowed</code>, which has no contents, the value
-	 * of this string would be {@code null}.
+	 * "nothing"} (without quotation marks). For <code>@Borrowed</code>, which
+	 * has no contents, the value of this string would be {@code null}.
 	 * 
 	 * @return the contents of the Java annotation being proposed, or {code
 	 *         null} if none.
