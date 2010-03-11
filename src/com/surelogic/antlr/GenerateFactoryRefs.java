@@ -7,11 +7,15 @@ public class GenerateFactoryRefs {
   public static void main(String[] args) throws IOException {
     AntlrLexerTokens tokens = new AntlrLexerTokens(args[0]);
     String pkg  = args[1].replace('/', '.');
-    String name = args[2];
-    
+    String importName = args[2]; 
+    String name = args[3];
+    System.out.println("// "+args[0]+" "+args[1]+" "+args[2]+" "+args[3]);
     System.out.println("package "+pkg+";\n");
     System.out.println("import com.surelogic.aast.java.*;");
     System.out.println("import com.surelogic.aast.promise.*;");
+    if (!"promise".equals(importName)) {
+    	System.out.println("import com.surelogic.aast."+importName+".*;");
+    }
     System.out.println("import com.surelogic.parse.*;\n");
     System.out.println("public class "+name+" {");
     System.out.println("  public static void register(IASTFactory f) {");
