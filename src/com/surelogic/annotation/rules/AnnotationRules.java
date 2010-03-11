@@ -103,6 +103,7 @@ public abstract class AnnotationRules {
     AssumeFinalRules.getInstance().register(fw);
     VouchRules.getInstance().register(fw);
     JcipRules.getInstance().register(fw);
+    LayerRules.getInstance().register(fw);
     
     PromiseDropStorage.init();
   }
