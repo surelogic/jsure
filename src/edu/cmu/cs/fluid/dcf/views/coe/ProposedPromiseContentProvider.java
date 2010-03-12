@@ -70,7 +70,7 @@ public final class ProposedPromiseContentProvider implements
 
 	public Image getColumnImage(Object element, int columnIndex) {
 		if (columnIndex == 0) {
-			return SLImages.getImage(CommonImages.IMG_ANNOTATION);
+			return SLImages.getImage(CommonImages.IMG_ANNOTATION_PROPOSED);
 		} else {
 			return null;
 		}

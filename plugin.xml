@@ -311,7 +311,7 @@
 		</view>
 
 		<view name="Proposed Promises"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/annotation.gif"
+			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/annotation_proposed.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ProposedPromiseView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ProposedPromiseView">
 		</view>

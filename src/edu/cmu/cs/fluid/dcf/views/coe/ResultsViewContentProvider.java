@@ -145,7 +145,7 @@ public class ResultsViewContentProvider extends
 	 * viewer content items passed into this method.
 	 * 
 	 * @param mutableContentSet
-	 *            set of all {@link Content}items
+	 *            set of all {@link Content} items
 	 * @param about
 	 *            the {@link Drop}to add supporting information about
 	 */
@@ -188,6 +188,44 @@ public class ResultsViewContentProvider extends
 		default:
 			mutableContentSet.addChild(siFolder);
 			break;
+		}
+	}
+
+	/**
+	 * Adds referenced proposed promises about a drop to the mutable set of
+	 * viewer content items passed into this method.
+	 * 
+	 * @param mutableContentSet
+	 *            set of all {@link Content} items
+	 * @param about
+	 *            the {@link Drop}to add proposed promises about
+	 */
+	private void addProposedPromises(Content mutableContentSet,
+			IRReferenceDrop about) {
+		Collection<ProposedPromiseDrop> proposals = about.getProposals();
+		int size = proposals.size();
+		if (size == 0) {
+			// no proposed promises, thus bail out
+			return;
+		} else if (size == 1) {
+			ProposedPromiseDrop pp = proposals.iterator().next();
+			final Content proposalItem = new Content("proposed promise: "
+					+ pp.getJavaAnnotation(), pp.getNode());
+			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
+			mutableContentSet.addChild(proposalItem);
+			return;
+		}
+		// More than one thing
+		Content siFolder = new Content("proposed promises:");
+		siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
+
+		for (Iterator<ProposedPromiseDrop> i = proposals.iterator(); i
+				.hasNext();) {
+			ProposedPromiseDrop si = i.next();
+			final Content proposalItem = new Content(si.getJavaAnnotation(), si
+					.getNode());
+			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
+			siFolder.addChild(proposalItem);
 		}
 	}
 
@@ -341,6 +379,7 @@ public class ResultsViewContentProvider extends
 
 				// children
 				addSupportingInformation(result, promiseDrop);
+				addProposedPromises(result, promiseDrop);
 
 				Set<Drop> matching = new HashSet<Drop>();
 				promiseDrop.addMatchingDependentsTo(matching,
@@ -376,6 +415,7 @@ public class ResultsViewContentProvider extends
 
 				// children
 				addSupportingInformation(result, resultDrop);
+				addProposedPromises(result, resultDrop);
 				add_or_TrustedPromises(result, resultDrop);
 				add_and_TrustedPromises(result, resultDrop);
 
