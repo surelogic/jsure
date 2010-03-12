@@ -177,7 +177,7 @@ public class ResultsViewContentProvider extends
 			informationItem.setBaseImageName(CommonImages.IMG_INFO);
 			siFolder.addChild(informationItem);
 		}
-		// TODO why do I need this code?
+		// Improves the presentation in the view
 		switch (siFolder.numChildren()) {
 		case 0:
 			return; // Don't add anything
@@ -226,6 +226,18 @@ public class ResultsViewContentProvider extends
 					.getNode());
 			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
 			siFolder.addChild(proposalItem);
+		}
+		// Improves the presentation in the view
+		switch (siFolder.numChildren()) {
+		case 0:
+			return; // Don't add anything
+		case 1:
+			mutableContentSet.addChild((Content) siFolder.getChildren()[0]);
+			mutableContentSet.addChild(siFolder);
+			break;
+		default:
+			mutableContentSet.addChild(siFolder);
+			break;
 		}
 	}
 
