@@ -17,5 +17,9 @@ public enum ScrubberType {
    * (no particular order within a class)
    */
   BY_HIERARCHY,
+  /**
+   * All drops will be given to the scrubber at once
+   */
+  DIY,
   OTHER
 }

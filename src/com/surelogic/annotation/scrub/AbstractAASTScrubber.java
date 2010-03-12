@@ -30,7 +30,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  */
 public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		DescendingVisitor<Boolean> implements IAnnotationScrubber<A> {
-	private IAnnotationScrubberContext context;
+	protected IAnnotationScrubberContext context;
 
 	/**
 	 * The annotation being scrubbed
@@ -167,6 +167,13 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		return context;
 	}
 
+	protected IAASTRootNode getCurrent() {
+		return current;
+	}
+	
+	protected void setCurrent(IAASTRootNode n) {
+		current = n;
+	}
 	/***************************************************************************
 	 * Code to scrub bindings for an AAST (in combination with code in the
 	 * superclass
@@ -184,23 +191,37 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	public final Boolean doAccept(AASTNode node) {
 		Boolean result = super.doAccept(node);
 		boolean rv = result == null ? true : result.booleanValue();
-		if (node instanceof Resolvable) {
-			Resolvable r = (Resolvable) node;
-			if (!r.bindingExists()) {
-				context.reportError("Couldn't resolve a binding for " + node
-						+ "  on  " + current, node);
-				rv = false;
+		if (rv) {
+			result = customScrubBindings(node);
+			if (result != null) {
+				return rv && result;
 			}
-		}
-		if (node instanceof ResolvableToType) {
-			ResolvableToType r = (ResolvableToType) node;
-			if (!r.typeExists()) {
-				context.reportError("Couldn't resolve a type for " + node
-						+ "  on  " + current, node);
-				rv = false;
+			if (node instanceof Resolvable) {
+				Resolvable r = (Resolvable) node;
+				if (!r.bindingExists()) {
+					context.reportError("Couldn't resolve a binding for " + node
+							+ "  on  " + current, node);
+					rv = false;
+				}
+			}
+			if (node instanceof ResolvableToType) {
+				ResolvableToType r = (ResolvableToType) node;
+				if (!r.typeExists()) {
+					context.reportError("Couldn't resolve a type for " + node
+							+ "  on  " + current, node);
+					rv = false;
+				}
 			}
 		}
 		return rv;
+	}
+	
+	/**	 
+	 * @param node 
+	 * @return null if intended to do a normal scrub
+	 */
+	protected Boolean customScrubBindings(AASTNode node) {
+		return null;
 	}
 
 	/**
@@ -341,6 +362,9 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 				case BY_HIERARCHY:
 					scrubByPromisedFor_Hierarchy(cls);
 					return;
+				case DIY:
+					scrubAll(AASTStore.getASTsByClass(cls));
+					return;
 				case OTHER:
 					throw new UnsupportedOperationException();
 				}
@@ -372,6 +396,11 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	protected boolean useAssumptions() {
 		return true;
 	}
+	
+	protected void scrubAll(Iterable<A> all) {
+		throw new UnsupportedOperationException();
+	}
+	
 	private void startScrubbingType_internal(IRNode decl) {
 		startScrubbingType(decl);	
 		if (useAssumptions()) {

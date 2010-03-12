@@ -1,8 +1,11 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/ThreadEffectsRules.java,v 1.15 2007/08/08 16:07:12 chance Exp $*/
 package com.surelogic.annotation.rules;
 
+import java.util.*;
+
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.layers.*;
 import com.surelogic.annotation.*;
@@ -12,6 +15,8 @@ import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -102,6 +107,51 @@ public class LayerRules extends AnnotationRules {
 		}
 	}
  	
+	static abstract class Scrubber<A extends AbstractLayerMatchDeclNode> extends AbstractAASTScrubber<A> {
+		final Map<String,A> decls = new HashMap<String,A>();
+		
+		Scrubber(AbstractLayersParseRule<A,? extends PromiseDrop<A>> rule, String...deps) {
+			super(rule, ScrubberType.DIY, deps);
+		}
+		@Override
+		protected void scrubAll(Iterable<A> all) {
+			// Record all the names
+			// TODO what if there's an incremental build? 
+			//decls.clear();
+			for(A n : all) {
+				final String qname = NamedPackageDeclaration.getId(n.getPromisedFor())+'.'+n.getId();
+				decls.put(qname, n);
+			}
+			
+			for(A n : all) {
+				setCurrent(n);
+				processAAST(n);
+			}
+		}
+		@Override
+		protected Boolean customScrubBindings(AASTNode node) {
+			if (node instanceof UnidentifiedTargetNode) {
+				final UnidentifiedTargetNode n = (UnidentifiedTargetNode) node;
+				// TODO cycles?
+				String qname = n.getQualifiedName();
+				final int lastDot = qname.indexOf('.');
+				if (lastDot < 0) {
+					// unqualified name
+					IRNode cu  = VisitUtil.findRoot(getCurrent().getPromisedFor());
+					String pkg = VisitUtil.getPackageName(cu);
+					qname = pkg+'.'+qname;
+				} 
+				if (decls.containsKey(qname) || n.bindingExists()) {
+					return true;
+				}
+				context.reportError("Couldn't resolve a binding for " + node
+						+ "  on  " + getCurrent(), node);
+				return false;
+			}
+			return null;
+		}
+	}
+	
 	static class TypeSet_ParseRule
 	extends	AbstractLayersParseRule<TypeSetNode, TypeSetPromiseDrop> {
 		protected TypeSet_ParseRule() {
@@ -122,7 +172,7 @@ public class LayerRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<TypeSetNode> makeScrubber() {
-			return new AbstractAASTScrubber<TypeSetNode>(this, ScrubberType.UNORDERED) {
+			return new Scrubber<TypeSetNode>(this) {
 				@Override
 				protected PromiseDrop<TypeSetNode> makePromiseDrop(TypeSetNode a) {
 					TypeSetPromiseDrop d = new TypeSetPromiseDrop(a);
@@ -152,7 +202,7 @@ public class LayerRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<LayerNode> makeScrubber() {
-			return new AbstractAASTScrubber<LayerNode>(this, ScrubberType.UNORDERED, TYPESET) {
+			return new Scrubber<LayerNode>(this, TYPESET) {
 				@Override
 				protected PromiseDrop<LayerNode> makePromiseDrop(LayerNode a) {
 					LayerPromiseDrop d = new LayerPromiseDrop(a);

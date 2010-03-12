@@ -373,6 +373,9 @@ if (d == null || !d.isValid()) {
    */
   protected static <D extends PromiseDrop> 
   Iterable<D> getDrops(IPromiseDropStorage<D> s, IRNode n) {
+	if (n == null) {
+		return EmptyIterator.prototype();
+	}
     IPromiseDropSeqStorage<D> storage = (IPromiseDropSeqStorage<D>) s;
     
     final PromiseFramework frame = PromiseFramework.getInstance();

@@ -42,6 +42,15 @@ public class UnidentifiedTargetNode extends AbstractLayerMatchTarget implements 
 		return qname;
 	}
 	
+	public String getQualifiedName() {
+		if (parent instanceof UnionTargetNode) {
+			UnionTargetNode u = (UnionTargetNode) parent;
+			return u.getPrefix()+'.'+this.getName();
+		} else {
+			return this.getName();
+		}
+	}
+	
 	@Override
 	public <T> T accept(INodeVisitor<T> visitor) {
 		return visitor.visit(this);

@@ -440,13 +440,8 @@ public class CommonAASTBinder extends AASTBinder {
   public ILayerBinding resolve(UnidentifiedTargetNode node) {
 	  final AASTNode parent = node.getParent();
 	  final AASTRootNode root = parent.getRoot();
-	  final String name;
-	  if (parent instanceof UnionTargetNode) {
-		  UnionTargetNode u = (UnionTargetNode) parent;
-		  name = u.getPrefix()+'.'+node.getName();
-	  } else {
-		  name = node.getName();
-	  }
+	  final String name = node.getQualifiedName();
+	  
 	  ILayerBinding rv = null;
 	  if (root instanceof TypeSetNode) { // pkg or type
 		 return findPackageOrType(name);
@@ -490,14 +485,14 @@ public class CommonAASTBinder extends AASTBinder {
 
   private ILayerBinding findTypeSet(IRNode context, String qname) {
 	  final String pkg, name;
-	  final int lastDot = qname.indexOf('.');
+	  final int lastDot = qname.lastIndexOf('.');
 	  if (lastDot < 0) {
 		  // unqualified name
 		  pkg = VisitUtil.getPackageName(VisitUtil.findRoot(context));
 		  name = qname;
 	  } else {
 		  name = qname.substring(lastDot+1);
-		  pkg = qname.substring(0, lastDot-1);
+		  pkg = qname.substring(0, lastDot);
 	  }
 	  final IRNode pkgNode = tEnv.findPackage(pkg);
 	  final TypeSetPromiseDrop d = LayerRules.findTypeSet(pkgNode, name);
