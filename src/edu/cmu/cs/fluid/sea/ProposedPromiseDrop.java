@@ -88,17 +88,21 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 
 	/**
 	 * The enclosing type of the node where the analysis deems that this
-	 * proposed promise is needed. This is used to add an @Assume promise if the
-	 * SrcRef is not in this project.
+	 * proposed promise is needed. This is used to add an {@code Assume} promise
+	 * if the SrcRef is not in this project.
 	 * 
-	 * @return
+	 * @return the node where the analysis deems that this proposed promise is
+	 *         needed.
 	 */
 	public IRNode getAssumptionNode() {
 		return VisitUtil.getEnclosingType(f_requestedFrom);
 	}
 
 	/**
-	 * @return the source reference of the fAST node this information references
+	 * Gets the source reference of the fAST node this information references.
+	 * 
+	 * @return the source reference of the fAST node this information
+	 *         references.
 	 */
 	public ISrcRef getAssumptionRef() {
 		final ISrcRef ref = JavaNode.getSrcRef(f_requestedFrom);
