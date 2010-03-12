@@ -62,8 +62,7 @@
 
 	<extension id="AnalysisDriver" name="Analysis Driver"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver"
-			category="required">
+		<run class="com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver" production="false">
 		</run>
 	</extension>
 	<extension id="UpdateSuperRootStorage" name="UWM Bridge"
