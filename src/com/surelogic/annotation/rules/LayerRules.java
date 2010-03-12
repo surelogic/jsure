@@ -92,7 +92,7 @@ public class LayerRules extends AnnotationRules {
 		@Override
 		protected Object parse(IAnnotationParsingContext context,
 				LayerPromisesParser parser) throws RecognitionException {
-			return parser.layer().getTree();
+			return parser.typeSet().getTree();
 		}
 
 		@Override
