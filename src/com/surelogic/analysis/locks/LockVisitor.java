@@ -1521,9 +1521,10 @@ implements IBinderClient {
         /* Test for the needed lock.  First try the lock, and if that doesn't
          * work, try the alternative, if it exists.
          */
-        final ResultDropBuilder resultDrop;
+        ResultDropBuilder resultDrop = null;
         final PromiseDrop<? extends IAASTRootNode> promise = getPromiseDrop(neededLock); 
         LockHeldResult lhr = isLockSatisfied(neededLock, heldJUCLocks);
+        boolean isBad = false;
         if (lhr == LockHeldResult.NOT_HELD) {
           // Needed locks is not held.  Might we have an alternative?
           if (mayHaveAlternativeLock) {
@@ -1541,51 +1542,26 @@ implements IBinderClient {
             }
           } else {
             // No alternative, so normal lock is not held error
-            resultDrop = lhr.getResult(LockVisitor.this, promise,
-                badCategory, goodCategory, badMsg, goodMsg, classInitMsg,
-                threadConfinedMsg, neededLock, useSite, alternativeLock);
+            isBad = true;
           }
         } else {
+          isBad = true;
+        }
+        if (isBad) {
           resultDrop = lhr.getResult(LockVisitor.this, promise,
               badCategory, goodCategory, badMsg, goodMsg, classInitMsg,
               threadConfinedMsg, neededLock, useSite, alternativeLock);
+          
+          /* Add proposed promise if we are inside a constructor and the
+           * constructor is not thread-confined.
+           */
+          if (ctxtSingleThreadedData != null &&
+              !ctxtSingleThreadedData.isSingleThreaded) {
+            resultDrop.addProposal(
+                new ProposedPromiseDrop(
+                    "Unique", "return", ctxtInsideConstructor, useSite));
+          }
         }
-        
-        
-//        if (isLockSatisfied(neededLock, heldJUCLocks)) {
-//          resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), true,
-//              goodMsgTemplate, neededLock, DebugUnparser.toString(useSite));
-//          resultDrop.setCategory(goodCategory);
-//        } else {
-//          // Needed lock is not held.  Might we have an alternative?
-//          if (mayHaveAlternativeLock) {
-//            if (alternativeLock != null) {
-//              if (isLockSatisfied(alternativeLock, heldJUCLocks)) {
-//                // The alternative exists and is held, so we have the "held as" message
-//                resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock),
-//                    true, goodAltMsgTemplate, neededLock, alternativeLock,
-//                    DebugUnparser.toString(useSite));
-//                resultDrop.setCategory(goodCategory);
-//              } else {
-//                // The alternative exists, but is not held, so we have the normal not held error
-//                resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), false,
-//                    badMsgTemplate, neededLock, DebugUnparser.toString(useSite));
-//                resultDrop.setCategory(badCategory);
-//              }
-//            } else {
-//              // We might, but don't, have an alternative, so we have a not resolvable error 
-//              resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), false,
-//                  Messages.LockAnalysis_ds_FieldAccessNotResolvable,  neededLock, 
-//                  DebugUnparser.toString(useSite));
-//              resultDrop.setCategory(badCategory);
-//            }
-//          } else {
-//            // No alternative, so normal lock is not held error
-//            resultDrop = makeResultDrop(useSite, getPromiseDrop(neededLock), false,
-//                badMsgTemplate, neededLock, DebugUnparser.toString(useSite));
-//            resultDrop.setCategory(badCategory);
-//          }
-//        }
         
         addLockAcquisitionInformation(resultDrop, ctxtTheHeldLocks, heldJUCLocks.heldLocks);
         if (ctxtOnBehalfOfConstructor) {
@@ -1599,16 +1575,6 @@ implements IBinderClient {
            */
           ctxtSingleThreadedData.addSingleThreadedEvidence(resultDrop);
         }
-//        if (ctxtConstructorIsSingleThreaded != null) {
-//          if (ctxtConstructorIsSingleThreaded) {
-//            addSupportingInformation(resultDrop, ctxtInsideConstructor,
-//                Messages.LockAnalysis_ds_EnclosingConstructorIsSingleThreaded, ctxtConstructorName);
-//          } else {
-//            addSupportingInformation(resultDrop, ctxtInsideConstructor,
-//                Messages.LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded,
-//                ctxtConstructorName);
-//          }
-//        }
         addTrustedLockDrop(ctxtTheHeldLocks, heldJUCLocks.heldLocks, neededLock, resultDrop);
         addAdditionalEvidence(resultDrop);
       }
