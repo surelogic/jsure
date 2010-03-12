@@ -6,6 +6,7 @@ import java.util.*;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.AASTNode;
+import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.layers.*;
 import com.surelogic.annotation.*;
@@ -109,10 +110,28 @@ public class LayerRules extends AnnotationRules {
  	
 	static abstract class Scrubber<A extends AbstractLayerMatchDeclNode> extends AbstractAASTScrubber<A> {
 		final Map<String,A> decls = new HashMap<String,A>();
+		final Map<String,Set<String>> refs = new HashMap<String,Set<String>>();
+		
+		boolean isDeclared(String qname) {
+			boolean rv = decls.containsKey(qname);
+			Set<String> references = refs.get(qname);
+			if (references == null) {
+				references = new HashSet<String>();
+				refs.put(qname, references);
+			}
+			references.add(computeCurrentName());
+			return rv;
+		}
+		
+		String computeCurrentName() {
+			AbstractLayerMatchDeclNode n = (AbstractLayerMatchDeclNode) getCurrent();
+			return NamedPackageDeclaration.getId(n.getPromisedFor())+'.'+n.getId();
+		}
 		
 		Scrubber(AbstractLayersParseRule<A,? extends PromiseDrop<A>> rule, String...deps) {
 			super(rule, ScrubberType.DIY, deps);
 		}
+		
 		@Override
 		protected void scrubAll(Iterable<A> all) {
 			// Record all the names
@@ -128,6 +147,7 @@ public class LayerRules extends AnnotationRules {
 				processAAST(n);
 			}
 		}
+		
 		@Override
 		protected Boolean customScrubBindings(AASTNode node) {
 			if (node instanceof UnidentifiedTargetNode) {
@@ -141,7 +161,7 @@ public class LayerRules extends AnnotationRules {
 					String pkg = VisitUtil.getPackageName(cu);
 					qname = pkg+'.'+qname;
 				} 
-				if (decls.containsKey(qname) || n.bindingExists()) {
+				if (isDeclared(qname) || n.bindingExists()) {
 					return true;
 				}
 				context.reportError("Couldn't resolve a binding for " + node
@@ -149,6 +169,39 @@ public class LayerRules extends AnnotationRules {
 				return false;
 			}
 			return null;
+		}
+		
+		/**
+		 * Used to check for cycles after bindings added for each node
+		 */
+		@Override
+		protected boolean customScrub(A a) {
+			setCurrent(a);
+			
+			Set<String> seen = new HashSet<String>();			
+			boolean rv = checkForCycles(seen, computeCurrentName());
+			if (!rv) {
+				context.reportError("Cycle detected", a);
+			}
+			return rv;
+		}
+
+		private boolean checkForCycles(Set<String> seen, String here) {
+			if (seen.contains(here)) {
+				return false; // Cycle detected
+			}
+			seen.add(here);
+			
+			Set<String> references = refs.get(here);
+			if (references == null) {
+				return true; // No refs, so no cycle here
+			}
+			for(String ref : references) {
+				if (!checkForCycles(seen, ref)) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 	
