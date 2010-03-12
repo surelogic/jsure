@@ -10,6 +10,7 @@ import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.promise.*;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.layers.*;
@@ -62,6 +63,24 @@ public class LayerRules extends AnnotationRules {
 	}
 	*/
 
+	public static LayerPromiseDrop findLayer(IRNode pkgNode, String name) {
+		for(LayerPromiseDrop d : getDrops(layerRule.getStorage(), pkgNode)) {
+			if (name.equals(d.getAST().getId())) {
+				return d;
+			}
+		}
+		return null;
+	}
+
+	public static TypeSetPromiseDrop findTypeSet(IRNode pkgNode, String name) {
+		for(TypeSetPromiseDrop d : getDrops(typeSetRule.getStorage(), pkgNode)) {
+			if (name.equals(d.getAST().getId())) {
+				return d;
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public void register(PromiseFramework fw) {
 		registerParseRuleStorage(fw, typeSetRule);

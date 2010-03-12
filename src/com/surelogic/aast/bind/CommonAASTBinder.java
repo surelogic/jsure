@@ -10,6 +10,7 @@ import com.surelogic.aast.layers.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.bind.*;
+import com.surelogic.annotation.rules.LayerRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -19,6 +20,8 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Pair;
@@ -462,16 +465,52 @@ public class CommonAASTBinder extends AASTBinder {
 	  return rv;
   }
 
-  private ILayerBinding findLayer(IRNode promisedFor, String name) {
-	  // name may not be qualified
+  private ILayerBinding findLayer(IRNode context, String qname) {
+	  final String pkg, name;
+	  final int lastDot = qname.indexOf('.');
+	  if (lastDot < 0) {
+		  // unqualified name
+		  pkg = VisitUtil.getPackageName(VisitUtil.findRoot(context));
+		  name = qname;
+	  } else {
+		  name = qname.substring(lastDot+1);
+		  pkg = qname.substring(0, lastDot-1);
+	  }
+	  final IRNode pkgNode = tEnv.findPackage(pkg);
+	  final LayerPromiseDrop d = LayerRules.findLayer(pkgNode, name);
+	  if (d != null) {
+		  return new AbstractLayerBinding(LayerBindingKind.LAYER) {
+			  @Override public Drop getOther() {
+				  return d;
+			  }
+		  };
+	  }
 	  return null;
   }
 
-  private ILayerBinding findTypeSet(IRNode context, String name) {
-	  // name may not be qualified
+  private ILayerBinding findTypeSet(IRNode context, String qname) {
+	  final String pkg, name;
+	  final int lastDot = qname.indexOf('.');
+	  if (lastDot < 0) {
+		  // unqualified name
+		  pkg = VisitUtil.getPackageName(VisitUtil.findRoot(context));
+		  name = qname;
+	  } else {
+		  name = qname.substring(lastDot+1);
+		  pkg = qname.substring(0, lastDot-1);
+	  }
+	  final IRNode pkgNode = tEnv.findPackage(pkg);
+	  final TypeSetPromiseDrop d = LayerRules.findTypeSet(pkgNode, name);
+	  if (d != null) {
+		  return new AbstractLayerBinding(LayerBindingKind.TYPESET) {
+			  @Override public Drop getOther() {
+				  return d;
+			  }
+		  };
+	  }
 	  return null;
   }
-
+  
   private ILayerBinding findPackageOrType(String qname) {
 	  if (qname.endsWith("+")) {
 		  final String prefix = qname.substring(0, qname.length()-1);

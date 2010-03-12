@@ -2,9 +2,9 @@
 package com.surelogic.aast.bind;
 
 import com.surelogic.aast.layers.LayerBindingKind;
-import com.surelogic.sea.Drop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.sea.Drop;
 
 /**
  * Binding for UnidentifiedTargetNode
