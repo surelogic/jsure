@@ -18,6 +18,16 @@ public abstract class AASTNode implements IAASTNode {
     return parent;
   }
 
+  public AASTRootNode getRoot() {
+	  AASTNode here = this;	  
+	  AASTNode parent = here.getParent();
+	  while (parent != null) {
+		  here = parent;
+		  parent = here.getParent();
+	  }
+	  return (AASTRootNode) here;
+  }
+  
   /**
    * Only to be called by the parent AST node's constructor
    */

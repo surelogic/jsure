@@ -1,9 +1,12 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/aast/bind/CommonAASTBinder.java,v 1.2 2008/10/28 21:28:51 dfsuther Exp $*/
 package com.surelogic.aast.bind;
 
+import java.util.*;
+
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IBinding;
 import com.surelogic.aast.java.*;
+import com.surelogic.aast.layers.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.bind.*;
@@ -18,6 +21,8 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.Pair;
+import edu.cmu.cs.fluid.util.SingletonIterator;
 
 public class CommonAASTBinder extends AASTBinder {
   private final ITypeEnvironment tEnv;
@@ -98,7 +103,7 @@ public class CommonAASTBinder extends AASTBinder {
   }
   
   public boolean isResolvable(AASTNode node) {
-    throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
+	  return resolve(node) != null;
   }
 
   private IRNode resolveTypeName(final AASTNode a, final String name) {
@@ -423,5 +428,84 @@ public class CommonAASTBinder extends AASTBinder {
 
   public boolean isResolvable(MethodCallNode node) {
 	  return resolve(node) != null;
+  }
+
+  public boolean isResolvable(UnidentifiedTargetNode node) {
+	  return resolve(node) != null;
+  }
+
+  public ILayerBinding resolve(UnidentifiedTargetNode node) {
+	  final AASTNode parent = node.getParent();
+	  final AASTRootNode root = parent.getRoot();
+	  final String name;
+	  if (parent instanceof UnionTargetNode) {
+		  UnionTargetNode u = (UnionTargetNode) parent;
+		  name = u.getPrefix()+'.'+node.getName();
+	  } else {
+		  name = node.getName();
+	  }
+	  ILayerBinding rv = null;
+	  if (root instanceof TypeSetNode) { // pkg or type
+		 return findPackageOrType(name);
+	  }
+	  // MayReferToNode, AllowsReferencesFromNode: layer, typeset, pkg, or type
+	  // LayerNode can't refer to layers
+	  if (!(root instanceof LayerNode)) {
+		  rv = findLayer(root.getPromisedFor(), name);
+	  }
+	  if (rv == null) {
+		  rv = findTypeSet(root.getPromisedFor(), name);
+	  }
+	  if (rv == null) {
+		  rv = findPackageOrType(name);
+	  }
+	  return rv;
+  }
+
+  private ILayerBinding findLayer(IRNode promisedFor, String name) {
+	  // name may not be qualified
+	  return null;
+  }
+
+  private ILayerBinding findTypeSet(IRNode context, String name) {
+	  // name may not be qualified
+	  return null;
+  }
+
+  private ILayerBinding findPackageOrType(String qname) {
+	  if (qname.endsWith("+")) {
+		  final String prefix = qname.substring(0, qname.length()-1);
+		  final List<IRNode> pkgs = new ArrayList<IRNode>();
+		  for(Pair<String,IRNode> p : tEnv.getPackages()) {
+			  if (p.first().startsWith(prefix)) {
+				  pkgs.add(p.second());
+			  }
+		  }
+		  if (!pkgs.isEmpty()) {
+			  return new AbstractLayerBinding(LayerBindingKind.PACKAGE) {
+				  @Override public Iterator<IRNode> iterator() {
+					  return pkgs.iterator();
+				  }
+			  };
+		  }
+		  return null;
+	  }
+	  final IRNode t = tEnv.findNamedType(qname);
+	  if (t != null) {
+		  return new AbstractLayerBinding(LayerBindingKind.TYPE) {
+			  @Override public IRNode getType() {
+				  return t;
+			  }
+		  }; 
+	  }
+	  final IRNode p = tEnv.findPackage(qname);
+	  if (p != null) {
+		  return new AbstractLayerBinding(LayerBindingKind.PACKAGE) {
+			  @Override public Iterator<IRNode> iterator() {
+				  return new SingletonIterator<IRNode>(p);
+			  }
+		  };
+	  }
+	  return null;
   }
 }

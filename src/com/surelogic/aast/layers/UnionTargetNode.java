@@ -46,6 +46,10 @@ public class UnionTargetNode extends AbstractLayerMatchTarget {
 		}
 	}
 
+	public String getPrefix() {
+		return qname;
+	}
+	
 	public Iterable<UnidentifiedTargetNode> getUnion() {
 		return union;
 	}

@@ -3,6 +3,7 @@ package com.surelogic.aast.bind;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.java.*;
+import com.surelogic.aast.layers.UnidentifiedTargetNode;
 import com.surelogic.aast.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -10,6 +11,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public interface IAASTBinder {
   boolean isResolvable(AASTNode node);
 
+  boolean isResolvable(UnidentifiedTargetNode node);
+  
   boolean isResolvable(ThisExpressionNode node);
   
   boolean isResolvable(QualifiedThisExpressionNode node);
@@ -36,6 +39,8 @@ public interface IAASTBinder {
 
   IBinding resolve(AASTNode node);
 
+  ILayerBinding resolve(UnidentifiedTargetNode node);
+  
   IMethodBinding resolve(MethodCallNode node);
   
   IVariableBinding resolve(ThisExpressionNode node);

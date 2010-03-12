@@ -6,6 +6,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.*;
 import edu.cmu.cs.fluid.util.Iteratable;
+import edu.cmu.cs.fluid.util.Pair;
 
 public interface ITypeEnvironment {
 	/** The Tree used to build all the ASTs used here */
@@ -180,6 +181,8 @@ public interface ITypeEnvironment {
 	 * @return The canonical PackageDeclaration (possibly annotated) for the package
 	 */
 	IRNode findPackage(String name);
+	
+	Iterable<Pair<String,IRNode>> getPackages();
 
   /**
    * @deprecated this field will go away.

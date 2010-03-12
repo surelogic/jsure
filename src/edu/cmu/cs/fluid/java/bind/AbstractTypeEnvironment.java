@@ -655,6 +655,10 @@ private long parseIntLiteral(String token) {
     return getClassTable().getOuterClass(name,null);
   }
 
+  public Iterable<Pair<String,IRNode>> getPackages() {
+	return getClassTable().allPackages(); 
+  }
+  
   public IJavaType findJavaTypeByName(final String name) {	  
 	// Check for array dimensions
     int dims = 0;    

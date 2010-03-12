@@ -25,6 +25,7 @@ import edu.cmu.cs.fluid.java.bind.AbstractJavaClassTable;
 import edu.cmu.cs.fluid.project.Component;
 import edu.cmu.cs.fluid.project.Project;
 import edu.cmu.cs.fluid.util.FileLocator;
+import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.version.Version;
 import edu.cmu.cs.fluid.version.VersionedDerivedInformation;
 import edu.cmu.cs.fluid.version.VersionedDerivedSlot;
@@ -274,5 +275,8 @@ public class JavaProjectClassTable extends AbstractJavaClassTable implements IJa
     versionSupport.ensureDerived();
     return new HashSet<String>(rep.keySet());
   }
-  
+
+  public Iterable<Pair<String, IRNode>> allPackages() {
+	  throw new UnsupportedOperationException();
+  }
 }

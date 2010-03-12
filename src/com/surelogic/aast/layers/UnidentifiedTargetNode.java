@@ -6,6 +6,10 @@ import java.util.*;
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
+import com.surelogic.aast.bind.AASTBinder;
+import com.surelogic.aast.bind.IHasLayerBinding;
+import com.surelogic.aast.bind.ILayerBinding;
+import com.surelogic.aast.bind.IVariableBinding;
 import com.surelogic.parse.AbstractSingleNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -17,7 +21,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * 
  * @author Edwin
  */
-public class UnidentifiedTargetNode extends AbstractLayerMatchTarget {
+public class UnidentifiedTargetNode extends AbstractLayerMatchTarget implements IHasLayerBinding {
 	private final String qname;
 	
 	public static final AbstractSingleNodeFactory factory =
@@ -34,6 +38,10 @@ public class UnidentifiedTargetNode extends AbstractLayerMatchTarget {
 		qname = name;
 	}
 
+	public String getName() {
+		return qname;
+	}
+	
 	@Override
 	public <T> T accept(INodeVisitor<T> visitor) {
 		return visitor.visit(this);
@@ -67,5 +75,13 @@ public class UnidentifiedTargetNode extends AbstractLayerMatchTarget {
 	public boolean matches(IRNode irNode) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	public boolean bindingExists() {
+		return AASTBinder.getInstance().isResolvable(this);
+	}
+
+	public ILayerBinding resolveBinding() {
+		return AASTBinder.getInstance().resolve(this);
 	}
 }

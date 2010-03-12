@@ -4,6 +4,7 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.Set;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.util.Pair;
 
 /**
  * A representation of a class table / CLASSPATH.
@@ -34,6 +35,8 @@ public interface IJavaClassTable {
    */
   public abstract Set<String> allNames();
 
+  public abstract Iterable<Pair<String, IRNode>> allPackages();
+  
   /**
    * Return a searchable scope for a package.  This scope can be used to
    * look for outer classes and for nested packages.
@@ -49,5 +52,4 @@ public interface IJavaClassTable {
    * @return searchable scope
    */
   public abstract IJavaScope packageScope(String qName);
-
 }

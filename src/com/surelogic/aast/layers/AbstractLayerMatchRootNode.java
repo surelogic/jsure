@@ -15,6 +15,7 @@ public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
   AbstractLayerMatchRootNode(int offset, PromiseTargetNode t) {
     super(offset);
     target = t;
+    target.setParent(this);
   }
 
   public PromiseTargetNode getTarget() {
