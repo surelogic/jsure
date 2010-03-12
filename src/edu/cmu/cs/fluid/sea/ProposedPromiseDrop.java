@@ -4,6 +4,10 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /**
  * Represents a proposed promise in the sea. A proposed promise indicates a
@@ -46,6 +50,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 		if (annotation == null) {
 			throw new IllegalArgumentException(I18N.err(44, "annotation"));
 		}
+		f_requestedFrom = from;
 		f_annotation = annotation;
 		f_contents = contents;
 		setNode(at);
@@ -67,6 +72,42 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 	 */
 	public String getAnnotation() {
 		return f_annotation;
+	}
+
+	private final IRNode f_requestedFrom;
+
+	/**
+	 * A node within the compilation unit where the analysis deems that this
+	 * proposed promise is needed. This is used to remove this proposed promise
+	 * if the compilation unit is reanalyzed.
+	 * 
+	 */
+	public IRNode getRequestedFrom() {
+		return f_requestedFrom;
+	}
+
+	/**
+	 * The enclosing type of the node where the analysis deems that this
+	 * proposed promise is needed. This is used to add an @Assume promise if the
+	 * SrcRef is not in this project.
+	 * 
+	 * @return
+	 */
+	public IRNode getAssumptionNode() {
+		return VisitUtil.getEnclosingType(f_requestedFrom);
+	}
+
+	/**
+	 * @return the source reference of the fAST node this information references
+	 */
+	public ISrcRef getAssumptionRef() {
+		final ISrcRef ref = JavaNode.getSrcRef(f_requestedFrom);
+		if (ref == null) {
+			final IRNode parent = JavaPromise
+					.getParentOrPromisedFor(f_requestedFrom);
+			return JavaNode.getSrcRef(parent);
+		}
+		return ref;
 	}
 
 	/**
