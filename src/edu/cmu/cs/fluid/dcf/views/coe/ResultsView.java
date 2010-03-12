@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.dcf.views.coe;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -32,13 +34,18 @@ import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.common.eclipse.SLImages;
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.ViewUtility;
 import com.surelogic.common.eclipse.dialogs.ImageDialog;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.TestListener;
+import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesChange;
+import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoring;
+import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringWizard;
 import com.surelogic.jsure.xml.JSureXMLReader;
 
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
@@ -50,8 +57,10 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
@@ -62,6 +71,8 @@ import edu.cmu.cs.fluid.util.SingletonIterator;
 public class ResultsView extends AbstractDoubleCheckerView {
 
 	private static final Logger LOG = SLLogger.getLogger("ResultsView");
+
+	private static final String ADD_TO_CODE = "Add promise to code...";
 
 	private final IResultsViewContentProvider f_contentProvider = makeContentProvider();
 
@@ -180,6 +191,49 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		public void run() {
 			clipboard.setContents(new Object[] { getSelectedText() },
 					new Transfer[] { TextTransfer.getInstance() });
+		}
+	};
+
+	private final Action f_addPromiseToCode = new Action() {
+		@Override
+		public void run() {
+			final IStructuredSelection selection = (IStructuredSelection) viewer
+					.getSelection();
+			if (selection == null || selection == StructuredSelection.EMPTY) {
+				return;
+			} else {
+				final List<ProposedPromiseDrop> proposals = new ArrayList<ProposedPromiseDrop>();
+				for (final Object element : selection.toList()) {
+					if (element instanceof Content) {
+						final Content c = (Content) element;
+						if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
+							ProposedPromiseDrop pp = (ProposedPromiseDrop) c.f_referencedDrop;
+							proposals.add(pp);
+						}
+					}
+				}
+				if (!proposals.isEmpty()) {
+
+					// REFACTOR
+					final IBinder b = IDE.getInstance().getTypeEnv(
+							ProjectDrop.getDrop().getIIRProject()).getBinder();
+					final ProposedPromisesChange info = new ProposedPromisesChange(
+							JDTUtility.getJavaProject(ProjectDrop.getProject()),
+							b, proposals);
+					final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(
+							info);
+					final ProposedPromisesRefactoringWizard wizard = new ProposedPromisesRefactoringWizard(
+							refactoring, info);
+					final RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(
+							wizard);
+					try {
+						op.run(SWTUtility.getShell(), ADD_TO_CODE);
+					} catch (final InterruptedException e) {
+						// Operation was cancelled. Whatever floats their boat.
+					}
+
+				}
+			}
 		}
 	};
 
@@ -334,6 +388,13 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	@Override
 	protected void fillContextMenu(final IMenuManager manager,
 			final IStructuredSelection s) {
+		if (!s.isEmpty()) {
+			final Content c = (Content) s.getFirstElement();
+			if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
+				manager.add(f_addPromiseToCode);
+				manager.add(new Separator());
+			}
+		}
 		manager.add(f_actionExpand);
 		manager.add(f_actionCollapse);
 		if (!s.isEmpty()) {
@@ -407,6 +468,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		f_copy.setText("Copy");
 		f_copy
 				.setToolTipText("Copy the selected verification result to the clipboard");
+
+		f_addPromiseToCode.setText(ADD_TO_CODE);
+		f_addPromiseToCode
+				.setToolTipText("Annotate the selected proposed promise in the code");
 
 		f_showQuickRef.setText("Show Iconography Quick Reference Card");
 		f_showQuickRef

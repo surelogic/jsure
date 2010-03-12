@@ -210,7 +210,7 @@ public class ResultsViewContentProvider extends
 		} else if (size == 1) {
 			ProposedPromiseDrop pp = proposals.iterator().next();
 			final Content proposalItem = new Content("proposed promise: "
-					+ pp.getJavaAnnotation(), pp.getNode());
+					+ pp.getJavaAnnotation(), pp.getNode(), pp);
 			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
 			mutableContentSet.addChild(proposalItem);
 			return;
@@ -221,9 +221,9 @@ public class ResultsViewContentProvider extends
 
 		for (Iterator<ProposedPromiseDrop> i = proposals.iterator(); i
 				.hasNext();) {
-			ProposedPromiseDrop si = i.next();
-			final Content proposalItem = new Content(si.getJavaAnnotation(), si
-					.getNode());
+			ProposedPromiseDrop pp = i.next();
+			final Content proposalItem = new Content(pp.getJavaAnnotation(), pp
+					.getNode(), pp);
 			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
 			siFolder.addChild(proposalItem);
 		}

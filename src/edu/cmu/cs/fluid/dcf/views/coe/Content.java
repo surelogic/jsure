@@ -99,37 +99,42 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	 * PromiseWarningDrop), <code>false</code> otherwise.
 	 */
 	boolean f_isPromiseWarning = false;
-	
-	/**
-	 * A reference to the original node.
-	 * Non-null only if it's a backedge
-	 */
-	Content cloneOf = null;	
 
-	Content(String msg, Collection<Content> content) {
+	/**
+	 * A reference to the original node. Non-null only if it's a backedge
+	 */
+	Content cloneOf = null;
+
+	Content(String msg, Collection<Content> content, Drop drop) {
 		f_message = msg;
 		f_children = content;
-		f_referencedDrop = null;
+		f_referencedDrop = drop;
+		if (drop instanceof IRReferenceDrop) {
+			f_sourceRef = ((IRReferenceDrop) f_referencedDrop).getSrcRef();
+		}
+	}
+
+	Content(String msg, Collection<Content> content) {
+		this(msg, content, null);
 	}
 
 	Content(String msg) {
-		this(msg, new HashSet<Content>());
+		this(msg, new HashSet<Content>(), null);
 	}
 
-	Content(String msg, IRNode location) {
-		this(msg);
+	Content(String msg, Drop drop) {
+		this(msg, new HashSet<Content>(), drop);
+	}
+
+	Content(String msg, IRNode location, Drop drop) {
+		this(msg, new HashSet<Content>(), drop);
 		if (location != null) {
 			f_sourceRef = JavaNode.getSrcRef(location);
 		}
 	}
 
-	Content(String msg, Drop drop) {
-		f_message = msg;
-		f_children = new HashSet<Content>();
-		f_referencedDrop = drop;
-		if (drop instanceof IRReferenceDrop) {
-			f_sourceRef = ((IRReferenceDrop) f_referencedDrop).getSrcRef();
-		}
+	Content(String msg, IRNode location) {
+		this(msg, location, null);
 	}
 
 	Content cloneAsLeaf() {
@@ -204,7 +209,7 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 				name = (String) f;
 				int lastSlash = name.lastIndexOf('/');
 				if (lastSlash >= 0) {
-					name = name.substring(lastSlash+1);
+					name = name.substring(lastSlash + 1);
 				}
 			} else if (f != null) {
 				name = f.toString();
