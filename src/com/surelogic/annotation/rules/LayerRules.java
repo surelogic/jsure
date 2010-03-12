@@ -97,7 +97,7 @@ public class LayerRules extends AnnotationRules {
 
 		@Override
 		protected IPromiseDropStorage<TypeSetPromiseDrop> makeStorage() {
-			return SinglePromiseDropStorage.create(name(),
+			return PromiseDropSeqStorage.create(name(),
 					TypeSetPromiseDrop.class);
 		}
 
@@ -127,7 +127,7 @@ public class LayerRules extends AnnotationRules {
 
 		@Override
 		protected IPromiseDropStorage<LayerPromiseDrop> makeStorage() {
-			return SinglePromiseDropStorage.create(name(),
+			return PromiseDropSeqStorage.create(name(),
 					LayerPromiseDrop.class);
 		}
 
