@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,10 +20,12 @@ import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
@@ -99,6 +102,7 @@ public class AnnotationRewriter {
 		private Method inMethod;
 		private TypeContext type;
 		private final boolean isAssumption;
+		private final Set<String> imports;
 
 		public AnnotationVisitor(final Collection<AnnotationDescription> descs,
 				final TextEditGroup editGroup, final boolean isAssumption) {
@@ -115,6 +119,7 @@ public class AnnotationRewriter {
 			}
 			this.isAssumption = isAssumption;
 			this.editGroup = editGroup;
+			this.imports = new HashSet<String>();
 		}
 
 		@Override
@@ -200,6 +205,7 @@ public class AnnotationRewriter {
 					// Add annotation
 					final AST ast = node.getAST();
 					if (isAssumption) {
+						addImport("Assume");
 						final SingleMemberAnnotation ann = ast
 								.newSingleMemberAnnotation();
 						ann.setTypeName(ast.newName("Assume"));
@@ -210,6 +216,7 @@ public class AnnotationRewriter {
 						ann.setValue(lit);
 						lrw.insertFirst(ann, editGroup);
 					} else {
+						addImport(desc.getAnnotation());
 						if (desc.hasContents()) {
 							final SingleMemberAnnotation ann = ast
 									.newSingleMemberAnnotation();
@@ -251,6 +258,30 @@ public class AnnotationRewriter {
 				rewriteNode(node, FieldDeclaration.MODIFIERS2_PROPERTY, list);
 			}
 			return false;
+		}
+
+		void addImport(final String promise) {
+			imports.add("com.surelogic." + promise);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void endVisit(final CompilationUnit node) {
+			final List<ImportDeclaration> importNodes = node.imports();
+			for (final ImportDeclaration i : importNodes) {
+				imports.remove(i.getName().getFullyQualifiedName());
+			}
+			if (imports.size() > 0) {
+				final AST ast = node.getAST();
+				final ListRewrite lrw = rewrite.getListRewrite(node,
+						CompilationUnit.IMPORTS_PROPERTY);
+				for (final String i : imports) {
+					final ImportDeclaration d = ast.newImportDeclaration();
+					d.setName(ast.newName(i));
+					lrw.insertLast(d, null);
+				}
+			}
+			super.endVisit(node);
 		}
 
 		@Override

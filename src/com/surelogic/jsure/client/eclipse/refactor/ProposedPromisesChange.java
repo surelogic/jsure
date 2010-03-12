@@ -55,6 +55,8 @@ public class ProposedPromisesChange {
 			}
 			set.add(ann);
 		}
+		final Map<CU, Set<AnnotationDescription>> promiseMap = new HashMap<CU, Set<AnnotationDescription>>();
+		final Map<CU, Set<AnnotationDescription>> assumeMap = new HashMap<CU, Set<AnnotationDescription>>();
 		final AnnotationRewriter rewrite = new AnnotationRewriter(
 				selectedProject);
 		try {
@@ -63,20 +65,9 @@ public class ProposedPromisesChange {
 				for (final ICompilationUnit unit : frag.getCompilationUnits()) {
 					final CU check = new CU(frag.getElementName(), unit
 							.getElementName());
-					final Set<AnnotationDescription> set = map.remove(check);
-					if (set != null) {
-						rewrite.setCompilationUnit(unit);
-						rewrite.writeAnnotations(set);
-						final TextEdit textEdit = rewrite.getTextEdit();
-						final IFile file = (IFile) unit.getResource();
-						final TextFileChange change = new TextFileChange(file
-								.getName(), file);
-						change.setEdit(textEdit);
-						root.add(change);
-					}
+					promiseMap.put(check, map.remove(check));
 				}
 			}
-			final Map<CU, Set<AnnotationDescription>> assumeMap = new HashMap<CU, Set<AnnotationDescription>>();
 			for (final Entry<CU, Set<AnnotationDescription>> e : map.entrySet()) {
 				for (final AnnotationDescription ann : e.getValue()) {
 					final CU cu = ann.getAssumptionCU();
@@ -93,11 +84,18 @@ public class ProposedPromisesChange {
 				for (final ICompilationUnit unit : frag.getCompilationUnits()) {
 					final CU check = new CU(frag.getElementName(), unit
 							.getElementName());
-					final Set<AnnotationDescription> set = assumeMap
-							.remove(check);
-					if (set != null) {
-						rewrite.setCompilationUnit(unit);
-						rewrite.writeAssumptions(set);
+					rewrite.setCompilationUnit(unit);
+					final Set<AnnotationDescription> promiseSet = promiseMap
+							.get(check);
+					if (promiseSet != null) {
+						rewrite.writeAnnotations(promiseSet);
+					}
+					final Set<AnnotationDescription> assumeSet = assumeMap
+							.get(check);
+					if (assumeSet != null) {
+						rewrite.writeAssumptions(assumeSet);
+					}
+					if (promiseSet != null || assumeSet != null) {
 						final TextEdit textEdit = rewrite.getTextEdit();
 						final IFile file = (IFile) unit.getResource();
 						final TextFileChange change = new TextFileChange(file
