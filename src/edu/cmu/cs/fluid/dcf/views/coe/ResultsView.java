@@ -22,7 +22,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
-import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -34,7 +33,6 @@ import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.common.eclipse.SLImages;
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.ViewUtility;
@@ -43,9 +41,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.TestListener;
-import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesChange;
-import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoring;
-import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringWizard;
+import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.xml.JSureXMLReader;
 
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
@@ -57,7 +53,6 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
@@ -192,47 +187,26 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		}
 	};
 
-	private final Action f_addPromiseToCode = new Action() {
+	private final Action f_addPromiseToCode = new ProposedPromisesRefactoringAction() {
+
 		@Override
-		public void run() {
+		protected List<ProposedPromiseDrop> getProposedDrops() {
 			final IStructuredSelection selection = (IStructuredSelection) viewer
 					.getSelection();
 			if (selection == null || selection == StructuredSelection.EMPTY) {
-				return;
-			} else {
-				final List<ProposedPromiseDrop> proposals = new ArrayList<ProposedPromiseDrop>();
-				for (final Object element : selection.toList()) {
-					if (element instanceof Content) {
-						final Content c = (Content) element;
-						if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
-							final ProposedPromiseDrop pp = (ProposedPromiseDrop) c.f_referencedDrop;
-							proposals.add(pp);
-						}
+				return Collections.emptyList();
+			}
+			final List<ProposedPromiseDrop> proposals = new ArrayList<ProposedPromiseDrop>();
+			for (final Object element : selection.toList()) {
+				if (element instanceof Content) {
+					final Content c = (Content) element;
+					if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
+						final ProposedPromiseDrop pp = (ProposedPromiseDrop) c.f_referencedDrop;
+						proposals.add(pp);
 					}
-				}
-				if (!proposals.isEmpty()) {
-
-					// REFACTOR
-					final IBinder b = IDE.getInstance().getTypeEnv(
-							ProjectDrop.getDrop().getIIRProject()).getBinder();
-					final ProposedPromisesChange info = new ProposedPromisesChange(
-							JDTUtility.getJavaProject(ProjectDrop.getProject()),
-							b, proposals);
-					final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(
-							info);
-					final ProposedPromisesRefactoringWizard wizard = new ProposedPromisesRefactoringWizard(
-							refactoring, info);
-					final RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(
-							wizard);
-					try {
-						op.run(SWTUtility.getShell(), I18N
-								.msg("jsure.eclipse.promises.refactor"));
-					} catch (final InterruptedException e) {
-						// Operation was cancelled. Whatever floats their boat.
-					}
-
 				}
 			}
+			return proposals;
 		}
 	};
 

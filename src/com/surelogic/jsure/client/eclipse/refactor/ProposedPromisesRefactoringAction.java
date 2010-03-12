@@ -1,34 +1,38 @@
 package com.surelogic.jsure.client.eclipse.refactor;
 
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
-import org.eclipse.ui.IObjectActionDelegate;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
+import java.util.List;
 
+import org.eclipse.jface.action.Action;
+import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
+
+import com.surelogic.common.eclipse.JDTUtility;
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.i18n.I18N;
 
-//FIXME this may be an unecessary class
-public class ProposedPromisesRefactoringAction implements
-		IObjectActionDelegate, IWorkbenchWindowActionDelegate {
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 
-	private IJavaProject f_javaProject = null;
+public abstract class ProposedPromisesRefactoringAction extends Action {
 
-	public void setActivePart(final IAction action,
-			final IWorkbenchPart targetPart) {
-		// Do nothing
-	}
+	protected abstract List<ProposedPromiseDrop> getProposedDrops();
 
-	public void run(final IAction action) {
-
+	@Override
+	public void run() {
+		final List<ProposedPromiseDrop> selected = getProposedDrops();
+		if (selected.isEmpty()) {
+			return;
+		}
+		/*
+		 * TODO Proposed the edit to the code in the dialog HERE (you are in the
+		 * SWT thread)
+		 */
+		final IBinder b = IDE.getInstance().getTypeEnv(
+				ProjectDrop.getDrop().getIIRProject()).getBinder();
 		final ProposedPromisesChange info = new ProposedPromisesChange(
-				f_javaProject, null, null);
-
+				JDTUtility.getJavaProject(ProjectDrop.getProject()), b,
+				selected);
 		final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(
 				info);
 		final ProposedPromisesRefactoringWizard wizard = new ProposedPromisesRefactoringWizard(
@@ -43,23 +47,4 @@ public class ProposedPromisesRefactoringAction implements
 		}
 	}
 
-	public void selectionChanged(final IAction action,
-			final ISelection selection) {
-		if (selection instanceof IStructuredSelection) {
-			final Object o = ((IStructuredSelection) selection)
-					.getFirstElement();
-			if (o instanceof IJavaProject) {
-				f_javaProject = (IJavaProject) o;
-				// FIXME action.setEnabled(noCompilationErrors(f_javaProject));
-			}
-		}
-	}
-
-	public void dispose() {
-		// Do nothing
-	}
-
-	public void init(final IWorkbenchWindow window) {
-		// Do nothing
-	}
 }
