@@ -17,8 +17,10 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
+import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
@@ -194,45 +196,117 @@ public class AnnotationRewriter {
 			return true;
 		}
 
+		/**
+		 * Insert the list of annotations into the given rewrite, wrapping them
+		 * w/ an annotation if necessary
+		 * 
+		 * @param wrapperName
+		 *            the name of the wrapper annotation
+		 */
+		@SuppressWarnings("unchecked")
+		void insertWrappedAnnotation(final AST ast, final ListRewrite lrw,
+				final TextEditGroup editGroup, final String wrapperName,
+				final List<AnnotationDescription> anns) {
+			final int len = anns.size();
+			if (len == 1) {
+				lrw.insertFirst(ann(ast, anns.get(0)), editGroup);
+			} else if (len > 1) {
+				final SingleMemberAnnotation a = ast
+						.newSingleMemberAnnotation();
+				a.setTypeName(ast.newName(wrapperName));
+				addImport(wrapperName);
+				final ArrayInitializer arr = ast.newArrayInitializer();
+				final List expressions = arr.expressions();
+				for (final AnnotationDescription desc : anns) {
+					expressions.add(ann(ast, desc));
+				}
+				a.setValue(arr);
+				lrw.insertFirst(a, editGroup);
+			}
+		}
+
+		/**
+		 * Create an annotation matching the given description
+		 * 
+		 * @param ast
+		 * @param desc
+		 * @return
+		 */
+		Annotation ann(final AST ast, final AnnotationDescription desc) {
+			if (isAssumption) {
+				addImport("Assume");
+				final SingleMemberAnnotation ann = ast
+						.newSingleMemberAnnotation();
+				ann.setTypeName(ast.newName("Assume"));
+				final StringLiteral lit = ast.newStringLiteral();
+				lit.setLiteralValue(String.format("%s for %s in %s", desc
+						.toString(), desc.getTarget().forSyntax(), desc.getCU()
+						.getPackage()));
+				ann.setValue(lit);
+				return ann;
+			} else {
+				addImport(desc.getAnnotation());
+				if (desc.hasContents()) {
+					final SingleMemberAnnotation ann = ast
+							.newSingleMemberAnnotation();
+					ann.setTypeName(ast.newName(desc.getAnnotation()));
+					final StringLiteral lit = ast.newStringLiteral();
+					lit.setLiteralValue(desc.getContents());
+					ann.setValue(lit);
+					return ann;
+				} else {
+					final MarkerAnnotation ann = ast.newMarkerAnnotation();
+					ann.setTypeName(ast.newName(desc.getAnnotation()));
+					return ann;
+				}
+			}
+		}
+
+		/**
+		 * Rewrite the given node property to include this list of annotations
+		 * 
+		 * @param node
+		 * @param prop
+		 * @param list
+		 */
 		private void rewriteNode(final ASTNode node,
 				final ChildListPropertyDescriptor prop,
 				final List<AnnotationDescription> list) {
 			if (list != null) {
 				Collections.sort(list);
 				Collections.reverse(list);
-				final ListRewrite lrw = rewrite.getListRewrite(node, prop);
-				for (final AnnotationDescription desc : list) {
-					// Add annotation
-					final AST ast = node.getAST();
-					if (isAssumption) {
-						addImport("Assume");
-						final SingleMemberAnnotation ann = ast
-								.newSingleMemberAnnotation();
-						ann.setTypeName(ast.newName("Assume"));
-						final StringLiteral lit = ast.newStringLiteral();
-						lit.setLiteralValue(String.format("%s for %s in %s",
-								desc.toString(), desc.getTarget().forSyntax(),
-								desc.getCU().getPackage()));
-						ann.setValue(lit);
-						lrw.insertFirst(ann, editGroup);
-					} else {
-						addImport(desc.getAnnotation());
-						if (desc.hasContents()) {
-							final SingleMemberAnnotation ann = ast
-									.newSingleMemberAnnotation();
-							ann.setTypeName(ast.newName(desc.getAnnotation()));
-							final StringLiteral lit = ast.newStringLiteral();
-							lit.setLiteralValue(desc.getContents());
-							ann.setValue(lit);
-							lrw.insertFirst(ann, editGroup);
-						} else {
-							final MarkerAnnotation ann = ast
-									.newMarkerAnnotation();
-							ann.setTypeName(ast.newName(desc.getAnnotation()));
-							lrw.insertFirst(node, editGroup);
-						}
+				final List<List<AnnotationDescription>> anns = new ArrayList<List<AnnotationDescription>>();
+				List<AnnotationDescription> cur = null;
+				String curAnn = null;
+				for (final AnnotationDescription d : list) {
+					if (!d.getAnnotation().equals(curAnn)) {
+						cur = new ArrayList<AnnotationDescription>();
+						anns.add(cur);
+						curAnn = d.getAnnotation();
 					}
+					cur.add(d);
 				}
+				final ListRewrite lrw = rewrite.getListRewrite(node, prop);
+				for (final List<AnnotationDescription> ann : anns) {
+					final AST ast = node.getAST();
+					insertWrappedAnnotation(ast, lrw, editGroup,
+							wrapperName(ann.get(0)), ann);
+				}
+			}
+		}
+
+		/**
+		 * Computes the likely wrapper annotation name for this annotation
+		 * 
+		 * @param annotationDescription
+		 * @return
+		 */
+		private String wrapperName(
+				final AnnotationDescription annotationDescription) {
+			if (isAssumption) {
+				return "Assumes";
+			} else {
+				return annotationDescription.getAnnotation() + "s";
 			}
 		}
 
