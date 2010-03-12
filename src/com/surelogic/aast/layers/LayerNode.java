@@ -32,7 +32,7 @@ public class LayerNode extends AbstractLayerMatchDeclNode {
 
 	@Override
 	public String unparse(boolean debug, int indent) {
-		return unparse(debug, indent, "Layer");
+		return unparse(debug, indent, "Layer", " may refer to ");
 	}
 
 }
