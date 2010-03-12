@@ -72,8 +72,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 	private static final Logger LOG = SLLogger.getLogger("ResultsView");
 
-	private static final String ADD_TO_CODE = "Add promise to code...";
-
 	private final IResultsViewContentProvider f_contentProvider = makeContentProvider();
 
 	private final IResultsViewLabelProvider f_labelProvider = makeLabelProvider();
@@ -162,7 +160,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 							}
 
 							public Object[] toArray() {
-								Object[] rv = new Object[1];
+								final Object[] rv = new Object[1];
 								rv[0] = c.cloneOf;
 								return rv;
 							}
@@ -207,7 +205,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 					if (element instanceof Content) {
 						final Content c = (Content) element;
 						if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
-							ProposedPromiseDrop pp = (ProposedPromiseDrop) c.f_referencedDrop;
+							final ProposedPromiseDrop pp = (ProposedPromiseDrop) c.f_referencedDrop;
 							proposals.add(pp);
 						}
 					}
@@ -227,7 +225,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
 					final RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(
 							wizard);
 					try {
-						op.run(SWTUtility.getShell(), ADD_TO_CODE);
+						op.run(SWTUtility.getShell(), I18N
+								.msg("jsure.eclipse.promises.refactor"));
 					} catch (final InterruptedException e) {
 						// Operation was cancelled. Whatever floats their boat.
 					}
@@ -353,10 +352,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	}
 
 	String getSelectedText() {
-		IStructuredSelection selection = (IStructuredSelection) viewer
+		final IStructuredSelection selection = (IStructuredSelection) viewer
 				.getSelection();
-		StringBuilder sb = new StringBuilder();
-		for (Object elt : selection.toList()) {
+		final StringBuilder sb = new StringBuilder();
+		for (final Object elt : selection.toList()) {
 			if (sb.length() > 0) {
 				sb.append('\n');
 			}
@@ -366,7 +365,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	}
 
 	@Override
-	protected void fillGlobalActionHandlers(IActionBars bars) {
+	protected void fillGlobalActionHandlers(final IActionBars bars) {
 		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
 	}
 
@@ -469,7 +468,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		f_copy
 				.setToolTipText("Copy the selected verification result to the clipboard");
 
-		f_addPromiseToCode.setText(ADD_TO_CODE);
+		f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.promises.refactor"));
 		f_addPromiseToCode
 				.setToolTipText("Annotate the selected proposed promise in the code");
 

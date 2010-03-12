@@ -28,15 +28,6 @@ public class Method implements IJavaDeclaration {
 	}
 
 	/**
-	 * The type this method signature is declared in.
-	 * 
-	 * @return
-	 */
-	public TypeContext getType() {
-		return type;
-	}
-
-	/**
 	 * The name of the method
 	 * 
 	 * @return
@@ -52,6 +43,31 @@ public class Method implements IJavaDeclaration {
 	 */
 	public String[] getParams() {
 		return params;
+	}
+
+	/**
+	 * The type this method signature is declared in.
+	 * 
+	 * @return
+	 */
+	public TypeContext getTypeContext() {
+		return type;
+	}
+
+	public String forSyntax() {
+		final StringBuilder b = new StringBuilder();
+		b.append(method);
+		b.append('(');
+		for (final String s : params) {
+			b.append(s);
+			b.append(',');
+		}
+		if (params.length > 0) {
+			b.setLength(b.length() - 1);
+		}
+		b.append(") in ");
+		b.append(type.forSyntax());
+		return b.toString();
 	}
 
 	@Override

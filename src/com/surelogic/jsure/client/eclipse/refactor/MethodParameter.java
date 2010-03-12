@@ -34,6 +34,14 @@ public class MethodParameter implements IJavaDeclaration {
 		return method;
 	}
 
+	public TypeContext getTypeContext() {
+		return method.getTypeContext();
+	}
+
+	public String forSyntax() {
+		return method.forSyntax();
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

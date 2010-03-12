@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -22,7 +23,6 @@ import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
@@ -64,14 +64,17 @@ public class AnnotationRewriter {
 		rewrite = ASTRewrite.create(ast.getAST());
 	}
 
-	public void rewriteAnnotations(final Collection<AnnotationDescription> descs) {
-		rewriteAnnotations(descs, null);
+	public void writeAnnotations(final Collection<AnnotationDescription> descs) {
+		writeAnnotations(descs, null);
 	}
 
-	public void rewriteAnnotations(
-			final Collection<AnnotationDescription> descs,
+	public void writeAnnotations(final Collection<AnnotationDescription> descs,
 			final TextEditGroup editGroup) {
-		ast.accept(new AnnotationVisitor(descs, editGroup));
+		ast.accept(new AnnotationVisitor(descs, editGroup, false));
+	}
+
+	public void writeAssumptions(final Set<AnnotationDescription> descs) {
+		ast.accept(new AnnotationVisitor(descs, null, true));
 	}
 
 	/**
@@ -95,12 +98,14 @@ public class AnnotationRewriter {
 		private final TextEditGroup editGroup;
 		private Method inMethod;
 		private TypeContext type;
+		private final boolean isAssumption;
 
 		public AnnotationVisitor(final Collection<AnnotationDescription> descs,
-				final TextEditGroup editGroup) {
+				final TextEditGroup editGroup, final boolean isAssumption) {
 			targetMap = new HashMap<Object, List<AnnotationDescription>>();
 			for (final AnnotationDescription desc : descs) {
-				final Object target = desc.getTarget();
+				final Object target = isAssumption ? desc.getAssumptionTarget()
+						: desc.getTarget();
 				List<AnnotationDescription> list = targetMap.get(target);
 				if (list == null) {
 					list = new ArrayList<AnnotationDescription>();
@@ -108,6 +113,7 @@ public class AnnotationRewriter {
 				}
 				list.add(desc);
 			}
+			this.isAssumption = isAssumption;
 			this.editGroup = editGroup;
 		}
 
@@ -136,6 +142,8 @@ public class AnnotationRewriter {
 			} else {
 				type = new TypeContext(inMethod, name);
 			}
+			rewriteNode(node, AnnotationTypeDeclaration.MODIFIERS2_PROPERTY,
+					targetMap.get(type));
 			return true;
 		}
 
@@ -162,13 +170,9 @@ public class AnnotationRewriter {
 			} else {
 				type = new TypeContext(inMethod, name);
 			}
+			rewriteNode(node, EnumDeclaration.MODIFIERS2_PROPERTY, targetMap
+					.get(type));
 			return true;
-		}
-
-		@Override
-		public void endVisit(final Initializer node) {
-			// TODO Auto-generated method stub
-			super.endVisit(node);
 		}
 
 		@Override
@@ -190,21 +194,36 @@ public class AnnotationRewriter {
 				final List<AnnotationDescription> list) {
 			if (list != null) {
 				Collections.sort(list);
+				Collections.reverse(list);
+				final ListRewrite lrw = rewrite.getListRewrite(node, prop);
 				for (final AnnotationDescription desc : list) {
-					final ListRewrite lrw = rewrite.getListRewrite(node, prop);
 					// Add annotation
 					final AST ast = node.getAST();
-					if (desc.hasContents()) {
+					if (isAssumption) {
 						final SingleMemberAnnotation ann = ast
 								.newSingleMemberAnnotation();
-						ann.setTypeName(ast.newName(desc.getAnnotation()));
+						ann.setTypeName(ast.newName("Assume"));
 						final StringLiteral lit = ast.newStringLiteral();
-						lit.setLiteralValue(desc.getContents());
+						lit.setLiteralValue(String.format("%s for %s in %s",
+								desc.toString(), desc.getTarget().forSyntax(),
+								desc.getCU().getPackage()));
 						ann.setValue(lit);
 						lrw.insertFirst(ann, editGroup);
 					} else {
-						final MarkerAnnotation ann = ast.newMarkerAnnotation();
-						ann.setTypeName(ast.newName(desc.getAnnotation()));
+						if (desc.hasContents()) {
+							final SingleMemberAnnotation ann = ast
+									.newSingleMemberAnnotation();
+							ann.setTypeName(ast.newName(desc.getAnnotation()));
+							final StringLiteral lit = ast.newStringLiteral();
+							lit.setLiteralValue(desc.getContents());
+							ann.setValue(lit);
+							lrw.insertFirst(ann, editGroup);
+						} else {
+							final MarkerAnnotation ann = ast
+									.newMarkerAnnotation();
+							ann.setTypeName(ast.newName(desc.getAnnotation()));
+							lrw.insertFirst(node, editGroup);
+						}
 					}
 				}
 			}
@@ -252,4 +271,5 @@ public class AnnotationRewriter {
 		}
 
 	}
+
 }

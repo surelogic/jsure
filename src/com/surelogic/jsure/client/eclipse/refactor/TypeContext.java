@@ -29,7 +29,7 @@ public class TypeContext implements IJavaDeclaration {
 	}
 
 	public TypeContext(final Method m, final String id) {
-		this.parent = m.getType();
+		this.parent = m.getTypeContext();
 		this.method = m;
 		this.name = id;
 	}
@@ -44,6 +44,14 @@ public class TypeContext implements IJavaDeclaration {
 
 	public Method getMethod() {
 		return method;
+	}
+
+	public String forSyntax() {
+		return name;
+	}
+
+	public TypeContext getTypeContext() {
+		return this;
 	}
 
 	@Override

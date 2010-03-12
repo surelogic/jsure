@@ -55,7 +55,7 @@ public class ProposedPromiseView extends AbstractDoubleCheckerView {
 					wizard);
 			try {
 				op.run(SWTUtility.getShell(), I18N
-						.msg("flashlight.recommend.refactor.regionIsThis"));
+						.msg("jsure.eclipse.promises.refactor"));
 			} catch (final InterruptedException e) {
 				// Operation was cancelled. Whatever floats their boat.
 			}

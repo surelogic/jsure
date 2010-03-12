@@ -5,12 +5,9 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
 public class ProposedPromisesRefactoringWizard extends RefactoringWizard {
 
-	private final ProposedPromisesChange info;
-
 	public ProposedPromisesRefactoringWizard(final Refactoring refactoring,
 			final ProposedPromisesChange info) {
 		super(refactoring, RefactoringWizard.DIALOG_BASED_USER_INTERFACE);
-		this.info = info;
 	}
 
 	@Override

@@ -16,21 +16,20 @@ public class Field implements IJavaDeclaration {
 	}
 
 	/**
-	 * The type this field is declared in.
-	 * 
-	 * @return
-	 */
-	public TypeContext getType() {
-		return type;
-	}
-
-	/**
 	 * The name of the field.
 	 * 
 	 * @return
 	 */
 	public String getField() {
 		return field;
+	}
+
+	public TypeContext getTypeContext() {
+		return type;
+	}
+
+	public String forSyntax() {
+		return String.format("%s in %s", field, type.forSyntax());
 	}
 
 	@Override
