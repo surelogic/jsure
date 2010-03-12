@@ -67,11 +67,11 @@ public class AnnotationRewriter {
 		rewrite = ASTRewrite.create(ast.getAST());
 	}
 
-	public void writeAnnotations(final Collection<AnnotationDescription> descs) {
+	public void writeAnnotations(final Set<AnnotationDescription> descs) {
 		writeAnnotations(descs, null);
 	}
 
-	public void writeAnnotations(final Collection<AnnotationDescription> descs,
+	public void writeAnnotations(final Set<AnnotationDescription> descs,
 			final TextEditGroup editGroup) {
 		ast.accept(new AnnotationVisitor(descs, editGroup, false));
 	}

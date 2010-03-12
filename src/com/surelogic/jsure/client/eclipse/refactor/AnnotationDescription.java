@@ -10,16 +10,24 @@ import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
  * @author nathan
  * 
  */
-public class AnnotationDescription implements Comparable<AnnotationDescription> {
+class AnnotationDescription implements Comparable<AnnotationDescription> {
 
 	private final IJavaDeclaration target;
 	private final IJavaDeclaration assumptionTarget;
-	private final ProposedPromiseDrop drop;
+	private final String annotation;
+	private final String contents;
+	private final CU cu;
+	private final CU assumptionCU;
 
 	AnnotationDescription(final ProposedPromiseDrop drop, final IBinder b) {
-		this.drop = drop;
 		target = IRNodeUtil.convert(b, drop.getNode());
 		assumptionTarget = IRNodeUtil.convert(b, drop.getAssumptionNode());
+		annotation = drop.getAnnotation();
+		contents = drop.getContents();
+		ISrcRef srcRef = drop.getSrcRef();
+		cu = new CU(srcRef.getPackage(), srcRef.getCUName());
+		srcRef = drop.getAssumptionRef();
+		assumptionCU = new CU(srcRef.getPackage(), srcRef.getCUName());
 	}
 
 	public IJavaDeclaration getTarget() {
@@ -31,11 +39,11 @@ public class AnnotationDescription implements Comparable<AnnotationDescription> 
 	}
 
 	public String getAnnotation() {
-		return drop.getAnnotation();
+		return annotation;
 	}
 
 	public String getContents() {
-		return drop.getContents();
+		return contents;
 	}
 
 	@Override
@@ -44,21 +52,11 @@ public class AnnotationDescription implements Comparable<AnnotationDescription> 
 	}
 
 	public int compareTo(final AnnotationDescription o) {
-		return drop.getAnnotation().compareTo(o.drop.getAnnotation());
+		return getAnnotation().compareTo(o.getAnnotation());
 	}
 
 	public boolean hasContents() {
-		return drop.getContents() != null;
-	}
-
-	public CU getCU() {
-		final ISrcRef srcRef = drop.getSrcRef();
-		return new CU(srcRef.getPackage(), srcRef.getCUName());
-	}
-
-	public CU getAssumptionCU() {
-		final ISrcRef srcRef = drop.getAssumptionRef();
-		return new CU(srcRef.getPackage(), srcRef.getCUName());
+		return getContents() != null;
 	}
 
 	@Override
@@ -66,8 +64,9 @@ public class AnnotationDescription implements Comparable<AnnotationDescription> 
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ (assumptionTarget == null ? 0 : assumptionTarget.hashCode());
-		result = prime * result + (drop == null ? 0 : drop.hashCode());
+				+ (annotation == null ? 0 : annotation.hashCode());
+		result = prime * result + (contents == null ? 0 : contents.hashCode());
+		result = prime * result + (cu == null ? 0 : cu.hashCode());
 		result = prime * result + (target == null ? 0 : target.hashCode());
 		return result;
 	}
@@ -84,18 +83,25 @@ public class AnnotationDescription implements Comparable<AnnotationDescription> 
 			return false;
 		}
 		final AnnotationDescription other = (AnnotationDescription) obj;
-		if (assumptionTarget == null) {
-			if (other.assumptionTarget != null) {
+		if (annotation == null) {
+			if (other.annotation != null) {
 				return false;
 			}
-		} else if (!assumptionTarget.equals(other.assumptionTarget)) {
+		} else if (!annotation.equals(other.annotation)) {
 			return false;
 		}
-		if (drop == null) {
-			if (other.drop != null) {
+		if (contents == null) {
+			if (other.contents != null) {
 				return false;
 			}
-		} else if (!annotationMatches(other)) {
+		} else if (!contents.equals(other.contents)) {
+			return false;
+		}
+		if (cu == null) {
+			if (other.cu != null) {
+				return false;
+			}
+		} else if (!cu.equals(other.cu)) {
 			return false;
 		}
 		if (target == null) {
@@ -108,15 +114,12 @@ public class AnnotationDescription implements Comparable<AnnotationDescription> 
 		return true;
 	}
 
-	private boolean annotationMatches(final AnnotationDescription other) {
-		if (!getAnnotation().equals(other.getAnnotation())) {
-			return false;
-		}
-		if (getContents() == null) {
-			return other.getContents() == null;
-		} else {
-			return getContents().equals(other.getContents());
-		}
+	public CU getCU() {
+		return cu;
+	}
+
+	public CU getAssumptionCU() {
+		return assumptionCU;
 	}
 
 	public static class CU {
