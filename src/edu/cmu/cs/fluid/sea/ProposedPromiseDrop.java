@@ -1,5 +1,9 @@
 package edu.cmu.cs.fluid.sea;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 
@@ -13,6 +17,9 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * Represents a proposed promise in the sea. A proposed promise indicates a
  * missing portion of a model. Proposed promises are constructed by analyses and
  * used by the tool user interface to help the programmer annotate their code.
+ * <p>
+ * This drop implements value semantics so that duplicates can be removed by
+ * placing them into a set.
  */
 public final class ProposedPromiseDrop extends IRReferenceDrop {
 
@@ -176,5 +183,54 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 	@Override
 	public String toString() {
 		return getJavaAnnotation();
+	}
+
+	public boolean isSameProposalAs(ProposedPromiseDrop other) {
+		if (this == other)
+			return true;
+		if (other == null)
+			return false;
+		if (f_annotation == null) {
+			if (other.f_annotation != null)
+				return false;
+		} else if (!f_annotation.equals(other.f_annotation))
+			return false;
+		if (f_contents == null) {
+			if (other.f_contents != null)
+				return false;
+		} else if (!f_contents.equals(other.f_contents))
+			return false;
+		if (getNode() == null) {
+			if (other.getNode() != null)
+				return false;
+		} else if (!getNode().equals(other.getNode()))
+			return false;
+		return true;
+	}
+
+	/**
+	 * Filters out duplicate proposals so that they are not listed.
+	 * <p>
+	 * This doesn't handle proposed promises in binary files too well.
+	 * 
+	 * @param proposals
+	 *            the list of proposed promises.
+	 * @return the filtered list of proposals.
+	 */
+	public static List<ProposedPromiseDrop> filterOutDuplicates(
+			Collection<ProposedPromiseDrop> proposals) {
+		List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>();
+		for (ProposedPromiseDrop h : proposals) {
+			boolean addToResult = true;
+			for (ProposedPromiseDrop i : result) {
+				if (h.isSameProposalAs(i)) {
+					addToResult = false;
+					break;
+				}
+			}
+			if (addToResult)
+				result.add(h);
+		}
+		return result;
 	}
 }
