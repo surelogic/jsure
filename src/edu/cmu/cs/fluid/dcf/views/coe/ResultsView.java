@@ -191,6 +191,11 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
 		@Override
 		protected List<ProposedPromiseDrop> getProposedDrops() {
+			/*
+			 * There really should be only one proposal because we can only
+			 * select one item of the tree, however, this code ensures that we
+			 * handle it properly.
+			 */
 			final IStructuredSelection selection = (IStructuredSelection) viewer
 					.getSelection();
 			if (selection == null || selection == StructuredSelection.EMPTY) {
@@ -207,6 +212,11 @@ public class ResultsView extends AbstractDoubleCheckerView {
 				}
 			}
 			return proposals;
+		}
+
+		@Override
+		protected String getDialogTitle() {
+			return I18N.msg("jsure.eclipse.proposed.promise.edit");
 		}
 	};
 
@@ -442,9 +452,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 		f_copy
 				.setToolTipText("Copy the selected verification result to the clipboard");
 
-		f_addPromiseToCode.setText(I18N.msg("jsure.eclipse.promises.refactor"));
-		f_addPromiseToCode
-				.setToolTipText("Annotate the selected proposed promise in the code");
+		f_addPromiseToCode.setText(I18N
+				.msg("jsure.eclipse.proposed.promise.edit"));
+		f_addPromiseToCode.setToolTipText(I18N
+				.msg("jsure.eclipse.proposed.promise.tip"));
 
 		f_showQuickRef.setText("Show Iconography Quick Reference Card");
 		f_showQuickRef

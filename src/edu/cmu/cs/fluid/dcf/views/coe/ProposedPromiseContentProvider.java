@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -31,8 +30,9 @@ public final class ProposedPromiseContentProvider implements
 	public void build() {
 		f_contents.clear();
 
-		Set<? extends ProposedPromiseDrop> proposedPromiseDrops = Sea
-				.getDefault().getDropsOfType(ProposedPromiseDrop.class);
+		List<ProposedPromiseDrop> proposedPromiseDrops = ProposedPromiseDrop
+				.filterOutDuplicates(Sea.getDefault().getDropsOfType(
+						ProposedPromiseDrop.class));
 		for (ProposedPromiseDrop id : proposedPromiseDrops) {
 			if (id != null)
 				f_contents.add(id);

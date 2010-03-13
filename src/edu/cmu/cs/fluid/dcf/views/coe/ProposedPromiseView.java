@@ -13,6 +13,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 
 import com.surelogic.common.eclipse.ColumnViewerSorter;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
@@ -27,6 +28,11 @@ public class ProposedPromiseView extends AbstractDoubleCheckerView {
 		@Override
 		protected List<ProposedPromiseDrop> getProposedDrops() {
 			return getSelectedRows();
+		}
+
+		@Override
+		protected String getDialogTitle() {
+			return I18N.msg("jsure.eclipse.proposed.promises.edit");
 		}
 	};
 
@@ -48,9 +54,9 @@ public class ProposedPromiseView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void makeActions() {
-		f_annotate.setText("Add promises to code...");
-		f_annotate
-				.setToolTipText("Add the selected proposed promises as annotations in the code.");
+		f_annotate.setText(I18N.msg("jsure.eclipse.proposed.promises.edit"));
+		f_annotate.setToolTipText(I18N
+				.msg("jsure.eclipse.proposed.promises.tip"));
 	}
 
 	@Override
