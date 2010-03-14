@@ -1547,19 +1547,36 @@ implements IBinderClient {
         } else {
           isBad = true;
         }
-        if (isBad) {
-          resultDrop = lhr.getResult(LockVisitor.this, promise,
-              badCategory, goodCategory, badMsg, goodMsg, classInitMsg,
-              threadConfinedMsg, neededLock, useSite, alternativeLock);
-          
-          /* Add proposed promise if we are inside a constructor and the
-           * constructor is not thread-confined.
-           */
-          if (ctxtSingleThreadedData != null &&
-              !ctxtSingleThreadedData.isSingleThreaded) {
-            resultDrop.addProposal(
-                new ProposedPromiseDrop(
-                    "Unique", "return", ctxtInsideConstructor, useSite));
+				if (isBad) {
+					resultDrop = lhr.getResult(LockVisitor.this, promise,
+							badCategory, goodCategory, badMsg, goodMsg,
+							classInitMsg, threadConfinedMsg, neededLock,
+							useSite, alternativeLock);
+
+					/*
+					 * Add proposed promise if we are inside a constructor
+					 * and the constructor is not thread-confined.
+					 */
+					if (ctxtSingleThreadedData != null
+							&& !ctxtSingleThreadedData.isSingleThreaded) {
+						resultDrop.addProposal(new ProposedPromiseDrop(
+								"Unique", "return", ctxtInsideConstructor,
+								useSite));
+          }
+					
+					/*
+					 * Add proposed promise if we are inside a method...the method
+					 * might need a requires lock annotation.
+					 */
+          if (ctxtInsideMethod != null && !resultDrop.isConsistent()) {
+            final String neededLockName = neededLock.getName();
+            /*
+             * Don't propose a requires lock for MUTEX -- this seems rare.
+             */
+            if (neededLockName != null && !"MUTEX".equals(neededLockName)) {
+              resultDrop.addProposal(new ProposedPromiseDrop("RequiresLock",
+                  neededLockName, ctxtInsideMethod, useSite));
+            }
           }
         }
         

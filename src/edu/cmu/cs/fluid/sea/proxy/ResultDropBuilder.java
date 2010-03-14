@@ -37,6 +37,10 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 		isConsistent = false;
 	}
 	
+	public boolean isConsistent() {
+	  return isConsistent;
+	}
+	
 	/**
 	 * Adds a promise to the set of promises this result establishes, or
 	 * <i>checks</i>.
