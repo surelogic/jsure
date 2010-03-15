@@ -55,6 +55,12 @@ public class TypeContext implements IJavaDeclaration {
 	}
 
 	@Override
+	public String toString() {
+		return "TypeContext [name=" + name + ", method=" + method + ", parent="
+				+ parent + "]";
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

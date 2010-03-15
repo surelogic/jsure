@@ -71,6 +71,12 @@ public class Method implements IJavaDeclaration {
 	}
 
 	@Override
+	public String toString() {
+		return "Method [method=" + method + ", params="
+				+ Arrays.toString(params) + ", type=" + type + "]";
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

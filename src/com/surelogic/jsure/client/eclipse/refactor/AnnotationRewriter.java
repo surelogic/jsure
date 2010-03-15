@@ -126,14 +126,7 @@ public class AnnotationRewriter {
 
 		@Override
 		public boolean visit(final TypeDeclaration node) {
-			final String name = node.getName().getIdentifier();
-			if (type == null) {
-				type = new TypeContext(name);
-			} else if (inMethod == null) {
-				type = new TypeContext(type, name);
-			} else {
-				type = new TypeContext(inMethod, name);
-			}
+			type = type(node.getName().getIdentifier());
 			rewriteNode(node, TypeDeclaration.MODIFIERS2_PROPERTY, targetMap
 					.get(type));
 			return true;
@@ -141,14 +134,7 @@ public class AnnotationRewriter {
 
 		@Override
 		public boolean visit(final AnnotationTypeDeclaration node) {
-			final String name = node.getName().getIdentifier();
-			if (type == null) {
-				type = new TypeContext(name);
-			} else if (inMethod == null) {
-				type = new TypeContext(type, name);
-			} else {
-				type = new TypeContext(inMethod, name);
-			}
+			type = type(node.getName().getIdentifier());
 			rewriteNode(node, AnnotationTypeDeclaration.MODIFIERS2_PROPERTY,
 					targetMap.get(type));
 			return true;
@@ -156,30 +142,29 @@ public class AnnotationRewriter {
 
 		@Override
 		public boolean visit(final AnonymousClassDeclaration node) {
-			final String name = ""; // FIXME
-			if (type == null) {
-				type = new TypeContext(name);
-			} else if (inMethod == null) {
-				type = new TypeContext(type, name);
-			} else {
-				type = new TypeContext(inMethod, name);
-			}
+			final String name = "ANON"; // FIXME
+			type = type(name);
 			return true;
 		}
 
 		@Override
 		public boolean visit(final EnumDeclaration node) {
-			final String name = node.getName().getIdentifier();
+			type = type(node.getName().getIdentifier());
+			rewriteNode(node, EnumDeclaration.MODIFIERS2_PROPERTY, targetMap
+					.get(type));
+			return true;
+		}
+
+		private TypeContext type(final String name) {
 			if (type == null) {
 				type = new TypeContext(name);
 			} else if (inMethod == null) {
 				type = new TypeContext(type, name);
 			} else {
 				type = new TypeContext(inMethod, name);
+				inMethod = null;
 			}
-			rewriteNode(node, EnumDeclaration.MODIFIERS2_PROPERTY, targetMap
-					.get(type));
-			return true;
+			return type;
 		}
 
 		@Override
@@ -369,10 +354,29 @@ public class AnnotationRewriter {
 
 		@Override
 		public void endVisit(final TypeDeclaration node) {
+			endType();
+		}
+
+		private void endType() {
 			if (type.getMethod() != null) {
 				inMethod = type.getMethod();
 			}
 			type = type.getParent();
+		}
+
+		@Override
+		public void endVisit(final AnnotationTypeDeclaration node) {
+			endType();
+		}
+
+		@Override
+		public void endVisit(final AnonymousClassDeclaration node) {
+			endType();
+		}
+
+		@Override
+		public void endVisit(final EnumDeclaration node) {
+			endType();
 		}
 
 	}

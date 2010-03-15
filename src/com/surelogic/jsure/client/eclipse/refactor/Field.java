@@ -33,6 +33,11 @@ public class Field implements IJavaDeclaration {
 	}
 
 	@Override
+	public String toString() {
+		return "Field [field=" + field + ", type=" + type + "]";
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
