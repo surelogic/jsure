@@ -189,9 +189,25 @@ public class AnnotationRewriter {
 		 *            the name of the wrapper annotation
 		 */
 		@SuppressWarnings("unchecked")
-		void insertWrappedAnnotation(final AST ast, final ListRewrite lrw,
-				final TextEditGroup editGroup, final String wrapperName,
+		private void insertWrappedAnnotation(final AST ast,
+				final ListRewrite lrw, final TextEditGroup editGroup,
+				final String wrapperName, final String name,
 				final List<AnnotationDescription> anns) {
+			// final List<Annotation> _anns = new ArrayList<Annotation>();
+			// for (final Object o : lrw.getOriginalList()) {
+			// if (o instanceof Annotation) {
+			// final Annotation a = (Annotation) o;
+			// final String annTypeName = a.getTypeName()
+			// .getFullyQualifiedName().replaceAll(".*\\.", "");
+			// if (name.equals(annTypeName)) {
+			// _anns.add(a);
+			// } else if (wrapperName.equals(annTypeName)) {
+			// // TODO
+			// }
+			//
+			// }
+			// }
+
 			final int len = anns.size();
 			if (len == 1) {
 				lrw.insertFirst(ann(ast, anns.get(0)), editGroup);
@@ -275,8 +291,16 @@ public class AnnotationRewriter {
 				for (final List<AnnotationDescription> ann : anns) {
 					final AST ast = node.getAST();
 					insertWrappedAnnotation(ast, lrw, editGroup,
-							wrapperName(ann.get(0)), ann);
+							wrapperName(ann.get(0)), name(ann.get(0)), ann);
 				}
+			}
+		}
+
+		private String name(final AnnotationDescription annotationDescription) {
+			if (isAssumption) {
+				return "Assume";
+			} else {
+				return annotationDescription.getAnnotation();
 			}
 		}
 
@@ -288,11 +312,7 @@ public class AnnotationRewriter {
 		 */
 		private String wrapperName(
 				final AnnotationDescription annotationDescription) {
-			if (isAssumption) {
-				return "Assumes";
-			} else {
-				return annotationDescription.getAnnotation() + "s";
-			}
+			return name(annotationDescription) + "s";
 		}
 
 		private String fromType(final ITypeBinding t) {

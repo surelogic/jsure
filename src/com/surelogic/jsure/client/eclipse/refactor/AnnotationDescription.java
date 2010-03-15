@@ -12,12 +12,28 @@ import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
  */
 class AnnotationDescription implements Comparable<AnnotationDescription> {
 
-	private final IJavaDeclaration target;
-	private final IJavaDeclaration assumptionTarget;
 	private final String annotation;
 	private final String contents;
+	private final IJavaDeclaration target;
+	private final IJavaDeclaration assumptionTarget;
 	private final CU cu;
 	private final CU assumptionCU;
+
+	public AnnotationDescription(final String annotation,
+			final String contents, final IJavaDeclaration target,
+			final IJavaDeclaration assumptionTarget, final CU cu,
+			final CU assumptionCU) {
+		if (annotation == null) {
+			throw new IllegalArgumentException(
+					"The annotation must always be specified.");
+		}
+		this.target = target;
+		this.assumptionTarget = assumptionTarget;
+		this.annotation = annotation;
+		this.contents = contents;
+		this.cu = cu;
+		this.assumptionCU = assumptionCU;
+	}
 
 	AnnotationDescription(final ProposedPromiseDrop drop, final IBinder b) {
 		target = IRNodeUtil.convert(b, drop.getNode());
