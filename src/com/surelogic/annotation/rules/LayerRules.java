@@ -181,7 +181,7 @@ public class LayerRules extends AnnotationRules {
 			setCurrent(a);
 			
 			Set<String> seen = new HashSet<String>();			
-			System.out.println("Starting from "+computeCurrentName());
+			//System.out.println("Starting from "+computeCurrentName());
 			boolean rv = checkForCycles(seen, computeCurrentName());
 			if (!rv) {
 				context.reportError("Cycle detected", a);
@@ -191,14 +191,14 @@ public class LayerRules extends AnnotationRules {
 
 		private boolean checkForCycles(Set<String> seen, String here) {
 			if (seen.contains(here)) {
-				System.out.println("FAIL: "+here+" already seen");
+				//System.out.println("FAIL: "+here+" already seen");
 				return false; // Cycle detected
 			}
 			seen.add(here);
 			
 			Set<String> references = refs.get(here);
-			System.out.println(here+" -> "+references);
-			System.out.println("\tSeen: "+seen+"\n");
+			//System.out.println(here+" -> "+references);
+			//System.out.println("\tSeen: "+seen+"\n");
 			if (references == null) {
 				seen.remove(here);
 				return true; // No refs, so no cycle here
