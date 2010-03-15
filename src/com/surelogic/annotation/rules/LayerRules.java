@@ -114,12 +114,14 @@ public class LayerRules extends AnnotationRules {
 		
 		boolean isDeclared(String qname) {
 			boolean rv = decls.containsKey(qname);
-			Set<String> references = refs.get(qname);
+			
+			String here = computeCurrentName();
+			Set<String> references = refs.get(here);
 			if (references == null) {
 				references = new HashSet<String>();
-				refs.put(qname, references);
+				refs.put(here, references);
 			}
-			references.add(computeCurrentName());
+			references.add(qname);
 			return rv;
 		}
 		
@@ -179,6 +181,7 @@ public class LayerRules extends AnnotationRules {
 			setCurrent(a);
 			
 			Set<String> seen = new HashSet<String>();			
+			System.out.println("Starting from "+computeCurrentName());
 			boolean rv = checkForCycles(seen, computeCurrentName());
 			if (!rv) {
 				context.reportError("Cycle detected", a);
@@ -188,12 +191,16 @@ public class LayerRules extends AnnotationRules {
 
 		private boolean checkForCycles(Set<String> seen, String here) {
 			if (seen.contains(here)) {
+				System.out.println("FAIL: "+here+" already seen");
 				return false; // Cycle detected
 			}
 			seen.add(here);
 			
 			Set<String> references = refs.get(here);
+			System.out.println(here+" -> "+references);
+			System.out.println("\tSeen: "+seen+"\n");
 			if (references == null) {
+				seen.remove(here);
 				return true; // No refs, so no cycle here
 			}
 			for(String ref : references) {
@@ -201,6 +208,7 @@ public class LayerRules extends AnnotationRules {
 					return false;
 				}
 			}
+			seen.remove(here);
 			return true;
 		}
 	}
