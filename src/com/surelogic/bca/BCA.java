@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.dc.IAnalysis;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -111,6 +112,7 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	  final BCAVisitor v = new BCAVisitor();
 	  v.doAccept(compUnit);
 	  bca.clear();
+//	  JavaComponentFactory.clearCache();
 	}
 	
 	private final class BCAVisitor extends JavaSemanticsVisitor {
@@ -159,7 +161,7 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	  protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
 	    return new InstanceInitAction() {
         public void tryBefore() {
-          newQuery(query.getSubAnalysisQuery());
+          newQuery(query.getSubAnalysisQuery(ccall));
         }
         
         public void finallyAfter() {

@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
@@ -104,6 +105,7 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	  final NonNullVisitor v = new NonNullVisitor();
 	  v.doAccept(compUnit);
 	  nonNullAnalysis.clear();
+//	  JavaComponentFactory.clearCache();
 	}
 	
 	private final class NonNullVisitor extends JavaSemanticsVisitor {
@@ -139,7 +141,7 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
     
 	  @Override
 	  protected void enteringEnclosingDecl(final IRNode newDecl) {
-	    System.out.println("Running non null on " + JavaNames.genQualifiedMethodConstructorName(newDecl));
+	    System.out.println("############################ Running non null on " + JavaNames.genQualifiedMethodConstructorName(newDecl) + "############################");
 	    newQuery(nonNullAnalysis.getNonnullBeforeQuery(newDecl));
 	  }
 	  
@@ -152,7 +154,7 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	  protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
 	    return new InstanceInitAction() {
         public void tryBefore() {
-          newQuery(query.getSubAnalysisQuery());
+          newQuery(query.getSubAnalysisQuery(ccall));
         }
         
         public void finallyAfter() {
