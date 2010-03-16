@@ -1194,9 +1194,17 @@ implements IBinderClient {
           if(mayBeAccessedByManyThreads(objExpr)) {
             /* For each lock declared in the class of e'.f', attach a warning
              * that it is not protecting the field f. 
+             * 
+             * Propose that the field be aggregated into those regions.  
+             * Really this needs to be an OR.  The end user should only be
+             * allowed to choose one of these.
              */
             final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
                 fieldRef, Messages.LockAnalysis_ds_AggregationNeeded, DebugUnparser.toString(fieldRef));
+            // Propose the unique annotation
+            final IRNode fieldDecl = binder.getBinding(objExpr);
+            info.addProposal(
+                new ProposedPromiseDrop("Unique", "", fieldDecl, fieldRef));
 
             final IJavaType rcvrType = binder.getJavaType(FieldRef.getObject(objExpr));
             if (rcvrType instanceof IJavaDeclaredType) {
@@ -1205,6 +1213,13 @@ implements IBinderClient {
               for (final AbstractLockRecord lockRecord : records) {
                 if (!lockRecord.lockDecl.equals(lockUtils.getMutex())) {
                   info.addDependUponDrop(lockRecord.lockDecl);
+
+                  if (lockRecord instanceof RegionLockRecord) {
+                    // Propose the aggregate annotation
+                    info.addProposal(
+                        new ProposedPromiseDrop("AggregateInRegion",
+                            ((RegionLockRecord) lockRecord).region.simpleName, fieldDecl, fieldRef));
+                  }
                 }
               }
             }
@@ -1221,6 +1236,17 @@ implements IBinderClient {
             final InfoDropBuilder info = makeWarningDrop(DSC_AGGREGATION_NEEDED,
                 fieldRef, Messages.LockAnalysis_ds_AggregationNeeded, DebugUnparser.toString(fieldRef));
             info.addDependUponDrop(innerLock.lockDecl);
+            
+            /* Propose that the field be @Unique and
+             * aggregated.  Right now these annotations are independent, but in
+             * the future they should be linked by an AND.
+             */
+            final IRNode fieldDecl = binder.getBinding(objExpr);
+            info.addProposal(
+                new ProposedPromiseDrop("Unique", "", fieldDecl, fieldRef));
+            info.addProposal(
+                new ProposedPromiseDrop("AggregateInRegion",
+                    innerLock.region.simpleName, fieldDecl, fieldRef));
           }
         }
       } 
