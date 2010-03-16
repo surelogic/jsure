@@ -4,19 +4,11 @@ package edu.cmu.cs.fluid.sea.drops.layers;
 import com.surelogic.aast.layers.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public class AllowsReferencesFromPromiseDrop extends PromiseDrop<AllowsReferencesFromNode> 
-implements IReferenceCheckDrop {
+public class AllowsReferencesFromPromiseDrop extends AbstractReferenceCheckDrop<AllowsReferencesFromNode> 
+{
 	public AllowsReferencesFromPromiseDrop(AllowsReferencesFromNode a) {
 		super(a);
-	}
-	@Override
-	protected void computeBasedOnAST() {
-		setMessage(getAST().toString());
-	}
-	public boolean check(IRNode type) {
-		return getAST().check(type);
 	}
 	public int getResultMessageKind() {
 		return 350;

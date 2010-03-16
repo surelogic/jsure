@@ -2,12 +2,14 @@
 package edu.cmu.cs.fluid.sea.drops.layers;
 
 import com.surelogic.aast.layers.*;
+import com.surelogic.analysis.layers.LayersAnalysis;
 
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class InLayerPromiseDrop extends PromiseDrop<InLayerNode> {
 	public InLayerPromiseDrop(InLayerNode a) {
 		super(a);
+		setCategory(LayersAnalysis.DSC_LAYERS_ISSUES);
 	}
 	@Override
 	protected void computeBasedOnAST() {

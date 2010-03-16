@@ -5,18 +5,10 @@ import com.surelogic.aast.layers.MayReferToNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public class MayReferToPromiseDrop extends PromiseDrop<MayReferToNode> implements IReferenceCheckDrop {
+public class MayReferToPromiseDrop extends AbstractReferenceCheckDrop<MayReferToNode> {
 	public MayReferToPromiseDrop(MayReferToNode a) {
 		super(a);
-	}
-	@Override
-	protected void computeBasedOnAST() {
-		setMessage(getAST().toString());
-	}
-	public boolean check(IRNode type) {
-		return getAST().check(type);
 	}
 	public int getResultMessageKind() {
 		return 350;

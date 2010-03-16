@@ -6,21 +6,13 @@ import com.surelogic.annotation.rules.LayerRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public class LayerPromiseDrop extends PromiseDrop<LayerNode> implements IReferenceCheckDrop {
+public class LayerPromiseDrop extends AbstractReferenceCheckDrop<LayerNode> {
 	public LayerPromiseDrop(LayerNode a) {
 		super(a);
 	}
-	@Override
-	protected void computeBasedOnAST() {
-		setMessage(getAST().toString());
-	}
 	public String getId() {
 		return getAST().getId();
-	}
-	public boolean check(IRNode type) {
-		return getAST().check(type);
 	}
 	public int getResultMessageKind() {
 		return 350;
