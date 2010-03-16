@@ -15,6 +15,7 @@ import com.surelogic.analysis.locks.locks.HeldLock;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IndependentIRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -418,7 +419,8 @@ abstract class AbstractLockStackLattice extends
                 sb.append("sync");
               }
               sb.append('@');
-              sb.append(JavaNode.getSrcRef(call).getLineNumber());
+              final ISrcRef srcRef = JavaNode.getSrcRef(call);
+              sb.append(srcRef == null ? "unknown" : srcRef.getLineNumber());
             } catch (final SlotUndefinedException e) {
               // Node is a bogus place holder used by analysis
               sb.append("IGNORE_ME");
