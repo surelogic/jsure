@@ -35,5 +35,4 @@ public class AllowsReferencesFromNode extends AbstractLayerMatchRootNode {
 	public String unparse(boolean debug, int indent) {
 		return unparse(debug, indent, "AllowsReferencesFrom");
 	}
-
 }

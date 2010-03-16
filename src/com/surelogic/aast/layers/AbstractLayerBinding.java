@@ -6,7 +6,7 @@ import java.util.*;
 import com.surelogic.aast.bind.ILayerBinding;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.drops.layers.IReferenceCheckDrop;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public abstract class AbstractLayerBinding implements ILayerBinding, Iterable<IRNode> {
@@ -20,7 +20,7 @@ public abstract class AbstractLayerBinding implements ILayerBinding, Iterable<IR
 		return kind;
 	}
 	
-	public Drop getOther() {
+	public IReferenceCheckDrop getOther() {
 		return null;
 	}
 

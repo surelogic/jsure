@@ -3,6 +3,8 @@ package com.surelogic.aast.layers;
 import com.surelogic.aast.*;
 import com.surelogic.aast.promise.*;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+
 /**
  * Superclass for @MayReferTo, @AllowsReferencesTo, ...
  * 
@@ -34,5 +36,9 @@ public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
 		  sb.append(name).append(' ').append(target.unparse(debug, indent));
 	  }
 	  return sb.toString();
+  }
+  
+  public boolean check(IRNode type) {
+	  return target.matches(type);
   }
 }

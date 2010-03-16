@@ -3,9 +3,11 @@ package edu.cmu.cs.fluid.sea.drops.layers;
 
 import com.surelogic.aast.layers.*;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public class AllowsReferencesFromPromiseDrop extends PromiseDrop<AllowsReferencesFromNode> {
+public class AllowsReferencesFromPromiseDrop extends PromiseDrop<AllowsReferencesFromNode> 
+implements IReferenceCheckDrop {
 	public AllowsReferencesFromPromiseDrop(AllowsReferencesFromNode a) {
 		super(a);
 	}
@@ -13,4 +15,16 @@ public class AllowsReferencesFromPromiseDrop extends PromiseDrop<AllowsReference
 	protected void computeBasedOnAST() {
 		setMessage(getAST().toString());
 	}
+	public boolean check(IRNode type) {
+		return getAST().check(type);
+	}
+	public int getResultMessageKind() {
+		return 350;
+	}
+	public Object[] getArgs(IRNode binding, IRNode type, IRNode context) {
+		return new Object[] { binding, type };
+	}
+	public boolean isPartOf(IRNode type) {
+		throw new UnsupportedOperationException();
+	}	
 }

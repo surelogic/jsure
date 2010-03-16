@@ -4,7 +4,7 @@ package com.surelogic.aast.bind;
 import com.surelogic.aast.layers.LayerBindingKind;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.drops.layers.IReferenceCheckDrop;
 
 /**
  * Binding for UnidentifiedTargetNode
@@ -15,5 +15,5 @@ public interface ILayerBinding extends IBinding {
 	LayerBindingKind getKind();
 	IRNode getType();
 	Iterable<IRNode> getPackages();
-	Drop getOther();
+	IReferenceCheckDrop getOther();
 }

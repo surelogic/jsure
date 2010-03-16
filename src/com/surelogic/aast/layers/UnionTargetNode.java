@@ -109,8 +109,12 @@ public class UnionTargetNode extends AbstractLayerMatchTarget {
 	}
 
 	@Override
-	public boolean matches(IRNode irNode) {
-		// TODO Auto-generated method stub
+	public boolean matches(IRNode type) {
+		for(UnidentifiedTargetNode n : union) {
+			if (n.matches(type)) {
+				return true;
+			}
+		}
 		return false;
 	}
 }

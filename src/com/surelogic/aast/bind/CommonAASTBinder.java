@@ -443,14 +443,10 @@ public class CommonAASTBinder extends AASTBinder {
 	  final String name = node.getQualifiedName();
 	  
 	  ILayerBinding rv = null;
-	  if (root instanceof TypeSetNode) { // pkg or type
-		 return findPackageOrType(name);
-	  }
-	  // MayReferToNode, AllowsReferencesFromNode: layer, typeset, pkg, or type
-	  // LayerNode can't refer to layers
-	  if (!(root instanceof LayerNode)) {
+	  // layer, typeset, pkg, or type
+	  if (!(root instanceof TypeSetNode)) {
 		  rv = findLayer(root.getPromisedFor(), name);
-	  }
+	  }	  
 	  if (rv == null) {
 		  rv = findTypeSet(root.getPromisedFor(), name);
 	  }
@@ -475,7 +471,7 @@ public class CommonAASTBinder extends AASTBinder {
 	  final LayerPromiseDrop d = LayerRules.findLayer(pkgNode, name);
 	  if (d != null) {
 		  return new AbstractLayerBinding(LayerBindingKind.LAYER) {
-			  @Override public Drop getOther() {
+			  @Override public IReferenceCheckDrop getOther() {
 				  return d;
 			  }
 		  };
@@ -498,7 +494,7 @@ public class CommonAASTBinder extends AASTBinder {
 	  final TypeSetPromiseDrop d = LayerRules.findTypeSet(pkgNode, name);
 	  if (d != null) {
 		  return new AbstractLayerBinding(LayerBindingKind.TYPESET) {
-			  @Override public Drop getOther() {
+			  @Override public IReferenceCheckDrop getOther() {
 				  return d;
 			  }
 		  };

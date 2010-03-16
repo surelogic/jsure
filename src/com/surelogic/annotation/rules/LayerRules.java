@@ -87,6 +87,26 @@ public class LayerRules extends AnnotationRules {
 		return null;
 	}
 	
+	public static Iterable<TypeSetPromiseDrop> getTypeSets(IRNode pkgNode) {
+		return getDrops(typeSetRule.getStorage(), pkgNode);
+	}
+	
+	public static Iterable<LayerPromiseDrop> getLayers(IRNode pkgNode) {
+		return getDrops(layerRule.getStorage(), pkgNode);
+	}
+	
+	public static InLayerPromiseDrop getInLayerDrop(IRNode type) {
+		return getDrop(inLayerRule.getStorage(), type);
+	}
+	
+	public static MayReferToPromiseDrop getMayReferToDrop(IRNode type) {
+		return getDrop(mayReferToRule.getStorage(), type);
+	}
+	
+	public static AllowsReferencesFromPromiseDrop getAllowsReferencesToDrop(IRNode type) {
+		return getDrop(allowsReferencesToRule.getStorage(), type);
+	}
+	
 	@Override
 	public void register(PromiseFramework fw) {
 		registerParseRuleStorage(fw, typeSetRule);
