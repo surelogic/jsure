@@ -31,6 +31,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.operator.ImportName;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
@@ -979,7 +980,8 @@ public class ResultsViewContentProvider extends
 			 */
 			final Operator op = JavaNames.getOperator(node);
 			final boolean isCU = CompilationUnit.prototype.includes(op);
-			final boolean isPkg = PackageDeclaration.prototype.includes(op);
+			final boolean isPkg = PackageDeclaration.prototype.includes(op) || 
+			                      ImportName.prototype.includes(op);
 
 			// determine package
 			IRNode cu = null;
