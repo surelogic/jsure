@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -316,7 +317,14 @@ public class LayerRules extends AnnotationRules {
 			return new AbstractAASTScrubber<InLayerNode>(this, ScrubberType.UNORDERED, LAYER) {
 				@Override
 				protected PromiseDrop<InLayerNode> makePromiseDrop(InLayerNode a) {
+					final String qname = a.getLayer();
+					final int lastDot  = qname.lastIndexOf('.');
+					final String pkg   = qname.substring(0, lastDot);
+					final String name  = qname.substring(lastDot+1);
+					PackageDrop pd     = PackageDrop.findPackage(pkg);
+					LayerPromiseDrop l = LayerRules.findLayer(pd.node, name);
 					InLayerPromiseDrop d = new InLayerPromiseDrop(a);
+					l.addDependent(d);
 					return storeDropIfNotNull(getStorage(), a, d);
 				}
 			};

@@ -84,7 +84,10 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 						}
 					}
 					if (!inSameLayer) {
-						checkBinding(layer, b, bindT, n);
+						ResultDrop rd = checkBinding(layer, b, bindT, n);
+						if (rd != null) {
+							rd.addCheckedPromise(inLayer);
+						}
 					}
 				}
 			}
@@ -92,7 +95,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return true;
 	}
 	
-	private void checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
+	private ResultDrop checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
 		if (d != null) {
 			if (!d.check(type)) {
 				//d.check(type);
@@ -108,9 +111,13 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 					System.out.println("Found "+rd.getMessage());
 				}
 				*/
-				rd.addCheckedPromise(d);
+				if (!(d instanceof LayerPromiseDrop)) {
+					rd.addCheckedPromise(d);
+				}
+				return rd;
 			}
 		}
+		return null;
 	}
 	
 	private Object[] unparseArgs(Object[] args) {
