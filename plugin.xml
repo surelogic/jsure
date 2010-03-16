@@ -140,6 +140,13 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
+	<extension id="LayersAssurance" name="Layers Assurance"
+		point="com.surelogic.jsure.client.eclipse.analysisModule">
+		<run class="com.surelogic.analysis.layers.LayersAnalysis">
+		</run>
+		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+		</prerequisite>
+	</extension>	
 	<extension id="LockAssurance3" name="Greenhouse Lock Assurance"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.locks.LockAnalysis">
