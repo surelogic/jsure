@@ -19,7 +19,7 @@ import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,Void> {
-	private static final Category DSC_LAYERS_ISSUES = Category.getInstance("Layers");
+	public static final Category DSC_LAYERS_ISSUES = Category.getInstance("Layers");
 	
 	public LayersAnalysis() {
 		super("Layers");
@@ -54,12 +54,15 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		for(IRNode n : JJNode.tree.topDown(cu)) {
 			final Operator op = JJNode.tree.getOperator(n);
 			if (op instanceof IHasBinding && 
-				!(PackageDeclaration.prototype.includes(op) || ImportDeclaration.prototype.includes(op))) {
+				!(PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op))) {
 				final IBinding b    = getAnalysis().getBinder().getIBinding(n);
 				final IRNode bindCu = VisitUtil.getEnclosingCompilationUnit(b.getNode());
 				if (cu.equals(bindCu)) {
 					// You can always refer to yourself
 					continue;
+				}
+				if ("java.lang".equals(VisitUtil.getPackageName(bindCu))) {
+					continue; // Always refer to java.lang?
 				}
 				IRNode bindT  = VisitUtil.getPrimaryType(bindCu);
 				if (bindT == null) {
@@ -89,16 +92,23 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return true;
 	}
 	
-	private void checkBinding(IReferenceCheckDrop d, IBinding b, IRNode type, IRNode context) {
+	private void checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
 		if (d != null) {
 			if (!d.check(type)) {
-				d.check(type);
+				//d.check(type);
+				
 				// Create error
 				ResultDrop rd = new ResultDrop("Layers");
 				rd.setNodeAndCompilationUnitDependency(context);				
 				rd.setResultMessage(d.getResultMessageKind(), 
 						            unparseArgs(d.getArgs(b.getNode(), type, context)));
 				rd.setCategory(DSC_LAYERS_ISSUES);
+				/*
+				if (rd.getMessage().contains("Null")) {
+					System.out.println("Found "+rd.getMessage());
+				}
+				*/
+				rd.addCheckedPromise(d);
 			}
 		}
 	}
