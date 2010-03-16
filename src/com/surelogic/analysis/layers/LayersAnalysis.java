@@ -51,6 +51,8 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		final MayReferToPromiseDrop mayReferTo = LayerRules.getMayReferToDrop(type);	
 
 		// No way to shortcircuit, due to possible AllowsReferencesTo
+		boolean problemWithInLayer = inLayer == null;
+		boolean problemWithMayReferTo = mayReferTo == null;
 		for(IRNode n : JJNode.tree.topDown(cu)) {
 			final Operator op = JJNode.tree.getOperator(n);
 			if (op instanceof IHasBinding && 
@@ -70,9 +72,13 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				}
 				
 				final AllowsReferencesFromPromiseDrop allows = getAnalysis().allowRefs(bindT);
-				checkBinding(allows, b, type, n);
-				checkBinding(mayReferTo, b, bindT, n);
+				final ResultDrop rd = checkBinding(allows, b, type, n);
+				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
+				if (rd2 != null) {
+					problemWithMayReferTo = true;
+				}
 
+				ResultDrop rd3 = null;
 				if (inLayer != null) {
 					final LayerPromiseDrop layer = getAnalysis().findLayer(inLayer);
 					// Check if in the same layer
@@ -84,14 +90,31 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 						}
 					}
 					if (!inSameLayer) {
-						ResultDrop rd = checkBinding(layer, b, bindT, n);
-						if (rd != null) {
-							rd.addCheckedPromise(inLayer);
+						rd3 = checkBinding(layer, b, bindT, n);
+						if (rd3 != null) {
+							rd3.addCheckedPromise(inLayer);
+							problemWithInLayer = true;
 						}
 					}
 				}
 			}
 		}
+		if (!problemWithInLayer) {
+			ResultDrop rd = new ResultDrop("Layers -- no errors");
+			rd.setCategory(DSC_LAYERS_ISSUES);
+			rd.setNodeAndCompilationUnitDependency(type);			
+			rd.setResultMessage(351, JavaNames.getRelativeTypeName(type));
+			rd.addCheckedPromise(inLayer);
+			rd.setConsistent();
+		}	
+		if (!problemWithMayReferTo) {
+			ResultDrop rd = new ResultDrop("Layers -- no errors");
+			rd.setCategory(DSC_LAYERS_ISSUES);
+			rd.setNodeAndCompilationUnitDependency(type);			
+			rd.setResultMessage(351, JavaNames.getRelativeTypeName(type));
+			rd.addCheckedPromise(mayReferTo);
+			rd.setConsistent();
+		}	
 		return true;
 	}
 	
