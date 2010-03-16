@@ -60,6 +60,8 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
 
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
   
+//  private static final String VALUE = "{(<unknown>:<[NOTNULL],{e}>)}";
+  
   //private boolean started = false;
   private long iterations = 0;
 
@@ -74,8 +76,6 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     lattice = l;
     infoLattice = new LabeledLattice<T>(l);
     worklist = createWorklist();
-// WAS:
-//    worklist = Worklist.Factory.makeWorklist(this instanceof ForwardAnalysis);
     nodeViewer = (nv == null) ? IRNodeViewer.defaultViewer : nv;
   }
   
@@ -205,11 +205,22 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   protected void setInfo(ControlEdge edge, LabeledLattice.LabeledValue<T> lv) {
     if (lv == null) return; // assume transfers are strict
     LabeledLattice.LabeledValue<T> old = infoMap.get(edge);
+//    final String oldString = infoLattice.toString(old);
+//    final String newString = infoLattice.toString(lv);
+    
+//    if (newString.equals(VALUE)) {
+//      System.out.println("Found it");
+//    }
+//    
+//    System.out.println("setInfo: " + newString);
     if (old != null) {
       if (infoLattice.equals(old,lv)) return;
       if (debug) {
         if (!infoLattice.lessEq(old,lv)) {
           this.reportMonotonicityError(edge);
+          final String oldString = infoLattice.toString(old);
+          final String newString = infoLattice.toString(lv);
+          LOG.severe("Monotonicity error: was " + oldString + "; now " + newString);
         }
       }
     }
@@ -218,12 +229,6 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     }
     infoMap.put(edge,lv);
     worklist.add(getNodeFromEdgeForWorklist(edge));
-// WAS:    
-//    if (this instanceof BackwardAnalysis) {
-//      worklist.add(edge.getSource());
-//    } else {
-//      worklist.add(edge.getSink());
-//    }
   }
 
   protected abstract ControlNode getNodeFromEdgeForWorklist(ControlEdge edge);
@@ -332,7 +337,18 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     LabeledValue<T> lv1 = infoMap.get(e1);
     LabeledValue<T> lv2 = infoMap.get(e2);
     LabeledValue<T> result = infoLattice.map(lv1,op,arg,lv2);
-    if (LOG.isLoggable(Level.FINE)) {
+
+//    final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+//    final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+//    final String rs = result == null ? "null" : infoLattice.toString(result);
+//    if (rs.equals(VALUE)) {
+//      infoLattice.map(lv1,op,arg,lv2);
+//    }
+//    if (!infoLattice.lessEq(lv2, result)) {
+//      infoLattice.map(lv1,op,arg,lv2);
+//    }
+
+    if (debug && LOG.isLoggable(Level.FINE)) {
       LOG.fine("map " + op + "(" + arg + ") on " + lv1 + " with cache = " + lv2 + " to get " + result);
     }
     setInfo(e2,result);
@@ -343,7 +359,19 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     LabeledValue<T> lv2 = infoMap.get(e2);
     LabeledValue<T> lv3 = infoMap.get(e3);
     LabeledValue<T> result = infoLattice.merge(lv1,lv2,combiner,arg,lv3);
-    if (LOG.isLoggable(Level.FINE)) {
+
+//    final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+//    final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+//    final String s3 = lv3 == null ? "null" : infoLattice.toString(lv3);
+//    final String rs = result == null ? "null" : infoLattice.toString(result);
+//    if (rs.equals(VALUE)) {
+//      infoLattice.merge(lv1,lv2,combiner,arg,lv3);
+//    }
+//    if (!infoLattice.lessEq(lv3,result)) {
+//      infoLattice.merge(lv1,lv2,combiner,arg,lv3);
+//    }
+    
+    if (debug && LOG.isLoggable(Level.FINE)) {
       String in1 = lv1 == null ? "null" : lv1.toString(lattice);
       String in2 = lv2 == null ? "null" : lv2.toString(lattice);
       String out = result == null ? "null" : result.toString(lattice);
@@ -356,7 +384,18 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     LabeledValue<T> lv1 = infoMap.get(e1);
     LabeledValue<T> lv2 = infoMap.get(e2);
     LabeledValue<T> result = infoLattice.labelMap(lv1,op,arg,lv2);
-    if (LOG.isLoggable(Level.FINE)) {
+
+//    final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+//    final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+//    final String rs = result == null ? "null" : infoLattice.toString(result);
+//    if (rs.equals(VALUE)) {
+//      infoLattice.labelMap(lv1,op,arg,lv2);
+//    }
+//    if (!infoLattice.lessEq(lv2, result)) {
+//      infoLattice.labelMap(lv1,op,arg,lv2);
+//    }
+    
+    if (debug && LOG.isLoggable(Level.FINE)) {
       String in = lv1 == null ? "null" : lv1.toString(lattice);
       String out = result == null ? "null" : result.toString(lattice);
       LOG.fine("labelMap " + op + " over " + in + " to get " + out);
@@ -369,7 +408,19 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     LabeledValue<T> lv2 = infoMap.get(e2);
     LabeledValue<T> lv3 = infoMap.get(e3);
     LabeledValue<T> merged = infoLattice.labelMap2(lv1,op1,arg1,lv2,op2,arg2,lv3);
-    if (LOG.isLoggable(Level.FINE)) {
+    
+//    final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+//    final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+//    final String s3 = lv3 == null ? "null" : infoLattice.toString(lv3);
+//    final String rs = merged == null ? "null" : infoLattice.toString(merged);
+//    if (rs.equals(VALUE)) {
+//      infoLattice.labelMap2(lv1,op1,arg1,lv2,op2,arg2,lv3);
+//    }
+//    if (!infoLattice.lessEq(lv3,merged)) {
+//      infoLattice.labelMap2(lv1,op1,arg1,lv2,op2,arg2,lv3);
+//    }
+
+    if (debug && LOG.isLoggable(Level.FINE)) {
       LOG.fine("labelMap2 merging " + lv1 + " and " + lv2 + " to get " + merged);
     }
     setInfo(e3,merged);

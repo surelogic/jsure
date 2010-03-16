@@ -57,6 +57,10 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
     Object info,
     T value) {
     Operator op = tree.getOperator(node);
+
+//    System.out.println("===> transferComponentFlow: " + op.name() + " " + DebugUnparser.toString(node));
+//    System.out.println("       info = " + info);
+    
     if (VariableUseExpression.prototype.includes(op)
       || FieldRef.prototype.includes(op)
       || ArrayLength.prototype.includes(op)
@@ -103,6 +107,11 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
     T value) {
     /* special cases for each kind of component choice node */
     Operator op = tree.getOperator(node);
+    
+//    System.out.println("===> transferComponentChoice: " + op.name() + " " + DebugUnparser.toString(node));
+//    System.out.println("       info = " + info);
+//    System.out.println("       flag = " + flag);
+    
     if (info instanceof CallInterface) {
       return transferCall(node, flag, value);
     } else if (op instanceof AssignmentInterface && info == null) {
@@ -553,7 +562,7 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
     final T initial, final boolean terminationNormal) {
 //    System.out.println("**** Run class Initializer " + terminationNormal + " (start) ****");
     FlowUnit op = (FlowUnit) tree.getOperator(classBody);
-    final FlowAnalysis<T, L> fa = createAnalysis(binder, terminationNormal);
+    final FlowAnalysis<T, L> fa = createAnalysis(caller, binder, initial, terminationNormal);
     final Source source = op.getSource(classBody);
     final Sink sink = terminationNormal ? op.getNormalSink(classBody) : op.getAbruptSink(classBody);
     final ControlEdge e1 = getStartEdge(source, sink);
@@ -618,8 +627,8 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
    *          of abrupt termination.
    * @return an analysis
    */
-  protected abstract FlowAnalysis<T, L> createAnalysis(
-      IBinder binder, boolean terminationNormal);
+  protected abstract FlowAnalysis<T, L> createAnalysis(IRNode caller,
+      IBinder binder, T initialValue, boolean terminationNormal);
   
   /**
    * Get the starting edge for the analysis of call initializers.  This is the

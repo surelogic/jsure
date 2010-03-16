@@ -20,16 +20,25 @@ public interface AnalysisQuery<R> {
   /**
    * Can the query provide a query based on the initializer block subanalysis
    * that may be associated with the analysis being used by this query.
+   * 
+   * @param caller
+   *          The ConstructorCall or NewExpression node associated with the
+   *          initializer block. If a NewExpression node, it must be a child of
+   *          an AnonClassExpression node.
    */
-  public boolean hasSubAnalysisQuery();
+  public boolean hasSubAnalysisQuery(IRNode caller);
 
   /**
    * Get the query that is based on the initializer block subanalysis associated
    * with the analysis used by this query.
    * 
+   * @param caller
+   *          The ConstructorCall or NewExpression node associated with the
+   *          initializer block. If a NewExpression node, it must be a child of
+   *          an AnonClassExpression node.
    * @exception UnsupportedOperationException
    *              Thrown if the query does not have a subanalysis query because
    *              the analysis does not have a subanalysis.
    */
-  public AnalysisQuery<R> getSubAnalysisQuery();
+  public AnalysisQuery<R> getSubAnalysisQuery(IRNode caller);
 }

@@ -47,7 +47,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
           analysis.getAfter(expr, WhichPort.NORMAL_EXIT), expr);
     }
 
-    public Query getSubAnalysisQuery() {
+    public Query getSubAnalysisQuery(final IRNode caller) {
       final Analysis sub = analysis.getSubAnalysis();
       if (sub == null) {
         throw new UnsupportedOperationException();
@@ -56,7 +56,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
       }
     }
 
-    public boolean hasSubAnalysisQuery() {
+    public boolean hasSubAnalysisQuery(final IRNode caller) {
       return analysis.getSubAnalysis() != null;
     }
   }
@@ -133,8 +133,8 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
 
 
     @Override
-    protected Analysis createAnalysis(
-        IBinder binder, boolean terminationNormal) {
+    protected Analysis createAnalysis(IRNode caller,
+        IBinder binder, ImmutableSet<IRNode>[] initialValue, boolean terminationNormal) {
       if (subAnalysis == null) {
         subAnalysis = new Analysis("BCA (subanalysis)", lattice,
             new Transfer(binder, lattice));

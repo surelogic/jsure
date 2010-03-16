@@ -54,7 +54,7 @@ public final class MustReleaseAnalysis extends
       return unlockCalls;
     }
 
-    public Query getSubAnalysisQuery() {
+    public Query getSubAnalysisQuery(final IRNode caller) {
       final Analysis sub = a.getSubAnalysis();
       if (sub == null) {
         throw new UnsupportedOperationException();
@@ -63,7 +63,7 @@ public final class MustReleaseAnalysis extends
       }
     }
 
-    public boolean hasSubAnalysisQuery() {
+    public boolean hasSubAnalysisQuery(final IRNode caller) {
       return a.getSubAnalysis() != null;
     }
   }
@@ -177,11 +177,11 @@ public final class MustReleaseAnalysis extends
       nonNullAnalysisQuery = query;
     }
 
-    private MustReleaseTransfer(final MustReleaseTransfer other) {
+    private MustReleaseTransfer(final MustReleaseTransfer other, final IRNode caller) {
       super(other.binder, other.lattice);
       thisExprBinder = other.thisExprBinder;
       lockUtils = other.lockUtils;
-      nonNullAnalysisQuery = other.nonNullAnalysisQuery.getSubAnalysisQuery();
+      nonNullAnalysisQuery = other.nonNullAnalysisQuery.getSubAnalysisQuery(caller);
     }
     
     
@@ -348,11 +348,11 @@ public final class MustReleaseAnalysis extends
     }
 
     @Override
-    protected Analysis createAnalysis(
-        final IBinder binder, final boolean terminationNormal) {
+    protected Analysis createAnalysis(IRNode caller,
+        final IBinder binder, final ImmutableList<ImmutableSet<IRNode>>[] initValue, final boolean terminationNormal) {
       if (subAnalysis == null) {
         subAnalysis = new Analysis("Must Release Analysis (sub-analysis)",
-            lattice, new MustReleaseTransfer(this));
+            lattice, new MustReleaseTransfer(this, caller));
       }
       return subAnalysis;
     }

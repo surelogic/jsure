@@ -1991,9 +1991,9 @@ implements IBinderClient {
         new Action() {
           public void tryBefore() {
             ctxtOnBehalfOfConstructor = true;
-            ctxtHeldLocksQuery = (ctxtHeldLocksQuery == null) ? null : ctxtHeldLocksQuery.getSubAnalysisQuery();
-            ctxtLocksForQuery = (ctxtLocksForQuery == null) ? null : ctxtLocksForQuery.getSubAnalysisQuery();
-            ctxtMustReleaseQuery = (ctxtMustReleaseQuery == null) ? null : ctxtMustReleaseQuery.getSubAnalysisQuery();
+            ctxtHeldLocksQuery = (ctxtHeldLocksQuery == null) ? null : ctxtHeldLocksQuery.getSubAnalysisQuery(expr);
+            ctxtLocksForQuery = (ctxtLocksForQuery == null) ? null : ctxtLocksForQuery.getSubAnalysisQuery(expr);
+            ctxtMustReleaseQuery = (ctxtMustReleaseQuery == null) ? null : ctxtMustReleaseQuery.getSubAnalysisQuery(expr);
           }
           
           public void finallyAfter() {

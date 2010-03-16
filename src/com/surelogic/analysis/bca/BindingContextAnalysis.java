@@ -53,11 +53,11 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
           a.getAfter(expr, WhichPort.NORMAL_EXIT), expr);
     }
 
-    public AnalysisQuery<ImmutableHashOrderSet<IRNode>> getSubAnalysisQuery() {
+    public AnalysisQuery<ImmutableHashOrderSet<IRNode>> getSubAnalysisQuery(final IRNode caller) {
       return null;
     }
 
-    public boolean hasSubAnalysisQuery() {
+    public boolean hasSubAnalysisQuery(final IRNode caller) {
       return false;
     }
   }

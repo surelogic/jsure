@@ -3,6 +3,8 @@ package edu.uwm.cs.fluid.java.analysis;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -26,8 +28,8 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
     super("Stack depth",FlatLattice.prototype,t,DebugUnparser.viewer);
   }
   
-  public static StackDepthAnalysis create(IBinder binder) {
-    return new StackDepthAnalysis(new StackDepthTransfer(binder));
+  public static StackDepthAnalysis create(IBinder binder, int floor) {
+    return new StackDepthAnalysis(new StackDepthTransfer(binder, floor));
   }
   
   
@@ -41,14 +43,15 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
      * <p>
      * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
      */
-    private StackDepthAnalysis subAnalysis = null;
+    private final  Map<IRNode, StackDepthAnalysis> subAnalyses = new HashMap<IRNode, StackDepthAnalysis>(); 
+//    private StackDepthAnalysis subAnalysis = null;
     
     /**
      * @param binder
      * @param lattice
      */
-    private StackDepthTransfer(IBinder binder) {
-      super(binder,FlatLattice.prototype);
+    private StackDepthTransfer(IBinder binder, int floor) {
+      super(binder,FlatLattice.prototype, floor);
     }
     
     /* (non-Javadoc)
@@ -78,17 +81,20 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
      */
     @Override
     protected Object popAllPending(Object val) {
-      return 0;
+      return stackFloorSize;
     }
     
     /* (non-Javadoc)
      * @see edu.uwm.cs.fluid.java.control.JavaTransfer#createAnalysis(edu.cmu.cs.fluid.java.bind.IBinder)
      */
     @Override
-    protected StackDepthAnalysis createAnalysis(
-        final IBinder binder, final boolean terminationNormal) {
+    protected StackDepthAnalysis createAnalysis(IRNode caller,
+        final IBinder binder, final Object initValue, final boolean terminationNormal) {
+      StackDepthAnalysis subAnalysis = subAnalyses.get(caller);
       if (subAnalysis == null) {
-        subAnalysis = StackDepthAnalysis.create(binder);
+        final int floor = (initValue instanceof Integer) ? ((Integer) initValue).intValue() : 0; 
+        subAnalysis = StackDepthAnalysis.create(binder, floor);
+        subAnalyses.put(caller, subAnalysis);
       }
       return subAnalysis;
     }
@@ -105,7 +111,7 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
 class TestStackDepthAnalysis extends TestFlowAnalysis<Object, FlatLattice, StackDepthAnalysis> {
   @Override
   protected StackDepthAnalysis createAnalysis(IRNode ignored, IBinder binder) {
-    return StackDepthAnalysis.create(binder);
+    return StackDepthAnalysis.create(binder, Integer.valueOf(0));
   }
   
   public static void main(String[] files) throws IOException {

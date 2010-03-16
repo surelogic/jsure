@@ -68,7 +68,7 @@ public final class MustHoldAnalysis extends
       return lattice.getLocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
     }
 
-    public LocksForQuery getSubAnalysisQuery() {
+    public LocksForQuery getSubAnalysisQuery(final IRNode caller) {
       final Analysis sub = analysis.getSubAnalysis();
       if (sub == null) {
         throw new UnsupportedOperationException();
@@ -77,7 +77,7 @@ public final class MustHoldAnalysis extends
       }
     }
 
-    public boolean hasSubAnalysisQuery() {
+    public boolean hasSubAnalysisQuery(final IRNode caller) {
       return analysis.getSubAnalysis() != null;
     }
   }
@@ -103,7 +103,7 @@ public final class MustHoldAnalysis extends
           lattice.getSingleThreaded());
     }
 
-    public HeldLocksQuery getSubAnalysisQuery() {
+    public HeldLocksQuery getSubAnalysisQuery(final IRNode caller) {
       final Analysis sub = analysis.getSubAnalysis();
       if (sub == null) {
         throw new UnsupportedOperationException();
@@ -112,7 +112,7 @@ public final class MustHoldAnalysis extends
       }
     }
 
-    public boolean hasSubAnalysisQuery() {
+    public boolean hasSubAnalysisQuery(final IRNode caller) {
       return analysis.getSubAnalysis() != null;
     }
   }
@@ -224,11 +224,11 @@ public final class MustHoldAnalysis extends
       nonNullAnalysisQuery = query;
     }
 
-    private MustHoldTransfer(final MustHoldTransfer original) {
+    private MustHoldTransfer(final MustHoldTransfer original, final IRNode caller) {
       super(original.binder, original.lattice);
       thisExprBinder = original.thisExprBinder;
       lockUtils = original.lockUtils;
-      nonNullAnalysisQuery = original.nonNullAnalysisQuery.getSubAnalysisQuery();
+      nonNullAnalysisQuery = original.nonNullAnalysisQuery.getSubAnalysisQuery(caller);
     }
     
     
@@ -389,11 +389,11 @@ public final class MustHoldAnalysis extends
     }
 
     @Override
-    protected Analysis createAnalysis(
-        final IBinder binder, final boolean terminationNormal) {
+    protected Analysis createAnalysis(IRNode caller,
+        final IBinder binder, final ImmutableList<ImmutableSet<IRNode>>[] initValue, final boolean terminationNormal) {
       if (subAnalysis == null) {
         subAnalysis = new Analysis("Must Hold Analysis (sub-analysis)",
-            lattice, new MustHoldTransfer(this));
+            lattice, new MustHoldTransfer(this, caller));
       }
       return subAnalysis;
     }

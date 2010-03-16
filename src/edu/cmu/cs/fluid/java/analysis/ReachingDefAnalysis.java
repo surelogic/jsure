@@ -33,11 +33,11 @@ public class ReachingDefAnalysis<V> extends IntraproceduralAnalysis<IRNode,V> {
       }
     }
 
-    public AnalysisQuery<SetLattice> getSubAnalysisQuery() {
+    public AnalysisQuery<SetLattice> getSubAnalysisQuery(final IRNode caller) {
       return null;
     }
 
-    public boolean hasSubAnalysisQuery() {
+    public boolean hasSubAnalysisQuery(final IRNode caller) {
       return false;
     }
   }

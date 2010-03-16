@@ -9,10 +9,7 @@ import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.util.Lattice;
 
@@ -24,8 +21,17 @@ import edu.uwm.cs.fluid.util.Lattice;
  * by any concrete subclasses.
  */
 public abstract class JavaEvaluationTransfer<L extends Lattice<T>,T> extends JavaForwardTransfer<L,T> {
-  public JavaEvaluationTransfer(IBinder binder, L lattice) {
+  /**
+   * The number of items to leave on the stack when performing a 
+   * {@link #popAllPending(Object)}. 
+   */
+  protected final int stackFloorSize;
+  
+  
+  
+  public JavaEvaluationTransfer(IBinder binder, L lattice, int floor) {
     super(binder,lattice);
+    stackFloorSize = floor;
   }
 
   // abstract stack operations.

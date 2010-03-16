@@ -956,12 +956,12 @@ public class PermissionAnalysis extends TrackingIntraproceduralAnalysis implemen
       return 1;
     }
 
-    public AnalysisQuery<Integer> getSubAnalysisQuery() {
+    public AnalysisQuery<Integer> getSubAnalysisQuery(final IRNode caller) {
       // TODO Auto-generated method stub
       return null;
     }
 
-    public boolean hasSubAnalysisQuery() {
+    public boolean hasSubAnalysisQuery(final IRNode caller) {
       // TODO Auto-generated method stub
       return false;
     }

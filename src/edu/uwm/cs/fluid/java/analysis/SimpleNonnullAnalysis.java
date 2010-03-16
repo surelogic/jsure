@@ -1,8 +1,13 @@
 package edu.uwm.cs.fluid.java.analysis;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -55,8 +60,8 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       return a.getAfter(expr, WhichPort.ENTRY).second();
     }
 
-    public Query getSubAnalysisQuery() {
-      final Analysis sub = a.getSubAnalysis();
+    public Query getSubAnalysisQuery(final IRNode caller) {
+      final Analysis sub = a.getSubAnalysis(caller);
       if (sub == null) {
         throw new UnsupportedOperationException();
       } else {
@@ -64,13 +69,19 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       }
     }
 
-    public boolean hasSubAnalysisQuery() {
-      return a.getSubAnalysis() != null;
+    public boolean hasSubAnalysisQuery(final IRNode caller) {
+      return a.getSubAnalysis(caller) != null;
     }
   }
   
-//  private static final Logger LOG = SLLogger.getLogger();
+  
+  
+  private static final boolean debug = false;
+  @SuppressWarnings("unused")
+  private static final Logger LOG = SLLogger.getLogger("FLUID.control.java.simpleNonNull");
 
+  
+  
   public SimpleNonnullAnalysis(IBinder b) {
     super(b);
   }
@@ -78,7 +89,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
   @Override
   protected Analysis createAnalysis(IRNode flowUnit) {
     final Lattice l = new Lattice();
-    final Transfer t = new Transfer(binder,l);
+    final Transfer t = new Transfer(binder,l, 0);
     return new Analysis("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
 
@@ -210,28 +221,32 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
      * <p>
      * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
      */
-    private Analysis subAnalysis = null;
-
+    private final  Map<IRNode, Analysis> subAnalyses = new HashMap<IRNode, Analysis>(); 
+//    private Analysis subAnalysis = null;
     
     
-    public Transfer(IBinder binder, Lattice lattice) {
-      super(binder, lattice);
+    
+    public Transfer(IBinder binder, Lattice lattice, int floor) {
+      super(binder, lattice, floor);
     }
     
     
     
-    public Analysis getSubAnalysis() {
-      return subAnalysis;
+    public Analysis getSubAnalysis(final IRNode forCaller) {
+      return subAnalyses.get(forCaller);
     }
 
     
     
     @Override
-    protected Analysis
-    createAnalysis(final IBinder binder, final boolean terminationNormal) {
+    protected Analysis createAnalysis(IRNode caller,
+        final IBinder binder, final Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> initValue, final boolean terminationNormal) {
+      Analysis subAnalysis = subAnalyses.get(caller);
       if (subAnalysis == null) {
-        Transfer t = new Transfer(binder, lattice);
+        final int floor = initValue.first().size();
+        Transfer t = new Transfer(binder, lattice, floor);
         subAnalysis = new Analysis("sub analysis", lattice, t, DebugUnparser.viewer);
+        subAnalyses.put(caller, subAnalysis);
       }
       return subAnalysis;
     }
@@ -265,7 +280,16 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     @Override
     protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> popAllPending(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
       if (!lattice.isNormal(val)) return val;
-      return newPair(ImmutableList.<NullInfo>nil(),val.second());
+      if (stackFloorSize == 0) {
+        return newPair(ImmutableList.<NullInfo>nil(),val.second());
+      } else {
+        ImmutableList<NullInfo> newStack = val.first();
+        while (newStack.size() > stackFloorSize) {
+          newStack = lattice.getLL().pop(newStack);
+        }
+        return newPair(newStack, val.second());
+      }
+//      return newPair(ImmutableList.<NullInfo>nil(),val.second());
     }
 
     @Override
@@ -329,17 +353,15 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       
       if (val.second().contains(var)) {
         if (!nullLattice.lessEq(ni,NullInfo.NOTNULL)) {
-          System.out.println(JJNode.getInfo(var) + " is no longer non null after being assigned.");
           return newPair(val.first(),val.second().removeCopy(var));
         }
-        if (LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
+        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
         // otherwise, do nothing: not null before, not null afterwards
       } else {
         if (nullLattice.lessEq(ni,NullInfo.NOTNULL)) {
-          System.out.println(JJNode.getInfo(var) + " is now non null after beign assigned.");
           return newPair(val.first(),val.second().addCopy(var));
         }
-        if (LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
+        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
         // do nothing : maybe null before, maybe null afterwards
       }
       return val;
@@ -443,11 +465,11 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       }
       NullInfo ni = ll.peek(stack);
       if (flag && nullLattice.lessEq(ni, NullInfo.NULL)) {
-        if (LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is null, we can assume " + DebugUnparser.toString(n) + " cannot be dereferenced.");
+        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is null, we can assume " + DebugUnparser.toString(n) + " cannot be dereferenced.");
         return null; // lattice.bottom();
       }
       if (!flag && nullLattice.lessEq(ni, NullInfo.NOTNULL)) {
-        if (LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is not null, we can assume " + DebugUnparser.toString(n) + " won't throw a NPE.");
+        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is not null, we can assume " + DebugUnparser.toString(n) + " won't throw a NPE.");
         return null; //lattice.bottom();
       }
       if (flag && tree.getOperator(n) instanceof VariableUseExpression) {
@@ -518,8 +540,8 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       super(name, l, t, nv);
     }
     
-    public Analysis getSubAnalysis() {
-      return trans.getSubAnalysis();
+    public Analysis getSubAnalysis(final IRNode forCaller) {
+      return trans.getSubAnalysis(forCaller);
     }
   }
   
@@ -528,7 +550,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     @Override
     protected Analysis createAnalysis(IRNode flowUnit, IBinder binder) {
       final Lattice l = new Lattice();
-      final Transfer t = new Transfer(binder,l);
+      final Transfer t = new Transfer(binder,l, 0);
       return new Analysis("nonnll", l, t, DebugUnparser.viewer);
     }
     

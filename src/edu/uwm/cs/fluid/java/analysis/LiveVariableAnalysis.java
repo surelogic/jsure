@@ -134,7 +134,8 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>,
      * @see edu.uwm.cs.fluid.java.control.JavaTransfer#createAnalysis(edu.cmu.cs.fluid.java.bind.IBinder)
      */
     @Override
-    protected LiveVariableAnalysis createAnalysis(IBinder binder, boolean terminationNormal) {
+    protected LiveVariableAnalysis createAnalysis(IRNode caller,
+        IBinder binder, final ImmutableSet<IRNode> initialValue, boolean terminationNormal) {
       if (subAnalysis == null) {
         subAnalysis = new LiveVariableAnalysis(
             lattice, new Transfer(lattice, binder));

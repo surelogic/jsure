@@ -45,7 +45,7 @@ public final class IntrinsicLockAnalysis extends
       return lattice.getHeldLocks(analysis.getAfter(expr, WhichPort.ENTRY));
     }
 
-    public Query getSubAnalysisQuery() {
+    public Query getSubAnalysisQuery(final IRNode caller) {
       final Analysis sub = analysis.getSubAnalysis();
       if (sub == null) {
         throw new UnsupportedOperationException();
@@ -54,7 +54,7 @@ public final class IntrinsicLockAnalysis extends
       }
     }
 
-    public boolean hasSubAnalysisQuery() {
+    public boolean hasSubAnalysisQuery(final IRNode caller) {
       return analysis.getSubAnalysis() != null;
     }
   }
@@ -220,12 +220,12 @@ public final class IntrinsicLockAnalysis extends
     }
     
     @Override
-    protected Analysis createAnalysis(
-        final IBinder binder, final boolean terminationNormal) {
+    protected Analysis createAnalysis(IRNode caller,
+        final IBinder binder, final Object[] initialValue, final boolean terminationNormal) {
       if (subAnalysis == null) {
         subAnalysis = new Analysis("Intrinsic Lock Analysis", lattice,
             new IntrinsicLockTransfer(binder, this.lockUtils, this.lattice,
-                this.nonNullAnalysisQuery.getSubAnalysisQuery()));
+                this.nonNullAnalysisQuery.getSubAnalysisQuery(caller)));
       }
       return subAnalysis;
     }
