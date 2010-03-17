@@ -1,22 +1,15 @@
 package com.surelogic.jsure.client.eclipse.analysis;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.zip.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
 
-import com.surelogic.common.AbstractJavaZip;
-import com.surelogic.common.FileUtility;
-import com.surelogic.common.ISourceZipFileHandles;
-import com.surelogic.common.SLUtility;
-import com.surelogic.common.eclipse.EclipseUtility;
-import com.surelogic.common.eclipse.JDTUtility;
-import com.surelogic.common.eclipse.SourceZip;
+import com.surelogic.common.*;
+import com.surelogic.common.eclipse.*;
 import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
@@ -27,7 +20,6 @@ import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver {
@@ -217,6 +209,10 @@ public class JavacDriver {
 		ZippedConfig(String name, boolean isExported) {
 			super(name, isExported);
 		}
+		@Override
+		protected Config newConfig(String name, boolean isExported) {
+			return new ZippedConfig(name, isExported);
+		}		
 		@Override
 		public void zipSources(File zipDir) throws IOException {
 			final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(getProject());
