@@ -441,12 +441,14 @@ public class BindUtil implements JavaGlobals {
     if (enclosingType == null) {
     	IRNode cu = VisitUtil.getEnclosingCompilationUnit(from);
     	enclosingType = VisitUtil.getPrimaryType(cu);
-    	if (cu == null || enclosingType == null) {
-    		System.out.println("Unable to get enclosing type: "+DebugUnparser.toString(from));
-    		VisitUtil.getEnclosingType(from);
-    	}
+
     }
-    return isAccessible(tEnv, decl, from, enclosingType);
+    boolean rv = isAccessible(tEnv, decl, from, enclosingType);
+	if (!rv && enclosingType == null) {    		
+		System.out.println("Unable to get enclosing type: "+DebugUnparser.toString(from));
+		VisitUtil.getEnclosingType(from);
+	}
+    return rv;
   }
   
   /**
