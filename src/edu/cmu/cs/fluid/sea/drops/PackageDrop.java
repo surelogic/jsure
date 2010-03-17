@@ -45,6 +45,11 @@ public class PackageDrop extends CUDrop {
     super(pkgName, root);
     node      = n;
     isFromSrc = fromSrc;
+    /*
+    if ("jsure".equals(pkgName)) {
+    	System.out.println("Creating pkg: "+pkgName);
+    }
+    */
   }
   
   private PackageDrop(String pkgName, IRNode root, IRNode n) {

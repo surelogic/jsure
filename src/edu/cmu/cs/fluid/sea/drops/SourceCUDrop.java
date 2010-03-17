@@ -98,4 +98,10 @@ public class SourceCUDrop extends CUDrop {
   public boolean isAsSource() {
     return adaptedAsSource;
   }
+  /*
+  @Override
+  protected void invalidate_internal() {
+	  System.out.println("Invalidating "+javaOSFileName);
+  }
+*/
 }
