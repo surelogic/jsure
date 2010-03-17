@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -46,8 +47,6 @@ import com.surelogic.common.logging.SLLogger;
 
 public class PromisesAnnotationRewriter {
 
-	private static final String ASSUME = "Assume";
-	private static final String ASSUMES = "Assumes";
 	private final ASTParser parser;
 	private ASTNode ast;
 	private ASTRewrite rewrite;
@@ -333,6 +332,9 @@ public class PromisesAnnotationRewriter {
 
 	}
 
+	private static final String ASSUME = "Assume";
+	private static final String ASSUMES = "Assumes";
+
 	class AssumptionMergeStrategy implements Mergeable {
 
 		final List<AnnotationDescription> newAnnotations;
@@ -389,9 +391,58 @@ public class PromisesAnnotationRewriter {
 		}
 
 		public boolean match(final Annotation a) {
-			final String aName = a.resolveTypeBinding().getName();
+			final String aName = a.getTypeName().getFullyQualifiedName()
+					.replaceAll(".*\\.", "");
 			return ASSUME.equals(aName) || ASSUMES.equals(aName);
 		}
+	}
+
+	private static final String REQUIRESLOCK = "RequiresLock";
+
+	class RequiresLockMergeStrategy implements Mergeable {
+
+		final List<AnnotationDescription> newAnnotations;
+
+		RequiresLockMergeStrategy(final List<AnnotationDescription> anns) {
+			this.newAnnotations = anns;
+		}
+
+		public boolean match(final Annotation a) {
+			final String aName = a.getTypeName().getFullyQualifiedName()
+					.replaceAll(".*\\.", "");
+			return REQUIRESLOCK.equals(aName);
+		}
+
+		public Annotation merge(final AST ast, final Annotation a,
+				final Set<String> imports) {
+			final TreeSet<String> contents = new TreeSet<String>();
+			for (final AnnotationDescription desc : newAnnotations) {
+				if (desc.getContents() != null) {
+					for (final String s : desc.getContents().split(",")) {
+						contents.add(s.trim());
+					}
+				}
+			}
+			if (a != null) {
+				final Expression e = extractValue(a);
+				if (e instanceof StringLiteral) {
+					final StringLiteral lit = (StringLiteral) e;
+					final String ss = lit.getLiteralValue();
+					if (ss != null && ss.length() > 0) {
+						for (final String s : ss.split(",")) {
+							contents.add(s.trim());
+						}
+					}
+				}
+			}
+			final SingleMemberAnnotation ann = ast.newSingleMemberAnnotation();
+			ann.setTypeName(ast.newName(REQUIRESLOCK));
+			final StringLiteral lit = ast.newStringLiteral();
+			lit.setLiteralValue(join(contents));
+			ann.setValue(lit);
+			return ann;
+		}
+
 	}
 
 	class DefaultMergeStrategy implements Mergeable {
@@ -435,7 +486,8 @@ public class PromisesAnnotationRewriter {
 		}
 
 		public boolean match(final Annotation a) {
-			final String aName = a.resolveTypeBinding().getName();
+			final String aName = a.getTypeName().getFullyQualifiedName()
+					.replaceAll(".*\\.", "");
 			return name.equals(aName) || wrapper.equals(aName);
 		}
 	}
@@ -558,14 +610,14 @@ public class PromisesAnnotationRewriter {
 		return null;
 	}
 
-	private static String join(final List<String> names, final char delim) {
-		if (names.isEmpty()) {
-			return "";
-		}
+	private static String join(final Iterable<String> names, final char delim) {
 		final StringBuilder b = new StringBuilder();
 		for (final String name : names) {
 			b.append(name);
 			b.append(delim);
+		}
+		if (b.length() == 0) {
+			return "";
 		}
 		return b.substring(0, b.length() - 1);
 	}
@@ -573,7 +625,7 @@ public class PromisesAnnotationRewriter {
 	/*
 	 * join together a list of names with the '.' separator
 	 */
-	private static String join(final List<String> names) {
+	private static String join(final Iterable<String> names) {
 		return join(names, '.');
 	}
 
