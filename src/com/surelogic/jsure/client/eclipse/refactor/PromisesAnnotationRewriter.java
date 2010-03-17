@@ -326,6 +326,10 @@ public class PromisesAnnotationRewriter {
 			if (isAssumption) {
 				return new AssumptionMergeStrategy(descs);
 			} else {
+				final String name = descs.get(0).getAnnotation();
+				if (REQUIRESLOCK.equals(name) || AGGREGATE.equals(name)) {
+					return new CommaDelimitedMergeStrategy(name, descs);
+				}
 				return new DefaultMergeStrategy(descs);
 			}
 		}
@@ -398,23 +402,28 @@ public class PromisesAnnotationRewriter {
 	}
 
 	private static final String REQUIRESLOCK = "RequiresLock";
+	private static final String AGGREGATE = "Aggregate";
 
-	class RequiresLockMergeStrategy implements Mergeable {
+	class CommaDelimitedMergeStrategy implements Mergeable {
 
 		final List<AnnotationDescription> newAnnotations;
+		final String name;
 
-		RequiresLockMergeStrategy(final List<AnnotationDescription> anns) {
+		CommaDelimitedMergeStrategy(final String name,
+				final List<AnnotationDescription> anns) {
 			this.newAnnotations = anns;
+			this.name = name;
 		}
 
 		public boolean match(final Annotation a) {
 			final String aName = a.getTypeName().getFullyQualifiedName()
 					.replaceAll(".*\\.", "");
-			return REQUIRESLOCK.equals(aName);
+			return name.equals(aName);
 		}
 
 		public Annotation merge(final AST ast, final Annotation a,
 				final Set<String> imports) {
+			addImport(name, imports);
 			final TreeSet<String> contents = new TreeSet<String>();
 			for (final AnnotationDescription desc : newAnnotations) {
 				if (desc.getContents() != null) {
@@ -435,14 +444,20 @@ public class PromisesAnnotationRewriter {
 					}
 				}
 			}
-			final SingleMemberAnnotation ann = ast.newSingleMemberAnnotation();
-			ann.setTypeName(ast.newName(REQUIRESLOCK));
-			final StringLiteral lit = ast.newStringLiteral();
-			lit.setLiteralValue(join(contents));
-			ann.setValue(lit);
-			return ann;
+			if (contents.isEmpty()) {
+				final MarkerAnnotation ma = ast.newMarkerAnnotation();
+				ma.setTypeName(ast.newName(name));
+				return ma;
+			} else {
+				final SingleMemberAnnotation ann = ast
+						.newSingleMemberAnnotation();
+				ann.setTypeName(ast.newName(name));
+				final StringLiteral lit = ast.newStringLiteral();
+				lit.setLiteralValue(join(contents));
+				ann.setValue(lit);
+				return ann;
+			}
 		}
-
 	}
 
 	class DefaultMergeStrategy implements Mergeable {

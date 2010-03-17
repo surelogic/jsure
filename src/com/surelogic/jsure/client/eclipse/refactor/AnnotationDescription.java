@@ -1,5 +1,9 @@
 package com.surelogic.jsure.client.eclipse.refactor;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
@@ -72,7 +76,7 @@ class AnnotationDescription implements Comparable<AnnotationDescription> {
 	}
 
 	public int compareTo(final AnnotationDescription o) {
-		return getAnnotation().compareTo(o.getAnnotation());
+		return cmp.compare(getAnnotation(), o.getAnnotation());
 	}
 
 	public boolean hasContents() {
@@ -204,4 +208,23 @@ class AnnotationDescription implements Comparable<AnnotationDescription> {
 		}
 	}
 
+	private static final Comparator<String> cmp = new Comparator<String>() {
+		final List<String> custom = Arrays.asList("Unique", "Aggregate",
+				"AggregateInRegion", "Region", "Regions", "RegionLock",
+				"RegionLocks");
+
+		public int compare(final String o1, final String o2) {
+			final int indexOf1 = custom.indexOf(o1);
+			final int indexOf2 = custom.indexOf(o2);
+			if (indexOf1 == -1 && indexOf2 == -1) {
+				return o1.compareTo(o2);
+			} else if (indexOf1 == -1) {
+				return -1;
+			} else if (indexOf2 == -1) {
+				return 1;
+			} else {
+				return indexOf1 - indexOf2;
+			}
+		}
+	};
 }
