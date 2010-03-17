@@ -1541,7 +1541,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	} else {
         		b = checkForNestedAnnotation(node, name, lastDot);
         	}
-        	bind(node, b);
+        	boolean success = bind(node, b);
+        	if (!success) {
+        		scope.lookup(name, node, IJavaScope.Util.isTypeDecl);    
+        	}
         } else {
         	bind(node, decl);
         }

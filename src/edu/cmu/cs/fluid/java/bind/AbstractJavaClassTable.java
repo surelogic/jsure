@@ -44,14 +44,15 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
     }
 
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
-      IRNode node = getOuterClass(prefix + name,useSite);
+      final String qname = prefix + name;
+      IRNode node = getOuterClass(qname,useSite);
       if (LOG.isLoggable(Level.FINER)) {
         LOG.finer("getOuterClass(" + prefix + "+" + name + ") returns " + DebugUnparser.toString(node));
       }
       if (node != null && selector.select(node)) {
         return IBinding.Util.makeBinding(node); 
-      } else {
-    	getOuterClass(prefix + name,useSite);
+      } else {    	  
+    	//getOuterClass(qname,useSite);
       }
       return null;
     }
