@@ -1277,12 +1277,16 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 									info.addDependUponDrop(lockRecord.lockDecl);
 
 									if (lockRecord instanceof RegionLockRecord) {
-										// Propose the aggregate annotation
-										info
-												.addProposal(new ProposedPromiseDrop(
-														"AggregateInRegion",
-														((RegionLockRecord) lockRecord).region.simpleName,
-														fieldDecl, fieldRef));
+                    // Propose the aggregate annotation
+                    final String simpleRegionName = ((RegionLockRecord) lockRecord).region.simpleName;
+                    if ("Instance".equals(simpleRegionName)) {
+                      info.addProposal(new ProposedPromiseDrop("Aggregate",
+                          null, fieldDecl, fieldRef));
+                    } else {
+                      info.addProposal(new ProposedPromiseDrop(
+                          "AggregateInRegion", simpleRegionName, fieldDecl,
+                          fieldRef));
+                    }
 									}
 								}
 							}
@@ -1312,12 +1316,17 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * the future they should be linked by an AND.
 						 */
 						final IRNode fieldDecl = binder.getBinding(objExpr);
-						info.addProposal(new ProposedPromiseDrop("Unique", "",
+						info.addProposal(new ProposedPromiseDrop("Unique", null,
 								fieldDecl, fieldRef));
-						info.addProposal(new ProposedPromiseDrop(
-								"AggregateInRegion",
-								innerLock.region.simpleName, fieldDecl,
-								fieldRef));
+						final String simpleRegionName = innerLock.region.simpleName;
+            if ("Instance".equals(simpleRegionName)) {
+              info.addProposal(new ProposedPromiseDrop("Aggregate",
+                  null, fieldDecl, fieldRef));
+            } else {
+              info.addProposal(new ProposedPromiseDrop(
+                  "AggregateInRegion", simpleRegionName, fieldDecl,
+                  fieldRef));
+            }
 					}
 				}
 			}
