@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.refactor;
 
+
 /**
  * Represents a (possibly nested) type in a compilation unit
  * 

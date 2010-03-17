@@ -19,6 +19,10 @@ class AnnotationDescription implements Comparable<AnnotationDescription> {
 	private final CU cu;
 	private final CU assumptionCU;
 
+	AnnotationDescription(final String annotation, final String contents) {
+		this(annotation, contents, null, null, null, null);
+	}
+
 	public AnnotationDescription(final String annotation,
 			final String contents, final IJavaDeclaration target,
 			final IJavaDeclaration assumptionTarget, final CU cu,
@@ -35,7 +39,7 @@ class AnnotationDescription implements Comparable<AnnotationDescription> {
 		this.assumptionCU = assumptionCU;
 	}
 
-	AnnotationDescription(final ProposedPromiseDrop drop, final IBinder b) {
+	public AnnotationDescription(final ProposedPromiseDrop drop, final IBinder b) {
 		target = IRNodeUtil.convert(b, drop.getNode());
 		assumptionTarget = IRNodeUtil.convert(b, drop.getAssumptionNode());
 		annotation = drop.getAnnotation();

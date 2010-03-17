@@ -42,6 +42,12 @@ public class ProposedPromisesChange {
 		return drops;
 	}
 
+	/**
+	 * Calculate the change that would occur by applying these proposed promises
+	 * to the selected project.
+	 * 
+	 * @param root
+	 */
 	void change(final CompositeChange root) {
 		final Map<CU, Set<AnnotationDescription>> map = new HashMap<CU, Set<AnnotationDescription>>();
 		for (final ProposedPromiseDrop drop : drops) {
@@ -57,7 +63,7 @@ public class ProposedPromisesChange {
 		}
 		final Map<CU, Set<AnnotationDescription>> promiseMap = new HashMap<CU, Set<AnnotationDescription>>();
 		final Map<CU, Set<AnnotationDescription>> assumeMap = new HashMap<CU, Set<AnnotationDescription>>();
-		final AnnotationRewriter rewrite = new AnnotationRewriter(
+		final PromisesAnnotationRewriter rewrite = new PromisesAnnotationRewriter(
 				selectedProject);
 		try {
 			for (final IPackageFragment frag : selectedProject
