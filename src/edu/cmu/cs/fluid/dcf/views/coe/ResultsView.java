@@ -65,553 +65,566 @@ import edu.cmu.cs.fluid.util.SingletonIterator;
 
 public class ResultsView extends AbstractDoubleCheckerView {
 
-	private static final Logger LOG = SLLogger.getLogger("ResultsView");
+  private static final Logger LOG = SLLogger.getLogger("ResultsView");
 
-	private final IResultsViewContentProvider f_contentProvider = makeContentProvider();
+  private final IResultsViewContentProvider f_contentProvider = makeContentProvider();
 
-	private final IResultsViewLabelProvider f_labelProvider = makeLabelProvider();
+  private final IResultsViewLabelProvider f_labelProvider = makeLabelProvider();
 
-	private final Action f_actionShowProposedPromiseView = new Action() {
-		@Override
-		public void run() {
-			ViewUtility.showView(ProposedPromiseView.class.getName());
-		}
-	};
+  private final Action f_actionShowProposedPromiseView = new Action() {
+    @Override
+    public void run() {
+      ViewUtility.showView(ProposedPromiseView.class.getName());
+    }
+  };
 
-	private final Action f_actionShowProblemsView = new Action() {
-		@Override
-		public void run() {
-			ViewUtility.showView(ProblemsView.class.getName());
-		}
-	};
+  private final Action f_actionShowProblemsView = new Action() {
+    @Override
+    public void run() {
+      ViewUtility.showView(ProblemsView.class.getName());
+    }
+  };
 
-	private final Action f_actionShowInferences = new Action() {
-		@Override
-		public void run() {
-			final boolean toggle = !f_contentProvider.isShowInferences();
-			f_contentProvider.setShowInferences(toggle);
-			f_labelProvider.setShowInferences(toggle);
-			setViewState();
-			viewer.refresh();
-		}
-	};
+  private final Action f_actionShowInferences = new Action() {
+    @Override
+    public void run() {
+      final boolean toggle = !f_contentProvider.isShowInferences();
+      f_contentProvider.setShowInferences(toggle);
+      f_labelProvider.setShowInferences(toggle);
+      setViewState();
+      viewer.refresh();
+    }
+  };
 
-	private final Action f_actionExpand = new Action() {
-		@Override
-		public void run() {
-			final ISelection selection = viewer.getSelection();
-			if (selection == null || selection == StructuredSelection.EMPTY) {
-				treeViewer.expandToLevel(50);
-			} else {
-				final Object obj = ((IStructuredSelection) selection)
-						.getFirstElement();
-				if (obj instanceof Content) {
-					treeViewer.expandToLevel(obj, 50);
-				} else {
-					treeViewer.expandToLevel(50);
-				}
-			}
-		}
-	};
+  private final Action f_actionExpand = new Action() {
+    @Override
+    public void run() {
+      final ISelection selection = viewer.getSelection();
+      if (selection == null || selection == StructuredSelection.EMPTY) {
+        treeViewer.expandToLevel(50);
+      } else {
+        final Object obj = ((IStructuredSelection) selection).getFirstElement();
+        if (obj instanceof Content) {
+          treeViewer.expandToLevel(obj, 50);
+        } else {
+          treeViewer.expandToLevel(50);
+        }
+      }
+    }
+  };
 
-	private final Action f_actionCollapse = new Action() {
-		@Override
-		public void run() {
-			final ISelection selection = viewer.getSelection();
-			if (selection == null || selection == StructuredSelection.EMPTY) {
-				treeViewer.collapseAll();
-			} else {
-				final Object obj = ((IStructuredSelection) selection)
-						.getFirstElement();
-				if (obj instanceof Content) {
-					treeViewer.collapseToLevel(obj, 1);
-				} else {
-					treeViewer.collapseAll();
-				}
-			}
-		}
-	};
+  private final Action f_actionCollapse = new Action() {
+    @Override
+    public void run() {
+      final ISelection selection = viewer.getSelection();
+      if (selection == null || selection == StructuredSelection.EMPTY) {
+        treeViewer.collapseAll();
+      } else {
+        final Object obj = ((IStructuredSelection) selection).getFirstElement();
+        if (obj instanceof Content) {
+          treeViewer.collapseToLevel(obj, 1);
+        } else {
+          treeViewer.collapseAll();
+        }
+      }
+    }
+  };
 
-	private final Action f_actionLinkToOriginal = new Action() {
-		@Override
-		public void run() {
-			final ISelection selection = viewer.getSelection();
-			if (selection == null || selection == StructuredSelection.EMPTY) {
-				treeViewer.collapseAll();
-			} else {
-				final Object obj = ((IStructuredSelection) selection)
-						.getFirstElement();
-				if (obj instanceof Content) {
-					final Content c = (Content) obj;
-					if (c.cloneOf != null) {
-						treeViewer.reveal(c.cloneOf);
-						treeViewer.setSelection(new IStructuredSelection() {
-							public boolean isEmpty() {
-								return false;
-							}
+  private final Action f_actionLinkToOriginal = new Action() {
+    @Override
+    public void run() {
+      final ISelection selection = viewer.getSelection();
+      if (selection == null || selection == StructuredSelection.EMPTY) {
+        treeViewer.collapseAll();
+      } else {
+        final Object obj = ((IStructuredSelection) selection).getFirstElement();
+        if (obj instanceof Content) {
+          final Content c = (Content) obj;
+          if (c.cloneOf != null) {
+            treeViewer.reveal(c.cloneOf);
+            treeViewer.setSelection(new IStructuredSelection() {
+              public boolean isEmpty() {
+                return false;
+              }
 
-							public List toList() {
-								return Collections.singletonList(c.cloneOf);
-							}
+              public List toList() {
+                return Collections.singletonList(c.cloneOf);
+              }
 
-							public Object[] toArray() {
-								final Object[] rv = new Object[1];
-								rv[0] = c.cloneOf;
-								return rv;
-							}
+              public Object[] toArray() {
+                final Object[] rv = new Object[1];
+                rv[0] = c.cloneOf;
+                return rv;
+              }
 
-							public int size() {
-								return 1;
-							}
+              public int size() {
+                return 1;
+              }
 
-							public Iterator iterator() {
-								// TODO Auto-generated method stub
-								return new SingletonIterator(c.cloneOf);
-							}
+              public Iterator iterator() {
+                // TODO Auto-generated method stub
+                return new SingletonIterator(c.cloneOf);
+              }
 
-							public Object getFirstElement() {
-								return c.cloneOf;
-							}
-						});
-					}
-				}
-			}
-		}
-	};
+              public Object getFirstElement() {
+                return c.cloneOf;
+              }
+            });
+          }
+        }
+      }
+    }
+  };
 
-	private final Action f_copy = new Action() {
-		@Override
-		public void run() {
-			clipboard.setContents(new Object[] { getSelectedText() },
-					new Transfer[] { TextTransfer.getInstance() });
-		}
-	};
+  private final Action f_copy = new Action() {
+    @Override
+    public void run() {
+      clipboard.setContents(new Object[] { getSelectedText() },
+          new Transfer[] { TextTransfer.getInstance() });
+    }
+  };
 
-	private final Action f_addPromiseToCode = new ProposedPromisesRefactoringAction() {
+  private final Action f_addPromiseToCode = new ProposedPromisesRefactoringAction() {
 
-		@Override
-		protected List<ProposedPromiseDrop> getProposedDrops() {
-			/*
-			 * There really should be only one proposal because we can only
-			 * select one item of the tree, however, this code ensures that we
-			 * handle it properly.
-			 */
-			final IStructuredSelection selection = (IStructuredSelection) viewer
-					.getSelection();
-			if (selection == null || selection == StructuredSelection.EMPTY) {
-				return Collections.emptyList();
-			}
-			final List<ProposedPromiseDrop> proposals = new ArrayList<ProposedPromiseDrop>();
-			for (final Object element : selection.toList()) {
-				if (element instanceof Content) {
-					final Content c = (Content) element;
-					if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
-						final ProposedPromiseDrop pp = (ProposedPromiseDrop) c.f_referencedDrop;
-						proposals.add(pp);
-					}
-				}
-			}
-			return proposals;
-		}
+    @Override
+    protected List<ProposedPromiseDrop> getProposedDrops() {
+      /*
+       * There are two cases: (1) a single proposed promise drop in the tree is
+       * selected and (2) a container folder for multiple proposed promise drops
+       * is selected.
+       */
+      final IStructuredSelection selection = (IStructuredSelection) viewer
+          .getSelection();
+      if (selection == null || selection == StructuredSelection.EMPTY) {
+        return Collections.emptyList();
+      }
+      final List<ProposedPromiseDrop> proposals = new ArrayList<ProposedPromiseDrop>();
+      for (final Object element : selection.toList()) {
+        if (element instanceof Content) {
+          final Content c = (Content) element;
+          /*
+           * Deal with the case where a single proposed promise drop is
+           * selected.
+           */
+          if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
+            final ProposedPromiseDrop pp = (ProposedPromiseDrop) c.f_referencedDrop;
+            proposals.add(pp);
+          } else {
+            /*
+             * In the case that the user selected a container for multiple
+             * proposed promise drops we want add them all.
+             */
+            if (c.getMessage().equals(
+                I18N.msg("jsure.eclipse.proposed.promise.content.folder"))) {
+              for (Content content : c.getChildrenAsCollection()) {
+                if (content.f_referencedDrop instanceof ProposedPromiseDrop) {
+                  final ProposedPromiseDrop pp = (ProposedPromiseDrop) content.f_referencedDrop;
+                  proposals.add(pp);
+                }
+              }
+            }
+          }
+        }
+      }
+      return proposals;
+    }
 
-		@Override
-		protected String getDialogTitle() {
-			return I18N.msg("jsure.eclipse.proposed.promise.edit");
-		}
-	};
+    @Override
+    protected String getDialogTitle() {
+      return I18N.msg("jsure.eclipse.proposed.promise.edit");
+    }
+  };
 
-	private final Action f_actionCollapseAll = new Action() {
-		@Override
-		public void run() {
-			treeViewer.collapseAll();
-		}
-	};
+  private final Action f_actionCollapseAll = new Action() {
+    @Override
+    public void run() {
+      treeViewer.collapseAll();
+    }
+  };
 
-	private final Action f_showQuickRef = new Action() {
-		@Override
-		public void run() {
-			final Image quickRefImage = SLImages
-					.getImage(CommonImages.IMG_JSURE_QUICK_REF);
-			final Image icon = SLImages
-					.getImage(CommonImages.IMG_JSURE_QUICK_REF_ICON);
-			final ImageDialog dialog = new ImageDialog(SWTUtility.getShell(),
-					quickRefImage, icon, "Iconography Quick Reference");
-			dialog.open();
-		}
-	};
+  private final Action f_showQuickRef = new Action() {
+    @Override
+    public void run() {
+      final Image quickRefImage = SLImages
+          .getImage(CommonImages.IMG_JSURE_QUICK_REF);
+      final Image icon = SLImages
+          .getImage(CommonImages.IMG_JSURE_QUICK_REF_ICON);
+      final ImageDialog dialog = new ImageDialog(SWTUtility.getShell(),
+          quickRefImage, icon, "Iconography Quick Reference");
+      dialog.open();
+    }
+  };
 
-	/*
-	 * Experimental actions
-	 */
-	private Action f_actionExportZIPForStandAloneResultsViewer;
-	private Action f_actionExportXMLForSierra;
-	private Action f_actionShowUnderlyingDropType;
+  /*
+   * Experimental actions
+   */
+  private Action f_actionExportZIPForStandAloneResultsViewer;
+  private Action f_actionExportXMLForSierra;
+  private Action f_actionShowUnderlyingDropType;
 
-	/**
-	 * Changed to not depend on the Viewer
-	 */
-	public static class ContentNameSorter extends ViewerSorter {
-		@Override
-		public int compare(final Viewer viewer, final Object e1, final Object e2) {
-			int result; // = super.compare(viewer, e1, e2);
-			final boolean bothContent = e1 instanceof Content
-					&& e2 instanceof Content;
-			if (bothContent) {
-				final Content c1 = (Content) e1;
-				final Content c2 = (Content) e2;
-				final boolean c1IsNonProof = c1.f_isInfo
-						|| c1.f_isPromiseWarning;
-				final boolean c2IsNonProof = c2.f_isInfo
-						|| c2.f_isPromiseWarning;
-				if (c1IsNonProof && !c2IsNonProof) {
-					result = 1;
-				} else if (c2IsNonProof && !c1IsNonProof) {
-					result = -1;
-				} else {
-					final boolean c1isPromise = c1.f_referencedDrop instanceof PromiseDrop;
-					final boolean c2isPromise = c2.f_referencedDrop instanceof PromiseDrop;
-					if (c1isPromise && !c2isPromise) {
-						result = 1;
-					} else if (c2isPromise && !c1isPromise) {
-						result = -1;
-					} else {
-						result = c1.getMessage().compareTo(c2.getMessage());
-						if (result == 0) {
-							final ISrcRef ref1 = c1.getSrcRef();
-							final ISrcRef ref2 = c2.getSrcRef();
-							if (ref1 != null && ref2 != null) {
-								final Object f1 = ref1.getEnclosingFile();
-								final Object f2 = ref2.getEnclosingFile();
-								if (f1 instanceof IResource
-										&& f2 instanceof IResource) {
-									final IResource file1 = (IResource) f1;
-									final IResource file2 = (IResource) f2;
-									result = file1.getFullPath().toString()
-											.compareTo(
-													file2.getFullPath()
-															.toString());
-								} else {
-									final String file1 = (String) f1;
-									final String file2 = (String) f2;
-									result = file1.compareTo(file2);
-								}
-								if (result == 0) {
-									final int line1 = ref1.getLineNumber();
-									final int line2 = ref2.getLineNumber();
-									result = line1 == line2 ? 0
-											: line1 < line2 ? -1 : 1;
-								}
-							}
-						}
-					}
-				}
-			} else {
-				LOG.warning("e1 and e2 are not Content objects: e1 = \""
-						+ e1.toString() + "\"; e2 = \"" + e2.toString() + "\"");
-				return -1;
-			}
+  /**
+   * Changed to not depend on the Viewer
+   */
+  public static class ContentNameSorter extends ViewerSorter {
+    @Override
+    public int compare(final Viewer viewer, final Object e1, final Object e2) {
+      int result; // = super.compare(viewer, e1, e2);
+      final boolean bothContent = e1 instanceof Content
+          && e2 instanceof Content;
+      if (bothContent) {
+        final Content c1 = (Content) e1;
+        final Content c2 = (Content) e2;
+        final boolean c1IsNonProof = c1.f_isInfo || c1.f_isPromiseWarning;
+        final boolean c2IsNonProof = c2.f_isInfo || c2.f_isPromiseWarning;
+        if (c1IsNonProof && !c2IsNonProof) {
+          result = 1;
+        } else if (c2IsNonProof && !c1IsNonProof) {
+          result = -1;
+        } else {
+          final boolean c1isPromise = c1.f_referencedDrop instanceof PromiseDrop;
+          final boolean c2isPromise = c2.f_referencedDrop instanceof PromiseDrop;
+          if (c1isPromise && !c2isPromise) {
+            result = 1;
+          } else if (c2isPromise && !c1isPromise) {
+            result = -1;
+          } else {
+            result = c1.getMessage().compareTo(c2.getMessage());
+            if (result == 0) {
+              final ISrcRef ref1 = c1.getSrcRef();
+              final ISrcRef ref2 = c2.getSrcRef();
+              if (ref1 != null && ref2 != null) {
+                final Object f1 = ref1.getEnclosingFile();
+                final Object f2 = ref2.getEnclosingFile();
+                if (f1 instanceof IResource && f2 instanceof IResource) {
+                  final IResource file1 = (IResource) f1;
+                  final IResource file2 = (IResource) f2;
+                  result = file1.getFullPath().toString().compareTo(
+                      file2.getFullPath().toString());
+                } else {
+                  final String file1 = (String) f1;
+                  final String file2 = (String) f2;
+                  result = file1.compareTo(file2);
+                }
+                if (result == 0) {
+                  final int line1 = ref1.getLineNumber();
+                  final int line2 = ref2.getLineNumber();
+                  result = line1 == line2 ? 0 : line1 < line2 ? -1 : 1;
+                }
+              }
+            }
+          }
+        }
+      } else {
+        LOG.warning("e1 and e2 are not Content objects: e1 = \""
+            + e1.toString() + "\"; e2 = \"" + e2.toString() + "\"");
+        return -1;
+      }
 
-			return result;
-		}
-	}
+      return result;
+    }
+  }
 
-	protected IResultsViewContentProvider makeContentProvider() {
-		return new ResultsViewContentProvider();
-	}
+  protected IResultsViewContentProvider makeContentProvider() {
+    return new ResultsViewContentProvider();
+  }
 
-	protected IResultsViewLabelProvider makeLabelProvider() {
-		return new ResultsViewLabelProvider();
-	}
+  protected IResultsViewLabelProvider makeLabelProvider() {
+    return new ResultsViewLabelProvider();
+  }
 
-	@Override
-	protected void setupViewer() {
-		viewer.setContentProvider(f_contentProvider);
-		viewer.setLabelProvider(f_labelProvider);
-		viewer.setSorter(createSorter());
-		ColumnViewerToolTipSupport.enableFor(viewer);
-	}
+  @Override
+  protected void setupViewer() {
+    viewer.setContentProvider(f_contentProvider);
+    viewer.setLabelProvider(f_labelProvider);
+    viewer.setSorter(createSorter());
+    ColumnViewerToolTipSupport.enableFor(viewer);
+  }
 
-	protected ViewerSorter createSorter() {
-		return new ContentNameSorter();
-	}
+  protected ViewerSorter createSorter() {
+    return new ContentNameSorter();
+  }
 
-	String getSelectedText() {
-		final IStructuredSelection selection = (IStructuredSelection) viewer
-				.getSelection();
-		final StringBuilder sb = new StringBuilder();
-		for (final Object elt : selection.toList()) {
-			if (sb.length() > 0) {
-				sb.append('\n');
-			}
-			sb.append(f_labelProvider.getText(elt));
-		}
-		return sb.toString();
-	}
+  String getSelectedText() {
+    final IStructuredSelection selection = (IStructuredSelection) viewer
+        .getSelection();
+    final StringBuilder sb = new StringBuilder();
+    for (final Object elt : selection.toList()) {
+      if (sb.length() > 0) {
+        sb.append('\n');
+      }
+      sb.append(f_labelProvider.getText(elt));
+    }
+    return sb.toString();
+  }
 
-	@Override
-	protected void fillGlobalActionHandlers(final IActionBars bars) {
-		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
-	}
+  @Override
+  protected void fillGlobalActionHandlers(final IActionBars bars) {
+    bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
+  }
 
-	@Override
-	protected void fillLocalPullDown(final IMenuManager manager) {
-		manager.add(f_actionCollapseAll);
-		manager.add(new Separator());
-		manager.add(f_showQuickRef);
-		manager.add(f_actionShowInferences);
-		manager.add(f_actionShowProposedPromiseView);
-		manager.add(f_actionShowProblemsView);
-		if (XUtil.useExperimental()) {
-			manager.add(new Separator());
-			manager.add(f_actionExportZIPForStandAloneResultsViewer);
-			manager.add(f_actionExportXMLForSierra);
-		}
-	}
+  @Override
+  protected void fillLocalPullDown(final IMenuManager manager) {
+    manager.add(f_actionCollapseAll);
+    manager.add(new Separator());
+    manager.add(f_showQuickRef);
+    manager.add(f_actionShowInferences);
+    manager.add(f_actionShowProposedPromiseView);
+    manager.add(f_actionShowProblemsView);
+    if (XUtil.useExperimental()) {
+      manager.add(new Separator());
+      manager.add(f_actionExportZIPForStandAloneResultsViewer);
+      manager.add(f_actionExportXMLForSierra);
+    }
+  }
 
-	@Override
-	protected void fillContextMenu(final IMenuManager manager,
-			final IStructuredSelection s) {
-		if (!s.isEmpty()) {
-			final Content c = (Content) s.getFirstElement();
-			if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
-				manager.add(f_addPromiseToCode);
-				manager.add(new Separator());
-			}
-		}
-		manager.add(f_actionExpand);
-		manager.add(f_actionCollapse);
-		if (!s.isEmpty()) {
-			final Content c = (Content) s.getFirstElement();
-			if (c.cloneOf != null) {
-				manager.add(f_actionLinkToOriginal);
-			}
-			manager.add(new Separator());
-			manager.add(f_copy);
-		}
-		if (XUtil.useDeveloperMode()) {
-			manager.add(new Separator());
-			manager.add(f_actionShowUnderlyingDropType);
-			if (!s.isEmpty()) {
-				final Content c = (Content) s.getFirstElement();
-				final Drop d = c.f_referencedDrop;
-				if (d != null) {
-					f_actionShowUnderlyingDropType.setText("Type: "
-							+ d.getClass().getName());
-				} else {
-					f_actionShowUnderlyingDropType.setText("Type: n/a");
-				}
-			} else {
-				f_actionShowUnderlyingDropType.setText("Type: Unknown");
-			}
-		}
-	}
+  @Override
+  protected void fillContextMenu(final IMenuManager manager,
+      final IStructuredSelection s) {
+    if (!s.isEmpty()) {
+      final Content c = (Content) s.getFirstElement();
+      if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
+        manager.add(f_addPromiseToCode);
+        f_addPromiseToCode.setText(I18N
+            .msg("jsure.eclipse.proposed.promise.edit"));
+        manager.add(new Separator());
+      } else {
+        if (c.getMessage().equals(
+            I18N.msg("jsure.eclipse.proposed.promise.content.folder"))) {
+          manager.add(f_addPromiseToCode);
+          f_addPromiseToCode.setText(I18N
+              .msg("jsure.eclipse.proposed.promises.edit"));
+          manager.add(new Separator());
+        }
+      }
+    }
+    manager.add(f_actionExpand);
+    manager.add(f_actionCollapse);
+    if (!s.isEmpty()) {
+      final Content c = (Content) s.getFirstElement();
+      if (c.cloneOf != null) {
+        manager.add(f_actionLinkToOriginal);
+      }
+      manager.add(new Separator());
+      manager.add(f_copy);
+    }
+    if (XUtil.useDeveloperMode()) {
+      manager.add(new Separator());
+      manager.add(f_actionShowUnderlyingDropType);
+      if (!s.isEmpty()) {
+        final Content c = (Content) s.getFirstElement();
+        final Drop d = c.f_referencedDrop;
+        if (d != null) {
+          f_actionShowUnderlyingDropType.setText("Type: "
+              + d.getClass().getName());
+        } else {
+          f_actionShowUnderlyingDropType.setText("Type: n/a");
+        }
+      } else {
+        f_actionShowUnderlyingDropType.setText("Type: Unknown");
+      }
+    }
+  }
 
-	@Override
-	protected void fillLocalToolBar(final IToolBarManager manager) {
-		manager.add(f_actionCollapseAll);
-		manager.add(new Separator());
-		manager.add(f_showQuickRef);
-		manager.add(f_actionShowInferences);
-	}
+  @Override
+  protected void fillLocalToolBar(final IToolBarManager manager) {
+    manager.add(f_actionCollapseAll);
+    manager.add(new Separator());
+    manager.add(f_showQuickRef);
+    manager.add(f_actionShowInferences);
+  }
 
-	@Override
-	protected void makeActions() {
-		f_actionShowProposedPromiseView.setText("Show Proposed Promises");
-		f_actionShowProposedPromiseView.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_ANNOTATION));
+  @Override
+  protected void makeActions() {
+    f_actionShowProposedPromiseView.setText("Show Proposed Promises");
+    f_actionShowProposedPromiseView.setImageDescriptor(SLImages
+        .getImageDescriptor(CommonImages.IMG_ANNOTATION));
 
-		f_actionShowProblemsView.setText("Show Modeling Problems");
-		f_actionShowProblemsView.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
+    f_actionShowProblemsView.setText("Show Modeling Problems");
+    f_actionShowProblemsView.setImageDescriptor(SLImages
+        .getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
 
-		f_actionShowInferences.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
+    f_actionShowInferences.setImageDescriptor(SLImages
+        .getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
 
-		f_actionExpand.setText("Expand");
-		f_actionExpand
-				.setToolTipText("Expand the current selection or all if none");
-		f_actionExpand.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+    f_actionExpand.setText("Expand");
+    f_actionExpand
+        .setToolTipText("Expand the current selection or all if none");
+    f_actionExpand.setImageDescriptor(SLImages
+        .getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
 
-		f_actionCollapse.setText("Collapse");
-		f_actionCollapse
-				.setToolTipText("Collapse the current selection or all if none");
-		f_actionCollapse.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+    f_actionCollapse.setText("Collapse");
+    f_actionCollapse
+        .setToolTipText("Collapse the current selection or all if none");
+    f_actionCollapse.setImageDescriptor(SLImages
+        .getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-		f_actionCollapseAll.setText("Collapse All");
-		f_actionCollapseAll.setToolTipText("Collapse All");
-		f_actionCollapseAll.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+    f_actionCollapseAll.setText("Collapse All");
+    f_actionCollapseAll.setToolTipText("Collapse All");
+    f_actionCollapseAll.setImageDescriptor(SLImages
+        .getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-		f_actionLinkToOriginal.setText("Link to Original");
-		f_actionLinkToOriginal
-				.setToolTipText("Link to the node that this backedge would reference");
+    f_actionLinkToOriginal.setText("Link to Original");
+    f_actionLinkToOriginal
+        .setToolTipText("Link to the node that this backedge would reference");
 
-		f_copy.setText("Copy");
-		f_copy
-				.setToolTipText("Copy the selected verification result to the clipboard");
+    f_copy.setText("Copy");
+    f_copy
+        .setToolTipText("Copy the selected verification result to the clipboard");
 
-		f_addPromiseToCode.setText(I18N
-				.msg("jsure.eclipse.proposed.promise.edit"));
-		f_addPromiseToCode.setToolTipText(I18N
-				.msg("jsure.eclipse.proposed.promise.tip"));
+    f_addPromiseToCode.setToolTipText(I18N
+        .msg("jsure.eclipse.proposed.promise.tip"));
 
-		f_showQuickRef.setText("Show Iconography Quick Reference Card");
-		f_showQuickRef
-				.setToolTipText("Show the iconography quick reference card");
-		f_showQuickRef.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
+    f_showQuickRef.setText("Show Iconography Quick Reference Card");
+    f_showQuickRef.setToolTipText("Show the iconography quick reference card");
+    f_showQuickRef.setImageDescriptor(SLImages
+        .getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
 
-		if (XUtil.useExperimental()) {
-			f_actionExportZIPForStandAloneResultsViewer = new Action() {
-				@Override
-				public void run() {
-					exportZIPForStandAloneResultsViewer();
-				}
-			};
-			f_actionExportZIPForStandAloneResultsViewer
-					.setText("Export Results && Source (for Stand-Alone Results Viewer)");
-			f_actionExportZIPForStandAloneResultsViewer
-					.setToolTipText("Creates a ZIP file containing source and analysis results for the Stand-Alone Results Viewer");
-			f_actionExportZIPForStandAloneResultsViewer
-					.setImageDescriptor(SLImages
-							.getImageDescriptor(CommonImages.IMG_EXPORT_WITH_SOURCE));
+    if (XUtil.useExperimental()) {
+      f_actionExportZIPForStandAloneResultsViewer = new Action() {
+        @Override
+        public void run() {
+          exportZIPForStandAloneResultsViewer();
+        }
+      };
+      f_actionExportZIPForStandAloneResultsViewer
+          .setText("Export Results && Source (for Stand-Alone Results Viewer)");
+      f_actionExportZIPForStandAloneResultsViewer
+          .setToolTipText("Creates a ZIP file containing source and analysis results for the Stand-Alone Results Viewer");
+      f_actionExportZIPForStandAloneResultsViewer.setImageDescriptor(SLImages
+          .getImageDescriptor(CommonImages.IMG_EXPORT_WITH_SOURCE));
 
-			f_actionExportXMLForSierra = new Action() {
-				@Override
-				public void run() {
-					exportXMLForSierra();
-				}
-			};
-			f_actionExportXMLForSierra
-					.setText("Export Results (XML for Sierra Viewer)");
-			f_actionExportXMLForSierra
-					.setToolTipText("Creates a XML file containing analysis results that can be imported into Sierra");
-			f_actionExportXMLForSierra.setImageDescriptor(SLImages
-					.getImageDescriptor(CommonImages.IMG_EXPORT_WITH_SOURCE));
+      f_actionExportXMLForSierra = new Action() {
+        @Override
+        public void run() {
+          exportXMLForSierra();
+        }
+      };
+      f_actionExportXMLForSierra
+          .setText("Export Results (XML for Sierra Viewer)");
+      f_actionExportXMLForSierra
+          .setToolTipText("Creates a XML file containing analysis results that can be imported into Sierra");
+      f_actionExportXMLForSierra.setImageDescriptor(SLImages
+          .getImageDescriptor(CommonImages.IMG_EXPORT_WITH_SOURCE));
 
-			f_actionShowUnderlyingDropType = new Action() {
-				@Override
-				public void run() {
-					// Does nothing right now
-				}
-			};
-			f_actionShowUnderlyingDropType.setText("Unknown");
-		}
+      f_actionShowUnderlyingDropType = new Action() {
+        @Override
+        public void run() {
+          // Does nothing right now
+        }
+      };
+      f_actionShowUnderlyingDropType.setText("Unknown");
+    }
 
-		setViewState();
-	}
+    setViewState();
+  }
 
-	@Override
-	protected void setViewState() {
-		f_actionShowInferences.setChecked(f_contentProvider.isShowInferences());
-		f_actionShowInferences.setText("Show Information/Warning Results");
-		f_actionShowInferences
-				.setToolTipText("Show information and warning analysis results");
-	}
+  @Override
+  protected void setViewState() {
+    f_actionShowInferences.setChecked(f_contentProvider.isShowInferences());
+    f_actionShowInferences.setText("Show Information/Warning Results");
+    f_actionShowInferences
+        .setToolTipText("Show information and warning analysis results");
+  }
 
-	@Override
-	protected void handleDoubleClick(final IStructuredSelection selection) {
-		final Object obj = selection.getFirstElement();
-		if (obj instanceof Content) {
-			// try to open an editor at the point this item references
-			// in the code
-			final Content c = (Content) obj;
-			final ISrcRef sr = c.getSrcRef();
-			if (sr != null) {
-				highlightLineInJavaEditor(sr);
-			}
-			// open up the tree one more level
-			if (!treeViewer.getExpandedState(obj)) {
-				treeViewer.expandToLevel(obj, 1);
-			}
-		}
-	}
+  @Override
+  protected void handleDoubleClick(final IStructuredSelection selection) {
+    final Object obj = selection.getFirstElement();
+    if (obj instanceof Content) {
+      // try to open an editor at the point this item references
+      // in the code
+      final Content c = (Content) obj;
+      final ISrcRef sr = c.getSrcRef();
+      if (sr != null) {
+        highlightLineInJavaEditor(sr);
+      }
+      // open up the tree one more level
+      if (!treeViewer.getExpandedState(obj)) {
+        treeViewer.expandToLevel(obj, 1);
+      }
+    }
+  }
 
-	@Override
-	protected void updateView() {
-		try {
-			SrcRef.dumpStats();
-			AbstractJavaBinder.printStats();
-			RegionModel.purgeUnusedRegions();
-			LockModel.purgeUnusedLocks();
+  @Override
+  protected void updateView() {
+    try {
+      SrcRef.dumpStats();
+      AbstractJavaBinder.printStats();
+      RegionModel.purgeUnusedRegions();
+      LockModel.purgeUnusedLocks();
 
-			// update the whole-program proof
-			ConsistencyListener.prototype.analysisCompleted();
+      // update the whole-program proof
+      ConsistencyListener.prototype.analysisCompleted();
 
-			final long start = System.currentTimeMillis();
-			f_contentProvider.buildModelOfDropSea();
-			final long buildEnd = System.currentTimeMillis();
-			System.err.println("Time to build model  = " + (buildEnd - start)
-					+ " ms");
-			if (IJavaFileLocator.testIRPaging) {
-				final EclipseFileLocator loc = (EclipseFileLocator) IDE
-						.getInstance().getJavaFileLocator();
-				loc.testUnload(false, false);
-				SlotInfo.compactAll();
-			}
-			setViewState();
-		} catch (final Throwable t) {
-			SLLogger.getLogger().log(Level.SEVERE, "Problem updating COE view",
-					t);
-		}
-	}
+      final long start = System.currentTimeMillis();
+      f_contentProvider.buildModelOfDropSea();
+      final long buildEnd = System.currentTimeMillis();
+      System.err
+          .println("Time to build model  = " + (buildEnd - start) + " ms");
+      if (IJavaFileLocator.testIRPaging) {
+        final EclipseFileLocator loc = (EclipseFileLocator) IDE.getInstance()
+            .getJavaFileLocator();
+        loc.testUnload(false, false);
+        SlotInfo.compactAll();
+      }
+      setViewState();
+    } catch (final Throwable t) {
+      SLLogger.getLogger().log(Level.SEVERE, "Problem updating COE view", t);
+    }
+  }
 
-	/**
-	 * Prompts the user for a filename, then creates a ZIP file with an XML
-	 * representation of the Fluid Verification Status view along with all Java
-	 * source files in the workspace.
-	 */
-	private void exportZIPForStandAloneResultsViewer() {
-		final Shell shell = Activator.getDefault().getWorkbench().getDisplay()
-				.getActiveShell();
-		final FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
-		fileChooser.setFilterExtensions(new String[] { "*.zip" });
-		fileChooser
-				.setText("Select ZIP output filename (for import into the Stand-Alone Results Viewer)");
-		String filename = fileChooser.open();
-		if (filename != null) {
-			if (!filename.endsWith(".zip")) {
-				filename = filename.concat(".zip");
-			}
-			FileOutputStream zipFile;
-			try {
-				zipFile = new FileOutputStream(filename);
-			} catch (final FileNotFoundException e) {
-				LOG.log(Level.SEVERE, "Unable to create ZIP file ", e);
-				MessageDialog.openError(shell, "Error exporting results",
-						"Unable to create ZIP results file");
-				exportZIPForStandAloneResultsViewer(); // try again
-				return; // bail out of previous attempt
-			}
+  /**
+   * Prompts the user for a filename, then creates a ZIP file with an XML
+   * representation of the Fluid Verification Status view along with all Java
+   * source files in the workspace.
+   */
+  private void exportZIPForStandAloneResultsViewer() {
+    final Shell shell = Activator.getDefault().getWorkbench().getDisplay()
+        .getActiveShell();
+    final FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
+    fileChooser.setFilterExtensions(new String[] { "*.zip" });
+    fileChooser
+        .setText("Select ZIP output filename (for import into the Stand-Alone Results Viewer)");
+    String filename = fileChooser.open();
+    if (filename != null) {
+      if (!filename.endsWith(".zip")) {
+        filename = filename.concat(".zip");
+      }
+      FileOutputStream zipFile;
+      try {
+        zipFile = new FileOutputStream(filename);
+      } catch (final FileNotFoundException e) {
+        LOG.log(Level.SEVERE, "Unable to create ZIP file ", e);
+        MessageDialog.openError(shell, "Error exporting results",
+            "Unable to create ZIP results file");
+        exportZIPForStandAloneResultsViewer(); // try again
+        return; // bail out of previous attempt
+      }
 
-			XMLReport.exportResultsWithSource(zipFile, treeViewer);
-		}
-	}
+      XMLReport.exportResultsWithSource(zipFile, treeViewer);
+    }
+  }
 
-	private void exportXMLForSierra() {
-		final String proj = ProjectDrop.getProject();
-		File location;
-		if (true) {
-			final Shell shell = Activator.getDefault().getWorkbench()
-					.getDisplay().getActiveShell();
-			final FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
-			fileChooser.setFilterExtensions(new String[] { "*.xml" });
-			fileChooser
-					.setText("Select XML output filename (for import into Sierra)");
-			final String filename = fileChooser.open();
-			location = new File(filename);
-		} else {
-			final File userDir = new File(System.getProperty("user.home"));
-			location = new File(userDir, "Desktop/" + proj + ".sea.xml");
-		}
-		try {
-			new SeaSnapshot(location).snapshot(proj, Sea.getDefault());
-			new JSureXMLReader(new TestListener()).read(location);
-		} catch (final Exception e) {
-			SLLogger.getLogger().log(Level.SEVERE,
-					"Problem exporting for Sierra", e);
-		}
-	}
+  private void exportXMLForSierra() {
+    final String proj = ProjectDrop.getProject();
+    File location;
+    if (true) {
+      final Shell shell = Activator.getDefault().getWorkbench().getDisplay()
+          .getActiveShell();
+      final FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
+      fileChooser.setFilterExtensions(new String[] { "*.xml" });
+      fileChooser
+          .setText("Select XML output filename (for import into Sierra)");
+      final String filename = fileChooser.open();
+      location = new File(filename);
+    } else {
+      final File userDir = new File(System.getProperty("user.home"));
+      location = new File(userDir, "Desktop/" + proj + ".sea.xml");
+    }
+    try {
+      new SeaSnapshot(location).snapshot(proj, Sea.getDefault());
+      new JSureXMLReader(new TestListener()).read(location);
+    } catch (final Exception e) {
+      SLLogger.getLogger().log(Level.SEVERE, "Problem exporting for Sierra", e);
+    }
+  }
 }

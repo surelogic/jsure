@@ -22,6 +22,7 @@ import org.eclipse.ui.progress.UIJob;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.eclipse.ViewUtility;
 import com.surelogic.common.eclipse.jobs.SLUIJob;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
 import com.surelogic.xml.results.coe.CoE_Constants;
@@ -217,7 +218,8 @@ public class ResultsViewContentProvider extends
 			return;
 		}
 		// More than one thing
-		Content siFolder = new Content("proposed promises:");
+    Content siFolder = new Content(I18N
+        .msg("jsure.eclipse.proposed.promise.content.folder"));
 		siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 
 		for (Iterator<ProposedPromiseDrop> i = proposals.iterator(); i
@@ -447,6 +449,8 @@ public class ResultsViewContentProvider extends
 
 				// children
 				addSupportingInformation(result, infoDrop);
+        addProposedPromises(result, infoDrop);
+
 				result.f_isInfo = true;
 				result.f_isInfoWarning = drop instanceof WarningDrop;
 
