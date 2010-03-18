@@ -268,14 +268,14 @@ public class ResultsView extends AbstractDoubleCheckerView {
   public static class ContentNameSorter extends ViewerSorter {
     @Override
     public int compare(final Viewer viewer, final Object e1, final Object e2) {
-      int result; // = super.compare(viewer, e1, e2);
-      final boolean bothContent = e1 instanceof Content
-          && e2 instanceof Content;
+      int result = 0; // = super.compare(viewer, e1, e2);
+      final boolean bothContent = e1 instanceof Content && e2 instanceof Content;
       if (bothContent) {
         final Content c1 = (Content) e1;
         final Content c2 = (Content) e2;
         final boolean c1IsNonProof = c1.f_isInfo || c1.f_isPromiseWarning;
         final boolean c2IsNonProof = c2.f_isInfo || c2.f_isPromiseWarning;
+        // Separating proof drops from info/warning drops
         if (c1IsNonProof && !c2IsNonProof) {
           result = 1;
         } else if (c2IsNonProof && !c1IsNonProof) {
@@ -283,35 +283,43 @@ public class ResultsView extends AbstractDoubleCheckerView {
         } else {
           final boolean c1isPromise = c1.f_referencedDrop instanceof PromiseDrop;
           final boolean c2isPromise = c2.f_referencedDrop instanceof PromiseDrop;
+          // Separating promise drops from other proof drops
           if (c1isPromise && !c2isPromise) {
             result = 1;
           } else if (c2isPromise && !c1isPromise) {
             result = -1;
           } else {
-            result = c1.getMessage().compareTo(c2.getMessage());
-            if (result == 0) {
-              final ISrcRef ref1 = c1.getSrcRef();
-              final ISrcRef ref2 = c2.getSrcRef();
-              if (ref1 != null && ref2 != null) {
-                final Object f1 = ref1.getEnclosingFile();
-                final Object f2 = ref2.getEnclosingFile();
-                if (f1 instanceof IResource && f2 instanceof IResource) {
-                  final IResource file1 = (IResource) f1;
-                  final IResource file2 = (IResource) f2;
-                  result = file1.getFullPath().toString().compareTo(
-                      file2.getFullPath().toString());
-                } else {
-                  final String file1 = (String) f1;
-                  final String file2 = (String) f2;
-                  result = file1.compareTo(file2);
-                }
-                if (result == 0) {
-                  final int line1 = ref1.getLineNumber();
-                  final int line2 = ref2.getLineNumber();
-                  result = line1 == line2 ? 0 : line1 < line2 ? -1 : 1;
-                }
-              }
-            }
+        	  if (c1isPromise && c2isPromise) {
+        		  result = c1.getMessage().compareTo(c2.getMessage());
+        	  }
+        	  if (result == 0) {
+        		  final ISrcRef ref1 = c1.getSrcRef();
+        		  final ISrcRef ref2 = c2.getSrcRef();
+        		  if (ref1 != null && ref2 != null) {
+        			  final Object f1 = ref1.getEnclosingFile();
+        			  final Object f2 = ref2.getEnclosingFile();
+        			  if (f1 instanceof IResource && f2 instanceof IResource) {
+        				  final IResource file1 = (IResource) f1;
+        				  final IResource file2 = (IResource) f2;
+        				  result = file1.getFullPath().toString().compareTo(
+        						  file2.getFullPath().toString());
+        			  } else {
+        				  final String file1 = (String) f1;
+        				  final String file2 = (String) f2;
+        				  result = file1.compareTo(file2);
+        			  }
+        			  if (result == 0) {
+        				  final int line1 = ref1.getLineNumber();
+        				  final int line2 = ref2.getLineNumber();
+        				  result = line1 == line2 ? 0 : line1 < line2 ? -1 : 1;
+        				  if (result == 0) {
+        					  result = ref1.getOffset() - ref2.getOffset();
+        				  }
+        			  }
+        		  } else {
+        			  result = c1.getMessage().compareTo(c2.getMessage());
+        		  }
+        	  }
           }
         }
       } else {
