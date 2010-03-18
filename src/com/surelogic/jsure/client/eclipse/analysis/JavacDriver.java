@@ -74,7 +74,9 @@ public class JavacDriver {
 		
 		Iterable<ICompilationUnit> getDelta() {
 			if (needsUpdate()) {
-				return cuDelta;
+				Iterable<ICompilationUnit> result = new ArrayList<ICompilationUnit>(cuDelta);
+				update(allCompUnits, cuDelta);
+				return result;
 			}
 			return allCompUnits;	 
 		}
