@@ -14,12 +14,13 @@ import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Config;
+import com.surelogic.fluid.javac.JavacProject;
 import com.surelogic.fluid.javac.Util;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.dc.NotificationHub;
-import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver {
@@ -49,6 +50,10 @@ public class JavacDriver {
 			allCompUnits = new ArrayList<ICompilationUnit>(cus);
 		}
 		
+		boolean hasDeltas() {
+			return !cuDelta.isEmpty();
+		}
+		
 		void registerDelta(List<ICompilationUnit> cus) {
 			if (!cus.isEmpty()) {
 				cuDelta.addAll(cus);
@@ -56,16 +61,27 @@ public class JavacDriver {
 			}			
 		}
 	
+		private boolean needsUpdate() {
+			return !updated && !cuDelta.isEmpty();
+		}
+		
 		Iterable<ICompilationUnit> getAllCompUnits() {
-			if (!updated && !cuDelta.isEmpty()) {
+			if (needsUpdate()) {
 				update(allCompUnits, cuDelta);
 			}
 			return allCompUnits;			
 		}
 		
-		Config makeConfig() throws JavaModelException {
+		Iterable<ICompilationUnit> getDelta() {
+			if (needsUpdate()) {
+				return cuDelta;
+			}
+			return allCompUnits;	 
+		}
+		
+		Config makeConfig(boolean all) throws JavaModelException {
 			Config config = new ZippedConfig(project.getName(), false);
-			for(ICompilationUnit icu : getAllCompUnits()) {
+			for(ICompilationUnit icu : all ? getAllCompUnits() : getDelta()) {
 				final File f = icu.getResource().getLocation().toFile();
 				String pkg = null;
 				for(IPackageDeclaration pd : icu.getPackageDeclarations()) {
@@ -97,6 +113,7 @@ public class JavacDriver {
 				switch (cpe.getEntryKind()) {
 				case IClasspathEntry.CPE_SOURCE:
 					if (addSource) {
+						// TODO handle multiple deltas?
 						final File dir = EclipseUtility.resolveIPath(cpe.getPath());
 						final File[] excludes = new File[cpe.getExclusionPatterns().length];
 						int i=0;
@@ -128,7 +145,7 @@ public class JavacDriver {
 		/**
 		 * Either add/remove as needed
 		 */
-		static void update(Collection<ICompilationUnit> all, Collection<ICompilationUnit> cus) {
+		void update(Collection<ICompilationUnit> all, Collection<ICompilationUnit> cus) {
 			for(ICompilationUnit cu : cus) {
 				// TODO use a Set instead?
 				if (cu.getResource().exists()) {
@@ -143,6 +160,7 @@ public class JavacDriver {
 					//System.out.println("Deleted: "+cu.getHandleIdentifier());
 				}
 			}
+			updated = true;
 		}
 	}
 	
@@ -174,7 +192,8 @@ public class JavacDriver {
 		}
         JavacEclipse.initialize();
 		try {
-		    final Config config = info.makeConfig();		    
+			final boolean hasDeltas = info.hasDeltas();
+		    final Config config = info.makeConfig(!hasDeltas);		    
 		    final File dataDir = 
 		        //new File(IDE.getInstance().getStringPreference(IDEPreferences.DATA_DIRECTORY));
 		        PreferenceConstants.getJSureDataDirectory();
@@ -184,17 +203,18 @@ public class JavacDriver {
 		    final File target = new File(dataDir, name+"/srcs");
 		    target.mkdirs();
 		    config.setRun(name);
-		    for(JavacRunDrop d : Sea.getDefault().getDropsOfExactType(JavacRunDrop.class)) {
-		        d.invalidate();
-		    }
-		    new JavacRunDrop(config);
+
 		    JSureHistoricalSourceView.setLastRun(config, new ISourceZipFileHandles() {
                 public Iterable<File> getSourceZips() {
                     return Arrays.asList(zips.listFiles());
                 }		        
 		    });
-		    
-		    AnalysisJob analysis = new AnalysisJob(config, target, zips);
+		    JavacProject project = null;
+		    if (hasDeltas) {
+		    	ProjectDrop pd = ProjectDrop.getDrop();
+		    	project = (JavacProject) pd.getIIRProject();
+		    }		    
+		    AnalysisJob analysis = new AnalysisJob(project, config, target, zips);
 		    CopyJob copy = new CopyJob(config, target, zips, analysis);
 		    // TODO fix to lock the workspace
 		    EclipseJob.getInstance().schedule(copy);
@@ -333,8 +353,11 @@ public class JavacDriver {
 	}
 	
 	class AnalysisJob extends Job {
-        AnalysisJob(Config config, File target, File zips) {
+		private final JavacProject project;
+		
+        AnalysisJob(JavacProject project, Config config, File target, File zips) {
             super("Running JSure on "+config.getProject(), config, target, zips);
+            this.project = project;
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
@@ -347,7 +370,11 @@ public class JavacDriver {
             JavacEclipse.initialize();
             NotificationHub.notifyAnalysisStarting();
             try {
-                Util.openFiles(config, monitor);
+            	if (project == null) {
+            		Util.openFiles(config, monitor);
+            	} else {
+            		Util.openFiles(project, config, monitor);
+            	}
             } catch (Exception e) {
                 NotificationHub.notifyAnalysisPostponed();
                 return SLStatus.createErrorStatus("Problem while running JSure", e);
