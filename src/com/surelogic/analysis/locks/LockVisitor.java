@@ -1705,10 +1705,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 					/*
 					 * Add proposed promise if we are inside a constructor and
-					 * the constructor is not thread-confined.
+					 * the constructor is not thread-confined.  ctxtSingleThreadedData
+					 * may be non-null while ctxtInsideConstructor is null when we are
+					 * inside the initializer of an anonymous class expression. 
 					 */
 					if (ctxtSingleThreadedData != null
-							&& !ctxtSingleThreadedData.isSingleThreaded) {
+							&& !ctxtSingleThreadedData.isSingleThreaded
+							&& ctxtInsideConstructor != null) {
 						resultDrop.addProposal(new ProposedPromiseDrop(
 								"Unique", "return", ctxtInsideConstructor,
 								useSite));
