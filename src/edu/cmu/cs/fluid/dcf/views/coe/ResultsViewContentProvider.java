@@ -919,6 +919,8 @@ public class ResultsViewContentProvider extends
 		}
 		onPath.add(node);
 
+		// Only used to get consistent results when breaking back edges
+		// NOT for the results view (see ContentNameSorter)
 		final List<Content> children = new ArrayList<Content>(node.children());
 		Collections.sort(children, new Comparator<Content>() {
 			public int compare(Content o1, Content o2) {
