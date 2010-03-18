@@ -41,4 +41,9 @@ public class Pair<T1,T2> {
     	return elem1.hashCode() + elem2.hashCode();
     }
   }
+  
+  @Override
+  public String toString() {
+	  return "<"+elem1+", "+elem2+'>';
+  }
 }
