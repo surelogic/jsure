@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.UnknownLabel;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -41,6 +42,8 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
 	 */
   protected static final Logger LOG = SLLogger.getLogger("FLUID.control.java");
 
+  private static final boolean TRACE = false;
+  
   protected SyntaxTreeInterface tree = JJNode.tree;
   protected final IBinder binder;
   protected final L lattice;
@@ -58,8 +61,10 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
     T value) {
     Operator op = tree.getOperator(node);
 
-//    System.out.println("===> transferComponentFlow: " + op.name() + " " + DebugUnparser.toString(node));
-//    System.out.println("       info = " + info);
+    if (TRACE) {
+      System.out.println("===> transferComponentFlow: " + op.name() + " " + DebugUnparser.toString(node));
+      System.out.println("       info = " + info);
+    }
     
     if (VariableUseExpression.prototype.includes(op)
       || FieldRef.prototype.includes(op)
@@ -108,9 +113,11 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
     /* special cases for each kind of component choice node */
     Operator op = tree.getOperator(node);
     
-//    System.out.println("===> transferComponentChoice: " + op.name() + " " + DebugUnparser.toString(node));
-//    System.out.println("       info = " + info);
-//    System.out.println("       flag = " + flag);
+    if (TRACE) {
+      System.out.println("===> transferComponentChoice: " + op.name() + " " + DebugUnparser.toString(node));
+      System.out.println("       info = " + info);
+      System.out.println("       flag = " + flag);
+    }
     
     if (info instanceof CallInterface) {
       return transferCall(node, flag, value);
@@ -560,7 +567,10 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
   protected final T runClassInitializer(
     final IRNode caller, final IRNode classBody,
     final T initial, final boolean terminationNormal) {
-//    System.out.println("**** Run class Initializer " + terminationNormal + " (start) ****");
+    if (TRACE) {
+      System.out.println("**** Run class Initializer " + terminationNormal + " (start) ****");
+    }
+    
     FlowUnit op = (FlowUnit) tree.getOperator(classBody);
     final FlowAnalysis<T, L> fa = createAnalysis(caller, binder, initial, terminationNormal);
     final Source source = op.getSource(classBody);
@@ -603,7 +613,10 @@ public abstract class JavaTransfer<L extends Lattice<T>,T> {
     // the same as what we put here.  We may need to hook this little
     // CFG into the main CFG
     fa.performAnalysis();
-//    System.out.println("**** Run class Initializer " + terminationNormal + " (end) ****");
+    
+    if (TRACE) {
+      System.out.println("**** Run class Initializer " + terminationNormal + " (end) ****");
+    }
     return fa.getInfo(e2, ll);
   }
   
