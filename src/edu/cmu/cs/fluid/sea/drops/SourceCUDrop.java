@@ -20,6 +20,7 @@ public class SourceCUDrop extends CUDrop {
   
   public SourceCUDrop(CodeInfo info) {
     super(info);
+    //System.out.println("Creating SourceCUDrop for "+info.getFileName());
     javaFile = info.getFile();
     source   = info.getSource();
     adaptedAsSource = info.isAsSource();
