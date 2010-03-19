@@ -15,6 +15,7 @@ import edu.cmu.cs.fluid.util.*;
 
 public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	public static final boolean useJavac = false;
+	public static final String ID = "com.surelogic.jsure.client.eclipse.AnalysisDriver";
 	
 	private IProject project;
 	@SuppressWarnings("unchecked")

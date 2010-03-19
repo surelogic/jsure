@@ -31,6 +31,7 @@ import org.osgi.framework.BundleContext;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
+import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 
 import edu.cmu.cs.fluid.analysis.util.WholeAnalysisModule;
 import edu.cmu.cs.fluid.java.CommonStrings;
@@ -249,6 +250,13 @@ public class Plugin implements IAnalysisContainer {
 	//
 	// //////////////////////////////////////////////////////////////////////
 
+	private boolean isActive(IPreferenceStore store, String id) {
+		if (AnalysisDriver.useJavac) {
+			return AnalysisDriver.ID.equals(id);
+		}
+		return store.getBoolean(ANALYSIS_ACTIVE_PREFIX + id);
+	}
+	
 	/**
 	 * Read persistent double-checker plugin information. 
 	 * Invoked from {@link #startup}.
@@ -260,7 +268,7 @@ public class Plugin implements IAnalysisContainer {
 		
 		for(IExtension ext : allAnalysisExtensions) {
 			final String id      = ext.getUniqueIdentifier();
-			final boolean active = store.getBoolean(ANALYSIS_ACTIVE_PREFIX + id); 
+			final boolean active = isActive(store, id); 
 			if (active) {
 				//System.out.println("Really Included : "+id);
 				m_includedExtensions.add(CommonStrings.intern(id));
@@ -625,6 +633,7 @@ public class Plugin implements IAnalysisContainer {
 	 * <code>m_excludedExtensions</code> field.
 	 */
 	private void analysisExtensionPointsExcludeNonProduction() {
+		/*
 		for (int i = 0; i < allAnalysisExtensions.length; i++) {
 			String uid = allAnalysisExtensions[i].getUniqueIdentifier();
 			IConfigurationElement[] configElements = allAnalysisExtensions[i]
@@ -640,6 +649,14 @@ public class Plugin implements IAnalysisContainer {
 					m_nonProductionAnalysisExtensions
 							.add(allAnalysisExtensions[i]);
 				}
+			}
+		}
+		*/
+		m_nonProductionAnalysisExtensions.clear();
+		for(IAnalysisInfo info : getAllAnalysisInfo()) {
+			if (!info.isProduction()) {
+				AnalysisInfo ai = (AnalysisInfo) info;
+				m_nonProductionAnalysisExtensions.add(ai.ext);
 			}
 		}
 	}
