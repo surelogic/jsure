@@ -59,8 +59,10 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   private Worklist worklist;
 
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
-  
-//  private static final String VALUE = "{(<unknown>:<[NOTNULL],{e}>)}";
+  private static final String VALUE = "{(<>:<top,{conf}>)}";
+  private static final boolean TRACE = false;
+  private static final boolean CHECK_MONOTONICITY = true;
+  private static final boolean DEBUG = false;
   
   //private boolean started = false;
   private long iterations = 0;
@@ -143,11 +145,8 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     setInfo(edge,ll,value);
   }
 
-  private boolean debug = false;
-  public void debug() {
-    debug = true;
-  }
 
+  
   public final T getAfter(final IRNode node, final WhichPort port) {
     Component comp = JavaComponentFactory.getComponent(node, true);
     if (comp == null) {
@@ -205,27 +204,29 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   protected void setInfo(ControlEdge edge, LabeledLattice.LabeledValue<T> lv) {
     if (lv == null) return; // assume transfers are strict
     LabeledLattice.LabeledValue<T> old = infoMap.get(edge);
-//    final String oldString = infoLattice.toString(old);
-//    final String newString = infoLattice.toString(lv);
     
-//    if (newString.equals(VALUE)) {
-//      System.out.println("Found it");
-//    }
-//    
-//    System.out.println("setInfo: " + newString);
+    String newString = null;
+    String oldString = null;
+    if (TRACE) {
+      newString = infoLattice.toString(lv);
+      System.out.println("setInfo: " + newString);
+    }
+    
     if (old != null) {
       if (infoLattice.equals(old,lv)) return;
-      if (debug) {
+      if (CHECK_MONOTONICITY) {
         if (!infoLattice.lessEq(old,lv)) {
+          if (newString == null) newString = infoLattice.toString(lv);
+          oldString = infoLattice.toString(old);
           this.reportMonotonicityError(edge);
-          final String oldString = infoLattice.toString(old);
-          final String newString = infoLattice.toString(lv);
           LOG.severe("Monotonicity error: was " + oldString + "; now " + newString);
         }
       }
     }
-    if (debug && LOG.isLoggable(Level.FINER)) {
-      LOG.finer("new value '" + infoLattice.toString(lv) + "' replaces '" + infoLattice.toString(old) + "'");
+    if (DEBUG && LOG.isLoggable(Level.FINER)) {
+      if (newString == null) newString = infoLattice.toString(lv);
+      if (oldString == null) oldString = infoLattice.toString(old);
+      LOG.finer("new value '" + newString + "' replaces '" + oldString + "'");
     }
     infoMap.put(edge,lv);
     worklist.add(getNodeFromEdgeForWorklist(edge));
@@ -239,7 +240,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     }
     if (value == null || value == lattice.bottom())
       return; // no information changed, assume strict
-    if (debug && LOG.isLoggable(Level.INFO)) {
+    if (DEBUG && LOG.isLoggable(Level.INFO)) {
       LOG.info("new value computed for label list " +
              ll + ": " + lattice.toString(value));
     }
@@ -297,7 +298,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
         LOG.fine("  operator = " + JJNode.tree.getOperator(syntax) + ", syntax = " + nodeViewer.toString(syntax));
       }
     }
-    if (debug) {
+    if (DEBUG) {
       ++iterations;
       if (iterations >= 1000000) throw new FluidError("near-infinite loop in flow analysis.  Probable bug in lattice or in transfer functions.");
     }
@@ -338,17 +339,22 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     LabeledValue<T> lv2 = infoMap.get(e2);
     LabeledValue<T> result = infoLattice.map(lv1,op,arg,lv2);
 
-//    final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
-//    final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
-//    final String rs = result == null ? "null" : infoLattice.toString(result);
-//    if (rs.equals(VALUE)) {
-//      infoLattice.map(lv1,op,arg,lv2);
-//    }
-//    if (!infoLattice.lessEq(lv2, result)) {
-//      infoLattice.map(lv1,op,arg,lv2);
-//    }
-
-    if (debug && LOG.isLoggable(Level.FINE)) {
+    if (TRACE) {
+      final String rs = result == null ? "null" : infoLattice.toString(result);
+      if (rs.equals(VALUE)) {
+        final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+        final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+        infoLattice.map(lv1,op,arg,lv2);
+      }
+    }
+    if (CHECK_MONOTONICITY && !infoLattice.lessEq(lv2, result)) {
+      final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+      final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+      final String rs = result == null ? "null" : infoLattice.toString(result);
+      infoLattice.map(lv1,op,arg,lv2);
+    }
+    
+    if (DEBUG && LOG.isLoggable(Level.FINE)) {
       LOG.fine("map " + op + "(" + arg + ") on " + lv1 + " with cache = " + lv2 + " to get " + result);
     }
     setInfo(e2,result);
@@ -360,18 +366,24 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     LabeledValue<T> lv3 = infoMap.get(e3);
     LabeledValue<T> result = infoLattice.merge(lv1,lv2,combiner,arg,lv3);
 
-//    final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
-//    final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
-//    final String s3 = lv3 == null ? "null" : infoLattice.toString(lv3);
-//    final String rs = result == null ? "null" : infoLattice.toString(result);
-//    if (rs.equals(VALUE)) {
-//      infoLattice.merge(lv1,lv2,combiner,arg,lv3);
-//    }
-//    if (!infoLattice.lessEq(lv3,result)) {
-//      infoLattice.merge(lv1,lv2,combiner,arg,lv3);
-//    }
+    if (TRACE) {
+      final String rs = result == null ? "null" : infoLattice.toString(result);
+      if (rs.equals(VALUE)) {
+        final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+        final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+        final String s3 = lv3 == null ? "null" : infoLattice.toString(lv3);
+        infoLattice.merge(lv1,lv2,combiner,arg,lv3);
+      }
+    }
+    if (CHECK_MONOTONICITY && !infoLattice.lessEq(lv3,result)) {
+      final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+      final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+      final String s3 = lv3 == null ? "null" : infoLattice.toString(lv3);
+      final String rs = result == null ? "null" : infoLattice.toString(result);
+      infoLattice.merge(lv1,lv2,combiner,arg,lv3);
+    }
     
-    if (debug && LOG.isLoggable(Level.FINE)) {
+    if (DEBUG && LOG.isLoggable(Level.FINE)) {
       String in1 = lv1 == null ? "null" : lv1.toString(lattice);
       String in2 = lv2 == null ? "null" : lv2.toString(lattice);
       String out = result == null ? "null" : result.toString(lattice);
@@ -385,17 +397,22 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     LabeledValue<T> lv2 = infoMap.get(e2);
     LabeledValue<T> result = infoLattice.labelMap(lv1,op,arg,lv2);
 
-//    final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
-//    final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
-//    final String rs = result == null ? "null" : infoLattice.toString(result);
-//    if (rs.equals(VALUE)) {
-//      infoLattice.labelMap(lv1,op,arg,lv2);
-//    }
-//    if (!infoLattice.lessEq(lv2, result)) {
-//      infoLattice.labelMap(lv1,op,arg,lv2);
-//    }
-    
-    if (debug && LOG.isLoggable(Level.FINE)) {
+    if (TRACE) {
+      final String rs = result == null ? "null" : infoLattice.toString(result);
+      if (rs.equals(VALUE)) {
+        final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+        final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+        infoLattice.labelMap(lv1,op,arg,lv2);
+      }
+    }
+    if (CHECK_MONOTONICITY && !infoLattice.lessEq(lv2, result)) {
+      final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+      final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+      final String rs = result == null ? "null" : infoLattice.toString(result);
+      infoLattice.labelMap(lv1,op,arg,lv2);
+    }
+
+    if (DEBUG && LOG.isLoggable(Level.FINE)) {
       String in = lv1 == null ? "null" : lv1.toString(lattice);
       String out = result == null ? "null" : result.toString(lattice);
       LOG.fine("labelMap " + op + " over " + in + " to get " + out);
@@ -409,18 +426,24 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     LabeledValue<T> lv3 = infoMap.get(e3);
     LabeledValue<T> merged = infoLattice.labelMap2(lv1,op1,arg1,lv2,op2,arg2,lv3);
     
-//    final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
-//    final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
-//    final String s3 = lv3 == null ? "null" : infoLattice.toString(lv3);
-//    final String rs = merged == null ? "null" : infoLattice.toString(merged);
-//    if (rs.equals(VALUE)) {
-//      infoLattice.labelMap2(lv1,op1,arg1,lv2,op2,arg2,lv3);
-//    }
-//    if (!infoLattice.lessEq(lv3,merged)) {
-//      infoLattice.labelMap2(lv1,op1,arg1,lv2,op2,arg2,lv3);
-//    }
-
-    if (debug && LOG.isLoggable(Level.FINE)) {
+    if (TRACE) {
+      final String rs = merged == null ? "null" : infoLattice.toString(merged);
+      if (rs.equals(VALUE)) {
+        final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+        final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+        final String s3 = lv3 == null ? "null" : infoLattice.toString(lv3);
+        infoLattice.labelMap2(lv1,op1,arg1,lv2,op2,arg2,lv3);
+      }
+    }
+    if (CHECK_MONOTONICITY && !infoLattice.lessEq(lv3,merged)) {
+      final String s1 = lv1 == null ? "null" : infoLattice.toString(lv1);
+      final String s2 = lv2 == null ? "null" : infoLattice.toString(lv2);
+      final String s3 = lv3 == null ? "null" : infoLattice.toString(lv3);
+      final String rs = merged == null ? "null" : infoLattice.toString(merged);
+      infoLattice.labelMap2(lv1,op1,arg1,lv2,op2,arg2,lv3);
+    }
+    
+    if (DEBUG && LOG.isLoggable(Level.FINE)) {
       LOG.fine("labelMap2 merging " + lv1 + " and " + lv2 + " to get " + merged);
     }
     setInfo(e3,merged);
