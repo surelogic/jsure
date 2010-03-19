@@ -44,6 +44,10 @@ import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.refactor.Field;
+import com.surelogic.common.refactor.IJavaDeclaration;
+import com.surelogic.common.refactor.Method;
+import com.surelogic.common.refactor.TypeContext;
 
 public class PromisesAnnotationRewriter {
 
@@ -130,36 +134,36 @@ public class PromisesAnnotationRewriter {
 
 		@Override
 		public boolean visit(final TypeDeclaration node) {
-			type = typeContext(node.getName().getIdentifier());
+			typeContext(node.getName().getIdentifier());
 			rewriteNode(node, TypeDeclaration.MODIFIERS2_PROPERTY, targetMap
-					.get(type));
+					.get(type), type);
 			return true;
 		}
 
 		@Override
 		public boolean visit(final AnnotationTypeDeclaration node) {
-			type = typeContext(node.getName().getIdentifier());
+			typeContext(node.getName().getIdentifier());
 			rewriteNode(node, AnnotationTypeDeclaration.MODIFIERS2_PROPERTY,
-					targetMap.get(type));
+					targetMap.get(type), type);
 			return true;
 		}
 
 		@Override
 		public boolean visit(final AnonymousClassDeclaration node) {
 			final String name = "ANON"; // FIXME
-			type = typeContext(name);
+			typeContext(name);
 			return true;
 		}
 
 		@Override
 		public boolean visit(final EnumDeclaration node) {
-			type = typeContext(node.getName().getIdentifier());
+			typeContext(node.getName().getIdentifier());
 			rewriteNode(node, EnumDeclaration.MODIFIERS2_PROPERTY, targetMap
-					.get(type));
+					.get(type), type);
 			return true;
 		}
 
-		private TypeContext typeContext(final String name) {
+		private void typeContext(final String name) {
 			if (type == null) {
 				type = new TypeContext(name);
 			} else if (inMethod == null) {
@@ -168,7 +172,6 @@ public class PromisesAnnotationRewriter {
 				type = new TypeContext(inMethod, name);
 				inMethod = null;
 			}
-			return type;
 		}
 
 		@Override
@@ -181,7 +184,7 @@ public class PromisesAnnotationRewriter {
 			}
 			inMethod = new Method(type, node.getName().getIdentifier(), params);
 			rewriteNode(node, MethodDeclaration.MODIFIERS2_PROPERTY, targetMap
-					.get(inMethod));
+					.get(inMethod), inMethod);
 			return true;
 		}
 
@@ -194,7 +197,8 @@ public class PromisesAnnotationRewriter {
 		 */
 		private void rewriteNode(final ASTNode node,
 				final ChildListPropertyDescriptor prop,
-				final List<AnnotationDescription> list) {
+				final List<AnnotationDescription> list,
+				final IJavaDeclaration target) {
 			if (list != null) {
 				Collections.sort(list);
 				Collections.reverse(list);
@@ -211,7 +215,7 @@ public class PromisesAnnotationRewriter {
 				}
 				final ListRewrite lrw = rewrite.getListRewrite(node, prop);
 				for (final List<AnnotationDescription> ann : anns) {
-					mergeAnnotations(node.getAST(), ann, lrw);
+					mergeAnnotations(node.getAST(), ann, lrw, target);
 				}
 			}
 		}
@@ -223,22 +227,25 @@ public class PromisesAnnotationRewriter {
 		 * 
 		 * @param ann
 		 * @param lrw
+		 * @param target
 		 */
 		@SuppressWarnings("unchecked")
 		private void mergeAnnotations(final AST ast,
-				final List<AnnotationDescription> ann, final ListRewrite lrw) {
+				final List<AnnotationDescription> ann, final ListRewrite lrw,
+				final IJavaDeclaration target) {
 			final List<ASTNode> nodes = lrw.getRewrittenList();
 			final Mergeable m = merge(ann);
 			for (final ASTNode aNode : nodes) {
 				if (aNode instanceof Annotation) {
 					final Annotation a = (Annotation) aNode;
 					if (m.match(a)) {
-						lrw.replace(aNode, m.merge(ast, a, imports), editGroup);
+						lrw.replace(aNode, m.merge(ast, a, target, imports),
+								editGroup);
 						return;
 					}
 				}
 			}
-			lrw.insertFirst(m.merge(ast, null, imports), editGroup);
+			lrw.insertFirst(m.merge(ast, null, target, imports), editGroup);
 		}
 
 		private String fromType(final ITypeBinding t) {
@@ -252,15 +259,16 @@ public class PromisesAnnotationRewriter {
 					.fragments();
 			// Handle when we have more than one field in the same declaration
 			final List<AnnotationDescription> list = new ArrayList<AnnotationDescription>();
+			Field f = null;
 			for (final VariableDeclarationFragment frag : fragments) {
-				final Field f = new Field(type, frag.getName().getIdentifier());
+				f = new Field(type, frag.getName().getIdentifier());
 				final List<AnnotationDescription> list2 = targetMap.get(f);
 				if (list2 != null) {
 					list.addAll(list2);
 				}
 			}
 			if (!list.isEmpty()) {
-				rewriteNode(node, FieldDeclaration.MODIFIERS2_PROPERTY, list);
+				rewriteNode(node, FieldDeclaration.MODIFIERS2_PROPERTY, list, f);
 			}
 			return false;
 		}
@@ -349,7 +357,7 @@ public class PromisesAnnotationRewriter {
 
 		@SuppressWarnings("unchecked")
 		public Annotation merge(final AST ast, final Annotation cur,
-				final Set<String> imports) {
+				final IJavaDeclaration target, final Set<String> imports) {
 			final Set<String> existing = new HashSet<String>();
 			if (cur != null) {
 				final Expression e = extractValue(cur);
@@ -422,7 +430,7 @@ public class PromisesAnnotationRewriter {
 		}
 
 		public Annotation merge(final AST ast, final Annotation a,
-				final Set<String> imports) {
+				final IJavaDeclaration target, final Set<String> imports) {
 			addImport(name, imports);
 			final TreeSet<String> contents = new TreeSet<String>();
 			for (final AnnotationDescription desc : newAnnotations) {
@@ -474,12 +482,13 @@ public class PromisesAnnotationRewriter {
 
 		@SuppressWarnings("unchecked")
 		public Annotation merge(final AST ast, final Annotation cur,
-				final Set<String> imports) {
+				final IJavaDeclaration target, final Set<String> imports) {
 			if (cur != null) {
 				final Expression e = extractValue(cur);
 				if (e instanceof StringLiteral) {
 					final String lit = ((StringLiteral) e).getLiteralValue();
-					newAnnotations.add(new AnnotationDescription(name, lit));
+					newAnnotations.add(new AnnotationDescription(name, lit,
+							target));
 				} else if (e instanceof ArrayInitializer) {
 					final ArrayInitializer init = (ArrayInitializer) e;
 					final List<Expression> es = init.expressions();
@@ -487,10 +496,10 @@ public class PromisesAnnotationRewriter {
 						if (ex instanceof Annotation) {
 							final Expression val = extractValue((Annotation) ex);
 							if (val instanceof StringLiteral) {
-								final String lit = ((StringLiteral) e)
+								final String lit = ((StringLiteral) val)
 										.getLiteralValue();
 								newAnnotations.add(new AnnotationDescription(
-										name, lit));
+										name, lit, target));
 							}
 						}
 					}
@@ -527,7 +536,9 @@ public class PromisesAnnotationRewriter {
 		 *            necessary.
 		 * @return
 		 */
-		Annotation merge(AST ast, Annotation a, Set<String> imports);
+		Annotation merge(AST ast, Annotation a, IJavaDeclaration target,
+				Set<String> imports);
+
 	}
 
 	@SuppressWarnings("unchecked")

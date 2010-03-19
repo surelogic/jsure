@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import com.surelogic.common.refactor.IJavaDeclaration;
+
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
@@ -14,7 +16,7 @@ import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
  * @author nathan
  * 
  */
-class AnnotationDescription implements Comparable<AnnotationDescription> {
+public class AnnotationDescription implements Comparable<AnnotationDescription> {
 
 	private final String annotation;
 	private final String contents;
@@ -23,8 +25,9 @@ class AnnotationDescription implements Comparable<AnnotationDescription> {
 	private final CU cu;
 	private final CU assumptionCU;
 
-	AnnotationDescription(final String annotation, final String contents) {
-		this(annotation, contents, null, null, null, null);
+	public AnnotationDescription(final String annotation,
+			final String contents, final IJavaDeclaration target) {
+		this(annotation, contents, target, null, null, null);
 	}
 
 	public AnnotationDescription(final String annotation,
@@ -34,6 +37,10 @@ class AnnotationDescription implements Comparable<AnnotationDescription> {
 		if (annotation == null) {
 			throw new IllegalArgumentException(
 					"The annotation must always be specified.");
+		}
+		if (target == null) {
+			throw new IllegalArgumentException(
+					"A target for this annotation must be specified");
 		}
 		this.target = target;
 		this.assumptionTarget = assumptionTarget;
@@ -90,7 +97,6 @@ class AnnotationDescription implements Comparable<AnnotationDescription> {
 		result = prime * result
 				+ (annotation == null ? 0 : annotation.hashCode());
 		result = prime * result + (contents == null ? 0 : contents.hashCode());
-		result = prime * result + (cu == null ? 0 : cu.hashCode());
 		result = prime * result + (target == null ? 0 : target.hashCode());
 		return result;
 	}
@@ -119,13 +125,6 @@ class AnnotationDescription implements Comparable<AnnotationDescription> {
 				return false;
 			}
 		} else if (!contents.equals(other.contents)) {
-			return false;
-		}
-		if (cu == null) {
-			if (other.cu != null) {
-				return false;
-			}
-		} else if (!cu.equals(other.cu)) {
 			return false;
 		}
 		if (target == null) {

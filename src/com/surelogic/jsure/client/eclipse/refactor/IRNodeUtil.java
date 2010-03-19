@@ -3,6 +3,12 @@ package com.surelogic.jsure.client.eclipse.refactor;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.surelogic.common.refactor.Field;
+import com.surelogic.common.refactor.IJavaDeclaration;
+import com.surelogic.common.refactor.Method;
+import com.surelogic.common.refactor.MethodParameter;
+import com.surelogic.common.refactor.TypeContext;
+
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
