@@ -223,7 +223,9 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		doBuild(lastArgs);
 	}
 
-	private void doBuild(Map<Object, Object> args) throws CoreException {
+	static final boolean debug = false;
+	
+	private void doBuild(Map<Object, Object> args) throws CoreException {		
 		try {
 			IJavaProject javaProject = JavaCore.create(getProject());			
 			if (noCompilationErrors(javaProject) && projectCache.hasInterestingFilesToBuild()) {
@@ -235,9 +237,11 @@ public final class Majordomo extends AbstractJavaBuilder implements
 				} catch (CoreException e) {
 					handleFailure("General problem while doing double-checker analysis", e);
 				} finally {
-					long end = System.currentTimeMillis();
-					System.err.println("Time to analyze code = "+(end-start)+" ms");
-					//System.out.println("Total nodes          = "+AbstractIRNode.getTotalNodesCreated());
+					if (debug) {
+						long end = System.currentTimeMillis();
+						System.err.println("Time to analyze code = "+(end-start)+" ms");
+						//System.out.println("Total nodes          = "+AbstractIRNode.getTotalNodesCreated());
+					}
 					projectCache.reset(); // wipe the cache for this project					
 				}			
 			} else {
@@ -565,17 +569,15 @@ public final class Majordomo extends AbstractJavaBuilder implements
 						currentLevel = Plugin.getDefault().m_analysisExtensionSets
 								.get(i);
 						
-						//final long start = System.currentTimeMillis();
+						final long start = System.currentTimeMillis();
 						analyzeBeginCurrentLevel(getProject());
 						getProject().accept(Majordomo.this);
 						analyzeEndCurrentLevel(getProject());
-						/*
 						final long end = System.currentTimeMillis();
 						System.out.println("Time: "+(end-start)+" ms");
 						for(IExtension ext : currentLevel) {
 							System.out.println("\t"+ext.getLabel());
 						}
-                        */
 					}
 					postBuild(getProject());
 				} else {
