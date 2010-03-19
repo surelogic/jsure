@@ -14,6 +14,8 @@ import edu.cmu.cs.fluid.dc.IAnalysis;
 import edu.cmu.cs.fluid.util.*;
 
 public class AnalysisDriver extends AbstractAnalysisModule<Void> {
+	public static final boolean useJavac = false;
+	
 	private IProject project;
 	@SuppressWarnings("unchecked")
 	private Map args;
@@ -84,6 +86,8 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 		resources.clear();
 		cus.clear();
 		
-		//JavacDriver.getInstance().doBuild(p);
+		if (useJavac) {
+			JavacDriver.getInstance().doBuild(p);
+		}
 	}
 }
