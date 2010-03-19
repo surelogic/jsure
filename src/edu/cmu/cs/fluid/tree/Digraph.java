@@ -13,6 +13,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
@@ -481,7 +482,11 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 
   /** Return the children of a node in order. */
   public Iteratable<IRNode> children(IRNode node) {
-    return mutator.protect(getChildren(node).elements());
+	final IRSequence<IRNode> seq = getChildren(node);
+	if (seq == null) {
+		return EmptyIterator.prototype();
+	}
+    return mutator.protect(seq.elements());
   }
   
   @SuppressWarnings("unchecked")
