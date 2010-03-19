@@ -454,8 +454,12 @@ public abstract class AbstractFluidAnalysisModule<Q> extends
   }
 
   protected void removeResource(IResource resource) {
+	if (!resource.getName().endsWith(".java")) {
+		return;			
+    }
     final CUDrop drop = SourceCUDrop.queryCU(new EclipseCodeFile(resource));   
     if (drop != null && drop.isValid()) {
+   	  //System.out.println("Invalidating "+drop.javaOSFileName);
       drop.invalidate();
     }
   }
