@@ -40,6 +40,7 @@ public class JavacDriver {
 		final IProject project;
 		final List<ICompilationUnit> allCompUnits;
 		final Set<ICompilationUnit> cuDelta = new HashSet<ICompilationUnit>();
+		final Set<IResource> removed = new HashSet<IResource>();
 		/**
 		 * All comp units includes delta?
 		 */		
@@ -60,6 +61,15 @@ public class JavacDriver {
 				updated = false;
 			}			
 		}
+		
+		void registerResourcesDelta(List<Pair<IResource, Integer>> resources) {
+			for(Pair<IResource, Integer> p : resources) {
+				if (p.second() == IResourceDelta.REMOVED && p.first().getName().endsWith(".java")) {
+					removed.add(p.first());
+					updated = false;
+				}
+			}
+		}
 	
 		private boolean needsUpdate() {
 			return !updated && !cuDelta.isEmpty();
@@ -67,15 +77,17 @@ public class JavacDriver {
 		
 		Iterable<ICompilationUnit> getAllCompUnits() {
 			if (needsUpdate()) {
-				update(allCompUnits, cuDelta);
+				update(allCompUnits, cuDelta, removed);
 			}
 			return allCompUnits;			
 		}
-		
+		Iterable<IResource> getRemovedResources() {
+			return removed;
+		}
 		Iterable<ICompilationUnit> getDelta() {
 			if (needsUpdate()) {
 				Iterable<ICompilationUnit> result = new ArrayList<ICompilationUnit>(cuDelta);
-				update(allCompUnits, cuDelta);
+				update(allCompUnits, cuDelta, removed);
 				return result;
 			}
 			return allCompUnits;	 
@@ -83,19 +95,28 @@ public class JavacDriver {
 		
 		Config makeConfig(boolean all) throws JavaModelException {
 			Config config = new ZippedConfig(project.getName(), false);
+			for(IResource res : getRemovedResources()) {
+				final File f = res.getLocation().toFile();
+				config.addRemovedFile(f);
+			}
 			for(ICompilationUnit icu : all ? getAllCompUnits() : getDelta()) {
 				final File f = icu.getResource().getLocation().toFile();
-				String pkg = null;
-				for(IPackageDeclaration pd : icu.getPackageDeclarations()) {
-					config.addPackage(pd.getElementName());
-					pkg = pd.getElementName();
-				}
-				String qname = icu.getElementName();
-				if (qname.endsWith(".java")) {
-				    qname = qname.substring(0, qname.length()-5);
-				}
-				if (pkg != null) {
-				    qname = pkg+'.'+qname;
+				String qname;
+				if (f.exists()) {
+					String pkg = null;
+					for(IPackageDeclaration pd : icu.getPackageDeclarations()) {
+						config.addPackage(pd.getElementName());
+						pkg = pd.getElementName();
+					}
+					qname = icu.getElementName();
+					if (qname.endsWith(".java")) {
+						qname = qname.substring(0, qname.length()-5);
+					}
+					if (pkg != null) {
+						qname = pkg+'.'+qname;
+					}
+				} else { // Removed
+					qname = f.getName();
 				}
 				config.addFile(new Pair<String, File>(qname, f));
 			}			
@@ -146,8 +167,19 @@ public class JavacDriver {
 		
 		/**
 		 * Either add/remove as needed
+		 * @param removed2 
 		 */
-		void update(Collection<ICompilationUnit> all, Collection<ICompilationUnit> cus) {
+		void update(Collection<ICompilationUnit> all, Collection<ICompilationUnit> cus, 
+				    Set<IResource> removed) {
+			// Filter out removed files
+			final Iterator<ICompilationUnit> it = all.iterator();
+			while (it.hasNext()) {
+				final ICompilationUnit cu = it.next();
+				if (removed.contains(cu.getResource())) {
+					it.remove();
+				}
+			}
+			// Add in changed ones
 			for(ICompilationUnit cu : cus) {
 				// TODO use a Set instead?
 				if (cu.getResource().exists()) {
@@ -183,6 +215,7 @@ public class JavacDriver {
 				throw new IllegalStateException("No full build before this?");
 			}
 			info.registerDelta(cus);
+			info.registerResourcesDelta(resources);
 		}
 	}
 	
