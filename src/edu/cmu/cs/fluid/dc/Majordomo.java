@@ -573,10 +573,12 @@ public final class Majordomo extends AbstractJavaBuilder implements
 						analyzeBeginCurrentLevel(getProject());
 						getProject().accept(Majordomo.this);
 						analyzeEndCurrentLevel(getProject());
-						final long end = System.currentTimeMillis();
-						System.out.println("Time: "+(end-start)+" ms");
-						for(IExtension ext : currentLevel) {
-							System.out.println("\t"+ext.getLabel());
+						if (debug) {
+							final long end = System.currentTimeMillis();
+							System.out.println("Time: "+(end-start)+" ms");
+							for(IExtension ext : currentLevel) {
+								System.out.println("\t"+ext.getLabel());
+							}
 						}
 					}
 					postBuild(getProject());
@@ -591,12 +593,21 @@ public final class Majordomo extends AbstractJavaBuilder implements
 					for (int i = 0; i < analysisDepth(); ++i) {
 						currentLevel = Plugin.getDefault().m_analysisExtensionSets
 								.get(i);
+						
+						final long start = System.currentTimeMillis();
 						analyzeBeginCurrentLevel(getProject());
 						for (CacheEntry element : resourceCache) {
 							Majordomo.this.analyzeResourceCurrentLevel(element
 									.getResource(), element.getKind());
 						}
 						analyzeEndCurrentLevel(getProject());
+						if (debug) {
+							final long end = System.currentTimeMillis();
+							System.out.println("Time: "+(end-start)+" ms");
+							for(IExtension ext : currentLevel) {
+								System.out.println("\t"+ext.getLabel());
+							}
+						}
 					}
 					postBuild(getProject());
 				}
