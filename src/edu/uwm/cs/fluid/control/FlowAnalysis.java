@@ -61,7 +61,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
   private static final String VALUE = "{(<>:<top,{conf}>)}";
   private static final boolean TRACE = false;
-  private static final boolean CHECK_MONOTONICITY = true;
+  private static final boolean CHECK_MONOTONICITY = false;
   private static final boolean DEBUG = false;
   
   //private boolean started = false;
