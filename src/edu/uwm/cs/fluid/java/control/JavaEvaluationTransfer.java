@@ -218,6 +218,11 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>,T> extends Jav
   protected T transferAssignment(IRNode node, T val) {
     IRNode lhs = ((AssignmentInterface) tree.getOperator(node)).getTarget(node);
     Operator lop = tree.getOperator(lhs);
+    if (UnboxExpression.prototype.includes(lop)) {
+      lhs = UnboxExpression.getOp(lhs);
+      lop = tree.getOperator(lhs);
+    }
+    
     if (lop instanceof VariableUseExpression)
       return transferAssignVar(lhs, val);
     else if (lop instanceof FieldRef)
@@ -962,8 +967,14 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>,T> extends Jav
    */
   protected final boolean hasOuterObject(IRNode node) {
     IRNode p = tree.getParent(node);
-    IRNode gp = tree.getParent(node);
-    return (tree.getOperator(p) instanceof OuterObjectSpecifier ||
-                  tree.getOperator(gp) instanceof OuterObjectSpecifier);
+    if (OuterObjectSpecifier.prototype.includes(p)) {
+      return OuterObjectSpecifier.getCall(p).equals(node);
+    } else {
+      IRNode gp = tree.getParent(p);
+      if (OuterObjectSpecifier.prototype.includes(gp)) {
+        return OuterObjectSpecifier.getCall(gp).equals(p);
+      }
+    }
+    return false;
   }
 }
