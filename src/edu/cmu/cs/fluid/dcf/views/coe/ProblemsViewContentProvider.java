@@ -123,6 +123,9 @@ public final class ProblemsViewContentProvider implements ITableContentProvider 
 				return name;
 			}
 			IFile f = EclipseUtility.resolveIFile(name);
+			if (f == null) {
+				return "";
+			}
 			return f.getFullPath().toPortableString();
 		} else if (o != null) {
 			return o.toString();
