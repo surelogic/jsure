@@ -521,7 +521,7 @@ public class CommonAASTBinder extends AASTBinder {
 		  return null;
 	  }
 	  final IRNode t = tEnv.findNamedType(qname);
-	  if (t != null) {
+	  if (t != null && TypeDeclaration.prototype.includes(t)) {
 		  return new AbstractLayerBinding(LayerBindingKind.TYPE) {
 			  @Override public IRNode getType() {
 				  return t;
