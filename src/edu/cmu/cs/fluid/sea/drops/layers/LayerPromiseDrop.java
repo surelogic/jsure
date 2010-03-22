@@ -10,7 +10,14 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 public class LayerPromiseDrop extends AbstractReferenceCheckDrop<LayerNode> {
 	public LayerPromiseDrop(LayerNode a) {
 		super(a);
+		//System.out.println("Creating layer: "+a);
 	}
+	/*
+	@Override
+	protected void invalidate_internal() {
+		System.out.println("Invalidating layer: "+getAST());
+	}
+	*/
 	public String getId() {
 		return getAST().getId();
 	}

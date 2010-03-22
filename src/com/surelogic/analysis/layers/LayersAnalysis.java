@@ -46,6 +46,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
  	
 	@Override
 	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor) {	
+		//System.out.println("Analyzing layers for: "+cud.javaOSFileName);
 		final IRNode type = VisitUtil.getPrimaryType(cu);
 		final InLayerPromiseDrop inLayer = LayerRules.getInLayerDrop(type);
 		final MayReferToPromiseDrop mayReferTo = LayerRules.getMayReferToDrop(type);	
