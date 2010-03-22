@@ -164,6 +164,7 @@ public final class PackageLevelPreprocessing extends
 	public boolean analyzeCompilationUnit(final ICompilationUnit file,
 			CompilationUnit ast, 
             IAnalysisMonitor monitor) {
+		// Only here to pick up dependencies
 		CUDrop d = SourceCUDrop.queryCU(new EclipseCodeFile(file));
 		dependencies.markAsChanged(d);
 		return false;
@@ -211,14 +212,14 @@ public final class PackageLevelPreprocessing extends
 				System.out.println("\t"+d.getMessage());
 			}
 			*/
-			dependencies.collect(old);
+			dependencies.markAsChanged(old);
 			old.invalidate();
 		}
 		
 		IRNode root = JavaSourceFileAdapter.getInstance().adaptPackage(icu, cu);
 		final PackageDrop pkg = Binding.createPackage(pkgName, root);
 		dependencies.markAsChanged(pkg);
-		
+	
 		runVersioned(new AbstractRunner() {
 			public void run() {
 				try {
@@ -229,11 +230,7 @@ public final class PackageLevelPreprocessing extends
 						ISrcRef srcRef = SrcRef.getInstance(pd, cu, resource, src);
 						pkg.node.setSlotValue(JavaNode.getSrcRefSlotInfo(), srcRef);
 					}
-					final IRNode top = VisitUtil.getEnclosingCompilationUnit(pkg.node);
-					// Look for Javadoc/Java5 annotations
-					final ITypeEnvironment te = Eclipse.getDefault().getTypeEnv(getProject());
-					AnnotationVisitor v = new AnnotationVisitor(te, pkgName);
-					v.doAccept(top);
+					parsePackagePromises(pkg);
 				} catch (JavaModelException e) {
 					e.printStackTrace();
 				}
@@ -242,6 +239,13 @@ public final class PackageLevelPreprocessing extends
 		return pkg;
 	}
 
+	private void parsePackagePromises(final PackageDrop pkg) {
+		final IRNode top = VisitUtil.getEnclosingCompilationUnit(pkg.node);
+		// Look for Javadoc/Java5 annotations
+		final ITypeEnvironment te = Eclipse.getDefault().getTypeEnv(getProject());
+		AnnotationVisitor v = new AnnotationVisitor(te, pkg.javaOSFileName);
+		v.doAccept(top);
+	}
 	
 	class Dependencies {
 		/**
@@ -313,30 +317,46 @@ public final class PackageLevelPreprocessing extends
 			processPromiseWarningDrops();
 			
 			reprocess.removeAll(changed);			
-			/*
 			for(CUDrop d : changed) {
 				System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 			}		
 			for(CUDrop d : reprocess) {
 				System.out.println("Reprocess: "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 			}
-			*/
 			IDE.getInstance().setAdapting();
 			try {
 				for(CUDrop d : reprocess) {
+					clearPromiseDrops(d);
 					if (d instanceof PackageDrop) {
-						//Nothing else needed 
-					} else {		
-						// Clear out promise drops
-						//System.out.println("Reprocessing "+d.javaOSFileName);
-						for(IRNode n : JavaPromise.bottomUp(d.cu)) {
-							PromiseDropStorage.clearDrops(n);
-						}	
+						final PackageDrop pkg = (PackageDrop) d;						
+						for(Drop dependent : pkg.getDependents()) {
+							dependent.invalidate();
+						}						
+						runVersioned(new AbstractRunner() {
+							public void run() {
+								parsePackagePromises(pkg);
+							}
+						});
+					}
+				}
+				// Necessary to process these after package drops 
+				// to ensure that newly created drops don't invalidated
+				for(CUDrop d : reprocess) {
+					// Already cleared above
+					if (!(d instanceof PackageDrop)) {	
 						ConvertToIR.getInstance().registerClass(d.makeCodeInfo());
 					}
 				}
 			} finally {
 				IDE.getInstance().clearAdapting();
+			}
+		}
+
+		private void clearPromiseDrops(CUDrop d) {
+			// Clear out promise drops
+			//System.out.println("Reprocessing "+d.javaOSFileName);
+			for(IRNode n : JavaPromise.bottomUp(d.cu)) {
+				PromiseDropStorage.clearDrops(n);
 			}
 		}
 	}
