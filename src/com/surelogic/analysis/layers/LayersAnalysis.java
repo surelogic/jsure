@@ -19,7 +19,7 @@ import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,Void> {
-	public static final Category DSC_LAYERS_ISSUES = Category.getInstance("Layers");
+	public static final Category DSC_LAYERS_ISSUES = Category.getInstance("Static structure");
 	
 	public LayersAnalysis() {
 		super("Layers");

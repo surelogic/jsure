@@ -9,6 +9,10 @@ public class TypeSetPromiseDrop extends AbstractReferenceCheckDrop<TypeSetNode> 
 	public TypeSetPromiseDrop(TypeSetNode a) {
 		super(a);
 	}
+	@Override
+	public boolean isIntendedToBeCheckedByAnalysis() {
+		return false;
+	}	
 	public String getId() {
 		return getAST().getId();
 	}
