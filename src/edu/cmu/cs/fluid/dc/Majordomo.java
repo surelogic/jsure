@@ -20,6 +20,7 @@ import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
@@ -230,7 +231,9 @@ public final class Majordomo extends AbstractJavaBuilder implements
 			IJavaProject javaProject = JavaCore.create(getProject());			
 			if (noCompilationErrors(javaProject) && projectCache.hasInterestingFilesToBuild()) {
 				// we are OK to do analysis -- no errors
-				NotificationHub.notifyAnalysisStarting();
+				if (!AnalysisDriver.useJavac) {
+					NotificationHub.notifyAnalysisStarting();
+				}
 				final long start = System.currentTimeMillis();
 				try {
 					projectCache.flushCache(args);
@@ -245,7 +248,9 @@ public final class Majordomo extends AbstractJavaBuilder implements
 					projectCache.reset(); // wipe the cache for this project					
 				}			
 			} else {
-				NotificationHub.notifyAnalysisPostponed();
+				if (!AnalysisDriver.useJavac) {
+					NotificationHub.notifyAnalysisPostponed();
+				}
 			}
 			showBuildIsDone();
 		} catch (OperationCanceledException e) {
@@ -258,7 +263,9 @@ public final class Majordomo extends AbstractJavaBuilder implements
 			handleFailure("General problem (Throwable) while"
 					      + " preparing for double-checker analysis", e);
 		} finally {
-			NotificationHub.notifyAnalysisCompleted();
+			if (!AnalysisDriver.useJavac) {
+				NotificationHub.notifyAnalysisCompleted();
+			}
 		}
 	}
 
