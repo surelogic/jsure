@@ -74,9 +74,13 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				if (bindT == null) {
 					bindT = CompilationUnit.getPkg(bindCu);
 				}
-				
+				// TODO fix to get this from the method
 				final AllowsReferencesFromPromiseDrop allows = getAnalysis().allowRefs(bindT);
 				final ResultDrop rd = checkBinding(allows, b, type, n);
+				if (allows != null && rd == null) {					
+					ResultDrop success = createSuccessDrop(type, allows);
+					success.setResultMessage(352, JavaNames.getRelativeTypeName(type));
+				}
 				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
 				if (rd2 != null) {
 					problemWithMayReferTo = true;
@@ -104,28 +108,31 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			}
 		}
 		if (!problemWithInLayer) {
-			ResultDrop rd = new ResultDrop("Layers -- no errors");
-			rd.setCategory(DSC_LAYERS_ISSUES);
-			rd.setNodeAndCompilationUnitDependency(type);			
+			ResultDrop rd = createSuccessDrop(type, inLayer);	
 			rd.setResultMessage(351, JavaNames.getRelativeTypeName(type));
-			rd.addCheckedPromise(inLayer);
-			rd.setConsistent();
 		}	
 		if (!problemWithMayReferTo) {
-			ResultDrop rd = new ResultDrop("Layers -- no errors");
-			rd.setCategory(DSC_LAYERS_ISSUES);
-			rd.setNodeAndCompilationUnitDependency(type);			
+			ResultDrop rd = createSuccessDrop(type, mayReferTo);
 			rd.setResultMessage(351, JavaNames.getRelativeTypeName(type));
-			rd.addCheckedPromise(mayReferTo);
-			rd.setConsistent();
 		}	
 		return true;
+	}
+	
+	private static ResultDrop createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
+		ResultDrop rd = new ResultDrop("Layers -- no errors");
+		rd.setCategory(DSC_LAYERS_ISSUES);
+		rd.setNodeAndCompilationUnitDependency(type);			
+		rd.addCheckedPromise(checked);
+		rd.setConsistent();
+		return rd;
 	}
 	
 	private ResultDrop checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
 		if (d != null) {
 			if (!d.check(type)) {
-				//d.check(type);
+				final IRNode contextType = VisitUtil.getClosestType(context);
+				System.out.println("Found bad ref in "+JavaNames.getFullTypeName(contextType));
+				d.check(type);
 				
 				// Create error
 				ResultDrop rd = new ResultDrop("Layers");
