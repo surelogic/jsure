@@ -472,10 +472,10 @@ public class PromisesAnnotationRewriter {
 
 		final String name;
 		final String wrapper;
-		final List<AnnotationDescription> newAnnotations;
+		final Set<AnnotationDescription> newAnnotations;
 
 		DefaultMergeStrategy(final List<AnnotationDescription> anns) {
-			this.newAnnotations = anns;
+			this.newAnnotations = new HashSet<AnnotationDescription>(anns);
 			this.name = anns.get(0).getAnnotation();
 			this.wrapper = name + "s";
 		}
@@ -543,18 +543,21 @@ public class PromisesAnnotationRewriter {
 
 	@SuppressWarnings("unchecked")
 	private Annotation createWrappedAnnotation(final AST ast,
-			final String wrapperName, final List<AnnotationDescription> anns,
+			final String wrapperName, final Set<AnnotationDescription> anns,
 			final Set<String> imports) {
 		final int len = anns.size();
 		if (len == 1) {
-			return ann(ast, anns.get(0), imports);
+			return ann(ast, anns.iterator().next(), imports);
 		} else if (len > 1) {
 			final SingleMemberAnnotation a = ast.newSingleMemberAnnotation();
 			a.setTypeName(ast.newName(wrapperName));
 			addImport(wrapperName, imports);
 			final ArrayInitializer arr = ast.newArrayInitializer();
 			final List<Expression> expressions = arr.expressions();
-			for (final AnnotationDescription desc : anns) {
+			final List<AnnotationDescription> descs = new ArrayList<AnnotationDescription>(
+					anns);
+			Collections.sort(descs);
+			for (final AnnotationDescription desc : descs) {
 				expressions.add(ann(ast, desc, imports));
 			}
 			a.setValue(arr);

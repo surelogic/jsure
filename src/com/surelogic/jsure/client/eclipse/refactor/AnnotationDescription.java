@@ -83,7 +83,19 @@ public class AnnotationDescription implements Comparable<AnnotationDescription> 
 	}
 
 	public int compareTo(final AnnotationDescription o) {
-		return cmp.compare(getAnnotation(), o.getAnnotation());
+		int compare = cmp.compare(getAnnotation(), o.getAnnotation());
+		if (compare == 0) {
+			if (contents == null && o.contents == null) {
+				compare = 0;
+			} else if (contents == null) {
+				compare = -1;
+			} else if (o.contents == null) {
+				compare = 1;
+			} else {
+				compare = o.contents.compareTo(contents);
+			}
+		}
+		return compare;
 	}
 
 	public boolean hasContents() {
