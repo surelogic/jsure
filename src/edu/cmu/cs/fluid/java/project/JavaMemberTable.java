@@ -778,7 +778,11 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       DebugUtil.println(out, indent, "[SuperScope for "+JavaNames.getFullTypeName(typeDeclaration)+"]");
       for (IJavaType superType : getSuperTypes()) {
         IJavaScope scope = binder.typeScope(superType);
-        scope.printTrace(out, indent+2);
+        if (scope != null) {
+        	scope.printTrace(out, indent+2);
+        } else {
+        	DebugUtil.println(out, indent+2, "Null for "+superType);
+        }
       }
       DebugUtil.println(out, indent, "[End SuperScope for "+JavaNames.getFullTypeName(typeDeclaration)+"]");
     }    
