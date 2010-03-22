@@ -322,6 +322,10 @@ public class LayerRules extends AnnotationRules {
 					final String pkg   = qname.substring(0, lastDot);
 					final String name  = qname.substring(lastDot+1);
 					PackageDrop pd     = PackageDrop.findPackage(pkg);
+					if (pd == null) {
+						LOG.severe("Couldn't find "+pkg+" for "+a);
+						return null;
+					}
 					LayerPromiseDrop l = LayerRules.findLayer(pd.node, name);
 					InLayerPromiseDrop d = new InLayerPromiseDrop(a);
 					l.addDependent(d);
