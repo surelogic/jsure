@@ -483,12 +483,15 @@ public class PromisesAnnotationRewriter {
 		@SuppressWarnings("unchecked")
 		public Annotation merge(final AST ast, final Annotation cur,
 				final IJavaDeclaration target, final Set<String> imports) {
+			final Set<String> newContents = new HashSet<String>();
+			for (final AnnotationDescription desc : newAnnotations) {
+				newContents.add(desc.getContents());
+			}
 			if (cur != null) {
 				final Expression e = extractValue(cur);
 				if (e instanceof StringLiteral) {
 					final String lit = ((StringLiteral) e).getLiteralValue();
-					newAnnotations.add(new AnnotationDescription(name, lit,
-							target));
+					newContents.add(lit);
 				} else if (e instanceof ArrayInitializer) {
 					final ArrayInitializer init = (ArrayInitializer) e;
 					final List<Expression> es = init.expressions();
@@ -498,14 +501,13 @@ public class PromisesAnnotationRewriter {
 							if (val instanceof StringLiteral) {
 								final String lit = ((StringLiteral) val)
 										.getLiteralValue();
-								newAnnotations.add(new AnnotationDescription(
-										name, lit, target));
+								newContents.add(lit);
 							}
 						}
 					}
 				}
 			}
-			return createWrappedAnnotation(ast, wrapper, newAnnotations,
+			return createWrappedAnnotation(ast, name, wrapper, newContents,
 					imports);
 		}
 
@@ -543,22 +545,21 @@ public class PromisesAnnotationRewriter {
 
 	@SuppressWarnings("unchecked")
 	private Annotation createWrappedAnnotation(final AST ast,
-			final String wrapperName, final Set<AnnotationDescription> anns,
-			final Set<String> imports) {
-		final int len = anns.size();
+			final String name, final String wrapperName,
+			final Set<String> contents, final Set<String> imports) {
+		final int len = contents.size();
 		if (len == 1) {
-			return ann(ast, anns.iterator().next(), imports);
+			return ann(ast, name, contents.iterator().next(), imports);
 		} else if (len > 1) {
 			final SingleMemberAnnotation a = ast.newSingleMemberAnnotation();
 			a.setTypeName(ast.newName(wrapperName));
 			addImport(wrapperName, imports);
 			final ArrayInitializer arr = ast.newArrayInitializer();
 			final List<Expression> expressions = arr.expressions();
-			final List<AnnotationDescription> descs = new ArrayList<AnnotationDescription>(
-					anns);
-			Collections.sort(descs);
-			for (final AnnotationDescription desc : descs) {
-				expressions.add(ann(ast, desc, imports));
+			final List<String> cs = new ArrayList<String>(contents);
+			Collections.sort(cs);
+			for (final String desc : cs) {
+				expressions.add(ann(ast, name, desc, imports));
 			}
 			a.setValue(arr);
 			return a;
@@ -595,19 +596,19 @@ public class PromisesAnnotationRewriter {
 	 * @return
 	 */
 
-	private Annotation ann(final AST ast, final AnnotationDescription desc,
-			final Set<String> imports) {
-		addImport(desc.getAnnotation(), imports);
-		if (desc.hasContents()) {
+	private Annotation ann(final AST ast, final String name,
+			final String contents, final Set<String> imports) {
+		addImport(name, imports);
+		if (contents != null) {
 			final SingleMemberAnnotation ann = ast.newSingleMemberAnnotation();
-			ann.setTypeName(ast.newName(desc.getAnnotation()));
+			ann.setTypeName(ast.newName(name));
 			final StringLiteral lit = ast.newStringLiteral();
-			lit.setLiteralValue(desc.getContents());
+			lit.setLiteralValue(contents);
 			ann.setValue(lit);
 			return ann;
 		} else {
 			final MarkerAnnotation ann = ast.newMarkerAnnotation();
-			ann.setTypeName(ast.newName(desc.getAnnotation()));
+			ann.setTypeName(ast.newName(name));
 			return ann;
 		}
 	}
