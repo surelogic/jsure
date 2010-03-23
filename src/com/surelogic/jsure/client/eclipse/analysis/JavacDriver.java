@@ -326,7 +326,7 @@ public class JavacDriver {
                     } else if (ze.getName().endsWith("/package-info.java")) {
                         // TODO what to do about this?
                     } else {
-                        throw new IllegalStateException("Unable to get qname for "+ze.getName());
+                        System.err.println("Unable to get qname for "+ze.getName());
                     }
                 }
             }
