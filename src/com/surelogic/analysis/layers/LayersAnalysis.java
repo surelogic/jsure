@@ -76,7 +76,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 					bindT = CompilationUnit.getPkg(bindCu);
 				}
 				// TODO fix to get this from the method
-				final AllowsReferencesFromPromiseDrop allows = getAnalysis().allowRefs(bindT);
+				final AllowsReferencesFromPromiseDrop allows = getAnalysis().allowRefs(b.getNode());
 				final ResultDrop rd = checkBinding(allows, b, type, n);
 				if (allows != null && rd == null) {					
 					ResultDrop success = createSuccessDrop(type, allows);

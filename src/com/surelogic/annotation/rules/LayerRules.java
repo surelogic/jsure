@@ -368,7 +368,7 @@ public class LayerRules extends AnnotationRules {
 	static class AllowsReferencesFrom_ParseRule
 	extends	AbstractLayersParseRule<AllowsReferencesFromNode, AllowsReferencesFromPromiseDrop> {
 		protected AllowsReferencesFrom_ParseRule() {
-			super(ALLOWS_REFERENCES_FROM, typeDeclOps, AllowsReferencesFromNode.class);
+			super(ALLOWS_REFERENCES_FROM, declOps, AllowsReferencesFromNode.class);
 		}
 
 		@Override
