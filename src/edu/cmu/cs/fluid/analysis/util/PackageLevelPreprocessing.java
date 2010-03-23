@@ -18,6 +18,7 @@ import org.eclipse.jdt.core.dom.PackageDeclaration;
 
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.annotation.parse.SLAnnotationsLexer;
 import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.PromiseDropStorage;
@@ -86,6 +87,7 @@ public final class PackageLevelPreprocessing extends
 	public void analyzeBegin(IProject p) {
 		super.analyzeBegin(p);
 		ScopedPromisesLexer.init();
+		SLAnnotationsLexer.init();
 		IDE.getInstance().setAdapting();
 	}
 
