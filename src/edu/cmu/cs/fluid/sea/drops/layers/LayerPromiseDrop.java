@@ -36,7 +36,7 @@ public class LayerPromiseDrop extends AbstractReferenceCheckDrop<LayerNode> {
 		if (bindInLayer == null) {
 			return false;
 		}
-		return qname.equals(bindInLayer.getAST().getLayer());
+		return bindInLayer.getAST().getLayers().matches(qname);
 	}	
 }
 

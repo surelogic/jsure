@@ -37,6 +37,7 @@ tokens {
   NotTarget;
   UnionTarget;
   UnidentifiedTarget;
+  TargetList;
   MayReferTo;
   Layer;
   InLayer;
@@ -150,7 +151,12 @@ layer
   ;
 
 inLayer
-  : qualifiedName EOF -> ^(InLayer qualifiedName)
+  : unionTargets EOF -> ^(InLayer unionTargets) 
+  | inLayerList EOF -> ^(InLayer inLayerList)
+  ;
+
+inLayerList
+  : targetList -> ^(TargetList targetList) 
   ;
 
 typeSet
@@ -177,7 +183,7 @@ andTarget
 
 baseTarget
   : '!' '(' typeTarget ')' -> ^(NotTarget typeTarget)
-  | qualifiedName '.' '{' unionTargets '}' -> ^(UnionTarget qualifiedName unionTargets)
+  | unionTargets
   | qualifiedName '+' -> ^(UnidentifiedTarget qualifiedName '+')
   | unidentifiedTarget
   | '(' typeTarget ')' -> typeTarget
@@ -189,6 +195,10 @@ unidentifiedTarget
   ;
 
 unionTargets
+  : qualifiedName '.' '{' targetList '}' -> ^(UnionTarget qualifiedName targetList)
+  ;
+
+targetList
   : unidentifiedTarget (',' unidentifiedTarget)* -> unidentifiedTarget (unidentifiedTarget)*
   ;
 

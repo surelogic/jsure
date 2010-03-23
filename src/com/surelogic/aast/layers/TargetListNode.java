@@ -13,16 +13,15 @@ import edu.cmu.cs.fluid.java.operator.Declaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
- * A union of various layers, typesets, packages, or types
+ * A list of various layers
  * 
  * @author Edwin
  */
-public class UnionTargetNode extends AbstractLayerMatchTarget {	
-	private final String qname;
+public class TargetListNode extends AbstractLayerMatchTarget {	
 	private final List<UnidentifiedTargetNode> union;
 	
 	public static final AbstractSingleNodeFactory factory =
-		new AbstractSingleNodeFactory("UnionTarget") {
+		new AbstractSingleNodeFactory("TargetList") {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			
@@ -30,13 +29,12 @@ public class UnionTargetNode extends AbstractLayerMatchTarget {
 			for(AASTNode n : _kids) {
 				union.add((UnidentifiedTargetNode) n);
 			}
-			return new UnionTargetNode(_start, _id, union);
+			return new TargetListNode(_start, union);
 		}
 	};
 	
-	UnionTargetNode(int offset, String name, List<UnidentifiedTargetNode> set) {
+	TargetListNode(int offset, List<UnidentifiedTargetNode> set) {
 		super(offset);
-		qname = name;
 		if (set == null || set.isEmpty()) {
 			throw new IllegalArgumentException("Bad set: "+set);
 		}		
@@ -44,10 +42,6 @@ public class UnionTargetNode extends AbstractLayerMatchTarget {
 		for(UnidentifiedTargetNode ut : union) {
 			ut.setParent(this);
 		}
-	}
-
-	public String getPrefix() {
-		return qname;
 	}
 	
 	public Iterable<UnidentifiedTargetNode> getUnion() {
@@ -65,7 +59,7 @@ public class UnionTargetNode extends AbstractLayerMatchTarget {
 		for(UnidentifiedTargetNode ut : union) {
 			clonedUnion.add((UnidentifiedTargetNode) ut.cloneTree());
 		}
-		return new UnionTargetNode(offset, qname, clonedUnion);
+		return new TargetListNode(offset, clonedUnion);
 	}
 
 	@Override
@@ -73,20 +67,16 @@ public class UnionTargetNode extends AbstractLayerMatchTarget {
 	    StringBuilder sb = new StringBuilder();
 		if (debug) {
 		    indent(sb, indent);		    
-		    sb.append("UnionTargetNode\n");
+		    sb.append("TargetListNode\n");
 		    indent(sb, indent + 2);
-		    sb.append("qname=").append(qname);		    
-		    sb.append("\n");
 		    for(UnidentifiedTargetNode ut : union) {
 		    	indent(sb, indent + 2);
 			    sb.append(ut.unparse(debug, indent+2));		    
 			    sb.append("\n");
 		    }
 		} else {
-			sb.append(qname);
 			if (union.size() > 1) {
 				boolean first = true;
-				sb.append(".{ ");
 				for(UnidentifiedTargetNode ut : union) {
 					if (first) {
 						first = false;
@@ -95,9 +85,8 @@ public class UnionTargetNode extends AbstractLayerMatchTarget {
 					}
 					sb.append(ut.unparse(debug, indent));
 				}
-				sb.append(" }");
 			} else {
-				sb.append('.').append(union.get(0).unparse(debug, indent));
+				sb.append(union.get(0).unparse(debug, indent));
 			}
 		}
 	    return sb.toString();

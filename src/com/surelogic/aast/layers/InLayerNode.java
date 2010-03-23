@@ -6,30 +6,31 @@ import com.surelogic.aast.*;
 import com.surelogic.parse.AbstractSingleNodeFactory;
 
 public class InLayerNode extends AASTRootNode {
-  private final String layerName;
+  private final AbstractLayerMatchTarget layerNames;
 	
   public static final AbstractSingleNodeFactory factory =
 	  new AbstractSingleNodeFactory("InLayer") {
 	  @Override
 	  public AASTNode create(String _token, int _start, int _stop,
 			  int _mods, String _id, int _dims, List<AASTNode> _kids) {			
-		  return new InLayerNode(_start, _id);
+		  return new InLayerNode(_start, (AbstractLayerMatchTarget) _kids.get(0));
 	  }
   };
 	
   // Constructors
-  public InLayerNode(int offset, String id) {
+  public InLayerNode(int offset, AbstractLayerMatchTarget target) {
     super(offset);
-    layerName = id;
+    layerNames = target;
+    target.setParent(this);
   }
 
-  public String getLayer() {
-	  return layerName;
+  public AbstractLayerMatchTarget getLayers() {
+	  return layerNames;
   }
   
   @Override
   public IAASTNode cloneTree() {
-	  return new InLayerNode(offset, layerName);
+	  return new InLayerNode(offset, layerNames);
   }
 
   @Override
@@ -44,10 +45,10 @@ public class InLayerNode extends AASTRootNode {
 		  indent(sb, indent);		    
 		  sb.append("InLayerNode\n");
 		  indent(sb, indent + 2);
-		  sb.append("name=").append(layerName);
+		  sb.append("name=").append(layerNames.unparse(debug, indent+2));
 		  sb.append("\n");
 	  } else {
-		  sb.append("InLayer ").append(layerName);
+		  sb.append("InLayer ").append(layerNames.unparse(debug, indent));
 	  }
 	  return sb.toString();
   }

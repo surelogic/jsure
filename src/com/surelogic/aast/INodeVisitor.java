@@ -6,6 +6,7 @@ import com.surelogic.aast.layers.AllowsReferencesFromNode;
 import com.surelogic.aast.layers.InLayerNode;
 import com.surelogic.aast.layers.LayerNode;
 import com.surelogic.aast.layers.MayReferToNode;
+import com.surelogic.aast.layers.TargetListNode;
 import com.surelogic.aast.layers.TypeSetNode;
 import com.surelogic.aast.layers.UnidentifiedTargetNode;
 import com.surelogic.aast.layers.UnionTargetNode;
@@ -138,4 +139,5 @@ public interface INodeVisitor<T> {
 	T visit(AllowsReferencesFromNode allowsReferencesFromNode);
 	T visit(LayerNode layerNode);
 	T visit(TypeSetNode typeSetNode);
+	T visit(TargetListNode targetListNode);
 }

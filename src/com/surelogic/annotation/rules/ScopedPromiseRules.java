@@ -109,7 +109,12 @@ public class ScopedPromiseRules extends AnnotationRules {
 			IAnnotationParseRule<?, ?> r = PromiseFramework.getInstance()
 					.getParseDropRule(parser.tag);
 			if (r != null) {
-				Proxy proxy = new Proxy(context, r, sp.getTargets().appliesTo());
+				Operator contextOp = sp.getTargets().appliesTo();
+				if (contextOp == Operator.prototype) {
+					// Applies to anything that the rule applies to
+					contextOp = r.getOps(null)[0];
+				}
+				Proxy proxy = new Proxy(context, r, contextOp);
 				r.parse(proxy, parser.content);
 				if (!proxy.createdAAST() && !proxy.hadProblem()) {
 					context.reportError(0, "No AAST created from " + sp.getPromise());

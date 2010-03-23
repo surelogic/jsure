@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.FilterIterator;
 
 public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,Void> {
 	public static final Category DSC_LAYERS_ISSUES = Category.getInstance("Static structure");
@@ -89,20 +90,26 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 
 				ResultDrop rd3 = null;
 				if (inLayer != null) {
-					final LayerPromiseDrop layer = getAnalysis().findLayer(inLayer);
-					// Check if in the same layer
-					boolean inSameLayer = false;
-					if (bindT != null) {
-						final InLayerPromiseDrop bindInLayer = LayerRules.getInLayerDrop(bindT);
-						if (bindInLayer != null) {
-							inSameLayer = layer == getAnalysis().findLayer(bindInLayer);
+					for(final LayerPromiseDrop layer : getAnalysis().findLayers(inLayer)) {
+						// Check if in the same layer
+						boolean inSameLayer = false;					
+						if (bindT != null) {
+							final InLayerPromiseDrop bindInLayer = LayerRules.getInLayerDrop(bindT);
+							if (bindInLayer != null) {
+								for(final LayerPromiseDrop bindLayer : getAnalysis().findLayers(bindInLayer)) {
+									if (layer == bindLayer) {
+										inSameLayer = true;
+										break;
+									}
+								}
+							}
 						}
-					}
-					if (!inSameLayer) {
-						rd3 = checkBinding(layer, b, bindT, n);
-						if (rd3 != null) {
-							rd3.addCheckedPromise(inLayer);
-							problemWithInLayer = true;
+						if (!inSameLayer) {
+							rd3 = checkBinding(layer, b, bindT, n);
+							if (rd3 != null) {
+								rd3.addCheckedPromise(inLayer);
+								problemWithInLayer = true;
+							}
 						}
 					}
 				}
@@ -173,10 +180,14 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			binder = b;
 		}
 
-		public LayerPromiseDrop findLayer(InLayerPromiseDrop inLayer) {
-			final String qname = inLayer.getAST().getLayer();
-			// TODO qualify the qname?
-			return layers.get(qname);
+		public Iterable<LayerPromiseDrop> findLayers(final InLayerPromiseDrop inLayer) {
+			return new FilterIterator<String,LayerPromiseDrop>(inLayer.getAST().getLayers().getNames().iterator()) {
+				@Override
+				protected Object select(String qname) {
+					// TODO qualify the qname?
+					return layers.get(qname);
+				}				
+			};
 		}
 
 		public AllowsReferencesFromPromiseDrop allowRefs(IRNode type) {

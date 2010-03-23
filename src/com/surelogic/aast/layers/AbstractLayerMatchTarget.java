@@ -7,4 +7,14 @@ public abstract class AbstractLayerMatchTarget extends PromiseTargetNode {
 	AbstractLayerMatchTarget(int offset) {
 		super(offset);
 	}
+	public abstract Iterable<String> getNames();
+	
+	public boolean matches(String qname) {
+		for(String name : getNames()) {
+			if (qname.equals(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

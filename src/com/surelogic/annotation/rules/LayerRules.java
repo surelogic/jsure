@@ -317,21 +317,32 @@ public class LayerRules extends AnnotationRules {
 			return new AbstractAASTScrubber<InLayerNode>(this, ScrubberType.UNORDERED, LAYER) {
 				@Override
 				protected PromiseDrop<InLayerNode> makePromiseDrop(InLayerNode a) {
-					final String qname = a.getLayer();
-					final int lastDot  = qname.lastIndexOf('.');
-					final String pkg   = qname.substring(0, lastDot);
-					final String name  = qname.substring(lastDot+1);
-					PackageDrop pd     = PackageDrop.findPackage(pkg);
-					if (pd == null) {
-						LOG.severe("Couldn't find "+pkg+" for "+a);
-						return null;
-					}
-					LayerPromiseDrop l = LayerRules.findLayer(pd.node, name);
-					if (l == null) {
-						return null;
+					List<Drop> layerDrops = new ArrayList<Drop>();
+					for(final String qname : a.getLayers().getNames()) {					
+						final int lastDot  = qname.lastIndexOf('.');
+						final String pkg;
+						if (lastDot < 0) {
+							IRNode cu = VisitUtil.getEnclosingCompilationUnit(a.getPromisedFor());
+							pkg = VisitUtil.getPackageName(cu);
+						} else {
+							pkg = qname.substring(0, lastDot);
+						}
+						final String name  = qname.substring(lastDot+1);
+						PackageDrop pd     = PackageDrop.findPackage(pkg);
+						if (pd == null) {
+							LOG.severe("Couldn't find "+pkg+" for "+a);
+							return null;
+						}
+						LayerPromiseDrop l = LayerRules.findLayer(pd.node, name);
+						if (l == null) {
+							return null;
+						}
+						layerDrops.add(l);
 					}
 					InLayerPromiseDrop d = new InLayerPromiseDrop(a);
-					l.addDependent(d);
+					for(Drop l : layerDrops) {
+						l.addDependent(d);
+					}
 					return storeDropIfNotNull(getStorage(), a, d);
 				}
 			};

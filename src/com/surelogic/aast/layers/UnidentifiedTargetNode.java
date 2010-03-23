@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.operator.Declaration;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.SingletonIterator;
 
 /**
  * Could be a layer, typeset, package, or type
@@ -109,5 +110,10 @@ public class UnidentifiedTargetNode extends AbstractLayerMatchTarget implements 
 
 	public ILayerBinding resolveBinding() {
 		return AASTBinder.getInstance().resolve(this);
+	}
+
+	@Override
+	public Iterable<String> getNames() {
+		return new SingletonIterator<String>(getQualifiedName());
 	}
 }

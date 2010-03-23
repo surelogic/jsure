@@ -458,14 +458,14 @@ public class CommonAASTBinder extends AASTBinder {
 
   private ILayerBinding findLayer(IRNode context, String qname) {
 	  final String pkg, name;
-	  final int lastDot = qname.indexOf('.');
+	  final int lastDot = qname.lastIndexOf('.');
 	  if (lastDot < 0) {
 		  // unqualified name
 		  pkg = VisitUtil.getPackageName(VisitUtil.findRoot(context));
 		  name = qname;
 	  } else {
 		  name = qname.substring(lastDot+1);
-		  pkg = qname.substring(0, lastDot-1);
+		  pkg = qname.substring(0, lastDot);
 	  }
 	  final IRNode pkgNode = tEnv.findPackage(pkg);
 	  final LayerPromiseDrop d = LayerRules.findLayer(pkgNode, name);
