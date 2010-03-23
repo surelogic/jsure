@@ -327,6 +327,9 @@ public class LayerRules extends AnnotationRules {
 						return null;
 					}
 					LayerPromiseDrop l = LayerRules.findLayer(pd.node, name);
+					if (l == null) {
+						return null;
+					}
 					InLayerPromiseDrop d = new InLayerPromiseDrop(a);
 					l.addDependent(d);
 					return storeDropIfNotNull(getStorage(), a, d);
