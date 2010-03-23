@@ -635,6 +635,10 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 			LOG.log(Level.SEVERE, "couldn't get source code for "
 					+ file.getElementName(), e);
 		}
+		if (javaFileSource.length() == 0) {
+			return false;
+		}
+		
 		javaFile = file;
 		javaOSFileName = javaFile.getResource().getLocation().makeAbsolute()
 				.toOSString();
