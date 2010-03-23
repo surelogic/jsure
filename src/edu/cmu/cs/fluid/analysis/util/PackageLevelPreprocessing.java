@@ -299,7 +299,15 @@ public final class PackageLevelPreprocessing extends
 			}
 			checkedDeponents.add(d);
 			if (d instanceof CUDrop) {
-				reprocess.add((CUDrop) d);
+				reprocess.add((CUDrop) d);				
+				if (d instanceof PackageDrop) {
+					// I need to reprocess these if the package changed
+					for(Drop dd : d.getDependents()) {
+						if (dd instanceof CUDrop) {
+							reprocess.add((CUDrop) dd);
+						}
+					}
+				}
 			}
 			for(Drop deponent : d.getDeponents()) {
 				//System.out.println(d+" -> "+deponent);
@@ -318,7 +326,7 @@ public final class PackageLevelPreprocessing extends
 		void finish() {
 			processPromiseWarningDrops();
 			
-			reprocess.removeAll(changed);			
+			reprocess.removeAll(changed);						
 			/*
 			for(CUDrop d : changed) {
 				System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
