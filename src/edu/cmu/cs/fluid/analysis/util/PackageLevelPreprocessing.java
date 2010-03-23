@@ -300,6 +300,8 @@ public final class PackageLevelPreprocessing extends
 			checkedDeponents.add(d);
 			if (d instanceof CUDrop) {
 				reprocess.add((CUDrop) d);				
+				collect(d);
+				/*
 				if (d instanceof PackageDrop) {
 					// I need to reprocess these if the package changed
 					for(Drop dd : d.getDependents()) {
@@ -308,6 +310,7 @@ public final class PackageLevelPreprocessing extends
 						}
 					}
 				}
+				*/
 			}
 			for(Drop deponent : d.getDeponents()) {
 				//System.out.println(d+" -> "+deponent);
