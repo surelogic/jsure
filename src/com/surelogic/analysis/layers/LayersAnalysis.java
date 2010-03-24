@@ -183,31 +183,42 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	// TODO potentially slow, because of checking multiple types in layers
 	@Override
 	public IRNode[] analyzeEnd(IIRProject p) {
-		final CycleDetector layerRefs = new CycleDetector() {
+		final Map<String, Set<String>> layerRefs = new HashMap<String, Set<String>>();
+		final CycleDetector detector = new CycleDetector() {
 			@Override
 			protected void reportFailure(String backedge, String last) {
+				if (layerRefs.get(last).contains(backedge)) {
+					// Ignore if it's an original layer reference
+					return; 
+				}
 				LayerPromiseDrop layer = getAnalysis().getLayer(last);
 				ResultDrop rd = createFailureDrop(layer.getNode());
 				rd.addCheckedPromise(layer);				
 				rd.setResultMessage(353, backedge); // TODO which type?
 			}
 		};
-		collectLayerInfo(layerRefs);
-		layerRefs.checkAll();
+		collectLayerInfo(detector, layerRefs);
+		detector.checkAll();
 		return super.analyzeEnd(p);
 	}
 
 	/**
 	 * Includes info from typesets and other explicit package/type references
+	 * @param layerRefs 
 	 */
-	private void collectLayerInfo(final CycleDetector layerRefs) {
+	private void collectLayerInfo(final CycleDetector detector, Map<String, Set<String>> layerRefs) {		
 		// Collect direct layer references
 		for(Map.Entry<String, LayerPromiseDrop> e : getAnalysis().getLayers()) { 
 			for(LayerPromiseDrop ref : e.getValue().getAST().getReferencedLayers()) {
 				String qname = computePackage(ref.getNode())+'.'+ref.getId();
-				layerRefs.addRef(e.getKey(), qname);
+				detector.addRef(e.getKey(), qname);
 			}
 		}
+		// Make snapshot
+		for(Map.Entry<String, Set<String>> e : detector.entrySet()) {
+			layerRefs.put(e.getKey(), new HashSet<String>(e.getValue()));
+		}
+		
 		// Collect indirect layer references (e.g. via typesets)
 		for(InLayerPromiseDrop pd : Sea.getDefault().getDropsOfExactType(InLayerPromiseDrop.class)) {
 			final IRNode type = pd.getNode();
@@ -218,11 +229,11 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 					if (inLayers == null) {
 						inLayers = computeLayerNames(pd);
 					}
-					layerRefs.addRefs(e.getKey(), inLayers);
+					detector.addRefs(e.getKey(), inLayers);
 				}
 			}
 		}
-		System.out.println("Done collecting layers info");
+		//System.out.println("Done collecting layers info");
 	}
  	
 	private static String computePackage(IRNode context) {
