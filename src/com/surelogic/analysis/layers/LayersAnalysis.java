@@ -18,6 +18,7 @@ import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
+import edu.cmu.cs.fluid.util.Pair;
 
 public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,Void> {
 	public static final Category DSC_LAYERS_ISSUES = Category.getInstance("Static structure");
@@ -186,13 +187,22 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		final Map<String,List<IRNode>> layers = new HashMap<String, List<IRNode>>();
 		final Map<String, Set<String>> layerRefs = new HashMap<String, Set<String>>();
 		final CycleDetector detector = new CycleDetector() {
+			final Set<Pair<String,String>> reported = new HashSet<Pair<String,String>>();
+			
 			@Override
-			protected void reportFailure(String backedge, String last) {
+			protected void reportFailure(String backedge, String last) {				
 				final Set<String> origRefs = layerRefs.get(last);
 				if (origRefs != null && origRefs.contains(backedge)) {
 					// Ignore if it's an original layer reference
 					return; 
 				}
+				final Pair<String,String> p = new Pair<String,String>(backedge, last);
+				if (reported.contains(p)) {
+					// Already reported
+					return;
+				}
+				reported.add(p);
+				
 				LayerPromiseDrop layer = getAnalysis().getLayer(last);
 				ResultDrop rd = createFailureDrop(layer.getNode());
 				rd.addCheckedPromise(layer);				
