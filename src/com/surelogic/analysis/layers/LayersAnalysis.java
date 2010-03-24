@@ -183,21 +183,36 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	// TODO potentially slow, because of checking multiple types in layers
 	@Override
 	public IRNode[] analyzeEnd(IIRProject p) {
+		final Map<String,List<IRNode>> layers = new HashMap<String, List<IRNode>>();
 		final Map<String, Set<String>> layerRefs = new HashMap<String, Set<String>>();
 		final CycleDetector detector = new CycleDetector() {
 			@Override
 			protected void reportFailure(String backedge, String last) {
-				if (layerRefs.get(last).contains(backedge)) {
+				final Set<String> origRefs = layerRefs.get(last);
+				if (origRefs != null && origRefs.contains(backedge)) {
 					// Ignore if it's an original layer reference
 					return; 
 				}
 				LayerPromiseDrop layer = getAnalysis().getLayer(last);
 				ResultDrop rd = createFailureDrop(layer.getNode());
 				rd.addCheckedPromise(layer);				
-				rd.setResultMessage(353, backedge); // TODO which type?
+				rd.setResultMessage(353, backedge); 
+				
+				final Map<String,TypeSetPromiseDrop> involved = new HashMap<String, TypeSetPromiseDrop>();
+				for(IRNode type : layers.get(backedge)) {
+					rd.addSupportingInformation(type, 354, JavaNames.getFullTypeName(type));
+					for(Map.Entry<String,TypeSetPromiseDrop> e : getAnalysis().getTypesets()) {
+						if (e.getValue().check(type)) {
+							involved.put(e.getKey(), e.getValue());
+						}
+					}
+				}
+				for(Map.Entry<String,TypeSetPromiseDrop> e : involved.entrySet()) {
+					rd.addSupportingInformation(e.getValue().getNode(), 355, e.getKey());
+				}
 			}
 		};
-		collectLayerInfo(detector, layerRefs);
+		collectLayerInfo(detector, layerRefs, layers);
 		detector.checkAll();
 		return super.analyzeEnd(p);
 	}
@@ -205,8 +220,11 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	/**
 	 * Includes info from typesets and other explicit package/type references
 	 * @param layerRefs 
+	 * @param layers 
 	 */
-	private void collectLayerInfo(final CycleDetector detector, Map<String, Set<String>> layerRefs) {		
+	private void collectLayerInfo(final CycleDetector detector, 
+			                      Map<String, Set<String>> layerRefs, 
+			                      Map<String, List<IRNode>> layers) {		
 		// Collect direct layer references
 		for(Map.Entry<String, LayerPromiseDrop> e : getAnalysis().getLayers()) { 
 			for(LayerPromiseDrop ref : e.getValue().getAST().getReferencedLayers()) {
@@ -230,6 +248,16 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 						inLayers = computeLayerNames(pd);
 					}
 					detector.addRefs(e.getKey(), inLayers);
+				}
+			}
+			if (inLayers != null) {
+				for(String name : inLayers) {
+					List<IRNode> types = layers.get(name);
+					if (types == null) {
+						types = new ArrayList<IRNode>();
+						layers.put(name, types);
+					}
+					types.add(type);
 				}
 			}
 		}
@@ -270,6 +298,10 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			binder = b;
 		}
 
+		Iterable<Map.Entry<String,TypeSetPromiseDrop>> getTypesets() {
+			return typesets.entrySet();
+		}
+		
 		public LayerPromiseDrop getLayer(String qname) {
 			return layers.get(qname);
 		}

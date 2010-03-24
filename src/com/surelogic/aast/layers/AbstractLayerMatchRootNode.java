@@ -75,8 +75,8 @@ public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
 
 	  @Override
 	  public Void visit(UnidentifiedTargetNode n) {
-		  ILayerBinding b = n.resolveBinding();
-		  if (b.getKind() == LayerBindingKind.LAYER) {
+		  ILayerBinding b = n.resolveBinding();		  
+		  if (b != null && b.getKind() == LayerBindingKind.LAYER) {
 			  layers.add((LayerPromiseDrop) b.getOther());
 		  }
 		  return null;  
