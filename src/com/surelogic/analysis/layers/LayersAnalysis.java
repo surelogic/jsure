@@ -44,14 +44,14 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	protected LayersInfo constructIRAnalysis(IBinder binder) {
 		return new LayersInfo(binder).init();
 	}
- 	
+	
 	@Override
 	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor) {	
 		//System.out.println("Analyzing layers for: "+cud.javaOSFileName);
 		final IRNode type = VisitUtil.getPrimaryType(cu);
 		final InLayerPromiseDrop inLayer = LayerRules.getInLayerDrop(type);
 		final MayReferToPromiseDrop mayReferTo = LayerRules.getMayReferToDrop(type);	
-
+		
 		// No way to shortcircuit, due to possible AllowsReferencesTo
 		boolean problemWithInLayer = inLayer == null;
 		boolean problemWithMayReferTo = mayReferTo == null;
@@ -135,20 +135,27 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return rd;
 	}
 	
+	private static ResultDrop createFailureDrop(IRNode type) {
+		ResultDrop rd = new ResultDrop("Layers");
+		rd.setCategory(DSC_LAYERS_ISSUES);
+		rd.setNodeAndCompilationUnitDependency(type);	
+		rd.setInconsistent();
+		return rd;
+	}
+	
 	private ResultDrop checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
 		if (d != null) {
 			if (!d.check(type)) {
-				final IRNode contextType = VisitUtil.getClosestType(context);
 				/*
+				final IRNode contextType = VisitUtil.getClosestType(context);
+
 				System.out.println("Found bad ref in "+JavaNames.getFullTypeName(contextType));
 				d.check(type);
 				*/
 				// Create error
-				ResultDrop rd = new ResultDrop("Layers");
-				rd.setNodeAndCompilationUnitDependency(context);				
+				ResultDrop rd = createFailureDrop(context);			
 				rd.setResultMessage(d.getResultMessageKind(), 
 						            unparseArgs(d.getArgs(b.getNode(), type, context)));
-				rd.setCategory(DSC_LAYERS_ISSUES);
 				/*
 				if (rd.getMessage().contains("Null")) {
 					System.out.println("Found "+rd.getMessage());
@@ -170,6 +177,65 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return args;
 	}
 	
+	/**
+	 * Used to check if types referred to by layers break a layering constraint
+	 */
+	// TODO potentially slow, because of checking multiple types in layers
+	@Override
+	public IRNode[] analyzeEnd(IIRProject p) {
+		final CycleDetector layerRefs = new CycleDetector() {
+			@Override
+			protected void reportFailure(String backedge, String last) {
+				LayerPromiseDrop layer = getAnalysis().getLayer(last);
+				ResultDrop rd = createFailureDrop(layer.getNode());
+				rd.addCheckedPromise(layer);				
+				rd.setResultMessage(353, backedge); // TODO which type?
+			}
+		};
+		collectLayerInfo(layerRefs);
+		layerRefs.checkAll();
+		return super.analyzeEnd(p);
+	}
+
+	/**
+	 * Includes info from typesets and other explicit package/type references
+	 */
+	private void collectLayerInfo(final CycleDetector layerRefs) {
+		for(InLayerPromiseDrop pd : Sea.getDefault().getDropsOfExactType(InLayerPromiseDrop.class)) {
+			final IRNode type = pd.getNode();
+			List<String> inLayers = null; // Initialized if needed
+			for(Map.Entry<String, LayerPromiseDrop> e : getAnalysis().getLayers()) { 				
+				if (e.getValue().getAST().check(type)) {
+					// Accessible, so add to layerRefs
+					if (inLayers == null) {
+						inLayers = computeLayerNames(pd);
+					}
+					layerRefs.addRefs(e.getKey(), inLayers);
+				}
+			}
+		}
+		System.out.println("Done collecting layers info");
+	}
+ 	
+	private List<String> computeLayerNames(InLayerPromiseDrop pd) {
+		List<String> layers = new ArrayList<String>();
+		String pkg = null; // Initialized if needed
+		
+		for(String name : pd.getAST().getLayers().getNames()) {						
+			if (name.indexOf('.') >= 0) {
+				// Already qualified
+				layers.add(name);
+			} else {
+				if (pkg == null) {
+					IRNode cu = VisitUtil.getEnclosingCompilationUnit(pd.getNode());
+					pkg = VisitUtil.getPackageName(cu);
+				}
+				layers.add(pkg+'.'+name);
+			}
+		}
+		return layers;
+	}
+
 	static class LayersInfo implements IBinderClient{
 		final IBinder binder;
 		final Map<String,TypeSetPromiseDrop> typesets = new HashMap<String, TypeSetPromiseDrop>();
@@ -179,6 +245,10 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		
 		public LayersInfo(IBinder b) {
 			binder = b;
+		}
+
+		public LayerPromiseDrop getLayer(String qname) {
+			return layers.get(qname);
 		}
 
 		public Iterable<LayerPromiseDrop> findLayers(final InLayerPromiseDrop inLayer) {
@@ -202,6 +272,10 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		public IBinder getBinder() {
 			return binder;
 		}		
+		
+		Iterable<Map.Entry<String, LayerPromiseDrop>> getLayers() {
+			return layers.entrySet();
+		}
 		
 		LayersInfo init() {
 			for(final PackageDrop p : PackageDrop.allPackages()) {

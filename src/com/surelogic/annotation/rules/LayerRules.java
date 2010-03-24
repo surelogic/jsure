@@ -5,10 +5,9 @@ import java.util.*;
 
 import org.antlr.runtime.RecognitionException;
 
-import com.surelogic.aast.AASTNode;
-import com.surelogic.aast.AASTRootNode;
-import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.aast.*;
 import com.surelogic.aast.layers.*;
+import com.surelogic.analysis.layers.CycleDetector;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.scrub.*;
@@ -131,18 +130,13 @@ public class LayerRules extends AnnotationRules {
  	
 	static abstract class Scrubber<A extends AbstractLayerMatchDeclNode> extends AbstractAASTScrubber<A> {
 		final Map<String,A> decls = new HashMap<String,A>();
-		final Map<String,Set<String>> refs = new HashMap<String,Set<String>>();
+		final CycleDetector refs = new CycleDetector();
 		
 		boolean isDeclared(String qname) {
 			boolean rv = decls.containsKey(qname);
 			
 			String here = computeCurrentName();
-			Set<String> references = refs.get(here);
-			if (references == null) {
-				references = new HashSet<String>();
-				refs.put(here, references);
-			}
-			references.add(qname);
+			refs.addRef(here, qname);
 			return rv;
 		}
 		
@@ -201,36 +195,11 @@ public class LayerRules extends AnnotationRules {
 		protected boolean customScrub(A a) {
 			setCurrent(a);
 			
-			Set<String> seen = new HashSet<String>();			
-			//System.out.println("Starting from "+computeCurrentName());
-			boolean rv = checkForCycles(seen, computeCurrentName());
+			boolean rv = refs.checkOne(computeCurrentName());
 			if (!rv) {
 				context.reportError("Cycle detected", a);
 			}
 			return rv;
-		}
-
-		private boolean checkForCycles(Set<String> seen, String here) {
-			if (seen.contains(here)) {
-				//System.out.println("FAIL: "+here+" already seen");
-				return false; // Cycle detected
-			}
-			seen.add(here);
-			
-			Set<String> references = refs.get(here);
-			//System.out.println(here+" -> "+references);
-			//System.out.println("\tSeen: "+seen+"\n");
-			if (references == null) {
-				seen.remove(here);
-				return true; // No refs, so no cycle here
-			}
-			for(String ref : references) {
-				if (!checkForCycles(seen, ref)) {
-					return false;
-				}
-			}
-			seen.remove(here);
-			return true;
 		}
 	}
 	
