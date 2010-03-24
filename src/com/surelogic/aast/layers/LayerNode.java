@@ -12,7 +12,11 @@ public class LayerNode extends AbstractLayerMatchDeclNode {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			
-			return new LayerNode(_start, _id, (PromiseTargetNode) _kids.get(0));
+			PromiseTargetNode target = null;
+			if (_kids.size() > 0) {
+				target = (PromiseTargetNode) _kids.get(0);
+			}
+			return new LayerNode(_start, _id, target);
 		}
 	};
 	

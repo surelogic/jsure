@@ -27,12 +27,14 @@ public class CycleDetector extends HashMap<String, Set<String>> {
 		// Removed references to itself
 		for(Map.Entry<String, Set<String>> e : this.entrySet()) {
 			e.getValue().remove(e.getKey());
+			System.out.println(e.getKey()+" -> "+e.getValue());
 		}
 		
 		// Check for cycles
 		final Set<String> seen = new HashSet<String>();			
 		for(Map.Entry<String, Set<String>> e : this.entrySet()) {
 			System.out.println("Starting from "+e.getKey());
+			seen.clear();
 			checkForCycles(seen, e.getKey(), null);
 		}
 	}

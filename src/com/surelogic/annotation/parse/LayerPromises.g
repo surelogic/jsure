@@ -148,7 +148,15 @@ mayReferTo
 
 layer
   : identifier 'may' 'refer' 'to' typeTarget EOF -> ^(Layer identifier typeTarget)
+//  | identifier noTarget -> ^(Layer identifier noTarget)
+  | identifier EOF -> ^(Layer identifier)
   ;
+
+/*
+noTarget
+  : EOF -> ^(NoTarget)   
+  ;
+*/
 
 inLayer
   : unionTargets EOF -> ^(InLayer unionTargets) 

@@ -32,12 +32,17 @@ public abstract class AbstractLayerMatchDeclNode extends AbstractLayerMatchRootN
 			  indent(sb, indent + 2);
 			  sb.append("id=").append(getId());
 			  sb.append("\n");
-			  indent(sb, indent + 2);
-			  sb.append("name=").append(getTarget().unparse(debug, indent));
-			  sb.append("\n");
+			  if (getTarget() != null) {
+				  indent(sb, indent + 2);
+				  sb.append("name=").append(getTarget().unparse(debug, indent));
+				  sb.append("\n");
+			  }
 		  } else {
 			  sb.append(name).append(' ');
-			  sb.append(getId()).append(connector).append(getTarget().unparse(debug, indent));
+			  sb.append(getId());
+			  if (getTarget() != null) {
+				  sb.append(connector).append(getTarget().unparse(debug, indent));
+			  }
 		  }
 		  return sb.toString();
 	  }

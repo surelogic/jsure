@@ -1,9 +1,15 @@
 package com.surelogic.aast.layers;
 
+import java.util.*;
+
 import com.surelogic.aast.*;
+import com.surelogic.aast.bind.ILayerBinding;
 import com.surelogic.aast.promise.*;
+import com.surelogic.aast.visitor.DescendingVisitor;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.sea.drops.layers.LayerPromiseDrop;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 
 /**
  * Superclass for @MayReferTo, @AllowsReferencesTo, ...
@@ -11,13 +17,15 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * @author Edwin
  */
 public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
-  private final PromiseTargetNode target;
+  private final PromiseTargetNode target; // Can be null
 	
   // Constructors
   AbstractLayerMatchRootNode(int offset, PromiseTargetNode t) {
     super(offset);
     target = t;
-    target.setParent(this);
+    if (t != null) {
+    	target.setParent(this);
+    }
   }
 
   public PromiseTargetNode getTarget() {
@@ -39,6 +47,39 @@ public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
   }
   
   public boolean check(IRNode type) {
+	  if (target == null) {
+		  return false;
+	  }
 	  return target.matches(type);
+  }
+  
+  public Iterable<LayerPromiseDrop> getReferencedLayers() {
+	  if (target == null) {
+		  return EmptyIterator.prototype();
+	  }
+	  LayerRefVisitor v = new LayerRefVisitor();
+	  target.accept(v);
+	  return v.getRefs();
+  }
+  
+  class LayerRefVisitor extends DescendingVisitor<Void> {
+	  public LayerRefVisitor() {
+		  super(null);
+	  }
+
+	  final List<LayerPromiseDrop> layers = new ArrayList<LayerPromiseDrop>();
+
+	  public Iterable<LayerPromiseDrop> getRefs() {
+		  return layers;
+	  }
+
+	  @Override
+	  public Void visit(UnidentifiedTargetNode n) {
+		  ILayerBinding b = n.resolveBinding();
+		  if (b.getKind() == LayerBindingKind.LAYER) {
+			  layers.add((LayerPromiseDrop) b.getOther());
+		  }
+		  return null;  
+	  }
   }
 }

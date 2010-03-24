@@ -201,6 +201,14 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	 * Includes info from typesets and other explicit package/type references
 	 */
 	private void collectLayerInfo(final CycleDetector layerRefs) {
+		// Collect direct layer references
+		for(Map.Entry<String, LayerPromiseDrop> e : getAnalysis().getLayers()) { 
+			for(LayerPromiseDrop ref : e.getValue().getAST().getReferencedLayers()) {
+				String qname = computePackage(ref.getNode())+'.'+ref.getId();
+				layerRefs.addRef(e.getKey(), qname);
+			}
+		}
+		// Collect indirect layer references (e.g. via typesets)
 		for(InLayerPromiseDrop pd : Sea.getDefault().getDropsOfExactType(InLayerPromiseDrop.class)) {
 			final IRNode type = pd.getNode();
 			List<String> inLayers = null; // Initialized if needed
@@ -217,7 +225,12 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		System.out.println("Done collecting layers info");
 	}
  	
-	private List<String> computeLayerNames(InLayerPromiseDrop pd) {
+	private static String computePackage(IRNode context) {
+		IRNode cu = VisitUtil.getEnclosingCompilationUnit(context);
+		return VisitUtil.getPackageName(cu);
+	}
+	
+	private static List<String> computeLayerNames(InLayerPromiseDrop pd) {
 		List<String> layers = new ArrayList<String>();
 		String pkg = null; // Initialized if needed
 		
@@ -227,8 +240,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				layers.add(name);
 			} else {
 				if (pkg == null) {
-					IRNode cu = VisitUtil.getEnclosingCompilationUnit(pd.getNode());
-					pkg = VisitUtil.getPackageName(cu);
+					pkg = computePackage(pd.getNode());
 				}
 				layers.add(pkg+'.'+name);
 			}
