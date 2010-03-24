@@ -174,6 +174,7 @@ public class JavaRewrite implements JavaGlobals {
 						changed = true;
 					}
 				}
+				//System.out.println("Ensuring defaults for "+qname);
 				changed |= ensureDefaultsExistForType(x);
 			} else if (InterfaceDeclaration.prototype.includes(op)) {
 				changed |= ensureDefaultsExistForType(x);
@@ -562,13 +563,16 @@ public class JavaRewrite implements JavaGlobals {
 				if (TypeRef.prototype.includes(eop)) {
 					return false;
 				}
+				String name;
 				if (NameType.prototype.includes(eop)) {
-					String name = DebugUnparser.toString(nt);
-					if (!name.endsWith("Object")) {
-						return false;
-					}
+					name = DebugUnparser.toString(nt);
+				} else {
+					name = NamedType.getType(nt);
 				}
-				else if (!NamedType.getType(nt).endsWith("Object")) {
+				if ("java.lang.Object".equals(name)) {
+					return true;
+				}
+				if (!name.endsWith("Object")) {
 					return false;
 				}
 			} else if (InterfaceDeclaration.prototype.includes(op)) {
