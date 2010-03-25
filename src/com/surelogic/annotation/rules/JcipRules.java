@@ -6,6 +6,7 @@ import java.text.MessageFormat;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.java.ExpressionNode;
+import com.surelogic.aast.java.FieldRefNode;
 import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.*;
@@ -102,17 +103,16 @@ public class JcipRules extends AnnotationRules {
     // No scrubbing?
     final GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
     
-    // Look for @GuardedBy("this")
     final ExpressionNode lock = a.getLock();
-    if (lock instanceof ThisExpressionNode) {
+    final IRNode fieldDecl = a.getPromisedFor();
+    final IRNode classDecl = VisitUtil.getEnclosingType(fieldDecl);
+    final String fieldId = VariableDeclarator.getId(fieldDecl);
+    final String id = MessageFormat.format("LockFor${0}", fieldId);
+
+    if (lock instanceof ThisExpressionNode) { // @GuardedBy("this")
       /* Generate @RegionLock("L is this protects F") on the class C that
        * contains the annotated field F.  Generate a new lock name L.
        */
-      final IRNode fieldDecl = a.getPromisedFor();
-      final IRNode classDecl = VisitUtil.getEnclosingType(fieldDecl);
-      final String fieldId = VariableDeclarator.getId(fieldDecl);
-      
-      final String id = MessageFormat.format("LockFor${0}", fieldId);
       final ThisExpressionNode field = (ThisExpressionNode) lock.cloneTree();
       final RegionNameNode region = new RegionNameNode(a.getOffset(), fieldId);
       
@@ -121,6 +121,23 @@ public class JcipRules extends AnnotationRules {
       regionLockDecl.setPromisedFor(classDecl);
       regionLockDecl.setSrcType(a.getSrcType());
       AASTStore.addDerived(regionLockDecl, a, d);
+    } else if (lock instanceof FieldRefNode) {
+      final ExpressionNode obj = ((FieldRefNode) lock).getObject();
+      if (obj instanceof ThisExpressionNode) { // @GuardedBy("this.f")
+        /* Generate @RegionLock("L is f protects F") on the class C that
+         * contains the annotated field F.
+         */
+        final FieldRefNode field = (FieldRefNode) lock.cloneTree();
+        final RegionNameNode region = new RegionNameNode(a.getOffset(), fieldId);
+        
+        final LockDeclarationNode regionLockDecl =
+          new LockDeclarationNode(a.getOffset(), id, field, region);
+        regionLockDecl.setPromisedFor(classDecl);
+        regionLockDecl.setSrcType(a.getSrcType());
+        AASTStore.addDerived(regionLockDecl, a, d);
+      } else {
+        // ignore for now
+      }
     }
     return d;
   }
