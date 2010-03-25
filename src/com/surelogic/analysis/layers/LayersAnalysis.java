@@ -61,7 +61,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			if (op instanceof IHasBinding && 
 				!(PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op))) {
 				final IBinding b    = getAnalysis().getBinder().getIBinding(n);
-				if (b.getNode() == null) {
+				if (b == null || b.getNode() == null) {
 					System.out.println("No binding for "+DebugUnparser.toString(n));
 					continue;
 				}
