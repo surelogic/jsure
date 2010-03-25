@@ -6,7 +6,8 @@ import com.surelogic.aast.promise.GuardedByNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> {
+public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode>
+implements IDerivedDropCreator<LockModel> {
 	public GuardedByPromiseDrop(GuardedByNode a) {
 		super(a);
 	    setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
@@ -15,5 +16,10 @@ public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> {
 	@Override
 	protected void computeBasedOnAST() {  
 		setMessage(getAST().toString());    
+	}
+	
+	public void validated(final LockModel lm) {
+	  lm.setVirtual(true);
+	  lm.setSourceDrop(this);
 	}
 }
