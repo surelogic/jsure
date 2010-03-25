@@ -509,6 +509,9 @@ final class LockExpressions {
       
       @Override 
       public Void visitAnonClassExpression(final IRNode expr) {
+        /* We get here when there is an anonymous class expression in the 
+         * RHS of a field initialization.
+         */
         // Traverse into the arguments, but *not* the body
         doAccept(AnonClassExpression.getArgs(expr));
         return null;

@@ -11,15 +11,19 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedInterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -81,75 +85,6 @@ public final class LocalVariableDeclarations {
    */
   private static class LocalDeclarationsVisitor extends VoidTreeWalkVisitor {
     // =========================================================================
-    // == Helper inner class for the inner class!
-    // =========================================================================
-    
-    private final class InitializationVisitor extends VoidTreeWalkVisitor {
-      /**
-       * The outer visitation.
-       */
-      private final LocalDeclarationsVisitor outer;
-  
-      /** 
-       * Are we matching static initializers?  If <code>false</code> we match
-       * instance initializers.
-       */
-      private final boolean isStatic; 
-  
-  
-      
-      public InitializationVisitor(
-          final LocalDeclarationsVisitor fdv, final boolean matchStatic) {
-        outer = fdv;
-        isStatic = matchStatic;
-      }
-      
-      
-      
-      @Override
-      public Void visitTypeDeclaration(final IRNode node) {
-        /* STOP: we've encountered a type declaration.  We don't want to enter
-         * the method declarations of nested class definitions.
-         */
-        return null;
-      }
-      
-      @Override 
-      public Void visitAnonClassExpression(final IRNode expr) {
-        // Traverse into the arguments, but *not* the body
-        doAccept(AnonClassExpression.getArgs(expr));
-        return null;
-      }
-  
-      @Override
-      public Void visitMethodDeclaration(final IRNode node) {
-        /* STOP: we've encountered a method declaration. 
-         */
-        return null;
-      }
-  
-      @Override
-      public Void visitConstructorDeclaration(final IRNode node) {
-        /* STOP: we've encountered a method declaration. 
-         */
-        return null;
-      }
-      
-      @Override
-      public Void visitClassInitializer(final IRNode expr) {
-        /* Only go inside an initializer if it matches the kind of initializer
-         * we are looking for.
-         */
-        if (JavaNode.getModifier(expr, JavaNode.STATIC) == isStatic) {
-          outer.doAcceptForChildren(expr);
-        }
-        return null;
-      }
-    }
- 
-
-    
-    // =========================================================================
     // == Fields
     // =========================================================================
     
@@ -189,6 +124,38 @@ public final class LocalVariableDeclarations {
     
     
     // =========================================================================
+    // == Helper method
+    // =========================================================================
+
+    /**
+     * Visit the immediate children of a classBody and handle the field
+     * declarations and ClassInitializer blocks.
+     * 
+     * @param classBody
+     *          A ClassBody IRNode.
+     * @param isStatic
+     *          <code>true</code> if we should process <code>static</code>
+     *          fields and <code>static</code> initializer blocks only;
+     *          <code>false</code> if we should process instance field
+     *          declarations and instance initializer blocks only.
+     */
+    private void processClassBody(final IRNode classBody, final boolean isStatic) {
+      for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
+        final Operator op = JJNode.tree.getOperator(bodyDecl);
+        if (FieldDeclaration.prototype.includes(op)) {
+          if (JavaNode.getModifier(bodyDecl, JavaNode.STATIC) == isStatic) {
+            this.doAcceptForChildren(bodyDecl);
+          }
+        } else if (ClassInitializer.prototype.includes(op)) {
+          if (JavaNode.getModifier(bodyDecl, JavaNode.STATIC) == isStatic) {
+            this.doAcceptForChildren(bodyDecl);
+          }
+        }        
+      }
+    }
+    
+    
+    // =========================================================================
     // == Visitor methods
     // =========================================================================
     
@@ -200,7 +167,16 @@ public final class LocalVariableDeclarations {
     
     @Override
     public Void visitVariableDeclarator(final IRNode node) {
-      declarations.add(node);
+      // Add the declaration if it is a local variable and not a field
+      if (!FieldDeclaration.prototype.includes(
+          JJNode.tree.getOperator(
+              JJNode.tree.getParentOrNull(
+                  JJNode.tree.getParentOrNull(node))))) {
+        declarations.add(node);
+      }
+      
+      // Need to process the initializer, if any
+      doAcceptForChildren(node);
       return null;
     }
     
@@ -230,9 +206,17 @@ public final class LocalVariableDeclarations {
   
     @Override
     public Void visitAnonClassExpression(final IRNode node) {
-      /* STOP: we've encountered a class declaration.  We don't want to enter
-       * the method declarations of nested class definitions.
+      /* Visit the argument list because we may have embedded anonymous classes
+       * there too.
        */
+      doAcceptForChildren(AnonClassExpression.getArgs(node));
+      
+      /* Need to visit the instance initializer blocks and instance field 
+       * declarations.  We rely on the fact that anonymous classes cannot 
+       * have static field members or static initializer blocks.  We ignore
+       * method and constructor declarations.
+       */
+      processClassBody(AnonClassExpression.getBody(node), false);
       return null;
     }
     
@@ -247,27 +231,21 @@ public final class LocalVariableDeclarations {
       /* We have the node for the static initializer, recursively find
        * all the static initializer blocks in the class. 
        */
-      final InitializationVisitor iv = new InitializationVisitor(this, true);
-      /* Must use accept for children because InitializationVisitor doesn't do anything
-       * for ClassDeclaration nodes.  It's better this way anyhow because we only care
-       * about the children of the class declaration to begin with.
-       */ 
-      iv.doAcceptForChildren(JavaPromise.getPromisedFor(node));
+      final IRNode classDecl = JavaPromise.getPromisedFor(node);
+      final IRNode classBody =
+        AnonClassExpression.prototype.includes(classDecl) ?
+            AnonClassExpression.getBody(classDecl) :
+              TypeDeclaration.getBody(classDecl);
+      processClassBody(classBody, true);
       return null;
     }
     
     @Override
     public Void visitInitDeclaration(final IRNode node) {
-      /* We have the node for the instance initializer because we are executing
-       * on behalf of an anonymous class expression; recursively find
-       * all the instance initializer blocks in the class. 
+      /* We get here when we are looking at the instance initializer of an
+       * anonymous class expression.  
        */
-      final InitializationVisitor iv = new InitializationVisitor(this, false);
-      /* Must use accept for children because InitializationVisitor doesn't do anything
-       * for ClassDeclaration nodes.  It's better this way anyhow because we only care
-       * about the children of the class declaration to begin with.
-       */ 
-      iv.doAcceptForChildren(JavaPromise.getPromisedFor(node));
+      processClassBody(AnonClassExpression.getBody(JavaPromise.getPromisedFor(node)), false);
       return null;
     }
   
@@ -284,14 +262,14 @@ public final class LocalVariableDeclarations {
     
     @Override
     public Void visitConstructorCall(final IRNode node) {
-      // Would process the call itself first, but we don't care about it
+      // Process the argument list in case it contains anonymous classes
+      doAcceptForChildren(ConstructorCall.getArgs(node));
       
       final IRNode conObject = ConstructorCall.getObject(node);
       final Operator conObjectOp = JJNode.tree.getOperator(conObject);
       if (SuperExpression.prototype.includes(conObjectOp)) {
         // Visit the initializers.
-        final InitializationVisitor helper = new InitializationVisitor(this, false);
-        helper.doAcceptForChildren(JJNode.tree.getParent(currentConstructor));
+        processClassBody(JJNode.tree.getParent(currentConstructor), false);
       }
       return null;
     }
@@ -467,7 +445,7 @@ public final class LocalVariableDeclarations {
      * containing method/constructor declarations or class initializers.
      */
     final List<IRNode> external = new ArrayList<IRNode>();
-    IRNode current = JJNode.tree.getParentOrNull(mdecl);
+    IRNode current = InitDeclaration.prototype.includes(mdecl) ? JavaPromise.getPromisedFor(mdecl) : JJNode.tree.getParentOrNull(mdecl);
     IRNode lastTypeDecl = null;
     while (current != null) {
       final Operator op = JJNode.tree.getOperator(current);
