@@ -70,8 +70,27 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitAnnotation(IRNode node) {
+      /*
+	  if ("Override".equals(Annotation.getId(node))) {
+		  System.out.println("Getting type for: "+DebugUnparser.toString(node));
+		  if (AbstractJavaBinder.issueCount.get() == 0) {
+			  AbstractJavaBinder.foundIssue = true;
+		  } else {
+			  AbstractJavaBinder.issueCount.decrementAndGet();
+		  }
+	  }
+	  */
 	  IBinding b = binder.getIBinding(node);
-	  return binder.getTypeEnvironment().convertNodeTypeToIJavaType( b.getNode() );
+	  if (b == null) {
+		  //System.out.println("Got null binding for "+DebugUnparser.toString(node));
+		  //binder.getBinding(node);
+		  return null;
+	  }
+	  IJavaType rv = binder.getTypeEnvironment().convertNodeTypeToIJavaType( b.getNode() );
+	  if (rv == null) {
+		  System.out.println("No type for "+DebugUnparser.toString(node));
+	  }
+	  return rv;
   }
   
   @Override
