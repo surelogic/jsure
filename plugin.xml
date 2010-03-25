@@ -119,13 +119,13 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="ConcurrencyDetector" name="Concurrency detector"
+	<extension id="ConcurrencyDetector" name="Eclipse Concurrency detector"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.threads.ConcurrencyDetector"
 			production="false">
 		</run>
 	</extension>
-	<extension id="IRConcurrencyDetector" name="IR Concurrency detector"
+	<extension id="IRConcurrencyDetector" name="Concurrency detector"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.threads.IRConcurrencyDetector">
 		</run>
@@ -140,21 +140,21 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="LayersAssurance" name="Layers Assurance"
+	<extension id="LayersAssurance" name="Static structure"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.layers.LayersAnalysis">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>	
-	<extension id="LockAssurance3" name="Greenhouse Lock Assurance"
+	<extension id="LockAssurance3" name="Lock policy"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.locks.LockAnalysis">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="UniquenessAssurance2" name="Uniqueness Assurance"
+	<extension id="UniquenessAssurance2" name="Uniqueness"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule">
 		</run>
@@ -185,7 +185,7 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
 		</prerequisite>
 	</extension>
-	<extension id="EffectAssurance2" name="Greenhouse &amp; Boyland Effects"
+	<extension id="EffectAssurance2" name="Object-oriented effects"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.effects.EffectsAnalysis">
 		</run>
@@ -221,7 +221,7 @@
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
   </extension>
-	<extension id="ThreadEffectAssurance2" name="Halloran Thread Effects"
+	<extension id="ThreadEffectAssurance2" name="Thread effects"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.threads.ThreadEffectsModule">
 		</run>
