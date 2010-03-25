@@ -335,7 +335,7 @@ public class PromisesAnnotationRewriter {
 				return new AssumptionMergeStrategy(descs);
 			} else {
 				final String name = descs.get(0).getAnnotation();
-				if (REQUIRESLOCK.equals(name) || AGGREGATE.equals(name)) {
+				if (AGGREGATE.equals(name) || REQUIRESLOCK.equals(name)) {
 					return new CommaDelimitedMergeStrategy(name, descs);
 				}
 				return new DefaultMergeStrategy(descs);
@@ -656,7 +656,7 @@ public class PromisesAnnotationRewriter {
 	 * join together a list of names with the '.' separator
 	 */
 	private static String join(final Iterable<String> names) {
-		return join(names, '.');
+		return join(names, ',');
 	}
 
 }
