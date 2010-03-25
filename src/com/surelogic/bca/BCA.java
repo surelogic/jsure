@@ -1,14 +1,11 @@
 package com.surelogic.bca;
 
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.JavaSemanticsVisitor;
-import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.bca.uwm.BindingContext;
 import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 
@@ -16,10 +13,8 @@ import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -33,8 +28,6 @@ import edu.cmu.cs.fluid.util.ImmutableSet;
 public final class BCA extends AbstractWholeIRAnalysisModule {
   private static final Category BCA_CATEGORY =
     Category.getInstance("BCACategory");
-  private static final Category LV_CATEGORY =
-    Category.getInstance("LVCategory");
 
 	static private class ResultsDepDrop extends Drop {
 		// Marker class
@@ -132,7 +125,7 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	  }
 	  
 	  private void restoreQuery() {
-	    query = oldQueries.removeFirst();
+      query = oldQueries.removeFirst();
 	  }
 	  	  
 	  
@@ -156,6 +149,15 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	  protected void leavingEnclosingDecl(final IRNode oldDecl) {
 	    restoreQuery();
 	  }
+
+	  /* Need to override this to return NULL_ACTION so that we process the 
+	   * field inits and instance init of anon class expressions in expression
+	   * statements.
+	   */
+	  @Override
+    protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
+      return NULL_ACTION;
+    }
 	  
 	  @Override
 	  protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
@@ -174,37 +176,6 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
       };
 	  }
 	  
-    private void reportLocalVariables(final IRNode mdecl) {
-      final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(mdecl);
-      final InfoDrop drop = new InfoDrop();
-      setLockResultDep(drop, mdecl);
-      drop.setCategory(LV_CATEGORY);
-      drop.setMessage("{0}: Local {1}; External {2}", 
-          JavaNames.genQualifiedMethodConstructorName(mdecl), 
-          listToString(lvd.getLocal()), listToString(lvd.getExternal()));
-    }
-
-    @Override
-	  protected void handleConstructorDeclaration(final IRNode cdecl) {
-	    reportLocalVariables(cdecl);
-      super.handleConstructorDeclaration(cdecl);
-	  }
-
-    @Override
-    protected void handleMethodDeclaration(final IRNode mdecl) {
-      reportLocalVariables(mdecl);
-      super.handleMethodDeclaration(mdecl);
-    }
-    
-    @Override
-    protected void handleNonAnnotationTypeDeclaration(final IRNode tdecl) {
-      final IRNode clinit = JavaPromise.getClassInitOrNull(tdecl);
-      if (clinit != null) {
-        reportLocalVariables(clinit);
-      }
-      super.handleNonAnnotationTypeDeclaration(tdecl);
-    }
-	  
     
     
 	  @Override
@@ -212,10 +183,6 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	    // See if the current variable is a primitive or not
 	    final IJavaType type = binder.getJavaType(use);
 	    if (type instanceof IJavaReferenceType) {
-	      // Ignore if the variable is declared outside of the enclosing declaration (this is temporary, I really need to fix the lattice)
-//	      if (!VisitUtil.isAncestor(getEnclosingDecl(), binder.getBinding(use))) return null;
-	      
-        // See if the current variable is considered to be null or not
 	      final ImmutableSet<IRNode> bindings = query.getResultFor(use);
         final InfoDrop drop = new InfoDrop();
         setLockResultDep(drop, use);
@@ -226,18 +193,5 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	    
 	    return null;
 	  }
-	}
-	
-	
-	private static String listToString(final List<IRNode> list) {
-	  final StringBuilder sb = new StringBuilder();
-	  sb.append('[');
-	  final Iterator<IRNode> i = list.iterator();
-	  while (i.hasNext()) {
-	    sb.append(DebugUnparser.toString(i.next()));
-	    if (i.hasNext()) sb.append(", ");
-	  }
-	  sb.append(']');
-	  return sb.toString();
 	}
 }

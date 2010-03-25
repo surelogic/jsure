@@ -150,6 +150,15 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	    restoreQuery();
 	  }
 	  
+    /* Need to override this to return NULL_ACTION so that we process the 
+     * field inits and instance init of anon class expressions in expression
+     * statements.
+     */
+    @Override
+    protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
+      return NULL_ACTION;
+    }
+
 	  @Override
 	  protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
 	    return new InstanceInitAction() {

@@ -207,6 +207,13 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
+  <extension id="LV" name="Local Variables"
+    point="com.surelogic.jsure.client.eclipse.analysisModule">
+    <run class="com.surelogic.bca.LocalVariables" production="false">
+    </run>
+    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+    </prerequisite>
+  </extension>
   <extension id="NonNull" name="Non Null Analysis"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
     <run class="com.surelogic.nonnull.NonNull" production="false">
