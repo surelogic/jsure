@@ -250,7 +250,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   }
   
   private static boolean isType(Operator op) {
-	  return Type.prototype.includes(op) && !TypeDeclaration.prototype.includes(op);
+	  return (Type.prototype.includes(op) && !TypeDeclaration.prototype.includes(op)) ||
+	         TypeActuals.prototype.includes(op);
   }
   
   // Check for case of OOS around an AllocationCallExpression (or pair)
