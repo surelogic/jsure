@@ -12,6 +12,12 @@
    <borrowed>this</borrowed>
   </constructor>
   
+  <method name="getId">
+    <borrowed>this</borrowed>
+  </method>
+  <method name="setName" params="java.lang.String">	
+  	<borrowed>this</borrowed>
+  </method>
   <method name="start">
    <RegionEffects>reads Instance</RegionEffects>
   </method>

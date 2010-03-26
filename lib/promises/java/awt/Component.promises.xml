@@ -49,7 +49,7 @@
     <method name="getFontMetrics" params="java.awt.Font">
     	<borrowed>this</borrowed>
     </method>
-    <method name="getToolkit" params="">
+    <method name="getToolkit">
     	<borrowed>this</borrowed>
     </method>
 

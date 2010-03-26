@@ -1,0 +1,7 @@
+<package name="java.lang">
+  <class name="Object">
+    <method name="getName">
+      <borrowed>this</borrowed>
+    </method>
+  </class>
+ </package>
