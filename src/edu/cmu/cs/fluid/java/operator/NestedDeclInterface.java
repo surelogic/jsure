@@ -6,5 +6,6 @@ package edu.cmu.cs.fluid.java.operator;
  * 
  * @author Edwin.Chan
  */
-public interface NestedDeclInterface extends ClassBodyDeclInterface, TypeDeclInterface {   
+public interface NestedDeclInterface extends ClassBodyDeclInterface, TypeDeclInterface {
+	// Just a marker
 }
