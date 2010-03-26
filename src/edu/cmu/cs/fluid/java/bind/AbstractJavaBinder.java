@@ -1622,7 +1622,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		final String id = name.substring(lastDot+1);
 		IRNode decl = classTable.getOuterClass(qname, node);
 		IBinding b = null;
-		if (decl != null) {
+		if (decl == null) {
 			b = scope.lookup(qname, node, IJavaScope.Util.isTypeDecl);    
 			if (b == null) {
 				// Check for more nesting
