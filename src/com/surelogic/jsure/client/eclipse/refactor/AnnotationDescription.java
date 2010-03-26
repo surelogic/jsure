@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import com.surelogic.common.refactor.Field;
 import com.surelogic.common.refactor.IJavaDeclaration;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -52,7 +53,13 @@ public class AnnotationDescription implements Comparable<AnnotationDescription> 
 
 	public AnnotationDescription(final ProposedPromiseDrop drop, final IBinder b) {
 		target = IRNodeUtil.convert(b, drop.getNode());
-		assumptionTarget = IRNodeUtil.convert(b, drop.getAssumptionNode());
+		// @Assume cannot be on a field, so we just stick it on the parent type
+		// in that case
+		IJavaDeclaration from = IRNodeUtil.convert(b, drop.getRequestedFrom());
+		if (from instanceof Field) {
+			from = ((Field) from).getTypeContext();
+		}
+		assumptionTarget = from;
 		annotation = drop.getAnnotation();
 		contents = drop.getContents();
 		ISrcRef srcRef = drop.getSrcRef();
