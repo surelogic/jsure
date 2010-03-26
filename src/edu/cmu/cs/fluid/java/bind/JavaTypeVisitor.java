@@ -69,17 +69,24 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
-  public IJavaType visitAnnotation(IRNode node) {
-      /*
+  public IJavaType visitAnnotation(IRNode node) {      
+	  /*
 	  if ("Override".equals(Annotation.getId(node))) {
-		  System.out.println("Getting type for: "+DebugUnparser.toString(node));
-		  if (AbstractJavaBinder.issueCount.get() == 0) {
-			  AbstractJavaBinder.foundIssue = true;
-		  } else {
-			  AbstractJavaBinder.issueCount.decrementAndGet();
+		  IRNode type = VisitUtil.getEnclosingType(node);
+		  if (AnonClassExpression.prototype.includes(type)) {
+			  String unparse = DebugUnparser.toString(type);
+			  if (unparse.startsWith("new edu.cmu.cs.fluid.java.bind.ModulePromises . Rule <edu.cmu.cs.fluid.ir.IRNode>")) {
+				  System.out.println("Getting type for: "+DebugUnparser.toString(node));
+				  System.out.println();
+				  if (AbstractJavaBinder.issueCount.get() == 0) {
+					  AbstractJavaBinder.foundIssue = true;
+				  } else {
+					  AbstractJavaBinder.issueCount.decrementAndGet();
+				  }
+			  }
 		  }
-	  }
-	  */
+	  }	
+	  */  
 	  IBinding b = binder.getIBinding(node);
 	  if (b == null) {
 		  //System.out.println("Got null binding for "+DebugUnparser.toString(node));
