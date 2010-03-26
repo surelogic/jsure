@@ -62,7 +62,9 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				!(PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op))) {
 				final IBinding b    = getAnalysis().getBinder().getIBinding(n);
 				if (b == null || b.getNode() == null) {
-					System.out.println("No binding for "+DebugUnparser.toString(n));
+					if (!ClassExpression.prototype.includes(n)) {
+						System.out.println("No binding for "+DebugUnparser.toString(n));
+					}
 					continue;
 				}
 				final IRNode bindCu = VisitUtil.getEnclosingCompilationUnit(b.getNode());
