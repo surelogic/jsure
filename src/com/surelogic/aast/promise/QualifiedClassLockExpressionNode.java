@@ -43,6 +43,7 @@ public class QualifiedClassLockExpressionNode extends ClassLockExpressionNode {
     	sb.append("QualifiedClassLockExpression\n");
     }
     sb.append(getType().unparse(debug, indent+2));
+    sb.append(".class");
     return sb.toString();
   }
 
