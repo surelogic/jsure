@@ -64,7 +64,10 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 			//if (!isUJB) { 
 			if (true) {
 				if (op instanceof IHasBinding) {
-					bindingCache.put(n, orig.getIBinding(n));
+					IBinding b = orig.getIBinding(n);
+					if (b != null) {
+						bindingCache.put(n, b);					
+					}					
 				}
 			}
 			if (op instanceof IHasType) {
