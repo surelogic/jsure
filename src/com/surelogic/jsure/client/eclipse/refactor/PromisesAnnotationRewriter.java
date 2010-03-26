@@ -653,7 +653,7 @@ public class PromisesAnnotationRewriter {
 	}
 
 	/*
-	 * join together a list of names with the '.' separator
+	 * join together a list of names with the ',' separator
 	 */
 	private static String join(final Iterable<String> names) {
 		return join(names, ',');
