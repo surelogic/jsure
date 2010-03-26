@@ -1620,19 +1620,17 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     private IBinding checkForNestedAnnotation(final IRNode node, final String name, int lastDot) {
    		final String qname = name.substring(0, lastDot);
 		final String id = name.substring(lastDot+1);
-		IRNode decl = classTable.getOuterClass(qname, node);
-		if (decl == null) {
+		//IRNode decl = classTable.getOuterClass(qname, node);
+		IBinding b = scope.lookup(qname, node, IJavaScope.Util.isTypeDecl);    
+		if (b == null) {
 			// Check for more nesting
 			lastDot = qname.lastIndexOf('.');
 			if (lastDot >= 0) { 
-				IBinding b = checkForNestedAnnotation(node, qname, lastDot);
-				if (b != null) {
-					decl = b.getNode();					
-				}
+				b = checkForNestedAnnotation(node, qname, lastDot);
 			}
 		}
-		if (decl != null) {
-			IJavaScope scope = typeScope(JavaTypeFactory.convertIRTypeDeclToIJavaType(decl));
+		if (b != null) {
+			IJavaScope scope = typeScope(JavaTypeFactory.convertIRTypeDeclToIJavaType(b.getNode()));
 			return scope.lookup(id, node, IJavaScope.Util.isTypeDecl);    
 		}
 		return null;
