@@ -1,5 +1,5 @@
 # $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/EnumConstantClassDeclaration.op,v 1.2 2007/05/14 21:36:57 chance Exp $
-public operator EnumConstantClassDeclaration extends EnumConstantDeclaration implements NestedDeclInterface
+public operator EnumConstantClassDeclaration extends EnumConstantDeclaration implements NestedDeclInterface, FlowUnit
 {
   syntax { 
     $id:Info args:OptArguments body:ClassBody
@@ -8,7 +8,28 @@ public operator EnumConstantClassDeclaration extends EnumConstantDeclaration imp
     binding=Variable
     bindsToType=Type 
   }  
+  
+  // TODO what's right?  Copied from ACE and other decls
   @Override public Component createComponent(IRNode node) {
     return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,false);
+  }
+
+  public Source getSource(IRNode node) {
+    Component comp = JavaComponentFactory.prototype.getComponent(node);
+    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,bodyLoc));
+    ControlEdge e = ((SubcomponentEntryPort)sub.getEntryPort()).getInput();
+    return (Source)e.getSource();
+  }
+  public Sink getNormalSink(IRNode node) {
+    Component comp = JavaComponentFactory.prototype.getComponent(node);
+    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,bodyLoc));
+    ControlEdge e = ((SubcomponentNormalExitPort)sub.getNormalExitPort()).getOutput();
+    return (Sink)e.getSink();
+  }
+  public Sink getAbruptSink(IRNode node) {
+    Component comp = JavaComponentFactory.prototype.getComponent(node);
+    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,bodyLoc));
+    ControlEdge e = ((SubcomponentAbruptExitPort)sub.getAbruptExitPort()).getOutput();
+    return (Sink)e.getSink();
   }
 }
