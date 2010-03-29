@@ -51,6 +51,10 @@ public class Messages extends AbstractMessages {
   
   public static String LockAnalysis_dsc_MatchingCalls = "lock()\u2013unlock() matches";
   
+  public static String LockAnalysis_dsc_UnsupportedModel = "unsupported lock model(s)";
+  
+  
+  
   // Drop-sea result messages
   public static int LockAnalysis_ds_SynchronizedConstructorAssured = 200;
 
@@ -179,6 +183,9 @@ public class Messages extends AbstractMessages {
   
   
   public static int LockAnalysis_ds_LockViz = 256;
+  
+  public static int LockAnalysis_ds_UnsupportedModel = 257;
+  
   
   
   private static final Map<String,String> value2field = new HashMap<String,String>();

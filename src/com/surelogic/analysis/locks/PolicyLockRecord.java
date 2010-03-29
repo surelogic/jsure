@@ -28,7 +28,7 @@ final class PolicyLockRecord extends AbstractLockRecord {
    *          The lock declaration.
    */
   public PolicyLockRecord(
-      final IBinder binder, final IJavaDeclaredType cd, final LockModel ld) {
+      final IBinder binder, final IJavaDeclaredType cd, final LockModel ld) throws GlobalLockModel.UnsupportedLockException {
     super(binder, cd, ld);
   }
 

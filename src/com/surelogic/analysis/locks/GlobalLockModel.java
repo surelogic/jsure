@@ -27,10 +27,18 @@ import edu.cmu.cs.fluid.util.SingletonSet;
  * TODO: Write javadoc!
  * 
  * <p>This class is not thread-safe.
- * 
- * @author aarong
  */
 public final class GlobalLockModel {
+  public static final class UnsupportedLockException extends Exception {
+    private final ExpressionNode bad;
+    
+    public UnsupportedLockException(final ExpressionNode en) { bad = en; }
+    
+    public ExpressionNode getUnsupportedLock() { return bad; }
+  }
+  
+  
+  
   /** Special IRNode used to represent 'this' */
   public static final IRNode THIS = new PlainIRNode(); 
   
@@ -571,12 +579,16 @@ public final class GlobalLockModel {
    */
   public void addRegionLockDeclaration(
       final IBinder binder, final LockModel lockDecl, final IJavaDeclaredType clazz) {
-    final RegionLockRecord lockRec = new RegionLockRecord(binder, clazz, lockDecl);
-    final ClassRecord annotatedClass = getClassRecord(clazz);
-    annotatedClass.lockMap.addLock(lockRec);
-     
-    final ClassRecord classDefiningLock = getClassDefiningLock(lockRec.lockImpl);
-    classDefiningLock.lockMap.addFieldUsedAsLock(lockRec);
+    try {
+      final RegionLockRecord lockRec = new RegionLockRecord(binder, clazz, lockDecl);
+      final ClassRecord annotatedClass = getClassRecord(clazz);
+      annotatedClass.lockMap.addLock(lockRec);
+       
+      final ClassRecord classDefiningLock = getClassDefiningLock(lockRec.lockImpl);
+      classDefiningLock.lockMap.addFieldUsedAsLock(lockRec);
+    } catch (final GlobalLockModel.UnsupportedLockException e) {
+      // Do nothing.  Unsupported locks are not kept in the model
+    }
   }
   
   /**
@@ -591,12 +603,16 @@ public final class GlobalLockModel {
    */
   public void addPolicyLockDeclaration(
       final IBinder binder, final LockModel lockDecl, final IJavaDeclaredType clazz) {
-    final PolicyLockRecord lockRec = new PolicyLockRecord(binder, clazz, lockDecl);
-    final ClassRecord annotatedClass = getClassRecord(clazz);
-    annotatedClass.plockMap.addLock(lockRec);
-     
-    final ClassRecord classDefiningLock = getClassDefiningLock(lockRec.lockImpl);
-    classDefiningLock.plockMap.addFieldUsedAsLock(lockRec);
+    try {
+      final PolicyLockRecord lockRec = new PolicyLockRecord(binder, clazz, lockDecl);
+      final ClassRecord annotatedClass = getClassRecord(clazz);
+      annotatedClass.plockMap.addLock(lockRec);
+       
+      final ClassRecord classDefiningLock = getClassDefiningLock(lockRec.lockImpl);
+      classDefiningLock.plockMap.addFieldUsedAsLock(lockRec);
+    } catch (final GlobalLockModel.UnsupportedLockException e) {
+      // Do nothing.  Unsupported locks are not kept in the model
+    }
   }
 
   /**
@@ -617,15 +633,17 @@ public final class GlobalLockModel {
    *         the case of ClassExpressions, or a VariableDeclarator in the case
    *         of a named field.
    */
-  public static IRNode canonicalizeLockImpl(
-      final IBinder binder, final ExpressionNode lockImpl) {
+  public static IRNode canonicalizeLockImpl(final IBinder binder,
+      final ExpressionNode lockImpl) throws UnsupportedLockException {
     if (lockImpl instanceof ThisExpressionNode) {
       return THIS;
     } else if (lockImpl instanceof ClassLockExpressionNode) {
-      ClassLockExpressionNode cls = (ClassLockExpressionNode) lockImpl;
+      final ClassLockExpressionNode cls = (ClassLockExpressionNode) lockImpl;
       return cls.resolveType().getNode();
+    } else if (lockImpl instanceof QualifiedThisExpressionNode) {
+      throw new UnsupportedLockException(lockImpl);
     } else {
-      FieldRefNode ref = (FieldRefNode) lockImpl;
+      final FieldRefNode ref = (FieldRefNode) lockImpl;
       return ref.resolveBinding().getNode();
     }
   }

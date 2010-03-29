@@ -48,7 +48,7 @@ abstract class AbstractLockRecord {
    *          The lock declaration.
    */
   public AbstractLockRecord(
-      final IBinder binder, final IJavaDeclaredType cd, final LockModel ld) {
+      final IBinder binder, final IJavaDeclaredType cd, final LockModel ld) throws GlobalLockModel.UnsupportedLockException {
     lockDecl = ld;
     classDecl = cd;
     name = ld.getAST().getId();

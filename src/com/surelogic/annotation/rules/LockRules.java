@@ -29,6 +29,8 @@ import edu.cmu.cs.fluid.tree.Operator;
 public class LockRules extends AnnotationRules {
   private static final Category DSC_LOCK_VIZ = Category.getInstance(
       com.surelogic.analysis.messages.Messages.LockAnalysis_dsc_LockViz);
+  private static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance(
+      com.surelogic.analysis.messages.Messages.LockAnalysis_dsc_UnsupportedModel);
 
   public static final String LOCK = "RegionLock";
 	private static final String IS_LOCK = "IsLock";
@@ -683,21 +685,6 @@ public class LockRules extends AnnotationRules {
       }
   
       if (declIsGood) {
-        /* One last test: Analysis does not currently support using locks 
-         * from qualified receivers.  See bug 992.  If annotation is 
-         * otherwise correct, but its lock implementation is a qualified 
-         * receiver, or a field from a qualified receiver, then we reject it
-         * noting that the feature is not yet supported.
-         */ 
-        if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
-            || ((lockDecl.getField() instanceof FieldRefNode)
-                && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          context.reportWarning(
-              "Sorry, analysis does not yet support the use of qualified receivers as lock objects.",
-              lockDecl);
-          return null;
-        }
-        
         // fill in the rest of the drop information
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.getInstance(qualifiedName); 
@@ -709,6 +696,30 @@ public class LockRules extends AnnotationRules {
         model.addDependent(regionBinding.getModel());        
         // Get the AssumeFinal promise, if any
         handleAssumeFinal(model, lockFieldNode);
+        
+        /* One last test: Analysis does not currently support using locks 
+         * from qualified receivers.  See bug 992.  If annotation is 
+         * otherwise correct, but its lock implementation is a qualified 
+         * receiver, or a field from a qualified receiver, then we reject it
+         * noting that the feature is not yet supported.  We output this as a
+         * regular drop-sea warning, because the model isn't broken or nonsensical,
+         * just not supported by current analyses.
+         */ 
+        if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
+            || ((lockDecl.getField() instanceof FieldRefNode)
+                && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
+          final WarningDrop wd = new WarningDrop(Integer.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel));
+          wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel);
+          wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
+          wd.setCategory(DSC_UNSUPPORTED_MODEL);
+          model.addDependent(wd);
+
+//          context.reportWarning(
+//              "Sorry, analysis does not yet support the use of qualified receivers as lock objects.",
+//              lockDecl);
+//          return null;
+        }
+        
         
         return model;
       }

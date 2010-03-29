@@ -9,6 +9,7 @@ import com.surelogic.aast.java.ClassExpressionNode;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.FieldRefNode;
 import com.surelogic.aast.java.NamedTypeNode;
+import com.surelogic.aast.java.QualifiedThisExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.*;
@@ -112,10 +113,8 @@ public class JcipRules extends AnnotationRules {
     final String id = MessageFormat.format("Guard$_{0}", fieldId);
     final RegionNameNode region = new RegionNameNode(a.getOffset(), fieldId);
 
-    if (lock instanceof ThisExpressionNode) { // @GuardedBy("this")
-      /* Generate @RegionLock("L is this protects F") on the class C that
-       * contains the annotated field F.  Generate a new lock name L.
-       */
+    // TODO: Clean this up
+    if (lock instanceof ThisExpressionNode) {
       final ThisExpressionNode field = (ThisExpressionNode) lock.cloneTree();
       
       final LockDeclarationNode regionLockDecl =
@@ -141,8 +140,15 @@ public class JcipRules extends AnnotationRules {
       regionLockDecl.setPromisedFor(classDecl);
       regionLockDecl.setSrcType(a.getSrcType());
       AASTStore.addDerived(regionLockDecl, a, d);
+    } else if (lock instanceof QualifiedThisExpressionNode) {
+      final QualifiedThisExpressionNode field = (QualifiedThisExpressionNode) lock.cloneTree();
+      
+      final LockDeclarationNode regionLockDecl =
+        new LockDeclarationNode(a.getOffset(), id, field, region);
+      regionLockDecl.setPromisedFor(classDecl);
+      regionLockDecl.setSrcType(a.getSrcType());
+      AASTStore.addDerived(regionLockDecl, a, d);
     }
     return d;
   }
- 
 }
