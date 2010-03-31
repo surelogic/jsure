@@ -10,7 +10,7 @@ import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.ir.IndependentIRNode;
+import edu.cmu.cs.fluid.ir.PlainIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -79,7 +79,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    * a dummy value that we use as a set element for a dummy array location.
    * @see #IGNORE_ME_SINGLETON_SET
    */
-  protected static final IRNode IGNORE_ME = new IndependentIRNode();
+  protected static final IRNode IGNORE_ME = new PlainIRNode();
   static {
     JJNode.setInfo(IGNORE_ME, "<ignore>");
   }
@@ -92,6 +92,20 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   protected static final ImmutableSet<IRNode> IGNORE_ME_SINGLETON_SET =
     CachedSet.<IRNode>getEmpty().addElement(IGNORE_ME);
 
+  private static final IRNode EXTERNAL_VAR = new PlainIRNode();
+  static {
+    JJNode.setInfo(EXTERNAL_VAR, "<external variable>");
+  }
+
+  private static final ImmutableSet<IRNode> EXERNAL_VAR_SINGLETON_SET =
+    CachedSet.<IRNode>getEmpty().addElement(EXTERNAL_VAR);
+  
+  
+  
+  public boolean isExternalVar(final IRNode node) {
+    return node.equals(EXTERNAL_VAR);
+  }
+  
   
   
   // =========================================================================
@@ -139,6 +153,8 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    */
   private final IRNode[] ignore;
   
+  private final boolean[] isExternal;
+  
 
   
   // =========================================================================
@@ -148,12 +164,14 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   /** Create a new BindingContext lattice for a particular method. */
   @SuppressWarnings("unchecked")
   private BindingContext(
-      final IRNode md, final IRNode[] locals, final IRNode[] ignore, final IBinder binder) {
+      final IRNode md, final IRNode[] locals, final IRNode[] ignore, 
+      final boolean[] isExternal, final IBinder binder) {
     // We add one to the # of locals to make room for our bogus element
     super(new UnionLattice<IRNode>(), locals.length + 1, new ImmutableSet[0]);
     this.methodDecl = md;
     this.locals = locals;
     this.ignore = ignore;
+    this.isExternal = isExternal;
     this.binder = binder;
   }
 
@@ -183,9 +201,12 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
     
     final IRNode[] localArray = new IRNode[localsOfInterest.size()];
     final IRNode[] ignoreArray = new IRNode[ignore.size()];
+    final boolean[] isExternal = new boolean[ignore.size()];
+    for (int i = 0; i < lvd.getExternal().size(); i++) isExternal[i] = true;
+    
     return new BindingContext(flowUnit,
         localsOfInterest.toArray(localArray),
-        ignore.toArray(ignoreArray),
+        ignore.toArray(ignoreArray), isExternal,
         binder);
   }
   
@@ -301,10 +322,15 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
      */
     final int localIdx = findLocal(decl);
     if (localIdx != -1) {
-      return value[findLocal(decl)];
+      return value[localIdx];
     } else {
-      if (findIgnored(decl) != -1) {
-        return CachedSet.<IRNode>getEmpty();
+      final int ignoredIdx = findIgnored(decl);
+      if (ignoredIdx != -1) {
+        if (isExternal[ignoredIdx]) {
+          return EXERNAL_VAR_SINGLETON_SET;
+        } else {
+          return CachedSet.<IRNode>getEmpty();
+        }
       } else {
         throw new FluidRuntimeException("Variable declaration " + DebugUnparser.toString(decl) + " is unknown in lattice");
       }
@@ -395,7 +421,11 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   
   private static String elemToString(final Object o) {
     if (o instanceof IRNode) {
-      return DebugUnparser.toString((IRNode)o);
+      if (EXTERNAL_VAR.equals(o)) {
+        return "<external variable>";
+      } else {
+        return DebugUnparser.toString((IRNode)o);
+      }
     } else {
       return o.toString();
     }
