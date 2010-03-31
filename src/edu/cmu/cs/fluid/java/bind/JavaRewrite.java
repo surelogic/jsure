@@ -337,6 +337,7 @@ public class JavaRewrite implements JavaGlobals {
 					LOG.finer("Adding implicit methods for "
 							+ JavaNames.getTypeName(type) + "."
 							+ JavaNames.getTypeName(y));
+				//System.out.println("Adding implicit enum methods for "+JavaNames.getFullTypeName(y));
 				addImplicitEnumMethods(y);
 				changed = true;
 			} else if (TypeFormal.prototype.includes(op)) {
@@ -485,6 +486,7 @@ public class JavaRewrite implements JavaGlobals {
 	 * @return true if changed
 	 */
 	public boolean ensureConstructorStuff(IRNode type) {
+		//System.out.println("Looking for constructor in "+JavaNames.getFullTypeName(type));
 		IRNode cbody    = VisitUtil.getClassBody(type);
 		boolean changed = false;
 
@@ -607,16 +609,14 @@ public class JavaRewrite implements JavaGlobals {
 
 		// copy parent's throws clause
 		IRNode[] throwsC;
-		IRNode[] stmt;
 		IJavaDeclaredType type = (IJavaDeclaredType) JavaTypeFactory
 				.convertIRTypeDeclToIJavaType(decl);
-
 		if (!isSuper_JavaLangObject(decl, type)) {
 			throwsC = makeDefaultThrows(type);
-			stmt = new IRNode[] { CogenUtil.makeDefaultSuperCall() };
 		} else {
-			throwsC = stmt = JavaGlobals.noNodes;
+			throwsC = JavaGlobals.noNodes;
 		}
+		IRNode[] stmt = new IRNode[] { CogenUtil.makeDefaultSuperCall() };
 		IRNode block = BlockStatement.createNode(stmt);
 		IRNode body = MethodBody.createNode(block);
 		IRNode constructor = CogenUtil.makeConstructorDecl(noNodes, mods,
