@@ -298,9 +298,9 @@ public class ScopedPromiseRules extends AnnotationRules {
 		if(TypeDeclaration.prototype.includes(op)) {
 			success = applyPromiseOnType(promisedFor, scopedPromiseDrop);
 		}	
-		//If the IRNode is a CompilationUnit, iterate over all of the included types
+		//If the IRNode is a CompilationUnit, iterate over all of the top-level types
 		else if (CompilationUnit.prototype.includes(op)) {
-			for (IRNode decl : VisitUtil.getAllTypeDecls(promisedFor)) {
+			for (IRNode decl : VisitUtil.getTypeDecls(promisedFor)) {
 				success = success && applyPromiseOnType(decl, scopedPromiseDrop);
 			}
 			success = applyPromiseOnType(promisedFor, scopedPromiseDrop);
@@ -339,13 +339,15 @@ public class ScopedPromiseRules extends AnnotationRules {
 		
 		if (callback.parseRule != null) {
 			// TODO only loop over the necessary declarations by checking what type
-			// the scoped promise is
-			for (IRNode decl : VisitUtil.getAllTypeDecls(promisedFor)) {
+			// the scoped promise is 
+			{
+				final IRNode decl = promisedFor;
+			//for (IRNode decl : VisitUtil.getAllTypeDecls(promisedFor)) {
 				Operator op = JJNode.tree.getOperator(decl);
 				if (callback.parseRule.declaredOnValidOp(op)) {
 					if (!callback.parseAndApplyPromise(decl, op)) {
 						success = false;
-						break;
+						//break;
 					}
 				}
 			}
