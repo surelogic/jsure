@@ -49,14 +49,20 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	@Override
 	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor) {	
 		//System.out.println("Analyzing layers for: "+cud.javaOSFileName);
-		final IRNode type = VisitUtil.getPrimaryType(cu);
+		for(IRNode type : VisitUtil.getTypeDecls(cu)) {
+			analyzeType(cu, type);
+		}
+		return true;
+	}
+	
+	private void analyzeType(final IRNode cu, final IRNode type) {
 		final InLayerPromiseDrop inLayer = LayerRules.getInLayerDrop(type);
 		final MayReferToPromiseDrop mayReferTo = LayerRules.getMayReferToDrop(type);	
 		
 		// No way to shortcircuit, due to possible AllowsReferencesTo
 		boolean problemWithInLayer = inLayer == null;
 		boolean problemWithMayReferTo = mayReferTo == null;
-		for(IRNode n : JJNode.tree.topDown(cu)) {
+		for(IRNode n : JJNode.tree.topDown(type)) {
 			final Operator op = JJNode.tree.getOperator(n);
 			if (op instanceof IHasBinding && 
 				!(PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op))) {
@@ -126,7 +132,6 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			ResultDrop rd = createSuccessDrop(type, mayReferTo);
 			rd.setResultMessage(351, JavaNames.getRelativeTypeName(type));
 		}	
-		return true;
 	}
 	
 	private static ResultDrop createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
