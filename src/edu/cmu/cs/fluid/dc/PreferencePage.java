@@ -431,7 +431,7 @@ public final class PreferencePage extends
 			PreferenceTreeNode node = (PreferenceTreeNode) element;
 			IAnalysisInfo am = node.original.am;
 			String label;
-			if (am.isProduction()) {
+			if (!am.isProduction()) {
 				label = "experimental";
 			} else {
 				label = null;
