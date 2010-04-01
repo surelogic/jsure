@@ -29,6 +29,20 @@ public abstract class AbstractBinder implements IBinder {
   private final ClassMemberSearch search = new ClassMemberSearch(this);  
   private final JavaTypeVisitor typeVisitor = JavaTypeVisitor.getTypeVisitor(this);
   
+  private volatile boolean allowWarnings;
+  
+  public void enableWarnings() {
+	  allowWarnings = true;
+  }
+  
+  public void disableWarnings() {
+	  allowWarnings = false;
+  }
+  
+  protected boolean allowWarnings() {
+	  return allowWarnings;
+  }
+  
   public IRNode getBinding(IRNode node) {
     IBinding binding = getIBinding(node);
     return binding == null ? null : binding.getNode();

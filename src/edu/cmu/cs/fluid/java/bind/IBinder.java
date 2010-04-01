@@ -9,6 +9,10 @@ import edu.cmu.cs.fluid.ir.*;
  * @author boyland
  */
 public interface IBinder {  
+  void disableWarnings();
+  
+  void enableWarnings();
+	
   /** 
    * Return the type environment that is used by this IBinder
    * to compute its results.
