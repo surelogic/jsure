@@ -9,8 +9,10 @@ import edu.cmu.cs.fluid.derived.*;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.project.JavaMemberTable;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -287,9 +289,18 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       try {
     	  ensureDerived();
       } catch(DerivationException e) {    	  
+    	  IRNode context = VisitUtil.getEnclosingStatement(node);
+    	  if (context == null) {
+    		  context = VisitUtil.getClosestClassBodyDecl(node);
+    	  }
+    	  final IRNode type = VisitUtil.getClosestType(node);
     	  System.out.println("DerivationException: "+DebugUnparser.toString(node));
-    	  System.out.println("Node:                "+node);
-    	  System.out.println("Use to decl SI:      "+useToDeclAttr);  
+    	  System.out.println("Node:                "+node);    	  
+    	  //System.out.println("Use to decl SI:      "+useToDeclAttr);  
+    	  System.out.println("Context:             "+DebugUnparser.toString(context));
+    	  System.out.println("Context type:        "+JavaNames.getFullTypeName(type));
+    	  System.out.println("Granule:             "+DebugUnparser.toString(getGranule(node)));
+    	  System.out.println("Info:                "+(containsFullInfo() ? "Full" : "Partial"));
     	  throw e;
       }
     }
