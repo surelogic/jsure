@@ -137,9 +137,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    */
   public static boolean isGranule(Operator op, IRNode node) {
     if (op instanceof TypeDeclInterface) {
+      /*
       if (op instanceof AnonClassExpression) {
         return !OuterObjectSpecifier.prototype.includes(JJNode.tree.getParent(node));
       }
+      */
       /*
       if (op instanceof TypeFormal) {
     	return false;
@@ -147,13 +149,30 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       */
       return true;
     }
+    /*
     else if (op instanceof OuterObjectSpecifier) {
       IRNode alloc = OuterObjectSpecifier.getCall(node);
       if (AnonClassExpression.prototype.includes(alloc)) {
         return true;
       }
     }
+    */
+    else if (op instanceof NewExpression) {
+    	// This is necessary because the type of the NewE may depend on binding the OOS
+        return getOOSParent(node) != null;
+    }
     return op instanceof CompilationUnit;
+  }
+  
+  /**
+   * @return non-null if node is the call for an OOS
+   */
+  static IRNode getOOSParent(IRNode node) {
+  	final IRNode parent = JJNode.tree.getParent(node);
+  	if (OuterObjectSpecifier.prototype.includes(parent) && node.equals(OuterObjectSpecifier.getCall(parent))) {
+  		return parent;
+  	}
+  	return null;
   }
   
   /**
@@ -211,7 +230,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode granule = getGranule(node);
       if (granule == node) {
     	  IRNode parent = JJNode.tree.getParentOrNull(node);
-    	  LOG.severe("no binding for " + node + " = " + DebugUnparser.toString(node)+" ("+JJNode.tree.getOperator(parent).name()+")");
+    	  LOG.severe("no binding for " + node + " = " + DebugUnparser.toString(node)+" (parent: "+JJNode.tree.getOperator(parent).name()+")");
     			  //" in version " + Version.getVersion());
       } else {
     	  LOG.severe("no binding for " + node + " = " + DebugUnparser.toString(node) + 
@@ -240,11 +259,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	op   = JJNode.tree.getOperator(here); 
         }
         needFullInfo = !isType(op);
+        /*
         if (!needFullInfo && here != null) {
         	// here is a Type, so skip it
         	final IRNode parent = JJNode.tree.getParent(here);
         	needFullInfo = isSpecialTypeCase(parent);
         }
+        */
       }
       return needFullInfo;
   }
@@ -256,6 +277,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   
   // Check for case of OOS around an AllocationCallExpression (or pair)
   static boolean isSpecialTypeCase(IRNode here) {
+	  /*
 	  if (foundIssue) {
 		  System.out.println("Checking isSpecialTypeCase for "+DebugUnparser.toString(here));
 	  }
@@ -276,6 +298,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 			  return OuterObjectSpecifier.prototype.includes(gparent);
 		  }
 	  }
+	  */
 	  return false;
   }   
   
@@ -620,6 +643,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * Start doing the binding.
      */
     public void start() {
+      /*
+      if (bindings.containsFullInfo() && 
+    	  "new Super { private int g #; { #; } { #; } }".equals(DebugUnparser.toString(targetGranule))) {
+    	  foundIssue = true;
+      }
+      */
       /*
       if (foundIssue) {
     	  System.out.println("Starting to bind granule "+DebugUnparser.toString(targetGranule)+": "+isFullPass);
@@ -1645,6 +1674,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitAnonClassExpression(IRNode node) {
+      /*
+      if ("new Super { private int g #; { #; } { #; } }".equals(DebugUnparser.toString(node))) {
+    	  System.out.println("Got ACE");
+      }
+      */
       String name    = JJNode.getInfoOrNull(node);
       IJavaScope sc;
       if (name != null) {
@@ -1659,7 +1693,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode type  = AnonClassExpression.getType(node);
       IRNode args  = AnonClassExpression.getArgs(node);
       IRNode targs = null;
-      doAccept(type, sc);
+      IRNode parent = getOOSParent(node);
+      if (parent != null) {
+    	  handleTypeForOOS(OuterObjectSpecifier.getObject(parent), type);
+      } else {
+    	  doAccept(type, sc);
+      }
       doAccept(args, sc);
       if (isFullPass) {
         // FIX? never called if used with OuterObjectSpecifier
@@ -2248,7 +2287,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public Void visitNewExpression(IRNode node) {
       NewExpression newE = (NewExpression) getOperator(node);
       IRNode type = newE.get_Type(node);
-      doAccept(type);
+      IRNode parent = getOOSParent(node);
+      if (parent != null) {
+    	  handleTypeForOOS(OuterObjectSpecifier.getObject(parent), type);
+      } else {
+    	  doAccept(type);
+      }
       IRNode targs = newE.get_TypeArgs(node);
       doAccept(targs);
       // HACK no longer needed due to changes in bindAllocation?
@@ -2282,7 +2326,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitOuterObjectSpecifier(IRNode node) {
-      if (!isFullPass) {
+      if (true) {
+        return visit(node);
+      }    	
+      if (!isFullPass || pathToTarget != null) {
         return visit(node);
       }
       /*
@@ -2290,6 +2337,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  System.out.println("Binding OOS");
       }
 */
+      // All of the below is in another granule now
       IRNode qual = OuterObjectSpecifier.getObject(node);
       IRNode alloc = OuterObjectSpecifier.getCall(node);
       IRNode type;
@@ -2332,8 +2380,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
        *   }
        * }
        */
-      IJavaScope qscope = typeScope(getJavaType(qual));
-      doAccept(type, new IJavaScope.ShadowingScope(qscope, scope));      
+      handleTypeForOOS(qual, type);      
       doAccept(targs);
       doAccept(args);
 
@@ -2359,6 +2406,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       return null;
     }
+
+	private void handleTypeForOOS(IRNode qual, IRNode type) {
+		IJavaScope qscope = typeScope(getJavaType(qual));
+		doAccept(type, new IJavaScope.ShadowingScope(qscope, scope));
+	}
     
     @Override
     public Void visitQualifiedName(IRNode node) {
