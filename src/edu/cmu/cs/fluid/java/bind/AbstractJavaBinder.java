@@ -161,6 +161,21 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	// This is necessary because the type of the NewE may depend on binding the OOS
         return getOOSParent(node) != null;
     }
+    else if (op instanceof OuterObjectSpecifier) {
+    	return true;
+    }
+    else if (op instanceof Expression) {
+    	// Check if it's the top-level Expression and contains an OOS 
+    	IRNode parent = JJNode.tree.getParentOrNull(node);
+    	if (Statement.prototype.includes(parent)) {
+    		for(IRNode n : JJNode.tree.topDown(node)) {
+    			if (OuterObjectSpecifier.prototype.includes(n)) {    				
+    				//System.out.println("Granule: "+DebugUnparser.toString(node));
+    				return true;
+    			}
+    		}
+    	}
+    }
     return op instanceof CompilationUnit;
   }
   
@@ -1948,7 +1963,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitMethodCall(IRNode node) {
       visit(node); // bind the arguments etc
-      if (!isFullPass) return null;
+      if (!isFullPass || pathToTarget != null) return null;
       MethodCall call   = (MethodCall) getOperator(node);
       IRNode receiver   = call.get_Object(node);
       IRNode args       = call.get_Args(node);
