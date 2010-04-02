@@ -1715,7 +1715,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  doAccept(type, sc);
       }
       doAccept(args, sc);
-      if (isFullPass) {
+      if (isFullPass && pathToTarget == null) {
         // FIX? never called if used with OuterObjectSpecifier
         doAccept(AnonClassExpression.getAlloc(node), sc);
         IJavaScope old = scope; 
@@ -1835,7 +1835,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitConstructorCall(IRNode node) {
       visit(node); // bind the arguments etc
-      if (!isFullPass) return null;
+      if (!isFullPass || pathToTarget != null) return null;
       ConstructorCall call = (ConstructorCall) getOperator(node);     
       IJavaType ty = getJavaType(call.get_Object(node));
       if (ty instanceof IJavaDeclaredType) {
@@ -2319,7 +2319,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       
       IRNode args  = newE.get_Args(node);
       doAccept(args);
-      if (isFullPass) {
+      if (isFullPass && pathToTarget == null) {
         //System.out.println(DebugUnparser.toString(node));
     	IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(type);
         bindAllocation(node,ty,targs, args);
