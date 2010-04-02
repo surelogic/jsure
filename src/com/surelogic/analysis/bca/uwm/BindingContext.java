@@ -102,7 +102,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   
   
   
-  public boolean isExternalVar(final IRNode node) {
+  public static boolean isExternalVar(final IRNode node) {
     return node.equals(EXTERNAL_VAR);
   }
   
