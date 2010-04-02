@@ -127,6 +127,27 @@ public final class LocalVariableDeclarations {
     // == Helper method
     // =========================================================================
 
+    private enum WhichMembers {
+      STATIC {
+        @Override
+        protected boolean acceptsModifier(final boolean isStatic) {
+          return isStatic;
+        }
+      },
+      INSTANCE {
+        @Override
+        protected boolean acceptsModifier(final boolean isStatic) {
+          return !isStatic;
+        }
+      };
+      
+      protected abstract boolean acceptsModifier(boolean isStatic);
+      
+      public final boolean acceptsMember(final IRNode bodyDecl) {
+        return acceptsModifier(JavaNode.getModifier(bodyDecl, JavaNode.STATIC));
+      }
+    }
+    
     /**
      * Visit the immediate children of a classBody and handle the field
      * declarations and ClassInitializer blocks.
@@ -139,18 +160,15 @@ public final class LocalVariableDeclarations {
      *          <code>false</code> if we should process instance field
      *          declarations and instance initializer blocks only.
      */
-    private void processClassBody(final IRNode classBody, final boolean isStatic) {
+    private void processClassBody(final IRNode classBody, final WhichMembers which) {
       for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
         final Operator op = JJNode.tree.getOperator(bodyDecl);
-        if (FieldDeclaration.prototype.includes(op)) {
-          if (JavaNode.getModifier(bodyDecl, JavaNode.STATIC) == isStatic) {
+        if (FieldDeclaration.prototype.includes(op) ||
+            ClassInitializer.prototype.includes(op)) {
+          if (which.acceptsMember(bodyDecl)) {
             this.doAcceptForChildren(bodyDecl);
           }
-        } else if (ClassInitializer.prototype.includes(op)) {
-          if (JavaNode.getModifier(bodyDecl, JavaNode.STATIC) == isStatic) {
-            this.doAcceptForChildren(bodyDecl);
-          }
-        }        
+        }       
       }
     }
     
@@ -214,9 +232,11 @@ public final class LocalVariableDeclarations {
       /* Need to visit the instance initializer blocks and instance field 
        * declarations.  We rely on the fact that anonymous classes cannot 
        * have static field members or static initializer blocks.  We ignore
-       * method and constructor declarations.
+       * method and constructor declarations.  I know this seems odd, but
+       * see Bug 1662.  Technically the initializer blocks of the anonymous
+       * class expression are executed as part of the enclosing method/constructor. 
        */
-      processClassBody(AnonClassExpression.getBody(node), false);
+      processClassBody(AnonClassExpression.getBody(node), WhichMembers.INSTANCE);
       return null;
     }
     
@@ -236,16 +256,31 @@ public final class LocalVariableDeclarations {
         AnonClassExpression.prototype.includes(classDecl) ?
             AnonClassExpression.getBody(classDecl) :
               TypeDeclaration.getBody(classDecl);
-      processClassBody(classBody, true);
+      processClassBody(classBody, WhichMembers.STATIC);
       return null;
     }
     
     @Override
     public Void visitInitDeclaration(final IRNode node) {
-      /* We get here when we are looking at the instance initializer of an
-       * anonymous class expression.  
+      /*
+       * The intent is that we only get here when we are looking at the instance
+       * initializer of an anonymous class expression. But, UniqueAnalysis is
+       * messed up and confused and can get us here for regular classes too.
+       * Need to check for that.
        */
-      processClassBody(AnonClassExpression.getBody(JavaPromise.getPromisedFor(node)), false);
+      /* XXX: Hopefully, this will be fixed when
+       * UniquenessAnalysis is replaced.
+       */
+      
+      final IRNode classDecl = JavaPromise.getPromisedFor(node);
+      final IRNode classBody;
+      // Again, this really should be the only case
+      if (AnonClassExpression.prototype.includes(classDecl)) {
+        classBody = AnonClassExpression.getBody(classDecl);
+      } else {
+        classBody = TypeDeclaration.getBody(classDecl);
+      }
+      processClassBody(classBody, WhichMembers.INSTANCE);
       return null;
     }
   
@@ -269,7 +304,7 @@ public final class LocalVariableDeclarations {
       final Operator conObjectOp = JJNode.tree.getOperator(conObject);
       if (SuperExpression.prototype.includes(conObjectOp)) {
         // Visit the initializers.
-        processClassBody(JJNode.tree.getParent(currentConstructor), false);
+        processClassBody(JJNode.tree.getParent(currentConstructor), WhichMembers.INSTANCE);
       }
       return null;
     }
