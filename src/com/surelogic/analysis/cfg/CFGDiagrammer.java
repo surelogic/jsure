@@ -142,11 +142,32 @@ public final class CFGDiagrammer {
     return sb.toString();
   }
   
+  /**
+   * Write a dot file of the control flow graph for the given IRNode.
+   * 
+   * @param irnode
+   *          The IRNode. Must be a MethodBody or ClassBody node.
+   * @param noports
+   *          True if ports should not be included.
+   * @param dotFile
+   *          The dot file to write.
+   * @throws IOException
+   */
   public static void writeDotFile(final IRNode irnode, final boolean noports, final String dotFileName) throws IOException {
     writeDotFile(irnode, noports, new File(dotFileName));
   }
 
-  
+  /**
+   * Write a dot file of the control flow graph for the given IRNode.
+   * 
+   * @param irnode
+   *          The IRNode. Must be a MethodBody or ClassBody node.
+   * @param noports
+   *          True if ports should not be included.
+   * @param dotFile
+   *          The dot file to write.
+   * @throws IOException
+   */
   public static void writeDotFile(final IRNode irnode, final boolean noports, final File dotFile) throws IOException {
     final PrintWriter out =
       new PrintWriter(new BufferedWriter(new FileWriter(dotFile)));
