@@ -43,6 +43,22 @@ final class IntrinsicLockLattice extends ArrayLattice<FlatLattice, Object> {
 
   
   
+  /* We don't need representation tricks to differentiate values from 
+   * top and bottom like we do for AbstractLockStackLattice because here 
+   * the underlying FlatLattice uses unique objects to represent top and
+   * bottom, and these are not going to be equal to our LatticeValues.LOCKED
+   * and LatticeValues.UNLOCKED values.
+   * 
+   * AbstractLockStaticLattice needs to deal with bogus elements because its
+   * underlying lattice is a List, and the bottom value there is the empty list.
+   * So we need to make sure in that case that the "empty list" is not confused
+   * with a bottom value.
+   * 
+   * Similarly we play tricks in the BindingContext lattice representation.
+   */
+  
+  
+  
   /**
    * The list of synchronized blocks tracked by the lattice.
    */
