@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.DefaultThisExpressionBinder;
-import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
@@ -66,7 +66,7 @@ public class ColorTargets {
 
     tbAlias = new TypeBasedAliasAnalysis(b);
 //    conflicter = new ConflictChecker(b, tbAlias);
-    bindingContextAnalysis = new BindingContextAnalysis(b);
+    bindingContextAnalysis = new BindingContextAnalysis(b, true);
    
     if (INSTANCE == null) {
       // Get the Instance region

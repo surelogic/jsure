@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.*;
@@ -913,7 +913,7 @@ class TestUniqueTransfer {
   static FakeBinder fb = new FakeBinder(root);
   static UniqueTransfer ut = 
     new UniqueTransfer(null, null, fb,
-        new Effects(fb, new BindingContextAnalysis(fb)));
+        new Effects(fb, new BindingContextAnalysis(fb, true)));
 
   public static void main(String[] args) {
 	  initRoot();
@@ -1215,7 +1215,7 @@ class TestUniqueAnalysis {
   
   static FakeBinder fb = new FakeBinder(root);
   static UniqueAnalysis ua = 
-    new UniqueAnalysis(fb, new Effects(fb, new BindingContextAnalysis(fb)));
+    new UniqueAnalysis(fb, new Effects(fb, new BindingContextAnalysis(fb, true)));
 
   public void reportError(String msg) {
     System.out.println(msg);

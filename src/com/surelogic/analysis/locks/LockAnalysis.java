@@ -8,12 +8,11 @@ import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effects;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.TypeBasedAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -104,7 +103,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 	
 	@Override
 	protected LockVisitor constructIRAnalysis(IBinder binder) {		
-	  final BindingContextAnalysis bca = new BindingContextAnalysis(binder);
+	  final BindingContextAnalysis bca = new BindingContextAnalysis(binder, true);
     return new LockVisitor(this, binder, new Effects(binder, bca),
         new TypeBasedAliasAnalysis(binder), bca, lockModelHandle);
 	}

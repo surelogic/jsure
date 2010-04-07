@@ -3,7 +3,7 @@ package com.surelogic.analysis.effects;
 import java.util.*;
 
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -30,7 +30,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 
 	@Override
 	protected Effects constructIRAnalysis(final IBinder binder) {
-        return new Effects(binder, new BindingContextAnalysis(binder));
+        return new Effects(binder, new BindingContextAnalysis(binder, true));
 	}
 
 	@Override

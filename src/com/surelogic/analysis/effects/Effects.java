@@ -18,7 +18,8 @@ import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.bca.uwm.BindingContext;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
@@ -490,10 +491,22 @@ public final class Effects implements IBinderClient {
         final Set<Target> newTargets) {
       final IRegion region = target.getRegion();
       for (final IRNode n : bcaQuery.getResultFor(expr)) {
-        // BCA already binds receivers to ReceiverDeclaration and QualifiedReceiverDeclaration nodes
-        final BCAEvidence evidence = new BCAEvidence(target, expr, n);        
-        final Target newTarget =
-          targetFactory.createInstanceTarget(n, region, evidence);
+        /* Check for externally declared variables.  We might have one of these
+         * if we are inside a local or anonymous class.  These variables are
+         * final variables or final parameters declared outside of the scope
+         * of the local/anonymous class.  We turn them into any-instance 
+         * targets based on the declared type of the external variable.
+         */
+        final Target newTarget;
+        if (BindingContext.isExternalVar(n)) {
+          final IJavaType type = binder.getJavaType(expr);
+          newTarget = targetFactory.createAnyInstanceTarget(
+              (IJavaReferenceType) type, region);
+        } else {
+          // BCA already binds receivers to ReceiverDeclaration and QualifiedReceiverDeclaration nodes
+          final BCAEvidence evidence = new BCAEvidence(target, expr, n);        
+          newTarget = targetFactory.createInstanceTarget(n, region, evidence);
+        }
         if (targets.add(newTarget)) {
           elaborated.add(target);
           newTargets.add(newTarget);          

@@ -5,7 +5,7 @@ import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.ClassTarget;
