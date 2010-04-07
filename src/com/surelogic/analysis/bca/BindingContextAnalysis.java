@@ -39,7 +39,7 @@ import edu.cmu.cs.fluid.util.*;
  * given FieldRef expression IRNode.
  * </ul>
  */
-
+@Deprecated
 public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,ImmutableHashOrderSet<IRNode>> {
   public final class Query implements AnalysisQuery<ImmutableHashOrderSet<IRNode>> {
     private final FlowAnalysis<IRNode> a;

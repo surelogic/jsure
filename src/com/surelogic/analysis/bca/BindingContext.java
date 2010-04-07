@@ -41,6 +41,7 @@ import edu.cmu.cs.fluid.util.*;
  * <em>All locals that are unknown (not in the lattice) are 
  * assumed to be of non-object type and has no objects.</em>
  */
+@Deprecated
 public class BindingContext extends ArrayLattice<IRNode> {
   IRNode methodDecl;
   final IRNode[] locals;
