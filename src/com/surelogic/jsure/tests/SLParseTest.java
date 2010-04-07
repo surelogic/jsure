@@ -2024,6 +2024,7 @@ public class SLParseTest extends TestCase {
 						e.printStackTrace();
 						fail("Unexpected exception");
 				}
+				/* nothing is now considered an identifier
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads region1, nothing").regionEffects().getTree();
@@ -2035,6 +2036,7 @@ public class SLParseTest extends TestCase {
 						e.printStackTrace();
 						fail("Unexpected exception");
 				}
+				*/
 				try {
 						AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser(
 										"reads Type.this.region.[]").regionEffects().getTree();
