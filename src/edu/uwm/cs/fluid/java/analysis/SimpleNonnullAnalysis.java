@@ -221,8 +221,10 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
      * <p>
      * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
      */
+    /* We use a map here instead of a single reference like we use in
+     * BindingContextAnalysis for reasons described in bug 1651.
+     */
     private final  Map<IRNode, Analysis> subAnalyses = new HashMap<IRNode, Analysis>(); 
-//    private Analysis subAnalysis = null;
     
     
     
