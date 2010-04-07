@@ -108,6 +108,8 @@ public class TestResult implements ITest {
     }
     if (!result.matchesProgress(TestResultType.PARSED)) {
       AnnotationRules.XML_LOG.reportFailure(result, "Should NOT have parsed: "+result.promise);
+    } else {
+    	//System.out.println("addAAST:    "+result+" -- "+result.promise);
     }
     result.ast = n;
   }
@@ -118,6 +120,8 @@ public class TestResult implements ITest {
     }
     if (!result.matchesProgress(TestResultType.BOUND)) {
       AnnotationRules.XML_LOG.reportFailure(result, "Should NOT have parsed: "+result.promise);
+    } else {
+    	//System.out.println("setAsBound: "+result+" -- "+result.promise);
     }
   }
   
@@ -132,6 +136,8 @@ public class TestResult implements ITest {
     if (result.matchesProgress(TestResultType.VALID)) {
       if (result.type == TestResultType.VALID) {
         AnnotationRules.XML_LOG.reportSuccess(result, "@"+result.promise+" matched "+result); 
+      } else {
+    	  //System.out.println("addDrop:    "+result+" -- "+result.promise);
       }
     } else {
       AnnotationRules.XML_LOG.reportFailure(result, "Should NOT be valid: "+d.getMessage());
@@ -141,6 +147,7 @@ public class TestResult implements ITest {
   
   @SuppressWarnings("unchecked")
   public static void checkConsistency() {
+    //System.out.print("Checking consistency of test results");
     for(Object o : AnnotationRules.XML_LOG.getUnreported()) {
       TestResult result = (TestResult) o; 
       if (result.getNode() == null) {
@@ -160,12 +167,13 @@ public class TestResult implements ITest {
         continue; 
       }
       else if (result.drop instanceof IDerivedDropCreator) {
-    	//System.err.println("Ignoring IDerivedDropCreator: "+result.promise);
+    	//System.out.println("Ignoring IDerivedDropCreator: "+result+" -- "+result.promise);
     	continue;
       }
       TestResultType actual = result.drop.provedConsistent() ? TestResultType.CONSISTENT : TestResultType.INCONSISTENT;
       checkIfMatchesResult(result, actual);
     }
+    //System.out.print("Done checking consistency of test results");
     reset();
 //    AnnotationRules.XML_LOG.close();
   }
