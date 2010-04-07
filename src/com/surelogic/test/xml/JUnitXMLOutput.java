@@ -86,8 +86,15 @@ public class JUnitXMLOutput extends AbstractTestOutput {
       super(o, msg, e);
     }  
   }
-  
+  /*
+  @Override
+  public ITest reportStart(ITest o) {
+	System.out.println("Started:  "+o);
+	return super.reportStart(o);
+  }
+  */  
   public void reportSuccess(ITest o, String msg) {
+	//System.out.println("Reported success: "+o+" -- "+msg);
     if (report(o, msg)) {
       Test t = new Success(o, msg);
       formatter.startTest(t);
@@ -97,6 +104,7 @@ public class JUnitXMLOutput extends AbstractTestOutput {
   }
   
   public void reportFailure(ITest o, String msg) {
+	//System.out.println("Reported failure: "+o+" -- "+msg);
     if (report(o, msg)) {
       AssertionFailedError err = new AssertionFailedError(msg);
       Test t = new Failure(o, msg, err);
@@ -107,6 +115,7 @@ public class JUnitXMLOutput extends AbstractTestOutput {
   }
   
   public void reportError(ITest o, Throwable err) {
+	//System.out.println("Reported error:   "+o+" -- "+err.getClass().getSimpleName()+" : "+err.getMessage());
     if (report(o, err)) {    
       Test t = new Exception(o, err.getMessage(), err);
       formatter.startTest(t);
