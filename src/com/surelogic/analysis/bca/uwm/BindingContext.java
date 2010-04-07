@@ -85,20 +85,22 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   }
   
   /**
-   * Singleton set of the {@link #IGNORE_ME bogus node} that
-   * we reference from an additional array element to distinguish empty
-   * from bottom.
+   * Our bogus set that we add to the end of the array to differentiate empty
+   * from bottom.  We used to use a single static final field for this purpose,
+   * but this fails to work because at the end of an analysis pass JSure clears
+   * the CachedSet cache, and our referenced set is no longer the one that is
+   * in the cache.  This would create problems when manipulating lattice members
+   * in the join and meet methods, and ultimately cause {@link #isNormal} to 
+   * incorrectly return {@value false}.  So now we have a single bogus set per
+   * lattice.
    */
-  protected static final ImmutableSet<IRNode> IGNORE_ME_SINGLETON_SET =
+  protected final ImmutableSet<IRNode> ignoreMeSingletonSet =
     CachedSet.<IRNode>getEmpty().addElement(IGNORE_ME);
 
   private static final IRNode EXTERNAL_VAR = new PlainIRNode();
   static {
     JJNode.setInfo(EXTERNAL_VAR, "<external variable>");
   }
-
-  private static final ImmutableSet<IRNode> EXERNAL_VAR_SINGLETON_SET =
-    CachedSet.<IRNode>getEmpty().addElement(EXTERNAL_VAR);
   
   
   
@@ -227,7 +229,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
     for (int i = 0; i < locals.length; i++) {
       empty[i] = CachedSet.<IRNode>getEmpty();
     }
-    empty[locals.length] = IGNORE_ME_SINGLETON_SET;
+    empty[locals.length] = ignoreMeSingletonSet;
     return empty;
   }
   
@@ -252,7 +254,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
    */
   public boolean isNormal(final ImmutableSet<IRNode>[] value) {
     /* Value is good as long as the bogus element is the special ignore set. */
-    final boolean result = value[locals.length] == IGNORE_ME_SINGLETON_SET;
+    final boolean result = value[locals.length] == ignoreMeSingletonSet;
     return result;
   }
   
@@ -327,7 +329,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
       final int ignoredIdx = findIgnored(decl);
       if (ignoredIdx != -1) {
         if (isExternal[ignoredIdx]) {
-          return EXERNAL_VAR_SINGLETON_SET;
+          return CachedSet.<IRNode>getEmpty().addElement(EXTERNAL_VAR);
         } else {
           return CachedSet.<IRNode>getEmpty();
         }
