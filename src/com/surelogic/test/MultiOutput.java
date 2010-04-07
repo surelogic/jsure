@@ -44,6 +44,11 @@ public class MultiOutput implements ITestOutput {
     o2.close();
   }
   
+  @Override
+  public String toString() {
+	  return o1+", "+o2;
+  }
+  
   public static ITestOutputFactory makeFactory(final ITestOutputFactory f1, 
                                                final ITestOutputFactory f2) {
     return new ITestOutputFactory() {
