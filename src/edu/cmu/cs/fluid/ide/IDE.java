@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.CommonAASTBinder;
 import com.surelogic.analysis.IAnalysisReporter;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.test.*;
 
@@ -272,7 +273,7 @@ public abstract class IDE {
    *************************************************************/
 
   private final Map<String,ITestOutput> xmlLogs = new HashMap<String,ITestOutput>();
-  private ITestOutputFactory factory = SilentTestOutput.factory; // WarningDropOutput.factory;
+  private ITestOutputFactory factory = XUtil.testing ? SilentTestOutput.factory : SilentTestOutput.factory; // WarningDropOutput.factory;
 
   public void addTestOutputFactory(ITestOutputFactory f) {
     if (f == null) {
@@ -330,12 +331,14 @@ public abstract class IDE {
         try {
           delegate = factory.create(name);
           //new Throwable().printStackTrace();
-//          System.out.println("Creating "+name+" ("+delegate+")");
+          if (XUtil.testing) {
+        	System.out.println("Creating TestOutput "+name+" ("+delegate+")");
+          }
         } catch (Exception e) {
           LOG.log(Level.SEVERE, "Couldn't create delegate", e);
           return null;
         }
-      }
+      }      
       return delegate;
     }
 
