@@ -433,9 +433,9 @@ mapRegion
    	;
 
 regionEffects
-	: 'none' -> ^(RegionEffects)
-	| readsEffect (';' writesEffect)? -> ^(RegionEffects readsEffect writesEffect?)
-	| writesEffect (';' readsEffect)? -> ^(RegionEffects writesEffect readsEffect?)
+	: 'none' EOF -> ^(RegionEffects)
+	| readsEffect (';' writesEffect)? EOF -> ^(RegionEffects readsEffect writesEffect?)
+	| writesEffect (';' readsEffect)? EOF -> ^(RegionEffects writesEffect readsEffect?)
 	;
 
 
