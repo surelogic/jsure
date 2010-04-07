@@ -285,7 +285,11 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       }
       public IRNode getNode() {
         return null;
-      }      
+      }   
+      @Override
+      public String toString() {
+    	  return "RegressionTest "+tag;
+      }
     };
     return output.reportStart(test);
   }
@@ -343,12 +347,12 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       currentTest = start("Run scripting");
       ScriptReader r = new ScriptReader();
       r.execute(script);
-
-      // FIX not sure how this interacts with TestResults
-      System.out.println("Updating consistency proof"); 
-      ConsistencyListener.prototype.analysisCompleted();
       end("Done scripting");
-    }               
+    }
+      
+    // Checks consistency of TestResults
+    System.out.println("Updating consistency proof"); 
+    ConsistencyListener.prototype.analysisCompleted();               
     
     assertNotNull(projectName);
     EclipseLogHandler.stopFileLog();
