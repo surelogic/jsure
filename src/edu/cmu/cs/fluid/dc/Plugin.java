@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.BundleContext;
 
 import com.surelogic.analysis.IIRAnalysis;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
@@ -43,8 +44,7 @@ import edu.cmu.cs.fluid.java.CommonStrings;
  */
 public class Plugin implements IAnalysisContainer {
 
-	public static final boolean testing = System.getProperty("dc.testing",
-			"false").equals("true");
+	public static final boolean testing = XUtil.testing;
 
 	// //////////////////////////////////////////////////////////////////////
 	//
