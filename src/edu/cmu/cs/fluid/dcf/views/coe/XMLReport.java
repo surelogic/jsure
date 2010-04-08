@@ -18,9 +18,7 @@ import static com.surelogic.xml.results.coe.CoE_Constants.REDDOT_FORMAT;
 import static com.surelogic.xml.results.coe.CoE_Constants.RESULT_TAG;
 import static com.surelogic.xml.results.coe.CoE_Constants.ROOT_TAG;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +39,7 @@ import com.surelogic.common.eclipse.SourceZip;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLUtil;
 import com.surelogic.jsure.client.eclipse.Activator;
+import com.surelogic.xml.results.coe.CoE_Constants;
 
 /**
  * Generate an XML representation of the ResultsView output
@@ -97,8 +96,14 @@ public class XMLReport {
    */
   public static void exportResultsWithSource(final FileOutputStream zipFile) {
     ZipOutputStream out = new ZipOutputStream(zipFile);
-    OutState state = new OutState(new PrintWriter(out));
-    generateResultsZip(out, state);
+    //OutState state = new OutState(new PrintWriter(out));
+	try {
+		Writer w = new BufferedWriter(new OutputStreamWriter(out, CoE_Constants.ENCODING));
+	    OutState state = new OutState(new PrintWriter(w));
+	    generateResultsZip(out, state);
+	} catch (UnsupportedEncodingException e) {
+		e.printStackTrace();
+	}
   }
   
   /* XXX: Made public on 2009-01-22 because otherwise the (already) public 
