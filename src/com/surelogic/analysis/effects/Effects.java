@@ -274,11 +274,21 @@ public final class Effects implements IBinderClient {
    */
   public Set<Effect> getMethodCallEffects(final IRNode call,
       final IRNode caller, final boolean returnRaw) {
+	  //createdTEBs++;
+	  /*
+	   * Changed to lazily compute things, since bindReceiver doesn't get called very often
+	   */
     final ThisExpressionBinder teb = new AbstractThisExpressionBinder(binder) {
-      private final IRNode receiver = JavaPromise.getReceiverNodeOrNull(caller);
+      private /*final*/ IRNode receiver;// = JavaPromise.getReceiverNodeOrNull(caller);
+      private boolean gotReceiver = false;
       
       @Override
       protected IRNode bindReceiver(final IRNode node) {
+    	if (!gotReceiver) {
+    		gotReceiver = true;
+    		receiver = JavaPromise.getReceiverNodeOrNull(caller);
+    		//bindReceiver++;
+    	}
         return receiver;
       }
       
@@ -290,7 +300,17 @@ public final class Effects implements IBinderClient {
     return getMethodCallEffects(bca.getExpressionObjectsQuery(caller),
         new ThisBindingTargetFactory(teb), binder, call, caller, returnRaw);
   }
-
+  /*
+  static int createdTEBs = 0;
+  static int bindReceiver = 0;
+  */
+  public static void outputStats() {
+	  /*
+	  System.out.println("Created TEBs   = "+createdTEBs);
+	  System.out.println("Bound receiver = "+bindReceiver);
+	  */
+  }  
+  
   /**
    * Get the effects of a specific method/constructor call.  The effects are
    * fully integrated into the context of the caller, that is, region aggregation
