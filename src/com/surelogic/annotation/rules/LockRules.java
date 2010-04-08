@@ -1,6 +1,5 @@
 package com.surelogic.annotation.rules;
 
-import java.text.MessageFormat;
 import java.util.*;
 
 import org.antlr.runtime.*;
@@ -713,14 +712,8 @@ public class LockRules extends AnnotationRules {
           wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
           wd.setCategory(DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
-
-//          context.reportWarning(
-//              "Sorry, analysis does not yet support the use of qualified receivers as lock objects.",
-//              lockDecl);
-//          return null;
         }
-        
-        
+                
         return model;
       }
       return null;
@@ -737,21 +730,6 @@ public class LockRules extends AnnotationRules {
         final boolean fieldIsStatic, final IRNode lockFieldNode) {
       final String qualifiedName = computeQualifiedName(lockDecl);     
       if (declIsGood) {
-        /* One last test: Analysis does not currently support using locks 
-         * from qualified receivers.  See bug 992.  If annotation is 
-         * otherwise correct, but its lock implementation is a qualified 
-         * receiver, or a field from a qualified receiver, then we reject it
-         * noting that the feature is not yet supported.
-         */ 
-        if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
-            || ((lockDecl.getField() instanceof FieldRefNode)
-                && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          context.reportWarning(
-              "Sorry, analysis does not yet support the use of qualified receivers as lock objects.",
-              lockDecl);
-          return null;
-        }
-        
         final LockModel model = LockModel.getInstance(qualifiedName);
         model.setAST(lockDecl);
         model.setResultMessage(Messages.LockAnnotation_policyLockModel,
@@ -759,6 +737,25 @@ public class LockRules extends AnnotationRules {
                 .getPromisedFor()));
         // Get the AssumeFinal promise, if any
         handleAssumeFinal(model, lockFieldNode);
+
+        
+        /* One last test: Analysis does not currently support using locks 
+         * from qualified receivers.  See bug 992.  If annotation is 
+         * otherwise correct, but its lock implementation is a qualified 
+         * receiver, or a field from a qualified receiver, then we reject it
+         * noting that the feature is not yet supported.  We output this as a
+         * regular drop-sea warning, because the model isn't broken or nonsensical,
+         * just not supported by current analyses.
+         */ 
+        if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
+            || ((lockDecl.getField() instanceof FieldRefNode)
+                && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
+          final WarningDrop wd = new WarningDrop(Integer.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel));
+          wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel);
+          wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
+          wd.setCategory(DSC_UNSUPPORTED_MODEL);
+          model.addDependent(wd);
+        }
 
         return model;
       }
