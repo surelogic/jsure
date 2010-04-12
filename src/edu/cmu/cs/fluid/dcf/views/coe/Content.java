@@ -24,6 +24,8 @@ import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.eclipse.EclipseUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import com.surelogic.tree.diff.Diff;
 import com.surelogic.tree.diff.IDiffNode;
 
@@ -280,25 +282,44 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 		final ISrcRef srcRef = getSrcRef();
 		if (srcRef != null && srcRef.getEnclosingFile() instanceof IResource) {
 			final IResource srcFile = (IResource) srcRef.getEnclosingFile();
-			attrs.put(ATTR_SOURCE, srcFile.getFullPath() + ".html");
-			attrs.put(ATTR_LINE_NUM, Integer.toString(srcRef.getLineNumber()));
-			if (includeCVS) {
-				final ICVSFile cvsFile = CVSWorkspaceRoot
-						.getCVSFileFor((IFile) srcRef.getEnclosingFile());
-				try {
-					attrs.put(ATTR_CVSSOURCE, cvsFile
-							.getRepositoryRelativePath());
-					ResourceSyncInfo fileInfo = cvsFile.getSyncInfo();
-					if (fileInfo != null && fileInfo.getRevision() != null) {
-						attrs.put(ATTR_CVSREVISION, fileInfo.getRevision());
-					}
-				} catch (CoreException e) {
-					// do nothing
-				}
+			updateAttrs(attrs, includeCVS, srcRef, srcFile);
+			return attrs;		
+		} else if (srcRef != null && srcRef.getEnclosingFile() instanceof String) {
+			String s = (String) srcRef.getEnclosingFile();
+			if (s.indexOf('/') < 0) {
+				return null; // probably not a file
+			}
+			s = JSureHistoricalSourceView.tryToMapPath(s);
+			IFile file = EclipseUtility.resolveIFile(s);
+			if (file != null) {
+				updateAttrs(attrs, includeCVS, srcRef, file);
+			} else {
+				return null;
 			}
 			return attrs;
 		} else {
 			return null;
+		}
+	}
+
+	private void updateAttrs(final Map<String, String> attrs,
+			final boolean includeCVS, final ISrcRef srcRef,
+			final IResource srcFile) {
+		attrs.put(ATTR_SOURCE, srcFile.getFullPath() + ".html");
+		attrs.put(ATTR_LINE_NUM, Integer.toString(srcRef.getLineNumber()));
+		if (includeCVS) {
+			final ICVSFile cvsFile = CVSWorkspaceRoot
+					.getCVSFileFor((IFile) srcRef.getEnclosingFile());
+			try {
+				attrs.put(ATTR_CVSSOURCE, cvsFile
+						.getRepositoryRelativePath());
+				ResourceSyncInfo fileInfo = cvsFile.getSyncInfo();
+				if (fileInfo != null && fileInfo.getRevision() != null) {
+					attrs.put(ATTR_CVSREVISION, fileInfo.getRevision());
+				}
+			} catch (CoreException e) {
+				// do nothing
+			}
 		}
 	}
 
