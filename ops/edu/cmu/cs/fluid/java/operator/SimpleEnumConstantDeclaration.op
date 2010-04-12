@@ -5,6 +5,6 @@ public operator SimpleEnumConstantDeclaration extends EnumConstantDeclaration
     $id:Info 
   }
   @Override public Component createComponent(IRNode node) {
-    return null;
+    return new SimpleComponent(node); // TODO is this right?
   }
 }
