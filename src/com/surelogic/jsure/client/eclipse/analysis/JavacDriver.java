@@ -251,8 +251,12 @@ public class JavacDriver {
 		    }		    
 		    AnalysisJob analysis = new AnalysisJob(project, config, target, zips);
 		    CopyJob copy = new CopyJob(config, target, zips, analysis);
-		    // TODO fix to lock the workspace
-		    EclipseJob.getInstance().schedule(copy);
+		    if (XUtil.testing) {
+		    	copy.run(new NullSLProgressMonitor());
+		    } else {
+		    	// TODO fix to lock the workspace
+		    	EclipseJob.getInstance().schedule(copy);
+		    }
 		} catch(JavaModelException e) {
 		    System.err.println("Unable to make config for JSure");
 		    e.printStackTrace();
@@ -381,7 +385,11 @@ public class JavacDriver {
             System.out.println("Copying = "+(end-start)+" ms");
             
             if (afterJob != null) {
-                EclipseJob.getInstance().schedule(afterJob);
+        	    if (XUtil.testing) {
+        	    	afterJob.run(monitor);
+        	    } else {
+        	    	EclipseJob.getInstance().schedule(afterJob);
+        	    }
             }
             return SLStatus.OK_STATUS;
         }   
