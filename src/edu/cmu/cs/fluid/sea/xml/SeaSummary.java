@@ -23,6 +23,11 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.util.Hashtable2;
 
+/**
+ * Summarize the Sea (omits links)
+ * 
+ * @author Edwin
+ */
 public class SeaSummary extends AbstractSeaXmlCreator {
 	private SeaSummary(File location) throws IOException {
 		super(location);
@@ -264,6 +269,27 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				c.match(System.out);
 			}
 		}
+
+		public boolean isEmpty() {
+			if (categories.isEmpty()) {
+				return true;
+			}
+			for(Category c : categories.elements()) {
+				if (!c.isEmpty()) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		public void write(File file) throws IOException {
+			OutputStream os = new FileOutputStream(file);
+			Writer w = new OutputStreamWriter(os, "UTF-8");
+			PrintWriter pw = new PrintWriter(w);
+			for(Category c : categories.elements()) {
+				c.write(pw);
+			}
+		}
 	}
 	
 	static class Categories extends Hashtable2<String,String,Category> {
@@ -291,6 +317,19 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		public Category(String file, String name) {
 			this.file = file;
 			this.name = name;
+		}
+
+		public void write(PrintWriter w) {
+			if (!isEmpty()) {
+				w.println("Category: "+name+" in "+file);
+				for(Entity o : old) {
+					w.println("\tOld    : "+toString(o));
+				}
+				for(Entity o : newer) {
+					w.println("\tNewer  : "+toString(o));
+				}
+				w.println();
+			}
 		}
 
 		public boolean isEmpty() {
