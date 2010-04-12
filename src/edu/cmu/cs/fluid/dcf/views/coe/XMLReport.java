@@ -94,16 +94,20 @@ public class XMLReport {
    * No progress service
    * @param zipFile
    */
-  public static void exportResultsWithSource(final FileOutputStream zipFile) {
+  public static boolean exportResultsWithSource(final FileOutputStream zipFile) {
     ZipOutputStream out = new ZipOutputStream(zipFile);
     //OutState state = new OutState(new PrintWriter(out));
 	try {
 		Writer w = new BufferedWriter(new OutputStreamWriter(out, CoE_Constants.ENCODING));
 	    OutState state = new OutState(new PrintWriter(w));
 	    generateResultsZip(out, state);
+	    return true;
 	} catch (UnsupportedEncodingException e) {
 		e.printStackTrace();
+	} catch (IllegalArgumentException e ) {
+		e.printStackTrace();
 	}
+	return false;
   }
   
   /* XXX: Made public on 2009-01-22 because otherwise the (already) public 
