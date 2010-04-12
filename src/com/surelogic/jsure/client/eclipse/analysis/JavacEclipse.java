@@ -1,5 +1,8 @@
 package com.surelogic.jsure.client.eclipse.analysis;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import com.surelogic.common.eclipse.Resources;
@@ -21,6 +24,27 @@ public class JavacEclipse extends Javac {
     
     @Override
     public URL getResourceRoot() {
-        return Resources.findRoot("edu.cmu.cs.fluid");
+    	try {
+            return Resources.findRoot("edu.cmu.cs.fluid");
+    	} catch(IllegalStateException e) {
+    		URL here = Resources.findRoot("com.surelogic.jsure.client.eclipse");
+    		try {
+    			File f = new File(here.toURI());
+    			System.out.println("j.c.e = "+f);
+    			for(File f2 : f.getParentFile().listFiles()) {
+    				if (f2.getName().startsWith("edu.cmu.cs.fluid_")) {
+    					System.out.println("Found "+f2);
+    					try {
+							return f2.toURI().toURL();
+						} catch (MalformedURLException e1) {
+							e1.printStackTrace();
+						}
+    				}
+    			}
+    		} catch (URISyntaxException use) {
+    			e.printStackTrace();
+    		}
+    	}
+    	return null;
     }
 }
