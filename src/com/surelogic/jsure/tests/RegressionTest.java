@@ -23,6 +23,9 @@ import edu.cmu.cs.fluid.eclipse.logging.EclipseLogHandler;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
+import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 import edu.cmu.cs.fluid.srv.Results;
 
 /**
@@ -31,6 +34,8 @@ import edu.cmu.cs.fluid.srv.Results;
  * -- 
  */
 public class RegressionTest extends TestCase implements IAnalysisListener {
+  private static final boolean useNewSnapshotXML = false;
+
   class InitRunnable implements Runnable {
     boolean run = false;
     
@@ -375,12 +380,28 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       assert (f.exists());
 
       System.out.println("results = " + resultsName);
+      
+      // Export new results XML
+      final File location = new File(workspaceFile, projectName + SeaSnapshot.SUFFIX);
+      SeaSummary.summarize(projectName, Sea.getDefault(), location);
       end("Done exporting");
       
       currentTest = start("comparing results");
       System.out.println("Try to compare these results to the results oracle");    
       if (projectPath != null) {
-        final String oracleName = getOracleName(projectPath, oracleFilter, "oracle.zip");
+        if (useNewSnapshotXML) {
+    	final String xmlOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
+    	System.out.println("Looking for " + xmlOracle);
+    	final File xmlLocation = new File(xmlOracle);
+    	assert (xmlLocation.exists());  
+    	
+    	final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), xmlLocation);
+    	if (!diff.isEmpty()) {
+    		diff.write(new File(workspaceFile, projectName+".sea.diffs.xml"));
+    	}
+    	}
+    	
+    	final String oracleName = getOracleName(projectPath, oracleFilter, "oracle.zip");
         System.out.println("Looking for " + oracleName);
         assert (new File(oracleName).exists());
 
@@ -449,6 +470,12 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     public boolean accept(File dir, String name) {
       return name.startsWith("oracle") && name.endsWith(".zip");
     }
+  };
+  
+  private static FilenameFilter xmlOracleFilter = new FilenameFilter() {
+	    public boolean accept(File dir, String name) {
+	      return name.startsWith("oracle") && name.endsWith(SeaSnapshot.SUFFIX);
+	    }
   };
 
   private static FilenameFilter logOracleFilter = new FilenameFilter() {
