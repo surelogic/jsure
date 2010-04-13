@@ -18,33 +18,33 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author Edwin
  */
 public class TargetListNode extends AbstractLayerMatchTarget {	
-	private final List<UnidentifiedTargetNode> union;
+	private final List<AbstractLayerMatchTarget> union;
 	
 	public static final AbstractSingleNodeFactory factory =
 		new AbstractSingleNodeFactory("TargetList") {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			
-			List<UnidentifiedTargetNode> union = new ArrayList<UnidentifiedTargetNode>();
+			List<AbstractLayerMatchTarget> union = new ArrayList<AbstractLayerMatchTarget>();
 			for(AASTNode n : _kids) {
-				union.add((UnidentifiedTargetNode) n);
+				union.add((AbstractLayerMatchTarget) n);
 			}
 			return new TargetListNode(_start, union);
 		}
 	};
 	
-	TargetListNode(int offset, List<UnidentifiedTargetNode> set) {
+	TargetListNode(int offset, List<AbstractLayerMatchTarget> set) {
 		super(offset);
 		if (set == null || set.isEmpty()) {
 			throw new IllegalArgumentException("Bad set: "+set);
 		}		
 		union = set;
-		for(UnidentifiedTargetNode ut : union) {
+		for(AbstractLayerMatchTarget ut : union) {
 			ut.setParent(this);
 		}
 	}
 	
-	public Iterable<UnidentifiedTargetNode> getUnion() {
+	public Iterable<AbstractLayerMatchTarget> getUnion() {
 		return union;
 	}
 	
@@ -55,8 +55,8 @@ public class TargetListNode extends AbstractLayerMatchTarget {
 
 	@Override
 	public IAASTNode cloneTree() {
-		List<UnidentifiedTargetNode> clonedUnion = new ArrayList<UnidentifiedTargetNode>();
-		for(UnidentifiedTargetNode ut : union) {
+		List<AbstractLayerMatchTarget> clonedUnion = new ArrayList<AbstractLayerMatchTarget>();
+		for(AbstractLayerMatchTarget ut : union) {
 			clonedUnion.add((UnidentifiedTargetNode) ut.cloneTree());
 		}
 		return new TargetListNode(offset, clonedUnion);
@@ -69,7 +69,7 @@ public class TargetListNode extends AbstractLayerMatchTarget {
 		    indent(sb, indent);		    
 		    sb.append("TargetListNode\n");
 		    indent(sb, indent + 2);
-		    for(UnidentifiedTargetNode ut : union) {
+		    for(AbstractLayerMatchTarget ut : union) {
 		    	indent(sb, indent + 2);
 			    sb.append(ut.unparse(debug, indent+2));		    
 			    sb.append("\n");
@@ -77,7 +77,7 @@ public class TargetListNode extends AbstractLayerMatchTarget {
 		} else {
 			if (union.size() > 1) {
 				boolean first = true;
-				for(UnidentifiedTargetNode ut : union) {
+				for(AbstractLayerMatchTarget ut : union) {
 					if (first) {
 						first = false;
 					} else {
@@ -99,7 +99,7 @@ public class TargetListNode extends AbstractLayerMatchTarget {
 
 	@Override
 	public boolean matches(IRNode type) {
-		for(UnidentifiedTargetNode n : union) {
+		for(AbstractLayerMatchTarget n : union) {
 			if (n.matches(type)) {
 				return true;
 			}
@@ -110,7 +110,7 @@ public class TargetListNode extends AbstractLayerMatchTarget {
 	@Override
 	public Iterable<String> getNames() {
 		List<String> names = new ArrayList<String>();
-		for(UnidentifiedTargetNode t : union) {
+		for(AbstractLayerMatchTarget t : union) {
 			for(String s : t.getNames()) {
 				names.add(s);
 			}
