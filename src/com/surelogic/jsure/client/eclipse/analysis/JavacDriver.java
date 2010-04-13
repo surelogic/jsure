@@ -99,8 +99,10 @@ public class JavacDriver {
 				final File f = res.getLocation().toFile();
 				config.addRemovedFile(f);
 			}
-			for(ICompilationUnit icu : all ? getAllCompUnits() : getDelta()) {
-				final File f = icu.getResource().getLocation().toFile();
+			for(ICompilationUnit icu : all ? getAllCompUnits() : getDelta()) {				
+				//final IPath path = icu.getResource().getFullPath();
+				final IPath loc = icu.getResource().getLocation();
+				final File f = loc.toFile();
 				String qname;
 				if (f.exists()) {
 					String pkg = null;
