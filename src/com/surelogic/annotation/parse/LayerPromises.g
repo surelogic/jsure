@@ -159,12 +159,16 @@ noTarget
 */
 
 inLayer
-  : unionTargets EOF -> ^(InLayer unionTargets) 
-  | inLayerList EOF -> ^(InLayer inLayerList)
+  : inLayerList EOF -> ^(InLayer inLayerList)
   ;
 
 inLayerList
-  : targetList -> ^(TargetList targetList) 
+  : inLayerTarget (',' inLayerTarget)* -> ^(TargetList inLayerTarget (inLayerTarget)*)
+  ;
+
+inLayerTarget  
+  : unionTargets 
+  | unidentifiedTarget
   ;
 
 typeSet
