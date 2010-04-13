@@ -15,4 +15,8 @@ implements NestedDeclInterface
   public Operator getResultOp() {
     return NestedEnumDeclaration.prototype;
   }
+  
+  @Override public Component createComponent(IRNode node) {
+    return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,true);
+  }
 }

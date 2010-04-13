@@ -9,9 +9,8 @@ public operator EnumConstantClassDeclaration extends EnumConstantDeclaration imp
     bindsToType=Type 
   }  
   
-  // TODO what's right?  Copied from ACE and other decls
   @Override public Component createComponent(IRNode node) {
-    return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,false);
+    return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,true);
   }
 
   public Source getSource(IRNode node) {
