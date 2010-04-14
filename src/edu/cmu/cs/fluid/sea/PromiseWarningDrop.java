@@ -62,6 +62,10 @@ implements ISrcRef
 	  return super.getSrcRef().getEnclosingURI();
   }
 
+  public String getRelativePath() {
+	  return super.getSrcRef().getRelativePath();
+  }
+  
   public IJavadocElement getJavadoc() {
     throw new UnsupportedOperationException();
   }

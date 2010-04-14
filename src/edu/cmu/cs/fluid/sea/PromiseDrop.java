@@ -431,6 +431,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 		}
 		return super.getSrcRef().getEnclosingURI();
 	}
+	
+	public String getRelativePath() {
+		if (super.getSrcRef() == null) {
+			return null;
+		}
+		return super.getSrcRef().getRelativePath();
+	}
 
 	public IJavadocElement getJavadoc() {
 		throw new UnsupportedOperationException();

@@ -44,6 +44,12 @@ public interface ISrcRef {
   Object getEnclosingFile();
   
   URI getEnclosingURI();
+  
+  /**
+   * Returns the relative path that identifies the source file
+   * @return
+   */
+  String getRelativePath();
 
   /**
    * Returns either the leading Javadoc comment, if the node is

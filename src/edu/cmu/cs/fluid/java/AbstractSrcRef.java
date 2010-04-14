@@ -17,6 +17,9 @@ public abstract class AbstractSrcRef implements ISrcRef {
   public URI getEnclosingURI() {
 	return null;
   }
+  public String getRelativePath() {
+	  return null;
+  }
   
   public IJavadocElement getJavadoc() {
     // TODO Auto-generated method stub
