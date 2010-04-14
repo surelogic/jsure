@@ -130,7 +130,8 @@ public final class LocalVariables extends AbstractWholeIRAnalysisModule {
     }
     
     @Override 
-    protected void enteringEnclosingDecl(final IRNode mdecl) {
+    protected void enteringEnclosingDecl(
+        final IRNode mdecl, final boolean isAnonClassInit) {
       System.out.println("--- Entering method/constructor " + JavaNames.genMethodConstructorName(mdecl));
     }
 

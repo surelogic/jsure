@@ -140,7 +140,8 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
     }
     
 	  @Override
-	  protected void enteringEnclosingDecl(final IRNode newDecl) {
+	  protected void enteringEnclosingDecl(
+	      final IRNode newDecl, final boolean isAnonClassInit) {
 	    System.out.println("############################ Running non null on " + JavaNames.genQualifiedMethodConstructorName(newDecl) + "############################");
 	    newQuery(nonNullAnalysis.getNonnullBeforeQuery(newDecl));
 	  }

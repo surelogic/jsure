@@ -8,6 +8,7 @@ import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.bca.uwm.BindingContext;
 import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis.Query;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
@@ -15,6 +16,7 @@ import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -105,7 +107,7 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	  final BCAVisitor v = new BCAVisitor();
 	  v.doAccept(compUnit);
 	  bca.clear();
-//	  JavaComponentFactory.clearCache();
+	  JavaComponentFactory.clearCache();
 	}
 	
 	private final class BCAVisitor extends JavaSemanticsVisitor {
@@ -140,9 +142,17 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
     }
     
 	  @Override
-	  protected void enteringEnclosingDecl(final IRNode newDecl) {
-	    System.out.println("Running BCA on " + JavaNames.genQualifiedMethodConstructorName(newDecl));
-	    newQuery(bca.getExpressionObjectsQuery(newDecl));
+	  protected void enteringEnclosingDecl(
+	      final IRNode newDecl, final boolean isAnonClassInit) {
+	    final String name = JavaNames.genQualifiedMethodConstructorName(newDecl);
+      System.out.println("Running BCA on " + name);
+      final Query expressionObjectsQuery;
+      if (!isAnonClassInit) {
+        expressionObjectsQuery = bca.getExpressionObjectsQuery(newDecl);
+      } else {
+        expressionObjectsQuery = query.getSubAnalysisQuery(JavaPromise.getPromisedForOrNull(newDecl));
+      }
+      newQuery(expressionObjectsQuery);
 	  }
 	  
 	  @Override
@@ -163,7 +173,8 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	  protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
 	    return new InstanceInitAction() {
         public void tryBefore() {
-          newQuery(query.getSubAnalysisQuery(ccall));
+          final Query subAnalysisQuery = query.getSubAnalysisQuery(ccall);
+          newQuery(subAnalysisQuery);
         }
         
         public void finallyAfter() {
