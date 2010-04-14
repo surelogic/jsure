@@ -43,10 +43,12 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     	
 		try {
 			JavaSourceFile f = config.mapPath(new URI(path));
-	        String mapped = f.file.toURI().toString();
-	        if (mapped != null) {
-	            return mapped;
-	        }
+			if (f != null) {
+				String mapped = f.file.toURI().toString();
+				if (mapped != null) {
+					return mapped;
+				}
+			}
 		} catch (URISyntaxException e) {
 			// Nothing to do
 		}
