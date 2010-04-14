@@ -804,6 +804,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private void updateJUCAnalysisQueries(final IRNode flowUnit) {
+//	  System.out.println(">>>>>>>>>>>>>>>>>>>> Update JUC Queries: " + DebugUnparser.toString(flowUnit));
+//	  System.out.flush();
+	  
 		final LockExpressions lockExprs = jucLockUsageManager
 				.getLockExpressionsFor(flowUnit);
 		if (lockExprs.usesJUCLocks()) {
@@ -2256,46 +2259,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (ctxtSingleThreadedData.isSingleThreaded) {
 				ctxtThreadConfinedLocks = convertSingleThreadedConstructor(
 						cdecl, ctxtJavaType);
-				// final Iterator<StackLock> locks = syncFrame.iterator();
-				// final Set<HeldLock> jucLocks =
-				// jucLockUsageManager.getJUCSingleThreaded(cdecl);
-				// if (locks.hasNext() || !jucLocks.isEmpty()) { // May not have
-				// any locks at all
-				// final ResultDropBuilder result =
-				// ResultDropBuilder.create(analysisRoot,
-				// Integer.toString(Messages.LockAnalysis_ds_ConstructorIsSingleThreaded));
-				// result.setResultMessage(Messages.LockAnalysis_ds_ConstructorIsSingleThreaded,
-				// JavaNames.genMethodConstructorName(cdecl));
-				// setLockResultDep(result, cdecl);
-				// result.setConsistent();
-				//          
-				// if (singleThreadedData.isUniqueReturn) {
-				// result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedUniqueReturn,
-				// singleThreadedData.uDrop);
-				// }
-				// if (singleThreadedData.isBorrowedThis) {
-				// result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedBorrowedThis,
-				// singleThreadedData.bDrop);
-				// }
-				// if (singleThreadedData.isEffects) {
-				// // Note: "by effects" has to be the same string to "and" the
-				// "or"
-				// result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedEffects,
-				// singleThreadedData.eDrop);
-				// result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedEffects,
-				// singleThreadedData.teDrop);
-				// }
-				//          
-				// // Handle the intrinsic locks
-				// while (locks.hasNext()) {
-				// final StackLock sl = locks.next();
-				// result.addCheckedPromise(sl.lock.getLockPromise());
-				// }
-				// // Handle the juc locks
-				// for (final HeldLock hl : jucLocks) {
-				// result.addCheckedPromise(hl.getLockPromise());
-				// }
-				// }
 			}
 
 			// Add locks from lock preconditions to the lock context

@@ -61,6 +61,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
   private static final String VALUE = "{(<>:<top,{conf}>)}";
   private static final boolean TRACE = false;
+  private static final boolean SHOW_SET_INFO = false;
   private static final boolean CHECK_MONOTONICITY = false;
   private static final boolean DEBUG = false;
   
@@ -207,15 +208,19 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     
     String newString = null;
     String oldString = null;
-    if (TRACE) {
+    if (SHOW_SET_INFO || TRACE) {
       newString = infoLattice.toString(lv);
-      System.out.println("setInfo: " + newString);
+      oldString = infoLattice.toString(old);
+      System.out.println("setInfo(" + edge + ") new value '" + newString + "' replaces '" + oldString + "'");
     }
     
     if (old != null) {
       if (infoLattice.equals(old,lv)) return;
       if (CHECK_MONOTONICITY) {
         if (!infoLattice.lessEq(old,lv)) {
+          System.out.println("************** Monotonicity error: was " + oldString + "; now " + newString);
+          System.out.flush();
+          
           if (newString == null) newString = infoLattice.toString(lv);
           oldString = infoLattice.toString(old);
           this.reportMonotonicityError(edge);
@@ -226,7 +231,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     if (DEBUG && LOG.isLoggable(Level.FINER)) {
       if (newString == null) newString = infoLattice.toString(lv);
       if (oldString == null) oldString = infoLattice.toString(old);
-      LOG.finer("new value '" + newString + "' replaces '" + oldString + "'");
+      LOG.finer("setInfo(" + edge + ") new value '" + newString + "' replaces '" + oldString + "'");
     }
     infoMap.put(edge,lv);
     worklist.add(getNodeFromEdgeForWorklist(edge));
@@ -464,7 +469,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
             return;
         }
     }
-    LOG.warning("Monotocity error in analysis at " + n);
+    LOG.warning("Monotonicity error in analysis at " + n);
   }
   
   protected abstract void reportMonotonicityError(ControlEdge e);

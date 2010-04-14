@@ -241,8 +241,10 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     
     
     @Override
-    protected Analysis createAnalysis(IRNode caller,
-        final IBinder binder, final Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> initValue, final boolean terminationNormal) {
+    protected Analysis createAnalysis(final IRNode caller,
+        final IBinder binder,
+        final Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> initValue,
+        final boolean terminationNormal) {
       Analysis subAnalysis = subAnalyses.get(caller);
       if (subAnalysis == null) {
         final int floor = initValue.first().size();
