@@ -107,7 +107,7 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	  final BCAVisitor v = new BCAVisitor();
 	  v.doAccept(compUnit);
 	  bca.clear();
-	  JavaComponentFactory.clearCache();
+//	  JavaComponentFactory.clearCache();
 	}
 	
 	private final class BCAVisitor extends JavaSemanticsVisitor {
