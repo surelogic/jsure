@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<sea-summary time='Apr 14, 2010 3:45:18 PM'
+	 project='LocalVariablesAndJavaSemanticsVisitor'>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public length'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public []'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='LockModel'
+	 line='0'
+	 file='java.lang.Object'
+	 offset='2147483647'
+	 hash='-796031666'
+	 context='1063877011'
+	 message='RegionLock java.lang.Object.MUTEX is this protects WaitQueue  on  Object'
+	 category='Concurrency'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+</sea-summary>
+
