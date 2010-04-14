@@ -1,8 +1,5 @@
 package com.surelogic.analysis.bca.uwm;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -17,6 +14,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
+import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 
 /**
  * This class tracks bindings of locals within a method. It associates a
@@ -140,47 +138,17 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
     return new Query(flowUnit);
   }
 
-
   
-  private static final class Transfer extends edu.uwm.cs.fluid.java.control.JavaForwardTransfer<BindingContext, ImmutableSet<IRNode>[]> {
-    /**
-     * We cache the subanalysis we create so that both normal and abrupt paths
-     * are stored in the same analysis. Plus this puts more force behind an
-     * assumption made by
-     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
-     * 
-     * <p>
-     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
-     */
-    private final  Map<IRNode, Analysis> subAnalyses = new HashMap<IRNode, Analysis>(); 
-
-    
-    
+  
+  private static final class Transfer extends edu.uwm.cs.fluid.java.control.JavaForwardTransfer<BindingContext, ImmutableSet<IRNode>[], SubAnalysisFactory> {
     public Transfer(final IBinder binder, final BindingContext lattice) {
-      super(binder, lattice);
-      // TODO Auto-generated constructor stub
+      super(binder, lattice, new SubAnalysisFactory());
     }
     
     
     
     public Analysis getSubAnalysis(final IRNode forCaller) {
-      return subAnalyses.get(forCaller);
-    }
-
-
-
-    @Override
-    protected Analysis createAnalysis(final IRNode caller,
-        final IBinder binder, final ImmutableSet<IRNode>[] initialValue,
-        boolean terminationNormal) {
-//      System.out.println("  createAnalysis(" + terminationNormal + ") for " + caller + " " + DebugUnparser.toString(caller) + " " + JavaNode.getSrcRef(caller).getLineNumber());
-      Analysis subAnalysis = subAnalyses.get(caller);
-      if (subAnalysis == null) {
-        subAnalysis = new Analysis("BCA (subanalysis)", lattice,
-            new Transfer(binder, lattice));
-        subAnalyses.put(caller, subAnalysis);
-      }
-      return subAnalysis;
+      return subAnalysisFactory.getSubAnalysis(forCaller);
     }
 
     
@@ -251,5 +219,19 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
 
       return out;
     }
+  }
+
+
+  
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<BindingContext, ImmutableSet<IRNode>[], Analysis> {
+    @Override
+    protected Analysis realCreateAnalysis(
+        final IRNode caller, final IBinder binder,
+        final BindingContext lattice, final ImmutableSet<IRNode>[] initialValue,
+        final boolean terminationNormal) {
+      return new Analysis(
+          "BCA (subanalysis)", lattice, new Transfer(binder, lattice));
+    }
+    
   }
 }

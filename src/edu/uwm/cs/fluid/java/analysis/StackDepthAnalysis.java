@@ -3,13 +3,12 @@ package edu.uwm.cs.fluid.java.analysis;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
+import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
 import edu.uwm.cs.fluid.util.FlatLattice;
 
@@ -24,34 +23,31 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
    * @param l
    * @param t
    */
-  public StackDepthAnalysis(StackDepthTransfer t) {
-    super("Stack depth",FlatLattice.prototype,t,DebugUnparser.viewer);
+  public StackDepthAnalysis(final FlatLattice lattice, final StackDepthTransfer t) {
+    super("Stack depth", lattice, t, DebugUnparser.viewer);
   }
   
-  public static StackDepthAnalysis create(IBinder binder, int floor) {
-    return new StackDepthAnalysis(new StackDepthTransfer(binder, floor));
+  public static StackDepthAnalysis create(final IBinder binder) {
+    return new StackDepthAnalysis(FlatLattice.prototype,
+        new StackDepthTransfer(
+            binder, FlatLattice.prototype, Integer.valueOf(0)));
+  }
+  
+  public static StackDepthAnalysis create(
+      final IBinder binder, final FlatLattice lattice, final int floor) {
+    return new StackDepthAnalysis(lattice,
+        new StackDepthTransfer(binder, lattice, floor));
   }
   
   
-  public static class StackDepthTransfer extends JavaEvaluationTransfer<FlatLattice,Object> {
-    /**
-     * We cache the subanalysis we create so that both normal and abrupt paths
-     * are stored in the same analysis. Plus this puts more force behind an
-     * assumption made by
-     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
-     * 
-     * <p>
-     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
-     */
-    private final  Map<IRNode, StackDepthAnalysis> subAnalyses = new HashMap<IRNode, StackDepthAnalysis>(); 
-//    private StackDepthAnalysis subAnalysis = null;
-    
+  public static class StackDepthTransfer extends JavaEvaluationTransfer<FlatLattice, Object, SubAnalysisFactory> {
     /**
      * @param binder
      * @param lattice
      */
-    private StackDepthTransfer(IBinder binder, int floor) {
-      super(binder,FlatLattice.prototype, floor);
+    private StackDepthTransfer(
+        final IBinder binder, final FlatLattice lattice, final int floor) {
+      super(binder, lattice, new SubAnalysisFactory(), floor);
     }
     
     /* (non-Javadoc)
@@ -85,33 +81,28 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
     }
     
     /* (non-Javadoc)
-     * @see edu.uwm.cs.fluid.java.control.JavaTransfer#createAnalysis(edu.cmu.cs.fluid.java.bind.IBinder)
-     */
-    @Override
-    protected StackDepthAnalysis createAnalysis(IRNode caller,
-        final IBinder binder, final Object initValue, final boolean terminationNormal) {
-      StackDepthAnalysis subAnalysis = subAnalyses.get(caller);
-      if (subAnalysis == null) {
-        final int floor = (initValue instanceof Integer) ? ((Integer) initValue).intValue() : 0; 
-        subAnalysis = StackDepthAnalysis.create(binder, floor);
-        subAnalyses.put(caller, subAnalysis);
-      }
-      return subAnalysis;
-    }
-    
-    /* (non-Javadoc)
      * @see edu.uwm.cs.fluid.control.ForwardTransfer#transferComponentSource(edu.cmu.cs.fluid.ir.IRNode)
      */
     public Object transferComponentSource(IRNode node) {
       return 0;
     }
   }
+  
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<FlatLattice, Object, StackDepthAnalysis> {
+    @Override
+    protected StackDepthAnalysis realCreateAnalysis(
+        final IRNode caller, final IBinder binder, FlatLattice lattice,
+        final Object initialValue, final boolean terminationNormal) {
+      final int floor = (initialValue instanceof Integer) ? ((Integer) initialValue).intValue() : 0; 
+      return StackDepthAnalysis.create(binder, lattice, floor);
+    }    
+  }
 }
 
 class TestStackDepthAnalysis extends TestFlowAnalysis<Object, FlatLattice, StackDepthAnalysis> {
   @Override
   protected StackDepthAnalysis createAnalysis(IRNode ignored, IBinder binder) {
-    return StackDepthAnalysis.create(binder, Integer.valueOf(0));
+    return StackDepthAnalysis.create(binder);
   }
   
   public static void main(String[] files) throws IOException {

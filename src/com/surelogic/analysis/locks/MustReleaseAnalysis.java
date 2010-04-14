@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.control.BackwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
+import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.JavaBackwardTransfer;
 
 public final class MustReleaseAnalysis extends
@@ -55,7 +56,7 @@ public final class MustReleaseAnalysis extends
     }
 
     public Query getSubAnalysisQuery(final IRNode caller) {
-      final Analysis sub = a.getSubAnalysis();
+      final Analysis sub = a.getSubAnalysis(caller);
       if (sub == null) {
         throw new UnsupportedOperationException();
       } else {
@@ -64,7 +65,7 @@ public final class MustReleaseAnalysis extends
     }
 
     public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return a.getSubAnalysis() != null;
+      return a.getSubAnalysis(caller) != null;
     }
   }
   
@@ -74,8 +75,8 @@ public final class MustReleaseAnalysis extends
       super(name, l, t, DebugUnparser.viewer);
     }
     
-    public Analysis getSubAnalysis() {
-      return trans.getSubAnalysis();
+    public Analysis getSubAnalysis(final IRNode forCaller) {
+      return trans.getSubAnalysis(forCaller);
     }
   }
 
@@ -149,21 +150,10 @@ public final class MustReleaseAnalysis extends
   
   
   private static final class MustReleaseTransfer extends
-      JavaBackwardTransfer<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
+      JavaBackwardTransfer<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[], SubAnalysisFactory> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
-
-    /**
-     * We cache the subanalysis we create so that both normal and abrupt paths
-     * are stored in the same analysis. Plus this puts more force behind an
-     * assumption made by
-     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
-     * 
-     * <p>
-     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
-     */
-    private Analysis subAnalysis = null;
 
     
     
@@ -171,23 +161,16 @@ public final class MustReleaseAnalysis extends
         final ThisExpressionBinder teb, final IBinder binder, final LockUtils lu,
         final MustReleaseLattice lattice,
         final SimpleNonnullAnalysis.Query query) {
-      super(binder, lattice);
+      super(binder, lattice, new SubAnalysisFactory(teb, lu, query));
       thisExprBinder = teb;
       lockUtils = lu;
       nonNullAnalysisQuery = query;
     }
-
-    private MustReleaseTransfer(final MustReleaseTransfer other, final IRNode caller) {
-      super(other.binder, other.lattice);
-      thisExprBinder = other.thisExprBinder;
-      lockUtils = other.lockUtils;
-      nonNullAnalysisQuery = other.nonNullAnalysisQuery.getSubAnalysisQuery(caller);
-    }
     
     
     
-    public Analysis getSubAnalysis() {
-      return subAnalysis;
+    public Analysis getSubAnalysis(final IRNode forCaller) {
+      return subAnalysisFactory.getSubAnalysis(forCaller);
     }
     
     
@@ -347,20 +330,38 @@ public final class MustReleaseAnalysis extends
       }
     }
 
-    @Override
-    protected Analysis createAnalysis(IRNode caller,
-        final IBinder binder, final ImmutableList<ImmutableSet<IRNode>>[] initValue, final boolean terminationNormal) {
-      if (subAnalysis == null) {
-        subAnalysis = new Analysis("Must Release Analysis (sub-analysis)",
-            lattice, new MustReleaseTransfer(this, caller));
-      }
-      return subAnalysis;
-    }
-
     public ImmutableList<ImmutableSet<IRNode>>[] transferComponentSink(IRNode node, boolean normal) {
       final ImmutableList<ImmutableSet<IRNode>>[] emptyValue = lattice.getEmptyValue();
       return emptyValue;
     }
+  }
+
+
+
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[], Analysis> {
+    private final ThisExpressionBinder thisExprBinder;
+    private final LockUtils lockUtils;
+    private final SimpleNonnullAnalysis.Query query;
+    
+    public SubAnalysisFactory(
+        final ThisExpressionBinder teb, final LockUtils lu,
+        final SimpleNonnullAnalysis.Query q) {
+      thisExprBinder = teb;
+      lockUtils = lu;
+      query = q;
+    }
+    
+    @Override
+    protected Analysis realCreateAnalysis(
+        final IRNode caller, final IBinder binder,
+        final MustReleaseLattice lattice,
+        final ImmutableList<ImmutableSet<IRNode>>[] initialValue,
+        final boolean terminationNormal) {
+      return new Analysis("Must Release Analysis (sub-analysis)", lattice,
+          new MustReleaseTransfer(thisExprBinder, binder, lockUtils, lattice,
+              query.getSubAnalysisQuery(caller)));
+    }
+    
   }
 }
 

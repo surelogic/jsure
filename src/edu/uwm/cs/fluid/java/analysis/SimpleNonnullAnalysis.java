@@ -1,8 +1,6 @@
 package edu.uwm.cs.fluid.java.analysis;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +29,7 @@ import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.Pair;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
+import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
 import edu.uwm.cs.fluid.util.*;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
@@ -206,53 +205,22 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     }
   }
   
-  private static final class Transfer extends JavaEvaluationTransfer<Lattice,Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+  private static final class Transfer extends JavaEvaluationTransfer<Lattice,Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SubAnalysisFactory> {
 
     private static final NullLattice nullLattice = NullLattice.getInstance();
     
     private static final SyntaxTreeInterface tree = JJNode.tree; 
     
-    /**
-     * We cache the subanalysis we create so that both normal and abrupt paths
-     * are stored in the same analysis. Plus this puts more force behind an
-     * assumption made by
-     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
-     * 
-     * <p>
-     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
-     */
-    /* We use a map here instead of a single reference like we use in
-     * BindingContextAnalysis for reasons described in bug 1651.
-     */
-    private final  Map<IRNode, Analysis> subAnalyses = new HashMap<IRNode, Analysis>(); 
-    
     
     
     public Transfer(IBinder binder, Lattice lattice, int floor) {
-      super(binder, lattice, floor);
+      super(binder, lattice, new SubAnalysisFactory(), floor);
     }
     
     
     
     public Analysis getSubAnalysis(final IRNode forCaller) {
-      return subAnalyses.get(forCaller);
-    }
-
-    
-    
-    @Override
-    protected Analysis createAnalysis(final IRNode caller,
-        final IBinder binder,
-        final Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> initValue,
-        final boolean terminationNormal) {
-      Analysis subAnalysis = subAnalyses.get(caller);
-      if (subAnalysis == null) {
-        final int floor = initValue.first().size();
-        Transfer t = new Transfer(binder, lattice, floor);
-        subAnalysis = new Analysis("sub analysis", lattice, t, DebugUnparser.viewer);
-        subAnalyses.put(caller, subAnalysis);
-      }
-      return subAnalysis;
+      return subAnalysisFactory.getSubAnalysis(forCaller);
     }
 
     public Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferComponentSource(IRNode node) {
@@ -538,6 +506,23 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     }
   }
   
+  
+  
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<Lattice, Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Analysis> {
+    @Override
+    protected Analysis realCreateAnalysis(
+        final IRNode caller, final IBinder binder,
+        final Lattice lattice,
+        final Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> initialValue,
+        final boolean terminationNormal) {
+      final int floor = initialValue.first().size();
+      final Transfer t = new Transfer(binder, lattice, floor);
+      return new Analysis("sub analysis", lattice, t, DebugUnparser.viewer);
+    }
+  }
+
+
+
   public static final class Analysis extends ForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice, Transfer> {
 
     private Analysis(String name, Lattice l, Transfer t, IRNodeViewer nv) {

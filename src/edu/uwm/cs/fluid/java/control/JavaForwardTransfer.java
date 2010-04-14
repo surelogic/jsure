@@ -16,11 +16,12 @@ import edu.uwm.cs.fluid.util.Lattice;
  * of Java-specific transfer routines.  Because it inherits most of the
  * work, it needs only define the remaining generic routines.
  */
-public abstract class JavaForwardTransfer<L extends Lattice<T>,T> extends JavaTransfer<L,T>
+public abstract class JavaForwardTransfer<L extends Lattice<T>, T, SAF extends SubAnalysisFactory<L, T>> extends JavaTransfer<L, T, SAF>
      implements ForwardTransfer<T>
 {
-  public JavaForwardTransfer(IBinder binder, L lattice) {
-    super(binder,lattice);
+  public JavaForwardTransfer(
+      final IBinder binder, final L lattice, final SAF factory) {
+    super(binder,lattice, factory);
   }
 
   /** Transfer when a value is tested for true/false.

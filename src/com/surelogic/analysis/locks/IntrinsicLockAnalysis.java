@@ -22,6 +22,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
+import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class IntrinsicLockAnalysis extends
@@ -46,7 +47,7 @@ public final class IntrinsicLockAnalysis extends
     }
 
     public Query getSubAnalysisQuery(final IRNode caller) {
-      final Analysis sub = analysis.getSubAnalysis();
+      final Analysis sub = analysis.getSubAnalysis(caller);
       if (sub == null) {
         throw new UnsupportedOperationException();
       } else {
@@ -55,7 +56,7 @@ public final class IntrinsicLockAnalysis extends
     }
 
     public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return analysis.getSubAnalysis() != null;
+      return analysis.getSubAnalysis(caller) != null;
     }
   }
   
@@ -67,8 +68,8 @@ public final class IntrinsicLockAnalysis extends
       super(name, l, t, DebugUnparser.viewer);
     }
     
-    public Analysis getSubAnalysis() {
-      return trans.getSubAnalysis();
+    public Analysis getSubAnalysis(final IRNode forCaller) {
+      return trans.getSubAnalysis(forCaller);
     }
   }
   
@@ -117,34 +118,23 @@ public final class IntrinsicLockAnalysis extends
   
   
   private static final class IntrinsicLockTransfer extends
-      JavaForwardTransfer<IntrinsicLockLattice, Object[]> {
+      JavaForwardTransfer<IntrinsicLockLattice, Object[], SubAnalysisFactory> {
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
-    
-    /**
-     * We cache the subanalysis we create so that both normal and abrupt paths
-     * are stored in the same analysis. Plus this puts more force behind an
-     * assumption made by
-     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
-     * 
-     * <p>
-     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
-     */
-    private Analysis subAnalysis = null;
 
     
     
     public IntrinsicLockTransfer(final IBinder binder, final LockUtils lu,
         final IntrinsicLockLattice lattice, final SimpleNonnullAnalysis.Query query) {
-      super(binder, lattice);
+      super(binder, lattice, new SubAnalysisFactory(lu, query));
       lockUtils = lu;
       nonNullAnalysisQuery = query;
     }
     
     
     
-    public Analysis getSubAnalysis() {
-      return subAnalysis;
+    public Analysis getSubAnalysis(final IRNode forCaller) {
+      return subAnalysisFactory.getSubAnalysis(forCaller);
     }
 
     
@@ -218,21 +208,34 @@ public final class IntrinsicLockAnalysis extends
         return lattice.leavingSyncBlock(value, syncBlock);
       }
     }
-    
-    @Override
-    protected Analysis createAnalysis(IRNode caller,
-        final IBinder binder, final Object[] initialValue, final boolean terminationNormal) {
-      if (subAnalysis == null) {
-        subAnalysis = new Analysis("Intrinsic Lock Analysis", lattice,
-            new IntrinsicLockTransfer(binder, this.lockUtils, this.lattice,
-                this.nonNullAnalysisQuery.getSubAnalysisQuery(caller)));
-      }
-      return subAnalysis;
-    }
 
     public Object[] transferComponentSource(IRNode node) {
       // Initial state of affairs is no locks held
       return lattice.getEmptyValue();
     }
+  }
+
+
+ 
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<IntrinsicLockLattice, Object[], Analysis> {
+    private final LockUtils lockUtils;
+    private final SimpleNonnullAnalysis.Query query;
+    
+    public SubAnalysisFactory(
+        final LockUtils lu, final SimpleNonnullAnalysis.Query q) {
+      lockUtils = lu;
+      query = q;
+    }
+   
+    @Override
+    protected Analysis realCreateAnalysis(
+        final IRNode caller, final IBinder binder,
+        final IntrinsicLockLattice lattice, final Object[] initialValue,
+        final boolean terminationNormal) {
+      return new Analysis("Intrinsic Lock Analysis", lattice,
+          new IntrinsicLockTransfer(binder, lockUtils, lattice,
+              query.getSubAnalysisQuery(caller)));
+    }
+    
   }
 }

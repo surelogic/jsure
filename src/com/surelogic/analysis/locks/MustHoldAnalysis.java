@@ -27,6 +27,7 @@ import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
+import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class MustHoldAnalysis extends
@@ -69,7 +70,7 @@ public final class MustHoldAnalysis extends
     }
 
     public LocksForQuery getSubAnalysisQuery(final IRNode caller) {
-      final Analysis sub = analysis.getSubAnalysis();
+      final Analysis sub = analysis.getSubAnalysis(caller);
       if (sub == null) {
         throw new UnsupportedOperationException();
       } else {
@@ -78,7 +79,7 @@ public final class MustHoldAnalysis extends
     }
 
     public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return analysis.getSubAnalysis() != null;
+      return analysis.getSubAnalysis(caller) != null;
     }
   }
   
@@ -104,7 +105,7 @@ public final class MustHoldAnalysis extends
     }
 
     public HeldLocksQuery getSubAnalysisQuery(final IRNode caller) {
-      final Analysis sub = analysis.getSubAnalysis();
+      final Analysis sub = analysis.getSubAnalysis(caller);
       if (sub == null) {
         throw new UnsupportedOperationException();
       } else {
@@ -113,7 +114,7 @@ public final class MustHoldAnalysis extends
     }
 
     public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return analysis.getSubAnalysis() != null;
+      return analysis.getSubAnalysis(caller) != null;
     }
   }
 
@@ -123,8 +124,8 @@ public final class MustHoldAnalysis extends
       super(name, l, t, DebugUnparser.viewer);
     }
     
-    public Analysis getSubAnalysis() {
-      return trans.getSubAnalysis();
+    public Analysis getSubAnalysis(final IRNode forCaller) {
+      return trans.getSubAnalysis(forCaller);
     }
   }
   
@@ -197,44 +198,26 @@ public final class MustHoldAnalysis extends
   
   
   private static final class MustHoldTransfer extends
-      JavaForwardTransfer<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
+      JavaForwardTransfer<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[], SubAnalysisFactory> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
-    
-    /**
-     * We cache the subanalysis we create so that both normal and abrupt paths
-     * are stored in the same analysis. Plus this puts more force behind an
-     * assumption made by
-     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
-     * 
-     * <p>
-     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
-     */
-    private Analysis subAnalysis = null;
 
     
     
     public MustHoldTransfer(
         final ThisExpressionBinder teb, final IBinder binder, final LockUtils lu,
         final MustHoldLattice lattice, final SimpleNonnullAnalysis.Query query) {
-      super(binder, lattice);
+      super(binder, lattice, new SubAnalysisFactory(teb, lu, query));
       thisExprBinder = teb;
       lockUtils = lu;
       nonNullAnalysisQuery = query;
     }
-
-    private MustHoldTransfer(final MustHoldTransfer original, final IRNode caller) {
-      super(original.binder, original.lattice);
-      thisExprBinder = original.thisExprBinder;
-      lockUtils = original.lockUtils;
-      nonNullAnalysisQuery = original.nonNullAnalysisQuery.getSubAnalysisQuery(caller);
-    }
     
     
     
-    public Analysis getSubAnalysis() {
-      return subAnalysis;
+    public Analysis getSubAnalysis(final IRNode forCaller) {
+      return subAnalysisFactory.getSubAnalysis(forCaller);
     }
     
     
@@ -432,18 +415,6 @@ public final class MustHoldAnalysis extends
       }
     }
 
-    @Override
-    protected Analysis createAnalysis(IRNode caller,
-        final IBinder binder, final ImmutableList<ImmutableSet<IRNode>>[] initValue, final boolean terminationNormal) {
-//      System.out.println("createAnalysis for " + DebugUnparser.toString(caller));
-//      System.out.flush();
-      if (subAnalysis == null) {
-        subAnalysis = new Analysis("Must Hold Analysis (sub-analysis)",
-            lattice, new MustHoldTransfer(this, caller));
-      }
-      return subAnalysis;
-    }
-
     public ImmutableList<ImmutableSet<IRNode>>[] transferComponentSource(IRNode node) {
 //      System.out.println("transferComponentSource:");
 //      System.out.flush();
@@ -486,6 +457,36 @@ public final class MustHoldAnalysis extends
 //      System.out.flush();
       return initValue;
     }
+  }
+
+
+
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[], Analysis> {
+    private final ThisExpressionBinder thisExprBinder;
+    private final LockUtils lockUtils;
+    private final SimpleNonnullAnalysis.Query query;
+    
+    public SubAnalysisFactory(
+        final ThisExpressionBinder teb, final LockUtils lu,
+        final SimpleNonnullAnalysis.Query q) {
+      thisExprBinder = teb;
+      lockUtils = lu;
+      query = q;
+    }
+    
+    @Override
+    protected Analysis realCreateAnalysis(
+        final IRNode caller, final IBinder binder,
+        final MustHoldLattice lattice,
+        final ImmutableList<ImmutableSet<IRNode>>[] initialValue,
+        final boolean terminationNormal) {
+//    System.out.println("createAnalysis for " + DebugUnparser.toString(caller));
+//    System.out.flush();
+      return new Analysis("Must Hold Analysis (sub-analysis)", lattice,
+          new MustHoldTransfer(thisExprBinder, binder, lockUtils, lattice,
+              query.getSubAnalysisQuery(caller)));
+    }
+    
   }
 }
 

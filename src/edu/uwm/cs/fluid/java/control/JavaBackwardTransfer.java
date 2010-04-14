@@ -1,4 +1,3 @@
-/* $Header: /cvs/fluid/fluid/src/edu/uwm/cs/fluid/java/control/JavaBackwardTransfer.java,v 1.4 2007/07/10 22:16:36 aarong Exp $ */
 package edu.uwm.cs.fluid.java.control;
 
 import edu.uwm.cs.fluid.control.BackwardTransfer;
@@ -10,11 +9,12 @@ import edu.cmu.cs.fluid.java.analysis.LabelMatch;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.uwm.cs.fluid.util.Lattice;
 
-public abstract class JavaBackwardTransfer<L extends Lattice<T>,T> extends JavaTransfer<L,T>
+public abstract class JavaBackwardTransfer<L extends Lattice<T>, T, SAF extends SubAnalysisFactory<L, T>> extends JavaTransfer<L, T, SAF>
      implements BackwardTransfer<T>
 {
-  public JavaBackwardTransfer(IBinder binder, L lattice) {
-    super(binder,lattice);
+  public JavaBackwardTransfer(
+      final IBinder binder, final L lattice, final SAF factory) {
+    super(binder,lattice, factory);
   }
 
   /** Transfer backwards over a throw or implicit throw.

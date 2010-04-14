@@ -7,6 +7,7 @@ import java.io.IOException;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IndependentIRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
+import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.JavaBackwardTransfer;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -71,27 +72,16 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>,
     return new LiveVariableAnalysis(l,t);
   }
   
-  public static class Transfer extends JavaBackwardTransfer<UnionLattice<IRNode>,ImmutableSet<IRNode>> {
-    /**
-     * We cache the subanalysis we create so that both normal and abrupt paths
-     * are stored in the same analysis. Plus this puts more force behind an
-     * assumption made by
-     * {@link JavaTransfer#runClassInitializer(IRNode, IRNode, T, boolean)}.
-     * 
-     * <p>
-     * <em>Warning: reusing analysis objects won't work if we have smart worklists.</em>
-     */
-    private LiveVariableAnalysis subAnalysis = null;
-
+  public static class Transfer extends JavaBackwardTransfer<UnionLattice<IRNode>, ImmutableSet<IRNode>, SubAnalysisFactory> {
     public ImmutableSet<IRNode> transferConditional(IRNode node, boolean flag,
         ImmutableSet<IRNode> after) {
-      // System.out.println("Doing transfer conditional on " + DebugUnparser.toString(node));
       return after;
     }
 
-    private Transfer(UnionLattice<IRNode> l, IBinder b) {
-      super(b,l);
+    private Transfer(final UnionLattice<IRNode> l, final IBinder b) {
+      super(b, l, new SubAnalysisFactory());
     }
+    
     @Override 
     protected ImmutableSet<IRNode> transferUse(IRNode node, Operator op, ImmutableSet<IRNode> usedAfter) {
       if (op instanceof VariableUseExpression) {
@@ -129,18 +119,18 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>,
       LOG.fine("initializing live variables from end");
       return new ImmutableHashOrderSet<IRNode>(new IRNode[]{ignoreMe});
     }
-    
-    /* (non-Javadoc)
-     * @see edu.uwm.cs.fluid.java.control.JavaTransfer#createAnalysis(edu.cmu.cs.fluid.java.bind.IBinder)
-     */
+  }
+  
+  
+  
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<UnionLattice<IRNode>, ImmutableSet<IRNode>, LiveVariableAnalysis> {
     @Override
-    protected LiveVariableAnalysis createAnalysis(IRNode caller,
-        IBinder binder, final ImmutableSet<IRNode> initialValue, boolean terminationNormal) {
-      if (subAnalysis == null) {
-        subAnalysis = new LiveVariableAnalysis(
-            lattice, new Transfer(lattice, binder));
-      }
-      return subAnalysis;
+    protected LiveVariableAnalysis realCreateAnalysis(
+        final IRNode caller, final IBinder binder,
+        final UnionLattice<IRNode> lattice,
+        final ImmutableSet<IRNode> initialValue,
+        final boolean terminationNormal) {
+      return new LiveVariableAnalysis(lattice, new Transfer(lattice, binder));
     }
   }
 }
