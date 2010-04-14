@@ -1,8 +1,11 @@
 package com.surelogic.jsure.client.eclipse.views;
 
+import java.net.*;
+
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.eclipse.views.AbstractHistoricalSourceView;
 import com.surelogic.fluid.javac.Config;
+import com.surelogic.fluid.javac.JavaSourceFile;
 
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     private static Config config;
@@ -37,10 +40,16 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     }
 
     public static String tryToMapPath(String path) {
-        String mapped = config.mapPath(path);
-        if (mapped != null) {
-            return mapped;
-        }
+    	
+		try {
+			JavaSourceFile f = config.mapPath(new URI(path));
+	        String mapped = f.file.toURI().toString();
+	        if (mapped != null) {
+	            return mapped;
+	        }
+		} catch (URISyntaxException e) {
+			// Nothing to do
+		}
         return path;
     }
 }

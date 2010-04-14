@@ -13,9 +13,7 @@ import com.surelogic.common.eclipse.*;
 import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
-import com.surelogic.fluid.javac.Config;
-import com.surelogic.fluid.javac.JavacProject;
-import com.surelogic.fluid.javac.Util;
+import com.surelogic.fluid.javac.*;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
@@ -100,7 +98,7 @@ public class JavacDriver {
 				config.addRemovedFile(f);
 			}
 			for(ICompilationUnit icu : all ? getAllCompUnits() : getDelta()) {				
-				//final IPath path = icu.getResource().getFullPath();
+				final IPath path = icu.getResource().getFullPath();
 				final IPath loc = icu.getResource().getLocation();
 				final File f = loc.toFile();
 				String qname;
@@ -120,7 +118,7 @@ public class JavacDriver {
 				} else { // Removed
 					qname = f.getName();
 				}
-				config.addFile(new Pair<String, File>(qname, f));
+				config.addFile(new JavaSourceFile(qname, f, path.toPortableString()));
 			}			
 			addDependencies(config, project, false);
 			return config;
@@ -288,7 +286,7 @@ public class JavacDriver {
 		}
 		@Override
 		public void copySources(File zipDir, File targetDir) throws IOException {
-            final List<Pair<String, File>> srcFiles = new ArrayList<Pair<String, File>>();
+            final List<JavaSourceFile> srcFiles = new ArrayList<JavaSourceFile>();
             final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(getProject());
             targetDir.mkdir();
             
@@ -327,7 +325,7 @@ public class JavacDriver {
                     if (names != null) {
                         for(String name : names) {
                             //System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
-                            srcFiles.add(new Pair<String,File>(name.replace('$', '.'), f));
+                            srcFiles.add(new JavaSourceFile(name.replace('$', '.'), f, null));
                         }
                     } else if (ze.getName().endsWith("/package-info.java")) {
                         // TODO what to do about this?
