@@ -120,6 +120,7 @@ public abstract class JavaTransfer<T,V> {
       Operator oop = tree.getOperator(object);
       if (oop == SuperExpression.prototype
         || oop == ThisExpression.prototype
+        || oop == QualifiedThisExpression.prototype
         || oop == TypeExpression.prototype
         || (binder != null &&  isStaticUse(node)))
         return flag ? value : null;
@@ -130,6 +131,7 @@ public abstract class JavaTransfer<T,V> {
       Operator oop = tree.getOperator(object);
       if (oop == SuperExpression.prototype
         || oop == ThisExpression.prototype
+        || oop == QualifiedThisExpression.prototype
         || oop == TypeExpression.prototype)
         return flag ? value : null;
       return transferIsObject(object, flag, value);
@@ -142,6 +144,7 @@ public abstract class JavaTransfer<T,V> {
       Operator oop = tree.getOperator(object);
       if (oop == SuperExpression.prototype
         || oop == ThisExpression.prototype
+        || oop == QualifiedThisExpression.prototype
         || oop == TypeExpression.prototype
         || isStaticUse(node))
         return flag ? value : null;
@@ -151,6 +154,7 @@ public abstract class JavaTransfer<T,V> {
       Operator oop = tree.getOperator(object);
       if (oop == SuperExpression.prototype
 	  || oop == ThisExpression.prototype
+    || oop == QualifiedThisExpression.prototype
 	  || oop == TypeExpression.prototype)
         return flag ? value : null;
       return transferIsObject(object, flag, value);
