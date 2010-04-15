@@ -232,9 +232,13 @@ public final class PreferencePage extends
 			if (showPrivate) {
 				return true;
 			}
-			return am.isProduction() && !"required".equals(am.getCategory());
+			return am.isProduction() && !isRequired(am);
 		}
 
+		private boolean isRequired(IAnalysisInfo am) {
+			return "required".equals(am.getCategory());
+		}
+		
 		private PreferenceTreeNode[] filterNodes(Set<PreferenceTreeNode> nodes) {
 			int numVisible = 0;
 			if (showPrivate) {
@@ -350,7 +354,14 @@ public final class PreferencePage extends
 		 */
 		private void setAll(boolean isOn) {
 			for (PreferenceTreeNode node : m_checktreeContents) {
-				node.isOn = isOn;
+				if (isOn && (node.isVisible || isRequired(node.am))) {
+					node.isOn = true;
+					if (isOn) {
+						turnOnAllPrerequesites(node);
+					}
+				} else {
+					node.isOn = false;
+				}
 			}
 			setState();
 		}
