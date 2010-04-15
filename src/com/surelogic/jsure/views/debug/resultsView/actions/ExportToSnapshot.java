@@ -1,6 +1,9 @@
 package com.surelogic.jsure.views.debug.resultsView.actions;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.IFile;
@@ -55,7 +58,10 @@ public class ExportToSnapshot implements IViewActionDelegate {
       return;
     }
    
-    final String oracleName = resultsBelongTo.getName() + SeaSnapshot.SUFFIX;
+    //final String oracleName = resultsBelongTo.getName() + SeaSnapshot.SUFFIX;
+    Date date = new Date();
+    DateFormat format = new SimpleDateFormat("yyyyMMdd");
+    final String oracleName = "oracle"+format.format(date)+SeaSnapshot.SUFFIX;
     final IFile oracleFile = resultsBelongTo.getFile(oracleName);
     
     if (oracleFile.exists()) {
