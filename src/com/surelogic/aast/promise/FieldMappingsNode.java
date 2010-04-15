@@ -49,12 +49,26 @@ public class FieldMappingsNode extends AASTRootNode {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("FieldMappings\n");
-    for(AASTNode _n : getFieldsList()) {
-      sb.append(_n.unparse(debug, indent+2));
+    if (debug) { 
+    	indent(sb, indent); 
+        sb.append("FieldMappings\n");
+        for(AASTNode _n : getFieldsList()) {
+        	sb.append(_n.unparse(debug, indent+2));
+        }
+        sb.append(getTo().unparse(debug, indent+2));
+    } else {
+    	boolean first = true;
+        for(AASTNode _n : getFieldsList()) {
+        	sb.append(_n.unparse(debug, indent));
+        	if (first) {
+        		first = false;
+        	} else {
+        		sb.append(", ");
+        	}
+        }
+        sb.append(" into ");
+        sb.append(getTo().unparse(debug, indent));
     }
-    sb.append(getTo().unparse(debug, indent+2));
     return sb.toString();
   }
 

@@ -33,8 +33,12 @@ public class ShortTypeNode extends IntegralTypeNode {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("short\n");
+    if (debug) { 
+    	indent(sb, indent); 
+    	sb.append("short\n");
+    } else {
+    	sb.append("short");
+    }
     return sb.toString();
   }
 

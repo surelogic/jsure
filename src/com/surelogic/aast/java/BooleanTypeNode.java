@@ -33,8 +33,12 @@ public class BooleanTypeNode extends PrimitiveTypeNode {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("boolean\n");
+    if (debug) { 
+    	indent(sb, indent); 
+    	sb.append("boolean\n");
+    } else {
+    	sb.append("boolean");
+    }
     return sb.toString();
   }
 

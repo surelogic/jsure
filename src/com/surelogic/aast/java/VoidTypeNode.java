@@ -35,8 +35,12 @@ public class VoidTypeNode extends ReturnTypeNode {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("void\n");
+    if (debug) { 
+    	indent(sb, indent); 
+    	sb.append("void\n");
+    } else {
+    	sb.append("void");
+    }
     return sb.toString();
   }
 

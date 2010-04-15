@@ -33,8 +33,12 @@ public class ByteTypeNode extends IntegralTypeNode {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("byte\n");
+    if (debug) { 
+    	indent(sb, indent); 
+    	sb.append("byte\n");
+    } else {
+    	sb.append("byte");
+    }
     return sb.toString();
   }
 
