@@ -1,0 +1,336 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<sea-summary time='Apr 15, 2010 11:17:14 AM'
+	 project='LocalVariablesAndJavaSemanticsVisitor'>
+
+<ir-drop type='InfoDrop'
+	 line='13'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='200'
+	 hash='1818100338'
+	 context='-637478618'
+	 message='test.localVars.Test.ACE #0.ACE #1(InitDeclaration): Local [v2 = null, v3 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='28'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='558'
+	 hash='1818100338'
+	 context='1874797353'
+	 message='test.externalVars.C.ACE #3.ACE #4(InitDeclaration): Local []; External [fromM = null]'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='4'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='47'
+	 hash='-487315888'
+	 context='-1389750498'
+	 message='test.externalVars.C.C(): Local []; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='68'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='1205'
+	 hash='1818100338'
+	 context='-1814612357'
+	 message='test.localVars.Test.ACE #8(InitDeclaration): Local [v12 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='14'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='247'
+	 hash='1818100338'
+	 context='613373716'
+	 message='test.localVars.Test.ACE #0.ACE #1.ACE #2(InitDeclaration): Local [v2 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='21'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='409'
+	 hash='1401578507'
+	 context='1771127806'
+	 message='test.externalVars.C.ACE #1.z(): Local []; External [fromM = null]'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='38'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='753'
+	 hash='1818100338'
+	 context='1874797354'
+	 message='test.externalVars.C.ACE #3.ACE #5(InitDeclaration): Local []; External [alsoFromM = null, fromM = null]'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='14'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='247'
+	 hash='1818100338'
+	 context='613373716'
+	 message='test.localVars.Test.ACE #0.ACE #1.ACE #2(InitDeclaration): Local [v2 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='14'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='263'
+	 hash='1818100338'
+	 context='-1610823319'
+	 message='test.externalVars.C.ACE #1.ACE #2(InitDeclaration): Local []; External [fromM = null]'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='13'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='200'
+	 hash='1818100338'
+	 context='-637478618'
+	 message='test.localVars.Test.ACE #0.ACE #1(InitDeclaration): Local [v2 = null, v3 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='28'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='456'
+	 hash='1074248030'
+	 context='1796848494'
+	 message='test.localVars.Test.Test(boolean): Local [boolean flag, zzz = null, v1 = null, v2 = null, v3 = null, v12 = null, v13 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='83'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='1365'
+	 hash='-301554969'
+	 context='-1404578983'
+	 message='test.localVars.Foo.Foo(java.lang.Object): Local [java.lang.Object o]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='78'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='1301'
+	 hash='-1944711511'
+	 context='-416160237'
+	 message='test.localVars.Foo(ClassInitDeclaration): Local []; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='50'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='970'
+	 hash='1818100338'
+	 context='-513361529'
+	 message='test.localVars.Test.ACE #5.ACE #7(InitDeclaration): Local [v9 = null, v10 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='10'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='149'
+	 hash='1477432030'
+	 context='-1389710136'
+	 message='test.externalVars.C.m(): Local [fromM = null, o = new java.lang.Object { # final # #; # public # # z# # # }, alsoFromM = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='29'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='497'
+	 hash='1818100338'
+	 context='-1814612362'
+	 message='test.localVars.Test.ACE #3(InitDeclaration): Local [zzz = null]; External []'
+	 category='LVCategory'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public []'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='InfoDrop'
+	 line='39'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='766'
+	 hash='1818100338'
+	 context='-1814612361'
+	 message='test.localVars.Test.ACE #4(InitDeclaration): Local [v6 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='27'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='511'
+	 hash='1818100338'
+	 context='1396190323'
+	 message='test.externalVars.C.ACE #3(InitDeclaration): Local [alsoFromM = null]; External [fromM = null]'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='36'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='700'
+	 hash='-954123447'
+	 context='-1237807524'
+	 message='test.localVars.Test.Test(): Local [v1 = null, v2 = null, v3 = null, v12 = null, v13 = null, v4 = null, v5 = new test.localVars.Foo (#) { # # private # #; }, v6 = null, v7 = null, v8 = null, v9 = null, v10 = null, v11 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='4'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='59'
+	 hash='1818100338'
+	 context='1396190320'
+	 message='test.externalVars.C.ACE #0(InitDeclaration): Local []; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='58'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='1091'
+	 hash='-1601281313'
+	 context='-186178233'
+	 message='test.localVars.Test.ACE #5.ACE #7.m(): Local [neverIncludeMe = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='3'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='28'
+	 hash='-1944711511'
+	 context='1058550152'
+	 message='test.externalVars.C(ClassInitDeclaration): Local []; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='9'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='148'
+	 hash='1818100338'
+	 context='-1814612365'
+	 message='test.localVars.Test.ACE #0(InitDeclaration): Local [v1 = null, v2 = null, v3 = null]; External []'
+	 category='LVCategory'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public length'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='InfoDrop'
+	 line='39'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='787'
+	 hash='1175799378'
+	 context='1742473515'
+	 message='test.externalVars.C.ACE #3.ACE #5.n(): Local []; External [alsoFromM = null, fromM = null]'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='15'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='295'
+	 hash='-1473358825'
+	 context='2125528938'
+	 message='test.externalVars.C.ACE #1.ACE #2.nnn(): Local []; External [fromM = null]'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='29'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='590'
+	 hash='1232480123'
+	 context='-1846457754'
+	 message='test.externalVars.C.ACE #3.ACE #4.nn(): Local []; External [fromM = null]'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='13'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='214'
+	 hash='1818100338'
+	 context='1396190321'
+	 message='test.externalVars.C.ACE #1(InitDeclaration): Local []; External [fromM = null]'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='5'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/externalVars/C.java'
+	 offset='88'
+	 hash='-1084563042'
+	 context='1153229772'
+	 message='test.externalVars.C.ACE #0.zz(java.lang.Object): Local [java.lang.Object p]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='43'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='851'
+	 hash='1818100338'
+	 context='-513361530'
+	 message='test.localVars.Test.ACE #5.ACE #6(InitDeclaration): Local [v8 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='79'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='1330'
+	 hash='-1581142011'
+	 context='391200908'
+	 message='test.localVars.Foo.Foo(): Local []; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='3'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='25'
+	 hash='-1944711511'
+	 context='-15657755'
+	 message='test.localVars.Test(ClassInitDeclaration): Local [s1 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='9'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='148'
+	 hash='1818100338'
+	 context='-1814612365'
+	 message='test.localVars.Test.ACE #0(InitDeclaration): Local [v1 = null, v2 = null, v3 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='68'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='1205'
+	 hash='1818100338'
+	 context='-1814612357'
+	 message='test.localVars.Test.ACE #8(InitDeclaration): Local [v12 = null]; External []'
+	 category='LVCategory'/>
+
+<ir-drop type='InfoDrop'
+	 line='39'
+	 file='/LocalVariablesAndJavaSemanticsVisitor/src/test/localVars/Test.java'
+	 offset='758'
+	 hash='1818100338'
+	 context='-1814612360'
+	 message='test.localVars.Test.ACE #5(InitDeclaration): Local [v7 = null, v8 = null, v9 = null, v10 = null]; External []'
+	 category='LVCategory'/>
+
+</sea-summary>
+
