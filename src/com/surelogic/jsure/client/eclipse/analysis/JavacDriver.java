@@ -7,6 +7,7 @@ import java.util.zip.*;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.common.*;
 import com.surelogic.common.eclipse.*;
@@ -14,10 +15,12 @@ import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
+import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.dc.NotificationHub;
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.util.*;
 
@@ -227,6 +230,9 @@ public class JavacDriver {
 		}
         JavacEclipse.initialize();
 		try {
+			final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+	      	((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
+	      	
 			final boolean hasDeltas = info.hasDeltas();
 		    final Config config = info.makeConfig(!hasDeltas);		    
 		    final File dataDir = 
