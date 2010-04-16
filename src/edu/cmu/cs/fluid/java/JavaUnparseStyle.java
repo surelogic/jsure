@@ -147,13 +147,15 @@ public class JavaUnparseStyle {
   public static final JavaUnparseStyle prototype = new JavaUnparseStyle();
 
   private boolean unparsePromises;
+  private boolean unparseComments;
   
   JavaUnparseStyle() {
-	  this(true);
+	  this(true, true);
   }
   
-  public JavaUnparseStyle(boolean unparse) {
+  public JavaUnparseStyle(boolean unparse, boolean comments) {
 	  unparsePromises = unparse;
+	  unparseComments = comments;
   }
 	// private Set unparsePromiseSet = new HashSet();
 
@@ -168,6 +170,10 @@ public class JavaUnparseStyle {
 //  private boolean getUnparsePromises(String s) {
 //    return unparsePromiseSet.contains(s);
 //  }
+  
+  public boolean unparseComments() {
+	  return unparseComments;
+  }
   
   public boolean unparsePromises() {
 	  return unparsePromises;

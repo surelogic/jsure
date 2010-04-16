@@ -114,7 +114,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		id.snapshotAttrs(this);
 	}
 
-	private static final JavaUnparseStyle noPromisesStyle = new JavaUnparseStyle(false);
+	private static final JavaUnparseStyle noPromisesStyle = new JavaUnparseStyle(false, false);
 	private static final DebugUnparser unparser = new DebugUnparser(5, JJNode.tree) {
 		@Override
 		public JavaUnparseStyle getStyle() {

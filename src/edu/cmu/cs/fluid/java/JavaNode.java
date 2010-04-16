@@ -428,7 +428,7 @@ public class JavaNode extends JJNode {
 
   public static void unparseComment(IRNode node, JavaUnparser u) {
     String comment = getCommentOrNull(node);
-    if (comment == null) {
+    if (comment == null || !u.getStyle().unparseComments()) {
       return;
     }
     StringTokenizer st = new StringTokenizer(comment, "\n\r\f");
