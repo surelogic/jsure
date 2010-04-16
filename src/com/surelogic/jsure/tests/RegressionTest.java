@@ -10,6 +10,8 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
+import com.surelogic.jsure.client.eclipse.analysis.JavacEclipse;
 import com.surelogic.test.*;
 import com.surelogic.test.scripting.ScriptReader;
 import com.surelogic.test.xml.JUnitXMLOutput;
@@ -324,6 +326,11 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       System.out.println("Found project-specific analysis settings.");
       IPreferenceStore store = JSureAnalysisXMLReader.readStateFrom(analyses);
       Plugin.getDefault().initAnalyses(store);
+      
+      if (AnalysisDriver.useJavac) {
+    	JavacEclipse.initialize();
+      	((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
+      }
     } else {
       System.out.println("No project-specific analysis settings.");
     }
@@ -366,7 +373,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     AnnotationRules.XML_LOG.close();
 
     String resultsName = null;
-    boolean resultsOk = false;
+    boolean resultsOk = true;
     
     // Export the results from this run
     currentTest = start("Exporting results");
@@ -389,17 +396,23 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       currentTest = start("comparing results");
       System.out.println("Try to compare these results to the results oracle");    
       if (projectPath != null) {
-        if (useNewSnapshotXML) {
-    	final String xmlOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
-    	System.out.println("Looking for " + xmlOracle);
-    	final File xmlLocation = new File(xmlOracle);
-    	assert (xmlLocation.exists());  
-    	
-    	final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), xmlLocation);
-    	if (!diff.isEmpty()) {
-    		diff.write(new File(workspaceFile, projectName+".sea.diffs.xml"));
-    	}
-    	}
+    	  if (useNewSnapshotXML) {
+    		  final String xmlOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
+    		  System.out.println("Looking for " + xmlOracle);
+    		  final File xmlLocation = new File(xmlOracle);
+    		  assert (xmlLocation.exists());  
+
+    		  final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), xmlLocation);
+    		  final File diffs = new File(workspaceFile, projectName+".sea.diffs.xml");
+    		  if (!diff.isEmpty()) {
+    			  System.out.println("Writing diffs");
+    			  diff.write(diffs);
+    			  resultsOk = false;
+    		  } else {
+    			  System.out.println("No diffs to write");
+    			  diffs.createNewFile();
+    		  }
+    	  }
     	
     	final String oracleName = getOracleName(projectPath, oracleFilter, "oracle.zip");
         System.out.println("Looking for " + oracleName);
@@ -412,7 +425,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
         results.generateXML(diffsName);
         System.out.println("diffs.xml = " + diffsName);
         System.out.println("Has children? " + results.root.hasChildren());
-        resultsOk = !results.root.hasChildren();
+        if (!useNewSnapshotXML) {
+        	resultsOk = !results.root.hasChildren();
+        }
         end("Done comparing");
       }
     } catch (FileNotFoundException ex) {
