@@ -35,6 +35,11 @@ public class JavacEclipse extends Javac {
 			}
 			prefs.put(id, val);
 		}
+		/*
+		if (XUtil.testing) {
+			new Throwable("For stack trace").printStackTrace();
+		}
+*/
     }
     
     @Override
