@@ -230,9 +230,10 @@ public class JavacDriver {
 		}
         JavacEclipse.initialize();
 		try {
-			final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-	      	((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
-	      	
+			if (!XUtil.testing) {
+				final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
+			}
 			final boolean hasDeltas = info.hasDeltas();
 		    final Config config = info.makeConfig(!hasDeltas);		    
 		    final File dataDir = 
