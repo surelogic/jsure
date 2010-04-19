@@ -209,7 +209,7 @@
 	</extension>
   <extension id="LV" name="Local Variables"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.bca.LocalVariables" production="false">
+    <run class="com.surelogic.analysis.bca.LocalVariablesModule" production="false">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
