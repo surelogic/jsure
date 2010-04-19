@@ -289,6 +289,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			for(Category c : categories.elements()) {
 				c.write(pw);
 			}
+			pw.flush();
+			pw.close();
 		}
 	}
 	
