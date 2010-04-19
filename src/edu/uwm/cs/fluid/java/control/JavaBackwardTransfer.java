@@ -9,11 +9,11 @@ import edu.cmu.cs.fluid.java.analysis.LabelMatch;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.uwm.cs.fluid.util.Lattice;
 
-public abstract class JavaBackwardTransfer<L extends Lattice<T>, T, SAF extends SubAnalysisFactory<L, T>> extends JavaTransfer<L, T, SAF>
+public abstract class JavaBackwardTransfer<L extends Lattice<T>, T> extends JavaTransfer<L, T>
      implements BackwardTransfer<T>
 {
   public JavaBackwardTransfer(
-      final IBinder binder, final L lattice, final SAF factory) {
+      final IBinder binder, final L lattice, final SubAnalysisFactory<L, T> factory) {
     super(binder,lattice, factory);
   }
 

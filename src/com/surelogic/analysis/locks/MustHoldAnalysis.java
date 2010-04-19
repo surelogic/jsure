@@ -6,10 +6,9 @@ import java.util.Set;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.locks.locks.HeldLock;
 
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -25,13 +24,14 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
-import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
+import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
+import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class MustHoldAnalysis extends
-    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice, MustHoldAnalysis.Analysis> {
+    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice, JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>> {
   public final static HeldLocks EMPTY_HELD_LOCKS = new HeldLocks(
       Collections.<HeldLock>emptySet(),
       Collections.<HeldLock>emptySet(),
@@ -50,84 +50,76 @@ public final class MustHoldAnalysis extends
     }
   }
   
-  public final class LocksForQuery implements AnalysisQuery<Set<IRNode>> {
-    private final Analysis analysis;
-    private final MustHoldLattice lattice;
-    
-    private LocksForQuery(final Analysis a) {
-      analysis = a;
-      lattice = a.getLattice();
+  
+  
+  public final class LocksForQuery extends AbstractJavaFlowAnalysisQuery<LocksForQuery, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
+    protected LocksForQuery(
+        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> a) {
+      super(a, RawResultFactory.ENTRY);
     }
-    
-    private LocksForQuery(final IRNode flowUnit) {
-      this(getAnalysis(flowUnit));
+
+    private LocksForQuery(final MustHoldLattice lattice) {
+      super(lattice);
     }
-    
-    public Set<IRNode> getResultFor(final IRNode mcall) {
+
+    @Override
+    protected LocksForQuery newAnalysisBasedSubQuery(
+        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> subAnalysis) {
+      return new LocksForQuery(subAnalysis);
+    }
+
+    @Override
+    protected LocksForQuery newBottomReturningSubQuery(final MustHoldLattice lattice) {
+      return new LocksForQuery(lattice);
+    }
+
+    @Override
+    protected Set<IRNode> processRawResult(final IRNode mcall,
+        final ImmutableList<ImmutableSet<IRNode>>[] rawResult) {
       final MethodCall call = (MethodCall) tree.getOperator(mcall);
-      final ImmutableList<ImmutableSet<IRNode>>[] value = analysis.getAfter(mcall, WhichPort.ENTRY);
-      return lattice.getLocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
-    }
-
-    public LocksForQuery getSubAnalysisQuery(final IRNode caller) {
-      final Analysis sub = analysis.getSubAnalysis(caller);
-      if (sub == null) {
-        throw new UnsupportedOperationException();
-      } else {
-        return new LocksForQuery(sub);
-      }
-    }
-
-    public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return analysis.getSubAnalysis(caller) != null;
+      return lattice.getLocksFor(rawResult, call.get_Object(mcall), thisExprBinder, binder);
     }
   }
   
-  public final class HeldLocksQuery implements AnalysisQuery<HeldLocks> {
-    private final Analysis analysis;
-    private final MustHoldLattice lattice;
-    
-    private HeldLocksQuery(final Analysis a) {
-      analysis = a;
-      lattice = a.getLattice();
+  
+
+  public final class HeldLocksQuery extends AbstractJavaFlowAnalysisQuery<HeldLocksQuery, HeldLocks, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
+    protected HeldLocksQuery(
+        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> a) {
+      super(a, RawResultFactory.ENTRY);
     }
-    
-    private HeldLocksQuery(final IRNode flowUnit) {
-      this(getAnalysis(flowUnit));
+
+    private HeldLocksQuery(final MustHoldLattice lattice) {
+      super(lattice);
     }
-    
-    public HeldLocks getResultFor(final IRNode node) {
-      final ImmutableList<ImmutableSet<IRNode>>[] value = analysis.getAfter(node, WhichPort.ENTRY);
+
+    @Override
+    protected HeldLocksQuery newAnalysisBasedSubQuery(
+        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> subAnalysis) {
+      return new HeldLocksQuery(subAnalysis);
+    }
+
+    @Override
+    protected HeldLocksQuery newBottomReturningSubQuery(final MustHoldLattice lattice) {
+      return new HeldLocksQuery(lattice);
+    }
+
+    @Override
+    protected HeldLocks processRawResult(final IRNode mcall,
+        final ImmutableList<ImmutableSet<IRNode>>[] rawResult) {
       return new HeldLocks(
-          lattice.getHeldLocks(value),
+          lattice.getHeldLocks(rawResult),
           lattice.getClassInit(),
           lattice.getSingleThreaded());
     }
-
-    public HeldLocksQuery getSubAnalysisQuery(final IRNode caller) {
-      final Analysis sub = analysis.getSubAnalysis(caller);
-      if (sub == null) {
-        throw new UnsupportedOperationException();
-      } else {
-        return new HeldLocksQuery(sub);
-      }
-    }
-
-    public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return analysis.getSubAnalysis(caller) != null;
-    }
   }
 
-  public static final class Analysis extends ForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice, MustHoldTransfer> {
-    private Analysis(
-        final String name, final MustHoldLattice l, final MustHoldTransfer t) {
-      super(name, l, t, DebugUnparser.viewer);
-    }
-    
-    public Analysis getSubAnalysis(final IRNode forCaller) {
-      return trans.getSubAnalysis(forCaller);
-    }
-  }
+//  public static final class Analysis extends JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
+//    private Analysis(
+//        final String name, final MustHoldLattice l, final MustHoldTransfer t) {
+//      super(name, l, t, DebugUnparser.viewer);
+//    }
+//  }
   
   
   
@@ -149,56 +141,59 @@ public final class MustHoldAnalysis extends
   }
 
   @Override
-  protected Analysis createAnalysis(
+  protected JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> createAnalysis(
       final IRNode flowUnit) {
     final MustHoldLattice mustHoldLattice =
       MustHoldLattice.createForFlowUnit(flowUnit, thisExprBinder, binder, jucLockUsageManager);    
-    final Analysis analysis = new Analysis(
+    final JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> analysis =
+      new JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>(
         "Must Hold Analysis", mustHoldLattice,
         new MustHoldTransfer(thisExprBinder, binder, lockUtils, mustHoldLattice,
-            nonNullAnalysis.getNonnullBeforeQuery(flowUnit)));
+            nonNullAnalysis.getNonnullBeforeQuery(flowUnit)), DebugUnparser.viewer);
     return analysis;
   }
 
-  /**
-   * Given an unlock call, get the set of corresponding lock calls that it
-   * might release. 
-   * @return The IRNodes of the matching lock method call.
-   */
-  public Set<IRNode> getLocksFor(final IRNode mcall, final IRNode context) {
-    final Analysis a = getAnalysis(
-          edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
-              mcall, context));
-    final MustHoldLattice mhl = a.getLattice();
-    final MethodCall call = (MethodCall) tree.getOperator(mcall);
-    final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.ENTRY);
-    return mhl.getLocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
-  }
+//  /**
+//   * Given an unlock call, get the set of corresponding lock calls that it
+//   * might release. 
+//   * @return The IRNodes of the matching lock method call.
+//   */
+//  public Set<IRNode> getLocksFor(final IRNode mcall, final IRNode context) {
+//    final JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> a =
+//      getAnalysis(
+//          edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
+//              mcall, context));
+//    final MustHoldLattice mhl = a.getLattice();
+//    final MethodCall call = (MethodCall) tree.getOperator(mcall);
+//    final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.ENTRY);
+//    return mhl.getLocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
+//  }
   
   public LocksForQuery getLocksForQuery(final IRNode flowUnit) {
-    return new LocksForQuery(flowUnit);
+    return new LocksForQuery(getAnalysis(flowUnit));
   }
   
-  /**
-   * Given a node, find the set of locks expressions that are locked on
-   * entry to the node.
-   */
-  public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
-    final Analysis a = getAnalysis(
-          edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
-              node, context));
-    final MustHoldLattice mhl = a.getLattice();
-    return mhl.getHeldLocks(a.getAfter(node, WhichPort.ENTRY));
-  }
+//  /**
+//   * Given a node, find the set of locks expressions that are locked on
+//   * entry to the node.
+//   */
+//  public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
+//    final JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> a =
+//      getAnalysis(
+//          edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
+//              node, context));
+//    final MustHoldLattice mhl = a.getLattice();
+//    return mhl.getHeldLocks(a.getAfter(node, WhichPort.ENTRY));
+//  }
   
   public HeldLocksQuery getHeldLocksQuery(final IRNode flowUnit) {
-    return new HeldLocksQuery(flowUnit);
+    return new HeldLocksQuery(getAnalysis(flowUnit));
   }
 
   
   
   private static final class MustHoldTransfer extends
-      JavaForwardTransfer<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[], SubAnalysisFactory> {
+      JavaForwardTransfer<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
@@ -212,12 +207,6 @@ public final class MustHoldAnalysis extends
       thisExprBinder = teb;
       lockUtils = lu;
       nonNullAnalysisQuery = query;
-    }
-    
-    
-    
-    public Analysis getSubAnalysis(final IRNode forCaller) {
-      return subAnalysisFactory.getSubAnalysis(forCaller);
     }
     
     
@@ -461,7 +450,7 @@ public final class MustHoldAnalysis extends
 
 
 
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[], Analysis> {
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<MustHoldLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query query;
@@ -475,16 +464,17 @@ public final class MustHoldAnalysis extends
     }
     
     @Override
-    protected Analysis realCreateAnalysis(
+    protected JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> realCreateAnalysis(
         final IRNode caller, final IBinder binder,
         final MustHoldLattice lattice,
         final ImmutableList<ImmutableSet<IRNode>>[] initialValue,
         final boolean terminationNormal) {
 //    System.out.println("createAnalysis for " + DebugUnparser.toString(caller));
 //    System.out.flush();
-      return new Analysis("Must Hold Analysis (sub-analysis)", lattice,
+      return new JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>(
+          "Must Hold Analysis (sub-analysis)", lattice,
           new MustHoldTransfer(thisExprBinder, binder, lockUtils, lattice,
-              query.getSubAnalysisQuery(caller)));
+              query.getSubAnalysisQuery(caller)), DebugUnparser.viewer);
     }
     
   }

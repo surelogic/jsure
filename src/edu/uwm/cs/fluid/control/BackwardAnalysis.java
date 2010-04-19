@@ -57,6 +57,10 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   /** Logger instance for debugging. */
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
 
+  /* We use a generic type for this so that subclasses of BackwardAnalysis
+   * specialized for different languages or environments can expect to have
+   * specialized transfer functions.
+   */
   protected final XFER trans;
 
   /** Create an instance of backward control-flow analysis.

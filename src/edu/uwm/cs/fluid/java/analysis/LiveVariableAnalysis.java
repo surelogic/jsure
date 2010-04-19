@@ -8,6 +8,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IndependentIRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
+import edu.uwm.cs.fluid.java.control.JavaBackwardAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaBackwardTransfer;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -19,14 +20,13 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.util.UnionLattice;
-import edu.uwm.cs.fluid.control.BackwardAnalysis;
 
 
 /**
  * The simplest flow analysis -- live variables.
  * @author boyland
  */
-public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>, UnionLattice<IRNode>, LiveVariableAnalysis.Transfer> {
+public class LiveVariableAnalysis extends JavaBackwardAnalysis<ImmutableSet<IRNode>, UnionLattice<IRNode>> {
   /**
    * In order to keep our analysis transfer functions strict, 
    * we put this node in when initializing.  It should be ignored when getting information
@@ -72,7 +72,7 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>,
     return new LiveVariableAnalysis(l,t);
   }
   
-  public static class Transfer extends JavaBackwardTransfer<UnionLattice<IRNode>, ImmutableSet<IRNode>, SubAnalysisFactory> {
+  public static class Transfer extends JavaBackwardTransfer<UnionLattice<IRNode>, ImmutableSet<IRNode>> {
     public ImmutableSet<IRNode> transferConditional(IRNode node, boolean flag,
         ImmutableSet<IRNode> after) {
       return after;
@@ -123,7 +123,7 @@ public class LiveVariableAnalysis extends BackwardAnalysis<ImmutableSet<IRNode>,
   
   
   
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<UnionLattice<IRNode>, ImmutableSet<IRNode>, LiveVariableAnalysis> {
+  public static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<UnionLattice<IRNode>, ImmutableSet<IRNode>> {
     @Override
     protected LiveVariableAnalysis realCreateAnalysis(
         final IRNode caller, final IBinder binder,

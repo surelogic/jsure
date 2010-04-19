@@ -63,14 +63,6 @@ public final class Effects implements IBinderClient {
       visitor.doAccept(expr);
       return Collections.unmodifiableSet(visitor.getTheEffects());
     }
-
-    public AnalysisQuery<Set<Effect>> getSubAnalysisQuery(final IRNode caller) {
-      return null;
-    }
-
-    public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return false;
-    }
   }
   
   

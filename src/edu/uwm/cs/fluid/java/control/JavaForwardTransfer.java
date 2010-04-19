@@ -1,4 +1,3 @@
-/* $Header: /cvs/fluid/fluid/src/edu/uwm/cs/fluid/java/control/JavaForwardTransfer.java,v 1.4 2007/07/10 22:16:36 aarong Exp $ */
 package edu.uwm.cs.fluid.java.control;
 
 import edu.cmu.cs.fluid.control.ControlEdge;
@@ -16,11 +15,11 @@ import edu.uwm.cs.fluid.util.Lattice;
  * of Java-specific transfer routines.  Because it inherits most of the
  * work, it needs only define the remaining generic routines.
  */
-public abstract class JavaForwardTransfer<L extends Lattice<T>, T, SAF extends SubAnalysisFactory<L, T>> extends JavaTransfer<L, T, SAF>
+public abstract class JavaForwardTransfer<L extends Lattice<T>, T> extends JavaTransfer<L, T>
      implements ForwardTransfer<T>
 {
   public JavaForwardTransfer(
-      final IBinder binder, final L lattice, final SAF factory) {
+      final IBinder binder, final L lattice, final SubAnalysisFactory<L, T> factory) {
     super(binder,lattice, factory);
   }
 

@@ -6,7 +6,6 @@ import java.util.Map;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.util.Lattice;
 
 /**
@@ -25,18 +24,18 @@ import edu.uwm.cs.fluid.util.Lattice;
  * @param <T>
  *          The type used to represent the lattice values.
  */
-public abstract class AbstractCachingSubAnalysisFactory<L extends Lattice<T>, T, A extends FlowAnalysis<T, L>>
+public abstract class AbstractCachingSubAnalysisFactory<L extends Lattice<T>, T>
     implements SubAnalysisFactory<L, T> {
   /**
    * Cached of created subanalyses indexed by the <code>caller</code> 
    * parameter to {@link AbstractCachingSubAnalysisFactory#createAnalysis(IRNode, IBinder, Object, boolean)}.
    */
-  private final  Map<IRNode, A> subAnalyses = new HashMap<IRNode, A>(); 
+  private final  Map<IRNode, IJavaFlowAnalysis<T, L>> subAnalyses = new HashMap<IRNode, IJavaFlowAnalysis<T, L>>(); 
 
-  public final A createAnalysis(
+  public final IJavaFlowAnalysis<T, L> createSubAnalysis(
       final IRNode caller, final IBinder binder, final L lattice,
       final T initialValue, final boolean terminationNormal) {
-    A subAnalysis = subAnalyses.get(caller);
+    IJavaFlowAnalysis<T, L> subAnalysis = subAnalyses.get(caller);
     if (subAnalysis == null) {
       subAnalysis = realCreateAnalysis(
           caller, binder, lattice, initialValue, terminationNormal);
@@ -50,7 +49,7 @@ public abstract class AbstractCachingSubAnalysisFactory<L extends Lattice<T>, T,
    * @param caller The caller to get the already created analysis for.
    * @return The subanalysis object or {@value null} if no subanalysis object has been created for the given caller.
    */
-  public final A getSubAnalysis(final IRNode caller) {
+  public final IJavaFlowAnalysis<T, L> getSubAnalysis(final IRNode caller) {
     return subAnalyses.get(caller);
   }
 
@@ -60,6 +59,7 @@ public abstract class AbstractCachingSubAnalysisFactory<L extends Lattice<T>, T,
    * object for the given caller has not been previously created. Parameters are
    * as for {@link #createAnalysis(IRNode, IBinder, Object, boolean)}.
    */
-  protected abstract A realCreateAnalysis(IRNode caller, IBinder binder,
+  protected abstract IJavaFlowAnalysis<T, L> realCreateAnalysis(
+      IRNode caller, IBinder binder,
       L lattice, T initialValue, boolean terminationNormal);
 }

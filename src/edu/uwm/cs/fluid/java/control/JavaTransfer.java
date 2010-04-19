@@ -36,7 +36,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  * @see JavaForwardTransfer
  * @see JavaBackwardTransfer
  */
-public abstract class JavaTransfer<L extends Lattice<T>, T, SAF extends SubAnalysisFactory<L, T>> {
+public abstract class JavaTransfer<L extends Lattice<T>, T> {
   /**
 	 * Logger for this class
 	 */
@@ -47,13 +47,18 @@ public abstract class JavaTransfer<L extends Lattice<T>, T, SAF extends SubAnaly
   protected SyntaxTreeInterface tree = JJNode.tree;
   protected final IBinder binder;
   protected final L lattice;
-  protected final SAF subAnalysisFactory;
+  private final SubAnalysisFactory<L, T> subAnalysisFactory;
   
   
-  public JavaTransfer(final IBinder b, final L l, SAF factory) {
+  public JavaTransfer(final IBinder b, final L l, SubAnalysisFactory<L, T> factory) {
     binder = b;
     lattice = l;
     subAnalysisFactory = factory;
+  }
+  
+  /* Only to be used by JavaBackwardAnalysis and JavaForwardAnalysis */
+  SubAnalysisFactory<L, T> getSubAnalysisFactory() {
+    return subAnalysisFactory;
   }
   
   public T transferComponentFlow(
@@ -577,7 +582,7 @@ public abstract class JavaTransfer<L extends Lattice<T>, T, SAF extends SubAnaly
     }
     
     FlowUnit op = (FlowUnit) tree.getOperator(classBody);
-    final FlowAnalysis<T, L> fa = subAnalysisFactory.createAnalysis(
+    final IJavaFlowAnalysis<T, L> fa = subAnalysisFactory.createSubAnalysis(
         caller, binder, lattice, initial, terminationNormal);
     final Source source = op.getSource(classBody);
     final Sink sink = terminationNormal ? op.getNormalSink(classBody) : op.getAbruptSink(classBody);

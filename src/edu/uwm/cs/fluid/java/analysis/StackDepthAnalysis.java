@@ -7,9 +7,9 @@ import java.io.IOException;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
+import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.util.FlatLattice;
 
 
@@ -17,7 +17,7 @@ import edu.uwm.cs.fluid.util.FlatLattice;
  * A class to test the default transfer functions of {@link edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer}
  * @author boyland
  */
-public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, StackDepthAnalysis.StackDepthTransfer> {
+public class StackDepthAnalysis extends JavaForwardAnalysis<Object, FlatLattice> {
   /**
    * @param name
    * @param l
@@ -40,7 +40,7 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
   }
   
   
-  public static class StackDepthTransfer extends JavaEvaluationTransfer<FlatLattice, Object, SubAnalysisFactory> {
+  public static class StackDepthTransfer extends JavaEvaluationTransfer<FlatLattice, Object> {
     /**
      * @param binder
      * @param lattice
@@ -88,7 +88,7 @@ public class StackDepthAnalysis extends ForwardAnalysis<Object, FlatLattice, Sta
     }
   }
   
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<FlatLattice, Object, StackDepthAnalysis> {
+  public static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<FlatLattice, Object> {
     @Override
     protected StackDepthAnalysis realCreateAnalysis(
         final IRNode caller, final IBinder binder, FlatLattice lattice,

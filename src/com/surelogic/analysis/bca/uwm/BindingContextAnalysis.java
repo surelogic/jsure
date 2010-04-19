@@ -1,9 +1,8 @@
 package com.surelogic.analysis.bca.uwm;
 
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
@@ -12,9 +11,11 @@ import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableSet;
-import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
+import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
+import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
+import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 /**
  * This class tracks bindings of locals within a method. It associates a
@@ -29,85 +30,110 @@ import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
  * </ul>
  */
 
-public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet<IRNode>[], BindingContext, BindingContextAnalysis.Analysis> {
-  public final class Query implements AnalysisQuery<ImmutableSet<IRNode>> {
-    private abstract class RawResultFactory {
-      public abstract ImmutableSet<IRNode>[] getRawResult(IRNode expr);
+public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet<IRNode>[], BindingContext, JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext>> {
+  public final class Query extends AbstractJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>[], BindingContext> {
+    private Query(final BindingContext l) {
+      super(l);
     }
     
-    private final Analysis analysis;
-    private final BindingContext bc;
-    private final RawResultFactory rrf;
-    
-    private Query(final Analysis a) {
-      analysis = a;
-      bc = a.getLattice();
-      rrf = new RawResultFactory() {
-        @Override
-        public ImmutableSet<IRNode>[] getRawResult(final IRNode expr) {
-          return analysis.getAfter(expr, WhichPort.NORMAL_EXIT);
-        }
-      };
-    }
-    
-    private Query(final BindingContext lattice) {
-      analysis = null;
-      bc = lattice;
-      rrf = new RawResultFactory() {
-        @Override
-        public ImmutableSet<IRNode>[] getRawResult(IRNode expr) {
-          return lattice.bottom();
-        }
-      };
-    }
-    
-    public Query(final IRNode flowUnit) {
-      this(getAnalysis(flowUnit));
-    }
-    
-    public ImmutableSet<IRNode> getResultFor(final IRNode expr) {
-      return bc.expressionObjects(rrf.getRawResult(expr), expr);
-//      return bc.expressionObjects(
-//          analysis.getAfter(expr, WhichPort.NORMAL_EXIT), expr);
+    public Query(final IJavaFlowAnalysis<ImmutableSet<IRNode>[], BindingContext> analysis) {
+      super(analysis, RawResultFactory.NORMAL_EXIT);
     }
 
-    public Query getSubAnalysisQuery(final IRNode caller) {
-      final Analysis sub = analysis.getSubAnalysis(caller);
-      if (sub == null) {
-        /* We assume the analysis was not created because the code that contains
-         * it is dead: it is in an "if (false) { ... }" statement, for example.
-         * So the user can query about this code, but the control flow analysis
-         * never visits it.  We want to return a query that always returns 
-         * BOTTOM.
-         * 
-         * The problem with this is that I cannot determine if the caller of 
-         * this method is just plain confused and shouldn't be asking me about
-         * the subanalysis for the given "caller".
-         */
-        return new Query(bc);
-//        throw new UnsupportedOperationException();
-      } else {
-        return new Query(sub);
-      }
+    @Override
+    protected Query newAnalysisBasedSubQuery(
+        IJavaFlowAnalysis<ImmutableSet<IRNode>[], BindingContext> subAnalysis) {
+      return new Query(subAnalysis);
     }
 
-    public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return analysis.getSubAnalysis(caller) != null;
+    @Override
+    protected Query newBottomReturningSubQuery(
+        BindingContext lattice) {
+      return new Query(lattice);
     }
+
+    @Override
+    protected ImmutableSet<IRNode> processRawResult(
+        final IRNode expr, final ImmutableSet<IRNode>[] rawResult) {
+      return lattice.expressionObjects(rawResult, expr);
+    }
+
   }
+  
+//  public final class Query implements AnalysisQuery<ImmutableSet<IRNode>> {
+//    private abstract class RawResultFactory {
+//      public abstract ImmutableSet<IRNode>[] getRawResult(IRNode expr);
+//    }
+//    
+//    private final Analysis analysis;
+//    private final BindingContext bc;
+//    private final RawResultFactory rrf;
+//    
+//    private Query(final Analysis a) {
+//      analysis = a;
+//      bc = a.getLattice();
+//      rrf = new RawResultFactory() {
+//        @Override
+//        public ImmutableSet<IRNode>[] getRawResult(final IRNode expr) {
+//          return analysis.getAfter(expr, WhichPort.NORMAL_EXIT);
+//        }
+//      };
+//    }
+//    
+//    private Query(final BindingContext lattice) {
+//      analysis = null;
+//      bc = lattice;
+//      rrf = new RawResultFactory() {
+//        @Override
+//        public ImmutableSet<IRNode>[] getRawResult(IRNode expr) {
+//          return lattice.bottom();
+//        }
+//      };
+//    }
+//    
+//    public Query(final IRNode flowUnit) {
+//      this(getAnalysis(flowUnit));
+//    }
+//    
+//    public ImmutableSet<IRNode> getResultFor(final IRNode expr) {
+//      return bc.expressionObjects(rrf.getRawResult(expr), expr);
+////      return bc.expressionObjects(
+////          analysis.getAfter(expr, WhichPort.NORMAL_EXIT), expr);
+//    }
+//
+//    public Query getSubAnalysisQuery(final IRNode caller) {
+//      final Analysis sub = analysis.getSubAnalysisFactory().getSubAnalysis(caller);
+//      if (sub == null) {
+//        /* We assume the analysis was not created because the code that contains
+//         * it is dead: it is in an "if (false) { ... }" statement, for example.
+//         * So the user can query about this code, but the control flow analysis
+//         * never visits it.  We want to return a query that always returns 
+//         * BOTTOM.
+//         * 
+//         * The problem with this is that I cannot determine if the caller of 
+//         * this method is just plain confused and shouldn't be asking me about
+//         * the subanalysis for the given "caller".
+//         */
+//        return new Query(bc);
+////        throw new UnsupportedOperationException();
+//      } else {
+//        return new Query(sub);
+//      }
+//    }
+//
+//    public boolean hasSubAnalysisQuery(final IRNode caller) {
+//      return analysis.getSubAnalysisFactory().getSubAnalysis(caller) != null;
+//    }
+//  }
   
   
 
-  public static final class Analysis extends ForwardAnalysis<ImmutableSet<IRNode>[], BindingContext, Transfer> {
-    private Analysis(
-        final String name, final BindingContext bc, final Transfer t) {
-      super(name, bc, t, DebugUnparser.viewer);
-    }
-    
-    public Analysis getSubAnalysis(final IRNode caller) {
-      return trans.getSubAnalysis(caller);
-    }
-  }
+//  public static final class Analysis extends JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext> {
+//    private Analysis(
+//        final String name, final BindingContext bc, final Transfer t) {
+//      super(name, bc, t, DebugUnparser.viewer);
+//    }
+//  }
   
   
   
@@ -126,29 +152,23 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
   }
   
   @Override
-  public Analysis createAnalysis(final IRNode flowUnit) {
+  public JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext> createAnalysis(final IRNode flowUnit) {
     final BindingContext bc = BindingContext.createForFlowUnit(ignorePrimitives, flowUnit, binder);
-    return new Analysis("BCA", bc, new Transfer(binder, bc));
+    return new JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext>("BCA", bc, new Transfer(binder, bc), DebugUnparser.viewer);
   }
 
   /**
    * Get an query object tailored to a specific flow unit.
    */
   public Query getExpressionObjectsQuery(final IRNode flowUnit) {
-    return new Query(flowUnit);
+    return new Query(getAnalysis(flowUnit));
   }
 
   
   
-  private static final class Transfer extends edu.uwm.cs.fluid.java.control.JavaForwardTransfer<BindingContext, ImmutableSet<IRNode>[], SubAnalysisFactory> {
+  private static final class Transfer extends JavaForwardTransfer<BindingContext, ImmutableSet<IRNode>[]> {
     public Transfer(final IBinder binder, final BindingContext lattice) {
       super(binder, lattice, new SubAnalysisFactory());
-    }
-    
-    
-    
-    public Analysis getSubAnalysis(final IRNode forCaller) {
-      return subAnalysisFactory.getSubAnalysis(forCaller);
     }
 
     
@@ -221,16 +241,16 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
     }
   }
 
-
   
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<BindingContext, ImmutableSet<IRNode>[], Analysis> {
+
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<BindingContext, ImmutableSet<IRNode>[]> {
     @Override
-    protected Analysis realCreateAnalysis(
+    protected JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext> realCreateAnalysis(
         final IRNode caller, final IBinder binder,
         final BindingContext lattice, final ImmutableSet<IRNode>[] initialValue,
         final boolean terminationNormal) {
-      return new Analysis(
-          "BCA (subanalysis)", lattice, new Transfer(binder, lattice));
+      return new JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext>(
+          "BCA (subanalysis)", lattice, new Transfer(binder, lattice), DebugUnparser.viewer);
     }
     
   }

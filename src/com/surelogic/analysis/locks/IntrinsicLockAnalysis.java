@@ -7,7 +7,7 @@ import com.surelogic.analysis.locks.locks.HeldLock;
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -20,60 +20,41 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
+import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
+import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class IntrinsicLockAnalysis extends
-    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<Object[], IntrinsicLockLattice, IntrinsicLockAnalysis.Analysis> {
-  public class Query implements AnalysisQuery<Set<HeldLock>> {
-    private final Analysis analysis;
-    private final IntrinsicLockLattice lattice; 
-    
-    public Query(final IRNode flowUnit) {
-      this(getAnalysis(flowUnit));
-    }
-    
-    private Query(final Analysis a) {
-      analysis = a;
-      lattice = a.getLattice();
-    }
-    
-    
-    
-    public Set<HeldLock> getResultFor(final IRNode expr) {
-      return lattice.getHeldLocks(analysis.getAfter(expr, WhichPort.ENTRY));
+    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<Object[], IntrinsicLockLattice, JavaForwardAnalysis<Object[], IntrinsicLockLattice>> {
+  public final class Query extends AbstractJavaFlowAnalysisQuery<Query, Set<HeldLock>, Object[], IntrinsicLockLattice> {
+    public Query(final IJavaFlowAnalysis<Object[], IntrinsicLockLattice> a) {
+      super(a, RawResultFactory.ENTRY);
     }
 
-    public Query getSubAnalysisQuery(final IRNode caller) {
-      final Analysis sub = analysis.getSubAnalysis(caller);
-      if (sub == null) {
-        throw new UnsupportedOperationException();
-      } else {
-        return new Query(sub);
-      }
+    private Query(final IntrinsicLockLattice lattice) {
+      super(lattice);
     }
 
-    public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return analysis.getSubAnalysis(caller) != null;
+    @Override
+    protected Query newAnalysisBasedSubQuery(
+        final IJavaFlowAnalysis<Object[], IntrinsicLockLattice> subAnalysis) {
+      return new Query(subAnalysis);
+    }
+
+    @Override
+    protected Query newBottomReturningSubQuery(IntrinsicLockLattice lattice) {
+      return new Query(lattice);
+    }
+
+    @Override
+    protected Set<HeldLock> processRawResult(final IRNode expr, final Object[] rawResult) {
+      return lattice.getHeldLocks(rawResult);
     }
   }
   
-  
-  
-  public static final class Analysis extends ForwardAnalysis<Object[], IntrinsicLockLattice, IntrinsicLockTransfer> {
-    private Analysis(
-        final String name, final IntrinsicLockLattice l, final IntrinsicLockTransfer t) {
-      super(name, l, t, DebugUnparser.viewer);
-    }
-    
-    public Analysis getSubAnalysis(final IRNode forCaller) {
-      return trans.getSubAnalysis(forCaller);
-    }
-  }
-  
-  
+
   
   private final LockUtils lockUtils;
   private final JUCLockUsageManager jucLockUsageManager;
@@ -89,13 +70,15 @@ public final class IntrinsicLockAnalysis extends
   }
   
   @Override
-  protected Analysis createAnalysis(final IRNode flowUnit) {
+  protected JavaForwardAnalysis<Object[], IntrinsicLockLattice> createAnalysis(final IRNode flowUnit) {
     final IntrinsicLockLattice intrinsicLockLattice =
       IntrinsicLockLattice.createForFlowUnit(flowUnit, jucLockUsageManager);    
-    final Analysis analysis = new Analysis(
+    final JavaForwardAnalysis<Object[], IntrinsicLockLattice> analysis =
+      new JavaForwardAnalysis<Object[], IntrinsicLockLattice>(
         "Intrinsic Lock Analysis", intrinsicLockLattice,
         new IntrinsicLockTransfer(binder, lockUtils, intrinsicLockLattice,
-            nonNullAnalysis.getNonnullBeforeQuery(flowUnit)));
+            nonNullAnalysis.getNonnullBeforeQuery(flowUnit)),
+            DebugUnparser.viewer);
     return analysis;
   }
   
@@ -104,7 +87,7 @@ public final class IntrinsicLockAnalysis extends
    * entry to the node.
    */
   public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
-    final Analysis a = getAnalysis(
+    final JavaForwardAnalysis<Object[], IntrinsicLockLattice> a = getAnalysis(
         edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
             node, context));
     final IntrinsicLockLattice ill = a.getLattice();
@@ -112,13 +95,13 @@ public final class IntrinsicLockAnalysis extends
   }
   
   public Query getHeldLocksQuery(final IRNode flowUnit) {
-    return new Query(flowUnit);
+    return new Query(getAnalysis(flowUnit));
   }
   
   
   
   private static final class IntrinsicLockTransfer extends
-      JavaForwardTransfer<IntrinsicLockLattice, Object[], SubAnalysisFactory> {
+      JavaForwardTransfer<IntrinsicLockLattice, Object[]> {
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
 
@@ -131,12 +114,6 @@ public final class IntrinsicLockAnalysis extends
       nonNullAnalysisQuery = query;
     }
     
-    
-    
-    public Analysis getSubAnalysis(final IRNode forCaller) {
-      return subAnalysisFactory.getSubAnalysis(forCaller);
-    }
-
     
     
     /**
@@ -217,7 +194,7 @@ public final class IntrinsicLockAnalysis extends
 
 
  
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<IntrinsicLockLattice, Object[], Analysis> {
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<IntrinsicLockLattice, Object[]> {
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query query;
     
@@ -228,13 +205,14 @@ public final class IntrinsicLockAnalysis extends
     }
    
     @Override
-    protected Analysis realCreateAnalysis(
+    protected JavaForwardAnalysis<Object[], IntrinsicLockLattice> realCreateAnalysis(
         final IRNode caller, final IBinder binder,
         final IntrinsicLockLattice lattice, final Object[] initialValue,
         final boolean terminationNormal) {
-      return new Analysis("Intrinsic Lock Analysis", lattice,
+      return new JavaForwardAnalysis<Object[], IntrinsicLockLattice>(
+          "Intrinsic Lock Analysis", lattice,
           new IntrinsicLockTransfer(binder, lockUtils, lattice,
-              query.getSubAnalysisQuery(caller)));
+              query.getSubAnalysisQuery(caller)), DebugUnparser.viewer);
     }
     
   }

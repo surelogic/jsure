@@ -20,7 +20,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  * more). The push and pop stack methods are abstract and must be implemented
  * by any concrete subclasses.
  */
-public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T, SAF extends SubAnalysisFactory<L, T>> extends JavaForwardTransfer<L, T, SAF> {
+public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends JavaForwardTransfer<L, T> {
   /**
    * The number of items to leave on the stack when performing a 
    * {@link #popAllPending(Object)}. 
@@ -30,7 +30,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T, SAF extend
   
   
   public JavaEvaluationTransfer(final IBinder binder,
-      final L lattice, final SAF factory, final int floor) {
+      final L lattice, final SubAnalysisFactory<L, T> factory, final int floor) {
     super(binder,lattice, factory);
     stackFloorSize = floor;
   }

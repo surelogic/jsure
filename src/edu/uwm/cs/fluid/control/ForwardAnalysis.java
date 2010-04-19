@@ -60,6 +60,10 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   /** Logger instance for debugging. */
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
   
+  /* We use a generic type for this so that subclasses of BackwardAnalysis
+   * specialized for different languages or environments can expect to have
+   * specialized transfer functions.
+   */
   protected final XFER trans;
   
   // a whole family of transfer operations to be used with labeled lattices.

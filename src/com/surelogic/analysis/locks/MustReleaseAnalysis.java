@@ -7,7 +7,7 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -22,31 +22,42 @@ import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
-import edu.uwm.cs.fluid.control.BackwardAnalysis;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
+import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
+import edu.uwm.cs.fluid.java.control.JavaBackwardAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaBackwardTransfer;
 
 public final class MustReleaseAnalysis extends
-    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice, MustReleaseAnalysis.Analysis> {
-  public final class Query implements AnalysisQuery<Set<IRNode>> {
-    private final Analysis a;
-    private final MustReleaseLattice lattice;
-      
-    public Query(final IRNode flowUnit) {
-      this(getAnalysis(flowUnit));
+    edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice, JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>> {
+  public final class Query extends AbstractJavaFlowAnalysisQuery<Query, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> {
+
+    public Query(
+        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> a) {
+      super(a, RawResultFactory.NORMAL_EXIT);
     }
-    
-    private Query(final Analysis a) {
-      this.a = a;
-      lattice = a.getLattice();
+
+    private Query(final MustReleaseLattice lattice) {
+      super(lattice);
     }
-    
-    public Set<IRNode> getResultFor(final IRNode mcall) {
+
+    @Override
+    protected Query newAnalysisBasedSubQuery(
+        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> subAnalysis) {
+      return new Query(subAnalysis);
+    }
+
+    @Override
+    protected Query newBottomReturningSubQuery(final MustReleaseLattice lattice) {
+      return new Query(lattice); 
+    }
+
+    @Override
+    protected Set<IRNode> processRawResult(final IRNode mcall,
+        final ImmutableList<ImmutableSet<IRNode>>[] rawResult) {
       final MethodCall call = (MethodCall) tree.getOperator(mcall);
-      final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.NORMAL_EXIT);
       final Set<IRNode> unlockCalls =
-        lattice.getUnlocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
+        lattice.getUnlocksFor(rawResult, call.get_Object(mcall), thisExprBinder, binder);
       /* Remove ourself from the set---this will happen in the case of a 
        * tryLock() embedded in an if-statement, see 
        * MustReleaseTransfer.transferConditional().
@@ -54,30 +65,7 @@ public final class MustReleaseAnalysis extends
       if (unlockCalls != null) unlockCalls.remove(mcall);
       return unlockCalls;
     }
-
-    public Query getSubAnalysisQuery(final IRNode caller) {
-      final Analysis sub = a.getSubAnalysis(caller);
-      if (sub == null) {
-        throw new UnsupportedOperationException();
-      } else {
-        return new Query(sub);
-      }
-    }
-
-    public boolean hasSubAnalysisQuery(final IRNode caller) {
-      return a.getSubAnalysis(caller) != null;
-    }
-  }
-  
-  public static final class Analysis extends BackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice, MustReleaseTransfer> {
-    private Analysis(
-        final String name, final MustReleaseLattice l, final MustReleaseTransfer t) {
-      super(name, l, t, DebugUnparser.viewer);
-    }
     
-    public Analysis getSubAnalysis(final IRNode forCaller) {
-      return trans.getSubAnalysis(forCaller);
-    }
   }
 
   
@@ -100,14 +88,15 @@ public final class MustReleaseAnalysis extends
 
   
   @Override
-  protected Analysis createAnalysis(final IRNode flowUnit) {
+  protected JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> createAnalysis(final IRNode flowUnit) {
     final MustReleaseLattice mustReleaseLattice =
       MustReleaseLattice.createForFlowUnit(flowUnit, thisExprBinder, binder, jucLockUsageManager);    
-    final Analysis analysis = new Analysis(
+    final JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> analysis =
+      new JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>(
         "Must Release Analysis", mustReleaseLattice,
         new MustReleaseTransfer(
             thisExprBinder, binder, lockUtils, mustReleaseLattice,
-            nonNullAnalysis.getNonnullBeforeQuery(flowUnit)));
+            nonNullAnalysis.getNonnullBeforeQuery(flowUnit)), DebugUnparser.viewer);
     return analysis;
   }
 
@@ -116,7 +105,8 @@ public final class MustReleaseAnalysis extends
    * @return The IRNode of the matching unlock method call.
    */
   public Set<IRNode> getUnlocksFor(final IRNode mcall, final IRNode context) {
-    final Analysis a = getAnalysis(
+    final JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> a =
+      getAnalysis(
         edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
             mcall, context));
     final MustReleaseLattice lattice = a.getLattice();   
@@ -144,13 +134,13 @@ public final class MustReleaseAnalysis extends
    *          constructor.
    */
   public Query getUnlocksForQuery(final IRNode flowUnit) {
-    return new Query(flowUnit);
+    return new Query(getAnalysis(flowUnit));
   }
   
   
   
   private static final class MustReleaseTransfer extends
-      JavaBackwardTransfer<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[], SubAnalysisFactory> {
+      JavaBackwardTransfer<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query nonNullAnalysisQuery;
@@ -165,12 +155,6 @@ public final class MustReleaseAnalysis extends
       thisExprBinder = teb;
       lockUtils = lu;
       nonNullAnalysisQuery = query;
-    }
-    
-    
-    
-    public Analysis getSubAnalysis(final IRNode forCaller) {
-      return subAnalysisFactory.getSubAnalysis(forCaller);
     }
     
     
@@ -338,7 +322,7 @@ public final class MustReleaseAnalysis extends
 
 
 
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[], Analysis> {
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<MustReleaseLattice, ImmutableList<ImmutableSet<IRNode>>[]> {
     private final ThisExpressionBinder thisExprBinder;
     private final LockUtils lockUtils;
     private final SimpleNonnullAnalysis.Query query;
@@ -352,14 +336,14 @@ public final class MustReleaseAnalysis extends
     }
     
     @Override
-    protected Analysis realCreateAnalysis(
+    protected JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> realCreateAnalysis(
         final IRNode caller, final IBinder binder,
         final MustReleaseLattice lattice,
         final ImmutableList<ImmutableSet<IRNode>>[] initialValue,
         final boolean terminationNormal) {
-      return new Analysis("Must Release Analysis (sub-analysis)", lattice,
+      return new JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>("Must Release Analysis (sub-analysis)", lattice,
           new MustReleaseTransfer(thisExprBinder, binder, lockUtils, lattice,
-              query.getSubAnalysisQuery(caller)));
+              query.getSubAnalysisQuery(caller)), DebugUnparser.viewer);
     }
     
   }
