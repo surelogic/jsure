@@ -110,29 +110,31 @@ public class CommonAASTBinder extends AASTBinder {
   }
 
   private IRNode resolveTypeName(final AASTNode a, final String name) {
+	final boolean hasDot = name.indexOf('.') >= 0;
     IRNode t = tEnv.findNamedType(name);
     if (t == null) {
-      IRNode context = a.getPromisedFor();
-      // Check if it's a top-level type
-      String pkg     = JavaNames.getPackageName(context);
-      t = tEnv.findNamedType(pkg+'.'+name);
-      
+      final IRNode context = a.getPromisedFor();
+      if (hasDot) {
+    	  // Check if it's a top-level type
+    	  final String pkg     = JavaNames.getPackageName(context);
+    	  t = tEnv.findNamedType(pkg+'.'+name);
+      }      
       if (t == null) {
     	boolean prevWasNested = false;
        loop:
     	// Check enclosing types
-    	for(IRNode td : VisitUtil.getEnclosingTypes(context)) {
-    	  if (name.equals(JJNode.getInfoOrNull(td))) {
-    	    t = td;
-    	    break loop;
+    	for(final IRNode td : VisitUtil.getEnclosingTypes(context)) {
+    	  if (nameMatches(name, td, hasDot)) {
+    		  t = td;
+    		  break loop;
     	  }
+    		
     	  // Check for member types
     	  if (prevWasNested) {
     		prevWasNested = false;
     		for(IRNode member : VisitUtil.getClassBodyMembers(td)) {
     	      Operator mop = JJNode.tree.getOperator(member);
-    	      if (mop instanceof NestedDeclInterface && 
-    	          name.equals(JJNode.getInfoOrNull(member))) {
+    	      if (mop instanceof NestedDeclInterface && nameMatches(name, member, hasDot)) {
     	    	t = td;
     	    	break loop;
     	      }
@@ -146,6 +148,14 @@ public class CommonAASTBinder extends AASTBinder {
       }
     }
     return t;
+  }
+  
+  private static boolean nameMatches(String name, IRNode td, boolean hasDot) {
+	  if (hasDot) {
+		  return name.equals(JavaNames.getFullTypeName(td));
+	  } else {
+		  return name.equals(JJNode.getInfoOrNull(td));
+	  }
   }
   
   public boolean isResolvableToType(AASTNode node) {
