@@ -421,6 +421,7 @@ public class JavaCanonicalizer {
       } else {
         JavaNode.setImplicit(thisExpr);
       }
+      copySrcRef(from, thisExpr);
       return thisExpr;
     }
 
@@ -432,33 +433,40 @@ public class JavaCanonicalizer {
      * @return an expression node
      */
     protected IRNode nameToExpr(IRNode name) {
-      IRNode decl = binder.getBinding(name);
-      Operator op = tree.getOperator(decl);
-      if (op instanceof TypeDeclInterface) {
-        return TypeExpression.createNode(nameToType(name));
-      }
-      String string = VariableDeclaration.getId(decl);    
-      if (op instanceof EnumConstantDeclaration) {
-          IRNode implicitSource = getImplicitSource(name, decl);
-          return FieldRef.createNode(implicitSource, string);
-      }  
-      if (tree.getOperator(name) instanceof SimpleName) {    	
-    	IRNode parent = tree.getParent(decl);
-        IRNode gp     = tree.getParent(parent);
-        if (tree.getOperator(gp) instanceof FieldDeclaration) {
-          /*
+      IRNode rv = null;
+      try {
+    	  IRNode decl = binder.getBinding(name);
+    	  Operator op = tree.getOperator(decl);
+    	  if (op instanceof TypeDeclInterface) {
+    		  return rv = TypeExpression.createNode(nameToType(name));
+    	  }
+    	  String string = VariableDeclaration.getId(decl);    
+    	  if (op instanceof EnumConstantDeclaration) {
+    		  IRNode implicitSource = getImplicitSource(name, decl);
+    		  return rv = FieldRef.createNode(implicitSource, string);
+    	  }  
+    	  if (tree.getOperator(name) instanceof SimpleName) {    	
+    		  IRNode parent = tree.getParent(decl);
+    		  IRNode gp     = tree.getParent(parent);
+    		  if (tree.getOperator(gp) instanceof FieldDeclaration) {
+    			  /*
           if ("oldException".equals(string)) {
         	  System.out.println("Found ?.oldException");
           }
-          */
-          IRNode implicitSource = getImplicitSource(name, decl);
-          return FieldRef.createNode(implicitSource, string);
-        } else {
-          return VariableUseExpression.createNode(string);
-        }
-      } else {
-        IRNode source = nameToExpr(QualifiedName.getBase(name));
-        return FieldRef.createNode(source, string);
+    			   */
+    			  IRNode implicitSource = getImplicitSource(name, decl);
+    			  return rv = FieldRef.createNode(implicitSource, string);
+    		  } else {
+    			  return rv = VariableUseExpression.createNode(string);
+    		  }
+    	  } else {
+    		  IRNode source = nameToExpr(QualifiedName.getBase(name));
+    		  return rv = FieldRef.createNode(source, string);
+    	  }
+      } finally {
+    	  if (rv != null) {
+    		  copySrcRef(name, rv);
+    	  }
       }
     }
 
@@ -475,6 +483,7 @@ public class JavaCanonicalizer {
         return NamedType.createNode(DebugUnparser.toString(nameNode));
       }
       IRNode namedType = createNamedType(b);
+      copySrcRef(namedType, nameNode);
       return namedType;
     }
 
