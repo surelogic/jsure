@@ -15,6 +15,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.eclipse.builder.*;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
@@ -24,7 +25,6 @@ import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
-import edu.cmu.cs.fluid.ir.AbstractIRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 
@@ -47,7 +47,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	/**
 	 * Holds the {@link IProgressMonitor}passed in by calls to {@link #build}.
 	 */
-	private IProgressMonitor buildMonitor = null;
+	private volatile IProgressMonitor buildMonitor = null;
 
 	/**
 	 * Holds the list of analysis modules at the current level during a call to
@@ -111,25 +111,15 @@ public final class Majordomo extends AbstractJavaBuilder implements
 			LOG.fine("Majordomo created");
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(
 				new ProjectClosingListner(), IResourceChangeEvent.PRE_CLOSE);
-
-		Runnable r = new Runnable() {
+		
+		final Runnable r = new Runnable() {
 			public void run() {
-				// constantly check for cancellation
-				while (true) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// we can ignore the unlikely case where we are
-						// interrupted
-					}
-					if (buildMonitor != null && buildMonitor.isCanceled()) {
-						propagateCancel();
-					}
+				if (buildMonitor != null && buildMonitor.isCanceled()) {
+					propagateCancel();				
 				}
 			}
 		};
-		Thread t = new Thread(r);
-		t.start();
+		PeriodicUtility.addHandler(r);
 	}
 
 	public static void logError(String title, String msg, Throwable t) {
