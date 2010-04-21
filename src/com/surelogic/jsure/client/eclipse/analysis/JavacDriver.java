@@ -28,7 +28,17 @@ public class JavacDriver {
 	private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
 	
 	private JavacDriver() {
-		// Just to keep it private
+		PeriodicUtility.addHandler(new Runnable() {
+			public void run() {
+				final SLProgressMonitor mon = lastMonitor;
+				if (mon != null && mon.isCanceled()) {
+					if (lastMonitor == mon) {
+						lastMonitor = null;
+					}
+					IDE.getInstance().setCancelled();
+				}
+			}			
+		});
 	}
 	
 	private static final JavacDriver prototype = new JavacDriver();
@@ -37,6 +47,8 @@ public class JavacDriver {
 		return prototype;
 	}
 
+	volatile SLProgressMonitor lastMonitor = null;
+	
 	static class ProjectInfo {
 		final IProject project;
 		final List<ICompilationUnit> allCompUnits;
@@ -411,6 +423,7 @@ public class JavacDriver {
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
+        	lastMonitor = monitor;
         	try {
         		config.copySources(zipDir, targetDir);
             } catch (IOException e) {
@@ -430,6 +443,10 @@ public class JavacDriver {
                 return SLStatus.createErrorStatus("Problem while running JSure", e);
             }
             NotificationHub.notifyAnalysisCompleted();
+            if (lastMonitor == monitor) {
+            	lastMonitor = null;
+            }
+            
             return SLStatus.OK_STATUS;
         }  
 	}
