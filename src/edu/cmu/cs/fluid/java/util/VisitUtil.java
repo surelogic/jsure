@@ -143,9 +143,9 @@ public class VisitUtil implements JavaGlobals {
   }
 
   /// getEnclosingTypes
-  public static  Iteratable<IRNode> getEnclosingTypes(final IRNode starting) {
+  public static  Iteratable<IRNode> getEnclosingTypes(final IRNode starting, final boolean closest) {
     return new AbstractRemovelessIterator<IRNode>(){
-      IRNode next = getEnclosingType(starting);
+      IRNode next = closest ? getClosestType(starting) : getEnclosingType(starting);
       public boolean hasNext() {
         return next != null;
       }
@@ -269,6 +269,26 @@ public class VisitUtil implements JavaGlobals {
        }
      };
   }
+  
+	public static Iteratable<IRNode> getNestedTypes(final IRNode cl) {
+		final IRNode cl1 = cl;
+  	
+		return new SimpleRemovelessIterator<IRNode>() {
+      Iterator<IRNode> enm = getClassBodyMembers(cl1);
+			 @Override protected Object computeNext() {
+				 while (enm.hasNext()) {
+					 IRNode n = enm.next();
+					 Operator op = JJNode.tree.getOperator(n);
+
+					 if (TypeDeclaration.prototype.includes(op)) {
+						 return n;
+					 }
+				 }
+				 return noElement;
+			 }
+		 };
+ 
+	} 
   
 	public static Iteratable<IRNode> getClassConstructors(final IRNode cl) {
 		final IRNode cl1 = cl;

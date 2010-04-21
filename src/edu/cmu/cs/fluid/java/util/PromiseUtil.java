@@ -110,11 +110,11 @@ public final class PromiseUtil {
   private static void addReceiverDecls(IRNode here, Collection<IRNode> added) {    
     added.add(ReceiverDeclaration.getReceiverNode(here));
     
-    Iterator<IRNode> types = VisitUtil.getEnclosingTypes(here);
+    Iterator<IRNode> types = VisitUtil.getEnclosingTypes(here, false);
     if (!TypeDeclaration.prototype.includes(here)) {
       if (!types.hasNext()) {
         LOG.severe("No enclosing types for "+DebugUnparser.toString(here));
-        VisitUtil.getEnclosingTypes(here);
+        VisitUtil.getEnclosingTypes(here, false);
         return;
       }
     }
