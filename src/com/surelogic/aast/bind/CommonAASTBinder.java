@@ -150,6 +150,9 @@ public class CommonAASTBinder extends AASTBinder {
       }
       */
     }
+    if (t != null && NamedPackageDeclaration.prototype.includes(t)) {
+    	return null;
+    }
     return t;
   }
   
@@ -180,7 +183,7 @@ public class CommonAASTBinder extends AASTBinder {
 		}
 	} else {
 		t = resolveTypeName(a, name.substring(0, lastDot));
-		if (t != null) {
+		if (t != null && !NamedPackageDeclaration.prototype.includes(t)) {
 			return findNestedType(t, name.substring(lastDot+1));
 		}
 	}
