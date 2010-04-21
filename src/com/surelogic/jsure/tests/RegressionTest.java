@@ -396,16 +396,25 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       currentTest = start("comparing results");
       System.out.println("Try to compare these results to the results oracle");    
       if (projectPath != null) {
-    	  if (useNewSnapshotXML) {
-    		  final String xmlOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
-    		  System.out.println("Looking for " + xmlOracle);
-    		  final File xmlLocation = new File(xmlOracle);
+    	  if (useNewSnapshotXML) {    		  
+    		  String xmlOracle = null;
+    		  File xmlLocation = null;
+    		  if (AnalysisDriver.useJavac) {
+    			  xmlOracle = getOracleName(projectPath, javacOracleFilter, "oracleJavac"+SeaSnapshot.SUFFIX);
+    			  xmlLocation = new File(xmlOracle);    			  
+    			  System.out.println("Looking for " + xmlOracle);
+    		  }
+    		  if (xmlLocation == null || !xmlLocation.exists()) {
+    			  xmlOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
+    			  xmlLocation = new File(xmlOracle);
+    			  System.out.println("Looking for " + xmlOracle);
+    		  }    		 
     		  assert (xmlLocation.exists());  
 
     		  final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), xmlLocation);
     		  final File diffs = new File(workspaceFile, projectName+".sea.diffs.xml");
     		  if (!diff.isEmpty()) {
-    			  System.out.println("Writing diffs");
+    			  System.out.println("Writing diffs to "+diffs);
     			  diff.write(diffs);
     			  resultsOk = false;
     		  } else {
@@ -490,6 +499,12 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
   private static FilenameFilter xmlOracleFilter = new FilenameFilter() {
 	    public boolean accept(File dir, String name) {
 	      return name.startsWith("oracle") && name.endsWith(SeaSnapshot.SUFFIX);
+	    }
+  };
+  
+  private static FilenameFilter javacOracleFilter = new FilenameFilter() {
+	    public boolean accept(File dir, String name) {
+	      return name.startsWith("oracleJavac") && name.endsWith(SeaSnapshot.SUFFIX);
 	    }
   };
 
