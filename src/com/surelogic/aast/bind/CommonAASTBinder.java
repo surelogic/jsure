@@ -110,21 +110,23 @@ public class CommonAASTBinder extends AASTBinder {
   }
 
   private IRNode resolveTypeName(final AASTNode a, final String name) {
-	final boolean hasDot = name.indexOf('.') >= 0;
-    IRNode t = tEnv.findNamedType(name);
+    IRNode t = tEnv.findNamedType(name);    
     if (t == null) {
+      // Try to find a package-qualified type
+      t = findQualifiedType(a, name); 
+      /*
       final IRNode context = a.getPromisedFor();
-      if (hasDot) {
-    	  // Check if it's a top-level type
-    	  final String pkg     = JavaNames.getPackageName(context);
-    	  t = tEnv.findNamedType(pkg+'.'+name);
-      }      
+      
+      // Check if it's a top-level type
+      final String pkg     = JavaNames.getPackageName(context);
+      t = tEnv.findNamedType(pkg+'.'+name);
+      
       if (t == null) {
     	boolean prevWasNested = false;
        loop:
     	// Check enclosing types
     	for(final IRNode td : VisitUtil.getEnclosingTypes(context)) {
-    	  if (nameMatches(name, td, hasDot)) {
+    	  if (nameMatches(name, td)) {
     		  t = td;
     		  break loop;
     	  }
@@ -134,7 +136,7 @@ public class CommonAASTBinder extends AASTBinder {
     		prevWasNested = false;
     		for(IRNode member : VisitUtil.getClassBodyMembers(td)) {
     	      Operator mop = JJNode.tree.getOperator(member);
-    	      if (mop instanceof NestedDeclInterface && nameMatches(name, member, hasDot)) {
+    	      if (mop instanceof NestedDeclInterface && nameMatches(name, member)) {
     	    	t = td;
     	    	break loop;
     	      }
@@ -146,16 +148,57 @@ public class CommonAASTBinder extends AASTBinder {
     	  }
     	}
       }
+      */
     }
     return t;
   }
   
-  private static boolean nameMatches(String name, IRNode td, boolean hasDot) {
-	  if (hasDot) {
-		  return name.equals(JavaNames.getFullTypeName(td));
-	  } else {
-		  return name.equals(JJNode.getInfoOrNull(td));
-	  }
+  private IRNode findQualifiedType(AASTNode a, String name) {
+	int lastDot = name.lastIndexOf('.');
+	IRNode t = null;
+	if (lastDot < 0) {
+		t = tEnv.findNamedType(name);
+		if (t == null) {
+			// Check if it's a local type
+			final IRNode context = a.getPromisedFor();
+			for(IRNode type : VisitUtil.getEnclosingTypes(context, true)) {
+				if (name.equals(JJNode.getInfoOrNull(type))) {
+					return type;
+				}
+				// Check for nested types
+				Operator op = JJNode.tree.getOperator(type);
+				if (op instanceof NestedDeclInterface) {
+					t = findNestedType(type, name);
+					if (t != null) {
+						return t;
+					}
+				}				
+			}
+			// Check if it's a top-level type in same package
+			final String pkg = JavaNames.getPackageName(context);
+			return tEnv.findNamedType(pkg+'.'+name);			
+		}
+	} else {
+		t = resolveTypeName(a, name.substring(0, lastDot));
+		if (t != null) {
+			return findNestedType(t, name.substring(lastDot+1));
+		}
+	}
+	return t;
+  }
+
+  private IRNode findNestedType(IRNode t, String name) {
+	for(IRNode nt : VisitUtil.getNestedTypes(t)) {
+		if (name.equals(JJNode.getInfoOrNull(nt))) {
+			return nt;
+		}
+	}
+	return null;
+  }
+
+  private static boolean nameMatches(String name, IRNode td) {	  
+	  return name.equals(JavaNames.getFullTypeName(td)) ||
+	         name.equals(JJNode.getInfoOrNull(td));
   }
   
   public boolean isResolvableToType(AASTNode node) {
