@@ -75,6 +75,9 @@ import edu.cmu.cs.fluid.util.Hashtable2;
  * run, an instance of this class is shared by the LockVisitor and flow analyses
  * used to perform lock analysis.  
  * 
+ * <p><em>I HATE THIS CLASS.  IT NEEDS TO BE MADE A STATIC UTILITY CLASS,
+ * OR SPLIT UP INTO SEVERAL SMALLER HELPER CLASSES.</em>
+ * 
  * @author aarong
  */
 public final class LockUtils {
@@ -190,8 +193,8 @@ public final class LockUtils {
   /** The alias analyis to use. */
   private final IAliasAnalysis aliasAnalysis;
   
-  /** Factory for creating held locks */
-  private final HeldLockFactory heldLockFactory;
+//  /** Factory for creating held locks */
+//  private final HeldLockFactory heldLockFactory;
   
   /** Factory for creating needed locks */
   private final NeededLockFactory neededLockFactory;
@@ -257,13 +260,14 @@ public final class LockUtils {
    */
   public LockUtils(final AtomicReference<GlobalLockModel> glmRef,
       final IBinder b, final Effects e, final IAliasAnalysis aa,
-      final HeldLockFactory hlf, final NeededLockFactory nlf,
+//      final HeldLockFactory hlf,
+      final NeededLockFactory nlf,
       final ThisExpressionBinder thisExprBinder) {
     sysLockModelHandle = glmRef;
     binder = b;
     effects = e;
     aliasAnalysis = aa;
-    heldLockFactory = hlf;
+//    heldLockFactory = hlf;
     neededLockFactory = nlf;
     targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     
@@ -983,9 +987,9 @@ public final class LockUtils {
   // ========================================================================
 
   public void convertLockExpr(final HowToProcessLocks howTo,
-      final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src,
+      final IRNode lockExpr, final HeldLockFactory heldLockFactory, final IRNode enclosingDecl, final IRNode src,
       final Set<HeldLock> lockSet) {
-    convertLockExpr(howTo, lockExpr, enclosingDecl, Type.MONOTLITHIC, src, lockSet);
+    convertLockExpr(howTo, lockExpr, heldLockFactory, enclosingDecl, Type.MONOTLITHIC, src, lockSet);
   }
   
   /**
@@ -994,12 +998,12 @@ public final class LockUtils {
    * or java.util.concurrent lock.
    */
   public void convertIntrinsicLockExpr(
-      final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src,
+      final IRNode lockExpr, final HeldLockFactory heldLockFactory, final IRNode enclosingDecl, final IRNode src,
       final Set<HeldLock> lockSet) {
     /* We start by assuming we will be creating a monolithic lock object, and not a
      * read-write lock; thus, we set isWrite to true and isRW to false.
      */
-    convertLockExpr(HowToProcessLocks.INTRINSIC, lockExpr, enclosingDecl, src, lockSet);
+    convertLockExpr(HowToProcessLocks.INTRINSIC, lockExpr, heldLockFactory, enclosingDecl, src, lockSet);
   }
 
   /**
@@ -1013,10 +1017,10 @@ public final class LockUtils {
    * @return
    */
   public void convertJUCLockExpr(
-      final IRNode lockExpr, final IRNode enclosingDecl, final IRNode src, final Set<HeldLock> lockSet) {
+      final IRNode lockExpr, final HeldLockFactory heldLockFactory, final IRNode enclosingDecl, final IRNode src, final Set<HeldLock> lockSet) {
     /* We start by assuming we will be creating a monolithic lock object
      */
-    convertLockExpr(HowToProcessLocks.JUC, lockExpr, enclosingDecl, src, lockSet);
+    convertLockExpr(HowToProcessLocks.JUC, lockExpr, heldLockFactory, enclosingDecl, src, lockSet);
   }
 
   /**
@@ -1024,7 +1028,7 @@ public final class LockUtils {
    * 
    */
   private void convertLockExpr(final HowToProcessLocks howTo,
-      final IRNode lockExpr, final IRNode enclosingDecl, 
+      final IRNode lockExpr, final HeldLockFactory heldLockFactory, final IRNode enclosingDecl, 
       final ILock.Type type, final IRNode src, final Set<HeldLock> lockSet) {
     final Operator op = JJNode.tree.getOperator(lockExpr);
     
@@ -1039,11 +1043,11 @@ public final class LockUtils {
         // Dealing with a read-write lock
         final ILock.Type newType = ILock.Type.getRW(whichMethod == ReadWriteLockMethods.WRITELOCK);
         final MethodCall mcall = (MethodCall) op;
-        convertLockExpr(howTo, mcall.get_Object(lockExpr), enclosingDecl, newType, src, lockSet);
+        convertLockExpr(howTo, mcall.get_Object(lockExpr), heldLockFactory, enclosingDecl, newType, src, lockSet);
       } else {
         // Dealing with a normal lock
         final HeldLock returnedLock =
-          convertReturnedLock(lockExpr, enclosingDecl, type, src);
+          convertReturnedLock(lockExpr, heldLockFactory, enclosingDecl, type, src);
         if (returnedLock != null) {
           lockSet.add(returnedLock);
         } else {
@@ -1208,7 +1212,7 @@ public final class LockUtils {
   /**
    * Convert the AAST lock type flag to an analysis lock type flag.
    */
-  private ILock.Type convertType(final LockType original) {
+  private static ILock.Type convertType(final LockType original) {
     return (original == LockType.RAW) ? Type.MONOTLITHIC : 
       (original == LockType.WRITE_LOCK) ? Type.WRITE : Type.READ;
   }
@@ -1230,14 +1234,14 @@ public final class LockUtils {
    */
   // Converts returned lock for a caller of the method with the annotation
   public HeldLock convertReturnedLock(
-      final IRNode mcall, final IRNode callingDecl, final IRNode src) {
-    return convertReturnedLock(mcall, callingDecl, Type.MONOTLITHIC, src);
+      final IRNode mcall, final HeldLockFactory heldLockFactory, final IRNode callingDecl, final IRNode src) {
+    return convertReturnedLock(mcall, heldLockFactory, callingDecl, Type.MONOTLITHIC, src);
   }
 
   // Converts returned lock for a caller of the method with the annotation
   // callingDecl is the method/constructor that contains mcall
   private HeldLock convertReturnedLock(
-      final IRNode mcall, final IRNode callingDecl, final ILock.Type type,
+      final IRNode mcall, final HeldLockFactory heldLockFactory, final IRNode callingDecl, final ILock.Type type,
       final IRNode src) {
     // See if the method even returns a lock
     final IRNode mdecl                        = binder.getBinding(mcall);
@@ -1246,7 +1250,7 @@ public final class LockUtils {
       final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
           binder, mcall, mdecl, callingDecl);
       return convertHeldLockNameToCallerContext(
-          mdecl, returnedLock.getAST().getLock(), type, src, m);
+          mdecl, heldLockFactory, returnedLock.getAST().getLock(), type, src, m);
     } else {
       return null;
     }
@@ -1278,7 +1282,8 @@ public final class LockUtils {
    * 
    * @return The lock object that represents the named lock.
    */
-  public HeldLock convertLockNameToMethodContext(final IRNode mdecl,
+  public static HeldLock convertLockNameToMethodContext(
+      final IRNode mdecl, final HeldLockFactory heldLockFactory,
       final LockSpecificationNode lockSpec, final boolean isAssumed,
       final RequiresLockPromiseDrop supportingDrop,
       final IRNode formalRcvr) {
@@ -1372,8 +1377,8 @@ public final class LockUtils {
    *          receiver.
    * @return The Lock named by the annotation
    */
-  public HeldLock convertHeldLockNameToCallerContext(
-      final IRNode mdecl, final LockNameNode lockName, final ILock.Type type,
+  public static HeldLock convertHeldLockNameToCallerContext(
+      final IRNode mdecl, final HeldLockFactory heldLockFactory, final LockNameNode lockName, final ILock.Type type,
       final IRNode src, final Map<IRNode, IRNode> map) {
     final LockModel lockModel = lockName.resolveBinding().getModel();  
     if (lockModel.isLockStatic()) {
@@ -1385,7 +1390,7 @@ public final class LockUtils {
     }
   }
 
-  private IRNode convertObjectExpressionToCallerContext(
+  private static IRNode convertObjectExpressionToCallerContext(
       final IRNode mdecl, final LockNameNode lock, final Map<IRNode, IRNode> map) {
     IRNode objExpr = null;
     if (lock instanceof SimpleLockNameNode) {
@@ -1500,7 +1505,7 @@ public final class LockUtils {
    *          to the front of the list.
    */
   public void convertSynchronizedMethod(
-      final IRNode mdecl, final IRNode rcvr, final IJavaDeclaredType clazz,
+      final IRNode mdecl, final HeldLockFactory heldLockFactory, final IRNode rcvr, final IJavaDeclaredType clazz,
       final IRNode cdecl, final Set<HeldLock> result) {
     // is the method static?
     if (TypeUtil.isStatic(mdecl)) {
@@ -1525,15 +1530,16 @@ public final class LockUtils {
     }
   }
 
-  public void getLockPreconditions(
-      final HowToProcessLocks howTo, final IRNode methodDecl, final IRNode rcvr,
+  public static void getLockPreconditions(
+      final HowToProcessLocks howTo, final IRNode methodDecl,
+      final HeldLockFactory heldLockFactory, final IRNode rcvr,
       final Set<HeldLock> preconditions) {
     final RequiresLockPromiseDrop drop = LockRules.getRequiresLock(methodDecl);
     if (drop != null) {
       for(final LockSpecificationNode requiredLock : drop.getAST().getLockList()) {
         final LockModel lm = requiredLock.resolveBinding().getModel();
         if (howTo.acceptsLock(lm)) {
-          final HeldLock lock = convertLockNameToMethodContext(methodDecl, requiredLock, true, drop, rcvr);
+          final HeldLock lock = convertLockNameToMethodContext(methodDecl, heldLockFactory, requiredLock, true, drop, rcvr);
           preconditions.add(lock);
         }
       }
@@ -1542,6 +1548,7 @@ public final class LockUtils {
   
   public void getClassInitLocks(
       final HowToProcessLocks howTo, final IRNode classInitDecl,
+      final HeldLockFactory heldLockFactory,
       final IJavaDeclaredType classBeingInitialized, final Set<HeldLock> assumedLocks) {
     /* Go through all the STATE locks in the class and pick out all the
      * locks that protect static regions. 
@@ -1559,6 +1566,7 @@ public final class LockUtils {
   
   public void getSingleThreadedLocks(
       final HowToProcessLocks howTo, final IRNode conDecl,
+      final HeldLockFactory heldLockFactory,
       final IJavaDeclaredType clazz, final IRNode rcvr,
       final Set<HeldLock> assumedLocks) {
     /*

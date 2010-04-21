@@ -48,9 +48,9 @@ public abstract class AbstractThisExpressionBinder implements ThisExpressionBind
   
   public final IRNode bindThisExpression(final IRNode expr) {
 	  IRNode result = bindThisExpression_private(expr);
-	  if (result == null) {
-		  return bindThisExpression_private(expr);
-	  }
+//	  if (result == null) {
+//		  return bindThisExpression_private(expr);
+//	  }
 	  return result;
   }
   

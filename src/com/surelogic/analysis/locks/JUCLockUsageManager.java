@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/JUCLockUsageManager.java,v 1.9 2008/04/30 20:55:48 aarong Exp $*/
 package com.surelogic.analysis.locks;
 
 import java.util.HashMap;
@@ -6,9 +5,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.analysis.locks.locks.HeldLock;
-import com.surelogic.analysis.locks.locks.HeldLockFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 
 
 /**
@@ -24,18 +23,19 @@ import edu.cmu.cs.fluid.ir.IRNode;
 final class JUCLockUsageManager {
   private final Map<IRNode, LockExpressions> lockExpressions = new HashMap<IRNode, LockExpressions>();
   private final LockUtils lockUtils;
-  private final HeldLockFactory heldLockFactory;
+  private final IBinder binder;
   
   
-  public JUCLockUsageManager(final LockUtils lu, final HeldLockFactory hlf) {
+  
+  public JUCLockUsageManager(final LockUtils lu, final IBinder b) {
     lockUtils = lu;
-    heldLockFactory = hlf;
+    binder = b;
   }
   
   public LockExpressions getLockExpressionsFor(final IRNode mdecl) {
     LockExpressions lockExprs = lockExpressions.get(mdecl);
     if (lockExprs == null) {
-      lockExprs = new LockExpressions(mdecl, lockUtils, heldLockFactory);
+      lockExprs = new LockExpressions(mdecl, lockUtils, binder);
       lockExpressions.put(mdecl, lockExprs);
     }
     return lockExprs;

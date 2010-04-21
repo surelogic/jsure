@@ -4,9 +4,11 @@ package com.surelogic.analysis.locks;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
@@ -15,6 +17,7 @@ import com.surelogic.analysis.messages.Messages;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
@@ -50,10 +53,48 @@ import edu.cmu.cs.fluid.tree.Operator;
  * <li>The set of static intrinsic locks that are held because we are analyzing the
  * class initializer.
  * </ul> 
- * @author aarong
  */
 final class LockExpressions {
-  final public static class SingleThreadedData {
+  private final static class TEB extends AbstractThisExpressionBinder {
+    private IRNode currentDecl;
+    private final LinkedList<IRNode> declStack = new LinkedList<IRNode>();
+    private IRNode currentRcvr;
+    private final LinkedList<IRNode> rcvrStack = new LinkedList<IRNode>();
+    
+    public TEB(final IBinder b, final IRNode mdecl) {
+      super(b);
+      currentDecl = mdecl;
+      currentRcvr = JavaPromise.getReceiverNodeOrNull(mdecl);
+    }
+
+    @Override
+    protected IRNode bindReceiver(final IRNode node) {
+      return currentRcvr;
+    }
+
+    @Override
+    protected IRNode bindQualifiedReceiver(
+        final IRNode outerType, final IRNode node) {
+      return JavaPromise.getQualifiedReceiverNodeByName(currentDecl, outerType);
+    }
+    
+    public void newDeclaration(final IRNode decl) {
+      declStack.push(currentDecl);
+      rcvrStack.push(currentRcvr);
+      currentDecl = decl;
+      currentRcvr = JavaPromise.getReceiverNodeOrNull(decl);
+    }
+    
+    public void pop() {
+      currentDecl = declStack.pop();
+      currentRcvr = rcvrStack.pop();
+    }
+    
+  }
+
+  
+  
+  public final static class SingleThreadedData {
     public final boolean isBorrowedThis;
     public final BorrowedPromiseDrop bDrop;
 
@@ -146,10 +187,9 @@ final class LockExpressions {
   
   
   
-  public LockExpressions(
-      final IRNode mdecl, final LockUtils lu, final HeldLockFactory hlf) {
+  public LockExpressions(final IRNode mdecl, final LockUtils lu, final IBinder b) {
     enclosingMethodDecl = mdecl;
-    final LockExpressionVisitor visitor = new LockExpressionVisitor(lu, hlf);
+    final LockExpressionVisitor visitor = new LockExpressionVisitor(mdecl, lu, b);
     visitor.doAccept(mdecl);
     singleThreadedData = visitor.getSingleThreadedData();
   }
@@ -239,21 +279,24 @@ final class LockExpressions {
    * A tree visitor that we run over a method/constructor body to find all the
    * occurrences of syntactically unique final lock expressions. 
    * 
+   * XXX: Should this be a JavaSemanticsVisitor or not???
+   * 
    * @author Aaron Greenhouse
    */
   private final class LockExpressionVisitor extends VoidTreeWalkVisitor {
-    
     private final LockUtils lockUtils;
     private final HeldLockFactory heldLockFactory;
+    private final TEB teb;
     // Set as a side-effect of visitConstructorDeclaration
     private SingleThreadedData singleThreadedData = null;
     
     private IRNode enclosingFlowUnit = null;
     
-    public LockExpressionVisitor(final LockUtils lu, final HeldLockFactory hlf) {
+    public LockExpressionVisitor(final IRNode mdecl, final LockUtils lu, final IBinder b) {
       super();
       lockUtils = lu;
-      heldLockFactory = hlf;
+      teb = new TEB(b, mdecl);
+      heldLockFactory = new HeldLockFactory(teb);
     }
     
     public SingleThreadedData getSingleThreadedData() {
@@ -285,10 +328,22 @@ final class LockExpressions {
     }
 
     @Override
-    public Void visitAnonClassExpression(IRNode node) {
-      /* STOP: we've encountered a class declaration.  We don't want to enter
-       * the method declarations of nested class definitions.
-       */
+    public Void visitAnonClassExpression(final IRNode node) {
+      // Traverse into the arguments, but *not* the body
+      doAccept(AnonClassExpression.getArgs(node));
+      // Visit the field initializers and instance initializers
+      
+      teb.newDeclaration(JavaPromise.getInitMethodOrNull(node));
+      try {
+        final InitializationVisitor iv = new InitializationVisitor(false);
+        /* Must use accept for children because InitializationVisitor doesn't do anything
+         * for ClassDeclaration nodes.  It's better this way anyhow because only care
+         * about the children of the class declaration to begin with.
+         */ 
+        iv.doAcceptForChildren(node);
+      } finally {
+        teb.pop();
+      }
       return null;
     }
 
@@ -298,8 +353,8 @@ final class LockExpressions {
       /* TODO: LockUtils method needs to make one pass through the 
        * locks and output to two sets: JUC and intrinsic. 
        */
-      lockUtils.getLockPreconditions(HowToProcessLocks.JUC, cdecl, rcvr, jucRequiredLocks);
-      lockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, cdecl, rcvr, intrinsicAssumedLocks);
+      LockUtils.getLockPreconditions(HowToProcessLocks.JUC, cdecl, heldLockFactory, rcvr, jucRequiredLocks);
+      LockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, cdecl, heldLockFactory, rcvr, intrinsicAssumedLocks);
       singleThreadedData = lockUtils.isConstructorSingleThreaded(cdecl, rcvr);
       if (singleThreadedData.isSingleThreaded) {
         final IRNode classDecl = VisitUtil.getEnclosingType(cdecl);
@@ -307,8 +362,8 @@ final class LockExpressions {
         /* TODO: LockUtils method needs to make one pass through the 
          * locks and output to two sets: JUC and intrinsic. 
          */
-        lockUtils.getSingleThreadedLocks(HowToProcessLocks.JUC, cdecl, clazz, rcvr, jucSingleThreaded);
-        lockUtils.getSingleThreadedLocks(HowToProcessLocks.INTRINSIC, cdecl, clazz, rcvr, intrinsicAssumedLocks);
+        lockUtils.getSingleThreadedLocks(HowToProcessLocks.JUC, cdecl, heldLockFactory, clazz, rcvr, jucSingleThreaded);
+        lockUtils.getSingleThreadedLocks(HowToProcessLocks.INTRINSIC, cdecl, heldLockFactory, clazz, rcvr, intrinsicAssumedLocks);
       }
       
       // Analyze the initialization of the instance
@@ -345,13 +400,13 @@ final class LockExpressions {
       /* TODO: LockUtils method needs to make one pass through the 
        * locks and output to two sets: JUC and intrinsic. 
        */
-      lockUtils.getLockPreconditions(HowToProcessLocks.JUC, mdecl, rcvr, jucRequiredLocks);
-      lockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, mdecl, rcvr, intrinsicAssumedLocks);
+      LockUtils.getLockPreconditions(HowToProcessLocks.JUC, mdecl, heldLockFactory, rcvr, jucRequiredLocks);
+      LockUtils.getLockPreconditions(HowToProcessLocks.INTRINSIC, mdecl, heldLockFactory, rcvr, intrinsicAssumedLocks);
       
       if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
         final IRNode classDecl = VisitUtil.getEnclosingType(mdecl);
         final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
-        lockUtils.convertSynchronizedMethod(mdecl, rcvr, clazz, classDecl, intrinsicAssumedLocks);
+        lockUtils.convertSynchronizedMethod(mdecl, heldLockFactory, rcvr, clazz, classDecl, intrinsicAssumedLocks);
       }
       
       enclosingFlowUnit = mdecl;
@@ -371,8 +426,8 @@ final class LockExpressions {
       /* TODO: LockUtils method needs to make one pass through the 
        * locks and output to two sets: JUC and intrinsic. 
        */
-      lockUtils.getClassInitLocks(HowToProcessLocks.JUC, classInitDecl, clazz, jucClassInit);
-      lockUtils.getClassInitLocks(HowToProcessLocks.INTRINSIC, classInitDecl, clazz, intrinsicAssumedLocks);
+      lockUtils.getClassInitLocks(HowToProcessLocks.JUC, classInitDecl, heldLockFactory, clazz, jucClassInit);
+      lockUtils.getClassInitLocks(HowToProcessLocks.INTRINSIC, classInitDecl, heldLockFactory, clazz, intrinsicAssumedLocks);
       
       final InitializationVisitor iv = new InitializationVisitor(true);
       /* Must use accept for children because InitializationVisitor doesn't do anything
@@ -385,6 +440,8 @@ final class LockExpressions {
     
     @Override
     public Void visitInitDeclaration(final IRNode initDecl) {
+      // XXX: Pretty sure we should never get here now. (2010-04-20)
+
       /* We get here when the original expression that spawn the request
        * to get the LockExpressiosn object is inside the instance initializer
        * block of an AnonClassExpression.
@@ -453,7 +510,7 @@ final class LockExpressions {
         // Get the locks for the lock expression
         final Set<HeldLock> lockSet = new HashSet<HeldLock>();
         lockUtils.convertLockExpr(
-            howTo, lockExpr, LockExpressions.this.enclosingMethodDecl, syncBlock, lockSet);
+            howTo, lockExpr, heldLockFactory, LockExpressions.this.enclosingMethodDecl, syncBlock, lockSet);
         if (lockSet.isEmpty() && howTo == HowToProcessLocks.JUC) {
           lockSet.add(heldLockFactory.createBogusLock(lockExpr));
         }
@@ -514,6 +571,19 @@ final class LockExpressions {
          */
         // Traverse into the arguments, but *not* the body
         doAccept(AnonClassExpression.getArgs(expr));
+        
+        // Keep visiting the field initializers and instance initializers
+        teb.newDeclaration(JavaPromise.getInitMethodOrNull(expr));
+        try {
+          final InitializationVisitor iv = new InitializationVisitor(false);
+          /* Must use accept for children because InitializationVisitor doesn't do anything
+           * for ClassDeclaration nodes.  It's better this way anyhow because only care
+           * about the children of the class declaration to begin with.
+           */ 
+          iv.doAcceptForChildren(expr);      
+        } finally {
+          teb.pop();
+        }
         return null;
       }
 

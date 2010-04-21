@@ -228,12 +228,13 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *          The IRNode of the new enclosing type, either a MethodDeclaration,
    *          ConstructorDeclaration, ClassInitDeclaration, or InitDeclaration.
    *          This will never be <code>null</code>.
-   * @param isAnonClassInit
-   *          Whether the declartion being entered is the instance initializer
-   *          block of an anonymous class expression.
+   * @param anonClassDecl
+   *          If {@code enteringDecl} is an init method from an anonymous class
+   *          declaration then this is the IRNode of the AnonClassDeclaration
+   *          node.  Otherwise, it is {@value null}.
    */
   protected void enteringEnclosingDecl(
-      final IRNode enteringDecl, final boolean isAnonClassInit) {
+      final IRNode enteringDecl, final IRNode anonClassDecl) {
     // do nothing
   }
 
@@ -257,9 +258,13 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     // do nothing
   }
   
-  private void enterEnclosingDecl(final IRNode enteringDecl, final boolean isAnonClassInit) {
+  /*
+   * If enteringDecl is an <init> method from an anonymous class declaration
+   * then anonClassDecl refers to that anonymous class.  Otherwise it is null.
+   */
+  private void enterEnclosingDecl(final IRNode enteringDecl, final IRNode anonClassDecl) {
     enclosingDecl = enteringDecl;
-    enteringEnclosingDecl(enteringDecl, isAnonClassInit);
+    enteringEnclosingDecl(enteringDecl, anonClassDecl);
   }
   
   private void leaveEnclosingDecl(final IRNode returningToDecl) {
@@ -452,7 +457,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
               new Action() {
                 public void tryBefore() {
                   insideConstructor = true; // We are inside the constructor of the anonymous class
-                  enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), true); // Inside the <init> method
+                  enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
                   action.tryBefore();
                 }
       
@@ -618,7 +623,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   @Override
   public final Void visitClassInitializer(final IRNode expr) {
     if (TypeUtil.isStatic(expr)) {
-      enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), false);
+      enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
       try {
         handleStaticInitializer(expr);
       } finally {
@@ -764,7 +769,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   public final Void visitConstructorDeclaration(final IRNode cdecl) {
     // 1. Record that we are inside a constructor
     insideConstructor = true;
-    enterEnclosingDecl(cdecl, false);
+    enterEnclosingDecl(cdecl, null);
     try {
       // 2. Process the constructor declaration
       handleConstructorDeclaration(cdecl);
@@ -888,7 +893,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   @Override
   public final Void visitMethodDeclaration(final IRNode mdecl) {
     // 1. Record we are inside a method
-    enterEnclosingDecl(mdecl, false);
+    enterEnclosingDecl(mdecl, null);
     try {
       // 2. Visit the method declaration
       handleMethodDeclaration(mdecl);
@@ -1085,7 +1090,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
            * method to the class initialization declaration. 
            */
           if (isStaticDeclaration) {
-            enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), false);
+            enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
           }
           try {
             handleFieldInitialization(varDecl, isStaticDeclaration);
