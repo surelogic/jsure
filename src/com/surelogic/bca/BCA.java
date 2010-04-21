@@ -1,11 +1,9 @@
 package com.surelogic.bca;
 
-import java.util.LinkedList;
-
 import org.eclipse.core.resources.IProject;
 
+import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.bca.uwm.BindingContext;
 import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.bca.uwm.BindingContextAnalysis.Query;
@@ -16,7 +14,6 @@ import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -110,27 +107,19 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 //	  JavaComponentFactory.clearCache();
 	}
 	
-	private final class BCAVisitor extends JavaSemanticsVisitor {
-	  private BindingContextAnalysis.Query query = null;
-	  private final LinkedList<BindingContextAnalysis.Query> oldQueries =
-	    new LinkedList<BindingContextAnalysis.Query>();
-	  
-	  public BCAVisitor() {
-	    super(true);
-	  }
-	  
-	  
-	  
-	  private void newQuery(final BindingContextAnalysis.Query q) {
-	    oldQueries.addFirst(query);
-	    query = q;
-	  }
-	  
-	  private void restoreQuery() {
-      query = oldQueries.removeFirst();
-	  }
-	  	  
-	  
+	private final class BCAVisitor extends AbstractJavaAnalysisDriver<BindingContextAnalysis.Query> {
+    @Override
+    protected Query createNewQuery(final IRNode decl) {
+      return bca.getExpressionObjectsQuery(decl);
+    }
+
+    @Override
+    protected Query createSubQuery(final IRNode caller) {
+      return currentQuery().getSubAnalysisQuery(caller);
+    }
+    
+    
+
     @Override
     protected void enteringEnclosingType(final IRNode newType) {
       System.out.println(">>> Entering type " + JavaNames.getTypeName(newType));
@@ -142,49 +131,10 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
     }
     
 	  @Override
-	  protected void enteringEnclosingDecl(
-	      final IRNode newDecl, final boolean isAnonClassInit) {
+	  protected void enteringEnclosingDeclPrefix(
+	      final IRNode newDecl, final IRNode anonClassDecl) {
 	    final String name = JavaNames.genQualifiedMethodConstructorName(newDecl);
       System.out.println("Running BCA on " + name);
-      final Query expressionObjectsQuery;
-      if (!isAnonClassInit) {
-        expressionObjectsQuery = bca.getExpressionObjectsQuery(newDecl);
-      } else {
-        expressionObjectsQuery = query.getSubAnalysisQuery(JavaPromise.getPromisedForOrNull(newDecl));
-      }
-      newQuery(expressionObjectsQuery);
-	  }
-	  
-	  @Override
-	  protected void leavingEnclosingDecl(final IRNode oldDecl) {
-	    restoreQuery();
-	  }
-
-	  /* Need to override this to return NULL_ACTION so that we process the 
-	   * field inits and instance init of anon class expressions in expression
-	   * statements.
-	   */
-	  @Override
-    protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
-      return NULL_ACTION;
-    }
-	  
-	  @Override
-	  protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
-	    return new InstanceInitAction() {
-        public void tryBefore() {
-          final Query subAnalysisQuery = query.getSubAnalysisQuery(ccall);
-          newQuery(subAnalysisQuery);
-        }
-        
-        public void finallyAfter() {
-          restoreQuery();
-        }
-        
-        public void afterVisit() {
-          // do nothing
-        }
-      };
 	  }
 	  
     
@@ -194,7 +144,7 @@ public final class BCA extends AbstractWholeIRAnalysisModule {
 	    // See if the current variable is a primitive or not
 	    final IJavaType type = binder.getJavaType(use);
 	    if (type instanceof IJavaReferenceType) {
-	      final ImmutableSet<IRNode> bindings = query.getResultFor(use);
+	      final ImmutableSet<IRNode> bindings = currentQuery().getResultFor(use);
         final InfoDrop drop = new InfoDrop();
         setLockResultDep(drop, use);
         drop.setCategory(BCA_CATEGORY);

@@ -1,12 +1,11 @@
 package com.surelogic.nonnull;
 
-import java.util.LinkedList;
 import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 
+import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.JavaSemanticsVisitor;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
@@ -23,6 +22,7 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
+import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.Query;
 
 public final class NonNull extends AbstractWholeIRAnalysisModule {
 	private static final Category NONNULL_CATEGORY = Category
@@ -108,27 +108,19 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 //	  JavaComponentFactory.clearCache();
 	}
 	
-	private final class NonNullVisitor extends JavaSemanticsVisitor {
-	  private SimpleNonnullAnalysis.Query query = null;
-	  private final LinkedList<SimpleNonnullAnalysis.Query> oldQueries =
-	    new LinkedList<SimpleNonnullAnalysis.Query>();
-	  
-	  public NonNullVisitor() {
-	    super(true);
-	  }
-	  
-	  
-	  
-	  private void newQuery(final SimpleNonnullAnalysis.Query q) {
-	    oldQueries.addFirst(query);
-	    query = q;
-	  }
-	  
-	  private void restoreQuery() {
-	    query = oldQueries.removeFirst();
-	  }
-	  	  
-	  
+	private final class NonNullVisitor extends AbstractJavaAnalysisDriver<SimpleNonnullAnalysis.Query> {
+    @Override
+    protected Query createNewQuery(final IRNode decl) {
+      return nonNullAnalysis.getNonnullBeforeQuery(decl);
+    }
+
+    @Override
+    protected Query createSubQuery(final IRNode caller) {
+      return currentQuery().getSubAnalysisQuery(caller);
+    }
+
+    
+    
     @Override
     protected void enteringEnclosingType(final IRNode newType) {
       System.out.println(">>> Entering type " + JavaNames.getTypeName(newType));
@@ -140,41 +132,9 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
     }
     
 	  @Override
-	  protected void enteringEnclosingDecl(
-	      final IRNode newDecl, final boolean isAnonClassInit) {
+	  protected void enteringEnclosingDeclPrefix(
+	      final IRNode newDecl, final IRNode anonClassDecl) {
 	    System.out.println("############################ Running non null on " + JavaNames.genQualifiedMethodConstructorName(newDecl) + "############################");
-	    newQuery(nonNullAnalysis.getNonnullBeforeQuery(newDecl));
-	  }
-	  
-	  @Override
-	  protected void leavingEnclosingDecl(final IRNode oldDecl) {
-	    restoreQuery();
-	  }
-	  
-    /* Need to override this to return NULL_ACTION so that we process the 
-     * field inits and instance init of anon class expressions in expression
-     * statements.
-     */
-    @Override
-    protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
-      return NULL_ACTION;
-    }
-
-	  @Override
-	  protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
-	    return new InstanceInitAction() {
-        public void tryBefore() {
-          newQuery(query.getSubAnalysisQuery(ccall));
-        }
-        
-        public void finallyAfter() {
-          restoreQuery();
-        }
-        
-        public void afterVisit() {
-          // do nothing
-        }
-      };
 	  }
 	  
 	  
@@ -185,7 +145,7 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	    final IJavaType type = binder.getJavaType(use);
 	    if (type instanceof IJavaReferenceType) {
          // See if the current variable is considered to be null or not
-	      final Set<IRNode> nonNull = query.getResultFor(use);
+	      final Set<IRNode> nonNull = currentQuery().getResultFor(use);
 	      final IRNode varDecl = binder.getBinding(use);
         final InfoDrop drop = new InfoDrop();
         setLockResultDep(drop, use);

@@ -102,6 +102,9 @@ public final class LocalVariables extends AbstractWholeIRAnalysisModule {
 	  v.doAccept(compUnit);
 	}
 	
+	
+	
+	// TODO: Can probably be made an extension of AbstractJavaAnalysisDriver
 	private final class LV_Visitor extends JavaSemanticsVisitor {
 	  public LV_Visitor() {
 	    super(true);
@@ -131,7 +134,7 @@ public final class LocalVariables extends AbstractWholeIRAnalysisModule {
     
     @Override 
     protected void enteringEnclosingDecl(
-        final IRNode mdecl, final boolean isAnonClassInit) {
+        final IRNode mdecl, final IRNode anonClassDecl) {
       System.out.println("--- Entering method/constructor " + JavaNames.genMethodConstructorName(mdecl));
     }
 
