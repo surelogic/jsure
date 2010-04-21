@@ -79,15 +79,15 @@ final class LockExpressions {
     }
     
     public void newDeclaration(final IRNode decl) {
-      declStack.push(currentDecl);
-      rcvrStack.push(currentRcvr);
+      declStack.addFirst(currentDecl);
+      rcvrStack.addFirst(currentRcvr);
       currentDecl = decl;
       currentRcvr = JavaPromise.getReceiverNodeOrNull(decl);
     }
     
     public void pop() {
-      currentDecl = declStack.pop();
-      currentRcvr = rcvrStack.pop();
+      currentDecl = declStack.removeFirst();
+      currentRcvr = rcvrStack.removeFirst();
     }
     
   }
