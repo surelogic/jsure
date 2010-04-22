@@ -407,17 +407,18 @@ public class UniquenessRules extends AnnotationRules {
         final BorrowedPromiseDrop borrowedDrop = getBorrowedDrop(uniqueNode);
         final NotUniquePromiseDrop notUniqueDrop = getNotUniqueDrop(uniqueNode);
 
-        boolean isAlreadyBad = false;
-        if (borrowedDrop != null) {
+        boolean alsoBorrowed = borrowedDrop != null;
+        boolean alsoNotUnique = notUniqueDrop != null;
+        if (alsoBorrowed) {        	
           getContext().reportError("Cannot be both unique and borrowed", uniqueAST);
-          uniqueDrop.invalidate();
           borrowedDrop.invalidate();
-          isAlreadyBad = true;
         }
-        if (notUniqueDrop != null) {
+        if (alsoNotUnique) {
           getContext().reportError("Cannot be both unique and not unique", uniqueAST);
-          if (!isAlreadyBad) uniqueDrop.invalidate();
           notUniqueDrop.invalidate();
+        }
+        if (alsoBorrowed || alsoNotUnique) {
+          uniqueDrop.invalidate();
         }
       }
       // Reset set of unique nodes.
