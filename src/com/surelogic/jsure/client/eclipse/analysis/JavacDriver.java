@@ -21,9 +21,7 @@ import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver {
@@ -435,10 +433,11 @@ public class JavacDriver {
             JavacEclipse.initialize();
             NotificationHub.notifyAnalysisStarting();
             try {
+            	boolean ok;
             	if (project == null) {
-            		Util.openFiles(config, monitor);
+            		ok = Util.openFiles(config, monitor);
             	} else {
-            		Util.openFiles(project, config, monitor);
+            		ok = Util.openFiles(project, config, monitor);
             	}
             	/*
             	final File rootLoc = EclipseUtility.getProject(config.getProject()).getLocation().toFile();
@@ -446,8 +445,21 @@ public class JavacDriver {
             	final SeaSummary.Diff diff = SeaSummary.diff(config.getProject(), Sea.getDefault(), 
             			xmlLocation);
             			*/
+            	if (!ok) {
+            	    NotificationHub.notifyAnalysisPostponed(); // TODO fix
+            	    if (lastMonitor == monitor) {
+            	    	lastMonitor = null;
+            	    }
+                  	return SLStatus.CANCEL_STATUS;
+            	}
             } catch (Exception e) {
-                NotificationHub.notifyAnalysisPostponed();
+                NotificationHub.notifyAnalysisPostponed(); // TODO
+                if (monitor.isCanceled()) {
+                    if (lastMonitor == monitor) {
+                    	lastMonitor = null;
+                    }
+                	return SLStatus.CANCEL_STATUS;
+                }
                 return SLStatus.createErrorStatus("Problem while running JSure", e);
             }
             NotificationHub.notifyAnalysisCompleted();
