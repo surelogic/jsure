@@ -114,14 +114,7 @@ public final class MustHoldAnalysis extends
     }
   }
 
-//  public static final class Analysis extends JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
-//    private Analysis(
-//        final String name, final MustHoldLattice l, final MustHoldTransfer t) {
-//      super(name, l, t, DebugUnparser.viewer);
-//    }
-//  }
-  
-  
+
   
   private final ThisExpressionBinder thisExprBinder;
   private final LockUtils lockUtils;
@@ -153,38 +146,9 @@ public final class MustHoldAnalysis extends
     return analysis;
   }
 
-//  /**
-//   * Given an unlock call, get the set of corresponding lock calls that it
-//   * might release. 
-//   * @return The IRNodes of the matching lock method call.
-//   */
-//  public Set<IRNode> getLocksFor(final IRNode mcall, final IRNode context) {
-//    final JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> a =
-//      getAnalysis(
-//          edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
-//              mcall, context));
-//    final MustHoldLattice mhl = a.getLattice();
-//    final MethodCall call = (MethodCall) tree.getOperator(mcall);
-//    final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.ENTRY);
-//    return mhl.getLocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
-//  }
-  
   public LocksForQuery getLocksForQuery(final IRNode flowUnit) {
     return new LocksForQuery(getAnalysis(flowUnit));
   }
-  
-//  /**
-//   * Given a node, find the set of locks expressions that are locked on
-//   * entry to the node.
-//   */
-//  public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
-//    final JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> a =
-//      getAnalysis(
-//          edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
-//              node, context));
-//    final MustHoldLattice mhl = a.getLattice();
-//    return mhl.getHeldLocks(a.getAfter(node, WhichPort.ENTRY));
-//  }
   
   public HeldLocksQuery getHeldLocksQuery(final IRNode flowUnit) {
     return new HeldLocksQuery(getAnalysis(flowUnit));

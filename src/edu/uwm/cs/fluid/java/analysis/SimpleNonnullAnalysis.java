@@ -72,36 +72,6 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
   }
   
   
-//  public final class Query implements AnalysisQuery<ImmutableSet<IRNode>> {
-//    private final Analysis a;
-//    
-//    public Query(final IRNode flowUnit) {
-//      a = getAnalysis(flowUnit);
-//    }
-//
-//    private Query(final Analysis s) {
-//      a = s;
-//    }
-//    
-//    public ImmutableSet<IRNode> getResultFor(final IRNode expr) {
-//      return a.getAfter(expr, WhichPort.ENTRY).second();
-//    }
-//
-//    public Query getSubAnalysisQuery(final IRNode caller) {
-//      final Analysis sub = a.getSubAnalysisFactory().getSubAnalysis(caller);
-//      if (sub == null) {
-//        throw new UnsupportedOperationException();
-//      } else {
-//        return new Query(sub);
-//      }
-//    }
-//
-//    public boolean hasSubAnalysisQuery(final IRNode caller) {
-//      return a.getSubAnalysisFactory().getSubAnalysis(caller) != null;
-//    }
-//  }
-  
-  
   
   private static final boolean debug = false;
   @SuppressWarnings("unused")
