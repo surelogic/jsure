@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.resources.IWorkspace;
@@ -10,8 +11,10 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.logging.SLEclipseStatusUtility;
+import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 
 import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
@@ -67,6 +70,9 @@ public class Activator extends AbstractUIPlugin implements
 		 */
 		SLEclipseStatusUtility.touch();
 		monitor.worked(1);
+		
+		clearJSureData();
+		monitor.worked(1);
 
 		// TODO reload persistent data
 		Eclipse.initialize();
@@ -76,6 +82,12 @@ public class Activator extends AbstractUIPlugin implements
 		// monitor.worked(1);
 	}
 
+	private void clearJSureData() {
+		for(File f : PreferenceConstants.getJSureDataDirectory().listFiles()) {
+			FileUtility.recursiveDelete(f, false);
+		}
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
