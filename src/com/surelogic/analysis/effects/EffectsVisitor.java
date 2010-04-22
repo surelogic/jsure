@@ -322,10 +322,10 @@ implements IBinderClient {
                 (IJavaReferenceType) type, target.getRegion());
           }
           Effects.elaborateInstanceTargetEffects(
-              context.bcaQuery, targetFactory, binder, initEffect.getSource(), initEffect.isRead(),
+              context.bcaQuery, targetFactory, binder, expr /*initEffect.getSource()*/, initEffect.isRead(),
               newTarget, context.theEffects);
         } else {
-          context.addEffect(initEffect);
+          context.addEffect(initEffect.setSource(expr));
         }
       }
     }
