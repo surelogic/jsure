@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
@@ -14,10 +15,7 @@ import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor;
-import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor.Action;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -25,28 +23,21 @@ import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
-import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
-import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.PostDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PostIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * IVisitor that computes the region effects for an expression.
  */
-// XXX: Make this a JavaSemanticsVisitor
-final class EffectsVisitor extends VoidTreeWalkVisitor 
-implements IBinderClient {
+final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient {
   /**
    * Class stores the details about the particular visitation being performed.
    * Initialized by one of the public entry methods:
@@ -88,7 +79,7 @@ implements IBinderClient {
      * The current binding context analysis query engine.  This BCA is focused
      * to the flow unit represented by {@link #enclosingMethod}.
      */
-    private /* final */ BindingContextAnalysis.Query bcaQuery;
+    private final BindingContextAnalysis.Query bcaQuery;
     
     /**
      * This field is checked on entry to an expression to determine if the effect
@@ -190,15 +181,24 @@ implements IBinderClient {
   private Context context;
   
   //----------------------------------------------------------------------
-  
+
   /**
    * Construct a new Effects Visitor.
    * 
    * @param b
    *          The Binder to use to look up names.
+   * @param bca The binding context analysis to use.
+   * @param flowUnit
+   *          The method or constructor declaration that encloses the nodes that
+   *          we will ultimately visit. This <em>must</em> be a
+   *          MethodDeclaration or ConstructorDeclaration node. It does not make
+   *          sense for it to be an InitDeclaration or ClassInitDeclaration.
+   *          (The restriction on ClassInitDeclaration may be removed in the
+   *          future.)
    */
   public EffectsVisitor(
       final IBinder b, final BindingContextAnalysis bca, final IRNode flowUnit) {
+    super(false, JJNode.tree.getParent(JJNode.tree.getParent(flowUnit)), flowUnit);
     this.binder = b;
     this.bca = bca;
     this.thisExprBinder = new EVThisExpressionBinder(b);
@@ -244,14 +244,6 @@ implements IBinderClient {
   private IRNode getBinding(final IRNode node) {
     return this.binder.getBinding(node);
   }
-  
-  private IRNode getParent(final IRNode node) {
-    return JJNode.tree.getParentOrNull(node);
-  }
-
-  private Operator getOperator(final IRNode node) {
-    return JJNode.tree.getOperator(node);
-  }
 
   /**
    * Assumes that the enclosing method/constructor of the call is the
@@ -264,15 +256,18 @@ implements IBinderClient {
         targetFactory, binder, call, context.enclosingMethod, false);
   }
 
+  //----------------------------------------------------------------------
 
-    
   @Override
-  public Void visitAnonClassExpression(final IRNode expr) {
+  protected void handleAnonClassExpression(final IRNode expr) {
     // Get the effects of the evaluating the arguments
     doAccept(AnonClassExpression.getArgs(expr));
     // Get the effects of the super-class constructor
     context.addEffects(getMethodCallEffects(expr));
+  }
 
+  @Override
+  protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
     /* Need to get the effects of the instance field initializers and the
      * instance initializers of the anonymous class. Effects will come back
      * elaborated. They will then need to be masked (including the special case
@@ -284,54 +279,48 @@ implements IBinderClient {
      * that can be annotated with the effects of the initialization.  Instead
      * this is the one case where we have to infer effects.  
      */
-
-    /* Get the effects of initialization.  Reset the context to the anonymous
-     * class.
-     */
     final Context oldContext = context;
     final Context newContext = Context.forACE(oldContext, expr);
-    InstanceInitializationVisitor.processAnonClassExpression(expr, this,
-        new Action() {
-          public void tryBefore() {
-            context = newContext;
+    return new InstanceInitAction() {
+      public void tryBefore() {
+        context = newContext;
+      }
+      
+      public void finallyAfter() {
+        context = oldContext;
+      }
+      
+      public void afterVisit() {
+        final MethodCallUtils.EnclosingRefs enclosing = 
+          MethodCallUtils.getEnclosingInstanceReferences(
+              binder, thisExprBinder, expr, oldContext.theReceiverNode, oldContext.enclosingMethod);
+        for (final Effect initEffect : newContext.theEffects) {
+          if (!(initEffect.isMaskable(binder) || 
+              initEffect.affectsReceiver(newContext.theReceiverNode))) {
+            final Target target = initEffect.getTarget();
+            if (target instanceof InstanceTarget) {
+              final IRNode ref = target.getReference();
+              final Target newTarget;
+              
+              final IRNode newRef = enclosing.replace(ref);
+              if (newRef != null) {
+                newTarget = targetFactory.createInstanceTarget(
+                    newRef, target.getRegion());
+              } else {
+                final IJavaType type = binder.getJavaType(ref);
+                newTarget = targetFactory.createAnyInstanceTarget(
+                    (IJavaReferenceType) type, target.getRegion());
+              }
+              Effects.elaborateInstanceTargetEffects(
+                  context.bcaQuery, targetFactory, binder, expr, initEffect.isRead(),
+                  newTarget, context.theEffects);
+            } else {
+              context.addEffect(initEffect.setSource(expr));
+            }
           }
-          
-          public void finallyAfter() {
-            context = oldContext;
-          }
-        });
-        
-    final MethodCallUtils.EnclosingRefs enclosing = 
-      MethodCallUtils.getEnclosingInstanceReferences(
-          binder, thisExprBinder, expr, oldContext.theReceiverNode, oldContext.enclosingMethod);
-    for (final Effect initEffect : newContext.theEffects) {
-      if (!(initEffect.isMaskable(binder) || 
-          initEffect.affectsReceiver(newContext.theReceiverNode))) {
-        final Target target = initEffect.getTarget();
-        if (target instanceof InstanceTarget) {
-          final IRNode ref = target.getReference();
-          final Target newTarget;
-          
-          final IRNode newRef = enclosing.replace(ref);
-          if (newRef != null) {
-            newTarget = targetFactory.createInstanceTarget(
-                newRef, target.getRegion());
-          } else {
-            final IJavaType type = binder.getJavaType(ref);
-            newTarget = targetFactory.createAnyInstanceTarget(
-                (IJavaReferenceType) type, target.getRegion());
-          }
-          Effects.elaborateInstanceTargetEffects(
-              context.bcaQuery, targetFactory, binder, expr /*initEffect.getSource()*/, initEffect.isRead(),
-              newTarget, context.theEffects);
-        } else {
-          context.addEffect(initEffect.setSource(expr));
         }
       }
-    }
-
-    // Don't analyze the body of the anonymous class!
-    return null;
+    };
   }
 
   //----------------------------------------------------------------------
@@ -360,42 +349,29 @@ implements IBinderClient {
   //----------------------------------------------------------------------
 
   @Override
-  public Void visitClassDeclaration(final IRNode expr) {
-    // Class declaration has no effects, do not look inside of it
-    return null;
+  protected void handleConstructorCall(final IRNode ccall) {
+    context.addEffects(getMethodCallEffects(ccall));
+    doAcceptForChildren(ccall);
   }
   
-  //----------------------------------------------------------------------
-
-  // NEW
   @Override
-  public Void visitConstructorCall(final IRNode expr) {
-    context.addEffects(getMethodCallEffects(expr));
-    doAcceptForChildren(expr);
-    
-    // Deal with instance initialization if needed
+  protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
     final Context oldContext = context;
-    InstanceInitializationVisitor.processConstructorCall(expr, this,
-        new Action() {
-          public void tryBefore() {
-            context = Context.forConstructorCall(oldContext, expr);
-          }
-          
-          public void finallyAfter() {
-            context = oldContext;
-          }
-        });
-    return null;
+    return new InstanceInitAction() {
+      public void tryBefore() {
+        context = Context.forConstructorCall(oldContext, ccall);
+      }
+      
+      public void finallyAfter() {
+        context = oldContext;
+      }
+      
+      public void afterVisit() {
+        // do nothing
+      }
+    };
   }
   
-  //----------------------------------------------------------------------
-
-  @Override
-  public Void visitEnumDeclaration(final IRNode expr) {
-    // Enumeration declaration has no effects, do not look inside of it
-    return null;
-  }
-
   //----------------------------------------------------------------------
 
   @Override
@@ -418,14 +394,6 @@ implements IBinderClient {
     return null;
   }
   
-  //----------------------------------------------------------------------
-
-  @Override
-  public Void visitInterfaceDeclaration(final IRNode expr) {
-    // Interface declaration has no effects, do not look inside of it
-    return null;
-  }
-
   //----------------------------------------------------------------------
 
   @Override 
@@ -542,29 +510,30 @@ implements IBinderClient {
   //----------------------------------------------------------------------
 
   @Override
-  public Void visitVariableDeclarator(final IRNode expr) {
-    final IRNode init = VariableDeclarator.getInit(expr);
-    if (!NoInitialization.prototype.includes(getOperator(init))) {
-      // Don't worry about initialization of final variables/fields
-      if (!TypeUtil.isFinal(expr)) {
-        if (DeclStatement.prototype.includes(getOperator(getParent(getParent(expr))))) {
-          /* LOCAL VARIABLE: 'expr' is already the declaration of the variable,
-           * so we don't have to bind it.
-           */
-          context.addEffect(Effect.newWrite(expr, targetFactory.createLocalTarget(expr)));
-        } else { // FieldDeclaration
-          if (TypeUtil.isStatic(expr)) {
-            context.addEffect(Effect.newWrite(expr, targetFactory.createClassTarget(expr)));
-          } else {
-            context.addEffect(Effect.newRead(expr, targetFactory.createLocalTarget(context.theReceiverNode)));
-            // This never needs elaborating because it is not a use expression or a field reference expression
-            final Target t = targetFactory.createInstanceTarget(context.theReceiverNode, RegionModel.getInstance(expr));
-            context.addEffect(Effect.newWrite(expr, t));
-          }
-        }
+  protected void handleFieldInitialization(
+      final IRNode varDecl, final boolean isStatic) {
+    if (!TypeUtil.isFinal(varDecl)) {
+      if (isStatic) {
+        context.addEffect(Effect.newWrite(varDecl, targetFactory.createClassTarget(varDecl)));
+      } else {
+        context.addEffect(Effect.newRead(varDecl, targetFactory.createLocalTarget(context.theReceiverNode)));
+        // This never needs elaborating because it is not a use expression or a field reference expression
+        final Target t = targetFactory.createInstanceTarget(context.theReceiverNode, RegionModel.getInstance(varDecl));
+        context.addEffect(Effect.newWrite(varDecl, t));
       }
     }
-    doAccept(init);
-    return null;
+    doAcceptForChildren(varDecl);
+  }
+
+  @Override
+  protected void handleLocalVariableDeclaration(final IRNode varDecl) {
+    // Don't worry about initialization of final variables
+    if (!TypeUtil.isFinal(varDecl)) {
+      /* LOCAL VARIABLE: 'varDecl' is already the declaration of the variable,
+       * so we don't have to bind it.
+       */
+      context.addEffect(Effect.newWrite(varDecl, targetFactory.createLocalTarget(varDecl)));
+    }
+    doAcceptForChildren(varDecl);
   }
 }

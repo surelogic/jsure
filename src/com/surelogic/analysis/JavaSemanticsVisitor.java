@@ -6,9 +6,7 @@ import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor;
 import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor.Action;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
-import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -139,11 +137,48 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   
   
   
-  public JavaSemanticsVisitor(final boolean goInside) {
-    super();
-    visitInsideTypes = goInside;
+  /**
+   * The normal constructor to use, if the visitation is going to start with a
+   * compilation unit or type declaration.
+   * 
+   * @param goInside
+   *          <code>true</code> if the contents of nested types should be
+   *          visited.
+   */
+  protected JavaSemanticsVisitor(final boolean goInside) {
+    this(goInside, null, null);
+//    super();
+//    visitInsideTypes = goInside;
   }
   
+  /**
+   * The constructor to use if the visitation is going to start below a type
+   * declaration. This constructor makes sure that the enclosing declaration and
+   * enclosing type are properly initialized.
+   * 
+   * @param goInside
+   *          <code>true</code> if the contents of nested types should be
+   *          visited.
+   * @param eType
+   *          The type nearest type declaration that surrounds the node at which
+   *          the visitation will start.
+   * @param eDecl
+   *          The nearest method/constructor declaration that surrounds the node
+   *          at which the visitation will start. May be null if the visitation
+   *          does not start inside method/constructor. Must be one of
+   *          MethodDeclaration, ConstructorDeclaration, InitDeclaration, or
+   *          ClassInitDeclaration. If a MethodDeclaration or
+   *          ConstructorDeclaration, then the grandparent of {@code eDecl} must
+   *          be {@code eType}. If InitDeclaration or ClassInitDeclaration, then
+   *          {@code JavaPromise.getPromisedFor(eDecl)} must be {@code eType}.
+   */
+  protected JavaSemanticsVisitor(
+      final boolean goInside, final IRNode eType, final IRNode eDecl) {
+    super();
+    visitInsideTypes = goInside;
+    enclosingType = eType;
+    enclosingDecl = eDecl;
+  }
   
   
   /**
@@ -1034,9 +1069,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * 
    * <p>If we are inside a field declaration, then we check to see whether
    * the visitation is currently inside a constructor or whether the field is
-   * <code>static</code>.  If so, we then check whether the field has an
-   * initializer at all: <code>!NoInitialization.prototype.includes(VariableDeclaration.getInit(varDecl))</code>.  If the
-   * field has an initializer, we then
+   * <code>static</code>.  If so, we then
    * <ol>
    *   <li>Set the enclosing method to the class initializer of the current type
    *   and call {@link #enteringEnclosingDecl(IRNode)} with 
@@ -1047,6 +1080,11 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *   as the enclosing declaration we are leaving and clear the enclosing method
    *   if the field is <code>static</code>.
    * </ol>
+   * 
+   * <p>(That is, we do not visit a field declaration if it is an instance field
+   * declaration and we find it form the initial visitation.  We only visit
+   * an instance field declaration when making a recursive visit on behalf
+   * of an InstanceInitializationVisitor.)
    * 
    * <p>If we are 
    * inside a local variable declaration then the order of operations is
@@ -1083,21 +1121,17 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
         /* At this point we know we are inside a field declaration that is
          * being analyzed on behalf of a constructor or a static initializer.
          */
-        final IRNode init = VariableDeclarator.getInit(varDecl);
-        // Don't worry about uninitialized fields
-        if (!NoInitialization.prototype.includes(JJNode.tree.getOperator(init))) {
-          /* If the initialization is static, we have to update the enclosing 
-           * method to the class initialization declaration. 
-           */
+        /* If the initialization is static, we have to update the enclosing 
+         * method to the class initialization declaration. 
+         */
+        if (isStaticDeclaration) {
+          enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
+        }
+        try {
+          handleFieldInitialization(varDecl, isStaticDeclaration);
+        } finally {
           if (isStaticDeclaration) {
-            enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
-          }
-          try {
-            handleFieldInitialization(varDecl, isStaticDeclaration);
-          } finally {
-            if (isStaticDeclaration) {
-              leaveEnclosingDecl(null);
-            }
+            leaveEnclosingDecl(null);
           }
         }
       }
