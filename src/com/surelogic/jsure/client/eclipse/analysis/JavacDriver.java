@@ -21,7 +21,9 @@ import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver {
@@ -438,6 +440,12 @@ public class JavacDriver {
             	} else {
             		Util.openFiles(project, config, monitor);
             	}
+            	/*
+            	final File rootLoc = EclipseUtility.getProject(config.getProject()).getLocation().toFile();
+            	final File xmlLocation = new File(rootLoc, "oracle20100415.sea.xml");
+            	final SeaSummary.Diff diff = SeaSummary.diff(config.getProject(), Sea.getDefault(), 
+            			xmlLocation);
+            			*/
             } catch (Exception e) {
                 NotificationHub.notifyAnalysisPostponed();
                 return SLStatus.createErrorStatus("Problem while running JSure", e);
