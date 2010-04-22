@@ -357,13 +357,26 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			}
 			if (title != null && hasChildren()) {
 				out.println(title);
-			}
-			for(Entity o : old) {
+			}			
+			for(Entity o : sortByOffset(old)) {
 				out.println("\tOld    : "+toString(o));
 			}
-			for(Entity o : newer) {
+			for(Entity o : sortByOffset(newer)) {
 				out.println("\tNewer  : "+toString(o));
 			}
+		}
+		
+		Iterable<Entity> sortByOffset(Collection<Entity> c) {
+			List<Entity> l = new ArrayList<Entity>(c);
+			Collections.sort(l, new Comparator<Entity>() {
+				public int compare(Entity o1, Entity o2) {
+					return offset(o1) - offset(o2);
+				}
+				private int offset(Entity e) {
+					return Integer.parseInt(e.getAttribute(OFFSET_ATTR));
+				}
+			});
+			return l;
 		}
 		
 		private String match(String title, PrintStream out, Matcher m, String label) {
