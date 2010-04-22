@@ -14,6 +14,7 @@ import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor;
 import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor.Action;
@@ -43,6 +44,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 /**
  * IVisitor that computes the region effects for an expression.
  */
+// XXX: Make this a JavaSemanticsVisitor
 final class EffectsVisitor extends VoidTreeWalkVisitor 
 implements IBinderClient {
   /**
@@ -59,18 +61,6 @@ implements IBinderClient {
     private final Set<Effect> theEffects;
     
     /**
-     * The receiver declaration node of the constructor/method/field
-     * initializer/class initializer currently being analyzed. Every expression we
-     * want to analyze should be inside one of these things. We need to keep track
-     * of this because the {@link #initHelper instance initialization  helper}
-     * re-enters this analysis on behalf of constructor declarations, and we want
-     * any field declarations and instance initializers to report their receivers
-     * in terms of the current constructor; this makes life easier for consumers
-     * of the effect results.
-     */
-    private final IRNode theReceiverNode;
-    
-    /**
      * The method that encloses the current node.  This is either a
      * ConstructorDeclaration, MethodDeclaration, ClassInitDeclaration, or
      * in the case of an anonymous class expression, an InitDeclation.  In 
@@ -83,10 +73,22 @@ implements IBinderClient {
     private final IRNode enclosingMethod;
     
     /**
-     * The current binding context analysis query engine.  This is BCA focused
+     * The receiver declaration node of the constructor/method/field
+     * initializer/class initializer currently being analyzed. Every expression we
+     * want to analyze should be inside one of these things. We need to keep track
+     * of this because the {@link #initHelper instance initialization  helper}
+     * re-enters this analysis on behalf of constructor declarations, and we want
+     * any field declarations and instance initializers to report their receivers
+     * in terms of the current constructor; this makes life easier for consumers
+     * of the effect results.
+     */
+    private final IRNode theReceiverNode;
+    
+    /**
+     * The current binding context analysis query engine.  This BCA is focused
      * to the flow unit represented by {@link #enclosingMethod}.
      */
-    private final BindingContextAnalysis.Query bcaQuery;
+    private /* final */ BindingContextAnalysis.Query bcaQuery;
     
     /**
      * This field is checked on entry to an expression to determine if the effect
@@ -110,25 +112,36 @@ implements IBinderClient {
 
     
     
-    /**
-     * Create a new context.
-     * 
-     * @param node
-     *          The node that is the root of the analysis.
-     * @param constructorContext
-     *          The constructor declaration that is controlling the analysis if
-     *          the node is part of an instance initializer block or field
-     *          initializer. Otherwise, this should be <code>null</code>.
-     */
-    public Context(final BindingContextAnalysis bca, final IRNode enclosingMethod) {
+    private Context(final BindingContextAnalysis.Query query,
+        final IRNode enclosingMethod) {
       this.theEffects = new HashSet<Effect>();
-      this.isLHS = false;
       this.enclosingMethod = enclosingMethod;
-      this.bcaQuery = bca.getExpressionObjectsQuery(enclosingMethod);
       this.theReceiverNode = JavaPromise.getReceiverNodeOrNull(enclosingMethod);
+      this.bcaQuery = query;
+      this.isLHS = false;
     }
     
+    private Context(final Context oldContext, final IRNode ccall) {
+      this.theEffects = oldContext.theEffects; // Purposely alias
+      this.enclosingMethod = oldContext.enclosingMethod;
+      this.theReceiverNode = oldContext.theReceiverNode;
+      this.bcaQuery = oldContext.bcaQuery.getSubAnalysisQuery(ccall);
+      this.isLHS = oldContext.isLHS;
+    }
+
+    public static Context forNormalMethod(
+        final BindingContextAnalysis bca, final IRNode enclosingMethod) {
+      return new Context(bca.getExpressionObjectsQuery(enclosingMethod), enclosingMethod);
+    }
     
+    public static Context forACE(final Context oldContext, final IRNode anonClassExpr) {
+      final IRNode enclosingMethod = JavaPromise.getInitMethodOrNull(anonClassExpr);
+      return new Context(oldContext.bcaQuery.getSubAnalysisQuery(anonClassExpr), enclosingMethod);
+    }
+    
+    public static Context forConstructorCall(final Context oldContext, final IRNode ccall) {
+      return new Context(oldContext, ccall);
+    }
     
     public void setLHS() {
       isLHS = true;
@@ -184,14 +197,14 @@ implements IBinderClient {
    * @param b
    *          The Binder to use to look up names.
    */
-  public EffectsVisitor(final IBinder b, final BindingContextAnalysis bca,
-      final IRNode flowUnit) {
+  public EffectsVisitor(
+      final IBinder b, final BindingContextAnalysis bca, final IRNode flowUnit) {
     this.binder = b;
     this.bca = bca;
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     this.ARRAY_ELEMENT = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);    
-    this.context = new Context(bca, flowUnit);
+    this.context = Context.forNormalMethod(bca, flowUnit);
   }
   
   public Set<Effect> getTheEffects() {
@@ -272,13 +285,11 @@ implements IBinderClient {
      * this is the one case where we have to infer effects.  
      */
 
-    final IRNode anonClassInitMethod = JavaPromise.getInitMethodOrNull(expr);
-    
     /* Get the effects of initialization.  Reset the context to the anonymous
      * class.
      */
-    final Context newContext = new Context(bca, anonClassInitMethod);
     final Context oldContext = context;
+    final Context newContext = Context.forACE(oldContext, expr);
     InstanceInitializationVisitor.processAnonClassExpression(expr, this,
         new Action() {
           public void tryBefore() {
@@ -311,10 +322,10 @@ implements IBinderClient {
                 (IJavaReferenceType) type, target.getRegion());
           }
           Effects.elaborateInstanceTargetEffects(
-              context.bcaQuery, targetFactory, binder, expr, initEffect.isRead(),
+              context.bcaQuery, targetFactory, binder, initEffect.getSource(), initEffect.isRead(),
               newTarget, context.theEffects);
         } else {
-          context.addEffect(initEffect.setSource(expr));
+          context.addEffect(initEffect);
         }
       }
     }
@@ -356,23 +367,24 @@ implements IBinderClient {
   
   //----------------------------------------------------------------------
 
+  // NEW
   @Override
   public Void visitConstructorCall(final IRNode expr) {
-//    initHelper.doVisitInstanceInits(expr);
     context.addEffects(getMethodCallEffects(expr));
     doAcceptForChildren(expr);
     
     // Deal with instance initialization if needed
-    InstanceInitializationVisitor.processConstructorCall(expr, this);
-    return null;
-  }
-  
-  //----------------------------------------------------------------------
-
-  @Override
-  public Void visitConstructorDeclaration(final IRNode expr) {
-    // Get the rest of the effects
-    doAcceptForChildren(expr);
+    final Context oldContext = context;
+    InstanceInitializationVisitor.processConstructorCall(expr, this,
+        new Action() {
+          public void tryBefore() {
+            context = Context.forConstructorCall(oldContext, expr);
+          }
+          
+          public void finallyAfter() {
+            context = oldContext;
+          }
+        });
     return null;
   }
   
