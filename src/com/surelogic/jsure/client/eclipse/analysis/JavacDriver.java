@@ -108,6 +108,8 @@ public class JavacDriver {
 		
 		Config makeConfig(boolean all) throws JavaModelException {
 			Config config = new ZippedConfig(project.getName(), false);
+			setOptions(config);
+			
 			for(IResource res : getRemovedResources()) {
 				final File f = res.getLocation().toFile();
 				config.addRemovedFile(f);
@@ -139,6 +141,11 @@ public class JavacDriver {
 			return config;
 		}
 		
+		private void setOptions(Config config) {
+			IJavaProject jp = JDTUtility.getJavaProject(config.getProject());
+			config.setOption(Config.SOURCE_LEVEL, JDTUtility.getMajorJavaVersion(jp));
+		}
+
 		static void addDependencies(Config config, IProject p, boolean addSource) throws JavaModelException {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());			
 			// TODO what export rules?
