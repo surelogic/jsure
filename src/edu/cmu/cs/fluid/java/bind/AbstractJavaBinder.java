@@ -2232,7 +2232,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         */
         IBinding b = scope.lookup(name, node, IJavaScope.Util.isTypeDecl);
         // Added for debugging
-        if (b == null) {
+        if (b == null && !isBinary(node)) {
           scope.printTrace(System.out, 0);
           classTable.getOuterClass(name,node);
           scope.lookup(name, node, IJavaScope.Util.isTypeDecl);
@@ -2863,5 +2863,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public final void addUse(IRNode use) {
     	// FIX need to do something here
     }
+  }
+  
+  static boolean isBinary(IRNode n) {
+  	IRNode cu = VisitUtil.getEnclosingCompilationUnit(n);
+  	return JavaNode.getModifier(cu, JavaNode.AS_BINARY);
   }
 }

@@ -83,8 +83,8 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  if (result == null) {
 		  result = JavaTypeFactory.convertNodeTypeToIJavaType(nodeType, getBinder());
 		  if (result != null) {
-			  convertedTypeCache.put(nodeType, result);		 
-		  } else {
+			  convertedTypeCache.put(nodeType, result);		 		  
+		  } else if (!AbstractJavaBinder.isBinary(nodeType)) {
 			  LOG.severe("Null type for "+DebugUnparser.toString(nodeType));
 			  JavaTypeFactory.convertNodeTypeToIJavaType(nodeType, getBinder());
 		  }
@@ -104,7 +104,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 		  result = JavaTypeFactory.getMyThisType(typeDecl);
 		  if (result != null) {
 			  convertedTypeCache.put(typeDecl, result);		 
-		  } else {
+		  } else if (!AbstractJavaBinder.isBinary(typeDecl)) {
 			  LOG.severe("Null type for "+DebugUnparser.toString(typeDecl));
 			  JavaTypeFactory.getMyThisType(typeDecl);
 		  }
