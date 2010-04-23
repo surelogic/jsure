@@ -441,24 +441,8 @@ final class LockExpressions {
     @Override
     public Void visitInitDeclaration(final IRNode initDecl) {
       // XXX: Pretty sure we should never get here now. (2010-04-20)
-
-      /* We get here when the original expression that spawn the request
-       * to get the LockExpressiosn object is inside the instance initializer
-       * block of an AnonClassExpression.
-       * 
-       * We don't get here for instance initializers in regular class
-       * declarations because those are taken care of in visitConstructorDeclaration
-       * by creating an InitializationVisitor there, were they are ultimately
-       * visited by InitializationVisito.visitClassInitiazer(). 
-       */
-      
-      final InitializationVisitor iv = new InitializationVisitor(false);
-      /* Must use accept for children because InitializationVisitor doesn't do anything
-       * for ClassDeclaration nodes.  It's better this way anyhow because only care
-       * about the children of the class declaration to begin with.
-       */ 
-      iv.doAcceptForChildren(JavaPromise.getPromisedFor(initDecl));
-      return null;
+      // XXX: I've had too many problems with this.  Throw an exception if we get here!
+      throw new UnsupportedOperationException("Should not visit an InitDeclaration!");
     }
     
     @Override

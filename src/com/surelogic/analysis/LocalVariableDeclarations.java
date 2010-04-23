@@ -262,11 +262,9 @@ public final class LocalVariableDeclarations {
     
     @Override
     public Void visitInitDeclaration(final IRNode node) {
-      /*
-       * The intent is that we only get here when we are looking at the instance
-       * initializer of an anonymous class expression. But, UniqueAnalysis is
+      /* Should never get here, but UniqueAnalysis is
        * messed up and confused and can get us here for regular classes too.
-       * Need to check for that.
+       * IN NORMAL USAGE WE DO NOT GET HERE.
        */
       /* XXX: Hopefully, this will be fixed when
        * UniquenessAnalysis is replaced.
