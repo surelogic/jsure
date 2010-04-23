@@ -660,6 +660,10 @@ public final class LockUtils {
    *          The java type to test
    */
   public boolean implementsLock(final IJavaType type) {
+	if (lockType == null) {
+	    // Probably running on pre-1.5 code
+		return false;
+	}
     if (type instanceof IJavaDeclaredType) {
       return binder.getTypeEnvironment().isSubType(type, lockType);
     } else {
@@ -675,6 +679,10 @@ public final class LockUtils {
    *          The java type to test
    */
   public boolean implementsReadWriteLock(final IJavaType type) {
+	if (readWriteLockType == null) {
+	    // Probably running on pre-1.5 code
+		return false;
+	}
     if (type instanceof IJavaDeclaredType) {
       return binder.getTypeEnvironment().isSubType(type, readWriteLockType);
     } else {

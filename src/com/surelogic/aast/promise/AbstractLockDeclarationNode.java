@@ -119,6 +119,10 @@ public abstract class AbstractLockDeclarationNode extends PromiseDeclarationNode
     final IJavaDeclaredType readWriteLockType = (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(
         typeEnvironment.findNamedType(LockUtils.JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK),
         binder);
+    if (readWriteLockType == null) {
+   	    // Probably running on pre-1.5 code
+    	return false;
+    }
     return typeEnvironment.isSubType(testType, readWriteLockType);
   }
 
