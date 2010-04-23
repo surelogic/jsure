@@ -513,6 +513,7 @@ final class LockExpressions {
      * inside of any other members of the class, especially not method or 
      * constructor declarations.
      */
+    // XXX: Get rid of this---see LocalVariableDeclarations.LocalDeclarationsVisitor
     private final class InitializationVisitor extends VoidTreeWalkVisitor {
       /** 
        * Are we matching static initializers?  if <code>false</code> we match

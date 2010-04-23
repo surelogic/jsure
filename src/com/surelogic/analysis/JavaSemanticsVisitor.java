@@ -147,8 +147,6 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   protected JavaSemanticsVisitor(final boolean goInside) {
     this(goInside, null, null);
-//    super();
-//    visitInsideTypes = goInside;
   }
   
   /**
@@ -160,7 +158,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *          <code>true</code> if the contents of nested types should be
    *          visited.
    * @param eType
-   *          The type nearest type declaration that surrounds the node at which
+   *          The nearest type declaration that surrounds the node at which
    *          the visitation will start.
    * @param eDecl
    *          The nearest method/constructor declaration that surrounds the node

@@ -145,9 +145,12 @@ public class EqPredicate extends Predicate {
 
   @Override
   public Set<Effect> effects() {
+    // NB. expr1 and expr2 are from the same flow unit
+    final IRNode flowUnit = IntraproceduralAnalysis.getFlowUnit(expr1, constructorContext);
+    final Effects.Query query = effects.getEffectsQuery(flowUnit);
     final Set<Effect> result = new HashSet<Effect>();
-    result.addAll( effects.getEffects(expr1, constructorContext) );
-    result.addAll( effects.getEffects(expr2, constructorContext) );
+    result.addAll(query.getResultFor(expr1));
+    result.addAll(query.getResultFor(expr2));
     return Collections.unmodifiableSet( result );
   }
 

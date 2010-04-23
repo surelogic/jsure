@@ -194,7 +194,11 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    *          MethodDeclaration or ConstructorDeclaration node. It does not make
    *          sense for it to be an InitDeclaration or ClassInitDeclaration.
    *          (The restriction on ClassInitDeclaration may be removed in the
-   *          future.)
+   *          future.)  If the nodes we are going to visit are inside the initializer
+   *          of an anonymous class expression, this should be the nearest
+   *          method/constructor declaration that encloses the anonymous class
+   *          expression.
+   *          
    */
   public EffectsVisitor(
       final IBinder b, final BindingContextAnalysis bca, final IRNode flowUnit) {

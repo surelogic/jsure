@@ -70,10 +70,11 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 						&& !JavaNode.getModifier(member, JavaNode.NATIVE)) {
 					// only assure if there is declared intent
 					if (declFx != null) {
-					  /* Can use null as the constructor context because member IS a 
-					   * constructor or method declaration.
-					   */
-						final Set<Effect> implFx = getAnalysis().getEffects(member, null);
+					  final Set<Effect> implFx = getAnalysis().getEffectsQuery(member).getResultFor(member);
+//					  /* Can use null as the constructor context because member IS a 
+//					   * constructor or method declaration.
+//					   */
+//						final Set<Effect> implFx = getAnalysis().getEffects(member, null);
 						final Set<Effect> maskedFx = maskEffects(implFx);
 						final String modelName = genModelName(member, op, declFx);
 

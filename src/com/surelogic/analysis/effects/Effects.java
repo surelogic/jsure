@@ -32,7 +32,6 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
-import edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -96,30 +95,10 @@ public final class Effects implements IBinderClient {
   // -- Get the effects of an expression
   //----------------------------------------------------------------------
 
-  /**
-   * Get the effects of an expression.
-   * 
-   * @param node
-   *          The root node of the expression whose effects should be obtained.
-   *          This node should a ClassBodyDeclaration node, or a descendant of a
-   *          ClassBodyDeclarationNode.
-   * @param constructorContext
-   *          The constructor declaration, if any, that is currently being
-   *          analyzed. if non-<code>null</code>, this is used as the flow unit
-   *          if it turns out that the node <code>node</code> is part of an
-   *          instance field initializer or instance initialization block.
-   * @return An unmodifiable set of effects.
-   */
-  public Set<Effect> getEffects(final IRNode expr, final IRNode constructorContext) {
-    final EffectsVisitor visitor = new EffectsVisitor(binder, bca,
-          IntraproceduralAnalysis.getFlowUnit(expr, constructorContext));
-    visitor.doAccept(expr);
-    return Collections.unmodifiableSet(visitor.getTheEffects());
-  }
-
   public Query getEffectsQuery(final IRNode flowUnit) {
     return new Query(flowUnit);
   }
+
   
 
   //----------------------------------------------------------------------
