@@ -84,7 +84,7 @@ public class OpSearch implements JavaGlobals {
 	};
   public static final OpSearch stmtSearch = new OpSearch() {
     @Override
-    protected boolean found(Operator op) { return op instanceof Statement; }
+    protected boolean found(Operator op) { return op instanceof StatementInterface; }
   };
   public static final OpSearch exprSearch = new OpSearch() {
     @Override
