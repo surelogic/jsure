@@ -147,6 +147,11 @@ public class JavacDriver {
 		}
 
 		static void addDependencies(Config config, IProject p, boolean addSource) throws JavaModelException {
+			/*
+			if (p.getName().equals("Messaging")) {
+				System.out.println("Found Messaging");
+			}
+			*/
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());			
 			// TODO what export rules?
 			
@@ -306,8 +311,9 @@ public class JavacDriver {
 			if (!zipFile.exists()) {
 				zipFile.getParentFile().mkdirs();
 				srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
-			}
-			
+			} else {
+				//System.out.println("Already exists: "+zipFile);
+			}			
 			super.zipSources(zipDir);
 		}
 		@Override
@@ -341,11 +347,11 @@ public class JavacDriver {
             while (e.hasMoreElements()) {
                 ZipEntry ze = e.nextElement();
                 File f = new File(projectDir, ze.getName());
-                if (f.exists()) {
-                	continue;
+                if (!f.exists()) {
+                    f.getParentFile().mkdirs();
+                    FileUtility.copy(ze.getName(), zf.getInputStream(ze), f);
                 }
-                f.getParentFile().mkdirs();
-                FileUtility.copy(ze.getName(), zf.getInputStream(ze), f);
+                // Finish setting up srcFiles
                 if (ze.getName().endsWith(".java")) {
                     final List<String> names = path2qnames.get(ze.getName());
                     if (names != null) {
