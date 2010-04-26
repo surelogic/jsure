@@ -747,26 +747,27 @@ public class JavaCanonicalizer {
         return true;
     }
     
-    private IRNode makeDecl(String name, IRNode initE, IJavaType t) {
+    private IRNode makeDecl(int mods, String name, IRNode initE, IJavaType t) {
         IRNode type = CogenUtil.createType(binder.getTypeEnvironment(), t);
-        IRNode rv   = makeDecl(name, initE, type);
+        IRNode rv   = makeDecl(mods, name, initE, type);
         return rv;
       }
     
-    private IRNode makeDecl(String name, IRNode expr, IRNode type) { 
+    private IRNode makeDecl(int mods, String name, IRNode expr, IRNode type) { 
         IRNode init = Initialization.createNode(expr);
         IRNode vd   = VariableDeclarator.createNode(name, 0, init);
         IRNode vars = VariableDeclarators.createNode(new IRNode[] { vd });
-        IRNode rv   = DeclStatement.createNode(Annotations.createNode(noNodes), JavaNode.ALL_FALSE, type, vars);
+        IRNode rv   = DeclStatement.createNode(Annotations.createNode(noNodes), mods, type, vars);
         return rv;
     }
     
     private IRNode adaptParamDeclToDeclStatement(IRNode pdecl, IRNode init) {
+    	int mods    = ParameterDeclaration.getMods(pdecl); 
     	String name = ParameterDeclaration.getId(pdecl);
     	IRNode type = ParameterDeclaration.getType(pdecl);
     	tree.removeSubtree(type);
     	// FIX destroy pdecl 
-    	return makeDecl(name, init, type);
+    	return makeDecl(mods, name, init, type);
     }
     
     private IRNode createArrayLoopFromForEach(IRNode stmt, final IJavaType collT) {
@@ -778,11 +779,11 @@ public class JavaCanonicalizer {
         final String array = "array"+stmt.hashCode();
         IRNode collection  = ForEachStatement.getCollection(stmt);
     	tree.removeSubtree(collection);
-        IRNode arrayDecl   = makeDecl(array, collection, collT);
+        IRNode arrayDecl   = makeDecl(JavaNode.FINAL, array, collection, collT);
         
         // Create decl for counter
         final String i   = "i"+stmt.hashCode();
-        IRNode iDecl     = makeDecl(i, IntLiteral.createNode("0"), IntType.prototype.jjtCreate());
+        IRNode iDecl     = makeDecl(JavaNode.ALL_FALSE, i, IntLiteral.createNode("0"), IntType.prototype.jjtCreate());
         
         // Create condition for while loop
         IRNode arrayLen  = ArrayLength.createNode(VariableUseExpression.createNode(array));
@@ -904,7 +905,7 @@ public class JavaCanonicalizer {
         final String iterable  = "iterable"+stmt.hashCode();
         IRNode collection      = ForEachStatement.getCollection(stmt);
      	tree.removeSubtree(collection);
-        IRNode iterableDecl    = makeDecl(iterable, collection, collT);
+        IRNode iterableDecl    = makeDecl(JavaNode.FINAL, iterable, collection, collT);
         copySrcRef(stmt, iterableDecl);
         
         // Create decl for iterator
@@ -913,7 +914,7 @@ public class JavaCanonicalizer {
         IRNode itCall       = makeSimpleCall(iterable, "iterator");
         copySrcRef(stmt, itCall);
         
-        IRNode itDecl       = makeDecl(it, itCall, itType);
+        IRNode itDecl       = makeDecl(JavaNode.FINAL, it, itCall, itType);
         copySrcRef(stmt, itDecl);
         
         // Create condition for while loop
