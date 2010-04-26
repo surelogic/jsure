@@ -17,7 +17,7 @@
                               Swap defaults for swing import
                               Active thread counts reflect executors
   30Aug1998 dl                Misc revisions to mesh with 1.1.0
-  27jan1999 dl                Eliminate GC calls    
+  27jan1999 dl                Eliminate GC calls
   24Nov2001 dl                Increase some default values
 */
 
@@ -55,7 +55,7 @@ import  java.lang.reflect.*;
  *  context parameters.
  *
  *  <p>
- *   Quick start: 
+ *   Quick start:
  *  <ol>
  *   <li>javac -d <em>base of some CLASSPATH</em> *.java <br>
  *      You'll need Swing (JFC). (This
@@ -82,17 +82,17 @@ import  java.lang.reflect.*;
  *   uninteresting patterns.
  *
  *  <p>
- *   Each iteration of each test ultimately somehow calls 
+ *   Each iteration of each test ultimately somehow calls
  *   the random number generation
  *   method of an RNG. The time listed is the average time it took to do
  *   one iteration, in microseconds. These are just based on wallclock
  *   time (System.currentTimeMillis()). Thread
- *   construction time is <em>NOT</em> included in these times. 
+ *   construction time is <em>NOT</em> included in these times.
  *   In tests with many threads, construction and other bookkeeping
  *   can take longer than the tests themselves.
  *  <p>
  *   Results are listed in a table, and optionally printed on standard output.
- *   You can redirect standard output to save to a file. 
+ *   You can redirect standard output to save to a file.
  *  <p>
  *   The total amount of ``real'' computation reported in each cell is
  *   the same. Thus, the unobtainably ideal pattern of results would be
@@ -104,16 +104,16 @@ import  java.lang.reflect.*;
  *  indicated test column (there are at most three overhead threads per run), although
  *  it may transiently climb, and is larger in those tests that
  *  generate their own internal threads (for example ThreadedExceutor). If the
- *  indicated size fails to return to zero within about 10 seconds of 
+ *  indicated size fails to return to zero within about 10 seconds of
  *  either hitting stop
  *  or the end of a run, you may have a
- *  problem with interruption handling on your Java VM. 
+ *  problem with interruption handling on your Java VM.
  *
  *  <p>
  *  This program cannot
- *  tell you how busy your computer is while running tests. 
+ *  tell you how busy your computer is while running tests.
  *  You can run a utility program (for
- *  example <code>perfmeter</code> or <code>top</code> on unix) 
+ *  example <code>perfmeter</code> or <code>top</code> on unix)
  *  alongside this program
  *  to find out.
  *  <p>
@@ -140,7 +140,7 @@ import  java.lang.reflect.*;
  *   <dd> Controls concurrency.  The indicated number of threads are
  *   started simultaneously and then waited out.
  *
- *   <dt>Contention. 
+ *   <dt>Contention.
  *
  *   <dd>Percent sharing among threads. Zero percent means that each
  *   thread has its own RNG object, so there is no
@@ -149,16 +149,16 @@ import  java.lang.reflect.*;
  *   happen to never be needed.
  *   100 percent sharing means that all
  *   threads call methods on the same object, so each thread will have to
- *   wait until the RNG objects are not being used by others. 
+ *   wait until the RNG objects are not being used by others.
  *   In between is in between: Only the given percentage of calls are
- *   made to shared RNG objects; others are to unshared. 
+ *   made to shared RNG objects; others are to unshared.
  *   Contention in classes that use Channels works slightly differently:
  *   The Channels are shared, not the base RNG objects. (Another way
  *   of looking at it is that tests demonstrate effects of multiple
  *   producers and consumers on the same channel.)
  *
  *   <dt>Classes
- *   <dd>You can choose to only test the indicated classes. You can 
+ *   <dd>You can choose to only test the indicated classes. You can
  *    probably figure out how to add more classes to run yourself.
  *
  *   <dt>Calls per thread per test
@@ -169,7 +169,7 @@ import  java.lang.reflect.*;
  *   You should expect to see a fair amount of variation across
  *   repeated runs.
  *   If you get zeroes printed in any cell, this means that the
- *   test ran too fast to measure in milleconds, so you should increase the 
+ *   test ran too fast to measure in milleconds, so you should increase the
  *   iterations value.
  *
  *   <dt> Computations per call
@@ -224,7 +224,7 @@ import  java.lang.reflect.*;
  *   producer do all, half, or none of the actual calls to update, in
  *   addition to adding elements to channel.
  *
- *   <dt>Buffer capacity 
+ *   <dt>Buffer capacity
  *
  *   <dd>For tests involving finite capacity
  *   buffers, this controls maximum buffer size.
@@ -271,7 +271,7 @@ import  java.lang.reflect.*;
  *   <dd> These classes arrange for each RNG update to occur
  *    as an executable command. Each test iteration passes a
  *    command to an Executor, which eventually executes it.
- *    Execution is overlapped: Each iteration starts a new 
+ *    Execution is overlapped: Each iteration starts a new
  *    command, and then waits for the previous command to complete.
  *
  *  </dl>
@@ -281,20 +281,20 @@ import  java.lang.reflect.*;
  *   The test code is ugly; it has just evolved over the years.  Sorry.
 **/
 @Assumes({
-	@Assume("@RegionEffects(none) for Boolean:new(*)"),
-	@Assume("@Starts(nothing) for Boolean:new(*)")
+	@Assume("@RegionEffects(none) for new(*) in Boolean"),
+	@Assume("@Starts(nothing) for new(*) in Boolean")
 })
 public class SynchronizationTimer {
 
   /** Start up this application **/
   public static void main(String[] args) {
 
-    JFrame frame = new JFrame("Times per call in microseconds"); 
+    JFrame frame = new JFrame("Times per call in microseconds");
 
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
-  
+
     frame.getContentPane().add(new SynchronizationTimer().mainPanel());
     frame.pack();
     frame.setVisible(true);
@@ -304,10 +304,10 @@ public class SynchronizationTimer {
    * Information about classes to be tested
    **/
   @RegionLock("L is this protects enabled_")
-  static class TestedClass { 
-    final String name; 
-    final Class cls; 
-    final boolean multipleOK; 
+  static class TestedClass {
+    final String name;
+    final Class cls;
+    final boolean multipleOK;
     final boolean singleOK;
     final Class buffCls;
     Boolean enabled_ = new Boolean(true);
@@ -319,61 +319,61 @@ public class SynchronizationTimer {
       boolean enabled = enabled_.booleanValue();
       enabled_ = new Boolean(!enabled);
     }
-    
-    synchronized boolean isEnabled(int nthreads, Fraction shared) { 
+
+    synchronized boolean isEnabled(int nthreads, Fraction shared) {
       boolean enabled = enabled_.booleanValue();
       if (!enabled) return false;
       if (!singleOK && nthreads <= 1) return false;
       if (!multipleOK && nthreads > 1 && shared.compareTo(0) > 0) return false;
       return true;
     }
-    
+
     @SingleThreaded
     @Borrowed("this")
     TestedClass(String n, Class c, boolean m, boolean sok) {
-      name = n; cls = c; multipleOK = m; singleOK = sok; 
+      name = n; cls = c; multipleOK = m; singleOK = sok;
       buffCls = null;
     }
-    
+
     @SingleThreaded
     @Borrowed("this")
     TestedClass(String n, Class c, boolean m, boolean sok, Class bc) {
-      name = n; cls = c; multipleOK = m; singleOK = sok; 
+      name = n; cls = c; multipleOK = m; singleOK = sok;
       buffCls = bc;
     }
-    
-    static final TestedClass dummy = 
+
+    static final TestedClass dummy =
       new TestedClass("", null, false, false);
 
     static final TestedClass[]  classes = {
-      
+
       new TestedClass("NoSynchronization", NoSynchRNG.class, false, true),
       new TestedClass("PublicSynchronization", PublicSynchRNG.class, true, true),
       new TestedClass("NestedSynchronization", AllSynchRNG.class, true, true),
-      
+
       new TestedClass("SDelegated", SDelegatedRNG.class, true, true),
-      
+
       new TestedClass("SynchLongUsingSet", SynchLongRNG.class, true, true),
       new TestedClass("SynchLongUsingCommit", AClongRNG.class, true, true),
-      
+
       new TestedClass("Semaphore", SemRNG.class, true, true),
       new TestedClass("WaiterPrefSemaphore", WpSemRNG.class, true, true),
       new TestedClass("FIFOSemaphore", FifoRNG.class, true, true),
       new TestedClass("PrioritySemaphore", PrioritySemRNG.class, true, true),
       new TestedClass("Mutex", MutexRNG.class, true, true),
       new TestedClass("ReentrantLock", RlockRNG.class, true, true),
-      
+
       new TestedClass("WriterPrefRWLock", WpRWlockRNG.class, true, true),
       new TestedClass("ReaderPrefRWLock", ReaderPrefRWlockRNG.class, true, true),
       new TestedClass("FIFORWLock", FIFORWlockRNG.class, true, true),
       new TestedClass("ReentrantRWL", ReentrantRWlockRNG.class, true, true),
-      
-      
-      
-      new TestedClass("LinkedQueue", ChanRNG.class, true, true, 
+
+
+
+      new TestedClass("LinkedQueue", ChanRNG.class, true, true,
                       LinkedQueue.class),
 
-      new TestedClass("WaitFreeQueue", ChanRNG.class, true, true, 
+      new TestedClass("WaitFreeQueue", ChanRNG.class, true, true,
                       WaitFreeQueue.class),
 
       new TestedClass("BoundedLinkedQueue", ChanRNG.class, true, true,
@@ -390,13 +390,13 @@ public class SynchronizationTimer {
       new TestedClass("SynchronousChannel", ChanRNG.class, true, false,
                       SynchronousChannel.class),
 
-      
+
       new TestedClass("DirectExecutor", DirectExecutorRNG.class, true, true),
       new TestedClass("SemaphoreLckExecutor", LockedSemRNG.class, true, true),
       new TestedClass("QueuedExecutor", QueuedExecutorRNG.class, true, true),
       new TestedClass("ThreadedExecutor", ThreadedExecutorRNG.class, true, true),
       new TestedClass("PooledExecutor", PooledExecutorRNG.class, true, true),
-      
+
       //      new TestedClass("Pipe", ChanRNG.class, true, true, PipedChannel.class),
     };
   }
@@ -405,18 +405,18 @@ public class SynchronizationTimer {
 
   // test parameters
 
-  static final int[] nthreadsChoices = { 
-    1, 
-    2, 
-    4, 
-    8, 
-    16, 
-    32, 
-    64, 
-    128, 
-    256, 
-    512, 
-    1024 
+  static final int[] nthreadsChoices = {
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024
   };
 
   static final int BLOCK_MODE = 0;
@@ -459,7 +459,7 @@ public class SynchronizationTimer {
   }
 
   static final int PRECISION = 10; // microseconds
-    
+
   static String formatTime(long ns, boolean showDecimal) {
     long intpart = ns / PRECISION;
     long decpart = ns % PRECISION;
@@ -482,13 +482,13 @@ public class SynchronizationTimer {
       return ts;
     }
   }
-    
+
   @RegionLock("L is this protects enabled")
   static class ThreadInfo {
     final String name;
     final int number;
     Boolean enabled;
-    
+
     @SingleThreaded
     @RegionEffects("none")
     @Starts("nothing")
@@ -518,9 +518,9 @@ public class SynchronizationTimer {
   final static int headerColumns = 1;
   final int tableRows = TestedClass.classes.length + headerRows;
   final int tableColumns = nthreadsChoices.length + headerColumns;
-  
+
   final JComponent[][] resultTable_ = new JComponent[tableRows][tableColumns];
-  
+
   JPanel resultPanel() {
 
     JPanel[] colPanel = new JPanel[tableColumns];
@@ -544,7 +544,7 @@ public class SynchronizationTimer {
     cornerLab.setFont(font);
     resultTable_[0][0] = cornerLab;
     colPanel[0].add(cornerLab);
-    
+
     for (int col = 1; col < tableColumns; ++col) {
       final int nthreads = col - headerColumns;
       JCheckBox tcb = new JCheckBox(threadInfo[nthreads].name, true);
@@ -552,8 +552,8 @@ public class SynchronizationTimer {
         public void actionPerformed(ActionEvent evt) {
           threadInfo[nthreads].toggleEnabled();
         }});
-      
-      
+
+
       tcb.setMinimumSize(labDim);
       tcb.setPreferredSize(labDim);
       tcb.setFont(font);
@@ -561,48 +561,48 @@ public class SynchronizationTimer {
       resultTable_[0][col] = tcb;
       colPanel[col].add(tcb);
     }
-    
-    
+
+
     for (int row = 1; row < tableRows; ++row) {
       final int cls = row - headerRows;
-      
-      JCheckBox cb = new JCheckBox(TestedClass.classes[cls].name, true); 
+
+      JCheckBox cb = new JCheckBox(TestedClass.classes[cls].name, true);
       cb.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent evt) {
           TestedClass.classes[cls].toggleEnabled();
         }});
-      
+
       resultTable_[row][0] = cb;
       cb.setMinimumSize(cbDim);
       cb.setPreferredSize(cbDim);
       cb.setFont(font);
       colPanel[0].add(cb);
-      
+
       for (int col = 1; col < tableColumns; ++col) {
         int nthreads = col - headerColumns;
         JLabel lab = new JLabel("");
         resultTable_[row][col] = lab;
-        
+
         lab.setMinimumSize(labDim);
         lab.setPreferredSize(labDim);
-        lab.setBorder(border); 
+        lab.setBorder(border);
         lab.setFont(font);
         lab.setBackground(Color.white);
         lab.setForeground(Color.black);
         lab.setHorizontalAlignment(JLabel.RIGHT);
-        
+
         colPanel[col].add(lab);
       }
     }
-    
+
     JPanel tblPanel = new JPanel();
     tblPanel.setLayout(new BoxLayout(tblPanel, BoxLayout.X_AXIS));
     for (int col = 0; col < tableColumns; ++col) {
       tblPanel.add(colPanel[col]);
     }
-    
+
     return tblPanel;
-    
+
   }
 
   void setTime(final long ns, int clsIdx, int nthrIdx) {
@@ -611,13 +611,13 @@ public class SynchronizationTimer {
     final JLabel cell = (JLabel)(resultTable_[row][col]);
 
     SwingUtilities.invokeLater(new Runnable() {
-      public void run() { 
-        cell.setText(formatTime(ns, true)); 
-      } 
+      public void run() {
+        cell.setText(formatTime(ns, true));
+      }
     });
   }
-  
-     
+
+
 
   void clearTable() {
     for (int i = 1; i < tableRows; ++i) {
@@ -635,12 +635,12 @@ public class SynchronizationTimer {
   }
 
 
-  public SynchronizationTimer() { 
-    for (int i = 0; i < threadInfo.length; ++i) 
+  public SynchronizationTimer() {
+    for (int i = 0; i < threadInfo.length; ++i)
       threadInfo[i] = new ThreadInfo(nthreadsChoices[i]);
 
   }
-  
+
   final SynchronizedInt nextClassIdx_ = new SynchronizedInt(0);
   final SynchronizedInt nextThreadIdx_ = new SynchronizedInt(0);
 
@@ -652,37 +652,37 @@ public class SynchronizationTimer {
 
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new GridLayout(1, 3));
-    
+
     startstop_.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
-        if (running_.get()) 
+        if (running_.get())
           cancel();
         else {
-          try { 
-            startTestSeries(new TestSeries());  
+          try {
+            startTestSeries(new TestSeries());
           }
-          catch (InterruptedException ex) { 
-            endTestSeries(); 
+          catch (InterruptedException ex) {
+            endTestSeries();
           }
         }
       }});
-    
+
     paramPanel.add(startstop_);
-    
+
     JPanel p1 = new JPanel();
     p1.setLayout(new GridLayout(1, 2));
-    
+
     JButton continueButton = new JButton("Continue");
 
     continueButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
         if (!running_.get()) {
-          try { 
+          try {
             startTestSeries(new TestSeries(nextClassIdx_.get(),
-                                           nextThreadIdx_.get()));  
+                                           nextThreadIdx_.get()));
           }
-          catch (InterruptedException ex) { 
-            endTestSeries(); 
+          catch (InterruptedException ex) {
+            endTestSeries();
           }
         }
       }});
@@ -690,7 +690,7 @@ public class SynchronizationTimer {
     p1.add(continueButton);
 
     JButton clearButton = new JButton("Clear cells");
-    
+
     clearButton.addActionListener(new ActionListener(){
       public void actionPerformed(ActionEvent evt) {
         clearTable();
@@ -703,9 +703,9 @@ public class SynchronizationTimer {
 
     JPanel p3 = new JPanel();
     p3.setLayout(new GridLayout(1, 2));
-    
+
     JButton setButton = new JButton("All classes");
-    
+
     setButton.addActionListener(new ActionListener(){
       public void actionPerformed(ActionEvent evt) {
         setChecks(true);
@@ -716,7 +716,7 @@ public class SynchronizationTimer {
 
 
     JButton unsetButton = new JButton("No classes");
-    
+
     unsetButton.addActionListener(new ActionListener(){
       public void actionPerformed(ActionEvent evt) {
         setChecks(false);
@@ -738,7 +738,7 @@ public class SynchronizationTimer {
       }
     });
 
-    
+
 
     JLabel poolinfo  = new JLabel("Active threads:      0");
 
@@ -771,12 +771,12 @@ public class SynchronizationTimer {
     return mainPanel;
   }
 
-  
-  
-  
+
+
+
   JComboBox syncModePanel() {
     JComboBox syncModeComboBox = new JComboBox();
-    
+
     for (int j = 0; j < syncModes.length; ++j) {
       String lab = "Locks: " + modeToString(syncModes[j]);
       syncModeComboBox.addItem(lab);
@@ -788,7 +788,7 @@ public class SynchronizationTimer {
         RNG.syncMode.set(syncModes[idx]);
       }
     });
-    
+
     RNG.syncMode.set(syncModes[0]);
     syncModeComboBox.setSelectedIndex(0);
     return syncModeComboBox;
@@ -796,7 +796,7 @@ public class SynchronizationTimer {
 
   JComboBox producerSyncModePanel() {
     JComboBox producerSyncModeComboBox = new JComboBox();
-    
+
     for (int j = 0; j < syncModes.length; ++j) {
       String lab = "Producers: " + modeToString(syncModes[j]);
       producerSyncModeComboBox.addItem(lab);
@@ -808,7 +808,7 @@ public class SynchronizationTimer {
         RNG.producerMode.set(syncModes[idx]);
       }
     });
-    
+
     RNG.producerMode.set(syncModes[0]);
     producerSyncModeComboBox.setSelectedIndex(0);
     return producerSyncModeComboBox;
@@ -816,7 +816,7 @@ public class SynchronizationTimer {
 
   JComboBox consumerSyncModePanel() {
     JComboBox consumerSyncModeComboBox = new JComboBox();
-    
+
     for (int j = 0; j < syncModes.length; ++j) {
       String lab = "Consumers: " + modeToString(syncModes[j]);
       consumerSyncModeComboBox.addItem(lab);
@@ -828,16 +828,16 @@ public class SynchronizationTimer {
         RNG.consumerMode.set(syncModes[idx]);
       }
     });
-    
+
     RNG.consumerMode.set(syncModes[0]);
     consumerSyncModeComboBox.setSelectedIndex(0);
     return consumerSyncModeComboBox;
   }
 
 
-  
+
   JComboBox contentionBox() {
-    final  Fraction[] contentionChoices = { 
+    final  Fraction[] contentionChoices = {
       new Fraction(0, 1),
       new Fraction(1, 16),
       new Fraction(1, 8),
@@ -845,11 +845,11 @@ public class SynchronizationTimer {
       new Fraction(1, 2),
       new Fraction(1, 1)
     };
-    
+
     JComboBox contentionComboBox = new JComboBox();
-    
+
     for (int j = 0; j < contentionChoices.length; ++j) {
-      String lab = contentionChoices[j].asDouble() * 100.0 + 
+      String lab = contentionChoices[j].asDouble() * 100.0 +
         "% contention/sharing";
       contentionComboBox.addItem(lab);
     }
@@ -860,34 +860,34 @@ public class SynchronizationTimer {
         contention_.set(contentionChoices[idx]);
       }
     });
-    
+
     contention_.set(contentionChoices[3]);
     contentionComboBox.setSelectedIndex(3);
     return contentionComboBox;
   }
-  
+
   JComboBox itersBox() {
-    final int[] loopsPerTestChoices = { 
+    final int[] loopsPerTestChoices = {
       1,
       16,
       256,
       1024,
-      2 * 1024, 
-      4 * 1024, 
-      8 * 1024, 
+      2 * 1024,
+      4 * 1024,
+      8 * 1024,
       16 * 1024,
       32 * 1024,
-      64 * 1024, 
-      128 * 1024, 
-      256 * 1024, 
-      512 * 1024, 
-      1024 * 1024, 
+      64 * 1024,
+      128 * 1024,
+      256 * 1024,
+      512 * 1024,
+      1024 * 1024,
     };
-    
+
     JComboBox precComboBox = new JComboBox();
-    
+
     for (int j = 0; j < loopsPerTestChoices.length; ++j) {
-      String lab = p2ToString(loopsPerTestChoices[j]) + 
+      String lab = p2ToString(loopsPerTestChoices[j]) +
         " calls per thread per test";
       precComboBox.addItem(lab);
     }
@@ -898,15 +898,15 @@ public class SynchronizationTimer {
         loopsPerTest_.set(loopsPerTestChoices[idx]);
       }
     });
-    
+
     loopsPerTest_.set(loopsPerTestChoices[8]);
     precComboBox.setSelectedIndex(8);
 
     return precComboBox;
   }
-  
+
   JComboBox cloopBox() {
-    final int[] computationsPerCallChoices = { 
+    final int[] computationsPerCallChoices = {
       1,
       2,
       4,
@@ -925,11 +925,11 @@ public class SynchronizationTimer {
       32 * 1024,
       64 * 1024,
     };
-    
+
     JComboBox cloopComboBox = new JComboBox();
-    
+
     for (int j = 0; j < computationsPerCallChoices.length; ++j) {
-      String lab = p2ToString(computationsPerCallChoices[j]) + 
+      String lab = p2ToString(computationsPerCallChoices[j]) +
         " computations per call";
       cloopComboBox.addItem(lab);
     }
@@ -940,14 +940,14 @@ public class SynchronizationTimer {
         RNG.computeLoops.set(computationsPerCallChoices[idx]);
       }
     });
-    
+
     RNG.computeLoops.set(computationsPerCallChoices[3]);
     cloopComboBox.setSelectedIndex(3);
     return cloopComboBox;
   }
-  
+
   JComboBox barrierBox() {
-    final int[] itersPerBarrierChoices = { 
+    final int[] itersPerBarrierChoices = {
       1,
       2,
       4,
@@ -964,17 +964,17 @@ public class SynchronizationTimer {
       8 * 1024,
       16 * 1024,
       32 * 1024,
-      64 * 1024, 
-      128 * 1024, 
-      256 * 1024, 
-      512 * 1024, 
+      64 * 1024,
+      128 * 1024,
+      256 * 1024,
+      512 * 1024,
       1024 * 1024,
     };
-    
+
     JComboBox barrierComboBox = new JComboBox();
-    
+
     for (int j = 0; j < itersPerBarrierChoices.length; ++j) {
-      String lab = p2ToString(itersPerBarrierChoices[j]) + 
+      String lab = p2ToString(itersPerBarrierChoices[j]) +
         " iterations per barrier";
       barrierComboBox.addItem(lab);
     }
@@ -985,7 +985,7 @@ public class SynchronizationTimer {
         RNG.itersPerBarrier.set(itersPerBarrierChoices[idx]);
       }
     });
-    
+
     RNG.itersPerBarrier.set(itersPerBarrierChoices[13]);
     barrierComboBox.setSelectedIndex(13);
 
@@ -994,9 +994,9 @@ public class SynchronizationTimer {
 
     return barrierComboBox;
   }
-  
+
   JComboBox exchangeBox() {
-    final int[] exchangerChoices = { 
+    final int[] exchangerChoices = {
       1,
       2,
       4,
@@ -1009,11 +1009,11 @@ public class SynchronizationTimer {
       512,
       1024,
     };
-    
+
     JComboBox exchComboBox = new JComboBox();
-    
+
     for (int j = 0; j < exchangerChoices.length; ++j) {
-      String lab = p2ToString(exchangerChoices[j]) + 
+      String lab = p2ToString(exchangerChoices[j]) +
         " max threads per barrier";
       exchComboBox.addItem(lab);
     }
@@ -1024,22 +1024,22 @@ public class SynchronizationTimer {
         RNG.exchangeParties.set(exchangerChoices[idx]);
       }
     });
-    
+
     RNG.exchangeParties.set(exchangerChoices[1]);
     exchComboBox.setSelectedIndex(1);
     return exchComboBox;
   }
-  
+
   JComboBox biasBox() {
-    final int[] biasChoices = { 
-      -1, 
-      0, 
-      1 
+    final int[] biasChoices = {
+      -1,
+      0,
+      1
     };
-    
-    
+
+
     JComboBox biasComboBox = new JComboBox();
-    
+
     for (int j = 0; j < biasChoices.length; ++j) {
       String lab = biasToString(biasChoices[j]);
       biasComboBox.addItem(lab);
@@ -1051,14 +1051,14 @@ public class SynchronizationTimer {
         RNG.bias.set(biasChoices[idx]);
       }
     });
-    
+
     RNG.bias.set(biasChoices[1]);
     biasComboBox.setSelectedIndex(1);
     return biasComboBox;
   }
-  
+
   JComboBox capacityBox() {
-    
+
     final int[] bufferCapacityChoices = {
       1,
       4,
@@ -1071,11 +1071,11 @@ public class SynchronizationTimer {
       256 * 1024,
       1024 * 1024,
     };
-    
+
     JComboBox bcapComboBox = new JComboBox();
-    
+
     for (int j = 0; j < bufferCapacityChoices.length; ++j) {
-      String lab = p2ToString(bufferCapacityChoices[j]) + 
+      String lab = p2ToString(bufferCapacityChoices[j]) +
         " element bounded buffers";
       bcapComboBox.addItem(lab);
     }
@@ -1086,16 +1086,16 @@ public class SynchronizationTimer {
         DefaultChannelCapacity.set(bufferCapacityChoices[idx]);
       }
     });
-    
-    
+
+
     DefaultChannelCapacity.set(bufferCapacityChoices[3]);
     bcapComboBox.setSelectedIndex(3);
     return bcapComboBox;
   }
-  
+
   JComboBox timeoutBox() {
-    
-    
+
+
     final long[] timeoutChoices = {
       0,
       1,
@@ -1105,10 +1105,10 @@ public class SynchronizationTimer {
       10000,
       100000,
     };
-    
-    
+
+
     JComboBox timeoutComboBox = new JComboBox();
-    
+
     for (int j = 0; j < timeoutChoices.length; ++j) {
       String lab = timeoutChoices[j] + " msec timeouts";
       timeoutComboBox.addItem(lab);
@@ -1120,14 +1120,14 @@ public class SynchronizationTimer {
         RNG.timeout.set(timeoutChoices[idx]);
       }
     });
-    
+
     RNG.timeout.set(timeoutChoices[3]);
     timeoutComboBox.setSelectedIndex(3);
     return timeoutComboBox;
   }
 
   ClockDaemon timeDaemon = new ClockDaemon();
-  
+
   void startPoolStatus(final JLabel status) {
     Runnable updater = new Runnable() {
       int lastps = 0;
@@ -1148,16 +1148,16 @@ public class SynchronizationTimer {
   private final SynchronizedRef contention_ = new SynchronizedRef(null);
   private final SynchronizedInt loopsPerTest_ = new SynchronizedInt(0);
 
-  private final SynchronizedBoolean echoToSystemOut = 
+  private final SynchronizedBoolean echoToSystemOut =
       new SynchronizedBoolean(false);
 
 
   private final JButton startstop_ = new JButton("Start");
-  
+
   private WaitableInt testNumber_ = new WaitableInt(1);
 
-  private void runOneTest(Runnable tst) throws InterruptedException { 
-    int nt = testNumber_.get(); 
+  private void runOneTest(Runnable tst) throws InterruptedException {
+    int nt = testNumber_.get();
     Threads.pool.execute(tst);
     testNumber_.whenNotEqual(nt, null);
   }
@@ -1168,7 +1168,7 @@ public class SynchronizationTimer {
 
   private SynchronizedBoolean running_ = new SynchronizedBoolean(false);
 
-  void cancel() { 
+  void cancel() {
     //  not stable enough to cancel during construction
     synchronized (RNG.constructionLock) {
       try {
@@ -1192,8 +1192,8 @@ public class SynchronizationTimer {
   class PrintStart implements Runnable {
     public void run() {
       startstop_.setText("Start");
-    } 
-  } 
+    }
+  }
 
 
   void endTestSeries() {
@@ -1215,12 +1215,12 @@ public class SynchronizationTimer {
     final int firstclass;
     final int firstnthreads;
 
-    TestSeries() { 
+    TestSeries() {
       firstclass = 0;
       firstnthreads = 0;
     }
 
-    TestSeries(final int firstc, final int firstnt) { 
+    TestSeries(final int firstc, final int firstnt) {
       firstclass = firstc;
       firstnthreads = firstnt;
     }
@@ -1229,7 +1229,7 @@ public class SynchronizationTimer {
       Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
 
       try {
-        int t = firstnthreads; 
+        int t = firstnthreads;
         int c = firstclass;
 
         if (t < nthreadsChoices.length &&
@@ -1237,19 +1237,19 @@ public class SynchronizationTimer {
 
           for (;;) {
 
-            
+
             // these checks are duplicated in OneTest, but added here
-            // to minimize unecessary thread construction, 
+            // to minimize unecessary thread construction,
             // which can skew results
 
             if (threadEnabled(t)) {
 
               TestedClass entry = TestedClass.classes[c];
-        
+
               int nthreads = nthreadsChoices[t];
               int iters = loopsPerTest_.get();
               Fraction pshr = (Fraction)(contention_.get());
-        
+
               if (entry.isEnabled(nthreads, pshr)) {
 
                 runOneTest(new OneTest(c, t));
@@ -1258,18 +1258,18 @@ public class SynchronizationTimer {
 
             if (++c >= TestedClass.classes.length) {
               c = 0;
-              if (++t >= nthreadsChoices.length) 
+              if (++t >= nthreadsChoices.length)
                 break;
             }
 
             nextClassIdx_.set(c);
             nextThreadIdx_.set(t);
-            
+
           }
         }
 
       }
-      catch (InterruptedException ex) { 
+      catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
       }
       finally {
@@ -1293,20 +1293,20 @@ public class SynchronizationTimer {
 
     public synchronized void run() {
       long now = System.currentTimeMillis();
-      if (startTime_ == 0) 
+      if (startTime_ == 0)
         startTime_ = now;
       else
         endTime_ = now;
     }
   }
-      
+
   class OneTest implements Runnable {
-    final int clsIdx; 
-    final int nthreadsIdx; 
+    final int clsIdx;
+    final int nthreadsIdx;
 
     OneTest(int idx, int t) {
-      clsIdx = idx; 
-      nthreadsIdx = t; 
+      clsIdx = idx;
+      nthreadsIdx = t;
     }
 
     public void run() {
@@ -1324,11 +1324,11 @@ public class SynchronizationTimer {
 
         if (Thread.interrupted()) return;
         if (!threadEnabled(nthreadsIdx)) return;
-        
+
         int nthreads = nthreadsChoices[nthreadsIdx];
         int iters = loopsPerTest_.get();
         Fraction pshr = (Fraction)(contention_.get());
-        
+
         if (!entry.isEnabled(nthreads, pshr))  return;
 
         BarrierTimer timer = new BarrierTimer();
@@ -1371,23 +1371,23 @@ public class SynchronizationTimer {
                                             shared, shared);
               Threads.pool.execute(l.testLoop(true));
             }
-            else if (nthreads % 2 != 0) 
+            else if (nthreads % 2 != 0)
               throw new Error("Must have even number of threads!");
             else {
               int npairs = nthreads / 2;
-              
+
               for (int k = 0; k < npairs; ++k) {
                 ChanRNG t = (ChanRNG)(cls.newInstance());
                 t.setSingle(false);
                 Channel chan = (Channel)(chanCls.newInstance());
-                
-                PCTestLoop l = new PCTestLoop(t.getDelegate(), t, pshr, 
+
+                PCTestLoop l = new PCTestLoop(t.getDelegate(), t, pshr,
                                               iters, barrier,
                                               shared, chan);
-                
+
                 Threads.pool.execute(l.testLoop(false));
                 Threads.pool.execute(l.testLoop(true));
-                
+
               }
             }
           }
@@ -1410,7 +1410,7 @@ public class SynchronizationTimer {
           }
 
         }
-        
+
         // Uncomment if AWT doesn't update right
         //        Thread.sleep(100);
 
@@ -1430,14 +1430,14 @@ public class SynchronizationTimer {
         }
 
       }
-      catch (BrokenBarrierException ex) { 
+      catch (BrokenBarrierException ex) {
         wasInterrupted = true;
       }
       catch (InterruptedException ex) {
         wasInterrupted = true;
         Thread.currentThread().interrupt();
       }
-      catch (Exception ex) { 
+      catch (Exception ex) {
         ex.printStackTrace();
         System.out.println("Construction Exception?");
         System.exit(-1);
@@ -1468,14 +1468,14 @@ class Threads implements ThreadFactory {
 
   static final PooledExecutor pool = new PooledExecutor();
 
-  static { 
-    pool.setKeepAliveTime(10000); 
+  static {
+    pool.setKeepAliveTime(10000);
     pool.setThreadFactory(factory);
   }
 
   static class MyThread extends Thread {
-    public MyThread(Runnable cmd) { 
-      super(cmd); 
+    public MyThread(Runnable cmd) {
+      super(cmd);
     }
 
     public void run() {
@@ -1508,11 +1508,11 @@ class TestLoop {
   final int firstidx;
 
   public TestLoop(RNG sh, RNG pri, Fraction pshr, int it, CyclicBarrier br) {
-    shared = sh; 
-    primary = pri; 
-    pshared = pshr; 
-    iters = it; 
-    barrier = br; 
+    shared = sh;
+    primary = pri;
+    pshared = pshr;
+    iters = it;
+    barrier = br;
 
     firstidx = (int)(primary.get());
 
@@ -1535,9 +1535,9 @@ class TestLoop {
       int xfactor = 1024 / denom;
       if (xfactor < 1) xfactor = 1;
       useShared = new boolean[denom * xfactor];
-      for (int i = 0; i < num * xfactor; ++i) 
+      for (int i = 0; i < num * xfactor; ++i)
         useShared[i] = true;
-      for (int i = num * xfactor; i < denom  * xfactor; ++i) 
+      for (int i = num * xfactor; i < denom  * xfactor; ++i)
         useShared[i] = false;
 
       for (int i = 1; i < useShared.length; ++i) {
@@ -1559,21 +1559,21 @@ class TestLoop {
             delta = 2 - (int)((primary.get() % 5));
           }
           Thread.currentThread().setPriority(Thread.NORM_PRIORITY+delta);
-          
+
           int nshared = (int)(iters * pshared.asDouble());
           int nprimary = iters - nshared;
           int idx = firstidx;
-          
+
           barrier.barrier();
-          
+
           for (int i = iters; i > 0; --i) {
             ++idx;
             if (i % itersPerBarrier == 0)
               primary.exchange();
             else {
-              
+
               RNG r;
-              
+
               if (nshared > 0 && useShared[idx % useShared.length]) {
                 --nshared;
                 r = shared;
@@ -1583,7 +1583,7 @@ class TestLoop {
                 r = primary;
               }
               long rnd = r.next();
-              if (rnd % 2 == 0 && Thread.currentThread().isInterrupted()) 
+              if (rnd % 2 == 0 && Thread.currentThread().isInterrupted())
                 break;
             }
           }
@@ -1597,7 +1597,7 @@ class TestLoop {
           try {
             barrier.barrier();
           }
-          catch (BrokenBarrierException ex) { 
+          catch (BrokenBarrierException ex) {
           }
           catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
@@ -1616,7 +1616,7 @@ class PCTestLoop extends TestLoop {
   final Channel primaryChannel;
   final Channel sharedChannel;
 
-  public PCTestLoop(RNG sh, RNG pri, Fraction pshr, int it, 
+  public PCTestLoop(RNG sh, RNG pri, Fraction pshr, int it,
     CyclicBarrier br, Channel shChan, Channel priChan) {
     super(sh, pri, pshr, it, br);
     sharedChannel = shChan;
@@ -1629,23 +1629,23 @@ class PCTestLoop extends TestLoop {
         int delta = -1;
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY+delta);
         int itersPerBarrier = RNG.itersPerBarrier.get();
-        try { 
-          
+        try {
+
           int nshared = (int)(iters * pshared.asDouble());
           int nprimary = iters - nshared;
           int idx = firstidx;
-          
-          barrier.barrier(); 
-          
+
+          barrier.barrier();
+
           ChanRNG target = (ChanRNG)(primary);
-          
+
           for (int i = iters; i > 0; --i) {
             ++idx;
             if (i % itersPerBarrier == 0)
               primary.exchange();
             else {
               Channel c;
-            
+
               if (nshared > 0 && useShared[idx % useShared.length]) {
                 --nshared;
                 c = sharedChannel;
@@ -1654,14 +1654,14 @@ class PCTestLoop extends TestLoop {
                 --nprimary;
                 c = primaryChannel;
               }
-              
+
               long rnd;
-              if (isProducer) 
+              if (isProducer)
                 rnd = target.producerNext(c);
-              else 
+              else
                 rnd = target.consumerNext(c);
-              
-              if (rnd % 2 == 0 && Thread.currentThread().isInterrupted()) 
+
+              if (rnd % 2 == 0 && Thread.currentThread().isInterrupted())
                 break;
             }
           }
@@ -1678,7 +1678,7 @@ class PCTestLoop extends TestLoop {
           catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
           }
-          catch (BrokenBarrierException ex) { 
+          catch (BrokenBarrierException ex) {
           }
           finally {
             Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
@@ -1706,23 +1706,23 @@ abstract class RNG implements Serializable, Comparable {
   // Use construction lock for all params to disable
   // changes in midst of construction of test objects.
 
-  static final SynchronizedInt computeLoops = 
+  static final SynchronizedInt computeLoops =
     new SynchronizedInt(16, constructionLock);
-  static final SynchronizedInt syncMode = 
+  static final SynchronizedInt syncMode =
     new SynchronizedInt(0, constructionLock);
-  static final SynchronizedInt producerMode = 
+  static final SynchronizedInt producerMode =
     new SynchronizedInt(0, constructionLock);
-  static final SynchronizedInt consumerMode = 
+  static final SynchronizedInt consumerMode =
     new SynchronizedInt(0, constructionLock);
-  static final SynchronizedInt bias = 
+  static final SynchronizedInt bias =
     new SynchronizedInt(0, constructionLock);
-  static final SynchronizedLong timeout = 
+  static final SynchronizedLong timeout =
     new SynchronizedLong(100, constructionLock);
-  static final SynchronizedInt exchangeParties = 
+  static final SynchronizedInt exchangeParties =
     new SynchronizedInt(1, constructionLock);
-  static final SynchronizedInt sequenceNumber = 
+  static final SynchronizedInt sequenceNumber =
     new SynchronizedInt(0, constructionLock);
-  static final SynchronizedInt itersPerBarrier = 
+  static final SynchronizedInt itersPerBarrier =
     new SynchronizedInt(0, constructionLock);
 
   static Rendezvous[] exchangers_;
@@ -1732,7 +1732,7 @@ abstract class RNG implements Serializable, Comparable {
       sequenceNumber.set(-1);
       int parties = exchangeParties.get();
       if (nthreads < parties) parties = nthreads;
-      if (nthreads % parties != 0) 
+      if (nthreads % parties != 0)
         throw new Error("need even multiple of parties");
       exchangers_ = new Rendezvous[nthreads / parties];
       for (int i = 0; i < exchangers_.length; ++i) {
@@ -1745,7 +1745,7 @@ abstract class RNG implements Serializable, Comparable {
     synchronized(constructionLock) {
       long s = lastSeed;
       lastSeed = (lastSeed * smul) % smod;
-      if (lastSeed == 0) 
+      if (lastSeed == 0)
         lastSeed = (int)(System.currentTimeMillis());
       return s;
     }
@@ -1770,7 +1770,7 @@ abstract class RNG implements Serializable, Comparable {
   }
 
   public void exchange() throws InterruptedException {
-    Rendezvous ex = getExchanger(); 
+    Rendezvous ex = getExchanger();
     Runnable r = (Runnable)(ex.rendezvous(new UpdateCommand(this)));
     if (r != null) r.run();
   }
@@ -1783,10 +1783,10 @@ abstract class RNG implements Serializable, Comparable {
     else return 0;
   }
 
-  protected final long compute(long l) { 
+  protected final long compute(long l) {
     int loops = (int)((l & 0x7FFFFFFF) % (cloops * 2)) + 1;
     for (int i = 0; i < loops; ++i) l = (l * rmul) % rmod;
-    return (l == 0)? firstSeed : l; 
+    return (l == 0)? firstSeed : l;
   }
 
   abstract protected void set(long l);
@@ -1802,12 +1802,12 @@ abstract class RNG implements Serializable, Comparable {
 class UpdateCommand implements Runnable, Serializable, Comparable {
   private final RNG obj_;
   final long cmpVal;
-  public UpdateCommand(RNG o) { 
-    obj_ = o; 
+  public UpdateCommand(RNG o) {
+    obj_ = o;
     cmpVal = o.get();
   }
 
-  public void run() { obj_.update(); } 
+  public void run() { obj_.update(); }
 
   public int compareTo(Object x) {
     UpdateCommand u = (UpdateCommand)x;
@@ -1821,13 +1821,13 @@ class UpdateCommand implements Runnable, Serializable, Comparable {
 class GetFunction implements Callable {
   private final RNG obj_;
   public GetFunction(RNG o) { obj_ = o;  }
-  public Object call() { return new Long(obj_.get()); } 
+  public Object call() { return new Long(obj_.get()); }
 }
 
 class NextFunction implements Callable {
   private final RNG obj_;
   public NextFunction(RNG o) { obj_ = o;  }
-  public Object call() { return new Long(obj_.next()); } 
+  public Object call() { return new Long(obj_.next()); }
 }
 
 
@@ -1835,12 +1835,12 @@ class NoSynchRNG extends RNG {
   protected long current_ = nextSeed();
 
   protected void set(long l) { current_ = l; }
-  protected long internalGet() { return current_; }  
+  protected long internalGet() { return current_; }
   protected void internalUpdate() { set(compute(internalGet())); }
 }
 
 class PublicSynchRNG extends NoSynchRNG {
-  public synchronized long get() { return internalGet(); }  
+  public synchronized long get() { return internalGet(); }
   public synchronized void update() { internalUpdate();  }
   public synchronized long next() { internalUpdate(); return internalGet(); }
 }
@@ -1853,13 +1853,13 @@ class AllSynchRNG extends PublicSynchRNG {
 
 
 class AClongRNG extends RNG {
-  protected final SynchronizedLong acurrent_ = 
+  protected final SynchronizedLong acurrent_ =
     new SynchronizedLong(nextSeed());
 
   protected void set(long l) { throw new Error("No set allowed"); }
   protected long internalGet() { return acurrent_.get(); }
 
-  protected void internalUpdate() { 
+  protected void internalUpdate() {
     int retriesBeforeSleep = 100;
     int maxSleepTime = 100;
     int retries = 0;
@@ -1877,19 +1877,19 @@ class AClongRNG extends RNG {
         }
         retries = 0;
       }
-    }        
+    }
   }
-  
+
 }
 
 class SynchLongRNG extends RNG {
-  protected final SynchronizedLong acurrent_ = 
+  protected final SynchronizedLong acurrent_ =
     new SynchronizedLong(nextSeed());
 
   protected void set(long l) { acurrent_.set(l); }
   protected long internalGet() { return acurrent_.get(); }
   protected void internalUpdate() { set(compute(internalGet())); }
-  
+
 }
 
 abstract class DelegatedRNG extends RNG  {
@@ -1917,8 +1917,8 @@ class SDelegatedRNG extends DelegatedRNG {
 
 class SyncDelegatedRNG extends DelegatedRNG {
   protected final Sync cond_;
-  public SyncDelegatedRNG(Sync c) { 
-    cond_ = c; 
+  public SyncDelegatedRNG(Sync c) {
+    cond_ = c;
     setDelegate(new NoSynchRNG());
   }
 
@@ -1931,43 +1931,43 @@ class SyncDelegatedRNG extends DelegatedRNG {
       while (!cond_.attempt(waitTime)) {}
     }
   }
-      
-  public long next() { 
+
+  public long next() {
     try {
       acquire();
 
       getDelegate().update();
       long l = getDelegate().get();
-      cond_.release(); 
+      cond_.release();
       return l;
     }
-    catch(InterruptedException x) { 
-      Thread.currentThread().interrupt(); 
+    catch(InterruptedException x) {
+      Thread.currentThread().interrupt();
       return 0;
     }
   }
 
-  public long get()  { 
+  public long get()  {
     try {
       acquire();
       long l = getDelegate().get();
-      cond_.release(); 
+      cond_.release();
       return l;
     }
-    catch(InterruptedException x) { 
-      Thread.currentThread().interrupt(); 
+    catch(InterruptedException x) {
+      Thread.currentThread().interrupt();
       return 0;
     }
   }
 
-  public void update()  { 
+  public void update()  {
     try {
       acquire();
       getDelegate().update();
-      cond_.release(); 
+      cond_.release();
     }
-    catch(InterruptedException x) { 
-      Thread.currentThread().interrupt(); 
+    catch(InterruptedException x) {
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -2002,10 +2002,10 @@ class RlockRNG extends SyncDelegatedRNG {
 
 class RWLockRNG extends NoSynchRNG {
   protected final ReadWriteLock lock_;
-  public RWLockRNG(ReadWriteLock l) { 
-    lock_ = l; 
+  public RWLockRNG(ReadWriteLock l) {
+    lock_ = l;
   }
-      
+
   protected final void acquireR() throws InterruptedException {
     if (smode == 0) {
       lock_.readLock().acquire();
@@ -2025,15 +2025,15 @@ class RWLockRNG extends NoSynchRNG {
   }
 
 
-  public long next() { 
+  public long next() {
     long l = 0;
     try {
       acquireR();
       l = current_;
-      lock_.readLock().release(); 
+      lock_.readLock().release();
     }
-    catch(InterruptedException x) { 
-      Thread.currentThread().interrupt(); 
+    catch(InterruptedException x) {
+      Thread.currentThread().interrupt();
       return 0;
     }
 
@@ -2042,39 +2042,39 @@ class RWLockRNG extends NoSynchRNG {
     try {
       acquireW();
       set(l);
-      lock_.writeLock().release(); 
+      lock_.writeLock().release();
       return l;
     }
-    catch(InterruptedException x) { 
-      Thread.currentThread().interrupt(); 
+    catch(InterruptedException x) {
+      Thread.currentThread().interrupt();
       return 0;
     }
   }
 
 
-  public long get()  { 
+  public long get()  {
     try {
       acquireR();
       long l = current_;
-      lock_.readLock().release(); 
+      lock_.readLock().release();
       return l;
     }
-    catch(InterruptedException x) { 
-      Thread.currentThread().interrupt(); 
+    catch(InterruptedException x) {
+      Thread.currentThread().interrupt();
       return 0;
     }
   }
 
-  public void update()  { 
+  public void update()  {
     long l = 0;
 
     try {
       acquireR();
       l = current_;
-      lock_.readLock().release(); 
+      lock_.readLock().release();
     }
-    catch(InterruptedException x) { 
-      Thread.currentThread().interrupt(); 
+    catch(InterruptedException x) {
+      Thread.currentThread().interrupt();
       return;
     }
 
@@ -2083,10 +2083,10 @@ class RWLockRNG extends NoSynchRNG {
     try {
       acquireW();
       set(l);
-      lock_.writeLock().release(); 
+      lock_.writeLock().release();
     }
-    catch(InterruptedException x) { 
-      Thread.currentThread().interrupt(); 
+    catch(InterruptedException x) {
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -2097,8 +2097,8 @@ class WpRWlockRNG extends RWLockRNG {
 }
 
 class ReaderPrefRWlockRNG extends RWLockRNG {
-  public ReaderPrefRWlockRNG() { 
-    super(new ReaderPreferenceReadWriteLock()); 
+  public ReaderPrefRWlockRNG() {
+    super(new ReaderPreferenceReadWriteLock());
   }
 
 
@@ -2110,8 +2110,8 @@ class FIFORWlockRNG extends RWLockRNG {
 
 
 class ReentrantRWlockRNG extends RWLockRNG {
-  public ReentrantRWlockRNG() { 
-    super(new ReentrantWriterPreferenceReadWriteLock()); 
+  public ReentrantRWlockRNG() {
+    super(new ReentrantWriterPreferenceReadWriteLock());
   }
 
   public void update()  {  // use embedded acquires
@@ -2123,20 +2123,20 @@ class ReentrantRWlockRNG extends RWLockRNG {
       try {
         acquireR();
         l = current_;
-        lock_.readLock().release(); 
+        lock_.readLock().release();
       }
-      catch(InterruptedException x) { 
-        Thread.currentThread().interrupt(); 
+      catch(InterruptedException x) {
+        Thread.currentThread().interrupt();
         return;
       }
 
       l = compute(l);
 
       set(l);
-      lock_.writeLock().release(); 
+      lock_.writeLock().release();
     }
-    catch(InterruptedException x) { 
-      Thread.currentThread().interrupt(); 
+    catch(InterruptedException x) {
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -2165,19 +2165,19 @@ abstract class ExecutorRNG extends DelegatedRNG {
     return delegatedNext_;
   }
 
-  public void update() { 
+  public void update() {
     try {
-      getExecutor().execute(delegatedUpdateCommand()); 
+      getExecutor().execute(delegatedUpdateCommand());
     }
     catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
     }
   }
 
-  // Each call to next gets result of previous future 
+  // Each call to next gets result of previous future
   FutureResult nextResult_ = null;
 
-  public synchronized long next() { 
+  public synchronized long next() {
     long res = 0;
     try {
       if (nextResult_ == null) { // direct call first time through
@@ -2188,7 +2188,7 @@ abstract class ExecutorRNG extends DelegatedRNG {
 
       nextResult_ = new FutureResult();
       Runnable r = nextResult_.setter(delegatedNextFunction());
-      getExecutor().execute(r); 
+      getExecutor().execute(r);
 
       res =  ((Long)(currentResult.get())).longValue();
 
@@ -2205,25 +2205,25 @@ abstract class ExecutorRNG extends DelegatedRNG {
 }
 
 class DirectExecutorRNG extends ExecutorRNG {
-  public DirectExecutorRNG() { 
-    setDelegate(new PublicSynchRNG()); 
-    setExecutor(new DirectExecutor()); 
+  public DirectExecutorRNG() {
+    setDelegate(new PublicSynchRNG());
+    setExecutor(new DirectExecutor());
   }
 }
 
 class LockedSemRNG extends ExecutorRNG {
-  public LockedSemRNG() { 
-    setDelegate(new NoSynchRNG()); 
-    setExecutor(new LockedExecutor(new Semaphore(1))); 
+  public LockedSemRNG() {
+    setDelegate(new NoSynchRNG());
+    setExecutor(new LockedExecutor(new Semaphore(1)));
   }
 }
 
 class QueuedExecutorRNG extends ExecutorRNG {
   static final QueuedExecutor exec = new QueuedExecutor();
   static { exec.setThreadFactory(Threads.factory); }
-  public QueuedExecutorRNG() { 
-    setDelegate(new PublicSynchRNG()); 
-    setExecutor(exec); 
+  public QueuedExecutorRNG() {
+    setDelegate(new PublicSynchRNG());
+    setExecutor(exec);
   }
 }
 
@@ -2254,9 +2254,9 @@ class ThreadedExecutorRNG extends ExecutorRNG {
   static final ThreadedExecutor exec = new ThreadedExecutor();
   static { exec.setThreadFactory(Threads.factory); }
 
-  public ThreadedExecutorRNG() { 
-    setDelegate(new PublicSynchRNG()); 
-    setExecutor(exec); 
+  public ThreadedExecutorRNG() {
+    setDelegate(new PublicSynchRNG());
+    setExecutor(exec);
   }
 }
 
@@ -2264,9 +2264,9 @@ class ThreadedExecutorRNG extends ExecutorRNG {
 class PooledExecutorRNG extends ExecutorRNG {
   static final PooledExecutor exec = Threads.pool;
 
-  public PooledExecutorRNG() { 
-    setDelegate(new PublicSynchRNG()); 
-    setExecutor(exec); 
+  public PooledExecutorRNG() {
+    setDelegate(new PublicSynchRNG());
+    setExecutor(exec);
   }
 }
 
@@ -2297,7 +2297,7 @@ class ChanRNG extends DelegatedRNG {
       else if (pcBias == 0) {
         r.update();
       }
-      
+
       if (pmode == 0) {
         c.put(r);
       }
@@ -2316,7 +2316,7 @@ class ChanRNG extends DelegatedRNG {
     else {
       while (r == null) r = (RNG)(c.poll(waitTime));
     }
-    
+
     if (pcBias == 0) {
       r.update();
     }
