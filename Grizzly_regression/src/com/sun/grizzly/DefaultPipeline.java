@@ -48,7 +48,7 @@ import com.surelogic.Unique;
 @Region("protected Region")
 @RegionLock("ThisLock is this protects Region"/*is INCONSISTENT*/)
 @Promise("@InRegion(Region) for * *")
-@Assumes({@Assume("'SingleThreaded' for new() in java.util.LinkedList"), @Assume("'Borrowed this' for new() in java.util.LinkedLists")}) //not yet supported
+// Used to have stuff on this line.  Keep this comment so that the line numbers won't change in the oracle file
 public class DefaultPipeline extends LinkedList<Callable>
         implements Pipeline<Callable>{
 
