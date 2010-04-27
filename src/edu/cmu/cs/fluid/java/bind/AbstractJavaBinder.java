@@ -971,14 +971,20 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  return false; // don't bind: not in the target granule
       }      
       if (binding == null) {
-        LOG.warning("Cannot find a binding for " + DebugUnparser.toString(node));
+    	if (isBinary(node)) {
+       		System.err.println("Cannot find a binding for " + DebugUnparser.toString(node));
+    	} else {
+    		LOG.warning("Cannot find a binding for " + DebugUnparser.toString(node));
+    	}
         if (storeNullBindings) {
           node.setSlotValue(bindings.getUseToDeclAttr(), null);
         }
+        /*
         if (!SimpleName.prototype.includes(node) && 
             !QualifiedName.prototype.includes(node)) {
         	System.out.println();
         }
+        */
         return false;
       } else if (debug){
         LOG.finer("Establishing binding for " + node + " = " + DebugUnparser.toString(node) + " to " + 
