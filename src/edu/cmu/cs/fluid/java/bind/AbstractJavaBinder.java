@@ -2756,7 +2756,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       */
       IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
-      // sc.add(node);
+      sc.add(node);
       addDeclsToScope(tformals, sc);
       doAcceptForChildren(node,sc);
       return null;
