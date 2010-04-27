@@ -1034,7 +1034,11 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   public IJavaType getJavaType(IRNode node) {
 	  IJavaType result = doAccept(node);  
 	  if (result == null) {
-	      LOG.log( Level.SEVERE, "Cannot get type for " + DebugUnparser.toString(node) );
+		  if (!AbstractJavaBinder.isBinary(node)) {
+			  System.err.println("Cannot get type for " + DebugUnparser.toString(node));
+		  } else {
+			  LOG.log( Level.SEVERE, "Cannot get type for " + DebugUnparser.toString(node) );
+		  }
 		  result = doAccept(node);  
 	  }
 	  return result;
