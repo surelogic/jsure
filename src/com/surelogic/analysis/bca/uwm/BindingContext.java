@@ -389,7 +389,14 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
        * returned."
        */
       /* Don't check for null, if we cannot bind the use, we have big problems */
-      if (UniquenessRules.isUnique(JavaPromise.getReturnNode(binder.getBinding(expr)))) {
+      IRNode b = binder.getBinding(expr);
+      IRNode returnNode = JavaPromise.getReturnNodeOrNull(b);
+      /*
+      if (returnNode == null) {
+    	  System.out.println("No return node on "+DebugUnparser.toString(b));
+      }
+      */
+      if (returnNode != null && UniquenessRules.isUnique(returnNode)) {
         return CachedSet.<IRNode>getEmpty().addElement(expr);
       }
     } else if (ThisExpression.prototype.includes(op)) {
