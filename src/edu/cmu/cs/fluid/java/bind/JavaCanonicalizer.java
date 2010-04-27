@@ -589,6 +589,9 @@ public class JavaCanonicalizer {
     	// Check for var args
     	IRNode call   = tree.getParent(node);
     	IBinding b    = binder.getIBinding(call);
+    	if (b == null) {
+    		return false;
+    	}
     	IRNode params = SomeFunctionDeclaration.getParams(b.getNode());
     	int numParams = tree.numChildren(params);
     	if (numParams == 0) {
