@@ -357,6 +357,9 @@ public class JavaTypeFactory implements IRType, Cleanable {
     } else if (op instanceof TypeRef) {
       IJavaType outer = convertNodeTypeToIJavaType(TypeRef.getBase(nodeType),binder);
       IRNode decl = binder.getBinding(nodeType);
+      if (decl == null) {
+    	  return null;
+      }
       return getDeclaredType(decl,null,(IJavaDeclaredType)outer);
     } else if (op instanceof TypeFormal) {
       return getTypeFormal(nodeType);      
