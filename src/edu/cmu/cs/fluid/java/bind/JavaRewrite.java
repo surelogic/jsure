@@ -110,12 +110,14 @@ public class JavaRewrite implements JavaGlobals {
 			}
 		}
 		IRNode type = VisitUtil.getEnclosingType(constructor);
+		IRNode call;
 		if (EnumDeclaration.prototype.includes(type)) {
-			IRNode call = makeEnumSuperConstructorCall();
-			insertDefaultCall(body, call);
-		} else {
-			insertDefaultCall(body, CogenUtil.makeDefaultSuperCall());
+			call = makeEnumSuperConstructorCall();
+		} else {			
+			call = CogenUtil.makeDefaultSuperCall();
+			//System.out.println("Creating super(): "+call);
 		}
+		insertDefaultCall(body, call);
 		return true;
 	}
 
@@ -617,6 +619,7 @@ public class JavaRewrite implements JavaGlobals {
 			throwsC = JavaGlobals.noNodes;
 		}
 		IRNode[] stmt = new IRNode[] { CogenUtil.makeDefaultSuperCall() };
+		//System.out.println("Creating constructor with super(): "+stmt[0]);
 		IRNode block = BlockStatement.createNode(stmt);
 		IRNode body = MethodBody.createNode(block);
 		IRNode constructor = CogenUtil.makeConstructorDecl(noNodes, mods,

@@ -1842,8 +1842,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public Void visitConstructorCall(IRNode node) {
       visit(node); // bind the arguments etc
       if (!isFullPass || pathToTarget != null) return null;
+      
       ConstructorCall call = (ConstructorCall) getOperator(node);     
-      IJavaType ty = getJavaType(call.get_Object(node));
+      IRNode object = call.get_Object(node);
+      /*
+      if (SuperExpression.prototype.includes(object)) {
+    	  System.out.println("Binding super(): "+node);
+      }
+      */
+      IJavaType ty = getJavaType(object);
       if (ty instanceof IJavaDeclaredType) {
         IRNode tdecl = ((IJavaDeclaredType)ty).getDeclaration(); 
         IRNode targs = call.get_TypeArgs(node);
