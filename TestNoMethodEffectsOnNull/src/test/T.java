@@ -36,7 +36,7 @@ public class T {
 
   @RegionEffects("writes other:Instance")
   public static void test2(final T other) {
-  	other.f = 0;
+  	other.f = ((T) null).f;
   	((T) null).f = 10;
   	((T) (T) (T) (null)).f = 100;
   	(((T) ((T) (null)))).f = 1000;
