@@ -388,10 +388,13 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
             Effect.newEffect(expr, isRead, targetFactory.createClassTarget(id)));
       } else {
         final IRNode obj = FieldRef.getObject(expr);
-        final Target initTarget = 
-          targetFactory.createInstanceTarget(obj, RegionModel.getInstance(id));
-        Effects.elaborateInstanceTargetEffects(
-            context.bcaQuery, targetFactory, binder, expr, isRead, initTarget, context.theEffects);
+        // Public bug 37: Skip effects on "null" references
+        if (!Effects.isNullExpression(obj)) {
+          final Target initTarget = 
+            targetFactory.createInstanceTarget(obj, RegionModel.getInstance(id));
+          Effects.elaborateInstanceTargetEffects(
+              context.bcaQuery, targetFactory, binder, expr, isRead, initTarget, context.theEffects);
+        }
       }
     }
     doAcceptForChildren(expr);

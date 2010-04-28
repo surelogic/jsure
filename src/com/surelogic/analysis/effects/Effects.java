@@ -37,7 +37,10 @@ import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
+import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.NullLiteral;
+import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -363,14 +366,19 @@ public final class Effects implements IBinderClient {
         final IRNode ref = t.getReference();
         final IRNode val = table.get(ref);
         if (val != null) {
-          final Target newTarg =
-            targetFactory.createInstanceTarget(val, t.getRegion());
-          if (returnRaw) {
-            methodEffects.add(Effect.newEffect(call, eff.isRead(), newTarg));
-          } else {
-            elaborateInstanceTargetEffects(
-                bcaQuery, targetFactory, binder, call, eff.isRead(),
-                newTarg, methodEffects);
+          /* Public bug 37: if the actual argument is "null" then we ignore 
+           * the effect because there is no object. 
+           */
+          if (!isNullExpression(val)) {
+            final Target newTarg =
+              targetFactory.createInstanceTarget(val, t.getRegion());
+            if (returnRaw) {
+              methodEffects.add(Effect.newEffect(call, eff.isRead(), newTarg));
+            } else {
+              elaborateInstanceTargetEffects(
+                  bcaQuery, targetFactory, binder, call, eff.isRead(),
+                  newTarg, methodEffects);
+            }
           }
         } else { // See if ref is a QualifiedReceiverDeclaration
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
@@ -391,6 +399,23 @@ public final class Effects implements IBinderClient {
     return Collections.unmodifiableSet(methodEffects);
   }
 
+  /**
+   * Test if an expression is a NullLiteral.  Unwraps ParenExpression
+   * and CastExpressions.
+   */
+  // Package visible: Allow EffectsVisitor to call this method
+  static boolean isNullExpression(final IRNode expr) {
+    final Operator op = JJNode.tree.getOperator(expr);
+    if (NullLiteral.prototype.includes(op)) {
+      return true;
+    } else if (ParenExpression.prototype.includes(op)) {
+      return isNullExpression(ParenExpression.getOp(expr));
+    } else if (CastExpression.prototype.includes(op)) {
+      return isNullExpression(CastExpression.getExpr(expr));
+    } else {
+      return false;
+    }
+  }
 
   
   // ----------------------------------------------------------------------
