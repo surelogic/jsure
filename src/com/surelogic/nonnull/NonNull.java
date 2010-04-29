@@ -105,7 +105,7 @@ public final class NonNull extends AbstractWholeIRAnalysisModule {
 	  final NonNullVisitor v = new NonNullVisitor();
 	  v.doAccept(compUnit);
 	  nonNullAnalysis.clear();
-//	  JavaComponentFactory.clearCache();
+	  JavaComponentFactory.clearCache();
 	}
 	
 	private final class NonNullVisitor extends AbstractJavaAnalysisDriver<SimpleNonnullAnalysis.Query> {
