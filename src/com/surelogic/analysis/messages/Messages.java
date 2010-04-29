@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/messages/Messages.java,v 1.22 2009/02/17 19:48:34 aarong Exp $*/
 package com.surelogic.analysis.messages;
 
 import java.util.*;
@@ -57,120 +56,65 @@ public class Messages extends AbstractMessages {
   
   // Drop-sea result messages
   public static int LockAnalysis_ds_SynchronizedConstructorAssured = 200;
-
   public static int LockAnalysis_ds_AggregationNeeded = 201;
-
   public static int LockAnalysis_ds_AggregationNeeded2 = 202;
-
   public static int LockAnalysis_ds_FieldAccessAssured = 203;
-
   public static int LockAnalysis_ds_FieldAccessAssuredAlternative = 204;
-
   public static int LockAnalysis_ds_FieldAccessNotAssured = 205;
-
   public static int LockAnalysis_ds_FieldAccessNotResolvable = 206;
-
-  public static int LockAnalysis_ds_FieldAccessOkayClassInit = 244;
-  
-  public static int LockAnalysis_ds_FieldAccessOkayThreadConfined = 245;
-  
-  public static int LockAnalysis_ds_FieldAccessOkayClassInitAlternative = 246;
-  
-  public static int LockAnalysis_ds_FieldAccessOkayThreadConfinedAlternative = 247;
-  
   public static int LockAnalysis_ds_PreconditionsAssured = 207;
-
   public static int LockAnalysis_ds_PreconditionsAssuredAlternative = 208;
-
   public static int LockAnalysis_ds_PreconditionsNotAssured = 209;
-
-  public static int LockAnalysis_ds_PreconditionsNotResolvable = 242;
-  
-  public static int LockAnalysis_ds_PreconditionsOkayClassInit = 248;
-  
-  public static int LockAnalysis_ds_PreconditionsOkayThreadConfined = 249;
-  
-  public static int LockAnalysis_ds_PreconditionsOkayClassInitAlternative = 250;
-  
-  public static int LockAnalysis_ds_PreconditionsOkayThreadConfinedAlternative = 251;
-  
   public static int LockAnalysis_ds_PreconditionNotResolvable = 210;
-
   public static int LockAnalysis_ds_IndirectFieldAccessAssured = 211;
-
   public static int LockAnalysis_ds_IndirectFieldAccessAssuredAlternative = 212;
-
   public static int LockAnalysis_ds_IndirectFieldAccessNotAssured = 213;
-
-  public static int LockAnalysis_ds_IndirectFieldAccessNotResolvable = 243;
-  
-  public static int LockAnalysis_ds_IndirectFieldAccessOkayClassInit = 252;
-  
-  public static int LockAnalysis_ds_IndirectFieldAccessOkayThreadConfined = 253;
-  
-  public static int LockAnalysis_ds_IndirectFieldAccessOkayClassInitAlternative = 254;
-  
-  public static int LockAnalysis_ds_IndirectFieldAccessOkayThreadConfinedAlternative = 255;
-  
   public static int LockAnalysis_ds_ReturnAssured = 214;
-
   public static int LockAnalysis_ds_ReturnNotAssured = 215;
-
   public static int LockAnalysis_ds_SynchronizedMethodWarningDetails = 216;
-  
   public static int LockAnalysis_ds_SynchronizedStaticMethodWarningDetails = 217;
-  
   public static int LockAnalysis_ds_SynchronizationUnused = 218;
-
   public static int LockAnalysis_ds_NonfinalExpression = 219;
-
   public static int LockAnalysis_ds_UnidentifiableLock = 220;
-  
   public static int LockAnalysis_ds_RedundantSynchronized = 221;
-  
   public static int LockAnalysis_ds_SyncedJUCLock = 222;
-  
   public static int LockAnalysis_ds_MasqueradingCall = 223;
-  
   public static int LockAnalysis_ds_MasqueradingCall2 = 224;
-  
   public static int LockAnalysis_ds_JUCLockFields = 225;
-  
   public static int LockAnalysis_ds_JUCLockFields2 = 226;
-  
   public static int LockAnalysis_ds_DeclaredJUCLockField = 227;
-  
-  
-  // Drop-sea Supporting information messages
-  public static int LockAnalysis_ds_OnBehalfOfConstructor = 235;
+  public static int LockAnalysis_ds_PoisonedLockCall=228;
+  public static int LockAnalysis_ds_NoMatchingUnlocks=229;
+  public static int LockAnalysis_ds_MatchingUnlock=230;
+  public static int LockAnalysis_ds_PoisonedUnlockCall=231;
+  public static int LockAnalysis_ds_NoMatchingLocks=232;
+  public static int LockAnalysis_ds_MatchingLock=233;
+  public static int LockAnalysis_ds_AggregationEvidence=234;
+  public static int LockAnalysis_ds_ConstructorIsSingleThreaded = 235;
+  public static int LockAnalysis_ds_OnBehalfOfConstructor = 236;
+  public static int LockAnalysis_ds_EnclosingConstructorIsSingleThreaded = 237;
+  public static int LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded = 238;
+  public static int LockAnalysis_ds_FieldDeclaration = 239;
+  public static int LockAnalysis_ds_AssumedHeld = 240;
+  public static int LockAnalysis_ds_HeldLock = 241;
+  public static int LockAnalysis_ds_HeldJUCLock = 242;
+  public static int LockAnalysis_ds_PreconditionsNotResolvable = 243;
+  public static int LockAnalysis_ds_IndirectFieldAccessNotResolvable = 244;
+  public static int LockAnalysis_ds_FieldAccessOkayClassInit = 245;
+  public static int LockAnalysis_ds_FieldAccessOkayThreadConfined = 246;
+  public static int LockAnalysis_ds_FieldAccessOkayClassInitAlternative = 247;
+  public static int LockAnalysis_ds_FieldAccessOkayThreadConfinedAlternative = 248;
+  public static int LockAnalysis_ds_PreconditionsOkayClassInit = 249;
+  public static int LockAnalysis_ds_PreconditionsOkayThreadConfined = 250;
+  public static int LockAnalysis_ds_PreconditionsOkayClassInitAlternative = 251;
+  public static int LockAnalysis_ds_PreconditionsOkayThreadConfinedAlternative = 252;
+  public static int LockAnalysis_ds_IndirectFieldAccessOkayClassInit = 253;
+  public static int LockAnalysis_ds_IndirectFieldAccessOkayThreadConfined = 254;
+  public static int LockAnalysis_ds_IndirectFieldAccessOkayClassInitAlternative = 255;
+  public static int LockAnalysis_ds_IndirectFieldAccessOkayThreadConfinedAlternative = 256;
+  public static int LockAnalysis_ds_LockViz = 257;
+  public static int LockAnalysis_ds_UnsupportedModel = 258;
 
-  public static int LockAnalysis_ds_ConstructorIsSingleThreaded = 234;
-  
-  public static int LockAnalysis_ds_EnclosingConstructorIsSingleThreaded = 236;
-  
-  public static int LockAnalysis_ds_EnclosingConstructorNotProvenSingleThreaded = 237;
-    
-  public static int LockAnalysis_ds_FieldDeclaration = 238;
-  
-  public static int LockAnalysis_ds_AssumedHeld = 239;
-
-  public static int LockAnalysis_ds_HeldLock = 240;
-  
-  public static int LockAnalysis_ds_HeldJUCLock = 241;
-
-  public static int LockAnalysis_ds_PoisonedLockCall=227;
-  
-  public static int LockAnalysis_ds_NoMatchingUnlocks=228;
-  
-  public static int LockAnalysis_ds_MatchingUnlock=229;
-  
-  public static int LockAnalysis_ds_PoisonedUnlockCall=230;
-  
-  public static int LockAnalysis_ds_NoMatchingLocks=231;
-  
-  public static int LockAnalysis_ds_MatchingLock=232;
-
-  public static int LockAnalysis_ds_AggregationEvidence=233;
   
   
   // Labels for the single-threaded result disjunction
@@ -180,13 +124,7 @@ public class Messages extends AbstractMessages {
   
   public static String LockAnalysis_ds_SingleThreadedBorrowedThis = "by borrowed receiver";
 
-  
-  
-  public static int LockAnalysis_ds_LockViz = 256;
-  
-  public static int LockAnalysis_ds_UnsupportedModel = 257;
-  
-  
+
   
   private static final Map<String,String> value2field = new HashMap<String,String>();
   
