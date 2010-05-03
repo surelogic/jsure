@@ -7,23 +7,17 @@ import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
-import com.surelogic.aast.bind.IHasVariableBinding;
 import com.surelogic.aast.java.*;
-import com.surelogic.analysis.locks.LockUtils;
-import com.surelogic.parse.AbstractSingleNodeFactory;
-
-import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.java.bind.*;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public final class GuardedByNode extends AASTRootNode 
 { 
   // Fields
   private final ExpressionNode lock;
 
-  public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+  public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
   "GuardedBy") {
 	  @Override
-	  @SuppressWarnings("unchecked")
 	  public AASTNode create(String _token, int _start, int _stop, int _mods,
 			  String _id, int _dims, List<AASTNode> _kids) {
 		  ExpressionNode field = (ExpressionNode) _kids.get(0);

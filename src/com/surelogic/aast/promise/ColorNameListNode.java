@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.surelogic.aast.AASTNode;
-import com.surelogic.aast.IAASTNode;
-import com.surelogic.aast.INodeVisitor;
+import com.surelogic.aast.*;
 
 public abstract class ColorNameListNode extends ColoringAnnotationNode {
 //Fields

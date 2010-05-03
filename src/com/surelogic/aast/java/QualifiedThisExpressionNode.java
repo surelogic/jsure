@@ -7,7 +7,7 @@ import java.util.List;
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.IVariableBinding;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -16,10 +16,10 @@ public class QualifiedThisExpressionNode extends SomeThisExpressionNode {
   // Fields
   private final ClassTypeNode type;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("QualifiedThisExpression") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("QualifiedThisExpression") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         ClassTypeNode type =  (ClassTypeNode) _kids.get(0);
         return new QualifiedThisExpressionNode (_start,

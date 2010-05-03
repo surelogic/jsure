@@ -8,16 +8,16 @@ import java.util.*;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.java.NamedTypeNode;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class SubtypedBySpecificationNode extends AASTNode { 
   // Fields
   private final List<NamedTypeNode> types;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("SubtypedBySpecification") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("SubtypedBySpecification") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         List<NamedTypeNode> types = ((List) _kids);
         return new SubtypedBySpecificationNode (_start,

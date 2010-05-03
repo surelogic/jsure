@@ -5,7 +5,7 @@ package com.surelogic.aast.java;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.CharType;
@@ -13,10 +13,10 @@ import edu.cmu.cs.fluid.java.operator.CharType;
 public class CharTypeNode extends IntegralTypeNode { 
   // Fields
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("CharType") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("CharType") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         return new CharTypeNode (_start        );
       }

@@ -3,7 +3,7 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -18,10 +18,9 @@ public class TypeQualifierPatternNode extends AASTNode {
 	private final String pkg;
 	private final String type;
 
-	public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+	public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
 			"TypeQualifierPattern") {
 		@Override
-		@SuppressWarnings("unchecked")
 		public AASTNode create(String _token, int _start, int _stop, int _mods,
 				String _id, int _dims, List<AASTNode> _kids) {
 			String pkg = "*";

@@ -4,11 +4,10 @@ import java.util.List;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.promise.PromiseTargetNode;
-import com.surelogic.parse.*;
 
 public class TypeSetNode extends AbstractLayerMatchDeclNode {
-	public static final AbstractSingleNodeFactory factory =
-		new AbstractSingleNodeFactory("TypeSet") {
+	public static final AbstractAASTNodeFactory factory =
+		new AbstractAASTNodeFactory("TypeSet") {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			

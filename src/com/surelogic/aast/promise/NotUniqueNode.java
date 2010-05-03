@@ -2,7 +2,7 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 /**
  * Represents the @NotUnique annotation in the AAST
@@ -10,7 +10,7 @@ import com.surelogic.parse.AbstractSingleNodeFactory;
  */
 public class NotUniqueNode extends AbstractBooleanNode {
 
-  public static final AbstractSingleNodeFactory factory = new Factory("NotUnique") {   
+  public static final AbstractAASTNodeFactory factory = new Factory("NotUnique") {   
     @Override
     public AASTNode create(int _start) {
       return new NotUniqueNode (_start);

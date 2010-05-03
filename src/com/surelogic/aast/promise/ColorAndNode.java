@@ -9,7 +9,7 @@ import java.util.*;
 import com.surelogic.aast.*;
 import com.surelogic.analysis.colors.CBinExpr;
 import com.surelogic.analysis.colors.CExpr;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -17,8 +17,8 @@ public class ColorAndNode extends AASTNode implements ColorOrElem, ColorExprElem
   // Fields
   private final List<ColorLit> andElems;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("ColorAnd") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("ColorAnd") {
       @Override
       @SuppressWarnings("unchecked")      
       public AASTNode create(String _token, int _start, int _stop,

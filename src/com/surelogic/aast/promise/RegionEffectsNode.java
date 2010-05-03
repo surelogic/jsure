@@ -4,7 +4,7 @@ package com.surelogic.aast.promise;
 import java.util.*;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 /**
  * TODO Fill in purpose.
@@ -13,11 +13,10 @@ import com.surelogic.parse.AbstractSingleNodeFactory;
 public class RegionEffectsNode extends AASTRootNode {
 	private List<EffectsSpecificationNode> effects;
 	
-  public static final AbstractSingleNodeFactory factory =
-  	new AbstractSingleNodeFactory("RegionEffects"){
+  public static final AbstractAASTNodeFactory factory =
+  	new AbstractAASTNodeFactory("RegionEffects"){
   	
   	@Override
-  	@SuppressWarnings("unchecked")
   	public AASTNode create(String _token, int _start, int _stop, int _mods, String _id, int _dims, List<AASTNode> _kids){
   		List<EffectsSpecificationNode> effects = new ArrayList<EffectsSpecificationNode>(_kids.size());
   		for(AASTNode effect : _kids){

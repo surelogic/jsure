@@ -3,11 +3,11 @@ package com.surelogic.aast.promise;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class UniqueNode extends AbstractBooleanNode 
 { 
-  public static final AbstractSingleNodeFactory factory = new Factory("Unique") {   
+  public static final AbstractAASTNodeFactory factory = new Factory("Unique") {   
     @Override
     public AASTNode create(int _start) {
       return new UniqueNode (_start);

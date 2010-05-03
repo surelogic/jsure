@@ -7,16 +7,16 @@ import java.util.*;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class MappedRegionSpecificationNode extends FieldRegionSpecificationNode { 
   // Fields
   private final List<RegionMappingNode> mapping;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("MappedRegionSpecification") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("MappedRegionSpecification") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         List<RegionMappingNode> mapping = ((List) _kids);
         return new MappedRegionSpecificationNode (_start,

@@ -6,7 +6,7 @@ import java.util.*;
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.Declaration;
@@ -21,8 +21,8 @@ public class UnionTargetNode extends AbstractLayerMatchTarget {
 	private final String qname;
 	private final List<UnidentifiedTargetNode> union;
 	
-	public static final AbstractSingleNodeFactory factory =
-		new AbstractSingleNodeFactory("UnionTarget") {
+	public static final AbstractAASTNodeFactory factory =
+		new AbstractAASTNodeFactory("UnionTarget") {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			

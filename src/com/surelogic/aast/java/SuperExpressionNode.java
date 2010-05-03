@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 /**
  * TODO Fill in purpose.
@@ -14,10 +14,9 @@ import com.surelogic.parse.AbstractSingleNodeFactory;
  */
 public class SuperExpressionNode extends ConstructionObjectNode {
 		
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("SuperExpression") {
-      @Override
-      @SuppressWarnings("unchecked")      
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("SuperExpression") {
+      @Override     
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         return new SuperExpressionNode (_start        );

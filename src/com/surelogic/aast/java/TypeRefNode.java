@@ -7,7 +7,7 @@ import java.util.List;
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.ISourceRefType;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
@@ -17,10 +17,10 @@ public class TypeRefNode extends ClassTypeNode {
   private final ClassTypeNode base;
   private final String id;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("TypeRef") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("TypeRef") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         ClassTypeNode base =  (ClassTypeNode) _kids.get(0);
         String id = _id;

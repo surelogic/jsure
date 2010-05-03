@@ -5,7 +5,7 @@ import java.util.*;
 import com.surelogic.aast.*;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.java.TypeNode;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 import com.surelogic.parse.TempListNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -21,7 +21,7 @@ public class MethodDeclPatternNode extends PromiseTargetNode {
 	private final List<TypeNode> sig;
 	private final InPatternNode inPattern;
 
-	public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+	public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
 			"MethodDeclPattern") {
 		@Override
 		@SuppressWarnings("unchecked")

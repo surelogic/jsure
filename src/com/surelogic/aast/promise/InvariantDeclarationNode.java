@@ -5,7 +5,7 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class InvariantDeclarationNode extends AASTNode { 
   // Fields
@@ -13,10 +13,10 @@ public class InvariantDeclarationNode extends AASTNode {
   private final String id;
   private final ConditionNode cond;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("InvariantDeclaration") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("InvariantDeclaration") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         int mods = _mods;
         String id = _id;

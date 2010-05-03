@@ -5,11 +5,10 @@ import java.util.List;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.promise.PromiseTargetNode;
-import com.surelogic.parse.*;
 
 public class AllowsReferencesFromNode extends AbstractLayerMatchRootNode {
-	public static final AbstractSingleNodeFactory factory =
-		new AbstractSingleNodeFactory("AllowsReferencesFrom") {
+	public static final AbstractAASTNodeFactory factory =
+		new AbstractAASTNodeFactory("AllowsReferencesFrom") {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			

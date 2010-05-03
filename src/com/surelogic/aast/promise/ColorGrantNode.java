@@ -3,14 +3,13 @@ package com.surelogic.aast.promise;
 import java.util.*;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ColorGrantNode extends ColorNameListNode {
 
-  public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+  public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
       "ColorGrant") {
     @Override
-    @SuppressWarnings("unchecked")
     public AASTNode create(String _token, int _start, int _stop, int _mods,
                            String _id, int _dims, List<AASTNode> _kids) {
       List<ColorNameNode> color = ((List) _kids);

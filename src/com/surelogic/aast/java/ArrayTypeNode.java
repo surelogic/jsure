@@ -5,7 +5,6 @@ package com.surelogic.aast.java;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
@@ -17,10 +16,9 @@ public class ArrayTypeNode extends ReferenceTypeNode {
   private final TypeNode base;
   private final int dims;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("ArrayType") {
-      @Override
-      @SuppressWarnings("unchecked")      
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("ArrayType") {
+      @Override   
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         TypeNode base =  (TypeNode) _kids.get(0);

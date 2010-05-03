@@ -1,28 +1,21 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/parse/AbstractASTFactory.java,v 1.8 2008/07/08 18:53:14 chance Exp $*/
 package com.surelogic.parse;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-
-import com.surelogic.aast.AASTNode;
-import com.surelogic.ast.java.operator.IJavaOperatorNode;
-import com.surelogic.common.logging.SLLogger;
+import java.util.*;
 
 /**
  * Delegates to any registered factories
  * 
  * @author Edwin.Chan
  */
-public abstract class AbstractASTFactory implements IASTFactory {
-	private Map<String, IASTFactory> factories = null;
+public abstract class AbstractASTFactory<T> implements IASTFactory<T> {
+	private Map<String, IASTFactory<T>> factories = null;
 
-	public AASTNode create(String token, int start, int stop, int mods,
-			String id, int dims, List<AASTNode> kids) {
+	public T create(String token, int start, int stop, int mods,
+			String id, int dims, List<T> kids) {
 		checkToken(token);
 		if (factories != null) {
-			IASTFactory f = factories.get(token);
+			IASTFactory<T> f = factories.get(token);
 			if (f == null) {
 				if (token.endsWith("s")) {
 					if (!token.equals("Throws") && !token.equals("Parameters") &&
@@ -39,21 +32,24 @@ public abstract class AbstractASTFactory implements IASTFactory {
 									+ ", creating TempListNode");
 	                */
 				}
-				return new TempListNode(kids);
+				//return new TempListNode(kids);
+				return createTempNode(kids);
 			}
 			return f.create(token, start, stop, mods, id, dims, kids);
 		}
 		throw new IllegalArgumentException("No factories");
 	}
 
-	public IASTFactory registerFactory(String token, IASTFactory f) {
+	protected abstract T createTempNode(List<T> kids);
+	
+	public IASTFactory<T> registerFactory(String token, IASTFactory<T> f) {
 		checkToken(token);
 		if (f == null) {
 			throw new IllegalArgumentException("Null factory provided for "
 					+ token);
 		}
 		if (factories == null) {
-			factories = new HashMap<String, IASTFactory>();
+			factories = new HashMap<String, IASTFactory<T>>();
 		}
 		return factories.put(token, f);
 	}
@@ -67,15 +63,15 @@ public abstract class AbstractASTFactory implements IASTFactory {
 	public boolean handles(String token) {
 		checkToken(token);
 		if (factories != null) {
-			IASTFactory f = factories.get(token);
+			IASTFactory<T> f = factories.get(token);
 			return f != null && f.handles(token);
 		}
 		return false;
 	}
 
 	// Convenience methods
-	protected static IJavaOperatorNode ensureOnlyChild(
-			List<IJavaOperatorNode> kids) {
+	protected static <T> T ensureOnlyChild(
+			List<T> kids) {
 		if (kids.size() != 1) {
 			throw new IllegalArgumentException("Wrong number of children: "
 					+ kids.size());

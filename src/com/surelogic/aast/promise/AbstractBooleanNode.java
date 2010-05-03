@@ -4,11 +4,11 @@ package com.surelogic.aast.promise;
 import java.util.*;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public abstract class AbstractBooleanNode extends AASTRootNode 
 { 
-  protected static abstract class Factory extends AbstractSingleNodeFactory {
+  protected static abstract class Factory extends AbstractAASTNodeFactory {
     public Factory(String t) {
       super(t);
     }

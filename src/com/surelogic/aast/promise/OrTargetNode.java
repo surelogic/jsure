@@ -5,7 +5,7 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -15,10 +15,10 @@ public class OrTargetNode extends ComplexTargetNode {
   private final PromiseTargetNode target1;
   private final PromiseTargetNode target2;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("OrTarget") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("OrTarget") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         PromiseTargetNode target1 =  (PromiseTargetNode) _kids.get(0);
         PromiseTargetNode target2 =  (PromiseTargetNode) _kids.get(1);

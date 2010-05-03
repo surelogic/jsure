@@ -7,15 +7,15 @@ import java.util.List;
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.IRegionBinding;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class RegionNameNode extends RegionSpecificationNode { 
   // Fields
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("RegionName") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("RegionName") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         String id = _id;
         return new RegionNameNode (_start,

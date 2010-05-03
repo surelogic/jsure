@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.surelogic.aast.*;
 import com.surelogic.analysis.colors.CExpr;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -14,10 +14,10 @@ public class ColorNotNode extends AASTNode implements ColorLit, ColorOrElem {
   // Fields
   private final ColorNameNode target;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("ColorNot") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("ColorNot") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         ColorNameNode target =  (ColorNameNode) _kids.get(0);
         return new ColorNotNode (_start,

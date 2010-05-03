@@ -1,18 +1,15 @@
 package com.surelogic.aast.promise;
 
 import java.util.*;
-import java.util.logging.Level;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.java.TypeNode;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 import com.surelogic.parse.TempListNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.util.OpSearch;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -22,7 +19,7 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 	private final List<TypeNode> sig;
 	private final InPatternNode inPattern;
 
-	public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+	public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
 			"ConstructorDeclPattern") {
 		@Override
 		@SuppressWarnings("unchecked")

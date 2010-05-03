@@ -2,11 +2,11 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ImmutableNode extends AbstractBooleanNode 
 { 
-  public static final AbstractSingleNodeFactory factory = new Factory("Immutable") {   
+  public static final AbstractAASTNodeFactory factory = new Factory("Immutable") {   
     @Override
     public AASTNode create(int _start) {
       return new ImmutableNode (_start);

@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -16,10 +16,9 @@ implements IHasVariableBinding {
   // Fields
   private final String id;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("VariableUseExpression") {
-      @Override
-      @SuppressWarnings("unchecked")      
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("VariableUseExpression") {
+      @Override    
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         String id = _id;

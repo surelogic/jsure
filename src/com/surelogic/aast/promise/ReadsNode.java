@@ -6,17 +6,15 @@ import java.util.List;
 
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTNode;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ReadsNode extends EffectsSpecificationNode {
-	public static final AbstractSingleNodeFactory factory =
-		new AbstractSingleNodeFactory("Reads"){
+	public static final AbstractAASTNodeFactory factory =
+		new AbstractAASTNodeFactory("Reads"){
 		
 		@Override
-		@SuppressWarnings("unchecked")
 		public AASTNode create(String _token, int _start, int _stop,
 			int _mods, String _id, int _dims, List<AASTNode> _kids){
-			String id = _id;
 			List<EffectSpecificationNode> effects = new ArrayList<EffectSpecificationNode>(_kids.size());
 			for (AASTNode effect : _kids) {
 				effects.add((EffectSpecificationNode)effect);

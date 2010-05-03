@@ -4,19 +4,16 @@ package com.surelogic.aast.promise;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.surelogic.aast.AASTNode;
-import com.surelogic.aast.IAASTNode;
-import com.surelogic.aast.INodeVisitor;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.*;
 
 public class BlockImportNode extends ModuleAnnotationNode {
   private final OfNamesClauseNode ofNamesClause;
   private final List<String> fromModuleNames;
   
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("BlockImport") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("BlockImport") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
 //        String id = _id;
         List<String> names;

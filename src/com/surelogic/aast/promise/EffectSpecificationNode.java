@@ -5,7 +5,7 @@ import java.util.List;
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.java.ExpressionNode;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 
@@ -15,7 +15,7 @@ public class EffectSpecificationNode extends AASTNode {
 	private final ExpressionNode context;
 	private final RegionSpecificationNode region;
 
-	public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+	public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
 			"EffectSpecification") {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop, int _mods,

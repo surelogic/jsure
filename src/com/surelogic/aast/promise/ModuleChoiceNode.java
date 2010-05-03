@@ -4,16 +4,15 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ModuleChoiceNode extends AASTRootNode {
   final private ModuleWrapperNode modWrapper;
   final private ModulePromiseNode modPromise;
   
-  public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+  public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
       "ModuleChoice") {
     @Override
-    @SuppressWarnings("unchecked")
     public AASTNode create(String _token, int _start, int _stop, int _mods,
                            String _id, int _dims, List<AASTNode> _kids) {
       AASTNode kid = _kids.get(0);

@@ -3,7 +3,7 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 
@@ -12,10 +12,9 @@ public class NewRegionDeclarationNode extends RegionDeclarationNode {
 	private final int modifiers;
 	private final RegionSpecificationNode parent;
 
-	public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+	public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
 			"NewRegionDeclaration") {
 		@Override
-		@SuppressWarnings("unchecked")
 		public AASTNode create(String _token, int _start, int _stop, int _mods,
 				String _id, int _dims, List<AASTNode> _kids) {
 			int modifiers = _mods;

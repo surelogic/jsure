@@ -2,11 +2,11 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class SelfProtectedNode extends AbstractBooleanNode 
 { 
-  public static final AbstractSingleNodeFactory factory = new Factory("SelfProtected") {   
+  public static final AbstractAASTNodeFactory factory = new Factory("SelfProtected") {   
     @Override
     public AASTNode create(int _start) {
       return new SelfProtectedNode (_start);

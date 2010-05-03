@@ -6,16 +6,16 @@ import java.util.List;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.java.ExpressionNode;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ConditionNode extends AASTNode { 
   // Fields
   private final ExpressionNode cond;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("Condition") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("Condition") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         ExpressionNode cond =  (ExpressionNode) _kids.get(0);
         return new ConditionNode (_start,

@@ -8,16 +8,15 @@ import java.util.List;
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ExportToNode extends ModuleAnnotationNode {
 
   final private List<String> exportNames;
   final private List<String> toModuleNames;
-  public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+  public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
       "ExportTo") {
     @Override
-    @SuppressWarnings("unchecked")
     public AASTNode create(String _token, int _start, int _stop, int _mods,
                            String _id, int _dims, List<AASTNode> _kids) {
       

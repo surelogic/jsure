@@ -4,7 +4,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -17,11 +16,10 @@ public class InAndPatternNode extends InTypePatternNode {
 	private final InTypePatternNode target1;
 	private final InTypePatternNode target2;
 
-	public static final AbstractSingleNodeFactory factory = new com.surelogic.parse.AbstractSingleNodeFactory(
+	public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
 			"InAndPattern") {
 
 		@Override
-		@SuppressWarnings("unchecked")
 		public AASTNode create(String _token, int _start, int _stop, int _mods,
 				String _id, int _dims, List<AASTNode> _kids) {
     	InTypePatternNode target1 = (InTypePatternNode)_kids.get(0);

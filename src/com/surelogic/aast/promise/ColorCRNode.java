@@ -4,7 +4,7 @@ package com.surelogic.aast.promise;
 import java.util.*;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 import com.surelogic.parse.TempListNode;
 
 public class ColorCRNode extends DataColoringAnnotationNode {
@@ -13,7 +13,7 @@ public class ColorCRNode extends DataColoringAnnotationNode {
 
   private final List<RegionSpecificationNode> cRegions;
 
-  public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+  public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
       "ColorCR") {
     @Override
     @SuppressWarnings("unchecked")

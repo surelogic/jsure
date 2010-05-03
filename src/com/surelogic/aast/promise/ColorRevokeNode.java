@@ -7,14 +7,14 @@ import java.util.*;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ColorRevokeNode extends ColorNameListNode { 
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("ColorRevoke") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("ColorRevoke") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         List<ColorNameNode> color = ((List) _kids);
         return new ColorRevokeNode (_start,

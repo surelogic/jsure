@@ -7,15 +7,15 @@ import java.util.*;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class EffectsSpecificationNode extends AASTRootNode 
 {  
   // Fields
   private final List<EffectSpecificationNode> effect;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("EffectsSpecification") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("EffectsSpecification") {
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {

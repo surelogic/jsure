@@ -6,7 +6,7 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.ISourceRefType;
 import com.surelogic.ast.ResolvableToType;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -23,10 +23,9 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 	private final String type;
 	private final InPatternNode inPattern;
 
-	public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+	public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
 			"TypeDeclPattern") {
 		@Override
-		@SuppressWarnings("unchecked")
 		public AASTNode create(String _token, int _start, int _stop, int _mods,
 				String _id, int _dims, List<AASTNode> _kids) {
 			int mods = _mods;

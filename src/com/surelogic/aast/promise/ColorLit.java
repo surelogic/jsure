@@ -2,5 +2,5 @@
 package com.surelogic.aast.promise;
 
 public interface ColorLit extends IAASTSubNode, ColorExprElem {
-  
+  // Just a marker
 }

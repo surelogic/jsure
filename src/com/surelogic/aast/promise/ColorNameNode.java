@@ -5,7 +5,7 @@ import java.util.List;
 import com.surelogic.aast.*;
 import com.surelogic.analysis.colors.CExpr;
 import com.surelogic.analysis.colors.CLeafExpr;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.colors.ColorNameModel;
@@ -16,10 +16,9 @@ public class ColorNameNode extends AASTNode implements ColorLit, ColorOrElem {
   // Fields
   private final String id;
 
-  public static final AbstractSingleNodeFactory factory = new AbstractSingleNodeFactory(
+  public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
       "ColorName") {
     @Override
-    @SuppressWarnings("unchecked")
     public AASTNode create(String _token, int _start, int _stop, int _mods,
         String _id, int _dims, List<AASTNode> _kids) {
       String id = _id;

@@ -8,17 +8,17 @@ import java.util.*;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.java.NamedTypeNode;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class UsedBySpecificationNode extends AASTRootNode 
 { 
   // Fields
   private final List<NamedTypeNode> types;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("UsedBySpecification") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("UsedBySpecification") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         List<NamedTypeNode> types = ((List) _kids);
         return new UsedBySpecificationNode (_start,

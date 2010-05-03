@@ -5,7 +5,7 @@ import java.util.*;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.Declaration;
@@ -22,8 +22,8 @@ import edu.cmu.cs.fluid.util.SingletonIterator;
 public class UnidentifiedTargetNode extends AbstractLayerMatchTarget implements IHasLayerBinding {
 	private final String qname;
 	
-	public static final AbstractSingleNodeFactory factory =
-		new AbstractSingleNodeFactory("UnidentifiedTarget") {
+	public static final AbstractAASTNodeFactory factory =
+		new AbstractAASTNodeFactory("UnidentifiedTarget") {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			

@@ -8,16 +8,16 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.java.NamedTypeNode;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class QualifiedRegionNameNode extends RegionSpecificationNode { 
   // Fields
   private final NamedTypeNode type;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("QualifiedRegionName") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("QualifiedRegionName") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         NamedTypeNode type =  (NamedTypeNode) _kids.get(0);
         String id = _id;

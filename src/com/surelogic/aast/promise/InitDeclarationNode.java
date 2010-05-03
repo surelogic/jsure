@@ -5,15 +5,15 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class InitDeclarationNode extends AASTNode { 
   // Fields
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("InitDeclaration") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("InitDeclaration") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         return new InitDeclarationNode (_start        );
       }

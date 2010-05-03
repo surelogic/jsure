@@ -8,16 +8,16 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.java.ExpressionNode;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class QualifiedLockNameNode extends LockNameNode { 
   // Fields
   private final ExpressionNode base;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("QualifiedLockName") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("QualifiedLockName") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         ExpressionNode base =  (ExpressionNode) _kids.get(0);
         String id = _id;

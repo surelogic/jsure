@@ -5,17 +5,17 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class AggregateNode extends AASTRootNode 
 { 
   // Fields
   private final MappedRegionSpecificationNode spec;
 
-  public static final AbstractSingleNodeFactory factory =
-    new AbstractSingleNodeFactory("Aggregate") {
+  public static final AbstractAASTNodeFactory factory =
+    new AbstractAASTNodeFactory("Aggregate") {
       @Override
-      @SuppressWarnings("unchecked")      public AASTNode create(String _token, int _start, int _stop,
+      public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
         MappedRegionSpecificationNode spec =  (MappedRegionSpecificationNode) _kids.get(0);
         return new AggregateNode (_start, spec        );

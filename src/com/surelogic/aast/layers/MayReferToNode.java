@@ -5,11 +5,10 @@ import java.util.List;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.promise.*;
-import com.surelogic.parse.*;
 
 public class MayReferToNode extends AbstractLayerMatchRootNode {
-	public static final AbstractSingleNodeFactory factory =
-		new AbstractSingleNodeFactory("MayReferTo") {
+	public static final AbstractAASTNodeFactory factory =
+		new AbstractAASTNodeFactory("MayReferTo") {
 		@Override
 		public AASTNode create(String _token, int _start, int _stop,
 				int _mods, String _id, int _dims, List<AASTNode> _kids) {			

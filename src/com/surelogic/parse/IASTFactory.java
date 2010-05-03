@@ -3,15 +3,13 @@ package com.surelogic.parse;
 
 import java.util.List;
 
-import com.surelogic.aast.AASTNode;
-
-public interface IASTFactory {
+public interface IASTFactory<T> {
   String NIL = "null";
   
-  AASTNode create(String token, int start, int stop, 
-                  int mods, String id, int dims, List<AASTNode> kids);
+  T create(String token, int start, int stop, 
+                  int mods, String id, int dims, List<T> kids);
   
-  IASTFactory registerFactory(String token, IASTFactory f);
+  IASTFactory<T> registerFactory(String token, IASTFactory<T> f);
   
   boolean handles(String token);
 }

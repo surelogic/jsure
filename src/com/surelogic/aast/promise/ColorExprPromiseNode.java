@@ -1,13 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/aast/promise/ColorExprPromiseNode.java,v 1.1 2007/10/24 15:18:09 dfsuther Exp $*/
 package com.surelogic.aast.promise;
 
-import java.util.List;
-
-import com.surelogic.aast.AASTNode;
-import com.surelogic.aast.AASTRootNode;
-import com.surelogic.aast.IAASTNode;
-import com.surelogic.aast.INodeVisitor;
-import com.surelogic.parse.AbstractSingleNodeFactory;
+import com.surelogic.aast.*;
 
 public abstract class ColorExprPromiseNode extends AASTRootNode {
 
@@ -15,8 +9,8 @@ public abstract class ColorExprPromiseNode extends AASTRootNode {
   private final String kind;
   
   
-//  public static final AbstractSingleNodeFactory factory =
-//    new AbstractSingleNodeFactory(
+//  public static final AbstractAASTNodeFactory factory =
+//    new AbstractAASTNodeFactory(
 //      "ColorConstraint") {
 //    @Override
 //    @SuppressWarnings("unchecked")
