@@ -110,10 +110,11 @@ public final class PackageLevelPreprocessing extends
 				PackageDrop p = null;
 				if (AbstractFluidAnalysisModule.isPackageInfo(resource)) {
 					switch (kind) {
+					case IResourceDelta.REMOVED:
+						System.out.println("Removed: "+resource);
 					case IResourceDelta.ADDED:
-					case IResourceDelta.CHANGED:
-					case IResourceDelta.REMOVED:						
-						p = parsePackageInfo(resource);
+					case IResourceDelta.CHANGED:						
+						p = parsePackageInfo(resource, kind == IResourceDelta.REMOVED);
 						break;
 					default:
 						LOG.severe("Not handling removal of "
@@ -200,12 +201,21 @@ public final class PackageLevelPreprocessing extends
 	 * @param resource
 	 * @return The node for the package (declaration)
 	 */
-	private PackageDrop parsePackageInfo(final IResource resource) {
+	private PackageDrop parsePackageInfo(final IResource resource, boolean removed) {
 		final ICompilationUnit icu = (ICompilationUnit) JavaCore.create(resource);
 		final IJavaProject project = icu.getJavaProject();
 		if (!project.isOnClasspath(icu)) {
 			return null;
 		}
+		final PackageDrop old;
+		if (removed) {
+			old = PackageDrop.findPackage(icu.getHandleIdentifier());
+			
+			dependencies.markAsChanged(old);
+			old.invalidate();
+			return null;
+		} 
+		// Either added or modified
 		parser.setSource(icu);
 		parser.setResolveBindings(true);
 		final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
@@ -214,7 +224,7 @@ public final class PackageLevelPreprocessing extends
 		// apply promises to package
 		final PackageDeclaration pd = cu.getPackage();
 		final String pkgName  = (pd == null) ? "" : pd.getName().getFullyQualifiedName();
-		final PackageDrop old = PackageDrop.findPackage(pkgName);
+		old = PackageDrop.findPackage(pkgName);
 		if (old != null) {
 			/*
 			System.out.println("PackageDrop: "+old.javaOSFileName);
@@ -227,7 +237,7 @@ public final class PackageLevelPreprocessing extends
 		}
 		
 		IRNode root = JavaSourceFileAdapter.getInstance().adaptPackage(icu, cu);
-		final PackageDrop pkg = Binding.createPackage(pkgName, root);
+		final PackageDrop pkg = Binding.createPackage(pkgName, root, icu.getHandleIdentifier());
 		dependencies.markAsChanged(pkg);
 	
 		runVersioned(new AbstractRunner() {
