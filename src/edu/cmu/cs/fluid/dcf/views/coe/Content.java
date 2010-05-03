@@ -35,6 +35,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
 
 /**
  * Class used to represent derived viewer nodes.
@@ -217,10 +218,17 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 				name = f.toString();
 			}
 
+			final boolean referencesAResultDrop = f_referencedDrop instanceof ResultDrop;
 			if (ref.getLineNumber() > 0) {
-				result += "  at  " + name + " line " + ref.getLineNumber();
+				if (referencesAResultDrop) {
+					result += " at line " + ref.getLineNumber();
+				} else {
+					result += " at " + name + " line " + ref.getLineNumber();
+				}
 			} else if (!name.equals("?")) {
-				result += "  at  " + name;
+				if (!referencesAResultDrop) {
+					result += " at " + name;
+				}
 			}
 		} else if (f_numIssues > 0) {
 			if (f_message.contains("s)")) {
