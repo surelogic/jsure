@@ -35,6 +35,7 @@ import edu.cmu.cs.fluid.util.*;
  */
 public class PackageDrop extends CUDrop {
   // from String (package name) to Package
+  // Also from handle identifier to Package
   private static final Map<String, PackageDrop> packageMap = new HashMap<String, PackageDrop>();
   public final IRNode node; // PackageDeclaration
   private boolean hasPromises = false;
@@ -108,7 +109,7 @@ public class PackageDrop extends CUDrop {
   
   private static final String DEFAULT_NAME = "(default)";
   
-  public static PackageDrop createPackage(String name, IRNode root) {
+  public static PackageDrop createPackage(String name, IRNode root, String id) {
     final PackageDrop pd = findPackage(name);
     if (root == null) {
     	if (pd != null && pd.isValid()) {    
@@ -155,6 +156,9 @@ public class PackageDrop extends CUDrop {
     packageMap.put(name, pkg);
     if (DEFAULT_NAME.equals(name)) {
       packageMap.put("", pkg);
+    }
+    if (id != null) {
+    	packageMap.put(id, pkg);
     }
     return pkg;
   }
