@@ -480,6 +480,7 @@ COMMA : ',';
 STAR  : '*';
 DSTAR : '**';
 IN    : 'in';
+PLUS  : '+';
 
 HexLiteral : '0' ('x'|'X') HexDigit+ IntegerTypeSuffix? ;
 
