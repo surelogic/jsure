@@ -84,9 +84,10 @@ public class CrystalGen extends AbstractASTImplGenerator {
     if (isAbstract(s)) { 
       return; // No factory
     }
-    printJava("  public static final AbstractSingleNodeFactory factory =\n");
-    printJava("    new AbstractSingleNodeFactory(\""+s.name+"\") {\n");
-    printJava("      @SuppressWarnings(\"unchecked\")\n");
+    printJava("  public static final AbstractCrystalNodeFactory factory =\n");
+    printJava("    new AbstractCrystalNodeFactory(\""+s.name+"\") {\n");
+    //printJava("      @SuppressWarnings(\"unchecked\")\n");
+    printJava("      @Override\n");
     printJava("      public IJavaOperatorNode create(String _token, int _start, int _stop,\n");
     printJava("                                      int _mods, String _id, int _dims, List<IJavaOperatorNode> _kids) {\n");  
     s.generateFromSyntax(typeTable, new VariableDeclarationsStrategy(false) {
