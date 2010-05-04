@@ -147,8 +147,12 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 	public void postAnalysis(IIRProject p) {
 		finishBuild();
 		
-		lockModelHandle.set(null);
 		super.postAnalysis(p);
+		/* Have to do this afterwards, because postAnalysis can cause
+		 * a LockVisitor to be created (which seems wrong) in the
+		 * non parallel case.
+		 */
+    lockModelHandle.set(null);
 	}
 	
 	private final class TopLevelVisitor extends VoidTreeWalkVisitor {
