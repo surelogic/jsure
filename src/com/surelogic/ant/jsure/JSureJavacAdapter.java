@@ -11,6 +11,7 @@ import org.apache.tools.ant.util.StringUtils;
 
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.fluid.javac.Config;
+import com.surelogic.fluid.javac.JavaSourceFile;
 import com.surelogic.fluid.javac.Util;
 
 import edu.cmu.cs.fluid.util.Pair;
@@ -275,8 +276,9 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 		String path = file.getAbsolutePath();
 		String srcPath = findSrcDir(path);
 		if (srcPath != null) {
-			String qname = computeQualifiedName(path.substring(srcPath.length()+1));
-			config.addFile(new Pair<String,File>(qname, file));
+			String relPath = path.substring(srcPath.length()+1);
+			String qname = computeQualifiedName(relPath);
+			config.addFile(new JavaSourceFile(qname, file, relPath));
 			//System.out.println(qname+": "+file.getAbsolutePath());
 			
 			final int lastDot = qname.lastIndexOf('.');
