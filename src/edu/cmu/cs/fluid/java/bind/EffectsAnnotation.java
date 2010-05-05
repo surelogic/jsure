@@ -119,7 +119,7 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
     if (writeCt == 0) {
       writes += "nothing";
     }
-    return reads + " " + writes + "  on  " + typeName + "." + targetName;
+    return reads + " " + writes + " on " + typeName + "." + targetName;
   }
 
   /**

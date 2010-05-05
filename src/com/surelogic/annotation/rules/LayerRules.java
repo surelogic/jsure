@@ -182,7 +182,7 @@ public class LayerRules extends AnnotationRules {
 					return true;
 				}
 				context.reportError("Couldn't resolve a binding for " + node
-						+ "  on  " + getCurrent(), node);
+						+ " on " + getCurrent(), node);
 				return false;
 			}
 			return null;

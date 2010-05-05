@@ -533,7 +533,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 				}
 				else if (result == ParseResult.FAIL || !context.createdAAST()) {
 					StringBuilder msg = new StringBuilder("Could not apply scoped promise, ");
-					msg.append(content).append("  on  ");
+					msg.append(content).append(" on ");
 					
 					if (FieldDeclaration.prototype.includes(op)) {
 						msg.append("field ").append(JavaNames.getFieldDecl(decl));

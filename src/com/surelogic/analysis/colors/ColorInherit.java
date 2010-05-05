@@ -217,7 +217,7 @@ final public class ColorInherit {
       if (!icrFromParent) {
       // local method has requirements that over-ride a @transparent
       // from the parent.  Warn, but accept.
-      warnMsg.append("@colorConstraint " + reqSumHere.getFullExpr() + "  on  " + idStr);
+      warnMsg.append("@colorConstraint " + reqSumHere.getFullExpr() + " on " + idStr);
       warnMsg.append(" overrides @transparent from parent" + parentName);
       wantWarning = true;
       } else {
@@ -225,7 +225,7 @@ final public class ColorInherit {
 //          Child requirements that imply the parent are OK, others get a warning.
         if (!reqSumHere.getFullExpr().imply(parentReqSum.getFullExpr()).isOne()) {
           warnMsg.append("@colorConstraint " + reqSumHere.getFullExpr());
-          warnMsg.append("  on  " + idStr + "overrides requirement inherited from ");
+          warnMsg.append(" on " + idStr + "overrides requirement inherited from ");
           warnMsg.append(" parent " + parentName);
           wantWarning = true;
         }

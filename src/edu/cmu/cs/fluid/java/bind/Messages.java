@@ -10,7 +10,7 @@ public class Messages {
 
   public static String LockAnnotation_prescrubbedPolicyLock = "PolicyLock {0} (pre-scrubbed, not complete)";
 
-  public static String LockAnnotation_prescrubbedRequiresLock = "RequiresLock  on  {0} (pre-scrubber, not complete)";
+  public static String LockAnnotation_prescrubbedRequiresLock = "RequiresLock on {0} (pre-scrubber, not complete)";
 
   public static String LockAnnotation_prescrubbedReturnsLock = "ReturnsLock (pre-scrubber, not complete)";
 
@@ -56,7 +56,7 @@ public class Messages {
 
   public static int StartsAnnotation_startNothingDrop = 114;
 
-  public static String SubtypedByAnnotation_subtypedByDrop = "SubtypedBy({0})  on  {1}";
+  public static String SubtypedByAnnotation_subtypedByDrop = "SubtypedBy({0}) on {1}";
 
   public static String SubtypedByAnnotation_typeDrop = "Type {0} exists and is a subtype of {1}";
 

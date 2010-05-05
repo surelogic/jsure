@@ -100,14 +100,14 @@ public class MethodEffectsPromiseDrop extends PromiseDrop<EffectsSpecificationNo
     
      if (r == null) {
        if (w != null) {       
-         setMessage(w.toString()+"  on  "+target);
+         setMessage(w.toString()+" on "+target);
        }
     } 
     else if (w == null) {
-      setMessage(r.toString()+"  on  "+target);
+      setMessage(r.toString()+" on "+target);
     }
     else {
-      setMessage(r+"; "+w+"  on  "+target);
+      setMessage(r+"; "+w+" on "+target);
     }
   }
   
