@@ -23,16 +23,37 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {	
-	private static boolean runInParallel = true;
-	private static boolean queueWork = runInParallel && true;
+  /** Should we try to run things in parallel */
+  private static boolean wantToRunInParallel = true;
+  
+  /**
+   * Are we actually going to run things in parallel?  Not all JRE have the
+   * libraries we need to actually run in parallel.
+   */
+  private static boolean willRunInParallel = wantToRunInParallel && !singleThreaded;
+  
+  /**
+   * Use a work queue?  Only relevant if {@link #willRunInParallel} is 
+   * <code>true</code>.  Otherwise it is <code>false</code>.
+   */
+	private static boolean queueWork = willRunInParallel && true;
+
+  /**
+   * Analyze compilation units in parallel?  Only relevant if {@link #willRunInParallel} is 
+   * <code>true</code> and {@link #queueWork} is <code>true</code>.  Otherwise it is <code>false</code>.
+   * When relevant, a <code>false</code> value means analyze by types, a
+   * smaller granularity than compilation units.
+   */
 	private static boolean byCompUnit = queueWork && true; // otherwise by type
+	
+	
 	
 	private final AtomicReference<GlobalLockModel> lockModelHandle = 
 		new AtomicReference<GlobalLockModel>(null);
 	
 	public LockAnalysis() {
-		super(runInParallel && !singleThreaded, queueWork ? IRNode.class : null, "LockAssurance");
-		if (runInParallel) {
+		super(willRunInParallel, queueWork ? IRNode.class : null, "LockAssurance");
+		if (runInParallel()) {
 			setWorkProcedure(new Procedure<IRNode>() {
 				public void op(IRNode n) {
 					if (byCompUnit) {
