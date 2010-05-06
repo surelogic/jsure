@@ -48,27 +48,28 @@ import com.surelogic.xml.results.coe.CoE_Constants;
 public class XMLReport {
   static final Logger LOG = SLLogger.getLogger("XMLReport");
   
-  public static void exportResults(final FileOutputStream xmlFile, TreeViewer resultsViewer) {
-    final TreeViewer viewer = resultsViewer;
-    IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
-    try {
-	    progressService.busyCursorWhile(new IRunnableWithProgress(){
-	       public void run(IProgressMonitor monitor) {
-	         try {
-	           XMLReport.generateReport(new PrintWriter(xmlFile), viewer, false);
-	           xmlFile.close();
-	         } catch (IOException e) {
-	           LOG.log(Level.SEVERE, "Error writing XML results file ", e);
-	           return; // bail out
-	         }
-	       }
-	    });
-    } catch(InvocationTargetException e) {
-		SLLogger.getLogger().log(Level.SEVERE, "Problem exporting XML results", e);
-    } catch(InterruptedException e) {
-		SLLogger.getLogger().log(Level.SEVERE, "Problem exporting XML results", e);
-    }
-  }
+//  // XXX: Doesn't set the character encoding!
+//  public static void exportResults(final FileOutputStream xmlFile, TreeViewer resultsViewer) {
+//    final TreeViewer viewer = resultsViewer;
+//    IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
+//    try {
+//	    progressService.busyCursorWhile(new IRunnableWithProgress(){
+//	       public void run(IProgressMonitor monitor) {
+//	         try {
+//	           XMLReport.generateReport(new PrintWriter(xmlFile), viewer, false);
+//	           xmlFile.close();
+//	         } catch (IOException e) {
+//	           LOG.log(Level.SEVERE, "Error writing XML results file ", e);
+//	           return; // bail out
+//	         }
+//	       }
+//	    });
+//    } catch(InvocationTargetException e) {
+//		SLLogger.getLogger().log(Level.SEVERE, "Problem exporting XML results", e);
+//    } catch(InterruptedException e) {
+//		SLLogger.getLogger().log(Level.SEVERE, "Problem exporting XML results", e);
+//    }
+//  }
 
   public static void exportResultsWithSource(final FileOutputStream zipFile,
 			TreeViewer resultsViewer) {
@@ -79,8 +80,13 @@ public class XMLReport {
 			progressService.busyCursorWhile(new IRunnableWithProgress() {
 				public void run(IProgressMonitor monitor) {
 					ZipOutputStream out = new ZipOutputStream(zipFile);
-          OutState state = new OutState(new PrintWriter(out), viewer, true);
-					generateResultsZip(out, state);
+					try {
+  					Writer w = new BufferedWriter(new OutputStreamWriter(out, CoE_Constants.ENCODING));
+  					OutState state = new OutState(new PrintWriter(w), viewer, true);
+  					generateResultsZip(out, state);
+					} catch (UnsupportedEncodingException e) {
+			      SLLogger.getLogger().log(Level.SEVERE, "Problem exporting XML results", e);
+					}
 				}
 			});
 		} catch (InvocationTargetException e) {
