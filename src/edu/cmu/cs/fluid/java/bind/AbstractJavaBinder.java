@@ -2022,7 +2022,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
               success = bindCall(node,targs,args,name, newType2);
             }
             if (!success && pathToTarget == null) {
-              getJavaType(receiver);
+              IJavaType temp = getJavaType(receiver);
               bindCall(node,targs,args,name, toUse);
             }
           }
