@@ -749,6 +749,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
         }
         IRNode proxy = new MarkedIRNode("Proxy node");
         m.put(n, proxy);
+        //System.out.println("Creating proxy for "+DebugUnparser.toString(n));
         return proxy;
       }
       return n;
