@@ -686,9 +686,11 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     MyMap map = typeContexts.get().pop();
     map.createIfNone = false;
     map.onlyAssume = false;
+    /*
     if (map.size() > 0) {
       System.out.println("Popping non-empty @assume context");
     }
+    */
     return map;
   }
 
@@ -751,7 +753,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
         }
         IRNode proxy = new MarkedIRNode("Proxy node");
         m.put(n, proxy);
-        System.out.println("Creating proxy for "+DebugUnparser.toString(n));
+        //System.out.println("Creating proxy for "+DebugUnparser.toString(n));
         return proxy;
       }
       return n;
