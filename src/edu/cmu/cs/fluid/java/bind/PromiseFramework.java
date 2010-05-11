@@ -661,6 +661,8 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
       } else {
         context = EMPTY;
       }
+    } else {
+    	//System.out.println("Pushing type context for "+DebugUnparser.toString(type));
     }
     if (LOG.isLoggable(Level.FINE) && context.size() > 0) {
       LOG.fine("Pushing non-empty @assume context");
@@ -685,7 +687,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     map.createIfNone = false;
     map.onlyAssume = false;
     if (map.size() > 0) {
-      LOG.fine("Popping non-empty @assume context");
+      System.out.println("Popping non-empty @assume context");
     }
     return map;
   }
@@ -749,7 +751,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
         }
         IRNode proxy = new MarkedIRNode("Proxy node");
         m.put(n, proxy);
-        //System.out.println("Creating proxy for "+DebugUnparser.toString(n));
+        System.out.println("Creating proxy for "+DebugUnparser.toString(n));
         return proxy;
       }
       return n;

@@ -327,6 +327,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			}
 			PromiseDrop<? super A> d = makePromiseDrop(a);
 			if (cu != null) {
+				d.setAssumed(true);
 				PromiseFramework.getInstance().popTypeContext();				
 			}			
 			if (d != null) {

@@ -254,6 +254,11 @@ public abstract class AnnotationRules {
     }
     final IRNode n      = a.getPromisedFor();
     final IRNode mapped = PromiseFramework.getInstance().mapToProxyNode(n);
+    /*
+    if (mapped != n) {
+    	System.out.println(pd.getMessage()+" created on "+DebugUnparser.toString(n));
+    }
+    */
     return stor.add(mapped, pd);
   }
   
