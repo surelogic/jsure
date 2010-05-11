@@ -320,7 +320,15 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			a.markAsBound();
 			TestResult.setAsBound(expected);
 
+			final IRNode cu = AASTStore.checkIfAssumption(a);
+			if (cu != null) {
+				final PromiseFramework frame = PromiseFramework.getInstance();
+				frame.pushTypeContext(cu, true, true); // create one if there isn't one
+			}
 			PromiseDrop<? super A> d = makePromiseDrop(a);
+			if (cu != null) {
+				PromiseFramework.getInstance().popTypeContext();				
+			}			
 			if (d != null) {
 				a.markAsValid();
 				d.setFromSrc(a.getSrcType().isFromSource());

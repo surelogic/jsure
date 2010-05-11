@@ -163,7 +163,10 @@ public class ScopedPromiseRules extends AnnotationRules {
 					final IRNode cu = VisitUtil.getEnclosingCompilationUnit(decl);
 					bindings = collectBoundDecls(cu);
 					frame.clearTypeContext(cu);
+					/*
 					frame.pushTypeContext(cu, true, true); // create one if there isn't one
+					*/
+					AASTStore.setupAssumption(cu);
 				}
 
 				@Override
@@ -179,11 +182,13 @@ public class ScopedPromiseRules extends AnnotationRules {
 					  d.invalidate();
 					  return null;
 					}
-					return storeDropIfNotNull(getStorage(), a, d);
+					storeDropIfNotNull(getStorage(), a, d);
+					return d;
 				}
 				@Override
 				protected void finishScrubbingType(IRNode decl) {
-					frame.popTypeContext();
+					//frame.popTypeContext();
+					AASTStore.clearAssumption();
 					bindings = null;
 				}
 			};
@@ -549,7 +554,8 @@ public class ScopedPromiseRules extends AnnotationRules {
 					context.reportError(offset, msg.toString());
 					return false;
 				}
-			}
+				//System.out.println(scopedPromiseDrop.getMessage()+" on "+DebugUnparser.toString(decl));
+			}		 
 			return true;
 		}
 	}
@@ -671,12 +677,14 @@ public class ScopedPromiseRules extends AnnotationRules {
    * @return true if no failure
    */
   static boolean applyAssumptions(Collection<IRNode> bindings, AssumePromiseDrop d) {	  
+	  //final IRNode cu = VisitUtil.getEnclosingCompilationUnit(d.getNode());
 	  final ScopedPromiseCallback callback = new ScopedPromiseCallback(d);
 	  boolean success = true;
 	  for(IRNode decl : bindings) {
 		  Operator op = JJNode.tree.getOperator(decl);
 		  if (callback.parseRule.declaredOnValidOp(op)) {
 			  if (!callback.parseAndApplyPromise(decl, op)) {
+				  //System.out.println("Failure on "+DebugUnparser.toString(decl));
 				  success = false;
 				  break;
 			  }

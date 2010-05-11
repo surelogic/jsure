@@ -262,6 +262,11 @@ public abstract class AnnotationRules {
   P getMappedValue(SlotInfo<P> si, final IRNode n) {
     final PromiseFramework frame = PromiseFramework.getInstance();
     final IRNode mapped          = frame.getProxyNode(n);
+    /*
+    if (mapped != n) {
+    	System.out.println("Using "+mapped+", instead of "+DebugUnparser.toString(n));
+    }
+    */
     return getMappedValue(si, n, mapped, frame);
   } 
 

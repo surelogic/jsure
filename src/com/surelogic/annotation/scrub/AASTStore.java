@@ -4,6 +4,7 @@ package com.surelogic.annotation.scrub;
 import com.surelogic.aast.*;
 import com.surelogic.annotation.test.TestResult;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 
@@ -15,13 +16,27 @@ import java.util.*;
  * 
  * @author Edwin.Chan
  */
-public class AASTStore {
+public final class AASTStore {
   protected static final Collection<IAASTRootNode> asts = new ArrayList<IAASTRootNode>();
   
+  /**
+   * Resulting AASTs organized by type
+   */
   @SuppressWarnings("unchecked")
   protected static final Map<Class,Collection<? extends IAASTRootNode>> byClass = 
     new HashMap<Class,Collection<? extends IAASTRootNode>>();
   
+  /**
+   * Map from the AAST to the comp unit that it is assumed for
+   */
+  static final Map<IAASTRootNode, IRNode> assumedFor =
+	new HashMap<IAASTRootNode, IRNode>();
+	
+  static IRNode assumedCu = null;
+  
+  /**
+   * Callbacks to be run after the AAST is scrubbed
+   */
   @SuppressWarnings("unchecked")
   protected static final Map<IAASTRootNode,List<ValidatedDropCallback>> triggers = 
     new HashMap<IAASTRootNode,List<ValidatedDropCallback>>();
@@ -31,6 +46,9 @@ public class AASTStore {
   
   public static synchronized <T extends IAASTRootNode> 
   void add(T ast) {
+	if (assumedCu != null) {
+		assumedFor.put(ast, assumedCu);
+	}
     asts.add(ast);
     addByClass(ast);
   }
@@ -55,6 +73,7 @@ public class AASTStore {
     byClass.clear();
     triggers.clear();
     results.clear();
+    assumedFor.clear();
   }
   
   @SuppressWarnings("unchecked")
@@ -63,6 +82,19 @@ public class AASTStore {
     return (it == null) ? Collections.<T>emptyList() : it;
   }
 
+  public static synchronized void setupAssumption(IRNode cu) {
+	  assumedCu = cu;
+  }
+  
+  public static synchronized void clearAssumption() {
+	  assumedCu = null;
+  }
+  
+  public static synchronized IRNode checkIfAssumption(IAASTRootNode root) {
+	  final IRNode cu = assumedFor.get(root);
+	  return cu;
+  }
+  
   @SuppressWarnings("unchecked")
   public static synchronized void triggerWhenValidated(IAASTRootNode root, ValidatedDropCallback r) {
     List<ValidatedDropCallback> l = triggers.get(root);
@@ -74,7 +106,7 @@ public class AASTStore {
   }
 
   public static synchronized <A extends IAASTRootNode>
-  void validate(PromiseDrop<A> pd) {
+  void validate(PromiseDrop<A> pd) {  
     if (pd.getAST() == null) {
       if (pd instanceof MethodEffectsPromiseDrop) {
         // continue         
