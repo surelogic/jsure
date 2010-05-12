@@ -34,6 +34,7 @@ public abstract class Drop {
 	public static final String DEPONENT = "deponent";
 	public static final String DEPENDENT = "dependent";
 	public static final String MESSAGE = "message";
+	public static final String MESSAGE_ID = "message-id";
 
 	/**
 	 * Logger for this class
@@ -518,6 +519,9 @@ public abstract class Drop {
 	
 	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		s.addAttribute(MESSAGE, getMessage());
+		if (resultMessage != null) {
+			s.addAttribute(MESSAGE_ID, resultMessage.getResultStringCanonical());
+		}
 	}
 
 	public void snapshotRefs(SeaSnapshot s) {
