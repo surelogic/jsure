@@ -204,7 +204,6 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     }
   }
   
-  @SuppressWarnings("unchecked")
   public void testMajordomo() throws Throwable{
     IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
     String workspacePath = root.getLocation().toOSString();
@@ -431,6 +430,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     			  System.out.println("No diffs to write");
     			  diffs.createNewFile();
     		  }
+    	  } else { // Check and make sure it looks ok    		  
+    		  System.out.println("Checking new results XML");
+    		  SeaSummary.read(location);
+    		  System.out.println("Done checking new results XML");
     	  }
     	
     	final String oracleName = getOracleName(projectPath, oracleFilter, "oracle.zip");
