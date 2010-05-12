@@ -404,10 +404,20 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     			  xmlLocation = new File(xmlOracle);    			  
     			  System.out.println("Looking for " + xmlOracle);
     		  }
-    		  if (xmlLocation == null || !xmlLocation.exists()) {
-    			  xmlOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
-    			  xmlLocation = new File(xmlOracle);
-    			  System.out.println("Looking for " + xmlOracle);
+    		  if (true) { 
+    			  String tempOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
+    			  File tempLocation = new File(xmlOracle);
+    			  final boolean noOracleYet = xmlLocation == null || !xmlLocation.exists();
+    			  boolean replace = noOracleYet;
+    			  if (!noOracleYet) {
+    				  // Check for newer oracle
+    				  replace = isNewer(tempOracle, xmlOracle);
+    			  }
+        		  if (replace) {
+        			  xmlOracle = tempOracle;
+        			  xmlLocation = tempLocation;
+        			  System.out.println("Looking for " + xmlOracle);
+        		  }
     		  }    		 
     		  assert (xmlLocation.exists());  
 
@@ -484,7 +494,20 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
                resultsOk && logOk);
   }
 
-  private void printActivatedAnalyses() {
+  private static boolean isNewer(String oracle1, String oracle2) {
+	  return getDate(oracle1).compareTo(getDate(oracle2)) > 0;
+  }
+
+  private static String getDate(String oracle) {
+	  for(int i=0; i<oracle.length(); i++) {
+		  if (Character.isDigit(oracle.charAt(i))) {
+			  return oracle.substring(i);
+		  }
+	  }
+	  return oracle;
+  }
+
+private void printActivatedAnalyses() {
     for (String id : Plugin.getDefault().getIncludedExtensions()) {
       System.out.println("Activated: " + id);
     }
