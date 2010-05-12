@@ -29,6 +29,8 @@ import edu.cmu.cs.fluid.util.Hashtable2;
  * @author Edwin
  */
 public class SeaSummary extends AbstractSeaXmlCreator {
+	private static final String COUNT = "count";
+	
 	private SeaSummary(File location) throws IOException {
 		super(location);
 	}
@@ -47,8 +49,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		b.append(">\n");
 		flushBuffer(pw);
 		
-		for(Drop d : sea.getDrops()) {
-			IRReferenceDrop id = checkIfReady(d);
+		final Set<Drop> drops = sea.getDrops();
+		outputDropCounts(drops);
+		
+		for(Drop d : drops) {
+			final IRReferenceDrop id = checkIfReady(d);
 			if (id != null) {
 				summarizeDrop(id);
 			}
@@ -56,6 +61,33 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		pw.println("</"+ROOT+">\n");
 		pw.close();
 	}
+		
+	private void outputDropCounts(Set<Drop> drops) {
+		final Map<Class<?>,Integer> counts = new HashMap<Class<?>, Integer>();
+		for(Drop d : drops) {
+			final IRReferenceDrop id = checkIfReady(d);
+			if (id != null) {
+				incr(counts, d.getClass());
+			}
+		}		
+		for(Map.Entry<Class<?>, Integer> e : counts.entrySet()) {
+			Entities.start(COUNT, b);
+			addAttribute(e.getKey().getSimpleName(), e.getValue().toString());
+			b.append("/>");
+			flushBuffer(pw);
+		}
+	}
+
+	private static <T> void incr(Map<T,Integer> counts, T key) {
+		Integer i = counts.get(key);
+		if (i == null) {
+			i = 1;
+		} else {
+			i++;
+		}
+		counts.put(key, i);
+	}
+	
 	@SuppressWarnings("unchecked")
 	private static IRReferenceDrop checkIfReady(Drop d) {
 		if (d instanceof PromiseDrop) {
@@ -146,11 +178,17 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return 0;
 	}
 	
-	public static Diff diff(String project, final Sea sea, File location)
-	throws Exception {
+	public static Listener read(File location) throws Exception {
 		// Load up current contents
 		final Listener l = new Listener();
 		new JSureSummaryXMLReader(l).read(location);
+		return l;
+	}
+	
+	public static Diff diff(String project, final Sea sea, File location)
+	throws Exception {
+		// Load up current contents
+		final Listener l = read(location);
 		
 		final List<Entity> oldDrops = l.drops;
 		//Collections.sort(oldDrops, EntityComparator.prototype);
@@ -174,6 +212,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	}
 
 	static class Listener implements IXMLResultListener {
+		final Map<String,String> officialCounts = new HashMap<String, String>();
+		final Map<String,Integer> counts = new HashMap<String, Integer>();
 		final List<Entity> drops = new ArrayList<Entity>();
 		String project;
 		Date time;
@@ -188,11 +228,44 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 
 		public void notify(Entity e) {
-			drops.add(e);
+			if (COUNT.equals(e.getName())) {
+				for(Map.Entry<String, String> me : e.getAttributes().entrySet()) {
+					String old = officialCounts.put(me.getKey(), me.getValue());
+					if (old != null) {
+						throw new IllegalStateException("Duplicate count for "+me.getKey());
+					}
+				}
+			} else {
+				drops.add(e);
+				
+				String type = e.getAttribute(TYPE_ATTR);
+				if (type != null) {
+					incr(counts, type);
+				}
+			}
 		}
 		
 		public void done() {
-			// TODO Auto-generated method stub
+			if (!officialCounts.isEmpty()) {
+				boolean success = true;
+				for(Map.Entry<String, String> e : officialCounts.entrySet()) {
+					final Integer i = counts.get(e.getKey());
+					if (i == null || !e.getValue().equals(i.toString())) {
+						success = false;
+						System.out.println(e.getKey()+": "+e.getValue()+" != "+i);
+					}
+				}
+				for(Map.Entry<String, Integer> e : counts.entrySet()) {
+					final String value = officialCounts.get(e.getKey());
+					if (value == null || !value.equals(e.getValue().toString())) {
+						success = false;
+						System.out.println(e.getKey()+": "+value+" != "+e.getValue());
+					}
+				}
+				if (!success) {
+					throw new IllegalStateException("Counts don't match up");
+				}
+			}
 		}
 	}
 
