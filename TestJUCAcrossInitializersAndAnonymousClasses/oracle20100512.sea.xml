@@ -1,36 +1,270 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
-<sea-summary time='May 12, 2010 12:54:09 PM'
+<sea-summary time='May 12, 2010 2:40:42 PM'
 	 project='TestJUCAcrossInitializersAndAnonymousClasses'>
 
-<count StartsPromiseDrop='66'>
+<count BorrowedPromiseDrop='1'/>
+<count LockModel='2'/>
+<count ProposedPromiseDrop='10'/>
+<count ResultDrop='25'/>
+<count InfoDrop='14'/>
+<count RegionModel='2'/>
+<ir-drop type='InfoDrop'
+	 line='62'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1136'
+	 hash='473975418'
+	 context='448152803'
+	 message='lock() call has matching unlock() call at line 66'
+	 message-id='(230,lock,66)'
+	 category='lock()–unlock() matches'
+	 result-type='230'/>
 
-<count RegionEffectsPromiseDrop='103'>
+<result-drop type='ResultDrop'
+	 line='81'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1423'
+	 hash='1793922038'
+	 context='-1364499793'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing f2 = 10'
+	 message-id='(205,&lt;this&gt;:L,f2 = 10,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
 
-<count LockModel='2'>
+<result-drop type='ResultDrop'
+	 line='37'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='753'
+	 hash='-874699480'
+	 context='-1175280636'
+	 message='Acting as if lock &quot;&lt;this&gt;:L&quot; were held when accessing this.x (occurs within a thread-confined constructor)'
+	 message-id='(246,&lt;this&gt;:L,this.x,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='246'/>
 
-<count UniquePromiseDrop='4'>
+<ir-drop type='ProposedPromiseDrop'
+	 line='50'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='952'
+	 hash='1818100338'
+	 context='1920586410'
+	 message='ProposedPromiseDrop (EMPTY)'/>
 
-<count PackageDrop='24'>
+<result-drop type='ResultDrop'
+	 line='43'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='832'
+	 hash='-874699480'
+	 context='2114109538'
+	 message='Lock &quot;&lt;this&gt;:L&quot; held when accessing this.x'
+	 message-id='(203,&lt;this&gt;:L,this.x,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
 
-<count InfoDrop='14'>
+<result-drop type='ResultDrop'
+	 line='70'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1263'
+	 hash='1765292887'
+	 context='-1364499794'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing f1 = 10'
+	 message-id='(205,&lt;this&gt;:L,f1 = 10,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
 
-<count RequiresLockPromiseDrop='5'>
+<ir-drop type='InfoDrop'
+	 line='45'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='872'
+	 hash='480857299'
+	 context='-2082476010'
+	 message='unlock() call has matching lock() call at line 41'
+	 message-id='(233,lock,41)'
+	 category='lock()–unlock() matches'
+	 result-type='233'/>
 
-<count BinaryCUDrop='207'>
+<ir-drop type='ProposedPromiseDrop'
+	 line='50'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='952'
+	 hash='1818100338'
+	 context='1920586410'
+	 message='ProposedPromiseDrop (EMPTY)'/>
 
-<count ProjectDrop='1'>
+<result-drop type='ResultDrop'
+	 line='14'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='336'
+	 hash='111835493'
+	 context='-1680092392'
+	 message='Acting as if lock &quot;&lt;this&gt;:L&quot; were held when accessing x = 0 (occurs within a thread-confined constructor)'
+	 message-id='(246,&lt;this&gt;:L,x = 0,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='246'/>
 
-<count ProposedPromiseDrop='10'>
+<ir-drop type='InfoDrop'
+	 line='21'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='478'
+	 hash='473975418'
+	 context='-1917445720'
+	 message='lock() call has matching unlock() call at line 25'
+	 message-id='(230,lock,25)'
+	 category='lock()–unlock() matches'
+	 result-type='230'/>
 
-<count ResultsDepDrop='4'>
+<ir-drop type='ProposedPromiseDrop'
+	 line='58'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1094'
+	 hash='1818100338'
+	 context='1920586411'
+	 message='ProposedPromiseDrop (EMPTY)'/>
 
-<count ResultDrop='26'>
+<ir-drop type='InfoDrop'
+	 line='25'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='556'
+	 hash='480857299'
+	 context='-1960543953'
+	 message='unlock() call has matching lock() call at line 21'
+	 message-id='(233,lock,21)'
+	 category='lock()–unlock() matches'
+	 result-type='233'/>
 
-<count SourceCUDrop='1'>
+<ir-drop type='InfoDrop'
+	 line='88'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1541'
+	 hash='480857299'
+	 context='485339004'
+	 message='unlock() call has matching lock() call at line 84'
+	 message-id='(233,lock,84)'
+	 category='lock()–unlock() matches'
+	 result-type='233'/>
 
-<count RegionModel='5'>
+<result-drop type='ResultDrop'
+	 line='37'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='753'
+	 hash='109801339'
+	 context='-1933694096'
+	 message='Unique return value of call super'
+	 message-id='(301,super)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='uniqueReturnDrop'/>
 
-<count BorrowedPromiseDrop='87'>
+<result-drop type='ResultDrop'
+	 line='17'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='404'
+	 hash='-874699480'
+	 context='-1471881093'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing this.x'
+	 message-id='(205,&lt;this&gt;:L,this.x,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='37'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='753'
+	 hash='109801339'
+	 context='-1933694096'
+	 message='Effects of call super'
+	 message-id='(304,super)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='effectOfCallDrop'/>
+
+<result-drop type='ResultDrop'
+	 line='35'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='709'
+	 hash='1123550565'
+	 context='-1933694096'
+	 message='Control flow of constructor test.Test.Test(int)'
+	 message-id='(300,constructor,test.Test.Test(int))'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='methodControlFlow'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public length'
+	 message-id='(117,public,,length)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='86'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1495'
+	 hash='-1345879984'
+	 context='-1130025672'
+	 message='Lock &quot;&lt;this&gt;:L&quot; held when accessing this.xx'
+	 message-id='(203,&lt;this&gt;:L,this.xx,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<ir-drop type='InfoDrop'
+	 line='66'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1217'
+	 hash='480857299'
+	 context='485339004'
+	 message='unlock() call has matching lock() call at line 62'
+	 message-id='(233,lock,62)'
+	 category='lock()–unlock() matches'
+	 result-type='233'/>
+
+<ir-drop type='InfoDrop'
+	 line='41'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='801'
+	 hash='473975418'
+	 context='980262735'
+	 message='lock() call has matching unlock() call at line 45'
+	 message-id='(230,lock,45)'
+	 category='lock()–unlock() matches'
+	 result-type='230'/>
+
+<result-drop type='ResultDrop'
+	 line='25'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='556'
+	 hash='480857299'
+	 context='-1960543953'
+	 message='Effects of call this.lockField.unlock'
+	 message-id='(304,this.lockField.unlock)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='effectOfCallDrop'/>
+
+<ir-drop type='InfoDrop'
+	 line='73'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1300'
+	 hash='473975418'
+	 context='448152803'
+	 message='lock() call has matching unlock() call at line 77'
+	 message-id='(230,lock,77)'
+	 category='lock()–unlock() matches'
+	 result-type='230'/>
 
 <result-drop type='ResultDrop'
 	 line='75'
@@ -56,65 +290,27 @@
 	 category='unprotected field access(es); possible race condition detected'
 	 result-type='205'/>
 
-<ir-drop type='ProposedPromiseDrop'
-	 line='30'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='626'
-	 hash='-463182061'
-	 context='-1797576045'
-	 message='ProposedPromiseDrop (EMPTY)'/>
-
 <result-drop type='ResultDrop'
-	 line='12'
+	 line='97'
 	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='298'
-	 hash='599186267'
-	 context='635150639'
-	 message='Effects of call new java.util.concurrent.locks.ReentrantLock'
-	 message-id='(304,new java.util.concurrent.locks.ReentrantLock)'
+	 offset='1655'
+	 hash='-1345879984'
+	 context='-1130025672'
+	 message='Lock &quot;&lt;this&gt;:L&quot; held when accessing this.xx'
+	 message-id='(203,&lt;this&gt;:L,this.xx,null)'
+	 category='protected field access(es)'
 	 proved-consistent='true'
 	 consistent='true'
-	 result-type='effectOfCallDrop'/>
+	 result-type='203'/>
 
 <result-drop type='ResultDrop'
-	 line='25'
+	 line='53'
 	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='556'
-	 hash='480857299'
-	 context='-1960543953'
-	 message='Effects of call this.lockField.unlock'
-	 message-id='(304,this.lockField.unlock)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='effectOfCallDrop'/>
-
-<ir-drop type='ProposedPromiseDrop'
-	 line='50'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='952'
-	 hash='1818100338'
-	 context='1920586410'
-	 message='ProposedPromiseDrop (EMPTY)'/>
-
-<ir-drop type='InfoDrop'
-	 line='88'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1541'
-	 hash='480857299'
-	 context='485339004'
-	 message='unlock() call has matching lock() call at line 84'
-	 message-id='(233,lock,84)'
-	 category='lock()–unlock() matches'
-	 result-type='233'/>
-
-<result-drop type='ResultDrop'
-	 line='81'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1423'
-	 hash='1793922038'
-	 context='-1364499793'
-	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing f2 = 10'
-	 message-id='(205,&lt;this&gt;:L,f2 = 10,null)'
+	 offset='1010'
+	 hash='-1028470991'
+	 context='-1152395731'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing q = 10'
+	 message-id='(205,&lt;this&gt;:L,q = 10,null)'
 	 category='unprotected field access(es); possible race condition detected'
 	 result-type='205'/>
 
@@ -132,93 +328,27 @@
 	 result-type='203'/>
 
 <ir-drop type='InfoDrop'
-	 line='21'
+	 line='84'
 	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='478'
-	 hash='473975418'
-	 context='-1917445720'
-	 message='lock() call has matching unlock() call at line 25'
-	 message-id='(230,lock,25)'
-	 category='lock()–unlock() matches'
-	 result-type='230'/>
-
-<ir-drop type='ProposedPromiseDrop'
-	 line='58'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1094'
-	 hash='1818100338'
-	 context='1920586411'
-	 message='ProposedPromiseDrop (EMPTY)'/>
-
-<ir-drop type='InfoDrop'
-	 line='66'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1217'
-	 hash='480857299'
-	 context='485339004'
-	 message='unlock() call has matching lock() call at line 62'
-	 message-id='(233,lock,62)'
-	 category='lock()–unlock() matches'
-	 result-type='233'/>
-
-<ir-drop type='InfoDrop'
-	 line='62'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1136'
+	 offset='1460'
 	 hash='473975418'
 	 context='448152803'
-	 message='lock() call has matching unlock() call at line 66'
-	 message-id='(230,lock,66)'
+	 message='lock() call has matching unlock() call at line 88'
+	 message-id='(230,lock,88)'
 	 category='lock()–unlock() matches'
 	 result-type='230'/>
 
 <result-drop type='ResultDrop'
-	 line='37'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='753'
-	 hash='-874699480'
-	 context='-1175280636'
-	 message='Acting as if lock &quot;&lt;this&gt;:L&quot; were held when accessing this.x (occurs within a thread-confined constructor)'
-	 message-id='(246,&lt;this&gt;:L,this.x,null)'
-	 category='protected field access(es)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='246'/>
-
-<promise-drop type='LockModel'
-	 line='9'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='182'
-	 hash='171473597'
-	 context='-1226327922'
-	 message='RegionLock test.Test.L is this.lockField protects Instance on Test'
-	 message-id='(100,test.Test.L,this.lockField,Instance,Test)'
-	 category='Concurrency'
-	 checked-by-analysis='true'
-	 from-src='true'/>
-
-<result-drop type='ResultDrop'
-	 line='35'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='709'
-	 hash='1123550565'
-	 context='-1933694096'
-	 message='Control flow of constructor test.Test.Test(int)'
-	 message-id='(300,constructor,test.Test.Test(int))'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='methodControlFlow'/>
-
-<ir-drop type='InfoDrop'
 	 line='21'
 	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
 	 offset='478'
 	 hash='473975418'
 	 context='-1917445720'
-	 message='lock() call has matching unlock() call at line 25'
-	 message-id='(230,lock,25)'
-	 category='lock()–unlock() matches'
-	 result-type='230'/>
+	 message='Effects of call this.lockField.lock'
+	 message-id='(304,this.lockField.lock)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='effectOfCallDrop'/>
 
 <ir-drop type='InfoDrop'
 	 line='77'
@@ -230,6 +360,162 @@
 	 message-id='(233,lock,73)'
 	 category='lock()–unlock() matches'
 	 result-type='233'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='58'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1094'
+	 hash='1818100338'
+	 context='1920586411'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='58'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1094'
+	 hash='1818100338'
+	 context='1920586411'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='LockModel'
+	 line='0'
+	 file='java.lang.Object'
+	 offset='2147483647'
+	 hash='-796031666'
+	 context='1063877011'
+	 message='RegionLock java.lang.Object.MUTEX is this protects WaitQueue on Object'
+	 message-id='(100,java.lang.Object.MUTEX,this,WaitQueue,Object)'
+	 category='Concurrency'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='103'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1743'
+	 hash='-1028470991'
+	 context='-1152394770'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing q = 10'
+	 message-id='(205,&lt;this&gt;:L,q = 10,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='30'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='626'
+	 hash='-463182061'
+	 context='-1797576045'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='BorrowedPromiseDrop'
+	 line='35'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='719'
+	 hash='3559070'
+	 context='-1933694096'
+	 message='Borrowed(this) on test.Test.Test(int)'
+	 message-id='(105,this,test.Test.Test(int))'
+	 category='Uniqueness'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='12'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='298'
+	 hash='599186267'
+	 context='635150639'
+	 message='Effects of call new java.util.concurrent.locks.ReentrantLock'
+	 message-id='(304,new java.util.concurrent.locks.ReentrantLock)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='effectOfCallDrop'/>
+
+<result-drop type='ResultDrop'
+	 line='17'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='404'
+	 hash='-874699480'
+	 context='-1471881093'
+	 message='Acting as if lock &quot;&lt;this&gt;:L&quot; were held when accessing this.x (occurs within a thread-confined constructor)'
+	 message-id='(246,&lt;this&gt;:L,this.x,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='246'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='30'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='626'
+	 hash='-463182061'
+	 context='-1797576045'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<result-drop type='ResultDrop'
+	 line='14'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='336'
+	 hash='111835493'
+	 context='-1680092392'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing x = 0'
+	 message-id='(205,&lt;this&gt;:L,x = 0,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='64'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1171'
+	 hash='-1345879984'
+	 context='-1130025672'
+	 message='Lock &quot;&lt;this&gt;:L&quot; held when accessing this.xx'
+	 message-id='(203,&lt;this&gt;:L,this.xx,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<ir-drop type='InfoDrop'
+	 line='21'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='478'
+	 hash='473975418'
+	 context='-1917445720'
+	 message='lock() call has matching unlock() call at line 25'
+	 message-id='(230,lock,25)'
+	 category='lock()–unlock() matches'
+	 result-type='230'/>
+
+<ir-drop type='InfoDrop'
+	 line='25'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='556'
+	 hash='480857299'
+	 context='-1960543953'
+	 message='unlock() call has matching lock() call at line 21'
+	 message-id='(233,lock,21)'
+	 category='lock()–unlock() matches'
+	 result-type='233'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='30'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='626'
+	 hash='-463182061'
+	 context='-1797576045'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='58'
+	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
+	 offset='1094'
+	 hash='1818100338'
+	 context='1920586411'
+	 message='ProposedPromiseDrop (EMPTY)'/>
 
 <ir-drop type='ProposedPromiseDrop'
 	 line='30'
@@ -251,262 +537,17 @@
 	 result-type='230'/>
 
 <result-drop type='ResultDrop'
-	 line='37'
+	 line='23'
 	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='753'
-	 hash='109801339'
-	 context='-1933694096'
-	 message='Unique return value of call super'
-	 message-id='(301,super)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='uniqueReturnDrop'/>
-
-<result-drop type='ResultDrop'
-	 line='14'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='336'
-	 hash='111835493'
-	 context='-1680092392'
-	 message='Acting as if lock &quot;&lt;this&gt;:L&quot; were held when accessing x = 0 (occurs within a thread-confined constructor)'
-	 message-id='(246,&lt;this&gt;:L,x = 0,null)'
-	 category='protected field access(es)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='246'/>
-
-<ir-drop type='ProposedPromiseDrop'
-	 line='58'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1094'
-	 hash='1818100338'
-	 context='1920586411'
-	 message='ProposedPromiseDrop (EMPTY)'/>
-
-<ir-drop type='ProposedPromiseDrop'
-	 line='30'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='626'
-	 hash='-463182061'
-	 context='-1797576045'
-	 message='ProposedPromiseDrop (EMPTY)'/>
-
-<ir-drop type='ProposedPromiseDrop'
-	 line='58'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1094'
-	 hash='1818100338'
-	 context='1920586411'
-	 message='ProposedPromiseDrop (EMPTY)'/>
-
-<promise-drop type='RegionModel'
-	 line='0'
-	 file='java.lang.[]'
-	 offset='-1'
-	 hash='-1305411288'
-	 context='156839830'
-	 message='Region public []'
-	 message-id='(117,public,,[])'
-	 category='Regions'
-	 proved-consistent='true'
-	 checked-by-analysis='true'
-	 from-src='true'/>
-
-<ir-drop type='InfoDrop'
-	 line='25'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='556'
-	 hash='480857299'
-	 context='-1960543953'
-	 message='unlock() call has matching lock() call at line 21'
-	 message-id='(233,lock,21)'
-	 category='lock()–unlock() matches'
-	 result-type='233'/>
-
-<result-drop type='ResultDrop'
-	 line='37'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='753'
-	 hash='109801339'
-	 context='-1933694096'
-	 message='Effects of call super'
-	 message-id='(304,super)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='effectOfCallDrop'/>
-
-<result-drop type='ResultDrop'
-	 line='17'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='404'
+	 offset='509'
 	 hash='-874699480'
 	 context='-1471881093'
-	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing this.x'
-	 message-id='(205,&lt;this&gt;:L,this.x,null)'
-	 category='unprotected field access(es); possible race condition detected'
-	 result-type='205'/>
-
-<ir-drop type='InfoDrop'
-	 line='41'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='801'
-	 hash='473975418'
-	 context='980262735'
-	 message='lock() call has matching unlock() call at line 45'
-	 message-id='(230,lock,45)'
-	 category='lock()–unlock() matches'
-	 result-type='230'/>
-
-<promise-drop type='LockModel'
-	 line='0'
-	 file='java.lang.Object'
-	 offset='2147483647'
-	 hash='-796031666'
-	 context='1063877011'
-	 message='RegionLock java.lang.Object.MUTEX is this protects WaitQueue on Object'
-	 message-id='(100,java.lang.Object.MUTEX,this,WaitQueue,Object)'
-	 category='Concurrency'
-	 proved-consistent='true'
-	 checked-by-analysis='true'
-	 from-src='true'/>
-
-<promise-drop type='BorrowedPromiseDrop'
-	 line='35'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='719'
-	 hash='3559070'
-	 context='-1933694096'
-	 message='Borrowed(this) on test.Test.Test(int)'
-	 message-id='(105,this,test.Test.Test(int))'
-	 category='Uniqueness'
-	 proved-consistent='true'
-	 checked-by-analysis='true'
-	 from-src='true'/>
-
-<result-drop type='ResultDrop'
-	 line='17'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='404'
-	 hash='-874699480'
-	 context='-1471881093'
-	 message='Acting as if lock &quot;&lt;this&gt;:L&quot; were held when accessing this.x (occurs within a thread-confined constructor)'
-	 message-id='(246,&lt;this&gt;:L,this.x,null)'
-	 category='protected field access(es)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='246'/>
-
-<ir-drop type='InfoDrop'
-	 line='84'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1460'
-	 hash='473975418'
-	 context='448152803'
-	 message='lock() call has matching unlock() call at line 88'
-	 message-id='(230,lock,88)'
-	 category='lock()–unlock() matches'
-	 result-type='230'/>
-
-<result-drop type='ResultDrop'
-	 line='53'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1010'
-	 hash='-1028470991'
-	 context='-1152395731'
-	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing q = 10'
-	 message-id='(205,&lt;this&gt;:L,q = 10,null)'
-	 category='unprotected field access(es); possible race condition detected'
-	 result-type='205'/>
-
-<result-drop type='ResultDrop'
-	 line='97'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1655'
-	 hash='-1345879984'
-	 context='-1130025672'
-	 message='Lock &quot;&lt;this&gt;:L&quot; held when accessing this.xx'
-	 message-id='(203,&lt;this&gt;:L,this.xx,null)'
-	 category='protected field access(es)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='203'/>
-
-<result-drop type='ResultDrop'
-	 line='86'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1495'
-	 hash='-1345879984'
-	 context='-1130025672'
-	 message='Lock &quot;&lt;this&gt;:L&quot; held when accessing this.xx'
-	 message-id='(203,&lt;this&gt;:L,this.xx,null)'
-	 category='protected field access(es)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='203'/>
-
-<result-drop type='ResultDrop'
-	 line='64'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1171'
-	 hash='-1345879984'
-	 context='-1130025672'
-	 message='Lock &quot;&lt;this&gt;:L&quot; held when accessing this.xx'
-	 message-id='(203,&lt;this&gt;:L,this.xx,null)'
-	 category='protected field access(es)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='203'/>
-
-<result-drop type='ResultDrop'
-	 line='43'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='832'
-	 hash='-874699480'
-	 context='2114109538'
 	 message='Lock &quot;&lt;this&gt;:L&quot; held when accessing this.x'
 	 message-id='(203,&lt;this&gt;:L,this.x,null)'
 	 category='protected field access(es)'
 	 proved-consistent='true'
 	 consistent='true'
 	 result-type='203'/>
-
-<ir-drop type='ProposedPromiseDrop'
-	 line='50'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='952'
-	 hash='1818100338'
-	 context='1920586410'
-	 message='ProposedPromiseDrop (EMPTY)'/>
-
-<result-drop type='ResultDrop'
-	 line='14'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='336'
-	 hash='111835493'
-	 context='-1680092392'
-	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing x = 0'
-	 message-id='(205,&lt;this&gt;:L,x = 0,null)'
-	 category='unprotected field access(es); possible race condition detected'
-	 result-type='205'/>
-
-<ir-drop type='ProposedPromiseDrop'
-	 line='58'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1094'
-	 hash='1818100338'
-	 context='1920586411'
-	 message='ProposedPromiseDrop (EMPTY)'/>
-
-<ir-drop type='InfoDrop'
-	 line='45'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='872'
-	 hash='480857299'
-	 context='-2082476010'
-	 message='unlock() call has matching lock() call at line 41'
-	 message-id='(233,lock,41)'
-	 category='lock()–unlock() matches'
-	 result-type='233'/>
 
 <result-drop type='ResultDrop'
 	 line='51'
@@ -530,28 +571,17 @@
 	 category='lock()–unlock() matches'
 	 result-type='233'/>
 
-<result-drop type='ResultDrop'
-	 line='21'
+<promise-drop type='LockModel'
+	 line='9'
 	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='478'
-	 hash='473975418'
-	 context='-1917445720'
-	 message='Effects of call this.lockField.lock'
-	 message-id='(304,this.lockField.lock)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='effectOfCallDrop'/>
-
-<result-drop type='ResultDrop'
-	 line='103'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1743'
-	 hash='-1028470991'
-	 context='-1152394770'
-	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing q = 10'
-	 message-id='(205,&lt;this&gt;:L,q = 10,null)'
-	 category='unprotected field access(es); possible race condition detected'
-	 result-type='205'/>
+	 offset='182'
+	 hash='171473597'
+	 context='-1226327922'
+	 message='RegionLock test.Test.L is this.lockField protects Instance on Test'
+	 message-id='(100,test.Test.L,this.lockField,Instance,Test)'
+	 category='Concurrency'
+	 checked-by-analysis='true'
+	 from-src='true'/>
 
 <result-drop type='ResultDrop'
 	 line='92'
@@ -564,72 +594,18 @@
 	 category='unprotected field access(es); possible race condition detected'
 	 result-type='205'/>
 
-<result-drop type='ResultDrop'
-	 line='70'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1263'
-	 hash='1765292887'
-	 context='-1364499794'
-	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing f1 = 10'
-	 message-id='(205,&lt;this&gt;:L,f1 = 10,null)'
-	 category='unprotected field access(es); possible race condition detected'
-	 result-type='205'/>
-
 <promise-drop type='RegionModel'
 	 line='0'
 	 file='java.lang.[]'
 	 offset='-1'
 	 hash='-1305411288'
 	 context='156839830'
-	 message='Region public length'
-	 message-id='(117,public,,length)'
+	 message='Region public []'
+	 message-id='(117,public,,[])'
 	 category='Regions'
 	 proved-consistent='true'
 	 checked-by-analysis='true'
 	 from-src='true'/>
-
-<ir-drop type='ProposedPromiseDrop'
-	 line='30'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='626'
-	 hash='-463182061'
-	 context='-1797576045'
-	 message='ProposedPromiseDrop (EMPTY)'/>
-
-<result-drop type='ResultDrop'
-	 line='23'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='509'
-	 hash='-874699480'
-	 context='-1471881093'
-	 message='Lock &quot;&lt;this&gt;:L&quot; held when accessing this.x'
-	 message-id='(203,&lt;this&gt;:L,this.x,null)'
-	 category='protected field access(es)'
-	 proved-consistent='true'
-	 consistent='true'
-	 result-type='203'/>
-
-<ir-drop type='InfoDrop'
-	 line='25'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='556'
-	 hash='480857299'
-	 context='-1960543953'
-	 message='unlock() call has matching lock() call at line 21'
-	 message-id='(233,lock,21)'
-	 category='lock()–unlock() matches'
-	 result-type='233'/>
-
-<ir-drop type='InfoDrop'
-	 line='73'
-	 file='/TestJUCAcrossInitializersAndAnonymousClasses/src/test/Test.java'
-	 offset='1300'
-	 hash='473975418'
-	 context='448152803'
-	 message='lock() call has matching unlock() call at line 77'
-	 message-id='(230,lock,77)'
-	 category='lock()–unlock() matches'
-	 result-type='230'/>
 
 </sea-summary>
 
