@@ -406,17 +406,21 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     		  if (true) { 
     			  String tempOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
     			  File tempLocation = new File(tempOracle);
+    			  System.out.println("Looking for " + tempOracle);
+    			  
     			  final boolean noOracleYet = xmlLocation == null || !xmlLocation.exists();
-    			  boolean replace = noOracleYet;
-    			  if (!noOracleYet) {
-    				  // Check for newer oracle
+    			  boolean replace;
+    			  if (noOracleYet) {
+    				  replace = true;
+    			  } else {
+    				  System.out.println("Checking for newer oracle");
     				  replace = isNewer(tempOracle, xmlOracle);
     			  }
         		  if (replace) {
         			  xmlOracle = tempOracle;
         			  xmlLocation = tempLocation;
-        			  System.out.println("Looking for " + xmlOracle);
         		  }
+    			  System.out.println("Using " + xmlOracle);
     		  }    		 
     		  assert (xmlLocation.exists());  
 
@@ -498,7 +502,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
   }
 
   private static boolean isNewer(String oracle1, String oracle2) {
-	  return getDate(oracle1).compareTo(getDate(oracle2)) > 0;
+	  String date1 = getDate(oracle1);
+	  String date2 = getDate(oracle2);
+	  //System.out.println(date1+" ?= "+date2+": "+date1.compareTo(date2));
+	  return date1.compareTo(date2) > 0;
   }
 
   private static String getDate(String oracle) {
@@ -524,7 +531,8 @@ private void printActivatedAnalyses() {
   
   private static FilenameFilter xmlOracleFilter = new FilenameFilter() {
 	    public boolean accept(File dir, String name) {
-	      return name.startsWith("oracle") && name.endsWith(SeaSnapshot.SUFFIX);
+	      return !name.startsWith("oracleJavac") && 
+	             name.startsWith("oracle") && name.endsWith(SeaSnapshot.SUFFIX);
 	    }
   };
   
