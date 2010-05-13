@@ -1065,6 +1065,15 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
     
     @Override
     protected void handleMethodDeclaration(final IRNode mdecl) {
+      /*
+      System.out.println("Looking at: "+DebugUnparser.toString(mdecl));
+      if ("getLength".equals(JJNode.getInfoOrNull(mdecl))) {
+    	  for(IRNode n : JJNode.tree.bottomUp(mdecl)) {
+    		  System.out.println("Node: "+JJNode.tree.getOperator(n));
+    	  }
+      }
+      */
+
       // Case 3a: returns unique
       final IRNode retDecl = JavaPromise.getReturnNodeOrNull(mdecl);
       final boolean returnsUnique =
