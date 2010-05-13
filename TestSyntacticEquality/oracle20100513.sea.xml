@@ -1,0 +1,406 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<sea-summary time='May 13, 2010 9:29:34 AM'
+	 project='TestSyntacticEquality'>
+
+<count WarningDrop='1'/>
+<count RegionModel='2'/>
+<count ProposedPromiseDrop='10'/>
+<count ResultDrop='21'/>
+<count LockModel='2'/>
+<ir-drop type='ProposedPromiseDrop'
+	 line='35'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='738'
+	 hash='-1808134471'
+	 context='-429668340'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<result-drop type='ResultDrop'
+	 line='59'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1636'
+	 hash='266345765'
+	 context='-2062878114'
+	 message='Lock &quot;&lt;array [ 0x0 ]&gt;:MyLock&quot; held when accessing array [ 0x0 ].field'
+	 message-id='(203,&lt;array [ 0x0 ]&gt;:MyLock,array [ 0x0 ].field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public []'
+	 message-id='(117,public,,[])'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='77'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2150'
+	 hash='-715556229'
+	 context='-1359084142'
+	 message='Lock &quot;&lt;c2&gt;:MyLock&quot; not held when accessing c2.field'
+	 message-id='(205,&lt;c2&gt;:MyLock,c2.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='75'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2107'
+	 hash='-1603059910'
+	 context='-1359084142'
+	 message='Lock &quot;&lt;c1&gt;:MyLock&quot; held when accessing c1.field'
+	 message-id='(203,&lt;c1&gt;:MyLock,c1.field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='107'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2706'
+	 hash='1960729073'
+	 context='-66360649'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='LockModel'
+	 line='8'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='121'
+	 hash='1709250429'
+	 context='-877171225'
+	 message='RegionLock test.C.MyLock is this protects Instance on C'
+	 message-id='(100,test.C.MyLock,this,Instance,C)'
+	 category='Concurrency'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='14'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='203'
+	 hash='1264760971'
+	 context='839004435'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<result-drop type='ResultDrop'
+	 line='84'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2272'
+	 hash='-715556229'
+	 context='-1359084142'
+	 message='Lock &quot;&lt;c2&gt;:MyLock&quot; held when accessing c2.field'
+	 message-id='(203,&lt;c2&gt;:MyLock,c2.field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='14'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='203'
+	 hash='1264760971'
+	 context='839004435'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<result-drop type='ResultDrop'
+	 line='89'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2352'
+	 hash='-1607864918'
+	 context='-1359084142'
+	 message='Lock &quot;&lt;this&gt;:MyLock&quot; not held when accessing this.field'
+	 message-id='(205,&lt;this&gt;:MyLock,this.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='48'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1222'
+	 hash='-1323715161'
+	 context='-2062878114'
+	 message='Lock &quot;&lt;array [ j ]&gt;:MyLock&quot; not held when accessing array [ j ].field'
+	 message-id='(205,&lt;array [ j ]&gt;:MyLock,array [ j ].field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='35'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='738'
+	 hash='-1808134471'
+	 context='-429668340'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='70'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1970'
+	 hash='-527202902'
+	 context='707181476'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<result-drop type='ResultDrop'
+	 line='57'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1544'
+	 hash='-207254187'
+	 context='-2062878114'
+	 message='Lock &quot;&lt;array [ 00 ]&gt;:MyLock&quot; held when accessing array [ 00 ].field'
+	 message-id='(203,&lt;array [ 00 ]&gt;:MyLock,array [ 00 ].field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='70'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1970'
+	 hash='-527202902'
+	 context='707181476'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<result-drop type='ResultDrop'
+	 line='50'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1319'
+	 hash='-674035338'
+	 context='-2062878114'
+	 message='Lock &quot;&lt;otherArray [ i ]&gt;:MyLock&quot; not held when accessing otherArray [ i ].field'
+	 message-id='(205,&lt;otherArray [ i ]&gt;:MyLock,otherArray [ i ].field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='82'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2228'
+	 hash='-1603059910'
+	 context='-1359084142'
+	 message='Lock &quot;&lt;c1&gt;:MyLock&quot; not held when accessing c1.field'
+	 message-id='(205,&lt;c1&gt;:MyLock,c1.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='113'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2902'
+	 hash='-468183008'
+	 context='-225707127'
+	 message='Lock &quot;&lt;this.innerField&gt;:MyLock&quot; not held when accessing this.innerField.field'
+	 message-id='(205,&lt;this.innerField&gt;:MyLock,this.innerField.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='66'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1935'
+	 hash='-1378025874'
+	 context='-2062878114'
+	 message='Lock &quot;&lt;array [ 1 ]&gt;:MyLock&quot; not held when accessing array [ 1 ].field'
+	 message-id='(205,&lt;array [ 1 ]&gt;:MyLock,array [ 1 ].field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='35'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='738'
+	 hash='-1808134471'
+	 context='-429668340'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public length'
+	 message-id='(117,public,,length)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='28'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='650'
+	 hash='-1436823673'
+	 context='679657957'
+	 message='Lock &quot;&lt;t2.f1&gt;:MyLock&quot; not held when accessing t2.f1.field'
+	 message-id='(205,&lt;t2.f1&gt;:MyLock,t2.f1.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='100'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2566'
+	 hash='1525186716'
+	 context='-350234285'
+	 message='Lock &quot;&lt;other&gt;:MyLock&quot; not held when accessing other.field'
+	 message-id='(205,&lt;other&gt;:MyLock,other.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='24'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='484'
+	 hash='-1240310168'
+	 context='679657957'
+	 message='Lock &quot;&lt;t1.f1&gt;:MyLock&quot; held when accessing t1.f1.field'
+	 message-id='(203,&lt;t1.f1&gt;:MyLock,t1.f1.field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<result-drop type='ResultDrop'
+	 line='46'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1129'
+	 hash='483739302'
+	 context='-2062878114'
+	 message='Lock &quot;&lt;array [ i ]&gt;:MyLock&quot; held when accessing array [ i ].field'
+	 message-id='(203,&lt;array [ i ]&gt;:MyLock,array [ i ].field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<result-drop type='ResultDrop'
+	 line='55'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1454'
+	 hash='429428589'
+	 context='-2062878114'
+	 message='Lock &quot;&lt;array [ 0 ]&gt;:MyLock&quot; held when accessing array [ 0 ].field'
+	 message-id='(203,&lt;array [ 0 ]&gt;:MyLock,array [ 0 ].field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='93'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2383'
+	 hash='-1149543109'
+	 context='1282975489'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='LockModel'
+	 line='0'
+	 file='java.lang.Object'
+	 offset='2147483647'
+	 hash='-796031666'
+	 context='1063877011'
+	 message='RegionLock java.lang.Object.MUTEX is this protects WaitQueue on Object'
+	 message-id='(100,java.lang.Object.MUTEX,this,WaitQueue,Object)'
+	 category='Concurrency'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='63'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1829'
+	 hash='1032576380'
+	 context='-2062878114'
+	 message='Lock &quot;&lt;array [ &apos;\u0000&apos; ]&gt;:MyLock&quot; held when accessing array [ &apos;\u0000&apos; ].field'
+	 message-id='(203,&lt;array [ &apos;\u0000&apos; ]&gt;:MyLock,array [ &apos;\u0000&apos; ].field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<ir-drop type='WarningDrop'
+	 line='87'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2301'
+	 hash='-1170608127'
+	 context='707181476'
+	 message='Locks [&lt;c1&gt;:MUTEX, &lt;c1&gt;:MyLock] not needed by body of synchronized block'
+	 message-id='(218,[&lt;c1&gt;:MUTEX, &lt;c1&gt;:MyLock])'
+	 category='synchronized block(s) not protecting any state; what state is being protected?'
+	 result-type='218'/>
+
+<result-drop type='ResultDrop'
+	 line='26'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='567'
+	 hash='-352806487'
+	 context='679657957'
+	 message='Lock &quot;&lt;t1.f2&gt;:MyLock&quot; not held when accessing t1.f2.field'
+	 message-id='(205,&lt;t1.f2&gt;:MyLock,t1.f2.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='98'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2516'
+	 hash='-1607864918'
+	 context='-350234285'
+	 message='Lock &quot;&lt;this&gt;:MyLock&quot; held when accessing this.field'
+	 message-id='(203,&lt;this&gt;:MyLock,this.field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<result-drop type='ResultDrop'
+	 line='111'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='2841'
+	 hash='-2115979247'
+	 context='-225707127'
+	 message='Lock &quot;&lt;test.C.this&gt;:MyLock&quot; held when accessing test.C.this.field'
+	 message-id='(203,&lt;test.C.this&gt;:MyLock,test.C.this.field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<result-drop type='ResultDrop'
+	 line='61'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1730'
+	 hash='27619873'
+	 context='-2062878114'
+	 message='Lock &quot;&lt;array [ &apos;\0&apos; ]&gt;:MyLock&quot; held when accessing array [ &apos;\0&apos; ].field'
+	 message-id='(203,&lt;array [ &apos;\0&apos; ]&gt;:MyLock,array [ &apos;\0&apos; ].field,null)'
+	 category='protected field access(es)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='203'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='70'
+	 file='/TestSyntacticEquality/src/test/C.java'
+	 offset='1970'
+	 hash='-527202902'
+	 context='707181476'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+</sea-summary>
+

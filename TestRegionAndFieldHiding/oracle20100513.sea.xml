@@ -1,0 +1,314 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<sea-summary time='May 13, 2010 9:28:35 AM'
+	 project='TestRegionAndFieldHiding'>
+
+<count InRegionPromiseDrop='3'/>
+<count ProposedPromiseDrop='6'/>
+<count LockModel='4'/>
+<count RegionModel='8'/>
+<count ResultDrop='6'/>
+<promise-drop type='LockModel'
+	 line='8'
+	 file='/TestRegionAndFieldHiding/src/test/Super.java'
+	 offset='141'
+	 hash='482755344'
+	 context='638089983'
+	 message='RegionLock test.Super.L is this.superLock protects R on Super'
+	 message-id='(100,test.Super.L,this.superLock,R,Super)'
+	 category='Concurrency'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='16'
+	 file='/TestRegionAndFieldHiding/src/test/Duper.java'
+	 offset='302'
+	 hash='-261610000'
+	 context='-154308369'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public length'
+	 message-id='(117,public,,length)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='22'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='556'
+	 hash='1044716464'
+	 context='-4075484'
+	 message='Lock &quot;&lt;((test.Duper) this)&gt;:LL&quot; not held when accessing ((test.Duper) this).field'
+	 message-id='(205,&lt;((test.Duper) this)&gt;:LL,((test.Duper) this).field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<promise-drop type='LockModel'
+	 line='0'
+	 file='java.lang.Object'
+	 offset='2147483647'
+	 hash='-796031666'
+	 context='1063877011'
+	 message='RegionLock java.lang.Object.MUTEX is this protects WaitQueue on Object'
+	 message-id='(100,java.lang.Object.MUTEX,this,WaitQueue,Object)'
+	 category='Concurrency'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='15'
+	 file='/TestRegionAndFieldHiding/src/test/Super.java'
+	 offset='284'
+	 hash='1003852969'
+	 context='1034649623'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='16'
+	 file='/TestRegionAndFieldHiding/src/test/Duper.java'
+	 offset='302'
+	 hash='-261610000'
+	 context='-154308369'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='LockModel'
+	 line='8'
+	 file='/TestRegionAndFieldHiding/src/test/Duper.java'
+	 offset='141'
+	 hash='-484186571'
+	 context='624237168'
+	 message='RegionLock test.Duper.LL is this.duperLock protects R on Duper'
+	 message-id='(100,test.Duper.LL,this.duperLock,R,Duper)'
+	 category='Concurrency'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RegionModel'
+	 line='13'
+	 file='/TestRegionAndFieldHiding/src/test/Super.java'
+	 offset='272'
+	 hash='97427706'
+	 context='1038585163'
+	 message='Region public test.Super.field'
+	 message-id='(117,public,,test.Super.field)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='21'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='515'
+	 hash='-1026466943'
+	 context='-4075484'
+	 message='Lock &quot;&lt;((test.Super) this)&gt;:L&quot; not held when accessing ((test.Super) this).field'
+	 message-id='(205,&lt;((test.Super) this)&gt;:L,((test.Super) this).field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public []'
+	 message-id='(117,public,,[])'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='23'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='598'
+	 hash='-1607864918'
+	 context='-4075484'
+	 message='Lock &quot;&lt;this&gt;:LLL&quot; not held when accessing this.field'
+	 message-id='(205,&lt;this&gt;:LLL,this.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<promise-drop type='InRegionPromiseDrop'
+	 line='12'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='276'
+	 hash='97427706'
+	 context='2067942403'
+	 message='InRegion(R) on field'
+	 message-id='(107,R,field)'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='22'
+	 file='/TestRegionAndFieldHiding/src/test/Duper.java'
+	 offset='548'
+	 hash='-1607864918'
+	 context='1971904861'
+	 message='Lock &quot;&lt;this&gt;:LL&quot; not held when accessing this.field'
+	 message-id='(205,&lt;this&gt;:LL,this.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='16'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='309'
+	 hash='-1162393950'
+	 context='1109443382'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='RegionModel'
+	 line='7'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='117'
+	 hash='-1695136158'
+	 context='858170295'
+	 message='Region public test.Blooper.R'
+	 message-id='(117,public,,test.Blooper.R)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='16'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='309'
+	 hash='-1162393950'
+	 context='1109443382'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='RegionModel'
+	 line='13'
+	 file='/TestRegionAndFieldHiding/src/test/Duper.java'
+	 offset='287'
+	 hash='97427706'
+	 context='-2071915524'
+	 message='Region public test.Duper.field'
+	 message-id='(117,public,,test.Duper.field)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='InRegionPromiseDrop'
+	 line='12'
+	 file='/TestRegionAndFieldHiding/src/test/Duper.java'
+	 offset='269'
+	 hash='97427706'
+	 context='-2071915524'
+	 message='InRegion(R) on field'
+	 message-id='(107,R,field)'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RegionModel'
+	 line='13'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='294'
+	 hash='97427706'
+	 context='2067942403'
+	 message='Region public test.Blooper.field'
+	 message-id='(117,public,,test.Blooper.field)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RegionModel'
+	 line='7'
+	 file='/TestRegionAndFieldHiding/src/test/Super.java'
+	 offset='117'
+	 hash='482755344'
+	 context='638089983'
+	 message='Region public test.Super.R'
+	 message-id='(117,public,,test.Super.R)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='21'
+	 file='/TestRegionAndFieldHiding/src/test/Duper.java'
+	 offset='507'
+	 hash='-1026466943'
+	 context='1971904861'
+	 message='Lock &quot;&lt;((test.Super) this)&gt;:L&quot; not held when accessing ((test.Super) this).field'
+	 message-id='(205,&lt;((test.Super) this)&gt;:L,((test.Super) this).field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<promise-drop type='LockModel'
+	 line='8'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='141'
+	 hash='-1695136158'
+	 context='858170295'
+	 message='RegionLock test.Blooper.LLL is this.blooperLock protects R on Blooper'
+	 message-id='(100,test.Blooper.LLL,this.blooperLock,R,Blooper)'
+	 category='Concurrency'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='InRegionPromiseDrop'
+	 line='12'
+	 file='/TestRegionAndFieldHiding/src/test/Super.java'
+	 offset='254'
+	 hash='97427706'
+	 context='1038585163'
+	 message='InRegion(R) on field'
+	 message-id='(107,R,field)'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='16'
+	 file='/TestRegionAndFieldHiding/src/test/Super.java'
+	 offset='308'
+	 hash='-1607864918'
+	 context='-540789755'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing this.field'
+	 message-id='(205,&lt;this&gt;:L,this.field,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<promise-drop type='RegionModel'
+	 line='7'
+	 file='/TestRegionAndFieldHiding/src/test/Duper.java'
+	 offset='117'
+	 hash='-484186571'
+	 context='624237168'
+	 message='Region public test.Duper.R'
+	 message-id='(117,public,,test.Duper.R)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='16'
+	 file='/TestRegionAndFieldHiding/src/test/Blooper.java'
+	 offset='309'
+	 hash='-1162393950'
+	 context='1109443382'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+</sea-summary>
+
