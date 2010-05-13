@@ -405,7 +405,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     		  }
     		  if (true) { 
     			  String tempOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
-    			  File tempLocation = new File(xmlOracle);
+    			  File tempLocation = new File(tempOracle);
     			  final boolean noOracleYet = xmlLocation == null || !xmlLocation.exists();
     			  boolean replace = noOracleYet;
     			  if (!noOracleYet) {
