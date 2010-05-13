@@ -264,6 +264,8 @@ public class PromisesJarUtility {
 			} else {
 				useJar = null; // force a cancel
 			}
+		} else if (choice == 2) {
+			useJar = null; // Don't use the jar
 		}
 		return new LocationChoice(choice, useJar, useExisting);
 	}
