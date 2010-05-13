@@ -476,7 +476,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		
 		public static String toString(Entity e) {
 			return e.getAttribute(OFFSET_ATTR)+" - "+
-			       e.getAttribute(HASH_ATTR)+" - "+e.getAttribute(MESSAGE_ATTR);
+			       e.getAttribute(HASH_ATTR)+" - "+
+			       e.getAttribute(CONTEXT_ATTR)+" - "+
+			       e.getAttribute(MESSAGE_ID_ATTR)+" - "+
+			       e.getAttribute(MESSAGE_ATTR);
 		}
 
 		public boolean hasChildren() {
@@ -511,19 +514,28 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	
 	static abstract class Matcher {
 		static boolean match(Entity n, Entity o, String... attrs) {
+			return match(n, o, false, attrs);
+		}
+		
+		static boolean match(Entity n, Entity o, boolean defaultValue, String... attrs) {
 			for(String attr : attrs) {
 				String a_n = n.getAttribute(attr);
 				String a_o = o.getAttribute(attr);
 				if (a_n == null || a_o == null) {
 					continue; // Skip this attribute
-				}
+				}		
+				/*
+				// Temporary
+				a_n = a_n.replaceAll("  on  ", " on ");
+				a_o = a_o.replaceAll("  on  ", " on ");
+                */
 				return a_n.equals(a_o);
 			}
-			return false;
+			return defaultValue;
 		}
 		
 		boolean match(Entity n, Entity o) {
-			return match(n, o, CATEGORY_ATTR) && match(n, o, MESSAGE_ID_ATTR, MESSAGE_ATTR);
+			return match(n, o, true, CATEGORY_ATTR) && match(n, o, MESSAGE_ID_ATTR, MESSAGE_ATTR);
 		}
 	}
 	
