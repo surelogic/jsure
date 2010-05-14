@@ -216,6 +216,9 @@
 		<delete quiet="true" file="${fjp-dir}/Node.java" />
 		<delete quiet="true" file="${fjp-dir}/Token.java" />
 		<delete quiet="true" file="${fjp-dir}/ParseException.java" />
+		<replaceregexp file="${fjp-dir}/JavaParser.java" flags="g"
+		                         match="if \(true\) throw new ParseException"
+		                         replace="throw new ParseException"/>
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
