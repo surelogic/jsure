@@ -1,5 +1,7 @@
 package com.surelogic.analysis.bca.uwm;
 
+import com.surelogic.util.IThunk;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
@@ -32,32 +34,32 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet<IRNode>[], BindingContext, JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext>> {
   public final class Query extends AbstractJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>[], BindingContext> {
-    private Query(final BindingContext l) {
-      super(l);
+    private Query(final Delegate<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>[], BindingContext> d) {
+      super(d);
     }
+
+    public Query(final IThunk<? extends IJavaFlowAnalysis<ImmutableSet<IRNode>[], BindingContext>> thunk) {
+      super(thunk);
+    }
+
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
+    }
+
     
-    public Query(final IJavaFlowAnalysis<ImmutableSet<IRNode>[], BindingContext> analysis) {
-      super(analysis, RawResultFactory.NORMAL_EXIT);
-    }
-
+    
     @Override
-    protected Query newAnalysisBasedSubQuery(
-        IJavaFlowAnalysis<ImmutableSet<IRNode>[], BindingContext> subAnalysis) {
-      return new Query(subAnalysis);
-    }
-
-    @Override
-    protected Query newBottomReturningSubQuery(
-        BindingContext lattice) {
-      return new Query(lattice);
+    protected Query newSubAnalysisQuery(final Delegate<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>[], BindingContext> d) {
+      return new Query(d);
     }
 
     @Override
     protected ImmutableSet<IRNode> processRawResult(
-        final IRNode expr, final ImmutableSet<IRNode>[] rawResult) {
+        final IRNode expr, final BindingContext lattice, 
+        final ImmutableSet<IRNode>[] rawResult) {
       return lattice.expressionObjects(rawResult, expr);
     }
-
   }
   
   
@@ -86,7 +88,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
    * Get an query object tailored to a specific flow unit.
    */
   public Query getExpressionObjectsQuery(final IRNode flowUnit) {
-    return new Query(getAnalysis(flowUnit));
+    return new Query(getAnalysisThunk(flowUnit));
   }
 
   

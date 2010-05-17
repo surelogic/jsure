@@ -3,8 +3,8 @@ package com.surelogic.analysis.locks;
 import java.util.Set;
 
 import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.util.IThunk;
 
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
@@ -31,29 +31,32 @@ import edu.uwm.cs.fluid.java.control.JavaBackwardTransfer;
 public final class MustReleaseAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice, JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>> {
   public final class Query extends AbstractJavaFlowAnalysisQuery<Query, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> {
-
     public Query(
-        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> a) {
-      super(a, RawResultFactory.NORMAL_EXIT);
+        final IThunk<? extends IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>> thunk) {
+      super(thunk);
     }
 
-    private Query(final MustReleaseLattice lattice) {
-      super(lattice);
-    }
-
-    @Override
-    protected Query newAnalysisBasedSubQuery(
-        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> subAnalysis) {
-      return new Query(subAnalysis);
+    private Query(final Delegate<Query, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> d) {
+      super(d);
     }
 
     @Override
-    protected Query newBottomReturningSubQuery(final MustReleaseLattice lattice) {
-      return new Query(lattice); 
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
     }
+    
+
+
+    @Override
+    protected Query newSubAnalysisQuery(final Delegate<Query, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> d) {
+      return new Query(d);
+    }
+    
+
 
     @Override
     protected Set<IRNode> processRawResult(final IRNode mcall,
+        final MustReleaseLattice lattice,
         final ImmutableList<ImmutableSet<IRNode>>[] rawResult) {
       final MethodCall call = (MethodCall) tree.getOperator(mcall);
       final Set<IRNode> unlockCalls =
@@ -64,8 +67,7 @@ public final class MustReleaseAnalysis extends
        */
       if (unlockCalls != null) unlockCalls.remove(mcall);
       return unlockCalls;
-    }
-    
+    }    
   }
 
   
@@ -100,27 +102,27 @@ public final class MustReleaseAnalysis extends
     return analysis;
   }
 
-  /**
-   * Get the matching unlock.
-   * @return The IRNode of the matching unlock method call.
-   */
-  public Set<IRNode> getUnlocksFor(final IRNode mcall, final IRNode context) {
-    final JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> a =
-      getAnalysis(
-        edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
-            mcall, context));
-    final MustReleaseLattice lattice = a.getLattice();   
-    final MethodCall call = (MethodCall) tree.getOperator(mcall);
-    final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.NORMAL_EXIT);
-    final Set<IRNode> unlockCalls =
-      lattice.getUnlocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
-    /* Remove ourself from the set---this will happen in the case of a 
-     * tryLock() embedded in an if-statement, see 
-     * MustReleaseTransfer.transferConditional().
-     */
-    if (unlockCalls != null) unlockCalls.remove(mcall);
-    return unlockCalls;
-  }
+//  /**
+//   * Get the matching unlock.
+//   * @return The IRNode of the matching unlock method call.
+//   */
+//  public Set<IRNode> getUnlocksFor(final IRNode mcall, final IRNode context) {
+//    final JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> a =
+//      getAnalysis(
+//        edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
+//            mcall, context));
+//    final MustReleaseLattice lattice = a.getLattice();   
+//    final MethodCall call = (MethodCall) tree.getOperator(mcall);
+//    final ImmutableList<ImmutableSet<IRNode>>[] value = a.getAfter(mcall, WhichPort.NORMAL_EXIT);
+//    final Set<IRNode> unlockCalls =
+//      lattice.getUnlocksFor(value, call.get_Object(mcall), thisExprBinder, binder);
+//    /* Remove ourself from the set---this will happen in the case of a 
+//     * tryLock() embedded in an if-statement, see 
+//     * MustReleaseTransfer.transferConditional().
+//     */
+//    if (unlockCalls != null) unlockCalls.remove(mcall);
+//    return unlockCalls;
+//  }
   
   /**
    * @param flowUnit
@@ -134,7 +136,7 @@ public final class MustReleaseAnalysis extends
    *          constructor.
    */
   public Query getUnlocksForQuery(final IRNode flowUnit) {
-    return new Query(getAnalysis(flowUnit));
+    return new Query(getAnalysisThunk(flowUnit));
   }
   
   

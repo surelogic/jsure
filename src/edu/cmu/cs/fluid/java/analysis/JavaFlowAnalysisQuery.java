@@ -9,19 +9,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * analyzing {@code super()} constructor calls and anonymous class expressions.
  */
 public interface JavaFlowAnalysisQuery<R> extends AnalysisQuery<R> {
-
-  /**
-   * Can the query provide a new query based on the initializer block
-   * subanalysis that may be associated with the analysis being used by this
-   * query.
-   * 
-   * @param caller
-   *          The ConstructorCall or NewExpression node associated with the
-   *          initializer block. If a NewExpression node, it must be a child of
-   *          an AnonClassExpression node.
-   */
-  public boolean hasSubAnalysisQuery(IRNode caller);
-
   /**
    * Get the query that is based on the initializer block subanalysis associated
    * with the analysis used by this query. Implementations should specialize the

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.locks.locks.HeldLock;
+import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -53,28 +54,32 @@ public final class MustHoldAnalysis extends
   
   
   public final class LocksForQuery extends AbstractJavaFlowAnalysisQuery<LocksForQuery, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
-    protected LocksForQuery(
-        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> a) {
-      super(a, RawResultFactory.ENTRY);
+    public LocksForQuery(
+        final IThunk<? extends IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>> t) {
+      super(t);
     }
 
-    private LocksForQuery(final MustHoldLattice lattice) {
-      super(lattice);
-    }
-
-    @Override
-    protected LocksForQuery newAnalysisBasedSubQuery(
-        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> subAnalysis) {
-      return new LocksForQuery(subAnalysis);
+    private LocksForQuery(final Delegate<LocksForQuery, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> d) {
+      super(d);
     }
 
     @Override
-    protected LocksForQuery newBottomReturningSubQuery(final MustHoldLattice lattice) {
-      return new LocksForQuery(lattice);
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.ENTRY;
     }
 
+
+    
+    @Override
+    protected LocksForQuery newSubAnalysisQuery(final Delegate<LocksForQuery, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> d) {
+      return new LocksForQuery(d);
+    }
+    
+
+    
     @Override
     protected Set<IRNode> processRawResult(final IRNode mcall,
+        final MustHoldLattice lattice,
         final ImmutableList<ImmutableSet<IRNode>>[] rawResult) {
       final MethodCall call = (MethodCall) tree.getOperator(mcall);
       return lattice.getLocksFor(rawResult, call.get_Object(mcall), thisExprBinder, binder);
@@ -84,28 +89,32 @@ public final class MustHoldAnalysis extends
   
 
   public final class HeldLocksQuery extends AbstractJavaFlowAnalysisQuery<HeldLocksQuery, HeldLocks, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
-    protected HeldLocksQuery(
-        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> a) {
-      super(a, RawResultFactory.ENTRY);
+    public HeldLocksQuery(
+        final IThunk<? extends IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>> t) {
+      super(t);
     }
-
-    private HeldLocksQuery(final MustHoldLattice lattice) {
-      super(lattice);
-    }
-
-    @Override
-    protected HeldLocksQuery newAnalysisBasedSubQuery(
-        final IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> subAnalysis) {
-      return new HeldLocksQuery(subAnalysis);
+    
+    private HeldLocksQuery(final Delegate<HeldLocksQuery, HeldLocks, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> d) {
+      super(d);
     }
 
     @Override
-    protected HeldLocksQuery newBottomReturningSubQuery(final MustHoldLattice lattice) {
-      return new HeldLocksQuery(lattice);
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.ENTRY;
+    }
+    
+    
+    
+    @Override
+    protected HeldLocksQuery newSubAnalysisQuery(final Delegate<HeldLocksQuery, HeldLocks, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> d) {
+      return new HeldLocksQuery(d);
     }
 
+
+    
     @Override
     protected HeldLocks processRawResult(final IRNode mcall,
+        final MustHoldLattice lattice,
         final ImmutableList<ImmutableSet<IRNode>>[] rawResult) {
       return new HeldLocks(
           lattice.getHeldLocks(rawResult),
@@ -147,11 +156,11 @@ public final class MustHoldAnalysis extends
   }
 
   public LocksForQuery getLocksForQuery(final IRNode flowUnit) {
-    return new LocksForQuery(getAnalysis(flowUnit));
+    return new LocksForQuery(getAnalysisThunk(flowUnit));
   }
   
   public HeldLocksQuery getHeldLocksQuery(final IRNode flowUnit) {
-    return new HeldLocksQuery(getAnalysis(flowUnit));
+    return new HeldLocksQuery(getAnalysisThunk(flowUnit));
   }
 
   

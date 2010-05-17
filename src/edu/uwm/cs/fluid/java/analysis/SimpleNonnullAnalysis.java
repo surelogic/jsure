@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -44,31 +45,34 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
  */
 public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice, JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice>> {
   public final class Query extends AbstractJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice> {
-    public Query (final IJavaFlowAnalysis<Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>>, Lattice> analysis) {
-      super(analysis, RawResultFactory.ENTRY);
+    public Query(final IThunk<? extends IJavaFlowAnalysis<Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>>, Lattice>> thunk) {
+      super(thunk);
     }
     
-    private Query(final Lattice l) {
-      super(l);
+    private Query(final Delegate<Query, ImmutableSet<IRNode>, Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice> d) {
+      super(d);
     }
 
     @Override
-    protected Query newAnalysisBasedSubQuery(
-        final IJavaFlowAnalysis<Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>>, Lattice> subAnalysis) {
-      return new Query(subAnalysis);
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.ENTRY;
     }
 
+
+    
     @Override
-    protected Query newBottomReturningSubQuery(final Lattice lattice) {
-      return new Query(lattice);
+    protected Query newSubAnalysisQuery(final Delegate<Query, ImmutableSet<IRNode>, Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice> d) {
+      return new Query(d);
     }
 
+
+    
     @Override
     protected ImmutableSet<IRNode> processRawResult(final IRNode expr,
+        final Lattice lattice,
         final Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> rawResult) {
       return rawResult.second();
-    }
-    
+    }    
   }
   
   
@@ -90,17 +94,17 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     return new JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice>("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
 
-  /**
-   * Return the set of variable declarators that are guaranteed not to be null.
-   * @param node node in AST to denote where to check
-   * @return variables that are not null at this execution point.
-   */
-  public ImmutableSet<IRNode> getNonnullBefore(IRNode node, IRNode constructorContext) {
-    return getAnalysisResultsBefore(node, constructorContext).second();
-  }
+//  /**
+//   * Return the set of variable declarators that are guaranteed not to be null.
+//   * @param node node in AST to denote where to check
+//   * @return variables that are not null at this execution point.
+//   */
+//  public ImmutableSet<IRNode> getNonnullBefore(IRNode node, IRNode constructorContext) {
+//    return getAnalysisResultsBefore(node, constructorContext).second();
+//  }
 
   public Query getNonnullBeforeQuery(final IRNode flowUnit) {
-    return new Query(getAnalysis(flowUnit));
+    return new Query(getAnalysisThunk(flowUnit));
   }
   
 

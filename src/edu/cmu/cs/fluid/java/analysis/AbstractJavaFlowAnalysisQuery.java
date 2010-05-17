@@ -1,142 +1,364 @@
 package edu.cmu.cs.fluid.java.analysis;
 
+import com.surelogic.util.IThunk;
+import com.surelogic.util.Thunk;
+
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.util.Lattice;
 
-public abstract class AbstractJavaFlowAnalysisQuery<SELF extends AnalysisQuery<R>, R, T, L extends Lattice<T>>
+/**
+ * Absurdly complicated to make sure that IJavaFlowAnalysis objects are obtained
+ * lazily.  We need to do this otherwise analyses will be kicked of as soon as
+ * a query is created.  This is not desirable because sometimes queries aren't 
+ * used.  They are sometimes created ahead of time just in case they might
+ * be needed because it isn't always possible to create the query when it is
+ * needed due to loss of contextual information.  So a query doesn't force its
+ * underlying analysis object to exist until someone calls {@link #getResultFor(IRNode)}
+ * on the query.
+ * 
+ * <p>Four cases:
+ * <ol>
+ *   <li>Unevaluated analysis object
+ *   <li>Unevaluated subanalysis derived from an unevaluated analysis 
+ *   <li>Evaluated analysis object
+ *   <li>Bottom-returning
+ * </ol>
+ * 
+ * <p>Can be initialized in any one of three states.
+ */
+public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysisQuery<R>, R, T, L extends Lattice<T>>
     implements JavaFlowAnalysisQuery<R> {
+  /* The core functionality is handed off to a delegate object.  This this is
+   * needed to handle the laziness, so that a query can start off unevaluated,
+   * but change its behavior once it has been evaluated by changing the wrapped
+   * delegate.
+   */
+  
+  /*
+   * A recurring issue when getting a subanalysis object is whether we need to
+   * create a specialized "bottom-returning" query. This happens when the
+   * getSubanalysis() method from the SubANalysisFactory returns null. In this
+   * case, we assume the subanalysis was not created because the code that
+   * contains it is dead: it is in an "if (false) { ... }" statement, for
+   * example. So the user can query about this code, but the control flow
+   * analysis never visits it. We want to return a query that always returns
+   * BOTTOM.
+   * 
+   * Every time we need to generate a subanalysis object we have to take the
+   * above into account. Unfortunately this happens in three different places
+   * that return three different type of objects: queries, delegates, and
+   * analyses, respectively. It is very important all three locations get
+   * updated appropriately when this class is changed.
+   * 
+   * A problem with the bottom-returning approach is that I cannot determine if
+   * the caller of this method is just plain confused and shouldn't be asking me
+   * about the subanalysis for the given "caller". Could check for this by
+   * checking that caller is a descendant of the flow unit node associated with
+   * the current analysis and that no instance initializer blocks come between
+   * them, but that is expensive.
+   */
+
+  
+  
+  /* Interface for delegates.  Type parameters should be instantiated
+   * to match those of the delegating query.  This class is static so that
+   * instances of it can be created BEFORE instances of the query that will
+   * delegate to it.  This means that the delegate methods need to be 
+   * parameterized by delegating object.  We have opted to make the internals
+   * of AbstractJavaFlowAnalysisQuery more complicated so that the subclasses
+   * can be simpler.
+   */
+  protected static interface Delegate<SELF extends JavaFlowAnalysisQuery<R>, R, T, L extends Lattice<T>> {
+    public R getResultFor(AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, IRNode expr);
+    public SELF getSubAnalysisQuery(AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, IRNode caller);
+  }
+  
+  
+  
+  /* Delegate for queries that always return bottom.  */
+  private final static class IsBottomReturning<SELF extends JavaFlowAnalysisQuery<R>, R, T, L extends Lattice<T>> implements Delegate<SELF, R, T, L> {
+    private final L lattice;
+    
+    public IsBottomReturning(final L l) {
+      lattice = l;      
+    }
+    
+    /**
+     * Always forwards the bottom value to {@link #processRawResult}.
+     */
+    public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
+      return owner.processRawResult(expr, lattice, lattice.bottom());
+    }
+
+    /**
+     * Bottom-returning queries never have subqueries.  It is an error if this
+     * method is ever called.
+     * @throws UnsupportedOperationException Always thrown.
+     */
+    public SELF getSubAnalysisQuery(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode caller) {
+      throw new UnsupportedOperationException(
+          "Cannot get a subanalysis query from a bottom-returning query");
+    }
+  }
+
+  
+  
+  /* Delegate for queries that have an actual evaluated analysis object. */
+  private final static class HasEvaluatedAnalysis<SELF extends JavaFlowAnalysisQuery<R>, R, T, L extends Lattice<T>> implements Delegate<SELF, R, T, L> {
+    private final IJavaFlowAnalysis<T, L> analysis;    
+    private final L lattice;
+    
+    public HasEvaluatedAnalysis(final IJavaFlowAnalysis<T, L> a) {
+      analysis = a;
+      lattice = a.getLattice();
+    }
+    
+    /**
+     * Get the result from the analysis according to 
+     * {@link rawResultFactory} and forward the value to
+     * {@link processRawResult}.
+     */
+    public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
+      return owner.processRawResult(
+          expr, lattice, owner.rawResultFactory.getRawResult(expr, analysis));
+    }
+
+    /**
+     * If the subanalysis exists, it is already evaluated because it would been
+     * created and evaluated when the analysis for this query was evaluated,
+     * so we either create a query based on {@link HasEvaluatedAnalysis} or
+     * {@link IsBottomReturning}. 
+     */
+    public SELF getSubAnalysisQuery(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode caller) {
+      final IJavaFlowAnalysis<T, L> sub =
+        analysis.getSubAnalysisFactory().getSubAnalysis(caller);
+      return owner.newSubAnalysisQuery(
+          (sub == null)
+            ? new IsBottomReturning<SELF, R, T, L>(lattice)
+            : new HasEvaluatedAnalysis<SELF, R, T, L>(sub));
+    }
+  }
+  
+  
+  
+  /* Delegate for queries whose analysis object has not been forced to exist
+   * yet.  The acquisition of the analysis object is stored in a "thunk" until
+   * needed.
+   */
+  private final static class HasThunkedAnalysis<SELF extends JavaFlowAnalysisQuery<R>, R, T, L extends Lattice<T>> implements Delegate<SELF, R, T, L> {
+    private final IThunk<? extends IJavaFlowAnalysis<T, L>> analysisThunk;
+    
+    public HasThunkedAnalysis(
+        final IThunk<? extends IJavaFlowAnalysis<T, L>> t) {
+      analysisThunk = t;
+    }
+    
+    /**
+     * Get the analysis object from the thunk and update the delegate object
+     * in the referencing query to use an {@link HasEvaluatedAnalysis} delegate
+     * that references the newly obtained analysis object.
+     * @return The new {@link HasEvaluatedAnalysis} delegate object.
+     */
+    private Delegate<SELF, R, T, L> evaluateAnalysis(
+        final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner) {
+      final IJavaFlowAnalysis<T, L> analysis = analysisThunk.getValue();
+      final Delegate<SELF, R, T, L> newDelegate = 
+        new HasEvaluatedAnalysis<SELF, R, T, L>(analysis);
+      owner.resetDelegate(newDelegate);
+      return newDelegate;
+    }
+    
+    /**
+     * Evaluates the thunked analysis, and then forwards the request to the
+     * new delegate object.
+     */
+    public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
+      return evaluateAnalysis(owner).getResultFor(owner, expr);
+    }
+
+    /**
+     * Return a new query whose delegate is a {@link HasThunkedSubAnalysis}.
+     */
+    public SELF getSubAnalysisQuery(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode caller) {
+      return owner.newSubAnalysisQuery(new HasThunkedSubAnalysis<SELF, R, T, L>(analysisThunk, caller));
+    }
+  }
+  
+  
+  
+  /* Delegate for sub analysis queries where the original analysis object
+   * still hasn't been evaluated.  The lookup of the subanalysis query is
+   * therefore delayed until {@link #getResultFor} is called.
+   */
+  private final static class HasThunkedSubAnalysis<SELF extends JavaFlowAnalysisQuery<R>, R, T, L extends Lattice<T>> implements Delegate<SELF, R, T, L> {
+    private final IThunk<? extends IJavaFlowAnalysis<T, L>> originalAnalysisThunk;
+    private final IRNode caller;
+    
+    public HasThunkedSubAnalysis(
+        final IThunk<? extends IJavaFlowAnalysis<T, L>> t, IRNode c) {
+      originalAnalysisThunk = t;
+      caller = c;
+    }
+    
+    /**
+     * Evaluate the original analysis object and then try to lookup the 
+     * subanalysis object.  If the object exists, we update the delegate object
+     * to a new {@link HasEvaluatedAnalysis} object; if it doesn't exist, we 
+     * update the delegate to a new {@link IsBottomReturning} object.
+     * @return The new delegate object.
+     */
+    private Delegate<SELF, R, T, L> evaluateAnalysis(
+        final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner) {
+      final IJavaFlowAnalysis<T, L> analysis = originalAnalysisThunk.getValue();
+      final IJavaFlowAnalysis<T, L> sub =
+        analysis.getSubAnalysisFactory().getSubAnalysis(caller);
+      
+      // Now see if we need to create a real delegate or a bottom-returning one
+      final Delegate<SELF, R, T, L> newDelegate;
+      if (sub == null) {
+        newDelegate = new IsBottomReturning<SELF, R, T, L>(analysis.getLattice());
+      } else {
+        newDelegate = new HasEvaluatedAnalysis<SELF, R, T, L>(sub);
+      }
+      owner.resetDelegate(newDelegate);
+      return newDelegate;
+    }
+    
+    /**
+     * Evaluate the analysis object, and forward the call to the new delegate
+     * object.
+     */
+    public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
+      return evaluateAnalysis(owner).getResultFor(owner, expr);
+    }
+
+    /**
+     * Return a new query whose delegate is a {@link HasThunkedSubAnalysis}. In
+     * this case, we provide a new thunk for the "base analysis" object. This
+     * thunk evaluates the origina thunk, and then either returns the
+     * subanalysis object (if it exists) or throws an exception if the
+     * subanalysys doesn't exist, because in that case we would be trying to get
+     * a subanalysis from a bottom-returning query, which is an error.
+     */
+    public SELF getSubAnalysisQuery(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode subCaller) {
+      final IThunk<IJavaFlowAnalysis<T, L>> subThunk = 
+        new Thunk<IJavaFlowAnalysis<T, L>>() {
+          @Override
+          protected IJavaFlowAnalysis<T, L> evaluate() {
+            final IJavaFlowAnalysis<T, L> originalAnalysis =
+              originalAnalysisThunk.getValue();
+            final IJavaFlowAnalysis<T, L> subAnalysis1 =
+              originalAnalysis.getSubAnalysisFactory().getSubAnalysis(caller);
+            if (subAnalysis1 == null) {
+              throw new UnsupportedOperationException(
+                  "Cannot get a subanalysis query from a bottom-returning query");
+            } else {
+              return subAnalysis1;
+            }
+          }
+        };
+      return owner.newSubAnalysisQuery(new HasThunkedSubAnalysis<SELF, R, T, L>(subThunk, subCaller));
+    }
+  }
+
+  
+  /* Enumeration that provides three techniques for getting the raw result from
+   * the analysis: before the entry port, after the normal exit port, or 
+   * after the exceptional (abrupt) exit port.
+   */
   protected static enum RawResultFactory {
     ENTRY {
       @Override
-      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis, final L lattice) {
+      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis) {
         return analysis.getAfter(expr, WhichPort.ENTRY);
       }
     },
     
     NORMAL_EXIT {
       @Override
-      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis, final L lattice) {
+      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis) {
         return analysis.getAfter(expr, WhichPort.NORMAL_EXIT);
       }
     },
     
     ABRUPT_EXIT {
       @Override
-      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis, final L lattice) {
+      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis) {
         return analysis.getAfter(expr, WhichPort.ABRUPT_EXIT);
-      }
-    },
-    
-    BOTTOM {
-      @Override
-      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis, final L lattice) {
-        return lattice.bottom();
       }
     };
     
-    public abstract <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(IRNode expr, A analysis, L lattice);
+    public abstract <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(IRNode expr, A analysis);
+  }
+
+
+    
+  /**
+   * All the magic happens in the delegate.  This lets us change our
+   * behavior dynamically.
+   */
+  private Delegate<SELF, R, T, L> delegate;
+  
+  /**
+   * How to get the value from the analysis object.
+   */
+  private RawResultFactory rawResultFactory;
+  
+  
+  
+  /**
+   * Create a new query object based on a thunked analysis.  This is the
+   * constructor that should be used when the query object is created
+   * at the request of "get new query" method in the analysis.
+   */
+  protected AbstractJavaFlowAnalysisQuery(
+      final IThunk<? extends IJavaFlowAnalysis<T, L>> thunk) {
+    this(new HasThunkedAnalysis<SELF, R, T, L>(thunk));
+  }
+  
+  /**
+   * Create a new query object based on a subanalysis query.  This should
+   * only be used internally.
+   */
+  protected AbstractJavaFlowAnalysisQuery(final Delegate<SELF, R, T, L> d) {
+    delegate = d;
+    rawResultFactory = getRawResultFactory();
   }
   
   
   
-  /**
-   * The flow analysis instance that this query uses to generate results.
-   * Usually this is non-null, but if the query is a result of a failed 
-   * subanalysis lookup, then this is {@code null}.
-   */
-  protected final IJavaFlowAnalysis<T, L> analysis;
-
-  /**
-   * The lattice object used by the analysis being queried.  We could get
-   * this directly from {@link #analysis} using the {@link FlowAnalysis#getLattice()}
-   * method, but we choose to cache it here to avoid looking it up all the time.  Also,
-   * in the case when the subanalysis lookup fails, {@link #analysis} is
-   * {@code null}, so we are provided with the lattice to use directly.
-   */
-  protected final L lattice;
-
-  /**
-   * How to get raw results from the analysis.
-   */
-  protected final RawResultFactory rawResultFactory;
-  
-  
-  
-  /**
-   * Create a new normal query, one that is directly associated with a flow
-   * analysis.
-   */
-  protected AbstractJavaFlowAnalysisQuery(final IJavaFlowAnalysis<T, L> a, final RawResultFactory rrf) {
-    analysis = a;
-    lattice = a.getLattice();
-    rawResultFactory = rrf;
+  private void resetDelegate(final Delegate<SELF, R, T, L> newDelegate) {
+    delegate = newDelegate;
   }
-
-  /**
-   * Create a new bottom-returning query, one that results from a failed lookup
-   * of a subanalysis. These should only occur when the call that should have
-   * generated the subanalysis is inside a block that the control flow analysis
-   * doesn't visit because its inside obviously dead code, such as
-   * 
-   * <pre>
-   *   if (false} { &hellip; }
-   * </pre>
-   * 
-   * @param l
-   *          The lattice to use for the query; this should be the lattice from
-   *          the flow analysis object that should have had the subanalysis
-   *          object.
-   */
-  protected AbstractJavaFlowAnalysisQuery(final L l) {
-    analysis = null;
-    lattice = l;
-    rawResultFactory = RawResultFactory.BOTTOM;
-  }
+  
+  
   
   public final R getResultFor(final IRNode expr) {
-    return processRawResult(expr, rawResultFactory.getRawResult(expr, analysis, lattice));
+    return delegate.getResultFor(this, expr);
   }
 
   public final SELF getSubAnalysisQuery(final IRNode caller) {
-    final IJavaFlowAnalysis<T, L> sub =
-      analysis.getSubAnalysisFactory().getSubAnalysis(caller);
-    if (sub == null) {
-      /* We assume the analysis was not created because the code that contains
-       * it is dead: it is in an "if (false) { ... }" statement, for example.
-       * So the user can query about this code, but the control flow analysis
-       * never visits it.  We want to return a query that always returns 
-       * BOTTOM.
-       * 
-       * The problem with this is that I cannot determine if the caller of 
-       * this method is just plain confused and shouldn't be asking me about
-       * the subanalysis for the given "caller".  Could check for this by
-       * checking that caller is a descendant of the flow unit node associated
-       * with the current analysis and that no instance initializer blocks
-       * come between them, but that is expensive.
-       */
-      return newBottomReturningSubQuery(lattice);
-//      throw new UnsupportedOperationException();
-    } else {
-      return newAnalysisBasedSubQuery(sub);
-    }
-  }
-
-  public final boolean hasSubAnalysisQuery(final IRNode caller) {
-    return analysis.getSubAnalysisFactory().getSubAnalysis(caller) != null;
+    return delegate.getSubAnalysisQuery(this, caller);
   }
 
   
+  
+  /**
+   * Return the raw result factory used by the query. This method is called by
+   * the constructor. Because this is a precarious thing to do, an
+   * implementation of this method must immediately return one of
+   * {@link RawResultFactory#ENTRY}, {@link RawResultFactory#NORMAL_EXIT}, or
+   * {@link RawResultFactory#ABRUPT_EXIT}.
+   */
+  protected abstract RawResultFactory getRawResultFactory();
   
   /**
    * Massage the raw analysis result into a more useful value by running it 
    * through the lattice, etc.
    */
-  protected abstract R processRawResult(IRNode expr, T rawResult);
-  
-  protected abstract SELF newAnalysisBasedSubQuery(IJavaFlowAnalysis<T, L> subAnalysis);
+  protected abstract R processRawResult(IRNode expr, L lattice, T rawResult);
 
-  protected abstract SELF newBottomReturningSubQuery(L lattice);
+  protected abstract SELF newSubAnalysisQuery(Delegate<SELF, R, T, L> delegate);
 }

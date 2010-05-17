@@ -3,8 +3,8 @@ package com.surelogic.analysis.locks;
 import java.util.Set;
 
 import com.surelogic.analysis.locks.locks.HeldLock;
+import com.surelogic.util.IThunk;
 
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
@@ -29,27 +29,29 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 public final class IntrinsicLockAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<Object[], IntrinsicLockLattice, JavaForwardAnalysis<Object[], IntrinsicLockLattice>> {
   public final class Query extends AbstractJavaFlowAnalysisQuery<Query, Set<HeldLock>, Object[], IntrinsicLockLattice> {
-    public Query(final IJavaFlowAnalysis<Object[], IntrinsicLockLattice> a) {
-      super(a, RawResultFactory.ENTRY);
+    public Query(final IThunk<? extends IJavaFlowAnalysis<Object[], IntrinsicLockLattice>> thunk) {
+      super(thunk);
     }
 
-    private Query(final IntrinsicLockLattice lattice) {
-      super(lattice);
-    }
-
-    @Override
-    protected Query newAnalysisBasedSubQuery(
-        final IJavaFlowAnalysis<Object[], IntrinsicLockLattice> subAnalysis) {
-      return new Query(subAnalysis);
+    private Query(final Delegate<Query, Set<HeldLock>, Object[], IntrinsicLockLattice> d) {
+      super(d);
     }
 
     @Override
-    protected Query newBottomReturningSubQuery(IntrinsicLockLattice lattice) {
-      return new Query(lattice);
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.ENTRY;
+    }
+
+    
+    
+    @Override
+    protected Query newSubAnalysisQuery(final Delegate<Query, Set<HeldLock>, Object[], IntrinsicLockLattice> d) {
+      return new Query(d);
     }
 
     @Override
-    protected Set<HeldLock> processRawResult(final IRNode expr, final Object[] rawResult) {
+    protected Set<HeldLock> processRawResult(
+        final IRNode expr, IntrinsicLockLattice lattice, final Object[] rawResult) {
       return lattice.getHeldLocks(rawResult);
     }
   }
@@ -82,20 +84,20 @@ public final class IntrinsicLockAnalysis extends
     return analysis;
   }
   
-  /**
-   * Given a node, find the set of locks expressions that are locked on
-   * entry to the node.
-   */
-  public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
-    final JavaForwardAnalysis<Object[], IntrinsicLockLattice> a = getAnalysis(
-        edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
-            node, context));
-    final IntrinsicLockLattice ill = a.getLattice();
-    return ill.getHeldLocks(a.getAfter(node, WhichPort.ENTRY));
-  }
+//  /**
+//   * Given a node, find the set of locks expressions that are locked on
+//   * entry to the node.
+//   */
+//  public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
+//    final JavaForwardAnalysis<Object[], IntrinsicLockLattice> a = getAnalysis(
+//        edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
+//            node, context));
+//    final IntrinsicLockLattice ill = a.getLattice();
+//    return ill.getHeldLocks(a.getAfter(node, WhichPort.ENTRY));
+//  }
   
   public Query getHeldLocksQuery(final IRNode flowUnit) {
-    return new Query(getAnalysis(flowUnit));
+    return new Query(getAnalysisThunk(flowUnit));
   }
   
   

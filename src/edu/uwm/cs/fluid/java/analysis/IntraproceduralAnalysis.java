@@ -9,6 +9,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.util.IThunk;
+import com.surelogic.util.Thunk;
 
 import edu.cmu.cs.fluid.control.*;
 import edu.cmu.cs.fluid.control.Component.WhichPort;
@@ -35,7 +37,9 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 
   /* The maximum number of analyses cached. */
   public static final int maxCached = 40;
-
+  
+  
+  
   /**
 	 * A mapping from names to declarations, made public for convenience.
 	 */
@@ -189,6 +193,13 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
     return c.analysis;
   }
 
+  public final IThunk<A> getAnalysisThunk(final IRNode flowUnit) {
+    return new Thunk<A>() {
+      @Override
+      protected A evaluate() { return getAnalysis(flowUnit); }
+    };
+  }
+  
   protected void printAllAnalysisResults(A fa, IRNode body) {
     for (IRNode n : JJNode.tree.topDown(body)) {
       if (true) {
