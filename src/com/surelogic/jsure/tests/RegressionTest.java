@@ -36,7 +36,7 @@ import edu.cmu.cs.fluid.srv.Results;
  * -- 
  */
 public class RegressionTest extends TestCase implements IAnalysisListener {
-  private static final boolean useNewSnapshotXML = false;
+  private static final boolean useNewSnapshotXML = true;
 
   class InitRunnable implements Runnable {
     boolean run = false;
