@@ -196,7 +196,8 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
   public final IThunk<A> getAnalysisThunk(final IRNode flowUnit) {
     return new Thunk<A>() {
       @Override
-      protected A evaluate() { return getAnalysis(flowUnit); }
+      protected A evaluate() {
+        return getAnalysis(flowUnit); }
     };
   }
   

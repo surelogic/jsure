@@ -10,6 +10,8 @@ import com.surelogic.util.IThunk;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -33,10 +35,14 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class MustHoldAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice, JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>> {
-  public final static HeldLocks EMPTY_HELD_LOCKS = new HeldLocks(
+  private final static HeldLocks EMPTY_HELD_LOCKS = new HeldLocks(
       Collections.<HeldLock>emptySet(),
       Collections.<HeldLock>emptySet(),
       Collections.<HeldLock>emptySet());
+  
+  public final static JavaFlowAnalysisQuery<HeldLocks> EMPTY_HELD_LOCKS_QUERY = new EmptyHeldLocksQuery();
+  
+  
   
   public final static class HeldLocks {
     public final Set<HeldLock> heldLocks;
@@ -51,6 +57,16 @@ public final class MustHoldAnalysis extends
     }
   }
   
+  
+  private final static class EmptyHeldLocksQuery implements JavaFlowAnalysisQuery<HeldLocks> {
+    public JavaFlowAnalysisQuery<HeldLocks> getSubAnalysisQuery(final IRNode caller) {
+      return this;
+    }
+
+    public HeldLocks getResultFor(final IRNode expr) {
+      return EMPTY_HELD_LOCKS;
+    }    
+  }
   
   
   public final class LocksForQuery extends AbstractJavaFlowAnalysisQuery<LocksForQuery, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {

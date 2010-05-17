@@ -24,5 +24,5 @@ public interface JavaFlowAnalysisQuery<R> extends AnalysisQuery<R> {
    *              Thrown if a subsidiary flow analysis for the given call does
    *              not exist.
    */
-  public AnalysisQuery<R> getSubAnalysisQuery(IRNode caller);
+  public JavaFlowAnalysisQuery<R> getSubAnalysisQuery(IRNode caller);
 }
