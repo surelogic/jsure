@@ -39,6 +39,15 @@ public class JavaPromiseTreeIterator extends DepthFirstSearch {
     stack.push(integers[promiseIndex]);
     stack.push(ploc);
     stack.push(promise);
+    //System.out.println("Pushing "+promise);
+    /*
+    if (promise instanceof IRNode) {
+    	IRNode n = (IRNode) promise;
+    	if (n.identity() == IRNode.destroyedNode) {
+    		System.out.println("Pushing destroyed node");
+    	}
+    }
+    */
   }
 
   @Override
@@ -73,7 +82,7 @@ public class JavaPromiseTreeIterator extends DepthFirstSearch {
     		  if (n.identity() != IRNode.destroyedNode) {
     			  return;
     		  } else {
-    			  // ignore, and continue in loop
+    			  //System.out.println("ignore, and continue in loop");
     		  }
     	  } else if (promise != null) {
     		  return;
@@ -94,7 +103,7 @@ public class JavaPromiseTreeIterator extends DepthFirstSearch {
         else {
           IRNode newNode = (IRNode) ((IRSequence) promise).elementAt(ploc);
           ploc = ((IRSequence) promise).nextLocation(ploc);
-          if (newNode != null) {
+          if (newNode != null && newNode.identity() != IRNode.destroyedNode) {
             visit(newNode);
             return true;
           }
