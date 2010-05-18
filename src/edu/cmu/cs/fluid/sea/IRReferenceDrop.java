@@ -112,7 +112,9 @@ public abstract class IRReferenceDrop extends Drop {
 	 */
 	public final void setNode(IRNode node) {
 		this.node = node;
-		computeBasedOnAST();
+		if (node != null) {
+			computeBasedOnAST();
+		}
 	}
 
 	public final void clearNode() {
