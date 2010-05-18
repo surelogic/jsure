@@ -11,10 +11,11 @@ import com.surelogic.analysis.IAnalysisMonitor;
 
 import edu.cmu.cs.fluid.dc.AbstractAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.util.*;
 
 public class AnalysisDriver extends AbstractAnalysisModule<Void> {
-	public static final boolean useJavac = false;
+	public static final boolean useJavac = IDE.useJavac;
 	public static final String ID = "com.surelogic.jsure.client.eclipse.AnalysisDriver";
 	
 	private IProject project;
