@@ -146,6 +146,9 @@ public abstract class Drop {
 		if (!valid || dependent == null || !dependent.isValid()) {
 			return;
 		}
+		if (dependent == this) {
+			return;
+		}
 		if (dependents.add(dependent)) {
 			dependent.addDeponent(this);
 		}
@@ -270,14 +273,16 @@ public abstract class Drop {
 	/**
 	 * Adds the deponent drops to the set passed in
 	 */
-	final public void addDeponentsTo(Set<Drop> drops) {
+	final private void addDeponentsTo(Set<Drop> drops) {
+		// TODO check??
 		drops.addAll(deponents);
 	}
 
 	/**
 	 * Adds the dependents to the set passed in
 	 */
-	final public void addDependentsTo(Set<Drop> drops) {
+	final private void addDependentsTo(Set<Drop> drops) {
+		// TODO check??
 		drops.addAll(dependents);
 	}
 
@@ -432,6 +437,9 @@ public abstract class Drop {
 		if (!valid || dependent == null) {
 			return;
 		}
+		if (dependent == this) {
+			return;
+		}
 		if (dependents.remove(dependent)) {
 			mySea.notify( this, DropEvent.DependentInvalidated);
 			dependentInvalidAction();
@@ -448,6 +456,9 @@ public abstract class Drop {
 	 */
 	private void addDeponent(Drop deponent) {
 		if (!valid || deponent == null) {
+			return;
+		}
+		if (deponent == this) {
 			return;
 		}
 		deponents.add(deponent);
