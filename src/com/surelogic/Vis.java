@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 /**
  * Notes the module visibility of the annotated method, class or field.
  * 
- * @see Transparent
+ * @see Module
  */
 @Documented
 @Target( { ElementType.FIELD, ElementType.METHOD, ElementType.CONSTRUCTOR,
