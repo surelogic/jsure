@@ -62,15 +62,22 @@ public class JavaPromiseTreeIterator extends DepthFirstSearch {
     while (promiseIndex < JavaPromise.getPromiseChildrenInfos().length) {
       SlotInfo si = JavaPromise.getPromiseChildrenInfos()[promiseIndex];
       if (node.valueExists(si)) {
-	promise = node.getSlotValue(si);
-	if (promise instanceof IRSequence) {
-	  if (((IRSequence)promise).hasElements()) {
-	    ploc = ((IRSequence)promise).firstLocation();
-	    return;
-	  }
-	} else if (promise != null) {
-	  return;
-	}
+    	  promise = node.getSlotValue(si);
+    	  if (promise instanceof IRSequence) {
+    		  if (((IRSequence)promise).hasElements()) {
+    			  ploc = ((IRSequence)promise).firstLocation();
+    			  return;
+    		  }
+    	  } else if (promise instanceof IRNode) {
+    		  IRNode n = (IRNode) promise;
+    		  if (n.identity() != IRNode.destroyedNode) {
+    			  return;
+    		  } else {
+    			  // ignore, and continue in loop
+    		  }
+    	  } else if (promise != null) {
+    		  return;
+    	  }
       }
       ++promiseIndex;
     }
