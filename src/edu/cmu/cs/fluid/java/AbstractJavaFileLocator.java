@@ -384,7 +384,7 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 			}, s.root(), null, javaOSFileName, null, s.getType());
 		switch (s.getType()) {
 		case SOURCE:
-			new SourceCUDrop(info);
+			new SourceCUDrop(info, null);
 			break;
 		default:
 			new BinaryCUDrop(info);
