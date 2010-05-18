@@ -15,13 +15,13 @@ public class ProjectDrop extends Drop {
 	  project = p;
   }
 
-  public static void ensureDrop(String project, IIRProject p) {
+  public static ProjectDrop ensureDrop(String project, IIRProject p) {
 	  for(ProjectDrop pd : Sea.getDefault().getDropsOfExactType(ProjectDrop.class)) {
 		  if (project.equals(pd.getName())) {
-			  return;
+			  return pd;
 		  }
 	  }
-	  new ProjectDrop(project, p);
+	  return new ProjectDrop(project, p);
   }
   
   @Override
