@@ -73,8 +73,10 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 		// Find the current active project
 		final String name = ProjectDrop.getProject();
 		if (name != null) {
-			IProject p = EclipseUtility.getProject(name);
-			IFile file = p.getFile(name + SeaSnapshot.SUFFIX);
+			final IProject p = EclipseUtility.getProject(name);
+			final File pFile = p.getLocation().toFile();
+			final File file  = SeaSummary.findSummary(pFile.getAbsolutePath());			
+			//IFile file = p.getFile(name + SeaSnapshot.SUFFIX);
 			if (file.exists()) {
 				try {
 					IFile newFile = p.getFile(name + ".new" + SeaSnapshot.SUFFIX);
@@ -83,8 +85,7 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 						SeaSummary.summarize(name, Sea.getDefault(), newFile2);
 					}
 					
-					Diff d = SeaSummary.diff(name, Sea.getDefault(), 
-							                 file.getLocation().toFile());
+					Diff d = SeaSummary.diff(name, Sea.getDefault(), file);
 					f_contentProvider.setDiff(d);					
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
