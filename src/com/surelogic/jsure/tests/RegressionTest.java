@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 import com.surelogic.jsure.client.eclipse.analysis.JavacEclipse;
 import com.surelogic.test.*;
@@ -19,16 +20,13 @@ import com.surelogic.test.xml.JUnitXMLOutput;
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
 import edu.cmu.cs.fluid.dc.*;
 import edu.cmu.cs.fluid.dc.Plugin;
-import edu.cmu.cs.fluid.dcf.views.coe.XMLReport;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.logging.EclipseLogHandler;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
-import edu.cmu.cs.fluid.srv.Results;
+import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
  * Assumes that the workspace is already setup:
@@ -36,8 +34,6 @@ import edu.cmu.cs.fluid.srv.Results;
  * -- 
  */
 public class RegressionTest extends TestCase implements IAnalysisListener {
-  private static final boolean useNewSnapshotXML = true;
-
   class InitRunnable implements Runnable {
     boolean run = false;
     
@@ -377,6 +373,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     // Export the results from this run
     currentTest = start("Exporting results");
     try {      
+      /* Old results
       File f = new File(workspaceFile, projectName + ".results.zip");
       FileOutputStream out = new FileOutputStream(f);
       System.out.println("Exporting results w/ source");
@@ -386,7 +383,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       assert (f.exists());
 
       System.out.println("results = " + resultsName);
-      
+      */
+    	
       // Export new results XML
       final File location = new File(workspaceFile, projectName + SeaSnapshot.SUFFIX);
       SeaSummary.summarize(projectName, Sea.getDefault(), location);
@@ -394,52 +392,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       
       currentTest = start("comparing results");
       System.out.println("Try to compare these results to the results oracle");    
-      if (projectPath != null) {
-    	  if (useNewSnapshotXML) {    		  
-    		  String xmlOracle = null;
-    		  File xmlLocation = null;
-    		  if (AnalysisDriver.useJavac) {
-    			  xmlOracle = getOracleName(projectPath, javacOracleFilter, "oracleJavac"+SeaSnapshot.SUFFIX);
-    			  xmlLocation = new File(xmlOracle);    			  
-    			  System.out.println("Looking for " + xmlOracle);
-    		  }
-    		  if (true) { 
-    			  String tempOracle = getOracleName(projectPath, xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
-    			  File tempLocation = new File(tempOracle);
-    			  System.out.println("Looking for " + tempOracle);
-    			  
-    			  final boolean noOracleYet = xmlLocation == null || !xmlLocation.exists();
-    			  boolean replace;
-    			  if (noOracleYet) {
-    				  replace = true;
-    			  } else {
-    				  System.out.println("Checking for newer oracle");
-    				  replace = isNewer(tempOracle, xmlOracle);
-    			  }
-        		  if (replace) {
-        			  xmlOracle = tempOracle;
-        			  xmlLocation = tempLocation;
-        		  }
-    			  System.out.println("Using " + xmlOracle);
-    		  }    		 
-    		  assert (xmlLocation.exists());  
-
-    		  final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), xmlLocation);
-    		  final File diffs = new File(workspaceFile, projectName+".sea.diffs.xml");
-    		  if (!diff.isEmpty()) {
-    			  System.out.println("Writing diffs to "+diffs);
-    			  diff.write(diffs);
-    			  resultsOk = false;
-    		  } else {
-    			  System.out.println("No diffs to write");
-    			  diffs.createNewFile();
-    		  }
-    	  } else { // Check and make sure it looks ok    		  
-    		  System.out.println("Checking new results XML");
-    		  SeaSummary.read(location);
-    		  System.out.println("Done checking new results XML");
-    	  }
-    	
+      if (projectPath != null) {	  
+    	resultsOk = compareResults(workspaceFile, projectPath, projectName, resultsOk);
+    	/*
     	final String oracleName = getOracleName(projectPath, oracleFilter, "oracle.zip");
         System.out.println("Looking for " + oracleName);
         assert (new File(oracleName).exists());
@@ -454,6 +409,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
         if (!useNewSnapshotXML) {
         	resultsOk = !results.root.hasChildren();
         }
+        */
         end("Done comparing");
       }
     } catch (FileNotFoundException ex) {
@@ -473,7 +429,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     System.out.println("Try to compare the log to the log oracle");
     if (projectPath != null) {
       final ITestOutput XML_LOG = IDE.getInstance().makeLog("EclipseLogHandler");
-      final String oracleName = getOracleName(projectPath, logOracleFilter,
+      final String oracleName = 
+    	  RegressionUtility.getOracleName(projectPath, 
+    			  RegressionUtility.logOracleFilter,
                                               "oracle.log.xml");
       final String logDiffsName = projectName + ".log.diffs.xml";
       assert (new File(oracleName).exists());
@@ -501,72 +459,27 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
                resultsOk && logOk);
   }
 
-  private static boolean isNewer(String oracle1, String oracle2) {
-	  String date1 = getDate(oracle1);
-	  String date2 = getDate(oracle2);
-	  //System.out.println(date1+" ?= "+date2+": "+date1.compareTo(date2));
-	  return date1.compareTo(date2) > 0;
-  }
-
-  private static String getDate(String oracle) {
-	  for(int i=0; i<oracle.length(); i++) {
-		  if (Character.isDigit(oracle.charAt(i))) {
-			  return oracle.substring(i);
-		  }
+  private boolean compareResults(final File workspaceFile,
+		  final String projectPath, final String projectName, boolean resultsOk)
+  throws Exception {
+	  final File xmlLocation = SeaSummary.findSummary(projectPath);
+	  final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), xmlLocation);
+	  final File diffs = new File(workspaceFile, projectName+".sea.diffs.xml");
+	  if (!diff.isEmpty()) {
+		  System.out.println("Writing diffs to "+diffs);
+		  diff.write(diffs);
+		  resultsOk = false;
+	  } else {
+		  System.out.println("No diffs to write");
+		  diffs.createNewFile();
 	  }
-	  return oracle;
+	  return resultsOk;
   }
 
-private void printActivatedAnalyses() {
+  private void printActivatedAnalyses() {
     for (String id : Plugin.getDefault().getIncludedExtensions()) {
       System.out.println("Activated: " + id);
     }
-  }
-
-  private static FilenameFilter oracleFilter = new FilenameFilter() {
-    public boolean accept(File dir, String name) {
-      return name.startsWith("oracle") && name.endsWith(".zip");
-    }
-  };
-  
-  private static FilenameFilter xmlOracleFilter = new FilenameFilter() {
-	    public boolean accept(File dir, String name) {
-	      return !name.startsWith("oracleJavac") && 
-	             name.startsWith("oracle") && name.endsWith(SeaSnapshot.SUFFIX);
-	    }
-  };
-  
-  private static FilenameFilter javacOracleFilter = new FilenameFilter() {
-	    public boolean accept(File dir, String name) {
-	      return name.startsWith("oracleJavac") && name.endsWith(SeaSnapshot.SUFFIX);
-	    }
-  };
-
-  private static FilenameFilter logOracleFilter = new FilenameFilter() {
-    public boolean accept(File dir, String name) {
-      return name.startsWith("oracle") && name.endsWith(".log.xml");
-    }
-  };
-
-  private String getOracleName(String projectPath, FilenameFilter filter,
-      String defaultName) {
-    File path = new File(projectPath);
-    File[] files = path.listFiles(filter);
-    File file = null;
-    for (File zip : files) {
-      if (file == null) {
-        file = zip;
-      } else if (zip.getName().length() > file.getName().length()) {
-        // Intended for comparing 3.2.4 to 070221
-        file = zip;
-      } else if (zip.getName().length() == file.getName().length()
-          && zip.getName().compareTo(file.getName()) > 0) {
-        // Intended for comparing 070107 to 070221
-        file = zip;
-      }
-    }
-    return (file != null) ? file.getAbsolutePath() : projectPath
-        + File.separator + defaultName;
   }
 
   public synchronized void analysisCompleted() {
