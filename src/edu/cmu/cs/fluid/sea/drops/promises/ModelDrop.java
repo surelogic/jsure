@@ -40,7 +40,7 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
       //System.out.println("Invalidating "+getMessage());
       CUDrop cud = (CUDrop) invalidDeponent;
       IRNode cu  = VisitUtil.getEnclosingCompilationUnit(getNode());
-      if (!cud.cu.equals(cu)) {
+      if (cu != null && !cud.cu.equals(cu)) {
         throw new Error("unexpected dependence on CUDrop: "+DebugUnparser.toString(cud.cu));
       }
       // Clear decl
