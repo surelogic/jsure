@@ -61,14 +61,14 @@ public interface JavaGlobals {
   static final Category THREAD_EFFECTS_CAT = Category
       .getResultInstance("Thread effects");
 
-  static final Category THREAD_COLORING_CAT = Category
-      .getResultInstance("Thread coloring");
+  static final Category THREAD_ROLES_CAT = Category
+      .getResultInstance("Thread roles analysis");
   
-  static final Category COLORIZED_REGION_CAT = 
-    Category.getResultInstance("Regions marked as colorized");
+  static final Category THREAD_ROLE_REPORT_REGION_CAT = 
+    Category.getResultInstance("Regions marked for TRole reporting");
   
-  static final Category COLOR_CONSTRAINED_REGION_CAT = 
-    Category.getResultInstance("Color Constrained Regions");
+  static final Category THREAD_ROLE_CONSTRAINED_REGION_CAT = 
+    Category.getResultInstance("Thread Role Constrained Regions");
 
   static final Category USES_CAT = Category.getResultInstance("Structure");
 

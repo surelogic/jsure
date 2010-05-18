@@ -6,18 +6,28 @@
  */
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.analysis.ModuleAnalysisAndVisitor;
-import edu.cmu.cs.fluid.java.promise.*;
+import edu.cmu.cs.fluid.java.promise.API;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.Category;
+import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.DropPredicate;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;

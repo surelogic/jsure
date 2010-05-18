@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import com.surelogic.annotation.rules.ColorRules;
+import com.surelogic.annotation.rules.ThreadRoleRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -31,7 +31,7 @@ public class SimpleCallGraphDrop extends PhantomDrop {
   private final int initSetSize = 2;
   private final Collection<IRNode> callers = new HashSet<IRNode>(initSetSize);
   private final Collection<IRNode> callees = new HashSet<IRNode>(initSetSize);
-  private boolean colorsNeedBodyTraversal = false;
+  private boolean tRolesNeedBodyTraversal = false;
   private boolean foundABody = false;
   
   private boolean potentiallyCallable = false;
@@ -55,7 +55,7 @@ public class SimpleCallGraphDrop extends PhantomDrop {
   }
   
   private SimpleCallGraphDrop(IRNode node) {
-    ColorRules.setCGDrop(node, this);
+    ThreadRoleRules.setCGDrop(node, this);
     setNodeAndCompilationUnitDependency(node);
     setMessage(/*"SimpleCallGraphDrop for " + */JJNode.getInfo(node));
     synchronized (SimpleCallGraphDrop.class) {
@@ -65,7 +65,7 @@ public class SimpleCallGraphDrop extends PhantomDrop {
   }
   
   public static SimpleCallGraphDrop getCGDropFor(IRNode node) {
-    SimpleCallGraphDrop res = ColorRules.getCGDrop(node);
+    SimpleCallGraphDrop res = ThreadRoleRules.getCGDrop(node);
     
     if (res == null) {
       res = new SimpleCallGraphDrop(node);
@@ -90,7 +90,7 @@ public class SimpleCallGraphDrop extends PhantomDrop {
     Iterator<IRNode> calleeIter = callees.iterator();
     while (calleeIter.hasNext()) {
       IRNode callee = calleeIter.next();
-      SimpleCallGraphDrop calleeCGD = ColorRules.getCGDrop(callee);
+      SimpleCallGraphDrop calleeCGD = ThreadRoleRules.getCGDrop(callee);
       if ((calleeCGD == null) || (calleeCGD == this)) continue;
       calleeCGD.callers.remove(myNode);
     }
@@ -98,7 +98,7 @@ public class SimpleCallGraphDrop extends PhantomDrop {
     Iterator<IRNode> callerIter = callers.iterator();
     while (callerIter.hasNext()) {
       IRNode caller = callerIter.next();
-      SimpleCallGraphDrop callerCGD = ColorRules.getCGDrop(caller);
+      SimpleCallGraphDrop callerCGD = ThreadRoleRules.getCGDrop(caller);
       if ((callerCGD == null) || (callerCGD == this)) continue;
       callerCGD.callees.remove(myNode);
     }
@@ -133,16 +133,16 @@ public class SimpleCallGraphDrop extends PhantomDrop {
     return res;
   }
   /**
-   * @return Returns the colorsNeedBodyTraversal.
+   * @return Returns the tRolesNeedBodyTraversal.
    */
-  public boolean colorsNeedBodyTraversal() {
-    return colorsNeedBodyTraversal;
+  public boolean tRolesNeedBodyTraversal() {
+    return tRolesNeedBodyTraversal;
   }
   /**
-   * @param needBodyTraversal The colorsNeedBodyTraversal to set.
+   * @param needBodyTraversal The tRolesNeedBodyTraversal to set.
    */
-  public void setColorsNeedBodyTraversal(boolean needBodyTraversal) {
-    this.colorsNeedBodyTraversal = needBodyTraversal;
+  public void setTRolesNeedBodyTraversal(boolean needBodyTraversal) {
+    this.tRolesNeedBodyTraversal = needBodyTraversal;
   }
   /**
    * @return Returns the bodyFound.

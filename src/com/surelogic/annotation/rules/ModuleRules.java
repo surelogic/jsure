@@ -10,10 +10,10 @@ import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.*;
-import com.surelogic.annotation.DefaultSLColorAnnotationParseRule;
+import com.surelogic.annotation.DefaultSLThreadRoleAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.SimpleBooleanAnnotationParseRule;
-import com.surelogic.annotation.parse.SLColorAnnotationsParser;
+import com.surelogic.annotation.parse.SLThreadRoleAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberType;
@@ -28,11 +28,11 @@ import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.colors.ColorImportDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.ExportDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.ModulePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.NoVisPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.VisDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleImportDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ModuleRules extends AnnotationRules {
@@ -80,15 +80,15 @@ public class ModuleRules extends AnnotationRules {
     }    
   } 
   
-  public static class Vis_ParseRule extends DefaultSLColorAnnotationParseRule<VisClauseNode, VisDrop> {
+  public static class Vis_ParseRule extends DefaultSLThreadRoleAnnotationParseRule<VisClauseNode, VisDrop> {
     public Vis_ParseRule() {
       super(VIS, declOps, VisClauseNode.class);
     }
  
     
     @Override
-    protected Object parseColorAnno(IAnnotationParsingContext context,
-                           SLColorAnnotationsParser parser) throws Exception,
+    protected Object parseTRoleAnno(IAnnotationParsingContext context,
+                           SLThreadRoleAnnotationsParser parser) throws Exception,
         RecognitionException {
       return parser.vis().getTree();
     }
@@ -112,15 +112,15 @@ public class ModuleRules extends AnnotationRules {
     
   }
   
-  public static class Module_ParseRule extends DefaultSLColorAnnotationParseRule<ModuleChoiceNode, ModulePromiseDrop> {
+  public static class Module_ParseRule extends DefaultSLThreadRoleAnnotationParseRule<ModuleChoiceNode, ModulePromiseDrop> {
     public Module_ParseRule() {
       super(MODULE, packageOps, ModuleChoiceNode.class);
     }
  
     
     @Override
-    protected Object parseColorAnno(IAnnotationParsingContext context,
-                           SLColorAnnotationsParser parser) throws Exception,
+    protected Object parseTRoleAnno(IAnnotationParsingContext context,
+                           SLThreadRoleAnnotationsParser parser) throws Exception,
         RecognitionException {
       return parser.module().getTree();
     }
@@ -143,15 +143,15 @@ public class ModuleRules extends AnnotationRules {
     
   }
   
-  public static class Export_ParseRule extends DefaultSLColorAnnotationParseRule<ExportNode, ExportDrop> {
+  public static class Export_ParseRule extends DefaultSLThreadRoleAnnotationParseRule<ExportNode, ExportDrop> {
     public Export_ParseRule() {
       super(EXPORT, declOps, ExportNode.class);
     }
  
     
     @Override
-    protected Object parseColorAnno(IAnnotationParsingContext context,
-                           SLColorAnnotationsParser parser) throws Exception,
+    protected Object parseTRoleAnno(IAnnotationParsingContext context,
+                           SLThreadRoleAnnotationsParser parser) throws Exception,
         RecognitionException {
       return parser.module().getTree();
     }

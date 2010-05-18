@@ -55,7 +55,7 @@ public abstract class AASTBinder implements IAASTBinder {
     return resolve(node) != null;
   }
   
-  public boolean isResolvable(ColorImportNode node) {
+  public boolean isResolvable(ThreadRoleImportNode node) {
     return resolve(node) != null;
   }
   

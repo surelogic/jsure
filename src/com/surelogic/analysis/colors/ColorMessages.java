@@ -8,7 +8,6 @@ package com.surelogic.analysis.colors;
 
 import java.util.Iterator;
 
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -16,8 +15,8 @@ import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
-import edu.cmu.cs.fluid.sea.drops.colors.ColorResultDrop;
-import edu.cmu.cs.fluid.sea.drops.colors.ColoredClassDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleResultDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoledClassDrop;
 
 
 /**
@@ -43,7 +42,7 @@ public static final Category multiThreadedInfoCategory =
   Category.getResultInstance("Possibly Multi-threaded methods");
 
   public static ResultDrop createResultDrop(String msg, String resultDropKind, IRNode loc) {
-    ResultDrop rd = new ColorResultDrop(resultDropKind);
+    ResultDrop rd = new TRoleResultDrop(resultDropKind);
     rd.setConsistent();
     // rd.addCheckedPromise(pd);
     rd.setNodeAndCompilationUnitDependency(loc);
@@ -51,7 +50,7 @@ public static final Category multiThreadedInfoCategory =
     rd.setCategory(assuranceCategory);
 
     if (loc != null) {
-      Drop d = ColoredClassDrop.getColorClassDrop(loc);
+      Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
       if (d != null) {
         d.addDependent(rd);
       }
@@ -68,7 +67,7 @@ public static final Category multiThreadedInfoCategory =
     wd.setCategory(warningCategory);
 
     if (loc != null) {
-      Drop d = ColoredClassDrop.getColorClassDrop(loc);
+      Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
       if (d != null) {
         d.addDependent(wd);
       }
@@ -85,7 +84,7 @@ public static final Category multiThreadedInfoCategory =
     id.setCategory(infoCategory);
 
     if (loc != null) {
-      Drop d = ColoredClassDrop.getColorClassDrop(loc);
+      Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
       if (d != null) {
         d.addDependent(id);
       }
@@ -102,7 +101,7 @@ public static final Category multiThreadedInfoCategory =
     if (loc != null) {
       rd.setNodeAndCompilationUnitDependency(loc);
       if (loc != null) {
-        Drop d = ColoredClassDrop.getColorClassDrop(loc);
+        Drop d = TRoledClassDrop.getTRoleClassDrop(loc);
         if (d != null) {
           d.addDependent(rd);
         }

@@ -27,22 +27,22 @@ public class SLLayerAdaptor extends AbstractNodeAdaptor {
     @Override
     protected boolean handleSpecialTokens(TreeToken tt) {
 // switch (tt.getType()) {
-// case SLColorAnnotationsParser.RBRACKET:
+// case SLThreadRoleAnnotationsParser.RBRACKET:
 // dims++;
 // return false;
-// case SLColorAnnotationsParser.PUBLIC:
+// case SLThreadRoleAnnotationsParser.PUBLIC:
 // mods = JavaNode.setModifier(mods, JavaNode.PUBLIC, true);
 // return true;
-// case SLColorAnnotationsParser.PROTECTED:
+// case SLThreadRoleAnnotationsParser.PROTECTED:
 // mods = JavaNode.setModifier(mods, JavaNode.PROTECTED, true);
 // return true;
-// case SLColorAnnotationsParser.PRIVATE:
+// case SLThreadRoleAnnotationsParser.PRIVATE:
 // mods = JavaNode.setModifier(mods, JavaNode.PRIVATE, true);
 // return true;
-// case SLColorAnnotationsParser.STATIC:
+// case SLThreadRoleAnnotationsParser.STATIC:
 // mods = JavaNode.setModifier(mods, JavaNode.STATIC, true);
 // return true;
-// case SLColorAnnotationsParser.FINAL:
+// case SLThreadRoleAnnotationsParser.FINAL:
 // mods = JavaNode.setModifier(mods, JavaNode.FINAL, true);
 // return true;
 // }

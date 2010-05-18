@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.analysis.colors.ColorFirstPass;
+import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -279,7 +279,7 @@ public class ModuleAnalysisAndVisitor {
       
       if (javaEntityStats) {
         // only check fields that are in CUs whose source is loaded...
-        final CUDrop cud = ColorFirstPass.getCUDropOf(field);
+        final CUDrop cud = TRolesFirstPass.getCUDropOf(field);
         if (cud.isAsSource()) {
           final IRNode declStmt =
             JJNode.tree.getParent(JJNode.tree.getParent(field));

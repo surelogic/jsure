@@ -27,7 +27,7 @@ public class ASTFactory extends AbstractASTFactory<AASTNode> {
 			log.fine("Initializing ASTFactory");
 		FactoryRefs.register(prototype);
 		MoreFactoryRefs.register(prototype);
-		ColorFactoryRefs.register(prototype);
+		ThreadRoleFactoryRefs.register(prototype);
 		LayerFactoryRefs.register(prototype);
 
 		// These two lines are added so that opgen doesn't have to be modified

@@ -163,7 +163,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   }
   
   @SuppressWarnings("unchecked")
-  public T visit(ColorAndNode n) {
+  public T visit(ThreadRoleAndNode n) {
     T rv = defaultValue;
     for(AASTNode c : (List<AASTNode>) (List) n.getAndElemsList()) {
       rv = combineResults(rv, doAccept(c));
@@ -177,9 +177,9 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     }
     return rv;
   }
-  public T visit(ColorizedRegionNode n) {
+  public T visit(RegionReportRolesNode n) {
     T rv = defaultValue;
-    for(AASTNode c : n.getCRegionsList()) {
+    for(AASTNode c : n.getTRRegionsList()) {
       rv = combineResults(rv, doAccept(c));
     }
     return rv;
@@ -213,14 +213,14 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     return rv;
   }
   
-  public T visit(ColorImportNode n) {
+  public T visit(ThreadRoleImportNode n) {
     T rv = defaultValue;
     return rv;
   }
 
-  public T visit(ColorIncompatibleNode n) {
+  public T visit(ThreadRoleIncompatibleNode n) {
     T rv = defaultValue;
-    for(AASTNode c : n.getColorList()) {
+    for(AASTNode c : n.getThreadRoleList()) {
       rv = combineResults(rv, doAccept(c));
     }
     return rv;
@@ -235,7 +235,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getBase()));
     return rv;
   }
-  public T visit(ColorNameNode n) {
+  public T visit(ThreadRoleNameNode n) {
     T rv = defaultValue;
     return rv;
   }
@@ -291,10 +291,10 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getField()));
     return rv;
   }
-  public T visit(ColorRenameNode n) {
+  public T visit(ThreadRoleRenameNode n) {
     T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getColor()));
-    rv = combineResults(rv, doAccept(n.getCExpr()));
+    rv = combineResults(rv, doAccept(n.getThreadRole()));
+    rv = combineResults(rv, doAccept(n.getTRExpr()));
     return rv;
   }
   public T visit(ConstructorDeclPatternNode n) {
@@ -348,9 +348,9 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     }
     return rv;
   }
-  public T visit(ColorCardSpecNode n) {
+  public T visit(ThreadRoleCardSpecNode n) {
     T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getColor()));
+    rv = combineResults(rv, doAccept(n.getTRole()));
     rv = combineResults(rv, doAccept(n.getCard()));
     return rv;
   }
@@ -358,20 +358,20 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     T rv = defaultValue;
     return rv;
   }
-  public T visit(ColorRequireNode n) {
+  public T visit(ThreadRoleRequireNode n) {
     T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getCExpr()));
+    rv = combineResults(rv, doAccept(n.getTRExpr()));
     return rv;
   }
-  public T visit(ColorRevokeNode n) {
+  public T visit(ThreadRoleRevokeNode n) {
     T rv = defaultValue;
-    for(AASTNode c : n.getColorList()) {
+    for(AASTNode c : n.getThreadRoleList()) {
       rv = combineResults(rv, doAccept(c));
     }
     return rv;
   }
   @SuppressWarnings("unchecked")
-  public T visit(ColorOrNode n) {
+  public T visit(ThreadRoleOrNode n) {
     T rv = defaultValue;
     for(AASTNode c : (List<AASTNode>) (List) n.getOrElemsList()) {
       rv = combineResults(rv, doAccept(c));
@@ -393,7 +393,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getTarget2()));
     return rv;
   }
-  public T visit(ColorNotNode n) {
+  public T visit(ThreadRoleNotNode n) {
     T rv = defaultValue;
     rv = combineResults(rv, doAccept(n.getTarget()));
     return rv;
@@ -414,10 +414,10 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     T rv = defaultValue;
     return rv;
   }
-  public T visit(ColorCRNode n) {
+  public T visit(ThreadRoleCRNode n) {
     T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getCExpr()));
-    for(AASTNode c : n.getCRegionsList()) {
+    rv = combineResults(rv, doAccept(n.getTRExpr()));
+    for(AASTNode c : n.getTRRegionsList()) {
       rv = combineResults(rv, doAccept(c));
     }
     return rv;
@@ -438,9 +438,9 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getField()));
     return rv;
   }
-  public T visit(ColorDeclarationNode n) {
+  public T visit(ThreadRoleDeclarationNode n) {
     T rv = defaultValue;
-    for(AASTNode c : n.getColorList()) {
+    for(AASTNode c : n.getThreadRoleList()) {
       rv = combineResults(rv, doAccept(c));
     }
     return rv;
@@ -465,7 +465,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     }
     return rv;
   }
-  public T visit(ColorCardNNode n) {
+  public T visit(ThreadRoleCardNNode n) {
     T rv = defaultValue;
     return rv;
   }
@@ -480,18 +480,18 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     T rv = defaultValue;
     return rv;
   }
-  public T visit(ColorGrantNode n) {
+  public T visit(ThreadRoleGrantNode n) {
     T rv = defaultValue;
-    for(AASTNode c : n.getColorList()) {
+    for(AASTNode c : n.getThreadRoleList()) {
       rv = combineResults(rv, doAccept(c));
     }
     return rv;
   }
-  public T visit(ColorExprNode n) {
+  public T visit(ThreadRoleExprNode n) {
     T rv = defaultValue;
     return rv;
   }
-  public T visit(ColorCard1Node n) {
+  public T visit(ThreadRoleCard1Node n) {
     T rv = defaultValue;
     return rv;
   }
@@ -676,7 +676,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     return rv;
 	}
 
-  public T visit(ColorExprPromiseNode n) {
+  public T visit(ThreadRoleExprPromiseNode n) {
     T rv = defaultValue;
     rv = combineResults(rv, doAccept(n.getTheExprNode()));
     return rv;

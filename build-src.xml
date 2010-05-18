@@ -309,11 +309,11 @@
 		<genAntlr target="${src}/com/surelogic/annotation/parse/SLAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
 		<genAntlr target="${src}/com/surelogic/annotation/parse/ScopedPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
 		<genAntlr target="${src}/com/surelogic/annotation/parse/LayerPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />		
-		<genAntlr target="${src}/com/surelogic/annotation/parse/SLColorAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/SLThreadRoleAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
 		<gen-factory-refs parsername="SLAnnotations" outputname="FactoryRefs" />
 		<gen-factory-refs parsername="ScopedPromises" outputname="MoreFactoryRefs" />
 		<gen-factory-refs parsername="LayerPromises" outputname="LayerFactoryRefs" importname="layers"/>
-		<gen-factory-refs parsername="SLColorAnnotations" outputname="ColorFactoryRefs" />
+		<gen-factory-refs parsername="SLThreadRoleAnnotations" outputname="ThreadRoleFactoryRefs" />
 	</target>
 
 	<target name="generate-test-antlr">

@@ -522,7 +522,7 @@ public class VisitUtil implements JavaGlobals {
   }
 
   public static IRNode computeOutermostEnclosingTypeOrCU(IRNode locInIR) {
-    // figure out what the "cu" is as needed by ColorDeclareDrop, ColorRenameDrop
+    // figure out what the "cu" is as needed by ColorDeclareDrop, TRoleRenameDrop
     // and ColorRenamePerCu should be.  The rule is that we preferentially want the
     // enclosing top-level type. Failing that, we want the enclosing CU.
     if (locInIR == null) return null;

@@ -35,7 +35,7 @@ public interface IAASTBinder {
   
   boolean isResolvableToType(AASTNode node);
   
-  boolean isResolvable(ColorImportNode node);
+  boolean isResolvable(ThreadRoleImportNode node);
 
   IBinding resolve(AASTNode node);
 
@@ -65,7 +65,7 @@ public interface IAASTBinder {
   
   ILockBinding resolve(QualifiedLockNameNode node);
   
-  IRNode resolve(ColorImportNode node);
+  IRNode resolve(ThreadRoleImportNode node);
 
   IType resolveType(AASTNode node);
 

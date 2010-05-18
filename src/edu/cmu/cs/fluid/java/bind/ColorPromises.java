@@ -4,24 +4,69 @@
  */
 package edu.cmu.cs.fluid.java.bind;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Level;
 
-import edu.cmu.cs.fluid.ir.*;
+import com.surelogic.analysis.threadroles.TRBinExpr;
+import com.surelogic.analysis.threadroles.TRExpr;
+import com.surelogic.analysis.threadroles.TRLeafExpr;
+import com.surelogic.analysis.threadroles.TRUnaryExpr;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IRSequence;
+import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.analysis.*;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
-import edu.cmu.cs.fluid.java.promise.*;
+import edu.cmu.cs.fluid.java.promise.ColorAnd;
+import edu.cmu.cs.fluid.java.promise.ColorAndParen;
+import edu.cmu.cs.fluid.java.promise.ColorConstrainedRegions;
+import edu.cmu.cs.fluid.java.promise.ColorContext;
+import edu.cmu.cs.fluid.java.promise.ColorDeclaration;
+import edu.cmu.cs.fluid.java.promise.ColorGrant;
+import edu.cmu.cs.fluid.java.promise.ColorImport;
+import edu.cmu.cs.fluid.java.promise.ColorIncompatible;
+import edu.cmu.cs.fluid.java.promise.ColorName;
+import edu.cmu.cs.fluid.java.promise.ColorNot;
+import edu.cmu.cs.fluid.java.promise.ColorOr;
+import edu.cmu.cs.fluid.java.promise.ColorRename;
+import edu.cmu.cs.fluid.java.promise.ColorRequire;
+import edu.cmu.cs.fluid.java.promise.ColorRevoke;
+import edu.cmu.cs.fluid.java.promise.ColorizedRegion;
+import edu.cmu.cs.fluid.java.promise.RegionName;
+import edu.cmu.cs.fluid.java.promise.RegionSpecifications;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.promise.*;
+import edu.cmu.cs.fluid.promise.IPromiseAnnotation;
+import edu.cmu.cs.fluid.promise.IPromiseParsedCallback;
+import edu.cmu.cs.fluid.promise.IPromiseRule;
+import edu.cmu.cs.fluid.promise.IPromiseStorage;
 import edu.cmu.cs.fluid.promise.parse.BooleanTagRule;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.sea.drops.promises.ColorContextDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
+import edu.cmu.cs.fluid.sea.drops.promises.SimpleCallGraphDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleDeclDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleModel;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleCtxSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleDeclareDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleGrantDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleImportDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleIncompatibleDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleNameModel;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRenameDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRenamePerCU;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleReqSummaryDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRequireDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRevokeDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -65,35 +110,35 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
   
   static SlotInfo<IRSequence<IRNode>> colorizedSI;
   
-//  private static SlotInfo<ColorImportDrop> importDropSI = SimpleSlotFactory.prototype.newAttribute(null);
+//  private static SlotInfo<TRoleImportDrop> importDropSI = SimpleSlotFactory.prototype.newAttribute(null);
 
-  private static SlotInfo<Set<ColorImportDrop>> importDropSetSI = SimpleSlotFactory.prototype.newAttribute(null);
+  private static SlotInfo<Set<TRoleImportDrop>> importDropSetSI = SimpleSlotFactory.prototype.newAttribute(null);
 
   //private static SlotInfo renameDropSI = SimpleSlotFactory.prototype.newAttribute(null);
 
-  private static SlotInfo<ColorDeclareDrop> declDropSI = SimpleSlotFactory.prototype
+  private static SlotInfo<TRoleDeclareDrop> declDropSI = SimpleSlotFactory.prototype
       .newAttribute(null);
-  private static SlotInfo<Set<ColorDeclareDrop>> declDropSetSI = SimpleSlotFactory.prototype
+  private static SlotInfo<Set<TRoleDeclareDrop>> declDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
 
-  private static SlotInfo<ColorGrantDrop> grantDropSI = SimpleSlotFactory.prototype
+  private static SlotInfo<TRoleGrantDrop> grantDropSI = SimpleSlotFactory.prototype
       .newAttribute(null);
-  private static SlotInfo<Set<ColorGrantDrop>> grantDropSetSI = SimpleSlotFactory.prototype
+  private static SlotInfo<Set<TRoleGrantDrop>> grantDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
 
-  private static SlotInfo<ColorRevokeDrop> revokeDropSI = SimpleSlotFactory.prototype
+  private static SlotInfo<TRoleRevokeDrop> revokeDropSI = SimpleSlotFactory.prototype
       .newAttribute(null);
-  private static SlotInfo<Set<ColorRevokeDrop>> revokeDropSetSI = SimpleSlotFactory.prototype
+  private static SlotInfo<Set<TRoleRevokeDrop>> revokeDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
 
-  private static SlotInfo<ColorIncompatibleDrop> incompDropSI = SimpleSlotFactory.prototype
+  private static SlotInfo<TRoleIncompatibleDrop> incompDropSI = SimpleSlotFactory.prototype
       .newAttribute(null);
-  private static SlotInfo<Set<ColorIncompatibleDrop>> incompDropSetSI = SimpleSlotFactory.prototype
+  private static SlotInfo<Set<TRoleIncompatibleDrop>> incompDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
 
-  private static SlotInfo<ColorRequireDrop> reqDropSI = SimpleSlotFactory.prototype
+  private static SlotInfo<TRoleRequireDrop> reqDropSI = SimpleSlotFactory.prototype
   .newAttribute(null);
-  private static SlotInfo<Set<ColorRequireDrop>> reqDropSetSI = SimpleSlotFactory.prototype
+  private static SlotInfo<Set<TRoleRequireDrop>> reqDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   
   private static SlotInfo<ColorContextDrop> contextDropSI = SimpleSlotFactory.prototype
@@ -101,27 +146,27 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
   private static SlotInfo<Set<ColorContextDrop>> contextDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   
-  private static SlotInfo<Set<ColorRequireDrop>> reqInheritDropSetSI = SimpleSlotFactory.prototype
+  private static SlotInfo<Set<TRoleRequireDrop>> reqInheritDropSetSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   private static SlotInfo<Set<ColorContextDrop>> contextInheritDropSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   
-  private static SlotInfo<ColorReqSummaryDrop> reqSummDropSI = SimpleSlotFactory.prototype
+  private static SlotInfo<TRoleReqSummaryDrop> reqSummDropSI = SimpleSlotFactory.prototype
   .newAttribute(null);
-  private static SlotInfo<ColorCtxSummaryDrop> ctxSummDropSI = SimpleSlotFactory.prototype
+  private static SlotInfo<TRoleCtxSummaryDrop> ctxSummDropSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   
-  private static SlotInfo<ColorReqSummaryDrop> reqInheritSummDropSI = SimpleSlotFactory.prototype
+  private static SlotInfo<TRoleReqSummaryDrop> reqInheritSummDropSI = SimpleSlotFactory.prototype
   .newAttribute(null);
-  private static SlotInfo<ColorCtxSummaryDrop> ctxInheritSummDropSI = SimpleSlotFactory.prototype
+  private static SlotInfo<TRoleCtxSummaryDrop> ctxInheritSummDropSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   
   private static SlotInfo<SimpleCallGraphDrop> simpleCGDropSI = SimpleSlotFactory.prototype
   .newAttribute(null);
   
-  private static SlotInfo<ColorReqSummaryDrop> regionColorDeclDropSI = 
+  private static SlotInfo<TRoleReqSummaryDrop> regionColorDeclDropSI = 
     SimpleSlotFactory.prototype.newAttribute(null);
-  private static SlotInfo<Set<RegionColorDeclDrop>> regionColorDeclDropSetSI = 
+  private static SlotInfo<Set<RegionTRoleDeclDrop>> regionColorDeclDropSetSI = 
     SimpleSlotFactory.prototype.newAttribute(null);
   
 //  private static SlotInfo colorizedDropSI =
@@ -188,8 +233,8 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
    * @return A collection as specified above. Can be a single-level empty
    *         collection if there is an error.
    */
-  static private CExpr buildCExpr(IRNode node, IRNode where) {
-    CExpr res = null;
+  static private TRExpr buildTRExpr(IRNode node, IRNode where) {
+    TRExpr res = null;
 
     if (node == null) {
       LOG.warning("node was null, but should not have been");
@@ -208,44 +253,44 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
       Iterator<IRNode> orEnum = ColorOr.getOrElemsIterator(node);
       while (orEnum.hasNext()) {
         IRNode n = orEnum.next();
-        CExpr t = buildCExpr(n, where);
+        TRExpr t = buildTRExpr(n, where);
         if (first) {
           res = t;
           first = false;
         } else {
-          res = CBinExpr.cOr(res, t);
+          res = TRBinExpr.cOr(res, t);
         }
       }
     } else if (ColorAnd.prototype.includes(op)) {
       Iterator<IRNode> andEnum = ColorAnd.getAndElemsIterator(node);
       while (andEnum.hasNext()) {
         IRNode n = andEnum.next();
-        CExpr t = buildCExpr(n, where);
+        TRExpr t = buildTRExpr(n, where);
         if (first) {
           res = t;
           first = false;
         } else {
-          res = CBinExpr.cAnd(res, t);
+          res = TRBinExpr.cAnd(res, t);
         }
       }
     } else if (ColorAndParen.prototype.includes(op)) {
       Iterator<IRNode> andEnum = ColorAndParen.getAndElemsIterator(node);
       while (andEnum.hasNext()) {
         IRNode n = andEnum.next();
-        CExpr t = buildCExpr(n, where);
+        TRExpr t = buildTRExpr(n, where);
         if (first) {
           res = t;
           first = false;
         } else {
-          res = CBinExpr.cAndParen(res, t);
+          res = TRBinExpr.cAndParen(res, t);
         }
       }
     } else if (ColorName.prototype.includes(op)) {
       final String name = ColorName.getId(node);
-      res = new CLeafExpr(ColorNameModel.getInstance(name, where));
+      res = new TRLeafExpr(TRoleNameModel.getInstance(name, where));
     } else if (ColorNot.prototype.includes(op)) {
       final String name = ColorName.getId(ColorNot.getTarget(node));
-      res = CUnaryExpr.cNot(new CLeafExpr(ColorNameModel.getInstance(name, where)));
+      res = TRUnaryExpr.trNot(new TRLeafExpr(TRoleNameModel.getInstance(name, where)));
     } else {
       LOG.severe("colorConstraint did not have one of ColorName, "
           + "ColorNot, ColorAnd, ColorOr");
@@ -253,7 +298,7 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     return res;
   }
   
-  public static Set<ColorDeclareDrop> getMutableColorDeclSet(IRNode forNode) {
+  public static Set<TRoleDeclareDrop> getMutableColorDeclSet(IRNode forNode) {
     return getMutableSet(forNode, declDropSetSI);
   }
   /**
@@ -263,7 +308,7 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
    */
   public static void addColorDecl(IRNode toThisNode, IRNode theDeclPromise) {
     if (!colorDropsEnabled) return;
-    // theDeclPromise is an IRNode that is a ColorDeclare. Its single child
+    // theDeclPromise is an IRNode that is a TRoleDeclare. Its single child
     // is a ColorNames node.
     addToSeq_mapped(declsSI, toThisNode, theDeclPromise);
     Collection<String> names = getNames(ColorDeclaration.getColorIterator(theDeclPromise));
@@ -280,26 +325,29 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
       }
       processedNames.add(qualName);
     }
-    ColorDeclareDrop declDrop = new ColorDeclareDrop(processedNames, toThisNode);
+    //Next code line has bogus null argument so we can compile for now.  This is OLD-STYLE 
+    // promise-building code that cannot work correctly anyway and must be replaced!
+    // DFS 2010/05/18
+    TRoleDeclareDrop declDrop = new TRoleDeclareDrop(null);
     theDeclPromise.setSlotValue(declDropSI, declDrop);
     getMutableColorDeclSet(toThisNode).add(declDrop);
   }
   
-  public static void addColorDecl(IRNode toThisNode, ColorDeclareDrop cdDrop) {
+  public static void addColorDecl(IRNode toThisNode, TRoleDeclareDrop cdDrop) {
     if (!colorDropsEnabled) return;
     getMutableColorDeclSet(toThisNode).add(cdDrop);
   }
 
-//  private static ColorDeclareDrop getColorDecl(IRNode node) {
+//  private static TRoleDeclareDrop getColorDecl(IRNode node) {
 //    return  node.getSlotValue(declDropSI);
 //  }
 
-  public static Collection<ColorDeclareDrop> getColorDecls(IRNode node) {
+  public static Collection<TRoleDeclareDrop> getColorDecls(IRNode node) {
     return getCopyOfMutableSet(node, declDropSetSI);
   }
 
   
-  public static Set<ColorImportDrop> getMutableColorImportSet(IRNode forNode) {
+  public static Set<TRoleImportDrop> getMutableTRoleImportSet(IRNode forNode) {
     return getMutableSet(forNode, importDropSetSI);
   }
   
@@ -308,64 +356,70 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
    * node. It does not check to see whether this imported place is
    * already in the list.
    */
-  public static void addColorImport(IRNode toThisNode, IRNode theDeclPromise) {
+  public static void addTRoleImport(IRNode toThisNode, IRNode theDeclPromise) {
     if (!colorDropsEnabled) return;
-    // theDeclPromise is an IRNode that is a ColorDeclare. Its single child
+    // theDeclPromise is an IRNode that is a TRoleDeclare. Its single child
     // is a ColorNames node.
     addToSeq_mapped(importSI, toThisNode, theDeclPromise);
     IRNode item = ColorImport.getItem(theDeclPromise);
-    ColorImportDrop importDrop = new ColorImportDrop(toThisNode, item);
+    //Next code line has bogus null argument so we can compile for now.  This is OLD-STYLE 
+    // promise-building code that cannot work correctly anyway and must be replaced!
+    // DFS 2010/05/18
+    TRoleImportDrop importDrop = new TRoleImportDrop(null);
 //    theDeclPromise.setSlotValue(importDropSI, importDrop);
-    getMutableColorImportSet(toThisNode).add(importDrop);
+    getMutableTRoleImportSet(toThisNode).add(importDrop);
   }
   
-  public static void addColorImport(IRNode toThisNode, ColorImportDrop cdDrop) {
+  public static void addTRoleImport(IRNode toThisNode, TRoleImportDrop cdDrop) {
     if (!colorDropsEnabled) return;
-    getMutableColorImportSet(toThisNode).add(cdDrop);
+    getMutableTRoleImportSet(toThisNode).add(cdDrop);
   }
 
-//  private static ColorImportDrop getColorImport(IRNode node) {
-//    return (ColorImportDrop) node.getSlotValue(importDropSI);
+//  private static TRoleImportDrop getTRoleImport(IRNode node) {
+//    return (TRoleImportDrop) node.getSlotValue(importDropSI);
 //  }
 
-  public static Collection<ColorImportDrop> getColorImports(IRNode node) {
+  public static Collection<TRoleImportDrop> getTRoleImports(IRNode node) {
     return getCopyOfMutableSet(node, importDropSetSI);
   }
   
-  public static Set<ColorGrantDrop> getMutableColorGrantSet(IRNode node) {
+  public static Set<TRoleGrantDrop> getMutableTRoleGrantSet(IRNode node) {
     return getMutableSet(node, grantDropSetSI);
   }
   
   /**
-   * Add a ColorGrant node and associated drop to the list of granted colors
+   * Add a TRoleGrant node and associated drop to the list of granted colors
    * attached to "toThisNode". Does not check to see whether thePromise has
    * previously been added to the list.
    */
-  public static void addColorGrant(IRNode toThisNode, IRNode thePromise) {
+  public static void addTRoleGrant(IRNode toThisNode, IRNode thePromise) {
     if (!colorDropsEnabled) return;
-    // theDeclPromise is an IRNode that is a ColorDeclare. Its single child
-    // is a ColorNames node.
+    // thePromise is an IRNode that is a TRoleDeclare. Its single child
+    // is a TRoleNames node.
     addToSeq_mapped(grantSI, toThisNode, thePromise);
-    Collection<String> names = getNames(ColorGrant.getColorIterator(thePromise));
-    ColorGrantDrop declDrop = new ColorGrantDrop(names, toThisNode);
+//    Collection<String> names = getNames(ColorGrant.getColorIterator(thePromise));
+    //Next code line has bogus null argument so we can compile for now.  This is OLD-STYLE 
+    // promise-building code that cannot work correctly anyway and must be replaced!
+    // DFS 2010/05/18    
+    TRoleGrantDrop declDrop = new TRoleGrantDrop(null);
     thePromise.setSlotValue(grantDropSI, declDrop);
-    getMutableColorGrantSet(toThisNode).add(declDrop);
+    getMutableTRoleGrantSet(toThisNode).add(declDrop);
   }
   
-  public static void addColorGrant(IRNode toThisNode, ColorGrantDrop gDrop) {
+  public static void addTRoleGrant(IRNode toThisNode, TRoleGrantDrop gDrop) {
     if (!colorDropsEnabled) return;
-    getMutableColorGrantSet(toThisNode).add(gDrop);
+    getMutableTRoleGrantSet(toThisNode).add(gDrop);
   }
 
-//  private static ColorGrantDrop getColorGrant(IRNode node) {
+//  private static TRoleGrantDrop getTRoleGrant(IRNode node) {
 //    return node.getSlotValue(grantDropSI);
 //  }
 
-  public static Collection<ColorGrantDrop> getColorGrants(IRNode node) {
+  public static Collection<TRoleGrantDrop> getTRoleGrants(IRNode node) {
     return getCopyOfMutableSet(node, grantDropSetSI);
   }
 
-  public static Set<ColorRevokeDrop> getMutableColorRevokeSet(IRNode forNode) {
+  public static Set<TRoleRevokeDrop> getMutableColorRevokeSet(IRNode forNode) {
     return getMutableSet(forNode, revokeDropSetSI);
   }
   
@@ -376,29 +430,32 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
    */
   public static void addColorRevoke(IRNode toThisNode, IRNode thePromise) {
     if (!colorDropsEnabled) return;
-    // theDeclPromise is an IRNode that is a ColorDeclare. Its single child
+    // theDeclPromise is an IRNode that is a TRoleDeclare. Its single child
     // is a ColorNames node.
     addToSeq_mapped(revokeSI, toThisNode, thePromise);
     Collection<String> names = getNames(ColorRevoke.getColorIterator(thePromise));
-    ColorRevokeDrop declDrop = new ColorRevokeDrop(names, toThisNode);
+    //Next code line has bogus null argument so we can compile for now.  This is OLD-STYLE 
+    // promise-building code that cannot work correctly anyway and must be replaced!
+    // DFS 2010/05/18
+    TRoleRevokeDrop declDrop = new TRoleRevokeDrop(null);
     thePromise.setSlotValue(revokeDropSI, declDrop);
     getMutableColorRevokeSet(toThisNode).add(declDrop);
   }
   
-  public static void addColorRevoke(IRNode toThisNode, ColorRevokeDrop crDrop) {
+  public static void addColorRevoke(IRNode toThisNode, TRoleRevokeDrop trrDrop) {
     if (!colorDropsEnabled) return;
-    getMutableColorRevokeSet(toThisNode).add(crDrop);
+    getMutableColorRevokeSet(toThisNode).add(trrDrop);
   }
 
-//  private static ColorRevokeDrop getColorRevoke(IRNode node) {
+//  private static TRoleRevokeDrop getColorRevoke(IRNode node) {
 //    return  node.getSlotValue(revokeDropSI);
 //  }
 
-  public static Collection<ColorRevokeDrop> getColorRevokes(IRNode node) {
+  public static Collection<TRoleRevokeDrop> getColorRevokes(IRNode node) {
     return getCopyOfMutableSet(node, revokeDropSetSI);
   }
 
-  public static Set<ColorIncompatibleDrop> getMutableColorIncompatibleSet(IRNode forNode) {
+  public static Set<TRoleIncompatibleDrop> getMutableColorIncompatibleSet(IRNode forNode) {
     return getMutableSet(forNode, incompDropSetSI);
   }
   
@@ -415,14 +472,16 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     addToSeq_mapped(incompatSI, toThisNode, thePromise);
     //Operator op = tree.getOperator(toThisNode);
     Collection<String> names = getNames(ColorIncompatible.getColorIterator(thePromise));
-    ColorIncompatibleDrop declDrop = new ColorIncompatibleDrop(names,
-                                                               toThisNode);
+    //Next code line has bogus null argument so we can compile for now.  This is OLD-STYLE 
+    // promise-building code that cannot work correctly anyway and must be replaced!
+    // DFS 2010/05/18
+    TRoleIncompatibleDrop declDrop = new TRoleIncompatibleDrop(null);
     
     thePromise.setSlotValue(incompDropSI, declDrop);
     getMutableColorIncompatibleSet(toThisNode).add(declDrop);
   }
   
-  public static void addColorIncompatible(IRNode toThisNode, ColorIncompatibleDrop ciDrop) {
+  public static void addColorIncompatible(IRNode toThisNode, TRoleIncompatibleDrop ciDrop) {
     if (!colorDropsEnabled) return;
     getMutableColorIncompatibleSet(toThisNode).add(ciDrop);
   }
@@ -431,7 +490,7 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
 //    return node.getSlotValue(incompDropSI);
 //  }
 
-  public static Collection<ColorIncompatibleDrop> getColorIncompatibles(IRNode node) {
+  public static Collection<TRoleIncompatibleDrop> getColorIncompatibles(IRNode node) {
     return getCopyOfMutableSet(node, incompDropSetSI);
   }
   @SuppressWarnings("unused")
@@ -455,9 +514,9 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
       final Operator bop = (binding != null) ? tree.getOperator(binding) : null;
       
       RegionModel aRegionDrop = RegionAnnotation.getRegionDrop(binding);
-      ColorizedRegionModel crm = 
-        ColorizedRegionModel.getColorizedRegionModel(aRegionDrop, binding);
-      crm.setNodeAndCompilationUnitDependency(toThisNode);
+      RegionTRoleModel regTroleMod = 
+        RegionTRoleModel.getRegionTRoleModel(aRegionDrop, binding);
+      regTroleMod.setNodeAndCompilationUnitDependency(toThisNode);
     }
   }
   @SuppressWarnings("unused")
@@ -471,11 +530,11 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     
     IRNode cRegions = ColorConstrainedRegions.getCRegions(thePromise);
     IRNode irExpr = ColorConstrainedRegions.getCSpec(thePromise);
-    CExpr expr = buildCExpr(irExpr, toThisNode);
+    TRExpr expr = buildTRExpr(irExpr, toThisNode);
     
     final Operator ttnOp = tree.getOperator(toThisNode);
     
-    Set<RegionColorDeclDrop> rcDecls = getMutableRegionColorDeclsSet(toThisNode);
+    Set<RegionTRoleDeclDrop> rcDecls = getMutableRegionColorDeclsSet(toThisNode);
     Iterator<IRNode> specs = RegionSpecifications.getSpecsIterator(cRegions);
     while (specs.hasNext()) {
       IRNode name = specs.next();
@@ -487,20 +546,20 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     
     RegionModel aRegionDrop = RegionAnnotation.getRegionDrop(binding);
 //      RegionModel aRegionDrop = RegionAnnotation.getRegionDrop(vdecl);
-      aRegionDrop.setCategory(JavaGlobals.COLOR_CONSTRAINED_REGION_CAT);
-      RegionColorDeclDrop rcdDrop =
-        RegionColorDeclDrop.buildRegionColorDecl(aRegionDrop.regionName,
+      aRegionDrop.setCategory(JavaGlobals.THREAD_ROLE_CONSTRAINED_REGION_CAT);
+      RegionTRoleDeclDrop rtrdDrop =
+        RegionTRoleDeclDrop.buildRegionTRoleDecl(aRegionDrop.regionName,
                                                expr, toThisNode);
-      rcDecls.add(rcdDrop);
-//      LOG.severe("added rcd for region " + aRegionDrop.regionName + " to " + JavaNames.getFullTypeName(toThisNode));
+      rcDecls.add(rtrdDrop);
+//      LOG.severe("added rtrd for region " + aRegionDrop.regionName + " to " + JavaNames.getFullTypeName(toThisNode));
     }    
   }
   
-  public static Set<ColorRequireDrop> getMutableRequiresColorSet(IRNode forNode) {
+  public static Set<TRoleRequireDrop> getMutableRequiresColorSet(IRNode forNode) {
     return getMutableSet(forNode, reqDropSetSI);
   }
   
-  public static Set<ColorRequireDrop> getMutableInheritedRequiresSet(IRNode forNode) {
+  public static Set<TRoleRequireDrop> getMutableInheritedRequiresSet(IRNode forNode) {
     return getMutableSet(forNode, reqInheritDropSetSI);
   }
   
@@ -515,67 +574,70 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     // is a ColorSpec node.
     addToSeq_mapped(reqSI, toThisNode, theReqPromise);
     IRNode irExpr = ColorRequire.getCSpec(theReqPromise);
-    CExpr expr = buildCExpr(irExpr, toThisNode);
-    ColorRequireDrop reqDrop = new ColorRequireDrop(expr, toThisNode);
+    TRExpr expr = buildTRExpr(irExpr, toThisNode);
+    //Next code line has bogus null argument so we can compile for now.  This is OLD-STYLE 
+    // promise-building code that cannot work correctly anyway and must be replaced!
+    // DFS 2010/05/18
+    TRoleRequireDrop reqDrop = new TRoleRequireDrop(null);
     theReqPromise.setSlotValue(reqDropSI, reqDrop);
     getMutableRequiresColorSet(toThisNode).add(reqDrop);
   }
   
-  public static void addInheritedRequireDrop(IRNode toThisNode, ColorRequireDrop crDrop) {
+  public static void addInheritedRequireDrop(IRNode toThisNode, TRoleRequireDrop trrDrop) {
     if (!colorDropsEnabled) return;
-    getMutableInheritedRequiresSet(toThisNode).add(crDrop);
+    getMutableInheritedRequiresSet(toThisNode).add(trrDrop);
   }
 
-//  private static ColorRequireDrop getReqDrop(IRNode node) {
+//  private static TRoleRequireDrop getReqDrop(IRNode node) {
 //    return node.getSlotValue(reqDropSI);
 //  }
 
-  public static Collection<ColorRequireDrop> getReqDrops(IRNode node) {
-    final Set<ColorRequireDrop> mrcs = getMutableRequiresColorSet(node);
-    Collection<ColorRequireDrop> res = new HashSet<ColorRequireDrop>(mrcs.size());
+  public static Collection<TRoleRequireDrop> getReqDrops(IRNode node) {
+    final Set<TRoleRequireDrop> mrcs = getMutableRequiresColorSet(node);
+    Collection<TRoleRequireDrop> res = new HashSet<TRoleRequireDrop>(mrcs.size());
     res.addAll(mrcs);
     return res;
   }
   
-  public static Collection<ColorRequireDrop> getInheritedRequireDrops(IRNode node) {
+  public static Collection<TRoleRequireDrop> getInheritedRequireDrops(IRNode node) {
     return getCopyOfMutableSet(node, reqInheritDropSetSI);
   }
   
-  public static ColorReqSummaryDrop getReqSummDrop(IRNode node) {
+  public static TRoleReqSummaryDrop getReqSummDrop(IRNode node) {
     return node.getSlotValue(reqSummDropSI);
   }
   
-  public static void setReqSummDrop(IRNode node, ColorReqSummaryDrop summ) {
+  public static void setReqSummDrop(IRNode node, TRoleReqSummaryDrop summ) {
     if (!colorDropsEnabled) return;
     node.setSlotValue(reqSummDropSI, summ);
     summ.setAttachedTo(node, reqSummDropSI);
   }
   
-  public static ColorReqSummaryDrop getInheritedReqSummDrop(IRNode node) {
+  public static TRoleReqSummaryDrop getInheritedReqSummDrop(IRNode node) {
     return node.getSlotValue(reqInheritSummDropSI);
   }
   
-  public static void setInheritedReqSummDrop(IRNode node, ColorReqSummaryDrop summ) {
+  public static void setInheritedReqSummDrop(IRNode node, TRoleReqSummaryDrop summ) {
     if (!colorDropsEnabled) return;
     node.setSlotValue(reqInheritSummDropSI, summ);
     summ.setAttachedTo(node, reqInheritSummDropSI);
   }
 
-  public static ColorCtxSummaryDrop getCtxSummDrop(IRNode node) {
+  public static TRoleCtxSummaryDrop getCtxSummDrop(IRNode node) {
     return node.getSlotValue(ctxSummDropSI);
   }
   
-  public static void setCtxSummDrop(IRNode node, ColorCtxSummaryDrop summ) {
+  public static void setCtxSummDrop(IRNode node, TRoleCtxSummaryDrop summ) {
     if (!colorDropsEnabled) return;
     node.setSlotValue(ctxSummDropSI, summ);
     summ.setAttachedTo(node, ctxSummDropSI);
   }
   
-  public static ColorCtxSummaryDrop getInheritedCtxSummDrop(IRNode node) {
+  public static TRoleCtxSummaryDrop getInheritedCtxSummDrop(IRNode node) {
     return node.getSlotValue(ctxInheritSummDropSI);
   }
   
-  public static void setInheritedCtxSummDrop(IRNode node, ColorCtxSummaryDrop summ) {
+  public static void setInheritedCtxSummDrop(IRNode node, TRoleCtxSummaryDrop summ) {
     if (!colorDropsEnabled) return;
     node.setSlotValue(ctxInheritSummDropSI, summ);
     summ.setAttachedTo(node, ctxInheritSummDropSI);
@@ -591,11 +653,11 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     cgDrop.setAttachedTo(node, simpleCGDropSI);
   }
 
-  public static ColorReqSummaryDrop getDataColorReqDrop(IRNode node) {
+  public static TRoleReqSummaryDrop getDataColorReqDrop(IRNode node) {
     return node.getSlotValue(regionColorDeclDropSI);
   }
   
-  public static void setDataColorReqDrop(IRNode node, ColorReqSummaryDrop rDrop) {
+  public static void setDataColorReqDrop(IRNode node, TRoleReqSummaryDrop rDrop) {
     if (!colorDropsEnabled) return;
     node.setSlotValue(regionColorDeclDropSI, rDrop);
     rDrop.setAttachedTo(node, regionColorDeclDropSI);
@@ -659,7 +721,7 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     return getMutableSet(forNode, contextDropSetSI);
   }
   
-  public static Set<RegionColorDeclDrop> getMutableRegionColorDeclsSet(IRNode forNode) {
+  public static Set<RegionTRoleDeclDrop> getMutableRegionColorDeclsSet(IRNode forNode) {
     return getMutableSet(forNode, regionColorDeclDropSetSI);
   }
   
@@ -671,7 +733,7 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     if (!colorDropsEnabled) return;
     addToSeq_mapped(contextSI, toThisNode, theCtxPromise);
     IRNode irExpr = ColorContext.getCSpec(theCtxPromise);
-    CExpr expr = buildCExpr(irExpr, toThisNode);
+    TRExpr expr = buildTRExpr(irExpr, toThisNode);
     ColorContextDrop ctxDrop = new ColorContextDrop(expr, toThisNode);
     theCtxPromise.setSlotValue(contextDropSI, ctxDrop);
     getMutableColorContextSet(toThisNode).add(ctxDrop);
@@ -692,12 +754,15 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     
     final String  name = ColorName.getId(ColorRename.getColor(value));
     final IRNode irExpr = ColorRename.getCSpec(value);
-    final CExpr expr = buildCExpr(irExpr, toThisNode);
-    final ColorRenameDrop crDrop = ColorRenameDrop.buildColorRenameDrop(name, expr, toThisNode);
+    final TRExpr expr = buildTRExpr(irExpr, toThisNode);
+    //Next code line has bogus null argument so we can compile for now.  This is OLD-STYLE 
+    // promise-building code that cannot work correctly anyway and must be replaced!
+    // DFS 2010/05/18
+    final TRoleRenameDrop trrDrop = TRoleRenameDrop.buildTRoleRenameDrop(null);
     final IRNode myCu = VisitUtil.computeOutermostEnclosingTypeOrCU(toThisNode);
     final CUDrop cud = getCUDropOf(myCu);
-    final ColorRenamePerCU crp = ColorRenamePerCU.getColorRenamePerCU(cud.cu);
-    crp.addRename(crDrop);
+    final TRoleRenamePerCU trp = TRoleRenamePerCU.getTRoleRenamePerCU(cud.cu);
+    trp.addRename(trrDrop);
   }
   /**
    * @param node The node whose color context drops we want
@@ -729,11 +794,11 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     setX_mapped(transparentSI, node, notRelevant);
   }
   
-  public static boolean areColorImportsProcessed(IRNode node) {
+  public static boolean areTRoleImportsProcessed(IRNode node) {
     return isXorFalse_filtered(colorImportsProcessedSI, node);
   }
   
-  public static void setColorImportsProcessed(IRNode node, boolean processed) {
+  public static void setTRoleImportsProcessed(IRNode node, boolean processed) {
     setX_mapped(colorImportsProcessedSI, node, processed);
   }
   
@@ -823,7 +888,7 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
                                  protected boolean processResult(final IRNode n,
                                      final IRNode result,
                                      IPromiseParsedCallback cb) {
-                                   addColorGrant(n, result);
+                                   addTRoleGrant(n, result);
                                    return true;
                                  }
                                },
@@ -871,7 +936,7 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
                                    return transparentSI;
                                  }
                                },
-                               new ColorImport_ParseRule("ColorImport", 
+                               new TRoleImport_ParseRule("TRoleImport", 
                                                          packageTypeDeclOps),
                                new ColorRename_ParseRule("ColorRename",
                                                          packageTypeDeclOps),
@@ -928,9 +993,9 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
       return new TokenInfo<IRSequence<IRNode>>("Calling color context", si, "colorContext");
     }
   }
-  static class ColorImport_ParseRule extends AbstractPromiseParserCheckRule<IRSequence<IRNode>> {
+  static class TRoleImport_ParseRule extends AbstractPromiseParserCheckRule<IRSequence<IRNode>> {
 
-    ColorImport_ParseRule(String tag, Operator[] ops) {
+    TRoleImport_ParseRule(String tag, Operator[] ops) {
       super(tag, SEQ, true, ops, ops);
     }
     
@@ -947,7 +1012,7 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
     @Override
     protected boolean processResult(IRNode n, IRNode result,
         IPromiseParsedCallback cb) {
-      addColorImport(n, result);
+      addTRoleImport(n, result);
       return true;
     } 
   }

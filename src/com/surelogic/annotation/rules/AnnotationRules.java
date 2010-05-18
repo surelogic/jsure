@@ -98,7 +98,7 @@ public abstract class AnnotationRules {
     MethodEffectsRules.getInstance().register(fw);
     TestRules.getInstance().register(fw);
     ScopedPromiseRules.getInstance().register(fw);
-    ColorRules.getInstance().register(fw);
+    ThreadRoleRules.getInstance().register(fw);
     ModuleRules.getInstance().register(fw);
     AssumeFinalRules.getInstance().register(fw);
     VouchRules.getInstance().register(fw);

@@ -6,14 +6,22 @@
  */
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.analysis.ModuleAnalysisAndVisitor;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.promise.EnclosingModule;
 import edu.cmu.cs.fluid.java.promise.Module;
@@ -21,9 +29,9 @@ import edu.cmu.cs.fluid.java.promise.Modules;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
