@@ -3,14 +3,14 @@ package com.surelogic.aast.promise;
 import com.surelogic.aast.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class TransparentNode extends AbstractBooleanNode {
+public class ThreadRoleTransparentNode extends AbstractBooleanNode {
   // Fields
 
   public static final AbstractAASTNodeFactory factory = new Factory(
-      "Transparent") {
+      "ThreadRoleTransparent") {
     @Override
     protected AASTNode create(int offset) {
-      return new TransparentNode(offset);
+      return new ThreadRoleTransparentNode(offset);
     }
   };
 
@@ -20,13 +20,13 @@ public class TransparentNode extends AbstractBooleanNode {
    * 
    * @unique
    */
-  public TransparentNode(int offset) {
+  public ThreadRoleTransparentNode(int offset) {
     super(offset);
   }
 
   @Override
   public String unparse(boolean debug, int indent) {
-    return unparse(debug, indent, "Transparent");
+    return unparse(debug, indent, "ThreadRoleTransparent");
   }
 
   @Override
@@ -37,6 +37,6 @@ public class TransparentNode extends AbstractBooleanNode {
 
   @Override
   public IAASTNode cloneTree() {
-    return new TransparentNode(getOffset());
+    return new ThreadRoleTransparentNode(getOffset());
   }
 }

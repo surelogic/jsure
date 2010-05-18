@@ -354,7 +354,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getCard()));
     return rv;
   }
-  public T visit(TransparentNode n) {
+  public T visit(ThreadRoleTransparentNode n) {
     T rv = defaultValue;
     return rv;
   }

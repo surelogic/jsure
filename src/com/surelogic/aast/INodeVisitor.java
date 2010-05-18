@@ -72,7 +72,7 @@ public interface INodeVisitor<T> {
   T visit(SimpleLockNameNode n);
   T visit(MethodDeclPatternNode n);
   T visit(ThreadRoleCardSpecNode n);
-  T visit(TransparentNode n);
+  T visit(ThreadRoleTransparentNode n);
   T visit(ThreadRoleRequireNode n);
   T visit(ThreadRoleRevokeNode n);
   T visit(ThreadRoleOrNode n);

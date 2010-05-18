@@ -36,7 +36,7 @@ tokens {
   ThreadRoleCR;
   ThreadRoleConstraint;
   ThreadRole;
-  Transparent;
+  ThreadRoleTransparent;
   Nothing;
   
   // Module annos
@@ -284,16 +284,16 @@ regionName
     ;		
  
  threadRoleTransparent
- 	:	nothing EOF -> ^(Transparent nothing)
+ 	:	nothing EOF -> ^(ThreadRoleTransparent nothing)
  	;
 
 /*************************************************************************************
  * ThreadRole annotations taking lists of names as arguments
  *************************************************************************************/	
 
- // threadRoleDeclare 
- //	: threadRoleNames EOF -> ^(ThreadRoleDeclaration threadRoleNames)
- //	;
+ threadRoleDeclare 
+ 	: threadRoleNames EOF -> ^(ThreadRoleDeclaration threadRoleNames)
+ 	;
  	
  threadRoleGrant 
  	:	threadRoleNames EOF -> ^(ThreadRoleGrant threadRoleNames)
@@ -313,7 +313,6 @@ threadRoleIncompatible
  *************************************************************************************/	
 threadRole
 	:	threadRoleExpr EOF -> ^(ThreadRole threadRoleExpr)
-	| threadRoleNames EOF -> ^(ThreadRole threadRoleNames)
 	;
 	
 threadRoleConstraint

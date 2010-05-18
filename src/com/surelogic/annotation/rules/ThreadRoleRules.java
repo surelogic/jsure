@@ -19,7 +19,7 @@ import com.surelogic.aast.promise.ThreadRoleNameListNode;
 import com.surelogic.aast.promise.ThreadRoleNode;
 import com.surelogic.aast.promise.ThreadRoleRenameNode;
 import com.surelogic.aast.promise.ThreadRoleRevokeNode;
-import com.surelogic.aast.promise.TransparentNode;
+import com.surelogic.aast.promise.ThreadRoleTransparentNode;
 import com.surelogic.annotation.DefaultSLThreadRoleAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLThreadRoleAnnotationsParser;
@@ -56,18 +56,18 @@ import edu.cmu.cs.fluid.tree.Operator;
 public class ThreadRoleRules extends AnnotationRules {
 	public static final boolean useThreadRoles = false;
 	
-	public static final String TRANSPARENT = "Transparent";
+	public static final String TRANSPARENT = "ThreadRoleTransparent";
 	public static final String TROLE_CONSTRAINT = "ThreadRoleConstraint";
-	public static final String TROLE_IMPORT = "ColorImport";
-	public static final String TROLE_DECLARATION = "ColorDeclaration";
+	public static final String TROLE_IMPORT = "ThreadRoleImport";
+	public static final String TROLE_DECLARATION = "ThreadRoleDeclaration";
 	public static final String TROLE_INCOMPATIBLE = "IncompatibleColors";
-	public static final String TROLE_GRANT = "ColorGrant";
-	public static final String TROLE_REVOKE = "ColorRevoke";
-	public static final String TROLE_RENAME = "ColorRename";
-	public static final String TROLE = "Color";
-	public static final String TROLE_CARDINALITY = "ColorCardinality";
-	public static final String REGION_REPORTTROLES = "ColorizedRegion";
-	public static final String REGION_TROLECONSTRAINT = "ColorConstrainedRegions";
+	public static final String TROLE_GRANT = "ThreadRoleGrant";
+	public static final String TROLE_REVOKE = "ThreadRoleRevoke";
+	public static final String TROLE_RENAME = "ThreadRoleRename";
+	public static final String TROLE = "ThreadRole";
+	public static final String TROLE_CARDINALITY = "ThreadRoleCardinality";
+	public static final String REGION_REPORTTROLES = "RegionReportThreadRoles";
+	public static final String REGION_TROLECONSTRAINT = "ThreadRoleConstrainedRegions";
 
 	public static boolean tRoleDropsEnabled;
 
@@ -103,9 +103,9 @@ public class ThreadRoleRules extends AnnotationRules {
 	private static SlotInfo<SimpleCallGraphDrop> simpleCGDropSI = SimpleSlotFactory.prototype
 			.newAttribute(null);
 
-	private static SlotInfo<TRoleReqSummaryDrop> regionColorDeclDropSI = SimpleSlotFactory.prototype
+	private static SlotInfo<TRoleReqSummaryDrop> regionTRoleDeclDropSI = SimpleSlotFactory.prototype
 			.newAttribute(null);
-	private static SlotInfo<Set<RegionTRoleDeclDrop>> regionColorDeclDropSetSI = SimpleSlotFactory.prototype
+	private static SlotInfo<Set<RegionTRoleDeclDrop>> regionTRoleDeclDropSetSI = SimpleSlotFactory.prototype
 			.newAttribute(null);
 
 	private static SlotInfo<Set<TRoleRequireDrop>> reqDropSetSI = SimpleSlotFactory.prototype
@@ -136,14 +136,14 @@ public class ThreadRoleRules extends AnnotationRules {
 
 	static class Transparent_ParseRule
 			extends
-			DefaultSLThreadRoleAnnotationParseRule<TransparentNode, TransparentPromiseDrop> {
+			DefaultSLThreadRoleAnnotationParseRule<ThreadRoleTransparentNode, TransparentPromiseDrop> {
 		protected Transparent_ParseRule() {
-			super(TRANSPARENT, methodDeclOps, TransparentNode.class);
+			super(TRANSPARENT, methodDeclOps, ThreadRoleTransparentNode.class);
 		}
 
 		@Override
 		protected IAASTRootNode makeAAST(int offset) throws Exception {
-			return new TransparentNode(offset);
+			return new ThreadRoleTransparentNode(offset);
 		}
 
 		@Override
@@ -160,11 +160,11 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IAnnotationScrubber<TransparentNode> makeScrubber() {
-			return new AbstractAASTScrubber<TransparentNode>(this) {
+		protected IAnnotationScrubber<ThreadRoleTransparentNode> makeScrubber() {
+			return new AbstractAASTScrubber<ThreadRoleTransparentNode>(this) {
 				@Override
-				protected PromiseDrop<TransparentNode> makePromiseDrop(
-						TransparentNode a) {
+				protected PromiseDrop<ThreadRoleTransparentNode> makePromiseDrop(
+						ThreadRoleTransparentNode a) {
 					TransparentPromiseDrop d = new TransparentPromiseDrop(a);
 					return storeDropIfNotNull(getStorage(), a, d);
 				}
@@ -325,7 +325,7 @@ public class ThreadRoleRules extends AnnotationRules {
 			TRoleNameList_ParseRule<ThreadRoleRevokeNode, TRoleRevokeDrop> {
 
 		protected TRoleRevoke_ParseRule() {
-			super("ColorRevoke", blockOps, ThreadRoleRevokeNode.class,
+			super("ThreadRoleRevoke", blockOps, ThreadRoleRevokeNode.class,
 					TRoleRevokeDrop.class);
 		}
 
@@ -654,7 +654,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 	public static Set<RegionTRoleDeclDrop> getMutableRegionTRoleDeclsSet(
 			IRNode forNode) {
-		return getMutableSet(forNode, regionColorDeclDropSetSI);
+		return getMutableSet(forNode, regionTRoleDeclDropSetSI);
 	}
 
 	public static Set<TRoleRequireDrop> getMutableRequiresTRoleSet(
