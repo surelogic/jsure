@@ -14,12 +14,12 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.analysis.ModuleAnalysisAndVisitor;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.sea.Drop;

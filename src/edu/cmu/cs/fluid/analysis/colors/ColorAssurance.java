@@ -7,6 +7,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.threadroles.TRoleSecondPass;
+import com.surelogic.analysis.threadroles.TRoleStats;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.listeners.IClearProjectHelper;
@@ -18,8 +20,6 @@ import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
-import edu.cmu.cs.fluid.java.analysis.ColorSecondPass;
-import edu.cmu.cs.fluid.java.analysis.ColorStats;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -70,7 +70,7 @@ public final class ColorAssurance
 
   public ColorAssurance() {
     INSTANCE = this;
-    ColorStats.getInstance();
+    TRoleStats.getInstance();
     ConvertToIR.register(listener);
     ClearProjectListener.addHelper(this);
   }
@@ -140,7 +140,7 @@ public final class ColorAssurance
         analysisContext = AnalysisContext.getContext(Eclipse.getDefault()
                                                      .getTypeEnv(project).getBinder());
         
-        ColorSecondPass.getInstance().cspEnd(resultDependUpon, binder);
+        TRoleSecondPass.getInstance().cspEnd(resultDependUpon, binder);
         LOG.info("Color Assurance complete.");
       }
     });

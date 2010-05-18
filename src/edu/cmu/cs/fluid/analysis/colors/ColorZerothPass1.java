@@ -8,7 +8,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.colors.ColorFirstPass;
+import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
@@ -17,7 +17,6 @@ import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
-
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.util.AbstractRunner;
@@ -66,7 +65,7 @@ public class ColorZerothPass1 extends AbstractIRAnalysisModule {
         CodeInfo info;
         IRNode cu;
 
-        ColorFirstPass.getInstance().cfpStart(binder);
+        TRolesFirstPass.getInstance().trfpStart(binder);
 
 
         final Iterator<CodeInfo> it = listener.infos().iterator();
@@ -77,7 +76,7 @@ public class ColorZerothPass1 extends AbstractIRAnalysisModule {
           }
           cu = info.getNode();
 
-          ColorFirstPass.getInstance().doImportandRenameWalks(cu, binder);
+          TRolesFirstPass.getInstance().doImportandRenameWalks(cu, binder);
         }
       }
     });
@@ -91,7 +90,7 @@ public class ColorZerothPass1 extends AbstractIRAnalysisModule {
 //   */
 //  @Override
 //  public Iterable<IRNode> finishAnalysis(IProject project) {
-//    final Iterable<IRNode> reprocessThese = ColorFirstPass.getInstance().cfpEnd();
+//    final Iterable<IRNode> reprocessThese = TRolesFirstPass.getInstance().cfpEnd();
 //
 //  
 //      return reprocessThese;
@@ -105,7 +104,7 @@ public class ColorZerothPass1 extends AbstractIRAnalysisModule {
    */
   @Override
   public void resetForAFullBuild(IProject project) {
-    ColorFirstPass.getInstance().resetForAFullBuild();
+    TRolesFirstPass.getInstance().resetForAFullBuild();
   }
 
   @Override
@@ -120,7 +119,7 @@ public class ColorZerothPass1 extends AbstractIRAnalysisModule {
    */
   @Override
   protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
-    ColorFirstPass.getInstance().doOneCUZerothPass(cu, binder);
+    TRolesFirstPass.getInstance().doOneCUZerothPass(cu, binder);
     return true;
   }
 
@@ -151,7 +150,7 @@ public class ColorZerothPass1 extends AbstractIRAnalysisModule {
    */
   @Override
   public void preBuild(IProject p) {
-    ColorFirstPass.preBuild();
+    TRolesFirstPass.preBuild();
     super.preBuild(p);
   }
 

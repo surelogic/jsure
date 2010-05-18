@@ -7,8 +7,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.colors.ColorSecondPass;
-import com.surelogic.analysis.colors.ColorStats;
+import com.surelogic.analysis.threadroles.TRoleSecondPass;
+import com.surelogic.analysis.threadroles.TRoleStats;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
@@ -65,7 +65,7 @@ public class ColorAssurance1 extends AbstractWholeIRAnalysisModule {
   public ColorAssurance1() {
     super(ParserNeed.NEW);
     INSTANCE = this;
-    ColorStats.getInstance();
+    TRoleStats.getInstance();
     ConvertToIR.register(listener);
   }
 
@@ -130,7 +130,7 @@ public class ColorAssurance1 extends AbstractWholeIRAnalysisModule {
     AbstractFluidAnalysisModule.runInVersion(new AbstractRunner() {
       public void run() {
         LOG.info("Finishing color assurance");
-        ColorSecondPass.getInstance().cspEnd(resultDependUpon, binder);
+        TRoleSecondPass.getInstance().cspEnd(resultDependUpon, binder);
         LOG.info("Color Assurance complete.");
       }
     });

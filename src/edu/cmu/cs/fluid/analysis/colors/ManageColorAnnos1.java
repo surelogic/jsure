@@ -8,7 +8,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.colors.ColorFirstPass;
+import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
@@ -64,7 +64,7 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
         CodeInfo info;
         IRNode cu;
 
-        ColorFirstPass.getInstance().cfpStart(binder);
+        TRolesFirstPass.getInstance().trfpStart(binder);
 
 
         final Iterator<CodeInfo> it = listener.infos().iterator();
@@ -75,7 +75,7 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
           }
           cu = info.getNode();
 
-          ColorFirstPass.getInstance().doImportandRenameWalks(cu, binder);
+          TRolesFirstPass.getInstance().doImportandRenameWalks(cu, binder);
         }
       }
     });
@@ -89,7 +89,7 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
    */
   @Override
   public Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
-    final Iterable<IRNode> reprocessThese = ColorFirstPass.getInstance().cfpEnd();
+    final Iterable<IRNode> reprocessThese = TRolesFirstPass.getInstance().trfpEnd();
 
   
       return reprocessThese;
@@ -103,7 +103,7 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
    */
   @Override
   public void resetForAFullBuild(IProject project) {
-    ColorFirstPass.getInstance().resetForAFullBuild();
+    TRolesFirstPass.getInstance().resetForAFullBuild();
   }
 
   @Override
@@ -118,7 +118,7 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
    */
   @Override
   protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
-    ColorFirstPass.getInstance().doOneCU(cu, binder);
+    TRolesFirstPass.getInstance().doOneCU(cu, binder);
     return true;
   }
 
@@ -149,7 +149,7 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
 //   */
 //  @Override
 //  public void preBuild(IProject p) {
-//    ColorFirstPass.preBuild();
+//    TRolesFirstPass.preBuild();
 //    super.preBuild(p);
 //  }
 

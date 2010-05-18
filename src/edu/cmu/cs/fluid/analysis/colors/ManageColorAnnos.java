@@ -11,6 +11,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
@@ -20,7 +21,6 @@ import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
-import edu.cmu.cs.fluid.java.analysis.ColorFirstPass;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.util.AbstractRunner;
@@ -98,7 +98,7 @@ public final class ManageColorAnnos extends AbstractIRAnalysisModule {
         IRNode cu;
 
         AnalysisContext ac = AnalysisContext.getContext(binder);
-        ColorFirstPass.getInstance().cfpStart(ac);
+        TRolesFirstPass.getInstance().trfpStart(binder);
 
 
         final Iterator<CodeInfo> it = listener.infos().iterator();
@@ -109,7 +109,7 @@ public final class ManageColorAnnos extends AbstractIRAnalysisModule {
           }
           cu = info.getNode();
 
-          ColorFirstPass.getInstance().doImportandRenameWalks(cu, binder);
+          TRolesFirstPass.getInstance().doImportandRenameWalks(cu, binder);
         }
       }
     });
@@ -123,7 +123,7 @@ public final class ManageColorAnnos extends AbstractIRAnalysisModule {
    */
   @Override
   public Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
-    final Iterable<IRNode> reprocessThese = ColorFirstPass.getInstance().cfpEnd();
+    final Iterable<IRNode> reprocessThese = TRolesFirstPass.getInstance().trfpEnd();
 
   
       return reprocessThese;
@@ -137,7 +137,7 @@ public final class ManageColorAnnos extends AbstractIRAnalysisModule {
    */
   @Override
   public void resetForAFullBuild(IProject project) {
-    ColorFirstPass.getInstance().resetForAFullBuild();
+    TRolesFirstPass.getInstance().resetForAFullBuild();
   }
 
   @Override
@@ -152,7 +152,7 @@ public final class ManageColorAnnos extends AbstractIRAnalysisModule {
    */
   @Override
   protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
-    ColorFirstPass.getInstance().doOneCU(cu, binder);
+    TRolesFirstPass.getInstance().doOneCU(cu, binder);
     return true;
   }
 
@@ -183,7 +183,7 @@ public final class ManageColorAnnos extends AbstractIRAnalysisModule {
 //   */
 //  @Override
 //  public void preBuild(IProject p) {
-//    ColorFirstPass.preBuild();
+//    TRolesFirstPass.preBuild();
 //    super.preBuild(p);
 //  }
 

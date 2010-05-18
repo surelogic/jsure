@@ -30,7 +30,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
-import com.surelogic.annotation.parse.SLColorAnnotationsLexer;
+import com.surelogic.annotation.parse.SLThreadRoleAnnotationsLexer;
 import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
@@ -498,7 +498,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 
 		ScopedPromisesLexer.init();
 		SLAnnotationsLexer.init();
-		SLColorAnnotationsLexer.init();
+		SLThreadRoleAnnotationsLexer.init();
 	
 		if (IJavaFileLocator.useIRPaging &&
 			IDE.getInstance().getProperties().containsKey(Majordomo.BUILD_KIND)) {

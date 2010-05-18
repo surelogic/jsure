@@ -3,16 +3,15 @@ package edu.cmu.cs.fluid.analysis.util;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IProject;
 
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.parse.ParseHelper;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
-import com.surelogic.annotation.parse.SLColorAnnotationsLexer;
+import com.surelogic.annotation.parse.SLThreadRoleAnnotationsLexer;
 import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
-//import com.surelogic.jsure.client.eclipse.refactor.IRNodeUtil;
 import com.surelogic.xml.XMLGenerator;
 
 import edu.cmu.cs.fluid.eclipse.Eclipse;
@@ -217,7 +216,7 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
     LockModel.purgeUnusedLocks();
 	ScopedPromisesLexer.clear();
 	SLAnnotationsLexer.clear();
-	SLColorAnnotationsLexer.clear();
+	SLThreadRoleAnnotationsLexer.clear();
 	ParseHelper.getInstance().clearCache();
     return rv;
   }
