@@ -719,7 +719,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 	}
 
 	private void createNewDrop(CodeInfo info) {
-		new SourceCUDrop(info);
+		new SourceCUDrop(info, null);
 		justLoaded.add(info.getFile());
 		compUnits++;
 	}
@@ -883,7 +883,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		if (info.getSource() != null) {
 			invalidateOldDrops((ICompilationUnit) info.getFile()
 					.getHostEnvResource());
-			new SourceCUDrop(info);
+			new SourceCUDrop(info, null);
 			// createNewDrop(info);
 		} else {
 			CUDrop outOfDate = BinaryCUDrop.queryCU(info.getFileName());
