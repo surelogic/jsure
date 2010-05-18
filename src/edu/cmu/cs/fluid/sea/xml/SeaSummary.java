@@ -9,11 +9,13 @@ import java.util.*;
 import java.util.logging.Level;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.jsure.xml.Entity;
 import com.surelogic.jsure.xml.IXMLResultListener;
 import com.surelogic.jsure.xml.JSureSummaryXMLReader;
 
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -33,6 +35,53 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	
 	private SeaSummary(File location) throws IOException {
 		super(location);
+	}
+	
+	public static File findSummary(String projectPath) {
+		String xmlOracle = null;
+		File xmlLocation = null;
+		if (IDE.useJavac) {
+			xmlOracle = RegressionUtility.getOracleName(projectPath, RegressionUtility.javacOracleFilter, "oracleJavac"+SeaSnapshot.SUFFIX);
+			xmlLocation = new File(xmlOracle);    			  
+			System.out.println("Looking for " + xmlOracle);
+		}
+		if (true) { 
+			String tempOracle = RegressionUtility.getOracleName(projectPath, RegressionUtility.xmlOracleFilter, "oracle"+SeaSnapshot.SUFFIX);
+			File tempLocation = new File(tempOracle);
+			System.out.println("Looking for " + tempOracle);
+
+			final boolean noOracleYet = xmlLocation == null || !xmlLocation.exists();
+			boolean replace;
+			if (noOracleYet) {
+				replace = true;
+			} else {
+				System.out.println("Checking for newer oracle");
+				replace = isNewer(tempOracle, xmlOracle);
+			}
+			if (replace) {
+				xmlOracle = tempOracle;
+				xmlLocation = tempLocation;
+			}
+			System.out.println("Using " + xmlOracle);
+		}    		 
+		assert (xmlLocation.exists());  
+		return xmlLocation;
+	}
+	
+	private static boolean isNewer(String oracle1, String oracle2) {
+		String date1 = getDate(oracle1);
+		String date2 = getDate(oracle2);
+		//System.out.println(date1+" ?= "+date2+": "+date1.compareTo(date2));
+		return date1.compareTo(date2) > 0;
+	}
+
+	private static String getDate(String oracle) {
+		for(int i=0; i<oracle.length(); i++) {
+			if (Character.isDigit(oracle.charAt(i))) {
+				return oracle.substring(i);
+			}
+		}
+		return oracle;
 	}
 	
 	public static void summarize(String project, final Sea sea, File location) 

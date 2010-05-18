@@ -4,6 +4,7 @@ package edu.cmu.cs.fluid.sea.xml;
 import java.io.*;
 import java.util.*;
 
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entities;
 import static com.surelogic.jsure.xml.JSureXMLReader.*;
 
@@ -12,7 +13,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {	
-	public static final String SUFFIX = ".sea.xml";
+	public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
 		
 	private final Map<Drop,String> idMap = new HashMap<Drop,String>();
 	
