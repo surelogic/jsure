@@ -285,8 +285,7 @@ public class JavacDriver {
 		    if (XUtil.testing) {
 		    	copy.run(new NullSLProgressMonitor());
 		    } else {
-		    	// TODO fix to lock the workspace
-		    	EclipseJob.getInstance().schedule(copy);
+		    	EclipseJob.getInstance().scheduleWorkspace(copy);
 		    }
 		} catch(JavaModelException e) {
 		    System.err.println("Unable to make config for JSure");
@@ -420,7 +419,7 @@ public class JavacDriver {
         	    if (XUtil.testing) {
         	    	afterJob.run(monitor);
         	    } else {
-        	    	EclipseJob.getInstance().schedule(afterJob);
+        	    	EclipseJob.getInstance().scheduleDb(afterJob, false, false, Util.class.getName());
         	    }
             }
             return SLStatus.OK_STATUS;
@@ -437,6 +436,7 @@ public class JavacDriver {
 
         public SLStatus run(SLProgressMonitor monitor) {
         	lastMonitor = monitor;
+        	System.out.println("Starting analysis for "+config.getProject());
         	try {
         		config.copySources(zipDir, targetDir);
             } catch (IOException e) {
