@@ -52,18 +52,6 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     private final Set<Effect> theEffects;
     
     /**
-     * The method that encloses the current node.  This is either a
-     * ConstructorDeclaration, MethodDeclaration, ClassInitDeclaration, or
-     * in the case of an anonymous class expression, an InitDeclation.  In 
-     * most cases nodes that are part of an instance initializer block or 
-     * an instance field declaration are considered to be enclosed by a 
-     * particular constructor.  This constructor is specified by the
-     * <code>constructorContext</code> argument to the public entry methods
-     * of this class.
-     */
-    private final IRNode enclosingMethod;
-    
-    /**
      * The receiver declaration node of the constructor/method/field
      * initializer/class initializer currently being analyzed. Every expression we
      * want to analyze should be inside one of these things. We need to keep track
@@ -103,36 +91,34 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
 
     
     
-    private Context(final BindingContextAnalysis.Query query,
-        final IRNode enclosingMethod) {
-      this.theEffects = new HashSet<Effect>();
-      this.enclosingMethod = enclosingMethod;
-      this.theReceiverNode = JavaPromise.getReceiverNodeOrNull(enclosingMethod);
+    private Context(final Set<Effect> effects, final IRNode rcvr,
+        final BindingContextAnalysis.Query query, final boolean lhs) {
+      this.theEffects = effects;
+      this.theReceiverNode = rcvr;
       this.bcaQuery = query;
-      this.isLHS = false;
-    }
-    
-    private Context(final Context oldContext, final IRNode ccall) {
-      this.theEffects = oldContext.theEffects; // Purposely alias
-      this.enclosingMethod = oldContext.enclosingMethod;
-      this.theReceiverNode = oldContext.theReceiverNode;
-      this.bcaQuery = oldContext.bcaQuery.getSubAnalysisQuery(ccall);
-      this.isLHS = oldContext.isLHS;
+      this.isLHS = lhs;
     }
 
     public static Context forNormalMethod(
         final BindingContextAnalysis bca, final IRNode enclosingMethod) {
-      return new Context(bca.getExpressionObjectsQuery(enclosingMethod), enclosingMethod);
+      return new Context(new HashSet<Effect>(),
+          JavaPromise.getReceiverNodeOrNull(enclosingMethod),
+          bca.getExpressionObjectsQuery(enclosingMethod),
+          false);
     }
     
-    public static Context forACE(final Context oldContext, final IRNode anonClassExpr) {
-      final IRNode enclosingMethod = JavaPromise.getInitMethodOrNull(anonClassExpr);
-      return new Context(oldContext.bcaQuery.getSubAnalysisQuery(anonClassExpr), enclosingMethod);
+    public static Context forACE(final Context oldContext, final IRNode anonClassExpr, final IRNode rcvr) {
+      return new Context(new HashSet<Effect>(), rcvr,
+          oldContext.bcaQuery.getSubAnalysisQuery(anonClassExpr), false);
     }
     
     public static Context forConstructorCall(final Context oldContext, final IRNode ccall) {
-      return new Context(oldContext, ccall);
+      // Purposely alias the effects set
+      return new Context(oldContext.theEffects, oldContext.theReceiverNode,
+          oldContext.bcaQuery.getSubAnalysisQuery(ccall), oldContext.isLHS);
     }
+    
+    
     
     public void setLHS() {
       isLHS = true;
@@ -165,7 +151,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   /**
    * Binding context analysis, used by target elaboration.
    */
-  private final BindingContextAnalysis bca;
+//  private final BindingContextAnalysis bca;
   
   private final ThisExpressionBinder thisExprBinder;
 
@@ -187,24 +173,26 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    * 
    * @param b
    *          The Binder to use to look up names.
-   * @param bca The binding context analysis to use.
+   * @param bca
+   *          The binding context analysis to use.
    * @param flowUnit
    *          The method or constructor declaration that encloses the nodes that
    *          we will ultimately visit. This <em>must</em> be a
-   *          MethodDeclaration or ConstructorDeclaration node. It does not make
-   *          sense for it to be an InitDeclaration or ClassInitDeclaration.
-   *          (The restriction on ClassInitDeclaration may be removed in the
-   *          future.)  If the nodes we are going to visit are inside the initializer
-   *          of an anonymous class expression, this should be the nearest
-   *          method/constructor declaration that encloses the anonymous class
-   *          expression.
-   *          
+   *          MethodDeclaration, ConstructorDeclaration, or InitDeclaration
+   *          node. It does not make sense right now for it to be a
+   *          ClassInitDeclaration. If the nodes we are going to visit are
+   *          inside an instance initializer block or instance field declaration
+   *          of a non-anonymous class, then this should be the
+   *          ConstructorDeclaration node of the constructor on whose behalf
+   *          they are being analyzed. If the nodes we are going to visit are
+   *          inside the instance initializer or field declaration of an
+   *          anonymous class expression, this should be the InitDeclaration of
+   *          the anonymous class.
    */
   public EffectsVisitor(
       final IBinder b, final BindingContextAnalysis bca, final IRNode flowUnit) {
     super(false, JJNode.tree.getParent(JJNode.tree.getParent(flowUnit)), flowUnit);
     this.binder = b;
-    this.bca = bca;
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     this.ARRAY_ELEMENT = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);    
@@ -216,7 +204,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   }
   
   public void clearCaches() {
-	  bca.clear();
+    // Do nothing
   }
   
   public IBinder getBinder() {
@@ -241,7 +229,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     
     @Override
     protected IRNode bindQualifiedReceiver(IRNode outerType, IRNode node) {
-      return JavaPromise.getQualifiedReceiverNodeByName(context.enclosingMethod, outerType);
+      return JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
     }    
   }
   
@@ -257,7 +245,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    */
   private Set<Effect> getMethodCallEffects(final IRNode call) {
     return Effects.getMethodCallEffects(context.bcaQuery,
-        targetFactory, binder, call, context.enclosingMethod, false);
+        targetFactory, binder, call, getEnclosingDecl(), false);
   }
 
   //----------------------------------------------------------------------
@@ -283,21 +271,26 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
      * that can be annotated with the effects of the initialization.  Instead
      * this is the one case where we have to infer effects.  
      */
-    final Context oldContext = context;
-    final Context newContext = Context.forACE(oldContext, expr);
     return new InstanceInitAction() {
+      private final Context oldContext = context;
+      private Context newContext = null;
+      
       public void tryBefore() {
-        context = newContext;
+        this.newContext = Context.forACE(oldContext, expr,
+            JavaPromise.getReceiverNodeOrNull(getEnclosingDecl()));
+        EffectsVisitor.this.context = this.newContext;
       }
       
       public void finallyAfter() {
-        context = oldContext;
+        EffectsVisitor.this.context = oldContext;
       }
       
       public void afterVisit() {
+        // (1) getEnclosingDecl() refers to the original enclosing method again
+        // (2) context and oldContext are identical at this point
         final MethodCallUtils.EnclosingRefs enclosing = 
           MethodCallUtils.getEnclosingInstanceReferences(
-              binder, thisExprBinder, expr, oldContext.theReceiverNode, oldContext.enclosingMethod);
+              binder, thisExprBinder, expr, context.theReceiverNode, getEnclosingDecl());
         for (final Effect initEffect : newContext.theEffects) {
           if (!(initEffect.isMaskable(binder) || 
               initEffect.affectsReceiver(newContext.theReceiverNode))) {
@@ -474,7 +467,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
       binder.getBinding(QualifiedThisExpression.getType(expr));
     context.addEffect(
         Effect.newRead(expr, targetFactory.createLocalTarget(
-            JavaPromise.getQualifiedReceiverNodeByName(context.enclosingMethod, outerType))));
+            JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType))));
     return null;
   }
 
