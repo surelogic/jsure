@@ -50,7 +50,7 @@ public class ProjectDrop extends Drop {
 		  if (p == null) {
 			  p = pd;
 		  } else {
-			  LOG.warning("Multiple projects analyzed for JSure: "
+			  LOG.info("Multiple projects analyzed for JSure: "
 					  + pd.getName());
 		  }
 	  }
