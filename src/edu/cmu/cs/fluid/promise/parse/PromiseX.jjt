@@ -618,6 +618,13 @@ void END() : {}
  * Entry points based on tag
  */
 
+JavaNode Start_TRoleImport() : {}
+{
+  // BAD
+  NewRegionDeclaration() END()
+  { return (JavaNode)jjtree.rootNode(); }
+}
+
 /******************************************************************
  ** Region-related: region, mapRegion, mapFields, mapInto, aggregate
  ******************************************************************/
