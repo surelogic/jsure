@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.java.adapter;
 
-import java.util.Iterator;
+import java.util.*;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
@@ -34,10 +34,15 @@ public class AdapterUtil {
 		if (region != null) {
 			region.destroy();
 		} else {
-			boolean destroyed = false;
+
+			final List<IRNode> nodes = new ArrayList<IRNode>();
 			final Iterator<IRNode> enm = JavaPromise.bottomUp(cu);
 			while (enm.hasNext()) {
 				IRNode n = enm.next();
+				nodes.add(n);
+			}
+			boolean destroyed = false;
+			for(IRNode n : nodes) {
 				destroyNode(n);
 				if (!destroyed) {
 					destroyed = true;
