@@ -3,9 +3,6 @@ package com.surelogic.annotation.rules;
 
 import static edu.cmu.cs.fluid.sea.drops.modules.VisDrop.buildVisDrop;
 
-import java.util.Collection;
-import java.util.HashSet;
-
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
@@ -24,15 +21,13 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.ExportDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.ModulePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.NoVisPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.modules.VisDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleImportDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ModuleRules extends AnnotationRules {

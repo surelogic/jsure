@@ -33,9 +33,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.tree.*;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.FilterIterator;
-import edu.cmu.cs.fluid.util.QuickProperties;
+import edu.cmu.cs.fluid.util.*;
 
 /**
  * A place for code common across rules packs
