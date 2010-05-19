@@ -16,6 +16,7 @@ import com.surelogic.common.jobs.*;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
 import com.surelogic.jsure.client.eclipse.Activator;
+import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
@@ -436,6 +437,11 @@ public class JavacDriver {
 
         public SLStatus run(SLProgressMonitor monitor) {
         	lastMonitor = monitor;
+        	
+        	if (XUtil.testingWorkspace) {
+        		System.out.println("Clearing state before running analysis");
+        		ClearProjectListener.clearJSureState();
+        	}        	
         	System.out.println("Starting analysis for "+config.getProject());
         	try {
         		config.copySources(zipDir, targetDir);
