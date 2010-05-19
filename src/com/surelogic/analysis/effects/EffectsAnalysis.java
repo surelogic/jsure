@@ -20,9 +20,16 @@ import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {	
+  private BindingContextAnalysis bca;
+  
+  
+  
 	public EffectsAnalysis() {
 		super("EffectAssurance2");
 	}
+	
+	
+	
 	
 	public void init(IIRAnalysisEnvironment env) {
 		// Nothing to do
@@ -30,12 +37,14 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 
 	@Override
 	protected Effects constructIRAnalysis(final IBinder binder) {
-        return new Effects(binder, new BindingContextAnalysis(binder, true));
+	  bca = new BindingContextAnalysis(binder, true);
+    return new Effects(binder);
 	}
 
 	@Override
 	protected void clearCaches() {
 		getAnalysis().clearCaches();
+    bca.clear();
 	}
 	
 	@Override
@@ -70,7 +79,8 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 						&& !JavaNode.getModifier(member, JavaNode.NATIVE)) {
 					// only assure if there is declared intent
 					if (declFx != null) {
-					  final Set<Effect> implFx = getAnalysis().getEffectsQuery(member).getResultFor(member);
+					  final Set<Effect> implFx = getAnalysis().getImplementationEffects(member, bca);
+//					  final Set<Effect> implFx = getAnalysis().getEffectsQuery(member).getResultFor(member);
 //					  /* Can use null as the constructor context because member IS a 
 //					   * constructor or method declaration.
 //					   */

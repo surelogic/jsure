@@ -662,7 +662,7 @@ class UniqueTransfer extends JavaEvaluationTransfer {
         considerEffects(
           receiverNode,
           actuals,
-          effects.getMethodCallEffects(node, caller, true),
+          effects.getMethodCallEffects(null, node, caller, true),
           s);
     }
     // we have to possibly compromise arguments:
@@ -912,8 +912,7 @@ class TestUniqueTransfer {
   static IRNode root = new PlainIRNode();
   static FakeBinder fb = new FakeBinder(root);
   static UniqueTransfer ut = 
-    new UniqueTransfer(null, null, fb,
-        new Effects(fb, new BindingContextAnalysis(fb, true)));
+    new UniqueTransfer(null, null, fb, new Effects(fb));
 
   public static void main(String[] args) {
 	  initRoot();
@@ -1214,8 +1213,7 @@ class TestUniqueAnalysis {
   static IRNode root = new PlainIRNode();
   
   static FakeBinder fb = new FakeBinder(root);
-  static UniqueAnalysis ua = 
-    new UniqueAnalysis(fb, new Effects(fb, new BindingContextAnalysis(fb, true)));
+  static UniqueAnalysis ua = new UniqueAnalysis(fb, new Effects(fb));
 
   public void reportError(String msg) {
     System.out.println(msg);

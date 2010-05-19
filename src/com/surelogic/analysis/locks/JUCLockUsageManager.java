@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.locks.locks.HeldLock;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -24,18 +25,21 @@ final class JUCLockUsageManager {
   private final Map<IRNode, LockExpressions> lockExpressions = new HashMap<IRNode, LockExpressions>();
   private final LockUtils lockUtils;
   private final IBinder binder;
+  private final BindingContextAnalysis bca;
   
   
   
-  public JUCLockUsageManager(final LockUtils lu, final IBinder b) {
-    lockUtils = lu;
-    binder = b;
+  public JUCLockUsageManager(
+      final LockUtils lu, final IBinder b, final BindingContextAnalysis bca) {
+    this.lockUtils = lu;
+    this.binder = b;
+    this.bca = bca;
   }
   
   public LockExpressions getLockExpressionsFor(final IRNode mdecl) {
     LockExpressions lockExprs = lockExpressions.get(mdecl);
     if (lockExprs == null) {
-      lockExprs = new LockExpressions(mdecl, lockUtils, binder);
+      lockExprs = new LockExpressions(mdecl, lockUtils, binder, bca);
       lockExpressions.put(mdecl, lockExprs);
     }
     return lockExprs;

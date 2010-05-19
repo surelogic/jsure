@@ -10,7 +10,6 @@ import com.surelogic.util.IThunk;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
-import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;

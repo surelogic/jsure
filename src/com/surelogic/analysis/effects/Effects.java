@@ -55,13 +55,41 @@ import edu.cmu.cs.fluid.tree.Operator;
 public final class Effects implements IBinderClient {
   public final class Query implements AnalysisQuery<Set<Effect>> {
     private final IRNode flowUnit;
+    private final BindingContextAnalysis.Query bcaQuery;
     
-    public Query(final IRNode fu) {
-      flowUnit = fu;
+    // NOTE: JavaDoc taken from the EffectsVisitor constructor
+    /**
+     * Construct a new effects query to be used on a particular flow unit.
+     * 
+     * @param flowUnit
+     *          The method or constructor declaration that encloses the nodes that
+     *          we will ultimately visit. This <em>must</em> be a
+     *          MethodDeclaration, ConstructorDeclaration, or InitDeclaration
+     *          node. It does not make sense right now for it to be a
+     *          ClassInitDeclaration. If the nodes we are going to visit are
+     *          inside an instance initializer block or instance field declaration
+     *          of a non-anonymous class, then this should be the
+     *          ConstructorDeclaration node of the constructor on whose behalf
+     *          they are being analyzed. If the nodes we are going to visit are
+     *          inside the instance initializer or field declaration of an
+     *          anonymous class expression, this should be the InitDeclaration of
+     *          the anonymous class.
+     * @param query
+     *          The BCA query to use. This is needs to have the proper
+     *          relationship to <code>flowUnit</code>. In particular, when the
+     *          node being analyzed is inside an instance initializer or field
+     *          declaration, or is inside an instance initializer or field
+     *          declaration of an anonymous class expression, then this should be
+     *          the appropriate sub query object. In cases of highly nested
+     *          anonymous classes, this should be the appropriate sub-sub-query.
+     */
+    public Query(final IRNode flowUnit, final BindingContextAnalysis.Query query) {
+      this.flowUnit = flowUnit;
+      this.bcaQuery = query;
     }
     
     public Set<Effect> getResultFor(final IRNode expr) {
-      final EffectsVisitor visitor = new EffectsVisitor(binder, bca, flowUnit);
+      final EffectsVisitor visitor = new EffectsVisitor(binder, flowUnit, bcaQuery);
       visitor.doAccept(expr);
       return Collections.unmodifiableSet(visitor.getTheEffects());
     }
@@ -70,13 +98,11 @@ public final class Effects implements IBinderClient {
   
   
   private final IBinder binder;
-  private final BindingContextAnalysis bca;
   
   
   
-  public Effects(final IBinder binder, final BindingContextAnalysis bca) {
+  public Effects(final IBinder binder) {
     this.binder = binder;
-    this.bca = bca;
   }
 
   
@@ -98,12 +124,56 @@ public final class Effects implements IBinderClient {
   // -- Get the effects of an expression
   //----------------------------------------------------------------------
 
-  public Query getEffectsQuery(final IRNode flowUnit) {
-    return new Query(flowUnit);
+  // NOTE: JavaDoc taken from the EffectsVisitor constructor
+  /**
+   * Construct a new effects query to be used on a particular flow unit.
+   * 
+   * @param flowUnit
+   *          The method or constructor declaration that encloses the nodes that
+   *          we will ultimately visit. This <em>must</em> be a
+   *          MethodDeclaration, ConstructorDeclaration, or InitDeclaration
+   *          node. It does not make sense right now for it to be a
+   *          ClassInitDeclaration. If the nodes we are going to visit are
+   *          inside an instance initializer block or instance field declaration
+   *          of a non-anonymous class, then this should be the
+   *          ConstructorDeclaration node of the constructor on whose behalf
+   *          they are being analyzed. If the nodes we are going to visit are
+   *          inside the instance initializer or field declaration of an
+   *          anonymous class expression, this should be the InitDeclaration of
+   *          the anonymous class.
+   * @param query
+   *          The BCA query to use. This is needs to have the proper
+   *          relationship to <code>flowUnit</code>. In particular, when the
+   *          node being analyzed is inside an instance initializer or field
+   *          declaration, or is inside an instance initializer or field
+   *          declaration of an anonymous class expression, then this should be
+   *          the appropriate sub query object. In cases of highly nested
+   *          anonymous classes, this should be the appropriate sub-sub-query.
+   */
+  public Query getEffectsQuery(
+      final IRNode flowUnit, final BindingContextAnalysis.Query query) {
+    return new Query(flowUnit, query);
+  }
+
+  /**
+   * Get the effects of a method/constructor implementation.  This 
+   * method is equivalent too, but hopefully slightly faster than,
+   * <code>this.getEffectsQuery(flowUnit, bca.getExpressionObjectsQuery(flowUnit)).getResultsFor(flowUnit)</code>
+   * 
+   * @param decl A MethodDeclaration or ConstructorDeclaration node.
+   * @param bac The BCA analysis to use.
+   * @return The effects of the method as implemented, not declared.
+   */
+  public Set<Effect> getImplementationEffects(
+      final IRNode flowUnit, final BindingContextAnalysis bca) {
+    final EffectsVisitor visitor = new EffectsVisitor(binder, flowUnit,
+        bca.getExpressionObjectsQuery(flowUnit));
+    visitor.doAccept(flowUnit);
+    return Collections.unmodifiableSet(visitor.getTheEffects());
   }
 
   
-
+  
   //----------------------------------------------------------------------
   // -- Get the effects of a method declaration
   //----------------------------------------------------------------------
@@ -246,8 +316,8 @@ public final class Effects implements IBinderClient {
    *          not elaborated. Normally this should be <code>false</code>.
    * @return An unmodifiable set of effects.
    */
-  public Set<Effect> getMethodCallEffects(final IRNode call,
-      final IRNode caller, final boolean returnRaw) {
+  public Set<Effect> getMethodCallEffects(final BindingContextAnalysis.Query bcaQuery,
+      final IRNode call, final IRNode caller, final boolean returnRaw) {
 	  //createdTEBs++;
 	  /*
 	   * Changed to lazily compute things, since bindReceiver doesn't get called very often
@@ -271,8 +341,8 @@ public final class Effects implements IBinderClient {
         return JavaPromise.getQualifiedReceiverNodeByName(caller, outerType);
       }
     };
-    return getMethodCallEffects(bca.getExpressionObjectsQuery(caller),
-        new ThisBindingTargetFactory(teb), binder, call, caller, returnRaw);
+    return getMethodCallEffects(bcaQuery, new ThisBindingTargetFactory(teb),
+        binder, call, caller, returnRaw);
   }
   /*
   static int createdTEBs = 0;
@@ -336,7 +406,7 @@ public final class Effects implements IBinderClient {
    * we do not because not doing so allows the query to be cached by the callers
    * and thus not created over and over again for each use.
    */
-  // BCA is unused if returnRaw == true
+  // bcaQuery is unused if returnRaw == true
   static Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
       final IBinder binder, final IRNode call, final IRNode callingMethodDecl, 
@@ -569,7 +639,8 @@ public final class Effects implements IBinderClient {
   // ----------------------------------------------------------------------
   
   public void clearCaches() {
-    bca.clear();
+    // Do nothing
+    // bca.clear();
   }
 
   public IBinder getBinder() {

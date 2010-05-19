@@ -316,6 +316,7 @@ public final class LockUtils {
    *          not part of the lock expression of a synchronized block.
    */
   public FinalExpressionChecker getFinalExpressionChecker(
+      final BindingContextAnalysis.Query bcaQuery,
       final IRNode flowUnit, final IRNode sync) {
     /*
      * TODO Need to modify this method to produce
@@ -324,7 +325,7 @@ public final class LockUtils {
      * showing that the variable is not declared to be final, etc.
      */
     return new FinalExpressionChecker() {
-      final Effects.Query fxQuery = effects.getEffectsQuery(flowUnit);
+      final Effects.Query fxQuery = effects.getEffectsQuery(flowUnit, bcaQuery);
       final ConflictChecker conflicter = new ConflictChecker(binder, aliasAnalysis, flowUnit);
       
       public boolean isFinal(final IRNode expr) {
@@ -412,109 +413,6 @@ public final class LockUtils {
     };
   }
   
-//  /**
-//   * See if a given expression is a "final expression," that is an expression
-//   * whose value is fixed no matter where in the synchronized block it is 
-//   * evaluated.
-//   * 
-//   * @param expr
-//   *          The expression to test
-//   * @param sync
-//   *          The synchronized block whose lock expression contains <code>expr</code>.
-//   *          May be <code>null</code> if the expression is not part of the
-//   *          lock expression of a synchronized block.
-//   */
-//  /*
-//   * TODO Need to modify this method to produce
-//   * a nested chain of evidence of why it believes an expression to NOT be a
-//   * final expression. Chain should contain links to the field/var declaration
-//   * showing that the variable is not declared to be final, etc.
-//   */
-//  public boolean isFinalExpression(
-//      final Effects.EffectQuery fxQuery, final ConflictChecker conflicter, 
-//      final IRNode expr, final IRNode sync) {
-//    final Operator op = JJNode.tree.getOperator(expr);
-//    if (CastExpression.prototype.includes(op)) {
-//      // Final if the nested expression is final
-//      return isFinalExpression(fxQuery, conflicter, CastExpression.getExpr(expr), sync);
-//    } else if (ParenExpression.prototype.includes(op)) {
-//      // Final if the nested expression is final
-//      return isFinalExpression(fxQuery, conflicter, ParenExpression.getOp(expr), sync);
-//    } else if (MethodCall.prototype.includes(op)) {
-//      MethodCall mcall = (MethodCall) op;
-//      /* Object expression must be final or method must be static, and the method
-//       * must have a @returnsLock annotation (which we are using as a very
-//       * specific idempotency annotation) or a call to readLock() or writeLock().
-//       */
-//      final IRNode mdecl = binder.getBinding(expr);
-//      if (TypeUtil.isStatic(mdecl)
-//          || isFinalExpression(fxQuery, conflicter, mcall.get_Object(expr), sync)) {
-//        return (getReturnedLock(mdecl) != null) || isReadWriteLockClassUsage(expr);
-//      }
-//    } else if (ClassExpression.prototype.includes(op)) {
-//      /* Class expressions are special field refs */
-//      return true;
-//    } else if (ThisExpression.prototype.includes(op)) {
-//      /*Use of the receiver is a final expression */
-//      return true;
-//    } else if (QualifiedThisExpression.prototype.includes(op)) {
-//      /* Use of the receiver of the outer object is a final expression */
-//      return true;
-//    } else if (VariableUseExpression.prototype.includes(op)) {
-//      /* Local variable/parameter must be declared to be final, or be unmodified
-//       * within the synchronized block
-//       */
-//      final IRNode id = binder.getBinding(expr);
-//      if (TypeUtil.isFinal(id)) {
-//        return true;
-//      } else {
-//        return !isLockExpressionChangedBySyncBlock(fxQuery, conflicter, expr, sync);
-//      }
-//    } else if (FieldRef.prototype.includes(op)) {
-//      /* Field must be final (or protected by a lock and not modified by the
-//       * body of the synchronized block) AND either the field must be static or
-//       * the object expression must be final
-//       */
-//      final IRNode id = binder.getBinding(expr);
-//
-//      /* Check that the object expression is final (or static) */
-//      if (TypeUtil.isStatic(id)
-//          || isFinalExpression(fxQuery, conflicter, FieldRef.getObject(expr), sync)) {
-//        // Check if the field is final
-//        if (TypeUtil.isFinal(id)) {
-//          return true;
-//        } else {
-//          /* Check if the field is protected by a lock and is not modified by
-//           * the body of the synchronized block.
-//           */
-//          return getLockForFieldRef(expr) != null
-//              && !isLockExpressionChangedBySyncBlock(fxQuery, conflicter, expr, sync);
-//        }
-//      }
-//    } else if (ArrayRefExpression.prototype.includes(op)) {
-//      /* Array ref expression e[e']. Expressions e and e' must be final
-//       * expressions. The effects of the synchronized block must not conflict
-//       * with reading from the array.
-//       */
-//      final IRNode array = ArrayRefExpression.getArray(expr);
-//      final IRNode idx = ArrayRefExpression.getIndex(expr);
-//      if (isFinalExpression(fxQuery, conflicter, array, sync) && isFinalExpression(fxQuery, conflicter, idx, sync)) {
-//        return !isArrayChangedBySyncBlock(fxQuery, conflicter, array, sync, expr);
-//      }
-//    } else if (IntLiteral.prototype.includes(op)) {
-//      /* Integer constants are final.  We do not consider float, boolean, or
-//       * String literals because they cannot be used with array expressions.
-//       * What we are targeting here is the case "array[5]" or "array['g']"
-//       * (handled by CharLiteral below).
-//       */
-//      return true;
-//    } else if (CharLiteral.prototype.includes(op)) {
-//      // See IntLiteral (above)
-//      return true;
-//    }
-//    return false;
-//  }
-
   /**
    * Determines whether the effects of the given synchronized block
    * conflict with the given lock expression.  Really what we want to know is
@@ -840,7 +738,7 @@ public final class LockUtils {
      * get the lock required to access the region into which the aggregation
      * occurred.
      */
-    final Set<Effect> callFx = effects.getMethodCallEffects(mcall, enclosingDecl, false); 
+    final Set<Effect> callFx = effects.getMethodCallEffects(bcaQuery, mcall, enclosingDecl, false); 
     for (final Effect effect : callFx) {
       if (effect.isEmpty()) {
         continue;

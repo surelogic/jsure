@@ -30,6 +30,7 @@ import edu.cmu.cs.fluid.java.operator.PostIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -100,11 +101,10 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     }
 
     public static Context forNormalMethod(
-        final BindingContextAnalysis bca, final IRNode enclosingMethod) {
+        final BindingContextAnalysis.Query query, final IRNode enclosingMethod) {
       return new Context(new HashSet<Effect>(),
           JavaPromise.getReceiverNodeOrNull(enclosingMethod),
-          bca.getExpressionObjectsQuery(enclosingMethod),
-          false);
+          query, false);
     }
     
     public static Context forACE(final Context oldContext, final IRNode anonClassExpr, final IRNode rcvr) {
@@ -173,8 +173,6 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    * 
    * @param b
    *          The Binder to use to look up names.
-   * @param bca
-   *          The binding context analysis to use.
    * @param flowUnit
    *          The method or constructor declaration that encloses the nodes that
    *          we will ultimately visit. This <em>must</em> be a
@@ -188,15 +186,33 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    *          inside the instance initializer or field declaration of an
    *          anonymous class expression, this should be the InitDeclaration of
    *          the anonymous class.
+   * @param query
+   *          The BCA query to use. This is needs to have the proper
+   *          relationship to <code>flowUnit</code>. In particular, when the
+   *          node being analyzed is inside an instance initializer or field
+   *          declaration, or is inside an instance initializer or field
+   *          declaration of an anonymous class expression, then this should be
+   *          the appropriate sub query object. In cases of highly nested
+   *          anonymous classes, this should be the appropriate sub-sub-query.
    */
-  public EffectsVisitor(
-      final IBinder b, final BindingContextAnalysis bca, final IRNode flowUnit) {
-    super(false, JJNode.tree.getParent(JJNode.tree.getParent(flowUnit)), flowUnit);
+  public EffectsVisitor(final IBinder b, final IRNode flowUnit,
+      final BindingContextAnalysis.Query query) {
+    super(false, getInitialEnclosingType(flowUnit), flowUnit);
     this.binder = b;
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     this.ARRAY_ELEMENT = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);    
-    this.context = Context.forNormalMethod(bca, flowUnit);
+    this.context = Context.forNormalMethod(query, flowUnit);
+  }
+  
+  private static IRNode getInitialEnclosingType(final IRNode flowUnit) {
+    if (InitDeclaration.prototype.includes(flowUnit)) {
+      // Init Declaration: The anonymous class
+      return JavaPromise.getPromisedFor(flowUnit);
+    } else {
+      // Method or constructor declaration: get the containing class
+      return JJNode.tree.getParent(JJNode.tree.getParent(flowUnit));
+    }
   }
   
   public Set<Effect> getTheEffects() {

@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/LockExpressions.java,v 1.2 2009/02/17 14:01:32 aarong Exp $*/
 package com.surelogic.analysis.locks;
 
 import java.util.Collections;
@@ -9,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.analysis.AbstractThisExpressionBinder;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
@@ -21,10 +21,14 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -56,14 +60,17 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 final class LockExpressions {
   private final static class TEB extends AbstractThisExpressionBinder {
-    private IRNode currentDecl;
+    /* non-private so that LockExpressionVisitor can access this field
+     * instead of maintaining a separate copy of it. 
+     */
+    IRNode enclosingFlowUnit;
     private final LinkedList<IRNode> declStack = new LinkedList<IRNode>();
     private IRNode currentRcvr;
     private final LinkedList<IRNode> rcvrStack = new LinkedList<IRNode>();
     
     public TEB(final IBinder b, final IRNode mdecl) {
       super(b);
-      currentDecl = mdecl;
+      enclosingFlowUnit = mdecl;
       currentRcvr = JavaPromise.getReceiverNodeOrNull(mdecl);
     }
 
@@ -75,21 +82,20 @@ final class LockExpressions {
     @Override
     protected IRNode bindQualifiedReceiver(
         final IRNode outerType, final IRNode node) {
-      return JavaPromise.getQualifiedReceiverNodeByName(currentDecl, outerType);
+      return JavaPromise.getQualifiedReceiverNodeByName(enclosingFlowUnit, outerType);
     }
     
     public void newDeclaration(final IRNode decl) {
-      declStack.addFirst(currentDecl);
+      declStack.addFirst(enclosingFlowUnit);
       rcvrStack.addFirst(currentRcvr);
-      currentDecl = decl;
+      enclosingFlowUnit = decl;
       currentRcvr = JavaPromise.getReceiverNodeOrNull(decl);
     }
     
     public void pop() {
-      currentDecl = declStack.removeFirst();
+      enclosingFlowUnit = declStack.removeFirst();
       currentRcvr = rcvrStack.removeFirst();
-    }
-    
+    }    
   }
 
   
@@ -187,9 +193,16 @@ final class LockExpressions {
   
   
   
-  public LockExpressions(final IRNode mdecl, final LockUtils lu, final IBinder b) {
+  /**
+   * <code>mdecl</code> is always a top-level method: a ConstructorDeclaration,
+   * MethodDeclaration, or ClassInitDeclaration.  It is never an
+   * AnonClassExpression or InitDeclaration.
+   */
+  public LockExpressions(final IRNode mdecl, final LockUtils lu, final IBinder b,
+      final BindingContextAnalysis bca) {
     enclosingMethodDecl = mdecl;
-    final LockExpressionVisitor visitor = new LockExpressionVisitor(mdecl, lu, b);
+    final LockExpressionVisitor visitor =
+      new LockExpressionVisitor(mdecl, lu, b, bca.getExpressionObjectsQuery(mdecl));
     visitor.doAccept(mdecl);
     singleThreadedData = visitor.getSingleThreadedData();
   }
@@ -275,6 +288,34 @@ final class LockExpressions {
     return Collections.unmodifiableSet(jucClassInit);
   }
   
+  
+  
+  /* Taken from LocalVariableDeclarations.LocalDeclarationsVisitor.  Used
+   * by LockExpressionVisitor below.
+   */
+  private enum WhichMembers {
+    STATIC {
+      @Override
+      protected boolean acceptsModifier(final boolean isStatic) {
+        return isStatic;
+      }
+    },
+    INSTANCE {
+      @Override
+      protected boolean acceptsModifier(final boolean isStatic) {
+        return !isStatic;
+      }
+    };
+    
+    protected abstract boolean acceptsModifier(boolean isStatic);
+    
+    public final boolean acceptsMember(final IRNode bodyDecl) {
+      return acceptsModifier(JavaNode.getModifier(bodyDecl, JavaNode.STATIC));
+    }
+  }
+
+  
+  
   /**
    * A tree visitor that we run over a method/constructor body to find all the
    * occurrences of syntactically unique final lock expressions. 
@@ -287,21 +328,62 @@ final class LockExpressions {
     private final LockUtils lockUtils;
     private final HeldLockFactory heldLockFactory;
     private final TEB teb;
+    private BindingContextAnalysis.Query bcaQuery = null;
     // Set as a side-effect of visitConstructorDeclaration
-    private SingleThreadedData singleThreadedData = null;
+    private SingleThreadedData singleThreadedData = null;    
     
-    private IRNode enclosingFlowUnit = null;
     
-    public LockExpressionVisitor(final IRNode mdecl, final LockUtils lu, final IBinder b) {
+    
+    public LockExpressionVisitor(final IRNode mdecl, final LockUtils lu,
+        final IBinder b, final BindingContextAnalysis.Query query) {
       super();
       lockUtils = lu;
       teb = new TEB(b, mdecl);
       heldLockFactory = new HeldLockFactory(teb);
+      
+      /* mdecl becomes the initial enclosingFlowUnit because the expectation is
+       * that this visitor is then called with doVisit(mdecl).
+       */
+      bcaQuery = query;
     }
     
     public SingleThreadedData getSingleThreadedData() {
       return singleThreadedData;
     }
+    
+    
+    
+    // =========================================================================
+    // == Helper method
+    // == Taken from LocalVariableDeclarations.LocalVariableVisitor 
+    // XXX Need to make a common superclass at some point
+    // =========================================================================
+    
+    /**
+     * Visit the immediate children of a classBody and handle the field
+     * declarations and ClassInitializer blocks.
+     * 
+     * @param classBody
+     *          A ClassBody IRNode.
+     * @param isStatic
+     *          <code>true</code> if we should process <code>static</code>
+     *          fields and <code>static</code> initializer blocks only;
+     *          <code>false</code> if we should process instance field
+     *          declarations and instance initializer blocks only.
+     */
+    private void processClassBody(final IRNode classBody, final WhichMembers which) {
+      for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
+        final Operator op = JJNode.tree.getOperator(bodyDecl);
+        if (FieldDeclaration.prototype.includes(op) ||
+            ClassInitializer.prototype.includes(op)) {
+          if (which.acceptsMember(bodyDecl)) {
+            this.doAcceptForChildren(bodyDecl);
+          }
+        }       
+      }
+    }
+
+    
     
     @Override
     public Void visitClassDeclaration(IRNode node) {
@@ -333,15 +415,22 @@ final class LockExpressions {
       doAccept(AnonClassExpression.getArgs(node));
       // Visit the field initializers and instance initializers
       
-      teb.newDeclaration(JavaPromise.getInitMethodOrNull(node));
+      
+      final IRNode initMethod = JavaPromise.getInitMethodOrNull(node);
+      final BindingContextAnalysis.Query oldQuery = bcaQuery;
+      teb.newDeclaration(initMethod);
+      bcaQuery = oldQuery.getSubAnalysisQuery(node);
       try {
-        final InitializationVisitor iv = new InitializationVisitor(false);
-        /* Must use accept for children because InitializationVisitor doesn't do anything
-         * for ClassDeclaration nodes.  It's better this way anyhow because only care
-         * about the children of the class declaration to begin with.
-         */ 
-        iv.doAcceptForChildren(node);
+        /* Need to visit the instance initializer blocks and instance field 
+         * declarations.  We rely on the fact that anonymous classes cannot 
+         * have static field members or static initializer blocks.  We ignore
+         * method and constructor declarations.  I know this seems odd, but
+         * see Bug 1662.  Technically the initializer blocks of the anonymous
+         * class expression are executed as part of the enclosing method/constructor. 
+         */
+        processClassBody(AnonClassExpression.getBody(node), WhichMembers.INSTANCE);
       } finally {
+        bcaQuery = oldQuery;
         teb.pop();
       }
       return null;
@@ -366,17 +455,11 @@ final class LockExpressions {
         lockUtils.getSingleThreadedLocks(HowToProcessLocks.INTRINSIC, cdecl, heldLockFactory, clazz, rcvr, intrinsicAssumedLocks);
       }
       
-      // Analyze the initialization of the instance
-      enclosingFlowUnit = cdecl;
-      try {
-        // Analyze the body of the constructor
-        doAcceptForChildren(cdecl);
-      } finally {
-        enclosingFlowUnit = null;
-      }
+      // Analyze the body of the constructor
+      doAcceptForChildren(cdecl);
       return null;
     }
-    
+
     @Override
     public Void visitConstructorCall(final IRNode constructorCall) {
       // First process the constructor call and it's arguments
@@ -386,8 +469,13 @@ final class LockExpressions {
       final Operator conObjectOp = JJNode.tree.getOperator(conObject);
       if (SuperExpression.prototype.includes(conObjectOp)) {
         // Visit the initializers.
-        final InitializationVisitor helper = new InitializationVisitor(false);
-        helper.doAcceptForChildren(JJNode.tree.getParent(enclosingFlowUnit));
+        final BindingContextAnalysis.Query oldQuery = bcaQuery;
+        bcaQuery = oldQuery.getSubAnalysisQuery(constructorCall);
+        try {
+          processClassBody(JJNode.tree.getParent(teb.enclosingFlowUnit), WhichMembers.INSTANCE);
+        } finally {
+          bcaQuery = oldQuery;
+        }
       }
       return null;
     }
@@ -409,19 +497,14 @@ final class LockExpressions {
         lockUtils.convertSynchronizedMethod(mdecl, heldLockFactory, rcvr, clazz, classDecl, intrinsicAssumedLocks);
       }
       
-      enclosingFlowUnit = mdecl;
-      try {
-        doAcceptForChildren(mdecl);
-      } finally {
-        enclosingFlowUnit = null;
-      }
+      doAcceptForChildren(mdecl);
       return null; 
     }
     
     @Override
     public Void visitClassInitDeclaration(final IRNode classInitDecl) {
       // Get the locks held due to class initialization assumptions
-      final IRNode classDecl = VisitUtil.getEnclosingType(classInitDecl);
+      final IRNode classDecl = JavaPromise.getPromisedFor(classInitDecl);
       final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
       /* TODO: LockUtils method needs to make one pass through the 
        * locks and output to two sets: JUC and intrinsic. 
@@ -429,12 +512,11 @@ final class LockExpressions {
       lockUtils.getClassInitLocks(HowToProcessLocks.JUC, classInitDecl, heldLockFactory, clazz, jucClassInit);
       lockUtils.getClassInitLocks(HowToProcessLocks.INTRINSIC, classInitDecl, heldLockFactory, clazz, intrinsicAssumedLocks);
       
-      final InitializationVisitor iv = new InitializationVisitor(true);
-      /* Must use accept for children because InitializationVisitor doesn't do anything
-       * for ClassDeclaration nodes.  It's better this way anyhow because we only care
-       * about the children of the class declaration to begin with.
-       */ 
-      iv.doAcceptForChildren(JavaPromise.getPromisedFor(classInitDecl));
+      final IRNode classBody =
+        AnonClassExpression.prototype.includes(classDecl) ?
+            AnonClassExpression.getBody(classDecl) :
+              TypeDeclaration.getBody(classDecl);
+      processClassBody(classBody, WhichMembers.STATIC);
       return null;
     }
     
@@ -490,7 +572,7 @@ final class LockExpressions {
     
     private Set<HeldLock> processLockExpression(final HowToProcessLocks howTo,
         final IRNode lockExpr, final IRNode syncBlock) {
-      if (lockUtils.getFinalExpressionChecker(enclosingFlowUnit, syncBlock).isFinal(lockExpr)) {
+      if (lockUtils.getFinalExpressionChecker(bcaQuery, teb.enclosingFlowUnit, syncBlock).isFinal(lockExpr)) {
         // Get the locks for the lock expression
         final Set<HeldLock> lockSet = new HashSet<HeldLock>();
         lockUtils.convertLockExpr(
@@ -502,135 +584,5 @@ final class LockExpressions {
       }
       return null;
     }    
-
-    
-    // =======================================================================
-    
-    /**
-     * Used to visit the class in the context of a ClassInitDeclaration
-     * or a InitDeclaration.  Basically we want to look at the field initializers
-     * and the static or instance initializer blocks.  We don't want to go
-     * inside of any other members of the class, especially not method or 
-     * constructor declarations.
-     */
-    // XXX: Get rid of this---see LocalVariableDeclarations.LocalDeclarationsVisitor
-    private final class InitializationVisitor extends VoidTreeWalkVisitor {
-      /** 
-       * Are we matching static initializers?  if <code>false</code> we match
-       * instance fields and initializers.
-       */
-      private final boolean isStatic; 
-      
-      /**
-       * Flag that indicates whether we are inside a field declaration
-       * or a initializer block that is interesting.
-       */
-      private boolean isInteresting = false;
-      
-      
-      
-      public InitializationVisitor(final boolean matchStatic) {
-        isStatic = matchStatic;
-      }
-      
-      
-      
-      private boolean triggersInterest(final IRNode node) {
-        return (TypeUtil.isStatic(node) == isStatic);
-      }
-      
-      
-      
-      @Override
-      public Void visitTypeDeclaration(final IRNode node) {
-        /* STOP: we've encountered a type declaration.  We don't want to enter
-         * the method declarations of nested class definitions.
-         */
-        return null;
-      }
-      
-      @Override 
-      public Void visitAnonClassExpression(final IRNode expr) {
-        /* We get here when there is an anonymous class expression in the 
-         * RHS of a field initialization.
-         */
-        // Traverse into the arguments, but *not* the body
-        doAccept(AnonClassExpression.getArgs(expr));
-        
-        // Keep visiting the field initializers and instance initializers
-        teb.newDeclaration(JavaPromise.getInitMethodOrNull(expr));
-        try {
-          final InitializationVisitor iv = new InitializationVisitor(false);
-          /* Must use accept for children because InitializationVisitor doesn't do anything
-           * for ClassDeclaration nodes.  It's better this way anyhow because only care
-           * about the children of the class declaration to begin with.
-           */ 
-          iv.doAcceptForChildren(expr);      
-        } finally {
-          teb.pop();
-        }
-        return null;
-      }
-
-      @Override
-      public Void visitMethodDeclaration(final IRNode node) {
-        /* STOP: we've encountered a method declaration. 
-         */
-        return null;
-      }
-
-      @Override
-      public Void visitConstructorDeclaration(final IRNode node) {
-        /* STOP: we've encountered a method declaration. 
-         */
-        return null;
-      }
-
-      
-      
-      @Override
-      public Void visitMethodCall(final IRNode mcall) {
-        if (isInteresting) {
-          LockExpressionVisitor.this.processMethodCall(mcall);
-        }
-        doAcceptForChildren(mcall);
-        return null;
-      }
-
-      @Override
-      public Void visitSynchronizedStatement(final IRNode syncBlock) {
-        processSynchronized(syncBlock);
-        doAcceptForChildren(syncBlock);
-        return null;
-      }
-
-      
-      
-      @Override
-      public Void visitClassInitializer(final IRNode expr) {
-        if (triggersInterest(expr)) {
-          try {
-            isInteresting = true;
-            doAcceptForChildren(expr);
-          } finally {
-            isInteresting = false;
-          }
-        }
-        return null;
-      }
-      
-      @Override
-      public Void visitFieldDeclaration(final IRNode fd) {
-        if (triggersInterest(fd)) {
-          try {
-            isInteresting = true;
-            doAcceptForChildren(fd);
-          } finally {
-            isInteresting = false;
-          }
-        }
-        return null;
-      }
-    }
   }
 }

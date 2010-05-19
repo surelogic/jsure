@@ -789,7 +789,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		lockUtils = new LockUtils(glmRef, b, e, aliasAnalysis, //heldLockFactory,
 				neededLockFactory, thisExprBinder);
-		jucLockUsageManager = new JUCLockUsageManager(lockUtils, binder);
+		jucLockUsageManager = new JUCLockUsageManager(lockUtils, binder, bca);
 
 		// Create the subsidiary flow analyses
 		nonNullAnalylsis = new SimpleNonnullAnalysis(binder);
@@ -1076,10 +1076,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private Set<HeldLock> convertLockExpr(final IRNode lockExpr,
+	    final BindingContextAnalysis.Query bcaQuery,
 			final IRNode enclosingDecl, final IRNode src) {
 		final IRNode sync = SynchronizedStatement.prototype
 				.includes(JJNode.tree.getOperator(src)) ? src : null;
-		if (lockUtils.getFinalExpressionChecker(enclosingDecl, sync).isFinal(
+		if (lockUtils.getFinalExpressionChecker(bcaQuery, enclosingDecl, sync).isFinal(
 				lockExpr)) {
 			final Set<HeldLock> result = new HashSet<HeldLock>();
 			lockUtils.convertIntrinsicLockExpr(lockExpr, heldLockFactory, enclosingDecl, src,
@@ -2308,8 +2309,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		} else if (lockMethod != LockMethods.NOT_A_LOCK_METHOD) {
 			final IRNode object = call.get_Object(expr);
 			final IRNode enclosingMethod = getEnclosingMethod();
-			if (lockUtils.getFinalExpressionChecker(enclosingMethod, null)
-					.isFinal(object)) {
+			if (lockUtils.getFinalExpressionChecker(
+			    ctxtBcaQuery, enclosingMethod, null).isFinal(object)) {
 				final Set<HeldLock> lockSet = new HashSet<HeldLock>();
 				lockUtils.convertJUCLockExpr(object, heldLockFactory, enclosingMethod, null,
 						lockSet);
@@ -2622,8 +2623,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 * method. Furthermore, we can pass null to as the constructor
 			 * context to convertLockExpr(), because we must be inside a method.
 			 */
-			for (final HeldLock lock : convertLockExpr(expr, ctxtInsideMethod,
-					rstmt)) {
+			for (final HeldLock lock :
+			    convertLockExpr(expr, ctxtBcaQuery, ctxtInsideMethod,	rstmt)) {
 				correct |= ctxtReturnedLock.mustAlias(lock, thisExprBinder,
 						binder);
 			}
@@ -2688,8 +2689,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			} else { // possible intrinsic lock
 				// Only decode the lock if it is a final expression
 				final IRNode enclosingMethod = getEnclosingMethod();
-				if (lockUtils.getFinalExpressionChecker(enclosingMethod,
-						syncBlock).isFinal(lockExpr)) {
+				if (lockUtils.getFinalExpressionChecker(
+				    ctxtBcaQuery, enclosingMethod, syncBlock).isFinal(lockExpr)) {
 					// Push the acquired locks into the lock context
 					// convertLockExpr(lockExpr, getEnclosingMethod(lockExpr),
 					// syncBlock, syncFrame);

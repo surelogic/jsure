@@ -50,6 +50,9 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 	
 	private final AtomicReference<GlobalLockModel> lockModelHandle = 
 		new AtomicReference<GlobalLockModel>(null);
+	private BindingContextAnalysis bca;
+	
+	
 	
 	public LockAnalysis() {
 		super(willRunInParallel, queueWork ? IRNode.class : null, "LockAssurance");
@@ -124,8 +127,8 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 	
 	@Override
 	protected LockVisitor constructIRAnalysis(IBinder binder) {		
-	  final BindingContextAnalysis bca = new BindingContextAnalysis(binder, true);
-    return new LockVisitor(this, binder, new Effects(binder, bca),
+	  bca = new BindingContextAnalysis(binder, true);
+    return new LockVisitor(this, binder, new Effects(binder),
         new TypeBasedAliasAnalysis(binder), bca, lockModelHandle);
 	}
 	
@@ -136,6 +139,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 		} else {
 			analyses.clearCaches();
 		}
+		bca.clear();
 	}
 	
 	@Override
