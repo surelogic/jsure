@@ -83,6 +83,7 @@ public class RegionRules extends AnnotationRules {
     registerParseRuleStorage(fw, regionRule);
     registerParseRuleStorage(fw, inRegionRule);
     registerParseRuleStorage(fw, mapFieldsRule);
+    // Hack to use one rule or another, depending on where it is
     fw.registerParseDropRule(new NullAnnotationParseRule(IN_REGION, PromiseConstants.fieldOrTypeOp) {
     	@Override
 		public ParseResult parse(IAnnotationParsingContext context, String contents) {
