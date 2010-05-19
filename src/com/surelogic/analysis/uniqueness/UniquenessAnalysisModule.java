@@ -52,9 +52,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
    * All the method control flow result drops we create.  We scan this at the
    * end to invalidate any drops that are not used.
    */
-  private final Set<ResultDropBuilder> controlFlowDrops = new HashSet<ResultDropBuilder>();
-  
-  
+  private final Set<ResultDropBuilder> controlFlowDrops = 
+	  Collections.synchronizedSet(new HashSet<ResultDropBuilder>());
   
   public UniquenessAnalysisModule() {
 		super(true && !singleThreaded, null, "UniqueAnalysis");
@@ -118,6 +117,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	public IRNode[] analyzeEnd(IIRProject p) {
     // Remove any control flow drops that aren't used for anything
     for (final ResultDropBuilder cfDrop : controlFlowDrops) {
+      //System.out.println("Looking at control flow drop: "+cfDrop);
       if (cfDrop.getChecks().isEmpty()) {
         cfDrop.invalidate();
       }
