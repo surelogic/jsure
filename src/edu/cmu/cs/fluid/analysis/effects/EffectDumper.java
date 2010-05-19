@@ -43,6 +43,7 @@ public final class EffectDumper extends AbstractWholeIRAnalysisModule
   private Drop resultDependUpon = null;
 
   private IBinder binder;
+  private BindingContextAnalysis bca;
   private Effects effects;
 
   private static EffectDumper INSTANCE;
@@ -71,7 +72,8 @@ public final class EffectDumper extends AbstractWholeIRAnalysisModule
     runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
       public void run() {
         binder = Eclipse.getDefault().getTypeEnv(getProject()).getBinder();
-        effects = new Effects(binder, new BindingContextAnalysis(binder, true));
+        bca = new BindingContextAnalysis(binder, true);
+        effects = new Effects(binder);
       }
     });    
   }
@@ -130,7 +132,8 @@ public final class EffectDumper extends AbstractWholeIRAnalysisModule
           /* Can use null for the constructor context because member IS a
            * constructor or method declaration.
            */
-          final Set<Effect> implFx = effects.getEffectsQuery(member).getResultFor(member);
+          final Set<Effect> implFx = effects.getImplementationEffects(member, bca);
+//          final Set<Effect> implFx = effects.getEffectsQuery(member).getResultFor(member);
 //          final Set<Effect> implFx = effects.getEffects(member, null);
           InfoDrop info = new WarningDrop();
           setLockResultDep(info, member);
