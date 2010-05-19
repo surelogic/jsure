@@ -71,7 +71,9 @@ public class ClearProjectListener implements IResourceChangeListener {
 
 	public static void clearJSureState() {
 		try {
-			clearDropSea(clearAll);
+			synchronized (Sea.getDefault()) {
+				clearDropSea(clearAll);
+			}
 			/*
 			 * for(Drop d : Sea.getDefault().getDrops()) {
 			 * System.out.println(d.getMessage()); }

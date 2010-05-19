@@ -564,7 +564,9 @@ public class ResultsView extends AbstractDoubleCheckerView {
       ConsistencyListener.prototype.analysisCompleted();
 
       final long start = System.currentTimeMillis();
-      f_contentProvider.buildModelOfDropSea();
+      synchronized (Sea.getDefault()) {
+    	  f_contentProvider.buildModelOfDropSea();
+      }
       final long buildEnd = System.currentTimeMillis();
       System.err
           .println("Time to build model  = " + (buildEnd - start) + " ms");
