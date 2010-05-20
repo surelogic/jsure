@@ -6,6 +6,7 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
 
