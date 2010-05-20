@@ -139,7 +139,9 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 		} else {
 			analyses.clearCaches();
 		}
-		bca.clear();
+		if (bca != null) {
+			bca.clear();
+		}
 	}
 	
 	@Override
