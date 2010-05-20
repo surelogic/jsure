@@ -44,7 +44,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	@Override
 	protected void clearCaches() {
 		getAnalysis().clearCaches();
-    bca.clear();
+    if (bca != null) bca.clear();
 	}
 	
 	@Override
