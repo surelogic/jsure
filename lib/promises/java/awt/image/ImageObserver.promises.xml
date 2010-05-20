@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt.image">
+	<class name="ImageObserver">
+
+		<ThreadRoleImport>"java.awt.*;"</ThreadRoleImport>
+		<Promise>@ThreadRole("AWT;") for imageUpdate(**)</Promise>
+
+	</class>
+</package>

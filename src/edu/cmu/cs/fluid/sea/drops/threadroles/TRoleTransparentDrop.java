@@ -2,11 +2,14 @@
 package edu.cmu.cs.fluid.sea.drops.threadroles;
 
 import com.surelogic.aast.promise.ThreadRoleTransparentNode;
+import com.surelogic.analysis.threadroles.TRoleMessages;
 
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
-public class TransparentPromiseDrop extends BooleanPromiseDrop<ThreadRoleTransparentNode> {
-  public TransparentPromiseDrop(ThreadRoleTransparentNode n) {
+public class TRoleTransparentDrop extends BooleanPromiseDrop<ThreadRoleTransparentNode> {
+  public TRoleTransparentDrop(ThreadRoleTransparentNode n) {
     super(n);
+    setCategory(TRoleMessages.assuranceCategory);
+    setMessage("@ThreadRoleTransparent");
   }
 }

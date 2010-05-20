@@ -1,23 +1,23 @@
 <package name="java.awt">
     <class name="Button">
-    <ColorImport>java.awt</ColorImport>
+    <ThreadRoleImport>java.awt.*</ThreadRoleImport>
     
     <MapRegion>Instance into java.awt.event.ActionListener:GUIstuff</MapRegion>
 
-    <Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
+    <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 	  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add*Listener(**) | remove*Listener(**)</Promise>
 
-  <Promise>@Color(GUI) for get*(**) | new(**)</Promise>
+  <Promise>@ThreadRole(GUI) for get*(**) | new(**)</Promise>
   <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal) for new(**)</Promise>
   <Promise>@RegionEffects(reads Instance) for get*(**)</Promise>
 
-  <Promise>@Color(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+  <Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
   <Promise>@RegionEffects(writes Instance) for add*(**) &amp; !(add*Listener(**))</Promise>  
 
-  <Promise>@Color(GUI) for process*(**)</Promise>
+  <Promise>@ThreadRole(GUI) for process*(**)</Promise>
   <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal; writes Instance) for process*(**)</Promise>  
 
-  <Promise>@Color(GUI) for set*(**)</Promise>
+  <Promise>@ThreadRole(GUI) for set*(**)</Promise>
   <Promise>@RegionEffects(writes Instance) for set*(**)</Promise>
 
     </class>  

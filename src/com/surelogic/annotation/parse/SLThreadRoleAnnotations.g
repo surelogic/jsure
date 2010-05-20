@@ -52,7 +52,7 @@ tokens {
   Names;
   END_IMAGINARY;
   
-  // COLORDECLARE = '@ThreadRoleDeclare';
+  COLORDECLARE = '@ThreadRoleDeclare';
   COLOR = '@ThreadRole';
   COLORGRANT = '@ThreadRoleGrant';
   COLORREVOKE = '@ThreadRoleRevoke';
@@ -233,11 +233,11 @@ regionName
  	;
  
  threadRoleNames
- 	: threadRoleName (',' threadRoleName)+ -> threadRoleName+
+ 	: threadRoleName (',' threadRoleName)* -> threadRoleName+
  	;
  	
  threadRoleSimpleNames
- 	:	simpleName (',' simpleName)+ -> simpleName+
+ 	:	simpleName (',' simpleName)* -> simpleName+
  	;
  	
  /*************************************************************************************
@@ -297,7 +297,6 @@ regionName
  	
  threadRoleGrant 
  	:	threadRoleNames EOF -> ^(ThreadRoleGrant threadRoleNames)
- 	|  threadRoleName EOF -> ^(ThreadRoleGrant threadRoleName)
  	;
  	
  threadRoleRevoke

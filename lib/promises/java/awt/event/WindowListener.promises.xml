@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt.event">
+    <class name="WindowListener">
+
+    <promise keyword="ThreadRoleImport" contents="java.awt.*;"/>
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;AWT;&quot;)&quot; for window*(java.awt.event.WindowEvent)"/>
+
+    </class>  
+</package>

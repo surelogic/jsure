@@ -1,17 +1,17 @@
 <package name="java.awt">
   <class name="Dialog">
 
-    <ColorImport>java.awt</ColorImport>
+    <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-    <Promise>@Color(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+    <Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
 
-    <Promise>@Color(GUI) for get*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for get*(**)</Promise>
 
-    <Promise>@Color(GUI) for is*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for is*(**)</Promise>
 
-    <Promise>@Color(GUI) for set*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
 
-    <Promise>@Color(GUI) for show() | hide() | dispose()</Promise>
+    <Promise>@ThreadRole(GUI) for show() | hide() | dispose()</Promise>
 
   </class>  
 </package>

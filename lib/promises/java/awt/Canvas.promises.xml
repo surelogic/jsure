@@ -4,7 +4,7 @@
       <starts>nothing</starts>
       <RegionEffects>none</RegionEffects>
       <unique>return</unique>
-      <transparent/>
+      <ThreadRoleTransparent/>
     </constructor>
   </class>  
 </package>

@@ -1,11 +1,11 @@
 <package name="java.awt">
     <class name="BorderLayout">
 
-    <ColorImport>java.awt</ColorImport>
+    <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-    <Promise>@Color(GUI) for new(**)</Promise>
+    <Promise>@ThreadRole(GUI) for new(**)</Promise>
 
-  <Promise>@Color(GUI) for *(**)</Promise>
+  <Promise>@ThreadRole(GUI) for *(**)</Promise>
 
     </class>  
 </package>

@@ -2,7 +2,7 @@
     <class name="ImageCapabilities">      	
     <!-- Promise>@MapRegion Instance into java.awt.event.ActionListener:GUIstuff)</Promise -->
 
-    <Promise>@Color(GUI) for **(**)</Promise>
+    <Promise>@ThreadRole(GUI) for **(**)</Promise>
 	   
     </class>  
 </package>

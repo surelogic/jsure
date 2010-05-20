@@ -33,7 +33,7 @@ import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
 public class TRoleRequireDrop extends PromiseDrop<ThreadRoleNode> implements PleaseFolderize {
-  private static final String kind = "ThreadRole";
+  private static final String kind = "ThreadRoleConstraint";
   
   public TRoleRequireDrop(ThreadRoleNode a) {
     super(a);

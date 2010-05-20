@@ -27,7 +27,7 @@ public class TRoleDeclareDrop extends TRoleNameListDrop<ThreadRoleDeclarationNod
 
   protected static final Logger LOG = SLLogger.getLogger("TRoleDropBuilding");
 
-  private static final String myKind = "trole";
+  private static final String myKind = "ThreadRole declaration";
   
   private final String cuContainingDecl;
 
@@ -65,21 +65,21 @@ public class TRoleDeclareDrop extends TRoleNameListDrop<ThreadRoleDeclarationNod
     return name.substring(0, posOfLastDot);
   }
   
-  public TRoleDeclareDrop(ThreadRoleDeclarationNode cdn) {
+  public TRoleDeclareDrop(ThreadRoleDeclarationNode trdn) {
     // don't have to mess around with expanding names to be fully qualified.
     // Callers are required to have done that already!
-    super(cdn, myKind);
+    super(trdn, myKind);
     // want to see all declare drops!
     setFromSrc(true);
     
-    final IRNode locInIR = cdn.getPromisedFor();
+    final IRNode locInIR = trdn.getPromisedFor();
 
     final String cuName = JavaNames.computeQualForOutermostTypeOrCU(locInIR);
     
     // #2 is to do string hacking on the names.
     String stringCuName = "";
-    nameLoop: for (String colorName : getListedTRoles()) {
-      stringCuName = genQualifier(colorName);
+    nameLoop: for (String tRoleName : getListedTRoles()) {
+      stringCuName = genQualifier(tRoleName);
       break nameLoop;
     }
     if (!stringCuName.equals(cuName)) {

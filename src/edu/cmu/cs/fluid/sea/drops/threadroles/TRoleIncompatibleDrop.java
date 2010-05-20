@@ -23,7 +23,7 @@ import edu.cmu.cs.fluid.sea.Drop;
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
 public class TRoleIncompatibleDrop extends TRoleNameListDrop<ThreadRoleIncompatibleNode> {
-  private static final String myKind = "incompatibleTRoles";
+  private static final String myKind = "ThreadRolesIncompatible";
 //  private List tcList = null;
   
   private JBDD conflictExpr = null;

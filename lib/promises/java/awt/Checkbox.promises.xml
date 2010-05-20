@@ -1,16 +1,16 @@
 <package name="java.awt">
 	<class name="Checkbox">
 
-		<ColorImport>java.awt</ColorImport>
-		<Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
+		<Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 
-		<Promise>@Color(GUI) for get*(**) | new(**)</Promise>
+		<Promise>@ThreadRole(GUI) for get*(**) | new(**)</Promise>
 
-  	<Promise>@Color(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+  	<Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
 
-  	<Promise>@Color(GUI) for process*(**)</Promise>
+  	<Promise>@ThreadRole(GUI) for process*(**)</Promise>
 
-  	<Promise>@Color(GUI) for set*(**)</Promise>
+  	<Promise>@ThreadRole(GUI) for set*(**)</Promise>
 
   </class>  
 </package>

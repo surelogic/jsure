@@ -1,36 +1,36 @@
 <package name="java.awt">
   <class name="Container">
-    <ColorImport>java.awt</ColorImport>
-    <Promise>@Color(GUI) for remove(**)</Promise>
-    <Promise>@Color(GUI) for removeAll()</Promise>
-    <Promise>@Color(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
-    <Promise>@Color(GUI) for get*(**)</Promise>
-    <Promise>@Color(GUI) for set*(**)</Promise>
-    <Promise>@Color(GUI) for is*(**)</Promise>
-    <Promise>@Color(GUI) for put*(**) | invalidate(**)</Promise>
+    <ThreadRoleImport>java.awt</ThreadRoleImport>
+    <Promise>@ThreadRole(GUI) for remove(**)</Promise>
+    <Promise>@ThreadRole(GUI) for removeAll()</Promise>
+    <Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+    <Promise>@ThreadRole(GUI) for get*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for is*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for put*(**) | invalidate(**)</Promise>
 	  
 	  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add(**) | remove(**)</Promise>
 	  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for set*(**) | create*(**)</Promise>
     <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal) for get*(**) | is*(**)</Promise>
 
     <method name="paint" params="java.awt.Graphics">
-      <Color>AWT</Color>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="update" params="java.awt.Graphics">
-      <Color>AWT</Color>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="add" params="java.awt.Component">
-      <Color>GUI</Color>
+      <ThreadRole>GUI</ThreadRole>
     </method>
     <method name="add" params="java.lang.String, java.awt.Component">
-      <Color>GUI</Color>
+      <ThreadRole>GUI</ThreadRole>
     </method>
     <method name="setLayout" params="java.awt.LayoutManager">
-      <Color>GUI</Color>
+      <ThreadRole>GUI</ThreadRole>
     </method>
 
     <method name="validate" params="">
-      <Color>GUI</Color>
+      <ThreadRole>GUI</ThreadRole>
     </method>
   </class>  
 </package>

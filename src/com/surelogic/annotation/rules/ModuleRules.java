@@ -6,7 +6,10 @@ import static edu.cmu.cs.fluid.sea.drops.modules.VisDrop.buildVisDrop;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.aast.promise.*;
+import com.surelogic.aast.promise.ExportNode;
+import com.surelogic.aast.promise.ModuleChoiceNode;
+import com.surelogic.aast.promise.NoVisClauseNode;
+import com.surelogic.aast.promise.VisClauseNode;
 import com.surelogic.annotation.DefaultSLThreadRoleAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.SimpleBooleanAnnotationParseRule;
@@ -14,13 +17,13 @@ import com.surelogic.annotation.parse.SLThreadRoleAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.ScrubberType;
-import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -61,14 +64,14 @@ public class ModuleRules extends AnnotationRules {
     }
     @Override
     protected IPromiseDropStorage<NoVisPromiseDrop> makeStorage() {
-      return BooleanPromiseDropStorage.create(name(), NoVisPromiseDrop.class);
+    	return SinglePromiseDropStorage.create(name(), NoVisPromiseDrop.class);
     }
     @Override
     protected IAnnotationScrubber<NoVisClauseNode> makeScrubber() {
       return new AbstractAASTScrubber<NoVisClauseNode>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<NoVisClauseNode> makePromiseDrop(NoVisClauseNode a) {
-          NoVisPromiseDrop d = new NoVisPromiseDrop(a);
+          NoVisPromiseDrop d = NoVisPromiseDrop.buildNoVisPromiseDrop(a);
           return storeDropIfNotNull(getStorage(), a, d);          
         }
       };

@@ -1,31 +1,31 @@
 <package name="java.awt">
   <class name="Graphics">
 
-    <ColorImport>java.awt</ColorImport>
+    <ThreadRoleImport>java.awt</ThreadRoleImport>
 
     <!-- Promise>@MapRegion Instance into java.awt.event.ActionListener:GUIstuff)</Promise -->
 
-    <Promise>@Color(GUI) for get*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for get*(**)</Promise>
     <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal) for get*(**)</Promise>
     
-    <Promise>@Color(GUI) for set*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
     <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for set*(**)</Promise>
     
-    <Promise>@Color(GUI) for draw*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for draw*(**)</Promise>
     <Promise>@RegionEffects(reads Instance; writes java.awt.event.ActionListener:GUIinternal) for draw*(**)</Promise>
     
-    <Promise>@Color(GUI) for fill*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for fill*(**)</Promise>
     <Promise>@RegionEffects(reads Instance; writes java.awt.event.ActionListener:GUIinternal) for fill*(**)</Promise>
     
     
-    <Promise>@Color(GUI) for clip*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for clip*(**)</Promise>
     
-    <Promise>@Color(GUI) for copy*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for copy*(**)</Promise>
     
-    <Promise>@Color(GUI) for create(**) | translate(**)</Promise>
+    <Promise>@ThreadRole(GUI) for create(**) | translate(**)</Promise>
     
     <method name="dispose" params="">
-      <Color>GUI</Color>
+      <ThreadRole>GUI</ThreadRole>
       <RegionEffects>writes Instance</RegionEffects>
     </method>
     

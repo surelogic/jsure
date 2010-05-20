@@ -7,13 +7,13 @@ import edu.cmu.cs.fluid.util.AbstractMessages;
 public class Messages extends AbstractMessages {
   private static final String BUNDLE_NAME = "com.surelogic.analysis.messages"; //$NON-NLS-1$
 
-  public static String ColorSecondPass_inferredColor = "Inferred @colorConstraint {0} for {1}";
+  public static String ColorSecondPass_inferredColor = "Inferred @ThreadRole {0} for {1}";
 
-  public static String ColorSecondPass_inheritedColor = "Inherited @colorConstraint {0} for {1}";
+  public static String ColorSecondPass_inheritedColor = "Inherited @ThreadRole {0} for {1}";
 
-  public static String ColorSecondPass_inheritedTransparent = "Inherited @transparent for {0}";
+  public static String ColorSecondPass_inheritedTransparent = "Inherited @ThreadRoleTransparent for {0}";
 
-  public static String ColorSecondPass_colorContextDrop = "{0} is accessed from color context {1}";
+  public static String ColorSecondPass_colorContextDrop = "{0} is accessed from ThreadRole context {1}";
 
   // Drop-sea category messages
   public static String LockAnalysis_dsc_LockViz = "lock field(s) less visible than the region(s) being protected";

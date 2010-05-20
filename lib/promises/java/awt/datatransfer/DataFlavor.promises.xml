@@ -1,8 +1,8 @@
 <package name="java.awt.datatransfer">
     <class name="DataFlavor">
-      <Promise>@Transparent for equals(**)</Promise>
+      <Promise>@ThreadRoleTransparent for equals(**)</Promise>
 
-      <Promise>@Color(GUI) for **(**) &amp; !(equals(**))</Promise>
+      <Promise>@ThreadRole(GUI) for **(**) &amp; !(equals(**))</Promise>
 
     </class>
 </package>

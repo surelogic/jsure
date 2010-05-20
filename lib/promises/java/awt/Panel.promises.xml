@@ -3,11 +3,11 @@
     <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIstuff) for new(**)</Promise>
     
     <constructor params="">
-      <Color>GUI</Color>
+      <ThreadRole>GUI</ThreadRole>
     </constructor>
     
     <constructor params="java.awt.LayoutManager">
-      <Color>GUI</Color>
+      <ThreadRole>GUI</ThreadRole>
     </constructor>
     
   </class>  

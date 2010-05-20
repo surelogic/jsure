@@ -3,7 +3,7 @@
     <!-- Promise>@InRegion java.awt.event.ActionListener:GUIinternal) for * *</Promise -->
 
     <method name="getStateChange" params="">
-      <!--Color>AWT</Color-->
+      <ThreadRole>AWT</ThreadRole>
       <RegionEffects>reads java.awt.event.ActionListener:GUIinternal</RegionEffects>
     </method>
   </class>

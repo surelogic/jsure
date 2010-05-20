@@ -66,6 +66,11 @@ public interface PromiseConstants {
                                                          TypeDeclaration.prototype, 
                                                          SomeFunctionDeclaration.prototype,
                                                          FieldDeclaration.prototype, };
+  public static final Operator[] ptFuncOps = {
+	  // AnonClassExpression.prototype,
+      PackageDeclaration.prototype,
+      TypeDeclaration.prototype, 
+      SomeFunctionDeclaration.prototype,};
 
   public static final Operator[] typeDeclOps = {
     // AnonClassExpression.prototype,

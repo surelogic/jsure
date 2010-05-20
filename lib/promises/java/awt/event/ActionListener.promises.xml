@@ -15,7 +15,7 @@
  <Region>public static GUIstuff</Region>
  <Region>public static GUIinternal</Region>
  <method name="actionPerformed" params="java.awt.event.ActionEvent">
- 		<Color>AWT</Color>
+ 		<ThreadRole>AWT</ThreadRole>
  </method>
  </class>
 </package>

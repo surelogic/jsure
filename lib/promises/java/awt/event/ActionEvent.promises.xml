@@ -1,6 +1,6 @@
 <package name="java.awt.event">
     <class name="ActionEvent">
-    <ColorImport>java.awt</ColorImport>
-      <Promise>@Color(AWT) for **(**) &amp; !(get*())</Promise>
+    <ThreadRoleImport>java.awt</ThreadRoleImport>
+      <Promise>@ThreadRole(AWT) for **(**) &amp; !(get*())</Promise>
     </class>  
 </package>

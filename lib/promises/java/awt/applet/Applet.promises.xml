@@ -1,12 +1,12 @@
 <package name="java.applet">
     <class name="Applet">
 
-    <ColorImport>java.awt</ColorImport>
+    <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-    <Promise>@Color(AWT) for new(**)</Promise>
+    <Promise>@ThreadRole(AWT) for new(**)</Promise>
 
 <!-- -->
-    <Promise>@Transparent for get*Info()</Promise>
+    <Promise>@ThreadRoleTransparent for get*Info()</Promise>
     <Promise>@RegionEffects(writes none) for play(**) | getCodeBase()</Promise>
 <!-- -->
     <Promise>@RegionEffects(reads this:Instance) for get*(**) | is*(**)</Promise>
@@ -14,43 +14,43 @@
 
     <MapRegion>Instance into java.awt.event.ActionListener:GUIinternal</MapRegion>
       <method name="isActive" params="">
-        <Transparent/>
+        <ThreadRoleTransparent/>
       </method>
       <method name="getDocumentBase" params="">
-        <Transparent/>
+        <ThreadRoleTransparent/>
       </method>
       <method name="getCodeBase" params="">
-        <Transparent/>
+        <ThreadRoleTransparent/>
       </method>
       <method name="getAppletContext" params="">
-        <Color>GUI</Color>
+        <ThreadRole>GUI</ThreadRole>
       </method>
       <method name="getParameter" params="java.lang.String">
-        <Color>GUI</Color>
+        <ThreadRole>GUI</ThreadRole>
       </method>
       <method name="getAudioClip" params="java.net.URL">
-        <Transparent/>
+        <ThreadRoleTransparent/>
       </method>
       <method name="getAudioClip" params="java.net.URL, java.lang.String">
-        <Transparent/>
+        <ThreadRoleTransparent/>
       </method>
       <method name="play" params="java.net.URL">
-        <Transparent/>
+        <ThreadRoleTransparent/>
       </method>
       <method name="play" params="java.net.URL, java.lang.String">
-        <Transparent/>
+        <ThreadRoleTransparent/>
       </method>
       <method name="init" params="">
-          <Color>GUI</Color>
+          <ThreadRole>GUI</ThreadRole>
       </method>
       <method name="destroy" params="">
-          <Color>GUI</Color>
+          <ThreadRole>GUI</ThreadRole>
       </method>
       <method name="start" params="">
-          <Color>AWT</Color>
+          <ThreadRole>AWT</ThreadRole>
       </method>
       <method name="stop" params="">
-          <Color>AWT</Color>
+          <ThreadRole>AWT</ThreadRole>
       </method>
 
     </class>

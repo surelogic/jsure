@@ -1,8 +1,8 @@
 <package name="java.awt">
     <class name="CardLayout">
-   <ColorImport>java.awt</ColorImport>
+   <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-      <Promise>@Color(GUI) for new(**) | *(**)</Promise>
+      <Promise>@ThreadRole(GUI) for new(**) | *(**)</Promise>
 	
     </class>  
 </package>

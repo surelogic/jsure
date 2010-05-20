@@ -851,7 +851,7 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
    */
   @Override
   protected IPromiseRule[] getRules() {
-    return new IPromiseRule[] {
+ /*   return new IPromiseRule[] {
                                new AbstractPromiseStorageAndCheckRule<Boolean>(
                                    "Transparent", IPromiseStorage.BOOL,
                                    declOrConstructorOps) {
@@ -946,7 +946,8 @@ public final class ColorPromises extends AbstractPromiseAnnotation {
                                                             typeDeclOps),
                                new RegionColor_ParseRule("ColorConstrainedRegions",
                                                          typeDeclOps),
-    };
+*/   
+	  return new IPromiseRule[] {};	
   }
 
   abstract class Colors_ParseRule extends AbstractPromiseParserCheckRule<IRSequence<IRNode>> {

@@ -1,29 +1,29 @@
 <package name="java.awt.dnd">
-  <Promise>@ColorImport(java.awt) for *</Promise>
+  <Promise>@ThreadRoleImport(java.awt) for *</Promise>
 
-      <Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
+      <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 
-  <Promise>@Color(GUI) for get*(**)</Promise>
+  <Promise>@ThreadRole(GUI) for get*(**)</Promise>
 
-  <Promise>@Color(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+  <Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
 
-  <Promise>@Color(GUI) for new(**)</Promise>
+  <Promise>@ThreadRole(GUI) for new(**)</Promise>
 
-  <Promise>@Color(GUI) for process*(**)</Promise>
+  <Promise>@ThreadRole(GUI) for process*(**)</Promise>
 
-  <Promise>@Color(GUI) for set*(**)</Promise>
+  <Promise>@ThreadRole(GUI) for set*(**)</Promise>
 
-  <Promise>@Color(GUI) for updateUI()</Promise>
-  <Promise>@Transparent for revalidate()</Promise>
+  <Promise>@ThreadRole(GUI) for updateUI()</Promise>
+  <Promise>@ThreadRoleTransparent for revalidate()</Promise>
 
-  <Promise>@Transparent for repaint(**)</Promise>
+  <Promise>@ThreadRoleTransparent for repaint(**)</Promise>
 
-  <Promise>@Color(AWT) for fire*(**)</Promise>
-
-
-  <Promise>@Color(AWT) for requestFocus*(**)</Promise>
+  <Promise>@ThreadRole(AWT) for fire*(**)</Promise>
 
 
-  <Promise>@Color(AWT) for paint*(**)</Promise>
+  <Promise>@ThreadRole(AWT) for requestFocus*(**)</Promise>
+
+
+  <Promise>@ThreadRole(AWT) for paint*(**)</Promise>
 
 </package>

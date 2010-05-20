@@ -5,13 +5,11 @@
 <package name="java.awt.geom">
   <class name="Point2D">
     <class name="Float">
-      <promise keyword="promise"
-	contents="&quot;transparent&quot; for **(**)"/>
+      <Promise>@ThreadRoleTransparent for **(**)</Promise>
     </class>
 
     <class name="Double">
-      <promise keyword="promise"
-	contents="&quot;transparent&quot; for **(**)"/>
+      <Promise>@ThreadRoleTransparent for **(**)</Promise>
     </class>
 
   </class>

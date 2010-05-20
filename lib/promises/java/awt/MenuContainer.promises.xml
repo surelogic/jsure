@@ -1,5 +1,5 @@
 <package name="java.awt">
   <class name="MenuContainer">
-    <Promise>@Color(AWT) for *(**)</Promise>
+    <Promise>@ThreadRole(AWT) for *(**)</Promise>
   </class>
 </package>

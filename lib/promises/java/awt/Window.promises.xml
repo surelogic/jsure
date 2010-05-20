@@ -1,19 +1,19 @@
 <package name="java.awt">
   <class name="Window">
 
-    <Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
+    <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 
-    <Promise>@Color(GUI) for get*(**) | is*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for get*(**) | is*(**)</Promise>
 
-    <Promise>@Color(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+    <Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
 
-    <Promise>@Color(GUI) for process*(**) | dispose()</Promise>
+    <Promise>@ThreadRole(GUI) for process*(**) | dispose()</Promise>
 
-    <Promise>@Color(GUI) for set*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
 
-    <Promise>@Color(GUI) for toFront() | toBack()</Promise>
+    <Promise>@ThreadRole(GUI) for toFront() | toBack()</Promise>
 
-    <Promise>@Color(GUI) for pack() | show() | hide()</Promise>
+    <Promise>@ThreadRole(GUI) for pack() | show() | hide()</Promise>
 
   </class>
 </package>

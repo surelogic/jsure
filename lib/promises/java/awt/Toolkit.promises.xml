@@ -1,9 +1,9 @@
 <package name="java.awt">
   <class name="Toolkit">
 
-    <Promise>@Transparent for add*Listener(**) | remove*Listener(**)</Promise>
+    <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 
-    <Promise>@Transparent for beep()</Promise>
+    <Promise>@ThreadRoleTransparent for beep()</Promise>
 
   </class>  
 </package>

@@ -1,10 +1,10 @@
 <package name="java.applet">
-    <class name="AppletContext">
+	<class name="AppletContext">
 
-    <ColorImport>java.awt</ColorImport>
+		<ThreadRoleImport>java.awt.*</ThreadRoleImport>
 
-    <Promise>@Color(AWT) for new(**)</Promise>
-    <Promise>@Color(GUI) for *(**)</Promise>
+		<Promise>@ThreadRole(AWT) for new(**)</Promise>
+		<Promise>@ThreadRole(GUI) for *(**)</Promise>
 
-    </class>
+	</class>
 </package>

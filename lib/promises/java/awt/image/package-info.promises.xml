@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt.image">
+	<Promise>@ThreadRoleImport("java.awt.*;") for *</Promise>
+
+	<Promise>@ThreadRoleTransparent for add*Listener(**) |
+		remove*Listener(**)</Promise>
+
+	<Promise>@ThreadRole("GUI;") for get*(**)</Promise>
+
+	<Promise>@ThreadRole("GUI;") for add*(**) &amp; !(add*Listener(**))</Promise>
+
+	<Promise>@ThreadRole("GUI;") for new(**)| process*(**) | set*(**) |
+		updateUI()</Promise>
+
+	<Promise>@ThreadRoleTransparent for revalidate() | repaint(**)</Promise>
+
+	<Promise>@ThreadRole("AWT;") for fire*(**) | requestFocus*(**) |
+		paint*(**)</Promise>
+
+	<Promise>@Reads("Instance") for getGraphics()</Promise>
+	<Promise>@Writes("java.awt.event.ActionListener.GUIinternal" for
+		getGraphics()</Promise>
+
+</package>

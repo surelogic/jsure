@@ -120,7 +120,7 @@ public class TRoleRenameDrop extends PromiseDrop<ThreadRoleRenameNode> {
     res.myPerCU.addRename(res);
     res.myPerCU.chainsChecked = false;
     res.setMessage("ThreadRoleRename " +res.simpleName+ " for " +res.rawExpr);
-    res.setCategory(JavaGlobals.THREAD_ROLES_CAT);
+    res.setCategory(TRoleMessages.assuranceCategory);
     return res;
   }
 

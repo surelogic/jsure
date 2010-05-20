@@ -1,5 +1,5 @@
 <package name="java.awt">
     <class name="MediaTracker">
-      <Promise>@Transparent for **(**)</Promise>
+      <Promise>@ThreadRoleTransparent for **(**)</Promise>
     </class>  
 </package>

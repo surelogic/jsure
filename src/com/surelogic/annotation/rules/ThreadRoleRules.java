@@ -10,7 +10,6 @@ import java.util.Set;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.aast.promise.ThreadRoleConstraintNode;
 import com.surelogic.aast.promise.ThreadRoleDeclarationNode;
 import com.surelogic.aast.promise.ThreadRoleGrantNode;
 import com.surelogic.aast.promise.ThreadRoleImportNode;
@@ -22,6 +21,8 @@ import com.surelogic.aast.promise.ThreadRoleRevokeNode;
 import com.surelogic.aast.promise.ThreadRoleTransparentNode;
 import com.surelogic.annotation.DefaultSLThreadRoleAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.NullAnnotationParseRule;
+import com.surelogic.annotation.ParseResult;
 import com.surelogic.annotation.parse.SLThreadRoleAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
@@ -35,12 +36,16 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
 import edu.cmu.cs.fluid.ir.SlotInfo;
+import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.callgraph.SimpleCallGraphDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleDeclDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleConstraintDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleCtxSummaryDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleDeclareDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleGrantDrop;
@@ -50,17 +55,17 @@ import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRenameDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleReqSummaryDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRequireDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRevokeDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TransparentPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleTransparentDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ThreadRoleRules extends AnnotationRules {
-	public static final boolean useThreadRoles = false;
+	public static final boolean useThreadRoles = true;
 	
 	public static final String TRANSPARENT = "ThreadRoleTransparent";
-	public static final String TROLE_CONSTRAINT = "ThreadRoleConstraint";
+//	public static final String TROLE_CONSTRAINT = "ThreadRole";
 	public static final String TROLE_IMPORT = "ThreadRoleImport";
-	public static final String TROLE_DECLARATION = "ThreadRoleDeclaration";
-	public static final String TROLE_INCOMPATIBLE = "IncompatibleColors";
+	public static final String TROLE_DECLARATION = "ThreadRoleDecl";
+	public static final String TROLE_INCOMPATIBLE = "ThreadRoleIncompatible";
 	public static final String TROLE_GRANT = "ThreadRoleGrant";
 	public static final String TROLE_REVOKE = "ThreadRoleRevoke";
 	public static final String TROLE_RENAME = "ThreadRoleRename";
@@ -73,8 +78,8 @@ public class ThreadRoleRules extends AnnotationRules {
 
 	private static final AnnotationRules instance = new ThreadRoleRules();
 
-	private static final Transparent_ParseRule transparentRule = new Transparent_ParseRule();
-	private static final TRoleConstraint_ParseRule trConstraintRule = new TRoleConstraint_ParseRule();
+	private static final TRoleTransparent_ParseRule transparentRule = new TRoleTransparent_ParseRule();
+//	private static final TRoleConstraint_ParseRule trConstraintRule = new TRoleConstraint_ParseRule();
 	private static final TRoleImport_ParseRule trImportRule = new TRoleImport_ParseRule();
 	private static final TRoleDeclare_ParseRule trDeclarationRule = new TRoleDeclare_ParseRule();
 	private static final TRoleIncompatible_ParseRule trIncompatibleRule = new TRoleIncompatible_ParseRule();
@@ -121,7 +126,7 @@ public class ThreadRoleRules extends AnnotationRules {
 	@Override
 	public void register(PromiseFramework fw) {
 		registerParseRuleStorage(fw, transparentRule);
-		registerParseRuleStorage(fw, trConstraintRule);
+//		registerParseRuleStorage(fw, trConstraintRule);
 		registerParseRuleStorage(fw, trImportRule);
 		registerParseRuleStorage(fw, trDeclarationRule);
 		registerParseRuleStorage(fw, trIncompatibleRule);
@@ -129,15 +134,38 @@ public class ThreadRoleRules extends AnnotationRules {
 		registerParseRuleStorage(fw, trRevokeRule);
 		registerParseRuleStorage(fw, trRenameRule);
 		registerParseRuleStorage(fw, tRoleRule);
+		// below is example of two rules for single annotation whose parsing
+		// varies depending on its location. Copy and modify for @ThreadRole!
+		fw.registerParseDropRule(new NullAnnotationParseRule(TROLE, PromiseConstants.ptFuncOps) {
+			@Override
+			public ParseResult parse(IAnnotationParsingContext context,
+					String contents) {
+				if (trDeclarationRule.declaredOnValidOp(context.getOp())) {
+					return trDeclarationRule.parse(context, contents);
+				} else {
+					return tRoleRule.parse(context, contents);
+				}
+			}
+		}, true);
+//	    fw.registerParseDropRule(new NullAnnotationParseRule(IN_REGION, PromiseConstants.fieldOrTypeOp) {
+//	    	@Override
+//			public ParseResult parse(IAnnotationParsingContext context, String contents) {
+//				if (FieldDeclaration.prototype.includes(context.getOp())) {
+//					return inRegionRule.parse(context, contents);
+//				} else {
+//					return mapFieldsRule.parse(context, contents);
+//				}
+//			}    	
+//	    }, true);
 		// registerParseRuleStorage(fw, colorImportRule);
 		// registerParseRuleStorage(fw, colorImportRule);
 		// registerParseRuleStorage(fw, colorImportRule);
 	}
 
-	static class Transparent_ParseRule
+	static class TRoleTransparent_ParseRule
 			extends
-			DefaultSLThreadRoleAnnotationParseRule<ThreadRoleTransparentNode, TransparentPromiseDrop> {
-		protected Transparent_ParseRule() {
+			DefaultSLThreadRoleAnnotationParseRule<ThreadRoleTransparentNode, TRoleTransparentDrop> {
+		protected TRoleTransparent_ParseRule() {
 			super(TRANSPARENT, methodDeclOps, ThreadRoleTransparentNode.class);
 		}
 
@@ -154,9 +182,9 @@ public class ThreadRoleRules extends AnnotationRules {
 		}
 
 		@Override
-		protected IPromiseDropStorage<TransparentPromiseDrop> makeStorage() {
+		protected IPromiseDropStorage<TRoleTransparentDrop> makeStorage() {
 			return BooleanPromiseDropStorage.create(name(),
-					TransparentPromiseDrop.class);
+					TRoleTransparentDrop.class);
 		}
 
 		@Override
@@ -165,46 +193,46 @@ public class ThreadRoleRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<ThreadRoleTransparentNode> makePromiseDrop(
 						ThreadRoleTransparentNode a) {
-					TransparentPromiseDrop d = new TransparentPromiseDrop(a);
+					TRoleTransparentDrop d = new TRoleTransparentDrop(a);
 					return storeDropIfNotNull(getStorage(), a, d);
 				}
 			};
 		}
 	}
 
-	static class TRoleConstraint_ParseRule
-			extends
-			DefaultSLThreadRoleAnnotationParseRule<ThreadRoleConstraintNode, TRoleConstraintDrop> {
-		protected TRoleConstraint_ParseRule() {
-			super(TROLE_CONSTRAINT, methodDeclOps, ThreadRoleConstraintNode.class);
-		}
-
-		@Override
-		protected Object parseTRoleAnno(IAnnotationParsingContext context,
-				SLThreadRoleAnnotationsParser parser) throws Exception,
-				RecognitionException {
-			return parser.threadRoleConstraint().getTree();
-		}
-
-		@Override
-		protected IPromiseDropStorage<TRoleConstraintDrop> makeStorage() {
-			return SinglePromiseDropStorage.create(name(),
-					TRoleConstraintDrop.class);
-		}
-
-		@Override
-		protected IAnnotationScrubber<ThreadRoleConstraintNode> makeScrubber() {
-			return new AbstractAASTScrubber<ThreadRoleConstraintNode>(this,
-					ScrubberType.UNORDERED) {
-				@Override
-				protected PromiseDrop<ThreadRoleConstraintNode> makePromiseDrop(
-						ThreadRoleConstraintNode a) {
-					return storeDropIfNotNull(getStorage(), a,
-							new TRoleConstraintDrop(a));
-				}
-			};
-		}
-	}
+//	static class TRoleConstraint_ParseRule
+//			extends
+//			DefaultSLThreadRoleAnnotationParseRule<ThreadRoleConstraintNode, TRoleConstraintDrop> {
+//		protected TRoleConstraint_ParseRule() {
+//			super(TROLE_CONSTRAINT, methodDeclOps, ThreadRoleConstraintNode.class);
+//		}
+//
+//		@Override
+//		protected Object parseTRoleAnno(IAnnotationParsingContext context,
+//				SLThreadRoleAnnotationsParser parser) throws Exception,
+//				RecognitionException {
+//			return parser.threadRoleConstraint().getTree();
+//		}
+//
+//		@Override
+//		protected IPromiseDropStorage<TRoleConstraintDrop> makeStorage() {
+//			return SinglePromiseDropStorage.create(name(),
+//					TRoleConstraintDrop.class);
+//		}
+//
+//		@Override
+//		protected IAnnotationScrubber<ThreadRoleConstraintNode> makeScrubber() {
+//			return new AbstractAASTScrubber<ThreadRoleConstraintNode>(this,
+//					ScrubberType.UNORDERED) {
+//				@Override
+//				protected PromiseDrop<ThreadRoleConstraintNode> makePromiseDrop(
+//						ThreadRoleConstraintNode a) {
+//					return storeDropIfNotNull(getStorage(), a,
+//							new TRoleConstraintDrop(a));
+//				}
+//			};
+//		}
+//	}
 
 	static class TRole_ParseRule extends
 			DefaultSLThreadRoleAnnotationParseRule<ThreadRoleNode, TRoleRequireDrop> {
@@ -352,7 +380,7 @@ public class ThreadRoleRules extends AnnotationRules {
 			TRoleNameList_ParseRule<ThreadRoleDeclarationNode, TRoleDeclareDrop> {
 
 		protected TRoleDeclare_ParseRule() {
-			super("ThreadRoleDeclare", declOps, ThreadRoleDeclarationNode.class,
+			super(TROLE_DECLARATION, packageTypeDeclOps, ThreadRoleDeclarationNode.class,
 					TRoleDeclareDrop.class);
 		}
 
@@ -360,7 +388,7 @@ public class ThreadRoleRules extends AnnotationRules {
 		protected Object parseTRoleAnno(IAnnotationParsingContext context,
 				SLThreadRoleAnnotationsParser parser) throws Exception,
 				RecognitionException {
-			return parser.threadRole().getTree();
+			return parser.threadRoleDeclare().getTree();
 		}
 
 		@Override

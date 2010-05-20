@@ -1,5 +1,5 @@
 <package name="java.awt.event">
   <class name="FocusListener">
-    <Promise>@Color(AWT) for focus*(java.awt.event.FocusEvent)</Promise>
+    <Promise>@ThreadRole(AWT) for focus*(java.awt.event.FocusEvent)</Promise>
   </class>  
 </package>

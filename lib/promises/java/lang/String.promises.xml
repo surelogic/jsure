@@ -5,7 +5,7 @@
   <method name="length">
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <transparent/>
+   <ThreadRoleTransparent/>
   </method>
   
   

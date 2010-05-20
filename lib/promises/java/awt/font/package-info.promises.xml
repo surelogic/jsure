@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="java.awt.font">
+  <promise keyword="Promise"
+      contents="&quot;ThreadRoleImport java.awt.*;&quot; for *"/>
+
+      <promise keyword="Promise"
+	contents="&quot;ThreadRoleTransparent&quot; for add*Listener(**) | remove*Listener(**)"/>
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for get*(**) | create*(**) | is*(**)"/>
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for add*(**) &amp; !(add*Listener(**))"/>
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for new(**)"/>
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for process*(**)"/>
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for set*(**)"/>
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for updateUI()"/>
+  <promise keyword="Promise"
+    contents="&quot;ThreadRoleTransparent&quot; for revalidate()"/>
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRoleTransparent&quot; for repaint(**)"/>
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;AWT;&quot;)&quot; for fire*(**)"/>
+
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;AWT;&quot;)&quot; for requestFocus*(**)"/>
+
+
+  <promise keyword="Promise"
+    contents="&quot;ThreadRole(&quot;AWT;&quot;)&quot; for paint*(**)"/>
+
+</package>

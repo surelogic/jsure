@@ -1,46 +1,46 @@
 <package name="java.awt">
 	<class name="Component">
-		<ColorImport>java.awt</ColorImport>
-		<Promise>@Transparent for add*Listener(*)</Promise>
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
+		<Promise>@ThreadRoleTransparent for add*Listener(*)</Promise>
     <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add*Listener(*)</Promise>
-    <Promise>@Transparent for remove*Listener(*)</Promise>
+    <Promise>@ThreadRoleTransparent for remove*Listener(*)</Promise>
     <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for remove*Listener(*)</Promise>
-	  <Promise>@Color(AWT) for remove(**) &amp; !(remove*Listener(**))</Promise>
+	  <Promise>@ThreadRole(AWT) for remove(**) &amp; !(remove*Listener(**))</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for remove(*)</Promise>
-    <Promise>@Color(GUI) for set*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for set*(**) &amp; !(setRequestFocusController(*))</Promise>
-    <Promise>@Color(GUI) for is*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for is*(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIstuff) for is*(**) &amp; !(isInstanceOf(**))</Promise>
-<!-- <Promise>@Color(GUI) for get*(**) &amp; !(getSize(**))</Promise> -->
-    <Promise>@Color(GUI) for get*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for get*(**) &amp; !(getSize(**))</Promise> 
+    <Promise>@ThreadRole(GUI) for get*(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for public get*(**) &amp; !(getSize())</Promise>
 	  <Promise>@RegionEffects(reads Instance) for getSize()</Promise>
-    <Promise>@Color(GUI) for create*Image(**)</Promise>
+    <Promise>@ThreadRole(GUI) for create*Image(**)</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for create*Image(**)</Promise>
 
-		<Promise>@Transparent for repaint(**)</Promise>
+		<Promise>@ThreadRoleTransparent for repaint(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance) for repaint(**)</Promise>
 
 
-    <Promise>@Color(AWT) for removeNotify()</Promise>
+    <Promise>@ThreadRole(AWT) for removeNotify()</Promise>
    
- 	  <Promise>@Color(GUI) for *Focus(**) &amp; !(requestFocus*(**))</Promise>
+ 	  <Promise>@ThreadRole(GUI) for *Focus(**) &amp; !(requestFocus*(**))</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for *Focus(**)</Promise>
 
-	 	<Promise>@Color(GUI) for enable*(**) | disable*(**)</Promise>
+	 	<Promise>@ThreadRole(GUI) for enable*(**) | disable*(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for enable*(**) | disable*(**)</Promise>
 
-    <Promise>@Color(GUI) for validate() | invalidate() | hide()</Promise>
+    <Promise>@ThreadRole(GUI) for validate() | invalidate() | hide()</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for validate() | invalidate() | hide()</Promise>
 
-    <Promise>@Color(AWT) for process*Event(*)</Promise>
+    <Promise>@ThreadRole(AWT) for process*Event(*)</Promise>
 	  
 	  
     <constructor>
       <starts>nothing</starts>
       <RegionEffects>none</RegionEffects>
       <unique>return</unique>
-      <transparent/>
+      <ThreadRoleTransparent/>
     </constructor>
 	  
     <method name="getFont" params="">
@@ -54,31 +54,31 @@
     </method>
 
     <method name="update" params="java.awt.Graphics">
-    	<Color>AWT</Color>
+    	<ThreadRole>AWT</ThreadRole>
     </method>
     <method name="mouseDown" params="java.awt.Event, int, int">
-      <Color>AWT</Color>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="mouseUp" params="java.awt.Event, int, int">
-      <Color>AWT</Color>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="paint" params="java.awt.Graphics">
-      <Color>AWT</Color>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="mouseEnter" params="java.awt.Event, int, int">
-    	<Color>AWT</Color>
+    	<ThreadRole>AWT</ThreadRole>
     </method>
     <method name="mouseExit" params="java.awt.Event, int, int">
-      <Color>AWT</Color>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="mouseDrag" params="java.awt.Event, int, int">
-      <Color>AWT</Color>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="mouseMove" params="java.awt.Event, int, int">
-      <Color>AWT</Color>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="repaint" params="">
-      <Transparent/>
+      <ThreadRoleTransparent/>
       <Reads>Instance</Reads>
     </method>
     <method name="setBackground" params="java.awt.Color">

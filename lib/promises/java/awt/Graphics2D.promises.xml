@@ -1,17 +1,17 @@
 <package name="java.awt">
   <class name="Graphics2D">
 
-    <ColorImport>java.awt</ColorImport>
+    <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-    <Promise>@Color(GUI) for get*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for get*(**)</Promise>
     
-    <Promise>@Color(GUI) for set*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
 
-    <Promise>@Color(GUI) for draw*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for draw*(**)</Promise>
     
-    <Promise>@Color(GUI) for fill*(**)</Promise>
+    <Promise>@ThreadRole(GUI) for fill*(**)</Promise>
     
-    <Promise>@Color(GUI) for translate(**)</Promise>
+    <Promise>@ThreadRole(GUI) for translate(**)</Promise>
     
   </class>
 </package>

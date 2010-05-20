@@ -1,5 +1,5 @@
 <package name="java.awt">
     <class name="LayoutManager">
-    <Promise>@Color(AWT) for *(**) &amp; !(addLayoutComponent(*,*))</Promise>
+    <Promise>@ThreadRole(AWT) for *(**) &amp; !(addLayoutComponent(*,*))</Promise>
     </class>  
 </package>

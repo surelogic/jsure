@@ -1,8 +1,8 @@
 <package name="javax.servlet">
     <class name="Servlet">
-      <ColorImport>javax.servlet</ColorImport>
+      <ThreadRoleImport>javax.servlet</ThreadRoleImport>
       <method name="service" params="javax.servlet.ServletRequest,javax.servlet.ServletResponse">
-        <Color>Servlet</Color>
+        <ThreadRole>Servlet</ThreadRole>
       </method>    
     </class>  
 </package>
