@@ -43,18 +43,21 @@ import edu.cmu.cs.fluid.tree.Operator;
  * <p>
  * In there most general form, the <code>processAnonClassExpression</code> and
  * <code>processConstructorCall</code> methods take a reference to an
- * {@link Action} object. This object specifies action to be taken immediately
+ * {@link InstanceInitAction} object. This object specifies actions to be taken immediately
  * before and immediately after the recursive visitation is performed.
  * Furthermore, these actions are taken only if the recursive visitation occurs.
  * In particular, they methods of the {@link Action} object are called from
  * within a <code>try</code>&ndash;<code>finally</code> block as follows
  * 
  * <pre>
- * try {
- *   action.tryBefore();
- *   // perform recursive visitation
- * } finally {
- *   action.finallyAfter();
+ * if (visit) {
+ *   try {
+ *     action.tryBefore();
+ *     // perform recursive visitation
+ *   } finally {
+ *     action.finallyAfter();
+ *   }
+ *   action.afterVisit();
  * }
  * </pre>
  * 
@@ -63,23 +66,6 @@ import edu.cmu.cs.fluid.tree.Operator;
  * context-sensitive state within the parent visitor.
  */
 public final class InstanceInitializationVisitor extends Visitor<Void> {
-  /**
-   * Encapsulates activities that should occur immediately before/after the 
-   * recursive visitation is performed.
-   * @see {@link #InstanceInitializationVisitor}
-   */
-  public static interface Action {
-    public void tryBefore();
-    public void finallyAfter();
-  }
-  
-  private static final Action NULL_ACTION = new Action() {
-    public void tryBefore() { /* do nothing */ }
-    public void finallyAfter() { /* do nothing */}
-  };
-  
-  
-  
   /**
    * The analysis we are working for, and that should be applied to the instance
    * initializers.
@@ -116,7 +102,8 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
    * @return Whether the initializers where visited or not.
    */
   public static boolean processConstructorCall(final IRNode constructorCall,
-      final IRNode classBody, final Visitor<Void> analysis, final Action action) {
+      final IRNode classBody, final Visitor<Void> analysis,
+      final InstanceInitAction action) {
     final IRNode conObject = ConstructorCall.getObject(constructorCall);
     final Operator conObjectOp = JJNode.tree.getOperator(conObject);
     if (SuperExpression.prototype.includes(conObjectOp)) {
@@ -129,6 +116,7 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
       } finally {
         action.finallyAfter();
       }
+      action.afterVisit();
       return true;
     } else if (ThisExpression.prototype.includes(conObjectOp)) {
       // Don't do anything
@@ -140,7 +128,8 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
 
   public static boolean processConstructorCall(final IRNode constructorCall,
       final IRNode classBody, final Visitor<Void> analysis) {
-    return processConstructorCall(constructorCall, classBody, analysis, NULL_ACTION);
+    return processConstructorCall(
+        constructorCall, classBody, analysis, InstanceInitAction.NULL_ACTION);
   }
 
   /**
@@ -160,7 +149,8 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
    * @return Whether the initializers where visited or not.
    */
   public static boolean processConstructorCall(
-      final IRNode constructorCall, final Visitor<Void> analysis, final Action action) {
+      final IRNode constructorCall, final Visitor<Void> analysis,
+      final InstanceInitAction action) {
     IRNode classBody = JJNode.tree.getParentOrNull(constructorCall);
     while (!ClassBody.prototype.includes(classBody)) {
       classBody = JJNode.tree.getParentOrNull(classBody);
@@ -170,7 +160,8 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
 
   public static boolean processConstructorCall(
       final IRNode constructorCall, final Visitor<Void> analysis) {
-    return processConstructorCall(constructorCall, analysis, NULL_ACTION);
+    return processConstructorCall(
+        constructorCall, analysis, InstanceInitAction.NULL_ACTION);
   }
 
   /**
@@ -185,7 +176,7 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
    *          The analysis to invoke.
    */
   public static void processAnonClassExpression(final IRNode anonClassExpr,
-      final Visitor<Void> analysis, final Action action) {
+      final Visitor<Void> analysis, final InstanceInitAction action) {
     final InstanceInitializationVisitor visitor =
       new InstanceInitializationVisitor(analysis);
     try {
@@ -194,11 +185,13 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
     } finally {
       action.finallyAfter();
     }
+    action.afterVisit();
   }
   
   public static void processAnonClassExpression(
       final IRNode anonClassExpr,  final Visitor<Void> analysis) {
-    processAnonClassExpression(anonClassExpr, analysis, NULL_ACTION);
+    processAnonClassExpression(
+        anonClassExpr, analysis, InstanceInitAction.NULL_ACTION);
   }
   
   

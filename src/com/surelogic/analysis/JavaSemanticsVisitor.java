@@ -1,7 +1,5 @@
 package com.surelogic.analysis;
 
-import com.surelogic.analysis.InstanceInitializationVisitor.Action;
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
@@ -86,23 +84,6 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     
     public abstract void visit(JavaSemanticsVisitor v, IRNode typeDecl);
   }
-  
-  
-  /**
-   * TODO Fill in purpose.
-   */
-  protected static interface InstanceInitAction extends InstanceInitializationVisitor.Action {
-    public void afterVisit();
-  }
-
-  /**
-   * Action that does nothing.
-   */
-  protected static final InstanceInitAction NULL_ACTION = new InstanceInitAction() {
-    public void tryBefore() { /* do nothing */ }
-    public void finallyAfter() { /* do nothing */ }
-    public void afterVisit() { /* do nothing */ }
-  };
   
   
   
@@ -487,7 +468,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       try {
         if (action != null) {
           InstanceInitializationVisitor.processAnonClassExpression(expr, this,
-              new Action() {
+              new InstanceInitAction() {
                 public void tryBefore() {
                   insideConstructor = true; // We are inside the constructor of the anonymous class
                   enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
@@ -499,8 +480,11 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
                   leaveEnclosingDecl(prevEnclosingDecl);
                   insideConstructor = prevInsideConstructor;
                 }
+                
+                public void afterVisit() {
+                  action.afterVisit();
+                }
               });
-           action.afterVisit();
         }
 
         // Still inside the anonymous class expression
@@ -733,7 +717,6 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     final InstanceInitAction action = getConstructorCallInitAction(expr);
     InstanceInitializationVisitor.processConstructorCall(
         expr, TypeDeclaration.getBody(enclosingType), this, action);
-    action.afterVisit();
     return null;
   }
 
@@ -779,7 +762,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * @return The action to use.  This method must not return <code>null</code>.
    */
   protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
-    return NULL_ACTION;
+    return InstanceInitAction.NULL_ACTION;
   }
  
   /**

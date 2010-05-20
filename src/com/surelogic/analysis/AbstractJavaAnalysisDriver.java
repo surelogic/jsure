@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis;
 
 import java.util.LinkedList;
@@ -158,7 +157,7 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   @Override
   protected final InstanceInitAction getAnonClassInitAction(final IRNode expr) {
     final InstanceInitAction a = getAnonClassInitAction2(expr);
-    return a == null ? NULL_ACTION : a;
+    return a == null ? InstanceInitAction.NULL_ACTION : a;
   }
 
   /**
@@ -186,7 +185,8 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   protected final InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
     final InstanceInitAction a = getConstructorCallInitAction2(ccall);
     // Correct for null
-    final InstanceInitAction a2 = a == null ? NULL_ACTION : a;
+    final InstanceInitAction a2 =
+      (a == null) ? InstanceInitAction.NULL_ACTION : a;
     return new InstanceInitAction() {
       public void tryBefore() {
         final Q subAnalysisQuery = createSubQuery(ccall);

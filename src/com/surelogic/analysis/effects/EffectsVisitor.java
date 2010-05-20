@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;

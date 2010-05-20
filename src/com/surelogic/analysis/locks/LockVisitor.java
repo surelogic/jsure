@@ -21,10 +21,10 @@ import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysis;
+import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.InstanceInitializationVisitor;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.analysis.InstanceInitializationVisitor.Action;
 import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effects;
@@ -1991,7 +1991,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		final MethodCallUtils.EnclosingRefs oldEnclosingRefs = ctxtEnclosingRefs;
 		final boolean oldCtxtInsideAnonClassExpr = ctxtInsideAnonClassExpr;
 		InstanceInitializationVisitor.processAnonClassExpression(expr, this,
-				new Action() {
+				new InstanceInitAction() {
 					public void tryBefore() {
 						ctxtInsideAnonClassExpr = true;
 						// Create the substitution map
@@ -2061,6 +2061,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtInsideConstructor = oldInsideConstructor;
 						ctxtConstructorName = oldConstructorName;
 						ctxtTheReceiverNode = oldTheReceiverNode;
+					}
+					
+					public void afterVisit() {
+					  // nothing
 					}
 				});
 
@@ -2159,7 +2163,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		final MustHoldAnalysis.LocksForQuery oldLocksForQuery = ctxtLocksForQuery;
 		final MustReleaseAnalysis.Query oldCtxtMustReleaseQuery = ctxtMustReleaseQuery;
 		InstanceInitializationVisitor.processConstructorCall(expr,
-				TypeDeclaration.getBody(ctxtTypeDecl), this, new Action() {
+				TypeDeclaration.getBody(ctxtTypeDecl), this, new InstanceInitAction() {
 					public void tryBefore() {
 						ctxtOnBehalfOfConstructor = true;
 						ctxtBcaQuery = ctxtBcaQuery.getSubAnalysisQuery(expr);
@@ -2174,6 +2178,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtHeldLocksQuery = oldHeldLocksQuery;
 						ctxtLocksForQuery = oldLocksForQuery;
 						ctxtMustReleaseQuery = oldCtxtMustReleaseQuery;
+					}
+					
+					public void afterVisit() {
+					  // nothing
 					}
 				});
 
