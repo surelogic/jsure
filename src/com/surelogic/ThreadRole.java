@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * Note that {@code ThreadRole true} is equivalent to the {@code ThreadRoleTransparent}
  * annotation.
  * 
- * @see ThreadRoleTransparent
+ * See also {@link ThreadRoleTransparent}
  * <p>
  * When applied to a type, or when placed in a package.java file or a module-scoped location:
  * Declares a non-empty list of Thread roles. The declared roles can be referred to in other
@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  * short name (if it is visible in scope). Use the {@code ThreadRoleImport}
  * annotation to import these declarations into a scope.
  * 
- * @see ThreadRoleImport
+ * See also {@link ThreadRoleImport}
  * 
  */
 @Documented
