@@ -319,9 +319,6 @@ final class LockExpressions {
   /**
    * A tree visitor that we run over a method/constructor body to find all the
    * occurrences of syntactically unique final lock expressions. 
-   * 
-   * XXX: Should this be a JavaSemanticsVisitor or not???
-   * 
    * @author Aaron Greenhouse
    */
   private final class LockExpressionVisitor extends VoidTreeWalkVisitor {

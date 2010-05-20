@@ -1,9 +1,9 @@
 package com.surelogic.analysis;
 
+import com.surelogic.analysis.InstanceInitializationVisitor.Action;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor;
-import edu.cmu.cs.fluid.java.analysis.InstanceInitializationVisitor.Action;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
