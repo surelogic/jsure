@@ -262,6 +262,12 @@ public class AnnotationVisitor extends Visitor<Void> {
   }
   
   @Override
+  public Void visitBlockStatement(IRNode node) {
+	  checkForBlockComment(node);
+	  return super.visitBlockStatement(node);
+  }
+  
+  @Override
   public Void visitFieldDeclaration(IRNode node) {
     ISrcRef ref = JavaNode.getSrcRef(node);
     if (ref == null) {
@@ -280,7 +286,23 @@ public class AnnotationVisitor extends Visitor<Void> {
     checkForJavadoc(node, ref);
     return super.visitDeclaration(node);
   }
-
+  
+  private void checkForBlockComment(IRNode node) {
+	  final String comment = JavaNode.getCommentOrNull(node);
+	  if (comment != null && comment.length() != 0) {
+		  // Trim comment bits
+		  int start = comment.indexOf('@');
+		  if (start >= 0) {
+			  int end   = comment.length();
+			  if (comment.endsWith("*/")) {
+				  end = end - 2;
+			  }		  
+			  final ISrcRef ref = JavaNode.getSrcRef(node);		  
+			  handleJavadocPromise(node, comment.substring(start, end), ref.getOffset());
+		  }
+	  }
+  }
+  
   private void checkForJavadoc(IRNode node, ISrcRef ref) {
 	if (!allowJavadoc(tEnv)) {
 		return;
