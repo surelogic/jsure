@@ -50,6 +50,10 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 		if (!declaredOnValidOp(context.getOp())) {
 			context.reportError(IAnnotationParsingContext.UNKNOWN,
 				"@"+name()+" declared on invalid operator: "+context.getOp().name());
+            /*
+			Operator op = context.getOp();
+			declaredOnValidOp(op);
+			*/
 			return ParseResult.FAIL;
 		}
 		try {
