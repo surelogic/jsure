@@ -36,7 +36,7 @@ public class Test {
   
   public void doStuff() {
     /* Needs lock RW2 and RW3 because 
-     * - The field is @Unqiue and its state is aggregated into the state of the
+     * - The field is Unique and its state is aggregated into the state of the
      *   Test object.
      * - The method affects the region Instance of the object referenced by this.f.
      * - The region Instance of the object referenced by this.f contains the
