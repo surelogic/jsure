@@ -234,8 +234,21 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
   
   @Override 
   public Void visitAnonClassExpression(final IRNode expr) {
-    // Traverse into the arguments, but *not* the body
-    doAccept(AnonClassExpression.getArgs(expr));
+    // STOP!
+//    // Traverse into the arguments, but *not* the body
+//    doAccept(AnonClassExpression.getArgs(expr));
+    return null;
+  }
+  
+  @Override
+  public Void visitMethodDeclaration(final IRNode mdecl) {
+    // STOP!
+    return null;
+  }
+  
+  @Override
+  public Void visitConstructorDeclaration(final IRNode cdecl) {
+    // STOP!
     return null;
   }
 }
