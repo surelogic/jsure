@@ -4,7 +4,9 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.Visitor;
@@ -65,17 +67,25 @@ import edu.cmu.cs.fluid.tree.Operator;
  * The action object is provided as means for initializing and resetting
  * context-sensitive state within the parent visitor.
  */
-public final class InstanceInitializationVisitor extends Visitor<Void> {
-  /**
-   * The analysis we are working for, and that should be applied to the instance
-   * initializers.
-   */
-  private final Visitor<Void> analysisWeAreHelping;
+public final class InstanceInitializationVisitor {
+  // Prevent instantiation of this class
+  private InstanceInitializationVisitor() {
+    // do nothing
+  }
+
   
   
-  
-  private InstanceInitializationVisitor(final Visitor<Void> yourAnalysis) {
-    analysisWeAreHelping = yourAnalysis;
+  private static void processClassBody(
+      final Visitor<Void> analysisWeAreHelping, final IRNode classBody) {
+    for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
+      final Operator op = JJNode.tree.getOperator(bodyDecl);
+      if (FieldDeclaration.prototype.includes(op) ||
+          ClassInitializer.prototype.includes(op)) {
+        if (!JavaNode.getModifier(bodyDecl, JavaNode.STATIC)) {
+          analysisWeAreHelping.doAcceptForChildren(bodyDecl);
+        }
+      }       
+    }
   }
 
 
@@ -108,11 +118,9 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
     final Operator conObjectOp = JJNode.tree.getOperator(conObject);
     if (SuperExpression.prototype.includes(conObjectOp)) {
       // Visit the initializers.
-      final InstanceInitializationVisitor initVisitor =
-        new InstanceInitializationVisitor(analysis);
       try {
         action.tryBefore();
-        initVisitor.doAccept(classBody);
+        processClassBody(analysis, classBody);
       } finally {
         action.finallyAfter();
       }
@@ -177,11 +185,9 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
    */
   public static void processAnonClassExpression(final IRNode anonClassExpr,
       final Visitor<Void> analysis, final InstanceInitAction action) {
-    final InstanceInitializationVisitor visitor =
-      new InstanceInitializationVisitor(analysis);
     try {
       action.tryBefore();
-      visitor.doAccept(AnonClassExpression.getBody(anonClassExpr));
+      processClassBody(analysis, AnonClassExpression.getBody(anonClassExpr));
     } finally {
       action.finallyAfter();
     }
@@ -192,63 +198,5 @@ public final class InstanceInitializationVisitor extends Visitor<Void> {
       final IRNode anonClassExpr,  final Visitor<Void> analysis) {
     processAnonClassExpression(
         anonClassExpr, analysis, InstanceInitAction.NULL_ACTION);
-  }
-  
-  
-    
-  /**
-   * Causes the class to visit an entire subtree.
-   */
-  @Override
-  public final Void visit(IRNode node) {
-    doAcceptForChildren(node);
-    return null;
-  }
-
-  // for initializers and field declarations, check if static
-  @Override
-  public Void visitClassInitializer(final IRNode node) {
-    if (!JavaNode.getModifier(node, JavaNode.STATIC)) {
-      // TODO: change this call analysisWeAreHelping.visitClassInitiaizer()
-      // no null-check, because we want to fail fast.
-      analysisWeAreHelping.doAcceptForChildren(node);
-    }
-    return null;
-  }
-
-  @Override
-  public Void visitFieldDeclaration(final IRNode node) {
-    if (!JavaNode.getModifier(node, JavaNode.STATIC)) {
-      // TODO: change this call analysisWeAreHelping.visitFieldDeclaration()
-      // no null-check, because we wish to fail fast if wrong!
-      analysisWeAreHelping.doAcceptForChildren(node);
-    }
-    return null;
-  }
-
-  @Override
-  public Void visitTypeDeclaration(final IRNode expr) {
-    // Don't go inside type/class declarations
-    return null;
-  }
-  
-  @Override 
-  public Void visitAnonClassExpression(final IRNode expr) {
-    // STOP!
-//    // Traverse into the arguments, but *not* the body
-//    doAccept(AnonClassExpression.getArgs(expr));
-    return null;
-  }
-  
-  @Override
-  public Void visitMethodDeclaration(final IRNode mdecl) {
-    // STOP!
-    return null;
-  }
-  
-  @Override
-  public Void visitConstructorDeclaration(final IRNode cdecl) {
-    // STOP!
-    return null;
   }
 }

@@ -1,14 +1,20 @@
 package com.surelogic.analysis;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
+import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * Visitor that further imposes Java evaluation semantics on the visitation. In
@@ -85,6 +91,27 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     public abstract void visit(JavaSemanticsVisitor v, IRNode typeDecl);
   }
   
+  private enum WhichMembers {
+    STATIC {
+      @Override
+      protected boolean acceptsModifier(final boolean isStatic) {
+        return isStatic;
+      }
+    },
+    INSTANCE {
+      @Override
+      protected boolean acceptsModifier(final boolean isStatic) {
+        return !isStatic;
+      }
+    };
+    
+    protected abstract boolean acceptsModifier(boolean isStatic);
+    
+    public final boolean acceptsMember(final IRNode bodyDecl) {
+      return acceptsModifier(JavaNode.getModifier(bodyDecl, JavaNode.STATIC));
+    }
+  }
+
   
   
   /**
@@ -158,6 +185,34 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     enclosingType = eType;
     enclosingDecl = eDecl;
   }
+  
+  
+  
+  
+  /**
+   * Visit the immediate children of a classBody and handle the field
+   * declarations and ClassInitializer blocks.
+   * 
+   * @param classBody
+   *          A ClassBody IRNode.
+   * @param isStatic
+   *          <code>true</code> if we should process <code>static</code>
+   *          fields and <code>static</code> initializer blocks only;
+   *          <code>false</code> if we should process instance field
+   *          declarations and instance initializer blocks only.
+   */
+  private void processClassBody(final IRNode classBody, final WhichMembers which) {
+    for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
+      final Operator op = JJNode.tree.getOperator(bodyDecl);
+      if (FieldDeclaration.prototype.includes(op) ||
+          ClassInitializer.prototype.includes(op)) {
+        if (which.acceptsMember(bodyDecl)) {
+          this.doAcceptForChildren(bodyDecl);
+        }
+      }       
+    }
+  }
+
   
   
   /**
@@ -467,24 +522,24 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       enterEnclosingType(expr);
       try {
         if (action != null) {
-          InstanceInitializationVisitor.processAnonClassExpression(expr, this,
-              new InstanceInitAction() {
-                public void tryBefore() {
-                  insideConstructor = true; // We are inside the constructor of the anonymous class
-                  enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
-                  action.tryBefore();
-                }
-      
-                public void finallyAfter() {
-                  action.finallyAfter();
-                  leaveEnclosingDecl(prevEnclosingDecl);
-                  insideConstructor = prevInsideConstructor;
-                }
-                
-                public void afterVisit() {
-                  action.afterVisit();
-                }
-              });
+          /* Need to visit the instance initializer blocks and instance field 
+           * declarations.  We rely on the fact that anonymous classes cannot 
+           * have static field members or static initializer blocks.  We ignore
+           * method and constructor declarations.  I know this seems odd, but
+           * see Bug 1662.  Technically the initializer blocks of the anonymous
+           * class expression are executed as part of the enclosing method/constructor. 
+           */
+          try {
+            insideConstructor = true; // We are inside the constructor of the anonymous class
+            enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
+            action.tryBefore();
+            processClassBody(AnonClassExpression.getBody(expr), WhichMembers.INSTANCE);
+          } finally {
+            action.finallyAfter();
+            leaveEnclosingDecl(prevEnclosingDecl);
+            insideConstructor = prevInsideConstructor;
+          }
+          action.afterVisit();
         }
 
         // Still inside the anonymous class expression
@@ -616,7 +671,65 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   protected void handleClassDeclaration(final IRNode classDecl) {
     handleNonAnnotationTypeDeclaration(classDecl);
   }
+  
+  /**
+   * Visit the promise node representing the static initialization method
+   * <code>clinit()</code>.  We only get here if the original node passed to
+   * {@link #visit(IRNode)} is a ClassInitDeclaration.   The order of operations is
+   * <ol>
+   *   <li>Call {@link #handleClassInitDeclaration(IRNode)}.
+   *   <li>For each <code>static</code> initializer and <code>static</code>
+   *   field declaration in the class associated with the ClassInitDeclaration:
+   *   <ol>
+   *     <li>Set the enclosing method to class init declaration.
+   *     <li>Call {@link #enteringEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
+   *     we are entering.
+   *     <li>Recursively visit the contents of the initializer/field declaration.
+   *     <li>Call {@link #leavingEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
+   *     we are leaving.
+   *     <li>Reset the enclosing method declaration to <code>null</code>
+   *   </ol>
+   * </ol>
+   * 
+   */
+  @Override
+  public final Void visitClassInitDeclaration(final IRNode node) {
+    /* Give subclass an opportunity to deal with the ClassInitDeclaration
+     * itself.
+     */
+    handleClassInitDeclaration(node);
+    
+    /* Recursively find all the static initializer blocks and static field
+     * initializations in the class.  This will forward calls to
+     * visitClassInitializer() and visitVariableDeclarator(), which call
+     * entering and leaving decl appropriately already. 
+     */
+    final IRNode classDecl = JavaPromise.getPromisedFor(node);
+    final IRNode classBody =
+      AnonClassExpression.prototype.includes(classDecl) ?
+          AnonClassExpression.getBody(classDecl) :
+            TypeDeclaration.getBody(classDecl);
+    processClassBody(classBody, WhichMembers.STATIC);
+    
+    // Done
+    return null;
+  }
 
+  /**
+   * Called by {@link #visitClassInitDeclaration(IRNode)} to handle the visitation of
+   * the class init declaration node itself. This is called before any of the
+   * static initializers and static field initializations are visited.  The 
+   * enclosing decl is <em>not</em> set when this method is called; it is left
+   * as <code>null</code>.
+   * 
+   * <p>The default implementation does nothing.
+   * 
+   * @param node The ClassInitDeclaration node
+   */
+  protected void handleClassInitDeclaration(final IRNode node) {
+    // do nothing
+  }
+  
   /**
    * If the initializer is <code>static</code>, we
    * <ol>
@@ -628,6 +741,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *   of the initializer by calling {@link #handleStaticInitializer}.
    *   <li>Call {@link #leavingEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
    *   we are leaving.
+   *   <li>Reset the enclosing method declaration to <code>null</code>
    * </ol>
    * 
    * <p>Otherwise, we do nothing: the contents of the
@@ -713,10 +827,19 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     // 1. Visit the call itself
     handleConstructorCall(expr);
     
-    // 2.  Make sure we account for the super class's field initializers, etc
-    final InstanceInitAction action = getConstructorCallInitAction(expr);
-    InstanceInitializationVisitor.processConstructorCall(
-        expr, TypeDeclaration.getBody(enclosingType), this, action);
+    final IRNode conObject = ConstructorCall.getObject(expr);
+    final Operator conObjectOp = JJNode.tree.getOperator(conObject);
+    if (SuperExpression.prototype.includes(conObjectOp)) {
+      // 2.  Make sure we account for the super class's field initializers, etc
+      final InstanceInitAction action = getConstructorCallInitAction(expr);
+      try {
+        action.tryBefore();      
+        processClassBody(JJNode.tree.getParent(enclosingDecl), WhichMembers.INSTANCE);
+      } finally {
+        action.finallyAfter();
+      }
+      action.afterVisit();
+    }
     return null;
   }
 
