@@ -316,9 +316,8 @@ public final class LocalVariableDeclarations {
    * parameter declarations. {@link #doAccept(IRNode)} must only be called with
    * a MethodDeclaration, ConstructorDeclaration, or ClassInitializer. 
    * 
-   * <p>Right now this returns too many variables, because it will return
-   * those declarations that appear <em>after</em> the nested type we came
-   * up from, when in reality, those declarations are not accessible to it.
+   * <p>We correctly disregard any final variable declarations that 
+   * appear <em>after</em> the nested type we came up from.
    */
   private static class ExternalDeclarationsVisitor extends VoidTreeWalkVisitor {
     // =========================================================================
