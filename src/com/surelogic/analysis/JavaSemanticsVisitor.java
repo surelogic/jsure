@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -158,9 +159,26 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   }
   
   /**
-   * The constructor to use if the visitation is going to start below a type
-   * declaration. This constructor makes sure that the enclosing declaration and
-   * enclosing type are properly initialized.
+   * The constructor to use if the visitation is going to start at a method or
+   * constructor declaration, or a ClassInitDeclaration, or an InitDeclaration.
+   * This constructor makes sure that the enclosing declaration and enclosing
+   * type are properly initialized.
+   * 
+   * @param goInside
+   *          <code>true</code> if the contents of nested types should be
+   *          visited.
+   * @param eDecl
+   *          The nearest method/constructor declaration that surrounds the node
+   *          at which the visitation will start. Must not be <code>null</code>.
+   *          Must be one of MethodDeclaration, ConstructorDeclaration,
+   *          InitDeclaration, or ClassInitDeclaration.
+   */
+  protected JavaSemanticsVisitor(final boolean goInside, final IRNode flowUnit) {
+    this(goInside, getInitialEnclosingType(flowUnit), flowUnit);
+  }
+  
+  /**
+   * General constructor.  Only used internally.
    * 
    * @param goInside
    *          <code>true</code> if the contents of nested types should be
@@ -171,14 +189,14 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * @param eDecl
    *          The nearest method/constructor declaration that surrounds the node
    *          at which the visitation will start. May be null if the visitation
-   *          does not start inside method/constructor. Must be one of
+   *          does not start inside a method/constructor. Must be one of
    *          MethodDeclaration, ConstructorDeclaration, InitDeclaration, or
    *          ClassInitDeclaration. If a MethodDeclaration or
    *          ConstructorDeclaration, then the grandparent of {@code eDecl} must
    *          be {@code eType}. If InitDeclaration or ClassInitDeclaration, then
    *          {@code JavaPromise.getPromisedFor(eDecl)} must be {@code eType}.
    */
-  protected JavaSemanticsVisitor(
+  private JavaSemanticsVisitor(
       final boolean goInside, final IRNode eType, final IRNode eDecl) {
     super();
     visitInsideTypes = goInside;
@@ -186,6 +204,17 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     enclosingDecl = eDecl;
   }
   
+  private static IRNode getInitialEnclosingType(final IRNode flowUnit) {
+    final Operator op = JJNode.tree.getOperator(flowUnit);
+    if (InitDeclaration.prototype.includes(op) ||
+        ClassInitDeclaration.prototype.includes(op)) {
+      return JavaPromise.getPromisedFor(flowUnit);
+    } else {
+      // Method or constructor declaration: get the containing class
+      return JJNode.tree.getParent(JJNode.tree.getParent(flowUnit));
+    }
+  }
+
   
   
   
@@ -512,54 +541,50 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     // Prepare to recursively visit the initialization, if required
     final InstanceInitAction action = getAnonClassInitAction(expr);
   
-    // Should we recursively visit?
-    if (action != null || visitInsideTypes) {
-      final IRNode prevEnclosingType = enclosingType;
-      final IRNode prevEnclosingDecl = enclosingDecl;
-      final boolean prevInsideConstructor = insideConstructor;
+    final IRNode prevEnclosingType = enclosingType;
+    final IRNode prevEnclosingDecl = enclosingDecl;
+    final boolean prevInsideConstructor = insideConstructor;
 
-      // Now inside the anonymous type declaration
-      enterEnclosingType(expr);
+    // Now inside the anonymous type declaration
+    enterEnclosingType(expr);
+    try {
+      /* Need to visit the instance initializer blocks and instance field 
+       * declarations.  We rely on the fact that anonymous classes cannot 
+       * have static field members or static initializer blocks.  We ignore
+       * method and constructor declarations.  I know this seems odd, but
+       * see Bug 1662.  Technically the initializer blocks of the anonymous
+       * class expression are executed as part of the enclosing method/constructor. 
+       */
       try {
-        if (action != null) {
-          /* Need to visit the instance initializer blocks and instance field 
-           * declarations.  We rely on the fact that anonymous classes cannot 
-           * have static field members or static initializer blocks.  We ignore
-           * method and constructor declarations.  I know this seems odd, but
-           * see Bug 1662.  Technically the initializer blocks of the anonymous
-           * class expression are executed as part of the enclosing method/constructor. 
-           */
-          try {
-            insideConstructor = true; // We are inside the constructor of the anonymous class
-            enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
-            action.tryBefore();
-            processClassBody(AnonClassExpression.getBody(expr), WhichMembers.INSTANCE);
-          } finally {
-            action.finallyAfter();
-            leaveEnclosingDecl(prevEnclosingDecl);
-            insideConstructor = prevInsideConstructor;
-          }
-          action.afterVisit();
-        }
-
-        // Still inside the anonymous class expression
-        
-        // Visit the type body if required
-        if (visitInsideTypes) {
-          try {
-            insideConstructor = false;
-            enclosingDecl = null; // We are not inside of any method or constructor -- see comments in visitNonAnnotationTypeDeclaration()
-            handleAnonClassAsTypeDeclaration(expr);
-          } finally {
-            enclosingDecl = prevEnclosingDecl;
-            insideConstructor = prevInsideConstructor;
-          }
-        }
+        insideConstructor = true; // We are inside the constructor of the anonymous class
+        enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
+        action.tryBefore();
+        processClassBody(AnonClassExpression.getBody(expr), WhichMembers.INSTANCE);
       } finally {
-        // Leaving the anonymous type expression
-        leaveEnclosingType(prevEnclosingType);
+        action.finallyAfter();
+        leaveEnclosingDecl(prevEnclosingDecl);
+        insideConstructor = prevInsideConstructor;
       }
+      action.afterVisit();
+
+      // Still inside the anonymous class expression
+        
+      // Visit the type body if required
+      if (visitInsideTypes) {
+        try {
+          insideConstructor = false;
+          enclosingDecl = null; // We are not inside of any method or constructor -- see comments in visitNonAnnotationTypeDeclaration()
+          handleAnonClassAsTypeDeclaration(expr);
+        } finally {
+          enclosingDecl = prevEnclosingDecl;
+          insideConstructor = prevInsideConstructor;
+        }
+      }
+    } finally {
+      // Leaving the anonymous type expression
+      leaveEnclosingType(prevEnclosingType);
     }
+    
     return null;
   }
 
@@ -602,16 +627,15 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * of the recursive visit into the main results.
    * </ul>
    * 
-   * <p>The default implementation returns null.
+   * <p>The default implementation returns {@link InstanceInitAction#NULL_ACTION}.
    * 
    * @param expr
    *          The anonymous class expression node.
    * 
-   * @return The action to use, or <code>null</code> if the instance
-   *         initializers of the anonymous class should not be visited.
+   * @return The action to use.  This must never return <code>null</code>.
    */
   protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
-    return null;
+    return InstanceInitAction.NULL_ACTION;
   }
 
 
@@ -975,6 +999,52 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     handleNonAnnotationTypeDeclaration(enumDecl);
   }
 
+  /**
+   * Visit an InitDeclaration.  <em>We should never get there because
+   * of the way we handle anonymous class expressions and constructors.</em>
+   * Unfortunately, we do get here because the way that UniquenssAnalysis 
+   * handles anonymous class expressions is broken.  So to reiterate,
+   * when only get here when the InitDeclaration is from an AnonClassExpression
+   * being visited by UniqueAnalysis.  
+   * 
+   * <P>We handle this similarly to an anon class expression, except we are already
+   * inside the AnonClassExpression.
+   */
+  @Override
+  public final Void visitInitDeclaration(final IRNode initDecl) {
+    // Prepare to recursively visit the initialization, if required
+    final InstanceInitAction action = getInitDeclarationAction(initDecl);
+  
+    final IRNode prevEnclosingDecl = enclosingDecl;
+    final boolean prevInsideConstructor = insideConstructor;
+
+    /* Need to visit the instance initializer blocks and instance field 
+     * declarations.  We rely on the fact that anonymous classes cannot 
+     * have static field members or static initializer blocks.  We ignore
+     * method and constructor declarations.  I know this seems odd, but
+     * see Bug 1662.  Technically the initializer blocks of the anonymous
+     * class expression are executed as part of the enclosing method/constructor. 
+     */
+    try {
+      insideConstructor = true; // We are inside the constructor of the anonymous class
+      final IRNode anonClassDecl = JavaPromise.getPromisedFor(initDecl);
+      enterEnclosingDecl(initDecl, anonClassDecl); // Inside the <init> method
+      action.tryBefore();
+      processClassBody(AnonClassExpression.getBody(anonClassDecl), WhichMembers.INSTANCE);
+    } finally {
+      action.finallyAfter();
+      leaveEnclosingDecl(prevEnclosingDecl);
+      insideConstructor = prevInsideConstructor;
+    }
+    action.afterVisit();
+
+    return null;
+  }
+  
+  protected InstanceInitAction getInitDeclarationAction(final IRNode initDecl) {
+    return InstanceInitAction.NULL_ACTION;
+  }
+  
   /**
    * Visit an interface declaration.   Does nothing if we should not
    * visit into types.  Otherwise, it

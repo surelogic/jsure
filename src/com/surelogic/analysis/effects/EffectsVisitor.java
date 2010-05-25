@@ -31,9 +31,7 @@ import edu.cmu.cs.fluid.java.operator.PostIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
-import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 /**
@@ -198,23 +196,15 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    */
   public EffectsVisitor(final IBinder b, final IRNode flowUnit,
       final BindingContextAnalysis.Query query) {
-    super(false, getInitialEnclosingType(flowUnit), flowUnit);
+    super(false, flowUnit);
     this.binder = b;
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     this.ARRAY_ELEMENT = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);    
     this.context = Context.forNormalMethod(query, flowUnit);
   }
+
   
-  private static IRNode getInitialEnclosingType(final IRNode flowUnit) {
-    if (InitDeclaration.prototype.includes(flowUnit)) {
-      // Init Declaration: The anonymous class
-      return JavaPromise.getPromisedFor(flowUnit);
-    } else {
-      // Method or constructor declaration: get the containing class
-      return JJNode.tree.getParent(JJNode.tree.getParent(flowUnit));
-    }
-  }
   
   public Set<Effect> getTheEffects() {
     return context.theEffects;

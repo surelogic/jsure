@@ -142,34 +142,6 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   protected final void leavingEnclosingDeclPostfix(final IRNode oldDecl) {
     // do nothing
   }
-
-  
-  
-  /**
-   * Overridden to ensure that the return value is never {@value null} because this
-   * needs to return a non-{@value null} value for use to process the field
-   * initializers and instance initializers of anonymous class expressions in
-   * expression statements. Delegates to
-   * {@link #getAnonClassInitAction2(IRNode)}, and returns {@link #NULL_ACTION}
-   * if {@code getAnonClassInitAction2()} returns {@value null}. Otherwise it
-   * returns whatever value {@code getAnonClassInitAction2()} returns.
-   */
-  @Override
-  protected final InstanceInitAction getAnonClassInitAction(final IRNode expr) {
-    final InstanceInitAction a = getAnonClassInitAction2(expr);
-    return a == null ? InstanceInitAction.NULL_ACTION : a;
-  }
-
-  /**
-   * The real method to use if you need to have specials actions around
-   * anonymous class initializers.  The default implementation returns
-   * {@value null}.
-   * @see AbstractJavaAnalysisDriver#getAnonClassInitAction(IRNode)
-   * @see JavaSemanticsVisitor#getAnonClassInitAction(IRNode)
-   */
-  protected InstanceInitAction getAnonClassInitAction2(final IRNode expr) {
-    return null;
-  }
   
   
   
@@ -184,23 +156,20 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   @Override
   protected final InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
     final InstanceInitAction a = getConstructorCallInitAction2(ccall);
-    // Correct for null
-    final InstanceInitAction a2 =
-      (a == null) ? InstanceInitAction.NULL_ACTION : a;
     return new InstanceInitAction() {
       public void tryBefore() {
         final Q subAnalysisQuery = createSubQuery(ccall);
         pushQuery(subAnalysisQuery);
-        a2.tryBefore();
+        a.tryBefore();
       }
       
       public void finallyAfter() {
-        a2.finallyAfter();
+        a.finallyAfter();
         popQuery();
       }
       
       public void afterVisit() {
-        a2.afterVisit();
+        a.afterVisit();
       }
     };
   }
@@ -208,11 +177,11 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   /**
    * The real method to use if you need to have specials actions around
    * constructor calls.  The default implementation returns
-   * {@value null}.
+   * {@link InstanceInitAction#NULL_ACTION}.
    * @see AbstractJavaAnalysisDriver#getConstructorCallInitAction(IRNode)
    * @see JavaSemanticsVisitor#getConstructorCallInitAction(IRNode)
    */
   protected InstanceInitAction getConstructorCallInitAction2(final IRNode ccall) {
-    return null;
+    return InstanceInitAction.NULL_ACTION;
   }
 }

@@ -1022,13 +1022,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
     }
 
     @Override
-    protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
-      // We want to visit the initializers, but there is nothing 
-      // interesting to do with the action
-      return InstanceInitAction.NULL_ACTION;
-    }
-
-    @Override
     public Void visitCall(final IRNode call) {
       visitCallInterface(call);
       doAcceptForChildren(call);
