@@ -30,6 +30,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	 */
 	public void preBuild(IProject p) {
 		project = p;
+		JavacDriver.getInstance().preBuild(p);
 	}
 	
 	/**
@@ -89,6 +90,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 		cus.clear();
 		
 		if (useJavac) {
+						
 			JavacDriver.getInstance().doBuild(p);
 		}
 	}

@@ -21,15 +21,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.sea.DropPredicateFactory;
-import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
-import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.WarningDrop;
-import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
-import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.drops.PackageDrop;
-import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
-import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
+import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public class ClearProjectListener implements IResourceChangeListener {
@@ -113,6 +106,8 @@ public class ClearProjectListener implements IResourceChangeListener {
 		}
 		RegionModel.purgeUnusedRegions();
 		SourceCUDrop.invalidateAll();
+		Sea.getDefault().invalidateMatching(
+				DropPredicateFactory.matchType(ProjectsDrop.class));
 		Sea.getDefault().invalidateMatching(
 				DropPredicateFactory.matchType(ProjectDrop.class));
 		Sea.getDefault().invalidateMatching(

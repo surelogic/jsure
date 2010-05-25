@@ -10,8 +10,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.eclipse.Resources;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
-import com.surelogic.fluid.javac.Config;
-import com.surelogic.fluid.javac.Javac;
+import com.surelogic.fluid.javac.*;
 
 import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -28,7 +27,7 @@ public class JavacEclipse extends Javac {
     }
     
     public void synchronizeAnalysisPrefs(IPreferenceStore store) {
-		for(String id : Config.getAvailableAnalyses()) {
+		for(String id : Projects.getAvailableAnalyses()) {
 			boolean val = store.getBoolean(Plugin.ANALYSIS_ACTIVE_PREFIX + id);
 			if (XUtil.testing) {
 				System.out.println("Setting "+id+" to "+(val ? "active" : "inactive"));

@@ -20,12 +20,14 @@ import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.Majordomo;
+import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
+import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver {
+	private final List<IProject> building = new ArrayList<IProject>();
 	private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
 	
 	private JavacDriver() {
@@ -50,7 +52,7 @@ public class JavacDriver {
 
 	volatile SLProgressMonitor lastMonitor = null;
 	
-	static class ProjectInfo {
+	class ProjectInfo {
 		final IProject project;
 		final List<ICompilationUnit> allCompUnits;
 		final Set<ICompilationUnit> cuDelta = new HashSet<ICompilationUnit>();
@@ -107,8 +109,12 @@ public class JavacDriver {
 			return allCompUnits;	 
 		}
 		
-		Config makeConfig(boolean all) throws JavaModelException {
+		/**
+		 * Adds itself to projects to make sure that it's not created multiple times
+		 */
+		Config makeConfig(final Projects projects, boolean all) throws JavaModelException {
 			Config config = new ZippedConfig(project.getName(), false);
+			projects.add(config);
 			setOptions(config);
 			
 			for(IResource res : getRemovedResources()) {
@@ -138,7 +144,7 @@ public class JavacDriver {
 				}
 				config.addFile(new JavaSourceFile(qname, f, path.toPortableString()));
 			}			
-			addDependencies(config, project, false);
+			addDependencies(projects, config, project, false);
 			return config;
 		}
 		
@@ -147,12 +153,7 @@ public class JavacDriver {
 			config.setOption(Config.SOURCE_LEVEL, JDTUtility.getMajorJavaVersion(jp));
 		}
 
-		static void addDependencies(Config config, IProject p, boolean addSource) throws JavaModelException {
-			/*
-			if (p.getName().equals("Messaging")) {
-				System.out.println("Found Messaging");
-			}
-			*/
+		void addDependencies(Projects projects, Config config, IProject p, boolean addSource) throws JavaModelException {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());			
 			// TODO what export rules?
 			
@@ -181,11 +182,28 @@ public class JavacDriver {
 					config.addJar(EclipseUtility.resolveIPath(cpe.getPath()), cpe.isExported());
 					break;
 				case IClasspathEntry.CPE_PROJECT:
-					String projName = cpe.getPath().lastSegment();
-					IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
-					Config dep = new ZippedConfig(projName, cpe.isExported());	
+					final String projName = cpe.getPath().lastSegment();
+					final JavacProject jcp = projects.get(projName);
+					if (jcp != null) {
+						// Already created
+						config.addToClassPath(jcp.getConfig());
+						break;
+					}
+					final IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
+					final ProjectInfo info = JavacDriver.this.projects.get(proj);
+					final Config dep;
+					if (info != null) {
+						final boolean hasDeltas = info.hasDeltas();
+						dep = info.makeConfig(projects, hasDeltas);
+					} else {
+						dep = new ZippedConfig(projName, cpe.isExported());		
+						projects.add(dep);
+					}
 					config.addToClassPath(dep);
-					addDependencies(dep, proj, true);								
+
+					if (info == null) {
+						addDependencies(projects, dep, proj, true);													
+					}
 					break;
 				default:
 					System.out.println("Unexpected: "+cpe);
@@ -226,6 +244,23 @@ public class JavacDriver {
 		}
 	}
 	
+	void preBuild(final IProject p) {
+		System.out.println("Pre-build for "+p);
+		
+		if (building.isEmpty()) {
+			// First project build, so populate with active projects
+			for(IJavaProject jp : JDTUtility.getJavaProjects()) {
+				final IProject proj = jp.getProject();
+				if (Nature.hasNature(proj)) {
+					building.add(proj);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Register resources
+	 */
 	@SuppressWarnings("unchecked")
 	void registerBuild(IProject project, Map args,
 			           List<Pair<IResource, Integer>> resources, 
@@ -248,19 +283,29 @@ public class JavacDriver {
 	}
 	
 	public void doBuild(IProject p) {	    
+		System.out.println("Finished 'build' for "+p);
+		/*
 		//ProjectDrop.ensureDrop(p.getName(), p);
 		final ProjectInfo info = projects.get(p);
 		if (info == null) {
 			return; // No info!
 		}
+		*/
+		// Check if any projects are still building
+		building.remove(p);
+		if (!building.isEmpty()) {
+			System.out.println("Still waiting for "+building);
+			return;
+		}
+		System.out.println("Starting to build projects");
         JavacEclipse.initialize();
 		try {
 			if (!XUtil.testing) {
 				final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
 				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
 			}
-			final boolean hasDeltas = info.hasDeltas();
-		    final Config config = info.makeConfig(!hasDeltas);		    
+			//final boolean hasDeltas = info.hasDeltas();
+		    final Projects newProjects = makeProjects();	    
 		    final File dataDir = 
 		        //new File(IDE.getInstance().getStringPreference(IDEPreferences.DATA_DIRECTORY));
 		        PreferenceConstants.getJSureDataDirectory();
@@ -269,20 +314,17 @@ public class JavacDriver {
 		    final File zips   = new File(dataDir, name+"/zips");
 		    final File target = new File(dataDir, name+"/srcs");
 		    target.mkdirs();
-		    config.setRun(name);
+		    newProjects.setRun(name);
 
-		    JSureHistoricalSourceView.setLastRun(config, new ISourceZipFileHandles() {
+		    JSureHistoricalSourceView.setLastRun(newProjects, new ISourceZipFileHandles() {
                 public Iterable<File> getSourceZips() {
                     return Arrays.asList(zips.listFiles());
                 }		        
 		    });
-		    JavacProject project = null;
-		    if (hasDeltas) {
-		    	ProjectDrop pd = ProjectDrop.getDrop();
-		    	project = (JavacProject) pd.getIIRProject();
-		    }		    
-		    AnalysisJob analysis = new AnalysisJob(project, config, target, zips);
-		    CopyJob copy = new CopyJob(config, target, zips, analysis);
+
+		    Projects oldProjects = (Projects) ProjectsDrop.getProjects();
+		    AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips);
+		    CopyJob copy = new CopyJob(newProjects, target, zips, analysis);
 		    if (XUtil.testing) {
 		    	copy.run(new NullSLProgressMonitor());
 		    } else {
@@ -295,6 +337,19 @@ public class JavacDriver {
 		}
 	}
 	
+	private Projects makeProjects() throws JavaModelException {
+		final Projects projects = new Projects();
+		for(ProjectInfo info : this.projects.values()) {
+			if (!projects.contains(info.project.getName())) {
+				info.makeConfig(projects, !info.hasDeltas());	
+			} else {
+				// Already added as a dependency?
+			}
+		}
+		return projects;
+
+	}
+
 	static class ZippedConfig extends Config {
 		ZippedConfig(String name, boolean isExported) {
 			super(name, isExported);
@@ -374,7 +429,7 @@ public class JavacDriver {
 	}
 	
 	abstract class Job extends AbstractSLJob {
-	    final Config config;
+	    final Projects projects;
 	    /**
 	     * Where the source files will be copied to
 	     */
@@ -385,9 +440,9 @@ public class JavacDriver {
          */
         final File zipDir;
 	    
-	    Job(String name, Config config, File target, File zips) {
+	    Job(String name, Projects projects, File target, File zips) {
 	        super(name);
-            this.config = config;
+            this.projects = projects;
             targetDir = target;
             zipDir = zips;
         }
@@ -396,20 +451,24 @@ public class JavacDriver {
 	class CopyJob extends Job {
 	    private final SLJob afterJob;
 
-        CopyJob(Config config, File target, File zips, SLJob after) {
-            super("Copying project info for "+config.getProject(), config, target, zips);
+        CopyJob(Projects projects, File target, File zips, SLJob after) {
+            super("Copying project info for "+projects.getLabel(), projects, target, zips);
             afterJob = after;
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
         	final long start = System.currentTimeMillis();
         	try {
-        		config.zipSources(zipDir);           
+        		for(Config config : projects.getConfigs()) {
+        			config.zipSources(zipDir);           
+        		}
             } catch (IOException e) {
                 return SLStatus.createErrorStatus("Problem while zipping sources", e);
             }
             try {
-				config.relocateJars(targetDir);
+            	for(Config config : projects.getConfigs()) {
+            		config.relocateJars(targetDir);
+            	}
 			} catch (IOException e) {
                 return SLStatus.createErrorStatus("Problem while copying jars", e);
 			}
@@ -428,23 +487,26 @@ public class JavacDriver {
 	}
 	
 	class AnalysisJob extends Job {
-		private final JavacProject project;
+		private final Projects oldProjects;
 		
-        AnalysisJob(JavacProject project, Config config, File target, File zips) {
-            super("Running JSure on "+config.getProject(), config, target, zips);
-            this.project = project;
+        AnalysisJob(Projects oldProjects, Projects projects, File target, File zips) {
+            super("Running JSure on "+projects.getLabel(), projects, target, zips);
+            this.oldProjects = oldProjects;
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
         	lastMonitor = monitor;
+        	projects.setMonitor(monitor);
         	
         	if (XUtil.testingWorkspace) {
         		System.out.println("Clearing state before running analysis");
         		ClearProjectListener.clearJSureState();
         	}        	
-        	System.out.println("Starting analysis for "+config.getProject());
+        	System.out.println("Starting analysis for "+projects.getLabel());
         	try {
-        		config.copySources(zipDir, targetDir);
+        		for(Config config : projects.getConfigs()) {
+        			config.copySources(zipDir, targetDir);
+        		}
             } catch (IOException e) {
                 return SLStatus.createErrorStatus("Problem while copying sources", e);
             }
@@ -453,10 +515,10 @@ public class JavacDriver {
             NotificationHub.notifyAnalysisStarting();
             try {
             	boolean ok;
-            	if (project == null) {
-            		ok = Util.openFiles(config, monitor);
+            	if (oldProjects == null) {
+            		ok = Util.openFiles(projects);
             	} else {
-            		ok = Util.openFiles(project, config, monitor);
+            		ok = Util.openFiles(oldProjects, projects);
             	}
             	/*
             	final File rootLoc = EclipseUtility.getProject(config.getProject()).getLocation().toFile();

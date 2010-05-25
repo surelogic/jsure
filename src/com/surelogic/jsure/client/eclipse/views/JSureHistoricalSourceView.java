@@ -4,11 +4,10 @@ import java.net.*;
 
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.eclipse.views.AbstractHistoricalSourceView;
-import com.surelogic.fluid.javac.Config;
-import com.surelogic.fluid.javac.JavaSourceFile;
+import com.surelogic.fluid.javac.*;
 
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
-    private static Config config;
+    private static Projects projects;
     private static ISourceZipFileHandles zips;
     private static boolean viewIsEnabled = false;
     
@@ -34,19 +33,21 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     	}
     }
 
-    public static void setLastRun(Config cfg, ISourceZipFileHandles handles) {
-        config = cfg;
+    public static void setLastRun(Projects p, ISourceZipFileHandles handles) {
+    	projects = p;
         zips = handles;
     }
 
     public static String tryToMapPath(String path) {
-    	
 		try {
-			JavaSourceFile f = config.mapPath(new URI(path));
-			if (f != null) {
-				String mapped = f.file.toURI().toString();
-				if (mapped != null) {
-					return mapped;
+	    	final URI uri = new URI(path);
+			for(Config config : projects.getConfigs()) {
+				JavaSourceFile f = config.mapPath(uri);
+				if (f != null) {
+					String mapped = f.file.toURI().toString();
+					if (mapped != null) {
+						return mapped;
+					}
 				}
 			}
 		} catch (URISyntaxException e) {
