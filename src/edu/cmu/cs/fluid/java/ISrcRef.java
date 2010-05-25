@@ -99,6 +99,10 @@ public interface ISrcRef {
   
   Long getHash();
   String getPackage();
+  
+  /**
+   * @return the simple name of the source file
+   */
   String getCUName();
   
   /**
