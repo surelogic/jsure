@@ -152,6 +152,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			ISrcRef ref = id.getSrcRef();
 			if (ref == null) {
 				if (!d.getMessage().contains("java.lang.Object")) {
+					/*
+                    if (d.getMessage().startsWith("ThreadRole")) {
+						System.out.println("Found ThreadRole");
+					}
+					*/
 					System.out.println("No src ref for "+d.getMessage());
 				} else {
 					//System.currentTimeMillis();
