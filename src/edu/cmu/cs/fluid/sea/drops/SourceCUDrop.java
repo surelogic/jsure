@@ -18,13 +18,13 @@ import edu.cmu.cs.fluid.sea.Sea;
 public class SourceCUDrop extends CUDrop {
   private static Map<ICodeFile, SourceCUDrop> cachedDrops = null;
   
-  public SourceCUDrop(CodeInfo info, ProjectDrop p) {
+  public SourceCUDrop(CodeInfo info, ProjectsDrop p) {
     super(info);
     //System.out.println("Creating SourceCUDrop for "+info.getFileName());
     javaFile = info.getFile();
     source   = info.getSource();
     adaptedAsSource = info.isAsSource();
-    this.project = p;
+    this.projects = p;
     
     synchronized (SourceCUDrop.class) {
       // clear cached drops, since we're creating new ones
@@ -32,7 +32,7 @@ public class SourceCUDrop extends CUDrop {
     }
   }
 
-  public final ProjectDrop project;
+  public final ProjectsDrop projects;
   public final ICodeFile javaFile;
   public final String source;
   public final boolean adaptedAsSource;

@@ -258,6 +258,10 @@ public class JavaTypeFactory implements IRType, Cleanable {
     if (decl == null) {
       throw new NullPointerException("type declaration is null!");
     }
+    if (decl.identity() == IRNode.destroyedNode) {
+    	LOG.warning("Trying to get IJavaType for a destroyed node");
+    	return null;
+    }
     if (outer == null) {
     	int i = decl.hashCode() & ROOT_MASK;
     	outer = rootTypes[i];

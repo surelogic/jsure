@@ -39,7 +39,7 @@ import edu.cmu.cs.fluid.version.VersionedRegion;
  * @author Edwin
  */
 public abstract class IDE {
-  public static final boolean useJavac = false;	
+  public static final boolean useJavac = true;	
   public static final boolean debugTypedASTs = false;
   public static final boolean testReloadMemoryLeak = false;
 
