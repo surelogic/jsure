@@ -7,7 +7,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
+import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
@@ -20,16 +22,8 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
-import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
-import edu.cmu.cs.fluid.java.operator.ClassBody;
-import edu.cmu.cs.fluid.java.operator.ClassInitializer;
-import edu.cmu.cs.fluid.java.operator.ConstructorCall;
-import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
-import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
-import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
-import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -38,7 +32,6 @@ import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.StartsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
-import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * A record of the lock expressions used in a method/constructor.  Specifically,
@@ -202,7 +195,7 @@ final class LockExpressions {
       final BindingContextAnalysis bca) {
     enclosingMethodDecl = mdecl;
     final LockExpressionVisitor visitor =
-      new LockExpressionVisitor(mdecl, lu, b, bca.getExpressionObjectsQuery(mdecl));
+      new LockExpressionVisitor(mdecl, lu, b, bca);
     visitor.doAccept(mdecl);
     singleThreadedData = visitor.getSingleThreadedData();
   }
@@ -287,32 +280,6 @@ final class LockExpressions {
   public Set<HeldLock> getJUCClassInit() {
     return Collections.unmodifiableSet(jucClassInit);
   }
-  
-  
-  
-  /* Taken from LocalVariableDeclarations.LocalDeclarationsVisitor.  Used
-   * by LockExpressionVisitor below.
-   */
-  private enum WhichMembers {
-    STATIC {
-      @Override
-      protected boolean acceptsModifier(final boolean isStatic) {
-        return isStatic;
-      }
-    },
-    INSTANCE {
-      @Override
-      protected boolean acceptsModifier(final boolean isStatic) {
-        return !isStatic;
-      }
-    };
-    
-    protected abstract boolean acceptsModifier(boolean isStatic);
-    
-    public final boolean acceptsMember(final IRNode bodyDecl) {
-      return acceptsModifier(JavaNode.getModifier(bodyDecl, JavaNode.STATIC));
-    }
-  }
 
   
   
@@ -321,120 +288,64 @@ final class LockExpressions {
    * occurrences of syntactically unique final lock expressions. 
    * @author Aaron Greenhouse
    */
-  private final class LockExpressionVisitor extends VoidTreeWalkVisitor {
+  private final class LockExpressionVisitor extends AbstractJavaAnalysisDriver<BindingContextAnalysis.Query> {
+    private final BindingContextAnalysis bca;
     private final LockUtils lockUtils;
     private final HeldLockFactory heldLockFactory;
     private final TEB teb;
-    private BindingContextAnalysis.Query bcaQuery = null;
     // Set as a side-effect of visitConstructorDeclaration
     private SingleThreadedData singleThreadedData = null;    
     
     
     
     public LockExpressionVisitor(final IRNode mdecl, final LockUtils lu,
-        final IBinder b, final BindingContextAnalysis.Query query) {
-      super();
+        final IBinder b, final BindingContextAnalysis bca) {
+      super(false, mdecl);
+      this.bca = bca;
       lockUtils = lu;
       teb = new TEB(b, mdecl);
       heldLockFactory = new HeldLockFactory(teb);
-      
-      /* mdecl becomes the initial enclosingFlowUnit because the expectation is
-       * that this visitor is then called with doVisit(mdecl).
-       */
-      bcaQuery = query;
     }
     
     public SingleThreadedData getSingleThreadedData() {
       return singleThreadedData;
     }
+
+    @Override
+    protected BindingContextAnalysis.Query createNewQuery(final IRNode decl) {
+      // SHould only get here for the original method we are called with
+      return bca.getExpressionObjectsQuery(decl);
+    }
+
+    @Override
+    protected BindingContextAnalysis.Query createSubQuery(final IRNode caller) {
+      return currentQuery().getSubAnalysisQuery(caller);
+    }
+
     
     
-    
-    // =========================================================================
-    // == Helper method
-    // == Taken from LocalVariableDeclarations.LocalVariableVisitor 
-    // XXX Need to make a common superclass at some point
-    // =========================================================================
-    
-    /**
-     * Visit the immediate children of a classBody and handle the field
-     * declarations and ClassInitializer blocks.
-     * 
-     * @param classBody
-     *          A ClassBody IRNode.
-     * @param isStatic
-     *          <code>true</code> if we should process <code>static</code>
-     *          fields and <code>static</code> initializer blocks only;
-     *          <code>false</code> if we should process instance field
-     *          declarations and instance initializer blocks only.
-     */
-    private void processClassBody(final IRNode classBody, final WhichMembers which) {
-      for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
-        final Operator op = JJNode.tree.getOperator(bodyDecl);
-        if (FieldDeclaration.prototype.includes(op) ||
-            ClassInitializer.prototype.includes(op)) {
-          if (which.acceptsMember(bodyDecl)) {
-            this.doAcceptForChildren(bodyDecl);
+    @Override
+    protected InstanceInitAction getAnonClassInitAction(final IRNode anonClass) {
+      return new InstanceInitAction() {
+        public void tryBefore() {
+          try {
+            teb.newDeclaration(JavaPromise.getInitMethodOrNull(anonClass));
+          } catch (Exception e) {
+            e.printStackTrace();
           }
-        }       
-      }
+        }
+        
+        public void finallyAfter() {
+          teb.pop();
+        }
+        
+        public void afterVisit() { // do nothing
+        }
+      };
     }
-
     
-    
     @Override
-    public Void visitClassDeclaration(IRNode node) {
-      /* STOP: we've encountered a class declaration.  We don't want to enter
-       * the method declarations of nested class definitions.
-       */
-      return null;
-    }
-
-    @Override
-    public Void visitInterfaceDeclaration(IRNode node) {
-      /* STOP: we've encountered a class declaration.  We don't want to enter
-       * the method declarations of nested class definitions.
-       */
-      return null;
-    }
-
-    @Override
-    public Void visitEnumDeclaration(IRNode node) {
-      /* STOP: we've encountered a class declaration.  We don't want to enter
-       * the method declarations of nested class definitions.
-       */
-      return null;
-    }
-
-    @Override
-    public Void visitAnonClassExpression(final IRNode node) {
-      // Traverse into the arguments, but *not* the body
-      doAccept(AnonClassExpression.getArgs(node));
-      // Visit the field initializers and instance initializers
-      
-      
-      final IRNode initMethod = JavaPromise.getInitMethodOrNull(node);
-      final BindingContextAnalysis.Query oldQuery = bcaQuery;
-      teb.newDeclaration(initMethod);
-      bcaQuery = oldQuery.getSubAnalysisQuery(node);
-      try {
-        /* Need to visit the instance initializer blocks and instance field 
-         * declarations.  We rely on the fact that anonymous classes cannot 
-         * have static field members or static initializer blocks.  We ignore
-         * method and constructor declarations.  I know this seems odd, but
-         * see Bug 1662.  Technically the initializer blocks of the anonymous
-         * class expression are executed as part of the enclosing method/constructor. 
-         */
-        processClassBody(AnonClassExpression.getBody(node), WhichMembers.INSTANCE);
-      } finally {
-        bcaQuery = oldQuery;
-        teb.pop();
-      }
-      return null;
-    }
-
-    @Override
-    public Void visitConstructorDeclaration(final IRNode cdecl) {
+    protected void handleConstructorDeclaration(final IRNode cdecl) {
       final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(cdecl);
       /* TODO: LockUtils method needs to make one pass through the 
        * locks and output to two sets: JUC and intrinsic. 
@@ -454,31 +365,10 @@ final class LockExpressions {
       
       // Analyze the body of the constructor
       doAcceptForChildren(cdecl);
-      return null;
     }
 
     @Override
-    public Void visitConstructorCall(final IRNode constructorCall) {
-      // First process the constructor call and it's arguments
-      doAcceptForChildren(constructorCall);
-      
-      final IRNode conObject = ConstructorCall.getObject(constructorCall);
-      final Operator conObjectOp = JJNode.tree.getOperator(conObject);
-      if (SuperExpression.prototype.includes(conObjectOp)) {
-        // Visit the initializers.
-        final BindingContextAnalysis.Query oldQuery = bcaQuery;
-        bcaQuery = oldQuery.getSubAnalysisQuery(constructorCall);
-        try {
-          processClassBody(JJNode.tree.getParent(teb.enclosingFlowUnit), WhichMembers.INSTANCE);
-        } finally {
-          bcaQuery = oldQuery;
-        }
-      }
-      return null;
-    }
-
-    @Override
-    public Void visitMethodDeclaration(final IRNode mdecl) {
+    protected void handleMethodDeclaration(final IRNode mdecl) {
       final IRNode rcvr =
         TypeUtil.isStatic(mdecl) ? null : JavaPromise.getReceiverNodeOrNull(mdecl);
 
@@ -495,11 +385,10 @@ final class LockExpressions {
       }
       
       doAcceptForChildren(mdecl);
-      return null; 
     }
     
     @Override
-    public Void visitClassInitDeclaration(final IRNode classInitDecl) {
+    protected void handleClassInitDeclaration(final IRNode classInitDecl) {
       // Get the locks held due to class initialization assumptions
       final IRNode classDecl = JavaPromise.getPromisedFor(classInitDecl);
       final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);
@@ -508,43 +397,10 @@ final class LockExpressions {
        */
       lockUtils.getClassInitLocks(HowToProcessLocks.JUC, classInitDecl, heldLockFactory, clazz, jucClassInit);
       lockUtils.getClassInitLocks(HowToProcessLocks.INTRINSIC, classInitDecl, heldLockFactory, clazz, intrinsicAssumedLocks);
-      
-      final IRNode classBody =
-        AnonClassExpression.prototype.includes(classDecl) ?
-            AnonClassExpression.getBody(classDecl) :
-              TypeDeclaration.getBody(classDecl);
-      processClassBody(classBody, WhichMembers.STATIC);
-      return null;
-    }
-    
-    @Override
-    public Void visitInitDeclaration(final IRNode initDecl) {
-      // XXX: Pretty sure we should never get here now. (2010-04-20)
-      // XXX: I've had too many problems with this.  Throw an exception if we get here!
-      throw new UnsupportedOperationException("Should not visit an InitDeclaration!");
     }
     
     @Override
     public Void visitMethodCall(final IRNode mcall) {
-      processMethodCall(mcall);
-      doAcceptForChildren(mcall);
-      return null;
-    }
-
-    @Override
-    public Void visitSynchronizedStatement(final IRNode syncBlock) {
-      processSynchronized(syncBlock);
-      doAcceptForChildren(syncBlock);
-      return null;
-    }
-        
-    /**
-     * This method is shared by the body of {@link #visitMethodCall(IRNode)} in this
-     * class and in the nested helper {@link InitializationVisitor#visitMethodCall(IRNode)}.
-     * This makes it easier to ensure that both methods do the same thing.
-     * @param mcall The method call node to process.
-     */
-    private void processMethodCall(final IRNode mcall) {
       if (lockUtils.isLockClassUsage(mcall)) {
         final MethodCall call = (MethodCall) JJNode.tree.getOperator(mcall);
         final IRNode lockExpr = call.get_Object(mcall);
@@ -552,24 +408,23 @@ final class LockExpressions {
           processLockExpression(HowToProcessLocks.JUC, lockExpr, null);
         if (locks != null) jucLockExprsToLockSets.put(lockExpr, locks);
       }
+      doAcceptForChildren(mcall);
+      return null;
     }
-    
-    /**
-     * This method is shared by the body of {@link #visitSynchronizedStatement(IRNode)} in this
-     * class and in the nested helper {@link InitializationVisitor#visitSynchronizedStatement(IRNode)}.
-     * This makes it easier to ensure that both methods do the same thing.
-     * @param syncBlock The synchronized block to process
-     */
-    private void processSynchronized(final IRNode syncBlock) {
+
+    @Override
+    public Void visitSynchronizedStatement(final IRNode syncBlock) {
       final IRNode lockExpr = SynchronizedStatement.getLock(syncBlock);
       final Set<HeldLock> locks =
         processLockExpression(HowToProcessLocks.INTRINSIC, lockExpr, syncBlock);
       if (locks != null) syncBlocks.put(syncBlock, locks);
-    }   
+      doAcceptForChildren(syncBlock);
+      return null;
+    }
     
     private Set<HeldLock> processLockExpression(final HowToProcessLocks howTo,
         final IRNode lockExpr, final IRNode syncBlock) {
-      if (lockUtils.getFinalExpressionChecker(bcaQuery, teb.enclosingFlowUnit, syncBlock).isFinal(lockExpr)) {
+      if (lockUtils.getFinalExpressionChecker(currentQuery(), teb.enclosingFlowUnit, syncBlock).isFinal(lockExpr)) {
         // Get the locks for the lock expression
         final Set<HeldLock> lockSet = new HashSet<HeldLock>();
         lockUtils.convertLockExpr(

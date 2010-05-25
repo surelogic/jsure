@@ -32,6 +32,11 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
     super(true);
   }
   
+  protected AbstractJavaAnalysisDriver(
+      final boolean goInside, final IRNode flowUnit) {
+    super(goInside, flowUnit);
+  }
+  
   
   
   protected final Q currentQuery() {

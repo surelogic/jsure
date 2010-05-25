@@ -702,17 +702,18 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * {@link #visit(IRNode)} is a ClassInitDeclaration.   The order of operations is
    * <ol>
    *   <li>Call {@link #handleClassInitDeclaration(IRNode)}.
+   *   <li>Set the enclosing method to class init declaration.
+   *   <li>Call {@link #enteringEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
+   *   we are entering.
    *   <li>For each <code>static</code> initializer and <code>static</code>
    *   field declaration in the class associated with the ClassInitDeclaration:
    *   <ol>
-   *     <li>Set the enclosing method to class init declaration.
-   *     <li>Call {@link #enteringEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
-   *     we are entering.
-   *     <li>Recursively visit the contents of the initializer/field declaration.
-   *     <li>Call {@link #leavingEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
-   *     we are leaving.
-   *     <li>Reset the enclosing method declaration to <code>null</code>
+   *     <li>Recursively visit <em>the children</em> of the static ClassInitializer
+   *     and VariableDeclarator nodes.
    *   </ol>
+   *   <li>Call {@link #leavingEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
+   *   we are leaving.
+   *   <li>Reset the enclosing method declaration to <code>null</code>
    * </ol>
    * 
    */
@@ -723,17 +724,21 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
      */
     handleClassInitDeclaration(node);
     
-    /* Recursively find all the static initializer blocks and static field
-     * initializations in the class.  This will forward calls to
-     * visitClassInitializer() and visitVariableDeclarator(), which call
-     * entering and leaving decl appropriately already. 
-     */
-    final IRNode classDecl = JavaPromise.getPromisedFor(node);
-    final IRNode classBody =
-      AnonClassExpression.prototype.includes(classDecl) ?
-          AnonClassExpression.getBody(classDecl) :
-            TypeDeclaration.getBody(classDecl);
-    processClassBody(classBody, WhichMembers.STATIC);
+    enterEnclosingDecl(node, null);
+    try {
+      /* Recursively find all the static initializer blocks and static field
+       * initializations in the class.  This will forward calls to *the children*
+       * of ClassInitializer and VariableDeclarator nodes.
+       */
+      final IRNode classDecl = JavaPromise.getPromisedFor(node);
+      final IRNode classBody =
+        AnonClassExpression.prototype.includes(classDecl) ?
+            AnonClassExpression.getBody(classDecl) :
+              TypeDeclaration.getBody(classDecl);
+      processClassBody(classBody, WhichMembers.STATIC);
+    } finally {
+      leaveEnclosingDecl(null);
+    }
     
     // Done
     return null;
