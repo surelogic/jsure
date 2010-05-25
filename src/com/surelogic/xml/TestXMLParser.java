@@ -541,7 +541,7 @@ public class TestXMLParser extends DefaultHandler implements
 
 		// XXX This is not enough and does not work. Parameters must be matched
 		// too
-		LOG.severe("\n" + XMLGenerator.generateStringXML(root, true));
+		System.err.println("\n" + XMLGenerator.generateStringXML(root, true));
 	}
 
 	/** NodeElements are named AAST nodes */
