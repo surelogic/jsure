@@ -17,7 +17,7 @@
 
 	<Promise>@ThreadRoleTransparent for revalidate() | repaint(**)</Promise>
 
-	<Promise>@ThreadRole("AWT;") for fire*(**) | requestFocus*(**) |
+	<Promise>@ThreadRole("AWT") for fire*(**) | requestFocus*(**) |
 		paint*(**)</Promise>
 
 	<Promise>@Reads("Instance") for getGraphics()</Promise>

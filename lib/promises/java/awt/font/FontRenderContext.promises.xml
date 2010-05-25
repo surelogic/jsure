@@ -4,6 +4,6 @@
     <class name="FontRenderContext">
     <promise keyword="ThreadRoleImport" contents="java.awt.*;"/>
       <promise keyword="Promise"
-	contents="&quot;ThreadRole(&quot;AWT;&quot;)&quot; for *(**) | new(**)"/>
+	contents="&quot;ThreadRole(&quot;AWT&quot;)&quot; for *(**) | new(**)"/>
 	   </class>
 </package>

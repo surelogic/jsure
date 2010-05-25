@@ -6,7 +6,7 @@
 	<class name="ImageObserver">
 
 		<ThreadRoleImport>"java.awt.*;"</ThreadRoleImport>
-		<Promise>@ThreadRole("AWT;") for imageUpdate(**)</Promise>
+		<Promise>@ThreadRole("AWT") for imageUpdate(**)</Promise>
 
 	</class>
 </package>

@@ -22,12 +22,12 @@
 
   <Promise>@ThreadRoleTransparent for repaint(**)</Promise>
 
-  <Promise>@ThreadRole("AWT;") for fire*(**)</Promise>
+  <Promise>@ThreadRole("AWT") for fire*(**)</Promise>
 
 
-  <Promise>@ThreadRole("AWT;") for requestFocus*(**)</Promise>
+  <Promise>@ThreadRole("AWT") for requestFocus*(**)</Promise>
 
 
-  <Promise>@ThreadRole("AWT;") for paint*(**)</Promise>
+  <Promise>@ThreadRole("AWT") for paint*(**)</Promise>
 
 </package>

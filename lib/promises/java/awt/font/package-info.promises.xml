@@ -33,14 +33,14 @@
     contents="&quot;ThreadRoleTransparent&quot; for repaint(**)"/>
 
   <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;AWT;&quot;)&quot; for fire*(**)"/>
+    contents="&quot;ThreadRole(&quot;AWT&quot;)&quot; for fire*(**)"/>
 
 
   <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;AWT;&quot;)&quot; for requestFocus*(**)"/>
+    contents="&quot;ThreadRole(&quot;AWT&quot;)&quot; for requestFocus*(**)"/>
 
 
   <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;AWT;&quot;)&quot; for paint*(**)"/>
+    contents="&quot;ThreadRole(&quot;AWT&quot;)&quot; for paint*(**)"/>
 
 </package>
