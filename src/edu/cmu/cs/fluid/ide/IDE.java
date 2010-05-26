@@ -135,6 +135,7 @@ public abstract class IDE {
   private boolean adapting = false;
 
   public void clearAdapting() {
+	//System.out.println("Done adapting");
     adapting = false;
   }
 

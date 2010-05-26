@@ -124,6 +124,17 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		this(rule, ScrubberType.UNORDERED, NONE);
 	}
 
+	protected AbstractAASTScrubber() {
+		super(Boolean.TRUE); // set to default to true
+		cls = null;
+		dependencies = null;
+		name = null;
+		order = null;
+		runsBefore = null;
+		stor = null;
+		type = null;
+	}
+	
 	/**
 	 * Returns the scrubber's name
 	 */
@@ -198,19 +209,24 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			}
 			if (node instanceof Resolvable) {
 				Resolvable r = (Resolvable) node;
-				if (!r.bindingExists()) {
+				if (!r.bindingExists() && context != null) {
 					context.reportError("Couldn't resolve a binding for " + node
-							+ " on " + current, node);
+							+ " on " + current, node);					
 					rv = false;
 				}
 			}
-			if (node instanceof ResolvableToType) {
-				ResolvableToType r = (ResolvableToType) node;
-				if (!r.typeExists()) {
-					context.reportError("Couldn't resolve a type for " + node
-							+ " on " + current, node);
-					rv = false;
-				}
+			rv = checkForTypeBinding(node, rv);
+		}
+		return rv;
+	}
+	
+	protected final boolean checkForTypeBinding(AASTNode node, boolean rv) {
+		if (node instanceof ResolvableToType) {
+			ResolvableToType r = (ResolvableToType) node;
+			if (!r.typeExists() && context != null) {					
+				context.reportError("Couldn't resolve a type for " + node
+						+ " on " + current, node);
+				rv = false;
 			}
 		}
 		return rv;
