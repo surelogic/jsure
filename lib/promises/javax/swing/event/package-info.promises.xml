@@ -30,10 +30,10 @@
 	<Promise>@ThreadRole(AWT) for paint*(**)</Promise>
 
 
-  <Promise>@ThreadRole(GUI) for public *Event:**(**)</Promise>  
+  <Promise>@ThreadRole(GUI) for public **(**) in *Event</Promise>  
     
-  <Promise>@ThreadRole(AWT) for public *Listener:**(**)</Promise>      
+  <Promise>@ThreadRole(AWT) for public **(**) *Listener</Promise>      
     
-  <Promise>@ThreadRole(GUI) for public MouseInputAdapter:new()</Promise>  
+  <Promise>@ThreadRole(GUI) for public new() in MouseInputAdapter</Promise>  
 
 </package>

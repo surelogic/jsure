@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <package name="java.awt.print">
-	<Promise>@ThreadRoleImport("java.awt") for java.awt.print:*</Promise>
+	<Promise>@ThreadRoleImport("java.awt") for * in java.awt.print</Promise>
 
 	<Promise>@ThreadRoleTransparent for add*Listener(**) |
 		remove*Listener(**)</Promise>

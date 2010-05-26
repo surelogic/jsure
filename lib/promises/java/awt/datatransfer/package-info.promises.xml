@@ -1,6 +1,6 @@
 <package name="java.awt.datatransfer">
   <Promise>
-      @ColorImport(java.awt) for *</Promise>
+      @ThreadRoleImport(java.awt) for *</Promise>
 
       <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 

@@ -6,8 +6,8 @@
 	<Promise>@ThreadRoleTransparent for add*Listener(**) |
 		remove*Listener(**)</Promise>
 
-	<Promise>@ThreadRole(GUI) for (public Abstract*:**(**) | public
-		Default*:**(**)) &amp; !(add*Listener(**) | remove*Listener(**))
+	<Promise>@ThreadRole(GUI) for (public **(**) in Abstract* | public
+		**(**) in Default*) &amp; !(add*Listener(**) | remove*Listener(**))
 	</Promise>
 	<Promise>@ThreadRole(GUI) for get*(**) | set*(**) | new(**) |
 		(add*(**) &amp; !(add*Listener(**)))</Promise>

@@ -18,8 +18,5 @@
 	<Promise>@ThreadRole(AWT) for fire*(**) | requestFocus*(**) |
 		paint*(**)</Promise>
 
-	<Promise>@Reads(Instance) for getGraphics()</Promise>
-	<Promise>@Writes(java.awt.event.ActionListener.GUIinternal) for
-		getGraphics()</Promise>
-
+	<Promise>@RegionEffects(reads Instance; writes java.awt.event.ActionListener:GUIinternal) for getGraphics()</Promise>
 </package>

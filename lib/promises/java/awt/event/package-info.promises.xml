@@ -16,9 +16,9 @@
   <Promise>@ThreadRole(GUI) for set*(**)</Promise>
 
   <Promise>@ThreadRole(GUI) for updateUI()</Promise>
-  <Promise>@Transparent for revalidate()</Promise>
+  <Promise>@ThreadRoleTransparent for revalidate()</Promise>
 
-  <Promise>@Transparent for repaint(**)</Promise>
+  <Promise>@ThreadRoleTransparent for repaint(**)</Promise>
 
   <Promise>@ThreadRole(AWT) for fire*(**)</Promise>
 
@@ -28,13 +28,13 @@
 
   <Promise>@ThreadRole(AWT) for paint*(**)</Promise>
 
-  <Promise>@ThreadRole(AWT) for public *Adapter:*()</Promise>
+  <Promise>@ThreadRole(AWT) for public *() in *Adapter</Promise>
     
-  <Promise>@ThreadRole(AWT) for public *Event:get*()</Promise>    
+  <Promise>@ThreadRole(AWT) for public get*() in *Event</Promise>    
     
-  <Promise>@ThreadRole(AWT) for public *Listener:*()</Promise>    
+  <Promise>@ThreadRole(AWT) for public *() in *Listener</Promise>    
     
-  <Promise>@ThreadRole(AWT) for public Key*er:key*()</Promise>    
+  <Promise>@ThreadRole(AWT) for public key*() in Key*er</Promise>    
   
   <Promise>@ThreadRole(AWT) for public key*(java.awt.event.KeyEvent)</Promise>        
 
