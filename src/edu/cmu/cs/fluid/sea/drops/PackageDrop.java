@@ -6,8 +6,13 @@
  */
 package edu.cmu.cs.fluid.sea.drops;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+
+import com.surelogic.common.logging.SLLogger;
+import com.surelogic.xml.TestXMLParser;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
@@ -46,11 +51,26 @@ public class PackageDrop extends CUDrop {
     super(pkgName, root);
     node      = n;
     isFromSrc = fromSrc;
-    /*
-    if ("jsure".equals(pkgName)) {
-    	System.out.println("Creating pkg: "+pkgName);
-    }
-    */
+    
+    
+    //System.out.println("Creating pkg: "+pkgName);
+       	
+	// Look for XML annotations
+	final String xmlName = pkgName+'.'+"package-info.promises.xml";
+	try {
+		int added = TestXMLParser.process(root, xmlName);
+		//System.out.println("Added XML annos: "+added);			
+		if (added > 0) {
+		    System.out.println("Found promises for "+pkgName+": "+added);
+			setHasPromises(true);
+		}
+	} catch (Exception e) {
+		if (!(e instanceof FileNotFoundException)) {
+			SLLogger.getLogger().log(Level.SEVERE, "Problem parsing "+xmlName, e);
+		} else if (LOG.isLoggable(Level.FINER)) {
+			LOG.finer("Couldn't find "+xmlName);
+		}
+	}
   }
   
   private PackageDrop(String pkgName, IRNode root, IRNode n) {
