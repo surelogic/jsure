@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.analysis.colors;
+package edu.cmu.cs.fluid.analysis.threadroles;
 
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
+public class ManageThreadRoleAnnos1 extends AbstractIRAnalysisModule {
 
   //private static ColorBDDPack cBDDPack = null;
 
@@ -33,16 +33,16 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
 
   private QueuingSrcNotifyListener listener = new QueuingSrcNotifyListener();
 
-  public ManageColorAnnos1() {
+  public ManageThreadRoleAnnos1() {
     super(ParserNeed.NEW);
     INSTANCE = this;
     ConvertToIR.register(listener);
   }
 
-  private static ManageColorAnnos1 INSTANCE;
+  private static ManageThreadRoleAnnos1 INSTANCE;
 
   private static final Logger LOG = SLLogger
-      .getLogger("analysis.colors.managecolorannos");
+      .getLogger("analysis.threadroles.managethreadroleannos");
 
   /*
    * (non-Javadoc)
@@ -139,7 +139,7 @@ public class ManageColorAnnos1 extends AbstractIRAnalysisModule {
   // }
   // }
 
-  public static ManageColorAnnos1 getInstance() {
+  public static ManageThreadRoleAnnos1 getInstance() {
     return INSTANCE;
   }
 

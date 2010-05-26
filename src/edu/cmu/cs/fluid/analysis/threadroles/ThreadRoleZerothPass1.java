@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.analysis.colors;
+package edu.cmu.cs.fluid.analysis.threadroles;
 
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public class ColorZerothPass1 extends AbstractIRAnalysisModule {
+public class ThreadRoleZerothPass1 extends AbstractIRAnalysisModule {
   
 
   //private static ColorBDDPack cBDDPack = null;
@@ -34,16 +34,16 @@ public class ColorZerothPass1 extends AbstractIRAnalysisModule {
 
   private QueuingSrcNotifyListener listener = new QueuingSrcNotifyListener();
 
-  public ColorZerothPass1() {
+  public ThreadRoleZerothPass1() {
     super(ParserNeed.NEW);
     INSTANCE = this;
     ConvertToIR.register(listener);
   }
 
-  private static ColorZerothPass1 INSTANCE;
+  private static ThreadRoleZerothPass1 INSTANCE;
 
   private static final Logger LOG = SLLogger
-      .getLogger("analysis.colors.managecolorannos");
+      .getLogger("analysis.threadroles.managethreadroleannos");
 
   /*
    * (non-Javadoc)
@@ -140,7 +140,7 @@ public class ColorZerothPass1 extends AbstractIRAnalysisModule {
   // }
   // }
 
-  public static ColorZerothPass1 getInstance() {
+  public static ThreadRoleZerothPass1 getInstance() {
     return INSTANCE;
   }
 

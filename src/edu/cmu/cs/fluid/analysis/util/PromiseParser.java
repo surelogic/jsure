@@ -152,7 +152,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 			cu = null;
 		}
 		if (cu != null) {
-			//System.out.println("Parsing promises for "+info.getFileName());
+			System.out.println("Parsing promises for "+info.getFileName());
 			runInVersion(new AbstractRunner() {
 				public void run() {
 					processCompUnit(te, cu, "java.lang.Object", null);

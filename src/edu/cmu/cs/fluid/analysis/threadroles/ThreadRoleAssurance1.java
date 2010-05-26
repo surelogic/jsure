@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.analysis.colors;
+package edu.cmu.cs.fluid.analysis.threadroles;
 
 import java.util.logging.Logger;
 
@@ -22,7 +22,7 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public class ColorAssurance1 extends AbstractWholeIRAnalysisModule {
+public class ThreadRoleAssurance1 extends AbstractWholeIRAnalysisModule {
 
   /**
    * @author dfsuther
@@ -48,7 +48,7 @@ public class ColorAssurance1 extends AbstractWholeIRAnalysisModule {
   private Drop resultDependUpon = null;
 
 
-  private static ColorAssurance1 INSTANCE;
+  private static ThreadRoleAssurance1 INSTANCE;
 
 
   private QueuingSrcNotifyListener listener = new QueuingSrcNotifyListener(); 
@@ -58,11 +58,11 @@ public class ColorAssurance1 extends AbstractWholeIRAnalysisModule {
    * 
    * @return a reference to the only object of this class
    */
-  public static ColorAssurance1 getInstance() {
+  public static ThreadRoleAssurance1 getInstance() {
     return INSTANCE;
   }
 
-  public ColorAssurance1() {
+  public ThreadRoleAssurance1() {
     super(ParserNeed.NEW);
     INSTANCE = this;
     TRoleStats.getInstance();

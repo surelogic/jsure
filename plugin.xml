@@ -177,10 +177,10 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
 		</prerequisite>
 	</extension>
-	<extension id="ModuleAnalysis2" name="Module Visibility Analyzer"
+	<extension id="ModuleAnalysis2" name="Module Visibility Analyzer (converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis2"
-			production="false">
+			production="true">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
 		</prerequisite>
@@ -268,28 +268,28 @@
 		</prerequisite>
 	</extension>
 
-	<extension id="ColorZerothPass1" name="Coloring Zeroth Pass (Converted)"
+	<extension id="ThreadRoleZerothPass1" name="ThreadRole Zeroth Pass (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.colors.ColorZerothPass1"
-			production="false">
+		<run class="edu.cmu.cs.fluid.analysis.threadroles.ThreadRoleZerothPass1"
+			production="true">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.ModuleAnalysis2">
 		</prerequisite>
 	</extension>
-	<extension id="ManageColorAnnos1" name="Coloring Annotation Grabber (Converted)"
+	<extension id="ManageThreadRoleAnnos1" name="ThreadRole Annotation Grabber (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.colors.ManageColorAnnos1"
+		<run class="edu.cmu.cs.fluid.analysis.threadroles.ManageThreadRoleAnnos1"
 			production="false">
 		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.ColorZerothPass1">
+		<prerequisite id="com.surelogic.jsure.client.eclipse.ThreadRoleZerothPass1">
 		</prerequisite>
 	</extension>
-	<extension id="ColorAssurance1" name="Thread Color Assurance (Converted)"
+	<extension id="ThreadRoleAssurance1" name="Thread Role Assurance (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.colors.ColorAssurance1"
-			production="false">
+		<run class="edu.cmu.cs.fluid.analysis.threadroles.ThreadRoleAssurance1"
+			production="true">
 		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.ManageColorAnnos1">
+		<prerequisite id="com.surelogic.jsure.client.eclipse.ManageThreadRoleAnnos1">
 		</prerequisite>
 	</extension>
 
