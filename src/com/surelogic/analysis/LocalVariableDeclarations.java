@@ -129,12 +129,19 @@ public final class LocalVariableDeclarations {
   
 
   /**
-   * Crawl a method body or initializer block to find all the final local variable and
-   * parameter declarations. {@link #doAccept(IRNode)} must only be called with
-   * a MethodDeclaration, ConstructorDeclaration, or ClassInitializer. 
+   * Crawl a method body or initializer block to find all the final local
+   * variable and parameter declarations. {@link #doAccept(IRNode)} must only be
+   * called with a MethodDeclaration, ConstructorDeclaration, or
+   * ClassInitializer.
    * 
-   * <p>We correctly disregard any final variable declarations that 
-   * appear <em>after</em> the nested type we came up from.
+   * <p>
+   * We correctly disregard any final variable declarations that appear
+   * <em>after</em> the nested type we came up from.
+   * 
+   * <p>
+   * Here, if we are a ClassInitializer we don't care about the contents of
+   * other class initializers, because they are not in scope. This means we
+   * don't have to be a {@link JavaSemanticsVisitor}.
    */
   private static final class ExternalDeclarationsVisitor extends VoidTreeWalkVisitor {
     // =========================================================================
