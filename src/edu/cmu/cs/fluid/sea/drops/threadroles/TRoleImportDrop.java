@@ -18,7 +18,6 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -53,15 +52,15 @@ public class TRoleImportDrop extends PromiseDrop<ThreadRoleImportNode> {
     setCategory(JavaGlobals.THREAD_ROLES_CAT);
   }
 
-  public void computeImports(IBinder binder) {
+  public void computeImports() {
     // Look at the rawImportedUnit and compute what's really imported here.
-    computeImportName(binder);
+    computeImportName();
   }
 
   /**
    * @param binder
    */
-  public void computeImportName(IBinder binder) {
+  public void computeImportName() {
     final boolean debuggingNames = false;
     importedUnit = getAST().getId();
    
@@ -149,11 +148,11 @@ public class TRoleImportDrop extends PromiseDrop<ThreadRoleImportNode> {
     synchronized (TRoleImportDrop.class) {
       importersOfNode = importMap.get(cu);
       if (importersOfNode != null) {
-	workingImportersOfNode = new HashSet<IRNode>(importersOfNode.size());
-	workingImportersOfNode.addAll(importersOfNode);
-	importersOfNode.clear();
+    	  workingImportersOfNode = new HashSet<IRNode>(importersOfNode.size());
+    	  workingImportersOfNode.addAll(importersOfNode);
+    	  importersOfNode.clear();
       } else {
-	workingImportersOfNode = Collections.emptySet();
+    	  workingImportersOfNode = Collections.emptySet();
       }
     }
     

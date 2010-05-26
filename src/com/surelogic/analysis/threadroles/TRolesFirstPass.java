@@ -3,9 +3,19 @@
  */
 package com.surelogic.analysis.threadroles;
 
-import static com.surelogic.annotation.rules.TRolePromisesSupport.*;
+import static com.surelogic.annotation.rules.TRolePromisesSupport.areTRoleImportsProcessed;
+import static com.surelogic.annotation.rules.TRolePromisesSupport.areTRoleRenamesProcessed;
+import static com.surelogic.annotation.rules.TRolePromisesSupport.getMutableTRoleGrantSet;
+import static com.surelogic.annotation.rules.TRolePromisesSupport.getMutableTRoleRevokeSet;
+import static com.surelogic.annotation.rules.TRolePromisesSupport.setTRoleImportsProcessed;
+import static com.surelogic.annotation.rules.TRolePromisesSupport.setTRoleRenamesProcessed;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,12 +32,27 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
+import edu.cmu.cs.fluid.java.operator.Extensions;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.Implements;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.NestedInterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.DropPredicate;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
+import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.BinaryCUDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.sea.drops.callgraph.SimpleCallGraphDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleDeclDrop;
@@ -161,7 +186,7 @@ public final class TRolesFirstPass {
       
       final CUDrop cud = getCUDropOf(cu);
 //      final String name = JavaNames.genMethodConstructorName(node);
-      if (!(cud instanceof BinaryCUDrop)) return;
+      if (!((cud instanceof BinaryCUDrop) || (cud instanceof PackageDrop))) return;
       
  
       final IRNode theCUsRoot = cud.cu;
@@ -210,11 +235,16 @@ public final class TRolesFirstPass {
       Collection<TRoleRenameDrop> importedRenameDrops = new HashSet<TRoleRenameDrop>();
       Collection<TRoleDeclareDrop> importedDeclareDrops = new HashSet<TRoleDeclareDrop>();
       for (TRoleImportDrop triDrop : imports) {
-        triDrop.computeImports(binder);
+        triDrop.computeImports();
         // make sure we go look for imports and/or renames in the place we're 
         // importing from.  This is our last chance to catch things referenced only
         // in ThreadRoleImport annos!
         final IRNode boundImportedUnit = triDrop.getBoundImportedUnit();
+        if (boundImportedUnit == null) {
+        	//this is actually a serious bug; should we actually give up?
+        	LOG.severe("binding failed for " + triDrop.getMessage());
+        	continue;
+        }
         final TRoleStaticCU importedCU = TRoleStaticCU.getStaticCU(VisitUtil.getEnclosingCompilationUnit(boundImportedUnit));
         importsToRename.add(importedCU);
         doLibraryRefImportWalk(boundImportedUnit);
