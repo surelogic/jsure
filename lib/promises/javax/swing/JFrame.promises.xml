@@ -4,8 +4,8 @@
 	<class name="JFrame">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole("GUI;&quot; for get*(**)</Promise>
-		<Promise>@ThreadRole("GUI;&quot; for set*(**)</Promise>
+		<Promise>@ThreadRole("GUI&quot; for get*(**)</Promise>
+		<Promise>@ThreadRole("GUI&quot; for set*(**)</Promise>
 		<Promise>@ThreadRole("AWT;&quot; for update(*)</Promise>
 
 		<constructor>

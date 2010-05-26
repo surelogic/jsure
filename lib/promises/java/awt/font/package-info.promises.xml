@@ -5,7 +5,7 @@
 
       <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 
-  <Promise>@ThreadRole(&quot;GUI;&quot;)&quot; for get*(**) | create*(**) | is*(**)</Promise>
+  <Promise>@ThreadRole(&quot;GUI&quot;)&quot; for get*(**) | create*(**) | is*(**)</Promise>
 
   <Promise>
     @ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
