@@ -403,7 +403,7 @@ public class TestXMLParser extends DefaultHandler implements
 			 * Classint (and possibly constructor) does not have any unique
 			 * (name or params) attribute with which to identify it
 			 */
-			popNode(e.getAttribute("classInit"));
+			popNode("classInit");
 		} else if (eName.equalsIgnoreCase(CONSTRUCTOR)) {
 			if (e.getAttribute(PARAMS_ATTRB) == null)
 				popNode("constructor");
