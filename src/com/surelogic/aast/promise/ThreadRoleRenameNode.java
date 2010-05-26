@@ -44,10 +44,17 @@ public class ThreadRoleRenameNode extends ThreadRoleAnnotationNode {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("ThreadRoleRename\n");
-    sb.append(getThreadRole().unparse(debug, indent+2));
-    sb.append(getTRExpr().unparse(debug, indent+2));
+    if (debug) { 
+    	indent(sb, indent); 
+    	sb.append("ThreadRoleRename\n");
+    	sb.append(getThreadRole().unparse(debug, indent+2));
+    	sb.append(getTRExpr().unparse(debug, indent+2));
+    } else {
+    	sb.append("ThreadRoleRename ");
+    	sb.append(getThreadRole().unparse(debug, indent));
+    	sb.append(" for ");
+    	sb.append(getTRExpr().unparse(debug, indent));
+    }
     return sb.toString();
   }
 

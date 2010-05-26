@@ -28,7 +28,7 @@ public class ThreadRoleDeclarationNode extends ThreadRoleNameListNode {
    */
   public ThreadRoleDeclarationNode(int offset,
                               List<ThreadRoleNameNode> tRole) {
-    super(offset, tRole, "ThreadRoleDeclaration");
+    super(offset, tRole, "ThreadRole");
   }
 
 

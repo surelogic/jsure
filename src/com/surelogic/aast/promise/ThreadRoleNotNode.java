@@ -40,9 +40,13 @@ public class ThreadRoleNotNode extends AASTNode implements TRoleLit, ThreadRoleO
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("ThreadRoleNot\n");
-    sb.append(getTarget().unparse(debug, indent+2));
+    if (debug) { 
+    	indent(sb, indent);     
+    	sb.append("ThreadRoleNot\n");
+    	sb.append(getTarget().unparse(debug, indent+2));
+    } else {
+    	sb.append("!").append(getTarget().unparse(debug, indent));
+    }
     return sb.toString();
   }
   

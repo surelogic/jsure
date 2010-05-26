@@ -44,12 +44,26 @@ public class ThreadRoleAndNode extends AASTNode implements ThreadRoleOrElem, Thr
 
   @Override
   public String unparse(boolean debug, int indent) {
-    StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("ThreadRoleAnd\n");
-    for(TRoleLit _n : getAndElemsList()) {
-      sb.append(_n.unparse(debug, indent+2));
-    }
+	  StringBuilder sb = new StringBuilder();
+	  if (debug) { 
+		  indent(sb, indent); 
+		  sb.append("ThreadRoleAnd\n");
+		  for(TRoleLit _n : getAndElemsList()) {
+			  sb.append(_n.unparse(debug, indent+2));
+		  }	  
+	  } else if (getAndElemsList().size() == 1) {
+		  return getAndElemsList().get(0).unparse(debug, indent);
+	  } else {
+		  boolean first = true;
+		  for(TRoleLit _n : getAndElemsList()) {
+			  if (first) {
+				  first = false;
+			  } else {
+				  sb.append(" & ");
+			  }
+			  sb.append(_n.unparse(debug, indent+2));
+		  }
+  }
     return sb.toString();
   }
 

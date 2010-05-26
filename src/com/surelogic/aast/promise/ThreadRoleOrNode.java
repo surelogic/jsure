@@ -46,10 +46,23 @@ public class ThreadRoleOrNode extends AASTNode implements ThreadRoleExprElem {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("ThreadRoleOr\n");
-    for(ThreadRoleOrElem _n : getOrElemsList()) {
-      sb.append(_n.unparse(debug, indent+2));
+    if (debug) { indent(sb, indent); 
+      sb.append("ThreadRoleOr\n");
+      for(ThreadRoleOrElem _n : getOrElemsList()) {
+    	  sb.append(_n.unparse(debug, indent+2));
+      }
+    } else if (getOrElemsList().size() == 1) {
+      return getOrElemsList().get(0).unparse(debug, indent);
+    } else {
+      boolean first = true;
+      for(ThreadRoleOrElem _n : getOrElemsList()) {
+    	  if (first) {
+    		  first = false;
+    	  } else {
+    		  sb.append(" | ");
+    	  }
+    	  sb.append(_n.unparse(debug, indent+2));
+      }
     }
     return sb.toString();
   }

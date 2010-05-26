@@ -339,7 +339,6 @@ public class CommonAASTBinder extends AASTBinder {
    * @see com.surelogic.aast.bind.IAASTBinder#resolve(com.surelogic.aast.promise.ColorImportNode)
    */
   public IRNode resolve(ThreadRoleImportNode node) {
- // TODO EDWIN LOOK HERE!
     // the ColorImportNode has an id String (accessible via getID()) that is either
     // the name of a Type or the name of a package.  When it's a type, we want to get
     // back the IRNode that is the foo_Decl of the type; for a package, we want the 

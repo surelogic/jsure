@@ -78,10 +78,7 @@ public class ThreadRoleImportNode extends AASTRootNode implements
 	}
 
 	public boolean bindingExists() {
-		// temporary hack to bypass missing binding code for ThreadRoleImport:
-		// comment out proper code, and just return true
-		// return AASTBinder.getInstance().isResolvable(this);
-		return true;
+		return AASTBinder.getInstance().isResolvable(this);
 	}
 
 	public ITRoleImportBinding resolveBinding() {

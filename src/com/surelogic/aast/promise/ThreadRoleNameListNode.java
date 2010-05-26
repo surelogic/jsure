@@ -34,11 +34,25 @@ public abstract class ThreadRoleNameListNode extends ThreadRoleAnnotationNode {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append(kind);
-    sb.append('\n');
+    if (debug) { 
+    	indent(sb, indent); 
+    	sb.append(kind);
+    	sb.append('\n');
+    } else {
+    	sb.append(kind).append(' ');
+    }
+    boolean first = true;
     for(AASTNode _n : tRoles) {
-      sb.append(_n.unparse(debug, indent+2));
+      if (debug) {
+    	  sb.append(_n.unparse(debug, indent+2));
+      } else {
+    	  if (first) {
+    		  first = false;
+    	  } else {
+    	      sb.append(", ");
+    	  }
+    	  sb.append(_n.unparse(debug, indent));
+      }
     }
     return sb.toString();
   }
