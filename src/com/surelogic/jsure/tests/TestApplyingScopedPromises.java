@@ -5,12 +5,6 @@ package com.surelogic.jsure.tests;
 
 import java.io.StringReader;
 
-import org.antlr.runtime.RecognitionException;
-
-import com.surelogic.aast.promise.ConstructorDeclPatternNode;
-import com.surelogic.annotation.rules.ScopedPromiseRules;
-import com.surelogic.annotation.scrub.AASTStore;
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.parse.AstGen;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
