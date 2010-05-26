@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
  * @author Aaron Greenhouse
  */
 
+@SuppressWarnings("unchecked")
 public class BareAttributeManager
   extends ModelPart
   implements AttributeManager {
@@ -127,7 +128,7 @@ public class BareAttributeManager
     public final Model[] sources;
 
     /** The SlotInfo used by the clients */
-    public final SlotInfo wrappedSlotInfo;
+	public final SlotInfo wrappedSlotInfo;
 
     /**
      * Creates a new <code>NodeAttrRecord</code> instance.

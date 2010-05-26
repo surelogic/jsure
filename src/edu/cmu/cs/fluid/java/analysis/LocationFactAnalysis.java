@@ -26,6 +26,7 @@ import edu.cmu.cs.fluid.FluidRuntimeException;
  * Initial analysis implementing the "baby IWACO".  Answers a wide variety
  * of aliasing questions fairly conservatively.
  */
+@SuppressWarnings("unchecked")
 @Deprecated
 public class LocationFactAnalysis extends TrackingIntraproceduralAnalysis 
 																	implements IAliasAnalysis,

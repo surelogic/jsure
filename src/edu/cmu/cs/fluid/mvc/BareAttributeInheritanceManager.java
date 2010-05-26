@@ -6,6 +6,7 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 /**
  * @author Aaron Greenhouse
  */
+@SuppressWarnings("unchecked")
 public class BareAttributeInheritanceManager
   extends ModelPart
   implements AttributeInheritanceManager {

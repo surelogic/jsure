@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.mvc.*;
 import edu.cmu.cs.fluid.version.Version;
 import edu.cmu.cs.fluid.version.VersionedIterator;
 
+@SuppressWarnings("deprecation")
 public abstract class AbstractFixedVersionProjection
   extends AbstractModelAndVersionTrackerToModelStatefulView {
   /**

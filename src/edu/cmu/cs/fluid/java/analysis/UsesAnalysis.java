@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
+@SuppressWarnings("unchecked")
 public final class UsesAnalysis {
 
   private static final Logger LOG = SLLogger

@@ -6,4 +6,5 @@ package edu.cmu.cs.fluid.control;
  */
 
 public interface AbruptExitPort extends ExitPort {
+	// Nothing to do
 }

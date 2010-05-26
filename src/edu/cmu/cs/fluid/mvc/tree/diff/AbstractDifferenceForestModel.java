@@ -28,6 +28,7 @@ import edu.cmu.cs.fluid.mvc.tree.ForestModelCore;
  * 
  * @author Aaron Greenhouse
  */
+@SuppressWarnings("unchecked")
 public abstract class AbstractDifferenceForestModel
   extends AbstractForestToForestStatefulView {
   /**

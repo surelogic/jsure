@@ -20,6 +20,7 @@ import edu.cmu.cs.fluid.version.Version;
 /**
  * Abstract implementation of a Fixed Version Forest Projection. 
  */
+@SuppressWarnings("deprecation")
 public abstract class AbstractFixedVersionForestProjection
 extends AbstractFixedVersionProjection
 {

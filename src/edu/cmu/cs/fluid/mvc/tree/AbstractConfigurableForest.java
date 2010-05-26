@@ -38,6 +38,7 @@ import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
  * 
  * @author Aaron Greenhouse
  */
+@SuppressWarnings("unchecked")
 public abstract class AbstractConfigurableForest
   extends AbstractForestToForestStatefulView {
   

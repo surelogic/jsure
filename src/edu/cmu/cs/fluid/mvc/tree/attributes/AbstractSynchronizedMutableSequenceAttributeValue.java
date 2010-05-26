@@ -34,6 +34,7 @@ import edu.cmu.cs.fluid.util.Iteratable;
  * 
  * @see edu.cmu.cs.fluid.ir.IRSequenceWrapper
  */
+@SuppressWarnings("unchecked")
 public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
   implements IRSequence<T> {
   /** The wrapped sequence.*/
@@ -62,7 +63,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
     /**
      * Callback method invoked when an element of the sequence is set.
      */
-    public void setElementAt(
+	public void setElementAt(
       IRSequence seq,
       IRNode seqNode,
       Object elt,

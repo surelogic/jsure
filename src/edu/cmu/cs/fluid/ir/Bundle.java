@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.util.UniqueID;
  * belongs to at most one bundle.  Bundles can be stored
  * persistently.  Every bundle has a unique id.
  */
+@SuppressWarnings("unchecked")
 public class Bundle extends IRPersistent {
   private static final int magic = 0x49524200; // "IRB\0"
 

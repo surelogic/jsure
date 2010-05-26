@@ -11,6 +11,7 @@ import java.util.*;
  * and universe can be declared with a shared new table.
  * (Better would be a static "weak" hashtable.)
  */
+@SuppressWarnings("unchecked")
 public abstract class AbstractCachedSet<T> extends ImmutableHashOrderSet<T> {
   protected AbstractCachedSet(T[] elements, boolean inverse) {
     super(elements,inverse);

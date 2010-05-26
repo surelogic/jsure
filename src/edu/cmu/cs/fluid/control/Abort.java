@@ -6,6 +6,8 @@ package edu.cmu.cs.fluid.control;
  */
 
 public class Abort extends Sink {
-  public Abort() {}
+  public Abort() {
+	  // Nothing to do
+  }
   public Abort(ControlEdge prev) { setInput(prev); }
 }

@@ -101,6 +101,7 @@ import edu.cmu.cs.fluid.util.*;
  * @see Bundle
  * @see IRChunk
  */
+@SuppressWarnings("unchecked")
 public abstract class IRPersistent implements Serializable {
   /**
 	 * Logger for this class

@@ -18,6 +18,7 @@ import edu.cmu.cs.fluid.util.*;
 /**
  * @author Edwin Chan
  */
+@SuppressWarnings("unchecked")
 public final class SynthesizedForestViewImpl
   extends AbstractModelToForestStatefulView
   implements SynthesizedForestView {

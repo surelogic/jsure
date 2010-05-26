@@ -110,7 +110,7 @@ extends AbstractModel
   //===========================================================
   //== Digraph Methods 
   //===========================================================
-
+  @SuppressWarnings("unchecked")  
   public final SlotInfo getAttribute( final String name ) 
   {
     synchronized( structLock ) {
