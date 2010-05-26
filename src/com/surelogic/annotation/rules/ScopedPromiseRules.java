@@ -462,6 +462,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 			} else { 
 				// Has a left paren
 				if (text.endsWith(")")) {
+					
 					promise = text.substring(start, lparen);
 					contents = text.substring(lparen + 1, text.length()-1);
 				} else {
@@ -473,8 +474,14 @@ public class ScopedPromiseRules extends AnnotationRules {
 				}
 			}
 			if (promise != null) {
-				promise = promise.trim();
+				promise = promise.trim();								
 				promise = AnnotationVisitor.capitalize(promise);
+				
+				// Check for enclosing "..."
+				contents = contents.trim();
+				if (contents.startsWith("\"") && contents.endsWith("\"")) {
+					contents = contents.substring(1, contents.length()-1);
+				}
 			}
 			tag = promise;
 			content = contents;
