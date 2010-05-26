@@ -3,7 +3,7 @@
 <package name="java.awt.im">
   <Promise>@ThreadRoleImport(java.awt) for *</Promise>
 
-   <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)"</Promise>
+   <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 
   <Promise>@ThreadRole(GUI) for get*(**)</Promise>
 
@@ -16,11 +16,11 @@
   <Promise>@ThreadRole(GUI) for set*(**)</Promise>
 
   <Promise>@ThreadRole(GUI) for updateUI()</Promise>
-  <Promise>@ThreadRoleTransparent for revalidate()"</Promise>
+  <Promise>@ThreadRoleTransparent for revalidate()</Promise>
 
   <Promise>@ThreadRoleTransparent for repaint(**)</Promise>
 
-  <Promise>@ThreadRole(AWT) for fire*(**)"</Promise>
+  <Promise>@ThreadRole(AWT) for fire*(**)</Promise>
 
 
   <Promise>@ThreadRole(AWT) for requestFocus*(**)</Promise>
