@@ -659,9 +659,11 @@ public abstract class AbstractASTImplGenerator extends AbstractSharedASTGenerato
       }
       @Override
       protected void doForInfo_WithArgs(OpSyntax s, int i, Attribute a, String type, String arg) {
+    	  // Nothing to do
       }
       @Override
       protected void doForVariableChild(OpSyntax s, int i, Child c) {
+    	  // Nothing to do
       }
       @Override
       protected void doForFixedChildren(OpSyntax s, int i, Child c, OpSyntax cOp) {

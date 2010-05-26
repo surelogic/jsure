@@ -243,9 +243,13 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
       super(skip);
     }
     @Override
-    protected void doForInfo_NoArgs(OpSyntax s, int i, Attribute a, String type) {}
+    protected void doForInfo_NoArgs(OpSyntax s, int i, Attribute a, String type) {
+  	  // Nothing to do
+    }
     @Override
-    protected void doForInfo_WithArgs(OpSyntax s, int i, Attribute a, String type, String arg) {}
+    protected void doForInfo_WithArgs(OpSyntax s, int i, Attribute a, String type, String arg) {
+  	  // Nothing to do
+    }
     @Override
     protected void doForVariableChild(OpSyntax s, int i, Child c) {
       hasVariableChildren = true;
@@ -255,7 +259,9 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
       hasVariableChildren = true;
     }
     @Override
-    protected void doForFixedChild(OpSyntax s, int i, Child c) {}
+    protected void doForFixedChild(OpSyntax s, int i, Child c) {
+  	  // Nothing to do
+    }
   }
   /*
   protected final String makePackageName(OpSyntax s) {
@@ -305,9 +311,13 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
       }
     }
     @Override
-    protected void doForInfo_NoArgs(OpSyntax s, int i, Attribute a, String type) {}
+    protected void doForInfo_NoArgs(OpSyntax s, int i, Attribute a, String type) {
+  	  // Nothing to do
+    }
     @Override
-    protected void doForInfo_WithArgs(OpSyntax s, int i, Attribute a, String type, String arg) {}
+    protected void doForInfo_WithArgs(OpSyntax s, int i, Attribute a, String type, String arg) {
+  	  // Nothing to do
+    }
     @Override
     protected void doForVariableChild(OpSyntax s, int i, Child c) {
       addPackage(lookup(c.type));
@@ -697,7 +707,9 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
       }
     }
     @Override
-    protected void doAfter() {}
+    protected void doAfter() {
+  	  // Nothing to do
+    }
   }
   
   /*********************************************************************
@@ -1030,12 +1042,16 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
   }
   
   protected abstract class UnfoldSyntaxStrategy {
-    public void handleAttribute(OpSyntax s, String indent, int i, Attribute a) {}
+    public void handleAttribute(OpSyntax s, String indent, int i, Attribute a) {
+  	  // Nothing to do
+    }
     /**
      * @return true if it was a fixed child
      */
     public abstract boolean handleChild(OpSyntax s, String indent, int i, Child c);
-    public void handleToken(OpSyntax s, String indent, int i, int keyword, Token t) {}
+    public void handleToken(OpSyntax s, String indent, int i, int keyword, Token t) {
+  	  // Nothing to do
+    }
     /**
      * @return The (possibly changed) indent
      */
