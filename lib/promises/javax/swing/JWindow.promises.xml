@@ -4,10 +4,10 @@
 	<class name="JWindow">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole("GUI") for public *(**) &amp; !(update(*))
+		<Promise>@ThreadRole(GUI) for public *(**) &amp; !(update(*))
 		</Promise>
 
-		<Promise>@ThreadRole("AWT") for update(*)</Promise>
+		<Promise>@ThreadRole(AWT) for update(*)</Promise>
 
 	</class>
 </package>

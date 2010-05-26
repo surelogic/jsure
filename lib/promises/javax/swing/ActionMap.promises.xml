@@ -2,6 +2,6 @@
 
 <package name="javax.swing">
 	<class name="ActionMap">
-		<Promise>@ThreadRole("GUI") for public **(**)</Promise>
+		<Promise>@ThreadRole(GUI) for public **(**)</Promise>
 	</class>
 </package>

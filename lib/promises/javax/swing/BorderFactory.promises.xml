@@ -4,7 +4,7 @@
 	<class name="BorderFactory">
 
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
-		<Promise>@ThreadRole("GUI") for create*Border(**)</Promise>
+		<Promise>@ThreadRole(GUI) for create*Border(**)</Promise>
 
 	</class>
 </package>

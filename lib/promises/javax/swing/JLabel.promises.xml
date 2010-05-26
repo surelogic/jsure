@@ -4,7 +4,7 @@
 	<class name="JLabel">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole("GUI") for get*(**) | new(**) | updateUI()</Promise>
-		<Promise>@ThreadRole("GUI") for set*(**) | imageUpdate(**)</Promise>
+		<Promise>@ThreadRole(GUI) for get*(**) | new(**) | updateUI()</Promise>
+		<Promise>@ThreadRole(GUI) for set*(**) | imageUpdate(**)</Promise>
 	</class>
 </package>

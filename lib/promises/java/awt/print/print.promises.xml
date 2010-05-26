@@ -10,6 +10,6 @@
 
 	<Promise>@ThreadRoleTransparent for repaint(**)</Promise>
 
-	<Promise>@ThreadRole("AWT") for **(**) &amp; !(add*Listener(**) |
+	<Promise>@ThreadRole(AWT) for **(**) &amp; !(add*Listener(**) |
 		remove*Listener(**) | revalidate() | repaint(**))</Promise>
 </package>

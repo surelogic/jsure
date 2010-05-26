@@ -5,7 +5,7 @@
 
     <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-  <Promise>@ThreadRole("AWT") for propertyChange(*)</Promise>
+  <Promise>@ThreadRole(AWT) for propertyChange(*)</Promise>
 
 
     </class>  

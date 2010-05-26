@@ -1,6 +1,6 @@
 <package name="java.awt">
 	<Module>AWT for *</Module>
-	<ColorDeclare>AWT, Compute, NotYetVisible</ColorDeclare>
+	<ThreadRole>AWT, Compute, NotYetVisible</ThreadRole>
 	<IncompatibleThreadRoles>AWT, Compute</IncompatibleThreadRoles>
 	<ThreadRoleRename>GUI for (AWT | NotYetVisible)</ThreadRoleRename>
 	<Promise>@ThreadRoleImport(java.awt) for *</Promise>

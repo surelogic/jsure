@@ -4,10 +4,10 @@
 	<class name="JScrollPane">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole("GUI") for get*(**)</Promise>
-		<Promise>@ThreadRole("GUI") for create*(**)</Promise>
-		<Promise>@ThreadRole("GUI") for set*(**)</Promise>
-		<Promise>@ThreadRole("GUI") for updateUI()</Promise>
+		<Promise>@ThreadRole(GUI) for get*(**)</Promise>
+		<Promise>@ThreadRole(GUI) for create*(**)</Promise>
+		<Promise>@ThreadRole(GUI) for set*(**)</Promise>
+		<Promise>@ThreadRole(GUI) for updateUI()</Promise>
 
 	</class>
 </package>

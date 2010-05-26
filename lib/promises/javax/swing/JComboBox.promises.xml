@@ -6,17 +6,17 @@
 		<Promise>@ThreadRoleTransparent&quot; for add*Listener(**) |
 			remove*Listener(**)</Promise>
 
-		<Promise>@ThreadRole("GUI") for get*(**)</Promise>
-		<Promise>@ThreadRole("GUI") for add*(**) &amp; !(add*Listener(**))</Promise>
-		<Promise>@ThreadRole("GUI") for remove*(**) &amp;
+		<Promise>@ThreadRole(GUI) for get*(**)</Promise>
+		<Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+		<Promise>@ThreadRole(GUI) for remove*(**) &amp;
 			!(remove*Listener(**))</Promise>
-		<Promise>@ThreadRole("GUI") for process*(**)</Promise>
-		<Promise>@ThreadRole("GUI") for insert*(**) | hidePopup()</Promise>
-		<Promise>@ThreadRole("GUI") for set*(**)</Promise>
+		<Promise>@ThreadRole(GUI) for process*(**)</Promise>
+		<Promise>@ThreadRole(GUI) for insert*(**) | hidePopup()</Promise>
+		<Promise>@ThreadRole(GUI) for set*(**)</Promise>
 
-		<Promise>@ThreadRole("GUI") for updateUI()</Promise>
+		<Promise>@ThreadRole(GUI) for updateUI()</Promise>
 
-		<Promise>@ThreadRole("AWT") for fire*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for fire*(**)</Promise>
 
 	</class>
 </package>

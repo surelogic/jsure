@@ -2,14 +2,14 @@
 
 <package name="javax.swing">
 	<class name="UIManager">
-		<Promise>@ThreadRole("GUI") for public **(**) &amp; !(add*Listener(*)
+		<Promise>@ThreadRole(GUI) for public **(**) &amp; !(add*Listener(*)
 			| remove*Listener(*))</Promise>
 		<Promise>@ThreadRoleTransparent for add*Listener(*) |
 			remove*Listener(*)</Promise>
 
 	<!--  Uncomment when nested classes work!
 		<class name="LookAndFeelInfo">
-			<Promise>@ThreadRole("GUI") for **(**)</Promise>
+			<Promise>@ThreadRole(GUI) for **(**)</Promise>
 		</class>
 	-->
 	</class>

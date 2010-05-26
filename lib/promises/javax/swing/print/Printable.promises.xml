@@ -2,6 +2,6 @@
 
 <package name="javax.swing.print">
 	<class name="Printable">
-		<Promise>@ThreadRole("GUI") for public **(**)</Promise>
+		<Promise>@ThreadRole(GUI) for public **(**)</Promise>
 	</class>
 </package>

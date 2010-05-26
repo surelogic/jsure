@@ -6,18 +6,18 @@
 	<Promise>@ThreadRoleTransparent for add*Listener(**) |
 		remove*Listener(**)</Promise>
 
-	<Promise>@ThreadRole("GUI") for (public Abstract*:**(**) | public
+	<Promise>@ThreadRole(GUI) for (public Abstract*:**(**) | public
 		Default*:**(**)) &amp; !(add*Listener(**) | remove*Listener(**))
 	</Promise>
-	<Promise>@ThreadRole("GUI") for get*(**) | set*(**) | new(**) |
+	<Promise>@ThreadRole(GUI) for get*(**) | set*(**) | new(**) |
 		(add*(**) &amp; !(add*Listener(**)))</Promise>
-	<Promise>@ThreadRole("GUI") for (is*(**) &amp;
+	<Promise>@ThreadRole(GUI) for (is*(**) &amp;
 		!(isEventDispatchThread())) | put*(**) | update*(**) | *register*(**)
 	</Promise>
-	<Promise>@ThreadRole("GUI") for show*(**) | scroll*(**) | *Path(**) |
+	<Promise>@ThreadRole(GUI) for show*(**) | scroll*(**) | *Path(**) |
 		grab*(**)</Promise>
 
-	<Promise>@ThreadRole("AWT") for paint*(**)</Promise>
-	<Promise>@ThreadRole("AWT") for ensure*(**) | register*(**) |
+	<Promise>@ThreadRole(AWT) for paint*(**)</Promise>
+	<Promise>@ThreadRole(AWT) for ensure*(**) | register*(**) |
 		unregister*(**) | shared*(**)</Promise>
 </package>

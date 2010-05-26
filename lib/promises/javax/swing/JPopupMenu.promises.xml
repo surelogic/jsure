@@ -4,9 +4,9 @@
 	<class name="JPopupMenu">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole("AWT") for fire*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for fire*(**)</Promise>
 
-		<Promise>@ThreadRole("GUI") for **(**) &amp; !(fire*(**)) &amp;
+		<Promise>@ThreadRole(GUI) for **(**) &amp; !(fire*(**)) &amp;
 			!(add*Listener(**) | remove*Listener(*))</Promise>
 	</class>
 </package>
