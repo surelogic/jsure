@@ -19,7 +19,10 @@ public class ScopedPromiseParse extends AbstractParse<ScopedPromisesParser> {
         System.out.println("WARNING: No factory for "+token);
       }
     }  
-
+    printAST(initParser("@ThreadRole(AWT) for fire*(**)").scopedPromise().tree);
+    printAST(initParser("@ThreadRoleTransparent for revalidate()").scopedPromise().tree);
+    printAST(initParser("@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)").scopedPromise().tree);    
+    
     printAST(initParser("@Borrowed").scopedPromise().tree);
     printAST(initParser("@Borrowed()").scopedPromise().tree);
     printAST(initParser("@InRegion(TotalRegion)").scopedPromise().tree);
