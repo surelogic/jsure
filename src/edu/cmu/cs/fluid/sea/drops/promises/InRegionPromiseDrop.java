@@ -1,6 +1,5 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.InRegionNode;
 
 import edu.cmu.cs.fluid.java.JavaNames;

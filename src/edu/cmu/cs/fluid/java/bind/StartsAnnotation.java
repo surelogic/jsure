@@ -1,7 +1,6 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import com.surelogic.annotation.rules.AnnotationRules;
-import com.surelogic.annotation.rules.ThreadEffectsRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
