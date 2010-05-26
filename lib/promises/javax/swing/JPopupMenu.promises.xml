@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<class name="JPopupMenu">
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
+
+		<Promise>@ThreadRole("AWT") for fire*(**)</Promise>
+
+		<Promise>@ThreadRole("GUI") for **(**) &amp; !(fire*(**)) &amp;
+			!(add*Listener(**) | remove*Listener(*))</Promise>
+	</class>
+</package>

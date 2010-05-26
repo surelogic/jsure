@@ -1,22 +1,24 @@
 <package name="java.lang">
- <class name="String">
-  <selfProtected/>
+	<class name="String">
+		<selfProtected />
 
-  <method name="length">
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
-  </method>
-  
-  
-  <method name="valueOf" params="java.lang.Object">
-    <unique>return</unique>
-    <RegionEffects>none</RegionEffects>
-  </method>
+		<Promise>@ThreadRoleTransparent for **(**)</Promise>
 
-  <method name="concat" params="java.lang.String">
-    <unique>return</unique>
-    <RegionEffects>none</RegionEffects>
-  </method>
- </class>
+		<method name="length">
+			<starts>nothing</starts>
+			<RegionEffects>none</RegionEffects>
+			<ThreadRoleTransparent />
+		</method>
+
+
+		<method name="valueOf" params="java.lang.Object">
+			<unique>return</unique>
+			<RegionEffects>none</RegionEffects>
+		</method>
+
+		<method name="concat" params="java.lang.String">
+			<unique>return</unique>
+			<RegionEffects>none</RegionEffects>
+		</method>
+	</class>
 </package>

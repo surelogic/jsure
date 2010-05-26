@@ -1,8 +1,12 @@
 <package name="java.io">
- <class name="File">
-   <!-- From the JavaDoc: Instances of the <code>File</code> class are immutable; that is, once
-        created, the abstract pathname represented by a <code>File</code> object
-        will never change. -->
-   <selfProtected/>
- </class>
+	<class name="File">
+		<!--
+			From the JavaDoc: Instances of the <code>File</code> class are
+			immutable; that is, once created, the abstract pathname represented
+			by a <code>File</code> object will never change.
+		-->
+		<selfProtected />
+
+		<Promise>@ThreadRoleTransparent for **(**)</Promise>
+	</class>
 </package>

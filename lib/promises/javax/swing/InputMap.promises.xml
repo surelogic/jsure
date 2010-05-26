@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<class name="InputMap">
+		<Promise>@ThreadRole("GUI") for public **(**)</Promise>
+	</class>
+</package>

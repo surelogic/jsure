@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+    <class name="SwingUtilities">
+        <Promise>@ThreadRoleTransparent for invokeAndWait(**)</Promise>
+          
+        <method name="invokeLater" params="java.lang.Runnable">
+            <ThreadRoleTransparent/>
+        </method>
+        <method name="isEventDispatchThread" params="">
+            <ThreadRoleTransparent/>
+        </method>
+    </class>
+</package>

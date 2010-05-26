@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<class name="BorderFactory">
+
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
+		<Promise>@ThreadRole("GUI") for create*Border(**)</Promise>
+
+	</class>
+</package>
+

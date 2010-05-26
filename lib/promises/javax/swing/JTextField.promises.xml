@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<class name="JTextField">
+		<Promise>@ThreadRoleTransparent for add*Listener(**) |
+			remove*Listener(**) | get*Listener(**)</Promise>
+
+		<Promise>@ThreadRole("GUI") for new(**) | (*(**) &amp;
+			!(add*Listener(**) | remove*Listener(**) | get*Listener(**)))</Promise>
+
+	</class>
+</package>

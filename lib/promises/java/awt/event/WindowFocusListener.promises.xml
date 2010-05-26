@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
- 
-
 
 <package name="java.awt.event">
-    <class name="WindowFocusListener">
+	<class name="WindowFocusListener">
 
-    <promise keyword="ThreadRoleImport" contents="java.awt.*;"/>
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;AWT&quot;)&quot; for window*(java.awt.event.WindowEvent)"/>
+		<Promise>@ThreadRole(AWT) for window*(java.awt.event.WindowEvent)
+		</Promise>
 
-    </class>  
+	</class>
 </package>

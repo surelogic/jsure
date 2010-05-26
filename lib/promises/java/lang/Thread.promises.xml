@@ -1,5 +1,6 @@
 <package name="java.lang">
  <class name="Thread">
+     <Promise>@ThreadRoleTransparent for **(**)</Promise>
   <constructor>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>

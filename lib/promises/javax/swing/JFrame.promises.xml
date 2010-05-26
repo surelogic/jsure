@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<class name="JFrame">
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
+
+		<Promise>@ThreadRole("GUI;&quot; for get*(**)</Promise>
+		<Promise>@ThreadRole("GUI;&quot; for set*(**)</Promise>
+		<Promise>@ThreadRole("AWT;&quot; for update(*)</Promise>
+
+		<constructor>
+			<ThreadRole>GUI</ThreadRole>
+		</constructor>
+
+		<constructor params="java.awt.GraphicsConfiguration">
+			<ThreadRole>GUI</ThreadRole>
+		</constructor>
+
+		<constructor params="java.lang.String">
+			<ThreadRole>GUI</ThreadRole>
+		</constructor>
+
+		<constructor params="java.lang.String, java.awt.GraphicsConfiguration">
+			<ThreadRole>GUI</ThreadRole>
+		</constructor>
+
+	</class>
+</package>

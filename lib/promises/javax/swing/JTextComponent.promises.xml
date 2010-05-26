@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<class name="JTextComponent">
+		<Promise>@ThreadRole("GUI") for public **(**) &amp;
+			!(replaceSelection(String) | setText(String))</Promise>
+		<Promise>@ThreadRoleTransparent for replaceSelection(String) |
+			setText(String)"</Promise>
+		<method name="format"
+			params="java.lang.Object[],java.lang.StringBuffer,java.text.FieldPosition">
+			<borrowed>arg0</borrowed>
+		</method>
+	</class>
+</package>

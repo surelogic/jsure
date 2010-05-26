@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<Promise>@ThreadRoleImport("java.awt") for *</Promise>
+
+	<Promise>@ThreadRoleTransparent for add*Listener(**) |
+		remove*Listener(**)</Promise>
+
+	<Promise>@ThreadRole("GUI") for (public Abstract*:**(**) | public
+		Default*:**(**)) &amp; !(add*Listener(**) | remove*Listener(**))
+	</Promise>
+	<Promise>@ThreadRole("GUI") for get*(**) | set*(**) | new(**) |
+		(add*(**) &amp; !(add*Listener(**)))</Promise>
+	<Promise>@ThreadRole("GUI") for (is*(**) &amp;
+		!(isEventDispatchThread())) | put*(**) | update*(**) | *register*(**)
+	</Promise>
+	<Promise>@ThreadRole("GUI") for show*(**) | scroll*(**) | *Path(**) |
+		grab*(**)</Promise>
+
+	<Promise>@ThreadRole("AWT") for paint*(**)</Promise>
+	<Promise>@ThreadRole("AWT") for ensure*(**) | register*(**) |
+		unregister*(**) | shared*(**)</Promise>
+</package>

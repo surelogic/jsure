@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<class name="JTable">
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
+
+		<Promise>@ThreadRoleGUI") for add*(**) &amp; !(add*Listener(**))</Promise>
+		<Promise>@ThreadRoleGUI") for get*(**)</Promise>
+		<Promise>@ThreadRoleGUI") for is*(**)</Promise>
+		<Promise>@ThreadRoleGUI") for set*(**)</Promise>
+
+		<Promise>@ThreadRoleAWT") for updateUI()</Promise>
+
+	</class>
+</package>

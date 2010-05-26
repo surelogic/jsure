@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="org.eclipse.swt.custom">
+	<Promise>@ThreadRoleImport("java.awt") for *</Promise>
+	<Promise>@ThreadRoleImport("org.eclipse.swt") for *</Promise>
+
+	<Promise>@ThreadRole("SWT") for public **(**) &amp; !(asyncExec(*) |
+		syncExec(*))</Promise>
+</package>

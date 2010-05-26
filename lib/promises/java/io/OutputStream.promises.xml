@@ -1,5 +1,6 @@
 <package name="java.io">
  <class name="OutputStream">
+  <Promise>@ThreadRoleTransparent for **(**)</Promise>
   <constructor>
     <borrowed>this</borrowed>
   </constructor>

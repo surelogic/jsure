@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<class name="JWindow">
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
+
+		<Promise>@ThreadRole("GUI") for public *(**) &amp; !(update(*))
+		</Promise>
+
+		<Promise>@ThreadRole("AWT") for update(*)</Promise>
+
+	</class>
+</package>

@@ -1,46 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
- 
-
 
 <package name="java.awt.font">
-  <promise keyword="Promise"
-      contents="&quot;ThreadRoleImport java.awt.*;&quot; for *"/>
+  <Promise>@ThreadRoleImport(java.awt) for *</Promise>
 
-      <promise keyword="Promise"
-	contents="&quot;ThreadRoleTransparent&quot; for add*Listener(**) | remove*Listener(**)"/>
+      <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for get*(**) | create*(**) | is*(**)"/>
+  <Promise>@ThreadRole(&quot;GUI;&quot;)&quot; for get*(**) | create*(**) | is*(**)</Promise>
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for add*(**) &amp; !(add*Listener(**))"/>
+  <Promise>
+    @ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for new(**)"/>
+  <Promise>
+    @ThreadRole(GUI) for new(**)</Promise>
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for process*(**)"/>
+  <Promise>
+    @ThreadRole(GUI) for process*(**)</Promise>
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for set*(**)"/>
+  <Promise>
+    @ThreadRole(GUI) for set*(**)</Promise>
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;GUI;&quot;)&quot; for updateUI()"/>
-  <promise keyword="Promise"
-    contents="&quot;ThreadRoleTransparent&quot; for revalidate()"/>
+  <Promise>
+    @ThreadRole(GUI) for updateUI()</Promise>
+  <Promise>
+    @ThreadRoleTransparent for revalidate()</Promise>
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRoleTransparent&quot; for repaint(**)"/>
+  <Promise>
+    @ThreadRoleTransparent for repaint(**)</Promise>
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;AWT&quot;)&quot; for fire*(**)"/>
+  <Promise>
+    @ThreadRole(AWT) for fire*(**)</Promise>
 
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;AWT&quot;)&quot; for requestFocus*(**)"/>
+  <Promise>
+    @ThreadRole(AWT) for requestFocus*(**)</Promise>
 
 
-  <promise keyword="Promise"
-    contents="&quot;ThreadRole(&quot;AWT&quot;)&quot; for paint*(**)"/>
+  <Promise>
+    @ThreadRole(AWT) for paint*(**)</Promise>
 
 </package>

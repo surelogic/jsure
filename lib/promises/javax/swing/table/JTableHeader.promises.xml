@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing.table">
+	<class name="JTableHeader">
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
+
+		<Promise>@ThreadRole("GUI") for column*(**)</Promise>
+		<Promise>@ThreadRole("GUI") for get*(**)</Promise>
+		<Promise>@ThreadRole("GUI") for add*(**) &amp; !(add*Listener(**))</Promise>
+		<Promise>@ThreadRole("GUI") for set*(**)</Promise>
+		<Promise>@ThreadRole("GUI") for updateUI()</Promise>
+	</class>
+</package>
+

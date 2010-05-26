@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing">
+	<class name="JTextArea">
+		<Promise>@ThreadRole("GUI") for public **(**) &amp;
+			!(replaceSelection(String) | setText(String) | insert(**) |
+			append(**) | replaceRange(**))</Promise>
+			
+		<Promise>@ThreadRoleTransparent for replaceSelection(String) |
+			setText(String) | insert(**) | append(**) | replaceRange(**)</Promise>
+	</class>
+</package>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.swing.text.html.parser">
+	<Promise>@ThreadRoleImport("java.awt") for *</Promise>
+
+	<Promise>@ThreadRoleTransparent for add*Listener(**) |
+		remove*Listener(**)</Promise>
+	<Promise>@ThreadRoleTransparent for repaint(**)</Promise>
+	<Promise>@ThreadRoleTransparent for revalidate()</Promise>
+
+	<Promise>@ThreadRole("GUI") for get*(**)</Promise>
+	<Promise>@ThreadRole("GUI") for add*(**) &amp; !(add*Listener(**))
+	</Promise>
+	<Promise>@ThreadRole("GUI") for new(**)</Promise>
+	<Promise>@ThreadRole("GUI") for process*(**)</Promise>
+	<Promise>@ThreadRole("GUI") for set*(**)</Promise>
+	<Promise>@ThreadRole("GUI") for updateUI()</Promise>
+
+	<Promise>@ThreadRole("AWT") for fire*(**)</Promise>
+	<Promise>@ThreadRole("AWT") for requestFocus*(**)</Promise>
+	<Promise>@ThreadRole("AWT") for paint*(**)</Promise>
+</package>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.lang">
+	<class name="StringBuffer">
+
+		<Promise>@ThreadRoleTransparent for **(**)</Promise>
+
+
+	</class>
+</package>

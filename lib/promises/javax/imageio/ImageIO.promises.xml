@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.imageio">
+	<class name="ImageIO">
+		<Promise>@ThreadRoleTransparent for *(**)</Promise>
+	</class>
+</package>

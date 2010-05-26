@@ -1,11 +1,12 @@
 <package name="java.lang">
- <class name="Math">
-  <method name="min" params="long, long">
-    <RegionEffects>none</RegionEffects>
-  </method>
+	<class name="Math">
+		<Promise>@ThreadRoleTransparent for **(**)</Promise>
+		<method name="min" params="long, long">
+			<RegionEffects>none</RegionEffects>
+		</method>
 
-  <method name="max" params="long, long">
-    <RegionEffects>none</RegionEffects>
-  </method>
- </class>
+		<method name="max" params="long, long">
+			<RegionEffects>none</RegionEffects>
+		</method>
+	</class>
 </package>

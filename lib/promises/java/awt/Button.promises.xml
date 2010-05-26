@@ -1,6 +1,6 @@
 <package name="java.awt">
     <class name="Button">
-    <ThreadRoleImport>java.awt.*</ThreadRoleImport>
+    <ThreadRoleImport>java.awt</ThreadRoleImport>
     
     <MapRegion>Instance into java.awt.event.ActionListener:GUIstuff</MapRegion>
 

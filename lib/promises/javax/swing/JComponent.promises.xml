@@ -1,13 +1,42 @@
 <package name="javax.swing">
- <class name="JComponent">
-  <method name="setDoubleBuffered" params="boolean">
-    <starts>nothing</starts>
-    <borrowed>this</borrowed>
-   <RegionEffects>writes this:Instance</RegionEffects>
-  </method>
+	<class name="JComponent">
 
-  <method name="setOpaque" params="boolean">
-    <borrowed>this</borrowed>
-  </method>
- </class>
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
+
+		<Promise>@ThreadRoleTransparent for add*Listener(**) |
+			remove*Listener(**)</Promise>
+
+		<Promise>@ThreadRole("GUI") for get*(**)</Promise>
+
+		<Promise>@ThreadRole("GUI") for add*(**) &amp; !(add*Listener(**))
+		</Promise>
+
+		<Promise>@ThreadRole("GUI") for process*(**)</Promise>
+
+		<Promise>@ThreadRole("GUI") for set*(**)</Promise>
+
+		<Promise>@ThreadRole("GUI") for updateUI()</Promise>
+		<Promise>@ThreadRoleTransparent for revalidate()</Promise>
+
+		<Promise>@ThreadRoleTransparent for repaint(**)</Promise>
+
+		<Promise>@ThreadRole("AWT") for fire*(**)</Promise>
+
+
+		<Promise>@ThreadRole("AWT") for requestFocus*(**) |
+			requestDefaultFocus(**)</Promise>
+
+
+		<Promise>@ThreadRole("AWT") for paint*(**)</Promise>
+
+		<method name="setDoubleBuffered" params="boolean">
+			<starts>nothing</starts>
+			<borrowed>this</borrowed>
+			<RegionEffects>writes this:Instance</RegionEffects>
+		</method>
+
+		<method name="setOpaque" params="boolean">
+			<borrowed>this</borrowed>
+		</method>
+	</class>
 </package>
