@@ -660,9 +660,9 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 						batchQ.add(javaFile);
 						batchIfReady(monitor);												
 					} else {
-						cu = Eclipse.adaptIR(getJavaProject(), javaFile);
+						cu = Eclipse.adaptIR(javaFile);
 						if (IDE.testReloadMemoryLeak) {
-							cu = Eclipse.adaptIR(getJavaProject(), javaFile);
+							cu = Eclipse.adaptIR(javaFile);
 						}
 						if (warn) {
 							String msg = "Possibly edited a file that has members omitted (not treated as source)";
@@ -696,14 +696,14 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		if (force || size >= BATCH_SIZE) {
 			ICompilationUnit[] cus = batchQ.toArray(new ICompilationUnit[size]);
 			IRNode[] asts = new IRNode[size];
-			Eclipse.adaptIR(getJavaProject(), cus, asts, monitor);
+			Eclipse.adaptIR(cus, asts, monitor);
 			batchQ.clear();
 
 			Binding.ensureBindingsLoaded(monitor);
 
 			if (IDE.testReloadMemoryLeak) {
 				printUsage("BEFORE");
-				Eclipse.adaptIR(getJavaProject(), cus, asts, null);
+				Eclipse.adaptIR(cus, asts, null);
 				printUsage("AFTER");
 			}
 			return size;

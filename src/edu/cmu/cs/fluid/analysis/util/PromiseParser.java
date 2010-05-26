@@ -1,7 +1,7 @@
 package edu.cmu.cs.fluid.analysis.util;
 
 import java.io.*;
-import java.util.Iterator;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,9 +12,13 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
+import com.surelogic.aast.AASTNode;
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseHelper;
+import com.surelogic.annotation.scrub.AASTStore;
+import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.TestXMLParser;
 
@@ -40,6 +44,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
@@ -214,14 +219,48 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 		return true;
 	}
 
-	private void processCodeInfo(CodeInfo info) {
+	private boolean processCodeInfo(CodeInfo info) {
 		if (info.getProperty(CodeInfo.DONE) == Boolean.TRUE) {
-			return;
+			return false;
 		}
 		//System.out.println("Parsing promises for "+info.getFileName());
 		String name = info.getFileName();
 		IRNode cu   = info.getNode();
 		processCompUnit(tEnv, cu, name, info.getSource());
+		return true;
+	}
+	
+	static class DepChecker extends AbstractAASTScrubber<IAASTRootNode> {
+		final Set<IAASTRootNode> done = new HashSet<IAASTRootNode>();
+		
+		@Override
+		protected PromiseDrop<? super IAASTRootNode> makePromiseDrop(
+				IAASTRootNode ast) {
+			throw new UnsupportedOperationException();
+		}		
+		
+		@Override
+		protected Boolean customScrubBindings(AASTNode node) {
+			return checkForTypeBinding(node, true);
+		}
+		
+		
+		void lookForDependencies() {
+			for(IAASTRootNode root : AASTStore.getASTs()) {
+				if (done.contains(root)) {
+					continue;
+				}
+				done.add(root);
+				
+				IDE.getInstance().setAdapting();
+				setContext(null);
+				scrubBindings(root);
+				IDE.getInstance().clearAdapting();
+			}
+			IDE.getInstance().setAdapting();
+			Binding.ensureBindingsLoaded(null);
+			IDE.getInstance().clearAdapting();
+		}
 	}
 	
 	/**
@@ -234,13 +273,26 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 		} else {
 			runVersioned(new AbstractRunner() {
 				public void run() {
-					for(CodeInfo info : listener.infos()) {
-						processCodeInfo(info);
-					}
+					final DepChecker dc = new DepChecker();
+					boolean processed = false;
+					do {						
+						//System.err.println("Starting processing");
+						processed = false;
+						
+						for(CodeInfo info : listener.infos()) {
+							processed |= processCodeInfo(info);
+						}
+						listener.clear();
+						//System.err.println("Processed listener: "+processed);
+						
+						if (processed) {
+							dc.lookForDependencies();							
+							//System.err.println("Looking for dependencies");							
+						}
+					} while (processed);
 				}
 			});
 		}
-		listener.clear();
 
 		runVersioned(new AbstractRunner() {
       public void run() {
