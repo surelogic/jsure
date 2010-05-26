@@ -35,10 +35,15 @@ public abstract class ThreadRoleExprPromiseNode extends AASTRootNode {
   @Override
   public String unparse(boolean debug, int indent) {
     StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append(kind);
-    sb.append('\n');
-    sb.append(theExprNode.unparse(debug, indent+2));
+    if (debug) { 
+    	indent(sb, indent);     
+    	sb.append(kind);
+    	sb.append('\n');
+    } else {
+    	sb.append(kind).append(' ');
+    }
+	sb.append(theExprNode.unparse(debug, indent+2));
+	
     return sb.toString();
   }
 

@@ -33,11 +33,14 @@ public class ThreadRoleExprNode extends AASTRootNode {
 
   @Override
   public String unparse(boolean debug, int indent) {
-    StringBuilder sb = new StringBuilder();
-    if (debug) { indent(sb, indent); }
-    sb.append("ThreadRoleExpr\n");
-    sb.append(theExpr.unparse(debug, indent+2));
-    return sb.toString();
+    if (debug) { 
+        StringBuilder sb = new StringBuilder();
+    	indent(sb, indent); 
+    	sb.append("ThreadRoleExpr\n");
+    	sb.append(theExpr.unparse(debug, indent+2));
+        return sb.toString();
+    }
+    return theExpr.unparse(debug, indent);
   }
 
   @Override

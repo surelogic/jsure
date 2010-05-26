@@ -40,15 +40,16 @@ public class ThreadRoleNameNode extends AASTNode implements TRoleLit, ThreadRole
 
   @Override
   public String unparse(boolean debug, int indent) {
-    StringBuilder sb = new StringBuilder();
     if (debug) {
-      indent(sb, indent);
+      StringBuilder sb = new StringBuilder();
+      indent(sb, indent);    
+      sb.append("ThreadRoleName\n");
+      indent(sb, indent + 2);
+      sb.append("id=").append(getId());
+      sb.append("\n");
+      return sb.toString();
     }
-    sb.append("ThreadRoleName\n");
-    indent(sb, indent + 2);
-    sb.append("id=").append(getId());
-    sb.append("\n");
-    return sb.toString();
+    return getId();
   }
 
   /**
