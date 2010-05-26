@@ -61,7 +61,7 @@ public class PackageDrop extends CUDrop {
 		int added = TestXMLParser.process(root, xmlName);
 		//System.out.println("Added XML annos: "+added);			
 		if (added > 0) {
-		    System.out.println("Found promises for "+pkgName+": "+added);
+		    //System.out.println("Found promises for "+pkgName+": "+added);
 			setHasPromises(true);
 		}
 	} catch (Exception e) {
