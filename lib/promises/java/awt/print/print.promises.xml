@@ -3,12 +3,12 @@
 <package name="java.awt.print">
 	<Promise>@ThreadRoleImport("java.awt") for java.awt.print:*</Promise>
 
-	<Promise>ThreadRoleTransparent for add*Listener(**) |
+	<Promise>@ThreadRoleTransparent for add*Listener(**) |
 		remove*Listener(**)</Promise>
 
-	<Promise>ThreadRoleTransparent for revalidate()</Promise>
+	<Promise>@ThreadRoleTransparent for revalidate()</Promise>
 
-	<Promise>ThreadRoleTransparent for repaint(**)</Promise>
+	<Promise>@ThreadRoleTransparent for repaint(**)</Promise>
 
 	<Promise>@ThreadRole("AWT") for **(**) &amp; !(add*Listener(**) |
 		remove*Listener(**) | revalidate() | repaint(**))</Promise>

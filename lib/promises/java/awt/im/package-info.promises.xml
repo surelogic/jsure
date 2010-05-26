@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
  
 <package name="java.awt.im">
-  <Promise>ThreadRoleImport(java.awt) for *</Promise>
+  <Promise>@ThreadRoleImport(java.awt) for *</Promise>
 
-   <Promise>ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)"</Promise>
+   <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)"</Promise>
 
   <Promise>@ThreadRole(GUI) for get*(**)</Promise>
 

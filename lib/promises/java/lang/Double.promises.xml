@@ -3,7 +3,7 @@
 <package name="java.lang">
     <class name="Double">
 
-	  <promise keyword="abstractImmutable"/>
+	  <abstractImmutable/>
       <Promise>@ThreadRoleTransparent for *(**)</Promise>
 
     </class>  
