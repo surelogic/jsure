@@ -970,7 +970,7 @@ public class ResultsViewContentProvider extends
 				Content leaf = leaves.get(item);
 				if (leaf == null) {
 					leaf = item.cloneAsLeaf();
-					System.out.println("Cloned: "+leaf.getMessage());
+					//System.out.println("Cloned: "+leaf.getMessage());
 					leaves.put(item, leaf);
 				}
 				children.set(i, leaf);
