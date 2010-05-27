@@ -32,7 +32,7 @@
 
   <Promise>@ThreadRole(GUI) for public **(**) in *Event</Promise>  
     
-  <Promise>@ThreadRole(AWT) for public **(**) *Listener</Promise>      
+  <Promise>@ThreadRole(AWT) for public **(**) in *Listener</Promise>      
     
   <Promise>@ThreadRole(GUI) for public new() in MouseInputAdapter</Promise>  
 
