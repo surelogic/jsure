@@ -7,14 +7,14 @@
 		<Promise>@ThreadRoleTransparent&quot; for add*Listener(**) |
 			remove*Listener(**)</Promise>
 			
-		<Promise>@ThreadRole(GUI) for copy() | cut() | paste()</Promise>
-		<Promise>@ThreadRole(GUI) for get*(**)</Promise>
-		<Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))
+		<Promise>@ThreadRole(AWT) for copy() | cut() | paste()</Promise>
+		<Promise>@ThreadRole(AWT) for get*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))
 		</Promise>
-		<Promise>@ThreadRole(GUI) for load*(**)</Promise>
-		<Promise>@ThreadRole(GUI) for remove*(**) &amp;
+		<Promise>@ThreadRole(AWT) for load*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for remove*(**) &amp;
 			!(remove*Listener(**))</Promise>
-		<Promise>@ThreadRole(GUI) for set*(**)</Promise>
-		<Promise>@ThreadRole(GUI) for updateUI()</Promise>
+		<Promise>@ThreadRole(AWT) for set*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for updateUI()</Promise>
 	</class>
 </package>

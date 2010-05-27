@@ -2,7 +2,7 @@
     <class name="CardLayout">
    <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-      <Promise>@ThreadRole(GUI) for new(**) | *(**)</Promise>
+      <Promise>@ThreadRole(AWT) for new(**) | *(**)</Promise>
 	
     </class>  
 </package>

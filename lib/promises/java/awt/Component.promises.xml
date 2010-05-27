@@ -7,15 +7,15 @@
     <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for remove*Listener(*)</Promise>
 	  <Promise>@ThreadRole(AWT) for remove(**) &amp; !(remove*Listener(**))</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for remove(*)</Promise>
-    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for set*(**)</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for set*(**) &amp; !(setRequestFocusController(*))</Promise>
-    <Promise>@ThreadRole(GUI) for is*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for is*(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIstuff) for is*(**) &amp; !(isInstanceOf(**))</Promise>
-    <Promise>@ThreadRole(GUI) for get*(**) &amp; !(getSize(**))</Promise> 
-    <Promise>@ThreadRole(GUI) for get*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for get*(**) &amp; !(getSize(**))</Promise> 
+    <Promise>@ThreadRole(AWT) for get*(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for public get*(**) &amp; !(getSize())</Promise>
 	  <Promise>@RegionEffects(reads Instance) for getSize()</Promise>
-    <Promise>@ThreadRole(GUI) for create*Image(**)</Promise>
+    <Promise>@ThreadRole(AWT) for create*Image(**)</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for create*Image(**)</Promise>
 
 		<Promise>@ThreadRoleTransparent for repaint(**)</Promise>
@@ -24,13 +24,13 @@
 
     <Promise>@ThreadRole(AWT) for removeNotify()</Promise>
    
- 	  <Promise>@ThreadRole(GUI) for *Focus(**) &amp; !(requestFocus*(**))</Promise>
+ 	  <Promise>@ThreadRole(AWT) for *Focus(**) &amp; !(requestFocus*(**))</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for *Focus(**)</Promise>
 
-	 	<Promise>@ThreadRole(GUI) for enable*(**) | disable*(**)</Promise>
+	 	<Promise>@ThreadRole(AWT) for enable*(**) | disable*(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for enable*(**) | disable*(**)</Promise>
 
-    <Promise>@ThreadRole(GUI) for validate() | invalidate() | hide()</Promise>
+    <Promise>@ThreadRole(AWT) for validate() | invalidate() | hide()</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for validate() | invalidate() | hide()</Promise>
 
     <Promise>@ThreadRole(AWT) for process*Event(*)</Promise>

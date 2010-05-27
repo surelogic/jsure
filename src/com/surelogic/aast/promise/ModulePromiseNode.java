@@ -70,6 +70,6 @@ public class ModulePromiseNode extends ModuleAnnotationNode  {
   
   @Override
   public IAASTNode cloneTree(){
-    return new ModuleNode(getOffset(), new String(id));
+    return new ModulePromiseNode(getOffset(), new String(id));
   }
 }

@@ -4,17 +4,17 @@
 
     <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIstuff, java.awt.event.ActionListener:GUIinternal) for get*()</Promise>
 
-    <Promise>@ThreadRole(GUI) for charWidth*(**) | get*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for charWidth*(**) | get*(**)</Promise>
 
         <method name="stringWidth" params="java.lang.String">
-            <ThreadRole>GUI</ThreadRole>
+            <ThreadRole>AWT</ThreadRole>
             <RegionEffects>reads Instance, arg0:Instance, java.awt.event.ActionListener:GUIinternal</RegionEffects>
         </method>
         <method name="getHeight" params="">
-            <ThreadRole>GUI</ThreadRole>
+            <ThreadRole>AWT</ThreadRole>
         </method>
         <method name="getAscent" params="">
-            <ThreadRole>GUI</ThreadRole>
+            <ThreadRole>AWT</ThreadRole>
         </method>
     </class>
 </package>

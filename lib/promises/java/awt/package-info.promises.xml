@@ -2,33 +2,29 @@
 	<Module>AWT for *</Module>
 	<ThreadRole>AWT, Compute, NotYetVisible</ThreadRole>
 	<IncompatibleThreadRoles>AWT, Compute</IncompatibleThreadRoles>
-	<ThreadRoleRename>GUI for (AWT | NotYetVisible)</ThreadRoleRename>
+	<ThreadRoleRename>
+		GUI for (AWT | NotYetVisible)</ThreadRoleRename>
 	<Promise>@ThreadRoleImport(java.awt) for *</Promise>
-	
-	<Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
-  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add*Listener(**) | remove*Listener(**)</Promise>
 
-  <Promise>@ThreadRole(GUI) for get*(**) &amp; !(getSize(**))</Promise>
+	<Promise>@ThreadRoleTransparent for add*Listener(**) |
+		remove*Listener(**)</Promise>
+	<Promise>@RegionEffects(writes
+		java.awt.event.ActionListener:GUIinternal) for add*Listener(**) |
+		remove*Listener(**)</Promise>
 
-  <Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+	<Promise>@ThreadRole(AWT) for get*(**) &amp; !(getSize(**))</Promise>
+	<Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**)) </Promise>
+	<Promise>@ThreadRole(AWT) for new(**)</Promise>
+	<Promise>@ThreadRole(AWT) for clone()</Promise>
+	<Promise>@ThreadRole(AWT) for process*(**) &amp; !(process*Event(*))
+	</Promise>
+	<Promise>@ThreadRole(AWT) for set*(**) | show*(**)</Promise>
+	<Promise>@ThreadRole(AWT) for create*(**) | derive*(**)</Promise>
+	<Promise>@ThreadRole(AWT) for updateUI()</Promise>
 
-  <Promise>@ThreadRole(GUI) for new(**)</Promise>
+	<Promise>@ThreadRoleTransparent for revalidate()</Promise>
+	<Promise>@ThreadRoleTransparent for repaint(**)</Promise>
 
-  <Promise>@ThreadRole(GUI) for clone()</Promise>
-  <Promise>@ThreadRole(GUI) for process*(**) &amp; !(process*Event(*))</Promise>
-
-  <Promise>@ThreadRole(GUI) for set*(**) | show*(**)</Promise>
-    
-  <Promise>@ThreadRole(GUI) for create*(**) | derive*(**)</Promise>    
-
-  <Promise>@ThreadRole(GUI) for updateUI()</Promise>
-    
-  <Promise>@ThreadRoleTransparent for revalidate()</Promise>
-
-  <Promise>@ThreadRoleTransparent for repaint(**)</Promise>
-
-  <Promise>@ThreadRole(AWT) for fire*(**)</Promise>
-
-
-  <Promise>@ThreadRole(AWT) for requestFocus*(**)</Promise>
+	<Promise>@ThreadRole(AWT) for fire*(**)</Promise>
+	<Promise>@ThreadRole(AWT) for requestFocus*(**)</Promise>
 </package>

@@ -2,7 +2,7 @@
 
 <package name="javax.swing">
 	<class name="JTextArea">
-		<Promise>@ThreadRole(GUI) for public **(**) &amp;
+		<Promise>@ThreadRole(AWT) for public **(**) &amp;
 			!(replaceSelection(String) | setText(String) | insert(**) |
 			append(**) | replaceRange(**))</Promise>
 			

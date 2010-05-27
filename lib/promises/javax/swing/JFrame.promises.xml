@@ -4,24 +4,24 @@
 	<class name="JFrame">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole("GUI&quot; for get*(**)</Promise>
-		<Promise>@ThreadRole("GUI&quot; for set*(**)</Promise>
-		<Promise>@ThreadRole("AWT&quot; for update(*)</Promise>
+		<Promise>@ThreadRole("AWT") for get*(**)</Promise>
+		<Promise>@ThreadRole("AWT") for set*(**)</Promise>
+		<Promise>@ThreadRole("AWT") for update(*)</Promise>
 
 		<constructor>
-			<ThreadRole>GUI</ThreadRole>
+			<ThreadRole>AWT</ThreadRole>
 		</constructor>
 
 		<constructor params="java.awt.GraphicsConfiguration">
-			<ThreadRole>GUI</ThreadRole>
+			<ThreadRole>AWT</ThreadRole>
 		</constructor>
 
 		<constructor params="java.lang.String">
-			<ThreadRole>GUI</ThreadRole>
+			<ThreadRole>AWT</ThreadRole>
 		</constructor>
 
 		<constructor params="java.lang.String, java.awt.GraphicsConfiguration">
-			<ThreadRole>GUI</ThreadRole>
+			<ThreadRole>AWT</ThreadRole>
 		</constructor>
 
 	</class>

@@ -140,4 +140,5 @@ public interface INodeVisitor<T> {
 	T visit(LayerNode layerNode);
 	T visit(TypeSetNode typeSetNode);
 	T visit(TargetListNode targetListNode);
+	T visit(ModuleScopeNode moduleScopeNode);
 }

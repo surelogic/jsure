@@ -4,7 +4,7 @@
     
     <MapRegion>Instance into java.awt.event.ActionListener:GUIstuff</MapRegion>
 
-    <Promise>@ThreadRole(GUI) for **(**)</Promise>
+    <Promise>@ThreadRole(AWT) for **(**)</Promise>
 	   
     </class>  
 </package>

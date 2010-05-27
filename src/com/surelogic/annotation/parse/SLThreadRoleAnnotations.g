@@ -42,6 +42,7 @@ tokens {
   // Module annos
   ModulePromise;
   ModuleWrapper;
+  ModuleScope;
   ModuleChoice;
   VisClause;
   NoVisClause;
@@ -76,6 +77,7 @@ tokens {
   FROM = 'from';
   OF = 'of';
   TO = 'to';
+  FOR = 'for';
   
   INSTANCE;
 }
@@ -356,6 +358,7 @@ threadRoleCardSpec
 moduleChoice 
 	:	name -> ^(ModulePromise name)
 	|	name CONTAINS names  -> ^(ModuleWrapper name names)
+	|	name FOR '*' -> ^(ModuleScope name)
 	;
 	
 module

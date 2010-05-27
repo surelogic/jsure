@@ -6,15 +6,15 @@
 	<Promise>@ThreadRoleTransparent for add*Listener(**) |
 		remove*Listener(**)</Promise>
 
-	<Promise>@ThreadRole(GUI) for (public **(**) in Abstract* | public
+	<Promise>@ThreadRole(AWT) for (public **(**) in Abstract* | public
 		**(**) in Default*) &amp; !(add*Listener(**) | remove*Listener(**))
 	</Promise>
-	<Promise>@ThreadRole(GUI) for get*(**) | set*(**) | new(**) |
+	<Promise>@ThreadRole(AWT) for get*(**) | set*(**) | new(**) |
 		(add*(**) &amp; !(add*Listener(**)))</Promise>
-	<Promise>@ThreadRole(GUI) for (is*(**) &amp;
+	<Promise>@ThreadRole(AWT) for (is*(**) &amp;
 		!(isEventDispatchThread())) | put*(**) | update*(**) | *register*(**)
 	</Promise>
-	<Promise>@ThreadRole(GUI) for show*(**) | scroll*(**) | *Path(**) |
+	<Promise>@ThreadRole(AWT) for show*(**) | scroll*(**) | *Path(**) |
 		grab*(**)</Promise>
 
 	<Promise>@ThreadRole(AWT) for paint*(**)</Promise>

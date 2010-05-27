@@ -316,12 +316,19 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     T rv = defaultValue;
     rv = combineResults(rv, doAccept(n.getModPromise()));
     rv = combineResults(rv, doAccept(n.getModWrapper()));
+    rv = combineResults(rv, doAccept(n.getModScope()));
     return rv;
   }
   public T visit(ModulePromiseNode n) {
     T rv = defaultValue;
     return rv;
   }
+  
+  public T visit(ModuleScopeNode n) {
+	    T rv = defaultValue;
+	    return rv;
+  }
+  
   public T visit(VisClauseNode n) {
     T rv = defaultValue;
     return rv;

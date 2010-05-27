@@ -3,6 +3,6 @@
 <package name="java.awt.image">
 	<class name="MemoryImageSource">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
-		<Promise>@ThreadRole(GUI) for *(**)</Promise>
+		<Promise>@ThreadRole(AWT) for *(**)</Promise>
 	</class>
 </package>

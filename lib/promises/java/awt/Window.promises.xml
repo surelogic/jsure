@@ -3,17 +3,17 @@
 
     <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 
-    <Promise>@ThreadRole(GUI) for get*(**) | is*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for get*(**) | is*(**)</Promise>
 
-    <Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+    <Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))</Promise>
 
-    <Promise>@ThreadRole(GUI) for process*(**) | dispose()</Promise>
+    <Promise>@ThreadRole(AWT) for process*(**) | dispose()</Promise>
 
-    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for set*(**)</Promise>
 
-    <Promise>@ThreadRole(GUI) for toFront() | toBack()</Promise>
+    <Promise>@ThreadRole(AWT) for toFront() | toBack()</Promise>
 
-    <Promise>@ThreadRole(GUI) for pack() | show() | hide()</Promise>
+    <Promise>@ThreadRole(AWT) for pack() | show() | hide()</Promise>
 
   </class>
 </package>

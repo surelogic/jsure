@@ -2,7 +2,7 @@
     <class name="DataFlavor">
       <Promise>@ThreadRoleTransparent for equals(**)</Promise>
 
-      <Promise>@ThreadRole(GUI) for **(**) &amp; !(equals(**))</Promise>
+      <Promise>@ThreadRole(AWT) for **(**) &amp; !(equals(**))</Promise>
 
     </class>
 </package>

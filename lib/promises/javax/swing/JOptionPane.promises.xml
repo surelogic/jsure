@@ -4,6 +4,6 @@
 	<class name="JOptionPane">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole(GUI) for **(**)</Promise>
+		<Promise>@ThreadRole(AWT) for **(**)</Promise>
 	</class>
 </package>

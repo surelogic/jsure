@@ -8,7 +8,7 @@
 		<Promise>@ThreadRole(AWT) for getAction*(**)</Promise>
 
 
-		<Promise>@ThreadRole(GUI) for *(**) &amp; !(add*Listener(**)) &amp;
+		<Promise>@ThreadRole(AWT) for *(**) &amp; !(add*Listener(**)) &amp;
 			!(remove*Listener(**)) &amp; !(getAction*(**))</Promise>
 	</class>
 </package>

@@ -6,11 +6,11 @@
 	<Promise>@ThreadRoleTransparent for add*Listener(**) |
 		remove*Listener(**)</Promise>
 
-	<Promise>@ThreadRole(GUI) for get*(**)</Promise>
+	<Promise>@ThreadRole(AWT) for get*(**)</Promise>
 
-	<Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
+	<Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))</Promise>
 
-	<Promise>@ThreadRole(GUI) for new(**)| process*(**) | set*(**) |
+	<Promise>@ThreadRole(AWT) for new(**)| process*(**) | set*(**) |
 		updateUI()</Promise>
 
 	<Promise>@ThreadRoleTransparent for revalidate() | repaint(**)</Promise>

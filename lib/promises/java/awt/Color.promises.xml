@@ -1,7 +1,7 @@
 <package name="java.awt">
 	<class name="Color">
 
-  	<Promise>@ThreadRole(GUI) for **(**)</Promise>
+  	<Promise>@ThreadRole(AWT) for **(**)</Promise>
 
   </class>
 </package>

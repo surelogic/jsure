@@ -2,6 +2,6 @@
 
 <package name="javax.swing">
 	<class name="InputMap">
-		<Promise>@ThreadRole(GUI) for public **(**)</Promise>
+		<Promise>@ThreadRole(AWT) for public **(**)</Promise>
 	</class>
 </package>

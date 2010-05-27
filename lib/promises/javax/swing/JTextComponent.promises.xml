@@ -2,7 +2,7 @@
 
 <package name="javax.swing">
 	<class name="JTextComponent">
-		<Promise>@ThreadRole(GUI) for public **(**) &amp;
+		<Promise>@ThreadRole(AWT) for public **(**) &amp;
 			!(replaceSelection(String) | setText(String))</Promise>
 		<Promise>@ThreadRoleTransparent for replaceSelection(String) |
 			setText(String)</Promise>

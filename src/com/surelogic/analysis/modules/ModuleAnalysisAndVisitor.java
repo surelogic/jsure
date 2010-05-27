@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.InstanceInitializationVisitor;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 
@@ -80,6 +81,150 @@ public class ModuleAnalysisAndVisitor {
   private static final String DS_MODULE_ERR_NONLEAF_WITH_CODE = 
     "Types may not be placed in non-leaf module {0}";
   
+  public class JavaSemanticsMAVisitor extends JavaSemanticsVisitor {
+
+	  protected JavaSemanticsMAVisitor(boolean goInside) {
+		  super(goInside);
+	  }
+
+	  protected JavaSemanticsMAVisitor(boolean goInside, IRNode flowUnit) {
+		  super(goInside, flowUnit);
+	  }
+
+	  public JavaSemanticsMAVisitor getInstance() {
+		  return INSTANCE;
+	  }
+
+	  final JavaSemanticsMAVisitor INSTANCE = this;
+
+	  public ModuleModel currMod = null;
+
+	  public IRNode currMethod = null;
+	  public String currMethName = null;
+
+	  private final LinkedList<ModuleModel> oldModuleModels = new LinkedList<ModuleModel>();
+	  private void pushMod(final ModuleModel d) {
+		  oldModuleModels.addFirst(currMod);
+		  currMod = d;
+	  }
+
+	  private void popMod() {
+		  currMod = oldModuleModels.removeFirst();
+	  }
+
+	  private final LinkedList<IRNode> oldDecls = new LinkedList<IRNode>();
+	  private void pushDecl(final IRNode d) {
+		  oldDecls.addFirst(currMethod);
+		  currMethod = d;
+	  }
+	  
+	  private void popDecl() {
+		  currMethod = oldDecls.removeFirst();
+	  }
+
+      
+      /** check whether javaThingy what is visible from where. Issue an error message
+       * if the reference violates module encapsulation.
+       * @param where The place the reference comes from.
+       * @param what The JavaEntity we are referring to.
+       */
+      private void checkVisibility(IRNode where, final IRNode what) {
+   
+        if (!currMod.moduleVisibleFromHere(what)) {
+          // mark an error here.  Add mDecl to the WishIWasVis for its module.
+          ResultDrop rd = makeResultDrop(where, currMod, false, 
+                                         DS_BAD_CROSS_MODULE_REF,
+                                         DebugUnparser.toString(where));
+          rd.setCategory(DSC_BAD_CROSS_MODULE_REF);
+//          ModuleModel.setModuleInformationIsConsistent(false);
+          // this is an error, but the module STRUCTURE is OK.
+          
+          ModuleModel.updateWishIWere(what, currMod);
+        }
+        
+      }
+
+      /**
+       * @param node
+       */
+      private void checkTypePlacement(IRNode node) {
+        if (!currMod.isLeafModule()) {
+          
+          final Collection<ModulePromiseDrop> promiseSet =  ModulePromiseDrop.findModuleDrops(node);
+          for (ModulePromiseDrop modPromise : promiseSet) {
+            if (modPromise != null) {
+              ResultDrop rd = makeResultDrop(node, modPromise, false,
+                                             DS_MODULE_ERR_NONLEAF_WITH_CODE,
+                                             currMod.name);
+              rd.setCategory(DSC_BAD_MODULE_PROMISE);
+              ModuleModel.setModuleInformationIsConsistent(false);
+              modPromise.setBadPlacement(true);
+            }
+          }
+        }
+      }
+
+	@Override
+	protected void enteringEnclosingType(IRNode newType) {
+		// Module annotations are normally found on compilation units.
+		// A module annotation on a type overrides the annotation on a comp-unit,
+		// but only when the comp-unit either lacks a module annotation, or is 
+		// specified as "TheWorld". All other overrides are illegal.
+		final ModuleModel newModDrop = ModuleModel.getModuleDrop(newType);
+		if (newModDrop != null) {
+			// squirrel away old current module
+			final ModuleModel saveCurrMod = currMod;
+
+			
+			// OK to over-ride TheWorld or null, but not anything else.
+			if (saveCurrMod == null || saveCurrMod.moduleIsTheWorld()) {
+				// legal to override, but fishy.
+				pushMod(newModDrop);
+				if (currMod != saveCurrMod) {
+					// ...but it is extremely suspicious if this ever happens!
+					LOG.warning("Overriding module " +saveCurrMod+ " with " +currMod);
+				}
+			} else {
+				// not legal to override!
+				LOG.severe("Illegal attempt to override module"+saveCurrMod+ " with " +newModDrop);
+				pushMod(currMod);
+			}
+		} else {
+			pushMod(currMod);
+		}
+		super.enteringEnclosingType(newType);
+	}
+
+	@Override
+	protected void leavingEnclosingType(IRNode leavingType) {
+		popMod();
+		super.leavingEnclosingType(leavingType);
+	}
+
+	
+	@Override
+	protected void enteringEnclosingDecl(IRNode enteringDecl,
+			IRNode anonClassDecl) {
+		pushDecl(enteringDecl);
+	    currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);
+		super.enteringEnclosingDecl(enteringDecl, anonClassDecl);
+	}
+
+	@Override
+	protected void leavingEnclosingDecl(IRNode leavingDecl) {
+		popDecl();
+	    currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);	
+		super.leavingEnclosingDecl(leavingDecl);
+	}
+
+	@Override
+	protected void handleNonAnnotationTypeDeclaration(IRNode typeDecl) {
+		checkTypePlacement(typeDecl);
+		super.handleNonAnnotationTypeDeclaration(typeDecl);
+	}
+
+	  
+  }
   public class MAVisitor extends VoidTreeWalkVisitor {
     MAVisitor getInstance() {
       return INSTANCE;

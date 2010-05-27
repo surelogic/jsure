@@ -3,15 +3,15 @@
 
     <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-    <Promise>@ThreadRole(GUI) for get*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for get*(**)</Promise>
     
-    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for set*(**)</Promise>
 
-    <Promise>@ThreadRole(GUI) for draw*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for draw*(**)</Promise>
     
-    <Promise>@ThreadRole(GUI) for fill*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for fill*(**)</Promise>
     
-    <Promise>@ThreadRole(GUI) for translate(**)</Promise>
+    <Promise>@ThreadRole(AWT) for translate(**)</Promise>
     
   </class>
 </package>

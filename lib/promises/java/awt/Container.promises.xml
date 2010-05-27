@@ -1,13 +1,13 @@
 <package name="java.awt">
   <class name="Container">
     <ThreadRoleImport>java.awt</ThreadRoleImport>
-    <Promise>@ThreadRole(GUI) for remove(**)</Promise>
-    <Promise>@ThreadRole(GUI) for removeAll()</Promise>
-    <Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
-    <Promise>@ThreadRole(GUI) for get*(**)</Promise>
-    <Promise>@ThreadRole(GUI) for set*(**)</Promise>
-    <Promise>@ThreadRole(GUI) for is*(**)</Promise>
-    <Promise>@ThreadRole(GUI) for put*(**) | invalidate(**)</Promise>
+    <Promise>@ThreadRole(AWT) for remove(**)</Promise>
+    <Promise>@ThreadRole(AWT) for removeAll()</Promise>
+    <Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))</Promise>
+    <Promise>@ThreadRole(AWT) for get*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for set*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for is*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for put*(**) | invalidate(**)</Promise>
 	  
 	  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add(**) | remove(**)</Promise>
 	  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for set*(**) | create*(**)</Promise>
@@ -20,17 +20,17 @@
       <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="add" params="java.awt.Component">
-      <ThreadRole>GUI</ThreadRole>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="add" params="java.lang.String, java.awt.Component">
-      <ThreadRole>GUI</ThreadRole>
+      <ThreadRole>AWT</ThreadRole>
     </method>
     <method name="setLayout" params="java.awt.LayoutManager">
-      <ThreadRole>GUI</ThreadRole>
+      <ThreadRole>AWT</ThreadRole>
     </method>
 
     <method name="validate" params="">
-      <ThreadRole>GUI</ThreadRole>
+      <ThreadRole>AWT</ThreadRole>
     </method>
   </class>  
 </package>

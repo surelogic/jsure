@@ -4,12 +4,12 @@
 	<class name="JButton">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole(GUI) for JButton(**)</Promise>
+		<Promise>@ThreadRole(AWT) for JButton(**)</Promise>
 
-		<Promise>@ThreadRole(GUI) for get*(**)</Promise>
-		<Promise>@ThreadRole(GUI) for is*(**)</Promise>
-		<Promise>@ThreadRole(GUI) for set*(**)</Promise>
-		<Promise>@ThreadRole(GUI) for updateUI()</Promise>
+		<Promise>@ThreadRole(AWT) for get*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for is*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for set*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for updateUI()</Promise>
 	</class>
 </package>
 

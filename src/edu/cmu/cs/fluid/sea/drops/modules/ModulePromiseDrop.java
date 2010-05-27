@@ -49,6 +49,8 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     new HashMap<IRNode, Set<ModuleWrapperPromiseDrop>>();
   private static final Map<String, Set<ModulePromiseDrop>> nameToModuleDecls =
     new HashMap<String, Set<ModulePromiseDrop>>();
+  private static final Map<IRNode, ModuleScopePromiseDrop> irToModuleScope =
+	  new HashMap<IRNode, ModuleScopePromiseDrop>();
   
 //  private static final Set<ModuleDrop> newModuleDrops = new HashSet<ModuleDrop>();
   
@@ -118,9 +120,20 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     return res;
   }
   
+  public static ModuleScopePromiseDrop buildModuleScopeDrop(ModuleChoiceNode mcn) {
+	  final ModuleScopePromiseDrop res = new ModuleScopePromiseDrop(mcn);
+	  final ModulePromiseDrop resAsMPD = res;
+	  final IRNode where = mcn.getPromisedFor();
+	  final String name = mcn.getModScope().getModuleName();
+
+
+	  return res;
+  }
   public static ModulePromiseDrop buildModulePromiseDrop(ModuleChoiceNode a) {
     if (a.getModPromise() != null) {
       return ModulePromiseDrop.buildModuleDrop(a);
+    } else if (a.getModScope() != null) {
+    	return ModulePromiseDrop.buildModuleScopeDrop(a);
     } else {
       return ModulePromiseDrop.buildModuleWrapperDrop(a);
     }
@@ -152,6 +165,8 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     
     return res;
   }
+  
+ 
   
   public static Collection<ModuleWrapperPromiseDrop> 
     findWrappingDecl(final String declaredName, 

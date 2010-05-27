@@ -1,24 +1,33 @@
 <package name="java.awt">
-    <class name="Button">
-    <ThreadRoleImport>java.awt</ThreadRoleImport>
-    
-    <MapRegion>Instance into java.awt.event.ActionListener:GUIstuff</MapRegion>
+	<class name="Button">
+		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-    <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
-	  <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add*Listener(**) | remove*Listener(**)</Promise>
+		<MapRegion>Instance into java.awt.event.ActionListener:GUIstuff
+		</MapRegion>
 
-  <Promise>@ThreadRole(GUI) for get*(**) | new(**)</Promise>
-  <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal) for new(**)</Promise>
-  <Promise>@RegionEffects(reads Instance) for get*(**)</Promise>
+		<Promise>@ThreadRoleTransparent for add*Listener(**) |
+			remove*Listener(**)</Promise>
+		<Promise>@RegionEffects(writes
+			java.awt.event.ActionListener:GUIinternal) for add*Listener(**) |
+			remove*Listener(**)</Promise>
 
-  <Promise>@ThreadRole(GUI) for add*(**) &amp; !(add*Listener(**))</Promise>
-  <Promise>@RegionEffects(writes Instance) for add*(**) &amp; !(add*Listener(**))</Promise>  
+		<Promise>@ThreadRole(AWT) for get*(**) | new(**)</Promise>
+		<Promise>@RegionEffects(reads
+			java.awt.event.ActionListener:GUIinternal) for new(**)</Promise>
+		<Promise>@RegionEffects(reads Instance) for get*(**)</Promise>
 
-  <Promise>@ThreadRole(GUI) for process*(**)</Promise>
-  <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal; writes Instance) for process*(**)</Promise>  
+		<Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))
+		</Promise>
+		<Promise>@RegionEffects(writes Instance) for add*(**) &amp;
+			!(add*Listener(**))</Promise>
 
-  <Promise>@ThreadRole(GUI) for set*(**)</Promise>
-  <Promise>@RegionEffects(writes Instance) for set*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for process*(**)</Promise>
+		<Promise>@RegionEffects(reads
+			java.awt.event.ActionListener:GUIinternal; writes Instance) for
+			process*(**)</Promise>
 
-    </class>  
+		<Promise>@ThreadRole(AWT) for set*(**)</Promise>
+		<Promise>@RegionEffects(writes Instance) for set*(**)</Promise>
+
+	</class>
 </package>

@@ -23,10 +23,10 @@
         <ThreadRoleTransparent/>
       </method>
       <method name="getAppletContext" params="">
-        <ThreadRole>GUI</ThreadRole>
+        <ThreadRole>AWT</ThreadRole>
       </method>
       <method name="getParameter" params="java.lang.String">
-        <ThreadRole>GUI</ThreadRole>
+        <ThreadRole>AWT</ThreadRole>
       </method>
       <method name="getAudioClip" params="java.net.URL">
         <ThreadRoleTransparent/>
@@ -41,10 +41,10 @@
         <ThreadRoleTransparent/>
       </method>
       <method name="init" params="">
-          <ThreadRole>GUI</ThreadRole>
+          <ThreadRole>AWT</ThreadRole>
       </method>
       <method name="destroy" params="">
-          <ThreadRole>GUI</ThreadRole>
+          <ThreadRole>AWT</ThreadRole>
       </method>
       <method name="start" params="">
           <ThreadRole>AWT</ThreadRole>

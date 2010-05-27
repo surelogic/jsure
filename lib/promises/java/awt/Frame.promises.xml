@@ -3,30 +3,30 @@
 
     <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-  <Promise>@ThreadRole(GUI) for get*(**)</Promise>
+  <Promise>@ThreadRole(AWT) for get*(**)</Promise>
 
-  <Promise>@ThreadRole(GUI) for is*(**)</Promise>
+  <Promise>@ThreadRole(AWT) for is*(**)</Promise>
 
-  <Promise>@ThreadRole(GUI) for remove(*)</Promise>
+  <Promise>@ThreadRole(AWT) for remove(*)</Promise>
 
-  <Promise>@ThreadRole(GUI) for set*(**)</Promise>
+  <Promise>@ThreadRole(AWT) for set*(**)</Promise>
 
   <Promise>@ThreadRole(AWT) for *Notify()</Promise>
 
     <constructor>
-      <ThreadRole>GUI</ThreadRole>
+      <ThreadRole>AWT</ThreadRole>
     </constructor>
 
     <constructor params="java.awt.GraphicsConfiguration">
-      <ThreadRole>GUI</ThreadRole>
+      <ThreadRole>AWT</ThreadRole>
     </constructor>
 
     <constructor params="java.lang.String">
-      <ThreadRole>GUI</ThreadRole>
+      <ThreadRole>AWT</ThreadRole>
     </constructor>
 
     <constructor params="java.lang.String, java.awt.GraphicsConfiguration">
-      <ThreadRole>GUI</ThreadRole>
+      <ThreadRole>AWT</ThreadRole>
     </constructor>
 
     </class>  
