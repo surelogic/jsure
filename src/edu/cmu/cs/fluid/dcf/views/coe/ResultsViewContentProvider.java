@@ -892,10 +892,27 @@ public class ResultsViewContentProvider extends
 		onPath.remove(node);
 	}
 
+	/*
+	private int count(Collection<Content> cc, Set<Content> counted) {
+		int i=0;
+		for(Content c : cc) {
+			if (counted.contains(c)) {
+				continue;
+			}
+			counted.add(c);
+			i++;
+			i += count(c.children(), counted);
+		}
+		return i;
+	}
+	*/
+	
 	/**
 	 * Converts back edges into leaf nodes
 	 */
 	private void breakBackEdges(Collection<Content> contentRoot) {
+		//System.out.println("Content count: "+count(contentRoot, new HashSet<Content>()));
+		
 		// fake out the recursive function by pretending the root is a Content
 		// node
 		Content root = new Content("", contentRoot);
@@ -913,6 +930,15 @@ public class ResultsViewContentProvider extends
 	 */
 	private void breakBackEdges(Content node, Set<Content> onPath,
 			Map<Content, Content> leaves) {
+		/*
+		Integer count = counts.get(node);
+		if (count == null) {
+			counts.put(node, 1);
+		} else {
+			System.out.println(count+": "+node.getMessage());
+			counts.put(node, count++);
+		}
+ 		*/
 		if (node.children().isEmpty()) {
 			node.resetChildren(Collections.<Content> emptyList());
 			return;
@@ -944,15 +970,19 @@ public class ResultsViewContentProvider extends
 				Content leaf = leaves.get(item);
 				if (leaf == null) {
 					leaf = item.cloneAsLeaf();
+					System.out.println("Cloned: "+leaf.getMessage());
 					leaves.put(item, leaf);
 				}
 				children.set(i, leaf);
 			}
 		}
 		node.resetChildren(children);
-		onPath.remove(node);
+		// Now it creates a leaf, if I ever see it again
+		//onPath.remove(node);
 	}
 
+	//Map<Content,Integer> counts = new HashMap<Content, Integer>();
+	
 	static private class ContentJavaContext {
 
 		/**

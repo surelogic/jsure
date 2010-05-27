@@ -541,6 +541,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
       // try to open an editor at the point this item references
       // in the code
       final Content c = (Content) obj;
+      if (c.cloneOf != null) {
+    	f_actionLinkToOriginal.run();
+    	return;
+      }
       final ISrcRef sr = c.getSrcRef();
       if (sr != null) {
         highlightLineInJavaEditor(sr);
