@@ -45,13 +45,15 @@ public class ModuleAnalysis2 extends AbstractWholeIRAnalysisModule {
 		binder = tEnv.getBinder();
 
 		// Hashtable options = JavaCore.getOptions();
-		Map options = getJavaProject().getOptions(true);
-		String compiler = (String) options.get(JavaCore.COMPILER_COMPLIANCE);
-		if (!compiler.equals("1.5")) {
-			reportProblem(
-					"@module declarations will not be found, since compiler is set to "
-							+ compiler + ", instead of 1.5", null);
-		}
+	    /*
+	    Map options = getJavaProject().getOptions(true);
+	    String compiler   = (String) options.get(JavaCore.COMPILER_COMPLIANCE);
+	    if (!compiler.equals("1.5")) {
+	    */
+	    if (tEnv.getMajorJavaVersion() < 5) {
+	      reportProblem("@module declarations will not be found, since compiler is set to 1."+
+	    		        tEnv.getMajorJavaVersion()+", instead of 1.5", null);
+	    }
 		// Init the drop that all Module assurance results link to
 		if (resultDependUpon != null) {
 			resultDependUpon.invalidate();
