@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 import edu.cmu.cs.fluid.util.QuickProperties;
 
 /**
@@ -24,7 +25,7 @@ import edu.cmu.cs.fluid.util.QuickProperties;
  * 
  * @see edu.cmu.cs.fluid.analysis.util.ConvertToIR
  */
-public final class ModuleModel extends ModelDrop {
+public final class ModuleModel extends ModelDrop implements IThreadRoleDrop {
 
   private static final Logger LOG;
 

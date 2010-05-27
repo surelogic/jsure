@@ -151,6 +151,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		if (d instanceof IThreadRoleDrop) {
 			return null;
 		}
+		if (d instanceof PromiseWarningDrop && d.getMessage().contains("ThreadRole")) {
+			return null;
+		}
 		if (d instanceof IRReferenceDrop) {
 			// Need a location to report
 			IRReferenceDrop id = (IRReferenceDrop) d;
