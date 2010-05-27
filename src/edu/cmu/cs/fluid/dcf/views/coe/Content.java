@@ -69,6 +69,11 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	 */
 	private final String f_message;
 
+	/**
+	 * Cache of getMessage();
+	 */
+	private String f_getMessage;
+	
 	private String f_baseImageName;
 
 	private int f_imageFlags = 0;
@@ -199,6 +204,9 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	}
 
 	public String getMessage() {
+		if (f_getMessage != null) {
+			return f_getMessage;
+		}
 		String result = f_message;
 		final ISrcRef ref = getSrcRef();
 		if (ref != null) {
@@ -241,6 +249,7 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 		if (f_status != Status.SAME) {
 			result += " -- " + f_status;
 		}
+		f_getMessage = result;
 		return result;
 	}
 
