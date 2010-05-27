@@ -8,7 +8,6 @@ package com.surelogic.analysis.threadroles;
 
 import java.util.Iterator;
 
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -16,7 +15,9 @@ import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleInfoDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleResultDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleWarningDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoledClassDrop;
 
 
@@ -61,7 +62,7 @@ public static final Category multiThreadedInfoCategory =
 
   public static WarningDrop createWarningDrop(String msg,
       IRNode loc) {
-    WarningDrop wd = new WarningDrop();
+    WarningDrop wd = new TRoleWarningDrop();
     // rd.addCheckedPromise(pd);
     wd.setNodeAndCompilationUnitDependency(loc);
     wd.setMessage(msg);
@@ -78,7 +79,7 @@ public static final Category multiThreadedInfoCategory =
   
 
   public static InfoDrop createInfoDrop(String msg, IRNode loc) {
-    InfoDrop id = new InfoDrop();
+    InfoDrop id = new TRoleInfoDrop();
     // rd.addCheckedPromise(pd);
     id.setNodeAndCompilationUnitDependency(loc);
     id.setMessage(msg);
@@ -96,7 +97,7 @@ public static final Category multiThreadedInfoCategory =
 
   public static ResultDrop createProblemDrop(String msg,
       String resultDropKind, IRNode loc) {
-    ResultDrop rd = new ResultDrop(resultDropKind);
+    ResultDrop rd = new TRoleResultDrop(resultDropKind);
     rd.setInconsistent();
     // rd.addCheckedPromise(pd);
     if (loc != null) {
