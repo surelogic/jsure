@@ -31,7 +31,8 @@ import edu.cmu.cs.fluid.tree.Operator;
 /**
  * @author dfsuther
  */
-public class TRoleCtxSummaryDrop extends IRReferenceDrop implements PleaseFolderize {
+public class TRoleCtxSummaryDrop extends IRReferenceDrop 
+implements PleaseFolderize, IThreadRoleDrop {
 
   // private static final String kind = "colorContext summary";
 

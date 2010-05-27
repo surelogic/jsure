@@ -23,11 +23,9 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
  * @author dfsuther
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public abstract class TRoleNameListDrop<A extends ThreadRoleNameListNode> extends PromiseDrop<A> {
+public abstract class TRoleNameListDrop<A extends ThreadRoleNameListNode> extends PromiseDrop<A> 
+implements IThreadRoleDrop {
   private final String kind;
   private final IRNode declContext;
   static final Logger LOG = SLLogger.getLogger("TRoleDropBuilding");

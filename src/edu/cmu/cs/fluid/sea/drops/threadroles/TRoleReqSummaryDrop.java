@@ -31,7 +31,8 @@ import edu.cmu.cs.fluid.tree.Operator;
  * 
  * @-lock ColorReqSummaryLock is class protects nodeToDrop
  */
-public class TRoleReqSummaryDrop extends PromiseDrop implements PleaseFolderize {
+public class TRoleReqSummaryDrop extends PromiseDrop 
+implements PleaseFolderize, IThreadRoleDrop {
 
   private static final Logger LOG = SLLogger.getLogger("TRoleDropBuilding");
 

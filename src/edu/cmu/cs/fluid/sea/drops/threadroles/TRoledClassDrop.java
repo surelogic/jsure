@@ -22,7 +22,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author Edwin
  *
  */
-public class TRoledClassDrop extends PhantomDrop {
+public class TRoledClassDrop extends PhantomDrop implements IThreadRoleDrop {
   Object file;
   
   @SuppressWarnings("unused")

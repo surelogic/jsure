@@ -6,7 +6,8 @@ import com.surelogic.analysis.threadroles.TRoleMessages;
 
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
-public class TRoleTransparentDrop extends BooleanPromiseDrop<ThreadRoleTransparentNode> {
+public class TRoleTransparentDrop extends BooleanPromiseDrop<ThreadRoleTransparentNode> 
+implements IThreadRoleDrop {
   public TRoleTransparentDrop(ThreadRoleTransparentNode n) {
     super(n);
     setCategory(TRoleMessages.assuranceCategory);

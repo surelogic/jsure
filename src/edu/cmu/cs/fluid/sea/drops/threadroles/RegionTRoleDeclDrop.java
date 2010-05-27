@@ -23,7 +23,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  * @see edu.cmu.cs.fluid.sea.drops.promises.ColorRegionModel
  */
-public class RegionTRoleDeclDrop extends PhantomDrop {
+public class RegionTRoleDeclDrop extends PhantomDrop implements IThreadRoleDrop {
 
   private final TRExpr userConstraint;
 

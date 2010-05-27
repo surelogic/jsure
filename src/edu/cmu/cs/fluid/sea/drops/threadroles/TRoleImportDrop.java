@@ -30,7 +30,8 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
  * @region static StaticMap
  * @lock MapLock is this.class protects StaticMap
  */
-public class TRoleImportDrop extends PromiseDrop<ThreadRoleImportNode> {
+public class TRoleImportDrop extends PromiseDrop<ThreadRoleImportNode> 
+implements IThreadRoleDrop {
   /**
    * @mapInto StaticMap
    * @aggregate Instance into StaticMap

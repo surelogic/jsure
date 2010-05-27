@@ -18,7 +18,7 @@ import edu.cmu.cs.fluid.sea.Sea;
  * @author dfsuther
  *
  */
-public class TRoleIncSummaryDrop extends PhantomDrop {
+public class TRoleIncSummaryDrop extends PhantomDrop implements IThreadRoleDrop {
   private final JBDD conflictExpr;
   private final TRoleNameModel summaryFor;
   

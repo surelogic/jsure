@@ -14,11 +14,9 @@ import edu.cmu.cs.fluid.sea.drops.*;
 
 /**
  * @author dfsuther
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class TRoleSummaryDrop extends PromiseDrop implements PleaseFolderize, PleaseCount {
+public class TRoleSummaryDrop extends PromiseDrop 
+implements PleaseFolderize, PleaseCount, IThreadRoleDrop {
    int numIssues;
    
    public TRoleSummaryDrop(String msg) {

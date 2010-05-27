@@ -4,6 +4,7 @@ package com.surelogic.analysis.threadroles;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 
 /**
@@ -14,7 +15,7 @@ import edu.cmu.cs.fluid.sea.PhantomDrop;
  * invalided also gets invalidated.
  * @author dfsuther
  */
-public class TRolePhantomStructure extends PhantomDrop {
+public class TRolePhantomStructure extends PhantomDrop implements IThreadRoleDrop {
 
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.sea.IRReferenceDrop#deponentInvalidAction()

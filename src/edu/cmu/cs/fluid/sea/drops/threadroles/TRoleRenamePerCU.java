@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PhantomDrop;
 
-public class TRoleRenamePerCU extends PhantomDrop {
+public class TRoleRenamePerCU extends PhantomDrop implements IThreadRoleDrop {
 
  public static int lastLoopCheck = 0;
   

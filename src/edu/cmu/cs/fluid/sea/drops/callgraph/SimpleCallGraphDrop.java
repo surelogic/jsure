@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PhantomDrop;
+import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 
 /**
@@ -27,7 +28,7 @@ import edu.cmu.cs.fluid.sea.PhantomDrop;
  * Holds the caller and callee information for a single method or constructor.  There
  * should be no more than one of these drops for any specific IRNode.
  */
-public class SimpleCallGraphDrop extends PhantomDrop {
+public class SimpleCallGraphDrop extends PhantomDrop implements IThreadRoleDrop {
   private final int initSetSize = 2;
   private final Collection<IRNode> callers = new HashSet<IRNode>(initSetSize);
   private final Collection<IRNode> callees = new HashSet<IRNode>(initSetSize);

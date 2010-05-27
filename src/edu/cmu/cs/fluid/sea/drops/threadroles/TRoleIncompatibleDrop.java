@@ -18,11 +18,9 @@ import edu.cmu.cs.fluid.sea.Drop;
 
 /**
  * @author dfsuther
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class TRoleIncompatibleDrop extends TRoleNameListDrop<ThreadRoleIncompatibleNode> {
+public class TRoleIncompatibleDrop extends TRoleNameListDrop<ThreadRoleIncompatibleNode> 
+implements IThreadRoleDrop {
   private static final String myKind = "ThreadRolesIncompatible";
 //  private List tcList = null;
   

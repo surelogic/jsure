@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 
 
-public class RegionTRoleModel extends ModelDrop {
+public class RegionTRoleModel extends ModelDrop implements IThreadRoleDrop {
 
   private final RegionModel masterRegion;
   private final IRNode protoIR;

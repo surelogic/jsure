@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.sea.PhantomDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 
-public class RegionReportTRolesDeclDrop extends PhantomDrop {
+public class RegionReportTRolesDeclDrop extends PhantomDrop implements IThreadRoleDrop {
   
   private final Collection<IRNode> forRegions;
   private String image = null;

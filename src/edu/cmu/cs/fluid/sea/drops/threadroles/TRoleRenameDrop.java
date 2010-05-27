@@ -22,11 +22,9 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 /**
  * @author dfsuther
- * 
- * TODO To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Generation - Code and Comments
  */
-public class TRoleRenameDrop extends PromiseDrop<ThreadRoleRenameNode> {
+public class TRoleRenameDrop extends PromiseDrop<ThreadRoleRenameNode> 
+implements IThreadRoleDrop{
   private final TRExpr rawExpr;
 
   public final String simpleName;

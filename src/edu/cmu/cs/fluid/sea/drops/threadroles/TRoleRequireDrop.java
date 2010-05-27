@@ -28,11 +28,9 @@ import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 
 /**
  * @author dfsuther
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class TRoleRequireDrop extends PromiseDrop<ThreadRoleNode> implements PleaseFolderize {
+public class TRoleRequireDrop extends PromiseDrop<ThreadRoleNode> 
+implements PleaseFolderize, IThreadRoleDrop {
   private static final String kind = "ThreadRoleConstraint";
   
   public TRoleRequireDrop(ThreadRoleNode a) {

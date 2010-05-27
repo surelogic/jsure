@@ -17,7 +17,8 @@ import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 /**
  * @author dfsuther
  */
-public class TRoleResultDrop extends ResultDrop implements MaybeTopLevel, PleaseFolderize {
+public class TRoleResultDrop extends ResultDrop 
+implements MaybeTopLevel, PleaseFolderize, IThreadRoleDrop {
   public TRoleResultDrop(String resultDropKind) {
     super(resultDropKind);
   }

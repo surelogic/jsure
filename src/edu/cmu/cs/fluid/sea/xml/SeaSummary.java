@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaUnparseStyle;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 import edu.cmu.cs.fluid.util.Hashtable2;
 
 /**
@@ -145,6 +146,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				// no need to do anything
 				return null;
 			} 
+		}
+		// TODO skipping for now
+		if (d instanceof IThreadRoleDrop) {
+			return null;
 		}
 		if (d instanceof IRReferenceDrop) {
 			// Need a location to report
