@@ -47,7 +47,7 @@ public class Dependencies {
 		
 		// Find dependent drops
 		for(Drop d : root.getDependents()) {
-			System.out.println(root+" <- "+d);
+			//System.out.println(root+" <- "+d);
 			findEnclosingCUDrop(d);
 			collect(d);
 		}				
@@ -59,13 +59,13 @@ public class Dependencies {
 			IRNode cu = VisitUtil.getEnclosingCompilationUnit(ird.getNode());
 			CUDrop cud = CUDrop.queryCU(cu);
 			if (cud != null) {
-				System.out.println(cud+" <- "+d);
+				//System.out.println(cud+" <- "+d);
 				reprocess.add(cud);
 			} else {
-				System.out.println("No CUDrop for "+d);
+				//System.out.println("No CUDrop for "+d);
 			}
 		} else {
-			System.out.println("Not an IRRefDrop: "+d);
+			//System.out.println("Not an IRRefDrop: "+d);
 			// TODO ignore these?
 		}
 	}
@@ -115,14 +115,14 @@ public class Dependencies {
 		processPromiseWarningDrops();
 		
 		reprocess.removeAll(changed);						
-		
+		/*
 		for(CUDrop d : changed) {
 			System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 		}		
 		for(CUDrop d : reprocess) {
 			System.out.println("Reprocess: "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 		}
-		
+		*/
 		IDE.getInstance().setAdapting();
 		try {
 			for(CUDrop d : reprocess) {
