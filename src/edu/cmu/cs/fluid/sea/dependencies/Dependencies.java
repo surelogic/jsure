@@ -8,6 +8,7 @@ import com.surelogic.promise.PromiseDropStorage;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
 
@@ -46,45 +47,67 @@ public class Dependencies {
 		
 		// Find dependent drops
 		for(Drop d : root.getDependents()) {
-			//System.out.println(root+" <- "+d);
-			findCUDropDeponents(d);
+			System.out.println(root+" <- "+d);
+			findEnclosingCUDrop(d);
 			collect(d);
 		}				
 	}
 	
-	/**
-	 * Recursively check this drop and its deponents for CUDrops
-	 */
-	private void findCUDropDeponents(Drop d) {
-		if (checkedDeponents.contains(d)) {
-			return;
-		}
-		checkedDeponents.add(d);
-		if (d instanceof CUDrop) {
-			reprocess.add((CUDrop) d);				
-			collect(d);
-			/*
-			if (d instanceof PackageDrop) {
-				// I need to reprocess these if the package changed
-				for(Drop dd : d.getDependents()) {
-					if (dd instanceof CUDrop) {
-						reprocess.add((CUDrop) dd);
-					}
-				}
+	private void findEnclosingCUDrop(Drop d) {
+		if (d instanceof IRReferenceDrop) {
+			IRReferenceDrop ird = (IRReferenceDrop) d;
+			IRNode cu = VisitUtil.getEnclosingCompilationUnit(ird.getNode());
+			CUDrop cud = CUDrop.queryCU(cu);
+			if (cud != null) {
+				System.out.println(cud+" <- "+d);
+				reprocess.add(cud);
+			} else {
+				System.out.println("No CUDrop for "+d);
 			}
-			*/
-		}
-		for(Drop deponent : d.getDeponents()) {
-			//System.out.println(d+" -> "+deponent);
-			findCUDropDeponents(deponent);
+		} else {
+			System.out.println("Not an IRRefDrop: "+d);
+			// TODO ignore these?
 		}
 	}
+	
+	/**
+	 * Recursively check this drop and its deponents for CUDrops
+	 * 
+	 * Note: this does what findEnclosingCUDrop() does, and more (too much)
+	 */
+//	private void findCUDropDeponents(Drop d) {
+//		if (checkedDeponents.contains(d)) {
+//			return;
+//		}
+//		checkedDeponents.add(d);
+//		if (d instanceof CUDrop) {
+//			System.out.println("Reprocessing "+d);
+//			reprocess.add((CUDrop) d);				
+//			collect(d);
+//			/*
+//			if (d instanceof PackageDrop) {
+//				// I need to reprocess these if the package changed
+//				for(Drop dd : d.getDependents()) {
+//					if (dd instanceof CUDrop) {
+//						reprocess.add((CUDrop) dd);
+//					}
+//				}
+//			}
+//			*/
+//			return; // No need to look at deponents
+//		}
+//		for(Drop deponent : d.getDeponents()) {
+//			System.out.println(d+" -> "+deponent);
+//			findCUDropDeponents(deponent);
+//		}
+//	}
+//	
 	/**
 	 * Collect CU deponents of promise warnings
 	 */
 	private void processPromiseWarningDrops() {
 		for(Drop d : Sea.getDefault().getDropsOfType(PromiseWarningDrop.class)) {				
-			findCUDropDeponents(d);
+			findEnclosingCUDrop(d);
 		}
 	}
 	
@@ -92,14 +115,14 @@ public class Dependencies {
 		processPromiseWarningDrops();
 		
 		reprocess.removeAll(changed);						
-		/*
+		
 		for(CUDrop d : changed) {
 			System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 		}		
 		for(CUDrop d : reprocess) {
 			System.out.println("Reprocess: "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 		}
-		*/
+		
 		IDE.getInstance().setAdapting();
 		try {
 			for(CUDrop d : reprocess) {
