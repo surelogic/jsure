@@ -40,7 +40,7 @@
       <starts>nothing</starts>
       <RegionEffects>none</RegionEffects>
       <unique>return</unique>
-      <ThreadRoleTransparent/>
+      <!-- <ThreadRoleTransparent/>  -->
     </constructor>
 	  
     <method name="getFont" params="">
