@@ -219,7 +219,7 @@ implements PleaseFolderize, IThreadRoleDrop {
       return null;
     }
 
-//    TRoleInherit.doInherit(node);
+    TRoleInherit.doInherit(node);
     res.inheritanceDone = true;
     
     if (tryingChainRules) {
