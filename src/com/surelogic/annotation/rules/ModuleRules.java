@@ -112,7 +112,7 @@ public class ModuleRules extends AnnotationRules {
   
   public static class Module_ParseRule extends DefaultSLThreadRoleAnnotationParseRule<ModuleChoiceNode, ModulePromiseDrop> {
     public Module_ParseRule() {
-      super(MODULE, packageOps, ModuleChoiceNode.class);
+      super(MODULE, packageTypeDeclOps, ModuleChoiceNode.class);
     }
  
     
