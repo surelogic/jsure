@@ -192,6 +192,9 @@ public class ModuleAnalysisAndVisitor {
 		} else {
 			pushMod(currMod);
 		}
+		currMod.setContainsCode(true);
+        checkTypePlacement(newType);
+
 		super.enteringEnclosingType(newType);
 	}
 
@@ -216,114 +219,12 @@ public class ModuleAnalysisAndVisitor {
 	    currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);	
 		super.leavingEnclosingDecl(leavingDecl);
 	}
-
-	@Override
-	protected void handleNonAnnotationTypeDeclaration(IRNode typeDecl) {
-		checkTypePlacement(typeDecl);
-		super.handleNonAnnotationTypeDeclaration(typeDecl);
-	}
-
-	  
-  }
-  public class MAVisitor extends VoidTreeWalkVisitor {
-    MAVisitor getInstance() {
-      return INSTANCE;
-    }
-    
-    final MAVisitor INSTANCE = this;
-
-//    InstanceInitVisitor<Void> initHelper = null;
-    
-    public ModuleModel currMod = null;
-    
-    public IRNode currMethod = null;
-    public String currMethName = null;
-    
-//    /* (non-Javadoc)
-//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitArrayRefExpression(edu.cmu.cs.fluid.ir.IRNode)
-//     */
-//    @Override
-//    public Void visitArrayRefExpression(IRNode node) {
-//      // TODO Auto-generated method stub
-//      return super.visitArrayRefExpression(node);
-//    }
-    
-    /** check whether javaThingy what is visible from where. Issue an error message
-     * if the reference violates module encapsulation.
-     * @param where The place the reference comes from.
-     * @param what The JavaEntity we are referring to.
-     */
-    private void checkVisibility(IRNode where, final IRNode what) {
- 
-      if (!currMod.moduleVisibleFromHere(what)) {
-        // mark an error here.  Add mDecl to the WishIWasVis for its module.
-        ResultDrop rd = makeResultDrop(where, currMod, false, 
-                                       DS_BAD_CROSS_MODULE_REF,
-                                       DebugUnparser.toString(where));
-        rd.setCategory(DSC_BAD_CROSS_MODULE_REF);
-//        ModuleModel.setModuleInformationIsConsistent(false);
-        // this is an error, but the module STRUCTURE is OK.
-        
-        ModuleModel.updateWishIWere(what, currMod);
-      }
-      
-    }
-
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitClassDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitClassDeclaration(IRNode node) {
-      final ModuleModel saveCurrMod = currMod;
-      try {
-        // OK to over-ride TheWorld or null, but not anything else.
-        if (currMod == null || currMod.moduleIsTheWorld()) {
-          currMod = ModuleModel.getModuleDrop(node);
-          if (currMod != saveCurrMod) {
-          // ...but it is extremely suspicious if this ever happens!
-            LOG.warning("Overriding module " +saveCurrMod+ " with " +currMod);
-          }
-        }
-        checkTypePlacement(node);
-        super.visitClassDeclaration(node);
-      } finally {
-        currMod = saveCurrMod;
-      }
-      return null;
-    }
-    
-    // don't look in class initializers or field declarations
-    // (Alternatively, we could look in if they *are* static.)
-    @Override
-    public Void visitClassInitializer(IRNode node) {
-      return null;
-    }
-
-    /**
-     * @param node
-     */
-    private void checkTypePlacement(IRNode node) {
-      if (!currMod.isLeafModule()) {
-        
-        final Collection<ModulePromiseDrop> promiseSet =  ModulePromiseDrop.findModuleDrops(node);
-        for (ModulePromiseDrop modPromise : promiseSet) {
-          if (modPromise != null) {
-            ResultDrop rd = makeResultDrop(node, modPromise, false,
-                                           DS_MODULE_ERR_NONLEAF_WITH_CODE,
-                                           currMod.name);
-            rd.setCategory(DSC_BAD_MODULE_PROMISE);
-            ModuleModel.setModuleInformationIsConsistent(false);
-            modPromise.setBadPlacement(true);
-          }
-        }
-      }
-    }
-
+	
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitConstructorCall(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
-    public Void visitConstructorCall(IRNode node) {
+    public void handleConstructorCall(IRNode node) {
       final IRNode mDecl = binder.getBinding(node);
       
       if (currMethod != null) {        
@@ -334,85 +235,13 @@ public class ModuleAnalysisAndVisitor {
         cgBuild(currMethod, mDecl, receiverType);
       }
 
-
       checkVisibility(node, mDecl);
       
-      super.visitConstructorCall(node);
+      super.handleConstructorCall(node);
       
-      InstanceInitializationVisitor.processConstructorCall(node, getInstance());
-      
-//      if (initHelper != null) {
-//        // initHelper is non-null only when we are traversing tree somewere
-//        // inside
-//        // a constructorDeclaration. That means that the ConstructorCall we're
-//        // looking at right now may possibly be the call to super() at the
-//        // beginning
-//        // of the constructorDeclaration. If it is, we need to traverse the init
-//        // code right now. The call below will do that, if necessary.
-//        initHelper.doVisitInstanceInits(node);
-//      }
-      return null;
     }
-
-   /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitConstructorDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitConstructorDeclaration(IRNode node) {
-      final IRNode saveCurrMeth = currMethod;
-      final String saveCurrMethName = currMethName;
-//      final InstanceInitVisitor<Void> saveInitHelper = initHelper;
-      currMethod = node;
-      currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);
-      
-      Void res = null;
-      try {
-        // Replaced with call to InstanceInitializationVisitor in visitConstructorCall
-//        initHelper = new InstanceInitVisitor<Void>(getInstance());
-//        // note that doVisitInstanceInits will only do the traversal when
-//        // appropriate, and will call back into this visitor to travers the
-//        // inits themselves.
-//        initHelper.doVisitInstanceInits(node);
-        
-        res = super.visitConstructorDeclaration(node);
-      } finally {
-//        initHelper = saveInitHelper;
-        currMethod = saveCurrMeth;
-        currMethName = saveCurrMethName;
-      }
-      return res;
-    }
-
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitEnumDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitEnumDeclaration(IRNode node) {
-      Void res = null;
-      final ModuleModel saveCurrMod = currMod;
-      try {
-        // OK to over-ride TheWorld or null, but not anything else.
-        if (currMod == null || currMod.moduleIsTheWorld()) {
-          currMod = ModuleModel.getModuleDrop(node);
-          if (currMod != saveCurrMod) {
-          // ...but it is extremely suspicious if this ever happens!
-            LOG.warning("Overriding module " +saveCurrMod+ " with " +currMod);
-          }
-        }
-        checkTypePlacement(node);
-        res = super.visitEnumDeclaration(node);
-      } finally {
-        currMod = saveCurrMod;
-      }
-      return res;
-    }
-
-    @Override
-    public Void visitFieldDeclaration(IRNode node) {
-      return null;
-    }
-
-    
+	
+	
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitFieldRef(edu.cmu.cs.fluid.ir.IRNode)
      */
@@ -435,51 +264,20 @@ public class ModuleAnalysisAndVisitor {
       }
       return super.visitFieldRef(node);
     }
-    
-    @Override
-    public Void visitImportDeclarations(IRNode node) {
-      // ignore these
-      return null;
-    }
-
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitInterfaceDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitInterfaceDeclaration(IRNode node) {
-      final ModuleModel saveCurrMod = currMod;
-      try {
-        // OK to over-ride TheWorld or null, but not anything else.
-//      OK to over-ride TheWorld or null, but not anything else.
-        if (currMod == null || currMod.moduleIsTheWorld()) {
-          currMod = ModuleModel.getModuleDrop(node);
-          if (currMod != saveCurrMod) {
-          // ...but it is extremely suspicious if this ever happens!
-            LOG.warning("Overriding module " +saveCurrMod+ " with " +currMod);
-          }
-        }
-        currMod.setContainsCode(true);
-        checkTypePlacement(node);
-        super.visitInterfaceDeclaration(node);
-      } finally {
-        currMod = saveCurrMod;
-      }
-      return null; 
-    }
-
  
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodBody(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitMethodBody(IRNode node) {
-      SimpleCallGraphDrop cgDrop = SimpleCallGraphDrop.getCGDropFor(currMethod);
-      cgDrop.setTheBody(node);
-      cgDrop.setFoundABody(true);
-      return super.visitMethodBody(node);
-    }
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
+	 * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodBody(edu.cmu.cs.fluid.ir.IRNode)
+	 */
+	@Override
+	public Void visitMethodBody(IRNode node) {
+		SimpleCallGraphDrop cgDrop = SimpleCallGraphDrop.getCGDropFor(currMethod);
+		cgDrop.setTheBody(node);
+		cgDrop.setFoundABody(true);
+		return super.visitMethodBody(node);
+	}
+	
+	   /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodCall(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
@@ -499,29 +297,7 @@ public class ModuleAnalysisAndVisitor {
       
       return super.visitMethodCall(node);
     }
-    
-    
-
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitMethodDeclaration(IRNode node) {
-      final IRNode saveCurrMeth = currMethod;
-      currMethod = node;
-      final String saveCurrMethName = currMethName;
-      currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);
-      
-      Void res = null;
-      try {
-        res = super.visitMethodDeclaration(node);
-      } finally {
-        currMethod = saveCurrMeth;
-        currMethName = saveCurrMethName;
-      }
-      return res;
-    }
-
+	
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitNamedType(edu.cmu.cs.fluid.ir.IRNode)
      */
@@ -534,6 +310,7 @@ public class ModuleAnalysisAndVisitor {
       return super.visitNamedType(node);
     }
 
+    
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitNewExpression(edu.cmu.cs.fluid.ir.IRNode)
      */
@@ -549,8 +326,6 @@ public class ModuleAnalysisAndVisitor {
       
       return super.visitNewExpression(node);
     }
-
- 
 
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitTypeRef(edu.cmu.cs.fluid.ir.IRNode)
@@ -569,9 +344,362 @@ public class ModuleAnalysisAndVisitor {
       }
       return super.visitTypeRef(node);
     }
-    
 
+//	@Override
+//	protected void handleNonAnnotationTypeDeclaration(IRNode typeDecl) {
+//		checkTypePlacement(typeDecl);
+//		super.handleNonAnnotationTypeDeclaration(typeDecl);
+//	}
+
+	  
   }
+//  public class MAVisitor extends VoidTreeWalkVisitor {
+//    MAVisitor getInstance() {
+//      return INSTANCE;
+//    }
+//    
+//    final MAVisitor INSTANCE = this;
+//
+////    InstanceInitVisitor<Void> initHelper = null;
+//    
+//    public ModuleModel currMod = null;
+//    
+//    public IRNode currMethod = null;
+//    public String currMethName = null;
+//    
+////    /* (non-Javadoc)
+////     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitArrayRefExpression(edu.cmu.cs.fluid.ir.IRNode)
+////     */
+////    @Override
+////    public Void visitArrayRefExpression(IRNode node) {
+////      // TODO Auto-generated method stub
+////      return super.visitArrayRefExpression(node);
+////    }
+//    
+//    /** check whether javaThingy what is visible from where. Issue an error message
+//     * if the reference violates module encapsulation.
+//     * @param where The place the reference comes from.
+//     * @param what The JavaEntity we are referring to.
+//     */
+//    private void checkVisibility(IRNode where, final IRNode what) {
+// 
+//      if (!currMod.moduleVisibleFromHere(what)) {
+//        // mark an error here.  Add mDecl to the WishIWasVis for its module.
+//        ResultDrop rd = makeResultDrop(where, currMod, false, 
+//                                       DS_BAD_CROSS_MODULE_REF,
+//                                       DebugUnparser.toString(where));
+//        rd.setCategory(DSC_BAD_CROSS_MODULE_REF);
+////        ModuleModel.setModuleInformationIsConsistent(false);
+//        // this is an error, but the module STRUCTURE is OK.
+//        
+//        ModuleModel.updateWishIWere(what, currMod);
+//      }
+//      
+//    }
+//
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitClassDeclaration(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitClassDeclaration(IRNode node) {
+//      final ModuleModel saveCurrMod = currMod;
+//      try {
+//        // OK to over-ride TheWorld or null, but not anything else.
+//        if (currMod == null || currMod.moduleIsTheWorld()) {
+//          currMod = ModuleModel.getModuleDrop(node);
+//          if (currMod != saveCurrMod) {
+//          // ...but it is extremely suspicious if this ever happens!
+//            LOG.warning("Overriding module " +saveCurrMod+ " with " +currMod);
+//          }
+//        }
+//        checkTypePlacement(node);
+//        super.visitClassDeclaration(node);
+//      } finally {
+//        currMod = saveCurrMod;
+//      }
+//      return null;
+//    }
+//    
+//    // don't look in class initializers or field declarations
+//    // (Alternatively, we could look in if they *are* static.)
+//    @Override
+//    public Void visitClassInitializer(IRNode node) {
+//      return null;
+//    }
+//
+//    /**
+//     * @param node
+//     */
+//    private void checkTypePlacement(IRNode node) {
+//      if (!currMod.isLeafModule()) {
+//        
+//        final Collection<ModulePromiseDrop> promiseSet =  ModulePromiseDrop.findModuleDrops(node);
+//        for (ModulePromiseDrop modPromise : promiseSet) {
+//          if (modPromise != null) {
+//            ResultDrop rd = makeResultDrop(node, modPromise, false,
+//                                           DS_MODULE_ERR_NONLEAF_WITH_CODE,
+//                                           currMod.name);
+//            rd.setCategory(DSC_BAD_MODULE_PROMISE);
+//            ModuleModel.setModuleInformationIsConsistent(false);
+//            modPromise.setBadPlacement(true);
+//          }
+//        }
+//      }
+//    }
+//
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitConstructorCall(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitConstructorCall(IRNode node) {
+//      final IRNode mDecl = binder.getBinding(node);
+//      
+//      if (currMethod != null) {        
+//        final IRNode object = ConstructorCall.getObject(node);
+//        final IJavaType receiverType = binder.getJavaType(object);
+//        
+//        // build call graph connections
+//        cgBuild(currMethod, mDecl, receiverType);
+//      }
+//
+//
+//      checkVisibility(node, mDecl);
+//      
+//      super.visitConstructorCall(node);
+//      
+//      InstanceInitializationVisitor.processConstructorCall(node, getInstance());
+//      
+////      if (initHelper != null) {
+////        // initHelper is non-null only when we are traversing tree somewere
+////        // inside
+////        // a constructorDeclaration. That means that the ConstructorCall we're
+////        // looking at right now may possibly be the call to super() at the
+////        // beginning
+////        // of the constructorDeclaration. If it is, we need to traverse the init
+////        // code right now. The call below will do that, if necessary.
+////        initHelper.doVisitInstanceInits(node);
+////      }
+//      return null;
+//    }
+//
+//   /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitConstructorDeclaration(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitConstructorDeclaration(IRNode node) {
+//      final IRNode saveCurrMeth = currMethod;
+//      final String saveCurrMethName = currMethName;
+////      final InstanceInitVisitor<Void> saveInitHelper = initHelper;
+//      currMethod = node;
+//      currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);
+//      
+//      Void res = null;
+//      try {
+//        // Replaced with call to InstanceInitializationVisitor in visitConstructorCall
+////        initHelper = new InstanceInitVisitor<Void>(getInstance());
+////        // note that doVisitInstanceInits will only do the traversal when
+////        // appropriate, and will call back into this visitor to travers the
+////        // inits themselves.
+////        initHelper.doVisitInstanceInits(node);
+//        
+//        res = super.visitConstructorDeclaration(node);
+//      } finally {
+////        initHelper = saveInitHelper;
+//        currMethod = saveCurrMeth;
+//        currMethName = saveCurrMethName;
+//      }
+//      return res;
+//    }
+//
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitEnumDeclaration(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitEnumDeclaration(IRNode node) {
+//      Void res = null;
+//      final ModuleModel saveCurrMod = currMod;
+//      try {
+//        // OK to over-ride TheWorld or null, but not anything else.
+//        if (currMod == null || currMod.moduleIsTheWorld()) {
+//          currMod = ModuleModel.getModuleDrop(node);
+//          if (currMod != saveCurrMod) {
+//          // ...but it is extremely suspicious if this ever happens!
+//            LOG.warning("Overriding module " +saveCurrMod+ " with " +currMod);
+//          }
+//        }
+//        checkTypePlacement(node);
+//        res = super.visitEnumDeclaration(node);
+//      } finally {
+//        currMod = saveCurrMod;
+//      }
+//      return res;
+//    }
+//
+//    @Override
+//    public Void visitFieldDeclaration(IRNode node) {
+//      return null;
+//    }
+//
+//    
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitFieldRef(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitFieldRef(IRNode node) {
+//      final IRNode field = binder.getBinding(node);
+//      checkVisibility(node, field);
+//      
+//      if (javaEntityStats) {
+//        // only check fields that are in CUs whose source is loaded...
+//        final CUDrop cud = TRolesFirstPass.getCUDropOf(field);
+//        if (cud.isAsSource()) {
+//          final IRNode declStmt =
+//            JJNode.tree.getParent(JJNode.tree.getParent(field));
+//          if (JavaNode.getModifier(declStmt, JavaNode.PUBLIC)) {
+//            publicFields.add(field);
+//          }
+//          allFields.add(field);
+//        }
+//      }
+//      return super.visitFieldRef(node);
+//    }
+//    
+//    @Override
+//    public Void visitImportDeclarations(IRNode node) {
+//      // ignore these
+//      return null;
+//    }
+//
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitInterfaceDeclaration(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitInterfaceDeclaration(IRNode node) {
+//      final ModuleModel saveCurrMod = currMod;
+//      try {
+//        // OK to over-ride TheWorld or null, but not anything else.
+////      OK to over-ride TheWorld or null, but not anything else.
+//        if (currMod == null || currMod.moduleIsTheWorld()) {
+//          currMod = ModuleModel.getModuleDrop(node);
+//          if (currMod != saveCurrMod) {
+//          // ...but it is extremely suspicious if this ever happens!
+//            LOG.warning("Overriding module " +saveCurrMod+ " with " +currMod);
+//          }
+//        }
+//        currMod.setContainsCode(true);
+//        checkTypePlacement(node);
+//        super.visitInterfaceDeclaration(node);
+//      } finally {
+//        currMod = saveCurrMod;
+//      }
+//      return null; 
+//    }
+//
+// 
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodBody(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitMethodBody(IRNode node) {
+//      SimpleCallGraphDrop cgDrop = SimpleCallGraphDrop.getCGDropFor(currMethod);
+//      cgDrop.setTheBody(node);
+//      cgDrop.setFoundABody(true);
+//      return super.visitMethodBody(node);
+//    }
+//
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodCall(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitMethodCall(IRNode node) {
+//      MethodCall call = (MethodCall) getOperator(node);
+//      final IRNode mDecl = binder.getBinding(node);
+//      
+//      if (currMethod != null) {
+//        final IRNode obj = call.get_Object(node);
+//        final IJavaType receiverType = binder.getJavaType(obj);
+//        
+//        // build call graph connections
+//        cgBuild(currMethod, mDecl, receiverType);
+//      }
+//
+//      checkVisibility(node, mDecl);
+//      
+//      return super.visitMethodCall(node);
+//    }
+//    
+//    
+//
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodDeclaration(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitMethodDeclaration(IRNode node) {
+//      final IRNode saveCurrMeth = currMethod;
+//      currMethod = node;
+//      final String saveCurrMethName = currMethName;
+//      currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);
+//      
+//      Void res = null;
+//      try {
+//        res = super.visitMethodDeclaration(node);
+//      } finally {
+//        currMethod = saveCurrMeth;
+//        currMethName = saveCurrMethName;
+//      }
+//      return res;
+//    }
+//
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitNamedType(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitNamedType(IRNode node) {
+//      final IRNode typ = binder.getBinding(node);
+//
+//      checkVisibility(node, typ);
+//      
+//      return super.visitNamedType(node);
+//    }
+//
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitNewExpression(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitNewExpression(IRNode node) {
+//      final IRNode cDecl = binder.getBinding(node);
+//       
+//      if (currMethod != null) {
+//        final IJavaType type = binder.getJavaType(node);
+//        cgBuild(currMethod, cDecl, type);
+//      }
+//      checkVisibility(node, cDecl);
+//      
+//      return super.visitNewExpression(node);
+//    }
+//
+// 
+//
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitTypeRef(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visitTypeRef(IRNode node) {
+//      final IRNode typ = binder.getBinding(node);
+//      if (!currMod.moduleVisibleFromHere(typ)) {
+//        // mark an error, add Node to the WishIWasVis for the right module
+//        ResultDrop rd = makeResultDrop(node, currMod, false, 
+//                                       DS_BAD_CROSS_MODULE_REF,
+//                                       TypeRef.getId(node));
+//        rd.setCategory(DSC_BAD_CROSS_MODULE_REF);
+//        
+//        ModuleModel.updateWishIWere(typ, currMod);
+//      }
+//      return super.visitTypeRef(node);
+//    }
+//    
+//
+//  }
 
   private void cgBuildOne(final IRNode caller, final IRNode callee) {
     final SimpleCallGraphDrop callerDrop = SimpleCallGraphDrop
@@ -811,7 +939,7 @@ public class ModuleAnalysisAndVisitor {
     // to always run it.
     
     binder = useThisBinder;
-    MAVisitor mav = new MAVisitor();
+    JavaSemanticsMAVisitor mav = new JavaSemanticsMAVisitor(true);
     mav.currMod = ModuleModel.getModuleDrop(cu);
     mav.doAccept(cu);
   }
