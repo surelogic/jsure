@@ -5,7 +5,7 @@
 
     <Promise>@ThreadRole(AWT) for new(**)</Promise>
 
-<!-- -->
+<!--
     <Promise>@ThreadRoleTransparent for get*Info()</Promise>
     <Promise>@RegionEffects(writes none) for play(**) | getCodeBase()</Promise>
 <!-- -->
