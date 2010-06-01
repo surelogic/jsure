@@ -542,6 +542,10 @@ public class ThreadRoleRules extends AnnotationRules {
 		node.setSlotValue(simpleCGDropSI, cgDrop);
 		cgDrop.setAttachedTo(node, simpleCGDropSI);
 	}
+	
+	public static TRoleRequireDrop getReqDrop(IRNode node) {
+		return getDrop(tRoleRule.getStorage(), node);
+	}
 
 	public static Collection<TRoleRequireDrop> getReqDrops(IRNode node) {
 		final Set<TRoleRequireDrop> mrcs = getMutableRequiresTRoleSet(node);

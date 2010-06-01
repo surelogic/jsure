@@ -40,9 +40,9 @@ public abstract class TRExpr implements Comparable<TRExpr>{
   
   public abstract JBDD computeExpr(final boolean wantConflicts);
   
-  public abstract TRExpr exclude(final Set<TRoleName> exclusions);
-  
-  protected abstract TRExpr exclude(final Set<TRoleName> exclusions, int parentOpFlags);
+//  public abstract TRExpr exclude(final Set<TRoleName> exclusions);
+//  
+//  protected abstract TRExpr exclude(final Set<TRoleName> exclusions, int parentOpFlags);
   
   public boolean isTrue() {
     if (this instanceof TRLeafExpr) return ((TRLeafExpr) this).isTrue();

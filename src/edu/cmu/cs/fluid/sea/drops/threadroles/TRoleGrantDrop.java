@@ -30,7 +30,7 @@ public class TRoleGrantDrop extends TRoleNameListDrop<ThreadRoleGrantNode> imple
   
   public TRoleGrantDrop(ThreadRoleGrantNode cgn) {
     // note that super handles the ColorAnnoMap stuff for us...
-    super(cgn, myKind);
+    super(cgn, myKind, false);
   }
   
   

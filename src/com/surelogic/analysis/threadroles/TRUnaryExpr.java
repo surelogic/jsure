@@ -60,13 +60,13 @@ public class TRUnaryExpr extends TRExpr {
     return new TRUnaryExpr(TRExpr.notOp, expr);
   }
   
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#computeExpr(java.util.Set)
-   */
-  @Override
-  protected TRExpr exclude(final Set<TRoleName> exclusions, int parentOpFlags) {
-    return trNot(opnd.exclude(exclusions, (parentOpFlags^notFlag)));
-  }
+//  /* (non-Javadoc)
+//   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#computeExpr(java.util.Set)
+//   */
+//  @Override
+//  protected TRExpr exclude(final Set<TRoleName> exclusions, int parentOpFlags) {
+//    return trNot(opnd.exclude(exclusions, (parentOpFlags^notFlag)));
+//  }
   
   
   
@@ -82,14 +82,14 @@ public class TRUnaryExpr extends TRExpr {
     final JBDD res = opnd.computeExpr(lWantConfl).not();
     return res;
   }
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set)
-   */
-  @Override
-  public TRExpr exclude(Set<TRoleName> exclusions) {
-    // TODO Auto-generated method stub
-    return exclude(exclusions, 0);
-  }
+//  /* (non-Javadoc)
+//   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set)
+//   */
+//  @Override
+//  public TRExpr exclude(Set<TRoleName> exclusions) {
+//    // TODO Auto-generated method stub
+//    return exclude(exclusions, 0);
+//  }
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.analysis.colors.CExpr#toSB(java.lang.StringBuilder)
    */

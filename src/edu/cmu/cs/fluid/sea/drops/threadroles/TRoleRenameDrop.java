@@ -303,11 +303,11 @@ implements IThreadRoleDrop{
     if (toExpr.isOne() || toExpr.isZero()) return toExpr;
     final TRoleNameModel trnm = TRoleNameModel.getInstance(theTRRD.simpleName,
                                                           TRoleRenamePerCU.currentPerCU.cu);
-    final TRoleName canonColor = trnm.getCanonicalTRole();
-    JBDD res = canonColor.getSelfExpr().and(theTRRD.getBaseExpr());
-    res = res.or(canonColor.getSelfExprNeg().and(theTRRD.getBaseExpr().not()));
+    final TRoleNameModel canonModel = trnm.getCanonicalNameModel();
+    JBDD res = canonModel.getSelfExpr().and(theTRRD.getBaseExpr());
+    res = res.or(canonModel.getSelfExprNeg().and(theTRRD.getBaseExpr().not()));
     res = res.and(toExpr);
-    res = res.exist(canonColor.getSelfExpr());
+    res = res.exist(canonModel.getSelfExpr());
     if (!res.equals(toExpr)) {
       theTRRD.addDependent(exprsDrop);
       return res;

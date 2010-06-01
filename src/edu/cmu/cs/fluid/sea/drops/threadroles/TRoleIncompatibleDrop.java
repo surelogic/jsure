@@ -29,7 +29,7 @@ implements IThreadRoleDrop {
   
   public TRoleIncompatibleDrop(ThreadRoleIncompatibleNode cin) {
     // note that super... takes care of the ColorAnnoMap for us...
-    super(cin, myKind);
+    super(cin, myKind, false);
   }
   
    /**
@@ -71,12 +71,12 @@ implements IThreadRoleDrop {
           
           final String aName = incNames[j];
           final TRoleNameModel model = TRoleNameModel.getInstance(aName, cu);
-          final TRoleName aTRole = model.getCanonicalTRole();
+          final TRoleNameModel canonModel = model.getCanonicalNameModel();
           
           if (i == j) {
-            inner.andWith(aTRole.getSelfExpr());
+            inner.andWith(canonModel.getSelfExpr());
           } else {
-            inner.andWith(aTRole.getSelfExprNeg());
+            inner.andWith(canonModel.getSelfExprNeg());
           }
         }
         conflictExpr.orWith(inner);
@@ -89,8 +89,8 @@ implements IThreadRoleDrop {
         
         final String aName = incNames[i];
         final TRoleNameModel model = TRoleNameModel.getInstance(aName, cu);
-        final TRoleName aTRole = model.getCanonicalTRole();
-        inner.andWith(aTRole.getSelfExprNeg());
+        final TRoleNameModel canonModel = model.getCanonicalNameModel();
+        inner.andWith(canonModel.getSelfExprNeg());
       }
       conflictExpr.orWith(inner);
     }

@@ -113,7 +113,8 @@ public class TRoleRenamePerCU extends PhantomDrop implements IThreadRoleDrop {
    * @param cu
    * @return
    */
-  private static synchronized TRoleRenamePerCU getPerCU(final IRNode cu) {
+  private static synchronized TRoleRenamePerCU getPerCU(final IRNode maybeCU) {
+	final IRNode cu = canonicalCU(maybeCU);
     if (nodeToPerCU == null) {
       nodeToPerCU = new HashMap<IRNode, TRoleRenamePerCU>(0);
     }
@@ -176,28 +177,35 @@ public class TRoleRenamePerCU extends PhantomDrop implements IThreadRoleDrop {
 
   public static TRoleRenamePerCU getTRoleRenamePerCU(final IRNode node) {
 //    Operator op = JJNode.tree.getOperator(node);
-    IRNode cu;
-//    if (CompilationUnit.prototype.includes(op)) {
-//      cu = node;
-//    } else {
-//      cu = VisitUtil.getEnclosingCompilationUnit(node);
-//    }
-    cu = VisitUtil.computeOutermostEnclosingTypeOrCU(node);
+    final IRNode cu = canonicalCU(node);
     if (cu == null) {
-      LOG.log(Level.SEVERE, "[edu.emu.cs.fluid.sea.Drop] "
-          + " unable to find enclosing compilation unit for "
-          + DebugUnparser.toString(node));
-      return null;
+    	return null;
     }
 
     TRoleRenamePerCU res = getPerCU(cu);
     if (res == null) {
       res = new TRoleRenamePerCU(cu);
       setPerCU(cu, res);
+      res.setMessage("Another colorRenamePerCU...");
     }
    
-    res.setMessage("Another colorRenamePerCU...");
     return res;
+  }
+
+  /**
+   * @param node
+   * @return
+   */
+  private static IRNode canonicalCU(final IRNode node) {
+	  IRNode cu;
+	  cu = VisitUtil.computeOutermostEnclosingTypeOrCU(node);
+	  if (cu == null) {
+		  LOG.log(Level.SEVERE, "[edu.emu.cs.fluid.sea.Drop] "
+				  + " unable to find enclosing compilation unit for "
+				  + DebugUnparser.toString(node));
+		  return null;
+	  }
+	  return cu;
   }
 
   private void computeRenameExprs() {

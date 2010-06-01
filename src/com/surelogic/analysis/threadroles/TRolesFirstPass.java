@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -23,6 +24,7 @@ import SableJBDD.bdd.JBDD;
 
 import com.surelogic.aast.promise.ThreadRoleNameListNode;
 import com.surelogic.analysis.InstanceInitializationVisitor;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
@@ -79,7 +81,9 @@ import edu.cmu.cs.fluid.util.Iteratable;
 
 public final class TRolesFirstPass {
 
-  private static int cuCount = 0;
+
+
+private static int cuCount = 0;
   //----------------------------------------------------------------------
   // Helper methods
   //----------------------------------------------------------------------
@@ -275,7 +279,7 @@ public final class TRolesFirstPass {
                                                                node);
           TRoleNameModel globalTRNM = 
         	  TRoleNameModel.getInstance(impTRoleName,null);
-          localTRNM.setCanonicalTRole(globalTRNM.getCanonicalTRole());
+          localTRNM.setCanonicalTRole(globalTRNM.getCanonicalNameModel());
         }
       }
       
@@ -433,8 +437,9 @@ public final class TRolesFirstPass {
         doLibraryMthRenameWalk(parentIter.next());
       }
       
-      Collection<TRoleRequireDrop> reqDrops = ThreadRoleRules.getReqDrops(node);
-      for (TRoleRequireDrop reqDrop : reqDrops) {
+//      Collection<TRoleRequireDrop> reqDrops = ThreadRoleRules.getReqDrops(node);
+      final TRoleRequireDrop reqDrop = ThreadRoleRules.getReqDrop(node);
+      if (reqDrop != null) {
         if (TRoleRenameDrop.currCuHasSomeRenames()) {
           TRExpr newExpr = renameACExpr(reqDrop.getRawExpr(), reqDrop);
           reqDrop.setRenamedExpr(newExpr);
@@ -746,46 +751,97 @@ public final class TRolesFirstPass {
     }
     
   }
-  class TRoleStaticStructureBuilder extends Visitor<Void> {
+  class TRoleStaticStructureBuilder extends JavaSemanticsVisitor {
+	  public class OldStructs {
+			final TRoleStaticMeth oldMethStruct;
+			final TRoleStaticCU oldCUStruct;
+			final TRoleStaticClass oldClassStruct;
+			final TRoleStaticBlockish oldBlockish;
+			final TRoleStaticWithChildren oldStruct;
+			final Object oldCUCookie;
+
+			public OldStructs(TRoleStaticMeth oMS, TRoleStaticCU oCUS,
+					TRoleStaticClass oCSS, TRoleStaticBlockish oB,
+					TRoleStaticWithChildren oS, Object oCUC) {
+				oldMethStruct = oMS;
+				oldCUStruct = oCUS;
+				oldClassStruct = oCSS;
+				oldBlockish = oB;
+				oldStruct = oS;
+				oldCUCookie = oCUC;
+			}
+		}
+	  
     TRoleStaticMeth currMethStruct = null;
     TRoleStaticCU currCUStruct = null;
     TRoleStaticClass currClassStruct = null;
     TRoleStaticBlockish currBlockish = null;
     TRoleStaticWithChildren currStruct = null;
     
-//    InstanceInitVisitor<Void> initHelper = null;
+    final LinkedList<OldStructs> oldStructs = new LinkedList<OldStructs>();
+
     
+    TRoleStaticStructureBuilder() {
+    	super(true);
+    }
     
+    private void pushOld(final IRNode here) {
+    	final Object oCUC = TRoleRenamePerCU.startACU(here);
+    	final OldStructs os = 
+    		new OldStructs(currMethStruct, currCUStruct, currClassStruct, currBlockish, currStruct, oCUC);
+    
+    	oldStructs.addFirst(os);
+    }
+    
+    private void popOld() {
+    	final OldStructs os = oldStructs.removeFirst();
+    	currMethStruct = os.oldMethStruct;
+    	currCUStruct = os.oldCUStruct;
+    	currClassStruct = os.oldClassStruct;
+    	currBlockish = os.oldBlockish;
+    	currStruct = os.oldStruct;
+    	TRoleRenamePerCU.endACU(os.oldCUCookie);
+    }
     
     /**
      * Build the structure for all class-like ops.
      * @param node The node we're processing.
      * @return Always null
      */
-    private Void handleClassLikeOps(IRNode node) {
-      final TRoleStaticClass saveCurrClassStruct = currClassStruct;
-      final TRoleStaticWithChildren saveCurrStruct = currStruct;
+    @Override
+    protected void enteringEnclosingType(IRNode node) {
+    	
+      final TRoleStaticClass oldCurrClassStruct = currClassStruct;
+      
+      pushOld(node);
+     
       final String className = JavaNames.getFullTypeName(node);
-      final Object saveCookie = TRoleRenamePerCU.startACU(node);
-      try {
-        currClassStruct = new TRoleStaticClass(node, currStruct);
-        currStruct.addChild(currClassStruct);
-        currStruct = currClassStruct;
-        currClassStruct.trImports.addAll(ThreadRoleRules.getTRoleImports(node));
-        if (saveCurrClassStruct != null) {
-          currClassStruct.trImports.addAll(saveCurrClassStruct.trImports);
-        }
-        currClassStruct.trRenames.addAll(TRoleRenamePerCU.getTRoleRenamePerCU(node).getCurrRenames());
-        super.doAcceptForChildren(node);
-      } finally {
-        currClassStruct = saveCurrClassStruct;
-        currStruct = saveCurrStruct;
-        TRoleRenamePerCU.endACU(saveCookie);
+
+
+      currClassStruct = new TRoleStaticClass(node, currStruct);
+//      currStruct.addChild(currClassStruct);
+      currStruct = currClassStruct;
+      currClassStruct.trImports.addAll(ThreadRoleRules.getTRoleImports(node));
+      if (oldCurrClassStruct != null) {
+    	  currClassStruct.trImports.addAll(oldCurrClassStruct.trImports);
       }
-      return null;
+      currClassStruct.trRenames.addAll(TRoleRenamePerCU.getTRoleRenamePerCU(node).getCurrRenames());
+
+      super.enteringEnclosingType(node);
     }
     
-    /**
+    
+    
+    /* (non-Javadoc)
+	 * @see com.surelogic.analysis.JavaSemanticsVisitor#leavingEnclosingType(edu.cmu.cs.fluid.ir.IRNode)
+	 */
+	@Override
+	protected void leavingEnclosingType(IRNode leavingType) {
+        popOld();
+		super.leavingEnclosingType(leavingType);
+	}
+
+	/**
      * @param node
      */
     private Void handleBlockLikeOps(IRNode node) {
@@ -811,7 +867,7 @@ public final class TRolesFirstPass {
       return null;
     }
     
-    private Void handleCallLikeOps(final IRNode node) {
+    private void handleCallLikeOps(final IRNode node) {
 //      final ColorStaticWithChildren saveCurrStruct = currStruct;
 //      try {
         final TRoleStaticCall theCall = new TRoleStaticCall(node, currStruct);
@@ -819,23 +875,27 @@ public final class TRolesFirstPass {
 //      } finally {
 //        currStruct = saveCurrStruct;
 //      }
-      return null;
     }
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visit(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visit(IRNode node) {
-      super.doAcceptForChildren(node);
-      return null;
-    }
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitAnonClassExpression(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitAnonClassExpression(IRNode node) {
-      return handleClassLikeOps(node);
-    }
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visit(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public Void visit(IRNode node) {
+//      super.doAcceptForChildren(node);
+//      return null;
+//    }
+    
+    
+    
+//    /* (non-Javadoc)
+//     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitAnonClassExpression(edu.cmu.cs.fluid.ir.IRNode)
+//     */
+//    @Override
+//    public void visitAnonClassExpression(IRNode node) {
+//      super(node);
+//    }
+ 
+    
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitArrayRefExpression(edu.cmu.cs.fluid.ir.IRNode)
      */
@@ -843,11 +903,8 @@ public final class TRolesFirstPass {
     public Void visitArrayRefExpression(IRNode node) {
       if (RegionTRoleModel.haveTRoleRegions()) {
         List<RegionTRoleModel> regTroleMods = TRoleTargets.getRegTRoleModsForArrayRef(node);
-//          ColorTargets.filterColorizedTargets(node, ColorTargets.getTargetsForArrayRef(node));
         
           TRoleStaticRef theRef = new TRoleStaticRef(node, currBlockish, regTroleMods);
-//          currStruct.addChild(theRef);
-        
       }
       return super.visitArrayRefExpression(node);
     }
@@ -860,24 +917,6 @@ public final class TRolesFirstPass {
       return handleBlockLikeOps(node);
     }
 
- 
-
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitClassDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitClassDeclaration(IRNode node) {
-      return handleClassLikeOps(node);
-    }
- 
-    
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitClassInitializer(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitClassInitializer(IRNode node) {
-      return null;
-    }
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitCompilationUnit(edu.cmu.cs.fluid.ir.IRNode)
      */
@@ -902,55 +941,40 @@ public final class TRolesFirstPass {
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitConstructorCall(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
-    public Void visitConstructorCall(IRNode node) {
+    public void handleConstructorCall(IRNode node) {
       handleCallLikeOps(node);
-      InstanceInitializationVisitor.processConstructorCall(node, structureBuilder);
-      return null;
+      super.handleConstructorCall(node);
     }
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitConstructorDeclaration(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
-    public Void visitConstructorDeclaration(IRNode node) {
-      final TRoleStaticMeth saveCurrMethStruct = currMethStruct;
-      final TRoleStaticWithChildren saveCurrStruct = currStruct;
-      final TRoleStaticBlockish saveCurrBlockish = currBlockish;
+    public void enteringEnclosingDecl(final IRNode enteringDecl, final IRNode anonClassDecl) {
+      final IRNode node = enteringDecl;
+      pushOld(node);
       
-//      final InstanceInitVisitor<Void> saveInitHelper = initHelper;
       final String name = JavaNames.genMethodConstructorName(node);
       Void res = null;
-      try {
+
         final TRoleStaticMeth theMeth = new TRoleStaticMeth(node, currStruct);
-        currStruct.addChild(theMeth);
+//        currStruct.addChild(theMeth);
         currStruct = theMeth;
         currMethStruct = theMeth;
         currBlockish = theMeth;
 
-        // Replaced with call to InstanceInitializationVisitor in visitConstructorCall
-//        
-//        initHelper = new InstanceInitVisitor<Void>(structureBuilder);
-//        // note that doVisitInstanceInits will only do the traversal when
-//        // appropriate, and will call back into this visitor to traverse the
-//        // inits themselves.
-//        initHelper.doVisitInstanceInits(node);
-
-        res = super.visitConstructorDeclaration(node);
-        
-      } finally {
-        currMethStruct = saveCurrMethStruct;
-        currStruct = saveCurrStruct;
-//        initHelper = saveInitHelper;
-        currBlockish = saveCurrBlockish;
-      }
-      return res;
+        super.enteringEnclosingDecl(enteringDecl, anonClassDecl);
     }
+    
+    
     /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitEnumDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitEnumDeclaration(IRNode node) {
-      return handleClassLikeOps(node);
-    }
+	 * @see com.surelogic.analysis.JavaSemanticsVisitor#leavingEnclosingDecl(edu.cmu.cs.fluid.ir.IRNode)
+	 */
+	@Override
+	protected void leavingEnclosingDecl(IRNode leavingDecl) {
+		popOld();
+
+		super.leavingEnclosingDecl(leavingDecl);
+	}
     
     
     /* (non-Javadoc)
@@ -975,24 +999,6 @@ public final class TRolesFirstPass {
       }
       return super.visitFieldRef(node);
     }
-    
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitInitDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitInitDeclaration(IRNode node) {
-      // TODO Auto-generated method stub
-      return super.visitInitDeclaration(node);
-    }
-
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitInitialization(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitInitialization(IRNode node) {
-      // TODO Auto-generated method stub
-      return super.visitInitialization(node);
-    }
 
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitInitializer(edu.cmu.cs.fluid.ir.IRNode)
@@ -1003,13 +1009,6 @@ public final class TRolesFirstPass {
       return super.visitInitializer(node);
     }
 
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitInterfaceDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitInterfaceDeclaration(IRNode node) {
-      return handleClassLikeOps(node);
-    }
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodBody(edu.cmu.cs.fluid.ir.IRNode)
      */
@@ -1026,34 +1025,7 @@ public final class TRolesFirstPass {
      */
     @Override
     public Void visitMethodCall(IRNode node) {
-      return handleCallLikeOps(node);
-    }
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitMethodDeclaration(IRNode node) {
-
-        final TRoleStaticMeth saveCurrMethStruct = currMethStruct;
-        final TRoleStaticWithChildren saveCurrStruct = currStruct;
-        final TRoleStaticBlockish saveCurrBlockish = currBlockish;
-        
-        final String name = JavaNames.genMethodConstructorName(node);
-
-        try {
-          final TRoleStaticMeth theMeth = new TRoleStaticMeth(node, currStruct);
-          currStruct.addChild(theMeth);
-          currStruct = theMeth;
-          currMethStruct = theMeth;
-          currBlockish = theMeth;
-
-          super.visitMethodDeclaration(node);
-          
-        } finally {
-          currMethStruct = saveCurrMethStruct;
-          currStruct = saveCurrStruct;
-          currBlockish = saveCurrBlockish;
-        }  
+      handleCallLikeOps(node);
       return null;
     }
     
@@ -1072,25 +1044,12 @@ public final class TRolesFirstPass {
     }
 
     /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitNestedClassDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitNestedClassDeclaration(IRNode node) {
-      return handleClassLikeOps(node);
-    }
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.operator.Visitor#visitNestedInterfaceDeclaration(edu.cmu.cs.fluid.ir.IRNode)
-     */
-    @Override
-    public Void visitNestedInterfaceDeclaration(IRNode node) {
-      return handleClassLikeOps(node);
-    }
-    /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitNewExpression(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
     public Void visitNewExpression(IRNode node) {
-      return handleCallLikeOps(node);
+      handleCallLikeOps(node);
+      return null;
     }
     
     
@@ -2254,10 +2213,17 @@ public final class TRolesFirstPass {
     public void visitClass(TRoleStaticClass node) {
       final TRoleStaticClass saveCurrClass = currClass;
       try {
-        
-      super.visitClass(node); 
+          
+    	  // We may have processed ThreadRoleIncompatibles that describe local
+    	  // TRNames, in which case they are hooked up as dependents of 
+    	  // the LocalTRNameModel. Later on, however, we'll need them to be
+    	  // direct dependents of the canonical name for that local NameModel
+    	  // (that is, the GLOBAL name if there's a ThreadRoleImport that makes
+    	  // a global name visible. The call below performs this fixup.
+    	  TRoleNameModel.promoteIncDepsToCanonName(node.getNode());        
+    	  super.visitClass(node); 
       } finally {
-        currClass = saveCurrClass;
+    	  currClass = saveCurrClass;
       }
     }
 

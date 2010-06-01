@@ -66,9 +66,9 @@ public class TRoleDeclareDrop extends TRoleNameListDrop<ThreadRoleDeclarationNod
   }
   
   public TRoleDeclareDrop(ThreadRoleDeclarationNode trdn) {
-    // don't have to mess around with expanding names to be fully qualified.
-    // Callers are required to have done that already!
-    super(trdn, myKind);
+	// don't have to mess around with expanding names to be fully qualified.
+    // that will be handled for us in super.
+    super(trdn, myKind, true);
     // want to see all declare drops!
     setFromSrc(true);
     

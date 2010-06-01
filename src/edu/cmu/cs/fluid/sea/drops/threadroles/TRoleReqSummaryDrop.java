@@ -124,7 +124,7 @@ implements PleaseFolderize, IThreadRoleDrop {
     if ((MethodDeclaration.prototype.includes(op) || ConstructorDeclaration.prototype
         .includes(op))) {
       // build a interface color requirements
-      Collection<TRoleRequireDrop> protos = null;
+
       final String mthName = JJNode.getInfo(node);
 //      final String mthFullName = JavaNames.genQualifiedMethodConstructorName(node);
       final String msg = "Color Requirements for " + mthName;
@@ -137,9 +137,9 @@ implements PleaseFolderize, IThreadRoleDrop {
       res.setNodeAndCompilationUnitDependency(node);
       ThreadRoleRules.setReqSummDrop(node, res);
       
-      protos = ThreadRoleRules.getReqDrops(node);
+      final TRoleRequireDrop proto = ThreadRoleRules.getReqDrop(node);
       boolean haveCNR = !res.reqsAreRelevant;
-      if (haveCNR && !protos.isEmpty()) {
+      if (haveCNR && (proto != null)) {
         // problem: we have local @requiresColor annos AND an @transparent!
         // reject one or the other.
         ResultDrop rd = TRoleMessages
@@ -147,14 +147,13 @@ implements PleaseFolderize, IThreadRoleDrop {
                                "Error: @colorConstraint and @transparent on same method (" + mthName +").",
                                "TODO: Fill Me In", node);
         rd.addCheckedPromise(res);
-        //rd.addTrustedPromises(protos);
         rd.setInconsistent();
       }
 
       //      Collection iProtos = ColorRules.getInheritedRequireDrops(node);
       //      protos.addAll(iProtos);
 
-      if (protos.isEmpty()) {
+      if (proto == null) {
         // make an "empty" summary placed at this node. Constructor maintains
         // the nodeToDrop mapping for us.
 
@@ -175,36 +174,31 @@ implements PleaseFolderize, IThreadRoleDrop {
         }
 
       } else {
-        // Have at least one user-written requiresColor anno to summarize.
+        // Have a user-written requiresColor anno to summarize.
         
         res.localEmpty = false;
-        res.setNodeAndCompilationUnitDependency(node);
+//        res.setNodeAndCompilationUnitDependency(node);
         res.userDeponents.add(res);
-        res.cutPoint = !protos.isEmpty();
+        res.cutPoint = true;
         res.setWhichStat(Status.USER);
         boolean fromSrc = false;
-//        Iterator<TRoleRequireDrop> protoIter = protos.iterator();
-//        while (protoIter.hasNext()) {
-//          TRoleRequireDrop proto = protoIter.next();
-        for (TRoleRequireDrop proto : protos) {
-          if (LOG.isLoggable(Level.FINER)) {
-            LOG.finer("adding " + proto.getRenamedExpr() + " to " + msg);
-          }
-          final TRExpr renamed = proto.getRenamedExpr();
-          JBDD tSimpleExpr = renamed.computeExpr(false);
-          Set<String> refdNames = renamed.posReferencedColorNames();
-
-          // use refdNames to get the proper conflicts needed to compute
-          // tFullExpr
-          JBDD conflictExpr = res.namesToConflictExpr(refdNames, node);
-          JBDD tFullExpr = tSimpleExpr.and(conflictExpr);
-
-          res.simpleExpr = res.simpleExpr.and(tSimpleExpr);
-          res.fullExpr = res.fullExpr.and(tFullExpr);
-          //proto.addDependent(res);
-          fromSrc |= proto.isFromSrc();
-          res.referencePromiseAnnotation(proto.getNode(), "@colorConstraint " + renamed);
+        if (LOG.isLoggable(Level.FINER)) {
+        	LOG.finer("adding " + proto.getRenamedExpr() + " to " + msg);
         }
+        final TRExpr renamed = proto.getRenamedExpr();
+        JBDD tSimpleExpr = renamed.computeExpr(false);
+        Set<String> refdNames = renamed.posReferencedColorNames();
+
+        // use refdNames to get the proper conflicts needed to compute
+        // tFullExpr
+        JBDD conflictExpr = res.namesToConflictExpr(refdNames, node);
+        JBDD tFullExpr = tSimpleExpr.and(conflictExpr);
+
+        res.simpleExpr = res.simpleExpr.and(tSimpleExpr);
+        res.fullExpr = res.fullExpr.and(tFullExpr);
+        //proto.addDependent(res);
+        fromSrc |= proto.isFromSrc();
+        res.referencePromiseAnnotation(proto.getNode(), "@colorConstraint " + renamed);
         res.setFromSrc(fromSrc);
         //    res.localFullExpr = res.fullExpr.copy();
         //    res.localSimpleExpr = res.simpleExpr.copy();

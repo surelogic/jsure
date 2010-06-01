@@ -117,36 +117,36 @@ public class TRLeafExpr extends TRExpr {
   
   
   
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set, int)
-   */
-   @Override
-  protected TRExpr exclude(Set<TRoleName> exclusions, int parentOpFlags) {
-    if (exclusions.contains(leaf.getCanonicalTRole())) {
-      return idExpr(parentOpFlags);
-    } else {
-      return new TRLeafExpr(leaf);
-    }
-  }
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set)
-   */
-   @Override
-  public TRExpr exclude(Set<TRoleName> exclusions) {
-    // TODO Auto-generated method stub
-    return exclude(exclusions, 0);
-  }
+//  /* (non-Javadoc)
+//   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set, int)
+//   */
+//   @Override
+//  protected TRExpr exclude(Set<TRoleName> exclusions, int parentOpFlags) {
+//    if (exclusions.contains(leaf.getCanonicalTRole())) {
+//      return idExpr(parentOpFlags);
+//    } else {
+//      return new TRLeafExpr(leaf);
+//    }
+//  }
+//  /* (non-Javadoc)
+//   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set)
+//   */
+//   @Override
+//  public TRExpr exclude(Set<TRoleName> exclusions) {
+//    // TODO Auto-generated method stub
+//    return exclude(exclusions, 0);
+//  }
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.analysis.colors.CExpr#computeExpr(java.util.Set, boolean, int)
    */
   @Override
   public JBDD computeExpr(boolean wantConflicts) {
     if (leaf != null) {
-      final TRoleName leafCanonTColor = leaf.getCanonicalTRole();
-      if (leafCanonTColor != null) {
-        JBDD selfExpr = leafCanonTColor.getSelfExpr();
+      final TRoleNameModel leafCanonTRNM = leaf.getCanonicalNameModel();
+      if (leafCanonTRNM != null) {
+        JBDD selfExpr = leafCanonTRNM.getSelfExpr();
         if (wantConflicts) {
-          return selfExpr.and(leaf.getCanonicalTRole().getConflictExpr());
+          return selfExpr.and(leaf.getCanonicalNameModel().getConflictExpr());
         } else {
           return selfExpr;
         }
@@ -203,7 +203,7 @@ public class TRLeafExpr extends TRExpr {
     if (res == 0) {
       // o must be a CLeafExpr because it has the same operator I do
       final TRLeafExpr lExp = (TRLeafExpr) exp;
-      res = (leaf.getCanonicalTRole().compareTo(lExp.leaf.getCanonicalTRole()));
+      res = (leaf.getCanonicalNameModel().compareTo(lExp.leaf.getCanonicalNameModel()));
     } 
     return res;
   }

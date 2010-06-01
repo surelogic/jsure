@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.threadroles.*;
 import com.surelogic.common.logging.SLLogger;
 
+import SableJBDD.bdd.JBDD;
 import SableJBDD.bdd.JBddVariable;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -28,7 +29,7 @@ import edu.cmu.cs.fluid.sea.*;
  * 
  * @lock ColorNameModelLock is class protects globalNameToDrop
  */
-public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop {
+public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop, Comparable<TRoleNameModel> {
 
   Logger LOG = SLLogger.getLogger("TRoleDropBuilding");
 
@@ -45,9 +46,10 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop {
   private static Map<JBddVariable,TRoleNameModel> bddVarToDrop =
     new HashMap<JBddVariable,TRoleNameModel>();
   
-  private TRoleName canonicalTRole = null;
+  private TRoleNameModel canonicalTRNM = null;
 
   private JBddVariable theBddVar = null;
+  private JBDD selfExpr = null;
   
   private TRoleIncSummaryDrop incompatibleSummary = null;
 
@@ -71,7 +73,6 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop {
         qualName = tRoleName;
       }
     }
-//    simpleNameOnly = !simpleName.equals(qualName);
     
     String key = qualName;
     final IRNode canonCU = VisitUtil.computeOutermostEnclosingTypeOrCU(where);
@@ -83,7 +84,6 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop {
       if (result == null) {
         key = key.intern();
         result = new TRoleNameModel(key, null);
-//        result.simpleNameOnly = !key.contentEquals(qualName);
         globalNameToDrop.put(key, result);
       }
     }
@@ -97,14 +97,11 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop {
     TRoleNameModel simpleRes = simpleMap.get(key);
     if (simpleRes == null)  {
       simpleRes = new TRoleNameModel(key, where);
-//      simpleRes.simpleNameOnly = true;
       simpleMap.put(key, simpleRes);
-      if (result != null) {
-        simpleRes.canonicalTRole = new TRoleName(result);
-      }
     }
     
     if (result != null) {
+      simpleRes.canonicalTRNM = result;
       return result;
     } else {
       return simpleRes;
@@ -114,11 +111,36 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop {
   public static synchronized TRoleNameModel getCanonicalInstance(
       final String colorName, IRNode locInIR) {
     final TRoleNameModel model = TRoleNameModel.getInstance(colorName, locInIR);
-//    final TRoleName tc = model.getCanonicalTColor();
     final TRoleNameModel canonModel = model.getCanonicalNameModel();
     return canonModel;
   }
 
+	/*
+	 * We need to be able to find any TRoleIncompatibleDrops by filtering
+	 * through the dependents of the canonical TRNM for the colors they name.
+	 * But those TRoleIncompatibleDrops are probably only in the dependent set
+	 * of the local short-names for the roles they name. So we grovel through
+	 * the dependents of all the local short-names to find the
+	 * TRoleIncompatibleDrops that we are looking for and install them as direct
+	 * dependents of the canonical TRNMs for the colors they name.
+	 */
+  public static synchronized void promoteIncDepsToCanonName(IRNode forThisPackage) {
+	  final IRNode canonCU = VisitUtil.computeOutermostEnclosingTypeOrCU(forThisPackage);
+	  final Map<String, TRoleNameModel> simpleMap = simpleNameToLocalDrop.get(canonCU);
+	  
+	  if (simpleMap == null) {
+		  // nothing to do right now
+		  return;
+	  }
+	  
+	  for (TRoleNameModel locTRNM : simpleMap.values()) {
+		  final Collection<? extends TRoleIncompatibleDrop> incompatibles =
+			  Sea.filterDropsOfTypeMutate(TRoleIncompatibleDrop.class, locTRNM.getDependents());
+		  final TRoleNameModel canonTRNM = locTRNM.getCanonicalNameModel();
+		  canonTRNM.addDependents(incompatibles);
+	  }
+  }
+  
   /**
    * The global thread role name this drop represents the declaration for.
    */
@@ -220,24 +242,15 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop {
     return res;
   }
 
-  public void setCanonicalTRole(TRoleName masterTRole) {
-    canonicalTRole = masterTRole;
+  public void setCanonicalTRole(TRoleNameModel master) {
+    canonicalTRNM = master;
   }
   
-  /**
-   * @return Returns the canonicalTRole.
-   */
-  public TRoleName getCanonicalTRole() {
-    // if ((canonicalTRole == null) && isDeclared()) {
-    if (canonicalTRole == null) {
-      canonicalTRole = new TRoleName(this);
-    }
-    return canonicalTRole;
-  }
-
   public TRoleNameModel getCanonicalNameModel() {
-    final TRoleName tc = getCanonicalTRole();
-    return tc.getCanonicalNameModel();
+    if (canonicalTRNM == null) {
+    	canonicalTRNM = this;
+    }
+    return canonicalTRNM;
   }
   /**
    * @return Returns the theBddVar.
@@ -293,5 +306,33 @@ public class TRoleNameModel extends PhantomDrop implements IThreadRoleDrop {
   public String getTRoleName() {
     return tRoleName;
   }
+  
+  /**
+   * @return Returns the conflictExpr.
+   */
+  public JBDD getConflictExpr() {
+    return getCanonicalNameModel().getIncompatibleSummary().getConflictExpr().copy();
+  }
+  /**
+   * @return Returns the selfExpr.
+   */
+  public JBDD getSelfExpr() {
+    if (selfExpr == null) {
+      selfExpr = TRoleBDDPack.getBddFactory().posBddOf(getCanonicalNameModel().getTheBddVar());
+    }
+    return selfExpr.copy();
+  }
+  
+  public JBDD getSelfExprNeg() {
+    return getSelfExpr().not();
+  }
+
+/* (non-Javadoc)
+ * @see java.lang.Comparable#compareTo(java.lang.Object)
+ */
+public int compareTo(TRoleNameModel o) {
+	final TRoleNameModel canonModel = getCanonicalNameModel();
+	return canonModel.tRoleName.compareTo(o.getCanonicalNameModel().tRoleName);
+}
 
 }

@@ -84,30 +84,30 @@ public class TRBinExpr extends TRExpr {
     } 
     return res;
   }
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set, int)
-   */
-   @Override
-  protected TRExpr exclude(Set<TRoleName> exclusions, int parentOpFlags) {
-    final int flag = (operator == TRExpr.orOp) ? andOrFlag : 0;
-    final TRExpr l = left.exclude(exclusions, flag);
-    final TRExpr r = right.exclude(exclusions, flag);
-    TRExpr res = null;
-    if ((operator == TRExpr.andOp) || (operator == TRExpr.andParenOp)) {
-      res = cAnd(l, r);
-    } else if (operator == TRExpr.orOp) {
-      res = cOr(l, r);
-    } 
-    return res;
-  }
-  /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set)
-   */
-   @Override
-  public TRExpr exclude(Set<TRoleName> exclusions) {
-    // TODO Auto-generated method stub
-    return exclude(exclusions, 0);
-  }
+//  /* (non-Javadoc)
+//   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set, int)
+//   */
+//   @Override
+//  protected TRExpr exclude(Set<TRoleName> exclusions, int parentOpFlags) {
+//    final int flag = (operator == TRExpr.orOp) ? andOrFlag : 0;
+//    final TRExpr l = left.exclude(exclusions, flag);
+//    final TRExpr r = right.exclude(exclusions, flag);
+//    TRExpr res = null;
+//    if ((operator == TRExpr.andOp) || (operator == TRExpr.andParenOp)) {
+//      res = cAnd(l, r);
+//    } else if (operator == TRExpr.orOp) {
+//      res = cOr(l, r);
+//    } 
+//    return res;
+//  }
+//  /* (non-Javadoc)
+//   * @see edu.cmu.cs.fluid.analysis.colors.CExpr#exclude(java.util.Set)
+//   */
+//   @Override
+//  public TRExpr exclude(Set<TRoleName> exclusions) {
+//    // TODO Auto-generated method stub
+//    return exclude(exclusions, 0);
+//  }
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.analysis.colors.CExpr#toSB(java.lang.StringBuilder)
    */

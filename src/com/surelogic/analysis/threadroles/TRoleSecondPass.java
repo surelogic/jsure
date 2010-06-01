@@ -1304,9 +1304,9 @@ public class TRoleSecondPass {
 
         for (Iterator<TRoleNameModel> rModelIter = rModels.iterator(); rModelIter
             .hasNext();) {
-          TRoleName canonTRN = rModelIter.next().getCanonicalTRole();
-          tCtx = tCtx.exist(canonTRN.getSelfExpr());
-          tCtx.andWith(canonTRN.getSelfExprNeg());
+          final TRoleNameModel canonTRNM = rModelIter.next().getCanonicalNameModel();
+          tCtx = tCtx.exist(canonTRNM.getSelfExpr());
+          tCtx.andWith(canonTRNM.getSelfExprNeg());
 
           ctxIsEmpty = tCtx.isZero();
 
@@ -1367,13 +1367,12 @@ public class TRoleSecondPass {
 
         for (Iterator<TRoleNameModel> rModelIter = gModels.iterator(); rModelIter
             .hasNext();) {
-          TRoleName canonTRN = rModelIter.next().getCanonicalTRole();
-          final TRoleNameModel nmCanon = canonTRN.getCanonicalNameModel();
-          tCtx = tCtx.exist(canonTRN.getSelfExpr());
+          final TRoleNameModel canonTRNM = rModelIter.next().getCanonicalNameModel();
+          tCtx = tCtx.exist(canonTRNM.getSelfExpr());
 
-          JBDD tcFullExpr = canonTRN.getSelfExpr();
+          JBDD tcFullExpr = canonTRNM.getSelfExpr();
           JBDD tCtxSave = tCtx.copy();
-          tcFullExpr.andWith(canonTRN.getConflictExpr());
+          tcFullExpr.andWith(canonTRNM.getConflictExpr());
           tCtx.andWith(tcFullExpr);
           if (checkingErrors) {
             // don't need to add deponents. Just want to be sure that the
@@ -1383,7 +1382,7 @@ public class TRoleSecondPass {
               // context switched from not-zero to zero. The thing we just
               // granted must have made us go unsatisfiable. Produce an error!
 
-              msg.append("Error: Granting thread role " + nmCanon.getTRoleName()); //$NON-NLS-1$
+              msg.append("Error: Granting thread role " + canonTRNM.getTRoleName()); //$NON-NLS-1$
               msg.append(" yields unsatisfiable context."); //$NON-NLS-1$
               ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(),
                   "TODO: Fill Me In", node);
@@ -1399,7 +1398,7 @@ public class TRoleSecondPass {
               // The context is empty now, whether it was before or not!
               ctxIsEmpty = true;
             } else if (ctxIsEmpty
-                && !canonTRN.getSelfExpr().equals(canonTRN.getConflictExpr())) {
+                && !canonTRNM.getSelfExpr().equals(canonTRNM.getConflictExpr())) {
               // Can't grant a thread role in an empty context if the role has
               // conflicts.
               // This is because we can't justify the & !foo part of the
@@ -1410,8 +1409,8 @@ public class TRoleSecondPass {
               // equal.
 
               msg.append("Error: Empty thread role context can not justify @grant " //$NON-NLS-1$
-                  + nmCanon.getTRoleName());
-              msg.append(", because " + nmCanon.getTRoleName() //$NON-NLS-1$
+                  + canonTRNM.getTRoleName());
+              msg.append(", because " + canonTRNM.getTRoleName() //$NON-NLS-1$
                   + " has conflicts that are not satisfied."); //$NON-NLS-1$
               ResultDrop prd = TRoleMessages.createProblemDrop(msg.toString(),
                   "TODO: Fill Me In", node);
@@ -1425,7 +1424,7 @@ public class TRoleSecondPass {
 
             } else {
 
-              msg.append("@grant of " + nmCanon.getTRoleName()); //$NON-NLS-1$
+              msg.append("@grant of " + canonTRNM.getTRoleName()); //$NON-NLS-1$
               msg.append(" successful."); //$NON-NLS-1$
               ResultDrop rd = TRoleMessages.createResultDrop(msg.toString(),
                   "TODO: fill me in", node);

@@ -27,7 +27,7 @@ public class TRoleRevokeDrop extends TRoleNameListDrop<ThreadRoleRevokeNode> {
   
   public TRoleRevokeDrop(ThreadRoleRevokeNode trrn) {
     // note that super... takes care of the ColorAnnoMap for us...  
-    super(trrn, myKind);
+    super(trrn, myKind, false);
   }
   
   /* (non-Javadoc)

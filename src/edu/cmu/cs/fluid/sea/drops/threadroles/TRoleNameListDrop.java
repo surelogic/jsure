@@ -15,10 +15,15 @@ import com.surelogic.analysis.threadroles.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
+import edu.cmu.cs.fluid.java.promise.ColorDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.java.xml.XML;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.tree.Operator;
 
 
 /**
@@ -33,7 +38,7 @@ implements IThreadRoleDrop {
   private Collection<String> listedTRoles = null;
   private Collection<String> listedRenamedTRoles = null;
   
-  TRoleNameListDrop(A a, String theKind) {
+  TRoleNameListDrop(A a, String theKind, boolean addQual) {
     super();
     kind = theKind;
     List<ThreadRoleNameNode> declTRoles = a.getThreadRoleList();
@@ -68,15 +73,35 @@ implements IThreadRoleDrop {
     }
     setCategory(TRoleMessages.assuranceCategory);
     setNodeAndCompilationUnitDependency(locInIR);
-    makeTRoleNameModelDeps(locInIR);
+    makeTRoleNameModelDeps(locInIR, addQual);
   }
 
-  private void makeTRoleNameModelDeps(final IRNode locInIR) {
-    if (listedTRoles == null) return;
-    
-    Iterator<String> lcIter = listedTRoles.iterator();
-    while (lcIter.hasNext()) {
-      final String aName = lcIter.next();
+  private void makeTRoleNameModelDeps(final IRNode locInIR, boolean addQual) {
+    if ((listedTRoles == null) || listedTRoles.isEmpty()) return;
+    // theDeclPromise is an IRNode that is a TRoleDeclare. Its single child
+    // is a ColorNames node.
+	Collection<String> roleNames;
+    if (addQual) {
+    	makeTRoleNameModelDeps(locInIR, false);
+		Collection<String> processedNames = new ArrayList<String>(listedTRoles
+				.size());
+		final Operator op = JJNode.tree.getOperator(locInIR);
+		for (String aName : listedTRoles) {
+			final String simpleName = JavaNames.genSimpleName(aName);
+			final String qualName;
+			if (op instanceof TypeDeclInterface) {
+				qualName = JavaNames.getFullTypeName(locInIR) + '.'
+						+ simpleName;
+			} else {
+				qualName = JavaNames.genPackageQualifier(locInIR) + simpleName;
+			}
+			processedNames.add(qualName);
+		}
+		roleNames = processedNames;
+	} else {
+		roleNames = listedTRoles;
+	}
+    for (String aName: roleNames) {
       TRoleNameModel cnm = TRoleNameModel.getInstance(aName, locInIR);
       cnm.addDependent(this);
     }
