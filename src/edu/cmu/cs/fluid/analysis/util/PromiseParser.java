@@ -21,6 +21,7 @@ import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.TestXMLParser;
+import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
@@ -101,13 +102,13 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 		//System.out.println("Looking for promises for "+name);
 		try {
 			//int num = 
-			TestXMLParser.process(cu, name + ".promises.xml");
+			TestXMLParser.process(cu, name + TestXMLParserConstants.SUFFIX);
 			//System.out.println("Parsing XML for "+name+": "+num+" added");
 		} catch (Exception e) {
 			if (!(e instanceof FileNotFoundException)) {
-				SLLogger.getLogger().log(Level.SEVERE, "Problem parsing "+name+".promises.xml", e);
+				SLLogger.getLogger().log(Level.SEVERE, "Problem parsing "+name+ TestXMLParserConstants.SUFFIX, e);
 			} else if (LOG.isLoggable(Level.FINER)) {
-				LOG.finer("Couldn't find file " + name + ".promises.xml");
+				LOG.finer("Couldn't find file " + name + TestXMLParserConstants.SUFFIX);
 			}
 		}
 		doneProcessing(cu);

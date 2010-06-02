@@ -24,6 +24,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.dc.AbstractAnalysisModule;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
@@ -58,7 +59,7 @@ public abstract class AbstractFluidAnalysisModule<Q> extends
   static {
     Eclipse.initialize();
   }
-  private static final String PROMISES_XML_SUFFIX = ".promises.xml";
+  private static final String PROMISES_XML_SUFFIX = TestXMLParserConstants.SUFFIX;
   protected static final String JSURE_PROPERTIES = "jsure.properties";
   private static final Logger LOG = SLLogger
       .getLogger("AbstractFluidAnalysisModule");
