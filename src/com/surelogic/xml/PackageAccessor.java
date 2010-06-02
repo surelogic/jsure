@@ -3,15 +3,14 @@ package com.surelogic.xml;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.xml.sax.InputSource;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.util.DirectoryFileLocator;
-import edu.cmu.cs.fluid.util.FileLocator;
-import edu.cmu.cs.fluid.util.ZipFileLocator;
+import edu.cmu.cs.fluid.util.*;
 
 public class PackageAccessor implements TestXMLParserConstants {
 
@@ -97,7 +96,7 @@ public class PackageAccessor implements TestXMLParserConstants {
 		 * directory.
 		 */
 		dir.setAndCreateDirPath(dirName);
-		return new OutputStreamWriter(dir.openFileWrite(className + ".promises.xml"));
+		return new OutputStreamWriter(dir.openFileWrite(className + PROMISES_XML));
 	}
 
 	public static InputSource readPackage(String pkgName, String className) 
@@ -150,4 +149,49 @@ public class PackageAccessor implements TestXMLParserConstants {
 		return new InputSource(z.openFileRead(className));
 	}
 
+	public static final String PROMISES_XML = TestXMLParserConstants.SUFFIX;
+	
+	public static Iterable<String> findPromiseXMLs() {
+		try {
+			URI uri = IDE.getInstance().getResourceRoot().toURI();
+			File root = new File(uri);
+			if (root.exists() && root.isDirectory()) {
+				List<String> qnames = new ArrayList<String>();
+				findPromiseXMLs(qnames, new File(root, "lib/promises"), "");
+				return qnames;
+			}
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
+		return EmptyIterator.prototype();
+	}
+
+	private static void findPromiseXMLs(List<String> qnames, File f, String path) {
+		if (!f.exists()) {
+			return;
+		}
+		if (f.isDirectory()) {
+			for(File xml : f.listFiles(xmlFilter)) {				
+				findPromiseXMLs(qnames, xml, computeName(path, f.getName()));
+			}
+		} else if (f.getName().endsWith(PROMISES_XML)) {
+			String name = f.getName().substring(0, f.getName().length()-PROMISES_XML.length());
+			qnames.add(computeName(path, name));
+		}
+	}
+	
+	private static String computeName(String path, String name) {
+		if (path.length() == 0) {
+			return name;
+		} else {
+			return path+'.'+name;
+		}
+	}
+
+	private static FileFilter xmlFilter = new FileFilter() {		
+		public boolean accept(File f) {
+			return f.isDirectory() || f.getName().endsWith(PROMISES_XML);
+		}
+	};
 }
