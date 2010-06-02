@@ -12,13 +12,12 @@
     <Promise>@ThreadRole(AWT) for is*(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIstuff) for is*(**) &amp; !(isInstanceOf(**))</Promise>
     <Promise>@ThreadRole(AWT) for get*(**) &amp; !(getSize(**))</Promise> 
-    <Promise>@ThreadRole(AWT) for get*(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for public get*(**) &amp; !(getSize())</Promise>
 	  <Promise>@RegionEffects(reads Instance) for getSize()</Promise>
     <Promise>@ThreadRole(AWT) for create*Image(**)</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for create*Image(**)</Promise>
 
-		<Promise>@ThreadRoleTransparent for repaint(**)</Promise>
+	<Promise>@ThreadRoleTransparent for repaint(**)</Promise>
 	  <Promise>@RegionEffects(reads Instance) for repaint(**)</Promise>
 
 

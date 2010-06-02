@@ -8,7 +8,7 @@
 <!--
     <Promise>@ThreadRoleTransparent for get*Info()</Promise>
     <Promise>@RegionEffects(writes none) for play(**) | getCodeBase()</Promise>
-<!-- -->
+-->
     <Promise>@RegionEffects(reads this:Instance) for get*(**) | is*(**)</Promise>
     <Promise>@RegionEffects(writes this:Instance) for play(**) | init(**) | start() | stop() | destroy() | new(**)</Promise>
 
