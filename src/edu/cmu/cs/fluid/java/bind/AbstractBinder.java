@@ -140,6 +140,9 @@ public abstract class AbstractBinder implements IBinder {
   
   protected boolean isOverridingMethod(IRNode overridingM, IJavaType type, 
 		                            IRNode parentM, IJavaType stype) {
+	  if (!SomeFunctionDeclaration.getId(overridingM).equals(SomeFunctionDeclaration.getId(parentM))) {
+		  return false;
+	  }
 	  IRNode overridingParams = SomeFunctionDeclaration.getParams(overridingM);
 	  IRNode parentParams     = SomeFunctionDeclaration.getParams(parentM);
 	  if (JJNode.tree.numChildren(overridingParams) == JJNode.tree.numChildren(parentParams)) {
