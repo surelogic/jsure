@@ -364,7 +364,7 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	private void setupCUDrop(final JavaFileStatus<T, P> s) {
 		final String javaOSFileName = s.label();
 		final CodeInfo info = 
-			new CodeInfo(new ICodeFile() {
+			new CodeInfo(null, new AbstractCodeFile() {
 				public String getPackage() {
 					return VisitUtil.getPackageName(s.root());
 				}				

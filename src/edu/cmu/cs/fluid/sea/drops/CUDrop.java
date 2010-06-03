@@ -25,9 +25,9 @@ import edu.cmu.cs.fluid.sea.xml.*;
 public abstract class CUDrop extends Drop {
   private static SlotInfo<CUDrop> si = SimpleSlotFactory.prototype.newLabeledAttribute("CUDrop", null);  
   
-  private final CodeInfo info;
+  protected final CodeInfo info;
   public final String javaOSFileName;
-
+  
   public AnalysisContext analysisContext;
 
   public final IRNode cu;
@@ -36,7 +36,7 @@ public abstract class CUDrop extends Drop {
   /**
    * FIX should be mutable if this drop persists across versions
    */
-  public final ICompilationUnitNode cun;
+  public final ICompilationUnitNode cun;  
   
   public final int lines;
   

@@ -26,12 +26,13 @@ public class BinaryCUDrop extends CUDrop {
    * @return the corresponding drop, or <code>null</code> if a drop does
    *   not exist.
    */
-  static public CUDrop queryCU(String javaName) {
+  static public CUDrop queryCU(String project, String javaName) {
     @SuppressWarnings("unchecked") 
     Set<BinaryCUDrop> drops = Sea.getDefault().getDropsOfExactType(BinaryCUDrop.class);
     for (BinaryCUDrop drop : drops) {
-      if (drop.javaOSFileName.equals(javaName))
+      if (drop.javaOSFileName.equals(javaName) && drop.info.getFile().getProjectName() == project) {
         return drop;
+      }
     }
     return null;
   }

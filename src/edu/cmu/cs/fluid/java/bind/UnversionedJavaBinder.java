@@ -41,6 +41,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 			  return t;
 		  }
 	  }
+	  return getJavaType_internal(n);
+  }
+  protected IJavaType getJavaType_internal(IRNode n) {  
 	  return super.getJavaType(n);  
   }
   

@@ -67,8 +67,11 @@ public class TestXMLParser extends DefaultHandler implements
 	 * @return The number of annotations added
 	 */
 	public static int process(IRNode root, String xml) throws Exception {
-		TestXMLParser handler = new TestXMLParser(IDE.getInstance()
-				.getTypeEnv());
+		return process(IDE.getInstance().getTypeEnv(), root, xml);
+	}
+	
+	public static int process(ITypeEnvironment tEnv, IRNode root, String xml) throws Exception {
+		TestXMLParser handler = new TestXMLParser(tEnv);
 		return handler.processAST(root, xml);
 	}
 	

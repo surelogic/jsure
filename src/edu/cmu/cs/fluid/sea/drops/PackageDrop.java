@@ -13,6 +13,7 @@ import java.util.logging.Level;
 
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.TestXMLParser;
+import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
@@ -56,7 +57,7 @@ public class PackageDrop extends CUDrop {
     //System.out.println("Creating pkg: "+pkgName);
        	
 	// Look for XML annotations
-	final String xmlName = pkgName+'.'+"package-info.promises.xml";
+	final String xmlName = pkgName+'.'+"package-info"+TestXMLParserConstants.SUFFIX;
 	try {
 		int added = TestXMLParser.process(root, xmlName);
 		//System.out.println("Added XML annos: "+added);			

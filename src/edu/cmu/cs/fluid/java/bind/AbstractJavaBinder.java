@@ -977,7 +977,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     			System.err.println("Cannot find a binding for " + unparse);
     		}
     	} else {
-    		LOG.warning("Cannot find a binding for " + unparse);
+    		LOG.warning("Cannot find a binding for " + unparse+" in "+typeEnvironment);
     	}
         if (storeNullBindings) {
           node.setSlotValue(bindings.getUseToDeclAttr(), null);

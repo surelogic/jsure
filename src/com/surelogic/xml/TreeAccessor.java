@@ -76,6 +76,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 			IRNode c = e.next();
 			Operator op = tree.getOperator(c);
 			if (op instanceof ConstructorDeclaration) {
+				LOG.finer("Looking at "+DebugUnparser.toString(c));
 				IRNode ps = ConstructorDeclaration.getParams(c);
 				if (paramsMatch(Parameters.getFormalIterator(ps), params, tEnv)) {
 					LOG.finer("Found a match on params: " + params);

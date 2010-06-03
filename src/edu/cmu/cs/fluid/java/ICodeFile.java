@@ -6,4 +6,5 @@ package edu.cmu.cs.fluid.java;
 public interface ICodeFile {
   Object getHostEnvResource();
   String getPackage();
+  String getProjectName();
 }

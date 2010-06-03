@@ -6,6 +6,7 @@ package edu.cmu.cs.fluid.java;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 
 import java.util.*;
 
@@ -24,6 +25,7 @@ public final class CodeInfo {
   private final String source;
   private final Type type;
   private final Object hostEnvResource;
+  private final ITypeEnvironment tEnv;
   
   /**
    * @param cu The handle identifier for the compilation unit
@@ -31,7 +33,8 @@ public final class CodeInfo {
    * @param javaOSFileName The complete OS path and name for the Java file.
    * @param src The source code for this ICompilationUnit.
    */
-  public CodeInfo(ICodeFile cu, IRNode node, ICompilationUnitNode icu, String javaOSFileName, String src, Type t) {
+  public CodeInfo(ITypeEnvironment te, ICodeFile cu, IRNode node, ICompilationUnitNode icu, String javaOSFileName, String src, Type t) {
+    tEnv = te;
     file = cu;
     n = node;
     cun = icu;
@@ -42,7 +45,11 @@ public final class CodeInfo {
   }
   
   public static CodeInfo createMatchTemplate(IRNode n, String name) {
-    return new CodeInfo(null, n, null, name, null, Type.UNKNOWN);
+    return new CodeInfo(null, null, n, null, name, null, Type.UNKNOWN);
+  }
+  
+  public ITypeEnvironment getTypeEnv() {
+	  return tEnv;
   }
   
   public IRNode getNode() {

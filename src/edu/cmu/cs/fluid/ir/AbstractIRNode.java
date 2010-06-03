@@ -3,6 +3,9 @@ package edu.cmu.cs.fluid.ir;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.cmu.cs.fluid.FluidError;
+import edu.cmu.cs.fluid.java.operator.IllegalCode;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * A default implementation of the intermediate representation node 
@@ -75,6 +78,12 @@ public abstract class AbstractIRNode implements IRNode {
 
 			hash = DESTROYED_HASH;
 			destroyedNodes.incrementAndGet();
+			/*
+			Operator op = JJNode.tree.getOperator(this);
+			if (!(op instanceof IllegalCode)) {
+				System.out.println("Destroying "+op);
+			}
+			*/
 		}
 	}
 
