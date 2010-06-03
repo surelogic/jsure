@@ -886,7 +886,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 			new SourceCUDrop(info, null);
 			// createNewDrop(info);
 		} else {
-			CUDrop outOfDate = BinaryCUDrop.queryCU(info.getFileName());
+			CUDrop outOfDate = BinaryCUDrop.queryCU(null, info.getFileName());
 			if (outOfDate != null)
 				outOfDate.invalidate();
 

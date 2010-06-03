@@ -155,7 +155,9 @@ public class JavacDriver {
 
 		void addDependencies(Projects projects, Config config, IProject p, boolean addSource) throws JavaModelException {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());			
+			String mappedJDK = null;
 			// TODO what export rules?
+			scanForJDK(projects, jp);
 			
 			for(IClasspathEntry cpe : jp.getResolvedClasspath(true)) {				
 				// TODO ignorable since they'll be handled by the compiler
@@ -179,7 +181,18 @@ public class JavacDriver {
 					break;
 				case IClasspathEntry.CPE_LIBRARY:
 					//System.out.println("Adding "+cpe.getPath()+" for "+p.getName());
-					config.addJar(EclipseUtility.resolveIPath(cpe.getPath()), cpe.isExported());
+					final File f = EclipseUtility.resolveIPath(cpe.getPath());
+					String mapped = projects.checkMapping(f);
+					if (mapped != null) {
+						if (mappedJDK != null) {
+							//System.out.println("Ignoring "+f);
+							break; // Already handled
+						}
+						mappedJDK = mapped;
+						config.addToClassPath(projects.get(mappedJDK).getConfig());
+					} else {
+						config.addJar(f, cpe.isExported());
+					}
 					break;
 				case IClasspathEntry.CPE_PROJECT:
 					final String projName = cpe.getPath().lastSegment();
@@ -209,6 +222,39 @@ public class JavacDriver {
 					System.out.println("Unexpected: "+cpe);
 				}
 			}
+		}
+		
+		private void scanForJDK(Projects projects, IJavaProject jp) throws JavaModelException {
+			for(IClasspathEntry cpe : jp.getRawClasspath()) {								
+				switch (cpe.getEntryKind()) {
+				case IClasspathEntry.CPE_CONTAINER:
+					final IClasspathContainer cc = JavaCore.getClasspathContainer(cpe.getPath(), jp);					
+					if (cc.getDescription().startsWith(JavacTypeEnvironment.JRE_LIBRARY)) { // HACK
+						JavacProject jcp = projects.get(cc.getDescription());
+						if (jcp == null) {
+							projects.add(makeConfig(projects, cc));							
+						}
+						return;
+					}			
+				}
+			}
+		}
+
+		private Config makeConfig(Projects projects, final IClasspathContainer cc) {
+			final Config config = new Config(cc.getDescription(), true);
+			for(IClasspathEntry cpe : cc.getClasspathEntries()) {
+				switch (cpe.getEntryKind()) {
+				case IClasspathEntry.CPE_LIBRARY:
+					final File f = EclipseUtility.resolveIPath(cpe.getPath());
+					//System.out.println("Adding "+f+" for "+cc.getDescription());
+					config.addJar(f, true);
+					projects.mapToProject(f, cc.getDescription());
+					break;
+				default:
+					throw new IllegalStateException("Got entryKind: "+cpe.getEntryKind());
+				}
+			}
+			return config;
 		}
 		
 		/**
