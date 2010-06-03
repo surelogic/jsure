@@ -99,8 +99,8 @@ public class ModuleAnalysisAndVisitor {
 
 	  public ModuleModel currMod = null;
 
-	  public IRNode currMethod = null;
-	  public String currMethName = null;
+//	  public IRNode currMethod = null;
+//	  public String currMethName = null;
 
 	  private final LinkedList<ModuleModel> oldModuleModels = new LinkedList<ModuleModel>();
 	  private void pushMod(final ModuleModel d) {
@@ -112,15 +112,15 @@ public class ModuleAnalysisAndVisitor {
 		  currMod = oldModuleModels.removeFirst();
 	  }
 
-	  private final LinkedList<IRNode> oldDecls = new LinkedList<IRNode>();
-	  private void pushDecl(final IRNode d) {
-		  oldDecls.addFirst(currMethod);
-		  currMethod = d;
-	  }
-	  
-	  private void popDecl() {
-		  currMethod = oldDecls.removeFirst();
-	  }
+//	  private final LinkedList<IRNode> oldDecls = new LinkedList<IRNode>();
+//	  private void pushDecl(final IRNode d) {
+//		  oldDecls.addFirst(currMethod);
+//		  currMethod = d;
+//	  }
+//	  
+//	  private void popDecl() {
+//		  currMethod = oldDecls.removeFirst();
+//	  }
 
       
       /** check whether javaThingy what is visible from where. Issue an error message
@@ -205,20 +205,20 @@ public class ModuleAnalysisAndVisitor {
 	}
 
 	
-	@Override
-	protected void enteringEnclosingDecl(IRNode enteringDecl,
-			IRNode anonClassDecl) {
-		pushDecl(enteringDecl);
-	    currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);
-		super.enteringEnclosingDecl(enteringDecl, anonClassDecl);
-	}
-
-	@Override
-	protected void leavingEnclosingDecl(IRNode leavingDecl) {
-		popDecl();
-	    currMethName = JavaNames.genQualifiedMethodConstructorName(currMethod);	
-		super.leavingEnclosingDecl(leavingDecl);
-	}
+//	@Override
+//	protected void enteringEnclosingDecl(IRNode enteringDecl,
+//			IRNode anonClassDecl) {
+//		pushDecl(enteringDecl);
+//	    currMethName = JavaNames.genQualifiedMethodConstructorName(getEnclosingDecl());
+//		super.enteringEnclosingDecl(enteringDecl, anonClassDecl);
+//	}
+//
+//	@Override
+//	protected void leavingEnclosingDecl(IRNode leavingDecl) {
+//		popDecl();
+//	    currMethName = JavaNames.genQualifiedMethodConstructorName(getEnclosingDecl());	
+//		super.leavingEnclosingDecl(leavingDecl);
+//	}
 	
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitConstructorCall(edu.cmu.cs.fluid.ir.IRNode)
@@ -227,12 +227,12 @@ public class ModuleAnalysisAndVisitor {
     public void handleConstructorCall(IRNode node) {
       final IRNode mDecl = binder.getBinding(node);
       
-      if (currMethod != null) {        
+      if (getEnclosingDecl() != null) {        
         final IRNode object = ConstructorCall.getObject(node);
         final IJavaType receiverType = binder.getJavaType(object);
         
         // build call graph connections
-        cgBuild(currMethod, mDecl, receiverType);
+        cgBuild(getEnclosingDecl(), mDecl, receiverType);
       }
 
       checkVisibility(node, mDecl);
@@ -271,7 +271,7 @@ public class ModuleAnalysisAndVisitor {
 	 */
 	@Override
 	public Void visitMethodBody(IRNode node) {
-		SimpleCallGraphDrop cgDrop = SimpleCallGraphDrop.getCGDropFor(currMethod);
+		SimpleCallGraphDrop cgDrop = SimpleCallGraphDrop.getCGDropFor(getEnclosingDecl());
 		cgDrop.setTheBody(node);
 		cgDrop.setFoundABody(true);
 		return super.visitMethodBody(node);
@@ -285,12 +285,12 @@ public class ModuleAnalysisAndVisitor {
       MethodCall call = (MethodCall) getOperator(node);
       final IRNode mDecl = binder.getBinding(node);
       
-      if (currMethod != null) {
+      if (getEnclosingDecl() != null) {
         final IRNode obj = call.get_Object(node);
         final IJavaType receiverType = binder.getJavaType(obj);
         
         // build call graph connections
-        cgBuild(currMethod, mDecl, receiverType);
+        cgBuild(getEnclosingDecl(), mDecl, receiverType);
       }
 
       checkVisibility(node, mDecl);
@@ -318,9 +318,9 @@ public class ModuleAnalysisAndVisitor {
     public Void visitNewExpression(IRNode node) {
       final IRNode cDecl = binder.getBinding(node);
        
-      if (currMethod != null) {
+      if (getEnclosingDecl() != null) {
         final IJavaType type = binder.getJavaType(node);
-        cgBuild(currMethod, cDecl, type);
+        cgBuild(getEnclosingDecl(), cDecl, type);
       }
       checkVisibility(node, cDecl);
       
