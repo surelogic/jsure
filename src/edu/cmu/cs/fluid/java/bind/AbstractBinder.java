@@ -170,7 +170,42 @@ public abstract class AbstractBinder implements IBinder {
 	  final ITypeEnvironment tEnv = getTypeEnvironment();
 	  final IRNode typeDecl = VisitUtil.getEnclosingType(mth);
 	  final IJavaType type = tEnv.convertNodeTypeToIJavaType(typeDecl);
-	  final IteratableHashSet<IRNode> overridden = new IteratableHashSet<IRNode>();
+	  
+	  IteratableHashSet<IRNode> overridden =
+		  findOverridenParentsFromType(mth, tEnv, type);
+	  if (overridden.isEmpty()) {
+		  IteratableHashSet<IJavaType> nextTsupers = new IteratableHashSet<IJavaType>();
+		  for (IJavaType t : tEnv.getSuperTypes(type)) {
+			  nextTsupers.add(t);
+		  }
+		  while (!nextTsupers.isEmpty()) {
+			Iteratable<IJavaType> tsupers = nextTsupers;
+			nextTsupers = new IteratableHashSet<IJavaType>();
+			while (tsupers.hasNext()) {
+				IJavaType tt = tsupers.next();
+				overridden.addAll(findOverridenParentsFromType(mth, tEnv, tt));
+				for (IJavaType t : tEnv.getSuperTypes(tt)) {
+					  nextTsupers.add(t);
+				}
+			}
+			if (!overridden.isEmpty()) {
+				return overridden;
+			}
+		}
+	  }
+	  return overridden;
+  }
+
+/**
+ * @param mth The method whose parent methods we wish to fine
+ * @param tEnv A valid type environment.
+ * @param type The type whose super(s) may contain the method we are looking for.
+ * @return
+ */
+private IteratableHashSet<IRNode> findOverridenParentsFromType(IRNode mth,
+		final ITypeEnvironment tEnv, final IJavaType type) {
+	final IteratableHashSet<IRNode> overridden = new IteratableHashSet<IRNode>();
+	  
 	  for(IJavaType stype : tEnv.getSuperTypes(type)) {
 		  IJavaDeclaredType st = (IJavaDeclaredType) stype;
 		  for(IRNode method : VisitUtil.getClassMethods(st.getDeclaration())) {
@@ -181,7 +216,7 @@ public abstract class AbstractBinder implements IBinder {
 		  }
 	  }
 	  return overridden;
-  }
+}
 
 /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#findOverriddenMethods(edu.cmu.cs.fluid.ir.IRNode)
