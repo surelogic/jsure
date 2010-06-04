@@ -20,7 +20,6 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.drops.layers.*;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -35,6 +34,13 @@ public class CommonAASTBinder extends AASTBinder {
     super(te.getBinder());
     tEnv = te;
     eb   = tEnv.getBinder();
+  }
+  
+  /**
+   * Wrapper introduced to check if we need to use a different ITypeEnvironment
+   */
+  IRNode findNamedType(String qname) { 
+	  return tEnv.findNamedType(qname);
   }
   
   public boolean isResolvable(FieldRefNode node) {
@@ -73,7 +79,7 @@ public class CommonAASTBinder extends AASTBinder {
       if (PromiseConstants.REGION_LENGTH_NAME.equals(name)) {
     	return RegionModel.getInstance(PromiseConstants.REGION_LENGTH_NAME);
       }
-      IRNode jlo = tEnv.findNamedType("java.lang.Object");
+      IRNode jlo = findNamedType("java.lang.Object");
       return findRegionModel(jlo, name);
     }
     if (jt instanceof IJavaTypeFormal) {
@@ -110,7 +116,7 @@ public class CommonAASTBinder extends AASTBinder {
   }
 
   private IRNode resolveTypeName(final AASTNode a, final String name) {
-    IRNode t = tEnv.findNamedType(name);    
+    IRNode t = findNamedType(name);    
     if (t == null) {
       // Try to find a package-qualified type
       t = findQualifiedType(a, name); 
@@ -119,7 +125,7 @@ public class CommonAASTBinder extends AASTBinder {
       
       // Check if it's a top-level type
       final String pkg     = JavaNames.getPackageName(context);
-      t = tEnv.findNamedType(pkg+'.'+name);
+      t = findNamedType(pkg+'.'+name);
       
       if (t == null) {
     	boolean prevWasNested = false;
@@ -160,7 +166,7 @@ public class CommonAASTBinder extends AASTBinder {
 	int lastDot = name.lastIndexOf('.');
 	IRNode t = null;
 	if (lastDot < 0) {
-		t = tEnv.findNamedType(name);
+		t = findNamedType(name);
 		if (t == null) {
 			// Check if it's a local type
 			final IRNode context = a.getPromisedFor();
@@ -179,7 +185,7 @@ public class CommonAASTBinder extends AASTBinder {
 			}
 			// Check if it's a top-level type in same package
 			final String pkg = JavaNames.getPackageName(context);
-			return tEnv.findNamedType(pkg+'.'+name);			
+			return findNamedType(pkg+'.'+name);			
 		}
 	} else {
 		t = resolveTypeName(a, name.substring(0, lastDot));
@@ -349,7 +355,7 @@ public class CommonAASTBinder extends AASTBinder {
     // try getting a package of that name
     IRNode res = tEnv.findPackage(importedName);
     if (res == null) {
-      res = tEnv.findNamedType(importedName);
+      res = findNamedType(importedName);
     }
    return res;
   }
@@ -575,7 +581,7 @@ public class CommonAASTBinder extends AASTBinder {
 		  }
 		  return null;
 	  }
-	  final IRNode t = tEnv.findNamedType(qname);
+	  final IRNode t = findNamedType(qname);
 	  if (t != null && TypeDeclaration.prototype.includes(t)) {
 		  return new AbstractLayerBinding(LayerBindingKind.TYPE) {
 			  @Override public IRNode getType() {
