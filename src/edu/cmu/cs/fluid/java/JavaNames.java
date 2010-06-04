@@ -237,8 +237,7 @@ public final class JavaNames {
 	 * @return null if inside the default package
 	 */
 	public static String getPackageName(final IRNode nodeInsideCompUnit) {
-		IRNode compUnit = VisitUtil
-				.getEnclosingCompilationUnit(nodeInsideCompUnit);
+		IRNode compUnit = VisitUtil.getEnclosingCompilationUnit(nodeInsideCompUnit);
 		if (compUnit == null) {
 			compUnit = nodeInsideCompUnit;
 		}

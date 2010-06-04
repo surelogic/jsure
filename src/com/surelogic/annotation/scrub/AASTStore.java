@@ -49,6 +49,7 @@ public final class AASTStore {
 	if (assumedCu != null) {
 		assumedFor.put(ast, assumedCu);
 	}
+	//System.out.println("Adding AAST: "+ast);
     asts.add(ast);
     addByClass(ast);
   }
@@ -65,10 +66,11 @@ public final class AASTStore {
   }
 
   public static synchronized Iterable<IAASTRootNode> getASTs() {
-    return asts;
+    return new ArrayList<IAASTRootNode>(asts);
   }
   
   public static synchronized void clearASTs() {
+	//System.out.println("Clearing AASTs");
     asts.clear();
     byClass.clear();
     triggers.clear();
