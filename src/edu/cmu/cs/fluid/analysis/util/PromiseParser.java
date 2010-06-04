@@ -247,6 +247,7 @@ public final class PromiseParser extends AbstractFluidAnalysisModule<CodeInfo>
 		
 		
 		void lookForDependencies() {
+			//System.out.println("Looking for dependencies");
 			for(IAASTRootNode root : AASTStore.getASTs()) {
 				if (done.contains(root)) {
 					continue;
