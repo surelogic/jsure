@@ -7,6 +7,7 @@ package edu.cmu.cs.fluid.sea.drops;
 import java.util.Set;
 
 import edu.cmu.cs.fluid.java.CodeInfo;
+import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.Sea;
 
@@ -30,7 +31,9 @@ public class BinaryCUDrop extends CUDrop {
     @SuppressWarnings("unchecked") 
     Set<BinaryCUDrop> drops = Sea.getDefault().getDropsOfExactType(BinaryCUDrop.class);
     for (BinaryCUDrop drop : drops) {
-      if (drop.javaOSFileName.equals(javaName) && drop.info.getFile().getProjectName() == project) {
+      ICodeFile file = drop.info.getFile();
+      String proj = file == null ? null : file.getProjectName();
+      if (drop.javaOSFileName.equals(javaName) && proj == project) {
         return drop;
       }
     }
