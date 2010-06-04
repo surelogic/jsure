@@ -391,6 +391,8 @@ public class JavacDriver {
 			} else {
 				// Already added as a dependency?
 			}
+			Config config = projects.get(info.project.getName()).getConfig();
+			config.setOption(Config.AS_SOURCE, true);
 		}
 		return projects;
 
