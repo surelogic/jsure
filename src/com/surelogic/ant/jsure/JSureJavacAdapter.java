@@ -12,6 +12,7 @@ import org.apache.tools.ant.util.StringUtils;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.JavaSourceFile;
+import com.surelogic.fluid.javac.Projects;
 import com.surelogic.fluid.javac.Util;
 
 import edu.cmu.cs.fluid.util.Pair;
@@ -42,7 +43,8 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			/*
 			ToolUtil.scan(config, new Monitor(), true);
 			*/
-			Util.openFiles(config, new NullSLProgressMonitor());
+			final Projects projects = new Projects(config, new NullSLProgressMonitor());
+			Util.openFiles(projects);
 		} catch (Throwable t) {
 			t.printStackTrace();
 			throw new BuildException("Exception while scanning", t);
