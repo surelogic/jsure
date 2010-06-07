@@ -452,6 +452,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 				startScrubbingType_internal(decl);
 				try {
 					for(A a : l) {
+						//System.out.println("Processing "+a);
 						processAAST(a);
 					}
 				} finally {
