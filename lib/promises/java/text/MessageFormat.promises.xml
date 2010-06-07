@@ -6,7 +6,9 @@
      <Promise>@ThreadRoleTransparent for **(**)</Promise>
 
           <method name="format" params="java.lang.Object[],java.lang.StringBuffer,java.text.FieldPosition">
-            <borrowed>arg0</borrowed>
+            <parameter index="0">
+               <borrowed/>
+            </parameter>
           </method>
     </class>  
 </package>

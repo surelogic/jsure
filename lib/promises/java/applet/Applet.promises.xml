@@ -10,7 +10,8 @@
     <Promise>@RegionEffects(writes none) for play(**) | getCodeBase()</Promise>
 -->
     <Promise>@RegionEffects(reads this:Instance) for get*(**) | is*(**)</Promise>
-    <Promise>@RegionEffects(writes this:Instance) for play(**) | init(**) | start() | stop() | destroy() | new(**)</Promise>
+    <Promise>@RegionEffects(writes this:Instance) for play(**) | init(**) | start() | stop() | destroy()</Promise>
+    <Promise>@RegionEffects(writes nothing) for new(**)</Promise>
 
     <MapRegion>Instance into java.awt.event.ActionListener:GUIinternal</MapRegion>
       <method name="isActive" params="">
