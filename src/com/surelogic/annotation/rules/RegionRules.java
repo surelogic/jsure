@@ -236,7 +236,7 @@ public class RegionRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber<InRegionNode> makeScrubber() {
       return new AbstractAASTScrubber<InRegionNode>(this, 
-                                                   ScrubberType.UNORDERED, REGION) {
+                                                   ScrubberType.BY_HIERARCHY, REGION) {
         @Override
         protected PromiseDrop<InRegionNode> makePromiseDrop(InRegionNode a) {
           return storeDropIfNotNull(getStorage(), a, scrubInRegion(getContext(), a));          
