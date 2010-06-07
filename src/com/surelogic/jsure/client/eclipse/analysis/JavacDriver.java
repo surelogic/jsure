@@ -230,7 +230,7 @@ public class JavacDriver {
 				case IClasspathEntry.CPE_CONTAINER:
 					final IClasspathContainer cc = JavaCore.getClasspathContainer(cpe.getPath(), jp);					
 					if (cc.getDescription().startsWith(JavacTypeEnvironment.JRE_LIBRARY)) { // HACK
-						JavacProject jcp = projects.get(cc.getDescription());
+						JavacProject jcp = findJRE(projects, cc);
 						if (jcp == null) {
 							projects.add(makeConfig(projects, cc));							
 						}
@@ -239,16 +239,62 @@ public class JavacDriver {
 				}
 			}
 		}
-
+		
+		private JavacProject findJRE(Projects projects, final IClasspathContainer cc) {
+			final String name = cc.getPath().toPortableString();
+			JavacProject jcp = projects.get(name);
+			if (jcp == null) {
+				// Not found by name, so check for existing JREs
+				for(JavacProject p : projects) {
+					if (p.getName().startsWith(JavacTypeEnvironment.JRE_NAME) &&
+						compareJREs(p.getConfig(), cc)) {
+						return p;
+					}
+				}
+			}
+			return jcp;
+		}
+		
+		private boolean compareJREs(Config c, final IClasspathContainer cc) {
+			final IClasspathEntry[] cpes = cc.getClasspathEntries();
+			int i = 0;
+			for(IClassPathEntry e : c.getClassPath()) {
+				if (i >= cpes.length) {
+					return false;
+				}
+				final IClasspathEntry cpe = cpes[i];
+				switch (cpe.getEntryKind()) {
+				case IClasspathEntry.CPE_LIBRARY:
+					final File f = EclipseUtility.resolveIPath(cpe.getPath());
+					if (!(e instanceof JarEntry)) {
+						return false;
+					}
+					JarEntry j = (JarEntry) e;
+					if (!f.equals(j.getPath())) {
+						return false;
+					}
+					break;
+				default:
+					return false;
+				}
+				i++;
+			}
+			return true;
+		}
+		
+		/**
+		 * Make a Config for the JRE
+		 */
 		private Config makeConfig(Projects projects, final IClasspathContainer cc) {
-			final Config config = new Config(cc.getDescription(), true);
+			final String name = cc.getPath().toPortableString();
+			final Config config = new Config(name, true);
 			for(IClasspathEntry cpe : cc.getClasspathEntries()) {
 				switch (cpe.getEntryKind()) {
 				case IClasspathEntry.CPE_LIBRARY:
 					final File f = EclipseUtility.resolveIPath(cpe.getPath());
 					//System.out.println("Adding "+f+" for "+cc.getDescription());
 					config.addJar(f, true);
-					projects.mapToProject(f, cc.getDescription());
+					projects.mapToProject(f, name);
 					break;
 				default:
 					throw new IllegalStateException("Got entryKind: "+cpe.getEntryKind());
