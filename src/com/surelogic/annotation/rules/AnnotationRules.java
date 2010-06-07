@@ -208,7 +208,7 @@ public abstract class AnnotationRules {
   public static void scrub() {
     try {
       firstMgr.execute(true);
-      mgr.execute(true);
+      mgr.execute(true, 1000, TimeUnit.SECONDS);
       lastMgr.execute(true);
     } catch (UndefinedDependencyException e) {
     	LOG.log(Level.SEVERE, "Problem while running scrubber", e);
