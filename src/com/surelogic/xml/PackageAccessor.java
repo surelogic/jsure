@@ -157,7 +157,7 @@ public class PackageAccessor implements TestXMLParserConstants {
 			File root = new File(uri);
 			if (root.exists() && root.isDirectory()) {
 				List<String> qnames = new ArrayList<String>();
-				findPromiseXMLs(qnames, new File(root, "lib/promises"), "");
+				findPromiseXMLsInDir(qnames, new File(root, "lib/promises"), "");
 				return qnames;
 			}
 		} catch (URISyntaxException e) {
@@ -167,17 +167,25 @@ public class PackageAccessor implements TestXMLParserConstants {
 		return EmptyIterator.prototype();
 	}
 
+	private static void findPromiseXMLsInDir(List<String> qnames, File dir, String path) {
+		for(File xml : dir.listFiles(xmlFilter)) {				
+			findPromiseXMLs(qnames, xml, path);
+		}
+	}
+	
 	private static void findPromiseXMLs(List<String> qnames, File f, String path) {
 		if (!f.exists()) {
 			return;
 		}
 		if (f.isDirectory()) {
-			for(File xml : f.listFiles(xmlFilter)) {				
-				findPromiseXMLs(qnames, xml, computeName(path, f.getName()));
-			}
+			findPromiseXMLsInDir(qnames, f, computeName(path, f.getName()));
 		} else if (f.getName().endsWith(PROMISES_XML)) {
-			String name = f.getName().substring(0, f.getName().length()-PROMISES_XML.length());
-			qnames.add(computeName(path, name));
+			if ("package-info.promises.xml".equals(f.getName())) {
+				qnames.add(path);
+			} else {
+				String name = f.getName().substring(0, f.getName().length()-PROMISES_XML.length());
+				qnames.add(computeName(path, name));
+			}			
 		}
 	}
 	
