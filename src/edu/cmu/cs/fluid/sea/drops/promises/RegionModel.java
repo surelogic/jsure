@@ -155,7 +155,8 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	};
 	
 	public static void invalidate(String key, IRNode context) {
-		final String project = JavaProjects.getEnclosingProject(context).getName();
+		final IIRProject p   = JavaProjects.getEnclosingProject(context);
+		final String project = p == null ? "" : p.getName();
 		RegionModel drop = nameToDrop.get(key, project);
 		if (drop != null) {
 			drop.clearAST();
