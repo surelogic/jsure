@@ -82,8 +82,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
    * Called by FieldRegion.getModel()
    */
   public static RegionModel getInstance(FieldRegion region) {
-    String qname      = region.toString();
-    String project    = JavaProjects.getEnclosingProject(region.getNode()).getName();
+    final String qname   = region.toString();
+	final IIRProject p   = JavaProjects.getEnclosingProject(region.getNode());
+	final String project = p == null ? "" : p.getName();
     RegionModel model = getInstance(qname, project);
     IRNode n = model.getNode();
     if (n != null && n.identity() != IRNode.destroyedNode &&
