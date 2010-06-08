@@ -42,6 +42,7 @@ public abstract class IDE {
   public static final boolean useJavac = false;	
   public static final boolean debugTypedASTs = false;
   public static final boolean testReloadMemoryLeak = false;
+  public static final String DEFAULT_JRE = "default.JRE";
 
   /**
    * Logger for this class
