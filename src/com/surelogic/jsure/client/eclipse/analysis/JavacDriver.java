@@ -113,6 +113,9 @@ public class JavacDriver {
 		 * Adds itself to projects to make sure that it's not created multiple times
 		 */
 		Config makeConfig(final Projects projects, boolean all) throws JavaModelException {
+			final IJavaProject jp = JDTUtility.getJavaProject(project.getName());		
+			scanForJDK(projects, jp);
+			
 			Config config = new ZippedConfig(project.getName(), false);
 			projects.add(config);
 			setOptions(config);
@@ -300,6 +303,7 @@ public class JavacDriver {
 					throw new IllegalStateException("Got entryKind: "+cpe.getEntryKind());
 				}
 			}
+			JavacEclipse.getDefault().setPreference(IDE.DEFAULT_JRE, name);
 			return config;
 		}
 		
