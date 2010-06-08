@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.*;
+import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.*;
 import com.surelogic.annotation.rules.RegionRules;
@@ -68,7 +69,8 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	}
 
 	public static RegionModel getInstance(String region, IRNode context) {
-		final String project = JavaProjects.getEnclosingProject(context).getName();
+		IIRProject p = JavaProjects.getEnclosingProject(context);
+		final String project = p == null ? "" : p.getName();
 		return getInstance(region, project);
 	}
 	
