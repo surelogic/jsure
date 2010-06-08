@@ -22,6 +22,10 @@ public class JavacEclipse extends Javac {
         // Nothing to do right now, besides create the instance above
     }
     
+    static JavacEclipse getDefault() {
+    	return instance;
+    }
+    
     {
         prefs.put(IDEPreferences.DATA_DIRECTORY, PreferenceConstants.getJSureDataDirectory().getAbsolutePath());
     }
