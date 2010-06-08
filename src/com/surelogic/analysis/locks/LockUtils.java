@@ -279,7 +279,7 @@ public final class LockUtils {
         binder);
 
     // Get the instance region declaration
-    INSTANCE = RegionModel.getInstance(RegionModel.INSTANCE);
+    INSTANCE = RegionModel.getInstanceRegion();
     
     // Get the lock decl of the MUTEX lock on Object
     final RegionLockRecord lr = sysLockModelHandle.get().getRegionLockByName(
@@ -294,7 +294,7 @@ public final class LockUtils {
     mutex.setFromSrc(true);
 
     // Get the region for array elements
-    elementRegion = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);
+    elementRegion = RegionModel.getArrayElementRegion();
     elementRegion.setNode(IOldTypeEnvironment.arrayType);
   }
 

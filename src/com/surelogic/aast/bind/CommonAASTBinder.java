@@ -74,10 +74,10 @@ public class CommonAASTBinder extends AASTBinder {
     }
     if (jt instanceof IJavaArrayType) {
       if (PromiseConstants.REGION_ELEMENT_NAME.equals(name)) {
-        return RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);
+        return RegionModel.getArrayElementRegion();
       }
       if (PromiseConstants.REGION_LENGTH_NAME.equals(name)) {
-    	return RegionModel.getInstance(PromiseConstants.REGION_LENGTH_NAME);
+    	return RegionModel.getArrayLengthRegion();
       }
       IRNode jlo = findNamedType("java.lang.Object");
       return findRegionModel(jlo, name);

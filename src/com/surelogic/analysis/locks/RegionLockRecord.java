@@ -39,7 +39,7 @@ final class RegionLockRecord extends AbstractLockRecord {
     if (lock != null) {
       region = lock.getRegion().resolveBinding().getModel();
     } else {
-      region = RegionModel.getInstance(RegionModel.INSTANCE);
+      region = RegionModel.getInstanceRegion();
     }
   }
 

@@ -196,13 +196,12 @@ public class RegionRules extends AnnotationRules {
        * region is static.  Region ALL has no parent. 
        */
       if (!qualifiedName.equals(RegionModel.ALL)) {
-        parentModel = RegionModel.getInstance(
-            a.isStatic() ? RegionModel.ALL : RegionModel.INSTANCE);
+        parentModel = a.isStatic() ? RegionModel.getAllRegion() : RegionModel.getInstanceRegion();
       }
     }
     
     if (annotationIsGood) {
-      RegionModel model = RegionModel.getInstance(qualifiedName);  
+      RegionModel model = RegionModel.getInstance(qualifiedName, a.getPromisedFor());  
       model.setAST(a); // Set to keep it from being purged
       
       if (parentModel != null) { // parentModel == null if region is ALL
@@ -210,7 +209,7 @@ public class RegionRules extends AnnotationRules {
       }
       return model;
     } else {
-      RegionModel.invalidate(qualifiedName);
+      RegionModel.invalidate(qualifiedName, a.getPromisedFor());
       return null;
     }
   }

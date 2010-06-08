@@ -4,9 +4,11 @@ import java.util.*;
 
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.*;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.*;
 import com.surelogic.annotation.rules.RegionRules;
 
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -22,6 +24,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.*;
 
 /**
  * Actual drop for "region" models.
@@ -40,25 +43,35 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	/**
 	 * Map from region names to drop instances (String -> RegionDrop).
 	 */
-	private static Map<String, RegionModel> nameToDrop = new HashMap<String, RegionModel>();
+	private static Hashtable2<String, String, RegionModel> nameToDrop = 
+		new Hashtable2<String, String, RegionModel>();
   
 	private Object colorInfo;
 
-	public static synchronized RegionModel getInstance(String regionName) {
+	public static synchronized RegionModel getInstance(String regionName, String projectName) {
 		purgeUnusedRegions(); // cleanup the regions
-
+		/*
+		if (PromiseConstants.REGION_ELEMENT_NAME.equals(regionName)) {
+			System.out.println("Getting region: "+regionName);
+		}
+		*/
 		String key = regionName;
-		RegionModel result = nameToDrop.get(key);
+		RegionModel result = nameToDrop.get(key, projectName);
 		if (result == null) {
 			key = CommonStrings.intern(regionName);
 			result = new RegionModel(key);
 
-			nameToDrop.put(key, result);
+			nameToDrop.put(key, projectName, result);
 			//System.out.println("Creating region "+key);
 		}
 		return result;
 	}
 
+	public static RegionModel getInstance(String region, IRNode context) {
+		final String project = JavaProjects.getEnclosingProject(context).getName();
+		return getInstance(region, project);
+	}
+	
   public static IRegion getInstance(IRNode field) {
     return new FieldRegion(field);
   }
@@ -68,7 +81,8 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
    */
   public static RegionModel getInstance(FieldRegion region) {
     String qname      = region.toString();
-    RegionModel model = getInstance(qname);
+    String project    = JavaProjects.getEnclosingProject(region.getNode()).getName();
+    RegionModel model = getInstance(qname, project);
     IRNode n = model.getNode();
     if (n != null && n.identity() != IRNode.destroyedNode &&
         !n.equals(region.getNode())) {
@@ -137,8 +151,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		}
 	};
 	
-	public static void invalidate(String key) {
-		RegionModel drop = nameToDrop.get(key);
+	public static void invalidate(String key, IRNode context) {
+		final String project = JavaProjects.getEnclosingProject(context).getName();
+		RegionModel drop = nameToDrop.get(key, project);
 		if (drop != null) {
 			drop.clearAST();
 		}
@@ -156,10 +171,10 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	 * Removes regions that are not defined by any promise definitions.
 	 */
 	public static synchronized void purgeUnusedRegions() {
-		Map<String, RegionModel> newMap = new HashMap<String, RegionModel>();
+		Hashtable2<String, String, RegionModel> newMap = new Hashtable2<String,String,RegionModel>();
 		//boolean invalidated = false;
-		for (String key : nameToDrop.keySet()) {
-			RegionModel drop = nameToDrop.get(key);
+		for (Pair<String,String> key : nameToDrop.keys()) {
+			RegionModel drop = nameToDrop.get(key.first(), key.second());
 
 			boolean regionDefinedInCode = modelDefinedInCode(definingDropPred,
 					drop);			
@@ -168,14 +183,14 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 				keepAnyways = drop.isValid() && 
         	                 (drop.colorInfo != null || 
                               drop.getAST() != null  || 
-                              key.equals(INSTANCE) || 
-                              key.equals(ALL)) || 
-                              key.equals(PromiseConstants.REGION_ELEMENT_NAME);
+                              key.first().equals(INSTANCE) || 
+                              key.first().equals(ALL)) || 
+                              key.first().equals(PromiseConstants.REGION_ELEMENT_NAME);
 			}
 			 
 			//System.out.println(key+" : "+regionDefinedInCode+", "+keepAnyways);
 			if (regionDefinedInCode || keepAnyways) {
-				newMap.put(key, drop);
+				newMap.put(key.first(), key.second(), drop);
 			}
 			else {
 				//System.out.println("Purging "+drop.regionName);
@@ -350,10 +365,10 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 			// return the default STATIC or INSTANCE
 			else {
 				if(nrdn.isStatic()){
-    			model =	ALL.equals(regionName) ? null : RegionModel.getInstance(ALL);
+    			model =	ALL.equals(regionName) ? null : RegionModel.getAllRegion();
 				}
 				else{
-    			model =	INSTANCE.equals(regionName) ? RegionModel.getInstance(ALL) : RegionModel.getInstance(INSTANCE);
+    			model =	INSTANCE.equals(regionName) ? RegionModel.getAllRegion() : RegionModel.getInstanceRegion();
 				}
 			}
 		}
@@ -388,11 +403,14 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 			}
 			//No InRegionPromiseDrop for this field, return the default regions
 			else{
+				if (ALL.equals(regionName)) {
+					return null;
+				}
 				if(JavaNode.getModifier(this.getNode(), JavaNode.STATIC)){
-					return RegionModel.getInstance(ALL);
+					return RegionModel.getAllRegion();
 				}
 				else{
-					return RegionModel.getInstance(INSTANCE);
+					return RegionModel.getInstanceRegion();
 				}
 			}
 		}
@@ -443,5 +461,23 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
   @Override
   public String toString() {
     return this.regionName;
+  }
+  
+  public static RegionModel getAllRegion() {
+	  return RegionModel.getInstance(ALL, IDE.getInstance().getStringPreference(IDE.DEFAULT_JRE)); // TODO
+  }
+  
+  public static RegionModel getInstanceRegion() {
+	  return RegionModel.getInstance(INSTANCE, IDE.getInstance().getStringPreference(IDE.DEFAULT_JRE)); // TODO
+  }
+  
+  public static RegionModel getArrayLengthRegion() {
+	  return RegionModel.getInstance(PromiseConstants.REGION_LENGTH_NAME, 
+			  IDE.getInstance().getStringPreference(IDE.DEFAULT_JRE)); // TODO
+  }
+  
+  public static RegionModel getArrayElementRegion() {
+	  return RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME, 
+			  IDE.getInstance().getStringPreference(IDE.DEFAULT_JRE)); // TODO
   }
 }

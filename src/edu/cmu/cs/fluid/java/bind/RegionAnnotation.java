@@ -217,7 +217,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
     } else {
       // no region drop found, so create one
       final String regionName = getRegionName(regionNode);
-      model = RegionModel.getInstance(regionName);
+      model = RegionModel.getInstance(regionName, "");
       model.setCategory(JavaGlobals.REGION_CAT);
       
       boolean predefined = regionName.equals("Instance") //$NON-NLS-1$

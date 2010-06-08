@@ -8,6 +8,7 @@ package edu.cmu.cs.fluid.java.bind;
 
 import com.surelogic.aast.promise.*;
 
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -228,7 +229,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
                                          new RegionNameNode(-1, PromiseConstants.REGION_INSTANCE_NAME));
         region.setPromisedFor(privateArrayType);
 
-        RegionModel model = RegionModel.getInstance(name);
+        RegionModel model = RegionModel.getInstance(name, IDE.getInstance().getStringPreference(IDE.DEFAULT_JRE)); // TODO
         model.setAST(region);        
         PromiseFramework.getInstance().findSeqStorage("Region").add(privateArrayType, model);
     }

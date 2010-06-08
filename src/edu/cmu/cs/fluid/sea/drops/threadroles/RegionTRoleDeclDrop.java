@@ -41,16 +41,16 @@ public class RegionTRoleDeclDrop extends PhantomDrop implements IThreadRoleDrop 
    * @param constraint Expression representing the constraint (as written by the user!)
    * @param where Location of the decl in the tree.
    */
-  private RegionTRoleDeclDrop(final String regionName, final TRExpr constraint) {
+  private RegionTRoleDeclDrop(final String regionName, final TRExpr constraint, IRNode where) {
     super();
     this.regionName = regionName;
-    masterRegion = RegionModel.getInstance(regionName);
+    masterRegion = RegionModel.getInstance(regionName, where);
     userConstraint = constraint.doClone();
   }
 
 public static RegionTRoleDeclDrop buildRegionTRoleDecl(final String regionName, final TRExpr constraint,
     final IRNode where) {
-  RegionTRoleDeclDrop res = new RegionTRoleDeclDrop(regionName, constraint);
+  RegionTRoleDeclDrop res = new RegionTRoleDeclDrop(regionName, constraint, where);
   res.setNodeAndCompilationUnitDependency(where);
   
   RegionTRoleModel tRTRDDrop = (RegionTRoleModel) res.masterRegion.getColorInfo();

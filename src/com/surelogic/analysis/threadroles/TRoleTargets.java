@@ -70,12 +70,12 @@ public class TRoleTargets {
    
     if (INSTANCE == null) {
       // Get the Instance region
-      INSTANCE = RegionModel.getInstance(RegionModel.INSTANCE);
+      INSTANCE = RegionModel.getInstanceRegion();
     }
 
     if (ELEMENT == null) {
       // Get the region for array elements
-      ELEMENT = RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME);
+      ELEMENT = RegionModel.getArrayElementRegion();
       ELEMENT.setNode(IOldTypeEnvironment.arrayType);
 //      ELEMENT = 
 //        RegionModel.getInstance(binder.findRegionInType(IOldTypeEnvironment.arrayType,
