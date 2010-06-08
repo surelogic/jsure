@@ -209,6 +209,9 @@ public class Hashtable2<K1,K2,V> implements Cloneable {
     }
   }
   
+  private final EntrySelector<K1,K2,V,Pair<K1,K2>> keys_selector = new EntrySelector<K1,K2,V,Pair<K1,K2>>() {
+	  public Pair<K1,K2> select(Hashtable2Entry<K1,K2,V> he) { return new Pair<K1,K2>(he.key1, he.key2); }
+  };
   private final EntrySelector<K1,K2,V,K1> key1_selector = new EntrySelector<K1,K2,V,K1>() {
     public K1 select(Hashtable2Entry<K1,K2,V> he) { return he.key1; }
   };
@@ -228,7 +231,9 @@ public class Hashtable2<K1,K2,V> implements Cloneable {
   public Iteratable<V> elements() {
     return enumerate(value_selector);
   }
-  
+  public Iteratable<Pair<K1,K2>> keys() {
+	return enumerate(keys_selector);
+  }
   private <T> Iteratable<T> enumerate(EntrySelector<K1,K2,V,T> selector) {
     if (size == 0) return EmptyIterator.prototype();
     for (int i=0; i<capacity; ++i) {
