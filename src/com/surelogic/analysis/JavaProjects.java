@@ -1,0 +1,24 @@
+/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
+package com.surelogic.analysis;
+
+import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
+
+public class JavaProjects {
+	private static final IRObjectType<IIRProject> projectType = new IRObjectType<IIRProject>();
+	protected static final SlotInfo<IIRProject> projectSI = 
+		JavaNode.getConstantSlotInfo(JavaProjects.class.getName(), projectType);
+	
+	public static IIRProject getProject(IRNode cu) {
+		if (cu == null || !cu.valueExists(projectSI)) {
+			return null;
+		}
+		return cu.getSlotValue(projectSI);
+	}
+	
+	public static IIRProject getEnclosingProject(IRNode here) {
+		final IRNode cu = VisitUtil.getEnclosingCompilationUnit(here);
+		return getProject(cu);
+	}
+}
