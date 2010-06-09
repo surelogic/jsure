@@ -2,10 +2,12 @@ package com.surelogic.jsure.client.eclipse.analysis;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jface.preference.IPreferenceStore;
 
@@ -19,16 +21,15 @@ import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
-import edu.cmu.cs.fluid.dc.Majordomo;
-import edu.cmu.cs.fluid.dc.Nature;
-import edu.cmu.cs.fluid.dc.NotificationHub;
+import edu.cmu.cs.fluid.dc.*;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver {
-	private final List<IProject> building = new ArrayList<IProject>();
+	//private final List<IProject> building = new ArrayList<IProject>();
 	private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
+	private final AtomicReference<Projects> currentProjects = new AtomicReference<Projects>();
 	
 	private JavacDriver() {
 		PeriodicUtility.addHandler(new Runnable() {
@@ -341,6 +342,7 @@ public class JavacDriver {
 	}
 	
 	void preBuild(final IProject p) {
+		/*
 		System.out.println("Pre-build for "+p);
 		
 		if (building.isEmpty()) {
@@ -352,6 +354,7 @@ public class JavacDriver {
 				}
 			}
 		}
+		*/
 	}
 	
 	/**
@@ -361,8 +364,7 @@ public class JavacDriver {
 	void registerBuild(IProject project, Map args,
 			           List<Pair<IResource, Integer>> resources, 
 			           List<ICompilationUnit> cus) {
-		final String kind = (String) args.get(Majordomo.BUILD_KIND);		
-		final int k = Integer.parseInt(kind);
+		final int k = getBuildKind(args);
 		if (k == IncrementalProjectBuilder.CLEAN_BUILD || 
 			k == IncrementalProjectBuilder.FULL_BUILD) {
 			// TODO what about resources?
@@ -377,9 +379,19 @@ public class JavacDriver {
 			info.registerResourcesDelta(resources);
 		}
 	}
+	@SuppressWarnings("unchecked")
+	private static int getBuildKind(Map args) {
+		final String kind = (String) args.get(Majordomo.BUILD_KIND);		
+		return Integer.parseInt(kind);
+	}
+	@SuppressWarnings("unchecked")
+	void configureBuild(Map args) {
+		final int k = getBuildKind(args);
+		configureBuild((k & IncrementalProjectBuilder.AUTO_BUILD) == IncrementalProjectBuilder.AUTO_BUILD);
+	}
 	
-	public void doBuild(IProject p) {	    
-		System.out.println("Finished 'build' for "+p);
+	public void configureBuild(boolean isAuto /*IProject p*/) {	    
+		//System.out.println("Finished 'build' for "+p);
 		/*
 		//ProjectDrop.ensureDrop(p.getName(), p);
 		final ProjectInfo info = projects.get(p);
@@ -387,26 +399,42 @@ public class JavacDriver {
 			return; // No info!
 		}
 		*/
+		/*
 		// Check if any projects are still building
 		building.remove(p);
 		if (!building.isEmpty()) {
 			System.out.println("Still waiting for "+building);
 			return;
 		}
-		System.out.println("Starting to build projects");
+		*/	
+		
+		// TODO this needs to be run after ALL the info is collected
         JavacEclipse.initialize();
+        
+        ConfigureJob configure = new ConfigureJob("Configuring JSure build", isAuto);
+	    final boolean success = currentProjects.compareAndSet(null, configure.projects);
+        if (!success) {
+	    	System.out.println("Already started ConfigureJob");	    	
+	    } else {
+	    	System.out.println("Starting to configure JSure build");
+	        EclipseJob.getInstance().schedule(configure);
+	    }
+	}
+	
+	private void doBuild(final Projects newProjects) {
 		try {
 			if (!XUtil.testing) {
 				final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
 				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
 			}
 			//final boolean hasDeltas = info.hasDeltas();
-		    final Projects newProjects = makeProjects();	    
+		    makeProjects(newProjects);	    
+
 		    final File dataDir = 
 		        //new File(IDE.getInstance().getStringPreference(IDEPreferences.DATA_DIRECTORY));
 		        PreferenceConstants.getJSureDataDirectory();
 		    final String time = SLUtility.toStringHMS(new Date());
-		    final String name = p.getName()+' '+time.replace(':', '-');		   		    
+		    final String name = newProjects.getShortLabel()+' '+time.replace(':', '-');		   		    
 		    final File zips   = new File(dataDir, name+"/zips");
 		    final File target = new File(dataDir, name+"/srcs");
 		    target.mkdirs();
@@ -433,8 +461,7 @@ public class JavacDriver {
 		}
 	}
 	
-	private Projects makeProjects() throws JavaModelException {
-		final Projects projects = new Projects();
+	private Projects makeProjects(final Projects projects) throws JavaModelException {
 		for(ProjectInfo info : this.projects.values()) {
 			if (!projects.contains(info.project.getName())) {
 				info.makeConfig(projects, !info.hasDeltas());	
@@ -526,7 +553,33 @@ public class JavacDriver {
         }  
 	}
 	
-	abstract class Job extends AbstractSLJob {
+	class ConfigureJob extends AbstractSLJob {
+		final Projects projects;
+		
+		ConfigureJob(String name, boolean isAuto) {
+			super(name);
+			projects = new Projects(isAuto);
+		}
+
+		public SLStatus run(SLProgressMonitor monitor) {
+        	try {
+        		Object family = projects.isAutoBuild() ?
+        				ResourcesPlugin.FAMILY_AUTO_BUILD : ResourcesPlugin.FAMILY_AUTO_BUILD;
+				Job.getJobManager().join(family, null);
+			} catch (OperationCanceledException e1) {
+				return SLStatus.CANCEL_STATUS;
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			// Clear for next build?
+
+			doBuild(projects);
+			return SLStatus.OK_STATUS;
+		}
+	}
+	
+	abstract class JavacJob extends AbstractSLJob {
 	    final Projects projects;
 	    /**
 	     * Where the source files will be copied to
@@ -538,7 +591,7 @@ public class JavacDriver {
          */
         final File zipDir;
 	    
-	    Job(String name, Projects projects, File target, File zips) {
+	    JavacJob(String name, Projects projects, File target, File zips) {
 	        super(name);
             this.projects = projects;
             targetDir = target;
@@ -546,15 +599,15 @@ public class JavacDriver {
         }
 	}
 	
-	class CopyJob extends Job {
+	class CopyJob extends JavacJob {
 	    private final SLJob afterJob;
-
+	    
         CopyJob(Projects projects, File target, File zips, SLJob after) {
             super("Copying project info for "+projects.getLabel(), projects, target, zips);
             afterJob = after;
         }
 
-        public SLStatus run(SLProgressMonitor monitor) {
+        public SLStatus run(SLProgressMonitor monitor) {        	
         	final long start = System.currentTimeMillis();
         	try {
         		for(Config config : projects.getConfigs()) {
@@ -580,11 +633,16 @@ public class JavacDriver {
         	    	EclipseJob.getInstance().scheduleDb(afterJob, false, false, Util.class.getName());
         	    }
             }
+            final Projects p = currentProjects.getAndSet(null);
+            if (projects != p) {
+            	System.out.println("Unexpected projects: "+p.getShortLabel()+
+            			", instead of "+projects.getShortLabel());
+            }
             return SLStatus.OK_STATUS;
         }   
 	}
 	
-	class AnalysisJob extends Job {
+	class AnalysisJob extends JavacJob {
 		private final Projects oldProjects;
 		
         AnalysisJob(Projects oldProjects, Projects projects, File target, File zips) {
