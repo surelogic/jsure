@@ -686,7 +686,7 @@ public class LockRules extends AnnotationRules {
       if (declIsGood) {
         // fill in the rest of the drop information
         final String qualifiedName = computeQualifiedName(lockDecl);
-        final LockModel model = LockModel.getInstance(qualifiedName); 
+        final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
         model.setAST(lockDecl);
         model.setResultMessage(Messages.LockAnnotation_lockModel,
             model.getQualifiedName(), field, region,
@@ -730,7 +730,7 @@ public class LockRules extends AnnotationRules {
         final boolean fieldIsStatic, final IRNode lockFieldNode) {
       final String qualifiedName = computeQualifiedName(lockDecl);     
       if (declIsGood) {
-        final LockModel model = LockModel.getInstance(qualifiedName);
+        final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor());
         model.setAST(lockDecl);
         model.setResultMessage(Messages.LockAnnotation_policyLockModel,
             model.getQualifiedName(), lockDecl.getField(), JavaNames.getTypeName(lockDecl
@@ -1479,7 +1479,7 @@ public class LockRules extends AnnotationRules {
          * as useful as they probably mean it to be.
          */
         final String qualifiedName = computeQualifiedName(lockDecl);
-        final LockModel model = LockModel.getInstance(qualifiedName); 
+        final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
         final WarningDrop wd = new WarningDrop(Integer.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_LockViz));
         wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_LockViz, field, region);
         wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());

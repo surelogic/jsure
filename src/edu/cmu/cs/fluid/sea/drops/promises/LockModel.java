@@ -4,11 +4,15 @@ import java.util.*;
 
 import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.locks.LockUtils;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.util.*;
 
 /**
  * Promise drop for "lock" models.
@@ -23,7 +27,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 	/**
 	 * Map from lock names to drop instances (String -> RegionDrop).
 	 */
-	private static Map<String, LockModel> nameToDrop = new HashMap<String, LockModel>();
+	private static Hashtable2<String,String,LockModel> nameToDrop = new Hashtable2<String,String,LockModel>();
 
 	/*
 	 * This name-based lookup is very shakey. There should be a better way of
@@ -33,16 +37,16 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 	 * @param lockName
 	 *            The qualified name of the lock
 	 */
-	public static synchronized LockModel getInstance(String lockName) {
+	public static synchronized LockModel getInstance(String lockName, String project) {
 		purgeUnusedLocks(); // cleanup the locks
 
 		String key = lockName;
-		LockModel result = nameToDrop.get(key);
+		LockModel result = nameToDrop.get(key, project);
 		if (result == null) {
 			key = CommonStrings.intern(lockName);
 			result = new LockModel(key);
 
-			nameToDrop.put(key, result);
+			nameToDrop.put(key, project, result);
 
 			if ("java.lang.Object.MUTEX".equals(key)) {
 				result.setFromSrc(true); // Make it show up in the view
@@ -57,6 +61,12 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 		return result;
 	}
 
+	public static LockModel getInstance(String lockName, IRNode context) {
+		IIRProject p = JavaProjects.getEnclosingProject(context);
+		final String project = p == null ? "" : p.getName();
+		return getInstance(lockName, project);
+	}
+	
 	/**
 	 * The simple lock name this drop represents the declaration for.
 	 */
@@ -94,16 +104,17 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 	 * Removes locks that are no longer defined by any promise definitions.
 	 */
 	public static synchronized void purgeUnusedLocks() {
-		Map<String, LockModel> newMap = new HashMap<String, LockModel>();
+		Hashtable2<String,String,LockModel> newMap = new Hashtable2<String,String,LockModel>();
 
-		for (String key : nameToDrop.keySet()) {
-			LockModel drop = nameToDrop.get(key);
+		
+		for (Pair<String,String> key : nameToDrop.keys()) {
+			LockModel drop = nameToDrop.get(key.first(), key.second());
 
 			boolean lockDefinedInCode = modelDefinedInCode(definingDropPred,
 					drop);
 
 			if (lockDefinedInCode) {
-				newMap.put(key, drop);
+				newMap.put(key.first(), key.second(), drop);
 			} else {
 				// System.out.println("Purging lock "+key);
 				drop.invalidate();
