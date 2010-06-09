@@ -1,6 +1,7 @@
 package com.surelogic.analysis.uniqueness;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import jsr166y.forkjoin.Ops.Procedure;
@@ -495,7 +496,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
     }
 	}
 
-	private final Map<IRNode, ResultDropBuilder> cachedControlFlow = new HashMap<IRNode, ResultDropBuilder>();
+	private final Map<IRNode, ResultDropBuilder> cachedControlFlow = new ConcurrentHashMap<IRNode, ResultDropBuilder>();
 	
 	ResultDropBuilder getMethodControlFlowDrop(final IRNode block) {
     ResultDropBuilder drop = cachedControlFlow.get(block);
