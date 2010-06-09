@@ -16,7 +16,7 @@ public class RunJSureMainAction extends AbstractMainAction {
                 "Select the project to verify:", "Run JSure", SLImages
                         .getImage(CommonImages.IMG_JSURE_VERIFY));
         if (focus != null) {
-            JavacDriver.getInstance().doBuild(focus.getProject());
+            //JavacDriver.getInstance().doBuild(focus.getProject());
         }
     }
 }
