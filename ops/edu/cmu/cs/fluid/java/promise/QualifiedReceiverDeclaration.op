@@ -65,7 +65,7 @@ public operator QualifiedReceiverDeclaration implements edu.cmu.cs.fluid.java.bi
         IRNode cu = edu.cmu.cs.fluid.java.util.VisitUtil.getEnclosingCompilationUnit(type);
     	  decl = edu.cmu.cs.fluid.java.util.BindUtil.findAnonClass(cu, name);
       } else {
-        decl = tEnv.findNamedType(name);
+        decl = tEnv.findNamedType(name, type);
       }
     } 
     if (decl == null) {

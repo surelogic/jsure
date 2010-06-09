@@ -40,6 +40,8 @@ public interface ITypeEnvironment {
 	 * @param qname A qualified name separated by '.'
 	 * @return The corresponding AST */
 	IRNode findNamedType(String qname);
+	
+	IRNode findNamedType(String qname, IRNode context);
 
 	public Iterable<IRNode> getRawSubclasses(IRNode type);
 	
