@@ -51,6 +51,8 @@ public abstract class CUDrop extends Drop {
   
   @SuppressWarnings("unchecked")
   protected CUDrop(CodeInfo info) {
+	  //System.out.println("Creating CU for "+info.getFileName());
+	  
 	// TODO will this suck up space for the source?
 	this.info = info;
     cu = info.getNode();
@@ -164,12 +166,11 @@ public abstract class CUDrop extends Drop {
 	  super.snapshotAttrs(s);
 	  s.addAttribute("filename", javaOSFileName);
   }
-  /*
+  
   @Override
   protected void invalidate_internal() {
 	  System.out.println("Invalidating "+javaOSFileName);
   }
-  */
   
   @Override
   protected JavaSourceReference createSourceRef() {
