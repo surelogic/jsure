@@ -466,7 +466,7 @@ public class JavacDriver {
 	
 	// TODO how to set up for deltas?
 	private Projects makeProjects(final Projects projects) throws JavaModelException {
-		for(ProjectInfo info : this.projects.values()) {
+		for(ProjectInfo info : new ArrayList<ProjectInfo>(this.projects.values())) {
 			if (!projects.contains(info.project.getName())) {
 				info.makeConfig(projects, !info.hasDeltas());	
 			} else {
