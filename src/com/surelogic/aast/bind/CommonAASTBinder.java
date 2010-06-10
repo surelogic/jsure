@@ -39,8 +39,8 @@ public class CommonAASTBinder extends AASTBinder {
   /**
    * Wrapper introduced to check if we need to use a different ITypeEnvironment
    */
-  IRNode findNamedType(String qname) { 
-	  return tEnv.findNamedType(qname);
+  IRNode findNamedType(String qname, IRNode context) { 
+	  return tEnv.findNamedType(qname, context);
   }
   
   public boolean isResolvable(FieldRefNode node) {
@@ -67,7 +67,7 @@ public class CommonAASTBinder extends AASTBinder {
     return createISourceRefType(tdecl);
   }
 
-  private IRegion findRegionModel(IJavaType jt, String name) {
+  private IRegion findRegionModel(IJavaType jt, String name, IRNode context) {
     if (jt instanceof IJavaDeclaredType) {
       IJavaDeclaredType dt = (IJavaDeclaredType) jt;
       return findRegionModel(dt.getDeclaration(), name);
@@ -79,11 +79,11 @@ public class CommonAASTBinder extends AASTBinder {
       if (PromiseConstants.REGION_LENGTH_NAME.equals(name)) {
     	return RegionModel.getArrayLengthRegion();
       }
-      IRNode jlo = findNamedType("java.lang.Object");
+      IRNode jlo = findNamedType("java.lang.Object", context);
       return findRegionModel(jlo, name);
     }
     if (jt instanceof IJavaTypeFormal) {
-      return findRegionModel(getDeclaredSuperclass(jt, tEnv), name);
+      return findRegionModel(getDeclaredSuperclass(jt, tEnv), name, context);
     }
     if (jt instanceof IJavaPrimitiveType) {
       return null;
@@ -103,7 +103,7 @@ public class CommonAASTBinder extends AASTBinder {
     if (type == null) {
       return null;
     }
-    return findRegionModel(type.getJavaType(), name);
+    return findRegionModel(type.getJavaType(), name, type.getNode());
   }
   
   private IRegion findRegionModel(IRNode tdecl, String name) {
@@ -116,7 +116,7 @@ public class CommonAASTBinder extends AASTBinder {
   }
 
   private IRNode resolveTypeName(final AASTNode a, final String name) {
-    IRNode t = findNamedType(name);    
+    IRNode t = findNamedType(name, a.getPromisedFor());    
     if (t == null) {
       // Try to find a package-qualified type
       t = findQualifiedType(a, name); 
@@ -166,7 +166,7 @@ public class CommonAASTBinder extends AASTBinder {
 	int lastDot = name.lastIndexOf('.');
 	IRNode t = null;
 	if (lastDot < 0) {
-		t = findNamedType(name);
+		t = findNamedType(name, a.getPromisedFor());
 		if (t == null) {
 			// Check if it's a local type
 			final IRNode context = a.getPromisedFor();
@@ -185,7 +185,7 @@ public class CommonAASTBinder extends AASTBinder {
 			}
 			// Check if it's a top-level type in same package
 			final String pkg = JavaNames.getPackageName(context);
-			return findNamedType(pkg+'.'+name);			
+			return findNamedType(pkg+'.'+name, a.getPromisedFor());			
 		}
 	} else {
 		t = resolveTypeName(a, name.substring(0, lastDot));
@@ -311,7 +311,7 @@ public class CommonAASTBinder extends AASTBinder {
         IRNode vdecl = mapping.getPromisedFor();
         IRNode type  = VariableDeclarator.getType(vdecl);
         IJavaType jt = eb.getJavaType(type);
-        return findRegionModel(jt, node.getId());
+        return findRegionModel(jt, node.getId(), vdecl);
       }
     }
     final IRNode tdecl = findNearestType(node);
@@ -355,7 +355,7 @@ public class CommonAASTBinder extends AASTBinder {
     // try getting a package of that name
     IRNode res = tEnv.findPackage(importedName);
     if (res == null) {
-      res = findNamedType(importedName);
+      res = findNamedType(importedName, node.getPromisedFor());
     }
    return res;
   }
@@ -512,8 +512,8 @@ public class CommonAASTBinder extends AASTBinder {
 		  rv = findTypeSet(root.getPromisedFor(), name);
 	  }
 	  if (rv == null) {
-		  rv = findPackageOrType(name);
-	  }
+		  rv = findPackageOrType(root.getPromisedFor(), name);
+	  } 
 	  return rv;
   }
 
@@ -563,7 +563,7 @@ public class CommonAASTBinder extends AASTBinder {
 	  return null;
   }
   
-  private ILayerBinding findPackageOrType(String qname) {
+  private ILayerBinding findPackageOrType(IRNode context, String qname) {
 	  if (qname.endsWith("+")) {
 		  final String prefix = qname.substring(0, qname.length()-1);
 		  final List<IRNode> pkgs = new ArrayList<IRNode>();
@@ -581,7 +581,7 @@ public class CommonAASTBinder extends AASTBinder {
 		  }
 		  return null;
 	  }
-	  final IRNode t = findNamedType(qname);
+	  final IRNode t = findNamedType(qname, context);
 	  if (t != null && TypeDeclaration.prototype.includes(t)) {
 		  return new AbstractLayerBinding(LayerBindingKind.TYPE) {
 			  @Override public IRNode getType() {
