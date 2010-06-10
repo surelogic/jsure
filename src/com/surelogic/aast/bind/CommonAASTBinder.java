@@ -13,8 +13,7 @@ import com.surelogic.annotation.bind.*;
 import com.surelogic.annotation.rules.LayerRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
@@ -434,6 +433,11 @@ public class CommonAASTBinder extends AASTBinder {
       } else {
         type = VariableDeclarator.getType(n);
       }
+      /*
+      if (JJNode.tree.getOperator(type) instanceof ArrayType) {
+    	  System.out.println("Got array type: "+DebugUnparser.toString(type));
+      }
+      */
       return new IType() {
         public IRNode getNode() {
           return eb.getBinding(type);
