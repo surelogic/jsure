@@ -588,6 +588,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   	}
   }
   
+  private static final IBinding nullBinding = IBinding.Util.makeBinding(null);
+  
   /**
    * The actual work of binding and maintaining scopes.
    * This code has extra machinery in it too handle granules and incrementality.
@@ -613,7 +615,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    * afterwads.)
    * @author boyland
    */
-  protected class BinderVisitor extends Visitor<Void> {
+  protected class BinderVisitor extends Visitor<Void> {	  
     protected IJavaScope scope;
     protected final IGranuleBindings bindings;
     protected Collection<IRNode> pathToTarget; // if non-null only visit these nodes (in reverse order)
@@ -1755,6 +1757,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
     @Override
+    public Void visitArrayType(IRNode node) {
+      // No IRNode binding that makes sense
+      bind(node, nullBinding); 
+      return super.visitArrayType(node);      
+    }
+    
+    @Override
     public Void visitBlockStatement(IRNode node) {
       doAcceptForChildren(node,new IJavaScope.NestedScope(scope));
       return null;
@@ -2612,6 +2621,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(node);
       bind(node, ((IJavaDeclaredType) ty).getDeclaration());
        return null;
+    }
+    
+    @Override
+    public Void visitPrimitiveType(IRNode node) {
+        // No IRNode binding that makes sense
+        bind(node, nullBinding); 
+        return super.visitPrimitiveType(node);
     }
     
     @Override
