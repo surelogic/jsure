@@ -80,6 +80,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	 * @see IAnalysis#postBuild(IProject)
 	 */
 	public void postBuild(IProject p) {
+		System.out.println("Done with project "+p.getName());
 		if (p != this.project) {
 			throw new IllegalStateException("Project doesn't match");
 		}

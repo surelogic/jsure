@@ -341,10 +341,9 @@ public class JavacDriver {
 		}
 	}
 	
-	void preBuild(final IProject p) {
-		/*
+	void preBuild(final IProject p) {		
 		System.out.println("Pre-build for "+p);
-		
+		/*
 		if (building.isEmpty()) {
 			// First project build, so populate with active projects
 			for(IJavaProject jp : JDTUtility.getJavaProjects()) {
@@ -417,7 +416,11 @@ public class JavacDriver {
 	    	System.out.println("Already started ConfigureJob");	    	
 	    } else {
 	    	System.out.println("Starting to configure JSure build");
-	        EclipseJob.getInstance().schedule(configure);
+		    if (XUtil.testing) {
+		    	configure.run(new NullSLProgressMonitor());
+		    } else {
+		    	EclipseJob.getInstance().schedule(configure);
+		    }
 	    }
 	}
 	
@@ -461,6 +464,7 @@ public class JavacDriver {
 		}
 	}
 	
+	// TODO how to set up for deltas?
 	private Projects makeProjects(final Projects projects) throws JavaModelException {
 		for(ProjectInfo info : this.projects.values()) {
 			if (!projects.contains(info.project.getName())) {
@@ -562,18 +566,21 @@ public class JavacDriver {
 		}
 
 		public SLStatus run(SLProgressMonitor monitor) {
-        	try {
-        		Object family = projects.isAutoBuild() ?
-        				ResourcesPlugin.FAMILY_AUTO_BUILD : ResourcesPlugin.FAMILY_AUTO_BUILD;
-				Job.getJobManager().join(family, null);
-			} catch (OperationCanceledException e1) {
-				return SLStatus.CANCEL_STATUS;
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			if (XUtil.testing) {
+				System.out.println("Do I need to do something here to wait?");
+			} else {
+				try {
+					Object family = projects.isAutoBuild() ?
+							ResourcesPlugin.FAMILY_AUTO_BUILD : ResourcesPlugin.FAMILY_AUTO_BUILD;
+					Job.getJobManager().join(family, null);
+				} catch (OperationCanceledException e1) {
+					return SLStatus.CANCEL_STATUS;
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				// Clear for next build?
 			}
-			// Clear for next build?
-
 			doBuild(projects);
 			return SLStatus.OK_STATUS;
 		}
