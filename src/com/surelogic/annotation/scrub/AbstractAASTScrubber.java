@@ -210,8 +210,9 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			if (node instanceof Resolvable) {
 				Resolvable r = (Resolvable) node;
 				if (!r.bindingExists() && context != null) {
-					context.reportError("Couldn't resolve a binding for " + node
-							+ " on " + current, node);					
+					String msg = "Couldn't resolve a binding for "+node+" on "+current;
+					context.reportError(msg, node);		
+					//r.bindingExists();
 					rv = false;
 				}
 			}
