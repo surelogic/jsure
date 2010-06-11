@@ -12,6 +12,7 @@ import org.eclipse.jdt.core.*;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.common.*;
+import com.surelogic.common.FileUtility.UnzipCallback;
 import com.surelogic.common.eclipse.*;
 import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
@@ -519,7 +520,7 @@ public class JavacDriver {
             props.load(zf.getInputStream(mapping));
 
             // Reverse mapping
-            Map<String,List<String>> path2qnames = new HashMap<String,List<String>>();
+            final Map<String,List<String>> path2qnames = new HashMap<String,List<String>>();
             for(Map.Entry<Object,Object> e : props.entrySet()) {
                 String path = (String) e.getValue();
                 List<String> l = path2qnames.get(path);
@@ -530,30 +531,24 @@ public class JavacDriver {
                 l.add((String) e.getKey());
             }
             
-            Enumeration<? extends ZipEntry> e = zf.entries();
-            while (e.hasMoreElements()) {
-                ZipEntry ze = e.nextElement();
-                File f = new File(projectDir, ze.getName());
-                if (!f.exists()) {
-                    f.getParentFile().mkdirs();
-                    FileUtility.copy(ze.getName(), zf.getInputStream(ze), f);
-                }
-                // Finish setting up srcFiles
-                if (ze.getName().endsWith(".java")) {
-                    final List<String> names = path2qnames.get(ze.getName());
-                    if (names != null) {
-                        for(String name : names) {
-                            //System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
-                            srcFiles.add(new JavaSourceFile(name.replace('$', '.'), f, null));
-                        }
-                    } else if (ze.getName().endsWith("/package-info.java")) {
-                        // TODO what to do about this?
-                    } else {
-                        System.err.println("Unable to get qname for "+ze.getName());
-                    }
-                }
-            }
-            zf.close();
+            FileUtility.unzipFile(zf, projectDir, new UnzipCallback() {				
+				public void unzipped(ZipEntry ze, File f) {
+	                // Finish setting up srcFiles
+	                if (ze.getName().endsWith(".java")) {
+	                    final List<String> names = path2qnames.get(ze.getName());
+	                    if (names != null) {
+	                        for(String name : names) {
+	                            //System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
+	                            srcFiles.add(new JavaSourceFile(name.replace('$', '.'), f, null));
+	                        }
+	                    } else if (ze.getName().endsWith("/package-info.java")) {
+	                        // TODO what to do about this?
+	                    } else {
+	                        System.err.println("Unable to get qname for "+ze.getName());
+	                    }
+	                }
+				}
+			});
             
             this.setFiles(srcFiles);
             super.copySources(zipDir, targetDir);
