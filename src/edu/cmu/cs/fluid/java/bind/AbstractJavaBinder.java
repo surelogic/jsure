@@ -976,7 +976,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	final String unparse = DebugUnparser.toString(node);
     	if (isBinary(node)) {
     		if (!unparse.endsWith(" . 1")) {
-    			System.err.println("Cannot find a binding for " + unparse);
+    			System.err.println("Cannot find a binding for " + unparse+" in "+typeEnvironment);
     		}
     	} else {
     		LOG.warning("Cannot find a binding for " + unparse+" in "+typeEnvironment);
@@ -2170,7 +2170,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
             }
             while (params.hasNext()) {
               IJavaType ty = getJavaType(params.next());
-              ty = ty.subst(subst);
+              if (ty != null) {
+            	  ty = ty.subst(subst);
+              }
               IJavaType oty = match.next();
               if (ty != oty) {
             	if (debug) {
