@@ -1188,7 +1188,9 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       // TODO: What if we extend a nested class from our superclass?
       // A: The type factory should correctly insert type actuals
       // for the nesting (if any).  Actually maybe the canonicalizer should.
-      t = t.subst(JavaTypeSubstitution.create(tEnv, this));
+      if (t != null) {
+    	  t = t.subst(JavaTypeSubstitution.create(tEnv, this));
+      }
       /*if (!(t instanceof IJavaDeclaredType)) {
         LOG.severe("Classes can only extend other classes");
         return null;
