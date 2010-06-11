@@ -154,7 +154,9 @@ public class JavacDriver {
 		
 		private void setOptions(Config config) {
 			IJavaProject jp = JDTUtility.getJavaProject(config.getProject());
-			config.setOption(Config.SOURCE_LEVEL, JDTUtility.getMajorJavaVersion(jp));
+			int version = JDTUtility.getMajorJavaVersion(jp);
+			config.setOption(Config.SOURCE_LEVEL, version);
+			//System.out.println(config.getProject()+": set to level "+version);
 		}
 
 		void addDependencies(Projects projects, Config config, IProject p, boolean addSource) throws JavaModelException {
@@ -213,8 +215,9 @@ public class JavacDriver {
 						final boolean hasDeltas = info.hasDeltas();
 						dep = info.makeConfig(projects, hasDeltas);
 					} else {
-						dep = new ZippedConfig(projName, cpe.isExported());		
+						dep = new ZippedConfig(projName, cpe.isExported());								
 						projects.add(dep);
+						setOptions(dep);
 					}
 					config.addToClassPath(dep);
 
