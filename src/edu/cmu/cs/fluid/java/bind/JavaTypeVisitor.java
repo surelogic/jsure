@@ -1037,10 +1037,10 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 		  final String unparse = DebugUnparser.toString(node);
 		  if (AbstractJavaBinder.isBinary(node)) {
 			  if (!unparse.contains(" . 1")) {
-				  System.err.println("Cannot get type for " + unparse);
+				  System.err.println("Cannot get type for " + unparse+" in "+binder.getTypeEnvironment());
 			  }
 		  } else {
-			  LOG.log( Level.SEVERE, "Cannot get type for " + unparse );
+			  LOG.log( Level.SEVERE, "Cannot get type for " + unparse+" in "+binder.getTypeEnvironment());
 		  }
 		  result = doAccept(node);  
 	  }
