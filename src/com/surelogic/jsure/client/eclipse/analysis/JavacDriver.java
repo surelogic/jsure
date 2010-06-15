@@ -28,6 +28,15 @@ import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver {
+	/**
+	 * If true, create common projects for shared jars
+	 * Otherwise, jars in different are treated as if they're completely unique
+	 * 
+	 * Creating separate projects for shared jars doesn't work, 
+	 * due to dependencies on other jars, esp. the JRE	 
+	 */
+	private static final boolean shareCommonJars = false;
+	
 	//private final List<IProject> building = new ArrayList<IProject>();
 	private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
 	private final AtomicReference<Projects> currentProjects = new AtomicReference<Projects>();
@@ -162,7 +171,6 @@ public class JavacDriver {
 
 		void addDependencies(Projects projects, Config config, IProject p, boolean addSource) throws JavaModelException {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());			
-			String mappedJDK = null;
 			// TODO what export rules?
 			scanForJDK(projects, jp);
 			
@@ -191,12 +199,12 @@ public class JavacDriver {
 					final File f = EclipseUtility.resolveIPath(cpe.getPath());
 					String mapped = projects.checkMapping(f);
 					if (mapped != null) {
-						if (mappedJDK != null) {
-							//System.out.println("Ignoring "+f);
-							break; // Already handled
+						JavacProject mappedProj = projects.get(mapped);
+						if (mappedProj == null) {
+							// Make project for jar
+							mappedProj = makeJarConfig(projects, f, mapped);
 						}
-						mappedJDK = mapped;
-						config.addToClassPath(projects.get(mappedJDK).getConfig());
+						config.addToClassPath(mappedProj.getConfig());
 					} else {
 						config.addJar(f, cpe.isExported());
 					}
@@ -232,6 +240,16 @@ public class JavacDriver {
 			}
 		}
 		
+		/**
+		 * Create a project/config for a shared jar
+		 */
+		private JavacProject makeJarConfig(Projects projects, File f, String name) {
+			System.out.println("Creating shared jar: "+name);
+			final Config config = new Config(name, true);
+			config.addJar(f, true);
+			return projects.add(config);
+		}
+
 		private void scanForJDK(Projects projects, IJavaProject jp) throws JavaModelException {
 			for(IClasspathEntry cpe : jp.getRawClasspath()) {								
 				switch (cpe.getEntryKind()) {
@@ -468,8 +486,46 @@ public class JavacDriver {
 		}
 	}
 	
+	private void findSharedJars(final Projects projects) {
+		if (!shareCommonJars) {
+			return;
+		}
+		try {
+			final Map<File,File> shared = new HashMap<File, File>();
+			for(IJavaProject p : JDTUtility.getJavaProjects()) {
+				for(IClasspathEntry cpe : p.getResolvedClasspath(true)) {				
+					switch (cpe.getEntryKind()) {
+					case IClasspathEntry.CPE_LIBRARY:
+						final IPath path = cpe.getPath();
+						final File f = EclipseUtility.resolveIPath(path);
+						if (shared.containsKey(f)) {							
+							//System.out.println("Repeated view: "+f);
+							shared.put(f, f);
+						} else if (f != null) {
+							//System.out.println("First view:    "+f);
+							shared.put(f, null); // Seen once
+						}						
+					}
+				}
+			}
+			// Create mappings for shared jars
+			for(File path : shared.keySet()) {
+				File f = shared.get(path);
+				if (f != null) {
+					projects.mapToProject(path, f.getAbsolutePath());
+				} else {
+					// Ignore jars only seen once
+				}
+			}			
+		} catch (JavaModelException e) {
+			return;
+		}		
+	}
+	
 	// TODO how to set up for deltas?
 	private Projects makeProjects(final Projects projects) throws JavaModelException {
+		findSharedJars(projects);
+		
 		for(ProjectInfo info : new ArrayList<ProjectInfo>(this.projects.values())) {
 			if (!projects.contains(info.project.getName())) {
 				info.makeConfig(projects, !info.hasDeltas());	
