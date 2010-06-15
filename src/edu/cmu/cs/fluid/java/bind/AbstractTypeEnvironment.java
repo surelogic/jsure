@@ -488,7 +488,7 @@ private long parseIntLiteral(String token) {
 	  return isSubType(s, t, true);
   }
   
-  private boolean isSubType(IJavaType s, IJavaType t, final boolean ignoreGenerics) {
+  protected boolean isSubType(IJavaType s, IJavaType t, final boolean ignoreGenerics) {
 	if (!ignoreGenerics) {
 		//total++;
 		Boolean result = subTypeCache.get(s, t);
