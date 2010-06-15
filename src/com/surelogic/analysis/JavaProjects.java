@@ -3,6 +3,7 @@ package com.surelogic.analysis;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public class JavaProjects {
@@ -20,5 +21,17 @@ public class JavaProjects {
 	public static IIRProject getEnclosingProject(IRNode here) {
 		final IRNode cu = VisitUtil.getEnclosingCompilationUnit(here);
 		return getProject(cu);
+	}
+	
+	public static IIRProject getEnclosingProject(IJavaType t) {
+		if (t instanceof IJavaDeclaredType) {
+			IJavaDeclaredType dt = (IJavaDeclaredType) t;
+			return getEnclosingProject(dt.getDeclaration());
+		}
+		if (t instanceof IJavaTypeFormal) {
+			IJavaTypeFormal dt = (IJavaTypeFormal) t;
+			return getEnclosingProject(dt.getDeclaration());
+		}
+		return null;
 	}
 }
