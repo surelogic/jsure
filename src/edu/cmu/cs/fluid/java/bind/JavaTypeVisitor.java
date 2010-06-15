@@ -1043,6 +1043,18 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 			  LOG.log( Level.SEVERE, "Cannot get type for " + unparse+" in "+binder.getTypeEnvironment());
 		  }
 		  result = doAccept(node);  
+	  /*
+	  } else {
+		  if ("com.fedex.ground.tms.common.ILocationManager".equals(result.toString())) {
+			  IRNode parent  = JJNode.tree.getParentOrNull(node);
+			  IRNode gparent = JJNode.tree.getParentOrNull(parent);
+			  String gpUnparse = DebugUnparser.toString(gparent);
+			  if (gpUnparse.startsWith("TimeZoneUtils.registerTimeZoneFetchable(")) {
+				  System.out.println("Found: "+gpUnparse);
+				  doAccept(node);
+			  }
+		  }
+      */
 	  }
 	  return result;
   }
