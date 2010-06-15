@@ -19,6 +19,7 @@ import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.eclipse.builder.*;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
+import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
@@ -174,7 +175,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		if (System.getProperty("test.module") == null
 				&& System.getProperty("extra.test.modules") == null) {
 			final SLStatus failed = SLLicenseUtility
-					.validateSLJob(SLLicenseUtility.JSURE_SUBJECT,
+					.validateSLJob(SLLicenseProduct.JSURE,
 							new NullSLProgressMonitor());
 			if (failed != null) {
 				SLLogger.getLogger().log(failed.getSeverity().toLevel(),
