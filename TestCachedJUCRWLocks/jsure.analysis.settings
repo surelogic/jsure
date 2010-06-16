@@ -30,5 +30,7 @@
     <id>com.surelogic.jsure.client.eclipse.StructureAnalysis</id>
     <id>com.surelogic.jsure.client.eclipse.TestMultipleProjects</id>
     <id>com.surelogic.jsure.client.eclipse.UseTypeWherePossible</id>
+    <id>com.surelogic.jsure.client.eclipse.ThreadRoleZerothPass1</id>
+    <id>com.surelogic.jsure.client.eclipse.ModuleAnalysis2</id>
   </excluded-analysis-modules>
 </preferences>
