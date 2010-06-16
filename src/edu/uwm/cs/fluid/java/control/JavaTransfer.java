@@ -617,6 +617,11 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     } else {
       joined = initial;
     }
+    
+//    final String is = initial == null ? "null" : lattice.toString(initial);
+//    final String es = existingValue == null ? "null" : lattice.toString(existingValue);
+//    final String js = joined == null ? "null" : lattice.toString(joined);
+    
     fa.initialize(e1, ll, joined);
     
     // I'm worried that the analysis may wish to call (say)
