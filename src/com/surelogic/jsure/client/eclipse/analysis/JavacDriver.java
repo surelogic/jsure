@@ -167,8 +167,8 @@ public class JavacDriver {
 			int version = JDTUtility.getMajorJavaVersion(jp);
 			config.setOption(Config.SOURCE_LEVEL, version);
 			//System.out.println(config.getProject()+": set to level "+version);
-		}
-
+		}		
+		
 		void addDependencies(Projects projects, Config config, IProject p, boolean addSource) throws JavaModelException {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());			
 			// TODO what export rules?
@@ -183,6 +183,7 @@ public class JavacDriver {
 				case IClasspathEntry.CPE_SOURCE:
 					if (addSource) {
 						// TODO handle multiple deltas?
+						/*
 						final File dir = EclipseUtility.resolveIPath(cpe.getPath());
 						final File[] excludes = new File[cpe.getExclusionPatterns().length];
 						int i=0;
@@ -190,7 +191,16 @@ public class JavacDriver {
 							excludes[i] = EclipseUtility.resolveIPath(xp);
 							i++;
 						}
-						Util.addJavaFiles(dir, config, excludes);
+						*/						
+						IContainer root = (IContainer) 
+						    ResourcesPlugin.getWorkspace().getRoot().findMember(cpe.getPath());
+						final IResource[] excludes = new IResource[cpe.getExclusionPatterns().length];
+						int i=0;
+						for(IPath xp : cpe.getExclusionPatterns()) {
+							excludes[i] = root.findMember(xp);
+							i++;
+						}
+						addJavaFiles(root, config, excludes);
 					}
 					config.addToClassPath(config);
 					break;
@@ -238,6 +248,52 @@ public class JavacDriver {
 					System.out.println("Unexpected: "+cpe);
 				}
 			}
+		}
+		
+		private void addJavaFiles(IContainer dir, Config config, IResource... excluded) {
+			try {
+				addJavaFiles("", dir, config, excluded);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		private void addJavaFiles(String pkg, IContainer dir, Config config, IResource[] excluded) throws CoreException {
+			for(IResource x : excluded) {
+				if (dir.equals(x)) {
+					return;
+				}
+			}
+			if (dir == null || !dir.exists()) {
+				return;
+			}
+			//System.out.println("Scanning "+dir.getAbsolutePath());
+			boolean added = false;
+			for(IResource r : dir.members()) {
+				if (r instanceof IFile && r.getName().endsWith(".java")) {
+					final ICompilationUnit icu = JavaCore.createCompilationUnitFrom((IFile) r);
+					if ((icu != null) && (icu.getJavaProject().isOnClasspath(icu))) {
+						final File f = r.getLocation().toFile();
+						//System.out.println("Found source file: "+f.getPath());
+						String typeName = f.getName().substring(0, f.getName().length()-5);
+						String qname    = pkg.length() == 0 ? typeName : pkg+'.'+typeName;
+						config.addFile(new JavaSourceFile(qname, f, f.getAbsolutePath()));
+						if (!added) {
+							added = true;
+							/*
+						if (debug) {
+							System.out.println("Found java files in "+pkg);
+						}
+							 */
+							config.addPackage(pkg);
+						}
+					}
+				}
+				if (r instanceof IContainer) {				
+					final String newPkg = pkg == "" ? r.getName() : pkg+'.'+r.getName();
+					addJavaFiles(newPkg, (IContainer) r, config, excluded);
+				}
+	    	}
 		}
 		
 		/**
@@ -538,7 +594,7 @@ public class JavacDriver {
 		return projects;
 
 	}
-
+	
 	static class ZippedConfig extends Config {
 		ZippedConfig(String name, boolean isExported) {
 			super(name, isExported);
@@ -562,7 +618,6 @@ public class JavacDriver {
 		}
 		@Override
 		public void copySources(File zipDir, File targetDir) throws IOException {
-            final List<JavaSourceFile> srcFiles = new ArrayList<JavaSourceFile>();
             final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(getProject());
             targetDir.mkdir();
             
@@ -577,6 +632,7 @@ public class JavacDriver {
 
             // Reverse mapping
             final Map<String,List<String>> path2qnames = new HashMap<String,List<String>>();
+            //int count = 0;
             for(Map.Entry<Object,Object> e : props.entrySet()) {
                 String path = (String) e.getValue();
                 List<String> l = path2qnames.get(path);
@@ -585,8 +641,15 @@ public class JavacDriver {
                     path2qnames.put(path, l);
                 }                
                 l.add((String) e.getKey());
+                //count++;
             }
-            
+            //System.out.println(getProject()+": class mapping "+count);
+            /*
+            for(JavaSourceFile f : getFiles()) {
+            	System.out.println(getProject()+": "+f.relativePath);
+            }
+            */
+            final List<JavaSourceFile> srcFiles = new ArrayList<JavaSourceFile>();
             FileUtility.unzipFile(zf, projectDir, new UnzipCallback() {				
 				public void unzipped(ZipEntry ze, File f) {
 	                // Finish setting up srcFiles
@@ -598,10 +661,12 @@ public class JavacDriver {
 	                            srcFiles.add(new JavaSourceFile(name.replace('$', '.'), f, null));
 	                        }
 	                    } else if (ze.getName().endsWith("/package-info.java")) {
-	                        // TODO what to do about this?
+	                        System.out.println("What to do about package-info.java?");
 	                    } else {
 	                        System.err.println("Unable to get qname for "+ze.getName());
 	                    }
+	                } else {
+	                	//System.out.println("Not a java file: "+ze.getName());
 	                }
 				}
 			});
