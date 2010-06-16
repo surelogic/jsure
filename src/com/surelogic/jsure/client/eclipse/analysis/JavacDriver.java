@@ -72,10 +72,19 @@ public class JavacDriver {
 		 * All comp units includes delta?
 		 */		
 		boolean updated = true;
+		boolean active = true;
 		
 		ProjectInfo(IProject p, List<ICompilationUnit> cus) {
 			project = p;
 			allCompUnits = new ArrayList<ICompilationUnit>(cus);
+		}
+		
+		void setActive(boolean value) {
+			active = value;
+		}
+		
+		boolean isActive() {
+			return active;
 		}
 		
 		boolean hasDeltas() {
@@ -582,14 +591,28 @@ public class JavacDriver {
 	private Projects makeProjects(final Projects projects) throws JavaModelException {
 		findSharedJars(projects);
 		
-		for(ProjectInfo info : new ArrayList<ProjectInfo>(this.projects.values())) {
+		List<ProjectInfo> infos = new ArrayList<ProjectInfo>(this.projects.values());
+		for(ProjectInfo info : infos) {
 			if (!projects.contains(info.project.getName())) {
-				info.makeConfig(projects, !info.hasDeltas());	
+				if (info.isActive()) {
+					info.makeConfig(projects, !info.hasDeltas());	
+				} else {
+					// Otherwise, it's inactive
+					continue;
+				}
 			} else {
 				// Already added as a dependency?
+				info.setActive(true);
 			}
 			Config config = projects.get(info.project.getName()).getConfig();
 			config.setOption(Config.AS_SOURCE, true);
+		}
+		
+		// Remove inactive projects? 
+		for(ProjectInfo info : infos) {
+			if (!info.isActive()) {
+				this.projects.remove(info.project);
+			}
 		}
 		return projects;
 
@@ -700,6 +723,16 @@ public class JavacDriver {
 				}
 				// Clear for next build?
 			}
+			// Clear projects that are inactive
+			for(IJavaProject jp : JDTUtility.getJavaProjects()) {
+				ProjectInfo info = JavacDriver.this.projects.get(jp.getProject());
+				if (info != null) {
+					info.setActive(Nature.hasNature(jp.getProject()));
+	
+					// Check if it was previously active, but is now a
+					// dependency?
+				}
+			}			
 			doBuild(projects);
 			return SLStatus.OK_STATUS;
 		}
