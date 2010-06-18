@@ -60,7 +60,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		RegionModel result = nameToDrop.get(key, projectName);
 		if (result == null) {
 			key = CommonStrings.intern(regionName);
-			result = new RegionModel(key);
+			result = new RegionModel(key, projectName);
 
 			nameToDrop.put(key, projectName, result);
 			//System.out.println("Creating region "+key);
@@ -126,15 +126,18 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	 */
 	public final String simpleName;
 	
+	public final String project;	
+	
 	/**
 	 * private constructor invoked by {@link #getInstance(String)}.
 	 * 
 	 * @param name
 	 *            the region name
 	 */
-	private RegionModel(String name) {
+	private RegionModel(String name, String proj) {
 		regionName = name;
 		simpleName = JavaNames.genSimpleName(name);
+		project = proj;
 		this.setMessage("region " + name);
 		this.setCategory(JavaGlobals.REGION_CAT);
 	}
