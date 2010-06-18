@@ -4,12 +4,11 @@
  */
 package edu.cmu.cs.fluid.sea.drops;
 
-import java.util.Set;
+import java.util.*;
 
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
-import edu.cmu.cs.fluid.sea.DropPredicateFactory;
-import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.*;
 
 /**
  * @author chance
@@ -45,7 +44,12 @@ public class BinaryCUDrop extends CUDrop {
     return false;
   }
 
-  public static void invalidateAll() {
-	    Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(BinaryCUDrop.class));
+  public static Collection<BinaryCUDrop> invalidateAll() {	  
+	  //Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(BinaryCUDrop.class));
+	  final Set<BinaryCUDrop> drops = Sea.getDefault().getDropsOfExactType(BinaryCUDrop.class);
+	  for(BinaryCUDrop d : drops) {
+		  d.invalidate();
+	  }
+	  return drops;
   }
 }

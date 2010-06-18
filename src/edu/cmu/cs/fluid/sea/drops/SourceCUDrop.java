@@ -90,11 +90,16 @@ public class SourceCUDrop extends CUDrop {
    * Can be used as a reset method when closing a project.
    * 
    */
-  public static void invalidateAll() {
+  public static Collection<SourceCUDrop> invalidateAll() {
     synchronized (SourceCUDrop.class) {
       cachedDrops = null;
     }
-    Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(SourceCUDrop.class));
+    //Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(SourceCUDrop.class));
+    final Set<SourceCUDrop> cuds = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
+    for(SourceCUDrop d : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
+    	d.invalidate();    	
+    }
+    return cuds;
   }
 
   @Override
