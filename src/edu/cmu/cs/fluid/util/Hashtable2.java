@@ -295,6 +295,12 @@ public class Hashtable2<K1,K2,V> implements Cloneable {
     }
     size = 0;
   }
+
+  public void putAll(Hashtable2<K1, K2, V> other) {
+	  for(Pair<K1,K2> k : other.keys()) {
+		  this.put(k.first(), k.second(), other.get(k.first(), k.second()));
+	  }
+  }
 }
 
 class TestHashtable2 {
