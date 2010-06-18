@@ -981,9 +981,8 @@ private static int cuCount = 0;
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitFieldDeclaration(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
-    public Void visitFieldDeclaration(IRNode node) {
+    protected void handleFieldDeclaration(IRNode node) {
       // Don't traverse inside field declarations except via the init helper!
-      return null;
     }
 
     /* (non-Javadoc)
