@@ -7,6 +7,8 @@ import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
@@ -580,10 +582,10 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
        * see Bug 1662.  Technically the initializer blocks of the anonymous
        * class expression are executed as part of the enclosing method/constructor. 
        */
+      insideConstructor = true; // We are inside the constructor of the anonymous class
+      enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
+      action.tryBefore();
       try {
-        insideConstructor = true; // We are inside the constructor of the anonymous class
-        enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
-        action.tryBefore();
         processClassBody(AnonClassExpression.getBody(expr), WhichMembers.INSTANCE);
       } finally {
         action.finallyAfter();
@@ -758,10 +760,16 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
        * of ClassInitializer and FieldDeclaration nodes.
        */
       final IRNode classDecl = JavaPromise.getPromisedFor(node);
-      final IRNode classBody =
-        AnonClassExpression.prototype.includes(classDecl) ?
-            AnonClassExpression.getBody(classDecl) :
-              TypeDeclaration.getBody(classDecl);
+      final IRNode classBody;
+      if (AnonClassExpression.prototype.includes(classDecl)) {
+        classBody = AnonClassExpression.getBody(classDecl);
+      } else if (EnumConstantClassDeclaration.prototype.includes(classDecl)) {
+        classBody = EnumConstantClassDeclaration.getBody(classDecl);
+      } else if (EnumConstantDeclaration.prototype.includes(classDecl)) {
+        classBody = EnumConstantDeclaration.getBody(classDecl);
+      } else {
+        classBody = TypeDeclaration.getBody(classDecl);
+      }
       processClassBody(classBody, WhichMembers.STATIC);
     } finally {
       leaveEnclosingDecl(null);
@@ -899,8 +907,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     if (SuperExpression.prototype.includes(conObjectOp)) {
       // 2.  Make sure we account for the super class's field initializers, etc
       final InstanceInitAction action = getConstructorCallInitAction(expr);
+      action.tryBefore();      
       try {
-        action.tryBefore();      
         processClassBody(JJNode.tree.getParent(enclosingDecl), WhichMembers.INSTANCE);
       } finally {
         action.finallyAfter();
@@ -1130,11 +1138,11 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
      * see Bug 1662.  Technically the initializer blocks of the anonymous
      * class expression are executed as part of the enclosing method/constructor. 
      */
+    insideConstructor = true; // We are inside the constructor of the anonymous class
+    final IRNode anonClassDecl = JavaPromise.getPromisedFor(initDecl);
+    enterEnclosingDecl(initDecl, anonClassDecl); // Inside the <init> method
+    action.tryBefore();
     try {
-      insideConstructor = true; // We are inside the constructor of the anonymous class
-      final IRNode anonClassDecl = JavaPromise.getPromisedFor(initDecl);
-      enterEnclosingDecl(initDecl, anonClassDecl); // Inside the <init> method
-      action.tryBefore();
       processClassBody(AnonClassExpression.getBody(anonClassDecl), WhichMembers.INSTANCE);
     } finally {
       action.finallyAfter();

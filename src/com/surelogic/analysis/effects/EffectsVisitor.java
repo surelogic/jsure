@@ -20,7 +20,6 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
@@ -297,7 +296,9 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
         // (2) context and oldContext are identical at this point
         final MethodCallUtils.EnclosingRefs enclosing = 
           MethodCallUtils.getEnclosingInstanceReferences(
-              binder, thisExprBinder, expr, context.theReceiverNode, getEnclosingDecl());
+              binder, thisExprBinder, expr,
+              binder.getBinding(AnonClassExpression.getType(expr)),
+              context.theReceiverNode, getEnclosingDecl());
         for (final Effect initEffect : newContext.theEffects) {
           if (!(initEffect.isMaskable(binder) || 
               initEffect.affectsReceiver(newContext.theReceiverNode))) {

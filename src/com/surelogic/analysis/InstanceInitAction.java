@@ -7,8 +7,8 @@ package com.surelogic.analysis;
  * This class is always used according to the following pattern:
  * 
  * <pre>
+ * action.tryBefore();
  * try {
- *   action.tryBefore();
  *   // do something
  * } finally {
  *   action.finallyAfter();
@@ -26,7 +26,7 @@ public interface InstanceInitAction {
   };
 
   /**
-   * Called immediately before the activity of interest is performed, at the
+   * Called immediately before the activity of interest is performed, before the
    * start of a <code>try</code> block.
    */
   public void tryBefore();

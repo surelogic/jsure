@@ -368,6 +368,9 @@ public class TypeUtil implements JavaGlobals {
       } else if (FieldDeclaration.prototype.includes(op)) {
         // Context is static if the field is static
         return JavaNode.getModifier(exprToTest, JavaNode.STATIC);
+      } else if (EnumConstantDeclaration.prototype.includes(op)) {
+        // Enumeration constant declarations are like static field declarations
+        return true;
       } else if (ConstructorCall.prototype.includes(op)) {
         // Context is static
         return true;

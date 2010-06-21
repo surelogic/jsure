@@ -62,6 +62,7 @@ import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
@@ -1998,6 +1999,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtEnclosingRefs = MethodCallUtils
 								.getEnclosingInstanceReferences(binder,
 										thisExprBinder, expr,
+										binder.getBinding(AnonClassExpression.getType(expr)),
 										oldTheReceiverNode,
 										getEnclosingMethod());
 
@@ -2962,6 +2964,168 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		return null;
 	}
 
+  @Override
+  public Void visitEnumConstantDeclaration(final IRNode constDecl) {
+    /* Enumeration constant declarations are sort of like static field
+     * declarations, so we base this off of visitVariableDeclarator assuming
+     * a static field.
+     */
+    final IRNode classDecl = VisitUtil.getClosestType(constDecl);
+    ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
+    ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+    updateJUCAnalysisQueries(ctxtInsideMethod);
+    ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
+    ctxtClassInitializationLocks =
+      convertStaticInitializerBlock(constDecl, ctxtJavaType);
+
+    try {
+      doAcceptForChildren(constDecl);
+    } finally {
+      ctxtClassInitializationLocks = null;
+      ctxtInsideMethod = null;
+      ctxtBcaQuery = null;
+      ctxtHeldLocksQuery = null;
+      ctxtLocksForQuery = null;
+      ctxtMustReleaseQuery = null;
+      ctxtConflicter = null;
+    }
+    return null;
+  }	
+
+  @Override
+  public Void visitEnumConstantClassDeclaration(final IRNode constDecl) {
+    /* Enumeration constant declarations are sort of like static field
+     * declarations, so we (1) base this off of visitVariableDeclarator assuming
+     * a static field.  (2) This is also like an anonymous class expression.
+     */
+    
+    /* (1) Set up context as if we are entering a static field declaration */
+    final IRNode classDecl = VisitUtil.getClosestType(constDecl);
+    ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
+    ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
+    updateJUCAnalysisQueries(ctxtInsideMethod);
+    ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
+    ctxtClassInitializationLocks =
+      convertStaticInitializerBlock(constDecl, ctxtJavaType);
+
+    try {
+      // Visit the arguments
+      doAccept(EnumConstantClassDeclaration.getArgs(constDecl));
+      
+      /* (2) Now set up context as if we are entering an anonymous class expression
+       * that is being assigned to the field.
+       * 
+       * This is taken from vistAnonClassExpression(), except that we call
+       * processEnumConstantClassDeclaration().
+       */
+      final IRNode oldTypeDecl = ctxtTypeDecl;
+      final IJavaDeclaredType oldJavaType = ctxtJavaType;
+      final IRNode oldInsideMethod = ctxtInsideMethod;
+      final BindingContextAnalysis.Query oldBcaQuery = ctxtBcaQuery;
+      final JavaFlowAnalysisQuery<HeldLocks> oldHeldLocksQuery = ctxtHeldLocksQuery;
+      final MustHoldAnalysis.LocksForQuery oldLocksForQuery = ctxtLocksForQuery;
+      final MustReleaseAnalysis.Query oldMRQ = ctxtMustReleaseQuery;
+      final ConflictChecker oldConflicter = ctxtConflicter;
+      final boolean oldOnBehalfOfConstructor = ctxtOnBehalfOfConstructor;
+      final IRNode oldInsideConstructor = ctxtInsideConstructor;
+      final Object[] oldConstructorName = ctxtConstructorName;
+      final IRNode oldTheReceiverNode = ctxtTheReceiverNode;
+      final MethodCallUtils.EnclosingRefs oldEnclosingRefs = ctxtEnclosingRefs;
+      final boolean oldCtxtInsideAnonClassExpr = ctxtInsideAnonClassExpr;
+      InstanceInitializationVisitor.processEnumConstantClassDeclaration(constDecl, this,
+          new InstanceInitAction() {
+            public void tryBefore() {
+              ctxtInsideAnonClassExpr = true;
+              // Create the substitution map
+              ctxtEnclosingRefs = MethodCallUtils
+                  .getEnclosingInstanceReferences(binder,
+                      thisExprBinder, constDecl, oldTypeDecl,
+                      oldTheReceiverNode,
+                      getEnclosingMethod());
+
+              /*
+               * Update the type being analyzed to be the anonymous
+               * class expression
+               */
+              ctxtTypeDecl = constDecl;
+              ctxtJavaType = JavaTypeFactory
+                  .getMyThisType(ctxtTypeDecl);
+
+              /*
+               * The information needed for checking returned locks
+               * can be preserved, it is not needed by the recursive
+               * visitation because we will only visit field
+               * initializers and instance initializers.
+               */
+              /* left hand side is irrelevant here. */
+              /*
+               * The recursive visit is analyzing as the implicit
+               * initialization method for the class. We set the
+               * receiver accordingly.
+               */
+              ctxtInsideMethod = JavaPromise.getInitMethodOrNull(constDecl);
+              
+              /*
+               * MUST update receiver node before creating the flow
+               * analyses because they indirectly use this field via
+               * the this expression binder object used by the lock
+               * factories. They have access to this factories via the
+               * lock utils object and the juc lock usage manager.
+               */
+              ctxtTheReceiverNode = JavaPromise
+                  .getReceiverNodeOrNull(ctxtInsideMethod);
+              
+              ctxtBcaQuery = ctxtBcaQuery.getSubAnalysisQuery(constDecl);
+              ctxtHeldLocksQuery = ctxtHeldLocksQuery.getSubAnalysisQuery(constDecl);
+              ctxtLocksForQuery = ctxtLocksForQuery.getSubAnalysisQuery(constDecl);
+              ctxtMustReleaseQuery = ctxtMustReleaseQuery.getSubAnalysisQuery(constDecl);
+
+              ctxtConflicter = new ConflictChecker(binder,
+                  aliasAnalysis, ctxtInsideMethod);
+              ctxtOnBehalfOfConstructor = false;
+              ctxtInsideConstructor = null;
+              ctxtConstructorName = null;
+            }
+
+            public void finallyAfter() {
+              // restore the global state
+              ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
+              ctxtEnclosingRefs = oldEnclosingRefs;
+              ctxtTypeDecl = oldTypeDecl;
+              ctxtJavaType = oldJavaType;
+              ctxtInsideMethod = oldInsideMethod;
+              ctxtBcaQuery = oldBcaQuery;
+              ctxtHeldLocksQuery = oldHeldLocksQuery;
+              ctxtLocksForQuery = oldLocksForQuery;
+              ctxtMustReleaseQuery = oldMRQ;
+              ctxtConflicter = oldConflicter;
+              ctxtOnBehalfOfConstructor = oldOnBehalfOfConstructor;
+              ctxtInsideConstructor = oldInsideConstructor;
+              ctxtConstructorName = oldConstructorName;
+              ctxtTheReceiverNode = oldTheReceiverNode;
+            }
+            
+            public void afterVisit() {
+              // nothing
+            }
+          });
+
+    } finally {
+      // End of static field declaration
+      ctxtClassInitializationLocks = null;
+      ctxtInsideMethod = null;
+      ctxtBcaQuery = null;
+      ctxtHeldLocksQuery = null;
+      ctxtLocksForQuery = null;
+      ctxtMustReleaseQuery = null;
+      ctxtConflicter = null;
+    }
+        
+
+
+    return null;
+  } 
+	
 	// ----------------------------------------------------------------------
 
 	@Override

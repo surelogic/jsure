@@ -6,6 +6,7 @@ import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
@@ -67,6 +68,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * The action object is provided as means for initializing and resetting
  * context-sensitive state within the parent visitor.
  */
+@Deprecated
 public final class InstanceInitializationVisitor {
   // Prevent instantiation of this class
   private InstanceInitializationVisitor() {
@@ -118,8 +120,8 @@ public final class InstanceInitializationVisitor {
     final Operator conObjectOp = JJNode.tree.getOperator(conObject);
     if (SuperExpression.prototype.includes(conObjectOp)) {
       // Visit the initializers.
+      action.tryBefore();
       try {
-        action.tryBefore();
         processClassBody(analysis, classBody);
       } finally {
         action.finallyAfter();
@@ -185,9 +187,31 @@ public final class InstanceInitializationVisitor {
    */
   public static void processAnonClassExpression(final IRNode anonClassExpr,
       final Visitor<Void> analysis, final InstanceInitAction action) {
+    action.tryBefore();
     try {
-      action.tryBefore();
       processClassBody(analysis, AnonClassExpression.getBody(anonClassExpr));
+    } finally {
+      action.finallyAfter();
+    }
+    action.afterVisit();
+  }
+
+  /**
+   * Process an enumeration constant class expression and visit all the instance
+   * initializers in the class declaration.
+   * 
+   * @param <X>
+   *          The return type of the analysis.
+   * @param enumClassDecl
+   *          The EnumConstantClassDeclaration to process.
+   * @param analysis
+   *          The analysis to invoke.
+   */
+  public static void processEnumConstantClassDeclaration(final IRNode enumClassDecl,
+      final Visitor<Void> analysis, final InstanceInitAction action) {
+    action.tryBefore();
+    try {
+      processClassBody(analysis, EnumConstantClassDeclaration.getBody(enumClassDecl));
     } finally {
       action.finallyAfter();
     }

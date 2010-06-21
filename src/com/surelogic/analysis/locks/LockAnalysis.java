@@ -24,7 +24,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {	
   /** Should we try to run things in parallel */
-  private static boolean wantToRunInParallel = true;
+  private static boolean wantToRunInParallel = false;
   
   /**
    * Are we actually going to run things in parallel?  Not all JRE have the
@@ -218,6 +218,13 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 			return null;
 		}
 
+		@Override
+		public Void visitEnumConstantClassDeclaration(final IRNode node) {
+      analyzeClass(EnumConstantClassDeclaration.getBody(node));
+      doAcceptForChildren(node);
+      return null;
+		}
+		
 		@Override
 		public Void visitEnumDeclaration(final IRNode node) {
 			analyzeClass(EnumDeclaration.getBody(node));

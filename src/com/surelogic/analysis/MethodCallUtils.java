@@ -387,7 +387,12 @@ public class MethodCallUtils {
    * @param binder
    *          The binder to use
    * @param anonClass
-   *          The anonymous class expression
+   *          The anonymous class expression.  May be an AnonClassExpression
+   *          or an EnumConstantClassExpression.
+   * @param superClass
+   *          The super class of <code>anonClass</code>.  Taken as a parameter
+   *          because of the differences between AnonClassExpression
+   *          and EnumConstantClassExpression.
    * @param theReceiverNode
    *          The receiver node of the calling context, or code
    *          <code>null</code> if the calling context is static.
@@ -399,7 +404,7 @@ public class MethodCallUtils {
    */
   public static EnclosingRefs getEnclosingInstanceReferences(
       final IBinder binder, final ThisExpressionBinder thisExprBinder,
-      final IRNode anonClass, final IRNode theReceiverNode,
+      final IRNode anonClass, final IRNode superClass, final IRNode theReceiverNode,
       final IRNode enclosingMethod) {
     final IRNode anonClassInitMethod = JavaPromise.getInitMethodOrNull(anonClass);
     
@@ -432,7 +437,8 @@ public class MethodCallUtils {
     final IRNode immediatelyEnclosingInstanceWithRespectToSAcutal;
     
     // typeS is the superclass of the anonymous class
-    final IRNode typeS = binder.getBinding(AnonClassExpression.getType(anonClass));
+//    final IRNode typeS = binder.getBinding(AnonClassExpression.getType(anonClass));
+    final IRNode typeS = superClass;
     if (TypeUtil.isInner(typeS)) {
       // typeO is the lexically innermost enclosing class of typeS
       final IRNode typeO = VisitUtil.getEnclosingType(typeS);
