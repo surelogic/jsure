@@ -1359,6 +1359,9 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   
   protected final String toString(boolean fullyQualify) {
     if (declaration == null) return "?NULL?";
+    if (declaration.identity() == IRNode.destroyedNode) {
+    	return "?Destroyed?";
+    }
     String base;
     try {
       if (fullyQualify) {
