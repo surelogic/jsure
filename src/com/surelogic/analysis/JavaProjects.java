@@ -9,7 +9,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 public class JavaProjects {
 	private static final IRObjectType<IIRProject> projectType = new IRObjectType<IIRProject>();
 	protected static final SlotInfo<IIRProject> projectSI = 
-		JavaNode.getConstantSlotInfo(JavaProjects.class.getName(), projectType);
+		JavaNode.getVersionedSlotInfo(JavaProjects.class.getName(), projectType);
 	
 	public static IIRProject getProject(IRNode cu) {
 		if (cu == null || !cu.valueExists(projectSI)) {
