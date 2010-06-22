@@ -219,7 +219,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     } else if (op instanceof AnnotationDeclaration) {
       body = AnnotationDeclaration.getBody(typeDeclaration);
     } else {
-      LOG.severe("Not sure what sort of type declaration this is " + op);
+      LOG.severe("Not sure what sort of type declaration this is: " + op);
       body = null;
     }
     return body;
@@ -723,6 +723,14 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
       //LOG.fine("Looking in superclasses for object/type: " + name);
       for (IJavaType st : getSuperTypes()) {
+      	/*
+        if (st instanceof IJavaDeclaredType) {
+    		IJavaDeclaredType sdt = (IJavaDeclaredType) st;
+    		if (sdt.getDeclaration().identity() == IRNode.destroyedNode) {
+    			getSuperTypes();
+    		}
+    	}
+        */
         // XXX: BUG: need to mark this useSite somehow as dependent on the lookup here.
         IJavaScope scope = binder.typeScope(st);
         if (scope == null) {
@@ -742,7 +750,15 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       List<IBinding> allResults = null;
       //LOG.fine("Looking in superclasses for method: " + name);
       for (IJavaType superType : getSuperTypes()) {
-        // XXX: BUG: need to mark this useSite somehow as dependent on the lookup here.
+        /*
+    	if (superType instanceof IJavaDeclaredType) {
+    		IJavaDeclaredType sdt = (IJavaDeclaredType) superType;
+    		if (sdt.getDeclaration().identity() == IRNode.destroyedNode) {
+    			getSuperTypes();
+    		}
+    	}
+        */
+        // XXX: BUG: need to mark this useSite somehow as dependent on the lookup here.    	
         if (LOG.isLoggable(Level.FINEST)) {
           LOG.finest("Super of " + JJNode.getInfo(typeDeclaration) + " is " + superType);
         }
