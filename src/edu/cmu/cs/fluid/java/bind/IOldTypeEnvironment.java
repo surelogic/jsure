@@ -6,6 +6,8 @@
  */
 package edu.cmu.cs.fluid.java.bind;
 
+import java.util.*;
+
 import com.surelogic.aast.promise.*;
 
 import edu.cmu.cs.fluid.ide.IDE;
@@ -47,73 +49,12 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
    * into the correct region
    */
   Version initVersion = DirtyTricksHelper.initVersioning();   
-  
-  /// Primitive/special types
-  //
-  /**
-   * @deprecated
-   */
-  @Deprecated
-  public static final IRNode anyType = Type.prototype.jjtCreate();
-  
-  /**
-   * @deprecated use JavaTypeFactory.booleanType
-   */
-  @Deprecated
-  public static final IRNode boolType  = BooleanType.prototype.jjtCreate();
-  /**
-   * @deprecated use JavaTypeFactory.byteType
-   */
-  @Deprecated
-  public static final IRNode byteType  = ByteType.prototype.jjtCreate();
-  /**
-   * @deprecated use JavaTypeFactory.charType
-   */
-  @Deprecated
-  public static final IRNode charType  = CharType.prototype.jjtCreate();
-  /**
-   * @deprecated use JavaTypeFactory.shortType
-   */
-  @Deprecated
-  public static final IRNode shortType = ShortType.prototype.jjtCreate();
-  /**
-   * @deprecated use JavaTypeFactory.intType
-   */
-  @Deprecated
-  public static final IRNode intType   = IntType.prototype.jjtCreate();
-  /**
-   * @deprecated use JavaTypeFactory.longType
-   */
-  @Deprecated
-  public static final IRNode longType  = LongType.prototype.jjtCreate();
-  /**
-   * @deprecated use JavaTypeFactory.floatType
-   */
-  @Deprecated
-  public static final IRNode floatType = FloatType.prototype.jjtCreate();
-  /**
-   * @deprecated use JavaTypeFactory.doubleType
-   */
-  @Deprecated
-  public static final IRNode doubleType = DoubleType.prototype.jjtCreate();
-  /**
-   * @deprecated use JavaTypeFactory.voidType
-   */
-  @Deprecated
-  public static final IRNode voidType  = VoidType.prototype.jjtCreate();
-
-  /**
-   * @deprecated use JavaTypeFactory.nullType
-   */
-  // FIX hack for nullType, arrays
-  @Deprecated
-  public static final IRNode nullType  = TypeDeclaration.prototype.jjtCreate();
                           
-  public static final IRNode arrayType = DirtyTricksHelper.getArrayType();
+  //public static final IRNode arrayType = DirtyTricksHelper.getArrayType();
 
-  public static final IRNode cloneMethod = DirtyTricksHelper.getCloneMethod();
+  //public static final IRNode cloneMethod = DirtyTricksHelper.getCloneMethod();
   
-  public static final IRNode lengthField = DirtyTricksHelper.getLengthField();
+  //public static final IRNode lengthField = DirtyTricksHelper.getLengthField();
   
   
   /** Must come after all IR-building operations */
@@ -148,17 +89,20 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       // vr.getDelta(Version.getDefaultEra());
       return v;
     }
+    
     // FIX ok to create new superclass for arrays (AnonClassE)
-    private static /* final */ IRNode privateArrayType = null;
+    //private static /* final */ IRNode privateArrayType = null;
 
-    private static /* final */ IRNode privateCloneMethod = null;
+    //private static /* final */ IRNode privateCloneMethod = null;
     
-    private static /* final */ IRNode privateLengthField = null;
-    
+    //private static /* final */ IRNode privateLengthField = null;
+    /*
     static synchronized IRNode getArrayType() { 
-      if (privateArrayType == null) createArrayType();
+      if (privateArrayType == null) {
+    	  privateArrayType = createArrayType("");
+      }
       return privateArrayType;
-    }
+    }    
     
     static synchronized IRNode getLengthField() {
       if (privateArrayType == null) createArrayType();
@@ -169,28 +113,44 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       if (privateArrayType == null) createArrayType();
       return privateCloneMethod;
     }    
+    */   
     
-    static void createArrayType() {
+    private static final Map<String,IRNode> types = new Hashtable<String, IRNode>();
+    
+    public static IRNode createArrayType(String project) {
+      final IRNode rv = types.get(project);
+      if (rv != null) {
+    	  return rv;
+      }
       final IRNode[] noNodes = new IRNode[0];
       final IRNode tArray = ArrayType.createNode(NamedType.createNode("T"), 1);
       
-      privateCloneMethod = 
+      final IRNode privateCloneMethod = 
       CogenUtil.makeMethodDecl(noNodes, JavaNode.PUBLIC | JavaNode.NATIVE, noNodes,
                                tArray, "clone", noNodes, noNodes, null);
-                               
-      privateLengthField = CogenUtil.makeVarDecl("length", null);
+             
+      final IRNode privateLengthField = CogenUtil.makeVarDecl(PromiseConstants.REGION_LENGTH_NAME, null);
+      /*
+      final IRNode privateArrayElement = CogenUtil.makeVarDecl(PromiseConstants.REGION_ELEMENT_NAME, null);
+      */
+      
       // Somehow, this needs to take prim types
       final IRNode typeParam   = TypeFormal.createNode("T", MoreBounds.createNode(noNodes));
       
-      privateArrayType = 
-        CogenUtil.makeClass(false, JavaNode.PUBLIC, "[]",
+      final IRNode privateArrayType = 
+        CogenUtil.makeClass(false, JavaNode.PUBLIC, PromiseConstants.REGION_ELEMENT_NAME,
                             new IRNode[] { typeParam },
                             CogenUtil.makeObjectNamedT(), 
                             new IRNode[] {CogenUtil.createNamedT("java.lang.Cloneable"),
                                           CogenUtil.createNamedT("java.io.Serializable")}, 
                             new IRNode[] {
                               CogenUtil.makeFieldDecl(noNodes, JavaNode.PUBLIC | JavaNode.FINAL, 
-                              IntType.prototype.jjtCreate(), privateLengthField),
+                                IntType.prototype.jjtCreate(), privateLengthField),
+          	                  /*                              
+                              CogenUtil.makeFieldDecl(noNodes, JavaNode.PUBLIC | JavaNode.FINAL, 
+                            	ArrayType.createNode(NamedType.createNode("T"), 1), privateArrayElement),
+                              */
+        	
                               // FIX alpha for the type?
                               privateCloneMethod,
                               /*
@@ -216,22 +176,30 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       CompilationUnit.createNode(pkg, ImportDeclarations.createNode(new IRNode[0]), 
           TypeDeclarations.createNode(new IRNode[] {privateArrayType}));
 
-      createArrayRegion(PromiseConstants.REGION_ELEMENT_NAME);
-      createArrayRegion(PromiseConstants.REGION_LENGTH_NAME);
+      /*
+      createArrayRegion(privateArrayElement);
+      createArrayRegion(privateLengthField);
+      */
+      createArrayRegion(PromiseConstants.REGION_ELEMENT_NAME, privateArrayType, project);
+      createArrayRegion(PromiseConstants.REGION_LENGTH_NAME, privateArrayType, project);
       ReturnValueDeclaration.getReturnNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateArrayType);
+      
+      types.put(project, privateArrayType);
+      return privateArrayType;
     }
     
-    static void createArrayRegion(String name) {
+    static void createArrayRegion(String name, IRNode type, String project) {
+    	//RegionModel.getInstance(decl).getModel();    	
         NewRegionDeclarationNode region = 
             new NewRegionDeclarationNode(-1, JavaNode.PUBLIC, name, 
                                          new RegionNameNode(-1, PromiseConstants.REGION_INSTANCE_NAME));
-        region.setPromisedFor(privateArrayType);
+        region.setPromisedFor(type);
 
-        RegionModel model = RegionModel.getInstance(name, IDE.getInstance().getStringPreference(IDE.DEFAULT_JRE)); // TODO
+        RegionModel model = RegionModel.getInstance(name, project); 
         model.setAST(region);        
-        PromiseFramework.getInstance().findSeqStorage("Region").add(privateArrayType, model);
+        PromiseFramework.getInstance().findSeqStorage("Region").add(type, model);        
     }
   }
 }
