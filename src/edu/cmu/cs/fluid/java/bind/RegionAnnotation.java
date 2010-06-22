@@ -1142,7 +1142,8 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
       IJavaDeclaredType jdt = (IJavaDeclaredType) jt;
       return jdt.getDeclaration();
     } else if (jt instanceof IJavaArrayType) {
-      return IOldTypeEnvironment.arrayType;
+      //return IOldTypeEnvironment.arrayType;
+    	throw new UnsupportedOperationException();
     }
     return null;
   }
