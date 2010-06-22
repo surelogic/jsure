@@ -136,40 +136,38 @@ public class ResultsView extends AbstractDoubleCheckerView {
       final ISelection selection = viewer.getSelection();
       if (selection == null || selection == StructuredSelection.EMPTY) {
         treeViewer.collapseAll();
-      } else {
+      } else {    	  
         final Object obj = ((IStructuredSelection) selection).getFirstElement();
         if (obj instanceof Content) {
           final Content c = (Content) obj;
           if (c.cloneOf != null) {
+        	
             treeViewer.reveal(c.cloneOf);
-            treeViewer.setSelection(new IStructuredSelection() {
+            treeViewer.setSelection(new StructuredSelection(c.cloneOf), true);
+            /*
+            {
               public boolean isEmpty() {
                 return false;
               }
-
               public List toList() {
                 return Collections.singletonList(c.cloneOf);
               }
-
               public Object[] toArray() {
                 final Object[] rv = new Object[1];
                 rv[0] = c.cloneOf;
                 return rv;
               }
-
               public int size() {
                 return 1;
               }
-
               public Iterator iterator() {
-                // TODO Auto-generated method stub
                 return new SingletonIterator(c.cloneOf);
               }
-
               public Object getFirstElement() {
                 return c.cloneOf;
               }
-            });
+            }, true);
+            */
           }
         }
       }

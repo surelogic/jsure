@@ -74,6 +74,8 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	 */
 	private String f_getMessage;
 	
+	private Content parent = null;
+	
 	private String f_baseImageName;
 
 	private int f_imageFlags = 0;
@@ -116,6 +118,10 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	Content(String msg, Collection<Content> content, Drop drop) {
 		f_message = msg;
 		f_children = content;
+		for(Content c : content) {
+			c.setParent(this);
+		}
+		
 		f_referencedDrop = drop;
 		if (drop instanceof IRReferenceDrop) {
 			f_sourceRef = ((IRReferenceDrop) f_referencedDrop).getSrcRef();
@@ -376,10 +382,14 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 			throw new IllegalArgumentException("New children is null");
 		}
 		f_children = c;
+		for(Content cc : c) {
+			cc.setParent(this);
+		}
 	}
 
 	public void addChild(Content child) {
 		f_children.add(child);
+		child.setParent(this);
 	}
 
 	public int numChildren() {
@@ -408,6 +418,9 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 			return f_children;
 		} finally {
 			f_children = c;
+			for(Content cc : c) {
+				cc.setParent(this);
+			}
 		}
 	}
 
@@ -524,6 +537,7 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 		try {
 			clone = (Content) clone();
 			clone.f_children = Collections.emptySet();
+			clone.f_getMessage = null; // Invalidate cache
 			return clone;
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
@@ -535,8 +549,18 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 		Content copy = shallowCopy();
 		copy.f_children = new ArrayList<Content>();
 		for (Content c : f_children) {
-			copy.f_children.add(c.deepCopy());
+			final Content copyC = c.deepCopy();
+			copy.f_children.add(copyC);
+			copyC.setParent(copy);
 		}
 		return copy;
+	}
+	
+	public Content getParent() {
+		return parent;
+	}
+	
+	private void setParent(Content p) {
+		parent = p;
 	}
 }

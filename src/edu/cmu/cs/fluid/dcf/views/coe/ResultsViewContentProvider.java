@@ -92,7 +92,8 @@ public class ResultsViewContentProvider extends
 	}
 
 	public Object getParent(Object child) {
-		return null;
+		Content c = (Content) child;
+		return c.getParent();
 	}
 
 	public final Object[] getChildren(Object parent) {
@@ -916,8 +917,7 @@ public class ResultsViewContentProvider extends
 		// fake out the recursive function by pretending the root is a Content
 		// node
 		Content root = new Content("", contentRoot);
-		breakBackEdges(root, new HashSet<Content>(),
-				new HashMap<Content, Content>());
+		breakBackEdges(root, new HashSet<Content>());
 	}
 
 	/**
@@ -928,8 +928,7 @@ public class ResultsViewContentProvider extends
 	 * @param leaves
 	 *            Leaves previously created
 	 */
-	private void breakBackEdges(Content node, Set<Content> onPath,
-			Map<Content, Content> leaves) {
+	private void breakBackEdges(Content node, Set<Content> onPath) {
 		/*
 		Integer count = counts.get(node);
 		if (count == null) {
@@ -963,16 +962,14 @@ public class ResultsViewContentProvider extends
 			/*
 			 * Guard against infinite recursion (drop-sea is a graph)
 			 */
+			//System.out.println("Looking at "+node.getMessage()+" -> "+item.getMessage());
 			if (!onPath.contains(item)) {
-				breakBackEdges(item, onPath, leaves);
+				breakBackEdges(item, onPath);
 			} else {
 				// Need to replace with a leaf
-				Content leaf = leaves.get(item);
-				if (leaf == null) {
-					leaf = item.cloneAsLeaf();
-					//System.out.println("Cloned: "+leaf.getMessage());
-					leaves.put(item, leaf);
-				}
+				//System.out.println("Breaking backedge for: "+item.getMessage());
+				Content leaf = item.cloneAsLeaf();
+				//System.out.println("Cloned: "+leaf.getMessage());
 				children.set(i, leaf);
 			}
 		}
