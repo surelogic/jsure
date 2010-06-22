@@ -95,6 +95,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   
   public void astsChanged() {
+	//System.out.println("Cleared out state for "+this);
     clearAll(true);
     JavaTypeFactory.clearCaches();
   }
