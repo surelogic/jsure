@@ -12,6 +12,8 @@ import org.eclipse.core.runtime.CoreException;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.fluid.javac.JavacProject;
+import com.surelogic.fluid.javac.Projects;
 
 import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
@@ -19,6 +21,7 @@ import edu.cmu.cs.fluid.eclipse.adapter.TypeBindings;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
+import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.*;
@@ -77,6 +80,8 @@ public class ClearProjectListener implements IResourceChangeListener {
 
 			if (clearAll) {
 				JavaTypeFactory.clearAll();
+				IDE.getInstance().notifyASTsChanged();
+				IDE.getInstance().clearAll();
 			}
 			// Go ahead and garbage collect the IR.
 			SlotInfo.gc();
@@ -105,7 +110,17 @@ public class ClearProjectListener implements IResourceChangeListener {
 			}
 		}
 		RegionModel.purgeUnusedRegions();
-		SourceCUDrop.invalidateAll();
+		for(SourceCUDrop cud : SourceCUDrop.invalidateAll()) {
+			AdapterUtil.destroyOldCU(cud.cu);
+		}
+		
+	    ProjectsDrop pd = ProjectsDrop.getDrop();
+	    if (pd != null) {
+	    	for(JavacProject jp : ((Projects) pd.getIIRProjects())) {
+	    		System.out.println("Deactivating "+jp);
+	    		jp.deactivate();
+	    	}
+	    }
 		Sea.getDefault().invalidateMatching(
 				DropPredicateFactory.matchType(ProjectsDrop.class));
 		Sea.getDefault().invalidateMatching(
@@ -116,7 +131,9 @@ public class ClearProjectListener implements IResourceChangeListener {
 				DropPredicateFactory.matchType(PromiseWarningDrop.class));
 
 		if (clearAll) {
-			BinaryCUDrop.invalidateAll();
+			for(BinaryCUDrop d : BinaryCUDrop.invalidateAll()) {
+				AdapterUtil.destroyOldCU(d.cu);
+			}
 			PackageDrop.invalidateAll();
 			IDE.getInstance().clearAll();
 			AnnotationRules.XML_LOG.reset();

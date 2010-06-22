@@ -499,6 +499,13 @@ public class JavacDriver {
         
         ConfigureJob configure = new ConfigureJob("Configuring JSure build", isAuto);
 	    final boolean success = currentProjects.compareAndSet(null, configure.projects);
+	    ProjectsDrop pd = ProjectsDrop.getDrop();
+	    if (pd != null) {
+	    	for(JavacProject jp : ((Projects) pd.getIIRProjects())) {
+	    		System.out.println("Deactivating "+jp);
+	    		jp.deactivate();
+	    	}
+	    }
         if (!success) {
 	    	System.out.println("Already started ConfigureJob");	    	
 	    } else {
