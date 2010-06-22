@@ -11,6 +11,8 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.promise.TextFile;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -386,9 +388,12 @@ public abstract class Drop {
 			} else {
 				CUDrop cuDrop = CUDrop.queryCU(cu);
 				if (cuDrop == null) {
-					LOG.log(Level.WARNING,
-							"unable to find compilation unit drop for "
-									+ DebugUnparser.toString(node));
+					IRNode type = VisitUtil.getEnclosingType(node);
+					if (!PromiseConstants.REGION_ELEMENT_NAME.equals(JJNode.getInfo(type))) {
+						LOG.log(Level.WARNING,
+								"unable to find compilation unit drop for "
+										+ DebugUnparser.toString(node));
+					}
 				} else {
 					// the promise depends upon the compilation unit it is
 					// within
