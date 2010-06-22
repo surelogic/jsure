@@ -76,7 +76,7 @@ public class TRoleTargets {
     if (ELEMENT == null) {
       // Get the region for array elements
       ELEMENT = RegionModel.getArrayElementRegion();
-      ELEMENT.setNode(IOldTypeEnvironment.arrayType);
+      ELEMENT.setNode(b.getTypeEnvironment().getArrayClassDeclaration());
 //      ELEMENT = 
 //        RegionModel.getInstance(binder.findRegionInType(IOldTypeEnvironment.arrayType,
 //                                           PromiseConstants.REGION_ELEMENT_NAME));

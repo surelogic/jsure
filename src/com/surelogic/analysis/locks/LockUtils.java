@@ -294,8 +294,18 @@ public final class LockUtils {
     mutex.setFromSrc(true);
 
     // Get the region for array elements
-    elementRegion = RegionModel.getArrayElementRegion();
-    elementRegion.setNode(IOldTypeEnvironment.arrayType);
+    final IRNode arrayType = binder.getTypeEnvironment().getArrayClassDeclaration();    
+    IRNode decl = arrayType;
+    /*
+    for(IRNode d : VisitUtil.getClassFieldDeclarators(arrayType)) {
+    	String name = VariableDeclarator.getId(d);
+    	if (PromiseConstants.REGION_ELEMENT_NAME.equals(name)) {
+    		decl = d;
+    	}
+    }
+    */
+    elementRegion = RegionModel.getArrayElementRegion();    
+    elementRegion.setNode(decl);
   }
 
   synchronized void clear() {
