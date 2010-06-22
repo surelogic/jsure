@@ -169,7 +169,7 @@ public abstract class CUDrop extends Drop {
   
   @Override
   protected void invalidate_internal() {
-	  System.out.println("Invalidating "+javaOSFileName);
+	  //System.out.println("Invalidating "+javaOSFileName);
   }
   
   @Override
