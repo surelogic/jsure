@@ -235,6 +235,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     			return getIBinding(node);
     		} else {    		
     			IBinding binding = node.getSlotValue(bindings.getUseToDeclAttr());
+    			if (binding != null && binding.getNode() != null && binding.getNode().identity() == IRNode.destroyedNode) {
+    				bindings.destroy();
+    				return getIBinding(node);
+    			}
     			return binding;
     		}
     	}
@@ -418,7 +422,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 			  bindings = toDerive;
 		  }
       } catch (StackOverflowError e) {
-    	  System.out.println("StackOverflow: "+DebugUnparser.toString(node));
+    	  System.out.println("StackOverflow: "+DebugUnparser.toString(node)+" for "+this);
     	  throw e;    	  
       }
 	  return bindings;
@@ -2862,7 +2866,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public IRNode getArrayClassDeclaration() {
-      return findNamedType("java.lang.[");
+      return findNamedType("java.lang.[]");
     }
 
     @Override
