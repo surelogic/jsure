@@ -459,6 +459,9 @@ public class BindUtil implements JavaGlobals {
    * @return whether accessible
    */
   public static final boolean isAccessibleInsideType(ITypeEnvironment tEnv, IRNode decl, IRNode enclosingType) {
+	if (decl == null) {
+		return false;
+	}
     return isAccessible(tEnv, decl, enclosingType, enclosingType);
   }
 
