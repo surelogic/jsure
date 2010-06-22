@@ -122,6 +122,11 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
       // may see an uninitialized IJavaDeclaredType:
       IRNode jlo = findNamedType("java.lang.Object");
       assert(jlo != null);
+      /*
+      if (jlo == null) {
+    	  findNamedType("java.lang.Object");
+      }
+      */
       oType = JavaTypeFactory.getDeclaredType(jlo, null, null);
       
       final boolean set = objectType.compareAndSet(null, oType);
