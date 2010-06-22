@@ -64,6 +64,11 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 
 			nameToDrop.put(key, projectName, result);
 			//System.out.println("Creating region "+key);
+			/*
+			if (key.equals(PromiseConstants.REGION_ELEMENT_NAME)) {
+				System.out.println("Found []");
+			}
+			*/
 		}
 		return result;
 	}
@@ -247,6 +252,12 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 
 	@Override
 	protected void computeBasedOnAST() {
+		/*
+        IRNode decl = getNode();
+        if (!(JJNode.tree.getOperator(decl) instanceof VariableDeclarator)) {
+        	System.out.println("Got non-VarDecl for "+regionName);
+        }
+        */
 		final NewRegionDeclarationNode ast = getAST();
     if (ast == null) {
 			return;
@@ -303,6 +314,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
       // XXX: Shouldn't his be "All"???
       return "Static".equals(regionName);
       //throw new Error("decl is null");
+    }
+    if (!(JJNode.tree.getOperator(decl) instanceof VariableDeclarator)) {
+    	return false;
     }
     final int mods = VariableDeclarator.getMods(decl);
     return JavaNode.getModifier(mods, JavaNode.STATIC);
