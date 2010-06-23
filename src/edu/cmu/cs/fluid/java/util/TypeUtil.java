@@ -173,6 +173,8 @@ public class TypeUtil implements JavaGlobals {
       return true;
     } else if (AnnotationElement.prototype.includes(op)) {
       return false;
+    } else if (EnumDeclaration.prototype.includes(op)) {
+      return false;
     } else {
       throw new IllegalArgumentException(
         "Can't test if " + op.name() + " is static.");

@@ -437,7 +437,7 @@ public class JavaCanonicalizer {
       try {
     	  IRNode decl = binder.getBinding(name);
     	  Operator op = tree.getOperator(decl);
-    	  if (op instanceof TypeDeclInterface) {
+    	  if (op instanceof TypeDeclInterface && !(op instanceof EnumConstantClassDeclaration)) {
     		  return rv = TypeExpression.createNode(nameToType(name));
     	  }
     	  String string = VariableDeclaration.getId(decl);    

@@ -63,6 +63,7 @@ import edu.cmu.cs.fluid.version.Version;
  */
 public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
+  private static final IJavaType[] noTypes = new IJavaType[0];
   
   public static volatile boolean foundIssue = false;  
   public static final AtomicInteger issueCount = new AtomicInteger(0);
@@ -1085,6 +1086,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     // Convert the args to IJavaTypes
 
 	private IJavaType[] getArgTypes(IRNode args) {
+	  if (args == null) {
+		  return noTypes;
+	  }
       final int n = JJNode.tree.numChildren(args);
       IJavaType[] argTypes = new IJavaType[n];     
       Iterator<IRNode> argse = JJNode.tree.children(args); 
@@ -1898,7 +1902,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       bindToPackage(node, pkg);
       return null;
     }
-
+    
     @Override
     public Void visitEnumConstantClassDeclaration(IRNode node) {
     	IRNode body = EnumConstantClassDeclaration.getBody(node);
@@ -1911,7 +1915,37 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         } else {
           sc = scope;
         }
-        doAcceptForChildren(node, sc);
+        doAcceptForChildren(node, sc);        
+        return super.visitEnumConstantClassDeclaration(node);
+    }
+    
+    @Override
+    public Void visitEnumConstantDeclaration(IRNode node) {
+        visit(node); // bind the arguments etc
+        if (!isFullPass || pathToTarget != null) return null;
+    	
+    	IRNode tdecl = VisitUtil.getEnclosingType(node);
+    	IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
+        boolean success = bindCall(node, null, EnumConstantDeclaration.getArgs(node),
+                                   JJNode.getInfo(tdecl), ty);
+        if (!success) {
+            bindCall(node, null, EnumConstantDeclaration.getArgs(node),
+                     JJNode.getInfo(tdecl), ty);
+        }
+        return null;
+    }
+    
+    @Override
+    public Void visitSimpleEnumConstantDeclaration(IRNode node) {
+        visit(node); // bind the arguments etc
+        if (!isFullPass || pathToTarget != null) return null;
+    	
+    	IRNode tdecl = VisitUtil.getEnclosingType(node);
+    	IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
+        boolean success = bindCall(node, null, null, JJNode.getInfo(tdecl), ty);
+        if (!success) {
+        	bindCall(node, null, null, JJNode.getInfo(tdecl), ty);
+        }
         return null;
     }
     
