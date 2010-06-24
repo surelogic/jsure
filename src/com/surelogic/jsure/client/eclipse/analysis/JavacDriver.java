@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.*;
 
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.core.runtime.jobs.Job;
@@ -144,29 +146,9 @@ public class JavacDriver {
 				final File f = res.getLocation().toFile();
 				config.addRemovedFile(f);
 			}
-			for(ICompilationUnit icu : all ? getAllCompUnits() : getDelta()) {				
-				final IPath path = icu.getResource().getFullPath();
-				final IPath loc = icu.getResource().getLocation();
-				final File f = loc.toFile();
-				String qname;
-				if (f.exists()) {
-					String pkg = null;
-					for(IPackageDeclaration pd : icu.getPackageDeclarations()) {
-						config.addPackage(pd.getElementName());
-						pkg = pd.getElementName();
-					}
-					qname = icu.getElementName();
-					if (qname.endsWith(".java")) {
-						qname = qname.substring(0, qname.length()-5);
-					}
-					if (pkg != null) {
-						qname = pkg+'.'+qname;
-					}
-				} else { // Removed
-					qname = f.getName();
-				}
-				config.addFile(new JavaSourceFile(qname, f, path.toPortableString()));
-			}			
+			for(JavaSourceFile jsf : convertCompUnits(config, all ? getAllCompUnits() : getDelta())) {
+				config.addFile(jsf);
+			}
 			addDependencies(projects, config, project, false);
 			return config;
 		}
@@ -191,25 +173,7 @@ public class JavacDriver {
 				switch (cpe.getEntryKind()) {
 				case IClasspathEntry.CPE_SOURCE:
 					if (addSource) {
-						// TODO handle multiple deltas?
-						/*
-						final File dir = EclipseUtility.resolveIPath(cpe.getPath());
-						final File[] excludes = new File[cpe.getExclusionPatterns().length];
-						int i=0;
-						for(IPath xp : cpe.getExclusionPatterns()) {
-							excludes[i] = EclipseUtility.resolveIPath(xp);
-							i++;
-						}
-						*/						
-						IContainer root = (IContainer) 
-						    ResourcesPlugin.getWorkspace().getRoot().findMember(cpe.getPath());
-						final IResource[] excludes = new IResource[cpe.getExclusionPatterns().length];
-						int i=0;
-						for(IPath xp : cpe.getExclusionPatterns()) {
-							excludes[i] = root.findMember(xp);
-							i++;
-						}
-						addJavaFiles(root, config, excludes);
+						addSourceFiles(config, cpe);
 					}
 					config.addToClassPath(config);
 					break;
@@ -257,6 +221,28 @@ public class JavacDriver {
 					System.out.println("Unexpected: "+cpe);
 				}
 			}
+		}
+
+		private void addSourceFiles(Config config, IClasspathEntry cpe) {
+			// TODO handle multiple deltas?
+			/*
+			final File dir = EclipseUtility.resolveIPath(cpe.getPath());
+			final File[] excludes = new File[cpe.getExclusionPatterns().length];
+			int i=0;
+			for(IPath xp : cpe.getExclusionPatterns()) {
+				excludes[i] = EclipseUtility.resolveIPath(xp);
+				i++;
+			}
+			*/						
+			IContainer root = (IContainer) 
+			    ResourcesPlugin.getWorkspace().getRoot().findMember(cpe.getPath());
+			final IResource[] excludes = new IResource[cpe.getExclusionPatterns().length];
+			int i=0;
+			for(IPath xp : cpe.getExclusionPatterns()) {
+				excludes[i] = root.findMember(xp);
+				i++;
+			}
+			addJavaFiles(root, config, excludes);			
 		}
 		
 		private void addJavaFiles(IContainer dir, Config config, IResource... excluded) {
@@ -518,7 +504,7 @@ public class JavacDriver {
 	    }
 	}
 	
-	private void doBuild(final Projects newProjects) {
+	private void doBuild(final Projects newProjects, SLProgressMonitor monitor) {
 		try {
 			if (!XUtil.testing) {
 				final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
@@ -543,7 +529,11 @@ public class JavacDriver {
                 }		        
 		    });
 
-		    Projects oldProjects = (Projects) ProjectsDrop.getProjects();
+		    Projects oldProjects = (Projects) ProjectsDrop.getProjects();		    
+		    if (oldProjects != null) {
+		    	findModifiedFiles(newProjects, oldProjects);
+		    }
+		    // TODO remove files that weren't changed?
 		    AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips);
 		    CopyJob copy = new CopyJob(newProjects, target, zips, analysis);
 		    if (XUtil.testing) {
@@ -555,6 +545,47 @@ public class JavacDriver {
 		    System.err.println("Unable to make config for JSure");
 		    e.printStackTrace();
 		    return;
+		}
+	}
+
+	private void findModifiedFiles(final Projects newProjects, Projects oldProjects) {
+		//System.out.println("Checking for files modified after "+oldProjects.getDate());
+		final Map<IJavaProject, Date> times = new HashMap<IJavaProject, Date>();
+		for(JavacProject jp : newProjects) {
+			// Check if we used it last time			
+			if (oldProjects.get(jp.getName()) != null) {
+				//System.out.println("Checking for "+jp.getName());
+				IJavaProject ijp = JDTUtility.getJavaProject(jp.getName());
+				if (ijp != null) {
+					times.put(ijp, oldProjects.getDate());
+				}
+			}
+		}
+		if (times.size() == 0) {
+			return;
+		}
+		
+		final MultiMap<String, ICompilationUnit> byProj = new MultiHashMap<String, ICompilationUnit>();
+		for(ICompilationUnit icu : JDTUtility.modifiedCompUnits(times, new NullProgressMonitor())) {			
+			byProj.put(icu.getJavaProject().getElementName(), icu);
+		}
+		for(IJavaProject ijp : times.keySet()) {
+			final JavacProject jp = newProjects.get(ijp.getElementName());
+			if (jp != null) {
+				final Collection<ICompilationUnit> cus = byProj.get(ijp.getElementName());
+				final Config c = jp.getConfig();
+				if (cus != null && cus.size() > 0) {
+					System.out.println(ijp.getElementName()+" has "+cus.size()+" modified files");		
+					try {
+						c.intersectFiles(convertCompUnits(c, cus));
+					} catch (JavaModelException e1) {
+						// Suppressed, since it's an optimization
+					}
+				} else {
+					// No changed files, so clear it out
+					c.intersectFiles(Collections.<JavaSourceFile>emptyList());
+				}
+			}
 		}
 	}
 	
@@ -623,6 +654,35 @@ public class JavacDriver {
 		}
 		return projects;
 
+	}
+	
+	private Collection<JavaSourceFile> convertCompUnits(Config config, final Iterable<ICompilationUnit> cus) 
+	throws JavaModelException {
+		List<JavaSourceFile> files = new ArrayList<JavaSourceFile>();
+		for(ICompilationUnit icu : cus) {				
+			final IPath path = icu.getResource().getFullPath();
+			final IPath loc = icu.getResource().getLocation();
+			final File f = loc.toFile();
+			String qname;
+			if (f.exists()) {
+				String pkg = null;
+				for(IPackageDeclaration pd : icu.getPackageDeclarations()) {
+					config.addPackage(pd.getElementName());
+					pkg = pd.getElementName();
+				}
+				qname = icu.getElementName();
+				if (qname.endsWith(".java")) {
+					qname = qname.substring(0, qname.length()-5);
+				}
+				if (pkg != null) {
+					qname = pkg+'.'+qname;
+				}
+			} else { // Removed
+				qname = f.getName();
+			}
+			files.add(new JavaSourceFile(qname, f, path.toPortableString()));
+		}
+		return files;
 	}
 	
 	static class ZippedConfig extends Config {
@@ -740,7 +800,7 @@ public class JavacDriver {
 					// dependency?
 				}
 			}			
-			doBuild(projects);
+			doBuild(projects, monitor);
 			return SLStatus.OK_STATUS;
 		}
 	}
