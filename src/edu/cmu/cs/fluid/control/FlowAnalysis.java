@@ -47,15 +47,29 @@ public abstract class FlowAnalysis<T> {
   //private boolean started = false;
   private long iterations = 0;
 
+  private final int maxIterations;
+  
+  
+  public static final class AnalysisGaveUp extends RuntimeException {
+    public final int count;
+    
+    public AnalysisGaveUp(final int c) {
+      count = c;
+    }
+  }
+  
+  
+  
   /** Create a new instance of flow analysis.
    * @param l the lattice of values for the analysis.
    * @see #getInfo
    */
-  protected FlowAnalysis(String n, Lattice<T> l, IRNodeViewer nv) {
+  protected FlowAnalysis(String n, Lattice<T> l, IRNodeViewer nv, int max) {
     name = n;
     lattice = l;
     worklist = new Queue();
     nodeViewer = nv;
+    maxIterations = max;
     if (LOG.isLoggable(Level.FINEST)) {
       debug = true;
     }
@@ -148,20 +162,27 @@ public abstract class FlowAnalysis<T> {
 	final IDE ide = IDE.getInstance();
     LOG.finer("About to start analysis: " + this);
     try {
-      int count = COUNT_BEFORE_CHECK;
+      int globalCount = 0;
+      int localCount = 0;
       while (!worklist.isEmpty()) {
-        if (count == 0) {
-        	count = COUNT_BEFORE_CHECK;
+        /* should the worklist include label too ? */
+        work((ControlEdge)worklist.dequeue());
+        localCount++;
+        globalCount++;
+
+        if (localCount == COUNT_BEFORE_CHECK) {
+          localCount = 0;
         	
         	if (ide.isCancelled()) {        
         		throw new FluidInterruptedException();
         	}
+        	if (maxIterations > 0 && globalCount >= maxIterations) {
+        	  throw new AnalysisGaveUp(globalCount);
+        	}
         }        
-        /* should the worklist include label too ? */
-        work((ControlEdge)worklist.dequeue());
-        count--;
       }
     } catch (RuntimeException e1) {
+      if (e1 instanceof AnalysisGaveUp) throw e1;
       LOG.log(Level.WARNING, "Problem while analyzing", e1);
     }
     if (LOG.isLoggable(Level.FINER)) {

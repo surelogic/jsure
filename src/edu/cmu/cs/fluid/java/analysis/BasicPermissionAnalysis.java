@@ -194,7 +194,7 @@ public class BasicPermissionAnalysis extends IntraproceduralAnalysis {
   protected FlowAnalysis createAnalysis(IRNode flowUnit) {
 		return new ForwardAnalysis("Oversimplified permission analysis", 
 															new PermissionSet(), new BasicPermissionTransfer(this,binder, flowUnit),
-                              DebugUnparser.viewer);
+                              DebugUnparser.viewer, 0);
 	}
 
 

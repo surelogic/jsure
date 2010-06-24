@@ -86,7 +86,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<IRNode,Immut
           "binding context analysis",
           bc,
           new BindingContextTransfer(binder),
-          DebugUnparser.viewer);
+          DebugUnparser.viewer, 0);
       BindingContext start = (BindingContext) bc.top();
       for (int i = 0; i < n; ++i) {
         IRNode local = locals[i];

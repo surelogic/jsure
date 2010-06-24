@@ -42,7 +42,7 @@ public class TestEvaluationTransfer {
     System.out.println("Testing CFG for " + DebugUnparser.toString(flowUnit));
     FlowUnit op = (FlowUnit) JJNode.tree.getOperator(flowUnit);
     FlowAnalysis fa = new ForwardAnalysis("TestCFG", FlatLattice.topValue,
-        new Transfer(), DebugUnparser.viewer);
+        new Transfer(), DebugUnparser.viewer, 0);
     fa.initialize(op.getSource(flowUnit).getOutput(), 
                         FlatLattice.newInteger(0));
     fa.initialize(op.getNormalSink(flowUnit).getInput());

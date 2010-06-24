@@ -82,9 +82,13 @@ public class UniqueAnalysis extends IntraproceduralAnalysis<Object, Boolean>
 
   private final Effects effects;
 
-  public UniqueAnalysis(IBinder binder, Effects e) {
+  private final int maxIterations;
+  
+  
+  public UniqueAnalysis(IBinder binder, Effects e, final int max) {
     super(new FixBinder(binder)); // avoid crashes.
     effects = e;
+    maxIterations = max;
   }
 
   public IBinder getBinder() {
@@ -269,7 +273,7 @@ public class UniqueAnalysis extends IntraproceduralAnalysis<Object, Boolean>
     final Store store = new Store(flowUnitLocals(flowNode, false, binder));
     FlowAnalysis analysis = new ForwardAnalysis("unique analysis", store,
         new UniqueTransfer(this, flowNode, binder, effects),
-        DebugUnparser.viewer) {
+        DebugUnparser.viewer, maxIterations) {
       @Override
       protected void usePorts(boolean secondary, OutputPort port,
           InputPort dual, LabelList ll, Lattice value) {
@@ -1206,7 +1210,7 @@ class TestUniqueAnalysis {
 
   static FakeBinder fb = new FakeBinder(root);
 
-  static UniqueAnalysis ua = new UniqueAnalysis(fb, new Effects(fb));
+  static UniqueAnalysis ua = new UniqueAnalysis(fb, new Effects(fb), 0);
 
   public void reportError(String msg) {
     System.out.println(msg);

@@ -44,7 +44,7 @@ public class NonNull extends IntraproceduralAnalysis implements INullAnalysis{
     	Lattice s = new NonNullLattice(a);
     	analysis =
         	new ForwardAnalysis("Null Pointer analysis",
-				     s,new NonNullTransfer(this,binder), DebugUnparser.viewer);
+				     s,new NonNullTransfer(this,binder), DebugUnparser.viewer, 0);
     	return analysis;
    }
 

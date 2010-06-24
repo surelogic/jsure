@@ -42,7 +42,7 @@ public class BackwardSlicing<V> extends IntraproceduralAnalysis<PairLattice.Type
 		Lattice<PairLattice.Type<IRNode,Boolean>> latt = new PairLattice<IRNode,Boolean>(new UnionLattice<IRNode>(),stack);   
 		FlowAnalysis<PairLattice.Type<IRNode,Boolean>> analysis =
 	        new BackwardAnalysis<PairLattice.Type<IRNode,Boolean>>("backward slicing analysis",
-				     latt,new BackwardSlicingTransfer<V>(this,binder), DebugUnparser.viewer);
+				     latt,new BackwardSlicingTransfer<V>(this,binder), DebugUnparser.viewer, 0);
 	    FlowUnit op = (FlowUnit)tree.getOperator(flowUnit);
 	    
 	    PairLattice<IRNode,Boolean> init = new PairLattice<IRNode,Boolean>(new UnionLattice<IRNode>(),

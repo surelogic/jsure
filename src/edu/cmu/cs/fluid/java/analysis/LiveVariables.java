@@ -21,7 +21,7 @@ public class LiveVariables<V> extends IntraproceduralAnalysis<IRNode,V> {
     SetLattice<IRNode> s = new UnionLattice<IRNode>();
     FlowAnalysis<IRNode> analysis =
         new BackwardAnalysis<IRNode>("live variable analysis",
-			     s,new LiveVariableTransfer<V>(this,binder), DebugUnparser.viewer);
+			     s,new LiveVariableTransfer<V>(this,binder), DebugUnparser.viewer, 0);
     return analysis;
   }
 }

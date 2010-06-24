@@ -59,7 +59,7 @@ public abstract class TrackingIntraproceduralAnalysis<T,V> extends Intraprocedur
   
 	public class TrackingForwardAnalysis extends ForwardAnalysis<T> {
 		public TrackingForwardAnalysis(String name, Lattice<T> l, ForwardTransfer<T> t) {
-			super(name, l, t, DebugUnparser.viewer);
+			super(name, l, t, DebugUnparser.viewer, 0);
 			latest = null;
 		}
 		
@@ -85,7 +85,7 @@ public abstract class TrackingIntraproceduralAnalysis<T,V> extends Intraprocedur
 	
 	public class TrackingBackwardAnalysis extends BackwardAnalysis<T> {
 		public TrackingBackwardAnalysis(String name, Lattice<T> l, BackwardTransfer<T> t) {
-			super(name, l, t, DebugUnparser.viewer);
+			super(name, l, t, DebugUnparser.viewer, 0);
 			latest = null;
 		}
 		

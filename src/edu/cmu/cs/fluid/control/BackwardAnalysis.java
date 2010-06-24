@@ -23,9 +23,9 @@ public class BackwardAnalysis<T> extends FlowAnalysis<T> {
    * @param t the transfer function for semantics-specific nodes.
    * @see FlowAnalysis
    */
-  public BackwardAnalysis(String name, Lattice<T> l, BackwardTransfer<T> t, IRNodeViewer nv) 
+  public BackwardAnalysis(String name, Lattice<T> l, BackwardTransfer<T> t, IRNodeViewer nv, int max) 
   {
-    super(name, l, nv);
+    super(name, l, nv, max);
     trans = t;
   }
 

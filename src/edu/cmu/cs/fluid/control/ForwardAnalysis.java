@@ -39,8 +39,8 @@ public class ForwardAnalysis<T> extends FlowAnalysis<T> {
 	 *          the transfer functions for semantics-specific nodes.
 	 * @see FlowAnalysis
 	 */
-  public ForwardAnalysis(String name, Lattice<T> l, ForwardTransfer<T> t, IRNodeViewer nv) {
-    super(name, l, nv);
+  public ForwardAnalysis(String name, Lattice<T> l, ForwardTransfer<T> t, IRNodeViewer nv, int max) {
+    super(name, l, nv, max);
     trans = t;
   }
 

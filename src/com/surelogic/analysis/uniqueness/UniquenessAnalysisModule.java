@@ -77,7 +77,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	protected UniqueAnalysis constructIRAnalysis(IBinder binder) {
 		//System.out.println(Thread.currentThread()+" : Constructed Unique for "+
 		//           binder.getTypeEnvironment().getProject());
-		return new UniqueAnalysis(binder,	new Effects(binder));
+		return new UniqueAnalysis(binder,	new Effects(binder), 0);
 	}
 	
 	/*
