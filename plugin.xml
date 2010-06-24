@@ -161,6 +161,14 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
+  <extension id="BenchmarkingUniqueness" name="Benchmarking Uniqueness"
+    point="com.surelogic.jsure.client.eclipse.analysisModule">
+    <run class="com.surelogic.analysis.uniqueness.BenchmarkingUAM" 
+      production="false">
+    </run>
+    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+    </prerequisite>
+  </extension>
 	<extension id="MakeCFGDiagram" name="CFG diagram Maker"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.cfg.MakeCFGDiagram"
