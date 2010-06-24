@@ -599,7 +599,7 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
      * createAnalysis() in most (currently all) cases.  We ran into a case
      * where the initial values for the normal and exceptional cases where
      * sufficiently different as to create a monotonicity failure:
-     * (1) the normal case would proceed and the subanalysi would be initialized
+     * (1) the normal case would proceed and the subanalysis would be initialized
      * for the first time with the initial value V1.
      * (2) the exceptional case would proceed and the subanalysis would be 
      * reinitialized with a different initial value v2.  This was okay because 

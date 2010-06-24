@@ -7,7 +7,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.util.Lattice;
 
-/** This abstract class is a skeleton for all Java-specific foward
+/** This abstract class is a skeleton for all Java-specific forward
  * flow-analysis.  It implements the generic transfer routines in terms
  * of Java-specific transfer routines.  Because it inherits most of the
  * work, it needs only define the remaining generic routines.
