@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 
 public class BenchmarkingUAM extends AbstractWholeIRAnalysis<UniqueAnalysis,Void> {
   public BenchmarkingUAM() {
@@ -44,19 +45,24 @@ public class BenchmarkingUAM extends AbstractWholeIRAnalysis<UniqueAnalysis,Void
 	  for (final IRNode node : JJNode.tree.topDown(compUnit)) {
 	    final Operator op = JJNode.tree.getOperator(node);
 	    if (MethodDeclaration.prototype.includes(op) || ConstructorDeclaration.prototype.includes(op)) {
-        final String methodName = JavaNames.genQualifiedMethodConstructorName(node);
+        String methodName = JavaNames.genQualifiedMethodConstructorName(node);
         monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+        methodName = methodName.replace(',', '_');
+        
+        JavaComponentFactory.clearCache();
         final ISrcRef srcRef = JavaNode.getSrcRef(node);
+        final int length = srcRef == null ? -1 : srcRef.getLength();
         final long start = System.currentTimeMillis();
         try {
           getAnalysis().getAnalysis(node);
           final long end = System.currentTimeMillis();
           System.out.println(
-              methodName + ", " + srcRef.getLength() + ", " + (end-start));
+              methodName + ", " + length + ", " + (end-start));
         } catch(final AnalysisGaveUp e) {
           System.out.println(
-              methodName + ", " + srcRef.getLength() + ", GAVE UP AFTER " + e.count + " STEPS");
+              methodName + ", " + length + ", GAVE UP AFTER " + e.count + " STEPS");
         }
+        ImmutableHashOrderSet.clearCaches();
 	    }
 	  }
 	  return false;
