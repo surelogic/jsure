@@ -161,10 +161,14 @@ public class JavaNode extends JJNode {
   
   public static final int AS_BINARY = (1 << 15);
   
+  public static final int IS_GRANULE = (1 << 16);
+  
+  public static final int NOT_GRANULE = (1 << 17);
+  
   public static final int[] MODIFIERS = {
     ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, 
     TRANSIENT, VOLATILE, STRICTFP, IMPLICIT, INSTANCE, VARARGS, WRITE,
-    AS_BINARY,
+    AS_BINARY, IS_GRANULE, NOT_GRANULE
   };
 
   public static final String MODIFIERS_ID =  "Java.modifiers";
@@ -194,8 +198,8 @@ public class JavaNode extends JJNode {
     return node.getIntSlotValue(modifiersSlotInfo);
   }
 
-  private static final int LASTMODIFIER = AS_BINARY;
-  public static final int ILLEGAL_MOD = AS_BINARY << 1;
+  private static final int LASTMODIFIER = NOT_GRANULE;
+  public static final int ILLEGAL_MOD = NOT_GRANULE << 1;
 	  
   static final String[] modifiers = {"abstract", "final", "native", "private",
       "protected", "public", "static", "synchronized", "transient", "volatile",

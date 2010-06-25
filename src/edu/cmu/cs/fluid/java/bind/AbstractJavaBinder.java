@@ -165,17 +165,30 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     else if (op instanceof OuterObjectSpecifier) {
     	return true;
     }
-    else if (op instanceof Expression) {
+    else if (op instanceof Expression) {    	    	
     	// Check if it's the top-level Expression and contains an OOS 
-    	IRNode parent = JJNode.tree.getParentOrNull(node);
+    	IRNode parent = JJNode.tree.getParent(node);
     	if (Statement.prototype.includes(parent)) {
+        	// Check if already calculated
+        	int mods = JavaNode.getModifiers(node);
+        	if (JavaNode.isSet(mods, JavaNode.IS_GRANULE)) {
+        		return true;
+        	}
+        	if (JavaNode.isSet(mods, JavaNode.NOT_GRANULE)) {
+        		return false;
+        	}
+        	
     		for(IRNode n : JJNode.tree.topDown(node)) {
     			if (OuterObjectSpecifier.prototype.includes(n)) {    				
     				//System.out.println("Granule: "+DebugUnparser.toString(node));
+    				JavaNode.setModifiers(node, JavaNode.setModifier(mods, JavaNode.IS_GRANULE, true));
     				return true;
     			}
     		}
+    		JavaNode.setModifiers(node, JavaNode.setModifier(mods, JavaNode.NOT_GRANULE, true));
+    		return false;
     	}
+    	return false;
     }
     return op instanceof CompilationUnit;
   }
