@@ -12,8 +12,10 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.logging.SLEclipseStatusUtility;
+import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 
 import edu.cmu.cs.fluid.dc.Plugin;
@@ -64,13 +66,13 @@ public class Activator extends AbstractUIPlugin implements
 	// Used for startup
 	public void run(IProgressMonitor monitor) throws InvocationTargetException,
 			InterruptedException {
-		monitor.beginTask("Initializing jsure-client-eclipse", 6);
+		monitor.beginTask("Initializing the JSure tool", 6);
 		/*
 		 * "Touch" common-eclipse so the logging gets Eclipse-ified.
 		 */
 		SLEclipseStatusUtility.touch();
 		monitor.worked(1);
-		
+
 		clearJSureData();
 		monitor.worked(1);
 
@@ -78,16 +80,20 @@ public class Activator extends AbstractUIPlugin implements
 		Eclipse.initialize();
 		monitor.worked(1);
 
+		EclipseUtility.getProductReleaseDateJob(SLLicenseProduct.JSURE, this)
+				.schedule();
+		monitor.worked(1);
+
 		// NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
 		// monitor.worked(1);
 	}
 
 	private void clearJSureData() {
-		for(File f : PreferenceConstants.getJSureDataDirectory().listFiles()) {
+		for (File f : PreferenceConstants.getJSureDataDirectory().listFiles()) {
 			FileUtility.recursiveDelete(f, false);
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
