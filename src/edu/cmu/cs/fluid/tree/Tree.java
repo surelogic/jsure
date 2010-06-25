@@ -425,6 +425,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
     		  return subtree;
     	  }
       } catch (SlotUndefinedException e) {
+    	  setParent(subtree, null);
     	  return subtree;    	  
       }
       subtree = parent;
