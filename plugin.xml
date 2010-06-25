@@ -188,7 +188,7 @@
 	<extension id="ModuleAnalysis2" name="Module Visibility Analyzer (converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis2"
-			production="true">
+			production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
 		</prerequisite>
@@ -279,7 +279,7 @@
 	<extension id="ThreadRoleZerothPass1" name="ThreadRole Zeroth Pass (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.threadroles.ThreadRoleZerothPass1"
-			production="true">
+			production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.ModuleAnalysis2">
 		</prerequisite>
@@ -295,7 +295,7 @@
 	<extension id="ThreadRoleAssurance1" name="Thread Role Assurance (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.threadroles.ThreadRoleAssurance1"
-			production="true">
+			production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.ManageThreadRoleAnnos1">
 		</prerequisite>
