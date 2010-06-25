@@ -419,9 +419,14 @@ public class Tree extends Digraph implements MutableTreeInterface {
   public IRNode getRoot(IRNode subtree) {
     IRNode parent;
     while (true) {
-      parent = getParent(subtree);
-      if (parent == null)
-        return subtree;
+      try {
+    	  parent = getParent(subtree);
+    	  if (parent == null) {
+    		  return subtree;
+    	  }
+      } catch (SlotUndefinedException e) {
+    	  return subtree;    	  
+      }
       subtree = parent;
     }
   }
