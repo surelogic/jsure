@@ -21,7 +21,29 @@ import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
 public class VisitUtil implements JavaGlobals {
   /// findRoot : traverse up until no longer possible
   public static IRNode findRoot(IRNode here) {
-    return OpSearch.rootSearch.find(here);
+	return OpSearch.rootSearch.find(here);
+  }
+  
+  /**
+   * Check for a promisedFor node before declaring the node as a root
+   */
+  public static IRNode findCompilationUnit(IRNode here) {
+	  IRNode cu = JJNode.tree.getRoot(here); 
+	  //IRNode cu = VisitUtil.findRoot(here);
+	  IRNode promisedFor = cu;
+	  while (cu == null || !CompilationUnit.prototype.includes(cu)) {
+		  // Check for promises
+		  promisedFor = JavaPromise.getPromisedFor(cu);
+		  if (promisedFor == null) {
+			  break;
+		  }
+		  cu = JJNode.tree.getRoot(promisedFor); 
+		  //cu = VisitUtil.findRoot(promisedFor);
+	  }
+	  if (promisedFor == null) {
+		  System.out.println("No cu for "+DebugUnparser.toString(here));
+	  }
+	  return cu;
   }
 
   /// rootWalk

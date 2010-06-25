@@ -237,10 +237,7 @@ public final class JavaNames {
 	 * @return null if inside the default package
 	 */
 	public static String getPackageName(final IRNode nodeInsideCompUnit) {
-		IRNode compUnit = VisitUtil.getEnclosingCompilationUnit(nodeInsideCompUnit);
-		if (compUnit == null) {
-			compUnit = nodeInsideCompUnit;
-		}
+		IRNode compUnit = VisitUtil.findCompilationUnit(nodeInsideCompUnit);
 		final IRNode pkgDecl = CompilationUnit.getPkg(compUnit);
 		if (NamedPackageDeclaration.prototype.includes(getOperator(pkgDecl))) {
 			return NamedPackageDeclaration.getId(pkgDecl);

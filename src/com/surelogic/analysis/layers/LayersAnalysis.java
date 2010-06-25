@@ -73,7 +73,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 					}
 					continue;
 				}
-				final IRNode bindCu = VisitUtil.getEnclosingCompilationUnit(b.getNode());
+				final IRNode bindCu = VisitUtil.findCompilationUnit(b.getNode());
 				if (cu.equals(bindCu)) {
 					// You can always refer to yourself
 					continue;
