@@ -250,6 +250,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		} else {    		
     			IBinding binding = node.getSlotValue(bindings.getUseToDeclAttr());
     			if (binding != null && binding.getNode() != null && binding.getNode().identity() == IRNode.destroyedNode) {
+    				System.out.println("Destroyed binding for "+DebugUnparser.toString(node));
     				bindings.destroy();
     				return getIBinding(node);
     			}
@@ -437,6 +438,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  }
       } catch (StackOverflowError e) {
     	  System.out.println("StackOverflow: "+DebugUnparser.toString(node)+" for "+this);
+    	  e.printStackTrace();
     	  throw e;    	  
       }
 	  return bindings;
