@@ -46,7 +46,9 @@ public class BenchmarkingUAM extends AbstractWholeIRAnalysis<UniqueAnalysis,Void
 	    final Operator op = JJNode.tree.getOperator(node);
 	    if (MethodDeclaration.prototype.includes(op) || ConstructorDeclaration.prototype.includes(op)) {
         String methodName = JavaNames.genQualifiedMethodConstructorName(node);
-        monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+        if (monitor != null) {
+        	monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+        }
         methodName = methodName.replace(',', '_');
         
         JavaComponentFactory.clearCache();
