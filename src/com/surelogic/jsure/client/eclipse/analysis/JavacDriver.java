@@ -555,6 +555,9 @@ public class JavacDriver {
 			// Check if we used it last time			
 			if (oldProjects.get(jp.getName()) != null) {
 				//System.out.println("Checking for "+jp.getName());
+				if (jp.getName().contains("/")) {
+					continue;
+				}
 				IJavaProject ijp = JDTUtility.getJavaProject(jp.getName());
 				if (ijp != null) {
 					times.put(ijp, oldProjects.getDate());
