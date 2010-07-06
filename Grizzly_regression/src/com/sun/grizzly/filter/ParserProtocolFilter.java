@@ -33,7 +33,7 @@ import java.nio.channels.SelectionKey;
 import static com.sun.grizzly.Controller.Protocol.TCP;
 import static com.sun.grizzly.Controller.Protocol.UDP;
 import static com.sun.grizzly.Controller.Protocol;
-import com.sun.grizzly.Controller.Protocol;
+//import com.sun.grizzly.Controller.Protocol;
 import com.sun.grizzly.util.ThreadAttachment;
 import java.util.concurrent.ConcurrentLinkedQueue;
 

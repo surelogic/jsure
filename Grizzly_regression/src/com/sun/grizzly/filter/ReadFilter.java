@@ -38,7 +38,7 @@ import java.util.logging.Level;
 import static com.sun.grizzly.Controller.Protocol.TCP;
 import static com.sun.grizzly.Controller.Protocol.UDP;
 import static com.sun.grizzly.Controller.Protocol;
-import com.sun.grizzly.Controller.Protocol;
+//import com.sun.grizzly.Controller.Protocol;
 import com.sun.grizzly.SelectorHandler;
 
 /**
