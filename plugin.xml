@@ -156,7 +156,7 @@
 	</extension>
 	<extension id="UniquenessAssurance2" name="Uniqueness"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule">
+		<run class="com.surelogic.analysis.uniqueness.cmu.UniquenessAnalysisModule">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
