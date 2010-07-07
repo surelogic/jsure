@@ -1,5 +1,5 @@
 /* $Header: /cvs/fluid/fluid/src/com/surelogic/analysis/uniqueness/Store.java,v 1.41 2007/07/10 22:16:37 aarong Exp $ */
-package com.surelogic.analysis.uniqueness;
+package com.surelogic.analysis.uniqueness.cmu;
 
 import java.util.*;
 

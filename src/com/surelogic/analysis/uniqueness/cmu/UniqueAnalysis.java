@@ -3,7 +3,7 @@
  * /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/analysis/UniqueAnalysis.java,v
  * 1.53 2003/10/31 15:18:30 chance Exp $
  */
-package com.surelogic.analysis.uniqueness;
+package com.surelogic.analysis.uniqueness.cmu;
 
 import java.util.Iterator;
 import java.util.Set;

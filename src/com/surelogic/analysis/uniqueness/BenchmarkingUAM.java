@@ -5,6 +5,7 @@ import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.uniqueness.cmu.UniqueAnalysis;
 
 import edu.cmu.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 import edu.cmu.cs.fluid.ir.IRNode;

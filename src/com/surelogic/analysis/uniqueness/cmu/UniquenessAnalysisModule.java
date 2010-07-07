@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness;
+package com.surelogic.analysis.uniqueness.cmu;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,9 +12,9 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.uniqueness.Messages;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -304,9 +304,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	/**
 	 * Assumes that isInvalid( n ) is true
 	 */
-	@SuppressWarnings("unchecked")
   private String getErrorMessage(final IRNode insideDecl, final IRNode n) {
-	  final FlowAnalysis a = getAnalysis().getAnalysis(insideDecl);
+	  @SuppressWarnings("rawtypes")
+    final FlowAnalysis a = getAnalysis().getAnalysis(insideDecl);
 		final String normErr = getAnalysis().getNormalErrorMessage(a, n);
 		final String abruptErr = getAnalysis().getAbruptErrorMessage(a, n);
 
