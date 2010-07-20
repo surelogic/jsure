@@ -3,7 +3,7 @@ package edu.uwm.cs.fluid.util;
 /**
  * @author boyland
  */
-public class FlatLattice extends AbstractLattice<Object> {
+public final class FlatLattice extends AbstractLattice<Object> {
   public static final FlatLattice prototype = new FlatLattice();
   
   private final Object topObject = new Object() { @Override public String toString() { return "<top>"; }};
