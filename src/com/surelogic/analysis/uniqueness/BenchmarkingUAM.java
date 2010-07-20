@@ -43,30 +43,30 @@ public class BenchmarkingUAM extends AbstractWholeIRAnalysis<UniqueAnalysis,Void
 	
 	@Override
 	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode compUnit, IAnalysisMonitor monitor) {
-	  for (final IRNode node : JJNode.tree.topDown(compUnit)) {
-	    final Operator op = JJNode.tree.getOperator(node);
-	    if (MethodDeclaration.prototype.includes(op) || ConstructorDeclaration.prototype.includes(op)) {
-        String methodName = JavaNames.genQualifiedMethodConstructorName(node);
-        if (monitor != null) {
-        	monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
-        }
-        methodName = methodName.replace(',', '_');
-        
-        JavaComponentFactory.clearCache();
-        final ISrcRef srcRef = JavaNode.getSrcRef(node);
-        final int length = srcRef == null ? -1 : srcRef.getLength();
-        final long start = System.currentTimeMillis();
-        try {
-          getAnalysis().getAnalysis(node);
-          final long end = System.currentTimeMillis();
-          System.out.println(
-              methodName + ", " + length + ", " + (end-start));
-        } catch(final AnalysisGaveUp e) {
-          System.out.println(
-              methodName + ", " + length + ", GAVE UP AFTER " + e.count + " STEPS");
-        }
-        ImmutableHashOrderSet.clearCaches();
-	    }
+		for (final IRNode node : JJNode.tree.topDown(compUnit)) {
+			final Operator op = JJNode.tree.getOperator(node);
+			if (MethodDeclaration.prototype.includes(op) || ConstructorDeclaration.prototype.includes(op)) {
+				String methodName = JavaNames.genQualifiedMethodConstructorName(node);
+				if (monitor != null) {
+					monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+				}
+				methodName = methodName.replace(',', '_');
+
+				JavaComponentFactory.clearCache();
+				final ISrcRef srcRef = JavaNode.getSrcRef(node);
+				final int length = srcRef == null ? -1 : srcRef.getLength();
+				final long start = System.currentTimeMillis();
+				String msg;
+				try {
+					getAnalysis().getAnalysis(node);
+					final long end = System.currentTimeMillis();
+					msg = methodName + ", " + length + ", " + (end-start);
+				} catch(final AnalysisGaveUp e) {
+					msg = methodName + ", " + length + ", GAVE UP AFTER " + e.count + " STEPS";
+				}
+				System.out.print(msg);
+				System.out.println(ImmutableHashOrderSet.clearCaches());				
+			}
 	  }
 	  return false;
 	}

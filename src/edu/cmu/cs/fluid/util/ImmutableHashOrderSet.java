@@ -88,8 +88,74 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     elements = elems;
     inverse = inv;  	
     hashCode = computeHashCode(); 		
+    count(elems.length);
+  }
+  
+  static void count(final int size) {
+	  num++;
+	  sum += size;
+	  if (size > max) {		  
+		  max = size;
+		  /*
+		  if (size > 50) {
+			  System.out.println("Too big: "+size);
+		  }
+		  */
+	  }
+	  
+	  int i = counts.size();
+	  if (i <= size) {
+		  // Fill in blanks
+		  for(; i<size; i++) {
+			  counts.add(0);
+		  }
+		  counts.add(1);
+	  } else {
+		  int current = counts.get(size);
+		  counts.set(size, current+1);
+	  }
+	  
+	  if ((num & 0x7fffff) == 0) {
+		  printStats();
+	  }
   }
 
+  static int num = 0;
+  static long sum = 0;
+  static int max = 0;
+  static final List<Integer> counts = new ArrayList<Integer>();
+  
+  static String printStats() {
+	  //System.out.println("Max:     "+max);
+	  double avg = sum / (double) num;
+	  //System.out.println("Average: "+avg+" for "+num);		  
+	  
+	  // Compute standard deviation
+	  double deviation = 0;
+	  int i=0;
+	  for(Integer iv : counts) {
+		  if (iv != 0) {
+			  double diff = avg - i;			  
+			  deviation += iv*(diff*diff);		
+			  //System.out.println("Count:  "+iv+" at "+i);
+		  }
+		  i++;			  
+	  }
+	  double sd = Math.sqrt(deviation/(num-1));
+	  //System.out.println("Std dev: "+sd);
+	  return ", "+num+", "+avg+", "+sd+", "+max;
+  }
+  
+  static String clearStats() {
+	  String rv = printStats();
+	  
+	  num = 0;
+	  sum = 0;
+	  max = 0;
+	  counts.clear();
+	  return rv;
+  }
+  
   @SuppressWarnings("unchecked")
   public static final ImmutableHashOrderSet empty = new ImmutableHashOrderSet(SortedArray.empty,false);
   @SuppressWarnings("unchecked")
@@ -340,8 +406,9 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
                                            + " does not support clear()" );
   }
 
-  public static void clearCaches() {
+  public static String clearCaches() {	  
 	  SortedArray.clearCaches();
+	  return clearStats();
   }
   
   /** True if this set includes every element
@@ -1096,7 +1163,7 @@ class SortedArray {
   
   private static ThreadLocal<List> tempList = new ThreadLocal<List>();
   
-  static <V> V[] combine(final V[] a, final V[] b , final int flags) {
+  static <V> V[] combine(final V[] a, final V[] b , final int flags) {	 
     List l = tempList.get();
     if (l == null) {
     	l = new ArrayList(a.length + b.length);
@@ -1182,6 +1249,11 @@ class SortedArray {
     try {
       if (l.size() == 0)
         return empty();
+      /*
+      if (a.length > 20 || b.length > 20) {
+    	  System.out.println("a = "+a.length+", b = "+b.length+" -> "+l.size());
+      }
+      */
       return (V[]) l.toArray();
     }
     finally {

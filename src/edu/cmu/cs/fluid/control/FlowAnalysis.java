@@ -47,6 +47,9 @@ public abstract class FlowAnalysis<T> {
   //private boolean started = false;
   private long iterations = 0;
 
+  /**
+   * Zero indicates not to give up on the analysis. Run it forever if need be.
+   */
   private final int maxIterations;
   
   
@@ -151,7 +154,7 @@ public abstract class FlowAnalysis<T> {
   private final Map<ControlEdge,AssocList<LabelList,Lattice<T>>> currentInfo = 
     new HashMap<ControlEdge,AssocList<LabelList,Lattice<T>>>();
 
-  private static final int COUNT_BEFORE_CHECK = 10;
+  private static final int COUNT_BEFORE_CHECK = 1000;
   
   /** Perform the analysis as specified.
    * NB: If new initializations have been performed since
@@ -162,25 +165,35 @@ public abstract class FlowAnalysis<T> {
 	final IDE ide = IDE.getInstance();
     LOG.finer("About to start analysis: " + this);
     try {
-      int globalCount = 0;
-      int localCount = 0;
-      while (!worklist.isEmpty()) {
-        /* should the worklist include label too ? */
-        work((ControlEdge)worklist.dequeue());
-        localCount++;
-        globalCount++;
+		long deadline = 0;
+		int globalCount = 0;
+		int localCount = 0;
+		while (!worklist.isEmpty()) {
+			/* should the worklist include label too ? */
+			work((ControlEdge) worklist.dequeue());
+			localCount++;
+			globalCount++;
 
-        if (localCount == COUNT_BEFORE_CHECK) {
-          localCount = 0;
-        	
-        	if (ide.isCancelled()) {        
-        		throw new FluidInterruptedException();
-        	}
-        	if (maxIterations > 0 && globalCount >= maxIterations) {
-        	  throw new AnalysisGaveUp(globalCount);
-        	}
-        }        
-      }
+			if (localCount == COUNT_BEFORE_CHECK) {
+				localCount = 0;
+				final long time = System.nanoTime();
+
+				if (ide.isCancelled()) {
+					throw new FluidInterruptedException();
+				}
+				if (deadline == 0) {
+					deadline = time;
+					deadline += 1000000000L * 60L *2;
+				} else if (time > deadline) {
+					throw new AnalysisGaveUp(globalCount);
+				}
+				/*
+				if (maxIterations > 0 && globalCount >= maxIterations) {
+					throw new AnalysisGaveUp(globalCount);
+				}
+				*/
+			}
+		}
     } catch (RuntimeException e1) {
       if (e1 instanceof AnalysisGaveUp) throw e1;
       LOG.log(Level.WARNING, "Problem while analyzing", e1);
