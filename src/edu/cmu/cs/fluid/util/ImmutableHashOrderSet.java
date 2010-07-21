@@ -91,7 +91,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     count(elems.length);
   }
   
-  static void count(final int size) {
+  static synchronized void count(final int size) {
 	  num++;
 	  sum += size;
 	  if (size > max) {		  
@@ -106,7 +106,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 	  int i = counts.size();
 	  if (i <= size) {
 		  // Fill in blanks
-		  for(; i<size; i++) {
+		  for(; i<=size; i++) {
 			  counts.add(0);
 		  }
 		  counts.add(1);
@@ -146,12 +146,12 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 	  return ", "+num+", "+avg+", "+sd+", "+max;
   }
   
-  static String clearStats() {
+  static synchronized String clearStats() {
 	  String rv = printStats();
 	  
 	  num = 0;
 	  sum = 0;
-	  max = 0;
+	  max = 0;	  
 	  counts.clear();
 	  return rv;
   }
