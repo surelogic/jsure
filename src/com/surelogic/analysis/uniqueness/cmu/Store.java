@@ -1,16 +1,22 @@
 /* $Header: /cvs/fluid/fluid/src/com/surelogic/analysis/uniqueness/Store.java,v 1.41 2007/07/10 22:16:37 aarong Exp $ */
 package com.surelogic.analysis.uniqueness.cmu;
 
+import java.net.URL;
 import java.util.*;
 
 import com.surelogic.*;
+import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
+import edu.cmu.cs.fluid.ide.IClassPath;
+import edu.cmu.cs.fluid.ide.IClassPathContext;
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.PlainIRNode;
 import edu.cmu.cs.fluid.version.Era;
 import edu.cmu.cs.fluid.version.Version;
 import edu.cmu.cs.fluid.version.VersionedRegion;
+import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -1037,8 +1043,43 @@ class StoreEqual implements StoreFilter {
 }
 
 /* Test the uniqueness store */
-class TestStore {
-  public static void main(String[] args) {
+class TestStore extends IDE {
+  @Override
+  public boolean getBooleanPreference(String key) {
+	return false;
+  }
+
+  @Override
+  public int getIntPreference(String key) {
+	  return 0;
+  }
+
+  @Override
+  public IJavaFileLocator getJavaFileLocator() {
+	  return null;
+  }
+
+  @Override
+  public URL getResourceRoot() {
+	  return null;
+  }
+
+  @Override
+  public String getStringPreference(String key) {
+	  return null;
+  }
+
+  @Override
+  protected IClassPathContext newContext(IClassPath path) {
+	  return null;
+  }
+
+  @Override
+  public void popupWarning(String string) {
+	  // Nothing to do yet
+  }	
+	
+  public static void main(String[] args) { 
     // avoid problems with versioning:
     Version.setDefaultEra(new Era(Version.getVersion()));
     PlainIRNode.setCurrentRegion(new VersionedRegion());
@@ -1047,6 +1088,11 @@ class TestStore {
     new TestStore().run(args);
   }
 
+  {
+	  IDE.prototype = this;
+	  AnnotationRules.initialize();
+  }
+  
   // set up some useful nodes with promises
 
   IRNode bufField = VariableDeclarator.createNode("buf", 0, null);
