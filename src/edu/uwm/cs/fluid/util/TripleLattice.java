@@ -82,7 +82,7 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>> im
         lattice3.widen(v1.third(), v2.third()));
   }
 
-  public final String toString(final V v) {
+  public String toString(final V v) {
     return "<" + lattice1.toString(v.first()) + "," + 
       lattice2.toString(v.second()) + "," +
       lattice3.toString(v.third()) + ">";

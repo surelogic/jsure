@@ -1079,7 +1079,38 @@ class TestStore {
   IRNode local = VariableDeclarator.createNode("local", 0, null);
 
   public void run(String[] args) {
-    if (args.length == 0 || args[0].equals("paper")) {
+    if (args.length == 0) { // run all the tests!
+      System.out.println("**** paper ****");
+      papertest();
+      
+      System.out.println();
+      System.out.println("**** destructive ****");
+      effectstest(true);
+      
+      System.out.println();
+      System.out.println("**** borrowing ****");
+      effectstest(false);
+
+      System.out.println();
+      System.out.println("**** this ****");
+      System.out.println("Testing storing a borrowed this:\n");
+      thistest(brecDecl, true);
+      System.out.println("\n*********************************\n");
+      System.out.println("Testing storing a shared this:\n");
+      thistest(recDecl, true);
+      System.out.println("\n*********************************\n");
+      System.out.println("Testing returning a borrowed this:\n");
+      thistest(brecDecl, false);
+      System.out.println("\n*********************************\n");
+      System.out.println("Testing returning a shared this:\n");
+      thistest(recDecl, false);
+
+      System.out.println();
+      System.out.println("**** zero ****");
+      zerotest();
+      
+      System.out.println("**** DONE ****");
+    } else if (args[0].equals("paper")) {
       papertest();
     } else if (args[0].equals("destructive")) {
       effectstest(true);
