@@ -25,6 +25,7 @@ import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.*;
+import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.util.*;
@@ -482,6 +483,9 @@ public class JavacDriver {
 		
 		// TODO this needs to be run after ALL the info is collected
         JavacEclipse.initialize();
+        
+        final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+        ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
         
         ConfigureJob configure = new ConfigureJob("Configuring JSure build", isAuto);
 	    final boolean success = currentProjects.compareAndSet(null, configure.projects);
