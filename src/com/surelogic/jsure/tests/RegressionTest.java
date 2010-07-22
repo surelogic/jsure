@@ -1,6 +1,7 @@
 package com.surelogic.jsure.tests;
 
 import java.io.*;
+import java.util.*;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
@@ -76,14 +77,36 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       importProject(testModule);
       
       if (extraModules != null && !extraModules.startsWith("${")) {
-        // FIX if there's more than one
-        importProject(extraModules);
+    	final StringTokenizer st = new StringTokenizer(",");
+    	while (st.hasMoreTokens()) {
+    	  final String extra = st.nextToken().trim();
+    	  importProject(extra);
+    	}
       }
     }
   }
 
-  private void importProject(final String projectDir) {
+  private void importProject(final String projectDir) {	
     final File file                 = new File(projectDir);
+    importProject(file);
+  }
+    
+  /**
+   * Change to check for a .project file
+   * If not present, try to import immediate subdirectories
+   */
+  private void importProject(final File file) {	
+    // check for a .project file
+    if (!new File(file, ".project").exists()) {
+    	// Not present, so assume it to be a multi-project container, 
+    	// and try to import immediate subdirectories
+    	for(File f : file.listFiles()) {
+    		if (f.isDirectory()) {
+    			importProject(f);
+    		}
+    	}
+    	return;
+    }
     final String project            = file.getName();
     final IWorkspace workspace      = ResourcesPlugin.getWorkspace();
     IProjectDescription description = setProjectName(workspace, findDotProjectFile(file));
