@@ -3,8 +3,7 @@ package com.surelogic.jsure.tests;
 import java.io.*;
 import java.util.*;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
+import junit.framework.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
@@ -12,8 +11,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
-import com.surelogic.jsure.client.eclipse.analysis.JavacEclipse;
+import com.surelogic.jsure.client.eclipse.analysis.*;
 import com.surelogic.test.*;
 import com.surelogic.test.scripting.ScriptReader;
 import com.surelogic.test.xml.JUnitXMLOutput;
@@ -128,13 +126,23 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
         System.out.println("creating project: ");
         proj.create(description, null);
 
-        System.out.println("opening project: ");
-        proj.open(null);
       } catch (CoreException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     }
+    // Project should exist now
+    if (proj.exists()) {
+    	final IResource res = proj.findMember(".projectStatus");
+    	if (res == null) {
+    		// do the default thing of opening the project
+            try {
+            	System.out.println("opening project: ");
+            	proj.open(null);
+            } catch (CoreException e) {
+            	e.printStackTrace();
+            }
+    	}
+    }    
   }
 
   /**
