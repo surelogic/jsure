@@ -251,9 +251,11 @@ public class Plugin implements IAnalysisContainer {
 	// //////////////////////////////////////////////////////////////////////
 
 	private boolean isActive(IPreferenceStore store, String id) {
+		/*
 		if (AnalysisDriver.useJavac) {
 			return AnalysisDriver.ID.equals(id);
 		}
+		*/
 		return store.getBoolean(ANALYSIS_ACTIVE_PREFIX + id);
 	}
 	
@@ -723,8 +725,21 @@ public class Plugin implements IAnalysisContainer {
 	 * @see #allAnalysisExtensions
 	 */
 	private void initializeAnalysisLevels() {
-		m_analysisExtensionSets.clear(); // start with an empty list
-
+		m_analysisExtensionSets.clear(); // start with an empty list	
+		
+		if (AnalysisDriver.useJavac) {
+			// Just run AnalysisDriver
+			for (IExtension ext : allAnalysisExtensions) {
+				if (AnalysisDriver.ID.equals(ext.getUniqueIdentifier())) {
+					m_analysisExtensionSets.add(Collections.singleton(ext));
+					analysisExtensions = new IExtension[1];
+					analysisExtensions[0] = ext;
+					System.out.println("Found "+ext.getUniqueIdentifier());
+					return;
+				}
+			}			
+		}
+		
 		// construct the analysis levels based upon the prerequisites provided
 		// in the plugin manifest (held in the analysisExtensions field)
 		// filtering
