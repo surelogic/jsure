@@ -36,6 +36,9 @@ public class CompareResults extends AbstractCommand {
 	public boolean execute(ICommandContext context, String[] contents)
 			throws Exception {
 		final IFile oracleFile 		  = resolveFile(contents[1]);
+		if (oracleFile == null) {
+			return false;
+		}
 		String oracleName 		= oracleFile.getLocationURI().getPath();
 		final IFile resultsFile 		= resolveFile(contents[2]);
 		final String resultsName 		= resultsFile.getLocationURI().getPath();
