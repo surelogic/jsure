@@ -96,12 +96,17 @@ extends TripleLattice<Element<Integer>,
   // ==================================================================
   
   Store errorStore(final String msg) {
-    return replaceFirst(bottom(), FlatLattice2.<Integer>errorBottom(msg));
+    /* Create the new triple directly because we don't want replaceFirst()
+     * to substitute the original bottom back in. 
+     */
+    final Store bot = bottom();
+    return newTriple(
+        FlatLattice2.<Integer>errorBottom(msg), bot.second(), bot.third());
   }
   
   @Override
-  public Store meet(final Store s1, final Store s2) {
-    Store m = super.meet(s1, s2);
+  public Store join(final Store s1, final Store s2) {
+    Store m = super.join(s1, s2);
     if (!m.isValid() && !equals(m, top())) {
       // try to preserve cause
       if (!s1.isValid() && !equals(s1, top())) {
@@ -129,11 +134,14 @@ extends TripleLattice<Element<Integer>,
   
   public Store pop(final Store s) {
     if (!s.isValid()) return s;
-    final int n = s.getStackSize();
+    final Integer topOfStack = getStackTop(s);
+    final int n = topOfStack.intValue();
     if (n == 0) {
       return errorStore("stack underflow");
     }
-    return null;
+    return setStackSize(
+        apply(s, new Remove(EMPTY.addElement(topOfStack))),
+        Integer.valueOf(n-1));
   }
   
   /**
@@ -183,17 +191,17 @@ extends TripleLattice<Element<Integer>,
 
   /** Return whether a local or stack location is unique. */
   public boolean isUnique(final Store s, final Object local) {
-    return localStatus(s, local).compareTo(State.UNIQUE) < 0;
+    return localStatus(s, local).compareTo(State.UNIQUE) <= 0;
   }
 
   /** Return whether a local or stack location is defined and not borrowed. */
   public boolean isStoreable(final Store s, final Object local) {
-    return localStatus(s, local).compareTo(State.SHARED) < 0;
+    return localStatus(s, local).compareTo(State.SHARED) <= 0;
   }
 
   /** Return whether local or stack location is defined. */
   public boolean isDefined(final Store s, final Object local) {
-    return localStatus(s, local).compareTo(State.BORROWED) < 0;
+    return localStatus(s, local).compareTo(State.BORROWED) <= 0;
   }
 
 
@@ -286,7 +294,7 @@ extends TripleLattice<Element<Integer>,
         } else {
           temp = opExisting(temp, State.SHARED);
         }
-        temp = apply(temp, new Add(getStackTop(temp), EMPTY.addElement(local)));
+        temp = pop(apply(temp, new Add(getStackTop(temp), EMPTY.addElement(local))));
       } else {
         undefinedLocals = undefinedLocals.addElement(local);
       }
@@ -310,7 +318,7 @@ extends TripleLattice<Element<Integer>,
     if (!s.isValid()) return s;
     if (isDefined(s, local)) {
       Store temp = push(s);
-      return apply(temp, new Add(local, EMPTY.addElement(getStackTop(s))));
+      return apply(temp, new Add(local, EMPTY.addElement(getStackTop(temp))));
     } else {
       final String name = (local instanceof IRNode) ? DebugUnparser
           .toString((IRNode) local) : local.toString();
@@ -394,7 +402,7 @@ extends TripleLattice<Element<Integer>,
               if (object.contains(n)) {
                 return new FieldTriple(object, fieldDecl, uniqueNode);
               }
-              return IteratorUtil.noElement();
+              return IteratorUtil.noElement;
             }
           });
       temp = setFieldStore(temp, newFieldStore);
@@ -488,7 +496,7 @@ extends TripleLattice<Element<Integer>,
             if (t.first().isEmpty()) {
               return new FieldTriple(nset, t.second(), t.third());
             }
-            return IteratorUtil.noElement();
+            return IteratorUtil.noElement;
           }
         });
     return setFieldStore(temp, fieldStore);
@@ -502,7 +510,7 @@ extends TripleLattice<Element<Integer>,
     if (!s.isValid()) return s;
     Store temp = push(s);
     final ImmutableHashOrderSet<Object> nset = EMPTY.addElement(getStackTop(temp));
-    return meet(temp, apply(temp, new Add(pv, nset)));
+    return join(temp, apply(temp, new Add(pv, nset)));
   }
 
   /**
@@ -520,7 +528,7 @@ extends TripleLattice<Element<Integer>,
   public Store opBorrow(final Store s) {
     if (!s.isValid()) return s;
     if (localStatus(s, getStackTop(s)).compareTo(State.BORROWED) > 0) { // cannot be shared
-      return errorStore("Undefined Value on stack borrowed");
+      return errorStore("Undefined value on stack borrowed");
     }
     return opRelease(s);
   }
@@ -600,11 +608,11 @@ extends TripleLattice<Element<Integer>,
     final Iterator<ImmutableHashOrderSet<Object>> objsIter = objects.iterator();
     final Iterator<ImmutableHashOrderSet<Object>> filteredObjs = new SimpleRemovelessIterator<ImmutableHashOrderSet<Object>>() {
       @Override
-      protected ImmutableSet<Object> computeNext() {
+      protected Object computeNext() {
         if (objsIter.hasNext()) {
           return c.apply(objsIter.next());
         }
-        return IteratorUtil.noElement();
+        return IteratorUtil.noElement;
       }
     };
     final ImmutableSet<ImmutableHashOrderSet<Object>> newObjects =
@@ -616,12 +624,12 @@ extends TripleLattice<Element<Integer>,
     final Iterator<FieldTriple> fsIter = fieldStore.iterator();
     final Iterator<FieldTriple> filteredFields = new SimpleRemovelessIterator<FieldTriple>() {
       @Override
-      protected FieldTriple computeNext() {
+      protected Object computeNext() {
         if (fsIter.hasNext()) {
           final FieldTriple t = fsIter.next();
           return new FieldTriple(c.apply(t.first()), t.second(), c.apply(t.third()));
         }
-        return IteratorUtil.noElement();
+        return IteratorUtil.noElement;
       }
     };
     final ImmutableSet<FieldTriple> newFieldStore =
@@ -643,9 +651,9 @@ extends TripleLattice<Element<Integer>,
       ImmutableHashOrderSet.<ImmutableHashOrderSet<Object>>emptySet().addElements(
           new FilterIterator<ImmutableHashOrderSet<Object>, ImmutableHashOrderSet<Object>>(objsIter) {
             @Override
-            protected ImmutableHashOrderSet<Object> select(final ImmutableHashOrderSet<Object> o) {
+            protected Object select(final ImmutableHashOrderSet<Object> o) {
               if (f.filter(o)) return o;
-              return IteratorUtil.noElement();
+              return IteratorUtil.noElement;
             }
           });
 
@@ -656,11 +664,11 @@ extends TripleLattice<Element<Integer>,
       ImmutableHashOrderSet.<FieldTriple>emptySet().addElements(
           new FilterIterator<FieldTriple, FieldTriple>(fsIter) {
             @Override
-            protected FieldTriple select(final FieldTriple t) {
+            protected Object select(final FieldTriple t) {
               if (f.filter(t.first()) && f.filter(t.third())) {
                 return t;
               }
-              return IteratorUtil.noElement();
+              return IteratorUtil.noElement;
             }
           });
     

@@ -149,6 +149,7 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
     return bottomObject;
   }
   
+  // XXX: Should this be errorTop instead???
   public static <T> Element<T> errorBottom(final String msg) {
     return new Bottom<T>(msg);
   }

@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
+import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
@@ -1097,15 +1098,45 @@ class TestStore extends IDE {
 
   IRNode bufField = VariableDeclarator.createNode("buf", 0, null);
   {
+    FieldDeclaration.createNode(
+        Annotations.createNode(noNodes),
+        JavaNode.PRIVATE,
+        NamedType.createNode("java.lang.Object"),
+        VariableDeclarators.createNode(new IRNode[] { bufField }));
     UniquenessRules.setIsUnique(bufField, true);
   }
 
   IRNode sharedField = VariableDeclarator.createNode("f", 0, null);
-
+  {
+    FieldDeclaration.createNode(
+        Annotations.createNode(noNodes),
+        JavaNode.PRIVATE,
+        NamedType.createNode("java.lang.Object"),
+        VariableDeclarators.createNode(new IRNode[] { sharedField }));
+  }
+  
   IRNode recDecl = ReceiverDeclaration.prototype.createNode();
-
+  {
+    final IRNode methodDecl = MethodDeclaration.createNode(
+        Annotations.createNode(noNodes), JavaNode.PUBLIC, 
+        TypeFormals.createNode(new IRNode[0]),
+        VoidType.prototype.jjtCreate(),
+        "methodWithNormalReceiver",
+        Parameters.createNode(new IRNode[] {}), 0,
+        Throws.createNode(new IRNode[] {}), null);    
+    JavaPromise.attachPromiseNode(methodDecl, recDecl);
+  }
+  
   IRNode brecDecl = ReceiverDeclaration.prototype.createNode();
   {
+    final IRNode methodDecl = MethodDeclaration.createNode(
+        Annotations.createNode(noNodes), JavaNode.PUBLIC, 
+        TypeFormals.createNode(new IRNode[0]),
+        VoidType.prototype.jjtCreate(),
+        "methodWithBorrowedReceiver",
+        Parameters.createNode(new IRNode[] {}), 0,
+        Throws.createNode(new IRNode[] {}), null);    
+    JavaPromise.attachPromiseNode(methodDecl, brecDecl);
     UniquenessRules.setIsBorrowed(brecDecl, true);
   }
 

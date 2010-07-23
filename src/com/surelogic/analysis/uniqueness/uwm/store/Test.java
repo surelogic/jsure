@@ -2,20 +2,46 @@ package com.surelogic.analysis.uniqueness.uwm.store;
 
 import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 
+import java.net.URL;
+
+import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
+import edu.cmu.cs.fluid.ide.IClassPath;
+import edu.cmu.cs.fluid.ide.IClassPathContext;
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.PlainIRNode;
+import edu.cmu.cs.fluid.java.IJavaFileLocator;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.operator.Annotations;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.Implements;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NamedType;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.Parameters;
+import edu.cmu.cs.fluid.java.operator.Throws;
+import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
+import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.version.Era;
 import edu.cmu.cs.fluid.version.Version;
 import edu.cmu.cs.fluid.version.VersionedRegion;
 
-public final class Test {
+public final class Test extends IDE {
+  {
+    IDE.prototype = this;
+    AnnotationRules.initialize();
+  }
+  
+  
   public static void main(final String[] args) {
     // avoid problems with versioning:
     Version.setDefaultEra(new Era(Version.getVersion()));
@@ -33,15 +59,63 @@ public final class Test {
 
   private final IRNode bufField = VariableDeclarator.createNode("buf", 0, null);
   {
+    ClassDeclaration.createNode(
+        Annotations.createNode(noNodes),
+        JavaNode.PUBLIC,
+        "Class1",
+        TypeFormals.createNode(new IRNode[0]),
+        NamedType.createNode("java.lang.Object"),
+        Implements.createNode(new IRNode[] {}),
+        ClassBody.createNode(new IRNode[] {
+            FieldDeclaration.createNode(
+                Annotations.createNode(noNodes),
+                JavaNode.PRIVATE,
+                NamedType.createNode("java.lang.Object"),
+                VariableDeclarators.createNode(new IRNode[] { bufField }))
+        }));
     UniquenessRules.setIsUnique(bufField, true);
   }
 
   private final IRNode sharedField = VariableDeclarator.createNode("f", 0, null);
+  {
+    ClassDeclaration.createNode(
+        Annotations.createNode(noNodes),
+        JavaNode.PUBLIC,
+        "Class2",
+        TypeFormals.createNode(new IRNode[0]),
+        NamedType.createNode("java.lang.Object"),
+        Implements.createNode(new IRNode[] {}),
+        ClassBody.createNode(new IRNode[] {
+            FieldDeclaration.createNode(
+                Annotations.createNode(noNodes),
+                JavaNode.PRIVATE,
+                NamedType.createNode("java.lang.Object"),
+                VariableDeclarators.createNode(new IRNode[] { sharedField }))
+        }));
+  }
 
   private final IRNode recDecl = ReceiverDeclaration.prototype.createNode();
+  {
+    final IRNode methodDecl = MethodDeclaration.createNode(
+        Annotations.createNode(noNodes), JavaNode.PUBLIC, 
+        TypeFormals.createNode(new IRNode[0]),
+        VoidType.prototype.jjtCreate(),
+        "methodWithNormalReceiver",
+        Parameters.createNode(new IRNode[] {}), 0,
+        Throws.createNode(new IRNode[] {}), null);    
+    JavaPromise.attachPromiseNode(methodDecl, recDecl);
+  }
 
   private final IRNode brecDecl = ReceiverDeclaration.prototype.createNode();
   {
+    final IRNode methodDecl = MethodDeclaration.createNode(
+        Annotations.createNode(noNodes), JavaNode.PUBLIC, 
+        TypeFormals.createNode(new IRNode[0]),
+        VoidType.prototype.jjtCreate(),
+        "methodWithBorrowedReceiver",
+        Parameters.createNode(new IRNode[] {}), 0,
+        Throws.createNode(new IRNode[] {}), null);    
+    JavaPromise.attachPromiseNode(methodDecl, brecDecl);
     UniquenessRules.setIsBorrowed(brecDecl, true);
   }
 
@@ -63,6 +137,10 @@ public final class Test {
 
   
   
+  // ==================================================================
+  // === Tests
+  // ==================================================================
+
   public void run(final String[] args) {
     if (args.length == 0) { // run all the tests!
       System.out.println("**** paper ****");
@@ -137,7 +215,8 @@ public final class Test {
     System.out.println(sl.toString(store));
 
     System.out.println("  .buf");
-    store = sl.opLoad(store, bufField);
+    store =
+      sl.opLoad(store, bufField);
     System.out.println(sl.toString(store));
 
     System.out.println("  .sync();");
@@ -344,4 +423,46 @@ public final class Test {
     store = sl.opSet(store, local);
     System.out.println(sl.toString(store));
   }
+
+  
+
+  // ==================================================================
+  // === Implement methods for IDE
+  // ==================================================================
+  
+  @Override
+  public boolean getBooleanPreference(String key) {
+  return false;
+  }
+
+  @Override
+  public int getIntPreference(String key) {
+    return 0;
+  }
+
+  @SuppressWarnings("rawtypes")
+  @Override
+  public IJavaFileLocator getJavaFileLocator() {
+    return null;
+  }
+
+  @Override
+  public URL getResourceRoot() {
+    return null;
+  }
+
+  @Override
+  public String getStringPreference(String key) {
+    return null;
+  }
+
+  @Override
+  protected IClassPathContext newContext(IClassPath path) {
+    return null;
+  }
+
+  @Override
+  public void popupWarning(String string) {
+    // Nothing to do yet
+  }  
 }

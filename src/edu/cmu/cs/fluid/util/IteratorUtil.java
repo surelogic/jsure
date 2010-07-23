@@ -9,7 +9,4 @@ package edu.cmu.cs.fluid.util;
 
 public class IteratorUtil {
   public static final Object noElement = new Object();
-  
-  @SuppressWarnings("unchecked")
-  public static final <T> T noElement() { return (T) noElement; }
 }
