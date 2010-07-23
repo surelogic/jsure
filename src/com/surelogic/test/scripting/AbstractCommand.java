@@ -3,6 +3,11 @@ package com.surelogic.test.scripting;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 
+/**
+ * Contains various utility methods to find projects/files in the workspace
+ * 
+ * @author Edwin
+ */
 public abstract class AbstractCommand implements ICommand {
   protected static final byte[] noBytes = new byte[0];
   
@@ -35,7 +40,7 @@ public abstract class AbstractCommand implements ICommand {
       return file;
     }    
     final String[] tokens     = Util.collectTokens(name, "/");
-    if (tokens == null || tokens.length == 0) {
+    if (tokens.length == 0) {
       return null;
     }    
     final IProject p = root.getProject(tokens[0]);

@@ -5,51 +5,33 @@ package com.surelogic.test.scripting;
 
 import java.io.*;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.*;
 
-import edu.cmu.cs.fluid.dcf.views.coe.XMLReport;
+import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
- * @author ethan
+ * Export the Drop-Sea results as XML to the specified file name
  * 
+ * @author ethan
  */
 public class ExportResults extends AbstractCommand {
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.surelogic.test.scripting.ICommand#execute(com.surelogic.test.scripting.ICommandContext,
-	 *      java.lang.String[])
-	 *      
-	 */
 	/**
 	 * Arguments are as follows:
 	 * 1 - project name
-	 * 2 - results file name
+	 * 2 - results file name prefix (w/o suffix)
 	 */
-	public boolean execute(ICommandContext context, String[] contents)
+	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
-		String resultsName = null;
 		final IProject project = resolveProject(contents[1]);
-//		final IWorkspace ws = project.getWorkspace();
-		final File workspaceFile = new File(project.getLocationURI());//ws.getRoot().getFullPath().toFile();
-		
-		/*
-		 * Handled by ConsistencyListener System.out.println("Updating consistency
-		 * proof"); Sea.getDefault().updateConsistencyProof();
-		 */
+		final File workspaceFile = new File(project.getLocationURI());
+		//ws.getRoot().getFullPath().toFile();
 
 		// Export the results from this run
 		try {
-			File f = new File(workspaceFile, contents[2]);
-			FileOutputStream out = new FileOutputStream(f);
-			System.out.println("Exporting results w/ source");
-			XMLReport.exportResultsWithSource(out);
-			out.close();
-			resultsName = f.getAbsolutePath();
-			assert (f.exists());
-
+			final File location = new File(workspaceFile, contents[2] + SeaSnapshot.SUFFIX);
+			SeaSummary.summarize(project.getName(), Sea.getDefault(), location);
+			assert (location.exists());
 		} catch (FileNotFoundException e) {
 			System.out.println("Problem while creating results:");
 			e.printStackTrace();

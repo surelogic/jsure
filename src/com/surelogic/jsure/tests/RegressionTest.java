@@ -13,7 +13,7 @@ import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.jsure.client.eclipse.analysis.*;
 import com.surelogic.test.*;
-import com.surelogic.test.scripting.ScriptReader;
+import com.surelogic.test.scripting.*;
 import com.surelogic.test.xml.JUnitXMLOutput;
 
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
@@ -24,7 +24,6 @@ import edu.cmu.cs.fluid.eclipse.logging.EclipseLogHandler;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
@@ -398,7 +397,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
     AnnotationRules.XML_LOG.close();
 
-    String resultsName = null;
+    //String resultsName = null;
     boolean resultsOk = true;
     
     // Export the results from this run
@@ -417,8 +416,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       */
     	
       // Export new results XML
-      final File location = new File(workspaceFile, projectName + SeaSnapshot.SUFFIX);
-      SeaSummary.summarize(projectName, Sea.getDefault(), location);
+      // final File location = new File(workspaceFile, projectName + SeaSnapshot.SUFFIX);
+      // SeaSummary.summarize(projectName, Sea.getDefault(), location);      
+      new ExportResults().execute(ICommandContext.nullContext, projectName, projectName);
       end("Done exporting");
       
       currentTest = start("comparing results");
@@ -494,17 +494,11 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		  final String projectPath, final String projectName, boolean resultsOk)
   throws Exception {
 	  final File xmlLocation = SeaSummary.findSummary(projectPath);
-	  final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), xmlLocation);
-	  final File diffs = new File(workspaceFile, projectName+".sea.diffs.xml");
-	  if (!diff.isEmpty()) {
-		  System.out.println("Writing diffs to "+diffs);
-		  diff.write(diffs);
-		  resultsOk = false;
-	  } else {
-		  System.out.println("No diffs to write");
-		  diffs.createNewFile();
-	  }
-	  return resultsOk;
+	  String diffPath = new File(workspaceFile, projectName).getAbsolutePath(); // w/o extension
+	  CompareResults compare = new CompareResults();
+	  compare.execute(ICommandContext.nullContext, projectName, 
+			          xmlLocation.getAbsolutePath(), diffPath);
+	  return resultsOk && compare.resultsOk;
   }
 
   private void printActivatedAnalyses() {

@@ -2,20 +2,23 @@ package com.surelogic.test.scripting;
 
 import java.util.*;
 
+/**
+ * A container for the available commands
+ * 
+ * @author Edwin
+ */
 public final class Commands {
   private final Map<String, ICommand> commands = new HashMap<String,ICommand>();
   
   public Commands() {
-    /*
-    commands.put("set", null);
-    commands.put("unset", null);
-    */
     commands.put("touchFile", new TouchFile());
     commands.put("saveFile", new SaveFile());
     commands.put("patchFile", new PatchFile());
     commands.put("saveAllFiles", new SaveAllFiles());
     commands.put("createProject", new CreateProject());
     commands.put("openProject", new OpenProject());
+    commands.put("addNature", new AddNature());
+    commands.put("removeNature", new RemoveNature());
     commands.put("cleanProject", new CleanProject());
     commands.put("closeProject", new CloseProject());
     commands.put("patchFile", new PatchFile());

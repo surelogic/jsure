@@ -9,22 +9,18 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
 /**
+ * Deletes the file if it exists, and throws an exception otherwise
+ * 
  * @author ethan
- *
  */
-public class DeleteFile extends AbstractCommand {
-
-	/* (non-Javadoc)
-	 * @see com.surelogic.test.scripting.ICommand#execute(com.surelogic.test.scripting.ICommandContext, java.lang.String[])
-	 */
+public class DeleteFile extends AbstractFileCommand {
 	/**
 	 * @param context
 	 * @param contents The arguments in the following order:
-	 * 1 - the file name to delete
+	 * 1 - the file name to delete (relative to the workspace)
 	 */
-	public boolean execute(ICommandContext context, String[] contents)
-			throws Exception {
-		IFile file = resolveFile(contents[1]);
+	@Override
+	protected boolean execute(ICommandContext context, IFile file) throws Exception {
 		if(file != null && file.exists()){
     		file.delete(IResource.NONE, null);
 		}

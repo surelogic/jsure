@@ -8,23 +8,27 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.launching.JavaRuntime;
 
-import edu.cmu.cs.fluid.dc.Nature;
-
+/**
+ * Creates a new Java project with the specified source files, 
+ * or an empty project if not specified
+ * 
+ * @author Edwin
+ */
 public class CreateProject extends AbstractCommand {
 	/**
 	 * @param context
 	 * @param contents
-	 *          arguments: 1 - name of the project 2 - location of source files
-	 *          (OPTIONAL)
+	 *          arguments: 1 - name of the project 
+	 *          2 - location of source files (OPTIONAL)
 	 */
-	public boolean execute(ICommandContext context, String[] contents)
+	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		IProject p = resolveProject(contents[1], true);
 		//JavaCore.getJavaCore();
 		if (!p.exists()) {
 			IProjectDescription description = p.getWorkspace().newProjectDescription(
 					contents[1]);
-			if (contents.length == 3) {
+			if (contents.length >= 3) {
 				File source = new File(contents[2]);
 				if (source.isDirectory()) {
 					description.setLocation(Path.fromOSString(source.getAbsolutePath()));
@@ -41,6 +45,8 @@ public class CreateProject extends AbstractCommand {
 				newNatures[natures.length] = JavaCore.NATURE_ID;
 				description.setNatureIds(newNatures);
 			}
+			/* Needs to be added separately
+			 * 
 			// Add the JSure Nature
 			if (!description.hasNature(Nature.DOUBLE_CHECKER_NATURE_ID)) {
 				String[] natures = description.getNatureIds();
@@ -49,24 +55,7 @@ public class CreateProject extends AbstractCommand {
 				newNatures[natures.length] = Nature.DOUBLE_CHECKER_NATURE_ID;
 				description.setNatureIds(newNatures);
 			}
-			
-			// check for the .settings folder
-			IFile settings = resolveFile(p.getName() + "/.settings");
-
-			// If there are no project-specific settings, set some
-			if (settings == null || !settings.exists()) {
-				// Set the compiler compliance to Java 1.5
-				// This sets it for the whole system I believe...need to make this on a
-				// per-project basis in case we want multi-project tests
-				Hashtable options = JavaCore.getOptions();
-				options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_5);
-				options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_5);
-				options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM,
-						JavaCore.VERSION_1_5);
-
-				JavaCore.setOptions(options);
-			}
-			
+			*/			
 			p.create(description, null);
 			p.open(null);
 
@@ -77,9 +66,28 @@ public class CreateProject extends AbstractCommand {
 			}
 			setupJRE(javaProject);
 
+			initCompilerSettings(javaProject);
 			return true;
 		}
 		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void initCompilerSettings(IJavaProject javaProject) {
+		// check for the .settings folder
+		IFile settings = resolveFile(javaProject.getElementName() + "/.settings");
+
+		// If there are no project-specific settings, set some
+		if (settings == null || !settings.exists()) {							
+			// Set the compiler compliance to Java 1.5
+			Map options = javaProject.getOptions(true);
+			options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_5);
+			options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_5);
+			options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM,
+					JavaCore.VERSION_1_5);
+
+			javaProject.setOptions(options);
+		}
 	}
 
 	private void setupJRE(IJavaProject javaProject) throws JavaModelException {

@@ -3,47 +3,50 @@
  */
 package com.surelogic.test.scripting;
 
-import java.io.File;
-import java.io.FilenameFilter;
+import java.io.*;
 
 import org.eclipse.core.resources.IFile;
 
-import com.surelogic.test.ITestOutput;
+import com.surelogic.common.regression.RegressionUtility;
 
-import edu.cmu.cs.fluid.eclipse.logging.EclipseLogHandler;
-import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.logging.XMLLogDiff;
-import edu.cmu.cs.fluid.srv.Results;
+import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 /**
  * @author ethan
- * 
  */
 public class CompareResults extends AbstractCommand {
-
+	public boolean resultsOk = true;
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see com.surelogic.test.scripting.ICommand#execute(com.surelogic.test.scripting.ICommandContext,
 	 *      java.lang.String[]) The contents array should contain, in the
 	 *      following order 
-	 *      1 - results oracle file to compare against 
-	 *      2 - the results file 
-	 *      3 - the results diffs file 
-	 *      4 - The log oracle file to compare 
-	 *      5 - the log diffs file
+	 *      1 - project name
+	 *      2 - results oracle file to compare against 
+	 *      3 - the results diffs file (w/ no extension)
 	 */
-	public boolean execute(ICommandContext context, String[] contents)
+	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
-		final IFile oracleFile 		  = resolveFile(contents[1]);
+		final String projectName = contents[1]; 
+		final IFile oracleFile   = resolveFile(contents[2]);
 		if (oracleFile == null) {
 			return false;
 		}
-		String oracleName 		= oracleFile.getLocationURI().getPath();
-		final IFile resultsFile 		= resolveFile(contents[2]);
-		final String resultsName 		= resultsFile.getLocationURI().getPath();
-		final String diffsName 			= resolveFile(contents[3], true).getLocationURI().getPath();
-		
+		final String oracleName    = oracleFile.getLocationURI().getPath();
+		final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), new File(oracleName));
+		final String diffsName 	   = resolveFile(contents[3], true).getLocationURI().getPath();
+		final File diffs           = new File(diffsName+RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
+		if (!diff.isEmpty()) {
+			System.out.println("Writing diffs to "+diffs);
+			diff.write(diffs);
+			resultsOk = false;
+		} else {
+			System.out.println("No diffs to write");
+			diffs.createNewFile();
+		}
+		/*
     final ITestOutput XML_LOG = IDE.getInstance().makeLog("EclipseLogHandler");
 		boolean ok = true;
 		System.out
@@ -60,66 +63,10 @@ public class CompareResults extends AbstractCommand {
 		System.out.println("diffs.xml = " + diffsName);
 		ok = ok && !results.root.hasChildren();
 		
-		
-		/*
-		final IFile oracleLogFile 	= resolveFile(contents[4]);
-		final String oracleLogName 	= oracleLogFile.getLocationURI().getPath();
-		final String logDiffsName 	= resolveFile(contents[5], true).getLocationURI().getPath();
-
-		System.out.println("Try to compare the log to the log oracle");
-		assert (new File(oracleLogName).exists());
-		try {
-			System.out.println("Starting log diffs");
-			int numDiffs = XMLLogDiff.diff(XML_LOG, oracleLogName, logName,
-					logDiffsName);
-			System.out.println("#diffs = " + numDiffs);
-			ok = ok && (numDiffs == 0);
-			System.out.println("log diffs = " + logDiffsName);
-		} catch (Exception e) {
-			System.out.println("Problem while diffing the log: "
-					+ oracleName + ", " + "logName" + ", " + logDiffsName);
-			e.printStackTrace();
-			throw e;
-		} finally {
-		  XML_LOG.close();
-		}
-		*/
 		if(!ok){
 			throw new Exception("Results " + resultsFile + " don't match the oracle file: " + oracleName);
 		}
-	return false;
-	}
-	
-	private static FilenameFilter oracleFilter = new FilenameFilter() {
-		public boolean accept(File dir, String name) {
-			return name.startsWith("oracle") && name.endsWith(".zip");
-		}
-	};
-
-	private static FilenameFilter logOracleFilter = new FilenameFilter() {
-		public boolean accept(File dir, String name) {
-			return name.startsWith("oracle") && name.endsWith(".log.xml");
-		}
-	};
-
-	private String getOracleName(String projectPath, FilenameFilter filter,
-			String defaultName) {
-		File path = new File(projectPath);
-		File[] files = path.listFiles(filter);
-		File file = null;
-		for (File zip : files) {
-			if (file == null) {
-				file = zip;
-			} else if (zip.getName().length() > file.getName().length()) {
-				// Intended for comparing 3.2.4 to 070221
-				file = zip;
-			} else if (zip.getName().length() == file.getName().length()
-					&& zip.getName().compareTo(file.getName()) > 0) {
-				// Intended for comparing 070107 to 070221
-				file = zip;
-			}
-		}
-		return (file != null) ? file.getAbsolutePath() : projectPath
-				+ File.separator + defaultName;
+		*/
+		return false;
 	}
 }

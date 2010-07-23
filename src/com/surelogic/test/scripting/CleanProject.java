@@ -1,7 +1,10 @@
 package com.surelogic.test.scripting;
 
-public class CleanProject extends AbstractCommand {
-  public boolean execute(ICommandContext context, String[] contents) {
-    throw new UnsupportedOperationException();
-  }
+import org.eclipse.core.resources.IProject;
+
+public class CleanProject extends AbstractProjectCommand {
+	@Override
+	protected boolean execute(ICommandContext context, IProject p) throws Exception {
+		throw new UnsupportedOperationException();
+	}
 }

@@ -5,8 +5,13 @@ import java.io.*;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 
+/**
+ * Touch a file, or create it if it doesn't exist
+ * 
+ * @author Edwin
+ */
 public class TouchFile extends AbstractCommand {
-  public boolean execute(ICommandContext context, String[] contents) throws CoreException {
+  public boolean execute(ICommandContext context, String... contents) throws CoreException {
     IFile f = resolveFile(contents[1], true);
     if (f.exists()) {
       f.touch(null);

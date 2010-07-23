@@ -7,11 +7,11 @@ import java.io.*;
 import java.net.URI;
 
 import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.Path;
 
 /**
+ * Copies a file (or directory and its contents) into a project
+ * 
  * @author ethan
- *
  */
 public class Import extends AbstractCommand {
 	private final int BUFFER_SIZE = 1024;
@@ -28,7 +28,7 @@ public class Import extends AbstractCommand {
 	 * 1 - project name to import into
 	 * 2 - file or directory to import
 	 */
-	public boolean execute(ICommandContext context, String[] contents)
+	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		IProject project = resolveProject(contents[1]);
 		if(project == null || !project.exists()){
@@ -59,7 +59,7 @@ public class Import extends AbstractCommand {
 		File[] files = srcDir.listFiles();
 		for (File file : files) {
 			if(file.isDirectory()){
-				//recreate the dir heirarchy
+				//recreate the dir hierarchy
 				copyDir(file, new File(destDir, file.getName()));
 			}
 			else{

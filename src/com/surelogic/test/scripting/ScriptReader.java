@@ -5,6 +5,11 @@ import java.io.*;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 
+/**
+ * Reads the script line by line
+ * 
+ * @author Edwin
+ */
 public class ScriptReader implements ICommandContext {
   private Commands commands = new Commands();
   /**
@@ -15,8 +20,9 @@ public class ScriptReader implements ICommandContext {
   boolean buildNow  = false;
   
   public ScriptReader() {
+	// Setup commands to change the state of autoBuild
     commands.put("set", new ICommand() {
-      public boolean execute(ICommandContext context, String[] contents) throws Exception {
+      public boolean execute(ICommandContext context, String... contents) throws Exception {
         if ("autobuild".equals(contents[1])) {
           autoBuild = true;
         }
@@ -24,7 +30,7 @@ public class ScriptReader implements ICommandContext {
       }  
     });
     commands.put("unset", new ICommand() {
-      public boolean execute(ICommandContext context, String[] contents) throws Exception {
+      public boolean execute(ICommandContext context, String... contents) throws Exception {
         if ("autobuild".equals(contents[1])) {
           autoBuild = false;
         }
@@ -71,15 +77,26 @@ public class ScriptReader implements ICommandContext {
     final BufferedReader br = new BufferedReader(r);  
     String line;
     while ((line = br.readLine()) != null) {
-      String[] tokens = Util.collectTokens(line, " \n");
-      if (tokens == null || tokens.length == 0) {
+      String[] tokens = Util.collectTokens(line, " ,\n");
+      if (tokens.length == 0) {
         continue;
       }
       if (tokens[0].startsWith("#")) {
+    	System.out.println("ScriptReader: ignoring "+line);
         continue;
       }
-      changed = changed || commands.get(tokens[0]).execute(this, tokens);
+      System.out.println("ScriptReader: "+line);
+      final boolean justChanged = commands.get(tokens[0]).execute(this, tokens);
+      changed = changed || justChanged;
+      if (justChanged) {
+    	System.out.println("ScriptReader: just changed");
+      }
       if (buildNow || changed && autoBuild) {
+    	if (buildNow) {
+    	  System.out.println("ScriptReader: building now");
+    	} else {
+    	  System.out.println("ScriptReader: auto-building due to a change");
+    	}
         changed  = false;
         buildNow = false;
         build();
