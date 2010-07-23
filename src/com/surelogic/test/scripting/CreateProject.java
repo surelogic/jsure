@@ -20,7 +20,7 @@ public class CreateProject extends AbstractCommand {
 	public boolean execute(ICommandContext context, String[] contents)
 			throws Exception {
 		IProject p = resolveProject(contents[1], true);
-		JavaCore.getJavaCore();
+		//JavaCore.getJavaCore();
 		if (!p.exists()) {
 			IProjectDescription description = p.getWorkspace().newProjectDescription(
 					contents[1]);
