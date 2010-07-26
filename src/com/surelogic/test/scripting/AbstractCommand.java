@@ -1,5 +1,8 @@
 package com.surelogic.test.scripting;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 
@@ -28,11 +31,11 @@ public abstract class AbstractCommand implements ICommand {
     return null;
   }
   
-  protected IFile resolveFile(String name) {
-    return resolveFile(name, false);
+  protected IFile resolveIFile(String name) {
+    return resolveIFile(name, false);
   }
   
-  protected IFile resolveFile(String name, boolean create) {
+  protected IFile resolveIFile(String name, boolean create) {
     final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
     IPath path          = Path.fromOSString(name);
     IFile file          = root.getFile(path);
@@ -55,5 +58,30 @@ public abstract class AbstractCommand implements ICommand {
       }
     }
     return null;
+  }
+  
+  protected File resolveFile(String name) {
+	  return resolveFile(name, false);
+  }
+  
+  protected File resolveFile(String name, boolean create) {
+	  File f = new File(name);
+	  if (create) {
+		  try {
+			  f.createNewFile();
+		  } catch(IOException e) {
+			  // Ignore for now
+		  }
+	  }
+	  if (!f.exists()) {
+		  final IFile oracleFile = resolveIFile(name);
+		  if (oracleFile == null) {
+			  System.out.println("Couldn't find file: "+name);
+			  return null;
+		  }
+		  final String path  = oracleFile.getLocationURI().getPath();
+		  f = new File(path);
+	  }
+	  return f;
   }
 }

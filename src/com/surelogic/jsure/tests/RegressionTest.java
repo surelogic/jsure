@@ -418,7 +418,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       // Export new results XML
       // final File location = new File(workspaceFile, projectName + SeaSnapshot.SUFFIX);
       // SeaSummary.summarize(projectName, Sea.getDefault(), location);      
-      new ExportResults().execute(ICommandContext.nullContext, projectName, projectName);
+      new ExportResults().execute(ICommandContext.nullContext, "export", projectName, projectName);
       end("Done exporting");
       
       currentTest = start("comparing results");
@@ -450,8 +450,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       System.out.println("Problem while closing results:");
       endError(ex);
     } catch (Throwable ex) {
-      System.out.println("Problem while exporting/comparing results:");
-      ex.printStackTrace();
+      System.out.println("Problem while exporting/comparing results: "+ex+" -- "+ex.getMessage());
+      ex.printStackTrace(System.out);
       endError(ex);
     }
 
@@ -494,9 +494,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		  final String projectPath, final String projectName, boolean resultsOk)
   throws Exception {
 	  final File xmlLocation = SeaSummary.findSummary(projectPath);
-	  String diffPath = new File(workspaceFile, projectName).getAbsolutePath(); // w/o extension
+	  String diffPath = new File(workspaceFile, 
+			  projectName+RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX).getAbsolutePath(); 
 	  CompareResults compare = new CompareResults();
-	  compare.execute(ICommandContext.nullContext, projectName, 
+	  compare.execute(ICommandContext.nullContext, "compare", projectName, 
 			          xmlLocation.getAbsolutePath(), diffPath);
 	  return resultsOk && compare.resultsOk;
   }

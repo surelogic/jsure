@@ -75,7 +75,7 @@ public class CreateProject extends AbstractCommand {
 	@SuppressWarnings("unchecked")
 	private void initCompilerSettings(IJavaProject javaProject) {
 		// check for the .settings folder
-		IFile settings = resolveFile(javaProject.getElementName() + "/.settings");
+		IFile settings = resolveIFile(javaProject.getElementName() + "/.settings");
 
 		// If there are no project-specific settings, set some
 		if (settings == null || !settings.exists()) {							

@@ -5,10 +5,6 @@ package com.surelogic.test.scripting;
 
 import java.io.*;
 
-import org.eclipse.core.resources.IFile;
-
-import com.surelogic.common.regression.RegressionUtility;
-
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
@@ -25,19 +21,18 @@ public class CompareResults extends AbstractCommand {
 	 *      following order 
 	 *      1 - project name
 	 *      2 - results oracle file to compare against 
-	 *      3 - the results diffs file (w/ no extension)
+	 *      3 - the results diffs file (w/ extension)
 	 */
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		final String projectName = contents[1]; 
-		final IFile oracleFile   = resolveFile(contents[2]);
-		if (oracleFile == null) {
+		File oracle = resolveFile(contents[2]);
+		if (oracle == null) {
 			return false;
 		}
-		final String oracleName    = oracleFile.getLocationURI().getPath();
-		final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), new File(oracleName));
-		final String diffsName 	   = resolveFile(contents[3], true).getLocationURI().getPath();
-		final File diffs           = new File(diffsName+RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
+		System.out.println("Using oracle: "+oracle);
+		final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), oracle);
+		final File diffs	       = resolveFile(contents[3], true);
 		if (!diff.isEmpty()) {
 			System.out.println("Writing diffs to "+diffs);
 			diff.write(diffs);

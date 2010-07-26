@@ -11,7 +11,7 @@ public abstract class AbstractFileCommand extends AbstractCommand {
 	public final boolean execute(ICommandContext context, String... contents) throws Exception {
 		boolean changed = false;
 		for(int i=1; i<contents.length; i++) {
-			final IFile f = resolveFile(contents[i], true);
+			final IFile f = resolveIFile(contents[i], true);
 			if (f == null) {
 				continue;
 			}

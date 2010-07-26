@@ -12,7 +12,7 @@ import org.eclipse.core.runtime.*;
  */
 public class TouchFile extends AbstractCommand {
   public boolean execute(ICommandContext context, String... contents) throws CoreException {
-    IFile f = resolveFile(contents[1], true);
+    IFile f = resolveIFile(contents[1], true);
     if (f.exists()) {
       f.touch(null);
     } else {

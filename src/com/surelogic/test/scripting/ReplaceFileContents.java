@@ -25,7 +25,7 @@ public class ReplaceFileContents extends AbstractCommand {
 				|| "".equals(contents[2])) {
 			throw new IllegalArgumentException("An argument is null or empty.");
 		}
-		IFile file = resolveFile(contents[1]);
+		IFile file = resolveIFile(contents[1]);
 
 		if (file == null || !file.exists()) {
 			throw new FileNotFoundException("File, " + file + " is not a valid file.");

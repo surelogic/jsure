@@ -28,13 +28,13 @@ public class PatchFile extends AbstractCommand {
 			throw new IllegalArgumentException("An argument is null or empty.");
 		}
 
-		IFile file = resolveFile(contents[1]);
+		IFile file = resolveIFile(contents[1]);
 
 		if (file == null || !file.exists()) {
 			throw new FileNotFoundException("File, " + file + " is not a valid file.");
 		}
 
-		IFile diff = resolveFile(contents[2]);
+		IFile diff = resolveIFile(contents[2]);
 		IFilePatch[] patches = ApplyPatchOperation.parsePatch(diff);
 
 		PatchConfiguration config = new PatchConfiguration();
