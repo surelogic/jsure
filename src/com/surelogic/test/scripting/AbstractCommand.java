@@ -71,11 +71,11 @@ public abstract class AbstractCommand implements ICommand {
 			  f.createNewFile();
 		  } catch(IOException e) {
 			  // Ignore for now
-			  e.printStackTrace();
+			  //e.printStackTrace();
 		  }
 	  }
 	  if (!f.exists()) {
-		  final IFile oracleFile = resolveIFile(name);
+		  final IFile oracleFile = resolveIFile(name, create);
 		  if (oracleFile == null) {
 			  System.out.println("Couldn't find file: "+name);
 			  return null;
