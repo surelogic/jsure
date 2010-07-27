@@ -11,9 +11,8 @@ import com.surelogic.common.eclipse.EclipseUtility;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
-import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
+import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.sea.xml.*;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary.Diff;
 
 public class SnapshotDiffView extends AbstractDoubleCheckerView {
@@ -70,10 +69,12 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void updateView() {
-		// Find the current active project
-		final String name = ProjectDrop.getProject();
-		if (name != null) {
+		final ProjectsDrop pd = ProjectsDrop.getDrop();
+		for(String name : pd.getIIRProjects().getProjectNames()) {			
 			final IProject p = EclipseUtility.getProject(name);
+			if (p == null) {
+				continue;
+			}
 			final File pFile = p.getLocation().toFile();
 			final File file  = SeaSummary.findSummary(pFile.getAbsolutePath());			
 			//IFile file = p.getFile(name + SeaSnapshot.SUFFIX);
@@ -87,12 +88,13 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 					
 					Diff d = SeaSummary.diff(name, Sea.getDefault(), file);
 					f_contentProvider.setDiff(d);					
+					return;
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} else {
-				System.out.println("No snapshot to diff against");
+				System.out.println("No snapshot to diff against in "+name);
 			}
 		}
 	}
