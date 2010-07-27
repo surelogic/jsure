@@ -9,16 +9,12 @@ public class TestScripting extends TestCase {
     ScriptReader r = new ScriptReader();
     r.executeScript(
         "set autobuild\n"+
-        "unset autosave\n"+
-        "set compiler 1.5\n"+
         "createProject foo\n"+
         "openProject foo\n"+
+        "addNature foo\n"+ // No UI here!
         "touchFile foo/Foo.java\n"+
-        //"saveFile foo/Foo.java\n"+
-        //"patchFile foo/Bar.java patch.txt\n"+
-        //"saveAllFiles\n"+
-        //"openProject bar\n"+
-        //"cleanProject foo, bar\n"+
+        "deleteFile foo/Foo.java\n"+
+        "removeNature foo\n"+
         "closeProject foo\n"+
         "closeProject bar\n"+
         "#end");
@@ -28,12 +24,14 @@ public class TestScripting extends TestCase {
     ScriptReader r = new ScriptReader();
     r.executeScript(
         "set autobuild\n"+
-        "unset autosave\n"+
-        "set compiler 1.5\n"+
-        "createProject foo2 /Users/ethan/test-sandbox-3.2/regression/util.concurrent\n"+
+        "createProject foo2 /work/regression-test-workspace/util.concurrent_regression\n"+
         "openProject foo2\n"+
-        "exportResults foo2 results.zip\n"+
-        "compareResults foo2/results.3.2.4.zip foo2/results.zip foo2/diff.xml oracle.zip log.diff\n"+
+        //"patchFile foo/Bar.java patch.txt\n"+
+        //"saveAllFiles\n"+
+        //"openProject bar\n"+
+        //"cleanProject foo, bar\n"+
+        "exportResults foo2 results.xml\n"+
+        "compareResults foo2/results.3.2.4.zip foo2/results.xml foo2/diff.xml oracle.zip log.diff\n"+
         "closeProject foo2\n"+
         "#end"
     );
@@ -49,7 +47,7 @@ public class TestScripting extends TestCase {
         "openProject foo3\n"+
         "touchFile foo3/Latch.java\n"+
 //        "saveFile foo3/Foo.java\n"+
-        "patchFile foo3/Latch.java /Users/ethan/Desktop/Latch.java foo3\n"+
+//        "patchFile foo3/Latch.java /Users/ethan/Desktop/Latch.java foo3\n"+
 //        "exportResults foo3 results.zip\n"+
 //        "import foo3 /Users/ethan/Desktop/oracle.zip\n"+
 //        "compareResults foo3/oracle.zip foo3/results.zip results.diff log.oracle.zip log.diff\n" +
