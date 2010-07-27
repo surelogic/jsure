@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.dc.Nature;
 public class AddNature extends AbstractProjectCommand {
 	@Override
 	protected boolean execute(ICommandContext context, IProject p) throws Exception {
-		Nature.addNatureToProject(p);
+		Nature.onlyAddNatureToProject(p);
 		return false;
 	}
 }
