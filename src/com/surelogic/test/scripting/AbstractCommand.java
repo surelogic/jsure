@@ -71,6 +71,7 @@ public abstract class AbstractCommand implements ICommand {
 			  f.createNewFile();
 		  } catch(IOException e) {
 			  // Ignore for now
+			  e.printStackTrace();
 		  }
 	  }
 	  if (!f.exists()) {
