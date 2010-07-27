@@ -72,7 +72,7 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 		final ProjectsDrop pd = ProjectsDrop.getDrop();
 		for(String name : pd.getIIRProjects().getProjectNames()) {			
 			final IProject p = EclipseUtility.getProject(name);
-			if (p == null) {
+			if (p == null || !p.exists()) {
 				continue;
 			}
 			final File pFile = p.getLocation().toFile();
