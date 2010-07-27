@@ -33,7 +33,10 @@ public class CompareResults extends AbstractCommand {
 		System.out.println("Using oracle: "+oracle);
 		final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), oracle);
 		final File diffs	       = resolveFile(contents[3], true);
-		if (!diff.isEmpty()) {
+		if (diffs == null) {
+			System.out.println("No file: "+contents[3]);
+		}
+		else if (!diff.isEmpty()) {
 			System.out.println("Writing diffs to "+diffs);
 			diff.write(diffs);
 			resultsOk = false;
