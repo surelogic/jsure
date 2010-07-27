@@ -5,7 +5,7 @@ package com.surelogic.analysis.uniqueness.uwm.store;
  * use the enumeration elements SHARED, BORROWED, and UNDEFINED directly instead
  * of creating PseudoVariable wrappers.
  */
-enum State {
+public enum State {
   NULL,
   UNIQUE,
   SHARED,
