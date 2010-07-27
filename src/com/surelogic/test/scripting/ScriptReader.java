@@ -90,9 +90,11 @@ public class ScriptReader implements ICommandContext {
       System.out.println("ScriptReader: "+line);
       final boolean justChanged = commands.get(tokens[0]).execute(this, tokens);
       changed = changed || justChanged;
+      /*
       if (justChanged) {
     	System.out.println("ScriptReader: just changed");
       }
+      */
       if (buildNow || changed && autoBuild) {
     	if (buildNow) {
     	  System.out.println("ScriptReader: building now");
