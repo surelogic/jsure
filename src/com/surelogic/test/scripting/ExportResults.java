@@ -31,6 +31,7 @@ public class ExportResults extends AbstractCommand {
 		try {
 			final File location = new File(workspaceFile, contents[2] + SeaSnapshot.SUFFIX);
 			SeaSummary.summarize(project.getName(), Sea.getDefault(), location);
+			System.out.println("Exported: "+location);
 			assert (location.exists());
 		} catch (FileNotFoundException e) {
 			System.out.println("Problem while creating results:");
