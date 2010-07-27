@@ -3,4 +3,5 @@ package com.surelogic.analysis;
 
 public interface IIRProjects {
 	String getLabel();
+	Iterable<String> getProjectNames();
 }
