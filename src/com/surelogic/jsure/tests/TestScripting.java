@@ -11,7 +11,7 @@ public class TestScripting extends TestCase {
         "set autobuild\n"+
         "createProject foo\n"+
         "openProject foo\n"+
-        "addNature foo\n"+ // No UI here!
+        "addNature foo\n"+
         "touchFile foo/Foo.java\n"+
         "deleteFile foo/Foo.java\n"+
         "removeNature foo\n"+
@@ -20,18 +20,14 @@ public class TestScripting extends TestCase {
         "#end");
   }
   
-  public void testImporting() throws Exception{
+  public void testExporting() throws Exception{
     ScriptReader r = new ScriptReader();
     r.executeScript(
         "set autobuild\n"+
-        "createProject foo2 /work/regression-test-workspace/util.concurrent_regression\n"+
+        "createProject foo2 /work/regression-test-workspace/util.concurrent_regression\n"+ // From zip??
         "openProject foo2\n"+
-        //"patchFile foo/Bar.java patch.txt\n"+
-        //"saveAllFiles\n"+
-        //"openProject bar\n"+
-        //"cleanProject foo, bar\n"+
-        "exportResults foo2 results.xml\n"+
-        "compareResults foo2/results.3.2.4.zip foo2/results.xml foo2/diff.xml oracle.zip log.diff\n"+
+        "exportResults foo2 results\n"+
+        "compareResults foo2 foo2/results2.sea.xml foo2/diff.xml\n"+
         "closeProject foo2\n"+
         "#end"
     );
