@@ -110,7 +110,7 @@ public final class Nature extends AbstractNature {
 		}
 	}
 	
-	static void onlyAddNatureToProject(final IProject project) throws CoreException {
+	public static void onlyAddNatureToProject(final IProject project) throws CoreException {
 		// add our nature to the project if it doesn't already exist
 		IProjectDescription description = project.getDescription();
 		String[] natures = description.getNatureIds();
