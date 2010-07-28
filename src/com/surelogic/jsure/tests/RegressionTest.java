@@ -378,7 +378,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     final String projectName = project.getName();
 
     // Check for script in the project to execute      
-    File script = new File(projectPath + File.separatorChar + ScriptReader.NAME);
+    File script = new File(projectPath + File.separatorChar + ScriptCommands.NAME);
     if (script.exists() && script.isFile()) {
       currentTest = start("Run scripting");
       ScriptReader r = new ScriptReader();

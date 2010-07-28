@@ -10,9 +10,7 @@ import org.eclipse.core.runtime.CoreException;
  * 
  * @author Edwin
  */
-public class ScriptReader implements ICommandContext {
-  public static final String NAME = "test.script.txt";
-	
+public class ScriptReader implements ICommandContext {	
   private Commands commands = new Commands();
   /**
    * Build after every command
