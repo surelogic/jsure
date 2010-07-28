@@ -25,7 +25,6 @@ import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.*;
-import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.util.*;
@@ -43,6 +42,7 @@ public class JavacDriver {
 	//private final List<IProject> building = new ArrayList<IProject>();
 	private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
 	private final AtomicReference<Projects> currentProjects = new AtomicReference<Projects>();
+	private final File tempDir;
 	private final File scriptResourcesDir;
 	private final PrintStream script;
 	
@@ -60,17 +60,23 @@ public class JavacDriver {
 		});
 		if (XUtil.recordScript() != null) {		
 			scriptResourcesDir = new File(XUtil.recordScript());
+			scriptResourcesDir.mkdirs();
 			PrintStream out = null;
+			File tmp = null;
 			try {
 				out = new PrintStream(new File(scriptResourcesDir, ScriptCommands.NAME));
-			} catch (FileNotFoundException e) {
+				tmp = File.createTempFile("scriptTemp", ".dir"); 
+				tmp.delete();
+				tmp.mkdir();
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			script = out;
-
+			tempDir = tmp;
+			script = (tmp == null) ? null : out;
 		} else {			
 			script = null;
 			scriptResourcesDir = null;
+			tempDir = null;
 		}
 	}
 	
@@ -79,6 +85,48 @@ public class JavacDriver {
 		script.flush();
 	}
 	
+	/**
+	 * Copy the resource to the script resources directory
+	 * 
+	 * @return The relative path to the copy
+	 */
+	private String copyAsResource(IResource r) {
+		File copy = new File(scriptResourcesDir, r.getFullPath().toString());	
+		if (copy.exists()) {
+			// FIX uniquify the name
+			System.out.println("Already created a copy: "+r.getFullPath());
+			return null;
+		}		
+		FileUtility.copy(r.getLocation().toFile(), copy);		
+		return r.getFullPath().toString();
+	}
+	
+	private void scriptChanges(List<Pair<IResource, Integer>> resources) {
+		for(Pair<IResource, Integer> p : resources) {
+			final IResource r = p.first();
+			if (r.getType() != IResource.FILE) {
+				System.out.println("Ignoring "+r.getName());
+				continue;
+			}
+			switch (p.second()) {
+			case IResourceDelta.ADDED:
+				String name = copyAsResource(r);
+				printToScript(ScriptCommands.IMPORT+' '+r.getFullPath()+' '+name);
+				break;
+			case IResourceDelta.CHANGED:
+				System.out.println("FIX need to create patch for "+r.getFullPath());
+				printToScript(ScriptCommands.PATCH_FILE+' '+r.getFullPath());
+				break;
+			case IResourceDelta.REMOVED:
+				printToScript(ScriptCommands.DELETE_FILE+' '+r.getFullPath());
+				break;
+			default:
+				System.out.println("Couldn't handle flag: "+p.second());
+			}
+		}
+		printToScript("#build");
+	}
+
 	@Override
 	public void finalize() {
 		script.close();
@@ -476,8 +524,12 @@ public class JavacDriver {
 			}
 			info.registerDelta(cus);
 			info.registerResourcesDelta(resources);
+			if (script != null) {				
+				scriptChanges(resources);
+			}
 		}
 	}
+
 	@SuppressWarnings("unchecked")
 	private static int getBuildKind(Map args) {
 		final String kind = (String) args.get(Majordomo.BUILD_KIND);		
