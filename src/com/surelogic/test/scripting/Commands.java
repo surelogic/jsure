@@ -2,30 +2,32 @@ package com.surelogic.test.scripting;
 
 import java.util.*;
 
+import com.surelogic.jsure.client.eclipse.analysis.ScriptCommands;
+
 /**
  * A container for the available commands
  * 
  * @author Edwin
  */
-public final class Commands {
+public final class Commands implements ScriptCommands {
   private final Map<String, ICommand> commands = new HashMap<String,ICommand>();
   
   public Commands() {
-    commands.put("touchFile", new TouchFile());
+    commands.put(TOUCH_FILE, new TouchFile());
     commands.put("saveFile", new SaveFile());
-    commands.put("patchFile", new PatchFile());
+    commands.put(PATCH_FILE, new PatchFile());
     commands.put("saveAllFiles", new SaveAllFiles());
-    commands.put("createProject", new CreateProject());
-    commands.put("openProject", new OpenProject());
-    commands.put("addNature", new AddNature());
-    commands.put("removeNature", new RemoveNature());
+    commands.put(CREATE_PROJECT, new CreateProject());
+    commands.put(OPEN_PROJECT, new OpenProject());
+    commands.put(ADD_NATURE, new AddNature());
+    commands.put(REMOVE_NATURE, new RemoveNature());
     commands.put("cleanProject", new CleanProject());
-    commands.put("closeProject", new CloseProject());
-    commands.put("patchFile", new PatchFile());
-    commands.put("exportResults", new ExportResults());
-    commands.put("compareResults", new CompareResults());
-    commands.put("deleteFile", new DeleteFile());
-    commands.put("import", new Import());
+    commands.put(CLOSE_PROJECT, new CloseProject());
+    commands.put(PATCH_FILE, new PatchFile());
+    commands.put(EXPORT_RESULTS, new ExportResults());
+    commands.put(COMPARE_RESULTS, new CompareResults());
+    commands.put(DELETE_FILE, new DeleteFile());
+    commands.put(IMPORT, new Import());
   }
   
   public ICommand get(String name) {
