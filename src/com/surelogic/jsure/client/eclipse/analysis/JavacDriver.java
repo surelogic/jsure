@@ -43,6 +43,8 @@ public class JavacDriver {
 	//private final List<IProject> building = new ArrayList<IProject>();
 	private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
 	private final AtomicReference<Projects> currentProjects = new AtomicReference<Projects>();
+	private final File scriptResourcesDir;
+	private final PrintStream script;
 	
 	private JavacDriver() {
 		PeriodicUtility.addHandler(new Runnable() {
@@ -56,6 +58,30 @@ public class JavacDriver {
 				}
 			}			
 		});
+		if (XUtil.recordScript() != null) {		
+			scriptResourcesDir = new File(XUtil.recordScript());
+			PrintStream out = null;
+			try {
+				out = new PrintStream(new File(scriptResourcesDir, ScriptCommands.NAME));
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			script = out;
+
+		} else {			
+			script = null;
+			scriptResourcesDir = null;
+		}
+	}
+	
+	private void printToScript(String line) {
+		script.println(line);
+		script.flush();
+	}
+	
+	@Override
+	public void finalize() {
+		script.close();
 	}
 	
 	private static final JavacDriver prototype = new JavacDriver();
