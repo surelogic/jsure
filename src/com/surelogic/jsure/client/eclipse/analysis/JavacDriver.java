@@ -567,10 +567,11 @@ public class JavacDriver {
 		
 		// TODO this needs to be run after ALL the info is collected
         JavacEclipse.initialize();
-        
-        final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-        ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
-        
+        if (!XUtil.testing) {
+        	System.out.println("Configuring analyses for build");
+        	final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+        	((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
+        }
         ConfigureJob configure = new ConfigureJob("Configuring JSure build", isAuto);
 	    final boolean success = currentProjects.compareAndSet(null, configure.projects);
 	    ProjectsDrop pd = ProjectsDrop.getDrop();
@@ -595,6 +596,7 @@ public class JavacDriver {
 	private void doBuild(final Projects newProjects, SLProgressMonitor monitor) {
 		try {
 			if (!XUtil.testing) {
+				  System.out.println("Configuring analyses for doBuild");
 				final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
 				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
 			}
