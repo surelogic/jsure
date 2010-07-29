@@ -353,6 +353,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       Plugin.getDefault().initAnalyses(store);
       
       if (AnalysisDriver.useJavac) {
+    	System.out.println("Configuring analyses from project-specific settings");
     	JavacEclipse.initialize();
       	((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
       }
