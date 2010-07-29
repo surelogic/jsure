@@ -96,7 +96,9 @@ public class JavacDriver {
 			// FIX uniquify the name
 			System.out.println("Already created a copy: "+r.getFullPath());
 			return null;
-		}		
+		} else {
+			copy.getParentFile().mkdirs();
+		}
 		FileUtility.copy(r.getLocation().toFile(), copy);		
 		return r.getFullPath().toString();
 	}
@@ -104,8 +106,12 @@ public class JavacDriver {
 	private void scriptChanges(List<Pair<IResource, Integer>> resources) {
 		for(Pair<IResource, Integer> p : resources) {
 			final IResource r = p.first();
+			final String rName = r.getName();
 			if (r.getType() != IResource.FILE) {
-				System.out.println("Ignoring "+r.getName());
+				System.out.println("Ignoring "+rName);
+				continue;
+			} else if (!r.getName().endsWith(".java")) {
+				System.out.println("Ignoring non-Java file: "+rName);
 				continue;
 			}
 			switch (p.second()) {
@@ -516,7 +522,7 @@ public class JavacDriver {
 			k == IncrementalProjectBuilder.FULL_BUILD) {
 			// TODO what about resources?
 			projects.put(project, new ProjectInfo(project, cus));
-			//System.out.println("Got full build");
+			System.out.println("Got full build");
 		} else {
 			ProjectInfo info = projects.get(project);
 			if (info == null) {
