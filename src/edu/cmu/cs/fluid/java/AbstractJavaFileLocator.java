@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.jsure.xml.AbstractXMLReader;
@@ -75,28 +76,17 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 	  
   }
   
+  private static final TempFileFilter filter = new TempFileFilter("JSure", ".tmp");
+  
   protected static File createTempFile() throws IOException {
-	  File tempFile = File.createTempFile("JSure", ".tmp");
-	  return tempFile;
+	  return filter.createTempFile();
   }
   
   /**
    * Deletes all temp files created by JSure
    */
   protected static void cleanupTempFiles() {
-	  try {
-		  File tmpDir = createTempFile().getParentFile();
-		  FilenameFilter filter = new FilenameFilter() {
-			  public boolean accept(File dir, String name) {
-				  return name.startsWith("JSure") && name.endsWith(".tmp");
-			  }
-		  };
-		  for (File f : tmpDir.listFiles(filter)) {
-			  f.delete();
-		  }
-	  } catch (IOException e) {
-		  // Ignore
-	  }
+	  FileUtility.deleteTempFiles(filter);
   }
   
   protected static <T,P> void finishInit(AbstractJavaFileLocator<T,P> l) {
