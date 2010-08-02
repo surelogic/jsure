@@ -164,7 +164,7 @@
   <extension id="BenchmarkingUniqueness" name="Benchmarking Uniqueness"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
     <run class="com.surelogic.analysis.uniqueness.BenchmarkingUAM" 
-      production="false">
+      production="true">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
@@ -512,6 +512,22 @@
 				tooltip="Enables JSure analysis for the selected project, and disables assurance for all other projects"
 				menubarPath="jSureMenu/nature.grp"
 				class="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
+				enablesFor="1">
+				<enablement>
+					<not>
+						<objectState name="nature"
+							value="com.surelogic.jsure.client.eclipse.dcNature" />
+					</not>
+				</enablement>
+			</action>
+			
+			<action
+				id="com.surelogic.jsure.client.eclipse.actions.AddFluidNatureAction"
+				label="Add JSure Nature on this Project"
+				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
+				tooltip="Enables JSure analysis for the selected project"
+				menubarPath="jSureMenu/nature.grp"
+				class="com.surelogic.jsure.client.eclipse.actions.AddFluidNatureAction"
 				enablesFor="1">
 				<enablement>
 					<not>

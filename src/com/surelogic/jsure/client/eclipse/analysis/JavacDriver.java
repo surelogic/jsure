@@ -14,7 +14,7 @@ import org.eclipse.jdt.core.*;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.common.*;
-import com.surelogic.common.FileUtility.UnzipCallback;
+import com.surelogic.common.FileUtility.*;
 import com.surelogic.common.eclipse.*;
 import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
@@ -23,6 +23,8 @@ import com.surelogic.fluid.javac.*;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
+
+import difflib.*;
 
 import edu.cmu.cs.fluid.dc.*;
 import edu.cmu.cs.fluid.ide.IDE;
@@ -58,14 +60,19 @@ public class JavacDriver {
 				}
 			}			
 		});
-		if (XUtil.recordScript() != null) {		
+		if (XUtil.recordScript() != null) {					
 			scriptResourcesDir = new File(XUtil.recordScript());
 			scriptResourcesDir.mkdirs();
+			// Clean out the directory
+			for(File f : scriptResourcesDir.listFiles()) {
+				FileUtility.recursiveDelete(f);
+			}
 			PrintStream out = null;
 			File tmp = null;
 			try {
 				out = new PrintStream(new File(scriptResourcesDir, ScriptCommands.NAME));
-				tmp = File.createTempFile("scriptTemp", ".dir"); 
+				FileUtility.deleteTempFiles(filter);
+				tmp = filter.createTempFile(); 
 				tmp.delete();
 				tmp.mkdir();
 			} catch (IOException e) {
@@ -90,8 +97,8 @@ public class JavacDriver {
 	 * 
 	 * @return The relative path to the copy
 	 */
-	private String copyAsResource(IResource r) {
-		File copy = new File(scriptResourcesDir, r.getFullPath().toString());	
+	private String copyAsResource(File targetDir, IResource r) {
+		File copy = computeCopyFile(targetDir, r);
 		if (copy.exists()) {
 			// FIX uniquify the name
 			System.out.println("Already created a copy: "+r.getFullPath());
@@ -103,6 +110,100 @@ public class JavacDriver {
 		return r.getFullPath().toString();
 	}
 	
+	private File computeCopyFile(File targetDir, IResource r) {
+		return new File(targetDir, r.getFullPath().toString());	
+	}
+	
+	/**
+	 * Copy them to the temp directory
+	 * @param cus
+	 */
+	private void cacheCompUnits(List<ICompilationUnit> cus) {
+		// FIX how do I map back to the right resource?
+		for(ICompilationUnit cu : cus) {
+			try {
+				copyAsResource(tempDir, cu.getCorrespondingResource());
+			} catch (JavaModelException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * Create a patch by comparing the copy in the temp directory to the
+	 * resource
+	 * 
+	 * @return The relative path to the patch
+	 */
+	private String createPatch(IResource r) {
+		final File cached     = computeCopyFile(tempDir, r);		
+		final File changed    = r.getLocation().toFile();
+		List<String> original = fileToLines(cached);
+		List<String> revised  = fileToLines(changed);
+
+		// Compute diff. Get the Patch object. Patch is the container for computed deltas.
+		final Patch patch = DiffUtils.diff(original, revised);		
+		for (Delta delta: patch.getDeltas()) {
+			System.out.println(delta);
+		}
+		final List<String> diff = 
+			DiffUtils.generateUnifiedDiff(r.getName(), r.getName(), original, patch, 5);		
+		String patchName = computePatchName(r);
+		final File diffFile = new File(scriptResourcesDir, patchName);
+		try {
+			linesToFile(diff, diffFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		return patchName;  
+	}
+	
+	/**
+	 * TODO will this cause too many file ops?
+	 * 
+	 * @return A filename relative to the workspace
+	 */
+	private String computePatchName(IResource r) {
+		final String base = r.getFullPath()+".patch";
+		File f            = new File(scriptResourcesDir, base);
+		String name       = base;
+		int i = 0;
+		// Find a unique name
+		while (f.exists()) {
+			name = base + i;
+			f = new File(scriptResourcesDir, name);
+			i++;
+		}
+		return name;
+	}
+
+	private static void linesToFile(List<String> lines, File f) throws IOException {
+		f.getParentFile().mkdirs();
+		
+		FileWriter fw = new FileWriter(f);
+		PrintWriter pw = new PrintWriter(fw);
+		for(String line : lines) {
+			pw.println(line);			
+		}
+		pw.close();
+	}
+	
+	// Helper method for get the file content
+	private static List<String> fileToLines(File f) {
+		List<String> lines = new LinkedList<String>();
+		String line = "";
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(f));
+			while ((line = in.readLine()) != null) {
+				lines.add(line);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return lines;
+	}
+
 	private void scriptChanges(List<Pair<IResource, Integer>> resources) {
 		for(Pair<IResource, Integer> p : resources) {
 			final IResource r = p.first();
@@ -114,17 +215,20 @@ public class JavacDriver {
 				System.out.println("Ignoring non-Java file: "+rName);
 				continue;
 			}
+			final String path = r.getFullPath().toString();
 			switch (p.second()) {
 			case IResourceDelta.ADDED:
-				String name = copyAsResource(r);
-				printToScript(ScriptCommands.IMPORT+' '+r.getFullPath()+' '+name);
+				String name = copyAsResource(scriptResourcesDir, r);
+				copyAsResource(tempDir, r);
+				printToScript(ScriptCommands.IMPORT+' '+path+' '+name);
 				break;
 			case IResourceDelta.CHANGED:
-				System.out.println("FIX need to create patch for "+r.getFullPath());
-				printToScript(ScriptCommands.PATCH_FILE+' '+r.getFullPath());
+				String patch = createPatch(r);
+				System.out.println("Update the patched file?"); // TODO
+				printToScript(ScriptCommands.PATCH_FILE+' '+path+' '+patch);
 				break;
 			case IResourceDelta.REMOVED:
-				printToScript(ScriptCommands.DELETE_FILE+' '+r.getFullPath());
+				printToScript(ScriptCommands.DELETE_FILE+' '+path);
 				break;
 			default:
 				System.out.println("Couldn't handle flag: "+p.second());
@@ -137,6 +241,8 @@ public class JavacDriver {
 	public void finalize() {
 		script.close();
 	}
+	
+	private static final TempFileFilter filter = new TempFileFilter("scriptTemp", ".dir");
 	
 	private static final JavacDriver prototype = new JavacDriver();
 	
@@ -523,6 +629,9 @@ public class JavacDriver {
 			// TODO what about resources?
 			projects.put(project, new ProjectInfo(project, cus));
 			System.out.println("Got full build");
+			if (script != null) {
+				cacheCompUnits(cus);
+			}
 		} else {
 			ProjectInfo info = projects.get(project);
 			if (info == null) {
@@ -686,6 +795,7 @@ public class JavacDriver {
 		if (!shareCommonJars) {
 			return;
 		}
+		/*
 		try {
 			final Map<File,File> shared = new HashMap<File, File>();
 			for(IJavaProject p : JDTUtility.getJavaProjects()) {
@@ -715,7 +825,8 @@ public class JavacDriver {
 			}			
 		} catch (JavaModelException e) {
 			return;
-		}		
+		}	
+		*/	
 	}
 	
 	// TODO how to set up for deltas?

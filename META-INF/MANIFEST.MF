@@ -56,4 +56,5 @@ Export-Package: com.surelogic.jsure.client.eclipse,
  edu.cmu.cs.fluid.dcf.views.ast,
  edu.cmu.cs.fluid.dcf.views.coe,
  edu.cmu.cs.fluid.dcf.views.modules
-Bundle-ClassPath: .
+Bundle-ClassPath: .,
+ lib/java-diff-utils-1.2.jar
