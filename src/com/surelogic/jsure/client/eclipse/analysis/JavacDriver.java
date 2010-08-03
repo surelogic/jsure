@@ -61,7 +61,7 @@ public class JavacDriver {
 			}			
 		});
 		if (XUtil.recordScript() != null) {					
-			scriptResourcesDir = new File(XUtil.recordScript());
+			scriptResourcesDir = new File(EclipseUtility.getWorkspacePath(), XUtil.recordScript());
 			scriptResourcesDir.mkdirs();
 			// Clean out the directory
 			for(File f : scriptResourcesDir.listFiles()) {
@@ -98,11 +98,19 @@ public class JavacDriver {
 	 * @return The relative path to the copy
 	 */
 	private String copyAsResource(File targetDir, IResource r) {
+		return copyAsResource(targetDir, r, false);
+	}
+		 
+	private String copyAsResource(File targetDir, IResource r, boolean force) {
 		File copy = computeCopyFile(targetDir, r);
 		if (copy.exists()) {
-			// FIX uniquify the name
-			System.out.println("Already created a copy: "+r.getFullPath());
-			return null;
+			if (force) {
+				copy.delete();
+			} else {
+				// FIX uniquify the name
+				System.out.println("Already created a copy: "+r.getFullPath());
+				return null;
+			}
 		} else {
 			copy.getParentFile().mkdirs();
 		}
@@ -215,17 +223,18 @@ public class JavacDriver {
 				System.out.println("Ignoring non-Java file: "+rName);
 				continue;
 			}
+			final String prefix = XUtil.recordScript()+'/';
 			final String path = r.getFullPath().toString();
 			switch (p.second()) {
 			case IResourceDelta.ADDED:
 				String name = copyAsResource(scriptResourcesDir, r);
 				copyAsResource(tempDir, r);
-				printToScript(ScriptCommands.IMPORT+' '+path+' '+name);
+				printToScript(ScriptCommands.IMPORT+' '+path+' '+prefix+name);
 				break;
 			case IResourceDelta.CHANGED:
 				String patch = createPatch(r);
-				System.out.println("Update the patched file?"); // TODO
-				printToScript(ScriptCommands.PATCH_FILE+' '+path+' '+patch);
+				copyAsResource(tempDir, r, true); // Update the patched file
+				printToScript(ScriptCommands.PATCH_FILE+' '+path+' '+prefix+patch);
 				break;
 			case IResourceDelta.REMOVED:
 				printToScript(ScriptCommands.DELETE_FILE+' '+path);
