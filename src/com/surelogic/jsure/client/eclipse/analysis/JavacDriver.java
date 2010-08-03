@@ -223,7 +223,7 @@ public class JavacDriver {
 				System.out.println("Ignoring non-Java file: "+rName);
 				continue;
 			}
-			final String prefix = XUtil.recordScript()+'/';
+			final String prefix = '/'+r.getProject().getName()+'/'+XUtil.recordScript();
 			final String path = r.getFullPath().toString();
 			switch (p.second()) {
 			case IResourceDelta.ADDED:
