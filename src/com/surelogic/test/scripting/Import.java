@@ -25,18 +25,29 @@ public class Import extends AbstractCommand {
 	/**
 	 * @param context
 	 * @param contents Arguments for this class in the following order:
-	 * 1 - project name to import into
+	 * 1 - file/project name to import into
 	 * 2 - file or directory to import
 	 */
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
-		IProject project = resolveProject(contents[1]);
-		if(project == null || !project.exists()){
-			throw new IllegalArgumentException("The project, " + contents[1] + " doesn't exist in the workspace.");
+		final String target = contents[1];
+		IResource res;
+		if (target.contains("/")) {
+			IFile file = resolveIFile(target, true);
+			if(file == null){
+				throw new IllegalArgumentException("The file, " + contents[1] + " cannot be created in the workspace.");
+			}
+			res = file;
+		} else {
+			IProject project = resolveProject(contents[1]);
+			if(project == null || !project.exists()){
+				throw new IllegalArgumentException("The project, " + contents[1] + " doesn't exist in the workspace.");
+			}
+			res = project;
 		}
-		URI projLoc = project.getLocationURI();
+		URI projLoc = res.getLocationURI();
 		//Needs to copy all files from the source dir to the project dir
-		File file = new File(contents[2]);
+		File file = resolveFile(contents[2]);
 		if(file.exists()){
 			if(file.isDirectory()){
 				copyDir(new File(projLoc.getPath()), file);
@@ -44,7 +55,7 @@ public class Import extends AbstractCommand {
 			else{
 				copyFile(file, new File(projLoc.getPath(), file.getName()));
 			}
-			project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			res.refreshLocal(IResource.DEPTH_INFINITE, null);
 			return true;
 		}
 		throw new FileNotFoundException(file + " does not exist");
@@ -81,6 +92,7 @@ public class Import extends AbstractCommand {
 			System.out.println("Copying from " + src + " to " + dest);
     		in = new BufferedInputStream(new FileInputStream(src), INPUT_SIZE);
     		//Create the new file
+    		dest.getParentFile().mkdirs();
     		dest.createNewFile();
     		out = new BufferedOutputStream(new FileOutputStream(dest), OUTPUT_SIZE);
     		byte[] buffer = new byte[BUFFER_SIZE];
