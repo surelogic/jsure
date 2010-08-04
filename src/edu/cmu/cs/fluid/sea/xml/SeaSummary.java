@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entities;
@@ -72,7 +73,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	private static boolean isNewer(String oracle1, String oracle2) {
 		String date1 = getDate(oracle1);
 		String date2 = getDate(oracle2);
-		//System.out.println(date1+" ?= "+date2+": "+date1.compareTo(date2));
+		if (XUtil.testing) {
+			System.out.println(date1+" ?= "+date2+": "+date1.compareTo(date2));
+		}
 		return date1.compareTo(date2) > 0;
 	}
 
