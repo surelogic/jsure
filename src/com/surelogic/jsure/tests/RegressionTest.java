@@ -494,9 +494,13 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		  final String projectPath, final String projectName, boolean resultsOk)
   throws Exception {
 	  final File xmlLocation = SeaSummary.findSummary(projectPath);
+	  if (!xmlLocation.exists()) {
+		  return resultsOk;
+	  }
 	  String diffPath = new File(workspaceFile, 
 			  projectName+RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX).getAbsolutePath(); 
 	  CompareResults compare = new CompareResults();
+	  //System.out.println("compare "+projectName+" "+xmlLocation.getAbsolutePath()+" "+diffPath);
 	  compare.execute(ICommandContext.nullContext, "compare", projectName, 
 			          xmlLocation.getAbsolutePath(), diffPath);
 	  return resultsOk && compare.resultsOk;
