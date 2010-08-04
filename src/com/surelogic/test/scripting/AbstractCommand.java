@@ -46,16 +46,21 @@ public abstract class AbstractCommand implements ICommand {
     if (tokens.length == 0) {
       return null;
     }    
-    final IProject p = root.getProject(tokens[0]);
-    if (p != null) {
-      path = p.getProjectRelativePath();
-      for(int i=1; i<tokens.length; i++) {
-        path = path.append(tokens[i]);
-      }
-      file = p.getFile(path);
-      if (create || file.exists()) {
-        return file;
-      }
+    try {
+    	final IProject p = root.getProject(tokens[0]);
+    	if (p != null) {
+    		path = p.getProjectRelativePath();
+    		for(int i=1; i<tokens.length; i++) {
+    			path = path.append(tokens[i]);
+    		}
+    		file = p.getFile(path);
+    		if (create || file.exists()) {
+    			return file;
+    		}
+    	}
+    } catch (IllegalArgumentException e) {
+    	System.out.println("Bad project: "+tokens[0]+" -- "+name);
+    	throw e;
     }
     return null;
   }
