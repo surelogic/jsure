@@ -23,10 +23,15 @@ public class DeleteFile extends AbstractFileCommand {
 	protected boolean execute(ICommandContext context, IFile file) throws Exception {
 		if(file != null && file.exists()){
 			System.out.println("Trying to delete "+file.getFullPath());
+			//System.out.println("Resource type = "+file.getType());
 			try {
 				file.delete(IResource.NONE, null);
 			} catch (Exception e) {
 				e.printStackTrace();
+				if (e.getCause() != null) {
+					System.out.println("Cause:");
+					e.getCause().printStackTrace();
+				}
 			}
 		}
 		else
