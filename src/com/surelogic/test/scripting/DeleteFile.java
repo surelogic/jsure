@@ -22,7 +22,12 @@ public class DeleteFile extends AbstractFileCommand {
 	@Override
 	protected boolean execute(ICommandContext context, IFile file) throws Exception {
 		if(file != null && file.exists()){
-    		file.delete(IResource.NONE, null);
+			System.out.println("Trying to delete "+file.getFullPath());
+			try {
+				file.delete(IResource.NONE, null);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		else
 		{
