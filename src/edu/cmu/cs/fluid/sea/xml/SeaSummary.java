@@ -73,9 +73,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	private static boolean isNewer(String oracle1, String oracle2) {
 		String date1 = getDate(oracle1);
 		String date2 = getDate(oracle2);
-		if (XUtil.testing) {
+		//if (XUtil.testing) {
 			System.out.println(date1+" ?= "+date2+": "+date1.compareTo(date2));
-		}
+		//}
 		return date1.compareTo(date2) > 0;
 	}
 
