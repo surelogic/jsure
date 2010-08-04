@@ -80,8 +80,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return rv;
 	}
 
-	private static String getDate(String oracle) {
-		for(int i=0; i<oracle.length(); i++) {
+	private static String getDate(String oracle) {		
+		// Start with last segment 
+		for(int i=oracle.lastIndexOf(File.separatorChar)+1; i<oracle.length(); i++) {
 			if (Character.isDigit(oracle.charAt(i))) {
 				return oracle.substring(i);
 			}
