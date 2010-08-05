@@ -111,15 +111,19 @@ public class Import extends AbstractCommand {
 			if(in != null){
 				try{
     				in.close();
+    				System.out.println("Closed input for "+src);
 				}catch(IOException e){
 					//do nothing
+					e.printStackTrace();
 				}
 			}
 			if(out != null){
 				try{
     				out.close();
+    				System.out.println("Closed output for "+dest);
 				}catch(IOException e){
 					//do nothing
+					e.printStackTrace();
 				}
 			}
 		}
