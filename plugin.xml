@@ -528,7 +528,7 @@
 				tooltip="Enables JSure analysis for the selected project"
 				menubarPath="jSureMenu/nature.grp"
 				class="com.surelogic.jsure.client.eclipse.actions.AddFluidNatureAction"
-				enablesFor="1">
+				enablesFor="+">
 				<enablement>
 					<not>
 						<objectState name="nature"
