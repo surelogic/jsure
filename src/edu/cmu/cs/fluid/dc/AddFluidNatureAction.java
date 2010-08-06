@@ -1,8 +1,9 @@
 package edu.cmu.cs.fluid.dc;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.*;
+
+import com.surelogic.jsure.client.eclipse.analysis.*;
 
 /**
  * Implements a context menu action for IProject and IJavaProject that sets the
@@ -10,11 +11,11 @@ import org.eclipse.core.runtime.IAdaptable;
  */
 public class AddFluidNatureAction extends SelectedProjectsAction {
   @Override
-  protected boolean doRun(Object current) {
-    final IProject project = (IProject) ((IAdaptable) current).getAdapter(IProject.class);
+  protected boolean doRun(IProject project) {
     try {
       if (project != null && !Nature.hasNature(project)) { 
     	  Nature.addNatureToProject(project);
+    	  JavacDriver.getInstance().recordProjectAction(ScriptCommands.ADD_NATURE, project);
     	  return true;
       }
     } catch (CoreException e) {

@@ -246,6 +246,12 @@ public class JavacDriver {
 		printToScript("#build");
 	}
 
+	public void recordProjectAction(String action, IProject p) {
+		if (script != null) {		
+			printToScript(action+' '+p.getName());
+		}
+	}
+	
 	@Override
 	public void finalize() {
 		script.close();

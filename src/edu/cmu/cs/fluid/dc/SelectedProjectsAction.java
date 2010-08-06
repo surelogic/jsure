@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.dc;
 import java.util.List;
 import java.util.logging.*;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -39,7 +41,10 @@ public abstract class SelectedProjectsAction implements IViewActionDelegate, IOb
     if (selectedProjects != null) {
       for (Object current : selectedProjects) {
         if (current != null) {
-          doRun(current);
+          final IProject project = (IProject) ((IAdaptable) current).getAdapter(IProject.class);
+          if (project != null) {
+        	  doRun(project);
+          }
         }
       }
     }
@@ -49,7 +54,7 @@ public abstract class SelectedProjectsAction implements IViewActionDelegate, IOb
   /**
    * @return true if operation was done successfully
    */
-  protected abstract boolean doRun(Object current);
+  protected abstract boolean doRun(IProject current);
   
   protected void finishRun() {
 	  // Nothing to do

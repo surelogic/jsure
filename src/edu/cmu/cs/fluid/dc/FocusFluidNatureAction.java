@@ -10,6 +10,7 @@ import org.eclipse.jface.action.IAction;
 
 import com.surelogic.common.eclipse.actions.AbstractSingleProjectAction;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.analysis.*;
 
 /**
  * Implements a context menu action for IProject and IJavaProject that sets the
@@ -31,6 +32,7 @@ public class FocusFluidNatureAction extends AbstractSingleProjectAction {
 				if (project != current && Nature.hasNature(current)) {
 					try {
 						Nature.removeNatureFromProject(current);
+						JavacDriver.getInstance().recordProjectAction(ScriptCommands.REMOVE_NATURE, current);
 						changed = true;
 					} catch (CoreException e) {
 				    	Majordomo.logError("Error While Removing JSure Nature", 
@@ -46,6 +48,7 @@ public class FocusFluidNatureAction extends AbstractSingleProjectAction {
 			if (!Nature.hasNature(project)) {
 				cleanup(); // FIX only for JSure
 				Nature.addNatureToProject(project);
+				JavacDriver.getInstance().recordProjectAction(ScriptCommands.ADD_NATURE, project);
 			} else if (changed) {
 				cleanup(); // FIX only for JSure
 				Nature.runAnalysis(project);

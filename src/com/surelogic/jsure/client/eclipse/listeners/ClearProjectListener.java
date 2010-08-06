@@ -1,7 +1,6 @@
 package com.surelogic.jsure.client.eclipse.listeners;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.IProject;
@@ -173,18 +172,19 @@ public class ClearProjectListener implements IResourceChangeListener {
 		}
 	}
 
-	public static void clearNatureFromAllOpenProjects() {
+	public static Iterable<IProject> clearNatureFromAllOpenProjects() {
 		// Handle projects that are still active
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
 				.getProjects();
 		if (projects == null) {
-			return;
+			return Collections.emptyList();
 		}
-
+		final List<IProject> removed = new ArrayList<IProject>();
 		for (final IProject p : projects) {
 			if (p.isOpen() && Nature.hasNature(p)) {
 				try {
 					Nature.removeNatureFromProject(p);
+					removed.add(p);
 				} catch (final CoreException e) {
 					SLLogger.getLogger().log(
 							Level.SEVERE,
@@ -194,5 +194,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 			}
 		}
 		postNatureChangeUtility();
+		
+		return removed;
 	}
 }

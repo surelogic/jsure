@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.actions;
 
+import org.eclipse.core.resources.IProject;
+
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
 public class DisableVerificationContextAction extends
@@ -7,7 +9,7 @@ public class DisableVerificationContextAction extends
 	private boolean changed = false;
 
 	@Override
-	protected boolean doRun(Object current) {
+	protected boolean doRun(IProject current) {
 		boolean rv = super.doRun(current);
 		changed = rv || changed;
 		return rv;
