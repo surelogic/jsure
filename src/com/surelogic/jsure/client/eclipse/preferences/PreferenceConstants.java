@@ -2,10 +2,10 @@ package com.surelogic.jsure.client.eclipse.preferences;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import com.surelogic.common.eclipse.preferences.IPreferenceConstants;
+import com.surelogic.common.eclipse.preferences.IAutoPerspectiveSwitchPreferences;
 import com.surelogic.jsure.client.eclipse.Activator;
 
-public class PreferenceConstants implements IPreferenceConstants {
+public class PreferenceConstants implements IAutoPerspectiveSwitchPreferences {
 	private static final String PREFIX = "com.surelogic.jsure.";
 
 	public static final String P_PROMPT_PERSPECTIVE_SWITCH = PREFIX
