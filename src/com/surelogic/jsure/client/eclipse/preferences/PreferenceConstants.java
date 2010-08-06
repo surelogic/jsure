@@ -12,12 +12,12 @@ public class PreferenceConstants implements IAutoPerspectiveSwitchPreferences {
 			+ PROMPT_PERSPECTIVE_SWITCH;
 
 	public boolean getPromptForPerspectiveSwitch() {
-		return Activator.getDefault().getPluginPreferences().getBoolean(
+		return Activator.getDefault().getPreferenceStore().getBoolean(
 				P_PROMPT_PERSPECTIVE_SWITCH);
 	}
 
 	public void setPromptForPerspectiveSwitch(boolean value) {
-		Activator.getDefault().getPluginPreferences().setValue(
+		Activator.getDefault().getPreferenceStore().setValue(
 				P_PROMPT_PERSPECTIVE_SWITCH, value);
 	}
 
@@ -25,12 +25,12 @@ public class PreferenceConstants implements IAutoPerspectiveSwitchPreferences {
 			+ AUTO_PERSPECTIVE_SWITCH;
 
 	public boolean getAutoPerspectiveSwitch() {
-		return Activator.getDefault().getPluginPreferences().getBoolean(
+		return Activator.getDefault().getPreferenceStore().getBoolean(
 				P_AUTO_PERSPECTIVE_SWITCH);
 	}
 
 	public void setAutoPerspectiveSwitch(boolean value) {
-		Activator.getDefault().getPluginPreferences().setValue(
+		Activator.getDefault().getPreferenceStore().setValue(
 				P_AUTO_PERSPECTIVE_SWITCH, value);
 	}
 
@@ -38,12 +38,12 @@ public class PreferenceConstants implements IAutoPerspectiveSwitchPreferences {
 			+ "open.modeling.problems.view";
 
 	public boolean getAutoOpenModelingProblemsView() {
-		return Activator.getDefault().getPluginPreferences().getBoolean(
+		return Activator.getDefault().getPreferenceStore().getBoolean(
 				P_AUTO_OPEN_MODELING_PROBLEMS_VIEW);
 	}
 
 	public void setAutoOpenModelingProblemsView(boolean value) {
-		Activator.getDefault().getPluginPreferences().setValue(
+		Activator.getDefault().getPreferenceStore().setValue(
 				P_AUTO_OPEN_MODELING_PROBLEMS_VIEW, value);
 	}
 
@@ -51,12 +51,12 @@ public class PreferenceConstants implements IAutoPerspectiveSwitchPreferences {
 			+ "open.proposed.promise.view";
 
 	public boolean getAutoOpenProposedPromiseView() {
-		return Activator.getDefault().getPluginPreferences().getBoolean(
+		return Activator.getDefault().getPreferenceStore().getBoolean(
 				P_AUTO_OPEN_MODELING_PROBLEMS_VIEW);
 	}
 
 	public void setAutoOpenProposedPromiseView(boolean value) {
-		Activator.getDefault().getPluginPreferences().setValue(
+		Activator.getDefault().getPreferenceStore().setValue(
 				P_AUTO_OPEN_MODELING_PROBLEMS_VIEW, value);
 	}
 
