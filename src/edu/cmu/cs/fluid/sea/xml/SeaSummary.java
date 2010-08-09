@@ -58,7 +58,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				replace = true;
 			} else {
 				System.out.println("Checking for newer oracle");
-				replace = isNewer(tempOracle, xmlOracle);
+				replace = tempLocation.exists() && isNewer(tempOracle, xmlOracle);
 			}
 			if (replace) {
 				xmlOracle = tempOracle;
