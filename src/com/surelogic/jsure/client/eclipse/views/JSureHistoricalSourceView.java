@@ -29,7 +29,7 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     public static void tryToOpenInEditor(final String pkg,
             final String type, final String field) {
     	if (viewIsEnabled) {
-    		tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type, field);       
+    		tryToOpenInEditorUsingFieldName(JSureHistoricalSourceView.class, null, pkg, type, field);       
     	}
     }
 
