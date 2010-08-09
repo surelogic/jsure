@@ -283,9 +283,12 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       if (p.getName().equals("promises")) {
         continue;
       }
-      if (p.isOpen() && Nature.hasNature(p)) {
-        assertNull("More than one project to analyze!?!", project);
-        project = p;
+      if (p.isOpen()) {
+    	  File script = findScript(p);
+    	  if (script != null || Nature.hasNature(p)) {
+    		  assertNull("More than one project to analyze!?!", project);
+    		  project = p;
+    	  }
       }      
     }
 
@@ -339,6 +342,15 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
   private ITestOutput output = null;
   private ITest currentTest = null;
   
+  private File findScript(final IProject project) {
+	  final String projectPath  = project.getLocation().toOSString();
+	  File script = new File(projectPath + File.separatorChar + ScriptCommands.NAME);
+	  if (script.exists() && script.isFile()) {
+		  return script;
+	  }
+	  return null;
+  }
+  
   private void runAnalysis(final File workspaceFile, final IProject project) throws Throwable {
     final String projectPath  = project.getLocation().toOSString();
 
@@ -379,8 +391,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     final String projectName = project.getName();
 
     // Check for script in the project to execute      
-    File script = new File(projectPath + File.separatorChar + ScriptCommands.NAME);
-    if (script.exists() && script.isFile()) {
+    File script = findScript(project);
+    if (script != null) {
       currentTest = start("Run scripting");
       ScriptReader r = new ScriptReader();
       r.execute(script);
