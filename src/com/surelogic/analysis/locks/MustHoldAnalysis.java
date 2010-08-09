@@ -410,26 +410,6 @@ public final class MustHoldAnalysis extends
         }
       }
       
-//      for (HeldLock stLock : lattice.getSingleThreaded()) {
-//        final int idx = lattice.getIndexOf(stLock, thisExprBinder, binder);
-//        if (idx != -1) {
-//          // Push lock (from being a single-threaded constructor) onto the stack as a new singleton set
-//          initValue = lattice.replaceValue(initValue, idx,
-//              lattice.getBaseLattice().push(initValue[idx],
-//                  ImmutableHashOrderSet.<IRNode>emptySet().addCopy(flowUnit)));
-//        }
-//      }
-      
-//      for (HeldLock ciLock : lattice.getClassInit()) {
-//        final int idx = lattice.getIndexOf(ciLock, thisExprBinder, binder);
-//        if (idx != -1) {
-//          // Push lock (from being a class initializer) onto the stack as a new singleton set
-//          initValue = lattice.replaceValue(initValue, idx,
-//              lattice.getBaseLattice().push(initValue[idx],
-//                  ImmutableHashOrderSet.<IRNode>emptySet().addCopy(flowUnit)));
-//        }
-//      }
-      
 //      System.out.println("  " + lattice.toString(initValue));
 //      System.out.flush();
       return initValue;

@@ -1,9 +1,13 @@
 package com.surelogic.analysis.uniqueness.uwm;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.Target;
@@ -22,10 +26,14 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.AbstractBinder;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.ISuperTypeSearchStrategy;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
@@ -45,10 +53,163 @@ import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.Iteratable;
+import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
+import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
-import edu.uwm.cs.fluid.java.control.SubAnalysisFactory;
+import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 
-public final class UniquenessAnalysis {
+public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, StoreLattice, JavaForwardAnalysis<Store, StoreLattice>> implements IBinderClient {
+  // ==================================================================
+  // === Fields
+  // ==================================================================
+
+  private final Effects effects;
+
+  
+  
+  // ==================================================================
+  // === Constructor 
+  // ==================================================================
+  
+  public UniquenessAnalysis(final IBinder binder, final Effects e) {
+    super(new FixBinder(binder)); // avoid crashes.
+    effects = e;
+  }
+  
+  
+  
+  // ==================================================================
+  // === Methods from IntraproceduralAnalysis
+  // ==================================================================
+
+  @Override
+  protected JavaForwardAnalysis<Store, StoreLattice> createAnalysis(
+      final IRNode flowUnit) {
+    /* Get all the local variables with reference types, including final
+     * variables declared in outer scopes, the "return variable" and the
+     * receiver.
+     */
+    final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
+    final List<IRNode> refLocals = new ArrayList<IRNode>();
+    final List<IRNode> trash = new ArrayList<IRNode>();
+    LocalVariableDeclarations.separateDeclarations(binder, lvd.getLocal(), refLocals, trash);
+    LocalVariableDeclarations.separateDeclarations(binder, lvd.getExternal(), refLocals, trash);
+    final IRNode returnNode = JavaPromise.getReturnNodeOrNull(flowUnit);
+    if (returnNode != null && LocalVariableDeclarations.hasReferenceType(binder, returnNode)) {
+      refLocals.add(returnNode);
+    }
+    /* XXX: probably we should include all the qualified receivers,
+     * but don't fix this until we know everything is working properly.
+     */
+    final IRNode rcvrNode = JavaPromise.getReceiverNodeOrNull(flowUnit);
+    if (rcvrNode != null) {
+      refLocals.add(rcvrNode);
+    }
+    final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
+    
+    final StoreLattice lattice = new StoreLattice(locals);
+    return new JavaForwardAnalysis<Store, StoreLattice>(
+        "Uniqueness Analsys (UWM)", lattice,
+        new UniquenessTransfer(binder, lattice, 0, flowUnit, effects),
+        DebugUnparser.viewer);
+  }
+
+  
+  
+  // ==================================================================
+  // === Methods from IBinderClient
+  // ==================================================================
+
+  public IBinder getBinder() {
+    return binder;
+  }
+
+  public void clearCaches() {
+    effects.clearCaches();
+    clear();
+  }
+  
+  
+  
+  // ==================================================================
+  // === Wrapper for binder to eat exceptions 
+  // ==================================================================
+
+  private static final class FixBinder extends AbstractBinder {
+    /** Logger instance for debugging. */
+    private static final Logger LOG = SLLogger.getLogger("FLUID.analysis.unique");
+
+    public final IBinder binder;
+
+    public FixBinder(IBinder b) {
+      binder = b;
+    }
+
+    public IBinding getIBinding(IRNode node) {
+      IBinding result;
+      try {
+        result = binder.getIBinding(node);
+      } catch (FluidError ex) {
+        LOG.log(Level.SEVERE, "Binder.getBinding crashed on "
+            + DebugUnparser.toString(node), ex);
+        return null;
+      } catch (NullPointerException ex) {
+        LOG.log(Level.SEVERE, "Binder.getBinding crashed on "
+            + DebugUnparser.toString(node), ex);
+        return null;
+      }
+      if (LOG.isLoggable(Level.FINE) && result == null) {
+        LOG.fine("(no binding for " + DebugUnparser.toString(node) + ")");
+      }
+      return result;
+    }
+
+    @Override
+    public IJavaType getJavaType(IRNode node) {
+      try {
+        return binder.getJavaType(node);
+      } catch (FluidError ex) {
+        LOG.log(Level.SEVERE, "Binder.getType crashed on "
+            + DebugUnparser.toString(node), ex);
+        return null;
+      }
+    }
+
+    @Override
+    public IRNode getRegionParent(IRNode region) {
+      return binder.getRegionParent(region);
+    }
+
+    @Override
+    public ITypeEnvironment getTypeEnvironment() {
+      return binder.getTypeEnvironment();
+    }
+
+    @Override
+    public IRNode findRegionInType(IRNode type, String region) {
+      // JTB: NB to self: don't edit FixBinder for Fluid-only operations.
+      return binder.findRegionInType(type, region);
+    }
+
+    @Override
+    public <T> T findClassBodyMembers(IRNode type, ISuperTypeSearchStrategy<T> tvs,
+        boolean throwIfNotFound) {
+      return binder.findClassBodyMembers(type, tvs, throwIfNotFound);
+    }
+
+    @Override
+    public Iteratable<IRNode> findOverriddenMethods(IRNode methodDeclaration) {
+      return binder.findOverriddenMethods(methodDeclaration);
+    }
+  }
+  
+  
+  
+  // ==================================================================
+  // === Transfer Function 
+  // ==================================================================
+
   private static final class UniquenessTransfer extends JavaEvaluationTransfer<StoreLattice, Store> {
     /** Logger instance for debugging. */
     private static final Logger LOG = SLLogger
@@ -65,9 +226,8 @@ public final class UniquenessAnalysis {
     // ==================================================================
 
     public UniquenessTransfer(final IBinder binder, final StoreLattice lattice,
-        final SubAnalysisFactory<StoreLattice, Store> factory, final int floor,
-        final IRNode fu, final Effects e) {
-      super(binder, lattice, factory, floor);
+        final int floor, final IRNode fu, final Effects e) {
+      super(binder, lattice, new SubAnalysisFactory(fu, e), floor);
       flowUnit = fu;
       effects = e;
     }
@@ -643,6 +803,31 @@ public final class UniquenessAnalysis {
     public Store transferComponentSource(final IRNode node) {
       // XXX: is this right?
       return lattice.bottom();
+    }
+  }
+  
+  
+  
+  // ==================================================================
+  // === SubAnalysis factory
+  // ==================================================================
+
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<StoreLattice, Store> {
+    private final IRNode flowUnit;
+    private final Effects effects;
+    
+    public SubAnalysisFactory(final IRNode fu, final Effects e) {
+      flowUnit = fu;
+      effects = e;
+    }
+    
+    @Override
+    protected JavaForwardAnalysis<Store, StoreLattice> realCreateAnalysis(
+        final IRNode caller, final IBinder binder, final StoreLattice lattice,
+        final Store initialValue, final boolean terminationNormal) {
+      final int floor = initialValue.getStackSize().intValue();
+      final UniquenessTransfer transfer = new UniquenessTransfer(binder, lattice, floor, flowUnit, effects);
+      return new JavaForwardAnalysis<Store, StoreLattice>("Sub Analysis", lattice, transfer, DebugUnparser.viewer);
     }
   }
 }

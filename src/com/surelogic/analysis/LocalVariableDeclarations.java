@@ -285,6 +285,33 @@ public final class LocalVariableDeclarations {
   }
   
   /**
+   * Separates reference from non-reference typed declarations into two lists.
+   * 
+   * @param binder
+   *          The binder
+   * @param decls
+   *          The input list of declarations. This list is unchanged by this
+   *          method.
+   * @param refs
+   *          The output list of declarations with reference types. This list is
+   *          modified by use of the {@link List#add()} method by this method.
+   * @param prims
+   *          The output list of declarations with primitive types. This list is
+   *          modified by use of the {@link List#add()} method by this method.
+   */
+  public static void separateDeclarations(
+      final IBinder binder, final List<IRNode> decls,
+      final List<IRNode> refs, final List<IRNode> prims) {
+    for (final IRNode decl : decls) {
+      if (hasReferenceType(binder, decl)) {
+        refs.add(decl);
+      } else {
+        prims.add(decl);
+      }
+    }
+  }
+  
+  /**
    * Get the local variable and parameter declarations for a particular
    * method/constructor or initializer.
    * 

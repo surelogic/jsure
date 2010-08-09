@@ -1,8 +1,6 @@
 package com.surelogic.analysis.bca.uwm;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.surelogic.analysis.LocalVariableDeclarations;
@@ -187,19 +185,24 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
   public static BindingContext createForFlowUnit(final boolean ignorePrimitives,
       final IRNode flowUnit, final IBinder binder) {
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
-    
-    final List<IRNode> localsOfInterest = new LinkedList<IRNode>(lvd.getLocal());
+    final List<IRNode> localsOfInterest = new ArrayList<IRNode>(lvd.getLocal().size());
     final List<IRNode> ignore = new ArrayList<IRNode>(lvd.getExternal());
     if (ignorePrimitives) {
-      final Iterator<IRNode> localsItr = localsOfInterest.iterator();
-      while (localsItr.hasNext()) {
-        final IRNode lcl = localsItr.next();
-        if (!LocalVariableDeclarations.hasReferenceType(binder, lcl)) {
-          localsItr.remove();
-          ignore.add(lcl);
-        }
-      }
+      LocalVariableDeclarations.separateDeclarations(binder, lvd.getLocal(), localsOfInterest, ignore);
     }
+    
+//    final List<IRNode> localsOfInterest = new LinkedList<IRNode>(lvd.getLocal());
+//    final List<IRNode> ignore = new ArrayList<IRNode>(lvd.getExternal());
+//    if (ignorePrimitives) {
+//      final Iterator<IRNode> localsItr = localsOfInterest.iterator();
+//      while (localsItr.hasNext()) {
+//        final IRNode lcl = localsItr.next();
+//        if (!LocalVariableDeclarations.hasReferenceType(binder, lcl)) {
+//          localsItr.remove();
+//          ignore.add(lcl);
+//        }
+//      }
+//    }
     
     final IRNode[] localArray = new IRNode[localsOfInterest.size()];
     final IRNode[] ignoreArray = new IRNode[ignore.size()];
