@@ -3,7 +3,8 @@ package com.surelogic.test.scripting;
 import java.io.*;
 
 import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.*;
+//import org.eclipse.core.runtime.jobs.Job;
 
 /**
  * Reads the script line by line
@@ -74,6 +75,8 @@ public class ScriptReader implements ICommandContext {
   }
   
   public void execute(Reader r) throws Exception {
+	init();
+	  
     final BufferedReader br = new BufferedReader(r);  
     String line;
     while ((line = br.readLine()) != null) {
@@ -106,11 +109,44 @@ public class ScriptReader implements ICommandContext {
     }
   }
 
-  private void build() throws CoreException {
+  private void init() throws CoreException {
+	  final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+	  final IWorkspaceDescription description = workspace.getDescription();
+	  if (description.isAutoBuilding()) {
+		  description.setAutoBuilding(false);
+		  workspace.setDescription(description);
+	  }
+	  build(IncrementalProjectBuilder.CLEAN_BUILD);
+  }
+
+  private void build() throws CoreException {	  
+	  build(IncrementalProjectBuilder.CLEAN_BUILD); //OK
+	  //build(IncrementalProjectBuilder.FULL_BUILD); //NO
+	  //build(IncrementalProjectBuilder.INCREMENTAL_BUILD); //NO
+	  //build(IncrementalProjectBuilder.AUTO_BUILD); //NO?
+	  /*
+	  try {
+		  Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+	  } catch (OperationCanceledException e) {
+		  e.printStackTrace();
+	  } catch (InterruptedException e) {
+		  e.printStackTrace();
+	  }
+	  */
+  }
+  
+  private void build(int kind) throws CoreException {
+	ResourcesPlugin.getWorkspace().build(kind, null);
+	/*
     IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+    
     for(IProject p : root.getProjects()) {
-      // check if files changed    
-      p.build(IncrementalProjectBuilder.AUTO_BUILD, null);
+        // TODO what if these are run out of dependency order
+    	// p.getReferencedProjects()
+    	
+    	// check if files changed    
+    	p.build(kind, null);
     }
+    */
   }
 }
