@@ -90,6 +90,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 		cus.clear();
 		
 		if (useJavac) {						
+			System.out.println("Configuring build");
 			JavacDriver.getInstance().configureBuild(args);
 		}
 		args = null;
