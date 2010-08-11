@@ -7,7 +7,7 @@ import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -30,7 +30,7 @@ import edu.uwm.cs.fluid.java.control.JavaBackwardTransfer;
 
 public final class MustReleaseAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice, JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>> {
-  public final class Query extends AbstractJavaFlowAnalysisQuery<Query, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> {
+  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> {
     public Query(
         final IThunk<? extends IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>> thunk) {
       super(thunk);

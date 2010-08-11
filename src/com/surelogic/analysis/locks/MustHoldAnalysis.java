@@ -9,8 +9,8 @@ import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -68,7 +68,7 @@ public final class MustHoldAnalysis extends
   }
   
   
-  public final class LocksForQuery extends AbstractJavaFlowAnalysisQuery<LocksForQuery, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
+  public final class LocksForQuery extends SimplifiedJavaFlowAnalysisQuery<LocksForQuery, Set<IRNode>, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
     public LocksForQuery(
         final IThunk<? extends IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>> t) {
       super(t);
@@ -103,7 +103,7 @@ public final class MustHoldAnalysis extends
   
   
 
-  public final class HeldLocksQuery extends AbstractJavaFlowAnalysisQuery<HeldLocksQuery, HeldLocks, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
+  public final class HeldLocksQuery extends SimplifiedJavaFlowAnalysisQuery<HeldLocksQuery, HeldLocks, ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> {
     public HeldLocksQuery(
         final IThunk<? extends IJavaFlowAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>> t) {
       super(t);

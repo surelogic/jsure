@@ -7,7 +7,7 @@ import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -28,7 +28,7 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 
 public final class IntrinsicLockAnalysis extends
     edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis<Object[], IntrinsicLockLattice, JavaForwardAnalysis<Object[], IntrinsicLockLattice>> {
-  public final class Query extends AbstractJavaFlowAnalysisQuery<Query, Set<HeldLock>, Object[], IntrinsicLockLattice> {
+  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Set<HeldLock>, Object[], IntrinsicLockLattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Object[], IntrinsicLockLattice>> thunk) {
       super(thunk);
     }

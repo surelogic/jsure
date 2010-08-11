@@ -3,7 +3,6 @@ package edu.cmu.cs.fluid.java.analysis;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.Thunk;
 
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.util.Lattice;
@@ -89,7 +88,8 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      * Always forwards the bottom value to {@link #processRawResult}.
      */
     public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
-      return owner.processRawResult(expr, lattice, lattice.bottom());
+      return owner.getBottomReturningResult(lattice, expr);
+//      return owner.processRawResult(expr, lattice, lattice.bottom());
     }
 
     /**
@@ -121,8 +121,9 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      * {@link processRawResult}.
      */
     public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
-      return owner.processRawResult(
-          expr, lattice, owner.rawResultFactory.getRawResult(expr, analysis));
+      return owner.getEvaluatedAnalysisResult(analysis, lattice, expr);
+//      return owner.processRawResult(
+//          expr, lattice, owner.rawResultFactory.getRawResult(expr, analysis));
     }
 
     /**
@@ -263,36 +264,6 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
     }
   }
 
-  
-  /* Enumeration that provides three techniques for getting the raw result from
-   * the analysis: before the entry port, after the normal exit port, or 
-   * after the exceptional (abrupt) exit port.
-   */
-  protected static enum RawResultFactory {
-    ENTRY {
-      @Override
-      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis) {
-        return analysis.getAfter(expr, WhichPort.ENTRY);
-      }
-    },
-    
-    NORMAL_EXIT {
-      @Override
-      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis) {
-        return analysis.getAfter(expr, WhichPort.NORMAL_EXIT);
-      }
-    },
-    
-    ABRUPT_EXIT {
-      @Override
-      public <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(final IRNode expr, final A analysis) {
-        return analysis.getAfter(expr, WhichPort.ABRUPT_EXIT);
-      }
-    };
-    
-    public abstract <T, L extends Lattice<T>, A extends IJavaFlowAnalysis<T, L>> T getRawResult(IRNode expr, A analysis);
-  }
-
 
     
   /**
@@ -300,11 +271,6 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
    * behavior dynamically.
    */
   private Delegate<SELF, R, T, L> delegate;
-  
-  /**
-   * How to get the value from the analysis object.
-   */
-  private RawResultFactory rawResultFactory;
   
   
   
@@ -324,7 +290,6 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
    */
   protected AbstractJavaFlowAnalysisQuery(final Delegate<SELF, R, T, L> d) {
     delegate = d;
-    rawResultFactory = getRawResultFactory();
   }
   
   
@@ -345,20 +310,12 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
 
   
   
-  /**
-   * Return the raw result factory used by the query. This method is called by
-   * the constructor. Because this is a precarious thing to do, an
-   * implementation of this method must immediately return one of
-   * {@link RawResultFactory#ENTRY}, {@link RawResultFactory#NORMAL_EXIT}, or
-   * {@link RawResultFactory#ABRUPT_EXIT}.
-   */
-  protected abstract RawResultFactory getRawResultFactory();
-  
-  /**
-   * Massage the raw analysis result into a more useful value by running it 
-   * through the lattice, etc.
-   */
-  protected abstract R processRawResult(IRNode expr, L lattice, T rawResult);
+  protected abstract R getBottomReturningResult(L lattice, IRNode expr);
+
+  protected abstract R getEvaluatedAnalysisResult(
+      IJavaFlowAnalysis<T, L> analysis, L lattice, IRNode expr);
+
+
 
   protected abstract SELF newSubAnalysisQuery(Delegate<SELF, R, T, L> delegate);
 }
