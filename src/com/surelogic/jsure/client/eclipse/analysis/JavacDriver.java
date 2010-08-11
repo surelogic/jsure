@@ -698,17 +698,17 @@ public class JavacDriver {
         }
         ConfigureJob configure = new ConfigureJob("Configuring JSure build", isAuto);
 	    final boolean success = currentProjects.compareAndSet(null, configure.projects);
-	    ProjectsDrop pd = ProjectsDrop.getDrop();
-	    if (pd != null) {
-	    	for(JavacProject jp : ((Projects) pd.getIIRProjects())) {
-	    		System.out.println("Deactivating "+jp);
-	    		jp.deactivate();
-	    	}
-	    }
         if (!success) {
 	    	System.out.println("Already started ConfigureJob");	    	
 	    } else {
 	    	System.out.println("Starting to configure JSure build");
+		    ProjectsDrop pd = ProjectsDrop.getDrop();
+		    if (pd != null) {
+		    	for(JavacProject jp : ((Projects) pd.getIIRProjects())) {
+		    		System.out.println("Deactivating "+jp);
+		    		jp.deactivate();
+		    	}
+		    }
 		    if (XUtil.testing) {
 		    	configure.run(new NullSLProgressMonitor());
 		    } else {
@@ -1042,6 +1042,14 @@ public class JavacDriver {
             targetDir = target;
             zipDir = zips;
         }
+	    
+	    protected void endAnalysis() {
+	    	final Projects p = currentProjects.getAndSet(null);
+	    	if (projects != p) {
+	    		System.out.println("Unexpected projects: "+p.getShortLabel()+
+	    				", instead of "+projects.getShortLabel());
+	    	}     
+	    }
 	}
 	
 	class CopyJob extends JavacJob {
@@ -1077,12 +1085,7 @@ public class JavacDriver {
         	    } else {
         	    	EclipseJob.getInstance().scheduleDb(afterJob, false, false, Util.class.getName());
         	    }
-            }
-            final Projects p = currentProjects.getAndSet(null);
-            if (projects != p) {
-            	System.out.println("Unexpected projects: "+p.getShortLabel()+
-            			", instead of "+projects.getShortLabel());
-            }
+            }                   
             return SLStatus.OK_STATUS;
         }   
 	}
@@ -1115,7 +1118,7 @@ public class JavacDriver {
             JavacEclipse.initialize();
             NotificationHub.notifyAnalysisStarting();
             try {
-            	boolean ok;
+            	boolean ok;            	
             	if (oldProjects == null) {
             		ok = Util.openFiles(projects);
             	} else {
@@ -1143,6 +1146,8 @@ public class JavacDriver {
                 	return SLStatus.CANCEL_STATUS;
                 }
                 return SLStatus.createErrorStatus("Problem while running JSure", e);
+            } finally {
+            	endAnalysis();
             }
             NotificationHub.notifyAnalysisCompleted();
             if (lastMonitor == monitor) {
