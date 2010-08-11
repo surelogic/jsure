@@ -17,15 +17,19 @@ import com.surelogic.analysis.uniqueness.uwm.store.Store;
 import com.surelogic.analysis.uniqueness.uwm.store.StoreLattice;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.NormalExitPort;
 import edu.cmu.cs.fluid.control.Port;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery;
+import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.AbstractBinder;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
@@ -56,6 +60,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
+import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 
@@ -828,6 +833,211 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final int floor = initialValue.getStackSize().intValue();
       final UniquenessTransfer transfer = new UniquenessTransfer(binder, lattice, floor, flowUnit, effects);
       return new JavaForwardAnalysis<Store, StoreLattice>("Sub Analysis", lattice, transfer, DebugUnparser.viewer);
+    }
+  }
+  
+  
+  
+  // ==================================================================
+  // === Queries
+  // ==================================================================
+
+  public static final String NOT_AN_ERROR = "Usage is correct.";
+
+  private static final boolean isBadState(final StoreLattice sl, final Store s) {
+    return s != null && !sl.equals(s, sl.top()) && !s.isValid();
+  }
+  
+  public IsInvalidQuery getIsInvalidQuery(final IRNode flowUnit) {
+    return new IsInvalidQuery(getAnalysisThunk(flowUnit));
+  }
+  
+  public IsPositivelyAssuredQuery getIsPositivelyAssuredQuery(final IRNode flowUnit) {
+    return new IsPositivelyAssuredQuery(getAnalysisThunk(flowUnit));
+  }
+  
+  public NormalErrorQuery getNormalErrorQuery(final IRNode flowUnit) {
+    return new NormalErrorQuery(getAnalysisThunk(flowUnit));
+  }
+  
+  public AbruptErrorQuery getAbruptErrorQuery(final IRNode flowUnit) {
+    return new AbruptErrorQuery(getAnalysisThunk(flowUnit));
+  }
+  
+  
+  
+  public static class IsInvalidQuery extends AbstractJavaFlowAnalysisQuery<IsInvalidQuery, Boolean, Store, StoreLattice> {
+    protected IsInvalidQuery(
+        final IThunk<? extends IJavaFlowAnalysis<Store, StoreLattice>> thunk) {
+      super(thunk);
+    }
+
+    protected IsInvalidQuery(
+        final Delegate<IsInvalidQuery, Boolean, Store, StoreLattice> d) {
+      super(d);
+    }
+
+    @Override
+    protected Boolean getBottomReturningResult(
+        final StoreLattice lattice, final IRNode expr) {
+      /* This method should return a result equivalent to
+       * getEvaluatedAnalysisResult() where all the returned analysis values
+       * are BOTTOM.  In this case, this simplifies to FALSE because
+       * if you assume 'sbefore' is BOTTOM, then 
+       * "sbefore != null && !lattice.equals(sbefore, top) && !sbefore.isValid()"
+       * is true because BOTTOM.isValid() is false. 
+       */
+      return Boolean.FALSE;
+    }
+
+    @Override
+    protected Boolean getEvaluatedAnalysisResult(
+        final IJavaFlowAnalysis<Store, StoreLattice> analysis,
+        final StoreLattice lattice, final IRNode expr) {
+      final Store sbefore = analysis.getAfter(expr, WhichPort.ENTRY);
+      final Store safter = analysis.getAfter(expr, WhichPort.NORMAL_EXIT);
+      final Store sabrupt = analysis.getAfter(expr, WhichPort.ABRUPT_EXIT);
+
+      // A node is invalid if things were OK when the store
+      // came in, but are wrong now that control is leaving.
+      // ? NB: top() sometimes means control didn't get to
+      // ? a place but also happens near the start of a procedure
+      // ? before OpStart() and so we can't ignore top(). Also,
+      // ? I believe top().isValid is false. This is all the
+      // ? more confusing because top() means what is usually
+      // ? meant by bottom for analysis people. JTB 2002/9/23
+
+      // If the state coming in is bad, no error:
+      if (isBadState(lattice, sbefore)) {
+        return Boolean.FALSE;
+      }
+
+      // If the state coming out for normal termination is bad, an error:
+      if (isBadState(lattice, safter)) {
+        return Boolean.TRUE;
+      }
+
+      // If the state coming out for abrupt termination is bad, an error:
+      if (isBadState(lattice, sabrupt)) {
+        return Boolean.TRUE;
+      }
+
+      // Otherwise, must be OK
+      return Boolean.FALSE;
+    }
+
+    @Override
+    protected IsInvalidQuery newSubAnalysisQuery(
+        final Delegate<IsInvalidQuery, Boolean, Store, StoreLattice> delegate) {
+      return new IsInvalidQuery(delegate);
+    }
+  }
+  
+  
+  
+  public static class IsPositivelyAssuredQuery extends AbstractJavaFlowAnalysisQuery<IsPositivelyAssuredQuery, Boolean, Store, StoreLattice> {
+    protected IsPositivelyAssuredQuery(
+        final IThunk<? extends IJavaFlowAnalysis<Store, StoreLattice>> thunk) {
+      super(thunk);
+    }
+
+    protected IsPositivelyAssuredQuery(
+        final Delegate<IsPositivelyAssuredQuery, Boolean, Store, StoreLattice> d) {
+      super(d);
+    }
+
+    @Override
+    protected Boolean getBottomReturningResult(
+        final StoreLattice lattice, final IRNode expr) {
+      /* getEvaluatedAnaysisResults() with BOTTOM substituted in for safter and 
+       * sabrupt.
+       */
+      return Boolean.FALSE;
+    }
+
+    @Override
+    protected Boolean getEvaluatedAnalysisResult(
+        final IJavaFlowAnalysis<Store, StoreLattice> analysis,
+        final StoreLattice lattice, final IRNode expr) {
+      final Store safter = analysis.getAfter(expr, WhichPort.NORMAL_EXIT);
+      final Store sabrupt = analysis.getAfter(expr, WhichPort.ABRUPT_EXIT);
+      return !isBadState(lattice, safter) && !isBadState(lattice,sabrupt);
+    }
+
+    @Override
+    protected IsPositivelyAssuredQuery newSubAnalysisQuery(
+        edu.cmu.cs.fluid.java.analysis.AbstractJavaFlowAnalysisQuery.Delegate<IsPositivelyAssuredQuery, Boolean, Store, StoreLattice> delegate) {
+      return new IsPositivelyAssuredQuery(delegate);
+    }
+  }
+  
+  
+  
+  public static final class NormalErrorQuery extends SimplifiedJavaFlowAnalysisQuery<NormalErrorQuery, String, Store, StoreLattice> {
+    protected NormalErrorQuery(
+        final IThunk<? extends IJavaFlowAnalysis<Store, StoreLattice>> thunk) {
+      super(thunk);
+    }
+
+    protected NormalErrorQuery(
+        final Delegate<NormalErrorQuery, String, Store, StoreLattice> d) {
+      super(d);
+    }
+
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
+    }
+
+    @Override
+    protected String processRawResult(
+        final IRNode expr, final StoreLattice lattice, final Store rawResult) {
+      if (isBadState(lattice, rawResult)) {
+        return lattice.toString(rawResult);
+      } else {
+        return NOT_AN_ERROR;
+      }      
+    }
+
+    @Override
+    protected NormalErrorQuery newSubAnalysisQuery(
+        final Delegate<NormalErrorQuery, String, Store, StoreLattice> delegate) {
+      return new NormalErrorQuery(delegate);
+    }
+  }
+  
+  
+  
+  public static final class AbruptErrorQuery extends SimplifiedJavaFlowAnalysisQuery<AbruptErrorQuery, String, Store, StoreLattice> {
+    protected AbruptErrorQuery(
+        final IThunk<? extends IJavaFlowAnalysis<Store, StoreLattice>> thunk) {
+      super(thunk);
+    }
+
+    protected AbruptErrorQuery(
+        final Delegate<AbruptErrorQuery, String, Store, StoreLattice> d) {
+      super(d);
+    }
+
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.ABRUPT_EXIT;
+    }
+
+    @Override
+    protected String processRawResult(
+        final IRNode expr, final StoreLattice lattice, final Store rawResult) {
+      if (isBadState(lattice, rawResult)) {
+        return lattice.toString(rawResult);
+      } else {
+        return NOT_AN_ERROR;
+      }      
+    }
+
+    @Override
+    protected AbruptErrorQuery newSubAnalysisQuery(
+        final Delegate<AbruptErrorQuery, String, Store, StoreLattice> delegate) {
+      return new AbruptErrorQuery(delegate);
     }
   }
 }
