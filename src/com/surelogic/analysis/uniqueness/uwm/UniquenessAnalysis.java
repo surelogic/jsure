@@ -583,7 +583,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           LOG.fine("Popping qualifiers");
         }
         if (!s.isValid()) return s;
-        /* Comproimise value under top: (1) copy it onto top; (2) compromise
+        /* Compromise value under top: (1) copy it onto top; (2) compromise
          * new top and discard it; (3) popSecond
          */
         s = lattice.opGet(s, lattice.getUnderTop(s));
