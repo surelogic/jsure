@@ -65,6 +65,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 	private static final boolean clearAll = true;
 
 	public static void clearJSureState() {
+		System.out.println("Clearing JSure state");
 		try {
 			synchronized (Sea.getDefault()) {
 				clearDropSea(clearAll);
@@ -150,6 +151,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 	 * one or more projects.
 	 */
 	public static void postNatureChangeUtility() {
+		System.out.println("postNatureChangeUtility");
 		ClearProjectListener.clearJSureState();
 
 		// Handle projects that are still active
