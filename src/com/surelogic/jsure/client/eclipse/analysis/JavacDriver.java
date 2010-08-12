@@ -2,7 +2,6 @@ package com.surelogic.jsure.client.eclipse.analysis;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.*;
 
 import org.apache.commons.collections15.MultiMap;
@@ -33,6 +32,20 @@ import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver {
 	/**
+	 * Clear all the JSure state before each build
+	 */
+	private static final boolean clearBeforeAnalysis = false;
+	
+	enum BuildState {
+		// Null means no build right now
+		WAITING, BUILDING
+	}
+	enum RebuildState {
+		// Null means no need to rebuild
+		AUTO, FULL
+	}
+	
+	/**
 	 * If true, create common projects for shared jars
 	 * Otherwise, jars in different are treated as if they're completely unique
 	 * 
@@ -43,10 +56,27 @@ public class JavacDriver {
 	
 	//private final List<IProject> building = new ArrayList<IProject>();
 	private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
-	private final AtomicReference<Projects> currentProjects = new AtomicReference<Projects>();
 	private final File tempDir;
 	private final File scriptResourcesDir;
 	private final PrintStream script;
+	
+	/**
+	 * State that needs to be atomically modified
+	 */
+	private BuildState buildState = null;
+	private RebuildState rebuildQueue = null;
+	
+	synchronized RebuildState makeTransition(BuildState before, BuildState after, RebuildState rebuild) {
+		if (buildState != before) {
+			throw new IllegalStateException("Build state isn't "+before+": "+buildState);
+		}
+		buildState = after;
+		try {
+			return rebuildQueue;
+		} finally {
+			rebuildQueue = rebuild;
+		}
+	}
 	
 	private JavacDriver() {
 		PeriodicUtility.addHandler(new Runnable() {
@@ -697,10 +727,29 @@ public class JavacDriver {
         	((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
         }
         ConfigureJob configure = new ConfigureJob("Configuring JSure build", isAuto);
-	    final boolean success = currentProjects.compareAndSet(null, configure.projects);
-        if (!success) {
-	    	System.out.println("Already started ConfigureJob");	    	
-	    } else {
+        synchronized (this) {
+        	if (buildState == null) {
+        		buildState = BuildState.WAITING;
+        	} else {        		
+        		// Build already going        		
+        		System.out.println("Already started ConfigureJob: "+buildState);	    	
+        		if (buildState == BuildState.BUILDING) {
+        			// We need to do another build, since there might be some updates 
+        			// after the currently running build
+        			if (isAuto) {
+        				if (rebuildQueue == null) {
+        					rebuildQueue = RebuildState.AUTO;
+        				} 
+        				// Otherwise, it's already set correctly to AUTO or FULL
+        			} else {
+        				rebuildQueue = RebuildState.FULL;
+        			}
+        		} else {
+        			// Ok to ignore, because this will be handled by the currently waiting build
+        		}
+        		return;
+        	}	   
+        	// Only if there's no build already
 	    	System.out.println("Starting to configure JSure build");
 		    ProjectsDrop pd = ProjectsDrop.getDrop();
 		    if (pd != null) {
@@ -744,7 +793,7 @@ public class JavacDriver {
 		    });
 
 		    Projects oldProjects = (Projects) ProjectsDrop.getProjects();		    
-		    if (oldProjects != null) {
+		    if (!clearBeforeAnalysis && oldProjects != null) {
 		    	findModifiedFiles(newProjects, oldProjects);
 		    }
 		    // TODO remove files that weren't changed?
@@ -1008,6 +1057,7 @@ public class JavacDriver {
 					e1.printStackTrace();
 				}
 				// Clear for next build?
+				makeTransition(BuildState.WAITING, BuildState.BUILDING, null);
 			}
 			// Clear projects that are inactive
 			for(IJavaProject jp : JDTUtility.getJavaProjects()) {
@@ -1042,14 +1092,6 @@ public class JavacDriver {
             targetDir = target;
             zipDir = zips;
         }
-	    
-	    protected void endAnalysis() {
-	    	final Projects p = currentProjects.getAndSet(null);
-	    	if (projects != p) {
-	    		System.out.println("Unexpected projects: "+p.getShortLabel()+
-	    				", instead of "+projects.getShortLabel());
-	    	}     
-	    }
 	}
 	
 	class CopyJob extends JavacJob {
@@ -1119,7 +1161,8 @@ public class JavacDriver {
             NotificationHub.notifyAnalysisStarting();
             try {
             	boolean ok;            	
-            	if (oldProjects == null) {
+            	if (clearBeforeAnalysis || oldProjects == null) {
+            		ClearProjectListener.clearJSureState();
             		ok = Util.openFiles(projects);
             	} else {
             		ok = Util.openFiles(oldProjects, projects);
@@ -1147,7 +1190,7 @@ public class JavacDriver {
                 }
                 return SLStatus.createErrorStatus("Problem while running JSure", e);
             } finally {
-            	endAnalysis();
+            	endAnalysis();      	
             }
             NotificationHub.notifyAnalysisCompleted();
             if (lastMonitor == monitor) {
@@ -1156,5 +1199,26 @@ public class JavacDriver {
             
             return SLStatus.OK_STATUS;
         }  
+        
+	    
+	    protected void endAnalysis() {
+	    	final RebuildState state = makeTransition(BuildState.BUILDING, null, null);   	    
+    		if (state != null) {
+    			EclipseJob.getInstance().scheduleDb(new AbstractSLJob("Rebuilding JSure") {					
+					public SLStatus run(SLProgressMonitor monitor) {
+					    /*
+						try {
+							Thread.sleep(3000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+*/
+			  			System.out.println("Rebuilding ...");
+		    			configureBuild(state == RebuildState.AUTO);
+						return SLStatus.OK_STATUS;
+					}
+				});
+    		}
+    	}
 	}
 }
