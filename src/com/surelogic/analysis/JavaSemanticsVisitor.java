@@ -265,7 +265,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * @return The type declaration node visitation is inside of or
    *         <code>null</code> if the visitor is not inside a type.
    */
-  protected IRNode getEnclosingType() {
+  protected final IRNode getEnclosingType() {
     return enclosingType;
   }
 
@@ -324,10 +324,18 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *         <code>null</code> if the visitor is not inside a method/constructor
    *         declaration.
    */
-  protected IRNode getEnclosingDecl() {
+  protected final IRNode getEnclosingDecl() {
     return enclosingDecl;
   }
 
+  /**
+   * Get whether visitation is inside a constructor or not.  Also true if the
+   * visitor is visiting a init declaration on behalf of a constructor.
+   */
+  protected final boolean isInsideConstructor() {
+    return insideConstructor;
+  }
+  
   /**
    * Called whenever the visitor enters a new method/constructor declaration.
    * This is called after the internal record of the enclosing declaration has
