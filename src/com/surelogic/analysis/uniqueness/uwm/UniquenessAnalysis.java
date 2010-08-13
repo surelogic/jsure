@@ -711,7 +711,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     protected Store transferMethodBody(final IRNode body, final Port kind, Store s) {
       if (kind instanceof EntryPort) {
-        return lattice.opStart(s);
+        return s; // opStart() was invoked when the flow unit was entered
+//        return lattice.opStart();
       } else {
         final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
         final IRNode mdecl = tree.getParent(body);
@@ -806,8 +807,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     
     public Store transferComponentSource(final IRNode node) {
-      // XXX: is this right?
-      return lattice.bottom();
+      return lattice.opStart();
     }
   }
   
@@ -862,6 +862,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   
   public AbruptErrorQuery getAbruptErrorQuery(final IRNode flowUnit) {
     return new AbruptErrorQuery(getAnalysisThunk(flowUnit));
+  }
+  
+  public RawQuery getRaw(final IRNode flowUnit) {
+    return new RawQuery(getAnalysisThunk(flowUnit));
   }
   
   
@@ -1038,6 +1042,35 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected AbruptErrorQuery newSubAnalysisQuery(
         final Delegate<AbruptErrorQuery, String, Store, StoreLattice> delegate) {
       return new AbruptErrorQuery(delegate);
+    }
+  }
+  
+  public static final class RawQuery extends SimplifiedJavaFlowAnalysisQuery<RawQuery, Store, Store, StoreLattice> {
+    protected RawQuery(
+        final IThunk<? extends IJavaFlowAnalysis<Store, StoreLattice>> thunk) {
+      super(thunk);
+    }
+
+    protected RawQuery(
+        final Delegate<RawQuery, Store, Store, StoreLattice> d) {
+      super(d);
+    }
+
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.ENTRY;
+    }
+
+    @Override
+    protected Store processRawResult(
+        final IRNode expr, final StoreLattice lattice, final Store rawResult) {
+      return rawResult;
+    }
+
+    @Override
+    protected RawQuery newSubAnalysisQuery(
+        final Delegate<RawQuery, Store, Store, StoreLattice> delegate) {
+      return new RawQuery(delegate);
     }
   }
 }
