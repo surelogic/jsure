@@ -123,11 +123,11 @@ public class Store extends RecordLattice {
     return (FlatLattice) getValue(STACK_SIZE);
   }
 
-  protected UnionLattice getObjects() {
+  public UnionLattice getObjects() {
     return (UnionLattice) getValue(OBJECTS);
   }
 
-  protected UnionLattice getFieldStore() {
+  public UnionLattice getFieldStore() {
     return (UnionLattice) getValue(FIELD_STORE);
   }
 
