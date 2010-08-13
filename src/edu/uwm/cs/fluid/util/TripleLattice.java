@@ -7,9 +7,12 @@ import edu.cmu.cs.fluid.util.Triple;
  * A lattice built up as the cartesian product of three lattices.
  */
 public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>> implements Lattice<V> {
-  protected final Lattice<T1> lattice1;
-  protected final Lattice<T2> lattice2;
-  protected final Lattice<T3> lattice3;
+  /* Our constituent lattices are public!  Not usually needed, but sometimes
+   * useful.  I cannot think of a good reason they should be hidden.
+   */
+  public final Lattice<T1> lattice1;
+  public final Lattice<T2> lattice2;
+  public final Lattice<T3> lattice3;
   
   private final V top;
   private final V bottom;
