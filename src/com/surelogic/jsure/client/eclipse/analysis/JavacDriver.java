@@ -1057,8 +1057,9 @@ public class JavacDriver {
 					e1.printStackTrace();
 				}
 				// Clear for next build?
-				makeTransition(BuildState.WAITING, BuildState.BUILDING, null);
 			}
+			makeTransition(BuildState.WAITING, BuildState.BUILDING, null);
+			
 			// Clear projects that are inactive
 			for(IJavaProject jp : JDTUtility.getJavaProjects()) {
 				ProjectInfo info = JavacDriver.this.projects.get(jp.getProject());
