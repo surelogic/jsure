@@ -98,10 +98,10 @@ extends TripleLattice<Element<Integer>,
   Store errorStore(final String msg) {
     /* Create the new triple directly because we don't want replaceFirst()
      * to substitute the original bottom back in. 
+     * Create a store that is invalid, but not top or bottom.
      */
-    final Store bot = bottom();
     return newTriple(
-        FlatLattice2.<Integer>errorBottom(msg), bot.second(), bot.third());
+        FlatLattice2.<Integer>errorBottom(msg), top().second(), bottom().third());
   }
   
   @Override
@@ -246,7 +246,7 @@ extends TripleLattice<Element<Integer>,
   // === Stack Machine Operations 
   // ==================================================================
 
-  public Store opStart(final Store s) {
+  public Store opStart() {
     Store temp = bottom();
     
     /*
