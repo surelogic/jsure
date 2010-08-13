@@ -138,7 +138,21 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
   }
   
   public boolean lessEq(final Element<T> v1, final Element<T> v2) {
-    return v1.height == -1 || v2.height == 1 || v1.getValue().equals(v2.getValue());
+    if (v1.height == -1 || v2.height == 1) {
+      //     v1 is BOTTOM, always less than any v2
+      // or  v2 is TOP, always greater than any v1
+      return true;
+    } else if (v1.height == v2.height) {
+      if (v1.height == 0) {
+        // Compare the elements
+        return v1.getValue().equals(v2.getValue());
+      } else {
+        // TOP <= TOP, BOTTOM <= BOTTOM
+        return true;
+      }
+    } else {
+      return false;
+    }
   }
 
   public Element<T> top() {
