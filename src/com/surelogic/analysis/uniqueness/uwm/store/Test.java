@@ -207,7 +207,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart(store);
+    store = sl.opStart();
     System.out.println(sl.toString(store));
 
     System.out.println("  this");
@@ -278,7 +278,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart(store);
+    store = sl.opStart();
     System.out.println(sl.toString(store));
 
     System.out.println("  this");
@@ -370,7 +370,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart(store);
+    store = sl.opStart();
     System.out.println(sl.toString(store));
 
     if (doStore) {
@@ -412,7 +412,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart(store);
+    store = sl.opStart();
     System.out.println(sl.toString(store));
 
     System.out.println("  0");
