@@ -84,6 +84,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 		if (p != this.project) {
 			throw new IllegalStateException("Project doesn't match");
 		}
+		System.out.println("AnalysisDriver: "+p.getName()+" with "+cus.size()+" CUs");
 		JavacDriver.getInstance().registerBuild(project, args, resources, cus);
 		project = null;
 		resources.clear();
