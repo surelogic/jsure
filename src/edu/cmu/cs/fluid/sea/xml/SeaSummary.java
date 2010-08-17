@@ -602,7 +602,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 		
 		boolean match(Entity n, Entity o) {
-			return match(n, o, true, CATEGORY_ATTR) && match(n, o, MESSAGE_ID_ATTR, MESSAGE_ATTR);
+			return match(n, o, true, CATEGORY_ATTR) && match(n, o, MESSAGE_ID_ATTR, MESSAGE_ATTR) &&
+   			       match(n, o, true, PROVED_ATTR);
 		}
 	}
 	
