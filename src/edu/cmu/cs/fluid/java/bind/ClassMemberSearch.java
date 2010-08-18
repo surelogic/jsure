@@ -41,7 +41,7 @@ public class ClassMemberSearch {
     
     final T o = tvs.getResult();  
     if (o == null && throwIfNotFound) {
-      final String context = DebugUnparser.toString(type);
+      final String context = type+" -- "+DebugUnparser.toString(type);      
       LOG.log(Level.WARNING, "Couldn't find " + tvs.getLabel() + " in " + context
               //, new Throwable(">>> Just for Stack Trace <<<")
               );
