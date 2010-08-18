@@ -72,6 +72,9 @@ public final class GlobalLockModel {
     ClassRecord cr = classes.get(jt);
     if (cr == null) {      
       final IJavaType parent = jt.getSuperclass(binder.getTypeEnvironment());
+      if (jt == parent) {
+    	  System.out.println("Cycle detected: "+jt);
+      }
       if (parent instanceof IJavaDeclaredType) {
         cr = new ClassRecord(getClassRecord((IJavaDeclaredType) parent), jt);
       } else {
