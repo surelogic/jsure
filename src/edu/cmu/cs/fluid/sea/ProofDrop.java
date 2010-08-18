@@ -55,5 +55,6 @@ public abstract class ProofDrop extends IRReferenceDrop {
 	  super.snapshotAttrs(s);
 	  s.addAttribute("used-red-dot", proofUsesRedDot());
 	  s.addAttribute("proved-consistent", provedConsistent());
+	  //System.out.println(getMessage()+" proved consistent: "+provedConsistent());
   }
 }

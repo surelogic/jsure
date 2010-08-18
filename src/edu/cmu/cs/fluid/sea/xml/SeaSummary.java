@@ -585,17 +585,35 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 		
 		static boolean match(Entity n, Entity o, boolean defaultValue, String... attrs) {
+			return match(false, n, o, defaultValue, attrs);
+		}
+		
+		static boolean match(boolean nullMeansFalse, Entity n, Entity o, boolean defaultValue, String... attrs) {
 			for(String attr : attrs) {
 				String a_n = n.getAttribute(attr);
 				String a_o = o.getAttribute(attr);
-				if (a_n == null || a_o == null) {
-					continue; // Skip this attribute
+				if (a_n == null) {
+					if (nullMeansFalse) {
+						a_n = "false";
+					} else {
+						continue; // Skip this attribute
+					}
+				}
+			    if (a_o == null) {				
+					if (nullMeansFalse) {
+						a_o = "false";
+					} else {
+						continue; // Skip this attribute
+					}
 				}		
 				/*
 				// Temporary
 				a_n = a_n.replaceAll("  on  ", " on ");
 				a_o = a_o.replaceAll("  on  ", " on ");
                 */
+				if (PROVED_ATTR.equals(attr)) {
+					System.out.println("Comparing "+a_n+" to "+a_o+" for "+attr);
+				}
 				return a_n.equals(a_o);
 			}
 			return defaultValue;
@@ -603,7 +621,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		
 		boolean match(Entity n, Entity o) {
 			return match(n, o, true, CATEGORY_ATTR) && match(n, o, MESSAGE_ID_ATTR, MESSAGE_ATTR) &&
-   			       match(n, o, true, PROVED_ATTR);
+   			       match(true, n, o, true, PROVED_ATTR);
 		}
 	}
 	
