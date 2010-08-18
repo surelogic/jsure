@@ -8,6 +8,8 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.*;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.*;
@@ -46,7 +48,7 @@ public class LockRules extends AnnotationRules {
   
 	private static final AnnotationRules instance = new LockRules();
 
-	private static final ProtectedRegions protectedRegions = new ProtectedRegions();
+	private static final IProtectedRegions protectedRegions = new ProtectedRegions();
 	
 	private static final InitRegionSet initRegionSet = new InitRegionSet(protectedRegions);
   private static final Lock_ParseRule lockRule = new Lock_ParseRule(protectedRegions);
@@ -60,7 +62,33 @@ public class LockRules extends AnnotationRules {
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
   private static final ImmutableParseRule immutableRule = new ImmutableParseRule();
   
-  private static class ProtectedRegions {
+  private interface IProtectedRegions {
+	  void clear();
+	  boolean addIfNotAlreadyProtected(ITypeEnvironment tenv, String qualifiedRegionName,
+		        final IJavaDeclaredType clazz);
+  }
+  
+  private static class ProtectedRegions implements IProtectedRegions {
+	private final Map<String,IProtectedRegions> projects = 
+		new HashMap<String,IProtectedRegions>();
+	  
+	public boolean addIfNotAlreadyProtected(ITypeEnvironment tenv, 
+			String qualifiedRegionName, IJavaDeclaredType clazz) {
+		final IIRProject p = JavaProjects.getEnclosingProject(clazz.getDeclaration());
+		IProtectedRegions state = projects.get(p.getName());
+		if (state == null) {
+			state = new Project_ProtectedRegions();
+			projects.put(p.getName(), state);
+		}
+		return state.addIfNotAlreadyProtected(tenv, qualifiedRegionName, clazz);
+	}
+
+	public void clear() {
+		projects.clear();
+	}
+  }
+  
+  private static class Project_ProtectedRegions implements IProtectedRegions {
     private final Map<String, Set<IJavaType>> protectedRegions = new HashMap<String, Set<IJavaType>>();
     
     public synchronized void clear() {
@@ -82,7 +110,7 @@ public class LockRules extends AnnotationRules {
      */
     public synchronized boolean addIfNotAlreadyProtected(
         final ITypeEnvironment tenv, final String qualifiedRegionName,
-        final IJavaType clazz) {
+        final IJavaDeclaredType clazz) {
       final Set<IJavaType> classSet = getClassSet(qualifiedRegionName);
       for (final IJavaType other : classSet) {
         if (clazz.isSubtype(tenv, other) || other.isSubtype(tenv, clazz)) {
@@ -513,9 +541,9 @@ public class LockRules extends AnnotationRules {
 	 */
 	public static class Lock_ParseRule extends
 			DefaultSLAnnotationParseRule<LockDeclarationNode, LockModel> {
-	  private ProtectedRegions protectedRegions;
+	  private IProtectedRegions protectedRegions;
 	  
-		protected Lock_ParseRule(final ProtectedRegions pr) {
+		protected Lock_ParseRule(final IProtectedRegions pr) {
 			super(LOCK, typeDeclOps, LockDeclarationNode.class);
 			protectedRegions = pr;
 		}
@@ -564,7 +592,7 @@ public class LockRules extends AnnotationRules {
    */
   private static LockModel scrubLock(
       final IAnnotationScrubberContext context,
-      final ProtectedRegions protectedRegions,
+      final IProtectedRegions protectedRegions,
   		final LockDeclarationNode lockDecl) {
     return scrubAbstractLock(context, protectedRegions, lockDecl, LOCK_DECLARATION_CONTINUATION);
   }
@@ -582,7 +610,7 @@ public class LockRules extends AnnotationRules {
     
     public abstract LockModel continueScrubbing(
         IAnnotationScrubberContext context,
-        ProtectedRegions protectedRegions,
+        IProtectedRegions protectedRegions,
         IJavaDeclaredType promisedForType,
         T lockDecl,
         boolean declIsGood,
@@ -594,7 +622,7 @@ public class LockRules extends AnnotationRules {
     @Override
     public LockModel continueScrubbing(
         final IAnnotationScrubberContext context,
-        final ProtectedRegions protectedRegions,
+        final IProtectedRegions protectedRegions,
         final IJavaDeclaredType promisedForType,
         final LockDeclarationNode lockDecl,
         final boolean declIsGoodIn, final boolean fieldIsStatic,
@@ -724,7 +752,7 @@ public class LockRules extends AnnotationRules {
     @Override
     public LockModel continueScrubbing(
         final IAnnotationScrubberContext context,
-        final ProtectedRegions protectedRegions,
+        final IProtectedRegions protectedRegions,
         final IJavaDeclaredType promisedForType,
         final PolicyLockDeclarationNode lockDecl, final boolean declIsGood,
         final boolean fieldIsStatic, final IRNode lockFieldNode) {
@@ -775,7 +803,7 @@ public class LockRules extends AnnotationRules {
 	 */
 	private static <T extends AbstractLockDeclarationNode> LockModel scrubAbstractLock(
 	    final IAnnotationScrubberContext context,
-	    final ProtectedRegions protectedRegions,
+	    final IProtectedRegions protectedRegions,
 			final T lockDecl,
 			final LockScrubContinuation<T> continuation) {
     boolean declIsGood = true; // assume the best
@@ -1490,9 +1518,9 @@ public class LockRules extends AnnotationRules {
   }
 
   private static final class InitRegionSet extends SimpleScrubber {
-    private final ProtectedRegions protectedRegions;
+    private final IProtectedRegions protectedRegions;
     
-    public InitRegionSet(final ProtectedRegions pr) {
+    public InitRegionSet(final IProtectedRegions pr) {
       super(REGION_INITIALIZER);
       protectedRegions = pr;
     }

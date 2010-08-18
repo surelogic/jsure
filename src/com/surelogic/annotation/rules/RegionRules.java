@@ -8,6 +8,8 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.*;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.*;
@@ -39,7 +41,7 @@ public class RegionRules extends AnnotationRules {
   
   private static final AnnotationRules instance = new RegionRules();  
 
-  private static final GlobalRegionState globalRegionState = new GlobalRegionState();
+  private static final IGlobalRegionState globalRegionState = new GlobalRegionState();
   private static final InitGlobalRegionState initState     = new InitGlobalRegionState(globalRegionState);
   private static final Region_ParseRule regionRule         = new Region_ParseRule(globalRegionState);
   private static final InRegion_ParseRule inRegionRule     = new InRegion_ParseRule();
@@ -63,6 +65,13 @@ public class RegionRules extends AnnotationRules {
   
   public static Iterable<RegionModel> getModels(IRNode type) {
     return getDrops(regionRule.getStorage(), type);
+  }
+  
+  public static void printRegionModels(IRNode type) {
+	  System.out.println("For "+JavaNames.getFullTypeName(type));
+	  for(RegionModel m : getModels(type)) {
+		  System.out.println("  "+m.getName());
+	  }
   }
   
   public static InRegionPromiseDrop getInRegion(IRNode vdecl) {
@@ -102,9 +111,9 @@ public class RegionRules extends AnnotationRules {
   
   public static class Region_ParseRule 
   extends DefaultSLAnnotationParseRule<NewRegionDeclarationNode,RegionModel> {
-    private final GlobalRegionState regionState;
+    private final IGlobalRegionState regionState;
     
-    protected Region_ParseRule(final GlobalRegionState grs) {
+    protected Region_ParseRule(final IGlobalRegionState grs) {
       super(REGION, typeDeclOps, NewRegionDeclarationNode.class);
       regionState = grs;
     }
@@ -131,7 +140,7 @@ public class RegionRules extends AnnotationRules {
 
   private static RegionModel scrubRegion(
       final IAnnotationScrubberContext context,
-      final GlobalRegionState regionState, final NewRegionDeclarationNode a) {
+      final IGlobalRegionState regionState, final NewRegionDeclarationNode a) {
     final IRNode promisedFor = a.getPromisedFor();
 
     boolean annotationIsGood = true;
@@ -203,6 +212,7 @@ public class RegionRules extends AnnotationRules {
     if (annotationIsGood) {
       RegionModel model = RegionModel.getInstance(qualifiedName, a.getPromisedFor());  
       model.setAST(a); // Set to keep it from being purged
+      System.out.println("Adding region "+model.getName()+" to "+JavaNames.getFullTypeName(a.getPromisedFor())+" -- "+a.getPromisedFor());
       
       if (parentModel != null) { // parentModel == null if region is ALL
         model.addDependent(parentModel);
@@ -634,11 +644,47 @@ public class RegionRules extends AnnotationRules {
     }
   }
   
-  private static final class GlobalRegionState {
+  private interface IGlobalRegionState {
+	  void clearState();
+	  boolean isNameAlreadyUsed(IRNode type, String simpleName, String qualifiedName);
+  }
+  
+  private static final class GlobalRegionState implements IGlobalRegionState {
+	  private final Map<String,IGlobalRegionState> projects = 
+		  new HashMap<String,IGlobalRegionState>();
+	  
+	  public GlobalRegionState() {
+		  super();
+	  }
+
+	  public void clearState() {
+		  projects.clear();
+	  }
+
+	  public boolean isNameAlreadyUsed(IRNode type, String simpleName, String qualifiedName) {
+		  final IIRProject p = JavaProjects.getEnclosingProject(type);
+		  if (p == null) {
+			  System.out.println("No project for "+qualifiedName);
+			  JavaProjects.getProject(type);
+		  }
+		  IGlobalRegionState state = projects.get(p.getName());
+		  if (state == null) {
+			  state = new ProjectRegionState();
+			  projects.put(p.getName(), state);
+		  }
+		  return state.isNameAlreadyUsed(type, simpleName, qualifiedName);
+	  }
+  }
+	  
+  /**
+   * Region state for a given project
+   * @author Edwin
+   */
+  private static final class ProjectRegionState implements IGlobalRegionState {  
     private final Map<IRNode, Set<String>> classToFields = new HashMap<IRNode, Set<String>>();
     private final Set<String> qualifiedRegionNames = new HashSet<String>();
     
-    public GlobalRegionState() {
+    public ProjectRegionState() {
       super();
     }
     
@@ -668,9 +714,9 @@ public class RegionRules extends AnnotationRules {
   }
 
   static final class InitGlobalRegionState extends SimpleScrubber {
-    private final GlobalRegionState regionState;
+    private final IGlobalRegionState regionState;
     
-    public InitGlobalRegionState(final GlobalRegionState grs) {
+    public InitGlobalRegionState(final IGlobalRegionState grs) {
       super(REGION_INITIALIZER);
       regionState = grs;
     }
