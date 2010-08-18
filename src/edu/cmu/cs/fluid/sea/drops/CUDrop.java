@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.xml.*;
@@ -110,6 +111,13 @@ public abstract class CUDrop extends Drop {
     elidedFields    = Collections.emptySet();
     
     finishInit();
+  }
+  
+  public ITypeEnvironment getTypeEnv() {
+	  if (info == null) {
+		  return null;
+	  }
+	  return info.getTypeEnv();
   }
   
   /**
