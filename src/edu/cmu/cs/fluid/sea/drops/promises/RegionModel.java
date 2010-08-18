@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
+import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
@@ -42,7 +43,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
   public final static String INSTANCE = "java.lang.Object.Instance";
   
 	/**
-	 * Map from region names to drop instances (String -> RegionDrop).
+	 * Map from region names to drop instances (Region, Project -> RegionDrop).
 	 */
 	private static Hashtable2<String, String, RegionModel> nameToDrop = 
 		new Hashtable2<String, String, RegionModel>();
@@ -184,20 +185,24 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	 */
 	public static synchronized void purgeUnusedRegions() {
 		Hashtable2<String, String, RegionModel> newMap = new Hashtable2<String,String,RegionModel>();
-		//boolean invalidated = false;
+		//boolean invalidated = false;		
 		for (Pair<String,String> key : nameToDrop.keys()) {
 			RegionModel drop = nameToDrop.get(key.first(), key.second());
-
-			boolean regionDefinedInCode = modelDefinedInCode(definingDropPred,
-					drop);			
+			/*
+			if (key.first().contains("[]")) {
+				System.out.println("Found region []");
+			}
+			*/
+			boolean regionDefinedInCode = modelDefinedInCode(definingDropPred, drop) && 
+			                              isActiveProject(drop.project);			
 			boolean keepAnyways = false;
 			if (!regionDefinedInCode) {
-				keepAnyways = drop.isValid() && 
+				keepAnyways = drop.isValid() && isActiveProject(key.second()) &&
         	                 (drop.colorInfo != null || 
                               drop.getAST() != null  || 
                               key.first().equals(INSTANCE) || 
-                              key.first().equals(ALL)) || 
-                              key.first().equals(PromiseConstants.REGION_ELEMENT_NAME);
+                              key.first().equals(ALL) || 
+                              key.first().equals(PromiseConstants.REGION_ELEMENT_NAME));
 			}
 			 
 			//System.out.println(key+" : "+regionDefinedInCode+", "+keepAnyways);
@@ -220,12 +225,27 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		*/
 	}
 
+	private static boolean isActiveProject(String proj) {
+		//System.out.println("Checking if "+proj+" is active");
+		final ProjectsDrop pd = ProjectsDrop.getDrop();
+		if (pd == null) {
+			return true; // Assume we're in flux
+		}
+		for(String p : pd.getIIRProjects().getProjectNames()) {
+			//System.out.println("\tComparing vs. "+p);
+			if (p.equals(proj)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Region definitions are not checked by analysis (other than the promise
 	 * scrubber).
 	 */
 	@Override
-  public boolean isIntendedToBeCheckedByAnalysis() {
+    public boolean isIntendedToBeCheckedByAnalysis() {
 //		if (hasMatchingDependents(DropPredicateFactory
 //				.matchType(AggregatePromiseDrop.class))) {
 //			return true;
