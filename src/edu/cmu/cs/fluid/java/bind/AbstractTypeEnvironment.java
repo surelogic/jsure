@@ -482,6 +482,56 @@ private long parseIntLiteral(String token) {
     return new SupertypesIterator(superclass,ch,subst);
   }
   
+  public IJavaDeclaredType getSuperclass(IJavaDeclaredType dt) {
+	  final IRNode declaration = dt.getDeclaration();
+	  final Operator op = JJNode.tree.getOperator(declaration);
+	  if (this == getObjectType())
+		  return null;
+	  if (ClassDeclaration.prototype.includes(op)) {
+		  if (dt.getName().equals("java.lang.Object")) {
+			  return null;
+		  }
+		  IRNode extension = ClassDeclaration.getExtension(declaration);
+		  IJavaType t = convertNodeTypeToIJavaType(extension);
+		  // TODO: What if we extend a nested class from our superclass?
+		  // A: The type factory should correctly insert type actuals
+		  // for the nesting (if any).  Actually maybe the canonicalizer should.
+		  if (t != null) {
+			  t = t.subst(JavaTypeSubstitution.create(this, dt));
+		  }
+		  /*if (!(t instanceof IJavaDeclaredType)) {
+	        LOG.severe("Classes can only extend other classes");
+	        return null;
+	      }*/
+		  return (IJavaDeclaredType) t;
+	  } else if (InterfaceDeclaration.prototype.includes(op)) {
+		  return getObjectType();
+	  } else if (EnumDeclaration.prototype.includes(op)) {
+		  IRNode ed              = findNamedType("java.lang.Enum");
+		  List<IJavaType> params = new ArrayList<IJavaType>(1);
+		  params.add(dt);
+		  return JavaTypeFactory.getDeclaredType(ed, params, null);
+	  } else if (AnonClassExpression.prototype.includes(op)) {
+		  IRNode nodeType = AnonClassExpression.getType(declaration);
+		  IJavaType t = convertNodeTypeToIJavaType(nodeType);
+		  /*if (!(t instanceof IJavaDeclaredType)) {
+	        LOG.severe("Classes can only extend other classes");
+	        return null;
+	      }*/
+		  IJavaDeclaredType jdt = ((IJavaDeclaredType) t);
+		  if (JJNode.tree.getOperator(jdt.getDeclaration()) instanceof InterfaceDeclaration) {
+			  return getObjectType();
+		  }
+		  return jdt;
+	  } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+		  IRNode enumD = VisitUtil.getEnclosingType(declaration);
+		  return (IJavaDeclaredType) convertNodeTypeToIJavaType(enumD);
+	  } else {
+		  LOG.severe("Don't know what sort of declation node this is: " + DebugUnparser.toString(declaration));
+		  return null;
+	  }
+  }
+  
   /**
 	 * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#isSubType(IJavaType, IJavaType)
 	 */

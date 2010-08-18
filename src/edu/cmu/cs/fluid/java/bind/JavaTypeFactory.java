@@ -1179,49 +1179,53 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   
   @Override
   public IJavaDeclaredType getSuperclass(ITypeEnvironment tEnv) {
-    Operator op = JJNode.tree.getOperator(declaration);
-    if (this == tEnv.getObjectType())
-      return null;
-    if (ClassDeclaration.prototype.includes(op)) {
-      IRNode extension = ClassDeclaration.getExtension(declaration);
-      IJavaType t = tEnv.convertNodeTypeToIJavaType(extension);
-      // TODO: What if we extend a nested class from our superclass?
-      // A: The type factory should correctly insert type actuals
-      // for the nesting (if any).  Actually maybe the canonicalizer should.
-      if (t != null) {
-    	  t = t.subst(JavaTypeSubstitution.create(tEnv, this));
-      }
-      /*if (!(t instanceof IJavaDeclaredType)) {
-        LOG.severe("Classes can only extend other classes");
-        return null;
-      }*/
-      return (IJavaDeclaredType) t;
-    } else if (InterfaceDeclaration.prototype.includes(op)) {
-      return tEnv.getObjectType();
-    } else if (EnumDeclaration.prototype.includes(op)) {
-      IRNode ed              = tEnv.findNamedType("java.lang.Enum");
-      List<IJavaType> params = new ArrayList<IJavaType>(1);
-      params.add(this);
-      return JavaTypeFactory.getDeclaredType(ed, params, null);
-    } else if (AnonClassExpression.prototype.includes(op)) {
-      IRNode nodeType = AnonClassExpression.getType(declaration);
-      IJavaType t = tEnv.convertNodeTypeToIJavaType(nodeType);
-      /*if (!(t instanceof IJavaDeclaredType)) {
-        LOG.severe("Classes can only extend other classes");
-        return null;
-      }*/
-      IJavaDeclaredType dt = ((IJavaDeclaredType) t);
-      if (JJNode.tree.getOperator(dt.getDeclaration()) instanceof InterfaceDeclaration) {
-        return tEnv.getObjectType();
-      }
-      return dt;
-    } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
-      IRNode enumD = VisitUtil.getEnclosingType(declaration);
-      return (IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(enumD);
-    } else {
-      LOG.severe("Don't know what sort of declation node this is: " + DebugUnparser.toString(declaration));
-      return null;
-    }
+	  return tEnv.getSuperclass(this);
+//    Operator op = JJNode.tree.getOperator(declaration);
+//    if (this == tEnv.getObjectType())
+//      return null;
+//    if (ClassDeclaration.prototype.includes(op)) {
+//      if (this.getName().equals("java.lang.Object")) {
+//    	  return null;
+//      }
+//      IRNode extension = ClassDeclaration.getExtension(declaration);
+//      IJavaType t = tEnv.convertNodeTypeToIJavaType(extension);
+//      // TODO: What if we extend a nested class from our superclass?
+//      // A: The type factory should correctly insert type actuals
+//      // for the nesting (if any).  Actually maybe the canonicalizer should.
+//      if (t != null) {
+//    	  t = t.subst(JavaTypeSubstitution.create(tEnv, this));
+//      }
+//      /*if (!(t instanceof IJavaDeclaredType)) {
+//        LOG.severe("Classes can only extend other classes");
+//        return null;
+//      }*/
+//      return (IJavaDeclaredType) t;
+//    } else if (InterfaceDeclaration.prototype.includes(op)) {
+//      return tEnv.getObjectType();
+//    } else if (EnumDeclaration.prototype.includes(op)) {
+//      IRNode ed              = tEnv.findNamedType("java.lang.Enum");
+//      List<IJavaType> params = new ArrayList<IJavaType>(1);
+//      params.add(this);
+//      return JavaTypeFactory.getDeclaredType(ed, params, null);
+//    } else if (AnonClassExpression.prototype.includes(op)) {
+//      IRNode nodeType = AnonClassExpression.getType(declaration);
+//      IJavaType t = tEnv.convertNodeTypeToIJavaType(nodeType);
+//      /*if (!(t instanceof IJavaDeclaredType)) {
+//        LOG.severe("Classes can only extend other classes");
+//        return null;
+//      }*/
+//      IJavaDeclaredType dt = ((IJavaDeclaredType) t);
+//      if (JJNode.tree.getOperator(dt.getDeclaration()) instanceof InterfaceDeclaration) {
+//        return tEnv.getObjectType();
+//      }
+//      return dt;
+//    } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+//      IRNode enumD = VisitUtil.getEnclosingType(declaration);
+//      return (IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(enumD);
+//    } else {
+//      LOG.severe("Don't know what sort of declation node this is: " + DebugUnparser.toString(declaration));
+//      return null;
+//    }
   }
   
   @Override

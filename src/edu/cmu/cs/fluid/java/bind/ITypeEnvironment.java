@@ -89,6 +89,8 @@ public interface ITypeEnvironment {
 	 */
 	public Iteratable<IJavaType> getSuperTypes(IJavaType t);
 	
+	public IJavaDeclaredType getSuperclass(IJavaDeclaredType t);
+	
 	/** 
 	 * @param s The potential subtype
 	 * @param t The type being checked
