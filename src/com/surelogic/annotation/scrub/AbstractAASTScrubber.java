@@ -515,6 +515,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			}
 
 			// process this type
+			//System.out.println("Scrubbing promises for "+dt+" -- "+decl);
 			List<A> l = byType.get(decl);
 			if (l != null) {
 				startScrubbingType_internal(decl);
@@ -527,6 +528,11 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 				}
 				try {
 					for(A a : l) {
+					    /*
+						if ("MUTEX".equals(a.toString())) {
+							System.out.println("Scrubbing: "+a.toString());						
+						}
+                        */
 						processAAST(a);
 					}
 				} finally {
