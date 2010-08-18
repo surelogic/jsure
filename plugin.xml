@@ -161,6 +161,13 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
+  <extension id="FRED" name="Uniqueness (UWM)"
+    point="com.surelogic.jsure.client.eclipse.analysisModule">
+    <run class="com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysisModule" production="false">
+    </run>
+    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+    </prerequisite>
+  </extension>
   <extension id="BenchmarkingUniqueness" name="Benchmarking Uniqueness"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
     <run class="com.surelogic.analysis.uniqueness.BenchmarkingUAM" 
