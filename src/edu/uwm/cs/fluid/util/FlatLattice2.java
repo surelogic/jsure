@@ -26,20 +26,13 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
   }
   
   private final static class Bottom<T> extends Element<T> {
-    private final String msg;
-    
-    public Bottom(final String m) {
-      super(-1);
-      msg = m;
-    }
-    
     public Bottom() {
-      this("<bot>");
+      super(-1);
     }
     
     @Override
     public String toString() {
-      return msg;
+      return "<bot>";
     }
     
     @Override 
@@ -54,13 +47,20 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
   }
   
   private final static class Top<T> extends Element<T> {
-    public Top() {
+    private final String msg;
+    
+    public Top(final String m) {
       super(1);
+      msg = m;
+    }
+    
+    public Top() {
+      this("<top>");
     }
     
     @Override
     public String toString() {
-      return "<top>";
+      return msg;
     }
     
     @Override 
@@ -163,9 +163,8 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
     return bottomObject;
   }
   
-  // XXX: Should this be errorTop instead???
-  public static <T> Element<T> errorBottom(final String msg) {
-    return new Bottom<T>(msg);
+  public static <T> Element<T> errorTop(final String msg) {
+    return new Top<T>(msg);
   }
 
   public Element<T> join(final Element<T> v1, final Element<T> v2) {

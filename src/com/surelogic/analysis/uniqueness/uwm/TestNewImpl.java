@@ -143,21 +143,16 @@ public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Vo
         final Store newStore = currentQuery.newUniqueness.getResultFor(node);
         final com.surelogic.analysis.uniqueness.cmu.Store oldStore = 
           (com.surelogic.analysis.uniqueness.cmu.Store) currentQuery.oldUniqueness.getAfter(node, WhichPort.ENTRY);
-        
+
+        /* Compare the stores: TOP and BOTTOM are swapped!! */
         boolean equalStores = true;
-        // Check the error case first
-        if (currentQuery.newLattice.lattice1.equals(newStore.first(), currentQuery.newLattice.lattice1.bottom())) {
-          /* Check the error message.  If equal, we are good.  if not equal, try the checks below. */
-        }
-        
-        
         if (currentQuery.newLattice.equals(newStore, currentQuery.newLattice.bottom())) {
           // Check BOTTOM
-          equalStores = oldStore.equals(oldStore.bottom());
+          equalStores = oldStore.equals(oldStore.top());
         } else if (currentQuery.newLattice.equals(newStore, currentQuery.newLattice.top())) {
           // Check TOP
-          equalStores = oldStore.equals(oldStore.top());
-        } else if (currentQuery.newLattice.lattice1.equals(newStore.first(), currentQuery.newLattice.lattice1.bottom())) {
+          equalStores = oldStore.equals(oldStore.bottom());
+        } else if (currentQuery.newLattice.lattice1.equals(newStore.first(), currentQuery.newLattice.lattice1.top())) {
           // Check error messages
           equalStores = currentQuery.newLattice.toString(newStore).equals(oldStore.toString());
         } else if (newStore.getStackSize().intValue() != oldStore.getStackSize().intValue()) {

@@ -101,18 +101,18 @@ extends TripleLattice<Element<Integer>,
      * Create a store that is invalid, but not top or bottom.
      */
     return newTriple(
-        FlatLattice2.<Integer>errorBottom(msg), top().second(), bottom().third());
+        FlatLattice2.<Integer>errorTop(msg), bottom().second(), top().third());
   }
   
   @Override
   public Store join(final Store s1, final Store s2) {
     Store m = super.join(s1, s2);
-    if (!m.isValid() && !equals(m, top())) {
+    if (!m.isValid() && !equals(m, bottom())) {
       // try to preserve cause
-      if (!s1.isValid() && !equals(s1, top())) {
+      if (!s1.isValid() && !equals(s1, bottom())) {
         return s1;
       }
-      if (!s2.isValid() && !equals(s2, top())) {
+      if (!s2.isValid() && !equals(s2, bottom())) {
         return s2;
       }
       return errorStore("stacksize mismatch");
@@ -695,11 +695,11 @@ extends TripleLattice<Element<Integer>,
 
   @Override
   public String toString(final Store s) {
-    if (s.equals(top())) {
-      return "top";
+    if (s.equals(bottom())) {
+      return "bottom";
     }
     final Element<Integer> ss = s.first();
-    if (lattice1.equals(ss, lattice1.bottom())) {
+    if (lattice1.equals(ss, lattice1.top())) {
       return lattice1.toString(ss);
     }
     final StringBuilder sb = new StringBuilder();

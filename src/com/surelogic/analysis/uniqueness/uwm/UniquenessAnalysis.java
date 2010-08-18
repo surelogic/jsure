@@ -726,7 +726,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
             MethodDeclaration.prototype.includes(mOp) && 
             !VoidType.prototype.includes(MethodDeclaration.getReturnType(mdecl))) {
           final IRNode rnode = JavaPromise.getReturnNode(mdecl);
-          s = lattice.opSet(s, rnode);
+          s = lattice.opGet(s, rnode);
           if (UniquenessRules.isUnique(rnode)) {
             s = lattice.opUndefine(s);
           } else {
@@ -845,7 +845,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   public static final String NOT_AN_ERROR = "Usage is correct.";
 
   private static final boolean isBadState(final StoreLattice sl, final Store s) {
-    return s != null && !sl.equals(s, sl.top()) && !s.isValid();
+    return s != null && !sl.equals(s, sl.bottom()) && !s.isValid();
   }
   
   public IsInvalidQuery getIsInvalidQuery(final IRNode flowUnit) {
@@ -904,12 +904,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
       // A node is invalid if things were OK when the store
       // came in, but are wrong now that control is leaving.
-      // ? NB: top() sometimes means control didn't get to
+      // ? NB: bottom() sometimes means control didn't get to
       // ? a place but also happens near the start of a procedure
-      // ? before OpStart() and so we can't ignore top(). Also,
-      // ? I believe top().isValid is false. This is all the
-      // ? more confusing because top() means what is usually
-      // ? meant by bottom for analysis people. JTB 2002/9/23
+      // ? before OpStart() and so we can't ignore bottom(). Also,
+      // ? I believe bottom().isValid is false. JTB 2002/9/23
 
       // If the state coming in is bad, no error:
       if (isBadState(lattice, sbefore)) {
