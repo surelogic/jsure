@@ -635,7 +635,7 @@ extends TripleLattice<Element<Integer>,
     final ImmutableSet<FieldTriple> newFieldStore =
       ImmutableHashOrderSet.<FieldTriple>emptySet().addElements(filteredFields);
     
-    return setFieldStore(setObjects(s, newObjects), newFieldStore);
+    return check(setFieldStore(setObjects(s, newObjects), newFieldStore));
   }
   
   
