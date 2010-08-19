@@ -598,6 +598,10 @@ public class ScopedPromiseRules extends AnnotationRules {
     final IRNode pd      = d.getNode();
     final String pkgName = NamedPackageDeclaration.getId(pd);
     final PackageDrop pkg = PackageDrop.findPackage(pkgName);
+    if (pkg == null) {
+    	System.out.println("No package drop for "+d.getAST());
+    	return;
+    }
     for(IRNode type : pkg.getTypes()) {
       applyPromiseOnType(type, d); 
     }
