@@ -830,7 +830,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected JavaForwardAnalysis<Store, StoreLattice> realCreateAnalysis(
         final IRNode caller, final IBinder binder, final StoreLattice lattice,
         final Store initialValue, final boolean terminationNormal) {
-      final int floor = initialValue.getStackSize().intValue();
+      final int floor = initialValue.isValid() ? initialValue.getStackSize().intValue() : 0;
       final UniquenessTransfer transfer = new UniquenessTransfer(binder, lattice, floor, flowUnit, effects);
       return new JavaForwardAnalysis<Store, StoreLattice>("Sub Analysis", lattice, transfer, DebugUnparser.viewer);
     }
