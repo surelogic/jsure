@@ -3,11 +3,7 @@ package com.surelogic.analysis.uniqueness.uwm;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.surelogic.analysis.AbstractJavaAnalysisDriver;
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.uniqueness.cmu.UniqueAnalysis;
 import com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysis;
@@ -43,10 +39,6 @@ public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Vo
 
   public TestNewImpl() {
     super("Test New Uniqueness");
-  }
-  
-  public void init(IIRAnalysisEnvironment env) {
-    // Nothing to do
   }
 
   @Override

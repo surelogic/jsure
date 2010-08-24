@@ -11,7 +11,7 @@ public class WholeIRAnalysisTemplate<T extends IBinderClient,Q> extends Abstract
 	}
 
 	public void init(IIRAnalysisEnvironment env) {
-		// TODO Auto-generated method stub
+		super.init(env);
 	}
 	
 	@Override

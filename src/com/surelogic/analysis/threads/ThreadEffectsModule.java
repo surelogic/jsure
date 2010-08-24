@@ -11,10 +11,6 @@ public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAn
 	public ThreadEffectsModule() {
 		super("ThreadEffects");
 	}
-
-	public void init(IIRAnalysisEnvironment env) {
-		// Nothing to do
-	}
 	
 	@Override
 	protected ThreadEffectsAnalysis constructIRAnalysis(IBinder binder) {

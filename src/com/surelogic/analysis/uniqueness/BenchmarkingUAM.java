@@ -1,9 +1,6 @@
 package com.surelogic.analysis.uniqueness;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.uniqueness.cmu.UniqueAnalysis;
 
@@ -20,10 +17,6 @@ import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 public class BenchmarkingUAM extends AbstractWholeIRAnalysis<UniqueAnalysis,Void> {
   public BenchmarkingUAM() {
 		super(false, null, "UniqueAnalysis");
-	}
-  
-	public void init(IIRAnalysisEnvironment env) {
-		// Nothing to do
 	}
 
 	@Override

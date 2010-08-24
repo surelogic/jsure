@@ -21,10 +21,6 @@ public class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient,
 	public LocalVariablesModule() {
 		super("LVCategory");
 	}
-	
-	public void init(IIRAnalysisEnvironment env) {
-		// Nothing to do
-	}
 
 	@Override
 	protected IBinderClient constructIRAnalysis(IBinder binder) {

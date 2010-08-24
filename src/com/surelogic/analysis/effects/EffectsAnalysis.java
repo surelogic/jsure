@@ -22,17 +22,8 @@ import edu.cmu.cs.fluid.tree.Operator;
 public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {	
   private BindingContextAnalysis bca;
   
-  
-  
 	public EffectsAnalysis() {
 		super("EffectAssurance2");
-	}
-	
-	
-	
-	
-	public void init(IIRAnalysisEnvironment env) {
-		// Nothing to do
 	}
 
 	@Override

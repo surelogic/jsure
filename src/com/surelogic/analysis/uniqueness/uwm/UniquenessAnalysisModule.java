@@ -8,11 +8,7 @@ import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaSemanticsVisitor;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.uniqueness.Messages;
 import com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysis.AbruptErrorQuery;
@@ -65,10 +61,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   
   public UniquenessAnalysisModule() {
 		super(true && !singleThreaded, null, "UniqueAnalysis");
-	}
-  
-	public void init(IIRAnalysisEnvironment env) {
-		// Nothing to do
 	}
 
 	@Override

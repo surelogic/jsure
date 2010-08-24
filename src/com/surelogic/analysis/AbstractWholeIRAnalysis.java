@@ -66,12 +66,16 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 		return true;
 	}
 	
-	public void preAnalysis(IIRAnalysisEnvironment env, IIRProject p) {
+	public void init(IIRAnalysisEnvironment env) {
 		// Init the drop that all its results link to
 	    if (resultDependUpon != null) {
 	        resultDependUpon.invalidate();
 	    }
     	resultDependUpon = new ResultsDepDrop();
+	}
+	
+	public final void preAnalysis(IIRAnalysisEnvironment env, IIRProject p) {
+		// Nothing to do
 	}
 	
 	public IRNode[] analyzeEnd(IIRProject p) {

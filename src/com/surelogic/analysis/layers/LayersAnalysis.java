@@ -26,10 +26,6 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	public LayersAnalysis() {
 		super("Layers");
 	}
-
-	public void init(IIRAnalysisEnvironment env) {
-		// Nothing to do?		
-	}
 	
 	@Override
 	protected boolean flushAnalysis() {
