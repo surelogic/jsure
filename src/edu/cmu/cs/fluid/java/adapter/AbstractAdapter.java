@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.java.operator.Annotations;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
@@ -160,7 +161,8 @@ public class AbstractAdapter {
 				PromiseUtil.addReceiverDecls(n);
 			} else if (ClassDeclaration.prototype.includes(op)
 					|| AnonClassExpression.prototype.includes(op)
-					|| EnumDeclaration.prototype.includes(op)) {
+					|| EnumDeclaration.prototype.includes(op)
+					|| EnumConstantClassDeclaration.prototype.includes(op)) {
 				IRNode init = InitDeclaration.getInitMethod(n);
 				PromiseUtil.addReceiverDecls(n);
 				PromiseUtil.addReceiverDecls(init);
