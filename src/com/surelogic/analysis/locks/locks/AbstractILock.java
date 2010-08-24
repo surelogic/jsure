@@ -44,6 +44,9 @@ abstract class AbstractILock implements ILock {
    * Get the name of the lock.
    */
   public final String getName() {
+	if (getLockDecl() == null) {
+		return null;
+	}
     return getLockDecl().getId();
   }
 
