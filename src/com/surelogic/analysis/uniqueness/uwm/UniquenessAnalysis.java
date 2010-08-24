@@ -104,13 +104,16 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     if (returnNode != null && LocalVariableDeclarations.hasReferenceType(binder, returnNode)) {
       refLocals.add(returnNode);
     }
-    /* XXX: probably we should include all the qualified receivers,
-     * but don't fix this until we know everything is working properly.
-     */
+
+    // Add the receiver & any qualified receivers
     final IRNode rcvrNode = JavaPromise.getReceiverNodeOrNull(flowUnit);
     if (rcvrNode != null) {
       refLocals.add(rcvrNode);
     }
+    for (final IRNode qrcvr : JavaPromise.getQualifiedReceiverNodes(flowUnit)) {
+      refLocals.add(qrcvr);
+    }
+    
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
     
     final StoreLattice lattice = new StoreLattice(locals);
@@ -495,8 +498,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           }
         }
       }
-      // Now compromise "this" (this is slightly more conservative than necessary)
-      s = lattice.opCompromise(lattice.opThis(s));
+      
+      // If we aren't in a static context then compromise "this"
+      if (JavaPromise.getReceiverNodeOrNull(flowUnit) != null) { 
+        // Now compromise "this" (this is slightly more conservative than necessary)
+        s = lattice.opCompromise(lattice.opThis(s));
+      }
       return s;
     }
     

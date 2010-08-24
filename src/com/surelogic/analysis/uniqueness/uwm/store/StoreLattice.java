@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -257,10 +258,10 @@ extends TripleLattice<Element<Integer>,
     ImmutableHashOrderSet<ImmutableHashOrderSet<Object>> objects = 
       ImmutableHashOrderSet.<ImmutableHashOrderSet<Object>>emptySet();
     objects = objects.
-      addElement(EMPTY).
-      addElement(EMPTY.addElement(State.UNDEFINED)).
-      addElement(EMPTY.addElement(State.BORROWED)).
-      addElement(EMPTY.addElement(State.BORROWED).addElement(State.SHARED));
+      addElement( EMPTY ).
+      addElement( EMPTY.addElement(State.UNDEFINED) ).
+      addElement( EMPTY.addElement(State.BORROWED) ).
+      addElement( EMPTY.addElement(State.BORROWED).addElement(State.SHARED) );
     temp = setObjects(temp, objects);
     
     /* Now add each parameter or local in turn.  Currently undefined locals are
@@ -270,7 +271,7 @@ extends TripleLattice<Element<Integer>,
     for (final IRNode local : locals) {
       final Operator op = JJNode.tree.getOperator(local);
       boolean isReceiverFromUniqueReturningConstructor = false;
-      if (op instanceof ReceiverDeclaration) {
+      if (ReceiverDeclaration.prototype.includes(op)) {
         /*
          * Check if the receiver is from a constructor, and if so, whether the
          * return node of the constructor is unique
@@ -284,8 +285,9 @@ extends TripleLattice<Element<Integer>,
           }
         }
       }
-      if (op instanceof ReceiverDeclaration
-          || op instanceof ParameterDeclaration) {
+      if (ReceiverDeclaration.prototype.includes(op) ||
+          QualifiedReceiverDeclaration.prototype.includes(op) ||
+          ParameterDeclaration.prototype.includes(op)) {
         if (isReceiverFromUniqueReturningConstructor
             || UniquenessRules.isBorrowed(local)) {
           temp = opExisting(temp, State.BORROWED);
