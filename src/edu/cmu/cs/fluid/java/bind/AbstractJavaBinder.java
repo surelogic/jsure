@@ -1921,7 +1921,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitEnumConstantClassDeclaration(IRNode node) {
     	IRNode body = EnumConstantClassDeclaration.getBody(node);
-        String name = JJNode.getInfoOrNull(body);
+        String name = JJNode.getInfoOrNull(node);
+        /*
+        if (name == null) {
+        	System.out.println("Didn't get a name for "+DebugUnparser.toString(node));
+        }
+        else if ("LZO".equals(name)) {
+        	System.out.println("Found "+JavaNames.getFullTypeName(VisitUtil.getEnclosingType(node)));
+        }
+        */
         IJavaScope sc;
         if (name != null) {
           IJavaScope.NestedScope nsc = new IJavaScope.NestedScope(scope);
@@ -1930,7 +1938,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         } else {
           sc = scope;
         }
-        doAcceptForChildren(node, sc);        
+        try {
+        	doAcceptForChildren(node, sc);        
+        } catch (Exception e) {
+        	e.printStackTrace();        	
+        }
         return super.visitEnumConstantClassDeclaration(node);
     }
     
@@ -2274,6 +2286,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (bindForType(node)) {
     	  visit(node);
     	  bind(node,getBinding(NameType.getName(node)));
+      } else if (!isFullPass) {
+    	  System.out.println("Ignoring NameType: "+DebugUnparser.toString(node));
       }
       return null;
     }
