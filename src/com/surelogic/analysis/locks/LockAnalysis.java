@@ -73,6 +73,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 		}      
 	}
 	
+	@Override
 	public void init(IIRAnalysisEnvironment env) {
 		super.init(env);
 		env.ensureClassIsLoaded(LockUtils.JAVA_UTIL_CONCURRENT_LOCKS_LOCK);

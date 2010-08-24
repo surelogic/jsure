@@ -44,6 +44,7 @@ public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDete
 		super("ConcurrencyDetector");
 	}
 	
+	@Override
 	public void init(IIRAnalysisEnvironment env) {
 		super.init(env);
 		env.ensureClassIsLoaded("java.lang.Runnable");

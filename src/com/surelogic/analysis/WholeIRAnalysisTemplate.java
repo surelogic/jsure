@@ -10,6 +10,7 @@ public class WholeIRAnalysisTemplate<T extends IBinderClient,Q> extends Abstract
 		super("foo");
 	}
 
+	@Override
 	public void init(IIRAnalysisEnvironment env) {
 		super.init(env);
 	}
