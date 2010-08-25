@@ -11,12 +11,18 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
+import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.util.CachedSet;
 
 public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extends AbstractIRAnalysis<T,Q> {
 	static private class ResultsDepDrop extends Drop {
+		final Class<?> clazz;
+		
 		// Place holder class
+		ResultsDepDrop(Class<?> clazz) {
+			this.clazz = clazz;
+		}
 	}
 	
 	/**
@@ -24,7 +30,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	 */
 	protected final Logger LOG;
 	
-	private Drop resultDependUpon = null;
+	private Drop resultDependUpon = findResultsDepDrop();
 	
 	protected AbstractWholeIRAnalysis(String logName) {
 		this(false, null, logName);
@@ -33,6 +39,16 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	protected AbstractWholeIRAnalysis(boolean inParallel, Class<Q> type, String logName) {
 		super(inParallel, type);
 		LOG = SLLogger.getLogger(logName);
+	}
+	
+	private Drop findResultsDepDrop() {	    
+		for(ResultsDepDrop d : Sea.getDefault().getDropsOfExactType(ResultsDepDrop.class)) {
+			if (d.clazz == this.getClass()) {
+				//System.out.println("Found old ResultsDepDrop for "+this);
+				return d;
+			}
+		}        
+		return null;
 	}
 	
 	protected final Drop getResultDependUponDrop() {
@@ -62,7 +78,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 		p.addDependUponDrop(resultDependUpon);
 	}
 	
-	public boolean analyzeAll() {
+	public final boolean analyzeAll() {
 		return true;
 	}
 	
@@ -71,7 +87,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	    if (resultDependUpon != null) {
 	        resultDependUpon.invalidate();
 	    }
-    	resultDependUpon = new ResultsDepDrop();
+    	resultDependUpon = new ResultsDepDrop(this.getClass());
 	}
 	
 	public final void preAnalysis(IIRAnalysisEnvironment env, IIRProject p) {
