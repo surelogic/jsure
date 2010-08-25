@@ -120,6 +120,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 	    		System.out.println("Deactivating "+jp);
 	    		jp.deactivate();
 	    	}
+	    	pd.invalidate(); // TODO is this right?
 	    }
 		Sea.getDefault().invalidateMatching(
 				DropPredicateFactory.matchType(ProjectsDrop.class));
@@ -150,9 +151,11 @@ public class ClearProjectListener implements IResourceChangeListener {
 	 * Helper method to call after you add or remove the nature for JSure from
 	 * one or more projects.
 	 */
-	public static void postNatureChangeUtility() {
-		System.out.println("postNatureChangeUtility");
-		ClearProjectListener.clearJSureState();
+	public static void postNatureChangeUtility(boolean removedNature) {
+		System.out.println("postNatureChangeUtility "+removedNature);
+		if (removedNature) {
+			ClearProjectListener.clearJSureState();
+		}
 
 		// Handle projects that are still active
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
@@ -174,7 +177,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 		}
 	}
 
-	public static Iterable<IProject> clearNatureFromAllOpenProjects() {
+	public static Collection<IProject> clearNatureFromAllOpenProjects() {
 		// Handle projects that are still active
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
 				.getProjects();
@@ -195,7 +198,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 				}
 			}
 		}
-		postNatureChangeUtility();
+		postNatureChangeUtility(!removed.isEmpty());
 		
 		return removed;
 	}

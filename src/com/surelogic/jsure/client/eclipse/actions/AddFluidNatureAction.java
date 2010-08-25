@@ -7,6 +7,6 @@ public class AddFluidNatureAction extends
 
 	@Override
 	protected void finishRun() {
-		ClearProjectListener.postNatureChangeUtility();
+		ClearProjectListener.postNatureChangeUtility(false);
 	}
 }

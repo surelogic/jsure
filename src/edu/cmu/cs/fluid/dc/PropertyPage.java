@@ -98,6 +98,7 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
     /* If we are setting the focus, we need to remove the focus from
      * all the other projects.
      */
+    boolean removedNature = false;
     if (newValue) {
       final IProject[] projects =
         ResourcesPlugin.getWorkspace().getRoot().getProjects();
@@ -109,6 +110,7 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
           if (project != current && Nature.hasNature(current)) {
             try {
               Nature.removeNatureFromProject(current);
+              removedNature = true;
             } catch (final CoreException e) {
               LOG.log(Level.SEVERE,
                   "failure while removing double-checking nature from Java project "
@@ -131,6 +133,7 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
       } else {
         // remove our nature from the project
         Nature.removeNatureFromProject(project);
+        removedNature = true;
       }
     } catch (CoreException e) {
       LOG.log(Level.SEVERE, "failure setting (" + newValue
@@ -139,7 +142,7 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
     }
     
     // Report change of state to the system.
-    ClearProjectListener.postNatureChangeUtility();
+    ClearProjectListener.postNatureChangeUtility(removedNature);
   }
 
   @Override

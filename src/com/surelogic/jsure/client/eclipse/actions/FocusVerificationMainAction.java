@@ -25,8 +25,10 @@ public class FocusVerificationMainAction extends AbstractMainAction {
 						.getImage(CommonImages.IMG_JSURE_VERIFY));
 
 		if (focus != null && !Nature.hasNature(focus.getProject())) {
+			boolean removedNature = false;
 			for(IProject p : ClearProjectListener.clearNatureFromAllOpenProjects()) {
 				JavacDriver.getInstance().recordProjectAction(ScriptCommands.REMOVE_NATURE, p);
+				removedNature = true;
 			}
 			try {
 				Nature.addNatureToProject(focus.getProject());
@@ -35,7 +37,7 @@ public class FocusVerificationMainAction extends AbstractMainAction {
 				SLLogger.getLogger().log(Level.SEVERE,
 						"Failure adding JSure nature to " + focus, e);
 			}
-			ClearProjectListener.postNatureChangeUtility();
+			ClearProjectListener.postNatureChangeUtility(removedNature);
 		}
 
 	}
