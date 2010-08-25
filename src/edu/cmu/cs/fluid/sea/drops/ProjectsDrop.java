@@ -52,7 +52,10 @@ public class ProjectsDrop extends Drop {
   
   public static synchronized ProjectsDrop getDrop() {
 	  if (active != null) {
-		  return active;
+		  if (active.isValid()) {
+			  return active;
+		  }
+		  active = null;
 	  }	  
 	  ProjectsDrop p = null;
 	  for (ProjectsDrop pd : Sea.getDefault().getDropsOfExactType(
