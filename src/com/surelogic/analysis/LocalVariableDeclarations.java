@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedInterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
+import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -312,7 +313,7 @@ public final class LocalVariableDeclarations {
   }
   
   /**
-   * Get the local variable and parameter declarations for a particular
+   * Get the variable and parameter declarations for a particular
    * method/constructor or initializer.
    * 
    * @param mdecl
@@ -320,16 +321,32 @@ public final class LocalVariableDeclarations {
    *          ClassInitDeclaration node.
    */
   public static LocalVariableDeclarations getDeclarationsFor(final IRNode mdecl) {
-    /* First get the variables and parameters declared in the method.
-     */
     final List<IRNode> local = LocalDeclarationsVisitor.getDeclarationsFor(mdecl);
-    
-    /* Then get the variables declared in outer contexts. Search upwards for
-     * containing method/constructor declarations or class initializers.
-     */
+    final List<IRNode> external;
+    if (ClassInitDeclaration.prototype.includes(mdecl)) {
+      external = Collections.emptyList();
+    } else {
+      external = getExternallyDeclaredVariables(mdecl);
+    }    
+    return new LocalVariableDeclarations(local, external);
+  }
+  
+  /**
+   * Get the externally declared variables visible for a particular
+   * method/constructor or instance initializer.
+   * 
+   * @param mdecl
+   *          A MethodDeclaration, ConstructorDeclaration, or InitDeclaration
+   *          node.
+   */
+  public static List<IRNode> getExternallyDeclaredVariables(final IRNode mdecl) {
     final List<IRNode> external = new ArrayList<IRNode>();
-    IRNode current = InitDeclaration.prototype.includes(mdecl) ? JavaPromise.getPromisedFor(mdecl) : JJNode.tree.getParentOrNull(mdecl);
+    IRNode current = InitDeclaration.prototype.includes(mdecl) ?
+        JavaPromise.getPromisedFor(mdecl) : JJNode.tree.getParentOrNull(mdecl);
     IRNode lastTypeDecl = null;
+    /* Search upwards for containing method/constructor declarations or class
+     * initializers.
+     */
     while (current != null) {
       final Operator op = JJNode.tree.getOperator(current);
       if (MethodDeclaration.prototype.includes(op)) {
@@ -349,7 +366,6 @@ public final class LocalVariableDeclarations {
       }
       current = JJNode.tree.getParentOrNull(current); 
     }
-    
-    return new LocalVariableDeclarations(local, external);
+    return external;
   }
 }

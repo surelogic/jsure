@@ -485,15 +485,28 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     public Store transferAnonClass(final IRNode node, Store s) {
-      /* First gather up all variables used in the body and compromise them.
+      /*
+       * Compromise all the variables used in the body of the anonymous class
+       * that are externally declared to simulate the fact that they are read
+       * and stored in synthetic fields of the anonymous class.
+       * 
+       * Each one of these variables is visible in the calling context (that is,
+       * the flow unit being analyzed) because of Java syntactic nesting rules.
+       * Each variable is either declared in the flow unit, or is an external
+       * variable visible in the flow unit.
+       * 
+       * Each initializer/method/constructor of the anonymous class is going to
+       * have the same externally declared variables, so we just use the
+       * instance initializer to look them up because we know every anonymous
+       * class has one.
        */
+      final List<IRNode> externalVars = 
+        LocalVariableDeclarations.getExternallyDeclaredVariables(
+            JavaPromise.getInitMethodOrNull(node));      
       for (final IRNode n : tree.bottomUp(AnonClassExpression.getBody(node))) {
         if (VariableUseExpression.prototype.includes(n)) {
           final IRNode decl = binder.getBinding(n);
-          if (decl == null) {
-            LOG.warning("No binding for " + DebugUnparser.toString(node));
-          } else {
-            // if undefined, then tough, it's an error
+          if (externalVars.contains(decl)) {
             s = lattice.opCompromise(lattice.opGet(s, decl));
           }
         }
