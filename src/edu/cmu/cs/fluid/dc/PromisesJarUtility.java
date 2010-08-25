@@ -274,6 +274,10 @@ public class PromisesJarUtility {
 			final Shell shell, LocationChoice lc) throws CoreException,
 			IOException, JavaModelException {
 		boolean createJar = !lc.useExisting;
+		
+		// Make sure Eclipse is up-to-date with the OS
+		lc.useJar.refreshLocal(0, null); 
+		
 		// Ask the user what to do if the file already
 		// exists
 		if (lc.useJar.exists() && !lc.useExisting) {
