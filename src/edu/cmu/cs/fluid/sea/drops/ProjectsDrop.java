@@ -7,10 +7,14 @@ import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.xml.*;
 
 public class ProjectsDrop extends Drop {
+  static ProjectsDrop active = null;
   IIRProjects projects;
   
   private ProjectsDrop(IIRProjects p) {
 	  projects = p;
+	  synchronized (ProjectsDrop.class) {
+		  active = null;
+	  }
   }
 
   public static ProjectsDrop ensureDrop(IIRProjects p) {
@@ -46,7 +50,10 @@ public class ProjectsDrop extends Drop {
 	  projects = p;
   }
   
-  public static ProjectsDrop getDrop() {
+  public static synchronized ProjectsDrop getDrop() {
+	  if (active != null) {
+		  return active;
+	  }	  
 	  ProjectsDrop p = null;
 	  for (ProjectsDrop pd : Sea.getDefault().getDropsOfExactType(
 			  ProjectsDrop.class)) {
@@ -57,6 +64,7 @@ public class ProjectsDrop extends Drop {
 					  + pd.getIIRProjects().getLabel());
 		  }
 	  }
+	  active = p; 	  
 	  return p;
   }
   
