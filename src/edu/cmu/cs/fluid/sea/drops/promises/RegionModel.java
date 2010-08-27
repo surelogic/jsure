@@ -148,6 +148,10 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		this.setCategory(JavaGlobals.REGION_CAT);
 	}
 
+	public String getProject() {
+		return project;
+	}
+	
 	@Override
 	protected boolean okAsNode(IRNode n) {
 		Operator op = JJNode.tree.getOperator(n);
