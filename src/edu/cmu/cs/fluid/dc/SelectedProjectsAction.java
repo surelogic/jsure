@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.dc;
 
-import java.util.List;
+import java.util.*;
 import java.util.logging.*;
 
 import org.eclipse.core.resources.IProject;
@@ -49,6 +49,17 @@ public abstract class SelectedProjectsAction implements IViewActionDelegate, IOb
       }
     }
     finishRun();
+  }
+  
+  protected final Iterable<IProject> getSelectedProjects() {
+	  List<IProject> projects = new ArrayList<IProject>();
+	  for (Object current : selectedProjects) {
+		  if (current != null) {
+			  final IProject p = (IProject) ((IAdaptable) current).getAdapter(IProject.class);
+			  projects.add(p);
+		  }
+	  }
+	  return projects;
   }
   
   /**
