@@ -6,10 +6,12 @@ package edu.cmu.cs.fluid.sea.drops;
 
 import java.util.*;
 
+import com.surelogic.analysis.IIRProject;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
-import edu.cmu.cs.fluid.sea.DropPredicateFactory;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.sea.Sea;
 
 /**
@@ -90,16 +92,30 @@ public class SourceCUDrop extends CUDrop {
    * Can be used as a reset method when closing a project.
    * 
    */
-  public static Collection<SourceCUDrop> invalidateAll() {
+  public static Collection<SourceCUDrop> invalidateAll(final Collection<IIRProject> projects) {
     synchronized (SourceCUDrop.class) {
       cachedDrops = null;
     }
-    //Sea.getDefault().invalidateMatching(DropPredicateFactory.matchType(SourceCUDrop.class));
     final Set<SourceCUDrop> cuds = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
-    for(SourceCUDrop d : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
-    	d.invalidate();    	
+    final List<SourceCUDrop> invalidated = new ArrayList<SourceCUDrop>();
+    for(SourceCUDrop d : cuds) {
+    	boolean invalidate = projects == null;
+    	if (!invalidate) {
+    		// TODO use hash map?
+    		final ITypeEnvironment dTEnv = d.getTypeEnv();
+    		for(IIRProject p : projects) {
+    			if (dTEnv == p.getTypeEnv()) {
+    				invalidate = true;
+    				break;
+    			}
+    		}
+    	}
+    	if (invalidate) {
+    		d.invalidate();    	
+    		invalidated.add(d);
+    	}
     }
-    return cuds;
+    return invalidated;
   }
 
   @Override
