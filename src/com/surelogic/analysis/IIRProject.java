@@ -2,7 +2,9 @@
 package com.surelogic.analysis;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 
 public interface IIRProject extends IClassPath {
 	String getName();
+	ITypeEnvironment getTypeEnv();
 }
