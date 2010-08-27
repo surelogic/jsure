@@ -588,6 +588,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					if (!Nature.hasNatureAnyProject()) {
 						f_noResultsToShowLabel.setText(NO_RESULTS);
 						setViewerVisibility(false);
+					} else {				
+						refreshView(); 
 					}
 				}
 			});
