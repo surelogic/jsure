@@ -9,8 +9,11 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 
+import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.fluid.javac.Config;
+import com.surelogic.fluid.javac.IClassPathEntry;
 import com.surelogic.fluid.javac.JavacProject;
 import com.surelogic.fluid.javac.Projects;
 
@@ -29,27 +32,31 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public class ClearProjectListener implements IResourceChangeListener {
 	public static final boolean clearAfterChange = true;
-	private static IProject lastProject = null;
+	private static final List<IProject> lastProjects = new ArrayList<IProject>();
 
+	public ClearProjectListener() {
+		// Nothing to do
+	}
+	
 	public void resourceChanged(final IResourceChangeEvent event) {
 		synchronized (ClearProjectListener.class) {
 			if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
-				if (lastProject != null) {
-					lastProject = null;
-					clearJSureState();
+				if (!lastProjects.isEmpty()) {
+					clearJSureState(lastProjects);					
+					lastProjects.clear();
 				}
 			} else if (event.getResource() instanceof IProject) {
 				final IProject p = (IProject) event.getResource();
 				if (!p.getName().equals(ProjectDrop.getProject())) {
-					return; // Not the current project, so ignore this
+					return; 
 				}
 				switch (event.getType()) {
 				case IResourceChangeEvent.PRE_CLOSE:
 				case IResourceChangeEvent.PRE_DELETE:
 					if (clearAfterChange) {
-						lastProject = p;
+						lastProjects.add(p);
 					} else {
-						clearJSureState();
+						clearJSureState(Collections.singletonList(p));
 					}
 					return;
 				default:
@@ -65,10 +72,14 @@ public class ClearProjectListener implements IResourceChangeListener {
 	private static final boolean clearAll = true;
 
 	public static void clearJSureState() {
+		clearJSureState(null);
+	}
+	
+	public static void clearJSureState(Iterable<IProject> removedProjects) {
 		System.out.println("Clearing JSure state");
 		try {
 			synchronized (Sea.getDefault()) {
-				clearDropSea(clearAll);
+				clearDropSea(clearAll, removedProjects);
 			}
 			/*
 			 * for(Drop d : Sea.getDefault().getDrops()) {
@@ -97,12 +108,50 @@ public class ClearProjectListener implements IResourceChangeListener {
 		helpers.add(h);
 	}
 
-	private static void clearDropSea(final boolean clearAll) {
-		// FIX to clear out drops for a given project
+	private static void computeProjectDependencies(Config c, Set<String> needed) {
+		if (needed.contains(c.getProject())) {
+			return; // Already handled
+		}
+		needed.add(c.getProject());
+		for(IClassPathEntry e : c.getClassPath()) {
+			if (e instanceof Config) {
+				computeProjectDependencies((Config) e, needed);				
+			}
+		}
+	}
+	
+	private static void clearDropSea(final boolean clearAll, Iterable<IProject> removed) {
+		final ProjectsDrop pd = ProjectsDrop.getDrop();
+		if (pd == null) {
+			throw new IllegalStateException("No ProjectsDrop");
+		}
+		//final List<IProject> removedProjects = new ArrayList<IProject>();
+		final Set<String> removedNames = new HashSet<String>();
+		if (removed != null) {
+			for(IProject p : removed) {
+				//removedProjects.add(p);
+				removedNames.add(p.getName());
+			}
+		}
+		System.out.println("Clearing drop-sea");
+		// Filter out needed projects
+    	final Projects oldP = (Projects) pd.getIIRProjects();
+    	final Set<String> needed = new HashSet<String>();
+		for(JavacProject p : oldP) {
+			if (!removedNames.contains(p.getName())) {
+				computeProjectDependencies(p.getConfig(), needed);
+			}
+		}
+		removedNames.removeAll(needed);
+		
 		for (final RegionModel region : Sea.getDefault().getDropsOfExactType(
 				RegionModel.class)) {
 			final IRNode n = region.getNode();
 			final IRNode root = VisitUtil.findRoot(n);
+			if (removed != null && !removedNames.contains(region.getProject())) {
+				// It's not part of any project that was removed
+				continue; 
+			}
 			final CUDrop drop = CUDrop.queryCU(root);
 			if (drop instanceof SourceCUDrop) {
 				// System.out.println(region.getMessage());
@@ -110,18 +159,45 @@ public class ClearProjectListener implements IResourceChangeListener {
 			}
 		}
 		RegionModel.purgeUnusedRegions();
-		for(SourceCUDrop cud : SourceCUDrop.invalidateAll()) {
-			AdapterUtil.destroyOldCU(cud.cu);
-		}
-		
-	    ProjectsDrop pd = ProjectsDrop.getDrop();
-	    if (pd != null) {
+
+		if (pd != null) {
+			final List<IIRProject> removedJps = new ArrayList<IIRProject>();
 	    	for(JavacProject jp : ((Projects) pd.getIIRProjects())) {
+	    		if (removed == null || removedNames.contains(jp.getName())) {
+	    			removedJps.add(jp);
+	    		}
+	    	}
+	    	for(SourceCUDrop cud : SourceCUDrop.invalidateAll(removedJps)) {
+				AdapterUtil.destroyOldCU(cud.cu);
+			}
+	    	
+	    	for(JavacProject jp : oldP) {
 	    		System.out.println("Deactivating "+jp);
 	    		jp.deactivate();
 	    	}
-	    	pd.invalidate(); // TODO is this right?
-	    }
+	    	final Projects newP = oldP.remove(removedNames);
+	    	if (newP == null) {	    			    	
+	    		// No projects left
+	    		pd.invalidate();
+	    	} else {
+	    		ProjectsDrop.ensureDrop(newP);
+	    	}
+		} else {
+			// Nuke everything
+			for(SourceCUDrop cud : SourceCUDrop.invalidateAll(null)) {
+				AdapterUtil.destroyOldCU(cud.cu);
+			}
+			if (clearAll) {
+				for(BinaryCUDrop d : BinaryCUDrop.invalidateAll()) {
+					AdapterUtil.destroyOldCU(d.cu);
+				}
+				PackageDrop.invalidateAll();
+				IDE.getInstance().clearAll();
+				AnnotationRules.XML_LOG.reset();
+			}
+		}		
+		// TODO are these necessary?
+		/*
 		Sea.getDefault().invalidateMatching(
 				DropPredicateFactory.matchType(ProjectsDrop.class));
 		Sea.getDefault().invalidateMatching(
@@ -130,15 +206,8 @@ public class ClearProjectListener implements IResourceChangeListener {
 				DropPredicateFactory.matchType(WarningDrop.class));
 		Sea.getDefault().invalidateMatching(
 				DropPredicateFactory.matchType(PromiseWarningDrop.class));
+        */
 
-		if (clearAll) {
-			for(BinaryCUDrop d : BinaryCUDrop.invalidateAll()) {
-				AdapterUtil.destroyOldCU(d.cu);
-			}
-			PackageDrop.invalidateAll();
-			IDE.getInstance().clearAll();
-			AnnotationRules.XML_LOG.reset();
-		}
 		for (final IClearProjectHelper h : helpers) {
 			if (h != null) {
 				h.clearResults(clearAll);
@@ -150,11 +219,21 @@ public class ClearProjectListener implements IResourceChangeListener {
 	/**
 	 * Helper method to call after you add or remove the nature for JSure from
 	 * one or more projects.
-	 */
+	 * 
+	 * Especially if we focus verification
+	 */	
 	public static void postNatureChangeUtility(boolean removedNature) {
+		postNatureChangeUtility(null, removedNature);
+	}
+	
+	/**
+	 * Helper method to call after you add or remove the nature for JSure from
+	 * one or more projects.
+	 */	
+	public static void postNatureChangeUtility(Iterable<IProject> projs, boolean removedNature) {		
 		System.out.println("postNatureChangeUtility "+removedNature);
 		if (removedNature) {
-			ClearProjectListener.clearJSureState();
+			ClearProjectListener.clearJSureState(projs);			
 		}
 
 		// Handle projects that are still active

@@ -23,6 +23,6 @@ public class DisableVerificationContextAction extends
 		if (!changed) {
 			return;
 		}
-		ClearProjectListener.postNatureChangeUtility(true);
+		ClearProjectListener.postNatureChangeUtility(getSelectedProjects(), true);
 	}
 }
