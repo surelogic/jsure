@@ -49,28 +49,26 @@ public final class FirstTimeAnalysis extends FirstTimeJob {
 
 	@Override
 	protected void doJob(IProgressMonitor monitor) throws CoreException {
-		for (String id : Activator.getDefault().getDoubleChecker().getIncludedExtensions()) {
-			if (LOG.isLoggable(Level.FINE))
+		final boolean debug = LOG.isLoggable(Level.FINE);
+		if (debug) {
+			for (String id : Activator.getDefault().getDoubleChecker().getIncludedExtensions()) {
 				LOG.fine("Activated: " + id);
-		}
-		if (Plugin.testing) {
-			if (LOG.isLoggable(Level.FINE))
-				LOG.fine("Skipping auto-build, due to dc.testing");
-		} else {
-			if (LOG.isLoggable(Level.FINE))
-				LOG.fine("Starting first-time auto-build");
-			
-			final IJavaProject javaProject = JavaCore.create(m_project);
-			final int flag;
-			if (Majordomo.noCompilationErrors(javaProject)) {
-				flag = IncrementalProjectBuilder.AUTO_BUILD;
-			} else {
-				flag = IncrementalProjectBuilder.CLEAN_BUILD;
-				LOG.info("Trying to do clean build");
 			}
-			m_project.build(flag, Nature.DOUBLE_CHECKER_BUILDER_ID, getArguments(), monitor);
-			if (LOG.isLoggable(Level.FINE))
-				LOG.fine("Ending first-time auto-build");
 		}
+		if (debug)
+			LOG.fine("Starting first-time auto-build");
+
+		final IJavaProject javaProject = JavaCore.create(m_project);
+		final int flag;
+		if (Majordomo.noCompilationErrors(javaProject)) {
+			flag = IncrementalProjectBuilder.AUTO_BUILD;
+		} else {
+			flag = IncrementalProjectBuilder.CLEAN_BUILD;
+			LOG.info("Trying to do clean build");
+		}
+		System.out.println("Building DC for "+m_project.getName());
+		m_project.build(flag, Nature.DOUBLE_CHECKER_BUILDER_ID, getArguments(), monitor);
+		if (debug)
+			LOG.fine("Ending first-time auto-build");
 	}
 }
