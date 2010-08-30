@@ -376,8 +376,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
     currentTest = start("Start logging to a file & refresh");
     final String logName = EclipseLogHandler.startFileLog(project.getName() + ".log");
-    new FirstTimeRefresh(project).run(null);
-    // new FirstTimeAnalysis(p).run(null);
+    ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 
     printActivatedAnalyses();
     end("Done with refresh");
@@ -394,7 +393,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     File script = findScript(project);
     if (script != null) {
       currentTest = start("Run scripting");
-      ScriptReader r = new ScriptReader();
+      ScriptReader r = new ScriptReader(project);
       r.execute(script);
       end("Done scripting");
     }

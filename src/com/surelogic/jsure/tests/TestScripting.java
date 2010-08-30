@@ -6,7 +6,7 @@ import junit.framework.TestCase;
 
 public class TestScripting extends TestCase {
   public void testMain() throws Exception {
-    ScriptReader r = new ScriptReader();
+    ScriptReader r = new ScriptReader(null);
     r.executeScript(
         "set autobuild\n"+
         "createProject foo\n"+
@@ -21,7 +21,7 @@ public class TestScripting extends TestCase {
   }
   
   public void testExporting() throws Exception{
-    ScriptReader r = new ScriptReader();
+    ScriptReader r = new ScriptReader(null);
     r.executeScript(
         "set autobuild\n"+
         "createProject foo2 /work/regression-test-workspace/util.concurrent_regression\n"+ // From zip??
@@ -34,7 +34,7 @@ public class TestScripting extends TestCase {
   }
   
   public void testPatching() throws Exception{
-    ScriptReader r = new ScriptReader();
+    ScriptReader r = new ScriptReader(null);
     r.executeScript(
         "set autobuild\n"+
         "unset autosave\n"+
@@ -57,7 +57,7 @@ public class TestScripting extends TestCase {
   }
   
   public void testDeleting() throws Exception{
-    ScriptReader r = new ScriptReader();
+    ScriptReader r = new ScriptReader(null);
     r.executeScript(
         "set autobuild\n"+
         "unset autosave\n"+

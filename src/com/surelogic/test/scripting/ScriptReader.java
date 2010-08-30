@@ -4,7 +4,8 @@ import java.io.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
-//import org.eclipse.core.runtime.jobs.Job;
+
+import edu.cmu.cs.fluid.dc.FirstTimeAnalysis;
 
 /**
  * Reads the script line by line
@@ -19,8 +20,11 @@ public class ScriptReader implements ICommandContext {
   boolean autoBuild = true;
   boolean changed   = false;
   boolean buildNow  = false;
+  final IProject project;
   
-  public ScriptReader() {
+  public ScriptReader(IProject p) {
+	project = p;
+	  
 	// Setup commands to change the state of autoBuild
     commands.put("set", new ICommand() {
       public boolean execute(ICommandContext context, String... contents) throws Exception {
@@ -41,7 +45,7 @@ public class ScriptReader implements ICommandContext {
   }
   
   public static void main(String[] args) throws Exception {
-    ScriptReader r = new ScriptReader();
+    ScriptReader r = new ScriptReader(null);
     try {
       r.executeScript(
           "set autobuild\n"+
@@ -120,9 +124,9 @@ public class ScriptReader implements ICommandContext {
   }
 
   private void build() throws CoreException {	  
-	  build(IncrementalProjectBuilder.CLEAN_BUILD); //OK
+	  //build(IncrementalProjectBuilder.CLEAN_BUILD); //OK
 	  //build(IncrementalProjectBuilder.FULL_BUILD); //NO
-	  //build(IncrementalProjectBuilder.INCREMENTAL_BUILD); //NO
+	  build(IncrementalProjectBuilder.INCREMENTAL_BUILD); //NO
 	  //build(IncrementalProjectBuilder.AUTO_BUILD); //NO?
 	  /*
 	  try {
@@ -136,17 +140,12 @@ public class ScriptReader implements ICommandContext {
   }
   
   private void build(int kind) throws CoreException {
-	ResourcesPlugin.getWorkspace().build(kind, null);
-	/*
-    IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-    
-    for(IProject p : root.getProjects()) {
-        // TODO what if these are run out of dependency order
-    	// p.getReferencedProjects()
-    	
-    	// check if files changed    
-    	p.build(kind, null);
-    }
-    */
+	if (project != null) {
+		System.out.println("build FTA");
+		new FirstTimeAnalysis(project).run(null);
+	} else {
+		System.out.println("build workspace");
+		ResourcesPlugin.getWorkspace().build(kind, null);
+	}
   }
 }
