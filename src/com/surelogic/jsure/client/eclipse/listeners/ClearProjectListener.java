@@ -123,7 +123,8 @@ public class ClearProjectListener implements IResourceChangeListener {
 	private static void clearDropSea(final boolean clearAll, Iterable<IProject> removed) {
 		final ProjectsDrop pd = ProjectsDrop.getDrop();
 		if (pd == null) {
-			throw new IllegalStateException("No ProjectsDrop");
+			System.out.println("No ProjectsDrop, so nothing to clear");
+			return;
 		}
 		//final List<IProject> removedProjects = new ArrayList<IProject>();
 		final Set<String> removedNames = new HashSet<String>();
