@@ -25,7 +25,7 @@ public class Import extends AbstractCommand {
 	/**
 	 * @param context
 	 * @param contents Arguments for this class in the following order:
-	 * 1 - file/project name to import into
+	 * 1 - directory/project name to import into
 	 * 2 - file or directory to import
 	 */
 	public boolean execute(ICommandContext context, String... contents)
