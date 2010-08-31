@@ -53,11 +53,16 @@ import edu.uwm.cs.fluid.control.LabeledLattice.UnaryOp;
  * @see BackwardAnalysis
  */
 public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable, IFlowAnalysis<T, L> {
-  public final String name;
-  protected final L lattice;
-  protected final LabeledLattice<T> infoLattice;
-  private Worklist worklist;
+  public static final class AnalysisGaveUp extends RuntimeException {
+    public final int count;
+    
+    public AnalysisGaveUp(final int c) {
+      count = c;
+    }
+  }
 
+  
+  
   private static final Logger LOG = SLLogger.getLogger("FLUID.analysis");
   private static final String VALUE = "{(<>:<top,{conf}>)}";
   private static final boolean TRACE = false;
@@ -65,10 +70,21 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   private static final boolean CHECK_MONOTONICITY = false;
   private static final boolean DEBUG = false;
   
+  
+  
+  public final String name;
+  protected final L lattice;
+  protected final LabeledLattice<T> infoLattice;
+  private Worklist worklist;
+
   //private boolean started = false;
   private long iterations = 0;
 
   private final IRNodeViewer nodeViewer;
+  
+  private final boolean shouldTimeOut = false;
+  
+  
   
   /** Create a new instance of flow analysis.
    * @param l the lattice of values for the analysis.
@@ -254,24 +270,33 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     setInfo(edge,old);
   }
 
-  private static final int COUNT_BEFORE_CHECK = 10;
+  private static final int COUNT_BEFORE_CHECK = 1000;
 
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#performAnalysis()
    */
   public void performAnalysis() {
     final IDE ide = IDE.getInstance();
+    
+    final long deadline = System.nanoTime() + 1000000000L * 60L *2;
+        
     worklist.start();
     int count = COUNT_BEFORE_CHECK;
+    int globalCount = 0;
     while (worklist.hasNext()) {
       if (count == 0) {
         count = COUNT_BEFORE_CHECK;
         if (ide.isCancelled()) {
           throw new FluidInterruptedException();
         }
+        
+        if (System.nanoTime() > deadline) {
+          throw new AnalysisGaveUp(globalCount);
+        }
       }
       work(worklist.next());
       count -= 1;
+      globalCount += 1;
     }
   }
 
