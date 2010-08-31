@@ -259,7 +259,11 @@ public class JavacDriver {
 			case IResourceDelta.ADDED:
 				String name = copyAsResource(scriptResourcesDir, r);
 				copyAsResource(tempDir, r);
-				printToScript(ScriptCommands.IMPORT+' '+path+' '+prefix+name);
+				
+				// Use the directory that we'll be importing into
+				final int lastSlash = path.indexOf('/');
+				final String dest   = lastSlash < 0 ? path : path.substring(0, lastSlash);				
+				printToScript(ScriptCommands.IMPORT+' '+dest+' '+prefix+name);
 				break;
 			case IResourceDelta.CHANGED:
 				String patch = createPatch(r);
