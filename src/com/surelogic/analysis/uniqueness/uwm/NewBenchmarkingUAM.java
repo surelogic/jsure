@@ -1,10 +1,8 @@
-package com.surelogic.analysis.uniqueness;
+package com.surelogic.analysis.uniqueness.uwm;
 
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.effects.Effects;
-import com.surelogic.analysis.uniqueness.cmu.UniqueAnalysis;
 
-import edu.cmu.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -13,10 +11,11 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
+import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public class BenchmarkingUAM extends AbstractWholeIRAnalysis<UniqueAnalysis,Void> {
-  public BenchmarkingUAM() {
-		super(false, null, "UniqueAnalysis");
+public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalysis,Void> {
+  public NewBenchmarkingUAM() {
+		super(false, null, "UniqueAnalysis (NEW)");
 	}
 
 	@Override
@@ -25,8 +24,8 @@ public class BenchmarkingUAM extends AbstractWholeIRAnalysis<UniqueAnalysis,Void
 	}
 
 	@Override
-	protected UniqueAnalysis constructIRAnalysis(IBinder binder) {
-		return new UniqueAnalysis(binder,	new Effects(binder), 5000);
+	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
+	  return new UniquenessAnalysis(binder, new Effects(binder));
 	}
 	
 	@Override
