@@ -13,6 +13,6 @@ public class AddNature extends AbstractProjectCommand {
 	@Override
 	protected boolean execute(ICommandContext context, IProject p) throws Exception {
 		Nature.onlyAddNatureToProject(p);
-		return false;
+		return true;
 	}
 }
