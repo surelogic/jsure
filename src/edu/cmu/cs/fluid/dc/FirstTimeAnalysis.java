@@ -3,10 +3,7 @@ package edu.cmu.cs.fluid.dc;
 import java.util.Map;
 import java.util.logging.Level;
 
-import org.eclipse.core.resources.ICommand;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -67,7 +64,14 @@ public final class FirstTimeAnalysis extends FirstTimeJob {
 			LOG.info("Trying to do clean build");
 		}
 		System.out.println("Building DC for "+m_project.getName());
-		m_project.build(flag, Nature.DOUBLE_CHECKER_BUILDER_ID, getArguments(), monitor);
+		//m_project.build(flag, Nature.DOUBLE_CHECKER_BUILDER_ID, getArguments(), monitor);
+		
+		final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IProject[] order = workspace.computeProjectOrder(workspace.getRoot().getProjects()).projects;
+		for(final IProject p : order) {
+			System.out.println("FTA building "+p.getName());
+			p.build(flag, Nature.DOUBLE_CHECKER_BUILDER_ID, getArguments(), monitor);
+		}
 		if (debug)
 			LOG.fine("Ending first-time auto-build");
 	}
