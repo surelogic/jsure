@@ -154,24 +154,32 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="UniquenessAssurance2" name="Uniqueness"
+	<extension id="UniquenessAssurance2" name="Uniqueness (OLD)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.uniqueness.cmu.UniquenessAnalysisModule">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-  <extension id="FRED" name="Uniqueness (UWM)"
+  <extension id="UniquenessAssuranceUWM" name="Uniqueness (NEW)"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysisModule" production="false">
+    <run class="com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysisModule" production="true">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
   </extension>
-  <extension id="BenchmarkingUniqueness" name="Benchmarking Uniqueness"
+  <extension id="BenchmarkingUniqueness" name="Benchmarking Uniqueness (OLD)"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
     <run class="com.surelogic.analysis.uniqueness.BenchmarkingUAM" 
-      production="true">
+      production="false">
+    </run>
+    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+    </prerequisite>
+  </extension>
+  <extension id="BenchmarkingUniquenessNew" name="Benchmarking Uniqueness (NEW)"
+    point="com.surelogic.jsure.client.eclipse.analysisModule">
+    <run class="com.surelogic.analysis.uniqueness.uwm.NewBenchmarkingUAM" 
+      production="false">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
@@ -229,7 +237,7 @@
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
   </extension>
-  <extension id="NEWUNIQUE" name="TEST NEW UNIQUENESS"
+  <extension id="TESTUNIQUENESS" name="TEST NEW UNIQUENESS"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
     <run class="com.surelogic.analysis.uniqueness.uwm.TestNewImpl" production="false">
     </run>
