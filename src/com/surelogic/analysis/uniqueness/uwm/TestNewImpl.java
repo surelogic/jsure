@@ -15,19 +15,25 @@ import com.surelogic.analysis.uniqueness.uwm.store.StoreLattice;
 
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.control.FlowAnalysis;
+import edu.cmu.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.Triple;
 import edu.cmu.cs.fluid.util.UnionLattice;
+import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 
 
 public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Void> {
@@ -50,10 +56,11 @@ public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Vo
   }
 
   @Override
-  protected boolean doAnalysisOnAFile(CUDrop cud, final IRNode compUnit, IAnalysisMonitor monitor) {
+  protected boolean doAnalysisOnAFile(
+      final CUDrop cud, final IRNode compUnit, final IAnalysisMonitor monitor) {
     runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
       public void run() {
-        runOverFile(compUnit);
+        runOverFile(compUnit, monitor);
       }
     });
     return true;
@@ -66,8 +73,11 @@ public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Vo
 
 
 
-  protected void runOverFile(final IRNode compUnit) {
+  protected void runOverFile(final IRNode compUnit, final IAnalysisMonitor monitor) {
+    getAnalysis().setMonitor(monitor);
     getAnalysis().doAccept(compUnit);
+    ImmutableHashOrderSet.clearCaches();
+    JavaComponentFactory.clearCache();
   }
   
   
@@ -87,24 +97,71 @@ public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Vo
 
   public final class Visitor extends AbstractJavaAnalysisDriver<Record> implements IBinderClient {
     private final IBinder binder;
-    
+    private volatile IAnalysisMonitor monitor;
     
     
     public Visitor(final IBinder b) {
       binder = b;
+      monitor = null;
+    }
+    
+    public void setMonitor(final IAnalysisMonitor m) {
+      monitor = m;
     }
     
     
     
     @Override
     protected Record createNewQuery(final IRNode decl) {
-      return new Record(n.getAnalysis(decl).getLattice(), n.getRaw(decl), o.getAnalysis(decl));
+      final String methodName;
+      if (ClassInitializer.prototype.includes(decl)) {
+        methodName = "initializer";
+      } else {
+        methodName = JavaNames.genQualifiedMethodConstructorName(decl);
+      }
+      System.out.println("Checking " + methodName);
+      if (monitor != null) {
+        monitor.subTask("Checking [ Uniqueness Test ] " + methodName);
+      }
+
+      
+      
+      JavaForwardAnalysis<Store, StoreLattice> newAnalysis = null;
+      StoreLattice newLattice = null;
+      RawQuery newRawQuery = null;
+      try {
+        newAnalysis = n.getAnalysis(decl);
+        newLattice = newAnalysis.getLattice();
+        newRawQuery = n.getRaw(decl);
+      } catch(final edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp e) {
+        System.out.println("XXXXX New analysis gave up on " + DebugUnparser.toString(decl));
+        newAnalysis = null;
+        newLattice = null;
+        newRawQuery = null;
+      }
+      
+      FlowAnalysis<Object> oldAnalysis = null;
+      try {
+        oldAnalysis = o.getAnalysis(decl);
+      } catch(final AnalysisGaveUp e) {
+        System.out.println("XXXXX Old analysis gave up on " + DebugUnparser.toString(decl));
+        oldAnalysis = null;
+      }
+      return new Record(newLattice, newRawQuery, oldAnalysis);
     }
 
     @Override
     protected Record createSubQuery(final IRNode caller) {
-      return new Record(currentQuery().newLattice, currentQuery().newUniqueness.getSubAnalysisQuery(caller),
-          (caller instanceof AnonClassExpression) ? o.getAnalysis(caller) : null);
+      final StoreLattice newLattice = currentQuery().newLattice;
+      final RawQuery subAnalysisQuery = currentQuery().newUniqueness.getSubAnalysisQuery(caller);
+      FlowAnalysis<Object> oldAnalysis = null;
+      try {
+        oldAnalysis = (caller instanceof AnonClassExpression) ? o.getAnalysis(caller) : null;
+      } catch(final AnalysisGaveUp e) {
+        System.out.println("XXXXX Old analysis gave up on " + DebugUnparser.toString(caller));
+        oldAnalysis = null;
+      }
+      return new Record(newLattice, subAnalysisQuery, oldAnalysis);
     }
   
     
@@ -131,7 +188,7 @@ public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Vo
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private void compareResults(final IRNode node) {
       final Record currentQuery = currentQuery();
-      if (currentQuery != null && currentQuery.oldUniqueness != null) {
+      if (currentQuery != null && currentQuery.newLattice != null && currentQuery.oldUniqueness != null) {
         final Store newStore = currentQuery.newUniqueness.getResultFor(node);
         final com.surelogic.analysis.uniqueness.cmu.Store oldStore = 
           (com.surelogic.analysis.uniqueness.cmu.Store) currentQuery.oldUniqueness.getAfter(node, WhichPort.ENTRY);
@@ -145,6 +202,9 @@ public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Vo
           // Check TOP
           equalStores = oldStore.equals(oldStore.bottom());
         } else if (currentQuery.newLattice.lattice1.equals(newStore.first(), currentQuery.newLattice.lattice1.top())) {
+          // Check error messages
+          equalStores = currentQuery.newLattice.toString(newStore).equals(oldStore.toString());
+        } else if (oldStore.getStackSize().equals(oldStore.getStackSize().bottom())) {
           // Check error messages
           equalStores = currentQuery.newLattice.toString(newStore).equals(oldStore.toString());
         } else if (newStore.getStackSize().intValue() != oldStore.getStackSize().intValue()) {
