@@ -1,9 +1,13 @@
 package com.surelogic.test.scripting;
 
 import java.io.*;
+import java.util.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
+
+import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
+import com.surelogic.jsure.client.eclipse.analysis.ScriptCommands;
 
 import edu.cmu.cs.fluid.dc.FirstTimeAnalysis;
 
@@ -20,6 +24,7 @@ public class ScriptReader implements ICommandContext {
   boolean autoBuild = true;
   boolean changed   = false;
   boolean buildNow  = false;
+  final Map<String,Object> args = new HashMap<String, Object>();  
   final IProject project;
   
   public ScriptReader(IProject p) {
@@ -42,6 +47,7 @@ public class ScriptReader implements ICommandContext {
         return false;
       }  
     });
+	commands.put(ScriptCommands.EXPECT_BUILD, new ExpectBuild());
   }
   
   public static void main(String[] args) throws Exception {
@@ -146,6 +152,19 @@ public class ScriptReader implements ICommandContext {
 	} else {
 		System.out.println("build workspace");
 		ResourcesPlugin.getWorkspace().build(kind, null);
+	}
+  }
+  
+  class ExpectBuild extends AbstractCommand {
+	public boolean execute(ICommandContext context, String... contents)
+			throws Exception {
+		final File expected = resolveFile(contents[1]);
+		if(expected != null && expected.exists()) {
+			JavacDriver.getInstance().setArg(ScriptCommands.EXPECT_BUILD, expected);
+		} else {
+			throw new FileNotFoundException(contents[1] + " does not exist"); 
+		}
+		return false;
 	}
   }
 }
