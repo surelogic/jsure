@@ -30,7 +30,7 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.util.*;
 
-public class JavacDriver {
+public class JavacDriver implements IResourceChangeListener {
 	/**
 	 * Clear all the JSure state before each build
 	 */
@@ -313,6 +313,12 @@ public class JavacDriver {
 	private static final TempFileFilter filter = new TempFileFilter("scriptTemp", ".dir");
 	
 	private static final JavacDriver prototype = new JavacDriver();
+	static {		
+		if (prototype.script != null) {
+			ResourcesPlugin.getWorkspace().addResourceChangeListener(prototype, IResourceChangeEvent.PRE_BUILD);
+			//IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE
+		}
+	}
 	
 	public static JavacDriver getInstance() {
 		return prototype;
@@ -1272,7 +1278,7 @@ public class JavacDriver {
 			}
 		}
 		pw.close();
-		printToScript("expectBuild "+name);
+		printToScript(ScriptCommands.EXPECT_BUILD+' '+name);
 	}
 	
 	private void checkForExpectedSourceFiles(Projects p, File expected) throws IOException {
@@ -1297,5 +1303,79 @@ public class JavacDriver {
 			cus.add(line.trim());
 		}
 		return cus;
+	}
+
+	public void resourceChanged(IResourceChangeEvent event) {
+		if (event.getResource() == null) {
+			for(IResourceDelta delta : event.getDelta().getAffectedChildren()) {
+				changed(delta);
+			}
+			return;
+		}
+		if (!(event.getResource() instanceof IProject)) {
+			// Gets changes to the root /
+			System.out.println("Ignoring change1 to "+event.getResource());
+			return;
+		}
+		switch (event.getType()) {
+		case IResourceChangeEvent.PRE_DELETE:
+			//Handled by removal
+			//System.out.println("Ignoring deletion of project "+event.getResource().getName());
+			break;
+		case IResourceChangeEvent.PRE_CLOSE:
+			/*Handled below
+			if (script != null) {
+				printToScript(ScriptCommands.CLOSE_PROJECT+' '+event.getResource().getName());
+			}
+			*/
+			break;
+		default:
+			System.out.println("Ignoring change2 to "+event.getResource().getName());
+			return;
+		case IResourceChangeEvent.PRE_BUILD:
+			changed(event.getDelta());
+		}
+	}
+	
+	private void changed(IResourceDelta delta) {
+		if (!(delta.getResource() instanceof IProject)) {
+			System.out.println("Ignoring change4 to "+delta.getResource());
+			return;
+		}
+		switch (delta.getKind()) {
+		case IResourceDelta.ADDED:
+			System.out.println("Handling addition as a new project "+delta.getResource());
+			if (script != null) {
+				printToScript(ScriptCommands.CREATE_PROJECT+' '+delta.getResource().getName());
+			}
+			return;
+		case IResourceDelta.REMOVED:
+			System.out.println("Handling removal of project "+delta.getResource());
+			if (script != null) {
+				printToScript(ScriptCommands.DELETE_PROJECT+' '+delta.getResource().getName());
+			}
+			return;
+		case IResourceDelta.CHANGED:
+			if (delta.getFlags() != IResourceDelta.OPEN) {
+				System.out.println("Ignoring change5 to project "+delta.getResource()+": "+delta.getFlags());
+				return;
+			}
+			final IProject p = (IProject) delta.getResource();
+			if (p.isOpen()) {
+				System.out.println("Handling opening project "+delta.getResource());
+				if (script != null) {
+					printToScript(ScriptCommands.OPEN_PROJECT+' '+delta.getResource().getName());
+				}
+			} else {
+				System.out.println("Handling closing project "+delta.getResource());
+				if (script != null) {
+					printToScript(ScriptCommands.CLOSE_PROJECT+' '+delta.getResource().getName());
+				}
+			}
+			return;
+		default:
+			System.out.println("Ignoring change3 to "+delta.getResource());
+			return;
+		}
 	}
 }
