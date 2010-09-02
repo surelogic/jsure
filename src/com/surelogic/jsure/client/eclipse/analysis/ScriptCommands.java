@@ -3,6 +3,7 @@ package com.surelogic.jsure.client.eclipse.analysis;
 public interface ScriptCommands {
 	String NAME = "test.script.txt";
 	
+	String EXPECT_BUILD = "expectBuild";
 	String IMPORT = "import";
 	String TOUCH_FILE = "touchFile";
 	String PATCH_FILE = "patchFile";

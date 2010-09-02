@@ -55,6 +55,7 @@ public class JavacDriver {
 	private static final boolean shareCommonJars = false;
 	
 	//private final List<IProject> building = new ArrayList<IProject>();
+	private final Map<String,Object> args = new HashMap<String, Object>();  
 	private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
 	private final File tempDir;
 	private final File scriptResourcesDir;
@@ -90,8 +91,19 @@ public class JavacDriver {
 				}
 			}			
 		});
-		if (XUtil.recordScript() != null) {					
-			scriptResourcesDir = new File(EclipseUtility.getWorkspacePath(), XUtil.recordScript());
+		final String temp = XUtil.recordScript();
+		if (temp != null) {					
+			final int slash = temp.indexOf('/');
+			final String proj, path;
+			if (slash < 0) {
+				proj = temp;
+				path = temp + File.separatorChar + "script";
+			} else {
+				proj = temp.substring(0, slash);
+				path = temp;
+			}
+			final File workspace = EclipseUtility.getWorkspacePath();
+			scriptResourcesDir = new File(workspace, path);
 			scriptResourcesDir.mkdirs();
 			// Clean out the directory
 			for(File f : scriptResourcesDir.listFiles()) {
@@ -100,7 +112,7 @@ public class JavacDriver {
 			PrintStream out = null;
 			File tmp = null;
 			try {
-				out = new PrintStream(new File(scriptResourcesDir, ScriptCommands.NAME));
+				out = new PrintStream(new File(workspace, proj+File.separatorChar+ScriptCommands.NAME));
 				FileUtility.deleteTempFiles(filter);
 				tmp = filter.createTempFile(); 
 				tmp.delete();
@@ -253,7 +265,14 @@ public class JavacDriver {
 				System.out.println("Ignoring non-Java file: "+rName);
 				continue;
 			}
-			final String prefix = '/'+r.getProject().getName()+'/'+XUtil.recordScript();
+			final String temp = XUtil.recordScript();
+			final int slash   = temp.indexOf('/');
+			final String prefix;
+			if (slash < 0) {
+				prefix = '/'+temp+'/'+"script";
+			} else {
+				prefix = '/'+temp;
+			}
 			final String path = r.getFullPath().toString();
 			switch (p.second()) {
 			case IResourceDelta.ADDED:
@@ -261,8 +280,8 @@ public class JavacDriver {
 				copyAsResource(tempDir, r);
 				
 				// Use the directory that we'll be importing into
-				final int lastSlash = path.indexOf('/');
-				final String dest   = lastSlash < 0 ? path : path.substring(0, lastSlash);				
+				final int lastSlash = path.lastIndexOf('/');
+				final String dest   = lastSlash < 0 ? path : path.substring(0, lastSlash);			
 				printToScript(ScriptCommands.IMPORT+' '+dest+' '+prefix+name);
 				break;
 			case IResourceDelta.CHANGED:
@@ -730,7 +749,7 @@ public class JavacDriver {
         	final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
         	((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
         }
-        ConfigureJob configure = new ConfigureJob("Configuring JSure build", isAuto);
+        ConfigureJob configure = new ConfigureJob("Configuring JSure build", isAuto, args);
         synchronized (this) {
         	if (buildState == null) {
         		buildState = BuildState.WAITING;
@@ -770,7 +789,7 @@ public class JavacDriver {
 	    }
 	}
 	
-	private void doBuild(final Projects newProjects, SLProgressMonitor monitor) {
+	private void doBuild(final Projects newProjects, Map<String, Object> args, SLProgressMonitor monitor) {
 		try {
 			if (!XUtil.testing) {
 				  System.out.println("Configuring analyses for doBuild");
@@ -799,16 +818,21 @@ public class JavacDriver {
 		    Projects oldProjects = (Projects) ProjectsDrop.getProjects();		    
 		    if (!clearBeforeAnalysis && oldProjects != null) {
 		    	findModifiedFiles(newProjects, oldProjects);
-		    }
-		    // TODO remove files that weren't changed?
+		    }		    
+		    
 		    AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips);
 		    CopyJob copy = new CopyJob(newProjects, target, zips, analysis);
+			if (script != null) {
+				recordFilesToAnalyze(newProjects);
+			}
 		    if (XUtil.testing) {
+		    	final File expected = (File) args.get(ScriptCommands.EXPECT_BUILD);
+		    	checkForExpectedSourceFiles(newProjects, expected);
 		    	copy.run(new NullSLProgressMonitor());
 		    } else {
 		    	EclipseJob.getInstance().scheduleWorkspace(copy);
 		    }
-		} catch(JavaModelException e) {
+		} catch(Exception e) {
 		    System.err.println("Unable to make config for JSure");
 		    e.printStackTrace();
 		    return;
@@ -1040,10 +1064,13 @@ public class JavacDriver {
 	
 	class ConfigureJob extends AbstractSLJob {
 		final Projects projects;
+		final Map<String, Object> args;
 		
-		ConfigureJob(String name, boolean isAuto) {
+		ConfigureJob(String name, boolean isAuto, Map<String, Object> args) {
 			super(name);
 			projects = new Projects(isAuto);
+			this.args = new HashMap<String, Object>(args);
+			args.clear();
 		}
 
 		public SLStatus run(SLProgressMonitor monitor) {
@@ -1074,7 +1101,7 @@ public class JavacDriver {
 					// dependency?
 				}
 			}			
-			doBuild(projects, monitor);
+			doBuild(projects, args, monitor);
 			return SLStatus.OK_STATUS;
 		}
 	}
@@ -1225,5 +1252,50 @@ public class JavacDriver {
 				});
     		}
     	}
+	}
+
+	public void setArg(String key, Object value) {
+		args.put(key, value);
+	}	
+	
+	int id = 0;
+	
+	private void recordFilesToAnalyze(Projects p) throws FileNotFoundException {
+		final String name = "expectedBuild"+id+".txt";
+		final File file   = new File(scriptResourcesDir, name);
+		id++;
+		
+		final PrintWriter pw = new PrintWriter(file);
+		for(Config c : p.getConfigs()) {
+			for(JavaSourceFile f : c.getFiles()) {
+				pw.println(f.relativePath);
+			}
+		}
+		pw.close();
+		printToScript("expectBuild "+name);
+	}
+	
+	private void checkForExpectedSourceFiles(Projects p, File expected) throws IOException {
+		final Set<String> cus = readExpected(expected);
+		for(Config c : p.getConfigs()) {
+			for(JavaSourceFile f : c.getFiles()) {
+				if (!cus.remove(f.relativePath)) {
+					new IllegalStateException("Building extra file: "+f.relativePath).printStackTrace();
+				}
+			}
+		}
+		if (!cus.isEmpty()) {
+			new IllegalStateException("File not built: "+cus.iterator().next()).printStackTrace();
+		}
+	}
+	
+	private Set<String> readExpected(File expected) throws IOException {
+		final BufferedReader br = new BufferedReader(new FileReader(expected));
+		final Set<String> cus   = new HashSet<String>();
+		String line;
+		while ((line = br.readLine()) != null) {
+			cus.add(line.trim());
+		}
+		return cus;
 	}
 }
