@@ -17,6 +17,7 @@ import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
+import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
 
 import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
@@ -84,8 +85,9 @@ public class Activator extends AbstractUIPlugin implements
 				.schedule();
 		monitor.worked(1);
 
-		// NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
-		// monitor.worked(1);
+		//NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
+		JavacDriver.getInstance();
+		monitor.worked(1);
 	}
 
 	private void clearJSureData() {
