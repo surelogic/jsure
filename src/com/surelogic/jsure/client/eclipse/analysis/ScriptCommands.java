@@ -9,6 +9,7 @@ public interface ScriptCommands {
 	String PATCH_FILE = "patchFile";
 	String DELETE_FILE = "deleteFile";
 	String CREATE_PROJECT = "createProject";
+	String DELETE_PROJECT = "deleteProject";
 	String OPEN_PROJECT = "openProject";
 	String CLOSE_PROJECT = "closeProject";
     String ADD_NATURE = "addNature";
