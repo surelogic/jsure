@@ -358,7 +358,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     printActivatedAnalyses();
     
     final File analyses = new File(projectPath + File.separatorChar
-        + "jsure.analysis.settings");
+        + ScriptCommands.ANALYSIS_SETTINGS);
     if (analyses.exists() && analyses.isFile()) {
       System.out.println("Found project-specific analysis settings.");
       IPreferenceStore store = JSureAnalysisXMLReader.readStateFrom(analyses);
