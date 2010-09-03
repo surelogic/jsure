@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.dc;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -328,6 +329,25 @@ public class Plugin implements IAnalysisContainer {
 		}
 	}
 
+	public void writePrefsToXML(File settings) throws FileNotFoundException {
+		final PrintWriter pw = new PrintWriter(settings);
+		pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+		pw.println("<preferences>");
+		pw.println("  <included-analysis-modules>");
+		for(String id : m_includedExtensions) {
+			pw.println("    <id>"+id+"</id>");
+		}
+		pw.println("  </included-analysis-modules>");
+		pw.println("  <excluded-analysis-modules>");
+		for(IExtension ext : m_nonProductionAnalysisExtensions) {
+			final String id = ext.getUniqueIdentifier();
+			pw.println("    <id>"+id+"</id>");
+		}
+		pw.println("  </excluded-analysis-modules>");
+		pw.println("</preferences>");
+		pw.close();
+	}
+	
 	// //////////////////////////////////////////////////////////////////////
 	//
 	// ECLIPSE ERROR REPORTING METHODS (VISIBLE THROUGH THE ECLIPSE UI)
