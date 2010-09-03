@@ -429,7 +429,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       // Export new results XML
       // final File location = new File(workspaceFile, projectName + SeaSnapshot.SUFFIX);
       // SeaSummary.summarize(projectName, Sea.getDefault(), location);      
-      new ExportResults().execute(ICommandContext.nullContext, "export", projectName, projectName);
+      new ExportResults().execute(ICommandContext.nullContext, ScriptCommands.EXPORT_RESULTS, projectName, projectName);
       end("Done exporting");
       
       currentTest = start("comparing results");
