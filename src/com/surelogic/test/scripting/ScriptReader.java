@@ -84,41 +84,63 @@ public class ScriptReader implements ICommandContext {
     execute(r);
   }
   
+  private static final String EXPECT_BUILD = ScriptCommands.EXPECT_BUILD+' ';
+  
   public void execute(Reader r) throws Exception {
 	init();
 	  
     final BufferedReader br = new BufferedReader(r);  
+    String lastLine = null;
     String line;
     while ((line = br.readLine()) != null) {
-      String[] tokens = Util.collectTokens(line, " ,\n");
-      if (tokens.length == 0) {
+      if (line.length() == 0) {
         continue;
       }
-      if (tokens[0].startsWith("#")) {
+      line = line.trim();
+      if (line.startsWith("#")) {
     	System.out.println("ScriptReader: ignoring "+line);
         continue;
       }
-      System.out.println("ScriptReader: "+line);
-      final boolean justChanged = commands.get(tokens[0]).execute(this, tokens);
-      changed = changed || justChanged;
-      /*
-      if (justChanged) {
-    	System.out.println("ScriptReader: just changed");
-      }
-      */
-      if (buildNow || changed && autoBuild) {
-    	if (buildNow) {
-    	  System.out.println("ScriptReader: building now");
-    	} else {
-    	  System.out.println("ScriptReader: auto-building due to a change");
-    	}
-        changed  = false;
-        buildNow = false;
-        build();
-      }
+      if (line.startsWith(EXPECT_BUILD)) {
+    	  // Handle expectBuild first, since it's out of order in the script
+    	  executeLine(line);
+    	  continue;    	  
+      } 
+      if (lastLine != null) {
+    	  executeLine(lastLine);
+      }      
+      lastLine = line;
+    }
+    if (lastLine != null) {
+  	  executeLine(lastLine);
     }
   }
 
+  private void executeLine(String line) throws Exception {
+	  System.out.println("ScriptReader: "+line);
+	  final String[] tokens = Util.collectTokens(line, " ,\n");
+	  if (tokens.length == 0) {
+		  return;
+	  }	  
+	  final boolean justChanged = commands.get(tokens[0]).execute(this, tokens);
+	  changed = changed || justChanged;
+	  /*
+      if (justChanged) {
+    	System.out.println("ScriptReader: just changed");
+      }
+	   */
+	  if (buildNow || changed && autoBuild) {
+		  if (buildNow) {
+			  System.out.println("ScriptReader: building now");
+		  } else {
+			  System.out.println("ScriptReader: auto-building due to a change");
+		  }
+		  changed  = false;
+		  buildNow = false;
+		  build();
+	  }
+  }
+  
   private void init() throws CoreException {
 	  final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 	  final IWorkspaceDescription description = workspace.getDescription();
