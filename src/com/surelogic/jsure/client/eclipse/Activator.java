@@ -107,7 +107,7 @@ public class Activator extends AbstractUIPlugin implements
 	public void stop(final BundleContext context) throws Exception {
 		plugin = null;
 		try {
-			// TODO save persistent data
+			JavacDriver.getInstance().stopScripting();
 		} finally {
 			super.stop(context);
 		}

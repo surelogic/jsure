@@ -62,6 +62,7 @@ public class JavacDriver implements IResourceChangeListener {
 	private final File tempDir;
 	private final File scriptResourcesDir;
 	private final PrintStream script;
+	private final ZipInfo info;
 	
 	/**
 	 * State that needs to be atomically modified
@@ -124,10 +125,18 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 			tempDir = tmp;
 			script = (tmp == null) ? null : out;
+			ZipInfo zipInfo = null;
+			try {
+				zipInfo = FileUtility.zipDirAndMore(new File(workspace, proj), new File(workspace, proj+".zip"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			info = zipInfo;
 		} else {			
 			script = null;
 			scriptResourcesDir = null;
 			tempDir = null;
+			info = null;
 		}
 	}
 	
@@ -311,9 +320,24 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 	
-	@Override
-	public void finalize() {
-		script.close();
+	public void stopScripting() {
+		if (script != null) {
+			script.close();
+			try {
+				final File baseDir = scriptResourcesDir.getParentFile().getParentFile();
+				info.zipDir(baseDir, scriptResourcesDir);
+				info.zipFile(baseDir, new File(baseDir, ScriptCommands.NAME));
+				
+				final File settings = new File(baseDir, ScriptCommands.ANALYSIS_SETTINGS);
+				if (!settings.exists()) {
+					
+				}
+				info.zipFile(baseDir, settings);
+				info.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private static final TempFileFilter filter = new TempFileFilter("scriptTemp", ".dir");
