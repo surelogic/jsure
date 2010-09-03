@@ -26,6 +26,7 @@ import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import difflib.*;
 
 import edu.cmu.cs.fluid.dc.*;
+import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.*;
@@ -113,9 +114,21 @@ public class JavacDriver implements IResourceChangeListener {
 				FileUtility.recursiveDelete(f);
 			}
 			PrintStream out = null;
+			ZipInfo zipInfo = null;
 			File tmp = null;
+			final File scriptF = new File(workspace, proj+File.separatorChar+ScriptCommands.NAME);
 			try {
-				out = new PrintStream(new File(workspace, proj+File.separatorChar+ScriptCommands.NAME));
+				if (scriptF.exists()) {
+					System.out.println("Deleting old script "+scriptF);
+					scriptF.delete();
+				}
+				final File zip =  new File(workspace, proj+".zip");
+				if (zip.exists()) {
+					System.out.println("Deleting existing "+zip);
+					zip.delete();
+				}
+				zipInfo = FileUtility.zipDirAndMore(new File(workspace, proj), zip);
+				out = new PrintStream(scriptF);
 				FileUtility.deleteTempFiles(filter);
 				tmp = filter.createTempFile(); 
 				tmp.delete();
@@ -124,14 +137,8 @@ public class JavacDriver implements IResourceChangeListener {
 				e.printStackTrace();
 			}
 			tempDir = tmp;
-			script = (tmp == null) ? null : out;
-			ZipInfo zipInfo = null;
-			try {
-				zipInfo = FileUtility.zipDirAndMore(new File(workspace, proj), new File(workspace, proj+".zip"));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			info = zipInfo;
+			script  = (tmp == null) ? null : out;
+			info    = zipInfo;
 		} else {			
 			script = null;
 			scriptResourcesDir = null;
@@ -324,13 +331,13 @@ public class JavacDriver implements IResourceChangeListener {
 		if (script != null) {
 			script.close();
 			try {
-				final File baseDir = scriptResourcesDir.getParentFile().getParentFile();
-				info.zipDir(baseDir, scriptResourcesDir);
+				final File baseDir = scriptResourcesDir.getParentFile();
+				info.zipDir(baseDir, scriptResourcesDir);				
 				info.zipFile(baseDir, new File(baseDir, ScriptCommands.NAME));
-				
+
 				final File settings = new File(baseDir, ScriptCommands.ANALYSIS_SETTINGS);
 				if (!settings.exists()) {
-					
+					Plugin.getDefault().writePrefsToXML(settings);
 				}
 				info.zipFile(baseDir, settings);
 				info.close();
