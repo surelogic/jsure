@@ -27,7 +27,9 @@ import difflib.*;
 
 import edu.cmu.cs.fluid.dc.*;
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.sea.xml.*;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver implements IResourceChangeListener {
@@ -254,6 +256,18 @@ public class JavacDriver implements IResourceChangeListener {
 		return lines;
 	}
 
+	private String computePrefix() {
+		final String temp = XUtil.recordScript();
+		final int slash   = temp.indexOf('/');
+		final String prefix;
+		if (slash < 0) {
+			prefix = '/'+temp+'/'+"script";
+		} else {
+			prefix = '/'+temp;
+		}
+		return prefix;
+	}
+	
 	private void scriptChanges(List<Pair<IResource, Integer>> resources) {
 		for(Pair<IResource, Integer> p : resources) {
 			final IResource r = p.first();
@@ -265,15 +279,8 @@ public class JavacDriver implements IResourceChangeListener {
 				System.out.println("Ignoring non-Java file: "+rName);
 				continue;
 			}
-			final String temp = XUtil.recordScript();
-			final int slash   = temp.indexOf('/');
-			final String prefix;
-			if (slash < 0) {
-				prefix = '/'+temp+'/'+"script";
-			} else {
-				prefix = '/'+temp;
-			}
-			final String path = r.getFullPath().toString();
+			final String prefix = computePrefix();
+			final String path   = r.getFullPath().toString();
 			switch (p.second()) {
 			case IResourceDelta.ADDED:
 				String name = copyAsResource(scriptResourcesDir, r);
@@ -296,7 +303,6 @@ public class JavacDriver implements IResourceChangeListener {
 				System.out.println("Couldn't handle flag: "+p.second());
 			}
 		}
-		printToScript("#build");
 	}
 
 	public void recordProjectAction(String action, IProject p) {
@@ -1231,6 +1237,17 @@ public class JavacDriver implements IResourceChangeListener {
             	endAnalysis();      	
             }
             NotificationHub.notifyAnalysisCompleted();
+            if (script != null) {
+            	// Export results
+        		final String name   = "expectedResults"+getId()+SeaSnapshot.SUFFIX;
+        		final File location = new File(scriptResourcesDir, name);        		
+    			try {
+					SeaSummary.summarize("workspace", Sea.getDefault(), location);
+	            	printToScript(ScriptCommands.COMPARE_RESULTS+" "+computePrefix()+'/'+name);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}                
+            }
             if (lastMonitor == monitor) {
             	lastMonitor = null;
             }
@@ -1266,10 +1283,15 @@ public class JavacDriver implements IResourceChangeListener {
 	
 	int id = 0;
 	
-	private void recordFilesToAnalyze(Projects p) throws FileNotFoundException {
-		final String name = "expectedBuild"+id+".txt";
-		final File file   = new File(scriptResourcesDir, name);
+	int getId() {
+		int rv = id;
 		id++;
+		return rv;
+	}
+	
+	private void recordFilesToAnalyze(Projects p) throws FileNotFoundException {
+		final String name = "expectedBuild"+getId()+".txt";
+		final File file   = new File(scriptResourcesDir, name);
 		
 		final PrintWriter pw = new PrintWriter(file);
 		for(Config c : p.getConfigs()) {
@@ -1278,7 +1300,7 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 		}
 		pw.close();
-		printToScript(ScriptCommands.EXPECT_BUILD+' '+name);
+		printToScript(ScriptCommands.EXPECT_BUILD+' '+computePrefix()+'/'+name);
 	}
 	
 	private void checkForExpectedSourceFiles(Projects p, File expected) throws IOException {
