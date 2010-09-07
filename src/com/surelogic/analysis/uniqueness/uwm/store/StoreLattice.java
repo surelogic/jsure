@@ -57,6 +57,10 @@ extends TripleLattice<Element<Integer>,
     this.locals = locals;
   }
   
+  public int getNumLocals() {
+    return locals.length;
+  }
+  
   
   
   // ==================================================================

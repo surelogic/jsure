@@ -50,9 +50,9 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 				final long start = System.currentTimeMillis();
 				String msg;
 				try {
-					getAnalysis().getAnalysis(node);
+					final int numLocals =  getAnalysis().getAnalysis(node).getLattice().getNumLocals();
 					final long end = System.currentTimeMillis();
-					msg = methodName + ", " + length + ", " + (end-start);
+					msg = methodName + ", " + length + ", " + numLocals + ", " + (end-start);
 				} catch(final AnalysisGaveUp e) {
 					msg = methodName + ", " + length + ", GAVE UP AFTER ~2 MINUTES: " + e.count + " STEPS";
 				}
