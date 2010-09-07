@@ -17,6 +17,7 @@ import com.surelogic.common.FileUtility.*;
 import com.surelogic.common.eclipse.*;
 import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
 import com.surelogic.jsure.client.eclipse.Activator;
@@ -880,7 +881,9 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 		    if (XUtil.testing) {
 		    	final File expected = (File) args.get(ScriptCommands.EXPECT_BUILD);
-		    	checkForExpectedSourceFiles(newProjects, expected);
+		    	if (expected != null && expected.exists()) {
+		    		checkForExpectedSourceFiles(newProjects, expected);
+		    	}
 		    	copy.run(new NullSLProgressMonitor());
 		    } else {
 		    	EclipseJob.getInstance().scheduleWorkspace(copy);
@@ -1280,11 +1283,15 @@ public class JavacDriver implements IResourceChangeListener {
             NotificationHub.notifyAnalysisCompleted();
             if (script != null) {
             	// Export results
-        		final String name   = "expectedResults"+getId()+SeaSnapshot.SUFFIX;
+            	final String prefix = "expectedResults"+getId();
+        		final String name   = prefix+SeaSnapshot.SUFFIX;
         		final File location = new File(scriptResourcesDir, name);        		
     			try {
-					SeaSummary.summarize("workspace", Sea.getDefault(), location);
-	            	printToScript(ScriptCommands.COMPARE_RESULTS+" "+computePrefix()+'/'+name);
+    				final String path = computePrefix();
+    				Sea.getDefault().updateConsistencyProof();
+					SeaSummary.summarize("workspace", Sea.getDefault(), location);					
+	            	printToScript(ScriptCommands.COMPARE_RESULTS+" workspace "+path+'/'+name+
+	            			      " "+path+"/../"+prefix+RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}                
