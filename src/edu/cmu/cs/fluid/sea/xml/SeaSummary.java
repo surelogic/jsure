@@ -8,7 +8,6 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 
-import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entities;
@@ -545,6 +544,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			return e.getAttribute(OFFSET_ATTR)+" - "+
 			       e.getAttribute(HASH_ATTR)+" - "+
 			       e.getAttribute(CONTEXT_ATTR)+" - "+
+			       e.getAttribute(PROVED_ATTR)+" - "+
 			       e.getAttribute(MESSAGE_ID_ATTR)+" - "+
 			       e.getAttribute(MESSAGE_ATTR);
 		}
@@ -611,9 +611,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				a_n = a_n.replaceAll("  on  ", " on ");
 				a_o = a_o.replaceAll("  on  ", " on ");
                 */
+			    /*
 				if (PROVED_ATTR.equals(attr)) {
 					System.out.println("Comparing "+a_n+" to "+a_o+" for "+attr);
 				}
+				*/
 				return a_n.equals(a_o);
 			}
 			return defaultValue;
