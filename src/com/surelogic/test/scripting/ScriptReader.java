@@ -31,7 +31,7 @@ public class ScriptReader implements ICommandContext {
 	project = p;
 	  
 	// Setup commands to change the state of autoBuild
-    commands.put("set", new ICommand() {
+    commands.put("set", new AbstractCommand() {
       public boolean execute(ICommandContext context, String... contents) throws Exception {
         if ("autobuild".equals(contents[1])) {
           autoBuild = true;
@@ -39,7 +39,7 @@ public class ScriptReader implements ICommandContext {
         return false;
       }  
     });
-    commands.put("unset", new ICommand() {
+    commands.put("unset", new AbstractCommand() {
       public boolean execute(ICommandContext context, String... contents) throws Exception {
         if ("autobuild".equals(contents[1])) {
           autoBuild = false;
@@ -71,27 +71,28 @@ public class ScriptReader implements ICommandContext {
     }
   }
   
-  public void executeScript(String script) throws Exception {
-    execute(new StringReader(script));
+  public boolean executeScript(String script) throws Exception {
+    return execute(new StringReader(script));
   }
   
-  public void execute(String name) throws Exception {
-    execute(new File(name));
+  public boolean execute(String name) throws Exception {
+    return execute(new File(name));
   }
   
-  public void execute(File f) throws Exception {
+  public boolean execute(File f) throws Exception {
     final Reader r = new InputStreamReader(new FileInputStream(f));  
-    execute(r);
+    return execute(r);
   }
   
   private static final String EXPECT_BUILD = ScriptCommands.EXPECT_BUILD+' ';
   
-  public void execute(Reader r) throws Exception {
+  public boolean execute(Reader r) throws Exception {
 	init();
 	  
     final BufferedReader br = new BufferedReader(r);  
     String lastLine = null;
     String line;
+    boolean resultsOk = true;
     while ((line = br.readLine()) != null) {
       if (line.length() == 0) {
         continue;
@@ -103,27 +104,29 @@ public class ScriptReader implements ICommandContext {
       }
       if (line.startsWith(EXPECT_BUILD)) {
     	  // Handle expectBuild first, since it's out of order in the script
-    	  executeLine(line);
+    	  resultsOk = executeLine(line) && resultsOk;
     	  continue;    	  
       } 
       if (lastLine != null) {
-    	  executeLine(lastLine);
+    	  resultsOk = executeLine(lastLine) && resultsOk;
       }      
       lastLine = line;
     }
     if (lastLine != null) {
-  	  executeLine(lastLine);
+    	resultsOk =  executeLine(lastLine) && resultsOk;
     }
+    return resultsOk;
   }
 
-  private void executeLine(String line) throws Exception {
+  private boolean executeLine(String line) throws Exception {
 	  System.out.println("ScriptReader: "+line);
 	  final String[] tokens = Util.collectTokens(line, " ,\n");
 	  if (tokens.length == 0) {
-		  return;
+		  return true; // Nothing to do
 	  }	  
+	  final ICommand command = commands.get(tokens[0]);
 	  try {
-		  final boolean justChanged = commands.get(tokens[0]).execute(this, tokens);
+		  final boolean justChanged = command.execute(this, tokens);
 		  changed = changed || justChanged;
 		  /*
       if (justChanged) {
@@ -140,8 +143,10 @@ public class ScriptReader implements ICommandContext {
 			  buildNow = false;
 			  build();
 		  }
+		  return command.succeeded();
 	  } catch (Exception e) {
 		  System.out.println("Got exception on line: "+line);
+		  command.succeeded();
 		  throw e;
 	  }
   }

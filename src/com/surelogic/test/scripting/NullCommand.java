@@ -5,7 +5,7 @@ package com.surelogic.test.scripting;
  * 
  * @author Edwin
  */
-public class NullCommand implements ICommand {
+public class NullCommand extends AbstractCommand {
   public static final ICommand prototype = new NullCommand();
 
   public boolean execute(ICommandContext context, String... contents) {

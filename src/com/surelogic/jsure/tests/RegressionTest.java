@@ -388,13 +388,14 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     end("Done analyzing");
      
     final String projectName = project.getName();
-
+    boolean resultsOk = true;
+    
     // Check for script in the project to execute      
     File script = findScript(project);
     if (script != null) {
       currentTest = start("Run scripting");
       ScriptReader r = new ScriptReader(project);
-      r.execute(script);
+      resultsOk = r.execute(script);
       end("Done scripting");
     }
       
@@ -409,7 +410,6 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     AnnotationRules.XML_LOG.close();
 
     //String resultsName = null;
-    boolean resultsOk = true;
     
     // Export the results from this run
     currentTest = start("Exporting results");

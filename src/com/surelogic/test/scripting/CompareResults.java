@@ -13,6 +13,16 @@ import edu.cmu.cs.fluid.sea.xml.SeaSummary;
  */
 public class CompareResults extends AbstractCommand {
 	public boolean resultsOk = true;
+	
+	@Override
+	public boolean succeeded() {
+		try {
+			return resultsOk;
+		} finally {
+			resultsOk = true;
+		}
+	}
+ 	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -30,6 +40,8 @@ public class CompareResults extends AbstractCommand {
 		if (oracle == null) {
 			return false;
 		}
+		Sea.getDefault().updateConsistencyProof();
+		
 		System.out.println("Using oracle: "+oracle);
 		final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), oracle);
 		final File diffs	       = resolveFile(contents[3], true);
@@ -42,7 +54,7 @@ public class CompareResults extends AbstractCommand {
 			resultsOk = false;
 		} else {
 			System.out.println("No diffs to write");
-			diffs.createNewFile();
+			//diffs.createNewFile();
 		}
 		/*
     final ITestOutput XML_LOG = IDE.getInstance().makeLog("EclipseLogHandler");

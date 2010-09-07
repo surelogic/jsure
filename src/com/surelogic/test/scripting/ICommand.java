@@ -1,6 +1,6 @@
 package com.surelogic.test.scripting;
 
-public interface ICommand {
+public interface ICommand {	
   /**
    * @param contents The command line, including the name given to 
    *                 find this command
@@ -8,4 +8,6 @@ public interface ICommand {
    * @return true if a resource changed
    */
   boolean execute(ICommandContext context, String... contents) throws Exception;
+  
+  boolean succeeded();
 }

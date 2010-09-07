@@ -14,6 +14,10 @@ import org.eclipse.core.runtime.*;
 public abstract class AbstractCommand implements ICommand {
   protected static final byte[] noBytes = new byte[0];
   
+  public boolean succeeded() {
+	  return true;
+  }
+  
   protected IProject resolveProject(String name) {
     return resolveProject(name, false);
   }
