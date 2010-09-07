@@ -338,8 +338,18 @@ public class JavacDriver implements IResourceChangeListener {
 				final File settings = new File(baseDir, ScriptCommands.ANALYSIS_SETTINGS);
 				if (!settings.exists()) {
 					Plugin.getDefault().writePrefsToXML(settings);
+					info.zipFile(baseDir, settings);
 				}
-				info.zipFile(baseDir, settings);
+				final File props = new File(baseDir, ScriptCommands.TEST_PROPERTIES);
+				if (!props.exists()) {
+					PrintWriter pw = new PrintWriter(props);
+					pw.print("moreVMargs=-Dfluid.ir.versioning=Versioning.Off ");
+					pw.print("-Ddoublechecker.useSuperRoots=SuperRoots.Off -Ddc.show.private=true ");
+					pw.print("-Dsurelogic.useNewParser=Parser.On -Dxml.useNewParser=Parser.On ");
+					pw.println("-Drules.useNewScopedPromises=Promise.On");
+					pw.close();
+					info.zipFile(baseDir, props);
+				}
 				info.close();
 			} catch (IOException e) {
 				e.printStackTrace();
