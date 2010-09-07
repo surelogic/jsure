@@ -3,6 +3,7 @@ package com.surelogic.jsure.client.eclipse.analysis;
 public interface ScriptCommands {
 	String NAME = "test.script.txt";
 	String ANALYSIS_SETTINGS = "jsure.analysis.settings";
+	String TEST_PROPERTIES = "test.properties";
 	
 	String EXPECT_BUILD = "expectBuild";
 	String IMPORT = "import";
