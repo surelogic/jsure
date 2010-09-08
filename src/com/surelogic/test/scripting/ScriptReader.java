@@ -93,7 +93,7 @@ public class ScriptReader implements ICommandContext {
     String lastLine = null;
     String line;
     boolean resultsOk = true;
-    while ((line = br.readLine()) != null) {
+    while (resultsOk && (line = br.readLine()) != null) {
       if (line.length() == 0) {
         continue;
       }
@@ -112,7 +112,7 @@ public class ScriptReader implements ICommandContext {
       }      
       lastLine = line;
     }
-    if (lastLine != null) {
+    if (resultsOk && lastLine != null) {
     	resultsOk =  executeLine(lastLine) && resultsOk;
     }
     return resultsOk;
