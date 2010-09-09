@@ -69,6 +69,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // === Fields
   // ==================================================================
 
+  private final boolean timeOut;
+  
   private final Effects effects;
 
   
@@ -77,9 +79,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // === Constructor 
   // ==================================================================
   
-  public UniquenessAnalysis(final IBinder binder, final Effects e) {
+  public UniquenessAnalysis(final IBinder binder, final Effects e, final boolean to) {
     super(new FixBinder(binder)); // avoid crashes.
     effects = e;
+    timeOut = to;
   }
   
   
@@ -119,8 +122,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     final StoreLattice lattice = new StoreLattice(locals);
     return new JavaForwardAnalysis<Store, StoreLattice>(
         "Uniqueness Analsys (UWM)", lattice,
-        new UniquenessTransfer(binder, lattice, 0, flowUnit, effects),
-        DebugUnparser.viewer);
+        new UniquenessTransfer(binder, lattice, 0, flowUnit, effects, timeOut),
+        DebugUnparser.viewer, timeOut);
   }
 
   
@@ -234,8 +237,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // ==================================================================
 
     public UniquenessTransfer(final IBinder binder, final StoreLattice lattice,
-        final int floor, final IRNode fu, final Effects e) {
-      super(binder, lattice, new SubAnalysisFactory(fu, e), floor);
+        final int floor, final IRNode fu, final Effects e, final boolean timeOut) {
+      super(binder, lattice, new SubAnalysisFactory(fu, e, timeOut), floor);
       flowUnit = fu;
       effects = e;
     }
@@ -840,10 +843,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<StoreLattice, Store> {
     private final IRNode flowUnit;
     private final Effects effects;
+    private final boolean timeOut;
     
-    public SubAnalysisFactory(final IRNode fu, final Effects e) {
+    public SubAnalysisFactory(final IRNode fu, final Effects e, final boolean to) {
       flowUnit = fu;
       effects = e;
+      timeOut = to;
     }
     
     @Override
@@ -851,8 +856,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode caller, final IBinder binder, final StoreLattice lattice,
         final Store initialValue, final boolean terminationNormal) {
       final int floor = initialValue.isValid() ? initialValue.getStackSize().intValue() : 0;
-      final UniquenessTransfer transfer = new UniquenessTransfer(binder, lattice, floor, flowUnit, effects);
-      return new JavaForwardAnalysis<Store, StoreLattice>("Sub Analysis", lattice, transfer, DebugUnparser.viewer);
+      final UniquenessTransfer transfer = new UniquenessTransfer(binder, lattice, floor, flowUnit, effects, timeOut);
+      return new JavaForwardAnalysis<Store, StoreLattice>("Sub Analysis", lattice, transfer, DebugUnparser.viewer, timeOut);
     }
   }
   

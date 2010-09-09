@@ -206,7 +206,13 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
    * @see FlowAnalysis
    */
   public ForwardAnalysis(String name, L l, XFER t, IRNodeViewer nv) {
-    super(name, l, nv);
+    this(name, l, t, nv, false);
+  }
+
+  public ForwardAnalysis(
+      final String name, final L l, final XFER t, final IRNodeViewer nv,
+      boolean timeOut) {
+    super(name, l, nv, timeOut);
     trans = t;
   }
 

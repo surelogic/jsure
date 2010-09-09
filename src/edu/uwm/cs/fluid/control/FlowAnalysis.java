@@ -70,6 +70,9 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   private static final boolean CHECK_MONOTONICITY = false;
   private static final boolean DEBUG = false;
   
+  private static final long TIMEOUT_DURATION = 1000000000L * 60L * 2; // 2 minutes in nanoseconds
+  private static final int COUNT_BEFORE_CHECK = 1000;
+
   
   
   public final String name;
@@ -82,7 +85,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
 
   private final IRNodeViewer nodeViewer;
   
-  private final boolean shouldTimeOut = false;
+  private final boolean shouldTimeOut;
   
   
   
@@ -90,12 +93,17 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
    * @param l the lattice of values for the analysis.
    * @see #getInfo
    */
-  protected FlowAnalysis(String n, L l, IRNodeViewer nv) {
+  protected FlowAnalysis(final String n, final L l, final IRNodeViewer nv) {
+    this(n,l, nv, false);
+  }
+  
+  protected FlowAnalysis(final String n, final L l, final IRNodeViewer nv, final boolean timeOut) {
     name = n;
     lattice = l;
     infoLattice = new LabeledLattice<T>(l);
     worklist = createWorklist();
     nodeViewer = (nv == null) ? IRNodeViewer.defaultViewer : nv;
+    shouldTimeOut = timeOut;
   }
   
   /**
@@ -218,6 +226,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   public T getInfo(ControlEdge edge, LabelList ll) {
     return infoLattice.getValue(getRawInfo(edge),ll,lattice.bottom());
   }
+  @SuppressWarnings("unused")
   protected void setInfo(ControlEdge edge, LabeledLattice.LabeledValue<T> lv) {
     if (lv == null) return; // assume transfers are strict
     LabeledLattice.LabeledValue<T> old = infoMap.get(edge);
@@ -255,6 +264,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
 
   protected abstract ControlNode getNodeFromEdgeForWorklist(ControlEdge edge);
   
+  @SuppressWarnings("unused")
   protected void setInfo(ControlEdge edge, LabelList ll, T value) {
     if (edge == null) {
       throw new FluidError("setInfo got null edge");
@@ -270,19 +280,16 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     setInfo(edge,old);
   }
 
-  private static final int COUNT_BEFORE_CHECK = 1000;
-
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#performAnalysis()
    */
   public void performAnalysis() {
-    final IDE ide = IDE.getInstance();
-    
-    final long deadline = System.nanoTime() + 1000000000L * 60L *2;
-        
-    worklist.start();
-    int count = COUNT_BEFORE_CHECK;
+    final IDE ide = IDE.getInstance();    
+    final long deadline = System.nanoTime() + TIMEOUT_DURATION;
     int globalCount = 0;
+
+    int count = COUNT_BEFORE_CHECK;
+    worklist.start();
     while (worklist.hasNext()) {
       if (count == 0) {
         count = COUNT_BEFORE_CHECK;
@@ -290,7 +297,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
           throw new FluidInterruptedException();
         }
         
-        if (System.nanoTime() > deadline) {
+        if (shouldTimeOut && System.nanoTime() > deadline) {
           throw new AnalysisGaveUp(globalCount);
         }
       }
@@ -363,6 +370,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   protected void doNOPtransfer(ControlEdge e1, ControlEdge e2) {
     setInfo(e2,infoMap.get(e1));
   }
+  @SuppressWarnings("unused")
   protected <U> void doTransfer(ControlEdge e1, ControlEdge e2,
                                   UnaryOp<T,U> op, U arg) {
     LabeledValue<T> lv1 = infoMap.get(e1);
@@ -389,6 +397,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     }
     setInfo(e2,result);
   }
+  @SuppressWarnings("unused")
   protected <U> void doTransfer(ControlEdge e1, ControlEdge e2, ControlEdge e3,
                                  Combiner<T,U> combiner, U arg) {
     LabeledValue<T> lv1 = infoMap.get(e1);
@@ -421,6 +430,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     }
     setInfo(e3,result);
   }
+  @SuppressWarnings("unused")
   protected <U> void doTransfer(ControlEdge e1, ControlEdge e2,
                                  LabelOp<U> op, U arg) {
     LabeledValue<T> lv1 = infoMap.get(e1);
@@ -449,6 +459,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     }
     setInfo(e2,result);
   }
+  @SuppressWarnings("unused")
   protected <U> void doTransfer(ControlEdge e1, ControlEdge e2, ControlEdge e3,
                                   LabelOp<U> op1,  U arg1, LabelOp<U> op2, U arg2) {
     LabeledValue<T> lv1 = infoMap.get(e1);

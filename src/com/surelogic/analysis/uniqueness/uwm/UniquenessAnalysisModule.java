@@ -70,7 +70,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 
 	@Override
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
-		return new UniquenessAnalysis(binder,	new Effects(binder));
+		return new UniquenessAnalysis(binder,	new Effects(binder), false);
 	}
 	
 	@Override

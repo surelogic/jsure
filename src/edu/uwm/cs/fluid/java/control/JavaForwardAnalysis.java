@@ -4,12 +4,15 @@ import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.uwm.cs.fluid.control.ForwardAnalysis;
 import edu.uwm.cs.fluid.util.Lattice;
 
-public class JavaForwardAnalysis<T, L extends Lattice<T>> //, XFER extends JavaForwardTransfer<L, T>>
+public class JavaForwardAnalysis<T, L extends Lattice<T>>
     extends ForwardAnalysis<T, L, JavaForwardTransfer<L, T>> implements IJavaFlowAnalysis<T, L> {
   public JavaForwardAnalysis(final String name, final L l, final JavaForwardTransfer<L, T> t, final IRNodeViewer nv) {
     super(name, l, t, nv);
   }
   
+  public JavaForwardAnalysis(final String name, final L l, final JavaForwardTransfer<L, T> t, final IRNodeViewer nv, final boolean timeOut) {
+    super(name, l, t, nv, timeOut);
+  }
   
   
   /**
@@ -21,7 +24,6 @@ public class JavaForwardAnalysis<T, L extends Lattice<T>> //, XFER extends JavaF
    * {@code SAF} needs to the actual type of the flow analysis implementation.
    * 
    */
-//  public SAF getSubAnalysisFactory() {
   public SubAnalysisFactory<L, T> getSubAnalysisFactory() {
     return trans.getSubAnalysisFactory();
   }

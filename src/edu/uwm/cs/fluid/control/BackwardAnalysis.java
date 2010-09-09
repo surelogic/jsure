@@ -67,10 +67,18 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
    * @param t the transfer function for semantics-specific nodes.
    * @see FlowAnalysis
    */
-  public BackwardAnalysis(String name, L l, XFER t, IRNodeViewer nv) {
-    super(name,l,nv);
+  public BackwardAnalysis(
+      final String name, final L l, final XFER t, final IRNodeViewer nv) {
+    this(name, l, t, nv, false);
+  }
+  
+  public BackwardAnalysis(
+      final String name, final L l, final XFER t, final IRNodeViewer nv,
+      final boolean timeOut) {
+    super(name, l, nv, timeOut);
     trans = t;
   }
+  
 
   @Override
   protected final Worklist createWorklist() {

@@ -25,7 +25,7 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 
 	@Override
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
-	  return new UniquenessAnalysis(binder, new Effects(binder));
+	  return new UniquenessAnalysis(binder, new Effects(binder), true);
 	}
 	
 	@Override

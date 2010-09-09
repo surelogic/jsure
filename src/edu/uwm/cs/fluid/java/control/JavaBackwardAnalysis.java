@@ -4,12 +4,16 @@ import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.uwm.cs.fluid.control.BackwardAnalysis;
 import edu.uwm.cs.fluid.util.Lattice;
 
-public class JavaBackwardAnalysis<T, L extends Lattice<T>> //, XFER extends JavaBackwardTransfer<L, T>>
+public class JavaBackwardAnalysis<T, L extends Lattice<T>>
     extends BackwardAnalysis<T, L, JavaBackwardTransfer<L, T>> implements IJavaFlowAnalysis<T, L> {
   public JavaBackwardAnalysis(final String name, final L l, final JavaBackwardTransfer<L, T> t, final IRNodeViewer nv) {
     super(name, l, t, nv);
   }
   
+  public JavaBackwardAnalysis(final String name, final L l, final JavaBackwardTransfer<L, T> t, final IRNodeViewer nv, final boolean timeOut) {
+    super(name, l, t, nv, timeOut);
+  }
+
   
   
   /**
