@@ -62,6 +62,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 		f_contents = contents;
 		setNode(at);
 		dependUponCompilationUnitOf(from);
+		//setMessage("Proposal: @"+annotation+'('+contents+')');
 	}
 
 	/**
