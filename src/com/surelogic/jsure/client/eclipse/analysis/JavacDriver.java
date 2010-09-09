@@ -229,12 +229,10 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 	
 	/**
-	 * TODO will this cause too many file ops?
-	 * 
 	 * @return A filename relative to the workspace
 	 */
 	private String computePatchName(IResource r) {
-		final String base = r.getFullPath()+".patch";
+		final String base = r.getFullPath()+"."+getId()+".patch";
 		File f            = new File(scriptResourcesDir, base);
 		String name       = base;
 		int i = 0;
@@ -1352,6 +1350,7 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 	
 	private void checkForExpectedSourceFiles(Projects p, File expected) throws IOException {
+		System.out.println("Checking expected source files");
 		final Set<String> cus = readExpected(expected);
 		for(Config c : p.getConfigs()) {
 			for(JavaSourceFile f : c.getFiles()) {
