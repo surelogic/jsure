@@ -326,6 +326,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 
 	@Override
 	protected void invalidate_internal() {
+		/*
+        if (isFromSrc()) {
+			System.out.println("Invalidating "+getMessage());
+		}
+		*/
 		super.invalidate_internal();
 		if (getAST() != null) {
 			getAST().clearPromisedFor();
@@ -511,12 +516,12 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 		s.addAttribute("virtual", isVirtual());
 	}
 	
-	  @Override
-	  protected JavaSourceReference createSourceRef() {	  
-		  IRNode n = getNode();
-		  if (n == null) {
-			  n = getAST().getPromisedFor();
-		  }
-		  return createSourceRef(n, getSrcRef()); 
-	  }
+	@Override
+	protected JavaSourceReference createSourceRef() {	  
+		IRNode n = getNode();
+		if (n == null) {
+			n = getAST().getPromisedFor();
+		}
+		return createSourceRef(n, getSrcRef()); 
+	}
 }

@@ -371,6 +371,11 @@ public class AnnotationVisitor extends Visitor<Void> {
     if (c.startsWith("\"") && c.endsWith("\"")) {
     	c = c.substring(1, c.length()-1);
     }
+    /*
+    if (src != null) {
+    	System.out.println("Handling promise: "+promise+' '+c);
+    }
+    */
     return createPromise(here, promise, c, AnnotationSource.JAVA_5, offset);
   }
   

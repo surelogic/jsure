@@ -11,6 +11,11 @@ public final class PromisePromiseDrop extends ScopedPromiseDrop {
   public PromisePromiseDrop(ScopedPromiseNode a) {
     super(a);
     setCategory(JavaGlobals.PROMISE_CAT);
+    /*
+    if (a.getSrcType().isFromSource()) {
+    	System.out.println("Creating promise: "+a);
+    }
+    */
   }
   
   @Override

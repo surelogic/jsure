@@ -62,6 +62,7 @@ public final class ScopedPromises extends AbstractPromiseAnnotation {
     }
     
     if (currentDrop == null) {
+      //System.out.println("Ignoring call to init(): "+drop.getMessage());
       return; // nothing to do
     }
     if (LOG.isLoggable(Level.FINE)) {
@@ -73,6 +74,11 @@ public final class ScopedPromises extends AbstractPromiseAnnotation {
     }
     else if (currentDrop instanceof PromisePromiseDrop ||
              currentDrop instanceof MapFieldsPromiseDrop) {
+      /*
+      if (currentDrop.isFromSrc()) {
+    	  System.out.println("Processing "+drop.getMessage());
+      }
+      */
       drop.setVirtual(true);
     }
   }

@@ -146,6 +146,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		project = proj;
 		this.setMessage("region " + name);
 		this.setCategory(JavaGlobals.REGION_CAT);
+		//System.out.println("Creating RegionModel "+name+" for "+proj);
 	}
 
 	public String getProject() {
