@@ -179,6 +179,12 @@ public class ScriptReader implements ICommandContext {
   
   private void build(int kind) throws CoreException {
 	if (project != null) {
+		try {
+			System.out.println("Sleeping to let the file system sync ...");
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}	
 		System.out.println("build FTA");
 		new FirstTimeAnalysis(project).run(null);
 	} else {
