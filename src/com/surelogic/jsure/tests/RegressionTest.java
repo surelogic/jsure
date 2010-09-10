@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.jsure.client.eclipse.analysis.*;
 import com.surelogic.test.*;
@@ -65,13 +66,30 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     initializeWorkspace();
   }
 
-  private void initializeWorkspace() {   
+  private void initializeWorkspace() throws IOException {   
     final String testModule   = System.getProperty("test.module");
     final String extraModules = System.getProperty("extra.test.modules");
     System.out.println(testModule);
     System.out.println(extraModules);
     if (testModule != null) {      
-      importProject(testModule);
+      final String module;
+      if (testModule.endsWith(".zip")) {
+    	  // Clear out all old temp directories
+    	  final File tempDir  = File.createTempFile("testModule", ".dir");    	  
+    	  for(File f : tempDir.getParentFile().listFiles()) {
+    		  if (f.getName().startsWith("testModule") && f.getName().endsWith(".dir")) {
+    			  f.delete();
+    		  }    		  		
+    	  }    	  
+    	  final int lastSlash = testModule.lastIndexOf('/');
+    	  final File tempMod  = new File(tempDir, testModule.substring(lastSlash+1, testModule.length()-4));
+    	  tempMod.mkdirs();
+    	  FileUtility.unzipFile(new File(testModule), tempMod);
+    	  module = tempMod.getAbsolutePath();
+      } else {
+    	  module = testModule;
+      }
+      importProject(module);
       
       if (extraModules != null && !extraModules.startsWith("${")) {
     	final StringTokenizer st = new StringTokenizer(",");
