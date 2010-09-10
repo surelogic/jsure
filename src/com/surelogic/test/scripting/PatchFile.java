@@ -41,7 +41,8 @@ public class PatchFile extends AbstractCommand {
 
 		PatchConfiguration config = new PatchConfiguration();
 
-		for (IFilePatch filePatch : patches) {			
+		// This should only apply to this file, and not any others
+		for (IFilePatch filePatch : patches) {						
 			IFilePatchResult result = filePatch.apply(file, config, null);
 
 			if (result.hasRejects()) {
@@ -52,8 +53,10 @@ public class PatchFile extends AbstractCommand {
 			InputStream in = result.getPatchedContents();
 			file.setContents(in, IResource.FORCE, null);
 			//printStream(file.getName()+" AFTER", file.getContents());
-			// TODO sync the file
+			// TODO sync the file						
 		}
+		// Ensure the file is considered changed, even if the patch is otherwise empty
+		file.touch(null); 
 		return true;
 	}
 	
