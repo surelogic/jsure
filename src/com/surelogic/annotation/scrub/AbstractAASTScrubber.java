@@ -394,6 +394,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 				case OTHER:
 					throw new UnsupportedOperationException();
 				}
+				AASTStore.sync();
 			}
 		});
 	}

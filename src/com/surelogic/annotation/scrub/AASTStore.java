@@ -160,4 +160,8 @@ public final class AASTStore {
   public static synchronized TestResult getTestResult(IAASTRootNode root) {
     return results.get(root);
   }
+  
+  public static synchronized void sync() {
+	  System.out.println("Syncing w/ AAST store");
+  }
 }

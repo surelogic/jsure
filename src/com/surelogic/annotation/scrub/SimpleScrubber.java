@@ -65,6 +65,7 @@ public abstract class SimpleScrubber implements IAnnotationScrubber<IAASTRootNod
     IDE.runAtMarker(new AbstractRunner() {
       public void run() {
         scrub();
+        AASTStore.sync();
       }
     });
   }
