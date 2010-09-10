@@ -34,7 +34,9 @@ public class PatchFile extends AbstractCommand {
 			throw new FileNotFoundException("File, " + file + " is not a valid file.");
 		}
 
-		IFile diff = resolveIFile(contents[2]);
+		IFile diff = resolveIFile(contents[2]);		
+		//printStream(file.getName(), diff.getContents());
+		
 		IFilePatch[] patches = ApplyPatchOperation.parsePatch(diff);
 
 		PatchConfiguration config = new PatchConfiguration();
@@ -48,8 +50,19 @@ public class PatchFile extends AbstractCommand {
 			}
 
 			InputStream in = result.getPatchedContents();
-			file.setContents(in, IResource.NONE, null);
+			file.setContents(in, IResource.FORCE, null);
+			//printStream(file.getName()+" AFTER", file.getContents());
+			// TODO sync the file
 		}
 		return true;
+	}
+	
+	private void printStream(String name, InputStream is) throws IOException {
+		LineNumberReader r = new LineNumberReader(new InputStreamReader(is));
+		String line = null;
+		while ((line = r.readLine()) != null) {
+			System.out.println(name+": "+line);
+		}
+		r.close();
 	}
 }
