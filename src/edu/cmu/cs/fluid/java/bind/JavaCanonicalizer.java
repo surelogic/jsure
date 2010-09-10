@@ -778,14 +778,16 @@ public class JavaCanonicalizer {
     	// handle children    	
         doAcceptForChildren(stmt);
         
+        final String unparse = DebugUnparser.toString(stmt);
+        
         // Create decl for array
-        final String array = "array"+stmt.hashCode();
+        final String array = "array"+unparse.hashCode();
         IRNode collection  = ForEachStatement.getCollection(stmt);
     	tree.removeSubtree(collection);
         IRNode arrayDecl   = makeDecl(JavaNode.FINAL, array, collection, collT);
         
         // Create decl for counter
-        final String i   = "i"+stmt.hashCode();
+        final String i   = "i"+unparse.hashCode();
         IRNode iDecl     = makeDecl(JavaNode.ALL_FALSE, i, IntLiteral.createNode("0"), IntType.prototype.jjtCreate());
         
         // Create condition for while loop
@@ -889,7 +891,8 @@ public class JavaCanonicalizer {
 
       private IRNode createIterableLoopFromForEach(IRNode stmt, final IJavaDeclaredType collT) {
         //System.out.println("Translating iterable loop: "+stmt.toString());
-    	      	  
+    	final String unparse = DebugUnparser.toString(stmt);
+    	  
     	// Do any analysis before handling children
         IBinding mb         = findNoArgMethod(collT, "iterator");
         if (mb == null) {
@@ -905,14 +908,14 @@ public class JavaCanonicalizer {
     	doAcceptForChildren(stmt);
           
         // Create decl for Iterable
-        final String iterable  = "iterable"+stmt.hashCode();
+        final String iterable  = "iterable"+unparse.hashCode();
         IRNode collection      = ForEachStatement.getCollection(stmt);
      	tree.removeSubtree(collection);
         IRNode iterableDecl    = makeDecl(JavaNode.FINAL, iterable, collection, collT);
         copySrcRef(stmt, iterableDecl);
         
         // Create decl for iterator
-        final String it     = "it"+stmt.hashCode();
+        final String it     = "it"+unparse.hashCode();
         final IRNode itType = CogenUtil.createType(binder.getTypeEnvironment(), itTB);
         IRNode itCall       = makeSimpleCall(iterable, "iterator");
         copySrcRef(stmt, itCall);
