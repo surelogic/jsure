@@ -33,7 +33,11 @@ public class ScriptReader implements ICommandContext {
 	// Setup commands to change the state of autoBuild
     commands.put("set", new AbstractCommand() {
       public boolean execute(ICommandContext context, String... contents) throws Exception {
-        if ("autobuild".equals(contents[1])) {
+        if (ScriptCommands.AUTO_BUILD.equals(contents[1])) {
+          if (changed) {
+        	  changed = false;
+        	  build();
+          }
           autoBuild = true;
         }
         return false;
@@ -41,7 +45,7 @@ public class ScriptReader implements ICommandContext {
     });
     commands.put("unset", new AbstractCommand() {
       public boolean execute(ICommandContext context, String... contents) throws Exception {
-        if ("autobuild".equals(contents[1])) {
+        if (ScriptCommands.AUTO_BUILD.equals(contents[1])) {
           autoBuild = false;
         }
         return false;
