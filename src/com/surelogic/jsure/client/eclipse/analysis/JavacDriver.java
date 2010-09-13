@@ -284,6 +284,9 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 	
 	private void scriptChanges(List<Pair<IResource, Integer>> resources) {
+		if (resources.size() > 1) {
+			printToScript("unset "+ScriptCommands.AUTO_BUILD);
+		}
 		for(Pair<IResource, Integer> p : resources) {
 			final IResource r = p.first();
 			final String rName = r.getName();
@@ -317,6 +320,9 @@ public class JavacDriver implements IResourceChangeListener {
 			default:
 				System.out.println("Couldn't handle flag: "+p.second());
 			}
+		}
+		if (resources.size() > 1) {
+			printToScript("set "+ScriptCommands.AUTO_BUILD);
 		}
 	}
 
