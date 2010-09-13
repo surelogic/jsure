@@ -185,7 +185,7 @@ public class ScriptReader implements ICommandContext {
 	if (project != null) {
 		try {
 			System.out.println("Sleeping to let the file system sync ...");
-			Thread.sleep(500);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}	
