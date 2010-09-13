@@ -5,6 +5,8 @@ public interface ScriptCommands {
 	String ANALYSIS_SETTINGS = "jsure.analysis.settings";
 	String TEST_PROPERTIES = "test.properties";
 	
+	String AUTO_BUILD = "autobuild";
+	
 	String EXPECT_BUILD = "expectBuild";
 	String IMPORT = "import";
 	String TOUCH_FILE = "touchFile";
