@@ -1089,6 +1089,7 @@ public class TestTaskFramework extends TestCase {
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
+			    // Ignore
 			}
 			System.out.println(name);
 			output.append(name);

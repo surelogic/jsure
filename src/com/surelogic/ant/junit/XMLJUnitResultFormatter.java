@@ -49,7 +49,7 @@ import org.w3c.dom.Text;
  *
  * @see FormatterElement
  */
-
+@SuppressWarnings("unchecked")
 public class XMLJUnitResultFormatter implements JUnitResultFormatter, XMLConstants {
 
     /** constant for unnnamed testsuites/cases */
@@ -90,6 +90,7 @@ public class XMLJUnitResultFormatter implements JUnitResultFormatter, XMLConstan
 
     /** No arg constructor. */
     public XMLJUnitResultFormatter() {
+        // Empty
     }
 
     /** {@inheritDoc}. */

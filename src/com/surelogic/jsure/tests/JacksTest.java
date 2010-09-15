@@ -25,14 +25,16 @@ public class JacksTest extends TestCase {
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	@Override
-  protected void setUp() throws Exception {
+	protected void setUp() throws Exception {
+	    // Nothing to do
 	}
 
 	/**
 	 * @see junit.framework.TestCase#tearDown()
 	 */
 	@Override
-  protected void tearDown() throws Exception {
+	protected void tearDown() throws Exception {
+	    // Nothing to do
 	}
 
   public void testTcl() throws Throwable {

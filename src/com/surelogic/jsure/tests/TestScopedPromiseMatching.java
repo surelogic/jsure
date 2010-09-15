@@ -39,6 +39,7 @@ public class TestScopedPromiseMatching extends TestCase {
 	 * 
 	 * @see junit.framework.TestCase#setUp()
 	 */
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 	}
@@ -48,6 +49,7 @@ public class TestScopedPromiseMatching extends TestCase {
 	 * 
 	 * @see junit.framework.TestCase#tearDown()
 	 */
+	@Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
 	}
@@ -1493,9 +1495,11 @@ public class TestScopedPromiseMatching extends TestCase {
 						assertFalse(aNode.matches(method));
 					}
 				}
+				/*
 				for (IRNode field : VisitUtil.getClassFieldDecls(typeDecl)) {
-					// assertFalse(aNode.matches(field));
+					assertFalse(aNode.matches(field));
 				}
+				*/
 			}
 
 			testCode = "package com.surelogic.foo;\n" + "public class Foo{\n"

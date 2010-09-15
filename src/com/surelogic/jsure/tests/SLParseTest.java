@@ -25,8 +25,8 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * @author ethan
- * 
  */
+@SuppressWarnings("unused")
 public class SLParseTest extends TestCase {
 
 		/**
@@ -410,6 +410,7 @@ public class SLParseTest extends TestCase {
 						SLParse.prototype.initParser("").region().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+				    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -425,6 +426,7 @@ public class SLParseTest extends TestCase {
 										.getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -434,6 +436,7 @@ public class SLParseTest extends TestCase {
 										.getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -443,6 +446,7 @@ public class SLParseTest extends TestCase {
 										.getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -453,6 +457,7 @@ public class SLParseTest extends TestCase {
 										.region().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -462,6 +467,7 @@ public class SLParseTest extends TestCase {
 										.getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -470,6 +476,7 @@ public class SLParseTest extends TestCase {
 						SLParse.prototype.initParser("final region1").region().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -603,6 +610,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception.");
@@ -612,6 +620,7 @@ public class SLParseTest extends TestCase {
 						SLParse.prototype.initParser("lock1,").requiresLock().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -621,6 +630,7 @@ public class SLParseTest extends TestCase {
 						SLParse.prototype.initParser(":lock1").requiresLock().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -630,6 +640,7 @@ public class SLParseTest extends TestCase {
 						SLParse.prototype.initParser("Type:this.lock1").requiresLock().getTree();
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Should have thrown a recognition exception.");
@@ -681,6 +692,7 @@ public class SLParseTest extends TestCase {
 						SLParse.prototype.initParser("").returnsLock().getTree();
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -692,6 +704,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -709,6 +722,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown an exception.");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -796,6 +810,7 @@ public class SLParseTest extends TestCase {
 						SLParse.prototype.initParser("").inRegion().getTree();
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -804,6 +819,7 @@ public class SLParseTest extends TestCase {
 						SLParse.prototype.initParser(":region1").inRegion().getTree();
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -813,6 +829,7 @@ public class SLParseTest extends TestCase {
 						SLParse.prototype.initParser("region1, region2").inRegion().getTree();
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1247,6 +1264,7 @@ public class SLParseTest extends TestCase {
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1259,6 +1277,7 @@ public class SLParseTest extends TestCase {
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1270,6 +1289,7 @@ public class SLParseTest extends TestCase {
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1281,6 +1301,7 @@ public class SLParseTest extends TestCase {
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1293,6 +1314,7 @@ public class SLParseTest extends TestCase {
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1305,6 +1327,7 @@ public class SLParseTest extends TestCase {
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1317,6 +1340,7 @@ public class SLParseTest extends TestCase {
 						AggregateNode node = (AggregateNode) root
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1465,6 +1489,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1477,6 +1502,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1489,6 +1515,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1501,6 +1528,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -1526,6 +1554,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2009,6 +2038,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2020,6 +2050,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2044,6 +2075,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2058,6 +2090,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2069,6 +2102,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2080,6 +2114,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2091,6 +2126,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2159,6 +2195,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2170,6 +2207,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2181,6 +2219,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2192,6 +2231,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2203,6 +2243,7 @@ public class SLParseTest extends TestCase {
 										.finalizeAST(IAnnotationParsingContext.nullPrototype);
 						fail("Should have thrown a RecognitionException");
 				} catch (RecognitionException e) {
+                    // OK
 				} catch (Exception e) {
 						e.printStackTrace();
 						fail("Unexpected exception");
@@ -2867,7 +2908,7 @@ public class SLParseTest extends TestCase {
 				 */
 				public <T extends IAASTRootNode> void reportAAST(int offset,
 								AnnotationLocation loc, Object o, T ast) {
-
+				    // Nothing to do
 				}
 
 				/*

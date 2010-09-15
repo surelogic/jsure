@@ -23,6 +23,7 @@ public class TestScrubber extends TestCase {
 		/* (non-Javadoc)
 		 * @see junit.framework.TestCase#setUp()
 		 */
+		@Override
 		protected void setUp() throws Exception {
 				super.setUp();
 		}
@@ -30,6 +31,7 @@ public class TestScrubber extends TestCase {
 		/* (non-Javadoc)
 		 * @see junit.framework.TestCase#tearDown()
 		 */
+		@Override
 		protected void tearDown() throws Exception {
 				super.tearDown();
 		}
@@ -44,7 +46,8 @@ public class TestScrubber extends TestCase {
 		
 		public void testRegionScrubbing(){
 				fail("Unimplemented");
-				NewRegionDeclarationNode regionDecl = new NewRegionDeclarationNode(0, 0, "region1", null);
+				//NewRegionDeclarationNode regionDecl = 
+				    new NewRegionDeclarationNode(0, 0, "region1", null);
 		}
 		
 		public void testMapIntoScrubbing(){

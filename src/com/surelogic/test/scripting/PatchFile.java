@@ -60,6 +60,7 @@ public class PatchFile extends AbstractCommand {
 		return true;
 	}
 	
+	@SuppressWarnings("unused")
 	private void printStream(String name, InputStream is) throws IOException {
 		LineNumberReader r = new LineNumberReader(new InputStreamReader(is));
 		String line = null;
