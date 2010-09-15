@@ -49,15 +49,6 @@ public abstract class IDE {
    */
   private static final Logger LOG = SLLogger.getLogger("IDE");
 
-  public static final QuickProperties.Flag binderFlag =
-    new QuickProperties.Flag(LOG, "surelogic.useNativeBinder", "Binder", true);
-
-  private static boolean useNativeBinder() {
-    return QuickProperties.checkFlag(binderFlag);
-  }
-
-  public static final boolean useNativeBinder = useNativeBinder();
-
   public static final QuickProperties.Flag testBinderFlag =
     new QuickProperties.Flag(LOG, "surelogic.testBinder", "Test");
 
@@ -67,7 +58,7 @@ public abstract class IDE {
 
   public static final boolean testBinder = testBinder();
   
-  public static final boolean useNativeBinderOnly = useNativeBinder && !testBinder;
+  public static final boolean useNativeBinderOnly = true && !testBinder;
   
   public static final QuickProperties.Flag allowMultipleProjectsFlag =
 	  new QuickProperties.Flag(LOG, "surelogic.allowMultipleProjects", "Multi", true);
