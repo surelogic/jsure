@@ -291,10 +291,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     /**
      * Return a store after taking into account these effects (usually inferred
      * from a method call).
+     * 
+     * If <code>numActuals</code> is 0, then <code>actuals</code> is <code>null</code>!
      */
-    private Store considerEffects(final IRNode rcvr, final IRNode actuals,
+    private Store considerEffects(final IRNode rcvr,
+        final int numActuals, final IRNode actuals,
         final Set<Effect> effects, Store s) {
-      final int n = tree.numChildren(actuals);
       for (final Effect f : effects) {
         if (f.isEmpty()) {
           // empty effects are harmless
@@ -347,12 +349,15 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (ref == null) {
           s = lattice.opExisting(s, State.SHARED);
         } else if (ref.equals(rcvr)) {
-          s = lattice.opDup(s, n);
+          s = lattice.opDup(s, numActuals);
         } else {
           foundActual: {
-            for (int i = 0; i < n; ++i) {
+            for (int i = 0; i < numActuals; ++i) {
+              /* If numActuals == 0 we don't get here, so it doesn't matter that
+               * actuals == null in that case.
+               */
               if (tree.getChild(actuals, i).equals(ref)) {
-                s = lattice.opDup(s, n - i + 1);
+                s = lattice.opDup(s, numActuals - i + 1);
                 break foundActual;
               }
             }
@@ -393,12 +398,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * how did the binder determine to call this method/constructor?).
      */
     private Store popArguments(
-        final IRNode actuals, final IRNode formals, Store s) {
-      int n = tree.numChildren(actuals);
-      if (formals != null && n != tree.numChildren(formals)) {
+        final int numActuals, final IRNode formals, Store s) {
+      if (formals != null && numActuals != tree.numChildren(formals)) {
         throw new FluidError("#formals != #actuals");
       }
-      while (n-- > 0) {
+      for (int n = numActuals - 1; n >= 0; n--) {
         final IRNode formal = formals != null ? tree.getChild(formals, n) : null;
         if (formal != null && UniquenessRules.isUnique(formal)) {
           s = lattice.opUndefine(s);
@@ -578,7 +582,16 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final boolean mcall = MethodCall.prototype.includes(op);
       
       final CallInterface call = (CallInterface) op;
-      final IRNode actuals = call.get_Args(node);
+      IRNode actuals;
+      int numActuals;
+      try {
+        actuals = call.get_Args(node);
+        numActuals = tree.numChildren(actuals);
+      } catch (final CallInterface.NoArgs e) {
+        actuals = null;
+        numActuals = 0;
+      }
+
       final IRNode formals;
       if (mdecl == null) {
         LOG.warning("No binding for method " + DebugUnparser.toString(node));
@@ -601,11 +614,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         } else {
           caller = flowUnit;
         }
-        s = considerEffects(receiverNode, actuals,
+        s = considerEffects(receiverNode, numActuals, actuals,
             effects.getMethodCallEffects(null, node, caller, true), s);
       }
       // We have to possibly compromise arguments
-      s = popArguments(actuals, formals, s);
+      s = popArguments(numActuals, formals, s);
       if (hasOuterObject(node)) {
         if (LOG.isLoggable(Level.FINE)) {
           LOG.fine("Popping qualifiers");

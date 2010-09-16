@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.Lattice;
 import edu.cmu.cs.fluid.java.analysis.LocationGenerator.SimpleLocation;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -406,11 +407,15 @@ class BasicPermissionTransfer extends JavaForwardTransfer{
 			(tree.getOperator(mdecl) == MethodDeclaration.prototype)
 				? MethodDeclaration.getParams(mdecl)
 				: ConstructorDeclaration.getParams(mdecl);
-
-		final IRNode args = ((CallInterface)op).get_Args(call);
-
 		final Iterator<IRNode> paramsEnum = Parameters.getFormalIterator(params);
-		final Iterator<IRNode> argsEnum = Arguments.getArgIterator(args);
+
+		Iterator<IRNode> argsEnum;
+		try {
+		  final IRNode args = ((CallInterface) op).get_Args(call);
+		  argsEnum = Arguments.getArgIterator(args);
+		} catch(final CallInterface.NoArgs e) {
+		  argsEnum = EmptyIterator.prototype();
+		}
 
 		// build a table mapping each formal parameter to its actual
 		final Map<IRNode,IRNode> table = new HashMap<IRNode,IRNode>();

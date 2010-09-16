@@ -336,12 +336,17 @@ public abstract class JavaEvaluationTransfer<T,V> extends JavaForwardTransfer<T,
 	 * </strong>
 	 */
   protected Lattice<T> transferCall(IRNode node, Lattice<T> value) {
-    Operator op = tree.getOperator(node);
+    final Operator op = tree.getOperator(node);
     boolean mcall = MethodCall.prototype.includes(op);
-    IRNode actuals = ((CallInterface) op).get_Args(node);
+    int numActuals;
+    try {
+      numActuals = tree.numChildren(((CallInterface) op).get_Args(node));
+    } catch(final CallInterface.NoArgs e) {
+      numActuals = 0;
+    }
     boolean q = hasOuterObject(node);
     // pop actuals
-    value = pop(value, tree.numChildren(actuals));
+    value = pop(value, numActuals);
     // if constructor, pop qualifications
     // while leaving receiver in place:
     if (q) {

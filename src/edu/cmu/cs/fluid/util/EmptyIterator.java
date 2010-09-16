@@ -8,11 +8,12 @@ import java.util.*;
  */
 public class EmptyIterator<T> extends AbstractRemovelessIterator<T> implements ListIterator<T>
 {
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public static final EmptyIterator prototype = new EmptyIterator();
 
   public EmptyIterator()
   {
+    super();
   }
 
   public boolean hasNext()

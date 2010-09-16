@@ -425,12 +425,16 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       // need to find the receiver:
       IRNode p = tree.getParent(n);
       if (tree.getOperator(p) instanceof CallInterface) {
-        CallInterface cop = ((CallInterface)tree.getOperator(p));
-        IRNode arguments = cop.get_Args(p);
-        int num = tree.numChildren(arguments);
-        while (num > 0) {
+        final CallInterface cop = ((CallInterface)tree.getOperator(p));
+        int numArgs;
+        try {
+          numArgs = tree.numChildren(cop.get_Args(p));
+        } catch (final CallInterface.NoArgs e) {
+          numArgs = 0;
+        }
+        while (numArgs > 0) {
           stack = ll.pop(stack);
-          --num;
+          --numArgs;
         }
       }
       NullInfo ni = ll.peek(stack);

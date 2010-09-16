@@ -1,5 +1,6 @@
 package com.surelogic.analysis.effects;
 
+import java.text.MessageFormat;
 import java.util.*;
 
 import com.surelogic.analysis.*;
@@ -103,8 +104,32 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 						 */
 					}
 				}
-			}
+			} else if(ClassDeclaration.prototype.includes(op) ||
+			    NestedClassDeclaration.prototype.includes(op) ||
+			    InterfaceDeclaration.prototype.includes(op) ||
+			    NestedInterfaceDeclaration.prototype.includes(op) ||
+			    EnumDeclaration.prototype.includes(op) ||
+			    NestedEnumDeclaration.prototype.includes(op)) {
+			  reportClassInitializationEffects(member);
+			}			  
 		}
+	}
+	
+	private void reportClassInitializationEffects(final IRNode typeDecl) {
+	  final IRNode flowUnit = JavaPromise.getClassInitOrNull(typeDecl);
+	  final Set<Effect> effects = 
+	    getAnalysis().getEffectsQuery(
+	        flowUnit, bca.getExpressionObjectsQuery(flowUnit)).getResultFor(flowUnit);
+	  final String id = TypeDeclaration.getId(typeDecl);
+	  for (final Effect e : effects) {
+	    final InfoDrop drop = new InfoDrop();
+	    drop.setCategory(null);
+	    final IRNode src = e.getSource();
+      setResultDependUponDrop(drop, src == null ? typeDecl : src);
+	    drop.setMessage(
+	        MessageFormat.format("<clinit> of {0} has effect {1}{2}",
+	            id, e.toString(), e.isMaskable(getBinder()) ? " (maskable)" : ""));
+	  }
 	}
 
 	private Set<Effect> maskEffects(final Set<Effect> effects) {

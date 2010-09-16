@@ -2979,6 +2979,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
       convertStaticInitializerBlock(constDecl, ctxtJavaType);
 
     try {
+      /* Enumeration constant declarations are also like new expressions,
+       * so we assure the call.
+       */
+      assureCall(constDecl);
       doAcceptForChildren(constDecl);
     } finally {
       ctxtClassInitializationLocks = null;

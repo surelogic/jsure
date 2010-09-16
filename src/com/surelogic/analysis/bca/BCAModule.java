@@ -1,0 +1,100 @@
+package com.surelogic.analysis.bca;
+
+import com.surelogic.analysis.*;
+import com.surelogic.analysis.bca.uwm.BindingContext;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
+import com.surelogic.analysis.bca.uwm.BindingContextAnalysis.Query;
+
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
+import edu.cmu.cs.fluid.sea.Category;
+import edu.cmu.cs.fluid.sea.InfoDrop;
+import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.util.ImmutableSet;
+
+public class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, Void> {
+  private static final Category BCA_CATEGORY = Category.getInstance("BCACategory");
+	
+	public BCAModule() {
+		super("BCACategory");
+	}
+
+	@Override
+	protected BindingContextAnalysis constructIRAnalysis(final IBinder binder) {
+	  return new BindingContextAnalysis(binder, true);
+	}
+  
+  @Override
+  protected void clearCaches() {
+    // Nothing to do
+  }
+
+	@Override
+	protected boolean doAnalysisOnAFile(CUDrop cud, final IRNode compUnit, IAnalysisMonitor monitor) {
+		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
+			public void run() {
+				runOverFile(compUnit);
+			}
+		});
+		return true;
+	}
+
+	protected void runOverFile(final IRNode compUnit) {
+    final BCAVisitor v = new BCAVisitor();
+    v.doAccept(compUnit);
+    getAnalysis().clear();
+	}	
+	
+  private final class BCAVisitor extends AbstractJavaAnalysisDriver<BindingContextAnalysis.Query> {
+    @Override
+    protected Query createNewQuery(final IRNode decl) {
+      return getAnalysis().getExpressionObjectsQuery(decl);
+    }
+
+    @Override
+    protected Query createSubQuery(final IRNode caller) {
+      return currentQuery().getSubAnalysisQuery(caller);
+    }
+    
+    
+
+    @Override
+    protected void enteringEnclosingType(final IRNode newType) {
+      System.out.println(">>> Entering type " + JavaNames.getTypeName(newType));
+    }
+    
+    @Override
+    protected void leavingEnclosingType(final IRNode newType) {
+      System.out.println("<<< Leaving type " + JavaNames.getTypeName(newType));
+    }
+    
+    @Override
+    protected void enteringEnclosingDeclPrefix(
+        final IRNode newDecl, final IRNode anonClassDecl) {
+      final String name = JavaNames.genQualifiedMethodConstructorName(newDecl);
+      System.out.println("Running BCA on " + name);
+    }
+    
+    
+    
+    @Override
+    public Void visitVariableUseExpression(final IRNode use) {
+      // See if the current variable is a primitive or not
+      final IJavaType type = getBinder().getJavaType(use);
+      if (type instanceof IJavaReferenceType) {
+        final ImmutableSet<IRNode> bindings = currentQuery().getResultFor(use);
+        final InfoDrop drop = new InfoDrop();
+        setResultDependUponDrop(drop, use);
+        drop.setCategory(BCA_CATEGORY);
+        final String varName = VariableUseExpression.getId(use);
+        drop.setMessage("{0} binds to {1}", varName, BindingContext.setToString(bindings));
+      }
+      
+      return null;
+    }
+  }
+}

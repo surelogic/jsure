@@ -30,6 +30,7 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public class MethodCallUtils {
   public static final class EnclosingRefs {
@@ -171,8 +172,12 @@ public class MethodCallUtils {
 
     // get the actual parameters
     final Operator callOp = JJNode.tree.getOperator(call);
-    final IRNode actuals = ((CallInterface) callOp).get_Args(call);
-    final Iterator<IRNode> actualsEnum = Arguments.getArgIterator(actuals);
+    Iterator<IRNode> actualsEnum;
+    try {
+      actualsEnum = Arguments.getArgIterator(((CallInterface) callOp).get_Args(call));
+    } catch(final CallInterface.NoArgs e) {
+      actualsEnum = EmptyIterator.prototype();
+    }
 
     // build a table mapping each formal parameter to its actual
     final Map<IRNode, IRNode> table = new HashMap<IRNode, IRNode>();

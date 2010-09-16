@@ -1,5 +1,6 @@
 package com.surelogic.analysis.bca.uwm;
 
+import com.surelogic.analysis.IBinderClient;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -32,7 +33,7 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
  * </ul>
  */
 
-public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet<IRNode>[], BindingContext, JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext>> {
+public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet<IRNode>[], BindingContext, JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext>> implements IBinderClient {
   public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>[], BindingContext> {
     private Query(final Delegate<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>[], BindingContext> d) {
       super(d);
@@ -99,6 +100,12 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
     }
 
     
+    @Override 
+    public ImmutableSet<IRNode>[] transferCall(final IRNode node, final boolean b, final ImmutableSet<IRNode>[] before) {
+      System.out.println("transfer method call: " + DebugUnparser.toString(node));
+      return before;
+    }
+    
     
     public ImmutableSet<IRNode>[] transferComponentSource(final IRNode node) {
       return lattice.getInitialValue();
@@ -107,13 +114,8 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
     @Override
     public ImmutableSet<IRNode>[] transferAssignment(
         final IRNode node, final ImmutableSet<IRNode>[] before) {
-//      System.out.println(MessageFormat.format("*********************\n***** transferAssignment(\"{0}\")", DebugUnparser.toString(node)));
-//      System.out.println("before lattice:");
-//      System.out.println(lattice.toString(before));
-      
       // Be strict
       if (!lattice.isNormal(before)) {
-//        System.out.println("Lattice is not normal, skip");
         return before;
       }
       
@@ -127,23 +129,14 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
         final ImmutableSet<IRNode> rhsObjects = lattice.expressionObjects(before, op.getSource(node));
         out = lattice.updateDeclaration(before, decl, rhsObjects);
       }
-      
-//      System.out.println("after lattice:");
-//      System.out.println(lattice.toString(out));
-      
       return out;
     }
     
     @Override
     public ImmutableSet<IRNode>[] transferInitialization(
         final IRNode node, final ImmutableSet<IRNode>[] before) {
-//      System.out.println(MessageFormat.format("*********************\n***** transferInitialization(\"{0}\")", DebugUnparser.toString(node)));
-//      System.out.println("before lattice:");
-//      System.out.println(lattice.toString(before));
-
       // Be strict
       if (!lattice.isNormal(before)) {
-//        System.out.println("Lattice is not normal, skip");
         return before;
       }
       
@@ -160,10 +153,6 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
           out = lattice.updateDeclaration(before, node, initObjects);
         }
       }
-      
-//      System.out.println("after lattice:");
-//      System.out.println(lattice.toString(out));
-
       return out;
     }
   }
@@ -178,7 +167,16 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
         final boolean terminationNormal) {
       return new JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext>(
           "BCA (subanalysis)", lattice, new Transfer(binder, lattice), DebugUnparser.viewer);
-    }
-    
+    }    
+  }
+
+
+
+  public IBinder getBinder() {
+    return binder;
+  }
+
+  public void clearCaches() {
+    clear();
   }
 }

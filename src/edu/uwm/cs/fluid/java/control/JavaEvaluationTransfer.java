@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.uwm.cs.fluid.util.Lattice;
 
 /**
@@ -351,12 +352,16 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
   protected T transferCall(IRNode node, T value) {
     Operator op = tree.getOperator(node);
     boolean mcall = MethodCall.prototype.includes(op);
-    IRNode actuals = ((CallInterface) op).get_Args(node);
-    boolean q = hasOuterObject(node);
+    
     // pop actuals
     // trickier than you might expect because of var args!
-    for (int i = 0; i < tree.numChildren(actuals); i++) {
-      final IRNode arg = tree.getChild(actuals, i);
+    Iterable<IRNode> actuals;
+    try {
+      actuals = Arguments.getArgIterator(((CallInterface) op).get_Args(node));
+    } catch(final CallInterface.NoArgs e) {
+      actuals = EmptyIterator.prototype();
+    }
+    for (IRNode arg : actuals) {
       if (VarArgsExpression.prototype.includes(arg)) {
         value = pop(value, tree.numChildren(arg));
       } else {
@@ -366,6 +371,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 
     // if constructor, pop qualifications
     // while leaving receiver in place:
+    boolean q = hasOuterObject(node);
     if (q) {
       if (mcall) {
         LOG.severe("MethodCall's can't have qualifiers!");

@@ -61,7 +61,7 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     return subAnalysisFactory;
   }
   
-  public T transferComponentFlow(
+  public final T transferComponentFlow(
     IRNode node,
     Object info,
     T value) {
@@ -111,7 +111,7 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     }
   }
 
-  public T transferComponentChoice(
+  public final T transferComponentChoice(
     IRNode node,
     Object info,
     boolean flag,

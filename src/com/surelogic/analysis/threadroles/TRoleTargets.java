@@ -33,6 +33,7 @@ import edu.cmu.cs.fluid.sea.drops.effects.WholeModuleFXDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleModel;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 
 
 public class TRoleTargets {
@@ -370,8 +371,12 @@ public class TRoleTargets {
     final Operator callOp = getOperator(mcall);
     
     // Process all the actual parameters
-    final Iterator<IRNode> actualsEnum = 
-      Arguments.getArgIterator(((CallInterface) callOp).get_Args(mcall));
+    Iterator<IRNode> actualsEnum;
+    try {
+      actualsEnum = Arguments.getArgIterator(((CallInterface) callOp).get_Args(mcall));
+    } catch (final CallInterface.NoArgs e) {
+      actualsEnum = EmptyIterator.prototype();
+    }
     while (actualsEnum.hasNext()) {
       final IRNode actual = actualsEnum.next();
       getTargetsForMethodAsRegionRef_forParam(mcall, actual, methodFx, result);

@@ -352,9 +352,8 @@ class UniqueTransfer extends JavaEvaluationTransfer {
    * Return a store after taking into acount these effects (usually inferred
    * from a method call).
    */
-  protected Store considerEffects(IRNode rcvr, IRNode actuals,
+  protected Store considerEffects(IRNode rcvr, int numActuals, IRNode actuals,
       Set<Effect> effects, Store s) {
-    int n = tree.numChildren(actuals);
     for (Iterator<Effect> fx = effects.iterator(); fx.hasNext();) {
       try {
         Effect f = fx.next();
@@ -409,12 +408,15 @@ class UniqueTransfer extends JavaEvaluationTransfer {
         if (ref == null) {
           s = s.opExisting(Store.sharedVariable);
         } else if (ref.equals(rcvr)) {
-          s = s.opDup(n);
+          s = s.opDup(numActuals);
         } else {
           foundActual: {
-            for (int i = 0; i < n; ++i) {
+            for (int i = 0; i < numActuals; ++i) {
+              /* when numActuals == 0 we don't get here, so it won't matter
+               * that actuals == null in that case.
+               */
               if (tree.getChild(actuals, i).equals(ref)) {
-                s = s.opDup(n - i + 1);
+                s = s.opDup(numActuals - i + 1);
                 break foundActual;
               }
             }
@@ -458,12 +460,11 @@ class UniqueTransfer extends JavaEvaluationTransfer {
    * according to the formal parameters. The number should be the same (or else
    * how did the binder determine to call this method/constructor?).
    */
-  protected Store popArguments(IRNode actuals, IRNode formals, Store s) {
-    int n = tree.numChildren(actuals);
-    if (formals != null && n != tree.numChildren(formals)) {
+  protected Store popArguments(int numActuals, IRNode formals, Store s) {
+    if (formals != null && numActuals != tree.numChildren(formals)) {
       throw new FluidError("#formals != #actuals");
     }
-    while (n-- > 0) {
+    for (int n = numActuals - 1; n >= 0; n--) {
       IRNode formal = formals != null ? tree.getChild(formals, n) : null;
       if (formal != null && UniquenessRules.isUnique(formal)) {
         s = s.opUndefine();
@@ -631,7 +632,16 @@ class UniqueTransfer extends JavaEvaluationTransfer {
     Store s = (Store) value;
 
     CallInterface call = (CallInterface) op;
-    IRNode actuals = call.get_Args(node);
+    IRNode actuals;
+    int numActuals;
+    try {
+      actuals = call.get_Args(node);
+      numActuals = tree.numChildren(actuals);
+    } catch (final CallInterface.NoArgs e) {
+      actuals = null;
+      numActuals = 0;
+    }
+
     IRNode formals = null;
     if (mdecl == null) {
       LOG.warning("No binding for method " + DebugUnparser.toString(node));
@@ -655,11 +665,11 @@ class UniqueTransfer extends JavaEvaluationTransfer {
       } else {
         caller = flowUnit;
       }
-      s = considerEffects(receiverNode, actuals, effects.getMethodCallEffects(
+      s = considerEffects(receiverNode, numActuals, actuals, effects.getMethodCallEffects(
           null, node, caller, true), s);
     }
     // we have to possibly compromise arguments:
-    s = popArguments(actuals, formals, s);
+    s = popArguments(numActuals, formals, s);
     if (hasOuterObject(node)) {
       if (LOG.isLoggable(Level.FINE))
         LOG.fine("Popping qualifiers!");
