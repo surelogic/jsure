@@ -38,6 +38,7 @@ public class SingletonSet<T> extends AbstractSet<T> implements PossiblyImmutable
     return new SingletonIterator<T>(element);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public boolean equals(Object o) {
     if (o instanceof Set) {
