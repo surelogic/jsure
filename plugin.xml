@@ -223,13 +223,20 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="BCA" name="Binding Context Analysis"
+	<extension id="CALLS" name="Method Calls"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.bca.BCA" production="false">
+		<run class="com.surelogic.analysis.testings.CollectMethodCallsModule" production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
+  <extension id="BCA" name="Binding Context Analysis"
+    point="com.surelogic.jsure.client.eclipse.analysisModule">
+    <run class="com.surelogic.analysis.bca.BCAModule" production="false">
+    </run>
+    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+    </prerequisite>
+  </extension>
   <extension id="LV" name="Local Variables"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
     <run class="com.surelogic.analysis.bca.LocalVariablesModule" production="false">
