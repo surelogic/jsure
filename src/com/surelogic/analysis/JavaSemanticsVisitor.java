@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
-import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.NormalEnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
@@ -773,8 +773,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
         classBody = AnonClassExpression.getBody(classDecl);
       } else if (EnumConstantClassDeclaration.prototype.includes(classDecl)) {
         classBody = EnumConstantClassDeclaration.getBody(classDecl);
-      } else if (EnumConstantDeclaration.prototype.includes(classDecl)) {
-        classBody = EnumConstantDeclaration.getBody(classDecl);
+      } else if (NormalEnumConstantDeclaration.prototype.includes(classDecl)) {
+        classBody = NormalEnumConstantDeclaration.getBody(classDecl);
       } else {
         classBody = TypeDeclaration.getBody(classDecl);
       }

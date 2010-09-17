@@ -1947,16 +1947,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
     @Override
-    public Void visitEnumConstantDeclaration(IRNode node) {
+    public Void visitNormalEnumConstantDeclaration(IRNode node) {
         visit(node); // bind the arguments etc
         if (!isFullPass || pathToTarget != null) return null;
     	
     	IRNode tdecl = VisitUtil.getEnclosingType(node);
     	IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
-        boolean success = bindCall(node, null, EnumConstantDeclaration.getArgs(node),
+        boolean success = bindCall(node, null, NormalEnumConstantDeclaration.getArgs(node),
                                    JJNode.getInfo(tdecl), ty);
         if (!success) {
-            bindCall(node, null, EnumConstantDeclaration.getArgs(node),
+            bindCall(node, null, NormalEnumConstantDeclaration.getArgs(node),
                      JJNode.getInfo(tdecl), ty);
         }
         return null;
