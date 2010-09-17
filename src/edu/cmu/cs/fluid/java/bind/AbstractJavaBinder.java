@@ -261,15 +261,22 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	// TODO cache erroreous nodes?
     
       // debugging
+      String msg;
+      if (bindings.containsFullInfo()) {
+          msg = "no full binding for ";
+      } else {
+          msg = "no partial binding for ";
+      }
       IRNode granule = getGranule(node);
       if (granule == node) {
     	  IRNode parent = JJNode.tree.getParentOrNull(node);
-    	  LOG.severe("no binding for " + node + " = " + DebugUnparser.toString(node)+" (parent: "+JJNode.tree.getOperator(parent).name()+")");
+    	  LOG.severe(msg + node + " = " + DebugUnparser.toString(node)+" (parent: "+JJNode.tree.getOperator(parent).name()+")");
     			  //" in version " + Version.getVersion());
       } else {
-    	  LOG.severe("no binding for " + node + " = " + DebugUnparser.toString(node) + 
+    	  LOG.severe(msg + node + " = " + DebugUnparser.toString(node) + 
     			  //" in version " + Version.getVersion());
     			  "\n\tin granule " + DebugUnparser.toString(granule));
+    	  ensureBindingsOK(node);  
       }
 //      System.out.println("Operator is " + JJNode.tree.getOperator(node));
 //      System.out.println(DebugUnparser.toString(node));
@@ -1919,6 +1926,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
     @Override
+    public Void visitEnumDeclaration(IRNode node) {
+        /*
+        if (!isFullPass) {
+            System.out.println("Partial pass on "+JJNode.getInfoOrNull(node));
+        }
+        */
+        return super.visitEnumDeclaration(node);
+    }
+    
+    @Override
     public Void visitEnumConstantClassDeclaration(IRNode node) {
         final String name = JJNode.getInfoOrNull(node);
         final IJavaScope sc;
@@ -1958,6 +1975,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitSimpleEnumConstantDeclaration(IRNode node) {
         visit(node); // bind the arguments etc
+        /*
+        if (isFullPass) {
+            System.out.println("Full binding constant: "+JJNode.getInfoOrNull(node));     
+        } else {
+            System.out.println("Part Binding constant: "+JJNode.getInfoOrNull(node));     
+        } 
+        */  
         return bindEnumConstantDeclaration(node, null);
     }
     

@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -64,10 +65,16 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 			//if (!isUJB) { 
 			if (true) {
 				if (op instanceof IHasBinding) {
-					IBinding b = orig.getIBinding(n);
-					if (b != null) {
-						bindingCache.put(n, b);					
-					}					
+				    boolean goAhead = true;
+				    if (EnumConstantDeclaration.prototype.includes(op)) {
+				        goAhead &= !AbstractJavaBinder.isBinary(n);
+				    }
+				    if (goAhead) {
+				        IBinding b = orig.getIBinding(n);
+				        if (b != null) {
+				            bindingCache.put(n, b);					
+				        }					
+				    }
 				}
 			}
 			if (op instanceof IHasType) {
