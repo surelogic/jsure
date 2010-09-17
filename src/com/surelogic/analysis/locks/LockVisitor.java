@@ -2983,6 +2983,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
        * so we assure the call.
        */
       assureCall(constDecl);
+      /* Assure the arguments (if any) */
       doAcceptForChildren(constDecl);
     } finally {
       ctxtClassInitializationLocks = null;
@@ -3004,7 +3005,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
      */
     
     /* (1) Set up context as if we are entering a static field declaration */
-    final IRNode classDecl = VisitUtil.getClosestType(constDecl);
+    final IRNode classDecl = VisitUtil.getEnclosingType(constDecl);
     ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
     ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
     updateJUCAnalysisQueries(ctxtInsideMethod);
@@ -3013,6 +3014,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
       convertStaticInitializerBlock(constDecl, ctxtJavaType);
 
     try {
+      // Assure the constructor call
+      assureCall(constDecl);
       // Visit the arguments
       doAccept(EnumConstantClassDeclaration.getArgs(constDecl));
       
