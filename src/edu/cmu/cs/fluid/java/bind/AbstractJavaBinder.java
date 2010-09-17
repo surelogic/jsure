@@ -1920,17 +1920,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitEnumConstantClassDeclaration(IRNode node) {
-    	IRNode body = EnumConstantClassDeclaration.getBody(node);
-        String name = JJNode.getInfoOrNull(node);
-        /*
-        if (name == null) {
-        	System.out.println("Didn't get a name for "+DebugUnparser.toString(node));
-        }
-        else if ("LZO".equals(name)) {
-        	System.out.println("Found "+JavaNames.getFullTypeName(VisitUtil.getEnclosingType(node)));
-        }
-        */
-        IJavaScope sc;
+        final String name = JJNode.getInfoOrNull(node);
+        final IJavaScope sc;
         if (name != null) {
           IJavaScope.NestedScope nsc = new IJavaScope.NestedScope(scope);
           nsc.put(name, node);
@@ -1943,21 +1934,23 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         } catch (Exception e) {
         	e.printStackTrace();        	
         }
-        return super.visitEnumConstantClassDeclaration(node);
+        return bindEnumConstantDeclaration(node, EnumConstantClassDeclaration.getArgs(node));
     }
     
     @Override
     public Void visitNormalEnumConstantDeclaration(IRNode node) {
         visit(node); // bind the arguments etc
+        return bindEnumConstantDeclaration(node, NormalEnumConstantDeclaration.getArgs(node));
+    }
+
+    private Void bindEnumConstantDeclaration(IRNode node, IRNode args) {
         if (!isFullPass || pathToTarget != null) return null;
     	
     	IRNode tdecl = VisitUtil.getEnclosingType(node);
     	IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
-        boolean success = bindCall(node, null, NormalEnumConstantDeclaration.getArgs(node),
-                                   JJNode.getInfo(tdecl), ty);
+        boolean success = bindCall(node, null, args, JJNode.getInfo(tdecl), ty);
         if (!success) {
-            bindCall(node, null, NormalEnumConstantDeclaration.getArgs(node),
-                     JJNode.getInfo(tdecl), ty);
+            bindCall(node, null, args, JJNode.getInfo(tdecl), ty);
         }
         return null;
     }
@@ -1965,15 +1958,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitSimpleEnumConstantDeclaration(IRNode node) {
         visit(node); // bind the arguments etc
-        if (!isFullPass || pathToTarget != null) return null;
-    	
-    	IRNode tdecl = VisitUtil.getEnclosingType(node);
-    	IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
-        boolean success = bindCall(node, null, null, JJNode.getInfo(tdecl), ty);
-        if (!success) {
-        	bindCall(node, null, null, JJNode.getInfo(tdecl), ty);
-        }
-        return null;
+        return bindEnumConstantDeclaration(node, null);
     }
     
     // Copied from ClassInitializer
