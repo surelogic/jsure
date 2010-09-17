@@ -4,6 +4,13 @@ public operator SimpleEnumConstantDeclaration extends EnumConstantDeclaration
   syntax { 
     $id:Info 
   }
+  private static final CallInterface.NoArgs noArgs = new CallInterface.NoArgs();
+
+  @Override
+  public IRNode get_Args(IRNode node) throws CallInterface.NoArgs {
+    throw noArgs;
+  }
+  
   @Override public Component createComponent(IRNode node) {
     return new SimpleComponent(node); // TODO is this right?
   }

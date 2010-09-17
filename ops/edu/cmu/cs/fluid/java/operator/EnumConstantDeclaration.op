@@ -1,13 +1,23 @@
 # $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/EnumConstantDeclaration.op,v 1.7 2006/07/10 21:15:23 chance Exp $
-public operator EnumConstantDeclaration extends VariableDeclaration implements ClassBodyDeclInterface, EnumBodyDeclInterface
+public operator EnumConstantDeclaration extends VariableDeclaration implements ClassBodyDeclInterface, EnumBodyDeclInterface, CallInterface
 {
   syntax { 
-    $id:Info args:OptArguments body:OptClassBody
+    $id:Info @args:OptArguments body:OptClassBody
   }
   properties {
     binding=Variable
     bindsToType=Type 
+    bindsTo=Constructor
   }  
+  
+  public Operator getResultOp() {
+    return ConstructorDeclaration.prototype;
+  }
+  
+  public IRNode get_TypeArgs(IRNode n) {
+    return null;
+  }
+  
   @Override public Component createComponent(IRNode node) {
     return new SimpleComponent(node); // TODO is this right?
   }

@@ -2,7 +2,7 @@
 public operator Call implements CallInterface
 {
   syntax {
-    @typeArgs:TypeActuals
+    @typeArgs:TypeActuals?
     @args:Arguments
   }
   properties {
