@@ -544,7 +544,11 @@ public class OperatorGen extends AbstractASTGenerator {
 //          if (!s.isRoot && !hasAbstractParents(s)) {
 //            printJava("  @Override\n");
 //          }
-          printJava("  public IRNode get_"+name+"(IRNode node) {\n");
+          if ("OptArguments".equals(c.type)) {
+              printJava("  public IRNode get_"+name+"(IRNode node) throws CallInterface.NoArgs {\n");
+          } else {
+              printJava("  public IRNode get_"+name+"(IRNode node) {\n");
+          }
           printJava("    return get"+name+"(tree, node);\n");
           printJava("  }\n\n");
           
