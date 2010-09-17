@@ -2,7 +2,7 @@
 public operator NormalEnumConstantDeclaration extends EnumConstantDeclaration
 {
   syntax { 
-    $id:Info args:OptArguments body:OptClassBody
+    $id:Info args:OptArguments
   }
   properties {
     binding=Variable

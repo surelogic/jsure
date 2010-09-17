@@ -185,12 +185,12 @@ public final class PromiseUtil {
                                                           Collection<IRNode> added,
                                                           Operator op) {
     if (!EnumConstantClassDeclaration.prototype.includes(op)) {
-      if (JJNode.tree.numChildren(node) > 0) {
-    	  IRNode body = EnumConstantDeclaration.getBody(node);    
-    	  if (!NoClassBody.prototype.includes(body)) {
-    		  LOG.severe("Got an EnumConstantDecl with a class body that's not a TypeDecl");
-    	  }
-      }
+//      if (JJNode.tree.numChildren(node) > 0) {
+//    	  IRNode body = EnumConstantDeclaration.getBody(node);    
+//    	  if (!NoClassBody.prototype.includes(body)) {
+//    		  LOG.severe("Got an EnumConstantDecl with a class body that's not a TypeDecl");
+//    	  }
+//      }
       return;
     }
     addRequiredTypePromises(binder, helper, node, added);

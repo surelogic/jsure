@@ -773,8 +773,6 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
         classBody = AnonClassExpression.getBody(classDecl);
       } else if (EnumConstantClassDeclaration.prototype.includes(classDecl)) {
         classBody = EnumConstantClassDeclaration.getBody(classDecl);
-      } else if (NormalEnumConstantDeclaration.prototype.includes(classDecl)) {
-        classBody = NormalEnumConstantDeclaration.getBody(classDecl);
       } else {
         classBody = TypeDeclaration.getBody(classDecl);
       }
