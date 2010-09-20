@@ -782,8 +782,8 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 						// processed normally,
 						// and skips otherwise
 						//
-						IRNode t = Eclipse.getDefault().getETypeEnv(p)
-								.reloadNamedType(qname);
+						IRNode t = null;//Eclipse.getDefault().getETypeEnv(p)
+								//.reloadNamedType(qname);
 						if (t == null) {
 							LOG.warning("Couldn't load " + qname
 									+ " as a type or a package");
