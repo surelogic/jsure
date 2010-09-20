@@ -527,6 +527,11 @@ private long parseIntLiteral(String token) {
 	  } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
 		  IRNode enumD = VisitUtil.getEnclosingType(declaration);
 		  return (IJavaDeclaredType) convertNodeTypeToIJavaType(enumD);
+	  } else if (AnnotationDeclaration.prototype.includes(op)) {
+	      IRNode ed              = findNamedType("java.lang.annotation.Annotation");
+	      List<IJavaType> params = new ArrayList<IJavaType>(1);
+	      params.add(dt);
+	      return JavaTypeFactory.getDeclaredType(ed, params, null);
 	  } else {
 		  LOG.severe("Don't know what sort of declation node this is: " + DebugUnparser.toString(declaration));
 		  return null;
