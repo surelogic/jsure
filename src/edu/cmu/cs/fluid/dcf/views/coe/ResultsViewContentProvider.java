@@ -30,15 +30,14 @@ import com.surelogic.xml.results.coe.CoE_Constants;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.ImportName;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
-import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
-import edu.cmu.cs.fluid.java.operator.TypeDeclarations;
 import edu.cmu.cs.fluid.java.promise.TextFile;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
@@ -1036,19 +1035,11 @@ public class ResultsViewContentProvider extends
 				// determine enclosing type
 				IRNode type = null;
 				if (isCU) {
-					IRNode types = CompilationUnit.getDecls(node);
-					Iterator<IRNode> e = TypeDeclarations
-							.getTypesIterator(types);
-					while (e.hasNext()) {
-						type = e.next();
-						if (JavaNode.getModifier(type, JavaNode.PUBLIC)) {
-							break; // Found the main type
-						}
-					}
+					type = VisitUtil.getPrimaryType(node);				
 				} else if (!isPkg) {
-					type = VisitUtil.getEnclosingType(node);
-					if (type == null && op instanceof TypeDeclInterface) {
-						type = node;
+					type = VisitUtil.getClosestType(node);
+					while (type != null && JJNode.tree.getOperator(type) instanceof CallInterface) {
+						type = VisitUtil.getEnclosingType(type);
 					}
 				}
 				if (type != null) {
