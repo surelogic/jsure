@@ -23,7 +23,10 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.PostDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PostIncrementExpression;
@@ -31,7 +34,9 @@ import edu.cmu.cs.fluid.java.operator.PreDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
+import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * IVisitor that computes the region effects for an expression.
@@ -265,7 +270,24 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   }
 
   @Override
-  protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
+  protected InstanceInitAction getAnonClassInitAction(
+      final IRNode expr, final IRNode classBody) {
+    /* First need to determine the class declaration node of the super class
+     * of the anonymous class or enum constant class declaration.
+     */
+    final IRNode superClassDecl;
+    if (AnonClassExpression.prototype.includes(expr)) {
+      superClassDecl = binder.getBinding(AnonClassExpression.getType(expr));
+    } else {
+      IRNode current = JJNode.tree.getParentOrNull(expr);
+      Operator op = JJNode.tree.getOperator(current);
+      while (!EnumDeclaration.prototype.includes(op) && !NestedEnumDeclaration.prototype.includes(op)) {
+        current = JJNode.tree.getParentOrNull(current);
+        op = JJNode.tree.getOperator(current);
+      }
+      superClassDecl = current;
+    }
+    
     /* Need to get the effects of the instance field initializers and the
      * instance initializers of the anonymous class. Effects will come back
      * elaborated. They will then need to be masked (including the special case
@@ -297,7 +319,8 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
         final MethodCallUtils.EnclosingRefs enclosing = 
           MethodCallUtils.getEnclosingInstanceReferences(
               binder, thisExprBinder, expr,
-              binder.getBinding(AnonClassExpression.getType(expr)),
+              superClassDecl,
+//              binder.getBinding(AnonClassExpression.getType(expr)),
               context.theReceiverNode, getEnclosingDecl());
         for (final Effect initEffect : newContext.theEffects) {
           if (!(initEffect.isMaskable(binder) || 
@@ -558,5 +581,14 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     context.addEffects(getMethodCallEffects(decl));
     // Handle the arguments
     doAcceptForChildren(decl);
+  }
+
+  
+  @Override
+  protected void handleEnumConstantClassDeclaration(final IRNode decl) {
+    // treat as new expression
+    context.addEffects(getMethodCallEffects(decl));
+    // Handle the arguments
+    doAcceptForChildren(EnumConstantClassDeclaration.getArgs(decl));
   }
 }

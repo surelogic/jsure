@@ -110,7 +110,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			    NestedInterfaceDeclaration.prototype.includes(op) ||
 			    EnumDeclaration.prototype.includes(op) ||
 			    NestedEnumDeclaration.prototype.includes(op)) {
-//			  reportClassInitializationEffects(member);
+			  reportClassInitializationEffects(member);
 			}			  
 		}
 	}

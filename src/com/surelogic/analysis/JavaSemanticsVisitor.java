@@ -574,60 +574,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     // Visit the anon class expression (ignoring it's body)
     handleAnonClassExpression(expr);
   
-    // Prepare to recursively visit the initialization, if required
-    final InstanceInitAction action = getAnonClassInitAction(expr);
-  
-    final IRNode prevEnclosingType = enclosingType;
-    final IRNode prevEnclosingDecl = enclosingDecl;
-    final boolean prevInsideConstructor = insideConstructor;
-    final boolean prevInsideFieldDeclaration = insideFieldDeclaration;
-    final boolean prevIsFieldStatic = isStaticField;
-    
-    // No longer inside a field declaration because are entering a type
-    insideFieldDeclaration = false;
-    isStaticField = false;
-    
-    // Now inside the anonymous type declaration
-    enterEnclosingType(expr);
-    try {
-      /* Need to visit the instance initializer blocks and instance field 
-       * declarations.  We rely on the fact that anonymous classes cannot 
-       * have static field members or static initializer blocks.  We ignore
-       * method and constructor declarations.  I know this seems odd, but
-       * see Bug 1662.  Technically the initializer blocks of the anonymous
-       * class expression are executed as part of the enclosing method/constructor. 
-       */
-      insideConstructor = true; // We are inside the constructor of the anonymous class
-      enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
-      action.tryBefore();
-      try {
-        processClassBody(AnonClassExpression.getBody(expr), WhichMembers.INSTANCE);
-      } finally {
-        action.finallyAfter();
-        leaveEnclosingDecl(prevEnclosingDecl);
-        insideConstructor = prevInsideConstructor;
-      }
-      action.afterVisit();
-
-      // Still inside the anonymous class expression
-        
-      // Visit the type body if required
-      if (visitInsideTypes) {
-        try {
-          insideConstructor = false;
-          enclosingDecl = null; // We are not inside of any method or constructor -- see comments in visitNonAnnotationTypeDeclaration()
-          handleAnonClassAsTypeDeclaration(expr);
-        } finally {
-          enclosingDecl = prevEnclosingDecl;
-          insideConstructor = prevInsideConstructor;
-        }
-      }
-    } finally {
-      // Leaving the anonymous type expression
-      leaveEnclosingType(prevEnclosingType);
-      isStaticField = prevIsFieldStatic;
-      insideFieldDeclaration = prevInsideFieldDeclaration;
-    }
+    // Deal with the declaration
+    processAnonClassExpression(expr, AnonClassExpression.getBody(expr));
     
     return null;
   }
@@ -654,11 +602,10 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     doAccept(AnonClassExpression.getArgs(expr));
   }
 
-
-
   /**
    * Get the initialization action to use when recursively visiting the instance
-   * initializers of an anonymous class expression.
+   * initializers of an anonymous class expression (including those declared
+   * using an EnumConstantClassDeclaration):
    * <ul>
    * <li>The {@link InstanceInitAction#tryBefore()} method of the action is
    * called immediately before the recursive visit begins, and is meant to set
@@ -671,35 +618,118 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * of the recursive visit into the main results.
    * </ul>
    * 
-   * <p>The default implementation returns {@link InstanceInitAction#NULL_ACTION}.
+   * <p>
+   * The argument <code>classBody</code> exists because we cannot assume that
+   * <code>expr</code> is an AnonClassExpression. It could be a
+   * EnumConstantClassDeclaration. The methods for getting the class body
+   * differ in these two cases, so it is
+   * better to have the caller provide them to us.
+   * 
+   * <p>
+   * The default implementation returns {@link InstanceInitAction#NULL_ACTION}.
    * 
    * @param expr
-   *          The anonymous class expression node.
+   *          The anonymous class expression node or enum constant class
+   *          declaration node.
+   * @param classBody
+   *          The ClassBody node of the declaration
    * 
-   * @return The action to use.  This must never return <code>null</code>.
+   * @return The action to use. This must never return <code>null</code>.
    */
-  protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
+  protected InstanceInitAction getAnonClassInitAction(
+      final IRNode expr, final IRNode classBody) {
     return InstanceInitAction.NULL_ACTION;
   }
 
 
 
   /**
-   * Visit an anonymous class expression as if it were a type declaration.
-   * Called by {@link #visitAnonClassExpression(IRNode)} only if 
+   * Visit an anonymous class expression, including those declared as
+   * EnumConstantClassExpressions, as if it were a type declaration.
+   * Called by {@link #processAnonClassExpression(IRNode, IRNode)} only if 
    * the bodies of types are supposed to be visited.  The default implementation
    * visits the class body of the anonymous class by calling 
-   * <code>doAccept(AnonClassExpression.getBody(expr))</code>.
+   * <code>doAccept(classBody)</code>.
    * 
    * <p>By default there is no relationship between {@link #handleNonAnnotationTypeDeclaration(IRNode)}
    * and this method: if you need these visitations
    * to be similar, your subclass must take care of that itself.
-   * @param expr
+   * @param expr An AnonClassExpression or EnumConstantClassDeclaration node
    */
-  protected void handleAnonClassAsTypeDeclaration(final IRNode expr) {
-    doAccept(AnonClassExpression.getBody(expr));
+  protected void handleAnonClassAsTypeDeclaration(
+      final IRNode expr, final IRNode classBody) {
+    doAccept(classBody);
   }
 
+  
+  
+  /**
+   * Used by {@link #visitAnonClassExpression(IRNode) and {
+   * @link #visitEnumConstantClassDeclaration(IRNode)} to set up the context
+   * visit the initializers and body of the class they define.
+   * 
+   * @param expr
+   *          The AnonClassExpression or EnumConstantClassExpression node
+   * @param classBody
+   *          The class body child of the <code>expr</code>.
+   */
+  private void processAnonClassExpression(
+      final IRNode expr, final IRNode classBody) {
+    // Prepare to recursively visit the initialization, if required
+    final InstanceInitAction action = getAnonClassInitAction(expr, classBody);
+  
+    final IRNode prevEnclosingType = enclosingType;
+    final IRNode prevEnclosingDecl = enclosingDecl;
+    final boolean prevInsideConstructor = insideConstructor;
+    final boolean prevInsideFieldDeclaration = insideFieldDeclaration;
+    final boolean prevIsFieldStatic = isStaticField;
+    
+    // No longer inside a field declaration because are entering a type
+    insideFieldDeclaration = false;
+    isStaticField = false;
+    
+    // Now inside the anonymous type declaration
+    enterEnclosingType(expr);
+    try {
+      /* Need to visit the instance initializer blocks and instance field 
+       * declarations.  We rely on the fact that anonymous classes cannot 
+       * have static field members or static initializer blocks.  We ignore
+       * method and constructor declarations.  I know this seems odd, but
+       * see Bug 1662.  Technically the initializer blocks of the anonymous
+       * class expression are executed as part of the enclosing method/constructor. 
+       */
+      insideConstructor = true; // We are inside the constructor of the anonymous class
+      enterEnclosingDecl(JavaPromise.getInitMethodOrNull(expr), expr); // Inside the <init> method
+      action.tryBefore();
+      try {
+        processClassBody(classBody, WhichMembers.INSTANCE);
+      } finally {
+        action.finallyAfter();
+        leaveEnclosingDecl(prevEnclosingDecl);
+        insideConstructor = prevInsideConstructor;
+      }
+      action.afterVisit();
+
+      // Still inside the anonymous class expression
+        
+      // Visit the type body if required
+      if (visitInsideTypes) {
+        try {
+          insideConstructor = false;
+          enclosingDecl = null; // We are not inside of any method or constructor -- see comments in visitNonAnnotationTypeDeclaration()
+          handleAnonClassAsTypeDeclaration(expr, classBody);
+        } finally {
+          enclosingDecl = prevEnclosingDecl;
+          insideConstructor = prevInsideConstructor;
+        }
+      }
+    } finally {
+      // Leaving the anonymous type expression
+      leaveEnclosingType(prevEnclosingType);
+      isStaticField = prevIsFieldStatic;
+      insideFieldDeclaration = prevInsideFieldDeclaration;
+    }
+  }
 
 
   /**
@@ -1423,6 +1453,40 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     doAcceptForChildren(decl);
   }
 
+  @Override
+  public final Void visitEnumConstantClassDeclaration(final IRNode decl) {
+    /* Like a static final field declaration whose initializer is an
+     * AnonClassExpression.
+     * 
+     * So we base this off of visitFieldDeclaration assuming that the field
+     * is static together with visitANonClassExpression.
+     */
+
+    // (1) Deal with the static field declaration
+    insideFieldDeclaration = true;
+    isStaticField = true;
+    // Set the enclosing declaration to the static initializer
+    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
+    try {
+      // Handle the constant declaration, ignoring the class body
+      handleEnumConstantClassDeclaration(decl);
+      
+      // (2) Deal with the class body
+      processAnonClassExpression(decl, EnumConstantClassDeclaration.getBody(decl));
+    } finally {
+      // Reset the enclosing declaration
+      leaveEnclosingDecl(null);
+    }
+    isStaticField = false;
+    insideFieldDeclaration = false;
+
+    return null;
+  }
+  
+  protected void handleEnumConstantClassDeclaration(final IRNode decl) {
+    doAccept(EnumConstantClassDeclaration.getArgs(decl));
+  }
+
   /**
    * Visit a variable declaration. We could be inside a local variable
    * declaration, or inside a field declaration.
@@ -1451,39 +1515,6 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     } else {
       handleLocalVariableDeclaration(varDecl);
     }
-    
-//    if (FieldDeclaration.prototype.includes(
-//        JJNode.tree.getOperator(
-//            JJNode.tree.getParentOrNull(
-//                JJNode.tree.getParentOrNull(varDecl))))) {      
-//      /* Analyze the field initialization if we are inside a constructor or
-//       * visiting a static field.
-//       */
-//      final boolean isStaticDeclaration = TypeUtil.isStatic(varDecl);
-//      if (insideConstructor || isStaticDeclaration) {
-//        /* At this point we know we are inside a field declaration that is
-//         * being analyzed on behalf of a constructor or a static initializer.
-//         */
-//        /* If the initialization is static, we have to update the enclosing 
-//         * method to the class initialization declaration. 
-//         */
-//        if (isStaticDeclaration) {
-//          enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
-//        }
-//        try {
-//          handleFieldInitialization(varDecl, isStaticDeclaration);
-//        } finally {
-//          if (isStaticDeclaration) {
-//            leaveEnclosingDecl(null);
-//          }
-//        }
-//      }
-//    } else {
-//      /* Not a field declaration: so we are in a local variable declaration.
-//       * Always analyze its contents.
-//       */
-//      handleLocalVariableDeclaration(varDecl);
-//    }
     return null;
   }
 

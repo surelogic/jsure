@@ -325,7 +325,8 @@ final class LockExpressions {
     
     
     @Override
-    protected InstanceInitAction getAnonClassInitAction(final IRNode anonClass) {
+    protected InstanceInitAction getAnonClassInitAction(
+        final IRNode anonClass, final IRNode classBody) {
       return new InstanceInitAction() {
         public void tryBefore() {
           try {

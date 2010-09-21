@@ -267,6 +267,19 @@ public final class LocalVariableDeclarations {
        */
       return null;
     }
+    
+    @Override
+    public Void visitEnumConstantClassDeclaration(final IRNode node) {
+      /* Keep adding declarations as long as we haven't found the class we came
+       * up out of.
+       */
+      addDeclaration = !(node == cameFrom);
+      
+      /* STOP: we've encountered a class declaration.  We don't want to enter
+       * the method declarations of nested class definitions.
+       */
+      return null;
+    }
   }
   
   

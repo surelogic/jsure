@@ -1000,6 +1000,13 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     }
 
     @Override
+    protected void handleEnumConstantClassDeclaration(final IRNode expr) {
+      doAccept(EnumConstantClassDeclaration.getArgs(expr));
+      // Handle as a AllocationCallExpression (CallInterface really)
+      visitCallInterface(expr);
+    }
+    
+    @Override
     public Void visitCall(final IRNode call) {
       visitCallInterface(call);
       doAcceptForChildren(call);

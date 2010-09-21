@@ -89,7 +89,8 @@ public class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient,
 		 * anonymous class initializer.
 		 */
 		@Override
-		protected InstanceInitAction getAnonClassInitAction(final IRNode expr) {
+		protected InstanceInitAction getAnonClassInitAction(
+		    final IRNode expr, final IRNode classBody) {
 			return new InstanceInitAction() {
 				public void tryBefore() {
 					reportLocalVariables(JavaPromise.getInitMethod(expr));
