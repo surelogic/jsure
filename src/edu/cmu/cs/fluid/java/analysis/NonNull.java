@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
  * 
  * Simple analysis to determine whether local variables are provably not Null.
  */
+@Deprecated
 public class NonNull extends IntraproceduralAnalysis implements INullAnalysis{
 
 	private FlowAnalysis analysis;
