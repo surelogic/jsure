@@ -544,4 +544,19 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     }
     doAcceptForChildren(varDecl);
   }
+  
+  @Override
+  protected void handleSimpleEnumConstantDeclaration(final IRNode decl) {
+    // treat as new expression
+    context.addEffects(getMethodCallEffects(decl));
+    // no children
+  }
+  
+  @Override
+  protected void handleNormalEnumConstantDeclaration(final IRNode decl) {
+    // treat as new expression
+    context.addEffects(getMethodCallEffects(decl));
+    // Handle the arguments
+    doAcceptForChildren(decl);
+  }
 }

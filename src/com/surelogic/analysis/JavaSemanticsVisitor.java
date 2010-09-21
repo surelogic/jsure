@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
-import edu.cmu.cs.fluid.java.operator.NormalEnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
@@ -97,21 +97,32 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   private enum WhichMembers {
     STATIC {
       @Override
-      protected boolean acceptsModifier(final boolean isStatic) {
-        return isStatic;
+      public boolean acceptsMember(final IRNode bodyDecl) {
+        final Operator op = JJNode.tree.getOperator(bodyDecl);
+        if (EnumConstantDeclaration.prototype.includes(op)) {
+          return true;
+        } else {
+          return (FieldDeclaration.prototype.includes(op)
+              || ClassInitializer.prototype.includes(op))
+            && isStatic(bodyDecl);
+        }
       }
     },
+    
     INSTANCE {
       @Override
-      protected boolean acceptsModifier(final boolean isStatic) {
-        return !isStatic;
+      public boolean acceptsMember(final IRNode bodyDecl) {
+        final Operator op = JJNode.tree.getOperator(bodyDecl);
+        return (FieldDeclaration.prototype.includes(op)
+            || ClassInitializer.prototype.includes(op))
+          && !isStatic(bodyDecl);
       }
     };
+
+    public abstract boolean acceptsMember(IRNode bodyDecl);
     
-    protected abstract boolean acceptsModifier(boolean isStatic);
-    
-    public final boolean acceptsMember(final IRNode bodyDecl) {
-      return acceptsModifier(JavaNode.getModifier(bodyDecl, JavaNode.STATIC));
+    protected boolean isStatic(final IRNode bodyDecl) {
+      return JavaNode.getModifier(bodyDecl, JavaNode.STATIC);
     }
   }
 
@@ -247,12 +258,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   private void processClassBody(final IRNode classBody, final WhichMembers which) {
     for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
-      final Operator op = JJNode.tree.getOperator(bodyDecl);
-      if (FieldDeclaration.prototype.includes(op) ||
-          ClassInitializer.prototype.includes(op)) {
-        if (which.acceptsMember(bodyDecl)) {
-          this.doAccept(bodyDecl);
-        }
+      if (which.acceptsMember(bodyDecl)) {
+        this.doAccept(bodyDecl);
       }       
     }
   }
@@ -1017,7 +1024,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   protected void handleConstructorDeclaration(final IRNode cdecl) {
     doAcceptForChildren(cdecl);
   }
-    
+  
   /**
    * Visit an enumeration declaration.   Does nothing if we should not
    * visit into types.  Otherwise, it
@@ -1352,6 +1359,68 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   protected void handleNestedInterfaceDeclaration(final IRNode intDecl) {
     handleInterfaceDeclaration(intDecl);
+  }
+
+  @Override
+  public final Void visitSimpleEnumConstantDeclaration(final IRNode decl) {
+    /* Like a static final field declaration whose initializer is a
+     * ConstructorCall.  We don't deal with the fact that this is like a
+     * constructor call here.  The implementation of
+     * handleSimpleEnumConstantDeclaration() takes care of that.
+     * 
+     * So we base this off of visitFieldDeclaration assuming that the field
+     * is static.
+     */
+
+    insideFieldDeclaration = true;
+    isStaticField = true;
+    // Set the enclosing declaration to the static initializer
+    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
+    try {
+      handleSimpleEnumConstantDeclaration(decl);
+    } finally {
+      // Reset the enclosing declaration
+      leaveEnclosingDecl(null);
+    }
+    isStaticField = false;
+    insideFieldDeclaration = false;
+
+    return null;
+  }
+
+  protected void handleSimpleEnumConstantDeclaration(final IRNode decl) {
+    doAcceptForChildren(decl);
+  }
+
+  @Override
+  public final Void visitNormalEnumConstantDeclaration(final IRNode decl) {
+    /* Like a static final field declaration whose initializer is a
+     * ConstructorCall.  We don't deal with the fact that this is like a
+     * constructor call here.  The implementation of
+     * handleSimpleEnumConstantDeclaration() takes care of that.
+     * 
+     * So we base this off of visitFieldDeclaration assuming that the field
+     * is static.
+     */
+
+    insideFieldDeclaration = true;
+    isStaticField = true;
+    // Set the enclosing declaration to the static initializer
+    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
+    try {
+      handleNormalEnumConstantDeclaration(decl);
+    } finally {
+      // Reset the enclosing declaration
+      leaveEnclosingDecl(null);
+    }
+    isStaticField = false;
+    insideFieldDeclaration = false;
+
+    return null;
+  }
+
+  protected void handleNormalEnumConstantDeclaration(final IRNode decl) {
+    doAcceptForChildren(decl);
   }
 
   /**
