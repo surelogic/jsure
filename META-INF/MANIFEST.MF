@@ -36,22 +36,11 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ltk.ui.refactoring
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
-Export-Package: com.surelogic.jsure.client.eclipse,
- com.surelogic.jsure.client.eclipse.actions,
- com.surelogic.jsure.client.eclipse.analysis,
+Export-Package: com.surelogic.jsure.client.eclipse.analysis,
  com.surelogic.jsure.client.eclipse.listeners,
- com.surelogic.jsure.client.eclipse.preferences,
- com.surelogic.jsure.client.eclipse.refactor,
- edu.cmu.cs.fluid.analysis.colors,
- edu.cmu.cs.fluid.analysis.effects,
- edu.cmu.cs.fluid.analysis.lock,
- edu.cmu.cs.fluid.analysis.modules,
- edu.cmu.cs.fluid.analysis.threads,
  edu.cmu.cs.fluid.analysis.util,
  edu.cmu.cs.fluid.dc,
  edu.cmu.cs.fluid.dcf.views,
- edu.cmu.cs.fluid.dcf.views.ast,
- edu.cmu.cs.fluid.dcf.views.coe,
- edu.cmu.cs.fluid.dcf.views.modules
+ edu.cmu.cs.fluid.dcf.views.coe
 Bundle-ClassPath: .,
  lib/java-diff-utils-1.2.jar
