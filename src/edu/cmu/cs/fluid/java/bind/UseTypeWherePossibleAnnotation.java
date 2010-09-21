@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.promise.IPromiseParsedCallback;
 import edu.cmu.cs.fluid.promise.IPromiseRule;
 import edu.cmu.cs.fluid.tree.Operator;
 
+@Deprecated
 public class UseTypeWherePossibleAnnotation extends AbstractPromiseAnnotation {
 
   private UseTypeWherePossibleAnnotation() {

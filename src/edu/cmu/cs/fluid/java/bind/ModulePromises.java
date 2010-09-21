@@ -28,6 +28,7 @@ import edu.cmu.cs.fluid.util.Iteratable;
  * @author chance
  *  
  */
+@Deprecated
 public final class ModulePromises extends AbstractPromiseAnnotation {
   private ModulePromises() {
   }

@@ -15,6 +15,7 @@ import edu.cmu.cs.fluid.promise.IPromiseRule;
 import edu.cmu.cs.fluid.sea.drops.promises.UsedByPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
+@Deprecated
 public class UsedByAnnotation extends AbstractPromiseAnnotation {
 
   private UsedByAnnotation() {

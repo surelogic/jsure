@@ -22,6 +22,7 @@ import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleReqSummaryDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRequireDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleRevokeDrop;
 
+@Deprecated
 public class TRolePromisesSupport extends AbstractPromiseAnnotation {
   public static TRolePromisesSupport INSTANCE = new TRolePromisesSupport();
   

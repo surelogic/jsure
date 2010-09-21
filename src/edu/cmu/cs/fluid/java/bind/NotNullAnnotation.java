@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.drops.promises.NotNullPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
+@Deprecated
 public class NotNullAnnotation extends AbstractPromiseAnnotation {
 
   static SlotInfo<Boolean> notNullSI;

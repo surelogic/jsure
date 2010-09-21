@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author chance
  *  
  */
+@Deprecated
 public final class TaintednessPromises extends AbstractPromiseAnnotation {
   private TaintednessPromises() {
   }

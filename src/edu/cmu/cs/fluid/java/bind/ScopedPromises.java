@@ -22,6 +22,7 @@ import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
 /**
  * @author chance
  */
+@Deprecated
 public final class ScopedPromises extends AbstractPromiseAnnotation {
   private ScopedPromises() {
   }

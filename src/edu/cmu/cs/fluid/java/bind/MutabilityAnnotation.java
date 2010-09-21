@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author chance
  *  
  */
+@Deprecated
 public final class MutabilityAnnotation extends AbstractPromiseAnnotation {
   private MutabilityAnnotation() {
   }

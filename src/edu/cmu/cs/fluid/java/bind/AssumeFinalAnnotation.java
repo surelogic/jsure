@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.promise.parse.*;
 import edu.cmu.cs.fluid.sea.drops.promises.AssumeFinalPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
+@Deprecated
 public class AssumeFinalAnnotation extends AbstractPromiseAnnotation {
 
   static SlotInfo<Boolean> assumeFinalSI;

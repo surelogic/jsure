@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.SubtypedByPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
+@Deprecated
 public class SubtypedByAnnotation extends AbstractPromiseAnnotation {
 
   private SubtypedByAnnotation() {
