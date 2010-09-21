@@ -3,10 +3,7 @@ package edu.cmu.cs.fluid.dcf.views.coe;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,7 +58,6 @@ import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
-import edu.cmu.cs.fluid.util.SingletonIterator;
 
 public class ResultsView extends AbstractDoubleCheckerView {
 
@@ -264,7 +260,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
    * Changed to not depend on the Viewer
    */
   public static class ContentNameSorter extends ViewerSorter {
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public int compare(final Viewer viewer, final Object e1, final Object e2) {
       int result = 0; // = super.compare(viewer, e1, e2);
       final boolean bothContent = e1 instanceof Content && e2 instanceof Content;
@@ -619,6 +616,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
   private void exportXMLForSierra() {
     final String proj = ProjectDrop.getProject();
     File location;
+    
     if (true) {
       final Shell shell = Activator.getDefault().getWorkbench().getDisplay()
           .getActiveShell();
@@ -628,9 +626,11 @@ public class ResultsView extends AbstractDoubleCheckerView {
           .setText("Select XML output filename (for import into Sierra)");
       final String filename = fileChooser.open();
       location = new File(filename);
+  	/*
     } else {
       final File userDir = new File(System.getProperty("user.home"));
       location = new File(userDir, "Desktop/" + proj + ".sea.xml");
+      */
     }
     try {
       new SeaSnapshot(location).snapshot(proj, Sea.getDefault());

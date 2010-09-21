@@ -17,7 +17,7 @@ import com.surelogic.jsure.client.eclipse.analysis.*;
  * Fluid nature for the project.
  */
 public class FocusFluidNatureAction extends AbstractSingleProjectAction {
-	private static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.dc");
+	static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.dc");
 
 	public void run(final IAction action) {
 		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()

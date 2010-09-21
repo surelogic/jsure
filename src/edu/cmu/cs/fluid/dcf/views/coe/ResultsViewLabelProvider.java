@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 
 public final class ResultsViewLabelProvider extends ColumnLabelProvider implements
 		IResultsViewLabelProvider {
-	private static final boolean showCustomToolTips = false;
+	//private static final boolean showCustomToolTips = false;
 	private boolean m_showInferences = true;
 
 	/**
@@ -59,12 +59,14 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider implemen
 	}
 
 	public Image getToolTipImage(Object element) {
-		return showCustomToolTips ? getImage(element) : null;
+		return null;
+		//return showCustomToolTips ? getImage(element) : null;
 	}
 	
 	//@Override
 	public String getToolTipText(Object element) {
-		return showCustomToolTips ? "Tooltip\n (" + element + ")" : null;
+		return null;
+		//return showCustomToolTips ? "Tooltip\n (" + element + ")" : null;
 	}
 
 	//@Override

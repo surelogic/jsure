@@ -511,6 +511,7 @@ public class ResultsViewContentProvider extends
 	 * 
 	 * @see #categorize(Set)
 	 */
+	@SuppressWarnings("unchecked")
 	private void categorizeRecursive(Content node, boolean atRoot,
 			Set<Content> existingCategoryFolderSet,
 			Set<Content> contentsOnPathToRoot) {

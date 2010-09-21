@@ -298,7 +298,7 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 	}
 
 	// For exporting the node (see XMLReport)
-	@SuppressWarnings("restriction")
+	//
 	// Suppress warnings about accessing the CVS information
 	public Map<String, String> getLocationAttributes(
 			final Map<String, String> attrs, final boolean includeCVS) {
@@ -325,6 +325,7 @@ public final class Content implements Cloneable, IDiffNode<Content> {
 		}
 	}
 
+	@SuppressWarnings("restriction")
 	private void updateAttrs(final Map<String, String> attrs,
 			final boolean includeCVS, final ISrcRef srcRef,
 			final IResource srcFile) {

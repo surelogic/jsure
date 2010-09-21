@@ -148,9 +148,11 @@ public class XMLReport {
     }
   }
   
+  /*
   private static void generateReport(PrintWriter out, TreeViewer resultsViewer, boolean includesSource){
     generateReport(new OutState(out, resultsViewer, includesSource));
   }
+  */
   
   public static void generateReport(OutState state) {
     state.out.print(XMLUtil.oneAttrOpen(ROOT_TAG, ATTR_MESSAGE, "Assurance Results"));

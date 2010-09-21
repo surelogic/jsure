@@ -1,11 +1,9 @@
 package edu.cmu.cs.fluid.analysis.modules;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.*;
 
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.modules.ModuleAnalysisAndVisitor;
