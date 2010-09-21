@@ -102,7 +102,6 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
     
     @Override 
     public ImmutableSet<IRNode>[] transferCall(final IRNode node, final boolean b, final ImmutableSet<IRNode>[] before) {
-      System.out.println("transfer method call: " + DebugUnparser.toString(node));
       return before;
     }
     
