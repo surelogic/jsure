@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
@@ -72,13 +72,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 					// only assure if there is declared intent
 					if (declFx != null) {
 					  final Set<Effect> implFx = getAnalysis().getImplementationEffects(member, bca);
-//					  final Set<Effect> implFx = getAnalysis().getEffectsQuery(member).getResultFor(member);
-//					  /* Can use null as the constructor context because member IS a 
-//					   * constructor or method declaration.
-//					   */
-//						final Set<Effect> implFx = getAnalysis().getEffects(member, null);
-						final Set<Effect> maskedFx = maskEffects(implFx);
-						final String modelName = genModelName(member, op, declFx);
+						final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
 
 						final RegionEffectsPromiseDrop declaredEffectsDrop =
 							MethodEffectsRules.getRegionEffectsDrop(member);
@@ -91,11 +85,9 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 							rd.setResultMessage(Messages.EffectAssurance_msgEmptyEffects);
 						} else {
 							if (isConstructor) {
-								checkConstructor(declaredEffectsDrop, member, declFx, maskedFx,
-										modelName);
+								checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
 							} else {
-								checkMethod(declaredEffectsDrop, member, declFx, maskedFx,
-										modelName);
+								checkMethod(declaredEffectsDrop, member, declFx, maskedFx);
 							}
 						}
 					} else {
@@ -104,13 +96,8 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 						 */
 					}
 				}
-			} else if(ClassDeclaration.prototype.includes(op) ||
-			    NestedClassDeclaration.prototype.includes(op) ||
-			    InterfaceDeclaration.prototype.includes(op) ||
-			    NestedInterfaceDeclaration.prototype.includes(op) ||
-			    EnumDeclaration.prototype.includes(op) ||
-			    NestedEnumDeclaration.prototype.includes(op)) {
-			  reportClassInitializationEffects(member);
+			} else if(TypeUtil.isTypeDecl(member)) {
+//			  reportClassInitializationEffects(member);
 			}			  
 		}
 	}
@@ -120,30 +107,18 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	  final Set<Effect> effects = 
 	    getAnalysis().getEffectsQuery(
 	        flowUnit, bca.getExpressionObjectsQuery(flowUnit)).getResultFor(flowUnit);
+	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
 	  final String id = TypeDeclaration.getId(typeDecl);
-	  for (final Effect e : effects) {
+	  for (final Effect e : masked) {
 	    final InfoDrop drop = new InfoDrop();
 	    drop.setCategory(null);
-	    final IRNode src = e.getSource();
-      setResultDependUponDrop(drop, src == null ? typeDecl : src);
+	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
+      setResultDependUponDrop(drop, src);
 	    drop.setMessage(
-	        MessageFormat.format("<clinit> of {0} has effect {1}{2}",
-	            id, e.toString(), e.isMaskable(getBinder()) ? " (maskable)" : ""));
+	        MessageFormat.format("{0}.<clinit> has effect \"{1}\" from {2}",
+	            id, e.toString(), DebugUnparser.toString(src)));
 	  }
 	}
-
-	private Set<Effect> maskEffects(final Set<Effect> effects) {
-		if (effects.isEmpty()) {
-			return Collections.emptySet();
-		}
-		final Set<Effect> newEffects = new HashSet<Effect>();
-    final IBinder binder = getBinder();
-		for (final Effect e : effects) {
-      if (!e.isMaskable(binder)) newEffects.add(e);
-		}
-		return Collections.unmodifiableSet(newEffects);
-	}
-
 
 	/**
 	 * Assure the effect annotations of a constructor.
@@ -155,7 +130,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	 */
 	private void checkConstructor(final RegionEffectsPromiseDrop declEffDrop,
 			final IRNode constructor, final Set<Effect> declFx,
-			final Set<Effect> implFx, String modelName) {
+			final Set<Effect> implFx) {
 		final IRNode receiverNode = PromiseUtil.getReceiverNode(constructor);
 		for (final Effect eff : implFx) {
 			/*
@@ -165,7 +140,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			if (eff.affectsReceiver(receiverNode)) {
 				constructResultDrop(constructor, declEffDrop, true, eff, Messages.EffectAssurance_msgContructorRule, eff);
 			} else {
-				checkEffect(constructor, declEffDrop, eff, declFx, modelName);
+				checkEffect(constructor, declEffDrop, eff, declFx);
 			}
 		}
 	}
@@ -250,9 +225,9 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	 * @param implFx
 	 */
 	private void checkMethod(final RegionEffectsPromiseDrop declEffDrop, final IRNode method,
-			final Set<Effect> declFx, final Set<Effect> implFx, String modelName) {
+			final Set<Effect> declFx, final Set<Effect> implFx) {
 	  for (final Effect eff : implFx) {
-			checkEffect(method, declEffDrop, eff, declFx, modelName);
+			checkEffect(method, declEffDrop, eff, declFx);
 		}
 	}
 
@@ -267,7 +242,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	 */
 	private void checkEffect(final IRNode methodBeingChecked,
 	    final RegionEffectsPromiseDrop declEffDrop, final Effect implEff,
-			final Set<Effect> declFx, String modelName) {
+			final Set<Effect> declFx) {
 	  if (implEff.isEmpty()) {
 	    constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
 	        Messages.EffectsAssurance_msgNoEffects,
@@ -288,51 +263,5 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
   					Messages.EffectAssurance_msgUnaccountedFor, implEff);
   		}
 	  }
-	}
-
-	/**
-	 * Generates a model name from the promise.
-	 *
-	 * @param node
-	 *          a constructor or method declaration
-	 * @param op
-	 *          the operator for node
-	 * @return a created model name for the thread effects declaration
-	 */
-	private String genModelName(final IRNode node, final Operator op,
-			final Set<Effect> effects) {
-		// add the type we found the method within (could be the promised type)
-		IRNode enclosingType = VisitUtil.getEnclosingType(node);
-		String typeName = JavaNames.getTypeName(enclosingType);
-		String targetName = "(none)";
-		if (MethodDeclaration.prototype.includes(op)) {
-			targetName = JavaNames.genMethodConstructorName(node);
-			IRNode args = MethodDeclaration.getParams(node);
-			targetName += JavaNames.genArgList(args);
-		} else if (ConstructorDeclaration.prototype.includes(op)) {
-			targetName = JavaNames.genMethodConstructorName(node);
-			IRNode args = ConstructorDeclaration.getParams(node);
-			targetName += JavaNames.genArgList(args);
-		}
-		String reads = "@reads ";
-		int readCt = 0;
-		String writes = "@writes ";
-		int writeCt = 0;
-		for (Iterator<Effect> i = effects.iterator(); i.hasNext();) {
-			Effect eff = i.next();
-			if (eff.isRead()) {
-				reads += (readCt++ > 0 ? ", " : " ") + eff.getTarget().getName();
-			}
-			if (eff.isWrite()) {
-				writes += (writeCt++ > 0 ? ", " : " ") + eff.getTarget().getName();
-			}
-		}
-		if (readCt == 0) {
-			reads += "nothing ";
-		}
-		if (writeCt == 0) {
-			writes += "nothing";
-		}
-		return reads + " " + writes + " for " + typeName + "." + targetName;
 	}
 }

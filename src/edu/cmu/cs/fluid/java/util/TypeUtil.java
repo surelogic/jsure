@@ -117,6 +117,24 @@ public class TypeUtil implements JavaGlobals {
   /// other stuff
 
   /**
+   * Is the given node a type declaration?  True if the node is a 
+   * ClassDeclaration, NestedClassDeclaration, InterfaceDeclaration
+   * NestedInterfaceDeclaration, EnumDeclaration, NestedEnumDeclaration
+   * AnonClassExpression, or EnumConstantClassDeclaration.
+   */
+  public static boolean isTypeDecl(final IRNode node) {
+    final Operator op = JJNode.tree.getOperator(node);
+    return ClassDeclaration.prototype.includes(op)
+        || NestedClassDeclaration.prototype.includes(op)
+        || InterfaceDeclaration.prototype.includes(op)
+        || NestedInterfaceDeclaration.prototype.includes(op)
+        || EnumDeclaration.prototype.includes(op)
+        || NestedEnumDeclaration.prototype.includes(op)
+        || AnonClassExpression.prototype.includes(op)
+        || EnumConstantClassDeclaration.prototype.includes(op);
+  }
+  
+  /**
    * Is some member declared to be <code>static</code>.  Works for 
    * MethodDeclaration, VariableDeclarator, FieldDeclaration, ClassInitializer,
    * NewRegionDeclaration, ConstructorDeclaration (always false),

@@ -171,6 +171,21 @@ public final class Effects implements IBinderClient {
     visitor.doAccept(flowUnit);
     return Collections.unmodifiableSet(visitor.getTheEffects());
   }
+  
+  /**
+   * Remove the maskable effects from a set of effects.
+   */
+  public Set<Effect> maskEffects(final Set<Effect> effects) {
+    if (effects.isEmpty()) {
+      return Collections.emptySet();
+    } else {
+      final Set<Effect> newEffects = new HashSet<Effect>();
+      for (final Effect e : effects) {
+        if (!e.isMaskable(binder)) newEffects.add(e);
+      }
+      return Collections.unmodifiableSet(newEffects);
+    }
+  }
 
   
   
