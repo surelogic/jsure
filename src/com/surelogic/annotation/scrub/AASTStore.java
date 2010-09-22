@@ -161,7 +161,7 @@ public final class AASTStore {
     return results.get(root);
   }
   
-  public static synchronized void sync() {
-	  System.out.println("Syncing w/ AAST store");
+  public static synchronized void sync() {	  
+	  //System.out.println("Syncing w/ AAST store");
   }
 }
