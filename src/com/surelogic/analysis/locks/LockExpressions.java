@@ -401,7 +401,7 @@ final class LockExpressions {
     }
     
     @Override
-    public Void visitMethodCall(final IRNode mcall) {
+    public void handleMethodCall(final IRNode mcall) {
       if (lockUtils.isLockClassUsage(mcall)) {
         final MethodCall call = (MethodCall) JJNode.tree.getOperator(mcall);
         final IRNode lockExpr = call.get_Object(mcall);
@@ -410,7 +410,6 @@ final class LockExpressions {
         if (locks != null) jucLockExprsToLockSets.put(lockExpr, locks);
       }
       doAcceptForChildren(mcall);
-      return null;
     }
 
     @Override

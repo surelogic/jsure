@@ -258,16 +258,21 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     return Effects.getMethodCallEffects(context.bcaQuery,
         targetFactory, binder, call, getEnclosingDecl(), false);
   }
+  
+  @Override
+  protected void handleAsMethodCall(final IRNode call) {
+    context.addEffects(getMethodCallEffects(call));
+  }
 
   //----------------------------------------------------------------------
 
-  @Override
-  protected void handleAnonClassExpression(final IRNode expr) {
-    // Get the effects of the evaluating the arguments
-    doAccept(AnonClassExpression.getArgs(expr));
-    // Get the effects of the super-class constructor
-    context.addEffects(getMethodCallEffects(expr));
-  }
+//  @Override
+//  protected void handleAnonClassExpression(final IRNode expr) {
+//    // Get the effects of the evaluating the arguments
+//    doAccept(AnonClassExpression.getArgs(expr));
+//    // Get the effects of the super-class constructor
+//    context.addEffects(getMethodCallEffects(expr));
+//  }
 
   @Override
   protected InstanceInitAction getAnonClassInitAction(
@@ -376,11 +381,11 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   
   //----------------------------------------------------------------------
 
-  @Override
-  protected void handleConstructorCall(final IRNode ccall) {
-    context.addEffects(getMethodCallEffects(ccall));
-    doAcceptForChildren(ccall);
-  }
+//  @Override
+//  protected void handleConstructorCall(final IRNode ccall) {
+//    context.addEffects(getMethodCallEffects(ccall));
+//    doAcceptForChildren(ccall);
+//  }
   
   @Override
   protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
@@ -427,21 +432,21 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   
   //----------------------------------------------------------------------
 
-  @Override 
-  public Void visitMethodCall(final IRNode expr) {
-    context.addEffects(getMethodCallEffects(expr));
-    doAcceptForChildren(expr);
-    return null;
-  }
+//  @Override 
+//  public Void visitMethodCall(final IRNode expr) {
+//    context.addEffects(getMethodCallEffects(expr));
+//    doAcceptForChildren(expr);
+//    return null;
+//  }
 
   //----------------------------------------------------------------------
 
-  @Override
-  public Void visitNewExpression(final IRNode expr) {
-    context.addEffects(getMethodCallEffects(expr));
-    doAcceptForChildren(expr);
-    return null;
-  }
+//  @Override
+//  public Void visitNewExpression(final IRNode expr) {
+//    context.addEffects(getMethodCallEffects(expr));
+//    doAcceptForChildren(expr);
+//    return null;
+//  }
  
   //----------------------------------------------------------------------
 
@@ -568,27 +573,27 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     doAcceptForChildren(varDecl);
   }
   
-  @Override
-  protected void handleSimpleEnumConstantDeclaration(final IRNode decl) {
-    // treat as new expression
-    context.addEffects(getMethodCallEffects(decl));
-    // no children
-  }
+//  @Override
+//  protected void handleSimpleEnumConstantDeclaration(final IRNode decl) {
+//    // treat as new expression
+//    context.addEffects(getMethodCallEffects(decl));
+//    // no children
+//  }
   
-  @Override
-  protected void handleNormalEnumConstantDeclaration(final IRNode decl) {
-    // treat as new expression
-    context.addEffects(getMethodCallEffects(decl));
-    // Handle the arguments
-    doAcceptForChildren(decl);
-  }
+//  @Override
+//  protected void handleNormalEnumConstantDeclaration(final IRNode decl) {
+//    // treat as new expression
+//    context.addEffects(getMethodCallEffects(decl));
+//    // Handle the arguments
+//    doAcceptForChildren(decl);
+//  }
 
   
-  @Override
-  protected void handleEnumConstantClassDeclaration(final IRNode decl) {
-    // treat as new expression
-    context.addEffects(getMethodCallEffects(decl));
-    // Handle the arguments
-    doAcceptForChildren(EnumConstantClassDeclaration.getArgs(decl));
-  }
+//  @Override
+//  protected void handleEnumConstantClassDeclaration(final IRNode decl) {
+//    // treat as new expression
+//    context.addEffects(getMethodCallEffects(decl));
+//    // Handle the arguments
+//    doAcceptForChildren(EnumConstantClassDeclaration.getArgs(decl));
+//  }
 }

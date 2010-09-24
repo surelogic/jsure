@@ -281,7 +281,7 @@ public class ModuleAnalysisAndVisitor {
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodCall(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
-    public Void visitMethodCall(IRNode node) {
+    protected void handleMethodCall(IRNode node) {
       MethodCall call = (MethodCall) getOperator(node);
       final IRNode mDecl = binder.getBinding(node);
       
@@ -295,7 +295,7 @@ public class ModuleAnalysisAndVisitor {
 
       checkVisibility(node, mDecl);
       
-      return super.visitMethodCall(node);
+      doAcceptForChildren(node);
     }
 	
     /* (non-Javadoc)
@@ -315,7 +315,7 @@ public class ModuleAnalysisAndVisitor {
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitNewExpression(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
-    public Void visitNewExpression(IRNode node) {
+    protected void handleNewExpression(IRNode node) {
       final IRNode cDecl = binder.getBinding(node);
        
       if (getEnclosingDecl() != null) {
@@ -324,7 +324,7 @@ public class ModuleAnalysisAndVisitor {
       }
       checkVisibility(node, cDecl);
       
-      return super.visitNewExpression(node);
+      doAcceptForChildren(node);
     }
 
     /* (non-Javadoc)

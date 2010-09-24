@@ -1023,9 +1023,8 @@ private static int cuCount = 0;
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitMethodCall(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
-    public Void visitMethodCall(IRNode node) {
+    protected void handleMethodCall(IRNode node) {
       handleCallLikeOps(node);
-      return null;
     }
     
     /* (non-Javadoc)
@@ -1046,9 +1045,8 @@ private static int cuCount = 0;
      * @see edu.cmu.cs.fluid.java.operator.Visitor#visitNewExpression(edu.cmu.cs.fluid.ir.IRNode)
      */
     @Override
-    public Void visitNewExpression(IRNode node) {
+    protected void handleNewExpression(IRNode node) {
       handleCallLikeOps(node);
-      return null;
     }
     
     

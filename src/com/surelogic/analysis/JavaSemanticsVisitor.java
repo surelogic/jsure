@@ -490,7 +490,23 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     doAcceptForChildren(typeDecl);
   }
 
-
+  
+  
+  /**
+   * Process the given node as a method call.  Called by the default
+   * implementations of {@link #handleAnonClassExpression(IRNode)},
+   * {@link #handleConstructorCall(IRNode)},
+   * {@link #handleEnumConstantClassDeclaration(IRNode)},
+   * {@link #handleNormalEnumConstantDeclaration(IRNode)},
+   * {@link #handleSimpleEnumConstantDeclaration(IRNode)},
+   * {@link #visitMethodCall(IRNode)}, and 
+   * {@link #visitNewExpression(IRNode)}.
+   * 
+   * <p>Default implementation does nothing.
+   */
+  protected void handleAsMethodCall(final IRNode call) {
+    // Does nothing
+  }
 
   /**
    * Visit an anonymous class expression.  The most complicated of all the
@@ -584,8 +600,13 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
 
   /**
    * Visit an anonymous class declaration.  Called by {@link #visitAnonClassExpression(IRNode)}.
-   * The default implementation visits the arguments to the expression by
+   * The default implementation 
+   * <ol>
+   * <li>Visits the arguments to the expression by
    * calling <code>doAccept(AnonClassExpression.getArgs(expr))</code>.
+   * <li>Processes the expression as a method call by calling
+   * {@link #handleAsMethodCall(IRNode)}.
+   * </ol>
    * 
    * <p>If the analysis cares that an anonymous class expression is also an 
    * AllocationCallExpression (that is, a kind of method/constructor call) then
@@ -600,6 +621,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   protected void handleAnonClassExpression(final IRNode expr) {
     doAccept(AnonClassExpression.getArgs(expr));
+    handleAsMethodCall(expr);
   }
 
   /**
@@ -967,8 +989,15 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * initializers are visited.
    * 
    * <p>
-   * The default implementation simply visits the children of node by calling 
-   * <code>doAcceptForChildren(ccall)</code>.  In most 
+   * The default implementation 
+   * <ol>
+   * <li>Visits the children of node by calling 
+   * <code>doAcceptForChildren(ccall)</code>. 
+   * <li>Processes the expression as a method call by calling
+   * {@link #handleAsMethodCall(IRNode)}.
+   * </ol>
+   * 
+   * <p>In most 
    * cases a reimplementation should first visit the children of the node
    * to handle the parameters, and then process the constructor call node itself. 
    * 
@@ -977,6 +1006,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   protected void handleConstructorCall(final IRNode ccall) {
     doAcceptForChildren(ccall);
+    handleAsMethodCall(ccall);
   }
   
   /**
@@ -1055,6 +1085,58 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     doAcceptForChildren(cdecl);
   }
   
+  @Override
+  public final Void visitEnumConstantClassDeclaration(final IRNode decl) {
+    /* Like a static final field declaration whose initializer is an
+     * AnonClassExpression.
+     * 
+     * So we base this off of visitFieldDeclaration assuming that the field
+     * is static together with visitANonClassExpression.
+     */
+  
+    // (1) Deal with the static field declaration
+    insideFieldDeclaration = true;
+    isStaticField = true;
+    // Set the enclosing declaration to the static initializer
+    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
+    try {
+      // Handle the constant declaration, ignoring the class body
+      handleEnumConstantClassDeclaration(decl);
+      
+      // (2) Deal with the class body
+      processAnonClassExpression(decl, EnumConstantClassDeclaration.getBody(decl));
+    } finally {
+      // Reset the enclosing declaration
+      leaveEnclosingDecl(null);
+    }
+    isStaticField = false;
+    insideFieldDeclaration = false;
+  
+    return null;
+  }
+
+  /**
+   * Visit an enumeration constant class declaration.  Called by {@link #visitEnumConstantClassDeclaration(IRNode)}.
+   * The default implementation 
+   * <ol>
+   * <li>Visits the arguments to the expression by
+   * calling <code>doAccept(AnonClassExpression.getArgs(expr))</code>.
+   * <li>Processes the expression as a method call by calling
+   * {@link #handleAsMethodCall(IRNode)}.
+   * </ol>
+   * 
+   * <p>It is the responsibility of the subclass implementation to visit the 
+   * children of this node (or not) as appropriate to the analysis.  <em>This
+   * method should not visit the class body of the enumeration constant class
+   * declaration.</em>
+   * 
+   * @param expr The anonymous class expression node.
+   */
+  protected void handleEnumConstantClassDeclaration(final IRNode decl) {
+    doAccept(EnumConstantClassDeclaration.getArgs(decl));
+    handleAsMethodCall(decl);
+  }
+
   /**
    * Visit an enumeration declaration.   Does nothing if we should not
    * visit into types.  Otherwise, it
@@ -1240,6 +1322,29 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   }
   
   /**
+   * Visit a method call.  Delegates to {@link #handleMethodCall}.
+   */
+  @Override 
+  public final Void visitMethodCall(final IRNode expr) {
+    handleMethodCall(expr);
+    return null;
+  }
+  
+  /**
+   * Visit a method call.  The default implementation 
+   * <ol>
+   * <li>Visits the children of node by calling 
+   * <code>doAcceptForChildren(expr)</code>. 
+   * <li>Processes the expression as a method call by calling
+   * {@link #handleAsMethodCall(IRNode)}.
+   * </ol>
+   */
+  protected void handleMethodCall(final IRNode expr) {
+    doAcceptForChildren(expr);
+    handleAsMethodCall(expr);
+  }
+
+  /**
    * Visit a method declaration. The order of operations is
    * <ol>
    *   <li>Record that we are inside a method, and the identity of that method.
@@ -1391,37 +1496,29 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     handleInterfaceDeclaration(intDecl);
   }
 
+  /**
+   * Visit a new expression. Delegates to {@link #handleNewExpression}.
+   */
   @Override
-  public final Void visitSimpleEnumConstantDeclaration(final IRNode decl) {
-    /* Like a static final field declaration whose initializer is a
-     * ConstructorCall.  We don't deal with the fact that this is like a
-     * constructor call here.  The implementation of
-     * handleSimpleEnumConstantDeclaration() takes care of that.
-     * 
-     * So we base this off of visitFieldDeclaration assuming that the field
-     * is static.
-     */
-
-    insideFieldDeclaration = true;
-    isStaticField = true;
-    // Set the enclosing declaration to the static initializer
-    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
-    try {
-      handleSimpleEnumConstantDeclaration(decl);
-    } finally {
-      // Reset the enclosing declaration
-      leaveEnclosingDecl(null);
-    }
-    isStaticField = false;
-    insideFieldDeclaration = false;
-
+  public final Void visitNewExpression(final IRNode expr) {
+    handleNewExpression(expr);
     return null;
   }
-
-  protected void handleSimpleEnumConstantDeclaration(final IRNode decl) {
-    doAcceptForChildren(decl);
+  
+  /**
+   * Visit a new expression call.  The default implementation 
+   * <ol>
+   * <li>Visits the children of node by calling 
+   * <code>doAcceptForChildren(expr)</code>. 
+   * <li>Processes the expression as a method call by calling
+   * {@link #handleAsMethodCall(IRNode)}.
+   * </ol>
+   */
+  protected void handleNewExpression(final IRNode expr) {
+    doAcceptForChildren(expr);
+    handleAsMethodCall(expr);
   }
-
+  
   @Override
   public final Void visitNormalEnumConstantDeclaration(final IRNode decl) {
     /* Like a static final field declaration whose initializer is a
@@ -1449,42 +1546,71 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     return null;
   }
 
+  /**
+   * Called by {@link #visitNormalEnumConstantDeclaration(IRNode)} to handle 
+   * the declaration itself. 
+   * 
+   * <p>
+   * The default implementation 
+   * <ol>
+   * <li>Visits the children of node by calling 
+   * <code>doAcceptForChildren(decl)</code>. 
+   * <li>Processes the expression as a method call by calling
+   * {@link #handleAsMethodCall(IRNode)}.
+   * </ol>
+   * 
+   * <p>In most 
+   * cases a reimplementation should first visit the children of the node
+   * to handle the parameters, and then process the declaration node itself. 
+   * 
+   * @param decl
+   *          The normal enumeration constant declaration
+   */
   protected void handleNormalEnumConstantDeclaration(final IRNode decl) {
     doAcceptForChildren(decl);
+    handleAsMethodCall(decl);
   }
 
   @Override
-  public final Void visitEnumConstantClassDeclaration(final IRNode decl) {
-    /* Like a static final field declaration whose initializer is an
-     * AnonClassExpression.
+  public final Void visitSimpleEnumConstantDeclaration(final IRNode decl) {
+    /* Like a static final field declaration whose initializer is a
+     * ConstructorCall.  We don't deal with the fact that this is like a
+     * constructor call here.  The implementation of
+     * handleSimpleEnumConstantDeclaration() takes care of that.
      * 
      * So we base this off of visitFieldDeclaration assuming that the field
-     * is static together with visitANonClassExpression.
+     * is static.
      */
-
-    // (1) Deal with the static field declaration
+  
     insideFieldDeclaration = true;
     isStaticField = true;
     // Set the enclosing declaration to the static initializer
     enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
     try {
-      // Handle the constant declaration, ignoring the class body
-      handleEnumConstantClassDeclaration(decl);
-      
-      // (2) Deal with the class body
-      processAnonClassExpression(decl, EnumConstantClassDeclaration.getBody(decl));
+      handleSimpleEnumConstantDeclaration(decl);
     } finally {
       // Reset the enclosing declaration
       leaveEnclosingDecl(null);
     }
     isStaticField = false;
     insideFieldDeclaration = false;
-
+  
     return null;
   }
-  
-  protected void handleEnumConstantClassDeclaration(final IRNode decl) {
-    doAccept(EnumConstantClassDeclaration.getArgs(decl));
+
+  /**
+   * Called by {@link #visitSimpleEnumConstantDeclaration(IRNode)} to handle 
+   * the declaration itself. 
+   * 
+   * <p>
+   * The default implementation processes the expression as a method call by calling
+   * {@link #handleAsMethodCall(IRNode)}.
+   * 
+   * @param decl
+   *          The normal enumeration constant declaration
+   */
+  protected void handleSimpleEnumConstantDeclaration(final IRNode decl) {
+    handleAsMethodCall(decl);
   }
 
   /**

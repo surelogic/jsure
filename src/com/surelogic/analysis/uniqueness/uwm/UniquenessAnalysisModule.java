@@ -953,10 +953,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
     
     /* Case 4: invoking method with unique parameter or borrowed parameters.
-     * We care about borrowed parameters because then can affect the 
+     * We care about borrowed parameters because they can affect the 
      * validity of unique fields passed to them.
      */
-    private void visitCallInterface(final IRNode call) {
+//    private void visitCallInterface(final IRNode call) {
+    @Override
+    protected void handleAsMethodCall(final IRNode call) {
       final IRNode declNode = binder.getBinding(call);
 
       if (declNode != null) {
@@ -986,32 +988,32 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
     
     
-    @Override
-    public Void visitAllocationCallExpression(final IRNode call) {
-      visitCallInterface(call);
-      return null;
-    }
-    
-    @Override
-    protected void handleAnonClassExpression(final IRNode expr) {
-      doAccept(AnonClassExpression.getArgs(expr));
-      // Handle as a AllocationCallExpression (CallInterface really)
-      visitCallInterface(expr);
-    }
-
-    @Override
-    protected void handleEnumConstantClassDeclaration(final IRNode expr) {
-      doAccept(EnumConstantClassDeclaration.getArgs(expr));
-      // Handle as a AllocationCallExpression (CallInterface really)
-      visitCallInterface(expr);
-    }
-    
-    @Override
-    public Void visitCall(final IRNode call) {
-      visitCallInterface(call);
-      doAcceptForChildren(call);
-      return null;
-    }
+//    @Override
+//    public Void visitAllocationCallExpression(final IRNode call) {
+//      visitCallInterface(call);
+//      return null;
+//    }
+//    
+//    @Override
+//    protected void handleAnonClassExpression(final IRNode expr) {
+//      doAccept(AnonClassExpression.getArgs(expr));
+//      // Handle as a AllocationCallExpression (CallInterface really)
+//      visitCallInterface(expr);
+//    }
+//
+//    @Override
+//    protected void handleEnumConstantClassDeclaration(final IRNode expr) {
+//      doAccept(EnumConstantClassDeclaration.getArgs(expr));
+//      // Handle as a AllocationCallExpression (CallInterface really)
+//      visitCallInterface(expr);
+//    }
+//    
+//    @Override
+//    public Void visitCall(final IRNode call) {
+//      visitCallInterface(call);
+//      doAcceptForChildren(call);
+//      return null;
+//    }
 
     @Override
     protected void handleConstructorDeclaration(final IRNode cdecl) {
@@ -1081,12 +1083,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       doAcceptForChildren(mdecl);
     }
     
-    @Override
-    public Void visitSomeFunctionCall(final IRNode call) {
-      visitCallInterface(call);
-      doAcceptForChildren(call);
-      return null;
-    }
+//    @Override
+//    public Void visitSomeFunctionCall(final IRNode call) {
+//      visitCallInterface(call);
+//      doAcceptForChildren(call);
+//      return null;
+//    }
     
     @Override
     protected void handleFieldInitialization(final IRNode varDecl, final boolean isStatic) {
