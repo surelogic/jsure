@@ -120,6 +120,8 @@ public class ClearProjectListener implements IResourceChangeListener {
 		}
 	}
 	
+	private static boolean debug = false;
+	
 	private static void clearDropSea(final boolean clearAll, Iterable<IProject> removed) {
 		final ProjectsDrop pd = ProjectsDrop.getDrop();
 		if (pd == null) {
@@ -127,23 +129,46 @@ public class ClearProjectListener implements IResourceChangeListener {
 			return;
 		}
 		//final List<IProject> removedProjects = new ArrayList<IProject>();
-		final Set<String> removedNames = new HashSet<String>();
+		Set<String> removedNames = null;
+		final StringBuilder sb = debug ? new StringBuilder() : null;
 		if (removed != null) {
+			removedNames = new HashSet<String>();
+			
 			for(IProject p : removed) {
 				//removedProjects.add(p);
 				removedNames.add(p.getName());
+				if (debug) {
+					if (sb.length() != 0) {
+						sb.append(", ");
+					}
+					sb.append(p.getName());
+				}
 			}
 		}
-		System.out.println("Clearing drop-sea");
+		//System.out.println("Clearing drop-sea: "+sb);
+		
 		// Filter out needed projects
     	final Projects oldP = (Projects) pd.getIIRProjects();
-    	final Set<String> needed = new HashSet<String>();
-		for(JavacProject p : oldP) {
-			if (!removedNames.contains(p.getName())) {
-				computeProjectDependencies(p.getConfig(), needed);
-			}
-		}
-		removedNames.removeAll(needed);
+    	final Set<String> needed;
+    	if (removed != null) {
+    		needed = new HashSet<String>();    	
+    		for(JavacProject p : oldP) {
+    			if (!removedNames.contains(p.getName())) {
+    				computeProjectDependencies(p.getConfig(), needed);
+    			}
+    		}
+    		if (debug) {
+    			sb.setLength(0);
+    			for(String s : needed) {
+    				if (sb.length() != 0) {
+    					sb.append(", ");
+    				}
+    				sb.append(s);
+    			}
+    			System.out.println("Still needed: "+sb);
+    		}
+    		removedNames.removeAll(needed);
+    	}
 		
 		for (final RegionModel region : Sea.getDefault().getDropsOfExactType(
 				RegionModel.class)) {
@@ -168,7 +193,18 @@ public class ClearProjectListener implements IResourceChangeListener {
 	    			removedJps.add(jp);
 	    		}
 	    	}
+	    	if (debug) {
+	    		sb.setLength(0);
+	    		for(IIRProject p : removedJps) {
+	    			if (sb.length() != 0) {
+	    				sb.append(", ");
+	    			}
+	    			sb.append(p.getName());
+	    		}
+	    		System.out.println("Removing projects: "+sb);
+	    	}	    	
 	    	for(SourceCUDrop cud : SourceCUDrop.invalidateAll(removedJps)) {
+	    		System.out.println("Destroyed: "+cud.javaOSFileName);
 				AdapterUtil.destroyOldCU(cud.cu);
 			}
 	    	
