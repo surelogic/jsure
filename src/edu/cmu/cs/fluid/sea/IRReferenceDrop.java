@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+//import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.xml.*;
@@ -70,6 +71,19 @@ public abstract class IRReferenceDrop extends Drop {
 		}
 	}
 
+    /*&
+	@Override
+	protected void invalidate_internal() {
+		if (getNode() != null) {
+			if (!AbstractJavaBinder.isBinary(getNode())) {
+				System.err.println("Invalidating "+getMessage());
+			}
+		} else {
+			System.err.println("Invalidating "+getMessage());
+		}
+	}
+	*/
+	
 	/**
 	 * The fAST node that this PromiseDrop is associated with.
 	 */
