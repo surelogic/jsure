@@ -305,7 +305,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
         continue;
       }
       if (p.isOpen()) {
-    	  File script = findScript(p);
+    	  File script = findScript(p, false);
     	  if (script != null || Nature.hasNature(p)) {
     		  assertNull("More than one project to analyze!?!", project);
     		  project = p;
@@ -363,9 +363,19 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
   private ITestOutput output = null;
   private ITest currentTest = null;
   
-  private File findScript(final IProject project) {
+  private File findScript(final IProject project, boolean checkParent) {
 	  final String projectPath  = project.getLocation().toOSString();
-	  File script = new File(projectPath + File.separatorChar + ScriptCommands.NAME);
+	  File proj   = new File(projectPath);
+	  File script = lookForScript(proj);
+	  if (checkParent && script == null) {
+		  // Check for script in parent dir if multiple projects
+		  script = lookForScript(proj.getParentFile());
+	  }
+	  return script;
+  }
+  
+  private File lookForScript(final File project) {
+	  File script = new File(project, ScriptCommands.NAME);
 	  if (script.exists() && script.isFile()) {
 		  System.out.println("Found script: "+script);
 		  return script;
@@ -414,7 +424,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     boolean resultsOk = true;
     
     // Check for script in the project to execute      
-    File script = findScript(project);
+    File script = findScript(project, true);
     if (script != null) {
       currentTest = start("Run scripting");
       ScriptReader r = new ScriptReader(project);
