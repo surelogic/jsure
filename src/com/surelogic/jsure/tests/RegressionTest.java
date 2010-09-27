@@ -103,6 +103,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
   private void importProject(final String projectDir) {	
     final File file                 = new File(projectDir);
+    if (!file.exists()) {
+    	throw new IllegalArgumentException("Couldn't find "+projectDir);
+    }
     importProject(file);
   }
     
@@ -364,8 +367,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	  final String projectPath  = project.getLocation().toOSString();
 	  File script = new File(projectPath + File.separatorChar + ScriptCommands.NAME);
 	  if (script.exists() && script.isFile()) {
+		  System.out.println("Found script: "+script);
 		  return script;
 	  }
+	  System.out.println("Couldn't find script: "+script);
 	  return null;
   }
   
