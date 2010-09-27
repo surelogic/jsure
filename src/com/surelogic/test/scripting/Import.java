@@ -47,7 +47,7 @@ public class Import extends AbstractCommand {
 		}
 		URI projLoc = res.getLocationURI();
 		//Needs to copy all files from the source dir to the project dir
-		File file = resolveFile(contents[2]);
+		File file = resolveFile(context, contents[2]);
 		if(file.exists()){
 			if(file.isDirectory()){
 				copyDir(new File(projLoc.getPath()), file);

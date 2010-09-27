@@ -27,6 +27,10 @@ public class ScriptReader implements ICommandContext {
   final Map<String,Object> args = new HashMap<String, Object>();  
   final IProject project;
   
+  public Object getArgument(String key) {
+	  return args.get(key);
+  }
+  
   public ScriptReader(IProject p) {
 	project = p;
 	  
@@ -85,10 +89,12 @@ public class ScriptReader implements ICommandContext {
   
   public boolean execute(File f) throws Exception {
     final Reader r = new InputStreamReader(new FileInputStream(f));  
+    args.put(SCRIPT_DIR, f.getParentFile());
     return execute(r);
   }
   
   private static final String EXPECT_BUILD = ScriptCommands.EXPECT_BUILD+' ';
+  static final String SCRIPT_DIR = "script.directory";
   
   public boolean execute(Reader r) throws Exception {
 	init();
@@ -200,7 +206,7 @@ public class ScriptReader implements ICommandContext {
   class ExpectBuild extends AbstractCommand {
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
-		final File expected = resolveFile(contents[1]);
+		final File expected = resolveFile(context, contents[1]);
 		if(expected != null && expected.exists()) {
 			JavacDriver.getInstance().setArg(ScriptCommands.EXPECT_BUILD, expected);
 		} else {

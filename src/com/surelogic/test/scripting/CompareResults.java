@@ -36,7 +36,7 @@ public class CompareResults extends AbstractCommand {
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		final String projectName = contents[1]; 
-		File oracle = resolveFile(contents[2]);
+		File oracle = resolveFile(context, contents[2]);
 		if (oracle == null) {
 			return false;
 		}
@@ -44,7 +44,7 @@ public class CompareResults extends AbstractCommand {
 		
 		System.out.println("Using oracle: "+oracle);
 		final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), oracle);
-		final File diffs	       = resolveFile(contents[3], true);
+		final File diffs	       = resolveFile(context, contents[3], true);
 		if (diffs == null) {
 			System.out.println("No file: "+contents[3]);
 		}

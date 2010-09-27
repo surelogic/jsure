@@ -58,22 +58,27 @@ public abstract class AbstractCommand implements ICommand {
     			path = path.append(tokens[i]);
     		}
     		file = p.getFile(path);
-    		if (create || file.exists()) {
+    		if (file.exists()) {
+    			return file;
+    		} else if (create) {
+    			file.touch(null);
     			return file;
     		}
     	}
     } catch (IllegalArgumentException e) {
     	System.out.println("Bad project: "+tokens[0]+" -- "+name);
     	throw e;
-    }
+    } catch (CoreException e) {
+		return null;
+	}
     return null;
   }
   
-  protected File resolveFile(String name) {
-	  return resolveFile(name, false);
+  protected File resolveFile(ICommandContext context, String name) {
+	  return resolveFile(context, name, false);
   }
   
-  protected File resolveFile(String name, boolean create) {
+  protected File resolveFile(ICommandContext context, String name, boolean create) {
 	  File f = new File(name);
 	  if (create) {
 		  try {
@@ -84,6 +89,23 @@ public abstract class AbstractCommand implements ICommand {
 		  }
 	  }
 	  if (!f.exists()) {
+		  // Check for a relative path (to the script)
+		  /*
+		  final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		  final File workspace = new File(root.getLocation().toOSString());
+		  f = new File(workspace, name);
+		  */
+		  Object dir = context.getArgument(ScriptReader.SCRIPT_DIR);
+		  if (dir != null) {
+			  File root = (File) dir;
+			  if (name.startsWith("/"+root.getName())) {
+				  root = root.getParentFile();
+			  }
+			  f = new File(root, name);
+			  if (f.exists()) {
+				  return f;
+			  }			  
+		  }
 		  final IFile oracleFile = resolveIFile(name, create);
 		  if (oracleFile == null) {
 			  System.out.println("Couldn't find file: "+name);

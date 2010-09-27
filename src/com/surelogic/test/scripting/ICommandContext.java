@@ -6,9 +6,11 @@ package com.surelogic.test.scripting;
  * @author Edwin
  */
 public interface ICommandContext {
-	// Just a marker
+	Object getArgument(String key);
 	
 	static ICommandContext nullContext = new ICommandContext() {
-		// Nothing to do yet
+		public Object getArgument(String key) {
+			return null;
+		}
 	};
 }
