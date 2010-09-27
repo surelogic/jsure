@@ -196,7 +196,10 @@ public class ScriptReader implements ICommandContext {
 			e.printStackTrace();
 		}	
 		System.out.println("build FTA");
-		new FirstTimeAnalysis(project).run(null);
+		final IStatus s = new FirstTimeAnalysis(project).run(null);
+		if (!s.isOK()) {
+			throw new CoreException(s);
+		}
 	} else {
 		System.out.println("build workspace");
 		ResourcesPlugin.getWorkspace().build(kind, null);
