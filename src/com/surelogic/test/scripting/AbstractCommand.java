@@ -61,7 +61,13 @@ public abstract class AbstractCommand implements ICommand {
     		if (file.exists()) {
     			return file;
     		} else if (create) {
-    			file.touch(null);
+    			if (file.getName().contains(".")) {
+    				// Only if it's supposed to be a file
+    				file.touch(null);
+    			} else {
+    				// TODO how to create a directory?
+    				// p.getFolder()
+    			}
     			return file;
     		}
     	}
