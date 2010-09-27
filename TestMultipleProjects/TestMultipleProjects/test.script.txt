@@ -1,0 +1,6 @@
+addNature TestMultipleProjects
+addNature Common
+addNature Dependent
+removeNature Common
+removeNature Dependent
+removeNature TestMultipleProjects
