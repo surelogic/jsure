@@ -193,6 +193,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		//boolean invalidated = false;		
 		for (Pair<String,String> key : nameToDrop.keys()) {
 			RegionModel drop = nameToDrop.get(key.first(), key.second());
+			if (drop == null) {
+				continue;
+			}
 			/*
 			if (key.first().contains("[]")) {
 				System.out.println("Found region []");
