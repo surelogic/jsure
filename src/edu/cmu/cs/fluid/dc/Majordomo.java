@@ -16,6 +16,7 @@ import org.eclipse.ui.PlatformUI;
 
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.PeriodicUtility;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.eclipse.builder.*;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
@@ -254,6 +255,9 @@ public final class Majordomo extends AbstractJavaBuilder implements
 					+ " double-checker analysis", e);
 			throw e;
 		} catch (Throwable e) {
+			if (XUtil.testing) {
+				throw (RuntimeException) e;
+			}
 			handleFailure("General problem (Throwable) while"
 					      + " preparing for double-checker analysis", e);
 		} finally {

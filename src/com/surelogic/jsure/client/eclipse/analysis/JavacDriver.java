@@ -895,6 +895,9 @@ public class JavacDriver implements IResourceChangeListener {
 		} catch(Exception e) {
 		    System.err.println("Unable to make config for JSure");
 		    e.printStackTrace();
+		    if (XUtil.testing) {
+		    	throw (RuntimeException) e;
+		    }
 		    return;
 		}
 	}
@@ -1361,12 +1364,12 @@ public class JavacDriver implements IResourceChangeListener {
 		for(Config c : p.getConfigs()) {
 			for(JavaSourceFile f : c.getFiles()) {
 				if (!cus.remove(f.relativePath)) {
-					new IllegalStateException("Building extra file: "+f.relativePath).printStackTrace();
+					throw new IllegalStateException("Building extra file: "+f.relativePath);
 				}
 			}
 		}
 		if (!cus.isEmpty()) {
-			new IllegalStateException("File not built: "+cus.iterator().next()).printStackTrace();
+			throw new IllegalStateException("File not built: "+cus.iterator().next());
 		}
 	}
 	
@@ -1433,6 +1436,11 @@ public class JavacDriver implements IResourceChangeListener {
 		case IResourceDelta.CHANGED:
 			if (delta.getFlags() != IResourceDelta.OPEN) {
 				System.out.println("Ignoring change5 to project "+delta.getResource()+": "+delta.getFlags());
+				/*
+                for(IResourceDelta d : delta.getAffectedChildren()) {
+					changed(d);
+				}
+				*/
 				return;
 			}
 			final IProject p = (IProject) delta.getResource();

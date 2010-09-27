@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 
 /**
@@ -49,6 +50,9 @@ public abstract class FirstTimeJob extends Job {
       LOG.log(Level.INFO, name+" cancelled", e);
       return Status.CANCEL_STATUS;
     } catch (CoreException e) {
+      if (XUtil.testing) {
+    	  return e.getStatus();
+      }
       LOG.log(Level.SEVERE, name+" failed", e);
       return new Status(IStatus.ERROR, Plugin.DOUBLE_CHECKER_PLUGIN_ID,
           IStatus.OK,
