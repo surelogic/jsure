@@ -188,8 +188,11 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		setProgressMonitor(monitor);
 
 		//System.out.println("Starting build "+kind+" for "+getProject());
+		if (args == null) {
+			args = new HashMap();
+		}
 		args.put(BUILD_KIND, Integer.toString(kind));
-
+		
 		// cache Eclipse provide workspace changes
 		IResourceDelta delta = getDelta(getProject());
 		if ((kind == IncrementalProjectBuilder.FULL_BUILD)
