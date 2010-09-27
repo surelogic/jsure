@@ -156,6 +156,7 @@ public class ScriptReader implements ICommandContext {
 		  return command.succeeded();
 	  } catch (Exception e) {
 		  System.out.println("Got exception on line: "+line);
+		  e.printStackTrace();
 		  command.succeeded();
 		  throw e;
 	  }
