@@ -51,7 +51,7 @@ public abstract class SelectedProjectsAction implements IViewActionDelegate, IOb
     finishRun();
   }
   
-  protected final Iterable<IProject> getSelectedProjects() {
+  protected final List<IProject> getSelectedProjects() {
 	  List<IProject> projects = new ArrayList<IProject>();
 	  for (Object current : selectedProjects) {
 		  if (current != null) {

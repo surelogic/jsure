@@ -16,6 +16,8 @@ import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.IClassPathEntry;
 import com.surelogic.fluid.javac.JavacProject;
 import com.surelogic.fluid.javac.Projects;
+import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
+import com.surelogic.jsure.client.eclipse.analysis.ScriptCommands;
 
 import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
@@ -75,8 +77,9 @@ public class ClearProjectListener implements IResourceChangeListener {
 		clearJSureState(null);
 	}
 	
-	public static void clearJSureState(Iterable<IProject> removedProjects) {
+	public static void clearJSureState(List<IProject> removedProjects) {
 		System.out.println("Clearing JSure state");
+		JavacDriver.getInstance().recordProjectAction(ScriptCommands.CLEANUP_DROPS, removedProjects);
 		try {
 			synchronized (Sea.getDefault()) {
 				clearDropSea(clearAll, removedProjects);
@@ -267,7 +270,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 	 * Helper method to call after you add or remove the nature for JSure from
 	 * one or more projects.
 	 */	
-	public static void postNatureChangeUtility(Iterable<IProject> projs, boolean removedNature) {		
+	public static void postNatureChangeUtility(List<IProject> projs, boolean removedNature) {		
 		System.out.println("postNatureChangeUtility "+removedNature);
 		if (removedNature) {
 			ClearProjectListener.clearJSureState(projs);			
