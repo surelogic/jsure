@@ -335,7 +335,7 @@ public class JavacDriver implements IResourceChangeListener {
 	
 	public void recordProjectAction(String action, Iterable<IProject> projs) {
 		if (script != null) {		
-			if (ignoreNextCleanup && ScriptCommands.CLEANUP_DROPS.equals(action)) {
+			if (ignoreNextCleanup && ScriptCommands.CLEANUP_DROPS_FIRST.equals(action)) {
 				System.out.println("Skipping first cleanup");
 				ignoreNextCleanup = false;
 				return;
@@ -1387,7 +1387,7 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 		}
 		pw.close();
-		printToScript(ScriptCommands.EXPECT_BUILD+' '+computePrefix()+'/'+name);
+		printToScript(ScriptCommands.EXPECT_BUILD_FIRST+' '+computePrefix()+'/'+name);
 	}
 	
 	private void checkForExpectedSourceFiles(Projects p, File expected) throws IOException {

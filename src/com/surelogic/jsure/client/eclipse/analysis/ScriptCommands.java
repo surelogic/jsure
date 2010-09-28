@@ -7,7 +7,10 @@ public interface ScriptCommands {
 	
 	String AUTO_BUILD = "autobuild";
 	
+	String GO_FIRST = "!";
+	
 	String EXPECT_BUILD = "expectBuild";
+	String EXPECT_BUILD_FIRST = "!expectBuild";
 	String IMPORT = "import";
 	String TOUCH_FILE = "touchFile";
 	String PATCH_FILE = "patchFile";
@@ -19,6 +22,7 @@ public interface ScriptCommands {
     String ADD_NATURE = "addNature";
     String REMOVE_NATURE = "removeNature";
     String CLEANUP_DROPS = "cleanupDrops";
+    String CLEANUP_DROPS_FIRST = "!cleanupDrops";
     String EXPORT_RESULTS = "exportResults";
     String COMPARE_RESULTS = "compareResults";
 }
