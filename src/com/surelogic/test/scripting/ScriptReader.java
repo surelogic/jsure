@@ -119,6 +119,11 @@ public class ScriptReader implements ICommandContext {
       } 
       if (lastLine != null) {
     	  resultsOk = executeLine(lastLine) && resultsOk;
+    	  if (!resultsOk) {
+    		  throw new IllegalStateException("Failed on: "+lastLine);
+    	  } else {
+    		  System.out.println("OK: "+lastLine);
+    	  }
       }      
       lastLine = line;
     }
