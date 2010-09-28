@@ -18,6 +18,7 @@ public interface ScriptCommands {
 	String CLOSE_PROJECT = "closeProject";
     String ADD_NATURE = "addNature";
     String REMOVE_NATURE = "removeNature";
+    String CLEANUP_DROPS = "cleanupDrops";
     String EXPORT_RESULTS = "exportResults";
     String COMPARE_RESULTS = "compareResults";
 }
