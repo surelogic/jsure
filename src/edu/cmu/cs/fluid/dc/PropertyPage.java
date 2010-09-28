@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
+import com.surelogic.jsure.client.eclipse.analysis.ScriptCommands;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
 /**
@@ -110,6 +112,7 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
           if (project != current && Nature.hasNature(current)) {
             try {
               Nature.removeNatureFromProject(current);
+              JavacDriver.getInstance().recordProjectAction(ScriptCommands.REMOVE_NATURE, project);
               removedNature = true;
             } catch (final CoreException e) {
               LOG.log(Level.SEVERE,
@@ -126,6 +129,7 @@ public class PropertyPage extends org.eclipse.ui.dialogs.PropertyPage {
         // add our Fluid nature to the project
         try {
           Nature.addNatureToProject(project);
+          JavacDriver.getInstance().recordProjectAction(ScriptCommands.ADD_NATURE, project);
         } catch (CoreException e) {
           LOG.log(Level.SEVERE, "failure adding double-checking nature to Java project "
               + project.getName(), e);
