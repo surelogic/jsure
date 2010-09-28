@@ -27,16 +27,13 @@ public class JavacEclipse extends Javac {
     }
     
     {
-        prefs.put(IDEPreferences.DATA_DIRECTORY, PreferenceConstants.getJSureDataDirectory().getAbsolutePath());
+    	setPreference(IDEPreferences.DATA_DIRECTORY, PreferenceConstants.getJSureDataDirectory().getAbsolutePath());
     }
     
     public void synchronizeAnalysisPrefs(IPreferenceStore store) {
 		for(String id : Projects.getAvailableAnalyses()) {
 			boolean val = store.getBoolean(Plugin.ANALYSIS_ACTIVE_PREFIX + id);
-			if (XUtil.testing) {
-				System.out.println("Setting "+id+" to "+(val ? "active" : "inactive"));
-			}
-			prefs.put(id, val);
+			setPreference(id, val);
 		}
 		/*
 		if (XUtil.testing) {
