@@ -65,6 +65,7 @@ public class JavacDriver implements IResourceChangeListener {
 	private final File scriptResourcesDir;
 	private final PrintStream script;
 	private final ZipInfo info;
+	private boolean ignoreNextCleanup = true;
 	
 	/**
 	 * State that needs to be atomically modified
@@ -329,6 +330,37 @@ public class JavacDriver implements IResourceChangeListener {
 	public void recordProjectAction(String action, IProject p) {
 		if (script != null) {		
 			printToScript(action+' '+p.getName());
+		}
+	}
+	
+	public void recordProjectAction(String action, Iterable<IProject> projs) {
+		if (script != null) {		
+			if (ignoreNextCleanup && ScriptCommands.CLEANUP_DROPS.equals(action)) {
+				System.out.println("Skipping first cleanup");
+				ignoreNextCleanup = false;
+				return;
+			} else if (projs == null) {
+				// Shortcut if there are no args
+				printToScript(action);
+				return;
+			}
+			final StringBuilder sb = new StringBuilder(action);
+			boolean first = true; 
+			sb.append(' ');			
+			/*
+			if (projs == null) {
+				projs = JDTUtility.getProjects();
+			} 
+			*/
+ 			for(IProject p : projs) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append(", ");
+				}
+				sb.append(p.getName());
+			}
+ 			printToScript(sb.toString());			
 		}
 	}
 	
