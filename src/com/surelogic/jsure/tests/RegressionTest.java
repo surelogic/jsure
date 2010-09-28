@@ -101,6 +101,29 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     }
   }
 
+  private void initAnalyses(File project) {
+	  if (initializedAnalysis) {
+		  return;
+	  }
+	  initializedAnalysis = true;
+	  printActivatedAnalyses();
+
+	  final File analyses = findFile(project, ScriptCommands.ANALYSIS_SETTINGS, true);
+	  if (analyses.exists() && analyses.isFile()) {
+		  System.out.println("Found project-specific analysis settings.");
+		  IPreferenceStore store = JSureAnalysisXMLReader.readStateFrom(analyses);
+		  Plugin.getDefault().initAnalyses(store);
+
+		  if (AnalysisDriver.useJavac) {
+			  System.out.println("Configuring analyses from project-specific settings");
+			  JavacEclipse.initialize();
+			  ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
+		  }
+	  } else {
+		  System.out.println("No project-specific analysis settings.");
+	  }
+  }
+  
   private void importProject(final String projectDir) {	
     final File file                 = new File(projectDir);
     if (!file.exists()) {
@@ -125,6 +148,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     	}
     	return;
     }
+    initAnalyses(file);
+    
     final String project            = file.getName();
     final IWorkspace workspace      = ResourcesPlugin.getWorkspace();
     IProjectDescription description = setProjectName(workspace, findDotProjectFile(file));
@@ -362,10 +387,15 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
   
   private ITestOutput output = null;
   private ITest currentTest = null;
+  private boolean initializedAnalysis = false;
   
   private File findFile(final IProject project, final String file, boolean checkParent) {
 	  final String projectPath  = project.getLocation().toOSString();
-	  File proj   = new File(projectPath);
+	  final File proj           = new File(projectPath);
+	  return findFile(proj, file, checkParent);
+  }
+  
+  private File findFile(File proj, String file, boolean checkParent) {
 	  File result = lookForFile(proj, file);
 	  if (checkParent && result == null) {
 		  // Check for script in parent dir if multiple projects
@@ -386,8 +416,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
   
   private void runAnalysis(final File workspaceFile, final IProject project) throws Throwable {
     final String projectPath  = project.getLocation().toOSString();
-
+    /*
     currentTest = start("Check for analysis settings");
+
     printActivatedAnalyses();
     
     final File analyses = findFile(project, ScriptCommands.ANALYSIS_SETTINGS, true);
@@ -404,8 +435,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     } else {
       System.out.println("No project-specific analysis settings.");
     }
+    
     end("Done checking analysis settings");
-
+     */
     currentTest = start("Start logging to a file & refresh");
     final String logName = EclipseLogHandler.startFileLog(project.getName() + ".log");
     ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
