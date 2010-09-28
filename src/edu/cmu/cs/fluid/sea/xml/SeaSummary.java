@@ -163,7 +163,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			IRReferenceDrop id = (IRReferenceDrop) d;
 			ISrcRef ref = id.getSrcRef();
 			if (ref == null) {
-				if (!d.getMessage().contains("java.lang.Object")) {
+				if (id.getNode() != null && !d.getMessage().contains("java.lang.Object")) {
 					/*
                     if (d.getMessage().startsWith("ThreadRole")) {
 						System.out.println("Found ThreadRole");
