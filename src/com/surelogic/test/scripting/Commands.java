@@ -22,6 +22,7 @@ public final class Commands implements ScriptCommands {
     commands.put(DELETE_PROJECT, new DeleteProject());
     commands.put(ADD_NATURE, new AddNature());
     commands.put(REMOVE_NATURE, new RemoveNature());
+    commands.put(CLEANUP_DROPS, new CleanupDrops());
     commands.put("cleanProject", new CleanProject());
     commands.put(CLOSE_PROJECT, new CloseProject());
     commands.put(PATCH_FILE, new PatchFile());
@@ -34,7 +35,8 @@ public final class Commands implements ScriptCommands {
   public ICommand get(String name) {
     ICommand c = commands.get(name);
     if (c == null) {
-      return NullCommand.prototype;
+      throw new UnsupportedOperationException("No command matching "+name);
+      //return NullCommand.prototype;
     }
     return c;
   }
