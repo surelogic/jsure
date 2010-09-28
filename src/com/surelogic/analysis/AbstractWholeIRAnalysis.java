@@ -56,7 +56,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	}
 	
 	protected final void setResultDependUponDrop(IRReferenceDrop drop, IRNode node) {
-		drop.setNode(node);
+		drop.setNodeAndCompilationUnitDependency(node);
 		setResultDependUponDrop(drop);
 	}
 	
