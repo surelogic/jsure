@@ -38,6 +38,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.TestListener;
+import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.xml.JSureXMLReader;
 
@@ -569,6 +570,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
       final long buildEnd = System.currentTimeMillis();
       System.err
           .println("Time to build model  = " + (buildEnd - start) + " ms");
+      JavacDriver.getInstance().recordViewUpdate();
+      
       if (IJavaFileLocator.testIRPaging) {
         final EclipseFileLocator loc = (EclipseFileLocator) IDE.getInstance()
             .getJavaFileLocator();

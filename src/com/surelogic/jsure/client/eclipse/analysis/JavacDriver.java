@@ -364,6 +364,24 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 	
+	public void recordViewUpdate() {
+        if (script != null) {
+        	// Export results
+        	final String prefix = "expectedResults"+getId();
+    		final String name   = prefix+SeaSnapshot.SUFFIX;
+    		final File location = new File(scriptResourcesDir, name);        		
+			try {
+				final String path = computePrefix();
+				Sea.getDefault().updateConsistencyProof();
+				SeaSummary.summarize("workspace", Sea.getDefault(), location);					
+            	printToScript(ScriptCommands.COMPARE_RESULTS+" workspace "+path+'/'+name+
+            			      " "+path+"/../"+prefix+RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}                
+        }
+	}
+	
 	public void stopScripting() {
 		if (script != null) {
 			script.close();
@@ -1320,21 +1338,8 @@ public class JavacDriver implements IResourceChangeListener {
             	endAnalysis();      	
             }
             NotificationHub.notifyAnalysisCompleted();
-            if (script != null) {
-            	// Export results
-            	final String prefix = "expectedResults"+getId();
-        		final String name   = prefix+SeaSnapshot.SUFFIX;
-        		final File location = new File(scriptResourcesDir, name);        		
-    			try {
-    				final String path = computePrefix();
-    				Sea.getDefault().updateConsistencyProof();
-					SeaSummary.summarize("workspace", Sea.getDefault(), location);					
-	            	printToScript(ScriptCommands.COMPARE_RESULTS+" workspace "+path+'/'+name+
-	            			      " "+path+"/../"+prefix+RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}                
-            }
+            //recordViewUpdate();
+            
             if (lastMonitor == monitor) {
             	lastMonitor = null;
             }
