@@ -112,9 +112,14 @@ public class ScriptReader implements ICommandContext {
     	System.out.println("ScriptReader: ignoring "+line);
         continue;
       }
-      if (line.startsWith(EXPECT_BUILD)) {
-    	  // Handle expectBuild first, since it's out of order in the script
-    	  resultsOk = executeLine(line) && resultsOk;
+      if (line.startsWith(ScriptCommands.GO_FIRST)) {
+    	  // Handle these first, since it's out of order in the script
+    	  resultsOk = executeLine(line.substring(1)) && resultsOk;
+    	  continue;    	  
+      } 
+      else if (line.startsWith(EXPECT_BUILD)) { // Kept for compatibility
+    	  // Handle this first, since it's out of order in the script
+    	  resultsOk = executeLine(line.substring(0)) && resultsOk;
     	  continue;    	  
       } 
       if (lastLine != null) {
