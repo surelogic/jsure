@@ -273,6 +273,7 @@ public abstract class IDE {
     if (f == null) {
       throw new IllegalArgumentException("null factory passed in");
     }
+	//System.out.println(this.getClass().getSimpleName()+" adding log factory: "+f);
     if (factory == null) {
       factory = f;
     } else {
@@ -323,6 +324,7 @@ public abstract class IDE {
     ITestOutput ensureDelegateExists() {
       if (delegate == null) {
         try {
+          System.out.println(IDE.this.getClass().getSimpleName()+" making log: "+name);
           delegate = factory.create(name);
           //new Throwable().printStackTrace();
           if (XUtil.testing) {
