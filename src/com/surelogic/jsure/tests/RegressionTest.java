@@ -38,6 +38,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     
     public void run() {
       Eclipse.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
+      //Javac.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
+      JavacEclipse.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
       System.out.println("Added JUnitXMLOutput.factory");
       run = true;
     }
@@ -60,7 +62,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
   @Override
   protected void setUp() throws Exception {
     InitRunnable r = new InitRunnable();
-    Eclipse.initialize(r);
+    //Eclipse.initialize(r);
     r.ensureInit();
     
     initializeWorkspace();
@@ -343,6 +345,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       fail("No project");
       return;
     } 
+    //System.out.println("Setting up log for "+project.getName());
     output = IDE.getInstance().makeLog(project.getName());
     try {
       runAnalysis(workspaceFile, project);
