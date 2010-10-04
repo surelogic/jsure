@@ -7,7 +7,6 @@ import java.net.URL;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import com.surelogic.common.XUtil;
 import com.surelogic.common.eclipse.Resources;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
@@ -22,7 +21,7 @@ public class JavacEclipse extends Javac {
         // Nothing to do right now, besides create the instance above
     }
     
-    static JavacEclipse getDefault() {
+    public static JavacEclipse getDefault() {
     	return instance;
     }
     
