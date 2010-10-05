@@ -13,8 +13,8 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.SLImages;
+import com.surelogic.common.eclipse.views.ITableContentProvider;
 
-import edu.cmu.cs.fluid.eclipse.ui.ITableContentProvider;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
