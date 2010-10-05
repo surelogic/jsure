@@ -2,6 +2,8 @@ package com.surelogic.jsure.client.eclipse.analysis;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.*;
 
 import org.apache.commons.collections15.MultiMap;
@@ -12,11 +14,14 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jface.preference.IPreferenceStore;
 
+import com.surelogic.analysis.JSureProperties;
+import com.surelogic.annotation.rules.ModuleRules;
 import com.surelogic.common.*;
 import com.surelogic.common.FileUtility.*;
 import com.surelogic.common.eclipse.*;
 import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
@@ -35,6 +40,8 @@ import edu.cmu.cs.fluid.sea.xml.*;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver implements IResourceChangeListener {
+	private static final Logger LOG = SLLogger.getLogger("analysis.JavacDriver");
+	
 	/**
 	 * Clear all the JSure state before each build
 	 */
@@ -522,6 +529,32 @@ public class JavacDriver implements IResourceChangeListener {
 			int version = JDTUtility.getMajorJavaVersion(jp);
 			config.setOption(Config.SOURCE_LEVEL, version);
 			//System.out.println(config.getProject()+": set to level "+version);
+			
+			if (config.getLocation() != null) {
+				// TODO Is this right for multi-project configurations?
+				ModuleRules.clearSettings();
+				ModuleRules.clearAsSourcePatterns();
+				ModuleRules.clearAsNeededPatterns();
+				
+				final File properties = new File(config.getLocation(), JSureProperties.JSURE_PROPERTIES);
+				if (properties.exists() && properties.isFile()) {
+					final Properties props = new Properties();
+					//props.put(PROJECT_KEY, p);
+					try {
+						InputStream is = new FileInputStream(properties);
+						props.load(is);
+						is.close();
+					} catch (IOException e) {
+						String msg = "Problem while loading "+JSureProperties.JSURE_PROPERTIES+": "
+						+ e.getMessage();
+						//reportProblem(msg, null);
+						LOG.log(Level.SEVERE, msg, e);
+					} finally {
+						// Nothing to do
+					}
+					JSureProperties.handle(config.getProject(), props);
+				}
+			}
 		}		
 		
 		void addDependencies(Projects projects, Config config, IProject p, boolean addSource) throws JavaModelException {

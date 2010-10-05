@@ -23,6 +23,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.JSureProperties;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.TestXMLParserConstants;
 
@@ -60,7 +61,6 @@ public abstract class AbstractFluidAnalysisModule<Q> extends
     Eclipse.initialize();
   }
   private static final String PROMISES_XML_SUFFIX = TestXMLParserConstants.SUFFIX;
-  protected static final String JSURE_PROPERTIES = "jsure.properties";
   private static final Logger LOG = SLLogger
       .getLogger("AbstractFluidAnalysisModule");
 
@@ -238,7 +238,7 @@ public abstract class AbstractFluidAnalysisModule<Q> extends
 
   public static boolean isFluidProperties(IResource resource) {
 	final String name = resource.getFullPath().toString();
-    return (resource.getType() == IResource.FILE && name.equals(JSURE_PROPERTIES));
+    return (resource.getType() == IResource.FILE && name.equals(JSureProperties.JSURE_PROPERTIES));
   }
 
   public boolean isOnOutputPath(IResource resource) {
