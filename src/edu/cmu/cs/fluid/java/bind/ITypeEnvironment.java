@@ -43,6 +43,10 @@ public interface ITypeEnvironment {
 	
 	IRNode findNamedType(String qname, IRNode context);
 
+	/**
+	 * Find the direct subclasses.  
+	 * Use recursively to find more distant subtypes
+	 */
 	public Iterable<IRNode> getRawSubclasses(IRNode type);
 	
 	/*
