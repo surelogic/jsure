@@ -501,7 +501,8 @@ public class JavacDriver implements IResourceChangeListener {
 			final IJavaProject jp = JDTUtility.getJavaProject(project.getName());		
 			scanForJDK(projects, jp);
 			
-			Config config = new ZippedConfig(project.getName(), false);
+			final File location = EclipseUtility.resolveIPath(project.getLocation());
+			Config config = new ZippedConfig(project.getName(), location, false);
 			projects.add(config);
 			setOptions(config);
 			
@@ -570,7 +571,8 @@ public class JavacDriver implements IResourceChangeListener {
 						final boolean hasDeltas = info.hasDeltas();
 						dep = info.makeConfig(projects, hasDeltas);
 					} else {
-						dep = new ZippedConfig(projName, cpe.isExported());								
+						final File location = EclipseUtility.resolveIPath(proj.getLocation());
+						dep = new ZippedConfig(projName, location, cpe.isExported());								
 						projects.add(dep);
 						setOptions(dep);
 					}
@@ -659,8 +661,9 @@ public class JavacDriver implements IResourceChangeListener {
 		 */
 		private JavacProject makeJarConfig(Projects projects, File f, String name) {
 			System.out.println("Creating shared jar: "+name);
-			final Config config = new Config(name, true);
-			config.addJar(f, true);
+			// Use its containing directory as a location
+			final Config config = new Config(name, f.getParentFile(), true);
+			config.addJar(f, true); 
 			return projects.add(config);
 		}
 
@@ -727,9 +730,9 @@ public class JavacDriver implements IResourceChangeListener {
 		 */
 		private Config makeConfig(Projects projects, final IClasspathContainer cc) {
 			final String name = cc.getPath().toPortableString();
-			final Config config = new Config(name, true);
+			final Config config = new Config(name, null, true);
 			for(IClasspathEntry cpe : cc.getClasspathEntries()) {
-				switch (cpe.getEntryKind()) {
+				switch (cpe.getEntryKind()) {				
 				case IClasspathEntry.CPE_LIBRARY:
 					final File f = EclipseUtility.resolveIPath(cpe.getPath());
 					//System.out.println("Adding "+f+" for "+cc.getDescription());
@@ -829,10 +832,11 @@ public class JavacDriver implements IResourceChangeListener {
 	@SuppressWarnings("unchecked")
 	void configureBuild(Map args) {
 		final int k = getBuildKind(args);
-		configureBuild((k & IncrementalProjectBuilder.AUTO_BUILD) == IncrementalProjectBuilder.AUTO_BUILD);
+		configureBuild(EclipseUtility.getWorkspacePath(), 
+				(k & IncrementalProjectBuilder.AUTO_BUILD) == IncrementalProjectBuilder.AUTO_BUILD);
 	}
 	
-	public void configureBuild(boolean isAuto /*IProject p*/) {	    
+	public void configureBuild(File location, boolean isAuto /*IProject p*/) {	    
 		//System.out.println("Finished 'build' for "+p);
 		/*
 		//ProjectDrop.ensureDrop(p.getName(), p);
@@ -857,7 +861,7 @@ public class JavacDriver implements IResourceChangeListener {
         	final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
         	((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
         }
-        ConfigureJob configure = new ConfigureJob("Configuring JSure build", isAuto, args);
+        ConfigureJob configure = new ConfigureJob("Configuring JSure build", location, isAuto, args);
         synchronized (this) {
         	if (buildState == null) {
         		buildState = BuildState.WAITING;
@@ -1095,12 +1099,12 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 	
 	static class ZippedConfig extends Config {
-		ZippedConfig(String name, boolean isExported) {
-			super(name, isExported);
+		ZippedConfig(String name, File location, boolean isExported) {
+			super(name, location, isExported);
 		}
 		@Override
-		protected Config newConfig(String name, boolean isExported) {
-			return new ZippedConfig(name, isExported);
+		protected Config newConfig(String name, File location, boolean isExported) {
+			return new ZippedConfig(name, location, isExported);
 		}		
 		@Override
 		public void zipSources(File zipDir) throws IOException {
@@ -1179,9 +1183,9 @@ public class JavacDriver implements IResourceChangeListener {
 		final Projects projects;
 		final Map<String, Object> args;
 		
-		ConfigureJob(String name, boolean isAuto, Map<String, Object> args) {
+		ConfigureJob(String name, File location, boolean isAuto, Map<String, Object> args) {
 			super(name);
-			projects = new Projects(isAuto);
+			projects = new Projects(location, isAuto);
 			this.args = new HashMap<String, Object>(args);
 			args.clear();
 		}
@@ -1361,7 +1365,7 @@ public class JavacDriver implements IResourceChangeListener {
 						}
 */
 			  			System.out.println("Rebuilding ...");
-		    			configureBuild(state == RebuildState.AUTO);
+		    			configureBuild(EclipseUtility.getWorkspacePath(), state == RebuildState.AUTO);
 						return SLStatus.OK_STATUS;
 					}
 				});
