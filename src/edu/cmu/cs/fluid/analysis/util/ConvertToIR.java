@@ -32,6 +32,7 @@ import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
 import com.surelogic.annotation.parse.SLThreadRoleAnnotationsLexer;
 import com.surelogic.annotation.parse.ScopedPromisesLexer;
+import com.surelogic.annotation.rules.ModuleRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
@@ -186,7 +187,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		IResource f = p.getFile(".project");
 		Eclipse.getDefault().confirmResourceNode(f, ".project");
 
-		ModulePromises.clearSettings();
+		ModuleRules.clearSettings();
 		Binding.clearAsSourcePatterns();
 		Binding.clearAsNeededPatterns();
 
@@ -222,30 +223,30 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 			// process
 			for (String defaults : getValues(props, IDE.MODULE_DEFAULTS)) {
 				if (defaults.equals(IDE.AS_CLASS)) {
-					ModulePromises.defaultAsSource(false);
+					ModuleRules.defaultAsSource(false);
 				} else if (defaults.equals(IDE.AS_NEEDED)) {
-					ModulePromises.defaultAsSource(false);
-					ModulePromises.defaultAsNeeded(true);
+					ModuleRules.defaultAsSource(false);
+					ModuleRules.defaultAsNeeded(true);
 				} else if (defaults.equals(IDE.AS_SOURCE)) {
-					ModulePromises.defaultAsSource(true);
+					ModuleRules.defaultAsSource(true);
 				} else {
 					LOG.severe("Unknown value for " + IDE.MODULE_DEFAULTS
 							+ ": " + defaults);
 				}
 			}
 			for (String modulePattern : getValues(props, IDE.MODULE_REQUIRED)) {
-				ModulePromises.setAsNeeded(modulePattern, false);
+				ModuleRules.setAsNeeded(modulePattern, false);
 			}
 			for (String modulePattern : getValues(props, IDE.MODULE_AS_NEEDED)) {
-				ModulePromises.setAsNeeded(modulePattern, true);
-				ModulePromises.setAsSource(modulePattern, false);
+				ModuleRules.setAsNeeded(modulePattern, true);
+				ModuleRules.setAsSource(modulePattern, false);
 			}
 			for (String modulePattern : getValues(props, IDE.MODULE_AS_CLASS)) {
-				ModulePromises.setAsSource(modulePattern, false);
+				ModuleRules.setAsSource(modulePattern, false);
 			}
 			for (String modulePattern : getValues(props, IDE.MODULE_AS_SOURCE)) {
-				ModulePromises.setAsNeeded(modulePattern, false);
-				ModulePromises.setAsSource(modulePattern, true);
+				ModuleRules.setAsNeeded(modulePattern, false);
+				ModuleRules.setAsSource(modulePattern, true);
 			}
 			for (String moduleKey : getModules(props)) {
 				String pattern = props.getProperty(moduleKey, null);
@@ -430,12 +431,12 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 					Binding.setAsNeeded(pat, false);
 				}
 			} else if (key.equals("ConvertToIR.defaultAsSource")) {
-				ModulePromises.defaultAsSource(true);
+				ModuleRules.defaultAsSource(true);
 			} else if (key.equals("ConvertToIR.defaultAsClass")) {
-				ModulePromises.defaultAsSource(false);
+				ModuleRules.defaultAsSource(false);
 			} else if (key.equals("ConvertToIR.defaultAsNeeded")) {
-				ModulePromises.defaultAsSource(false);
-				ModulePromises.defaultAsNeeded(true);
+				ModuleRules.defaultAsSource(false);
+				ModuleRules.defaultAsNeeded(true);
 			} else if (key.startsWith("ConvertToIR.asNeeded")) {
 				// Binding.setAsSource(CompUnitPattern.create(project, pattern),
 				// false);
