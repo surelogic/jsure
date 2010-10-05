@@ -6,15 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,10 +47,7 @@ import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
-import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
-import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
-import edu.cmu.cs.fluid.java.bind.ModulePromises;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
@@ -68,12 +57,7 @@ import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.SimpleCallGraphDrop;
 import edu.cmu.cs.fluid.tree.SyntaxTree;
-import edu.cmu.cs.fluid.util.AbstractRunner;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.FilterIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.IteratorUtil;
-import edu.cmu.cs.fluid.util.SimpleRemovelessIterator;
+import edu.cmu.cs.fluid.util.*;
 import edu.cmu.cs.fluid.version.Version;
 
 /**
@@ -161,7 +145,6 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 
 	private boolean jloChanged = false;
 
-	private static final String MODULE_PREFIX = "Module.";
 	private static final String PROJECT_KEY = "Project";
 
 	/**
@@ -310,90 +293,10 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		}
 		ProjectDrop.ensureDrop(getProject().getName(), 
 				               Eclipse.getDefault().makeClassPath(getProject()));
-
-		final Iterator<Map.Entry<String, String>> it = args.entrySet()
-				.iterator();
-		while (it.hasNext()) {
-			Map.Entry<String, String> e = it.next();
-			String key = e.getKey();
-			String pattern = e.getValue();
-			if (key.equals(Majordomo.BUILD_KIND)) {
-				continue; // Nothing to do here
-			} else if (key.startsWith("ConvertToIR.asClass")) {
-				// Binding.setAsSource(CompUnitPattern.create(project, pattern),
-				// false);
-				for (Iterator<CompUnitPattern> p = parsePatterns(getProject(),
-						pattern); p.hasNext();) {
-					CompUnitPattern pat = p.next();
-					LOG.info("Adding pattern to convert as .class: '" + pat
-							+ "'");
-					ModuleRules.setAsSource(pat, false);
-				}
-			} else if (key.startsWith("ConvertToIR.asSource")) {
-				// Binding.setAsSource(CompUnitPattern.create(project, pattern),
-				// true);
-				// Binding.setAsNeeded(CompUnitPattern.create(project, pattern),
-				// false);
-				for (Iterator<CompUnitPattern> p = parsePatterns(getProject(),
-						pattern); p.hasNext();) {
-					CompUnitPattern pat = p.next();
-					LOG.info("Adding pattern to convert as source: '" + pat
-							+ "'");
-					ModuleRules.setAsSource(pat, true);
-					ModuleRules.setAsNeeded(pat, false);
-				}
-			} else if (key.equals("ConvertToIR.defaultAsSource")) {
-				ModuleRules.defaultAsSource(true);
-			} else if (key.equals("ConvertToIR.defaultAsClass")) {
-				ModuleRules.defaultAsSource(false);
-			} else if (key.equals("ConvertToIR.defaultAsNeeded")) {
-				ModuleRules.defaultAsSource(false);
-				ModuleRules.defaultAsNeeded(true);
-			} else if (key.startsWith("ConvertToIR.asNeeded")) {
-				// Binding.setAsSource(CompUnitPattern.create(project, pattern),
-				// false);
-				// Binding.setAsNeeded(CompUnitPattern.create(project, pattern),
-				// true);
-				for (Iterator<CompUnitPattern> p = parsePatterns(getProject(),
-						pattern); p.hasNext();) {
-					CompUnitPattern pat = p.next();
-					ModuleRules.setAsSource(pat, false);
-					ModuleRules.setAsNeeded(pat, true);
-				}
-			} else if (key.startsWith("ConvertToIR.required")) {
-				// Binding.setAsNeeded(CompUnitPattern.create(project, pattern),
-				// false);
-				for (Iterator<CompUnitPattern> p = parsePatterns(getProject(),
-						pattern); p.hasNext();) {
-					ModuleRules.setAsNeeded(p.next(), false);
-				}
-			} else if (key.startsWith(MODULE_PREFIX)) {
-				JSureProperties.createModuleFromKeyAndPattern(getProject().getName(), 
-						MODULE_PREFIX, key, pattern);
-			} else {
-				String warn = "Got an unrecognized key in .project: " + key;
-				reportWarning(warn, Eclipse.getDefault().getResourceNode(
-						".project"));
-				LOG.warning(warn);
-				continue;
-			}
-		}
+		JSureProperties.handleArgs(getProject().getName(), (Map<String,String>) args);
 	}
 
-	private Iterator<CompUnitPattern> parsePatterns(final IProject proj,
-			String patterns) {
-		final StringTokenizer st = new StringTokenizer(patterns, ",");
-		return new SimpleRemovelessIterator<CompUnitPattern>() {
-			@Override
-			protected Object computeNext() {
-				if (st.hasMoreElements()) {
-					String pat = st.nextToken().trim();
-					return CompUnitPattern.create(proj.getName(), pat);
-				}
-				return IteratorUtil.noElement;
-			}
-		};
-	}
+
 
 	@Override
 	public void analyzeBegin(final IProject p) {
