@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.util.*;
 public class JSureProperties {
 	private static final Logger LOG = SLLogger.getLogger("analysis.JSureProperties");
 	private static final String MODULE_PREFIX = "Module.";
+	public static final String JSURE_PROPERTIES = "jsure.properties";
 	
 	private static final List<String> excludedLibPaths = new ArrayList<String>();
 	
