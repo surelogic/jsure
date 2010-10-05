@@ -29,10 +29,11 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.JSureProperties;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
 import com.surelogic.annotation.parse.SLThreadRoleAnnotationsLexer;
 import com.surelogic.annotation.parse.ScopedPromisesLexer;
-import com.surelogic.annotation.rules.ModuleRules;
+import com.surelogic.annotation.rules.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 
@@ -43,7 +44,6 @@ import edu.cmu.cs.fluid.eclipse.EclipseFileLocator;
 import edu.cmu.cs.fluid.eclipse.ISrcAdapterNotify;
 import edu.cmu.cs.fluid.eclipse.adapter.AbstractJavaAdapter;
 import edu.cmu.cs.fluid.eclipse.adapter.Binding;
-import edu.cmu.cs.fluid.eclipse.adapter.CompUnitPattern;
 import edu.cmu.cs.fluid.eclipse.adapter.ModuleUtil;
 import edu.cmu.cs.fluid.eclipse.adapter.TypeBindings;
 import edu.cmu.cs.fluid.ide.IDE;
@@ -188,8 +188,8 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		Eclipse.getDefault().confirmResourceNode(f, ".project");
 
 		ModuleRules.clearSettings();
-		Binding.clearAsSourcePatterns();
-		Binding.clearAsNeededPatterns();
+		ModuleRules.clearAsSourcePatterns();
+		ModuleRules.clearAsNeededPatterns();
 
 		IResource fp = p.getFile(JSURE_PROPERTIES);
 		Eclipse.getDefault().confirmResourceNode(fp, JSURE_PROPERTIES);
@@ -219,95 +219,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 				props = Eclipse.getDefault().setProperties(null);
 			}
 		}
-		if (props.size() > 0) {
-			// process
-			for (String defaults : getValues(props, IDE.MODULE_DEFAULTS)) {
-				if (defaults.equals(IDE.AS_CLASS)) {
-					ModuleRules.defaultAsSource(false);
-				} else if (defaults.equals(IDE.AS_NEEDED)) {
-					ModuleRules.defaultAsSource(false);
-					ModuleRules.defaultAsNeeded(true);
-				} else if (defaults.equals(IDE.AS_SOURCE)) {
-					ModuleRules.defaultAsSource(true);
-				} else {
-					LOG.severe("Unknown value for " + IDE.MODULE_DEFAULTS
-							+ ": " + defaults);
-				}
-			}
-			for (String modulePattern : getValues(props, IDE.MODULE_REQUIRED)) {
-				ModuleRules.setAsNeeded(modulePattern, false);
-			}
-			for (String modulePattern : getValues(props, IDE.MODULE_AS_NEEDED)) {
-				ModuleRules.setAsNeeded(modulePattern, true);
-				ModuleRules.setAsSource(modulePattern, false);
-			}
-			for (String modulePattern : getValues(props, IDE.MODULE_AS_CLASS)) {
-				ModuleRules.setAsSource(modulePattern, false);
-			}
-			for (String modulePattern : getValues(props, IDE.MODULE_AS_SOURCE)) {
-				ModuleRules.setAsNeeded(modulePattern, false);
-				ModuleRules.setAsSource(modulePattern, true);
-			}
-			for (String moduleKey : getModules(props)) {
-				String pattern = props.getProperty(moduleKey, null);
-				if (pattern != null) {
-					createModuleFromKeyAndPattern(IDE.MODULE_DECL_PREFIX,
-							moduleKey, pattern);
-				}
-			}
-			UpdateSuperRootStorage.clearLibraryPath();
-			for (String excludePath : getValues(props, IDE.LIB_EXCLUDES)) {
-				UpdateSuperRootStorage.excludeLibraryPath(excludePath);
-			}
-		}
-	}
-
-	/**
-	 * 
-	 * @param props
-	 *            The set of properties to search for module definitions
-	 * @return The keys for all the modules found
-	 */
-	private static Iteratable<String> getModules(Properties props) {
-		if (props.isEmpty()) {
-			return EmptyIterator.prototype();
-		}
-		final Set<Object> keys = props.keySet();
-		return new FilterIterator<Object, String>(keys.iterator()) {
-			@Override
-			protected Object select(Object o) {
-				if (o instanceof String) {
-					String key = (String) o;
-					if (key.startsWith(IDE.MODULE_DECL_PREFIX)) {
-						return key;
-					}
-				}
-				return IteratorUtil.noElement;
-			}
-		};
-	}
-
-	/**
-	 * Gets the comma-separated values for the given key
-	 */
-	private static Iteratable<String> getValues(Properties props, String key) {
-		String prop = props.getProperty(key, "");
-		if (prop.equals("")) {
-			return EmptyIterator.prototype();
-		}
-		final StringTokenizer st = new StringTokenizer(prop, ",");
-		if (!st.hasMoreTokens()) {
-			return EmptyIterator.prototype();
-		}
-		return new SimpleRemovelessIterator<String>() {
-			@Override
-			protected Object computeNext() {
-				if (st.hasMoreTokens()) {
-					return st.nextToken().trim();
-				}
-				return IteratorUtil.noElement;
-			}
-		};
+		JSureProperties.handle(p.getName(), props);
 	}
 
 	@Override
@@ -415,7 +327,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 					CompUnitPattern pat = p.next();
 					LOG.info("Adding pattern to convert as .class: '" + pat
 							+ "'");
-					Binding.setAsSource(pat, false);
+					ModuleRules.setAsSource(pat, false);
 				}
 			} else if (key.startsWith("ConvertToIR.asSource")) {
 				// Binding.setAsSource(CompUnitPattern.create(project, pattern),
@@ -427,8 +339,8 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 					CompUnitPattern pat = p.next();
 					LOG.info("Adding pattern to convert as source: '" + pat
 							+ "'");
-					Binding.setAsSource(pat, true);
-					Binding.setAsNeeded(pat, false);
+					ModuleRules.setAsSource(pat, true);
+					ModuleRules.setAsNeeded(pat, false);
 				}
 			} else if (key.equals("ConvertToIR.defaultAsSource")) {
 				ModuleRules.defaultAsSource(true);
@@ -445,18 +357,19 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 				for (Iterator<CompUnitPattern> p = parsePatterns(getProject(),
 						pattern); p.hasNext();) {
 					CompUnitPattern pat = p.next();
-					Binding.setAsSource(pat, false);
-					Binding.setAsNeeded(pat, true);
+					ModuleRules.setAsSource(pat, false);
+					ModuleRules.setAsNeeded(pat, true);
 				}
 			} else if (key.startsWith("ConvertToIR.required")) {
 				// Binding.setAsNeeded(CompUnitPattern.create(project, pattern),
 				// false);
 				for (Iterator<CompUnitPattern> p = parsePatterns(getProject(),
 						pattern); p.hasNext();) {
-					Binding.setAsNeeded(p.next(), false);
+					ModuleRules.setAsNeeded(p.next(), false);
 				}
 			} else if (key.startsWith(MODULE_PREFIX)) {
-				createModuleFromKeyAndPattern(MODULE_PREFIX, key, pattern);
+				JSureProperties.createModuleFromKeyAndPattern(getProject().getName(), 
+						MODULE_PREFIX, key, pattern);
 			} else {
 				String warn = "Got an unrecognized key in .project: " + key;
 				reportWarning(warn, Eclipse.getDefault().getResourceNode(
@@ -467,12 +380,6 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		}
 	}
 
-	private void createModuleFromKeyAndPattern(String prefix, String key,
-			String pattern) {
-		Binding.createModule(getProject(), key.substring(prefix.length()),
-				pattern);
-	}
-
 	private Iterator<CompUnitPattern> parsePatterns(final IProject proj,
 			String patterns) {
 		final StringTokenizer st = new StringTokenizer(patterns, ",");
@@ -481,7 +388,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 			protected Object computeNext() {
 				if (st.hasMoreElements()) {
 					String pat = st.nextToken().trim();
-					return CompUnitPattern.create(proj, pat);
+					return CompUnitPattern.create(proj.getName(), pat);
 				}
 				return IteratorUtil.noElement;
 			}
@@ -534,7 +441,7 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 	public boolean analyzeResource(IResource resource, int kind) {
 		// FIX how to distinguish from one for a package?
 		if (AbstractFluidAnalysisModule.isPromisesXML(resource)
-				&& UpdateSuperRootStorage.onLibPath(resource)
+				&& JSureProperties.onLibPath(resource.getProjectRelativePath().toPortableString())
 				&& !isOnOutputPath(resource)) {
 			// (re-)load corresponding class file
 			String qname = getCorrespondingTypeName(resource);
@@ -913,11 +820,11 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		CUDrop dd = CUDrop.queryCU(cu);
 
 		if (!(dd instanceof SourceCUDrop)) {
-			return Binding.REST_OF_THE_WORLD;
+			return ModuleRules.REST_OF_THE_WORLD;
 		}
 		SourceCUDrop d = (SourceCUDrop) dd;
 		ICodeFile file = d.javaFile;
-		return Binding.getModule(file);
+		return ModuleRules.getModule(file);
 	}
 
 	/**

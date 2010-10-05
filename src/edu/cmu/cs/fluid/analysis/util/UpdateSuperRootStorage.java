@@ -1,12 +1,9 @@
 package edu.cmu.cs.fluid.analysis.util;
 
-import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.*;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
@@ -54,8 +51,6 @@ public final class UpdateSuperRootStorage extends AbstractFluidAnalysisModule<Vo
 	private long used;
 
 	private int compUnits;
-	
-	private static final List<String> excludedLibPaths = new ArrayList<String>();
 	
 	@Override
 	public void analyzeBegin(IProject p) {
@@ -134,23 +129,5 @@ public final class UpdateSuperRootStorage extends AbstractFluidAnalysisModule<Vo
 	@Override
 	protected void removeResource(IResource resource) {
 		// Nothing to do?
-	}
-
-	public static void clearLibraryPath() {
-		excludedLibPaths.clear();
-	}
-
-	public static boolean onLibPath(IResource resource) {
-		final String path = resource.getProjectRelativePath().toPortableString();
-		for(String excludePath : excludedLibPaths) {
-			if (path.startsWith(excludePath)) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	public static void excludeLibraryPath(String excludePath) {
-		excludedLibPaths.add(excludePath);
 	}
 }
