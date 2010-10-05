@@ -4,6 +4,7 @@ package com.surelogic.analysis;
 import java.util.*;
 import java.util.logging.Logger;
 
+import com.surelogic.annotation.rules.CompUnitPattern;
 import com.surelogic.annotation.rules.ModuleRules;
 import com.surelogic.common.logging.SLLogger;
 
@@ -12,6 +13,7 @@ import edu.cmu.cs.fluid.util.*;
 
 public class JSureProperties {
 	private static final Logger LOG = SLLogger.getLogger("analysis.JSureProperties");
+	private static final String MODULE_PREFIX = "Module.";
 	
 	private static final List<String> excludedLibPaths = new ArrayList<String>();
 	
@@ -123,6 +125,94 @@ public class JSureProperties {
 			protected Object computeNext() {
 				if (st.hasMoreTokens()) {
 					return st.nextToken().trim();
+				}
+				return IteratorUtil.noElement;
+			}
+		};
+	}
+	
+	public static void handleArgs(String proj, Map<String,String> args) {
+		final Iterator<Map.Entry<String, String>> it = args.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry<String, String> e = it.next();
+			String key = e.getKey();
+			String pattern = e.getValue();
+			/*if (key.equals(Majordomo.BUILD_KIND)) {
+				continue; // Nothing to do here
+			} else */
+			
+			if (key.startsWith("ConvertToIR.asClass")) {
+				// Binding.setAsSource(CompUnitPattern.create(project, pattern),
+				// false);
+				for (Iterator<CompUnitPattern> p = parsePatterns(proj,
+						pattern); p.hasNext();) {
+					CompUnitPattern pat = p.next();
+					LOG.info("Adding pattern to convert as .class: '" + pat
+							+ "'");
+					ModuleRules.setAsSource(pat, false);
+				}
+			} else if (key.startsWith("ConvertToIR.asSource")) {
+				// Binding.setAsSource(CompUnitPattern.create(project, pattern),
+				// true);
+				// Binding.setAsNeeded(CompUnitPattern.create(project, pattern),
+				// false);
+				for (Iterator<CompUnitPattern> p = parsePatterns(proj,
+						pattern); p.hasNext();) {
+					CompUnitPattern pat = p.next();
+					LOG.info("Adding pattern to convert as source: '" + pat
+							+ "'");
+					ModuleRules.setAsSource(pat, true);
+					ModuleRules.setAsNeeded(pat, false);
+				}
+			} else if (key.equals("ConvertToIR.defaultAsSource")) {
+				ModuleRules.defaultAsSource(true);
+			} else if (key.equals("ConvertToIR.defaultAsClass")) {
+				ModuleRules.defaultAsSource(false);
+			} else if (key.equals("ConvertToIR.defaultAsNeeded")) {
+				ModuleRules.defaultAsSource(false);
+				ModuleRules.defaultAsNeeded(true);
+			} else if (key.startsWith("ConvertToIR.asNeeded")) {
+				// Binding.setAsSource(CompUnitPattern.create(project, pattern),
+				// false);
+				// Binding.setAsNeeded(CompUnitPattern.create(project, pattern),
+				// true);
+				for (Iterator<CompUnitPattern> p = parsePatterns(proj,
+						pattern); p.hasNext();) {
+					CompUnitPattern pat = p.next();
+					ModuleRules.setAsSource(pat, false);
+					ModuleRules.setAsNeeded(pat, true);
+				}
+			} else if (key.startsWith("ConvertToIR.required")) {
+				// Binding.setAsNeeded(CompUnitPattern.create(project, pattern),
+				// false);
+				for (Iterator<CompUnitPattern> p = parsePatterns(proj,
+						pattern); p.hasNext();) {
+					ModuleRules.setAsNeeded(p.next(), false);
+				}
+			} else if (key.startsWith(MODULE_PREFIX)) {
+				JSureProperties.createModuleFromKeyAndPattern(proj, 
+						MODULE_PREFIX, key, pattern);
+			} else {
+				String warn = "Got an unrecognized key in .project: " + key;
+				/*
+				reportWarning(warn, Eclipse.getDefault().getResourceNode(
+				".project"));
+				*/
+				LOG.warning(warn);
+				continue;
+			}
+		}
+	}
+
+	private static Iterator<CompUnitPattern> parsePatterns(final String proj,
+			String patterns) {
+		final StringTokenizer st = new StringTokenizer(patterns, ",");
+		return new SimpleRemovelessIterator<CompUnitPattern>() {
+			@Override
+			protected Object computeNext() {
+				if (st.hasMoreElements()) {
+					String pat = st.nextToken().trim();
+					return CompUnitPattern.create(proj, pat);
 				}
 				return IteratorUtil.noElement;
 			}
