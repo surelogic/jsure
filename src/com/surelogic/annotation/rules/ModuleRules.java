@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +28,7 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -325,5 +327,151 @@ public class ModuleRules extends AnnotationRules {
 		  Matcher m = compiledPattern.matcher(s);
 		  return m.matches();
 	  }    
+  }
+  
+  private static final Map<CompUnitPattern, Boolean> asSourcePatterns = new HashMap<CompUnitPattern, Boolean>();
+  private static final Map<CompUnitPattern, Boolean> asNeededPatterns = new HashMap<CompUnitPattern, Boolean>();
+  private static final Map<CompUnitPattern, String> modulePatterns = new HashMap<CompUnitPattern, String>();
+
+  public static void clearAsSourcePatterns() {
+	  asSourcePatterns.clear();
+  }
+
+  public static void clearAsNeededPatterns() {
+	  asNeededPatterns.clear();
+	  modulePatterns.clear();
+  }
+
+  public static void setAsSource(CompUnitPattern pattern, boolean asSource) {
+	  // System.out.println("Setting pattern "+pattern+" asSource =
+	  // "+asSource);
+	  asSourcePatterns.put(pattern, asSource ? Boolean.TRUE : Boolean.FALSE);
+  }
+
+  public static void setAsNeeded(CompUnitPattern pattern, boolean asSource) {
+	  // System.out.println("Setting pattern "+pattern+" asSource =
+	  // "+asSource);
+	  asNeededPatterns.put(pattern, asSource ? Boolean.TRUE : Boolean.FALSE);
+  }
+
+  /**
+   * @param cu
+   * @return
+   */
+  public static boolean treatedAsSource(ICodeFile cf) {
+	  //ICodeFile cf = new EclipseCodeFile(cu);
+	  return matchingPattern(asSourcePatterns, ModuleRules
+			  .getDefaultAsSource(), cf);
+  }
+
+  public static boolean loadedAsNeeded(ICodeFile cf) {
+	  //ICodeFile cf = new EclipseCodeFile(cu);
+	  return matchingPattern(asNeededPatterns, ModuleRules
+			  .getDefaultAsNeeded(), cf);
+  }
+
+  private static boolean matchingPattern(Map<CompUnitPattern, ?> patterns,
+		  boolean flag, ICodeFile cu) {
+	  Boolean b = (Boolean) matchingPattern(patterns, cu, flag ? Boolean.TRUE
+			  : Boolean.FALSE);
+	  return b.booleanValue();
+  }
+
+  private static Object matchingPattern(Map<CompUnitPattern, ?> patterns,
+		  ICodeFile cu, Object rv) {
+	  if (cu == null) {
+		  return null;
+	  }
+	  CompUnitPattern last = null;
+	  String pkg = null;
+
+	  for (Map.Entry<CompUnitPattern, ?> e : patterns.entrySet()) {
+		  CompUnitPattern pat = e.getKey();
+		  Object val = e.getValue();
+
+		  // optimization
+		  if (pkg == null) {
+			  pkg = cu.getPackage(); // All assumed to be in same project
+		  }
+
+		  if (pat.matches(pkg, null)) {
+			  if (last != null) {
+				  // multiple matches
+				  if (!rv.equals(val)) {
+					  LOG.severe("Multiple CU patterns match and disagree: "
+							  + last + ", " + pat);
+				  } else {
+					  LOG.warning("Multiple CU patterns match: " + last
+							  + ", " + pat);
+				  }
+			  }
+			  last = pat;
+			  rv = val;
+		  }
+	  }
+	  return rv;
+  }
+
+  private static Object matchingPattern(Map<CompUnitPattern, ?> patterns,
+		  final String pkg, final String path, Object rv) {
+	  if (pkg == null) {
+		  return null;
+	  }
+	  CompUnitPattern last = null;
+
+	  for (Map.Entry<CompUnitPattern, ?> e : patterns.entrySet()) {
+		  CompUnitPattern pat = e.getKey();
+		  Object val = e.getValue();
+
+		  if (pat.matches(pkg, path)) {
+			  if (last != null) {
+				  // multiple matches
+				  if (!rv.equals(val)) {
+					  LOG.severe("Multiple CU patterns match and disagree: "
+							  + last + ", " + pat);
+				  } else {
+					  LOG.warning("Multiple CU patterns match: " + last
+							  + ", " + pat);
+				  }
+			  }
+			  last = pat;
+			  rv = val;
+		  }
+	  }
+	  return rv;
+  }
+
+  /**
+   * @param name
+   *            The module to be created
+   * @param patterns
+   *            A comma-separated list of patterns
+   */
+  public static void createModule(String proj, String name, String patterns) {
+	  StringTokenizer st = new StringTokenizer(patterns, ",");
+	  while (st.hasMoreTokens()) {
+		  String pat = st.nextToken().trim();
+		  Object old = modulePatterns.put(CompUnitPattern.create(proj, pat),
+				  name);
+		  if (old != null) {
+			  LOG.severe("Somehow displaced an existing module mapping for "
+					  + old);
+		  }
+	  }
+  }
+
+  public static String getModule(ICodeFile cu) {
+	  return (String) matchingPattern(modulePatterns, cu, REST_OF_THE_WORLD);
+  }
+
+  public static final String REST_OF_THE_WORLD = "Rest of the world";
+
+  /**
+   * @param pkg
+   *            The fully qualified name of a package
+   * @return
+   */
+  public static String mapToModule(String pkg, String path) {
+	  return (String) matchingPattern(modulePatterns, pkg, path, REST_OF_THE_WORLD);
   }
 }
