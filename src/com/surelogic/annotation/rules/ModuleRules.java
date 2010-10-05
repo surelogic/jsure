@@ -1,7 +1,12 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/ModuleRules.java,v 1.2 2007/10/28 18:17:07 dfsuther Exp $*/
 package com.surelogic.annotation.rules;
 
-import static edu.cmu.cs.fluid.sea.drops.modules.VisDrop.buildVisDrop;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -22,8 +27,7 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -102,7 +106,7 @@ public class ModuleRules extends AnnotationRules {
       return new AbstractAASTScrubber<VisClauseNode>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<VisClauseNode> makePromiseDrop(VisClauseNode a) {
-          VisDrop d = buildVisDrop(a);
+          VisDrop d = VisDrop.buildVisDrop(a);
           return storeDropIfNotNull(getStorage(), a, d);          
         }
       };
@@ -203,5 +207,123 @@ public class ModuleRules extends AnnotationRules {
 //    return getModule(mayHaveModuleDecl);
   }
   
+  private static boolean defaultAsSource = true;
+  private static boolean defaultAsNeeded = false;
+  
+  private static List<ModulePattern> yes_AsNeeded = new ArrayList<ModulePattern>();
+  private static List<ModulePattern> no_AsNeeded  = new ArrayList<ModulePattern>();
+  private static List<ModulePattern> yes_AsSource = new ArrayList<ModulePattern>();
+  private static List<ModulePattern> no_AsSource  = new ArrayList<ModulePattern>();
+  
+  private static Map<String,ModulePattern> patternCache = new HashMap<String,ModulePattern>();
+  
+  private static ModulePattern findPattern(String pattern) {
+    ModulePattern p = patternCache.get(pattern);
+    if (p == null) {
+      if (pattern.indexOf('*') < 0) {
+        p = new NoWildcards(pattern);
+      } else {
+        p = new Wildcards(pattern);
+      }
+      patternCache.put(pattern, p);
+    }
+    return p;
+  }
+  
+  public static void clearSettings() {
+	  defaultAsSource = true;
+	  defaultAsNeeded = false;
+	  yes_AsNeeded.clear();
+	  no_AsNeeded.clear();
+	  yes_AsSource.clear();
+	  no_AsSource.clear();
+  }
+  
+  public static void defaultAsSource(boolean b) {
+	  LOG.fine(b ? "Defaulting to load as source" : "Defaulting to load as class");
+	  defaultAsSource = b;
+  }
 
+  public static void defaultAsNeeded(boolean b) {
+	  if (b) {
+		  LOG.fine("Defaulting to load as needed");
+	  }
+	  defaultAsNeeded = b;
+  } 
+
+  public static boolean getDefaultAsSource() {
+	  return defaultAsSource;
+  }
+
+  public static boolean getDefaultAsNeeded() {
+	  return defaultAsNeeded;
+  }
+
+  public static void setAsNeeded(String modulePattern, boolean b) {
+	  final String msg = b ? "Loading as needed: " : "Loading required: ";
+	  LOG.fine(msg+modulePattern);
+	  List<ModulePattern> l = b ? yes_AsNeeded : no_AsNeeded; 
+	  ModulePattern p       = findPattern(modulePattern);
+	  l.add(p);
+  }
+
+  public static void setAsSource(String modulePattern, boolean b) {
+	  final String msg = b ? "Loading as source: " : "Loading as class: ";
+	  LOG.fine(msg+modulePattern);
+	  List<ModulePattern> l = b ? yes_AsSource : no_AsSource; 
+	  ModulePattern p       = findPattern(modulePattern);
+	  l.add(p);
+  }
+
+  private static boolean processPatterns(final String mod, List<ModulePattern> yes, List<ModulePattern> no, boolean defaultVal) {
+	  for (ModulePattern p : yes) {
+		  if (p.match(mod)) {
+			  return true;
+		  }
+	  }
+	  for (ModulePattern p : no) {
+		  if (p.match(mod)) {
+			  return false;
+		  }
+	  }
+	  return defaultVal;
+  }
+
+  public static boolean loadedAsNeeded(String module) {
+	  boolean rv = processPatterns(module, yes_AsNeeded, no_AsNeeded, defaultAsNeeded);
+	  //System.out.println(module+" as needed? "+rv);
+	  return rv;
+  }
+  public static boolean treatedAsSource(String module) {
+	  boolean rv = processPatterns(module, yes_AsSource, no_AsSource, defaultAsSource);
+	  //System.out.println(module+" as source? "+rv);
+	  return rv;
+  }
+  
+  private interface ModulePattern {    
+	  boolean match(String s);
+  }
+
+  private static class NoWildcards implements ModulePattern {
+	  final String match;
+	  NoWildcards(String pattern) {
+		  this.match = pattern;
+	  }
+	  public boolean match(String s) {
+		  return match.equals(s);
+	  }    
+  }
+
+  private static class Wildcards implements ModulePattern {
+	  final Pattern compiledPattern;
+	  Wildcards(String pattern) {      
+		  final String noDots    = pattern.replaceAll("\\.", "\\.");
+		  final String wildcards = noDots.replaceAll("\\*", ".*");
+		  compiledPattern = Pattern.compile(wildcards);
+	  }
+	  public boolean match(String s) {
+		  Matcher m = compiledPattern.matcher(s);
+		  return m.matches();
+	  }    
+  }
 }
