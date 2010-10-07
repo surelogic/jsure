@@ -107,6 +107,16 @@ public class PackageDrop extends CUDrop {
 	  return types;
   }
 
+  public Iterable<CUDrop> getCUDrops() {
+	  List<CUDrop> cus = new ArrayList<CUDrop>();
+	  for(Drop d : getDependents()) {
+		  if (d instanceof CUDrop && !(d instanceof PackageDrop)) {
+			  cus.add((CUDrop) d);
+		  }
+	  }
+	  return cus;
+  }
+  
   public void setHasPromises(boolean hasPromises) {
     this.hasPromises = hasPromises;
   }
