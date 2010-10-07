@@ -2,16 +2,30 @@
 package edu.cmu.cs.fluid.sea.dependencies;
 
 import java.util.*;
+import java.util.Map.Entry;
+
+import org.apache.commons.collections15.*;
+import org.apache.commons.collections15.multimap.*;
 
 import com.surelogic.promise.PromiseDropStorage;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.tree.Operator;
 
+/**
+ * TODO Assumes that all dependencies are the same, and doesn't distinguish between 
+ * what different analyses need (which could allow for less reprocessing)
+ * 
+ * @author Edwin
+ */
 public class Dependencies {
 	/**
 	 * To avoid cycles and duplication
@@ -170,5 +184,116 @@ public class Dependencies {
 		for(IRNode n : JavaPromise.bottomUp(d.cu)) {
 			PromiseDropStorage.clearDrops(n);
 		}
+	}
+
+	/**
+	 * Find uses of the given declarations, and add their CUDrops to the queue to
+	 * be reprocessed
+	 * 
+	 * @param decls A sequence of existing declarations with new annotations
+	 */
+	public void scanForDependencies(ITypeEnvironment te, Iterable<IRNode> decls) {		
+		// Categorize decls by access
+		final MultiMap<IRNode,IRNode> packageDecls = new MultiHashMap<IRNode,IRNode>();
+		final MultiMap<IRNode,IRNode> protectedDecls = new MultiHashMap<IRNode,IRNode>();
+		final Set<IRNode> publicDecls = new HashSet<IRNode>();
+		for(IRNode decl : decls) {
+			// TODO not quite right for some
+			final int mods = JavaNode.getModifiers(decl); 
+			if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
+				continue; // Nothing to do?
+			}
+			else if (JavaNode.isSet(mods, JavaNode.PROTECTED)) {
+				final IRNode type = VisitUtil.getEnclosingType(decl);
+				final IRNode root = VisitUtil.findCompilationUnit(decl);				
+				protectedDecls.put(type, decl);
+				packageDecls.put(root, decl);
+			}
+			else if (JavaNode.isSet(mods, JavaNode.PUBLIC)) {
+				publicDecls.add(decl);
+			}
+			else { // package
+				final IRNode root = VisitUtil.findCompilationUnit(decl);
+				packageDecls.put(root, decl);
+			}
+		}
+		if (!packageDecls.isEmpty()) {
+			scanForPackageDependencies(te, packageDecls);
+		}
+		if (!protectedDecls.isEmpty()) {
+			scanForSubclassDependencies(te, protectedDecls);
+		}
+		if (!publicDecls.isEmpty()) {
+			scanForPublicDependencies(te, publicDecls);
+		}
+	}
+	
+	/**
+	 * Look for dependencies in the same package as the decl
+	 * @param te
+	 * @param decls
+	 */
+	private void scanForPackageDependencies(ITypeEnvironment te, MultiMap<IRNode,IRNode> cu2decls) {
+		for(final Entry<IRNode, Collection<IRNode>> e : cu2decls.entrySet()) {
+			final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
+			final String name       = VisitUtil.getPackageName(e.getKey());
+			// TODO does this have the right info?
+			final PackageDrop pd = PackageDrop.findPackage(name);			
+			for(CUDrop cud : pd.getCUDrops()) {
+				scanCUDropForDependencies(te.getBinder(), cud, decls);
+			}
+		}
+	}
+
+	private void scanForSubclassDependencies(ITypeEnvironment te, MultiMap<IRNode,IRNode> type2decls) {
+		for(Entry<IRNode, Collection<IRNode>> e : type2decls.entrySet()) {		
+			final IRNode type       = e.getKey();
+			final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
+			scanForSubclassDependencies(te, type, decls);
+		}
+	}
+	
+	private void scanForSubclassDependencies(ITypeEnvironment te, IRNode type, Set<IRNode> decls) {
+		for(IRNode sub : te.getRawSubclasses(type)) {
+			// TODO check if already on the list first?
+			final IRNode cu  = VisitUtil.findCompilationUnit(sub);
+			final CUDrop cud = CUDrop.queryCU(cu);
+			scanCUDropForDependencies(te.getBinder(), cud, decls);
+			scanForSubclassDependencies(te, sub, decls);
+		}	
+	}
+	
+	private void scanForPublicDependencies(ITypeEnvironment te, Set<IRNode> decls) {
+		// TODO do i need to check binaries?
+		final Set<SourceCUDrop> allCus = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
+		for(CUDrop cud : allCus) {
+			scanCUDropForDependencies(te.getBinder(), cud, decls);
+		}
+	}
+	
+	private void scanCUDropForDependencies(IBinder binder, CUDrop cud, Set<IRNode> decls) {
+		if (reprocess.contains(cud)) {
+			return; // Already on the list
+		}
+		final boolean present = hasUses(binder, cud.cu, decls);
+		if (present) {
+			reprocess.add(cud);
+		}
+	}
+	
+	/**
+	 * Returns true if the CU has any uses of the specified decls
+	 */
+	private boolean hasUses(IBinder binder, IRNode cu, Set<IRNode> decls) {
+		for(final IRNode n : JavaPromise.bottomUp(cu)) {
+			final Operator op = JJNode.tree.getOperator(n);
+			if (op instanceof IHasBinding) {
+				final IBinding b = binder.getIBinding(n);
+				if (decls.contains(b.getNode())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }
