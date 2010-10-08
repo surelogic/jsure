@@ -89,6 +89,7 @@ public final class PromiseDropStorage {
 	}
 	
 	public static List<PromiseDrop<?>> getAllDrops(IRNode n) {
+		// TODO cache these instead? 
 		List<PromiseDrop<?>> drops = new ArrayList<PromiseDrop<?>>();
 		for(BooleanPromiseDropStorage<? extends BooleanPromiseDrop<?>> b : booleans) {
 			if (b.getSlotInfo() == null) {
@@ -118,6 +119,9 @@ public final class PromiseDropStorage {
 					drops.add(d);
 				}	
 			}
+		}
+		if (drops.isEmpty()) {
+			return Collections.emptyList();
 		}
 		return drops;
 	}
