@@ -186,6 +186,15 @@ public class Dependencies {
 		}
 	}
 
+	private Collection<IRNode> findNewAnnotations() {
+		// 1. record old decls and what annotations were on them (no easy way to do this?)
+		// (esp. w/ scoped promises)
+		//    Decls as Strings for field/method decls
+		// 2. compare with new decls, eliminating those that didn't appear before
+		// 3. compare the annotations on the remaining decls, eliminating those that "existed" before
+		return null;
+	}
+	
 	/**
 	 * Find uses of the given declarations, and add their CUDrops to the queue to
 	 * be reprocessed

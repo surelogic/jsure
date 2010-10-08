@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public final class PromiseDropSeqStorage<D extends PromiseDrop> 
+public final class PromiseDropSeqStorage<D extends PromiseDrop<?>> 
 extends AbstractPromiseDropStorage<D>
 implements IPromiseDropSeqStorage<D> {
   private SlotInfo<List<D>> si;
@@ -17,7 +17,7 @@ implements IPromiseDropSeqStorage<D> {
     super(name, base);
   }
 
-  public static <P extends PromiseDrop>
+  public static <P extends PromiseDrop<?>>
   PromiseDropSeqStorage<P> create(String name, Class<P> base) {
 	  PromiseDropSeqStorage<P> s = new PromiseDropSeqStorage<P>(name, base);
 	  PromiseDropStorage.register(s);

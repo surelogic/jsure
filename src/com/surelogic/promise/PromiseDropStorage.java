@@ -6,7 +6,9 @@ import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
 public final class PromiseDropStorage {
 	private static final Logger LOG = SLLogger.getLogger();
@@ -15,21 +17,20 @@ public final class PromiseDropStorage {
 		// Nothing to do, since never created
 	}
 	
-	private static List<BooleanPromiseDropStorage<?>> booleans = 
-		new ArrayList<BooleanPromiseDropStorage<?>>();
-	private static List<SinglePromiseDropStorage<?>> nodes = 
-		new ArrayList<SinglePromiseDropStorage<?>>();
-	private static List<PromiseDropSeqStorage<?>> sequences = 
-		new ArrayList<PromiseDropSeqStorage<?>>();
+	private static List<BooleanPromiseDropStorage<? extends BooleanPromiseDrop<?>>> booleans = 
+		new ArrayList<BooleanPromiseDropStorage<? extends BooleanPromiseDrop<?>>>();
+	private static List<SinglePromiseDropStorage<? extends PromiseDrop<?>>> nodes = 
+		new ArrayList<SinglePromiseDropStorage<? extends PromiseDrop<?>>>();
+	private static List<PromiseDropSeqStorage<? extends PromiseDrop<?>>> sequences = 
+		new ArrayList<PromiseDropSeqStorage<? extends PromiseDrop<?>>>();
 	
-	static void register(BooleanPromiseDropStorage<?> s) {
+	static void register(BooleanPromiseDropStorage<? extends BooleanPromiseDrop<?>> s) {
 		booleans.add(s);
 	}
-	static void register(SinglePromiseDropStorage<?> s) {
+	static void register(SinglePromiseDropStorage<? extends PromiseDrop<?>> s) {
 		nodes.add(s);
 	}
-	static void register(PromiseDropSeqStorage<?> s) {
-
+	static void register(PromiseDropSeqStorage<? extends PromiseDrop<?>> s) {
 		sequences.add(s);
 	}
 	
@@ -85,5 +86,39 @@ public final class PromiseDropStorage {
 				n.setSlotValue(s.getSeqSlotInfo(), null);			
 			}
 		}
+	}
+	
+	public static List<PromiseDrop<?>> getAllDrops(IRNode n) {
+		List<PromiseDrop<?>> drops = new ArrayList<PromiseDrop<?>>();
+		for(BooleanPromiseDropStorage<? extends BooleanPromiseDrop<?>> b : booleans) {
+			if (b.getSlotInfo() == null) {
+				continue;
+			}
+			BooleanPromiseDrop<?> o = n.getSlotValue(b.getSlotInfo());
+			if (o != null) {
+				drops.add(o);		
+			}
+		}
+		for(SinglePromiseDropStorage<? extends PromiseDrop<?>> s : nodes) {
+			if (s.getSlotInfo() == null) {
+				continue;
+			}
+			PromiseDrop<?> o = n.getSlotValue(s.getSlotInfo());
+			if (o != null) {
+				drops.add(o);		
+			}		
+		}
+		for(PromiseDropSeqStorage<? extends PromiseDrop<?>> s : sequences) {
+			if (s.getSeqSlotInfo() == null) {
+				continue;
+			}
+			List<? extends PromiseDrop<?>> o = n.getSlotValue(s.getSeqSlotInfo());
+			if (o != null) {
+				for(PromiseDrop<?> d : o) {
+					drops.add(d);
+				}	
+			}
+		}
+		return drops;
 	}
 }

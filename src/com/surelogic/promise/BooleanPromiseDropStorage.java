@@ -6,7 +6,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 
-public final class BooleanPromiseDropStorage<D extends BooleanPromiseDrop> 
+public final class BooleanPromiseDropStorage<D extends BooleanPromiseDrop<?>> 
 extends AbstractPromiseDropStorage<D>
 implements IBooleanPromiseDropStorage<D> {
   private SlotInfo<D> si;
@@ -15,7 +15,7 @@ implements IBooleanPromiseDropStorage<D> {
     super(name, base);
   }
   
-  public static <P extends BooleanPromiseDrop>
+  public static <P extends BooleanPromiseDrop<?>>
   BooleanPromiseDropStorage<P> create(String name, Class<P> base) {
 	  BooleanPromiseDropStorage<P> s = new BooleanPromiseDropStorage<P>(name, base);
 	  PromiseDropStorage.register(s);

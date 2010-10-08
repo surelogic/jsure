@@ -5,7 +5,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
-public final class SinglePromiseDropStorage<D extends PromiseDrop> 
+public final class SinglePromiseDropStorage<D extends PromiseDrop<?>> 
 extends AbstractPromiseDropStorage<D>
 implements ISinglePromiseDropStorage<D> {
   private SlotInfo<D> si;
@@ -14,7 +14,7 @@ implements ISinglePromiseDropStorage<D> {
     super(name, base);
   }
   
-  public static <P extends PromiseDrop>
+  public static <P extends PromiseDrop<?>>
   SinglePromiseDropStorage<P> create(String name, Class<P> base) {
 	  SinglePromiseDropStorage<P> s = new SinglePromiseDropStorage<P>(name, base);
 	  PromiseDropStorage.register(s);
