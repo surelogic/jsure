@@ -524,4 +524,21 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 		}
 		return createSourceRef(n, getSrcRef()); 
 	}
+	
+	@Override
+	public final int hashCode() {
+		return getClass().hashCode() + getMessage().hashCode();
+	}
+	
+	/**
+	 * Checking if the class and message match
+	 */
+	@Override
+	public final boolean equals(Object o) {
+		if (o instanceof PromiseDrop<?>) {
+			PromiseDrop<?> d = (PromiseDrop<?>) o;
+			return getClass().equals(d.getClass()) && getMessage().equals(d.getMessage());
+		}
+		return false;
+	}
 }
