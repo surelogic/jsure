@@ -7,13 +7,19 @@ import java.util.Map.Entry;
 import org.apache.commons.collections15.*;
 import org.apache.commons.collections15.multimap.*;
 
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.promise.PromiseDropStorage;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.CodeInfo;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
@@ -40,6 +46,11 @@ public class Dependencies {
 	 * The set of changed CUDrops
 	 */
 	private final Set<CUDrop> changed = new HashSet<CUDrop>();
+	
+	/**
+	 * Info from the old CUs
+	 */
+	private final MultiMap<String, PromiseDrop<?>> oldInfo = new MultiHashMap<String, PromiseDrop<?>>();
 	
 	public void markAsChanged(CUDrop d) {
 		if (d == null) {
@@ -186,13 +197,63 @@ public class Dependencies {
 		}
 	}
 
-	private Collection<IRNode> findNewAnnotations() {
-		// 1. record old decls and what annotations were on them (no easy way to do this?)
-		// (esp. w/ scoped promises)
-		//    Decls as Strings for field/method decls
-		// 2. compare with new decls, eliminating those that didn't appear before
-		// 3. compare the annotations on the remaining decls, eliminating those that "existed" before
-		return null;
+	// Written to collect info BEFORE the old AST is destroyed 
+	//
+	// Decls as Strings for field/method decls
+	// TODO what if I've got the same name from two projects?
+	public void collectOldAnnotationInfo(Iterable<CodeInfo> infos) {
+		oldInfo.clear();
+		for(final CodeInfo info : infos) {
+			// record old decls and what annotations were on them 
+			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
+				final Operator op = JJNode.tree.getOperator(n);
+				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
+					// Does this include the method signature?
+					final String name = JavaNames.getFullName(n);
+					oldInfo.putAll(name, PromiseDropStorage.getAllDrops(n));
+				}
+			}
+		}
+	}
+	
+	// Written to collect info from the new AST AFTER the old AST is destroyed,
+	// promises are parsed/scrubbed, but BEFORE analysis
+	//
+	// 2. compare with new decls, eliminating those that didn't appear before
+	// 3. compare the annotations on the remaining decls, eliminating those that "existed" before
+	// 4. scan for dependencies
+	public void findDepsForNewlyAnnotatedDecls(Iterable<CodeInfo> infos) {
+		final MultiMap<IIRProject,IRNode> toScan = new MultiHashMap<IIRProject, IRNode>();
+		// Find the newly annotated decls
+		for(final CodeInfo info : infos) {
+			// find new decls to compare
+			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
+				final Operator op = JJNode.tree.getOperator(n);
+				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
+					final String name                         = JavaNames.getFullName(n);
+					final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
+					if (oldDrops == null) {
+						continue; // This decl is brand-new, so any uses will be analyzed
+					}
+					// Otherwise, it's an existing decl
+					if (oldDrops.isEmpty()) {
+						// Any new drops will be new annotations on this decl, so we'll have to scan						
+						toScan.put(JavaProjects.getProject(n), n);
+					} else {
+						// We'll have to compare the drops to see which are truly new
+						final Collection<PromiseDrop<?>> newDrops = PromiseDropStorage.getAllDrops(n);
+						Set<PromiseDrop<?>> diff = new HashSet<PromiseDrop<?>>(newDrops);
+						diff.removeAll(oldDrops); // TODO remove one-by-one?
+						if (!diff.isEmpty()) {
+							toScan.put(JavaProjects.getProject(n), n);
+						}
+					}
+				}
+			}
+		}
+		for(Entry<IIRProject,Collection<IRNode>> e : toScan.entrySet()) {
+			scanForDependencies(e.getKey().getTypeEnv(), e.getValue());
+		}
 	}
 	
 	/**
@@ -201,7 +262,7 @@ public class Dependencies {
 	 * 
 	 * @param decls A sequence of existing declarations with new annotations
 	 */
-	public void scanForDependencies(ITypeEnvironment te, Iterable<IRNode> decls) {		
+	private void scanForDependencies(ITypeEnvironment te, Iterable<IRNode> decls) {		
 		// Categorize decls by access
 		final MultiMap<IRNode,IRNode> packageDecls = new MultiHashMap<IRNode,IRNode>();
 		final MultiMap<IRNode,IRNode> protectedDecls = new MultiHashMap<IRNode,IRNode>();
@@ -274,7 +335,7 @@ public class Dependencies {
 	
 	private void scanForPublicDependencies(ITypeEnvironment te, Set<IRNode> decls) {
 		// TODO do i need to check binaries?
-		final Set<SourceCUDrop> allCus = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
+		final Set<CUDrop> allCus = Sea.getDefault().getDropsOfType(CUDrop.class);
 		for(CUDrop cud : allCus) {
 			scanCUDropForDependencies(te.getBinder(), cud, decls);
 		}
