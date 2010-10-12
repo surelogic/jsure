@@ -533,7 +533,7 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opBorrow(final Store s) {
     if (!s.isValid()) return s;
-    if (localStatus(s, getStackTop(s)).compareTo(State.BORROWED) > 0) { // cannot be shared
+    if (localStatus(s, getStackTop(s)).compareTo(State.BORROWED) > 0) { // cannot be undefined
       return errorStore("Undefined value on stack borrowed");
     }
     return opRelease(s);
@@ -547,7 +547,7 @@ extends TripleLattice<Element<Integer>,
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be shared
-      return errorStore("Undefined value on stack sahared");
+      return errorStore("Undefined value on stack shared");
     }
     if (localStatus.compareTo(State.SHARED) > 0) { // cannot be shared
       return errorStore("Borrowed value on stack shared");
@@ -571,13 +571,13 @@ extends TripleLattice<Element<Integer>,
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
-    if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be unique
+    if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       return errorStore("Undefined value on stack not unique");
     }
-    if (localStatus.compareTo(State.SHARED) > 0) { // cannot be shared
+    if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
       return errorStore("Borowed value on stack not unique");
     }
-    if (localStatus.compareTo(State.UNIQUE) > 0) {
+    if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
       return errorStore("Shared value on stack not unique");
     }
     return opRelease(apply(s, new Add(n, EMPTY.addElement(State.UNDEFINED))));
