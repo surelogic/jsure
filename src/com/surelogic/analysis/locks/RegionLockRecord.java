@@ -4,6 +4,7 @@ package com.surelogic.analysis.locks;
 
 import java.text.MessageFormat;
 
+import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.LockDeclarationNode;
 
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -37,7 +38,11 @@ final class RegionLockRecord extends AbstractLockRecord {
     super(binder, cd, ld);
     LockDeclarationNode lock = (LockDeclarationNode) ld.getAST(); 
     if (lock != null) {
-      region = lock.getRegion().resolveBinding().getModel();
+      final IRegionBinding b = lock.getRegion().resolveBinding();
+      if (b == null) {
+    	  lock.getRegion().resolveBinding();
+      }
+      region = b.getModel();
     } else {
       region = RegionModel.getInstanceRegion();
     }
