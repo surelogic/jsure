@@ -37,7 +37,8 @@ public class Dependencies {
 	 * To avoid cycles and duplication
 	 */
 	private final Set<Drop> checkedDependents = new HashSet<Drop>();
-	private final Set<Drop> checkedDeponents = new HashSet<Drop>();
+	//private final Set<Drop> checkedDeponents = new HashSet<Drop>();
+	
 	/**
 	 * The set of CUDrops that need to be reprocessed for promises
 	 */
@@ -136,6 +137,9 @@ public class Dependencies {
 		}
 	}
 	
+	/**
+	 * Clears drops!
+	 */
 	public void finish() {
 		processPromiseWarningDrops();
 		
@@ -204,13 +208,25 @@ public class Dependencies {
 	public void collectOldAnnotationInfo(Iterable<CodeInfo> infos) {
 		oldInfo.clear();
 		for(final CodeInfo info : infos) {
+			System.out.println("Collecting old info for "+info.getFileName());
 			// record old decls and what annotations were on them 
 			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
 				final Operator op = JJNode.tree.getOperator(n);
 				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
 					// Does this include the method signature?
 					final String name = JavaNames.getFullName(n);
-					oldInfo.putAll(name, PromiseDropStorage.getAllDrops(n));
+					List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
+					if (!drops.isEmpty()) {
+						System.out.println("Collecting old drops for "+name);
+						oldInfo.putAll(name, drops);
+					} 
+					/*
+					if ("testDeps.Deponent".equals(name)) {
+						for(LockModel l : LockRules.getModels(n)) {
+							System.out.println(l.getMessage());
+						}
+					}
+					*/
 				}
 			}
 		}
@@ -223,9 +239,14 @@ public class Dependencies {
 	// 3. compare the annotations on the remaining decls, eliminating those that "existed" before
 	// 4. scan for dependencies
 	public void findDepsForNewlyAnnotatedDecls(Iterable<CodeInfo> infos) {
+		if (oldInfo.isEmpty()) {
+			System.out.println("No old info to compare with");
+			return;
+		}
 		final MultiMap<IIRProject,IRNode> toScan = new MultiHashMap<IIRProject, IRNode>();
 		// Find the newly annotated decls
 		for(final CodeInfo info : infos) {
+			System.out.println("Checking for new dependencies on "+info.getFileName());
 			// find new decls to compare
 			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
 				final Operator op = JJNode.tree.getOperator(n);
@@ -233,19 +254,32 @@ public class Dependencies {
 					final String name                         = JavaNames.getFullName(n);
 					final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
 					if (oldDrops == null) {
-						continue; // This decl is brand-new, so any uses will be analyzed
+						System.out.println("Ignoring no-old-annos decl: "+name);
+						continue; // Any annotations are brand-new, so any uses will be analyzed
 					}
 					// Otherwise, it's an existing decl
+					final Collection<PromiseDrop<?>> newDrops = PromiseDropStorage.getAllDrops(n);
 					if (oldDrops.isEmpty()) {
 						// Any new drops will be new annotations on this decl, so we'll have to scan						
-						toScan.put(JavaProjects.getProject(n), n);
+						if (!newDrops.isEmpty()) {
+							System.out.println("Found all-new annotations for "+name);						
+							toScan.put(JavaProjects.getProject(n), n);
+						} else {
+							System.out.println("No old/new drops for "+name);
+						}
 					} else {
-						// We'll have to compare the drops to see which are truly new
-						final Collection<PromiseDrop<?>> newDrops = PromiseDropStorage.getAllDrops(n);
+						// We'll have to compare the drops to see which are truly new			
+						
 						Set<PromiseDrop<?>> diff = new HashSet<PromiseDrop<?>>(newDrops);
+						if (diff.isEmpty()) {
+							throw new IllegalStateException("TODO comparison");
+						}
 						diff.removeAll(oldDrops); // TODO remove one-by-one?
 						if (!diff.isEmpty()) {
+							System.out.println("Found new annotations for "+name);
 							toScan.put(JavaProjects.getProject(n), n);
+						} else {
+							System.out.println("No new drops for "+name);
 						}
 					}
 				}
