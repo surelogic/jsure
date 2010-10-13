@@ -147,7 +147,7 @@ public class Dependencies {
 	 */
 	public void finishReprocessing() {
 		processPromiseWarningDrops();
-		
+		collectOldAnnotationInfo();
 		reprocess.removeAll(changed);						
 		/*
 		for(CUDrop d : changed) {
@@ -207,20 +207,20 @@ public class Dependencies {
 	}
 
 	// Written to collect info BEFORE the old AST is destroyed 
-	// (and be called before finishReprocessing())
 	//
 	// Decls as Strings for field/method decls
 	// TODO what if I've got the same name from two projects?
-	public void collectOldAnnotationInfo(Iterable<CodeInfo> infos) {
-		oldInfo.clear();
+	private void collectOldAnnotationInfo() {
+		// Get all the CUs that will be re-annotated
 		reanalyze.clear();
 		reanalyze.addAll(reprocess);
 		reanalyze.addAll(changed);
+		oldInfo.clear();
 		
-		for(final CodeInfo info : infos) {
-			System.out.println("Collecting old info for "+info.getFileName());
+		for(final CUDrop cud : reanalyze) {
+			System.out.println("Collecting old info for "+cud.javaOSFileName);
 			// record old decls and what annotations were on them 
-			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
+			for(final IRNode n : JJNode.tree.bottomUp(cud.cu)) {
 				final Operator op = JJNode.tree.getOperator(n);
 				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
 					// Does this include the method signature?
@@ -248,14 +248,14 @@ public class Dependencies {
 	// 2. compare with new decls, eliminating those that didn't appear before
 	// 3. compare the annotations on the remaining decls, eliminating those that "existed" before
 	// 4. scan for dependencies
-	public void findDepsForNewlyAnnotatedDecls(Iterable<CodeInfo> infos) {
+	public Collection<CUDrop> findDepsForNewlyAnnotatedDecls(Iterable<CodeInfo> newInfos) {
 		if (oldInfo.isEmpty()) {
 			System.out.println("No old info to compare with");
-			return;
+			return Collections.emptyList();
 		}
 		final MultiMap<IIRProject,IRNode> toScan = new MultiHashMap<IIRProject, IRNode>();
 		// Find the newly annotated decls
-		for(final CodeInfo info : infos) {
+		for(final CodeInfo info : newInfos) {
 			System.out.println("Checking for new dependencies on "+info.getFileName());
 			// find new decls to compare
 			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
@@ -298,6 +298,9 @@ public class Dependencies {
 		for(Entry<IIRProject,Collection<IRNode>> e : toScan.entrySet()) {
 			scanForDependencies(e.getKey().getTypeEnv(), e.getValue());
 		}
+		reanalyze.removeAll(reprocess);
+		reanalyze.removeAll(changed);
+		return reanalyze;
 	}
 	
 	/**
