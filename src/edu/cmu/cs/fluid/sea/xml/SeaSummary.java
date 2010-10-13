@@ -266,7 +266,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			if (id != null) {
 				s.reset();
 				s.summarizeDrop(id);
-				
+				/*
+				if (id.getClass().equals(PromisePromiseDrop.class) && id.getMessage().contains("InRegion(TotalRegion)")) {
+					System.out.println("Found scoped promise: "+id.getMessage());
+				}
+*/
 				Entity e = new Entity(id.getEntityName(), s.attributes);
 				newDrops.add(e);
 			}
