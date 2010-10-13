@@ -62,6 +62,16 @@ public abstract class Drop {
 		mySea.notify(this, DropEvent.Created);
 	}
 
+	@Override
+	public final int hashCode() {
+		return super.hashCode();
+	}
+	
+	@Override
+	public final boolean equals(Object o) {
+		return super.equals(o);
+	}
+	
 	/**
 	 * Gets the sea that this drop is part of.
 	 * 
@@ -310,7 +320,7 @@ public abstract class Drop {
 		if (!valid) {
 			return;
 		}
-		// System.out.println("Invalidating "+getMessage());
+		System.out.println("Invalidating "+getMessage());
 		invalidate_internal();
 
 		valid = false;
