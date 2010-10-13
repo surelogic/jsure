@@ -41,12 +41,17 @@ public class Dependencies {
 	
 	/**
 	 * The set of CUDrops that need to be reprocessed for promises
+	 * (and reanalyzed)
 	 */
 	private final Set<CUDrop> reprocess = new HashSet<CUDrop>();
 	/**
 	 * The set of changed CUDrops
 	 */
 	private final Set<CUDrop> changed = new HashSet<CUDrop>();
+	/**
+	 * The set of CUDrops that just need to be reanalyzed
+	 */
+	private final Set<CUDrop> reanalyze = new HashSet<CUDrop>();
 	
 	/**
 	 * Info from the old CUs
@@ -140,7 +145,7 @@ public class Dependencies {
 	/**
 	 * Clears drops!
 	 */
-	public void finish() {
+	public void finishReprocessing() {
 		processPromiseWarningDrops();
 		
 		reprocess.removeAll(changed);						
@@ -202,11 +207,16 @@ public class Dependencies {
 	}
 
 	// Written to collect info BEFORE the old AST is destroyed 
+	// (and be called before finishReprocessing())
 	//
 	// Decls as Strings for field/method decls
 	// TODO what if I've got the same name from two projects?
 	public void collectOldAnnotationInfo(Iterable<CodeInfo> infos) {
 		oldInfo.clear();
+		reanalyze.clear();
+		reanalyze.addAll(reprocess);
+		reanalyze.addAll(changed);
+		
 		for(final CodeInfo info : infos) {
 			System.out.println("Collecting old info for "+info.getFileName());
 			// record old decls and what annotations were on them 
@@ -376,12 +386,12 @@ public class Dependencies {
 	}
 	
 	private void scanCUDropForDependencies(IBinder binder, CUDrop cud, Set<IRNode> decls) {
-		if (reprocess.contains(cud)) {
+		if (reanalyze.contains(cud)) {
 			return; // Already on the list
 		}
 		final boolean present = hasUses(binder, cud.cu, decls);
 		if (present) {
-			reprocess.add(cud);
+			reanalyze.add(cud);
 		}
 	}
 	
