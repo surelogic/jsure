@@ -67,6 +67,12 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 		return getInstance(lockName, project);
 	}
 	
+	/*
+	@Override
+	protected final void invalidate_internal() {
+		System.out.println("Invalidating "+getMessage());
+	}
+	*/
 	/**
 	 * The simple lock name this drop represents the declaration for.
 	 */

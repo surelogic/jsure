@@ -31,6 +31,7 @@ public final class PromiseDropStorage {
 		nodes.add(s);
 	}
 	static void register(PromiseDropSeqStorage<? extends PromiseDrop<?>> s) {
+		//System.out.println("Registered "+s.name());
 		sequences.add(s);
 	}
 	

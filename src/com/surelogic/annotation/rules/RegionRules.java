@@ -131,8 +131,10 @@ public class RegionRules extends AnnotationRules {
       return new AbstractAASTScrubber<NewRegionDeclarationNode>(
           this, ScrubberType.BY_HIERARCHY, REGION_INITIALIZER) {
         @Override
-        protected PromiseDrop<NewRegionDeclarationNode> makePromiseDrop(NewRegionDeclarationNode a) {         
-          return storeDropIfNotNull(getStorage(), a, scrubRegion(getContext(), regionState, a));
+        protected PromiseDrop<NewRegionDeclarationNode> makePromiseDrop(NewRegionDeclarationNode a) {
+          final RegionModel m = scrubRegion(getContext(), regionState, a);          
+          //System.out.println("Created region "+m.getName());
+          return storeDropIfNotNull(getStorage(), a, m);
         }
       };
     }

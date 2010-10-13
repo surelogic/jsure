@@ -233,6 +233,11 @@ public class ScopedPromiseRules extends AnnotationRules {
 					  d.invalidate();
 					  return null;
 					}
+					/*
+					if (a.toString().contains("InRegion(TotalRegion)")) {
+						System.out.println("Found scoped promise: "+a);
+					}
+                    */
 					return storeDropIfNotNull(getStorage(), a, d);
 				}
 			};

@@ -529,4 +529,26 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	  return RegionModel.getInstance(PromiseConstants.REGION_ELEMENT_NAME, 
 			  IDE.getInstance().getStringPreference(IDE.DEFAULT_JRE)); // TODO
   }
+
+  public static void printModels() {
+	  for(RegionModel m : nameToDrop.elements()) {
+		  final IRNode n = m.getNode();
+		  if (n == null || VariableDeclarator.prototype.includes(n)) {
+			  continue;
+		  }
+		  System.out.println("RegionModel: "+m.regionName);
+		  if (!findModel(m)) {
+			  System.out.println("\tCouldn't find model "+m.regionName);
+		  }		  
+	  }
+  }
+
+  private static boolean findModel(RegionModel m) {
+	  for (RegionModel m2 : RegionRules.getModels(m.getNode())) {
+		  if (m == m2) {
+			  return true;
+		  }
+	  }
+	  return false;
+  }
 }

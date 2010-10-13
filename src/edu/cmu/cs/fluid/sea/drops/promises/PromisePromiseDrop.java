@@ -22,4 +22,10 @@ public final class PromisePromiseDrop extends ScopedPromiseDrop {
   protected void computeBasedOnAST() {  
     setMessage("Promise "+getAST());    
   }
+  /*
+  @Override
+  protected final void invalidate_internal() {
+	  System.out.println("Invalidating scoped promise: "+getMessage());
+  }
+*/
 }
