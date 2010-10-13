@@ -45,8 +45,8 @@ public class CompareResults extends AbstractCommand {
 		System.out.println("Using oracle: "+oracle);
 		final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), oracle);
 
+		final File diffs = resolveFile(context, contents[3], true);	
 		if (!diff.isEmpty()) {
-			final File diffs = resolveFile(context, contents[3], true);			
 			if (diffs == null) {
 				System.out.println("No file to write diffs to: "+contents[3]);
 			} else {
@@ -55,8 +55,12 @@ public class CompareResults extends AbstractCommand {
 			}
 			resultsOk = false;
 		} else {
-			System.out.println("No diffs to write");
-			//diffs.createNewFile();
+			if (diffs == null) {
+				System.out.println("No file, but no diffs to write: "+contents[3]);
+			} else {
+				System.out.println("No diffs to write ... creating an empty file");			
+				diffs.createNewFile();
+			}
 		}
 		/*
     final ITestOutput XML_LOG = IDE.getInstance().makeLog("EclipseLogHandler");
