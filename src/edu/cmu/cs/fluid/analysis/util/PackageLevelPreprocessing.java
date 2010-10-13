@@ -187,7 +187,7 @@ public final class PackageLevelPreprocessing extends
 	@Override
 	public IResource[] analyzeEnd(IProject p, IAnalysisMonitor monitor) {
 		IResource[] results = super.analyzeEnd(p, monitor);
-		dependencies.finish();
+		dependencies.finishReprocessing();
 		IDE.getInstance().clearAdapting();
 		return results;
 	}
