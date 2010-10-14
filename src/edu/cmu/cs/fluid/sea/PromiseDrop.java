@@ -332,11 +332,12 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 		}
 		*/
 		super.invalidate_internal();
+		
 		if (getAST() != null) {
 			getAST().clearPromisedFor();
 		}
 		clearAST();
-		clearNode();
+		//clearNode();		
 	}
 
 	/**
