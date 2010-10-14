@@ -61,7 +61,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 	}
 
 	private Config createConfig() throws IOException {
-		Config config = new Config(scan.getProjectName(), false);
+		Config config = new Config(scan.getProjectName(), null, false); // TODO what location?
 		setupConfig(config, false);
 		logAndAddFilesToCompile(config);
 		/*
@@ -215,7 +215,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 				bootClasspath.add(new Path(getProject(), st.nextToken()));
 			}			
 		}
-		Config binaries = new Config("Dependencies", true);
+		Config binaries = new Config("Dependencies", null, true); // TODO what location?
 		addPath(binaries, bootClasspath);
 		addPath(binaries, classpath);
 		cmd.addToClassPath(binaries);
