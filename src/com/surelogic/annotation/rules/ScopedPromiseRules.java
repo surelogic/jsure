@@ -337,7 +337,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 	 *          The scoped promise
 	 * @return true if no failure
 	 */
-	private static <A extends ScopedPromiseDrop> boolean applyPromiseOnType(
+	public static <A extends ScopedPromiseDrop> boolean applyPromiseOnType(
 			IRNode promisedFor, A scopedPromiseDrop) {
 		boolean success = true;
 		if (!TypeDeclaration.prototype.includes(promisedFor)) {
