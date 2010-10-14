@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.xml.TestXMLParser;
 import com.surelogic.xml.TestXMLParserConstants;
@@ -140,7 +142,7 @@ public class PackageDrop extends CUDrop {
   
   private static final String DEFAULT_NAME = "(default)";
   
-  public static PackageDrop createPackage(String name, IRNode root, String id) {
+  public static PackageDrop createPackage(IIRProject proj, String name, IRNode root, String id) {
     final PackageDrop pd = findPackage(name);
     if (root == null) {
     	if (pd != null && pd.isValid()) {    
@@ -162,6 +164,7 @@ public class PackageDrop extends CUDrop {
     	IRNode imports = ImportDeclarations.createNode(noNodes);
     	IRNode types   = TypeDeclarations.createNode(noNodes);
     	root = edu.cmu.cs.fluid.java.operator.CompilationUnit.createNode(n, imports, types);
+    	JavaProjects.setProject(root, proj);
     } else {
     	n = CompilationUnit.getPkg(root);
     	if (NamedPackageDeclaration.prototype.includes(n)) {
