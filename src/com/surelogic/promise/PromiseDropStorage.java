@@ -61,9 +61,10 @@ public final class PromiseDropStorage {
 			if (b.getSlotInfo() == null) {
 				continue;
 			}
-			Object o = n.getSlotValue(b.getSlotInfo());
+			BooleanPromiseDrop<?> o = n.getSlotValue(b.getSlotInfo());
 			if (o != null) {
 				//System.out.println("Cleared: "+b.name()+" on "+n);
+				o.invalidate();
 				n.setSlotValue(b.getSlotInfo(), null);			
 			}
 		}
@@ -71,19 +72,23 @@ public final class PromiseDropStorage {
 			if (s.getSlotInfo() == null) {
 				continue;
 			}
-			Object o = n.getSlotValue(s.getSlotInfo());
+			PromiseDrop<?> o = n.getSlotValue(s.getSlotInfo());
 			if (o != null) {
 				//System.out.println("Cleared: "+s.name()+" on "+n);
+				o.invalidate();
 				n.setSlotValue(s.getSlotInfo(), null);			
 			}		
 		}
-		for(PromiseDropSeqStorage<?> s : sequences) {
+		for(PromiseDropSeqStorage<? extends PromiseDrop<?>> s : sequences) {
 			if (s.getSeqSlotInfo() == null) {
 				continue;
 			}
-			Object o = n.getSlotValue(s.getSeqSlotInfo());
+			List<? extends PromiseDrop<?>> o = n.getSlotValue(s.getSeqSlotInfo());
 			if (o != null) {
 				//System.out.println("Cleared: "+s.name()+" on "+n);
+				for(PromiseDrop<?> d : o) {
+					d.invalidate();
+				}
 				n.setSlotValue(s.getSeqSlotInfo(), null);			
 			}
 		}
