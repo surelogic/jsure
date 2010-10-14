@@ -7,13 +7,12 @@ import java.util.Map.Entry;
 import org.apache.commons.collections15.*;
 import org.apache.commons.collections15.multimap.*;
 
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.promise.PromiseDropStorage;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -62,6 +61,7 @@ public class Dependencies {
 		if (d == null) {
 			return; // Nothing to do
 		}
+		System.err.println("Marking as changed: "+d);
 		changed.add(d);
 		collect(d);
 	}
@@ -147,16 +147,16 @@ public class Dependencies {
 	 */
 	public void finishReprocessing() {
 		processPromiseWarningDrops();
-		collectOldAnnotationInfo();
-		reprocess.removeAll(changed);						
-		/*
 		for(CUDrop d : changed) {
 			System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 		}		
 		for(CUDrop d : reprocess) {
 			System.out.println("Reprocess: "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 		}
-		*/
+		
+		collectOldAnnotationInfo();
+		reprocess.removeAll(changed);						
+
 		IDE.getInstance().setAdapting();
 		try {
 			for(CUDrop d : reprocess) {
@@ -212,13 +212,14 @@ public class Dependencies {
 	// TODO what if I've got the same name from two projects?
 	private void collectOldAnnotationInfo() {
 		// Get all the CUs that will be re-annotated
+		System.err.println("Collecting all the CUs to be re-annotated");
 		reanalyze.clear();
 		reanalyze.addAll(reprocess);
 		reanalyze.addAll(changed);
 		oldInfo.clear();
 		
 		for(final CUDrop cud : reanalyze) {
-			System.out.println("Collecting old info for "+cud.javaOSFileName);
+			System.err.println("Collecting old info for "+cud.javaOSFileName);
 			// record old decls and what annotations were on them 
 			for(final IRNode n : JJNode.tree.bottomUp(cud.cu)) {
 				final Operator op = JJNode.tree.getOperator(n);
@@ -227,7 +228,7 @@ public class Dependencies {
 					final String name = JavaNames.getFullName(n);
 					List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
 					if (!drops.isEmpty()) {
-						System.out.println("Collecting old drops for "+name);
+						System.err.println("Collecting old drops for "+name);
 						oldInfo.putAll(name, drops);
 					} 
 					/*
@@ -250,13 +251,13 @@ public class Dependencies {
 	// 4. scan for dependencies
 	public Collection<CUDrop> findDepsForNewlyAnnotatedDecls(Iterable<CodeInfo> newInfos) {
 		if (oldInfo.isEmpty()) {
-			System.out.println("No old info to compare with");
+			System.err.println("No old info to compare with");
 			return Collections.emptyList();
 		}
-		final MultiMap<IIRProject,IRNode> toScan = new MultiHashMap<IIRProject, IRNode>();
+		final MultiMap<ITypeEnvironment,IRNode> toScan = new MultiHashMap<ITypeEnvironment, IRNode>();
 		// Find the newly annotated decls
 		for(final CodeInfo info : newInfos) {
-			System.out.println("Checking for new dependencies on "+info.getFileName());
+			System.err.println("Checking for new dependencies on "+info.getFileName());
 			// find new decls to compare
 			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
 				final Operator op = JJNode.tree.getOperator(n);
@@ -264,7 +265,7 @@ public class Dependencies {
 					final String name                         = JavaNames.getFullName(n);
 					final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
 					if (oldDrops == null) {
-						System.out.println("Ignoring no-old-annos decl: "+name);
+						System.err.println("Ignoring no-old-annos decl: "+name);
 						continue; // Any annotations are brand-new, so any uses will be analyzed
 					}
 					// Otherwise, it's an existing decl
@@ -272,35 +273,80 @@ public class Dependencies {
 					if (oldDrops.isEmpty()) {
 						// Any new drops will be new annotations on this decl, so we'll have to scan						
 						if (!newDrops.isEmpty()) {
-							System.out.println("Found all-new annotations for "+name);						
-							toScan.put(JavaProjects.getProject(n), n);
+							System.err.println("Found all-new annotations for "+name);						
+							toScan.put(info.getTypeEnv(), n);
 						} else {
-							System.out.println("No old/new drops for "+name);
+							System.err.println("No old/new drops for "+name);
 						}
 					} else {
 						// We'll have to compare the drops to see which are truly new			
-						
-						Set<PromiseDrop<?>> diff = new HashSet<PromiseDrop<?>>(newDrops);
-						if (diff.isEmpty()) {
-							throw new IllegalStateException("TODO comparison");
+						if (newDrops.isEmpty()) {
+							System.err.println("Only removed drops for "+name);
+							continue;
 						}
-						diff.removeAll(oldDrops); // TODO remove one-by-one?
+						Set<Wrapper> diff = new HashSet<Wrapper>();
+						doWrappedDrops(diff, newDrops, true);  // add new drops
+						doWrappedDrops(diff, oldDrops, false); // remove old drops
 						if (!diff.isEmpty()) {
-							System.out.println("Found new annotations for "+name);
-							toScan.put(JavaProjects.getProject(n), n);
+							System.err.println("Found new annotations for "+name);
+							toScan.put(info.getTypeEnv(), n);
 						} else {
-							System.out.println("No new drops for "+name);
+							System.err.println("No new drops for "+name);
 						}
 					}
 				}
 			}
 		}
-		for(Entry<IIRProject,Collection<IRNode>> e : toScan.entrySet()) {
-			scanForDependencies(e.getKey().getTypeEnv(), e.getValue());
+		for(Entry<ITypeEnvironment,Collection<IRNode>> e : toScan.entrySet()) {
+			scanForDependencies(e.getKey(), e.getValue());
 		}
 		reanalyze.removeAll(reprocess);
 		reanalyze.removeAll(changed);
 		return reanalyze;
+	}
+	
+	private static void doWrappedDrops(final Collection<Wrapper> wrapped, final Collection<PromiseDrop<?>> drops, 
+			                           final boolean add) {
+		for(PromiseDrop<?> d : drops) {
+			if (add) {
+				wrapped.add(new Wrapper(d));
+			} else {
+				/*
+				if (wrapped.isEmpty()) {
+					return; // Nothing else to remove
+				}
+				*/
+				wrapped.remove(new Wrapper(d));
+			}
+		}
+	}
+	
+	private static class Wrapper {
+		final PromiseDrop<?> drop;
+		
+		Wrapper(PromiseDrop<?> d) {
+			drop = d;
+		}
+		
+		@Override
+		public final int hashCode() {
+			return drop.getClass().hashCode() + 
+			       drop.getMessage().hashCode() + 
+			       drop.getNode().identity().hashCode();
+		}
+		
+		/**
+		 * Checking if the class and message match
+		 */
+		@Override
+		public final boolean equals(Object o) {
+			if (o instanceof Wrapper) {
+				Wrapper w = (Wrapper) o;
+				return drop.getNode().equals(w.drop.getNode()) &&
+				drop.getClass().equals(w.drop.getClass()) && drop.getMessage().equals(w.drop.getMessage());
+			}
+			return false;
+		}
 	}
 	
 	/**
@@ -354,6 +400,7 @@ public class Dependencies {
 		for(final Entry<IRNode, Collection<IRNode>> e : cu2decls.entrySet()) {
 			final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
 			final String name       = VisitUtil.getPackageName(e.getKey());
+			System.err.println("Scanning for dependencies in package: "+name);
 			// TODO does this have the right info?
 			final PackageDrop pd = PackageDrop.findPackage(name);			
 			for(CUDrop cud : pd.getCUDrops()) {
@@ -371,6 +418,7 @@ public class Dependencies {
 	}
 	
 	private void scanForSubclassDependencies(ITypeEnvironment te, IRNode type, Set<IRNode> decls) {
+		System.err.println("Scanning for subclass dependencies: "+JavaNames.getFullTypeName(type));
 		for(IRNode sub : te.getRawSubclasses(type)) {
 			// TODO check if already on the list first?
 			final IRNode cu  = VisitUtil.findCompilationUnit(sub);
@@ -381,6 +429,7 @@ public class Dependencies {
 	}
 	
 	private void scanForPublicDependencies(ITypeEnvironment te, Set<IRNode> decls) {
+		System.err.println("Scanning for public dependencies");
 		// TODO do i need to check binaries?
 		final Set<CUDrop> allCus = Sea.getDefault().getDropsOfType(CUDrop.class);
 		for(CUDrop cud : allCus) {
@@ -402,10 +451,17 @@ public class Dependencies {
 	 * Returns true if the CU has any uses of the specified decls
 	 */
 	private boolean hasUses(IBinder binder, IRNode cu, Set<IRNode> decls) {
-		for(final IRNode n : JavaPromise.bottomUp(cu)) {
+		for(final IRNode n : JJNode.tree.bottomUp(cu)) {//JavaPromise.bottomUp(cu)) {
 			final Operator op = JJNode.tree.getOperator(n);
 			if (op instanceof IHasBinding) {
 				final IBinding b = binder.getIBinding(n);
+				if (b == null) {
+					final String unparse = DebugUnparser.toString(n);
+					if (!unparse.endsWith(" . 1")) {
+						System.err.println("Ignoring null binding on "+unparse);
+					}
+					continue;
+				}
 				if (decls.contains(b.getNode())) {
 					return true;
 				}
