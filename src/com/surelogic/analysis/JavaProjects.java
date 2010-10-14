@@ -2,7 +2,7 @@
 package com.surelogic.analysis;
 
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
@@ -33,5 +33,16 @@ public class JavaProjects {
 			return getEnclosingProject(dt.getDeclaration());
 		}
 		return null;
+	}
+	
+	public static void setProject(IRNode cu, IIRProject p) {
+		if (p == null) {
+			return;
+		}
+		// HACK until arrayType is cloned
+		IIRProject old = getProject(cu);
+		if (old == null) {
+			cu.setSlotValue(projectSI, p);
+		}
 	}
 }
