@@ -276,6 +276,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  LOG.severe(msg + node + " = " + DebugUnparser.toString(node) + 
     			  //" in version " + Version.getVersion());
     			  "\n\tin granule " + DebugUnparser.toString(granule));
+    	  needFullInfo(node, JJNode.tree.getOperator(node), granule);
     	  ensureBindingsOK(node);  
       }
 //      System.out.println("Operator is " + JJNode.tree.getOperator(node));
@@ -292,7 +293,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   }
 
   protected static boolean needFullInfo(IRNode node, Operator op, IRNode gr) {
-      boolean needFullInfo = !JavaNode.getModifier(gr, JavaNode.AS_BINARY);
+      boolean needFullInfo = !JavaNode.getModifier(gr, JavaNode.AS_BINARY) || Call.prototype.includes(op);
       if (needFullInfo && !JJNode.versioningIsOn) {
         IRNode here = node;
         while (here != null && Name.prototype.includes(op)) {
