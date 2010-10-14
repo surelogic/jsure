@@ -135,18 +135,21 @@ public class Dependencies {
 //	
 	/**
 	 * Collect CU deponents of promise warnings
+	 * @return 
 	 */
-	private void processPromiseWarningDrops() {
-		for(Drop d : Sea.getDefault().getDropsOfType(PromiseWarningDrop.class)) {				
+	private Collection<PromiseWarningDrop> processPromiseWarningDrops() {
+		final Set<PromiseWarningDrop> warnings = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
+		for(Drop d : warnings) {				
 			findEnclosingCUDrop(d);
 		}
+		return warnings;
 	}
 	
 	/**
 	 * Clears drops!
 	 */
 	public void finishReprocessing() {
-		processPromiseWarningDrops();
+		final Collection<PromiseWarningDrop> warnings = processPromiseWarningDrops();
 		for(CUDrop d : changed) {
 			System.out.println("Changed:   "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 		}		
@@ -184,6 +187,9 @@ public class Dependencies {
 					handleType(d);
 					//ConvertToIR.getInstance().registerClass(d.makeCodeInfo());
 				}
+			}
+			for(PromiseWarningDrop w : warnings) {
+				w.invalidate();
 			}
 		} finally {
 			IDE.getInstance().clearAdapting();
@@ -297,8 +303,12 @@ public class Dependencies {
 				}
 			}
 		}
-		for(Entry<ITypeEnvironment,Collection<IRNode>> e : toScan.entrySet()) {
-			scanForDependencies(e.getKey(), e.getValue());
+		if (toScan.isEmpty()) {
+			System.err.println("No decls to scan for.");
+		} else {
+			for(Entry<ITypeEnvironment,Collection<IRNode>> e : toScan.entrySet()) {		
+				scanForDependencies(e.getKey(), e.getValue());
+			}
 		}
 		reanalyze.removeAll(reprocess);
 		reanalyze.removeAll(changed);
@@ -439,10 +449,12 @@ public class Dependencies {
 	
 	private void scanCUDropForDependencies(IBinder binder, CUDrop cud, Set<IRNode> decls) {
 		if (reanalyze.contains(cud)) {
+			System.err.println("Already slated to be reanalyzed: "+cud.javaOSFileName);
 			return; // Already on the list
 		}
 		final boolean present = hasUses(binder, cud.cu, decls);
 		if (present) {
+			System.err.println("Queued to be reanalyzed: "+cud.javaOSFileName);
 			reanalyze.add(cud);
 		}
 	}
