@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/parse/AnnotationVisitor.java,v 1.53 2008/11/03 16:03:48 chance Exp $*/
 package com.surelogic.annotation.parse;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,7 +24,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
 
-public class AnnotationVisitor extends Visitor<Void> {
+public class AnnotationVisitor extends Visitor<Integer> {
   static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
   private static final String promisePrefix = "com.surelogic.";
   private static final String jcipPrefix = "net.jcip.annotations.";
@@ -49,12 +50,24 @@ public class AnnotationVisitor extends Visitor<Void> {
   }
   
   @Override
-  public Void visit(IRNode node) { 
-    doAcceptForChildren(node);
-    return null;
+  public Integer visit(IRNode node) { 
+    return sum(doAcceptForChildrenWithResults(node));
   }
   
-  /**
+  
+  private Integer sum(List<Integer> ints) {
+	int sum = 0;
+	for(Integer i : ints) {
+		sum += i;
+	}
+	return sum;
+  }
+  
+  private int translate(boolean rv) {
+	  return rv ? 1 : 0;
+  }
+
+/**
    * @return The simple name of the SL annotation (capitalized)
    */
   private String mapToPromiseName(IRNode anno) {
@@ -171,25 +184,26 @@ public class AnnotationVisitor extends Visitor<Void> {
   }
   
   @Override
-  public Void visitMarkerAnnotation(IRNode node) {
+  public Integer visitMarkerAnnotation(IRNode node) {
     String promise = mapToPromiseName(node);
     if (promise != null) {
-      handleJava5Promise(node, promise, "");
+      return translate(handleJava5Promise(node, promise, ""));
     }
-    return null;
+    return 0;
   }
 
   @Override
-  public Void visitSingleElementAnnotation(IRNode node) {
+  public Integer visitSingleElementAnnotation(IRNode node) {
     String promise = mapToPromiseName(node);
     if (promise == null) {
       // FIX ignoring other annos    
-      return null;
+      return 0;
     }
     boolean plural = promise.endsWith("s");
     IRNode value   = SingleElementAnnotation.getElt(node);
     Operator op    = JJNode.tree.getOperator(value);
     
+    int num = 0;
     if (Initializer.prototype.includes(op)) {     
       /* Not true for @starts
       if (plural) {
@@ -201,14 +215,14 @@ public class AnnotationVisitor extends Visitor<Void> {
         Iteratable<IRNode> it = ArrayInitializer.getInitIterator(value);
         if (it.hasNext()) {
           for(IRNode v : it) {          
-            handleJava5Promise(node, v, promise, StringLiteral.getToken(v));
+        	  num += translate(handleJava5Promise(node, v, promise, StringLiteral.getToken(v)));        	
           }
         } else {
-          handleJava5Promise(node, value, promise, "");
+        	num += translate(handleJava5Promise(node, value, promise, ""));
         }
       }
       else if (StringLiteral.prototype.includes(op)) { 
-        handleJava5Promise(node, value, promise, StringLiteral.getToken(value));
+    	  num += translate(handleJava5Promise(node, value, promise, StringLiteral.getToken(value)));
       }
       else throw new IllegalArgumentException("Unexpected value: "+op.name());
     } 
@@ -217,18 +231,18 @@ public class AnnotationVisitor extends Visitor<Void> {
         throw new Error(promise+" contains Annotations: "+DebugUnparser.toString(value));
       }
       if (ElementValueArrayInitializer.prototype.includes(op)) { 
-        doAcceptForChildren(value);
+        num += sum(doAcceptForChildrenWithResults(value));
       }
       else if (Annotation.prototype.includes(op)) { 
-        doAccept(value);
+        num += doAccept(value);
       }
       else throw new IllegalArgumentException("Unexpected value: "+op.name());
     }
-    return null;
+    return num;
   }
   
   @Override
-  public Void visitNormalAnnotation(IRNode node) {
+  public Integer visitNormalAnnotation(IRNode node) {
     String promise = mapToPromiseName(node);
     if (promise != null) {
       // We should never have any of these
@@ -242,52 +256,50 @@ public class AnnotationVisitor extends Visitor<Void> {
           if ("value".equals(ElementValuePair.getId(valuePair))) {
             IRNode value = ElementValuePair.getValue(valuePair);
             if (StringLiteral.prototype.includes(value)) {
-              handleJava5Promise(node, value, promise, StringLiteral.getToken(value));
-              return null;
+              return translate(handleJava5Promise(node, value, promise, StringLiteral.getToken(value)));
             }
           }
         }
       } else {
-        handleJava5Promise(node, promise, "");
-        return null;
+    	return translate(handleJava5Promise(node, promise, ""));
       }
       throw new Error("A NormalAnnotation in a SL package?!?");
     }
-    return null;
+    return 0;
   }
   
   @Override
-  public Void visitAnnotation(IRNode node) {
+  public Integer visitAnnotation(IRNode node) {
     throw new Error("Unknown Annotation type: "+JJNode.tree.getOperator(node).name());
   }
   
   @Override
-  public Void visitBlockStatement(IRNode node) {
-	  checkForBlockComment(node);
-	  return super.visitBlockStatement(node);
+  public Integer visitBlockStatement(IRNode node) {
+	  final int num = checkForBlockComment(node);
+	  return num + super.visitBlockStatement(node);
   }
   
   @Override
-  public Void visitFieldDeclaration(IRNode node) {
+  public Integer visitFieldDeclaration(IRNode node) {
     ISrcRef ref = JavaNode.getSrcRef(node);
     if (ref == null) {
       return super.visitVariableDeclList(node);
     }
-    checkForJavadoc(node, ref);
-    return super.visitVariableDeclList(node);
+    final int num = checkForJavadoc(node, ref);
+    return num + super.visitVariableDeclList(node);
   }
   
   @Override
-  public Void visitDeclaration(IRNode node) {
+  public Integer visitDeclaration(IRNode node) {
     ISrcRef ref = JavaNode.getSrcRef(node);
     if (ref == null) {
       return super.visitDeclaration(node);
     }
-    checkForJavadoc(node, ref);
-    return super.visitDeclaration(node);
+    final int num = checkForJavadoc(node, ref);
+    return num + super.visitDeclaration(node);
   }
   
-  private void checkForBlockComment(IRNode node) {
+  private int checkForBlockComment(IRNode node) {
 	  final String comment = JavaNode.getCommentOrNull(node);
 	  if (comment != null && comment.length() != 0) {
 		  // Trim comment bits
@@ -298,34 +310,37 @@ public class AnnotationVisitor extends Visitor<Void> {
 				  end = end - 2;
 			  }		  
 			  final ISrcRef ref = JavaNode.getSrcRef(node);		  
-			  handleJavadocPromise(node, comment.substring(start, end), ref.getOffset());
+			  return translate(handleJavadocPromise(node, comment.substring(start, end), ref.getOffset()));
 		  }
 	  }
+	  return 0;
   }
   
-  private void checkForJavadoc(IRNode node, ISrcRef ref) {
+  private int checkForJavadoc(IRNode node, ISrcRef ref) {
 	if (!allowJavadoc(tEnv)) {
-		return;
+		return 0;
 	}
     IJavadocElement elt = ref.getJavadoc();
     if (elt != null) {
       for(Object o : elt) {
         if (o instanceof IJavadocTag) {
-          handleJavadocTag(node, (IJavadocTag) o);
+          return handleJavadocTag(node, (IJavadocTag) o);
         }
       }
       ref.clearJavadoc();
     }
+    return 0;
   }
 
-  private void handleJavadocTag(IRNode decl, IJavadocTag tag) {
+  private int handleJavadocTag(IRNode decl, IJavadocTag tag) {
     if (tag.getTag() == null) {
-      return; // Leading text
+      return 0; // Leading text
     }
     if (onlyUseAnnotate && !"annotate".equals(tag.getTag())) {
-    	return; // ignore other tags
+    	return 0; // ignore other tags
     }
-    String contents = null;
+    int num = 0;
+    String contents = null;    
     for(Object o : tag) {
       if (o instanceof String) {
         if (contents != null) {
@@ -334,18 +349,19 @@ public class AnnotationVisitor extends Visitor<Void> {
         contents = o.toString();
       }
       else if (o instanceof IJavadocTag) {
-        handleJavadocTag(decl, (IJavadocTag) o);
+        num += handleJavadocTag(decl, (IJavadocTag) o);
       } else {
         System.out.println("Unknown: "+o);
       }
     }    
 
     if (onlyUseAnnotate) {
-    	handleJavadocPromise(decl, contents, tag.getOffset());
+    	num += translate(handleJavadocPromise(decl, contents, tag.getOffset()));
     } else { 
-    	createPromise(decl, capitalize(tag.getTag()), contents, 
-    			      AnnotationSource.JAVADOC, tag.getOffset());
+    	num += translate(createPromise(decl, capitalize(tag.getTag()), contents, 
+      			         AnnotationSource.JAVADOC, tag.getOffset()));
     }
+    return num;
   }
 
   public static String capitalize(String tag) {
