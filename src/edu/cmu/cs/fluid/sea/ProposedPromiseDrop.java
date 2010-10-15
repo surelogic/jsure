@@ -21,7 +21,8 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * This drop implements value semantics so that duplicates can be removed by
  * placing them into a set.
  */
-public final class ProposedPromiseDrop extends IRReferenceDrop {
+public final class ProposedPromiseDrop extends IRReferenceDrop 
+implements IResultDrop {
 
 	/**
 	 * Constructs a new proposed promise. Intended to be called from analysis
@@ -60,7 +61,7 @@ public final class ProposedPromiseDrop extends IRReferenceDrop {
 		f_requestedFrom = from;
 		f_annotation = annotation;
 		f_contents = contents;
-		setNode(at);
+		setNodeAndCompilationUnitDependency(at);
 		dependUponCompilationUnitOf(from);
 		//setMessage("Proposal: @"+annotation+'('+contents+')');
 	}

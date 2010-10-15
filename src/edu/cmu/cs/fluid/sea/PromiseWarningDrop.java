@@ -9,7 +9,7 @@ import edu.cmu.cs.fluid.java.comment.IJavadocElement;
  * Drop to represent promise scrubber warnings.
  */
 public final class PromiseWarningDrop extends IRReferenceDrop 
-implements ISrcRef 
+implements ISrcRef, IResultDrop
 {
   private int offset = -1;
   

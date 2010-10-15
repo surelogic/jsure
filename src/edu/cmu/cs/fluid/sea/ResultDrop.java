@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * Not intended to be subclassed.
  */
 @SuppressWarnings("unchecked")
-public class ResultDrop extends ProofDrop {
+public class ResultDrop extends ProofDrop implements IResultDrop {
 
 	/**
 	 * Holds key that describes which message this result is.

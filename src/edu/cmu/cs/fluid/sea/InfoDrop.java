@@ -5,7 +5,7 @@ import edu.cmu.cs.fluid.sea.xml.*;
 /**
  * Drops for reporting inferred or information to the user, "i" results.
  */
-public class InfoDrop extends IRReferenceDrop {
+public class InfoDrop extends IRReferenceDrop implements IResultDrop {
 	private final String type;
 
 	public InfoDrop(String t) {
