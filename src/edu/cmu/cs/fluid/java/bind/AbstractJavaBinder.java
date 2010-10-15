@@ -2909,6 +2909,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
     @Override
+    public Void visitVarArgsType(IRNode node) {
+        if (!isFullPass) {
+      	  // No IRNode binding that makes sense
+      	  bind(node, nullBinding); 
+        }
+    	return super.visitVarArgsType(node);
+    }
+    
+    @Override
     public Void visitVariableUseExpression(IRNode node) {
       if (isFullPass) {
     	boolean bound = bind(node,IJavaScope.Util.isValueDecl);
