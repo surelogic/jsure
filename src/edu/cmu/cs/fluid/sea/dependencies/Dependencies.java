@@ -17,8 +17,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
-import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
@@ -232,7 +231,9 @@ public class Dependencies {
 				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
 					// Does this include the method signature?
 					final String name = JavaNames.getFullName(n);
-					List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
+					oldInfo.put(name, null); // Used to mark that it was declared
+					
+					final List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
 					if (!drops.isEmpty()) {
 						System.err.println("Collecting old drops for "+name);
 						oldInfo.putAll(name, drops);
@@ -259,7 +260,7 @@ public class Dependencies {
 		if (oldInfo.isEmpty()) {
 			System.err.println("No old info to compare with");
 			return Collections.emptyList();
-		}
+		}		
 		final MultiMap<ITypeEnvironment,IRNode> toScan = new MultiHashMap<ITypeEnvironment, IRNode>();
 		// Find the newly annotated decls
 		for(final CodeInfo info : newInfos) {
@@ -271,12 +272,14 @@ public class Dependencies {
 					final String name                         = JavaNames.getFullName(n);
 					final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
 					if (oldDrops == null) {
-						System.err.println("Ignoring no-old-annos decl: "+name);
-						continue; // Any annotations are brand-new, so any uses will be analyzed
+						// New decl, so any annotations are brand-new, and will be analyzed
+						System.err.println("Ignoring new decl: "+name);
+						continue; 
 					}
 					// Otherwise, it's an existing decl
 					final Collection<PromiseDrop<?>> newDrops = PromiseDropStorage.getAllDrops(n);
-					if (oldDrops.isEmpty()) {
+					// First elt just marks that it was declared
+					if (oldDrops.size() <= 1) { 
 						// Any new drops will be new annotations on this decl, so we'll have to scan						
 						if (!newDrops.isEmpty()) {
 							System.err.println("Found all-new annotations for "+name);						
@@ -309,15 +312,18 @@ public class Dependencies {
 			for(Entry<ITypeEnvironment,Collection<IRNode>> e : toScan.entrySet()) {		
 				scanForDependencies(e.getKey(), e.getValue());
 			}
-		}
-		reanalyze.removeAll(reprocess);
-		reanalyze.removeAll(changed);
+		}		
+		//reanalyze.removeAll(reprocess);
+		reanalyze.removeAll(changed); // These should be invalidated already
 		return reanalyze;
 	}
 	
 	private static void doWrappedDrops(final Collection<Wrapper> wrapped, final Collection<PromiseDrop<?>> drops, 
 			                           final boolean add) {
 		for(PromiseDrop<?> d : drops) {
+			if (d == null) {
+				continue;
+			}
 			if (add) {
 				wrapped.add(new Wrapper(d));
 			} else {
@@ -365,16 +371,76 @@ public class Dependencies {
 	 * 
 	 * @param decls A sequence of existing declarations with new annotations
 	 */
-	private void scanForDependencies(ITypeEnvironment te, Iterable<IRNode> decls) {		
+	private void scanForDependencies(ITypeEnvironment te, Iterable<IRNode> decls) {				
+		final DeclarationScanner depScanner = new DeclarationScanner() {
+			@Override
+			protected void scanCUDrop(IBinder binder, CUDrop cud, Set<IRNode> decls) {
+				scanCUDropForDependencies(binder, cud, decls);
+			}
+			@Override
+			protected void handleLocals(IBinder binder, CUDrop cud, Collection<IRNode> locals) {
+				// Make sure that we reanalyze this file
+				reanalyze.add(cud);
+			}
+		};
+		// Types need to be handled differently, because we need to 
+		// find the uses of the variables declared to be of this type
+		final DeclarationScanner typeScanner = new DeclarationScanner() {
+			@Override
+			protected void scanCUDrop(IBinder binder, CUDrop cud, Set<IRNode> decls) {
+				scanCUDropForGivenTypedVarDecls(binder, cud, decls, depScanner);				
+			}
+		};
 		// Categorize decls by access
+		for(final IRNode decl : decls) {
+			final Operator op = JJNode.tree.getOperator(decl);
+			if (TypeDeclaration.prototype.includes(op)) {				
+				collectSubTypeDeclsForScanning(typeScanner, decl, te);
+			} 
+			depScanner.categorizeDecl(decl, op);			
+		}
+		typeScanner.scan(te); // This will add var decls to depScanner to be further scanned
+		depScanner.scan(te);
+	}
+
+	private void collectSubTypeDeclsForScanning(DeclarationScanner scanner, IRNode type, 
+			                                    ITypeEnvironment te) {
+		final Operator op = JJNode.tree.getOperator(type);
+		scanner.categorizeDecl(type, op);
+		
+		// The enclosing CU needs to be reanalyzed, except in a few corner cases
+		// (e.g. an class with only static methods)
+		final IRNode cu  = VisitUtil.getEnclosingCompilationUnit(type);
+		final CUDrop cud = CUDrop.queryCU(cu); 
+		reanalyze.add(cud);
+		
+		for(IRNode sub : te.getRawSubclasses(type)) {
+			collectSubTypeDeclsForScanning(scanner, sub, te);
+		}
+	}
+
+	private static abstract class DeclarationScanner {
+		// CU -> decl
+		final MultiMap<IRNode,IRNode> localDecls = new MultiHashMap<IRNode,IRNode>();
 		final MultiMap<IRNode,IRNode> packageDecls = new MultiHashMap<IRNode,IRNode>();
+		// type -> decl
 		final MultiMap<IRNode,IRNode> protectedDecls = new MultiHashMap<IRNode,IRNode>();
 		final Set<IRNode> publicDecls = new HashSet<IRNode>();
-		for(IRNode decl : decls) {
-			// TODO not quite right for some
-			final int mods = JavaNode.getModifiers(decl); 
+		
+		void categorizeDecl(IRNode decl, Operator op) {
+			final int mods;
+			if (VariableDeclarator.prototype.includes(op)) {
+				mods = VariableDeclarator.getMods(decl);
+			} else {
+				mods = JavaNode.getModifiers(decl); 
+			}
+			categorizeDecl(decl, mods);
+		}
+		
+		private void categorizeDecl(IRNode decl, int mods) {
 			if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
-				continue; // Nothing to do?
+				final IRNode root = VisitUtil.findCompilationUnit(decl);
+				localDecls.put(root, decl);
 			}
 			else if (JavaNode.isSet(mods, JavaNode.PROTECTED)) {
 				final IRNode type = VisitUtil.getEnclosingType(decl);
@@ -390,64 +456,101 @@ public class Dependencies {
 				packageDecls.put(root, decl);
 			}
 		}
-		if (!packageDecls.isEmpty()) {
-			scanForPackageDependencies(te, packageDecls);
-		}
-		if (!protectedDecls.isEmpty()) {
-			scanForSubclassDependencies(te, protectedDecls);
-		}
-		if (!publicDecls.isEmpty()) {
-			scanForPublicDependencies(te, publicDecls);
-		}
-	}
-	
-	/**
-	 * Look for dependencies in the same package as the decl
-	 * @param te
-	 * @param decls
-	 */
-	private void scanForPackageDependencies(ITypeEnvironment te, MultiMap<IRNode,IRNode> cu2decls) {
-		for(final Entry<IRNode, Collection<IRNode>> e : cu2decls.entrySet()) {
-			final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
-			final String name       = VisitUtil.getPackageName(e.getKey());
-			System.err.println("Scanning for dependencies in package: "+name);
-			// TODO does this have the right info?
-			final PackageDrop pd = PackageDrop.findPackage(name);			
-			for(CUDrop cud : pd.getCUDrops()) {
-				scanCUDropForDependencies(te.getBinder(), cud, decls);
+		
+		void categorizeVarDecl(IRNode decl) {
+			//Either a field or local
+			final IRNode gparent = JJNode.tree.getParent(JJNode.tree.getParent(decl));
+			final Operator op = JJNode.tree.getOperator(gparent);
+			if (DeclStatement.prototype.includes(op)) {
+				handleLocalDecl(decl);
+			} else {
+				final int mods = JavaNode.getModifiers(gparent);
+				categorizeDecl(decl, mods);
 			}
 		}
-	}
+		
+		void handleLocalDecl(IRNode decl) {
+			// To handle inits and methods
+			// final IRNode bodyDecl = VisitUtil.getEnclosingClassBodyDecl(decl);
+			final IRNode root = VisitUtil.findCompilationUnit(decl);
+			localDecls.put(root, decl);
+		}
+		
+		void scan(ITypeEnvironment te) {
+			if (!packageDecls.isEmpty()) {
+				scanForPackage(te, packageDecls);
+			}
+			if (!protectedDecls.isEmpty()) {
+				scanForSubclass(te, protectedDecls);
+			}
+			if (!publicDecls.isEmpty()) {
+				scanForPublic(te, publicDecls);
+			}
+			if (!localDecls.isEmpty()) {				
+				for(Entry<IRNode,Collection<IRNode>> e : localDecls.entrySet()) {
+					final CUDrop cud = CUDrop.queryCU(e.getKey());
+					handleLocals(te.getBinder(), cud, e.getValue());
+				}
+			}
+		}
+		
+		protected void handleLocals(IBinder binder, CUDrop cud, Collection<IRNode> localDecls) {
+			System.out.println("Ignoring decls in "+cud.javaOSFileName);
+		}
 
-	private void scanForSubclassDependencies(ITypeEnvironment te, MultiMap<IRNode,IRNode> type2decls) {
-		for(Entry<IRNode, Collection<IRNode>> e : type2decls.entrySet()) {		
-			final IRNode type       = e.getKey();
-			final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
-			scanForSubclassDependencies(te, type, decls);
+		/**
+		 * Look for dependencies in the same package as the decl
+		 * @param te
+		 * @param decls
+		 */
+		private void scanForPackage(ITypeEnvironment te, MultiMap<IRNode,IRNode> cu2decls) {
+			for(final Entry<IRNode, Collection<IRNode>> e : cu2decls.entrySet()) {
+				final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
+				final String name       = VisitUtil.getPackageName(e.getKey());
+				System.err.println("Scanning for dependencies in package: "+name);
+				// TODO does this have the right info?
+				final PackageDrop pd = PackageDrop.findPackage(name);			
+				for(CUDrop cud : pd.getCUDrops()) {
+					scanCUDrop(te.getBinder(), cud, decls);
+				}
+			}
 		}
-	}
-	
-	private void scanForSubclassDependencies(ITypeEnvironment te, IRNode type, Set<IRNode> decls) {
-		System.err.println("Scanning for subclass dependencies: "+JavaNames.getFullTypeName(type));
-		for(IRNode sub : te.getRawSubclasses(type)) {
-			// TODO check if already on the list first?
-			final IRNode cu  = VisitUtil.findCompilationUnit(sub);
-			final CUDrop cud = CUDrop.queryCU(cu);
-			scanCUDropForDependencies(te.getBinder(), cud, decls);
-			scanForSubclassDependencies(te, sub, decls);
-		}	
-	}
-	
-	private void scanForPublicDependencies(ITypeEnvironment te, Set<IRNode> decls) {
-		System.err.println("Scanning for public dependencies");
-		// TODO do i need to check binaries?
-		final Set<CUDrop> allCus = Sea.getDefault().getDropsOfType(CUDrop.class);
-		for(CUDrop cud : allCus) {
-			scanCUDropForDependencies(te.getBinder(), cud, decls);
+
+		private void scanForSubclass(ITypeEnvironment te, MultiMap<IRNode,IRNode> type2decls) {
+			for(Entry<IRNode, Collection<IRNode>> e : type2decls.entrySet()) {		
+				final IRNode type       = e.getKey();
+				final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
+				scanForSubclass(te, type, decls);
+			}
 		}
+
+		private void scanForSubclass(ITypeEnvironment te, IRNode type, Set<IRNode> decls) {
+			System.err.println("Scanning for subclass dependencies: "+JavaNames.getFullTypeName(type));
+			for(IRNode sub : te.getRawSubclasses(type)) {
+				// TODO check if already on the list first?
+				final IRNode cu  = VisitUtil.findCompilationUnit(sub);
+				final CUDrop cud = CUDrop.queryCU(cu);
+				scanCUDrop(te.getBinder(), cud, decls);
+				scanForSubclass(te, sub, decls);
+			}	
+		}
+
+		private void scanForPublic(ITypeEnvironment te, Set<IRNode> decls) {
+			System.err.println("Scanning for public dependencies: "+this);
+			// TODO do i need to check binaries?
+			final Set<CUDrop> allCus = Sea.getDefault().getDropsOfType(CUDrop.class);
+			for(CUDrop cud : allCus) {
+				scanCUDrop(te.getBinder(), cud, decls);
+			}
+		}
+
+		protected abstract void scanCUDrop(IBinder binder, CUDrop cud, Set<IRNode> decls);
 	}
-	
-	private void scanCUDropForDependencies(IBinder binder, CUDrop cud, Set<IRNode> decls) {
+		
+	/**
+	 * Checks for uses of the given declarations
+	 */
+	void scanCUDropForDependencies(IBinder binder, CUDrop cud, Set<IRNode> decls) {
 		if (reanalyze.contains(cud)) {
 			System.err.println("Already slated to be reanalyzed: "+cud.javaOSFileName);
 			return; // Already on the list
@@ -480,5 +583,79 @@ public class Dependencies {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Find the var decls in the CU that are declared with one of the given types
+	 * (even as a subtype?)
+	 */	
+	// TODO what about subclasses of the original?
+	void scanCUDropForGivenTypedVarDecls(IBinder binder, CUDrop cud,
+		 	                             final Set<IRNode> typeDecls, DeclarationScanner depScanner) {
+		final Types types = new Types(binder, typeDecls);
+		for(final IRNode n : JJNode.tree.bottomUp(cud.cu)) {//JavaPromise.bottomUp(cu)) {
+			final Operator op = JJNode.tree.getOperator(n);
+			if (VariableDeclaration.prototype.includes(op)) {
+				if (ParameterDeclaration.prototype.includes(op)) {
+					final IRNode type = ParameterDeclaration.getType(n);
+					if (types.usesType(binder, type)) {
+						depScanner.handleLocalDecl(n);
+					}
+				}
+				else if (VariableDeclarator.prototype.includes(op)) {
+					final IRNode type = VariableDeclarator.getType(n);
+					if (types.usesType(binder, type)) {
+						depScanner.categorizeVarDecl(n);
+					}
+				}
+				else if (EnumConstantDeclaration.prototype.includes(op)) {
+					// Always declared in its own type, so no need to scan
+					continue;
+				}
+				else {
+					throw new IllegalStateException("Unknown decl: "+op.name());
+				}
+			}
+		}
+	}
+
+	private static class Types {
+		private final Set<IRNode> typeDecls;
+		//private final List<IJavaType> types;
+		
+		Types(IBinder binder, Set<IRNode> decls) {
+			typeDecls = decls;
+			/*
+			types = new ArrayList<IJavaType>();
+			for(IRNode t : decls) {
+				types.add(binder.getTypeEnvironment().convertNodeTypeToIJavaType(t));
+			}
+			*/
+		}
+
+		boolean usesType(IBinder binder, IRNode type) {
+			final IBinding b = binder.getIBinding(type);
+			if (b == null) {
+				final String unparse = DebugUnparser.toString(type);
+				if (!unparse.endsWith(" . 1")) {
+					System.err.println("Ignoring null binding on "+unparse);
+				}
+				return false;
+			}
+			// Check if it's exactly one of these types
+			if (typeDecls.contains(b.getNode())) {
+				return true;
+			}			
+			/*
+			// Check if it's a subtype of one of these types
+			final IJavaType s = b.getTypeEnvironment().convertNodeTypeToIJavaType(b.getNode());
+			for(IJavaType t : types) {
+				if (binder.getTypeEnvironment().isSubType(s, t)) {
+					return true;
+				}
+			}
+			*/
+			return false;
+		}
 	}
 }
