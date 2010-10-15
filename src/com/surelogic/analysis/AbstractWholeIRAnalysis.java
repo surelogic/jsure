@@ -16,6 +16,8 @@ import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.util.CachedSet;
 
 public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extends AbstractIRAnalysis<T,Q> {
+	public static final boolean useDependencies = false;
+	
 	static private class ResultsDepDrop extends Drop {
 		final Class<?> clazz;
 		
@@ -57,10 +59,13 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	
 	protected final void setResultDependUponDrop(IRReferenceDrop drop, IRNode node) {
 		drop.setNodeAndCompilationUnitDependency(node);
-		setResultDependUponDrop(drop);
+		setResultDependUponDrop(drop);		
 	}
 	
 	protected final void setResultDependUponDrop(IRReferenceDrop drop) {
+		if (useDependencies) {
+			return;
+		}
 		if (resultDependUpon != null && resultDependUpon.isValid()) {
 			resultDependUpon.addDependent(drop);
 		} else {
@@ -70,12 +75,20 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	}
 	
 	protected final void setResultDependUponDrop(ResultDropBuilder drop, IRNode node) {
-		drop.setNode(node);
-		setResultDependUponDrop(drop);
+		if (useDependencies) {
+			drop.setNodeAndCompilationUnitDependency(node);
+		} else {
+			drop.setNode(node);
+			setResultDependUponDrop(drop);
+		}		
 	}
 	
 	protected final void setResultDependUponDrop(ResultDropBuilder p) {
-		p.addDependUponDrop(resultDependUpon);
+		if (!useDependencies) {
+			p.addDependUponDrop(resultDependUpon);
+		} else {
+			System.out.println("No depend upon drop");
+		}
 	}
 	
 	public final boolean analyzeAll() {
@@ -83,9 +96,12 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 	}
 	
 	public void init(IIRAnalysisEnvironment env) {
+		if (useDependencies) {
+			return;
+		}
 		// Init the drop that all its results link to
-	    if (resultDependUpon != null) {
-	        resultDependUpon.invalidate();
+		if (resultDependUpon != null) {
+	    	resultDependUpon.invalidate();
 	    }
     	resultDependUpon = new ResultsDepDrop(this.getClass());
 	}

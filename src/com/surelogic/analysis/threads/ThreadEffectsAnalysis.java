@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.logging.SLLogger;
@@ -35,8 +36,11 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 
 	private void setResultDependUponDrop(IRReferenceDrop drop, IRNode node,
 			int resultNum, String arg) {
-		drop.setNode(node);
+		drop.setNodeAndCompilationUnitDependency(node);
 		drop.setResultMessage(resultNum, arg);
+		if (AbstractWholeIRAnalysis.useDependencies) {
+			return;
+		}
 		if (resultDependUpon != null && resultDependUpon.isValid()) {
 			resultDependUpon.addDependent(drop);
 		} else {
