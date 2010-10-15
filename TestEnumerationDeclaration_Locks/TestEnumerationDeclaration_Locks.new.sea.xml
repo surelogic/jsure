@@ -1,0 +1,337 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<sea-summary time='Oct 15, 2010 12:25:27 PM'
+	 project='TestEnumerationDeclaration_Locks'>
+
+<count InfoDrop='5'/>
+<count ResultDrop='9'/>
+<count RequiresLockPromiseDrop='3'/>
+<count ProposedPromiseDrop='4'/>
+<count LockModel='4'/>
+<count RegionModel='4'/>
+<ir-drop type='ProposedPromiseDrop'
+	 line='49'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='1748'
+	 hash='755217939'
+	 context='-333786523'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<result-drop type='ResultDrop'
+	 line='73'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2416'
+	 hash='2064226304'
+	 context='569300766'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing this.secret'
+	 message-id='(205,&lt;this&gt;:L,this.secret,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<promise-drop type='RegionModel'
+	 line='9'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='348'
+	 hash='-1361083311'
+	 context='-877171223'
+	 message='Region private static test.E.Crap'
+	 message-id='(117,private, static,test.E.Crap)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='64'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2165'
+	 hash='-620891617'
+	 context='623002241'
+	 message='Lock &quot;SS&quot; held when invoking this (-1); precondition satisfied'
+	 message-id='(207,SS,this (-1),null)'
+	 category='lock precondition(s) satisfied'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='207'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='67'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2184'
+	 hash='-1122068551'
+	 context='1308091586'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='62'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2125'
+	 hash='66363646'
+	 context='623002241'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<promise-drop type='LockModel'
+	 line='9'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='295'
+	 hash='-1361083311'
+	 context='-877171223'
+	 message='RegionLock test.E.SS is class protects Junk on E'
+	 message-id='(100,test.E.SS,class,Junk,E)'
+	 category='Concurrency'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='58'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2095'
+	 hash='153798996'
+	 context='626951820'
+	 message='Acting as if lock &quot;SS&quot; were held when invoking C (test.E.getSecret(1)) {   /* Need to process the enum constant declaration as a class declaration and visit the class&apos;s initializers to reach here.  This is done when processing the declaration of the enumeration constant itself. This is part of bug 1627. */  { #; } @ Override public void foo()   /* Need to visit the contents of the class declaration to reach here. That is, the top level assurance drivers need to visit the class bodies of EnumConstantClassDeclaration nodes.  This is part of bug 1627. */  { # } } (occurs within a class initializer); precondition satisfied'
+	 message-id='(249,SS,C (test.E.getSecret(1)) {   /* Need to process the enum constant declaration as a class declaration and visit the class&apos;s initializers to reach here.  This is done when processing the declaration of the enumeration constant itself. This is part of bug 1627. */  { #; } @ Override public void foo()   /* Need to visit the contents of the class declaration to reach here. That is, the top level assurance drivers need to visit the class bodies of EnumConstantClassDeclaration nodes.  This is part of bug 1627. */  { # } },null)'
+	 category='lock precondition(s) satisfied'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='249'/>
+
+<promise-drop type='LockModel'
+	 line='0'
+	 file='java.lang.Object'
+	 offset='2147483647'
+	 hash='1709211273'
+	 context='1063877011'
+	 message='RegionLock java.lang.Object.MUTEX is this protects WaitQueue on Object'
+	 message-id='(100,java.lang.Object.MUTEX,this,WaitQueue,Object)'
+	 category='Concurrency'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='22'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='561'
+	 hash='65'
+	 context='-1194498174'
+	 message='Acting as if lock &quot;SS&quot; were held when invoking A (occurs within a class initializer); precondition satisfied'
+	 message-id='(249,SS,A,null)'
+	 category='lock precondition(s) satisfied'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='249'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public []'
+	 message-id='(117,public,,[])'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='30'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='840'
+	 hash='-431923040'
+	 context='2001705244'
+	 message='Acting as if lock &quot;S&quot; were held when invoking test.E.getSecret(0) (occurs within a class initializer); precondition satisfied'
+	 message-id='(249,S,test.E.getSecret(0),null)'
+	 category='lock precondition(s) satisfied'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='249'/>
+
+<promise-drop type='RequiresLockPromiseDrop'
+	 line='67'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2198'
+	 hash='-1122068551'
+	 context='1308091586'
+	 message='RequiresLock SS on test.E.E(int)'
+	 message-id='(102,RequiresLock SS,test.E.E(int))'
+	 category='lock precondition(s)'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='ProposedPromiseDrop'
+	 line='58'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2095'
+	 hash='1818100338'
+	 context='626951820'
+	 message='ProposedPromiseDrop (EMPTY)'/>
+
+<result-drop type='ResultDrop'
+	 line='38'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='1252'
+	 hash='-431923009'
+	 context='665179814'
+	 message='Acting as if lock &quot;S&quot; were held when invoking test.E.getSecret(1) (occurs within a class initializer); precondition satisfied'
+	 message-id='(249,S,test.E.getSecret(1),null)'
+	 category='lock precondition(s) satisfied'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='249'/>
+
+<ir-drop type='InfoDrop'
+	 line='22'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='561'
+	 hash='65'
+	 context='-1194498174'
+	 message='E.&lt;clinit&gt; has effect &quot;writes java.lang.Object:All&quot; from A'/>
+
+<ir-drop type='InfoDrop'
+	 line='30'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='840'
+	 hash='-431923040'
+	 context='2001705244'
+	 message='E.&lt;clinit&gt; has effect &quot;writes java.lang.Object:All&quot; from test.E.getSecret(0)'/>
+
+<promise-drop type='LockModel'
+	 line='9'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='252'
+	 hash='-1361083311'
+	 context='-877171223'
+	 message='RegionLock test.E.S is class protects Crap on E'
+	 message-id='(100,test.E.S,class,Crap,E)'
+	 category='Concurrency'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RequiresLockPromiseDrop'
+	 line='76'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2451'
+	 hash='-1256938509'
+	 context='1535554305'
+	 message='RequiresLock S on test.E.getSecret(int)'
+	 message-id='(102,RequiresLock S,test.E.getSecret(int))'
+	 category='lock precondition(s)'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='InfoDrop'
+	 line='30'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='975'
+	 hash='-883825069'
+	 context='-1194498174'
+	 message='E.&lt;clinit&gt; has effect &quot;writes java.lang.Object:All&quot; from B (test.E.getSecret(0))'/>
+
+<promise-drop type='RequiresLockPromiseDrop'
+	 line='62'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2139'
+	 hash='66363646'
+	 context='623002241'
+	 message='RequiresLock SS on test.E.E()'
+	 message-id='(102,RequiresLock SS,test.E.E())'
+	 category='lock precondition(s)'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='46'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='1718'
+	 hash='2064226304'
+	 context='1223724169'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing this.secret'
+	 message-id='(205,&lt;this&gt;:L,this.secret,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+<result-drop type='ResultDrop'
+	 line='30'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='975'
+	 hash='-883825069'
+	 context='-1194498174'
+	 message='Acting as if lock &quot;SS&quot; were held when invoking B (test.E.getSecret(0)) (occurs within a class initializer); precondition satisfied'
+	 message-id='(249,SS,B (test.E.getSecret(0)),null)'
+	 category='lock precondition(s) satisfied'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='249'/>
+
+<ir-drop type='InfoDrop'
+	 line='58'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2095'
+	 hash='153798996'
+	 context='626951820'
+	 message='E.&lt;clinit&gt; has effect &quot;writes java.lang.Object:All&quot; from C (test.E.getSecret(1)) {   /* Need to process the enum constant declaration as a class declaration and visit the class&apos;s initializers to reach here.  This is done when processing the declaration of the enumeration constant itself. This is part of bug 1627. */  { #; } @ Override public void foo()   /* Need to visit the contents of the class declaration to reach here. That is, the top level assurance drivers need to visit the class bodies of EnumConstantClassDeclaration nodes.  This is part of bug 1627. */  { # } }'/>
+
+<ir-drop type='InfoDrop'
+	 line='38'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='1252'
+	 hash='-431923009'
+	 context='665179814'
+	 message='E.&lt;clinit&gt; has effect &quot;writes java.lang.Object:All&quot; from test.E.getSecret(1)'/>
+
+<promise-drop type='RegionModel'
+	 line='9'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='382'
+	 hash='-1361083311'
+	 context='-877171223'
+	 message='Region private static test.E.Junk'
+	 message-id='(117,private, static,test.E.Junk)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public length'
+	 message-id='(117,public,,length)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='LockModel'
+	 line='9'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='206'
+	 hash='-1361083311'
+	 context='-877171223'
+	 message='RegionLock test.E.L is this protects Instance on E'
+	 message-id='(100,test.E.L,this,Instance,E)'
+	 category='Concurrency'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='56'
+	 file='/TestEnumerationDeclaration_Locks/src/test/E.java'
+	 offset='2072'
+	 hash='2064226304'
+	 context='144883849'
+	 message='Lock &quot;&lt;this&gt;:L&quot; not held when accessing this.secret'
+	 message-id='(205,&lt;this&gt;:L,this.secret,null)'
+	 category='unprotected field access(es); possible race condition detected'
+	 result-type='205'/>
+
+</sea-summary>
+
