@@ -49,9 +49,11 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 	protected final void finishBuild() {
 		flushWorkQueue();
 		
+		int num = 0;
 		for(AbstractDropBuilder b : builders) {
-			b.build();
+			num += b.build();
 		}
+		System.out.println("\tBuilding "+builders.size()+" results for "+this.getClass().getSimpleName());
 		builders.clear();
 	}
 	
