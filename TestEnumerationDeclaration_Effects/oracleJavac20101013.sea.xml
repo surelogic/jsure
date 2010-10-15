@@ -1,0 +1,350 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<sea-summary time='Oct 13, 2010 4:24:02 PM'
+	 project='TestEnumerationDeclaration_Effects'>
+
+<count RegionEffectsPromiseDrop='7'/>
+<count InfoDrop='9'/>
+<count LockModel='1'/>
+<count RegionModel='5'/>
+<count ResultDrop='9'/>
+<promise-drop type='RegionModel'
+	 line='59'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1814'
+	 hash='-1453069411'
+	 context='-1613775275'
+	 message='Region protected static test.E.secret'
+	 message-id='(117,protected, static,test.E.secret)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RegionEffectsPromiseDrop'
+	 line='67'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1903'
+	 hash='66363646'
+	 context='623002241'
+	 message='Writes test.E:zzz on test.E.E()'
+	 category='Effects'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='82'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2261'
+	 hash='-1613775275'
+	 context='1989041109'
+	 message='&quot;writes test.E:secret&quot; checked by &quot;writes test.E:secret&quot;'
+	 message-id='(151,writes test.E:secret,writes test.E:secret)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='151'/>
+
+<promise-drop type='RegionEffectsPromiseDrop'
+	 line='91'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2414'
+	 hash='237458727'
+	 context='-1065853306'
+	 message='Writes test.E:yyy on test.E.setYYY(int)'
+	 category='Effects'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='InfoDrop'
+	 line='61'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1820'
+	 hash='121146'
+	 context='623055797'
+	 message='E.&lt;clinit&gt; has effect &quot;writes test.E:zzz&quot; from zzz'/>
+
+<ir-drop type='InfoDrop'
+	 line='32'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='953'
+	 hash='-120688329'
+	 context='-1476468648'
+	 message='E.&lt;clinit&gt; has effect &quot;writes test.E:secret&quot; from test.E.incSecret(1)'/>
+
+<result-drop type='ResultDrop'
+	 line='83'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2285'
+	 hash='-1613775275'
+	 context='1989041109'
+	 message='&quot;reads test.E:secret&quot; checked by &quot;writes test.E:secret&quot;'
+	 message-id='(151,reads test.E:secret,writes test.E:secret)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='151'/>
+
+<result-drop type='ResultDrop'
+	 line='77'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2157'
+	 hash='-905603490'
+	 context='-59437226'
+	 message='&quot;writes test.E:zzz&quot; checked by &quot;writes test.E:zzz&quot;'
+	 message-id='(151,writes test.E:zzz,writes test.E:zzz)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='151'/>
+
+<promise-drop type='RegionEffectsPromiseDrop'
+	 line='86'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2317'
+	 hash='-847116792'
+	 context='1593089861'
+	 message='Writes test.E:zzz on test.E.setZZZ(int)'
+	 category='Effects'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public []'
+	 message-id='(117,public,,[])'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='InfoDrop'
+	 line='52'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1743'
+	 hash='1293614540'
+	 context='-1848597706'
+	 message='E.&lt;clinit&gt; has effect &quot;writes test.E:zzz&quot; from C (test.E.incSecret(1)) {   /* Need to process the enum constant declaration as a class declaration and visit the class&apos;s initializers to reach here.  This is done when processing the declaration of the enumeration constant itself. This is part of bug 1627. */  { #; } @ Override @ RegionEffects ( # ) public void foo()   /* Need to visit the contents of the class declaration to reach here. That is, the top level assurance drivers need to visit the class bodies of EnumConstantClassDeclaration nodes.  This is part of bug 1627. */  { # } }'/>
+
+<ir-drop type='InfoDrop'
+	 line='11'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='237'
+	 hash='65'
+	 context='-1194498174'
+	 message='E.&lt;clinit&gt; has effect &quot;writes test.E:zzz&quot; from A'/>
+
+<result-drop type='ResultDrop'
+	 line='93'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2478'
+	 hash='623054804'
+	 context='-527950381'
+	 message='&quot;writes test.E:yyy&quot; checked by &quot;writes test.E:yyy&quot;'
+	 message-id='(151,writes test.E:yyy,writes test.E:yyy)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='151'/>
+
+<result-drop type='ResultDrop'
+	 line='77'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2157'
+	 hash='696116656'
+	 context='1308091586'
+	 message='No effects from calling super (, 0)'
+	 message-id='(155,super (, 0))'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='155'/>
+
+<promise-drop type='RegionModel'
+	 line='61'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1820'
+	 hash='121146'
+	 context='623055797'
+	 message='Region protected static test.E.zzz'
+	 message-id='(117,protected, static,test.E.zzz)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RegionModel'
+	 line='0'
+	 file='java.lang.[]'
+	 offset='-1'
+	 hash='-1305411288'
+	 context='156839830'
+	 message='Region public length'
+	 message-id='(117,public,,length)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<promise-drop type='RegionModel'
+	 line='63'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1851'
+	 hash='120153'
+	 context='623054804'
+	 message='Region protected static test.E.yyy'
+	 message-id='(117,protected, static,test.E.yyy)'
+	 category='Regions'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='96'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2496'
+	 hash='783810549'
+	 context='1737359362'
+	 message='Empty effects trivially satisfy declared effects'
+	 message-id='(152)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='EffectAssurance_msgEmptyEffects'/>
+
+<promise-drop type='RegionEffectsPromiseDrop'
+	 line='72'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1971'
+	 hash='-1579636420'
+	 context='1308091586'
+	 message='Writes test.E:zzz on test.E.E(int)'
+	 category='Effects'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='InfoDrop'
+	 line='59'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1814'
+	 hash='-1453069411'
+	 context='-1613775275'
+	 message='E.&lt;clinit&gt; has effect &quot;writes test.E:secret&quot; from secret = 0'/>
+
+<ir-drop type='InfoDrop'
+	 line='21'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='572'
+	 hash='174515419'
+	 context='-1194498174'
+	 message='E.&lt;clinit&gt; has effect &quot;writes test.E:zzz&quot; from B (test.E.incSecret(0))'/>
+
+<result-drop type='ResultDrop'
+	 line='69'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1937'
+	 hash='-620891617'
+	 context='623002241'
+	 message='&quot;writes test.E:zzz&quot; checked by &quot;writes test.E:zzz&quot;'
+	 message-id='(151,writes test.E:zzz,writes test.E:zzz)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='151'/>
+
+<result-drop type='ResultDrop'
+	 line='88'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2381'
+	 hash='623055797'
+	 context='1549051891'
+	 message='&quot;writes test.E:zzz&quot; checked by &quot;writes test.E:zzz&quot;'
+	 message-id='(151,writes test.E:zzz,writes test.E:zzz)'
+	 proved-consistent='true'
+	 consistent='true'
+	 result-type='151'/>
+
+<promise-drop type='LockModel'
+	 line='0'
+	 file='java.lang.Object'
+	 offset='2147483647'
+	 hash='1709211273'
+	 context='1063877011'
+	 message='RegionLock java.lang.Object.MUTEX is this protects WaitQueue on Object'
+	 message-id='(100,java.lang.Object.MUTEX,this,WaitQueue,Object)'
+	 category='Concurrency'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<result-drop type='ResultDrop'
+	 line='50'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1723'
+	 hash='-905605660'
+	 context='836670843'
+	 message='&quot;writes test.E:zzz&quot; not accounted for by declared effect(s)'
+	 message-id='(150,writes test.E:zzz)'
+	 result-type='150'/>
+
+<ir-drop type='InfoDrop'
+	 line='63'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1851'
+	 hash='120153'
+	 context='623054804'
+	 message='E.&lt;clinit&gt; has effect &quot;writes test.E:yyy&quot; from yyy'/>
+
+<promise-drop type='RegionEffectsPromiseDrop'
+	 line='80'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2192'
+	 hash='101959760'
+	 context='-15628935'
+	 message='Writes test.E:secret on test.E.incSecret(int)'
+	 category='Effects'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='InfoDrop'
+	 line='52'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1743'
+	 hash='1293614540'
+	 context='-1848597706'
+	 message='E.&lt;clinit&gt; has effect &quot;writes test.E:yyy&quot; from C (test.E.incSecret(1)) {   /* Need to process the enum constant declaration as a class declaration and visit the class&apos;s initializers to reach here.  This is done when processing the declaration of the enumeration constant itself. This is part of bug 1627. */  { #; } @ Override @ RegionEffects ( # ) public void foo()   /* Need to visit the contents of the class declaration to reach here. That is, the top level assurance drivers need to visit the class bodies of EnumConstantClassDeclaration nodes.  This is part of bug 1627. */  { # } }'/>
+
+<promise-drop type='RegionEffectsPromiseDrop'
+	 line='96'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='2511'
+	 hash='783810549'
+	 context='1737359362'
+	 message='No effects on test.E.foo()'
+	 category='Effects'
+	 proved-consistent='true'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+<ir-drop type='InfoDrop'
+	 line='21'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='559'
+	 hash='-120688360'
+	 context='861964708'
+	 message='E.&lt;clinit&gt; has effect &quot;writes test.E:secret&quot; from test.E.incSecret(0)'/>
+
+<promise-drop type='RegionEffectsPromiseDrop'
+	 line='42'
+	 file='/TestEnumerationDeclaration_Effects/src/test/E.java'
+	 offset='1418'
+	 hash='302323595'
+	 context='174802831'
+	 message='No effects on test.E.C (test.E.incSecret(1)) {   /* Need to process the enum constant declaration as a class declaration and visit the class&apos;s initializers to reach here.  This is done when processing the declaration of the enumeration constant itself. This is part of bug 1627. */  { #; } @ Override @ RegionEffects ( # ) public void foo()   /* Need to visit the contents of the class declaration to reach here. That is, the top level assurance drivers need to visit the class bodies of EnumConstantClassDeclaration nodes.  This is part of bug 1627. */  { # } }.foo()'
+	 category='Effects'
+	 checked-by-analysis='true'
+	 from-src='true'/>
+
+</sea-summary>
+
