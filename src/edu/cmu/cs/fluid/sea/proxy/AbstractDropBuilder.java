@@ -22,8 +22,8 @@ public abstract class AbstractDropBuilder {
 		new ArrayList<Pair<String,IRNode>>();	
 	private List<Triple<IRNode,Integer,Object[]>> supportingInfos2 =
 		new ArrayList<Triple<IRNode,Integer,Object[]>>();
-	private List<ProposedPromiseDrop> proposals = 
-		new ArrayList<ProposedPromiseDrop>();
+	private List<ProposedPromiseBuilder> proposals = 
+		new ArrayList<ProposedPromiseBuilder>();
 	
 	AbstractDropBuilder(String type) {		
 		this.type = type;
@@ -65,6 +65,9 @@ public abstract class AbstractDropBuilder {
 	}
 	
 	public void addDependUponDrop(Drop drop) {
+		if (drop == null) {
+			throw new IllegalArgumentException();
+		}
 		dependUponDrops.add(drop);
 	}
 	
@@ -76,11 +79,12 @@ public abstract class AbstractDropBuilder {
 		supportingInfos2.add(new Triple<IRNode,Integer,Object[]>(context, num, args));
 	}
 	
-	public void addProposal(ProposedPromiseDrop p) {
+	public void addProposal(ProposedPromiseBuilder p) {
 		proposals.add(p);
 	}
 	
-	void buildDrop(IRReferenceDrop d) {
+	int buildDrop(IRReferenceDrop d) {
+		int num = 1;
 		//System.out.println("Making: "+message);
 		d.setNodeAndCompilationUnitDependency(node);
 		if (messageNum < 0) {
@@ -98,10 +102,12 @@ public abstract class AbstractDropBuilder {
 		for(Triple<IRNode,Integer,Object[]> p : supportingInfos2) {
 			d.addSupportingInformation(p.first(), p.second(), p.third());
 		}
-		for(ProposedPromiseDrop p : proposals) {
-			d.addProposal(p);
+		for(ProposedPromiseBuilder p : proposals) {
+			d.addProposal(p.build());
+			num++;
 		}
+		return num;
 	}
 	
-	public abstract Drop build();
+	public abstract int build();
 }

@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.InstanceInitAction;
@@ -91,8 +92,10 @@ import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ReturnsLockPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.UsedByPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.AbstractDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
+import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
@@ -883,6 +886,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private void setLockResultDep(final AbstractDropBuilder drop,
 			final IRNode node) {
 		drop.setNodeAndCompilationUnitDependency(node);
+		if (AbstractWholeIRAnalysis.useDependencies) {
+			return;
+		}
 		if (resultDependUpon != null && resultDependUpon.isValid()) {
 			drop.addDependUponDrop(resultDependUpon);
 		} else {
@@ -1265,7 +1271,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								DebugUnparser.toString(fieldRef));
 						// Propose the unique annotation
 						final IRNode fieldDecl = binder.getBinding(objExpr);
-						info.addProposal(new ProposedPromiseDrop("Unique",
+						info.addProposal(new ProposedPromiseBuilder("Unique",
 								null, fieldDecl, fieldRef));
 
 						final IJavaType rcvrType = binder.getJavaType(FieldRef
@@ -1283,10 +1289,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
                     // Propose the aggregate annotation
                     final String simpleRegionName = ((RegionLockRecord) lockRecord).region.simpleName;
                     if ("Instance".equals(simpleRegionName)) {
-                      info.addProposal(new ProposedPromiseDrop("Aggregate",
+                      info.addProposal(new ProposedPromiseBuilder("Aggregate",
                           null, fieldDecl, fieldRef));
                     } else {
-                      info.addProposal(new ProposedPromiseDrop(
+                      info.addProposal(new ProposedPromiseBuilder(
                           "AggregateInRegion", simpleRegionName, fieldDecl,
                           fieldRef));
                     }
@@ -1319,14 +1325,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * the future they should be linked by an AND.
 						 */
 						final IRNode fieldDecl = binder.getBinding(objExpr);
-						info.addProposal(new ProposedPromiseDrop("Unique", null,
+						info.addProposal(new ProposedPromiseBuilder("Unique", null,
 								fieldDecl, fieldRef));
 						final String simpleRegionName = innerLock.region.simpleName;
             if ("Instance".equals(simpleRegionName)) {
-              info.addProposal(new ProposedPromiseDrop("Aggregate",
+              info.addProposal(new ProposedPromiseBuilder("Aggregate",
                   null, fieldDecl, fieldRef));
             } else {
-              info.addProposal(new ProposedPromiseDrop(
+              info.addProposal(new ProposedPromiseBuilder(
                   "AggregateInRegion", simpleRegionName, fieldDecl,
                   fieldRef));
             }
@@ -1716,7 +1722,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					if (ctxtSingleThreadedData != null
 							&& !ctxtSingleThreadedData.isSingleThreaded
 							&& ctxtInsideConstructor != null) {
-						resultDrop.addProposal(new ProposedPromiseDrop(
+						resultDrop.addProposal(new ProposedPromiseBuilder(
 								"Unique", "return", ctxtInsideConstructor,
 								useSite));
 					}
@@ -1733,7 +1739,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 */
 						if (neededLockName != null
 								&& !"MUTEX".equals(neededLockName)) {
-							resultDrop.addProposal(new ProposedPromiseDrop(
+							resultDrop.addProposal(new ProposedPromiseBuilder(
 									"RequiresLock", neededLockName,
 									ctxtInsideMethod, useSite));
 						}

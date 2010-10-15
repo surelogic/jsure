@@ -74,9 +74,9 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 	}
 	
 	@Override
-	public ResultDrop build() {
+	public int build() {
 		if (!isValid()) {
-			return null;
+			return 0;
 		}
 		ResultDrop rd = new ResultDrop(type);				
 		rd.setConsistent(isConsistent);
@@ -91,7 +91,6 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 				rd.addTrustedPromise_or(e.getKey(), d);
 			}
 		}
-		buildDrop(rd);
-		return rd;
+		return buildDrop(rd);
 	}
 }

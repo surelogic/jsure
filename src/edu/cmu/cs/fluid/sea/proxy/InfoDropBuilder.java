@@ -25,12 +25,11 @@ public class InfoDropBuilder extends AbstractDropBuilder {
 	}
 	
 	@Override
-	public InfoDrop build() {
+	public int build() {
 		if (!isValid()) {
-			return null;
+			return 0;
 		}
 		InfoDrop rd = isWarning ? new WarningDrop(type) : new InfoDrop(type);				
-		buildDrop(rd);
-		return rd;
+		return buildDrop(rd);
 	}
 }
