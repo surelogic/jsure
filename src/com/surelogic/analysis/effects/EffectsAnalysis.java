@@ -97,7 +97,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 					}
 				}
 			} else if(TypeUtil.isTypeDecl(member)) {
-//			  reportClassInitializationEffects(member);
+			  reportClassInitializationEffects(member);
 			}			  
 		}
 	}
@@ -108,7 +108,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	    getAnalysis().getEffectsQuery(
 	        flowUnit, bca.getExpressionObjectsQuery(flowUnit)).getResultFor(flowUnit);
 	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
-	  final String id = TypeDeclaration.getId(typeDecl);
+	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
 	    final InfoDrop drop = new InfoDrop();
 	    drop.setCategory(null);
