@@ -125,6 +125,9 @@ public abstract class IRReferenceDrop extends Drop {
 	 * @see #setNodeAndCompilationUnitDependency(IRNode)
 	 */
 	public final void setNode(IRNode node) {
+		if (node == null) {
+			throw new IllegalArgumentException("Use clearNode()");
+		}
 		this.node = node;
 		if (node != null) {
 			computeBasedOnAST();
@@ -132,7 +135,8 @@ public abstract class IRReferenceDrop extends Drop {
 	}
 
 	public final void clearNode() {
-		node = null;
+		//TODO changed to make dependency code work
+		//node = null;
 	}
 
 	protected void computeBasedOnAST() {
