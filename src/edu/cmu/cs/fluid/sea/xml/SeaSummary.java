@@ -478,6 +478,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 
 		public boolean isEmpty() {
+			if ("ProposedPromiseDrop".equals(name)) {
+				// Temporarily ignore older for this
+				return newer.isEmpty(); 
+			}
 			return old.isEmpty() && newer.isEmpty();
 		}
 
