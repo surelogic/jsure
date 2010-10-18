@@ -116,8 +116,9 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode>
 		for (Pair<String,String> key : nameToDrop.keys()) {
 			LockModel drop = nameToDrop.get(key.first(), key.second());
 
-			boolean lockDefinedInCode = modelDefinedInCode(definingDropPred,
-					drop);
+			boolean lockDefinedInCode = 
+				modelDefinedInCode(definingDropPred, drop);// && 
+			    //drop.hasMatchingDependents(DropPredicateFactory.matchExactType(RegionModel.class));			
 
 			if (lockDefinedInCode) {
 				newMap.put(key.first(), key.second(), drop);

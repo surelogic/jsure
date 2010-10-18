@@ -18,9 +18,11 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
+import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {	
   /** Should we try to run things in parallel */
@@ -84,6 +86,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 	public void startAnalyzeBegin(IIRProject p, IBinder binder) {
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
+		LockModel.purgeUnusedLocks();
 		
 		/*
 		 * This seems stupid to me. I feel like I should be able to get the
@@ -107,7 +110,12 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 			if (lockDrop.getAST() == null) {
 				LOG.warning("No AST for " + lockDrop.getMessage());
 				continue;
-			}
+			}			
+			if (!lockDrop.hasMatchingDependents(DropPredicateFactory.matchExactType(RegionModel.class))) {
+				// This is not really valid, but properly invalidated due to the inversion of dependencies
+				// between the LockModel and RegionModel (for UI purposes)
+				continue;
+			}			
 			if (lockDrop.getAST() instanceof LockDeclarationNode) {
 				globalLockModel.addRegionLockDeclaration(binder, lockDrop,
 						JavaTypeFactory.getMyThisType(classDecl));
