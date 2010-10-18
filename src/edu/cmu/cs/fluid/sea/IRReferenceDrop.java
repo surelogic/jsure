@@ -88,6 +88,10 @@ public abstract class IRReferenceDrop extends Drop {
 	 * The fAST node that this PromiseDrop is associated with.
 	 */
 	private IRNode node;
+	/**
+	 * Used for dependency checking
+	 */
+	private IRNode lastNonNullNode;
 
 	/**
 	 * @return the source reference of the fAST node this information
@@ -128,6 +132,7 @@ public abstract class IRReferenceDrop extends Drop {
 		if (node == null) {
 			throw new IllegalArgumentException("Use clearNode()");
 		}
+		this.lastNonNullNode = node;
 		this.node = node;
 		if (node != null) {
 			computeBasedOnAST();
@@ -135,8 +140,15 @@ public abstract class IRReferenceDrop extends Drop {
 	}
 
 	public final void clearNode() {
-		//TODO changed to make dependency code work
-		//node = null;
+		// lastNonNullNode is not cleared
+		node = null;		
+	}
+	
+	/**
+	 * Used for dependency checking
+	 */
+	public final IRNode getLastNonnullNode() {
+		return lastNonNullNode;
 	}
 
 	protected void computeBasedOnAST() {

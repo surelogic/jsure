@@ -348,7 +348,7 @@ public class Dependencies {
 		public final int hashCode() {
 			return drop.getClass().hashCode() + 
 			       drop.getMessage().hashCode() + 
-			       drop.getNode().identity().hashCode();
+			       drop.getLastNonnullNode().identity().hashCode();
 		}
 		
 		/**
@@ -358,7 +358,7 @@ public class Dependencies {
 		public final boolean equals(Object o) {
 			if (o instanceof Wrapper) {
 				Wrapper w = (Wrapper) o;
-				return drop.getNode().equals(w.drop.getNode()) &&
+				return drop.getLastNonnullNode().equals(w.drop.getLastNonnullNode()) &&
 				drop.getClass().equals(w.drop.getClass()) && drop.getMessage().equals(w.drop.getMessage());
 			}
 			return false;
