@@ -110,13 +110,13 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,IRNode> {
 			if (lockDrop.getAST() == null) {
 				LOG.warning("No AST for " + lockDrop.getMessage());
 				continue;
-			}			
-			if (!lockDrop.hasMatchingDependents(DropPredicateFactory.matchExactType(RegionModel.class))) {
-				// This is not really valid, but properly invalidated due to the inversion of dependencies
-				// between the LockModel and RegionModel (for UI purposes)
-				continue;
-			}			
+			}						
 			if (lockDrop.getAST() instanceof LockDeclarationNode) {
+				if (!lockDrop.hasMatchingDependents(DropPredicateFactory.matchExactType(RegionModel.class))) {
+					// This is not really valid, but properly invalidated due to the inversion of dependencies
+					// between the LockModel and RegionModel (for UI purposes)
+					continue;
+				}
 				globalLockModel.addRegionLockDeclaration(binder, lockDrop,
 						JavaTypeFactory.getMyThisType(classDecl));
 			} else {
