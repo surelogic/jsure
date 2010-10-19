@@ -1,4 +1,4 @@
-package com.surelogic.test.scripting;
+package com.surelogic.jsure.scripting;
 
 /**
  * Does nothing, echoing the command

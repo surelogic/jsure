@@ -1,4 +1,4 @@
-package com.surelogic.test.scripting;
+package com.surelogic.jsure.scripting;
 
 /**
  * A placeholder for future state that might be needed

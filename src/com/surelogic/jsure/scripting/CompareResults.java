@@ -1,7 +1,7 @@
 /**
  * Compares the output of JSure to a given oracle file.
  */
-package com.surelogic.test.scripting;
+package com.surelogic.jsure.scripting;
 
 import java.io.*;
 

@@ -1,4 +1,4 @@
-package com.surelogic.test.scripting;
+package com.surelogic.jsure.scripting;
 
 import org.eclipse.core.resources.IProject;
 

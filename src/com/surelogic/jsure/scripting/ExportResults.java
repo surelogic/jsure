@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.surelogic.test.scripting;
+package com.surelogic.jsure.scripting;
 
 import java.io.*;
 

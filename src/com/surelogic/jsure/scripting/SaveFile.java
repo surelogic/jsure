@@ -1,4 +1,4 @@
-package com.surelogic.test.scripting;
+package com.surelogic.jsure.scripting;
 
 public class SaveFile extends AbstractCommand {
   public boolean execute(ICommandContext context, String... contents) {

@@ -33,7 +33,9 @@ Require-Bundle: org.eclipse.ui,
  org.junit,
  com.surelogic.fluid.javac,
  org.eclipse.ltk.core.refactoring,
- org.eclipse.ltk.ui.refactoring
+ org.eclipse.ltk.ui.refactoring,
+ org.eclipse.compare;bundle-version="3.5.2",
+ org.eclipse.jdt.launching;bundle-version="3.5.1"
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: com.surelogic.jsure.client.eclipse.analysis,
