@@ -354,14 +354,14 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       throw e; // pass-through
     } catch(Throwable ex) {
       ex.printStackTrace();
-      output.reportError(currentTest, ex);
+      output.reportError(currentTest.pop(), ex);
       output.close();    
       throw ex;
     }
     output.close();
   }
   
-  private ITest start(final String tag) {
+  private void start(final String tag) {
     System.out.println("RegressionTest: "+tag);
     ITest test = new ITest() {
       public String getClassName() {
@@ -375,21 +375,22 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     	  return "RegressionTest "+tag;
       }
     };
-    return output.reportStart(test);
+    currentTest.push(output.reportStart(test));
   }
   
   private void end(String msg) {
-    output.reportSuccess(currentTest, msg);
-    currentTest = null;
+    output.reportSuccess(currentTest.pop(), msg);
+    //currentTest = null;
   }
   
   private void endError(Throwable t) {
-    output.reportError(currentTest, t);
-    currentTest = null;
+    output.reportError(currentTest.pop(), t);
+    //currentTest = null;
   }
   
   private ITestOutput output = null;
-  private ITest currentTest = null;
+  //private ITest currentTest = null;
+  private final Stack<ITest> currentTest = new Stack<ITest>();
   private boolean initializedAnalysis = false;
   
   private File findFile(final IProject project, final String file, boolean checkParent) {
@@ -441,7 +442,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     
     end("Done checking analysis settings");
      */
-    currentTest = start("Start logging to a file & refresh");
+    start("Start logging to a file & refresh");
     final String logName = EclipseLogHandler.startFileLog(project.getName() + ".log");
     ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 
@@ -450,7 +451,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
     // Force a build of the workspace
     // Does the analysis and updates the consistency proof
-    currentTest = start("Build and analyze");
+    start("Build and analyze");
     ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
     end("Done analyzing");
      
@@ -459,27 +460,33 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     
     // Check for script in the project to execute      
     File script = findFile(project, ScriptCommands.NAME, true);
-    if (script != null) {
-      currentTest = start("Run scripting");
-      ScriptReader r = new ScriptReader(project);
-      resultsOk = r.execute(script);
-      end("Done scripting");
+    final boolean logOk;
+    try {
+    	if (script != null) {
+    		start("Run scripting");
+    		ScriptReader r = new ScriptReader(project);
+    		resultsOk = r.execute(script);
+    		end("Done scripting");
+    	}
+    	// Checks consistency of TestResults
+    	System.out.println("Updating consistency proof"); 
+    	ConsistencyListener.prototype.analysisCompleted();
+    } finally {
+    	try {
+    	assertNotNull(projectName);
+    	EclipseLogHandler.stopFileLog();
+    	System.out.println("log = " + logName);
+    	logOk = compareLogs(projectPath, logName, projectName);
+    	
+    	AnnotationRules.XML_LOG.close();    	
+    	} catch(Throwable t) {
+    		throw t;
+    	}
     }
-      
-    // Checks consistency of TestResults
-    System.out.println("Updating consistency proof"); 
-    ConsistencyListener.prototype.analysisCompleted();               
-    
-    assertNotNull(projectName);
-    EclipseLogHandler.stopFileLog();
-    System.out.println("log = " + logName);
-
-    AnnotationRules.XML_LOG.close();
-
     //String resultsName = null;
     
     // Export the results from this run
-    currentTest = start("Exporting results");
+    start("Exporting results");
     try {      
       /* Old results
       File f = new File(workspaceFile, projectName + ".results.zip");
@@ -499,7 +506,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       new ExportResults().execute(ICommandContext.nullContext, ScriptCommands.EXPORT_RESULTS, projectName, projectName);
       end("Done exporting");
       
-      currentTest = start("comparing results");
+      start("comparing results");
       System.out.println("Try to compare these results to the results oracle");    
       if (projectPath != null) {	  
     	resultsOk = compareResults(workspaceFile, projectPath, projectName, resultsOk);
@@ -532,40 +539,57 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       ex.printStackTrace(System.out);
       endError(ex);
     }
-
-    final boolean logOk;
-    currentTest = start("comparing logs");
-    System.out.println("Try to compare the log to the log oracle");
-    if (projectPath != null) {
-      final ITestOutput XML_LOG = IDE.getInstance().makeLog("EclipseLogHandler");
-      final String oracleName = 
-    	  RegressionUtility.getOracleName(projectPath, 
-    			  RegressionUtility.logOracleFilter,
-                                              "oracle.log.xml");
-      final String logDiffsName = projectName + ".log.diffs.xml";
-      assert (new File(oracleName).exists());
-      try {
-        System.out.println("Starting log diffs");
-        int numDiffs = XMLLogDiff.diff(XML_LOG, oracleName, logName,
-            logDiffsName);
-        System.out.println("#diffs = " + numDiffs);
-        logOk = (numDiffs == 0);
-        System.out.println("log diffs = " + logDiffsName);
-        end("Done comparing logs");
-      } catch (Throwable e) {
-        System.out.println("Problem while diffing the log: " + oracleName
-            + ", " + logName + ", " + logDiffsName);
-        endError(e);
-        throw e;
-      } 
-      finally{
-        XML_LOG.close();
-      }
-    } else {
-      logOk = false;
-    }
     assertTrue("results = "+resultsOk+", log = "+logOk, 
                resultsOk && logOk);
+  }
+
+  private boolean compareLogs(final String projectPath, final String logName,
+		                      final String projectName) throws Throwable {
+	  final boolean logOk;
+	  start("comparing logs");
+	  System.out.println("Try to compare the log to the log oracle");
+	  if (projectPath != null) {
+		  final ITestOutput XML_LOG = IDE.getInstance().makeLog("EclipseLogHandler");
+		  final String oracleName = 
+			  RegressionUtility.getOracleName(projectPath, 
+					  RegressionUtility.logOracleFilter,
+					  "oracle.log.xml");
+		  final String logDiffsName = projectName + ".log.diffs.xml";
+		  final File oracle = new File(oracleName);
+		  final File log = new File(logName);
+		  final File diffs = new File(logDiffsName);
+		  if (!log.exists() && !oracle.exists()) {
+			  end("Done comparing logs");
+			  // TODO create diffs
+			  return true;
+		  }		
+		  if (log.length() == 0 && oracle.length() == 0) {
+			  end("Done comparing logs");
+			  // TODO create diffs
+			  return true;
+		  }		
+		  assert (new File(oracleName).exists());
+		  try {
+			  System.out.println("Starting log diffs");
+			  int numDiffs = XMLLogDiff.diff(XML_LOG, oracleName, logName,
+					  logDiffsName);
+			  System.out.println("#diffs = " + numDiffs);
+			  logOk = (numDiffs == 0);
+			  System.out.println("log diffs = " + logDiffsName);
+			  end("Done comparing logs");
+		  } catch (Throwable e) {
+			  System.out.println("Problem while diffing the log: " + oracleName
+					  + ", " + logName + ", " + logDiffsName);
+			  endError(e);
+			  throw e;
+		  } 
+		  finally{
+			  XML_LOG.close();
+		  }
+	  } else {
+		  logOk = false;
+	  }
+	  return logOk;
   }
 
   private boolean compareResults(final File workspaceFile,
