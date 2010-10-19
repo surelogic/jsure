@@ -40,6 +40,7 @@ Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: com.surelogic.jsure.client.eclipse.analysis,
  com.surelogic.jsure.client.eclipse.listeners,
+ com.surelogic.jsure.scripting,
  edu.cmu.cs.fluid.analysis.util,
  edu.cmu.cs.fluid.dc,
  edu.cmu.cs.fluid.dcf.views,
