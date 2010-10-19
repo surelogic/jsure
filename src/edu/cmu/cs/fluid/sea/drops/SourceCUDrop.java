@@ -34,7 +34,7 @@ public class SourceCUDrop extends CUDrop {
     }
   }
 
-  public final ProjectsDrop projects;
+  private ProjectsDrop projects;
   public final ICodeFile javaFile;
   public final String source;
   public final boolean adaptedAsSource;
@@ -128,4 +128,12 @@ public class SourceCUDrop extends CUDrop {
 	  System.out.println("Invalidating "+javaOSFileName);
   }
 */
+
+  public synchronized void setProject(ProjectsDrop p) {
+	  projects = p;
+  }
+
+  public synchronized ProjectsDrop getProject() {
+	  return projects;
+  }
 }
