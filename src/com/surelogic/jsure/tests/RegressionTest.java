@@ -14,7 +14,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.jsure.client.eclipse.analysis.*;
 import com.surelogic.test.*;
-import com.surelogic.test.scripting.*;
+import com.surelogic.jsure.scripting.*;
 import com.surelogic.test.xml.JUnitXMLOutput;
 
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
