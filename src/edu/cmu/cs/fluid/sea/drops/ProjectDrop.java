@@ -6,6 +6,12 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.xml.*;
 
+/**
+ * This doesn't work for fluid-javac.  Use ProjectsDrop instead
+ * 
+ * @author Edwin
+ */
+@Deprecated()
 public class ProjectDrop extends Drop {
   final String projectName;
   final IIRProject project;
@@ -43,7 +49,7 @@ public class ProjectDrop extends Drop {
 	  return project;
   }
   
-  public static ProjectDrop getDrop() {
+  static ProjectDrop getDrop() {
 	  ProjectDrop p = null;
 	  for (ProjectDrop pd : Sea.getDefault().getDropsOfExactType(
 			  ProjectDrop.class)) {
@@ -57,7 +63,7 @@ public class ProjectDrop extends Drop {
 	  return p;
   }
   
-  public static String getProject() {
+  static String getProject() {
 	  ProjectDrop pd = getDrop();
 	  if (pd == null) {
 		  return null;
