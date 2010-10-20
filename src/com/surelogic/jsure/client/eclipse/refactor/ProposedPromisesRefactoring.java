@@ -44,8 +44,7 @@ public class ProposedPromisesRefactoring extends Refactoring {
 	public Change createChange(final IProgressMonitor pm) throws CoreException,
 			OperationCanceledException {
 		final CompositeChange root = new CompositeChange(String.format(
-				"Changes to %s", info.getSelectedProject().getProject()
-						.getName()));
+				"Changes to %s", info.getSelectedProjectNames()));
 		info.change(root);
 		return root;
 	}

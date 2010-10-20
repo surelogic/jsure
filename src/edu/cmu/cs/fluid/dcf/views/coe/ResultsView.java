@@ -55,7 +55,7 @@ import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
+import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
@@ -617,7 +617,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
   }
 
   private void exportXMLForSierra() {
-    final String proj = ProjectDrop.getProject();
+    final String proj = ProjectsDrop.getProjects().getLabel();
     File location;
     
     if (true) {

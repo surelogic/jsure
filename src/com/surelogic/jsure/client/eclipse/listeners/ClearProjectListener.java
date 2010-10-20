@@ -10,6 +10,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.IIRProjects;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.fluid.javac.Config;
@@ -49,7 +50,7 @@ public class ClearProjectListener implements IResourceChangeListener {
 				}
 			} else if (event.getResource() instanceof IProject) {
 				final IProject p = (IProject) event.getResource();
-				if (!p.getName().equals(ProjectDrop.getProject())) {
+				if (!isActive(ProjectsDrop.getProjects(), p.getName())) {
 					return; 
 				}
 				switch (event.getType()) {
@@ -68,6 +69,15 @@ public class ClearProjectListener implements IResourceChangeListener {
 		}
 	}
 
+	private boolean isActive(IIRProjects projs, String name) {
+		for(String p : projs.getProjectNames()) {
+			if (p.equals(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Otherwise, clear the current project
 	 */

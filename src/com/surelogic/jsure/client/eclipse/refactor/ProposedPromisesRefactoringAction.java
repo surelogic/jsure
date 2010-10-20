@@ -5,13 +5,9 @@ import java.util.List;
 import org.eclipse.jface.action.Action;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 
-import com.surelogic.common.eclipse.JDTUtility;
-import com.surelogic.common.eclipse.SWTUtility;
+import com.surelogic.common.eclipse.*;
 
-import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
 
 public abstract class ProposedPromisesRefactoringAction extends Action {
 
@@ -34,11 +30,8 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 		if (selected.isEmpty()) {
 			return;
 		}
-		final IBinder b = IDE.getInstance().getTypeEnv(
-				ProjectDrop.getDrop().getIIRProject()).getBinder();
-		final ProposedPromisesChange info = new ProposedPromisesChange(
-				JDTUtility.getJavaProject(ProjectDrop.getProject()), b,
-				selected);
+
+		final ProposedPromisesChange info = new ProposedPromisesChange(selected);
 		final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(
 				info);
 		final ProposedPromisesRefactoringWizard wizard = new ProposedPromisesRefactoringWizard(

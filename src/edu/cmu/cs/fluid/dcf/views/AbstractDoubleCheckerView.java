@@ -53,6 +53,7 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
+import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
@@ -63,7 +64,7 @@ import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.SeaObserver;
-import edu.cmu.cs.fluid.sea.drops.ProjectDrop;
+import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
 /**
@@ -181,8 +182,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			 * We also need to ensure that there are not compilation errors in
 			 * the project.
 			 */
-			final String projName = ProjectDrop.getProject();
-			if (projName != null
+			final IIRProjects projects = ProjectsDrop.getProjects();
+			if (projects != null
 					&& !COMP_ERRORS.equals(f_noResultsToShowLabel.getText())) {
 				final Control c = viewer.getControl();
 				if (c != null && c.isVisible()) {
@@ -211,7 +212,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					}
 				}
 			} 
-			if (projName == null) {
+			if (projects == null) {
 				viewer.setInput(null);
 			}
 			f_viewerbook.showPage(f_noResultsToShowLabel);
@@ -615,9 +616,9 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		/*
 		 * Try to get a project name from drop-sea and add it.
 		 */
-		final String projName = ProjectDrop.getProject();
-		if (projName != null) {
-			setPartName(f_viewTitle + " (" + projName + ")");
+		final IIRProjects projects = ProjectsDrop.getProjects();
+		if (projects != null) {
+			setPartName(f_viewTitle + " (" + projects.getLabel() + ")");
 		} else {
 			setPartName(f_viewTitle);
 		}
