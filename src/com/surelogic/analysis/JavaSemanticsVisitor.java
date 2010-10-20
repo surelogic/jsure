@@ -95,6 +95,10 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   }
   
   private enum WhichMembers {
+    /**
+     * Tag for visiting only the static members of a class body, that is, those
+     * items that are executed by the class initializer.
+     */
     STATIC {
       @Override
       public boolean acceptsMember(final IRNode bodyDecl) {
@@ -108,7 +112,11 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
         }
       }
     },
-    
+
+    /**
+     * Tag for visiting only the instance members of a class body, that is,
+     * those items that are executed by the instance initializer.
+     */
     INSTANCE {
       @Override
       public boolean acceptsMember(final IRNode bodyDecl) {
@@ -116,6 +124,22 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
         return (FieldDeclaration.prototype.includes(op)
             || ClassInitializer.prototype.includes(op))
           && !isStatic(bodyDecl);
+      }
+    },
+    
+    /**
+     * Tag for visiting only the declarative members of a class body, that is,
+     * those items that are not executed by either the static or instance
+     * initializers, and should be visited during the normal traversal of the
+     * class body.
+     */
+    DECLARATIVE {
+      @Override
+      public boolean acceptsMember(final IRNode bodyDecl) {
+        final Operator op = JJNode.tree.getOperator(bodyDecl);
+        return !FieldDeclaration.prototype.includes(op)
+            && !ClassInitializer.prototype.includes(op)
+            && !EnumConstantDeclaration.prototype.includes(op);        
       }
     };
 
@@ -753,7 +777,86 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     }
   }
 
+  
+  
+  /**
+   * Visit a ClassBody node.  Does the following things:
+   *  
+   * <ol>
+   *   <li>Visits the expression itself by calling {@link #handleClassBody}.  
+   *   (The default implementation of this method does nothing, and I cannot
+   *   currently think of a good use for this hook, but it's included for
+   *   completeness.)
+   *   <li>Visits each child of the ClassBody node that is <em>not</em> a 
+   *   FieldDeclaration, ClassInitializer, or EnumConstantDeclaration.
+   *   <li>We simulate execution of the static initializer:
+   *     <ol>
+   *       <li>The enclosing method is set to the class initializer
+   *       <code>&lt;clinit&gt;</code> method as represented by the enclosing
+   *       type's ClassInitDeclaration node by calling
+   *       {@link #enteringEnclosingDecl(IRNode)}.
+   *       <li>We call {link {@link #handleClassInitDeclaration(IRNode)} with
+   *       the ClassInitDeclaration node.
+   *       <li>We visit each child of the ClassBody node that is an
+   *       EnumConstantDeclaration node, a static FieldDeclaration, or a 
+   *       static ClassInitializer.
+   *       <li>The {@link #leavingEnclosingDecl(IRNode)} method is called
+   *       and passed the ClassInitDeclaration node as the enclosing declaration
+   *       we are leaving.
+   *       <li>We restore the original enclosing method.
+   *     </ol>
+   * </ol>
+   */
+  @Override
+  public Void visitClassBody(final IRNode classBody) {
+    handleClassBody(classBody);
+    
+    /*
+     * Don't visit FieldDeclarations, ClassInitializers, or
+     * EnumConstantDeclarations. This are handled by treating instance
+     * initialization and class initialization separately. Instance
+     * initialization is handled when processing ConstructorCall and
+     * AnonClassExpression nodes. Class initialization is handled at the end of
+     * this method.
+     */
+    processClassBody(classBody, WhichMembers.DECLARATIVE);
+    
+    /* Now handle class initialization by entering the context of <clinit>
+     * and visiting static field declarations, static class initializers,
+     * and enumeration constant declarations.
+     */
+    final IRNode prevEnclosingDecl = enclosingDecl;
+    final IRNode classInit = ClassInitDeclaration.getClassInitMethod(enclosingType);
+    enterEnclosingDecl(classInit, null);    
+    try {
+      /* Give subclass an opportunity to deal with the ClassInitDeclaration
+       * itself.
+       */
+      handleClassInitDeclaration(classBody, classInit);
+      /* Now visit all the static members of the class */
+      processClassBody(classBody, WhichMembers.STATIC);
+    } finally {
+      leaveEnclosingDecl(prevEnclosingDecl);
+    }
 
+    return null;
+  }
+
+  /**
+   * Called by {@link #visitClassBody} so that subclasses have a hook into
+   * when a class body element is visited.  The default implementation does
+   * nothing.  I cannot think of a good use for this method right now, but 
+   * it's included for completeness.  This method is called <em>before</em>
+   * any children of the class body are visited.
+   * 
+   * @param classBody The class body node being visited.
+   */
+  protected void handleClassBody(final IRNode classBody) {
+    // do nothing
+  }
+  
+  
+  
   /**
    * Visit a class declaration.   Does nothing if we should not
    * visit into types.  Otherwise, it
@@ -818,13 +921,12 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     /* Give subclass an opportunity to deal with the ClassInitDeclaration
      * itself.
      */
-    handleClassInitDeclaration(node);
+    handleClassInitDeclaration(null, node);
     
     enterEnclosingDecl(node, null);
     try {
       /* Recursively find all the static initializer blocks and static field
-       * initializations in the class.  This will forward calls to *the children*
-       * of ClassInitializer and FieldDeclaration nodes.
+       * initializations in the class. 
        */
       final IRNode classDecl = JavaPromise.getPromisedFor(node);
       final IRNode classBody;
@@ -845,17 +947,27 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   }
 
   /**
-   * Called by {@link #visitClassInitDeclaration(IRNode)} to handle the visitation of
-   * the class init declaration node itself. This is called before any of the
-   * static initializers and static field initializations are visited.  The 
-   * enclosing decl is <em>not</em> set when this method is called; it is left
-   * as <code>null</code>.
+   * Called by {@link #visitClassInitDeclaration(IRNode)} to handle the
+   * visitation of the class init declaration node itself. This is called before
+   * any of the static initializers and static field initializations are
+   * visited. The enclosing decl is correctly set to the ClassInitDeclaration
+   * when this method is called.
    * 
-   * <p>The default implementation does nothing.
+   * <p>The ClassBody node is also provided because when doing control flow
+   * analysis, the static class initialization flow results are on the exit
+   * edge of the ClassBody.
    * 
-   * @param node The ClassInitDeclaration node
+   * <p>
+   * The default implementation does nothing.
+   * 
+   * @param classBody
+   *          The ClassBody node being traversed to generate the traversal of
+   *          the ClassInitDeclaration node, or <code>null</code> if the
+   *          ClassInitDeclaration node is being directly visited.
+   * @param node
+   *          The ClassInitDeclaration node
    */
-  protected void handleClassInitDeclaration(final IRNode node) {
+  protected void handleClassInitDeclaration(final IRNode classBody, final IRNode node) {
     // do nothing
   }
   
@@ -893,19 +1005,31 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitClassInitializer(final IRNode expr) {
+    /*
+     * 2010-10-20: We only get here now if we are being explicitly visited as
+     * part of a constructor or as part of a class initializer visitation. The
+     * enclosing declaration context is already going to be set.
+     */
     if (TypeUtil.isStatic(expr)) {
-      enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
-      try {
-        handleStaticInitializer(expr);
-      } finally {
-        leaveEnclosingDecl(null);
-      }
+      handleStaticInitializer(expr);
     } else {
-      if (insideConstructor) { // case (2)
-        handleInstanceInitializer(expr);
-      }
+      handleInstanceInitializer(expr);
     }
     return null;
+
+//    if (TypeUtil.isStatic(expr)) {
+//      enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
+//      try {
+//        handleStaticInitializer(expr);
+//      } finally {
+//        leaveEnclosingDecl(null);
+//      }
+//    } else {
+//      if (insideConstructor) { // case (2)
+//        handleInstanceInitializer(expr);
+//      }
+//    }
+//    return null;
   }
   
   /**
@@ -1097,18 +1221,18 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     // (1) Deal with the static field declaration
     insideFieldDeclaration = true;
     isStaticField = true;
-    // Set the enclosing declaration to the static initializer
-    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
-    try {
+//    // Set the enclosing declaration to the static initializer
+//    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
+//    try {
       // Handle the constant declaration, ignoring the class body
       handleEnumConstantClassDeclaration(decl);
       
       // (2) Deal with the class body
       processAnonClassExpression(decl, EnumConstantClassDeclaration.getBody(decl));
-    } finally {
-      // Reset the enclosing declaration
-      leaveEnclosingDecl(null);
-    }
+//    } finally {
+//      // Reset the enclosing declaration
+//      leaveEnclosingDecl(null);
+//    }
     isStaticField = false;
     insideFieldDeclaration = false;
   
@@ -1194,30 +1318,45 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitFieldDeclaration(final IRNode fieldDecl) {
-    final boolean isStatic = TypeUtil.isStatic(fieldDecl);
-    
-    /* Only visit the children if we are inside a constructor or if the
-     * declaration is static.
+    /*
+     * 2010-10-20: We only get here now if we are being explicitly visited as
+     * part of a constructor or as part of a class initializer visitation. The
+     * enclosing declaration context is already going to be set.
      */
-    if (insideConstructor || isStatic) {
-      insideFieldDeclaration = true;
-      isStaticField = isStatic;
-      // If static, set the enclosing declaration to the static initializer
-      if (isStatic) {
-        enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
-      }
-      try {
-        handleFieldDeclaration(fieldDecl);
-      } finally {
-        // If static, reset the enclosing declaration
-        if (isStatic) {
-          leaveEnclosingDecl(null);
-        }
-        isStaticField = false;
-        insideFieldDeclaration = false;
-      }
+    insideFieldDeclaration = true;
+    isStaticField = TypeUtil.isStatic(fieldDecl);
+    try {
+      handleFieldDeclaration(fieldDecl);
+    } finally {
+      isStaticField = false;
+      insideFieldDeclaration = false;
     }    
     return null;
+
+//    final boolean isStatic = TypeUtil.isStatic(fieldDecl);
+//    
+//    /* Only visit the children if we are inside a constructor or if the
+//     * declaration is static.
+//     */
+//    if (insideConstructor || isStatic) {
+//      insideFieldDeclaration = true;
+//      isStaticField = isStatic;
+//      // If static, set the enclosing declaration to the static initializer
+//      if (isStatic) {
+//        enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
+//      }
+//      try {
+//        handleFieldDeclaration(fieldDecl);
+//      } finally {
+//        // If static, reset the enclosing declaration
+//        if (isStatic) {
+//          leaveEnclosingDecl(null);
+//        }
+//        isStaticField = false;
+//        insideFieldDeclaration = false;
+//      }
+//    }    
+//    return null;
   }
   
   /**
@@ -1532,14 +1671,14 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
 
     insideFieldDeclaration = true;
     isStaticField = true;
-    // Set the enclosing declaration to the static initializer
-    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
-    try {
+//    // Set the enclosing declaration to the static initializer
+//    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
+//    try {
       handleNormalEnumConstantDeclaration(decl);
-    } finally {
-      // Reset the enclosing declaration
-      leaveEnclosingDecl(null);
-    }
+//    } finally {
+//      // Reset the enclosing declaration
+//      leaveEnclosingDecl(null);
+//    }
     isStaticField = false;
     insideFieldDeclaration = false;
 
@@ -1584,14 +1723,14 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   
     insideFieldDeclaration = true;
     isStaticField = true;
-    // Set the enclosing declaration to the static initializer
-    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
-    try {
+//    // Set the enclosing declaration to the static initializer
+//    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
+//    try {
       handleSimpleEnumConstantDeclaration(decl);
-    } finally {
-      // Reset the enclosing declaration
-      leaveEnclosingDecl(null);
-    }
+//    } finally {
+//      // Reset the enclosing declaration
+//      leaveEnclosingDecl(null);
+//    }
     isStaticField = false;
     insideFieldDeclaration = false;
   

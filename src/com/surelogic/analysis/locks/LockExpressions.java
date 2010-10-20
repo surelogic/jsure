@@ -389,7 +389,8 @@ final class LockExpressions {
     }
     
     @Override
-    protected void handleClassInitDeclaration(final IRNode classInitDecl) {
+    protected void handleClassInitDeclaration(
+        final IRNode classBody, final IRNode classInitDecl) {
       // Get the locks held due to class initialization assumptions
       final IRNode classDecl = JavaPromise.getPromisedFor(classInitDecl);
       final IJavaDeclaredType clazz = JavaTypeFactory.getMyThisType(classDecl);

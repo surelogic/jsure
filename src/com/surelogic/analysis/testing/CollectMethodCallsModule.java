@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.InfoDrop;
@@ -70,18 +71,10 @@ public class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMet
     }
     
     @Override
-    public void handleStaticInitializer(final IRNode node) {
-      getResult(node);
-      doAcceptForChildren(node);
-    }
-    
-//    @Override
-//    protected void handleAnonClassExpression(final IRNode node) {
-//      getResult(node);
-//      super.handleAnonClassExpression(node);
-//    }
-    
-    
+    protected void handleClassInitDeclaration(
+        final IRNode classBody, final IRNode classInit) {
+      getResult(classBody);
+    }   
     
     private void getResult(final IRNode decl) {
       final ImmutableSet<IRNode> calls = currentQuery().getResultFor(decl);
