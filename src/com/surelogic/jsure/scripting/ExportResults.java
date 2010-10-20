@@ -29,7 +29,14 @@ public class ExportResults extends AbstractCommand {
 
 		// Export the results from this run
 		try {
-			final File location = new File(workspaceFile, contents[2] + SeaSnapshot.SUFFIX);
+			File location = null;
+			String loc = contents[2];
+			if (loc.contains("/") || loc.contains("\\")) {
+				location = resolveFile(context, contents[2]);
+			}
+			if (location == null) {
+				location = new File(workspaceFile, contents[2] + SeaSnapshot.SUFFIX);
+			}
 			SeaSummary.summarize(project.getName(), Sea.getDefault(), location);
 			System.out.println("Exported: "+location);
 			assert (location.exists());
