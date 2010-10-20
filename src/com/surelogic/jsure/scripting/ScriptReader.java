@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.dc.FirstTimeAnalysis;
  * @author Edwin
  */
 public class ScriptReader implements ICommandContext {	
-  private Commands commands = new Commands();
+  protected final Commands commands = new Commands();
   /**
    * Build after every command
    */
