@@ -150,7 +150,8 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 			  }
 		  }
 		  if (resultsOk && lastLine != null) {
-			  resultsOk = executeLine(lastLine) && resultsOk;
+			  // Doesn't matter if I started a build as a result
+			  executeLine(lastLine);
 		  }
 	  } catch (Throwable e) {
 		  return SLStatus.createErrorStatus(e);
@@ -210,7 +211,9 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
     	System.out.println("ScriptReader: just changed");
       }
 		   */
-		  resultsOk &= command.succeeded();
+		  if (!command.succeeded()) {
+			  throw new IllegalStateException("Failed on line: "+line);
+		  }
 		  
 		  if (buildNow || changed && autoBuild) {
 			  if (buildNow) {
