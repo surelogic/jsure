@@ -320,7 +320,7 @@ public abstract class Drop {
 		if (!valid) {
 			return;
 		}
-		System.out.println("Invalidating drop: "+getMessage());
+		//System.out.println("Invalidating drop: "+getMessage());
 		//new Throwable().printStackTrace();
 		invalidate_internal();
 
