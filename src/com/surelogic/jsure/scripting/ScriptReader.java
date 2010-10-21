@@ -44,14 +44,16 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	// Setup commands to change the state of autoBuild
     commands.put("set", new AbstractCommand() {
       public boolean execute(ICommandContext context, String... contents) throws Exception {
+    	boolean building = false;
         if (ScriptCommands.AUTO_BUILD.equals(contents[1])) {
           if (changed) {
         	  changed = false;
+        	  building = true;
         	  build();
           }
           autoBuild = true;
         }
-        return false;
+        return building;
       }  
     });
     commands.put("unset", new AbstractCommand() {
