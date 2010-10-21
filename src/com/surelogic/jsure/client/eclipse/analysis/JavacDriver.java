@@ -84,6 +84,7 @@ public class JavacDriver implements IResourceChangeListener {
 	 * Only used for updating a script
 	 */
 	private final SLJob updateScriptJob;
+	private final Map<String,Long> deleted;
 	
 	/**
 	 * State that needs to be atomically modified
@@ -177,8 +178,10 @@ public class JavacDriver implements IResourceChangeListener {
 			} catch(Exception e) {
 				throw new IllegalStateException("Could not create/import project", e);
 			}
+			deleted = new HashMap<String, Long>();
 			// After this, we should be able to re-script the project like before
 		} else {
+			deleted = null;
 			scriptBeingUpdated = null;
 		}
 		// There is a script to create
@@ -203,6 +206,7 @@ public class JavacDriver implements IResourceChangeListener {
 			} else { 
 				// Doing an update, so just delete expected sea.xml
 				for(File f : scriptResourcesDir.listFiles(updateFilter)) {
+					deleted.put(f.getName(), f.length());
 					FileUtility.recursiveDelete(f);				
 				}
 			}
@@ -548,7 +552,12 @@ public class JavacDriver implements IResourceChangeListener {
 				if (XUtil.updateScript() != null) {	
 					// Only add the sea.xml files
 					for(File f : scriptResourcesDir.listFiles(updateFilter)) {
+						long oldLength = deleted.remove(f.getName());
+						System.out.println("Updated "+f.getName()+": \t"+oldLength+" -> "+f.length());
 						info.zipFile(baseDir, f);
+					}
+					for(Map.Entry<String,Long> e : deleted.entrySet()) {
+						System.out.println("NOT updated "+e.getKey());
 					}
 				} else {
 					info.zipDir(baseDir, scriptResourcesDir);				
