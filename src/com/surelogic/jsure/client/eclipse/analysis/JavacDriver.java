@@ -25,9 +25,11 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
+import com.surelogic.fluid.javac.Util;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
+import com.surelogic.jsure.scripting.*;
 
 import difflib.*;
 
@@ -40,6 +42,8 @@ import edu.cmu.cs.fluid.sea.xml.*;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver implements IResourceChangeListener {
+	private static final String SCRIPT_TEMP = "scriptTemp";
+
 	private static final Logger LOG = SLLogger.getLogger("analysis.JavacDriver");
 	
 	/**
@@ -68,11 +72,18 @@ public class JavacDriver implements IResourceChangeListener {
 	//private final List<IProject> building = new ArrayList<IProject>();
 	private final Map<String,Object> args = new HashMap<String, Object>();  
 	private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
+	/**
+	 * Only used for scripting
+	 */
 	private final File tempDir;
 	private final File scriptResourcesDir;
 	private final PrintStream script;
 	private final ZipInfo info;
 	private boolean ignoreNextCleanup = true;
+	/*
+	 * Only used for updating a script
+	 */
+	private final SLJob updateScriptJob;
 	
 	/**
 	 * State that needs to be atomically modified
@@ -104,7 +115,58 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 			}			
 		});
+		final String update = XUtil.updateScript();
 		final String temp = XUtil.recordScript();
+		final File scriptBeingUpdated;
+		if (update != null) {
+			// Backup the zip to be updated
+			final String prefix  = temp;
+			final File workspace = EclipseUtility.getWorkspacePath();
+			File archive = new File(update);
+			if (!archive.exists()) {
+				// No absolute path, so look for it in the workspace
+				archive = new File(workspace, update);
+			}
+			if (!archive.exists()) {
+				throw new IllegalStateException("Doesn't exist: "+archive);
+			}
+			final File backup = new File(workspace, prefix+".bak.zip");
+			if (backup.exists()) {
+				backup.delete();
+			}
+			FileUtility.copy(archive, backup);
+			try {	
+				// Delete any project with the given name
+				IProject p = EclipseUtility.getProject(prefix);
+				if (p != null) {
+					p.delete(true, true, null);
+				}
+				final File proj = new File(workspace, prefix);			
+				if (proj.exists()) {
+					if (!FileUtility.recursiveDelete(proj)) {
+						throw new IllegalStateException("Unable to delete project: "+proj);
+					}
+				}			
+				proj.mkdirs();
+
+				// Unzip into the project
+				FileUtility.unzipFile(archive, proj); 
+			
+				// Make a copy of the script to use while updating
+				FileUtility.deleteTempFiles(scriptFilter);
+				scriptBeingUpdated = scriptFilter.createTempFile();
+				FileUtility.copy(new File(proj, ScriptCommands.NAME), scriptBeingUpdated);				
+
+				// Import the project into the workspace
+				EclipseUtility.importProject(proj);				
+			} catch(Exception e) {
+				throw new IllegalStateException("Could not create/import project", e);
+			}
+			// After this, we should be able to re-script the project like before
+		} else {
+			scriptBeingUpdated = null;
+		}
+		// There is a script to create
 		if (temp != null) {					
 			final int slash = temp.indexOf('/');
 			final String proj, path;
@@ -118,18 +180,27 @@ public class JavacDriver implements IResourceChangeListener {
 			final File workspace = EclipseUtility.getWorkspacePath();
 			scriptResourcesDir = new File(workspace, path);
 			scriptResourcesDir.mkdirs();
-			// Clean out the directory
-			for(File f : scriptResourcesDir.listFiles()) {
-				FileUtility.recursiveDelete(f);
+			if (update == null) {
+				// Clean out the directory
+				for(File f : scriptResourcesDir.listFiles()) {
+					FileUtility.recursiveDelete(f);
+				}
+			} else { 
+				// Doing an update, so just delete expected sea.xml
+				for(File f : scriptResourcesDir.listFiles(updateFilter)) {
+					FileUtility.recursiveDelete(f);				
+				}
 			}
 			PrintStream out = null;
 			ZipInfo zipInfo = null;
 			File tmp = null;
 			final File scriptF = new File(workspace, proj+File.separatorChar+ScriptCommands.NAME);
 			try {
-				if (scriptF.exists()) {
-					System.out.println("Deleting old script "+scriptF);
-					scriptF.delete();
+				if (update == null) {
+					if (scriptF.exists()) {
+						System.out.println("Deleting old script "+scriptF);
+						scriptF.delete();
+					}
 				}
 				final File zip =  new File(workspace, proj+".zip");
 				if (zip.exists()) {
@@ -137,7 +208,9 @@ public class JavacDriver implements IResourceChangeListener {
 					zip.delete();
 				}
 				zipInfo = FileUtility.zipDirAndMore(new File(workspace, proj), zip);
-				out = new PrintStream(scriptF);
+				if (update == null) {
+					out = new PrintStream(scriptF);
+				}
 				FileUtility.deleteTempFiles(filter);
 				tmp = filter.createTempFile(); 
 				tmp.delete();
@@ -148,12 +221,66 @@ public class JavacDriver implements IResourceChangeListener {
 			tempDir = tmp;
 			script  = (tmp == null) ? null : out;
 			info    = zipInfo;
+			
+			if (scriptBeingUpdated != null) {
+				updateScriptJob = new AbstractSLJob("Updating script") {
+					public SLStatus run(SLProgressMonitor monitor) {
+						try {
+							// TODO needs to run after the FTA auto-build							
+							final UpdateScriptReader r = new UpdateScriptReader(temp);
+							return r.execute(scriptBeingUpdated) ? SLStatus.OK_STATUS : SLStatus.CANCEL_STATUS;
+						} catch (Exception e) {
+							return SLStatus.createErrorStatus(e);
+						}
+					}
+				};
+				updateScript();
+			} else {
+				updateScriptJob = null;
+			}
 		} else {			
 			script = null;
 			scriptResourcesDir = null;
 			tempDir = null;
 			info = null;
+			updateScriptJob = null;
 		}
+	}
+	
+	public void updateScript() {
+		if (updateScriptJob != null) {
+			try {
+				ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.AUTO_BUILD, null);
+			} catch (CoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			// This is in a job to let it run after plugins are initialized
+			EclipseJob.getInstance().schedule(new AbstractSLJob("Preparing to run update script job") {
+				public SLStatus run(SLProgressMonitor monitor) {
+					// This cannot lock the workspace, since it prevents builds from happening
+					System.out.println("Running update script job");
+					EclipseJob.getInstance().schedule(updateScriptJob);
+					return SLStatus.OK_STATUS;
+				}
+			});
+		}
+	}
+	
+	private static class UpdateScriptReader extends ScriptReader {
+		public UpdateScriptReader(final String proj) {
+			super(EclipseUtility.getProject(proj));
+			// These should be the two ops that we auto-inserted
+			commands.put(ScriptCommands.EXPECT_BUILD, NullCommand.prototype);
+			commands.put(ScriptCommands.COMPARE_RESULTS, new ExportResults() {
+				@Override
+				public boolean execute(ICommandContext context, String... contents) throws Exception {
+					// Reformat the contents for what it expects
+					return super.execute(context, contents[0], proj, contents[2]);
+				}
+			});
+		}
+		
 	}
 	
 	private void printToScript(String line) {
@@ -292,9 +419,8 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 	
 	private void scriptChanges(List<Pair<IResource, Integer>> resources) {
-		if (resources.size() > 1) {
-			printToScript("unset "+ScriptCommands.AUTO_BUILD);
-		}
+		// Lines queued to properly compute the number that need to be atomically built
+		final List<String> queue = new ArrayList<String>();
 		for(Pair<IResource, Integer> p : resources) {
 			final IResource r = p.first();
 			final String rName = r.getName();
@@ -315,21 +441,27 @@ public class JavacDriver implements IResourceChangeListener {
 				// Use the directory that we'll be importing into
 				final int lastSlash = path.lastIndexOf('/');
 				final String dest   = lastSlash < 0 ? path : path.substring(0, lastSlash);			
-				printToScript(ScriptCommands.IMPORT+' '+dest+' '+prefix+name);
+				queue.add(ScriptCommands.IMPORT+' '+dest+' '+prefix+name);
 				break;
 			case IResourceDelta.CHANGED:
 				String patch = createPatch(r);
 				copyAsResource(tempDir, r, true); // Update the patched file
-				printToScript(ScriptCommands.PATCH_FILE+' '+path+' '+prefix+patch);
+				queue.add(ScriptCommands.PATCH_FILE+' '+path+' '+prefix+patch);
 				break;
 			case IResourceDelta.REMOVED:
-				printToScript(ScriptCommands.DELETE_FILE+' '+path);
+				queue.add(ScriptCommands.DELETE_FILE+' '+path);
 				break;
 			default:
 				System.out.println("Couldn't handle flag: "+p.second());
 			}
+		}		
+		if (queue.size() > 1) {
+			printToScript("unset "+ScriptCommands.AUTO_BUILD);
 		}
-		if (resources.size() > 1) {
+		for(String line : queue) {
+			printToScript(line);
+		}
+		if (queue.size() > 1) {
 			printToScript("set "+ScriptCommands.AUTO_BUILD);
 		}
 	}
@@ -394,9 +526,15 @@ public class JavacDriver implements IResourceChangeListener {
 			script.close();
 			try {
 				final File baseDir = scriptResourcesDir.getParentFile();
-				info.zipDir(baseDir, scriptResourcesDir);				
-				info.zipFile(baseDir, new File(baseDir, ScriptCommands.NAME));
-
+				if (XUtil.updateScript() != null) {
+					// Only add the sea.xml files
+					for(File f : scriptResourcesDir.listFiles(updateFilter)) {
+						info.zipFile(baseDir, f);
+					}
+				} else {
+					info.zipDir(baseDir, scriptResourcesDir);				
+					info.zipFile(baseDir, new File(baseDir, ScriptCommands.NAME));
+				}
 				final File settings = new File(baseDir, ScriptCommands.ANALYSIS_SETTINGS);
 				if (!settings.exists()) {
 					Plugin.getDefault().writePrefsToXML(settings);
@@ -419,7 +557,13 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 	
-	private static final TempFileFilter filter = new TempFileFilter("scriptTemp", ".dir");
+	private static final TempFileFilter filter = new TempFileFilter(SCRIPT_TEMP, ".dir");
+	private static final TempFileFilter scriptFilter = new TempFileFilter(SCRIPT_TEMP, ".txt");
+	private static final FilenameFilter updateFilter = new FilenameFilter() {
+		public boolean accept(File dir, String name) {
+			return name.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
+		}		
+	};
 	
 	private static final JavacDriver prototype = new JavacDriver();
 	static {		
