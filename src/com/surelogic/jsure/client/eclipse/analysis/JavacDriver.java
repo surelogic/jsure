@@ -96,11 +96,26 @@ public class JavacDriver implements IResourceChangeListener {
 			throw new IllegalStateException("Build state isn't "+before+": "+buildState);
 		}
 		buildState = after;
+		if (after == null) {
+			// Wake up anyone who's waiting for this
+			notifyAll();
+		}
 		try {
 			return rebuildQueue;
 		} finally {
 			rebuildQueue = rebuild;
 		}
+	}
+	
+	public synchronized void waitForJSureBuild() {
+		if (buildState != null) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// ignore
+			}
+		} 
+		// Otherwise, just keep going
 	}
 	
 	private JavacDriver() {
@@ -229,7 +244,7 @@ public class JavacDriver implements IResourceChangeListener {
 							// TODO needs to run after the FTA auto-build							
 							final UpdateScriptReader r = new UpdateScriptReader(temp);
 							return r.execute(scriptBeingUpdated) ? SLStatus.OK_STATUS : SLStatus.CANCEL_STATUS;
-						} catch (Exception e) {
+						} catch (Throwable e) {
 							return SLStatus.createErrorStatus(e);
 						}
 					}
@@ -258,6 +273,8 @@ public class JavacDriver implements IResourceChangeListener {
 			// This is in a job to let it run after plugins are initialized
 			EclipseJob.getInstance().schedule(new AbstractSLJob("Preparing to run update script job") {
 				public SLStatus run(SLProgressMonitor monitor) {
+					waitForJSureBuild();
+					
 					// This cannot lock the workspace, since it prevents builds from happening
 					System.out.println("Running update script job");
 					EclipseJob.getInstance().schedule(updateScriptJob);
@@ -269,7 +286,7 @@ public class JavacDriver implements IResourceChangeListener {
 	
 	private static class UpdateScriptReader extends ScriptReader {
 		public UpdateScriptReader(final String proj) {
-			super(EclipseUtility.getProject(proj));
+			super(EclipseUtility.getProject(proj), true);
 			// These should be the two ops that we auto-inserted
 			commands.put(ScriptCommands.EXPECT_BUILD, NullCommand.prototype);
 			commands.put(ScriptCommands.COMPARE_RESULTS, new ExportResults() {
@@ -1358,6 +1375,24 @@ public class JavacDriver implements IResourceChangeListener {
         }  
 	}
 	
+	/**
+	 * Wait for a normal Eclipse build
+	 */
+	public static SLStatus waitForBuild(boolean isAuto) {
+		System.out.println("Waiting for build: "+isAuto);
+		try {
+			Object family = isAuto ?
+					ResourcesPlugin.FAMILY_AUTO_BUILD : ResourcesPlugin.FAMILY_MANUAL_BUILD;
+			Job.getJobManager().join(family, null);
+		} catch (OperationCanceledException e1) {
+			return SLStatus.CANCEL_STATUS;
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return SLStatus.OK_STATUS;
+	}
+	
 	class ConfigureJob extends AbstractSLJob {
 		final Projects projects;
 		final Map<String, Object> args;
@@ -1373,15 +1408,9 @@ public class JavacDriver implements IResourceChangeListener {
 			if (XUtil.testing) {
 				System.out.println("Do I need to do something here to wait?");
 			} else {
-				try {
-					Object family = projects.isAutoBuild() ?
-							ResourcesPlugin.FAMILY_AUTO_BUILD : ResourcesPlugin.FAMILY_AUTO_BUILD;
-					Job.getJobManager().join(family, null);
-				} catch (OperationCanceledException e1) {
-					return SLStatus.CANCEL_STATUS;
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				SLStatus s = waitForBuild(projects.isAutoBuild());
+				if (s == SLStatus.CANCEL_STATUS) {
+					return s;
 				}
 				// Clear for next build?
 			}

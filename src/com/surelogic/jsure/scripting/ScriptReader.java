@@ -6,6 +6,10 @@ import java.util.*;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 
+import com.surelogic.common.eclipse.jobs.EclipseJob;
+import com.surelogic.common.jobs.AbstractSLJob;
+import com.surelogic.common.jobs.SLProgressMonitor;
+import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
 import com.surelogic.jsure.client.eclipse.analysis.ScriptCommands;
 
@@ -16,7 +20,7 @@ import edu.cmu.cs.fluid.dc.FirstTimeAnalysis;
  * 
  * @author Edwin
  */
-public class ScriptReader implements ICommandContext {	
+public class ScriptReader extends AbstractSLJob implements ICommandContext {	
   protected final Commands commands = new Commands();
   /**
    * Build after every command
@@ -26,13 +30,16 @@ public class ScriptReader implements ICommandContext {
   boolean buildNow  = false;
   final Map<String,Object> args = new HashMap<String, Object>();  
   final IProject project;
+  final boolean runAsynchronously;
   
   public Object getArgument(String key) {
 	  return args.get(key);
   }
   
-  public ScriptReader(IProject p) {
+  public ScriptReader(IProject p, boolean async) {
+	super("Script Reader");
 	project = p;
+	runAsynchronously = async;
 	  
 	// Setup commands to change the state of autoBuild
     commands.put("set", new AbstractCommand() {
@@ -59,7 +66,7 @@ public class ScriptReader implements ICommandContext {
   }
   
   public static void main(String[] args) throws Exception {
-    ScriptReader r = new ScriptReader(null);
+    ScriptReader r = new ScriptReader(null, false);
     try {
       r.executeScript(
           "set autobuild\n"+
@@ -74,20 +81,20 @@ public class ScriptReader implements ICommandContext {
           "cleanProject foo, bar\n"+
           "closeProject foo\n"+
           "closeProject bar");
-    } catch (IOException e) {
+    } catch (Throwable e) {
       e.printStackTrace();
     }
   }
   
-  public boolean executeScript(String script) throws Exception {
+  public boolean executeScript(String script) throws Throwable {
     return execute(new StringReader(script));
   }
   
-  public boolean execute(String name) throws Exception {
+  public boolean execute(String name) throws Throwable {
     return execute(new File(name));
   }
   
-  public boolean execute(File f) throws Exception {
+  public boolean execute(File f) throws Throwable {
     final Reader r = new InputStreamReader(new FileInputStream(f));  
     args.put(SCRIPT_DIR, f.getParentFile());
     return execute(r);
@@ -95,54 +102,104 @@ public class ScriptReader implements ICommandContext {
   
   private static final String EXPECT_BUILD = ScriptCommands.EXPECT_BUILD+' ';
   static final String SCRIPT_DIR = "script.directory";
+
+  /**
+   * Fields only used by execute() below
+   */
+  BufferedReader br;
+  String lastLine = null;
+  String line;
+  boolean resultsOk = true;
   
-  public boolean execute(Reader r) throws Exception {
+  public boolean execute(Reader r) throws Throwable {
 	init();
 	  
-    final BufferedReader br = new BufferedReader(r);  
-    String lastLine = null;
-    String line;
-    boolean resultsOk = true;
-    while (resultsOk && (line = br.readLine()) != null) {
-      if (line.length() == 0) {
-        continue;
-      }
-      line = line.trim();
-      if (line.startsWith("#")) {
-    	System.out.println("ScriptReader: ignoring "+line);
-        continue;
-      }
-      if (line.startsWith(ScriptCommands.GO_FIRST)) {
-    	  // Handle these first, since it's out of order in the script
-    	  resultsOk = executeLine(line.substring(1)) && resultsOk;
-    	  continue;    	  
-      } 
-      else if (line.startsWith(EXPECT_BUILD)) { // Kept for compatibility
-    	  // Handle this first, since it's out of order in the script
-    	  resultsOk = executeLine(line.substring(0)) && resultsOk;
-    	  continue;    	  
-      } 
-      if (lastLine != null) {
-    	  resultsOk = executeLine(lastLine) && resultsOk;
-    	  if (!resultsOk) {
-    		  throw new IllegalStateException("Failed on: "+lastLine);
-    	  } else {
-    		  System.out.println("OK: "+lastLine);
-    	  }
-      }      
-      lastLine = line;
+	br = new BufferedReader(r);  
+	lastLine = null;
+	resultsOk = true;
+	/*
+    while (resultsOk && (line = br.readLine()) != null) {    	
+    	executeOneIteration();
     }
     if (resultsOk && lastLine != null) {
-    	resultsOk =  executeLine(lastLine) && resultsOk;
-    }
+    	resultsOk = executeLine(lastLine) && resultsOk;
+    }*/
+	final SLStatus s = run(null);
+	if (s.getException() != null) {
+		throw s.getException();
+	}
     return resultsOk;
   }
 
-  private boolean executeLine(String line) throws Exception {
+  /**
+   * Assuming that things were already initialized
+   * 
+   * TODO how to tell if it stopped?
+   */
+  public SLStatus run(SLProgressMonitor monitor) {
+	  try {
+		  while (resultsOk && (line = br.readLine()) != null) {    	
+			  boolean building = executeOneIteration();
+			  if (runAsynchronously && building) {
+				  // Reschedule the rest of the loop
+				  JavacDriver.getInstance().waitForJSureBuild();
+				  
+				  System.out.println("Rescheduling script reader again");
+				  EclipseJob.getInstance().schedule(this);
+				  return SLStatus.OK_STATUS;
+			  }
+		  }
+		  if (resultsOk && lastLine != null) {
+			  resultsOk = executeLine(lastLine) && resultsOk;
+		  }
+	  } catch (Throwable e) {
+		  return SLStatus.createErrorStatus(e);
+	  }	  
+	  return SLStatus.OK_STATUS;
+  }
+  
+  /**
+   * @return true if the command started a build
+   */  
+  private boolean executeOneIteration() throws Throwable {
+	  if (line.length() == 0) {
+		  return false;
+	  }
+	  line = line.trim();
+	  if (line.startsWith("#")) {
+		  System.out.println("ScriptReader: ignoring "+line);
+		  return false;
+	  }
+	  if (line.startsWith(ScriptCommands.GO_FIRST)) {
+		  // Handle these first, since it's out of order in the script
+		  return executeLine(line.substring(1));		      	  
+	  } 
+	  else if (line.startsWith(EXPECT_BUILD)) { // Kept for compatibility
+		  // Handle this first, since it's out of order in the script
+		  return executeLine(line.substring(0));		     	  
+	  } 
+	  boolean built = false;
+	  if (lastLine != null) {
+		  built = executeLine(lastLine);
+		  if (!resultsOk) {
+			  throw new IllegalStateException("Failed on: "+lastLine);
+		  } else {
+			  System.out.println("OK: "+lastLine);
+		  }
+	  }      
+	  lastLine = line;
+	  return built;
+  }
+  
+  /**
+   * Sets resultsOk directly
+   * @return true if the command started a build
+   */  
+  private boolean executeLine(String line) throws Throwable {
 	  System.out.println("ScriptReader: "+line);
 	  final String[] tokens = Util.collectTokens(line, " ,\n");
 	  if (tokens.length == 0) {
-		  return true; // Nothing to do
+		  return false; // Nothing to do
 	  }	  
 	  final ICommand command = commands.get(tokens[0]);
 	  try {
@@ -153,6 +210,8 @@ public class ScriptReader implements ICommandContext {
     	System.out.println("ScriptReader: just changed");
       }
 		   */
+		  resultsOk &= command.succeeded();
+		  
 		  if (buildNow || changed && autoBuild) {
 			  if (buildNow) {
 				  System.out.println("ScriptReader: building now");
@@ -162,12 +221,14 @@ public class ScriptReader implements ICommandContext {
 			  changed  = false;
 			  buildNow = false;
 			  build();
+			  return true;
 		  }
-		  return command.succeeded();
-	  } catch (Exception e) {
+		  return false;
+	  } catch (Throwable e) {
 		  System.out.println("Got exception on line: "+line);
 		  e.printStackTrace();
 		  command.succeeded();
+		  resultsOk = false;
 		  throw e;
 	  }
   }
