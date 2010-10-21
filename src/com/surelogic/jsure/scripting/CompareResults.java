@@ -35,6 +35,8 @@ public class CompareResults extends AbstractCommand {
 	 */
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
+		resultsOk = true;
+		
 		final String projectName = contents[1]; 
 		File oracle = resolveFile(context, contents[2]);
 		if (oracle == null) {
@@ -55,6 +57,8 @@ public class CompareResults extends AbstractCommand {
 			}
 			resultsOk = false;
 		} else {
+			resultsOk = true;
+			
 			if (diffs == null) {
 				System.out.println("No file, but no diffs to write: "+contents[3]);
 			} else {
