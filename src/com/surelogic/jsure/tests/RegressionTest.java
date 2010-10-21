@@ -464,7 +464,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     try {
     	if (script != null) {
     		start("Run scripting");
-    		ScriptReader r = new ScriptReader(project);
+    		ScriptReader r = new ScriptReader(project, false);
     		resultsOk = r.execute(script);
     		end("Done scripting");
     	}

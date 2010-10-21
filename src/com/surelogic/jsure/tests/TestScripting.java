@@ -5,8 +5,8 @@ import com.surelogic.jsure.scripting.ScriptReader;
 import junit.framework.TestCase;
 
 public class TestScripting extends TestCase {
-  public void testMain() throws Exception {
-    ScriptReader r = new ScriptReader(null);
+  public void testMain() throws Throwable {
+    ScriptReader r = new ScriptReader(null, false);
     r.executeScript(
         "set autobuild\n"+
         "createProject foo\n"+
@@ -20,8 +20,8 @@ public class TestScripting extends TestCase {
         "#end");
   }
   
-  public void testExporting() throws Exception{
-    ScriptReader r = new ScriptReader(null);
+  public void testExporting() throws Throwable{
+	    ScriptReader r = new ScriptReader(null, false);
     r.executeScript(
         "set autobuild\n"+
         "createProject foo2 /work/regression-test-workspace/util.concurrent_regression\n"+ // From zip??
@@ -33,8 +33,8 @@ public class TestScripting extends TestCase {
     );
   }
   
-  public void testPatching() throws Exception{
-    ScriptReader r = new ScriptReader(null);
+  public void testPatching() throws Throwable{
+	    ScriptReader r = new ScriptReader(null, false);
     r.executeScript(
         "set autobuild\n"+
         "unset autosave\n"+
@@ -56,8 +56,8 @@ public class TestScripting extends TestCase {
     );
   }
   
-  public void testDeleting() throws Exception{
-    ScriptReader r = new ScriptReader(null);
+  public void testDeleting() throws Throwable{
+	ScriptReader r = new ScriptReader(null, false);
     r.executeScript(
         "set autobuild\n"+
         "unset autosave\n"+
