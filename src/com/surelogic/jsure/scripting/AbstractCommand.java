@@ -43,41 +43,56 @@ public abstract class AbstractCommand implements ICommand {
     final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
     IPath path          = Path.fromOSString(name);
     IFile file          = root.getFile(path);
-    if (file.exists()) {
-      return file;
-    }    
-    final String[] tokens     = Util.collectTokens(name, "/");
-    if (tokens.length == 0) {
-      return null;
-    }    
     try {
-    	final IProject p = root.getProject(tokens[0]);
-    	if (p != null) {
-    		path = p.getProjectRelativePath();
-    		for(int i=1; i<tokens.length; i++) {
-    			path = path.append(tokens[i]);
-    		}
-    		file = p.getFile(path);
-    		if (file.exists()) {
-    			return file;
-    		} else if (create) {
-    			if (file.getName().contains(".")) {
-    				// Only if it's supposed to be a file
-    				file.touch(null);
-    			} else {
-    				// TODO how to create a directory?
-    				// p.getFolder()
-    			}
+    	try {
+    		if (checkIfExists(file, create)) {
     			return file;
     		}
+    	} catch(CoreException e) {
+    		// ignore for now
     	}
-    } catch (IllegalArgumentException e) {
-    	System.out.println("Bad project: "+tokens[0]+" -- "+name);
-    	throw e;
+		final String[] tokens = Util.collectTokens(name, "/");
+    	try {
+    		if (tokens.length == 0) {
+    			return null;
+    		}    
+    		final IProject p = root.getProject(tokens[0]);
+    		if (p != null) {
+    			path = p.getProjectRelativePath();
+    			for(int i=1; i<tokens.length; i++) {
+    				path = path.append(tokens[i]);    				
+    			}
+    			file = p.getFile(path);
+    			if (checkIfExists(file, create)) {
+    				return file;
+    			}
+    		}
+    	} catch (IllegalArgumentException e) {
+    		System.out.println("Bad project: "+tokens[0]+" -- "+name);
+    		throw e;
+    	}
     } catch (CoreException e) {
 		return null;
 	}
     return null;
+  }
+  
+  private boolean checkIfExists(IFile file, boolean create) throws CoreException {
+	  if (file.exists()) {
+		  return true;
+	  } else if (create) {
+		  /*
+		  if (file.getName().contains(".")) {
+			  // Only if it's supposed to be a file			  
+			  // TODO file.touch(null);
+		  } else {
+			  // TODO how to create a directory?
+			  // p.getFolder()
+		  }
+		  */
+		  return true;
+	  }
+	  return false;
   }
   
   protected File resolveFile(ICommandContext context, String name) {
