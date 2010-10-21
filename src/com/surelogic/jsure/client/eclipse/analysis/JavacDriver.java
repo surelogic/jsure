@@ -522,18 +522,20 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 	
 	public void stopScripting() {
-		if (script != null) {
-			script.close();
+		if (info != null) {
+			if (script != null) {
+				script.close();
+			}
 			try {
 				final File baseDir = scriptResourcesDir.getParentFile();
-				if (XUtil.updateScript() != null) {
+				if (XUtil.updateScript() != null) {	
 					// Only add the sea.xml files
 					for(File f : scriptResourcesDir.listFiles(updateFilter)) {
 						info.zipFile(baseDir, f);
 					}
 				} else {
 					info.zipDir(baseDir, scriptResourcesDir);				
-					info.zipFile(baseDir, new File(baseDir, ScriptCommands.NAME));
+					info.zipFile(baseDir, new File(baseDir, ScriptCommands.NAME));				
 				}
 				final File settings = new File(baseDir, ScriptCommands.ANALYSIS_SETTINGS);
 				if (!settings.exists()) {
