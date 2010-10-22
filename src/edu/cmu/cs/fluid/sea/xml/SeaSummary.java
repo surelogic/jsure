@@ -251,6 +251,14 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return l;
 	}
 	
+	public static Diff diff(File location1, File location2) throws Exception {
+		final Listener l1 = read(location1);
+		final Listener l2 = read(location2);
+		Diff d = new Diff(l1.drops, l2.drops);
+		d.diff();
+		return d;
+	}
+	
 	public static Diff diff(String project, final Sea sea, File location)
 	throws Exception {
 		// Load up current contents
@@ -280,7 +288,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		d.diff();
 		return d;
 	}
-
+	
 	static class Listener implements IXMLResultListener {
 		final Map<String,String> officialCounts = new HashMap<String, String>();
 		final Map<String,Integer> counts = new HashMap<String, Integer>();
