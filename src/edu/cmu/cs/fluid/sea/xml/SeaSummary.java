@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entities;
@@ -486,7 +487,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 
 		public boolean isEmpty() {
-			if ("ProposedPromiseDrop".equals(name)) {
+			if (AbstractWholeIRAnalysis.useDependencies && "ProposedPromiseDrop".equals(name)) {
 				// Temporarily ignore older for this
 				return newer.isEmpty(); 
 			}
