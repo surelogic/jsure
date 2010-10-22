@@ -24,8 +24,13 @@ public abstract class VoidTreeWalkVisitor extends Visitor<Void> {
    * Causes the class to visit an entire subtree.
    */
   @Override
-  public final Void visit(IRNode node) {
+  public final Void visit(final IRNode node) {
+    handleNode(node);
     doAcceptForChildren(node);
     return null;
+  }
+  
+  protected void handleNode(final IRNode node) {
+    // do nothing
   }
 }

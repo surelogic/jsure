@@ -322,7 +322,7 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     boolean flag,
     T value) {
     Operator op = tree.getOperator(call);
-    if (op instanceof ConstructorCall
+    if (ConstructorCall.prototype.includes(op) //op instanceof ConstructorCall
       && tree.getOperator(ConstructorCall.getObject(call))
         instanceof SuperExpression) {
       IRNode p = call;
@@ -332,12 +332,18 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
       if (p != null) {
         return runClassInitializer(call, p, value, flag);
       }
-    } else if (op instanceof AnonClassExpression) {
+    } else if (AnonClassExpression.prototype.includes(op)) { // op instanceof AnonClassExpression) {
       return runClassInitializer(
         call,
         AnonClassExpression.getBody(call),
         value,
         flag);
+    } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+      return runClassInitializer(
+          call,
+          EnumConstantClassDeclaration.getBody(call),
+          value,
+          flag);
     } else if (!flag) return null;
     return value;
   }

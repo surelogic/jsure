@@ -207,6 +207,29 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   protected JavaSemanticsVisitor(final boolean goInside) {
     this(goInside, null, null);
   }
+
+  /**
+   * The constructor to use if the visitation is going to start at a ClassBody
+   * node.
+   * 
+   * <p>
+   * <em>Do not confuse this with the constructor
+   * {@link #JavaSemanticsVisitor(boolean, IRNode)}.</em>
+   * 
+   * @param typeDecl
+   *          The type declaration node that is the part of the ClassBody node
+   *          at which visitation is going to start. Must be an
+   *          AnonClassExpression, EnumConstantClassDeclaration,
+   *          ClassDeclaration, NestedClassDeclaration, EnumDeclaration,
+   *          NestedEnumDeclaration, InterfaceDeclaration, or
+   *          NestedInterfaceDeclaration.
+   * @param goInside
+   *          <code>true</code> if the contents of nested types should be
+   *          visited.
+   */
+  protected JavaSemanticsVisitor(final IRNode typeDecl, final boolean goInside) {
+    this(goInside, typeDecl, null);
+  }
   
   /**
    * The constructor to use if the visitation is going to start at a method or
@@ -214,10 +237,14 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * This constructor makes sure that the enclosing declaration and enclosing
    * type are properly initialized.
    * 
+   * <p>
+   * <em>Do not confuse this with the constructor
+   * {@link #JavaSemanticsVisitor(IRNode, boolean)}.</em>
+   * 
    * @param goInside
    *          <code>true</code> if the contents of nested types should be
    *          visited.
-   * @param eDecl
+   * @param flowUnit
    *          The nearest method/constructor declaration that surrounds the node
    *          at which the visitation will start. Must not be <code>null</code>.
    *          Must be one of MethodDeclaration, ConstructorDeclaration,
