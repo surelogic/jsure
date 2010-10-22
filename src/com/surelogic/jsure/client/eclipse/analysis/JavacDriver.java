@@ -13,7 +13,6 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.ui.PlatformUI;
 
 import com.surelogic.analysis.JSureProperties;
 import com.surelogic.annotation.rules.ModuleRules;
@@ -312,7 +311,8 @@ public class JavacDriver implements IResourceChangeListener {
 		protected void finish() {
 			//PlatformUI.getWorkbench().close();
 			BalloonUtility.showMessage("Safe to shutdown", 
-					"JSure is done re-running your script.  Please shutdown Eclipse to finish the archive.");
+					"JSure is done re-running your script.  No actions are being recorded."+
+					"Please shutdown Eclipse to finish the archive.");
 		}
 	}
 	
