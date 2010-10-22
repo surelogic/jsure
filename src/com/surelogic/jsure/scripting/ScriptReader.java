@@ -155,6 +155,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 			  // Doesn't matter if I started a build as a result
 			  executeLine(lastLine);
 		  }
+		  finish();
 	  } catch (Throwable e) {
 		  return SLStatus.createErrorStatus(e);
 	  }	  
@@ -238,7 +239,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	  }
   }
   
-  private void init() throws CoreException {
+  protected void init() throws CoreException {
 	  final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 	  final IWorkspaceDescription description = workspace.getDescription();
 	  if (description.isAutoBuilding()) {
@@ -248,6 +249,10 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	  build(IncrementalProjectBuilder.CLEAN_BUILD);
   }
 
+  protected void finish() throws CoreException {
+	  // Nothing to do yet
+  }
+  
   private void build() throws CoreException {	  
 	  //build(IncrementalProjectBuilder.CLEAN_BUILD); //OK
 	  //build(IncrementalProjectBuilder.FULL_BUILD); //NO

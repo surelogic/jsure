@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.ui.PlatformUI;
 
 import com.surelogic.analysis.JSureProperties;
 import com.surelogic.annotation.rules.ModuleRules;
@@ -39,6 +40,7 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.xml.*;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary.Diff;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacDriver implements IResourceChangeListener {
@@ -306,7 +308,12 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 			});
 		}
-		
+		@Override
+		protected void finish() {
+			//PlatformUI.getWorkbench().close();
+			BalloonUtility.showMessage("Safe to shutdown", 
+					"JSure is done re-running your script.  Please shutdown Eclipse to finish the archive.");
+		}
 	}
 	
 	private void printToScript(String line) {
@@ -563,8 +570,10 @@ public class JavacDriver implements IResourceChangeListener {
 						}
 						System.out.println("Updated "+f.getName()+": \t"+oldLength+" -> "+f.length());
 						try {
-							// TODO do I need to check the diff?
-							SeaSummary.diff(new File(deletedDir, f.getName()), f);
+							final Diff d = SeaSummary.diff(new File(deletedDir, f.getName()), f);
+							if (d.isEmpty()) {
+								System.out.println("\tNo differences.");
+							}
 						} catch(Exception e) {
 							System.out.println("Couldn't diff "+f);
 							e.printStackTrace();
