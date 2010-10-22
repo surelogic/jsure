@@ -85,6 +85,7 @@ public class JavacDriver implements IResourceChangeListener {
 	 */
 	private final SLJob updateScriptJob;
 	private final Map<String,Long> deleted;
+	private final File deletedDir;
 	
 	/**
 	 * State that needs to be atomically modified
@@ -173,15 +174,20 @@ public class JavacDriver implements IResourceChangeListener {
 				scriptBeingUpdated = scriptFilter.createTempFile();
 				FileUtility.copy(new File(proj, ScriptCommands.NAME), scriptBeingUpdated);				
 
+				// Make a directory to keep the "deleted" files
+				FileUtility.deleteTempFiles(deletedDirFilter);
+				deletedDir = deletedDirFilter.createTempFolder();
+				
 				// Import the project into the workspace
 				EclipseUtility.importProject(proj);				
 			} catch(Exception e) {
 				throw new IllegalStateException("Could not create/import project", e);
 			}
-			deleted = new HashMap<String, Long>();
+			deleted = new HashMap<String, Long>();	
 			// After this, we should be able to re-script the project like before
 		} else {
 			deleted = null;
+			deletedDir = null;
 			scriptBeingUpdated = null;
 		}
 		// There is a script to create
@@ -206,7 +212,8 @@ public class JavacDriver implements IResourceChangeListener {
 			} else { 
 				// Doing an update, so just delete expected sea.xml
 				for(File f : scriptResourcesDir.listFiles(updateFilter)) {
-					deleted.put(f.getName(), f.length());
+					deleted.put(f.getName(), f.length());					
+					f.renameTo(new File(deletedDir, f.getName()));
 					FileUtility.recursiveDelete(f);				
 				}
 			}
@@ -231,9 +238,7 @@ public class JavacDriver implements IResourceChangeListener {
 					out = new PrintStream(scriptF);
 				}
 				FileUtility.deleteTempFiles(filter);
-				tmp = filter.createTempFile(); 
-				tmp.delete();
-				tmp.mkdir();
+				tmp = filter.createTempFolder(); 
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -552,8 +557,18 @@ public class JavacDriver implements IResourceChangeListener {
 				if (XUtil.updateScript() != null) {	
 					// Only add the sea.xml files
 					for(File f : scriptResourcesDir.listFiles(updateFilter)) {
-						long oldLength = deleted.remove(f.getName());
+						Long oldLength = deleted.remove(f.getName());
+						if (oldLength == null) {
+							throw new IllegalStateException("Created an extra file: "+f.getName());
+						}
 						System.out.println("Updated "+f.getName()+": \t"+oldLength+" -> "+f.length());
+						try {
+							// TODO do I need to check the diff?
+							SeaSummary.diff(new File(deletedDir, f.getName()), f);
+						} catch(Exception e) {
+							System.out.println("Couldn't diff "+f);
+							e.printStackTrace();
+						}
 						info.zipFile(baseDir, f);
 					}
 					for(Map.Entry<String,Long> e : deleted.entrySet()) {
@@ -586,12 +601,13 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 	
 	private static final TempFileFilter filter = new TempFileFilter(SCRIPT_TEMP, ".dir");
-	private static final TempFileFilter scriptFilter = new TempFileFilter(SCRIPT_TEMP, ".txt");
+	private static final TempFileFilter scriptFilter = new TempFileFilter(SCRIPT_TEMP, ".txt");	
 	private static final FilenameFilter updateFilter = new FilenameFilter() {
 		public boolean accept(File dir, String name) {
 			return name.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
 		}		
 	};
+	private static final TempFileFilter deletedDirFilter = new TempFileFilter("deletedFromScript", ".dir");
 	
 	private static final JavacDriver prototype = new JavacDriver();
 	static {		
