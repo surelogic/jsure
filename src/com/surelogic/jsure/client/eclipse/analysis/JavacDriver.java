@@ -297,8 +297,9 @@ public class JavacDriver implements IResourceChangeListener {
 	private static class UpdateScriptReader extends ScriptReader {
 		public UpdateScriptReader(final String proj) {
 			super(EclipseUtility.getProject(proj), true);
-			// These should be the two ops that we auto-inserted
+			// These should be the ops that we auto-inserted
 			commands.put(ScriptCommands.EXPECT_BUILD, NullCommand.prototype);
+			commands.put(ScriptCommands.EXPECT_ANALYSIS, NullCommand.prototype);
 			commands.put(ScriptCommands.COMPARE_RESULTS, new ExportResults() {
 				@Override
 				public boolean execute(ICommandContext context, String... contents) throws Exception {
@@ -1165,7 +1166,7 @@ public class JavacDriver implements IResourceChangeListener {
 		    AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips);
 		    CopyJob copy = new CopyJob(newProjects, target, zips, analysis);
 			if (script != null) {
-				recordFilesToAnalyze(newProjects);
+				recordFilesToBuild(newProjects);
 			}
 		    if (XUtil.testing) {
 		    	final File expected = (File) args.get(ScriptCommands.EXPECT_BUILD);
@@ -1433,8 +1434,8 @@ public class JavacDriver implements IResourceChangeListener {
 		
 		ConfigureJob(String name, File location, boolean isAuto, Map<String, Object> args) {
 			super(name);
-			projects = new Projects(location, isAuto);
 			this.args = new HashMap<String, Object>(args);
+			projects = new Projects(location, isAuto, this.args);
 			args.clear();
 		}
 
@@ -1627,7 +1628,7 @@ public class JavacDriver implements IResourceChangeListener {
 		return rv;
 	}
 	
-	private void recordFilesToAnalyze(Projects p) throws FileNotFoundException {
+	private void recordFilesToBuild(Projects p) throws FileNotFoundException {
 		final String name = "expectedBuild"+getId()+".txt";
 		final File file   = new File(scriptResourcesDir, name);
 		
@@ -1639,11 +1640,20 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 		pw.close();
 		printToScript(ScriptCommands.EXPECT_BUILD_FIRST+' '+computePrefix()+'/'+name);
+		
+		recordFilesToAnalyze(p);
+	}
+	
+	private void recordFilesToAnalyze(Projects p) throws FileNotFoundException {
+		final String name = "expectedAnalysis"+getId()+".txt";
+		final File file   = new File(scriptResourcesDir, name);
+		p.setArg(Util.RECORD_ANALYSIS, file);
+		printToScript(ScriptCommands.EXPECT_ANALYSIS_FIRST+' '+computePrefix()+'/'+name);
 	}
 	
 	private void checkForExpectedSourceFiles(Projects p, File expected) throws IOException {
-		System.out.println("Checking expected source files");
-		final Set<String> cus = readExpected(expected);
+		System.out.println("Checking source files expected for build");
+		final Set<String> cus = RegressionUtility.readLinesAsSet(expected);
 		for(Config c : p.getConfigs()) {
 			for(JavaSourceFile f : c.getFiles()) {
 				if (!cus.remove(f.relativePath)) {
@@ -1654,16 +1664,6 @@ public class JavacDriver implements IResourceChangeListener {
 		if (!cus.isEmpty()) {
 			throw new IllegalStateException("File not built: "+cus.iterator().next());
 		}
-	}
-	
-	private Set<String> readExpected(File expected) throws IOException {
-		final BufferedReader br = new BufferedReader(new FileReader(expected));
-		final Set<String> cus   = new HashSet<String>();
-		String line;
-		while ((line = br.readLine()) != null) {
-			cus.add(line.trim());
-		}
-		return cus;
 	}
 
 	public void resourceChanged(IResourceChangeEvent event) {

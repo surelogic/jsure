@@ -64,7 +64,8 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
         return false;
       }  
     });
-	commands.put(ScriptCommands.EXPECT_BUILD, new ExpectBuild());
+	commands.put(ScriptCommands.EXPECT_BUILD, new SetFileArg(ScriptCommands.EXPECT_BUILD));
+	commands.put(ScriptCommands.EXPECT_ANALYSIS, new SetFileArg(ScriptCommands.EXPECT_ANALYSIS));
   }
   
   public static void main(String[] args) throws Exception {
@@ -288,12 +289,16 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	}
   }
   
-  class ExpectBuild extends AbstractCommand {
+  class SetFileArg extends AbstractCommand {
+	private final String key;
+	SetFileArg(String key) {
+		this.key = key;
+	}
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		final File expected = resolveFile(context, contents[1]);
 		if(expected != null && expected.exists()) {
-			JavacDriver.getInstance().setArg(ScriptCommands.EXPECT_BUILD, expected);
+			JavacDriver.getInstance().setArg(key, expected);
 		} else {
 			throw new FileNotFoundException(contents[1] + " does not exist"); 
 		}

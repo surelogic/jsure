@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.analysis;
 
+import com.surelogic.fluid.javac.Util;
+
 public interface ScriptCommands {
 	String NAME = "test.script.txt";
 	String ANALYSIS_SETTINGS = "jsure.analysis.settings";
@@ -10,7 +12,10 @@ public interface ScriptCommands {
 	String GO_FIRST = "!";
 	
 	String EXPECT_BUILD = "expectBuild";
-	String EXPECT_BUILD_FIRST = "!expectBuild";
+	String EXPECT_BUILD_FIRST = "!"+EXPECT_BUILD;
+	String EXPECT_ANALYSIS = Util.EXPECT_ANALYSIS;
+	String EXPECT_ANALYSIS_FIRST = "!"+Util.EXPECT_ANALYSIS;
+	
 	String IMPORT = "import";
 	String TOUCH_FILE = "touchFile";
 	String PATCH_FILE = "patchFile";
