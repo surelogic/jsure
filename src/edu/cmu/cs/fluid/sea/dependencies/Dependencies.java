@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import org.apache.commons.collections15.*;
 import org.apache.commons.collections15.multimap.*;
 
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.promise.PromiseDropStorage;
 
 import edu.cmu.cs.fluid.ide.IDE;
@@ -155,8 +156,9 @@ public class Dependencies {
 		for(CUDrop d : reprocess) {
 			System.out.println("Reprocess: "+d.javaOSFileName+" "+d.getClass().getSimpleName());
 		}
-		
-		collectOldAnnotationInfo();
+		if (AbstractWholeIRAnalysis.useDependencies) {
+			collectOldAnnotationInfo();
+		}
 		reprocess.removeAll(changed);						
 
 		IDE.getInstance().setAdapting();
