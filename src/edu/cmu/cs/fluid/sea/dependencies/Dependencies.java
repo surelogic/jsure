@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.sea.drops.promises.ModelDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -77,19 +78,59 @@ public class Dependencies {
 		checkedDependents.add(root);
 		
 		// Find dependent drops
-		for(Drop d : root.getDependents()) {
-			//System.out.println(root+" <- "+d);
-			findEnclosingCUDrop(d);
-			collect(d);
+		for(Drop d : getDependents(root)) {
+			System.out.println(root+" <- "+d);			
+			boolean ignored = findEnclosingCUDrop(d);
+			if (!ignored) {
+				collect(d);
+			}
 		}				
 	}
+
+	private static final boolean compensateForModels = true;
 	
-	private void findEnclosingCUDrop(Drop d) {
+	/**
+	 * Get the true dependents
+	 * (compensates for weirdness of Region/LockModel)
+	 */
+	private static Iterable<Drop> getDependents(Drop root) {
+		//if (root instanceof ModelDrop) {
+		if (compensateForModels && ModelDrop.class.isInstance(root)) { 
+			List<Drop> dependents = new ArrayList<Drop>();
+			// Ignore any model drops as "dependents"
+			for(Drop d : root.getDependents()) {
+				if (ModelDrop.class.isInstance(d)) { 
+					System.out.println("\tIgnoring dependent "+d.getMessage());
+					continue;
+				}
+				dependents.add(d);
+			}
+			// Check for model drops as "deponents" -- really should be reversed
+			for(Drop d : root.getDeponents()) {
+				if (ModelDrop.class.isInstance(d)) { 
+					dependents.add(d);
+				} else {
+					System.out.println("\tIgnoring deponent  "+d.getMessage());
+				}
+			}
+			return dependents;
+		}
+		return root.getDependents();
+	}
+
+	/**
+	 * @return true if ignored
+	 */
+	private boolean findEnclosingCUDrop(Drop d) {
 		if (d instanceof IRReferenceDrop) {
 			IRReferenceDrop ird = (IRReferenceDrop) d;
 			IRNode cu = VisitUtil.getEnclosingCompilationUnit(ird.getNode());
 			CUDrop cud = CUDrop.queryCU(cu);
 			if (cud != null) {
+				if ("java.lang.Object".equals(cud.javaOSFileName)) {
+					// This stuff should never get invalidated
+					return true;
+				}
 				//System.out.println(cud+" <- "+d);
 				reprocess.add(cud);
 			} else {
@@ -99,6 +140,7 @@ public class Dependencies {
 			//System.out.println("Not an IRRefDrop: "+d);
 			// TODO ignore these?
 		}
+		return false;
 	}
 	
 	/**
@@ -139,8 +181,11 @@ public class Dependencies {
 	 */
 	private Collection<PromiseWarningDrop> processPromiseWarningDrops() {
 		final Set<PromiseWarningDrop> warnings = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
-		for(Drop d : warnings) {				
-			findEnclosingCUDrop(d);
+		for(Drop d : warnings) {	
+			System.out.println("Processing PWD: "+d.getMessage());
+			if (findEnclosingCUDrop(d)) {
+				System.out.println("\tCollected.");
+			}
 		}
 		return warnings;
 	}
