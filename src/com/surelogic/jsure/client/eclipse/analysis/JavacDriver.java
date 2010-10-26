@@ -704,6 +704,9 @@ public class JavacDriver implements IResourceChangeListener {
 		 */
 		Config makeConfig(final Projects projects, boolean all) throws JavaModelException {
 			final IJavaProject jp = JDTUtility.getJavaProject(project.getName());		
+			if (jp == null) {
+				return null;
+			}
 			scanForJDK(projects, jp);
 			
 			final File location = EclipseUtility.resolveIPath(project.getLocation());
@@ -899,6 +902,9 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 
 		private void scanForJDK(Projects projects, IJavaProject jp) throws JavaModelException {
+			if (jp == null) {				
+				return;
+			}
 			for(IClasspathEntry cpe : jp.getRawClasspath()) {								
 				switch (cpe.getEntryKind()) {
 				case IClasspathEntry.CPE_CONTAINER:
@@ -1277,7 +1283,10 @@ public class JavacDriver implements IResourceChangeListener {
 		for(ProjectInfo info : infos) {
 			if (!projects.contains(info.project.getName())) {
 				if (info.isActive()) {
-					info.makeConfig(projects, !info.hasDeltas());	
+					Config c = info.makeConfig(projects, !info.hasDeltas());	
+					if (c == null) {
+						continue;
+					}
 				} else {
 					// Otherwise, it's inactive
 					continue;
@@ -1286,7 +1295,13 @@ public class JavacDriver implements IResourceChangeListener {
 				// Already added as a dependency?
 				info.setActive(true);
 			}
-			Config config = projects.get(info.project.getName()).getConfig();
+			JavacProject proj = projects.get(info.project.getName());
+			/*
+			if (proj == null) {
+				continue;
+			}
+			*/
+			Config config = proj.getConfig();
 			config.setOption(Config.AS_SOURCE, true);
 		}
 		
