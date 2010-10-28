@@ -454,7 +454,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.aggregatedUniqueFields, JavaNames.genQualifiedMethodConstructorName(methodDecl));
-          setResultDependUponDrop(middleDrop);
+          setResultDependUponDrop(middleDrop, methodDecl);
           for (final UniquePromiseDrop ud : uniqueFields) {
             middleDrop.addTrustedPromise(ud);
           }       
@@ -476,7 +476,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.aggregatedUniqueParams, JavaNames.genQualifiedMethodConstructorName(methodDecl));
-          setResultDependUponDrop(middleDrop);
+          setResultDependUponDrop(middleDrop, methodDecl);
           for (final UniquePromiseDrop ud : myUniqueParams) {
             middleDrop.addTrustedPromise(ud);
           }       

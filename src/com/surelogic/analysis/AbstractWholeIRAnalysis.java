@@ -62,7 +62,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 		setResultDependUponDrop(drop);		
 	}
 	
-	protected final void setResultDependUponDrop(IRReferenceDrop drop) {
+	private final void setResultDependUponDrop(IRReferenceDrop drop) {
 		if (useDependencies) {
 			return;
 		}
@@ -83,7 +83,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 		}		
 	}
 	
-	protected final void setResultDependUponDrop(ResultDropBuilder p) {
+	private final void setResultDependUponDrop(ResultDropBuilder p) {
 		if (!useDependencies) {
 			p.addDependUponDrop(resultDependUpon);
 		} else {
