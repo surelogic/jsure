@@ -487,9 +487,13 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 
 		public boolean isEmpty() {
-			if (AbstractWholeIRAnalysis.useDependencies && "ProposedPromiseDrop".equals(name)) {
-				// Temporarily ignore older for this
-				return newer.isEmpty(); 
+			if ("ProposedPromiseDrop".equals(name)) {
+				if (AbstractWholeIRAnalysis.useDependencies) {
+					// Temporarily ignore older for this, because they don't get cleaned out before each build
+					return newer.isEmpty(); 
+				} else {
+					return old.isEmpty();
+				}
 			}
 			return old.isEmpty() && newer.isEmpty();
 		}
