@@ -5,6 +5,8 @@ import java.text.MessageFormat;
 import java.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.Triple;
@@ -60,6 +62,15 @@ public abstract class AbstractDropBuilder {
 		this.args = args;
 	}
 	
+	public String getMessage() {
+		StringBuilder sb = new StringBuilder(messageNum);
+		for(Object arg : args) {
+			sb.append(',');
+			sb.append(arg);
+		}
+		return sb.toString();
+	}
+	
 	public void setCategory(Category c) {
 		category = c;
 	}
@@ -85,12 +96,15 @@ public abstract class AbstractDropBuilder {
 	
 	int buildDrop(IRReferenceDrop d) {
 		int num = 1;
-		//System.out.println("Making: "+message);
 		d.setNodeAndCompilationUnitDependency(node);
 		if (messageNum < 0) {
 			d.setMessage(message);
 		} else {
 			d.setResultMessage(messageNum, args);
+		}
+		if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) {
+			final IRNode decl = VisitUtil.getClosestType(node);
+			System.out.println("\tMaking: "+d.getMessage()+"  from  "+JavaNames.getRelativeTypeName(decl));
 		}
 		d.setCategory(category);
 		for(Drop deponent : dependUponDrops) {
