@@ -18,8 +18,8 @@ public class Main {
   
   public synchronized void doIt() {
     this.c.m(); // should get "possibly shared unprotected object" warning
-    this.d.m(); // selfProtected class
-    this.e.m(); // selfProtected via superclass D
+    this.d.m(); // selfProtected class --- 2010-10-05 Now rejected because the @ThreadSafe annotation on D doesn't pass scrubbing
+    this.e.m(); // selfProtected via superclass D --- 2010-10-05 Now rejected because the @ThreadSafe annotation on D doesn't pass scrubbing
     this.f.m(); // selfProtected via interface I 
     this.g.m(); // should get "possibly shared unprotected object" warning
   }
