@@ -10,8 +10,7 @@ import com.surelogic.common.i18n.JavaSourceReference;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.promise.TextFile;
@@ -33,6 +32,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @see Sea
  */
 public abstract class Drop {
+	public static final String debug = null;//"Lock field \"this.f_lock\" is less";
 	public static final String DEPONENT = "deponent";
 	public static final String DEPENDENT = "dependent";
 	public static final String MESSAGE = "message";
