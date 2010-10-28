@@ -40,6 +40,9 @@ public abstract class PromiseTargetNode extends AASTNode {
 	  else if (Operator.prototype == op1 || Operator.prototype == op2) {
 		  return Operator.prototype;
 	  }
+	  else if (op1 == op2) {
+		  return op1;
+	  }
 	  return null; // Incompatible
   }
   
