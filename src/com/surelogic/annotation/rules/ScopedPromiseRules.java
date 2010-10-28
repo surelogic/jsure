@@ -110,6 +110,10 @@ public class ScopedPromiseRules extends AnnotationRules {
 					.getParseDropRule(parser.tag);
 			if (r != null) {
 				Operator contextOp = sp.getTargets().appliesTo();
+				if (contextOp == null) {					
+					context.reportError(0, "Incompatible targets for " + sp.getPromise());
+					return null;
+				}
 				if (contextOp == Operator.prototype) {
 					// Applies to anything that the rule applies to
 					contextOp = r.getOps(null)[0];
