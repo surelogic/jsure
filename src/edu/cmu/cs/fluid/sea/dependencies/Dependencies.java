@@ -78,11 +78,25 @@ public class Dependencies {
 		checkedDependents.add(root);
 		
 		// Find dependent drops
-		for(Drop d : getDependents(root)) {
-			System.out.println(root+" <- "+d);			
-			boolean ignored = findEnclosingCUDrop(d);
-			if (!ignored) {
-				collect(d);
+		boolean first = true;
+		for(Drop d : getDependents(root)) {			
+			if (first && (Drop.debug == null || d.getMessage().startsWith(Drop.debug))) {
+				first = false;
+				System.out.println(root.getMessage()+" <- ");
+			}			
+			try {
+				final CUDrop cud = findEnclosingCUDrop(d);
+				if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) { 
+					if (cud != null) {
+						final IRNode type = VisitUtil.getPrimaryType(cud.cu);
+						System.out.println("\t"+d.getMessage()+"\tfrom "+JavaNames.getTypeName(type));	
+					} else {
+						System.out.println("\t"+d.getMessage());	
+					}
+				}
+				collect(d);			
+			} catch(IgnoredException e) {
+				System.out.println("\t"+d.getMessage());	
 			}
 		}				
 	}
@@ -117,11 +131,18 @@ public class Dependencies {
 		}
 		return root.getDependents();
 	}
-
+	
+	private static class IgnoredException extends Exception {
+		// Nothing to do
+	}
+	
+	private static final IgnoredException ignored = new IgnoredException();
+	
 	/**
 	 * @return true if ignored
+	 * @throws IgnoredException 
 	 */
-	private boolean findEnclosingCUDrop(Drop d) {
+	private CUDrop findEnclosingCUDrop(Drop d) throws IgnoredException {
 		if (d instanceof IRReferenceDrop) {
 			IRReferenceDrop ird = (IRReferenceDrop) d;
 			IRNode cu = VisitUtil.getEnclosingCompilationUnit(ird.getNode());
@@ -129,10 +150,11 @@ public class Dependencies {
 			if (cud != null) {
 				if ("java.lang.Object".equals(cud.javaOSFileName)) {
 					// This stuff should never get invalidated
-					return true;
+					throw ignored;
 				}
 				//System.out.println(cud+" <- "+d);
 				reprocess.add(cud);
+				return cud;
 			} else {
 				//System.out.println("No CUDrop for "+d);
 			}
@@ -140,7 +162,7 @@ public class Dependencies {
 			//System.out.println("Not an IRRefDrop: "+d);
 			// TODO ignore these?
 		}
-		return false;
+		return null;
 	}
 	
 	/**
@@ -183,9 +205,15 @@ public class Dependencies {
 		final Set<PromiseWarningDrop> warnings = Sea.getDefault().getDropsOfType(PromiseWarningDrop.class);
 		for(Drop d : warnings) {	
 			System.out.println("Processing PWD: "+d.getMessage());
-			if (findEnclosingCUDrop(d)) {
-				System.out.println("\tCollected.");
-			}
+			try {
+				final CUDrop cud = findEnclosingCUDrop(d);
+				if (cud != null) {
+					System.out.println("\tCollecting ...");
+					collect(cud);
+				}
+			} catch(IgnoredException e) {
+				// Nothing to do
+			} 			
 		}
 		return warnings;
 	}
@@ -223,6 +251,16 @@ public class Dependencies {
 						}
 					});					
 					*/
+				} else if (AbstractWholeIRAnalysis.useDependencies) { // Same as Util.clearOldResults
+					// Clear info/warnings
+					// Clear results
+					for(Drop dd : d.getDependents()) {
+						if (dd instanceof IResultDrop || dd instanceof PromiseWarningDrop) {
+							dd.invalidate();
+						} else {
+							System.out.println("\tIgnoring "+dd.getMessage());
+						}
+					}
 				}
 			}
 			// Necessary to process these after package drops 
@@ -332,7 +370,7 @@ public class Dependencies {
 							System.err.println("Found all-new annotations for "+name);						
 							toScan.put(info.getTypeEnv(), n);
 						} else {
-							System.err.println("No old/new drops for "+name);
+							//System.err.println("No old/new drops for "+name);
 						}
 					} else {
 						// We'll have to compare the drops to see which are truly new			
