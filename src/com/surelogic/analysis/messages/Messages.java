@@ -117,6 +117,17 @@ public class Messages extends AbstractMessages {
 
   
   
+  // For ThreadSafe assurance
+  public static int FINAL_AND_THREADSAFE = 275;
+  public static int VOLATILE_AND_THREADSAFE = 276;
+  public static int PROTECTED_AND_THREADSAFE = 277;
+  public static int UNSAFE_FIELD = 278;
+  public static int PRIMITIVE_TYPE = 279;
+  
+  
+
+  
+  
   // Labels for the single-threaded result disjunction
   public static String LockAnalysis_ds_SingleThreadedUniqueReturn = "by unique return";
   

@@ -11,21 +11,87 @@ import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
   public static interface ClassProcessor {
     /**
+     * Visit an anonymous class declaration.
+     * 
+     * @param classDecl
+     *          A node that satisfies
+     *          <code>AnonClassExpression.prototype.includes(classDecl)</code>
+     * @param classBody
+     *          The class body node of <code>classDecl</code>
+     */
+    public void visitAnonymousClass(IRNode classDecl, IRNode classBody);
+
+    /**
      * Visit a class declaration.
      * 
-     * @param currentQuery
-     *          The current query, as applicable for the current class.
-     *          This is usually null, unless the class is an anonymous class
-     *          or enum constant class declaration.
-     * @param classDecl A node that satisfies
-     * <code>AnonClassExpression.prototype.includes(classDecl) ||
-     *       ClassDeclaration.prototype.includes(classDecl) ||
-     *       EnumConstantClassDeclaration.prototype.includes(classDecl) ||
-     *       EnumDeclaration.prototype.includes(classDecl) ||
-     *       InterfaceDeclaration.prototype.includes(classDecl)</code>
-     * @param classBody The class body node of <code>classDecl</code>
+     * @param classDecl
+     *          A node that satisfies
+     *          <code>ClassDeclaration.prototype.includes(classDecl)</code>
+     * @param classBody
+     *          The class body node of <code>classDecl</code>
      */
     public void visitClass(IRNode classDecl, IRNode classBody);
+
+    /**
+     * Visit an enum declaration.
+     * 
+     * @param classDecl
+     *          A node that satisfies
+     *          <code>EnumDeclaration.prototype.includes(classDecl)</code>
+     * @param classBody
+     *          The class body node of <code>classDecl</code>
+     */
+    public void visitEnum(IRNode classDecl, IRNode classBody);
+
+    /**
+     * Visit an enumeration constant class declaration.
+     * 
+     * @param classDecl
+     *          A node that satisfies
+     *          <code>EnumConstantClassDeclaration.prototype.includes(classDecl))</code>
+     * @param classBody
+     *          The class body node of <code>classDecl</code>
+     */
+    public void visitEnumConstantClass(IRNode classDecl, IRNode classBody);
+
+    /**
+     * Visit an interface declaration.
+     * 
+     * @param classDecl
+     *          A node that satisfies
+     *          <code>InterfaceDeclaration.prototype.includes(classDecl)</code>
+     * @param classBody
+     *          The class body node of <code>classDecl</code>
+     */
+    public void visitInterface(IRNode classDecl, IRNode classBody);
+  }
+  
+  
+  
+  public static abstract class SimpleClassProcessor implements ClassProcessor {
+    protected abstract void visitTypeDecl(IRNode typeDecl, IRNode classBody);
+    
+    
+
+    public final void visitAnonymousClass(final IRNode classDecl, final IRNode classBody) {
+      visitTypeDecl(classDecl, classBody);
+    }
+
+    public final void visitClass(final IRNode classDecl, final IRNode classBody) {
+      visitTypeDecl(classDecl, classBody);
+    }
+
+    public final void visitEnum(final IRNode classDecl, final IRNode classBody) {
+      visitTypeDecl(classDecl, classBody);
+    }
+
+    public final void visitEnumConstantClass(final IRNode classDecl, final IRNode classBody) {
+      visitTypeDecl(classDecl, classBody);
+    }
+
+    public final void visitInterface(final IRNode classDecl, final IRNode classBody) {
+      visitTypeDecl(classDecl, classBody);
+    }
   }
   
   
@@ -42,7 +108,7 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
   
   @Override
   public Void visitAnonClassExpression(final IRNode node) {
-    classProcessor.visitClass(node, AnonClassExpression.getBody(node));
+    classProcessor.visitAnonymousClass(node, AnonClassExpression.getBody(node));
     doAcceptForChildren(node);
     return null;
   }
@@ -56,21 +122,21 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
 
   @Override
   public Void visitEnumConstantClassDeclaration(final IRNode node) {
-    classProcessor.visitClass(node, EnumConstantClassDeclaration.getBody(node));
+    classProcessor.visitEnumConstantClass(node, EnumConstantClassDeclaration.getBody(node));
     doAcceptForChildren(node);
     return null;
   }
   
   @Override
   public Void visitEnumDeclaration(final IRNode node) {
-    classProcessor.visitClass(node, EnumDeclaration.getBody(node));
+    classProcessor.visitEnum(node, EnumDeclaration.getBody(node));
     doAcceptForChildren(node);
     return null;
   }
 
   @Override
   public Void visitInterfaceDeclaration(final IRNode node) {
-    classProcessor.visitClass(node, InterfaceDeclaration.getBody(node));
+    classProcessor.visitInterface(node, InterfaceDeclaration.getBody(node));
     doAcceptForChildren(node);
     return null;
   }

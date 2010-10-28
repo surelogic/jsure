@@ -1,6 +1,5 @@
 package com.surelogic.analysis.effects;
 
-import java.text.MessageFormat;
 import java.util.*;
 
 import com.surelogic.analysis.*;
@@ -78,11 +77,11 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 							MethodEffectsRules.getRegionEffectsDrop(member);
 
 						if (maskedFx.isEmpty()) {
-							final ResultDrop rd = new ResultDrop("EffectAssurance_msgEmptyEffects");
+							final ResultDrop rd = new ResultDrop(Integer.toString(Messages.EMPTY_EFFECTS));
 							rd.addCheckedPromise(declaredEffectsDrop);
 							setResultDependUponDrop(rd, member);
 							rd.setConsistent();
-							rd.setResultMessage(Messages.EffectAssurance_msgEmptyEffects);
+							rd.setResultMessage(Messages.EMPTY_EFFECTS);
 						} else {
 							if (isConstructor) {
 								checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
@@ -110,13 +109,15 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
 	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
-	    final InfoDrop drop = new InfoDrop("classInitEffects");
+	    final InfoDrop drop = new InfoDrop(Integer.toString(Messages.CLASS_INIT_EFFECT));
 	    drop.setCategory(null);
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
       setResultDependUponDrop(drop, src);
-	    drop.setMessage(
-	        MessageFormat.format("{0}.<clinit> has effect \"{1}\" from {2}",
-	            id, e.toString(), DebugUnparser.toString(src)));
+      drop.setResultMessage(Messages.CLASS_INIT_EFFECT,
+          id, e.toString(), DebugUnparser.toString(src));
+//	    drop.setMessage(
+//	        MessageFormat.format("{0}.<clinit> has effect \"{1}\" from {2}",
+//	            id, e.toString(), DebugUnparser.toString(src)));
 	  }
 	}
 
@@ -138,7 +139,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			 * affecting the Instance region of the receiver.
 			 */
 			if (eff.affectsReceiver(receiverNode)) {
-				constructResultDrop(constructor, declEffDrop, true, eff, Messages.EffectAssurance_msgContructorRule, eff);
+				constructResultDrop(constructor, declEffDrop, true, eff, Messages.CONSTRUCTOR_RULE, eff);
 			} else {
 				checkEffect(constructor, declEffDrop, eff, declFx);
 			}
@@ -191,7 +192,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 					final String actualString = DebugUnparser.toString(actual);
 
 					rd.addSupportingInformation(actual, 
-                            Messages.EffectAssurance_msgParameterEvidence,
+                            Messages.PARAMETER_EVIDENCE,
 					        formalString, actualString);
 				}
 			}
@@ -245,8 +246,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			final Set<Effect> declFx) {
 	  if (implEff.isEmpty()) {
 	    constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
-	        Messages.EffectsAssurance_msgNoEffects,
-	        DebugUnparser.toString(implEff.getSource()));
+	        Messages.NO_EFFECTS, DebugUnparser.toString(implEff.getSource()));
 	  } else {
   		boolean checked = false;
   		final Iterator<Effect> iter = declFx.iterator();
@@ -255,12 +255,12 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
   			if (implEff.isCheckedBy(getBinder(), eff2)) {
   				checked = true;
   				constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
-  						Messages.EffectAssurance_msgCheckedBy, implEff, eff2);
+  						Messages.CHECKED_BY, implEff, eff2);
   			}
   		}
   		if (!checked) {
   			constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
-  					Messages.EffectAssurance_msgUnaccountedFor, implEff);
+  					Messages.UNACCOUNTED_FOR, implEff);
   		}
 	  }
 	}

@@ -276,6 +276,46 @@ public class LockRules extends AnnotationRules {
 		}
 		return returnDrop;
 	}
+	
+	private static SelfProtectedPromiseDrop scrubThreadSafe(
+	  final IAnnotationScrubberContext context, final SelfProtectedNode node) {
+	  /* A thread safe class (not interface) must extend a thread safe class
+	   * java.lang.Object, or java.lang.Enum. 
+	   */
+	  final IRNode typeDecl = node.getPromisedFor();
+	  final Operator op = JJNode.tree.getOperator(typeDecl);
+	  final IRNode superDecl;
+	  if (ClassDeclaration.prototype.includes(op)) {
+      superDecl = context.getBinder().getBinding(ClassDeclaration.getExtension(typeDecl));
+	  } else if (AnonClassExpression.prototype.includes(op)) {
+      // XXX: Never going to get here because anonymous classes cannot be annotated
+      superDecl = context.getBinder().getBinding(AnonClassExpression.getType(typeDecl));
+	  } else if (EnumDeclaration.prototype.includes(op)) {
+	    // Super class is java.lang.Enum, nothing to check
+      superDecl = null;
+	  } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+      // XXX: Never going to get here because anonymous classes cannot be annotated
+      superDecl = null;
+	  } else {
+	    // Interface, nothing to check
+	    superDecl = null;
+	  }
+	  
+	  if (superDecl != null) {
+	    final SelfProtectedPromiseDrop superTSDrop = getSelfProtectedDrop(superDecl);
+	    if (superTSDrop == null) {
+	      /* Check for java.lang.Object.  We already handle java.lang.Enum
+	       * in the EnumDeclaration case. 
+	       */
+	      final String supername = JavaNames.getFullTypeName(superDecl);
+	      if (!supername.equals("java.lang.Object")) {
+	        context.reportError(node, "Superclass {0} is not ThreadSafe: A ThreadSafe class must extend a ThreadSafe class", supername);
+	        return null;
+	      }
+	    }
+	  }
+	  return new SelfProtectedPromiseDrop(node);
+	}
 
 	public static class ProhibitsLock_ParseRule
 	extends
@@ -1420,11 +1460,11 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<SelfProtectedNode> makeScrubber() {
-      return new AbstractAASTScrubber<SelfProtectedNode>(this) {
+      return new AbstractAASTScrubber<SelfProtectedNode>(this, ScrubberType.BY_HIERARCHY) {
         @Override
         protected PromiseDrop<SelfProtectedNode> makePromiseDrop(SelfProtectedNode a) {
-          SelfProtectedPromiseDrop d = new SelfProtectedPromiseDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
+//          SelfProtectedPromiseDrop d = new SelfProtectedPromiseDrop(a);
+          return storeDropIfNotNull(getStorage(), a, scrubThreadSafe(context, a));          
         }
       };
     }    
@@ -1448,6 +1488,9 @@ public class LockRules extends AnnotationRules {
       return new AbstractAASTScrubber<NotThreadSafeNode>(this) {
         @Override
         protected PromiseDrop<NotThreadSafeNode> makePromiseDrop(NotThreadSafeNode a) {
+          /* TODO: Should check that the type has no immediate ancestor
+           * that is annotated as ThreadSafe.  
+           */
           NotThreadSafePromiseDrop d = new NotThreadSafePromiseDrop(a);
           return storeDropIfNotNull(getStorage(), a, d);          
         }

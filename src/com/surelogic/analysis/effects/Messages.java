@@ -1,19 +1,23 @@
 package com.surelogic.analysis.effects;
 
-public class Messages {
-  public static final int EffectAssurance_msgUnaccountedFor = 150;
-
-  public static final int EffectAssurance_msgCheckedBy = 151;
-  
-  public static final int EffectAssurance_msgEmptyEffects = 152;
-
-  public static final int EffectAssurance_msgContructorRule = 153;
-
-  public static final int EffectAssurance_msgParameterEvidence = 154;
-  
-  public static final int EffectsAssurance_msgNoEffects = 155;
-  
+final class Messages {  
   private Messages() {
     // private constructor to prevent instantiation
   }
+  
+  
+
+  public static final int UNACCOUNTED_FOR = 150;
+
+  public static final int CHECKED_BY = 151;
+  
+  public static final int EMPTY_EFFECTS = 152;
+
+  public static final int CONSTRUCTOR_RULE = 153;
+
+  public static final int PARAMETER_EVIDENCE = 154;
+  
+  public static final int NO_EFFECTS = 155;
+  
+  public static final int CLASS_INIT_EFFECT = 156;
 }

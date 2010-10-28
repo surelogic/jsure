@@ -6,7 +6,7 @@ import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor;
-import com.surelogic.analysis.TopLevelAnalysisVisitor.ClassProcessor;
+import com.surelogic.analysis.TopLevelAnalysisVisitor.SimpleClassProcessor;
 import com.surelogic.analysis.testing.CollectMethodCalls.Query;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -46,8 +46,9 @@ public class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMet
 
 	protected void runOverFile(final IRNode compUnit) {
 	  new TopLevelAnalysisVisitor(
-	      new ClassProcessor() {
-          public void visitClass(final IRNode classDecl, final IRNode classBody) {
+	      new SimpleClassProcessor() {
+	        @Override
+          public void visitTypeDecl(final IRNode classDecl, final IRNode classBody) {
             new CM_Visitor(classDecl).doAccept(classBody);
           }
         }).doAccept(compUnit);

@@ -34,10 +34,10 @@ import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 
 public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnalysis,Void> {
   private static final Category DSC_UNIQUE_PARAMS_SATISFIED =
-    Category.getInstance(Messages.Category_uniqueParametersSatisfied);
+    Category.getInstance(Messages.CATEGORY_UNIQUE_PARAMETERS_SATISFIED);
   
   private static final Category DSC_UNIQUE_PARAMS_UNSATISFIED =
-    Category.getInstance(Messages.Category_uniqueParametersUnsatisfied);
+    Category.getInstance(Messages.CATEGORY_UNIQUE_PARAMETERS_UNSATISFIED);
   
   
   
@@ -254,7 +254,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 				for (ResultDropBuilder callDrop : callDrops) {
 					callDrop.setConsistent();
 					if (pr.calledUniqueParams.contains(callDrop)) {
-					  callDrop.setResultMessage(Messages.uniqueParametersSatisfied, DebugUnparser.toString(node));
+					  callDrop.setResultMessage(Messages.UNIQUE_PARAMETERS_SATISFIED, DebugUnparser.toString(node));
 					  callDrop.setCategory(DSC_UNIQUE_PARAMS_SATISFIED);
 					}
 				}
@@ -263,7 +263,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					callDrop.setInconsistent();
           callDrop.addSupportingInformation(getErrorMessage(insideDecl, node), node);
 					if (pr.calledUniqueParams.contains(callDrop)) {
-					  callDrop.setResultMessage(Messages.uniqueParametersUnsatisfied, DebugUnparser.toString(node));
+					  callDrop.setResultMessage(Messages.UNIQUE_PARAMETERS_UNSATISFIED, DebugUnparser.toString(node));
 					  callDrop.setCategory(DSC_UNIQUE_PARAMS_UNSATISFIED);
 					}
 				}
@@ -453,7 +453,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
               UniquenessAnalysisModule.this, "aggregatedUniqueFields");
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
-          middleDrop.setResultMessage(Messages.aggregatedUniqueFields, JavaNames.genQualifiedMethodConstructorName(methodDecl));
+          middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           setResultDependUponDrop(middleDrop, methodDecl);
           for (final UniquePromiseDrop ud : uniqueFields) {
             middleDrop.addTrustedPromise(ud);
@@ -475,7 +475,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
               UniquenessAnalysisModule.this, "aggregatedUniqueParams");
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
-          middleDrop.setResultMessage(Messages.aggregatedUniqueParams, JavaNames.genQualifiedMethodConstructorName(methodDecl));
+          middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           setResultDependUponDrop(middleDrop, methodDecl);
           for (final UniquePromiseDrop ud : myUniqueParams) {
             middleDrop.addTrustedPromise(ud);
@@ -517,7 +517,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
     	  label = "field initializer";
     	  unparse = DebugUnparser.toString(block);
       }
-      drop.setResultMessage(Messages.methodControlFlow, label, unparse);
+      drop.setResultMessage(Messages.METHOD_CONTROL_FLOW, label, unparse);
       cachedControlFlow.put(block, drop);
       controlFlowDrops.add(drop);
     }
@@ -685,7 +685,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 					for (Map.Entry<ResultDropBuilder, UniquePromiseDrop> entry : pr.calledUniqueReturns.entrySet()) {
 					  final IRNode methodCall = entry.getKey().getNode();
 					  callToCheck.addSupportingInformation(methodCall,
-							  Messages.uniqueReturnValue,
+							  Messages.UNIQUE_RETURN_VALUE,
 					          DebugUnparser.toString(methodCall));
 					  callToCheck.addTrustedPromise(entry.getValue());
 					}
@@ -694,14 +694,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
           for (Map.Entry<ResultDropBuilder, BorrowedPromiseDrop> entry : pr.calledBorrowedConstructors.entrySet()) {
             final IRNode constructorCall = entry.getKey().getNode();
             callToCheck.addSupportingInformation(constructorCall,
-            		Messages.borrowedConstructor,
+            		Messages.BORROWED_CONSTRUCTOR,
                     DebugUnparser.toString(constructorCall));
             callToCheck.addTrustedPromise(entry.getValue());
           }
           for (Map.Entry<ResultDropBuilder, UniquePromiseDrop> entry : pr.calledUniqueConstructors.entrySet()) {
             final IRNode constructorCall = entry.getKey().getNode();
             callToCheck.addSupportingInformation(constructorCall,
-            		Messages.borrowedConstructor,
+            		Messages.BORROWED_CONSTRUCTOR,
                     DebugUnparser.toString(constructorCall));
             callToCheck.addTrustedPromise(entry.getValue());
           }
@@ -752,7 +752,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
         final String label = DebugUnparser.toString(currentNode);
         if (!uniqueReturns.isEmpty()) {
           final ResultDropBuilder callDrop = getMethodCallDrop("uniqueReturnDrop",
-              currentNode, uniqueReturns, Messages.uniqueReturnDrop, label);
+              currentNode, uniqueReturns, Messages.UNIQUE_RETURN, label);
           if (!isConstructorCall) {
             allCallDrops.add(callDrop);
             // Unique returns is a singleton set
@@ -768,7 +768,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
         }
         if (!borrowedParams.isEmpty()) {
           final ResultDropBuilder callDrop = getMethodCallDrop("borrowedParametersDrop",
-              currentNode, borrowedParams, Messages.borrowedParametersDrop, label);
+              currentNode, borrowedParams, Messages.BORROWED_PARAMETERS, label);
           allCallDrops.add(callDrop);
           pr.calledBorrowedParams.add(callDrop);
           
@@ -793,7 +793,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
         }
         if (!effects.isEmpty()) {
           final ResultDropBuilder callDrop = getMethodCallDrop("effectOfCallDrop",
-              currentNode, effects, Messages.effectOfCallDrop, label);
+              currentNode, effects, Messages.CALL_EFFECT, label);
           allCallDrops.add(callDrop);
           pr.calledEffects.add(callDrop);
         }
