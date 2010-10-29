@@ -1,148 +1,18 @@
 package edu.cmu.cs.fluid.dcf.views.coe;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.progress.UIJob;
-
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.eclipse.ViewUtility;
-import com.surelogic.common.eclipse.jobs.SLUIJob;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
 import com.surelogic.xml.results.coe.CoE_Constants;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.operator.CallInterface;
-import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-import edu.cmu.cs.fluid.java.operator.ImportName;
-import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
-import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
-import edu.cmu.cs.fluid.java.promise.TextFile;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Category;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.DropPredicate;
-import edu.cmu.cs.fluid.sea.DropPredicateFactory;
-import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.IRReferenceDrop;
-import edu.cmu.cs.fluid.sea.InfoDrop;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
-import edu.cmu.cs.fluid.sea.ProofDrop;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.ResultDrop;
-import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.ISupportingInformation;
-import edu.cmu.cs.fluid.sea.WarningDrop;
-import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
-import edu.cmu.cs.fluid.sea.drops.PleaseCount;
-import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
+import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
-import edu.cmu.cs.fluid.tree.Operator;
 
-public class ResultsViewContentProvider extends
-		AbstractResultsViewContentProvider {
 
-	protected static final Object[] noObjects = new Object[0];
-
-	// TODO These are not completely protected, since the arrays get returned
-	protected static Object[] m_root = noObjects;
-	protected static Object[] m_lastRoot = null;
-	protected static long timeStamp = Sea.INVALIDATED;
-
-	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-		if (newInput == null) {
-			m_root = noObjects;
-			m_lastRoot = null;
-		}
-	}
-
-	public void dispose() {
-		// nothing to do
-	}
-
-	public final Object[] getElements(Object parent) {
-		synchronized (ResultsViewContentProvider.class) {
-			return getElementsInternal();
-		}
-	}
-
-	protected Object[] getElementsInternal() {
-		return (isShowInferences() ? m_root : Content.filterNonInfo(m_root));
-	}
-
-	public Object getParent(Object child) {
-		Content c = (Content) child;
-		return c.getParent();
-	}
-
-	public final Object[] getChildren(Object parent) {
-		return getChildrenInternal(parent);
-	}
-
-	protected Object[] getChildrenInternal(Object parent) {
-		if (parent instanceof Content) {
-			Content item = (Content) parent;
-			return (isShowInferences() ? item.getChildren() : item
-					.getNonInfoChildren());
-		}
-		return noObjects;
-	}
-
-	public final boolean hasChildren(Object parent) {
-		Object[] children = getChildren(parent);
-		return (children == null ? false : children.length > 0);
-	}
-
-	// //////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Map used to ensure building a model for the viewer doesn't go into
-	 * infinite recursion.
-	 * 
-	 * @see #encloseDrop(Drop)
-	 */
-	private Map<Drop, Content> m_contentCache = new HashMap<Drop, Content>();
-
-	/**
-	 * Encloses in {@link Content}items and adds each drop in
-	 * <code>dropsToAdd</code> to the mutable set of viewer content items passed
-	 * into this method.
-	 * 
-	 * @param mutableContentSet
-	 *            A parent {@link Content} object to add children to
-	 * @param dropsToAdd
-	 *            the set of drops to enclose and add to the content set
-	 */
-	private void addDrops(Content mutableContentSet,
-			Set<? extends Drop> dropsToAdd) {
-		for (Iterator<? extends Drop> i = dropsToAdd.iterator(); i.hasNext();) {
-			Drop drop = i.next();
-			mutableContentSet.addChild(encloseDrop(drop));
-
-		}
-	}
-
+public class ResultsViewContentProvider 
+extends GenericResultsViewContentProvider<Drop,Content> {
 	/**
 	 * Adds referenced supporting information about a drop to the mutable set of
 	 * viewer content items passed into this method.
@@ -353,7 +223,7 @@ public class ResultsViewContentProvider extends
 	 * @return the content item the viewer can use
 	 */
 	@SuppressWarnings("unchecked")
-	private Content encloseDrop(Drop drop) {
+	protected Content encloseDrop(Drop drop) {
 		if (drop == null) {
 			LOG
 					.log(Level.SEVERE,
@@ -361,14 +231,17 @@ public class ResultsViewContentProvider extends
 			throw new IllegalArgumentException(
 					"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
 		}
-		if (m_contentCache.containsKey(drop)) {
+		Content result = getFromContentCache(drop);
+		if (result != null) {
 			// in cache
-			return m_contentCache.get(drop);
+			return result;
+		} else if (existsInCache(drop)) {
+			return null;
 		} else {
 			// create & add to cache -- MUST BE IMMEDIATE TO AVOID INFINITE
 			// RECURSION
-			Content result = new Content(drop.getMessage(), drop);
-			m_contentCache.put(drop, result); // to avoid infinite recursion
+			result = new Content(drop.getMessage(), drop);
+			putInContentCache(drop, result); // to avoid infinite recursion
 
 			if (drop instanceof PromiseDrop) {
 
@@ -478,613 +351,11 @@ public class ResultsViewContentProvider extends
 		}
 	}
 
-	/**
-	 * Adds categories to the graph of Content nodes rooted contentRoot and
-	 * returns the new set of root nodes.
-	 * 
-	 * @param contentRoot
-	 *            root of a graph of Content nodes
-	 * @return the new set of Content nodes (that should replace contentRoot)
-	 */
-	private Collection<Content> categorize(Collection<Content> contentRoot) {
-		// fake out the recursive function by pretending the root is a Content
-		// node
-		Content root = new Content("", contentRoot);
-		categorizeRecursive(root, true, new HashSet<Content>(),
-				new HashSet<Content>());
-		return root.children();
-	}
 
-	/**
-	 * Recursive method to categorize a graph of content nodes.
-	 * 
-	 * @param node
-	 *            the Content node to categorize
-	 * @param atRoot
-	 *            <code>true</code> if at the Content root, <code>false</code>
-	 *            otherwise (used to control categorization of promise drops)
-	 * @param existingCategoryFolderSet
-	 *            a running set tracking what folders we have created used to
-	 *            ensure we don't categorize things we have already done
-	 * @param level
-	 *            hack to avoid an infinite loop
-	 * 
-	 * @see #categorize(Set)
-	 */
-	@SuppressWarnings("unchecked")
-	private void categorizeRecursive(Content node, boolean atRoot,
-			Set<Content> existingCategoryFolderSet,
-			Set<Content> contentsOnPathToRoot) {
-		Set<Content> categorizedChildren = new HashSet<Content>();
-		Set<Content> toBeCategorized = new HashSet<Content>();
-		Map<Category, Content> categoryToFolder = new HashMap<Category, Content>();
-		for (Content item : node.children()) {
-			if (existingCategoryFolderSet.contains(item)) {
-				/*
-				 * This is a previously created folder (went around the loop) so
-				 * just add it to the resulting Content set. Do not add it to
-				 * the worklist to be categorized or an infinite loop will
-				 * result.
-				 */
-				categorizedChildren.add(item);
-			} else {
-				toBeCategorized.add(item);
-				final IDropInfo info = item.getDropInfo();
-				if (info != null && info.isInstance(PromiseDrop.class)
-						&& !atRoot
-						&& !(info.isInstance(RequiresLockPromiseDrop.class))
-						&& !(info.isInstance(PleaseFolderize.class))) {
-					/*
-					 * Only categorize promise drops at the root level
-					 */
-					categorizedChildren.add(item);
-				} else {
-					Category itemCategory = item.getCategory();
-					if (itemCategory == null) {
-						/*
-						 * Uncategorized so it doesn't need to be placed within
-						 * a folder
-						 */
-						categorizedChildren.add(item);
-					} else {
-						/*
-						 * Get the correct category folder (created it if
-						 * needed) and add this Content item to it
-						 */
-						Content categoryFolder = categoryToFolder
-								.get(itemCategory);
-						if (categoryFolder == null) {
-							// create the category folder, save it in the map
-							categoryFolder = new Content(itemCategory
-									.getMessage());
-							categoryToFolder.put(itemCategory, categoryFolder);
-							existingCategoryFolderSet.add(categoryFolder);
-						}
-						categoryFolder.addChild(item);
-					}
-				}
-			}
-		}
 
-		/*
-		 * Finish up the category folders add add them to the result
-		 */
-		for (Map.Entry<Category, Content> entry : categoryToFolder.entrySet()) {
-			// Category category = entry.getKey();
-			Content categoryFolder = entry.getValue();
-			// for (Iterator<Category> j = categoryToFolder.keySet().iterator();
-			// j.hasNext();) {
-			// Category category = j.next();
-			// Content categoryFolder = categoryToFolder.get(category);
 
-			// message
-			// category.setCount(categoryFolder.numChildren());
-			// categoryFolder.message = category.getFormattedMessage();
-			categoryFolder.freezeCount();
 
-			// image (try to show proof status if it makes sense)
-			Set<IDropInfo> proofDrops = new HashSet<IDropInfo>();
-			Set<IDropInfo> warningDrops = new HashSet<IDropInfo>();
-			Set<IDropInfo> infoDrops = new HashSet<IDropInfo>();
 
-			for (Content item : categoryFolder.children()) {
-				if (item.getDropInfo().isInstance(ProofDrop.class)) {
-					proofDrops.add(item.getDropInfo());
-				} else if (item.getDropInfo().isInstance(InfoDrop.class)) {
-					infoDrops.add(item.getDropInfo());
-					if (item.getDropInfo().isInstance(WarningDrop.class)) {
-						warningDrops.add(item.getDropInfo());
-					}
-				}
-			}
-			if (proofDrops.isEmpty() && !infoDrops.isEmpty()) {
-				categoryFolder
-						.setBaseImageName(!warningDrops.isEmpty() ? CommonImages.IMG_WARNING
-								: CommonImages.IMG_INFO);
-				categoryFolder.f_isInfo = true;
-			} else if (proofDrops.isEmpty() && infoDrops.isEmpty()) {
-				categoryFolder.setBaseImageName(CommonImages.IMG_WARNING);
-				categoryFolder.f_isPromiseWarning = true;
-			} else {
-				// set proof bits properly
-				int flags = 0; // assume no adornments
-				boolean choiceConsistent = true;
-				boolean choiceUsesRedDot = false;
-				boolean localConsistent = true;
-				for (IDropInfo proofDrop : proofDrops) {	
-					choiceConsistent &= proofDrop.provedConsistent();
-					if (proofDrop.isInstance(ResultDrop.class)) {
-						localConsistent &= proofDrop.isConsistent();
-					}
-					if (proofDrop.proofUsesRedDot())
-						choiceUsesRedDot = true;
-				}
-				flags = (choiceUsesRedDot ? CoE_Constants.REDDOT : 0);
-				flags |= (choiceConsistent ? CoE_Constants.CONSISTENT
-						: CoE_Constants.INCONSISTENT);
-				categoryFolder.setImageFlags(flags);
-				categoryFolder.setBaseImageName(CommonImages.IMG_FOLDER);
-			}
-			categorizedChildren.add(categoryFolder);
-		}
-
-		/*
-		 * Replace the children of the node parameter with the categorized
-		 * children created within this method
-		 */
-		node.resetChildren(categorizedChildren);
-
-		/*
-		 * Categorize the content items we encountered for the first time
-		 */
-		for (Iterator<Content> k = toBeCategorized.iterator(); k.hasNext();) {
-			Content item = k.next();
-			/*
-			 * Guard against infinite recursion (drop-sea is a graph)
-			 */
-			if (!contentsOnPathToRoot.contains(item)) {
-				/*
-				 * Set<Content> newContentsOnPathToRoot = new
-				 * HashSet<Content>(contentsOnPathToRoot);
-				 * newContentsOnPathToRoot.add(item); categorizeRecursive(item,
-				 * false, existingCategoryFolderSet, newContentsOnPathToRoot);
-				 */
-				// Changed to add/remove the item from the set
-				contentsOnPathToRoot.add(item);
-				categorizeRecursive(item, false, existingCategoryFolderSet,
-						contentsOnPathToRoot);
-				contentsOnPathToRoot.remove(item);
-			}
-		}
-	}
-
-	/**
-	 * reates folders for the package and type a result is within.
-	 * 
-	 * @param contentRoot
-	 *            root of a graph of Content nodes
-	 */
-	private Collection<Content> packageTypeFolderize(
-			Collection<Content> contentRoot) {
-		// fake out the recursive function by pretending the root is a Content
-		// node
-		Content root = new Content("", contentRoot);
-		packageTypeFolderizeRecursive(root, true, new HashSet<Content>(),
-				new HashSet<Content>());
-		return root.children();
-	}
-
-	private void packageTypeFolderizeRecursive(Content node, boolean atRoot,
-			Set<Content> existingFolderSet, Set<Content> contentsOnPathToRoot) {
-		Set<Content> newChildren = new HashSet<Content>();
-		Set<Content> toBeFolderized = new HashSet<Content>();
-		Map<String, Map<String, Content>> packageToClassToFolder = new HashMap<String, Map<String, Content>>();
-
-		for (Content item : node.children()) {
-			if (existingFolderSet.contains(item)) {
-				/*
-				 * This is a previously created folder (went around the loop) so
-				 * just add it to the resulting Content set. Do not add it to
-				 * the worklist to be categorized or an infinite loop will
-				 * result.
-				 */
-				newChildren.add(item);
-			} else {
-				toBeFolderized.add(item);
-
-				/*
-				 * If the drop the Content "item" references has a package and a
-				 * type we'll generate folders for it.
-				 */
-				final IDropInfo drop = item.getDropInfo();
-				boolean hasJavaContext = false;
-				if (drop != null && (drop.isInstance(ResultDrop.class) || drop.isInstance(InfoDrop.class)
-						|| drop.isInstance(PleaseFolderize.class))) {
-					boolean resultHasACategory = drop.isInstance(ResultDrop.class)
-							&& drop.getCategory() != null;
-					if (resultHasACategory || drop.isInstance(InfoDrop.class)
-							|| drop.isInstance(PleaseFolderize.class)) {
-						ContentJavaContext context = new ContentJavaContext(
-								item);
-						if (context.complete) {
-							hasJavaContext = true;
-							String packageKey = context.packageName;
-							String typeKey = context.typeName;
-							Map<String, Content> typeToFolder = packageToClassToFolder
-									.get(packageKey);
-							if (typeToFolder == null) {
-								typeToFolder = new HashMap<String, Content>();
-								packageToClassToFolder.put(packageKey,
-										typeToFolder);
-							}
-							Content folder = typeToFolder.get(typeKey);
-							if (folder == null) {
-								// create the class/type folder, save it in the
-								// map
-								folder = new Content(typeKey);
-								folder
-										.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE
-												: CommonImages.IMG_CLASS);
-								typeToFolder.put(typeKey, folder);
-							}
-							folder.addChild(item);
-						}
-					}
-				}
-				/*
-				 * If we couldn't figure out the package and class just add the
-				 * drop back into the children.
-				 */
-				if (!hasJavaContext) {
-					newChildren.add(item);
-				}
-			}
-		}
-
-		/*
-		 * Create the package folders and add associated type folders into it.
-		 */
-		for (Iterator<String> i = packageToClassToFolder.keySet().iterator(); i
-				.hasNext();) {
-			String packageKey = i.next();
-			Map<?, Content> typeToFolder = packageToClassToFolder
-					.get(packageKey);
-
-			Content packageFolder = new Content(packageKey, typeToFolder
-					.values());
-			existingFolderSet.add(packageFolder);
-
-			for (Content typeFolder : packageFolder.children()) {
-				setConsistencyDecoratorForATypeFolder(typeFolder);
-			}
-			packageFolder.freezeChildrenCount();
-			packageFolder.setBaseImageName(CommonImages.IMG_PACKAGE);
-			setConsistencyDecoratorForAPackageFolder(packageFolder);
-
-			newChildren.add(packageFolder);
-		}
-
-		/*
-		 * Replace the children of the node parameter with the new children
-		 * created within this method
-		 */
-		node.resetChildren(newChildren);
-
-		/*
-		 * Categorize the content items we encountered for the first time
-		 */
-		for (Iterator<Content> k = toBeFolderized.iterator(); k.hasNext();) {
-			Content item = k.next();
-			/*
-			 * Guard against infinite recursion (drop-sea is a graph)
-			 */
-			if (!contentsOnPathToRoot.contains(item)) {
-				/*
-				 * Set<Content> newContentsOnPathToRoot = new
-				 * HashSet<Content>(contentsOnPathToRoot);
-				 * newContentsOnPathToRoot.add(item);
-				 * packageTypeFolderizeRecursive(item, false, existingFolderSet,
-				 * newContentsOnPathToRoot);
-				 */
-				// Changed to add and then remove the item from the set
-				contentsOnPathToRoot.add(item);
-				packageTypeFolderizeRecursive(item, false, existingFolderSet,
-						contentsOnPathToRoot);
-				contentsOnPathToRoot.remove(item);
-			}
-		}
-	}
-
-	private void setConsistencyDecoratorForATypeFolder(Content c) {
-		boolean hasAResult = false;
-		boolean consistent = true;
-		boolean hasRedDot = false;
-		for (Content node : c.children()) {
-			IDropInfo d = node.getDropInfo();
-			if (d.isInstance(ProofDrop.class)) {
-				hasAResult = true;
-				consistent = consistent && d.provedConsistent();
-				hasRedDot = hasRedDot || d.proofUsesRedDot();
-			}
-		}
-		if (hasAResult) {
-			int flags = c.getImageFlags();
-
-			flags |= (hasRedDot ? CoE_Constants.REDDOT : 0);
-			flags |= (consistent ? CoE_Constants.CONSISTENT
-					: CoE_Constants.INCONSISTENT);
-
-			c.setImageFlags(flags);
-		}
-	}
-
-	private void setConsistencyDecoratorForAPackageFolder(Content c) {
-		boolean hasAResult = false;
-		boolean consistent = true;
-		boolean hasRedDot = false;
-		for (Content node : c.children()) {
-			int flags = node.getImageFlags();
-			boolean nConsistent = (flags & CoE_Constants.CONSISTENT) != 0;
-			boolean nInconsistent = (flags & CoE_Constants.INCONSISTENT) != 0;
-			boolean nHasRedDot = (flags & CoE_Constants.REDDOT) != 0;
-			if (nConsistent || nInconsistent) {
-				hasAResult = true;
-				consistent = consistent && nConsistent;
-				hasRedDot = hasRedDot || nHasRedDot;
-			}
-		}
-		if (hasAResult) {
-			int flags = c.getImageFlags();
-
-			flags |= (hasRedDot ? CoE_Constants.REDDOT : 0);
-			flags |= (consistent ? CoE_Constants.CONSISTENT
-					: CoE_Constants.INCONSISTENT);
-
-			c.setImageFlags(flags);
-		}
-	}
-
-	private void propagateWarningDecorators(Collection<Content> contentRoot) {
-		// fake out the recursive function by pretending the root is a Content
-		// node
-		Content root = new Content("", contentRoot);
-		nodeNeedsWarningDecorator(root, new HashSet<Content>());
-	}
-
-	/*
-	 * static class InfoWarning { boolean isInfo = false; boolean isInfoWarning
-	 * = false; }
-	 */
-
-	/**
-	 * Only called by nodeNeedsWarningDecorator and itself
-	 * 
-	 * Changed to use Content node itself to store status, instead of passing
-	 * InfoWarning Changed to track all nodes already visited
-	 */
-	private void nodeNeedsWarningDecorator(Content node, Set<Content> onPath) {
-		node.f_isInfoDecorated = node.f_isInfo;
-		node.f_isInfoWarningDecorate = node.f_isInfoWarning;
-
-		if (node.getDropInfo() != null && node.getDropInfo().isInstance(PleaseCount.class)) {
-			node.setCount(node.getDropInfo().count());
-		}
-
-		onPath.add(node);
-		/*
-		 * Add warning decorators the content items we have encountered for the
-		 * first time
-		 */
-		for (Content item : node.children()) {
-			/*
-			 * Guard against infinite recursion (drop-sea is a graph)
-			 */
-			if (!onPath.contains(item)) {
-				if (!item.f_donePropagatingWarningDecorators) {
-					nodeNeedsWarningDecorator(item, onPath);
-				}
-				node.f_isInfoDecorated |= item.f_isInfoDecorated;
-				node.f_isInfoWarningDecorate |= item.f_isInfoWarningDecorate;
-			}
-		}
-		node.f_donePropagatingWarningDecorators = true;
-		onPath.remove(node);
-	}
-
-	/*
-	private int count(Collection<Content> cc, Set<Content> counted) {
-		int i=0;
-		for(Content c : cc) {
-			if (counted.contains(c)) {
-				continue;
-			}
-			counted.add(c);
-			i++;
-			i += count(c.children(), counted);
-		}
-		return i;
-	}
-	*/
-	
-	/**
-	 * Converts back edges into leaf nodes
-	 */
-	private void breakBackEdges(Collection<Content> contentRoot) {
-		//System.out.println("Content count: "+count(contentRoot, new HashSet<Content>()));
-		
-		// fake out the recursive function by pretending the root is a Content
-		// node
-		Content root = new Content("", contentRoot);
-		breakBackEdges(root, new HashSet<Content>());
-	}
-
-	/**
-	 * Converts back edges into leaf nodes Also converts the children to arrays
-	 * 
-	 * @param onPath
-	 *            Nodes already encountered on the path here
-	 * @param leaves
-	 *            Leaves previously created
-	 */
-	private void breakBackEdges(Content node, Set<Content> onPath) {
-		/*
-		Integer count = counts.get(node);
-		if (count == null) {
-			counts.put(node, 1);
-		} else {
-			System.out.println(count+": "+node.getMessage());
-			counts.put(node, count++);
-		}
- 		*/
-		if (node.children().isEmpty()) {
-			node.resetChildren(Collections.<Content> emptyList());
-			return;
-		}
-		onPath.add(node);
-		
-		// Only used to get consistent results when breaking back edges
-		// NOT for the results view (see ContentNameSorter)
-		final List<Content> children = new ArrayList<Content>(node.children());
-		final int size = children.size();
-		if (size > 1) {
-			Collections.sort(children, new Comparator<Content>() {
-				public int compare(Content o1, Content o2) {
-					return o1.getMessage().compareTo(o2.getMessage());
-				}
-			});
-		}
-
-		for (int i = 0; i < size; i++) {
-			Content item = children.get(i);
-
-			/*
-			 * Guard against infinite recursion (drop-sea is a graph)
-			 */
-			//System.out.println("Looking at "+node.getMessage()+" -> "+item.getMessage());
-			if (!onPath.contains(item)) {
-				breakBackEdges(item, onPath);
-			} else {
-				// Need to replace with a leaf
-				//System.out.println("Breaking backedge for: "+item.getMessage());
-				Content leaf = item.cloneAsLeaf();
-				//System.out.println("Cloned: "+leaf.getMessage());
-				children.set(i, leaf);
-			}
-		}
-		node.resetChildren(children);
-		// Now it creates a leaf, if I ever see it again
-		//onPath.remove(node);
-	}
-
-	//Map<Content,Integer> counts = new HashMap<Content, Integer>();
-	
-	static private class ContentJavaContext {
-
-		/**
-		 * Flags if the entire Java context is well-defined
-		 */
-		public boolean complete = false;
-
-		String packageName = "(default)";
-
-		String typeName = "NONE";
-
-		private boolean typeIsAnInterface = false;
-
-		/**
-		 * Tries to construct a full Java context, if this fails
-		 * {@link #complete} will be <code>false</code>.
-		 * 
-		 * @param content
-		 *            the viewer content item to obtain the Java context for
-		 */
-		public ContentJavaContext(final Content content) {
-			// Get reference IRNode
-			if (!(content.getDropInfo().isInstance(IRReferenceDrop.class)))
-				return;			
-			final IRNode node = content.getDropInfo().getNode();
-			if (node == null) {
-				return;
-			}
-			/*
-			 * if (!node.equals(content.referencedLocation)) { LOG.warning("Node
-			 * from ref drop != node in content: "+content.referencedLocation);
-			 * }
-			 */
-			final Operator op = JavaNames.getOperator(node);
-			final boolean isCU = CompilationUnit.prototype.includes(op);
-			final boolean isPkg = PackageDeclaration.prototype.includes(op) || 
-			                      ImportName.prototype.includes(op);
-
-			// determine package
-			IRNode cu = null;
-			if (isCU) {
-				cu = node;
-			} else {
-				cu = VisitUtil.getEnclosingCompilationUnit(node);
-			}
-			if (cu != null) {
-				String proposedPackageName = VisitUtil.getPackageName(cu);
-				if (proposedPackageName != null) {
-					packageName = proposedPackageName;
-				}
-
-				// determine enclosing type
-				IRNode type = null;
-				if (isCU) {
-					type = VisitUtil.getPrimaryType(node);				
-				} else if (!isPkg) {
-					type = VisitUtil.getClosestType(node);
-					while (type != null && JJNode.tree.getOperator(type) instanceof CallInterface) {
-						type = VisitUtil.getEnclosingType(type);
-					}
-				}
-				if (type != null) {
-					typeName = JavaNames.getRelativeTypeName(type);
-					final Operator top = JavaNames.getOperator(type);
-					typeIsAnInterface = InterfaceDeclaration.prototype
-							.includes(top);
-				} else if (isPkg) {
-					typeName = "package";
-					typeIsAnInterface = false;
-				} else {
-					LOG.severe("No enclosing type for: "
-							+ DebugUnparser.toString(node));
-				}
-			} else if (TextFile.prototype.includes(op)) {
-				typeName = TextFile.getId(node);
-				packageName = null;
-			} else if (node.identity() == IRNode.destroyedNode) {
-				System.out.println("Ignoring destroyed node: "
-						+ content.getDropInfo().getMessage());
-			} else {
-				LOG.warning("Unable to get Java context for "
-						+ DebugUnparser.toString(node));
-			}
-			complete = !typeName.equals(JavaNames.getTypeName(null));
-		}
-	}
-
-	public IResultsViewContentProvider buildModelOfDropSea() {
-		synchronized (ResultsViewContentProvider.class) {
-			long viewTime = timeStamp;
-			long seaTime = Sea.getDefault().getTimeStamp();
-			if (seaTime == Sea.INVALIDATED) {
-				seaTime = Sea.getDefault().updateConsistencyProof();
-			}
-
-			SLLogger.getLogger().fine(
-					"Comparing view (" + viewTime + ") to sea (" + seaTime
-							+ ")");
-			if (viewTime != Sea.INVALIDATED && viewTime == seaTime) {
-				return this;
-			}
-			SLLogger.getLogger().fine("Building model of Drop-Sea");
-			IResultsViewContentProvider rv = buildModelOfDropSea_internal();
-			timeStamp = Sea.getDefault().getTimeStamp();
-			return rv;
-		}
-	}
 
 	private static DropPredicate promisePred = DropPredicateFactory
 			.matchType(PromiseDrop.class);
@@ -1101,11 +372,26 @@ public class ResultsViewContentProvider extends
 		}
 	};
 
-	@SuppressWarnings("unchecked")
-	private IResultsViewContentProvider buildModelOfDropSea_internal() {
-		// show at the viewer root
-		Collection<Content> root = new HashSet<Content>();
+	@Override
+	protected void buildModelForResultDrops(Collection<Content> root) {
+		final Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(
+				ResultDrop.class);
+		for (ResultDrop id : resultDrops) {
+			// only show result drops at the main level if they are not attached
+			// to a promise drop or a result drop
+			if (id.isValid()
+					&& ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
+				if (id.getCategory() == null) {
+					id.setCategory(Category.getInstance("unparented drops"));
+				}
+				root.add(encloseDrop(id));
+			}
+		}
+	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	protected void buildModelFromDrops(Collection<Content> root) {
 		/*
 		 * for (ModelDrop md : Sea.getDefault().getDropsOfType(ModelDrop.class))
 		 * { System.out.println("ModelDrop: "+md.getMessage()); }
@@ -1138,82 +424,20 @@ public class ResultsViewContentProvider extends
 			infoFolder.f_isInfo = true;
 			root.add(infoFolder);
 		}
-
-		final Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea
-				.getDefault().getDropsOfType(PromiseWarningDrop.class);
-		if (!promiseWarningDrops.isEmpty()) {
-			/*
-			 * We have modeling problems...make sure the view that shows them is
-			 * visible to the user.
-			 */
-			if (PreferenceConstants.prototype.getAutoOpenModelingProblemsView()) {
-				final UIJob job = new SLUIJob() {
-					@Override
-					public IStatus runInUIThread(IProgressMonitor monitor) {
-						ViewUtility.showView(ProblemsView.class.getName(),
-								null, IWorkbenchPage.VIEW_VISIBLE);
-						return Status.OK_STATUS;
-					}
-				};
-				job.schedule();
-			}
-		}
-
-		final Set<? extends ProposedPromiseDrop> proposedPromiseDrops = Sea
-				.getDefault().getDropsOfType(ProposedPromiseDrop.class);
-		if (!proposedPromiseDrops.isEmpty()) {
-			/*
-			 * We have modeling problems...make sure the view that shows them is
-			 * visible to the user.
-			 */
-			if (PreferenceConstants.prototype.getAutoOpenProposedPromiseView()) {
-				final UIJob job = new SLUIJob() {
-					@Override
-					public IStatus runInUIThread(IProgressMonitor monitor) {
-						ViewUtility.showView(ProposedPromiseView.class
-								.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
-						return Status.OK_STATUS;
-					}
-				};
-				job.schedule();
-			}
-		}
-
-		final Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(
-				ResultDrop.class);
-		for (ResultDrop id : resultDrops) {
-			// only show result drops at the main level if they are not attached
-			// to a promise drop or a result drop
-			if (id.isValid()
-					&& ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
-				if (id.getCategory() == null) {
-					id.setCategory(Category.getInstance("unparented drops"));
-				}
-				root.add(encloseDrop(id));
-			}
-		}
-		root = categorize(root);
-		root = packageTypeFolderize(root);
-		propagateWarningDecorators(root);
-		breakBackEdges(root);
-		m_lastRoot = m_root;
-		m_root = root.toArray();
-		// reset our cache, for next time
-		m_contentCache = new HashMap<Drop, Content>();
-
-		return this;
 	}
 
-	private static boolean shouldBeTopLevel(Drop d) {
-		// System.out.println("???: "+d.getMessage());
-		return d instanceof MaybeTopLevel
-				&& ((MaybeTopLevel) d).requestTopLevel();
+	@Override
+	protected boolean dropsExist(Class<? extends Drop> type) {
+		return !Sea.getDefault().getDropsOfType(type).isEmpty();
 	}
 
-	public Object[] getLastElements() {
-		synchronized (ResultsViewContentProvider.class) {
-			return (isShowInferences() ? m_lastRoot : Content
-					.filterNonInfo(m_lastRoot));
-		}
+	@Override
+	protected Content makeContent(String msg) {
+		return new Content(msg);
+	}
+
+	@Override
+	protected Content makeContent(String msg, Collection<Content> contentRoot) {
+		return new Content(msg, contentRoot);
 	}
 }
