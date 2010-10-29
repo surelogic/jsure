@@ -576,6 +576,10 @@ public abstract class Drop implements IDropInfo {
 		return type.isInstance(this);
 	}
 	
+	public boolean requestTopLevel() {
+		throw new UnsupportedOperationException();
+	}
+	
 	public int count() {
 		throw new UnsupportedOperationException();
 	}

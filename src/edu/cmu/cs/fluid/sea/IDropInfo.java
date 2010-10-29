@@ -9,7 +9,8 @@ public interface IDropInfo {
 	String getType();
 	boolean isInstance(Class<?> type);
 	String getMessage();
-	
+
+	boolean requestTopLevel();
 	int count();
 	Category getCategory();
 	IRNode getNode();
