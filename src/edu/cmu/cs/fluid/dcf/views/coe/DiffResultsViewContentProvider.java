@@ -31,7 +31,7 @@ public class DiffResultsViewContentProvider extends ResultsViewContentProvider {
       }
       List<Content> now  = makeList(m_root);
       List<Content> last = makeList(m_lastRoot);
-      return Content.diffChildren(last, now).toArray();
+      return AbstractContent.diffChildren(last, now).toArray();
     }
   }    
 }
