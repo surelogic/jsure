@@ -42,6 +42,7 @@ import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
+import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -528,10 +529,11 @@ public class ResultsViewContentProvider extends
 				categorizedChildren.add(item);
 			} else {
 				toBeCategorized.add(item);
-				if (item.f_referencedDrop instanceof PromiseDrop
+				final IDropInfo info = item.getDropInfo();
+				if (info != null && info.isInstance(PromiseDrop.class)
 						&& !atRoot
-						&& !(item.f_referencedDrop instanceof RequiresLockPromiseDrop)
-						&& !(item.f_referencedDrop instanceof PleaseFolderize)) {
+						&& !(info.isInstance(RequiresLockPromiseDrop.class))
+						&& !(info.isInstance(PleaseFolderize.class))) {
 					/*
 					 * Only categorize promise drops at the root level
 					 */
@@ -581,18 +583,17 @@ public class ResultsViewContentProvider extends
 			categoryFolder.freezeCount();
 
 			// image (try to show proof status if it makes sense)
-			Set<ProofDrop> proofDrops = new HashSet<ProofDrop>();
-			Set<WarningDrop> warningDrops = new HashSet<WarningDrop>();
-			Set<InfoDrop> infoDrops = new HashSet<InfoDrop>();
+			Set<IDropInfo> proofDrops = new HashSet<IDropInfo>();
+			Set<IDropInfo> warningDrops = new HashSet<IDropInfo>();
+			Set<IDropInfo> infoDrops = new HashSet<IDropInfo>();
 
 			for (Content item : categoryFolder.children()) {
-
-				if (item.f_referencedDrop instanceof ProofDrop) {
-					proofDrops.add((ProofDrop) item.f_referencedDrop);
-				} else if (item.f_referencedDrop instanceof InfoDrop) {
-					infoDrops.add((InfoDrop) item.f_referencedDrop);
-					if (item.f_referencedDrop instanceof WarningDrop) {
-						warningDrops.add((WarningDrop) item.f_referencedDrop);
+				if (item.getDropInfo().isInstance(ProofDrop.class)) {
+					proofDrops.add(item.getDropInfo());
+				} else if (item.getDropInfo().isInstance(InfoDrop.class)) {
+					infoDrops.add(item.getDropInfo());
+					if (item.getDropInfo().isInstance(WarningDrop.class)) {
+						warningDrops.add(item.getDropInfo());
 					}
 				}
 			}
@@ -610,12 +611,10 @@ public class ResultsViewContentProvider extends
 				boolean choiceConsistent = true;
 				boolean choiceUsesRedDot = false;
 				boolean localConsistent = true;
-				for (Iterator<ProofDrop> l = proofDrops.iterator(); l.hasNext();) {
-					ProofDrop proofDrop = l.next();
+				for (IDropInfo proofDrop : proofDrops) {	
 					choiceConsistent &= proofDrop.provedConsistent();
-					if (proofDrop instanceof ResultDrop) {
-						localConsistent &= ((ResultDrop) proofDrop)
-								.isConsistent();
+					if (proofDrop.isInstance(ResultDrop.class)) {
+						localConsistent &= proofDrop.isConsistent();
 					}
 					if (proofDrop.proofUsesRedDot())
 						choiceUsesRedDot = true;
@@ -697,14 +696,14 @@ public class ResultsViewContentProvider extends
 				 * If the drop the Content "item" references has a package and a
 				 * type we'll generate folders for it.
 				 */
-				Drop drop = item.f_referencedDrop;
+				final IDropInfo drop = item.getDropInfo();
 				boolean hasJavaContext = false;
-				if (drop instanceof ResultDrop || drop instanceof InfoDrop
-						|| drop instanceof PleaseFolderize) {
-					boolean resultHasACategory = drop instanceof ResultDrop
-							&& ((ResultDrop) drop).getCategory() != null;
-					if (resultHasACategory || drop instanceof InfoDrop
-							|| drop instanceof PleaseFolderize) {
+				if (drop != null && (drop.isInstance(ResultDrop.class) || drop.isInstance(InfoDrop.class)
+						|| drop.isInstance(PleaseFolderize.class))) {
+					boolean resultHasACategory = drop.isInstance(ResultDrop.class)
+							&& drop.getCategory() != null;
+					if (resultHasACategory || drop.isInstance(InfoDrop.class)
+							|| drop.isInstance(PleaseFolderize.class)) {
 						ContentJavaContext context = new ContentJavaContext(
 								item);
 						if (context.complete) {
@@ -801,12 +800,11 @@ public class ResultsViewContentProvider extends
 		boolean consistent = true;
 		boolean hasRedDot = false;
 		for (Content node : c.children()) {
-			Drop d = node.f_referencedDrop;
-			if (d instanceof ProofDrop) {
+			IDropInfo d = node.getDropInfo();
+			if (d.isInstance(ProofDrop.class)) {
 				hasAResult = true;
-				ProofDrop pd = (ProofDrop) d;
-				consistent = consistent && pd.provedConsistent();
-				hasRedDot = hasRedDot || pd.proofUsesRedDot();
+				consistent = consistent && d.provedConsistent();
+				hasRedDot = hasRedDot || d.proofUsesRedDot();
 			}
 		}
 		if (hasAResult) {
@@ -868,8 +866,8 @@ public class ResultsViewContentProvider extends
 		node.f_isInfoDecorated = node.f_isInfo;
 		node.f_isInfoWarningDecorate = node.f_isInfoWarning;
 
-		if (node.f_referencedDrop instanceof PleaseCount) {
-			node.setCount(((PleaseCount) node.f_referencedDrop).count());
+		if (node.getDropInfo() != null && node.getDropInfo().isInstance(PleaseCount.class)) {
+			node.setCount(node.getDropInfo().count());
 		}
 
 		onPath.add(node);
@@ -1002,10 +1000,9 @@ public class ResultsViewContentProvider extends
 		 */
 		public ContentJavaContext(final Content content) {
 			// Get reference IRNode
-			if (!(content.f_referencedDrop instanceof IRReferenceDrop))
-				return;
-			IRReferenceDrop drop = (IRReferenceDrop) content.f_referencedDrop;
-			final IRNode node = drop.getNode();
+			if (!(content.getDropInfo().isInstance(IRReferenceDrop.class)))
+				return;			
+			final IRNode node = content.getDropInfo().getNode();
 			if (node == null) {
 				return;
 			}
@@ -1059,7 +1056,7 @@ public class ResultsViewContentProvider extends
 				packageName = null;
 			} else if (node.identity() == IRNode.destroyedNode) {
 				System.out.println("Ignoring destroyed node: "
-						+ drop.getMessage());
+						+ content.getDropInfo().getMessage());
 			} else {
 				LOG.warning("Unable to get Java context for "
 						+ DebugUnparser.toString(node));

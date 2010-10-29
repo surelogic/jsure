@@ -52,6 +52,7 @@ import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -201,8 +202,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
            * Deal with the case where a single proposed promise drop is
            * selected.
            */
-          if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
-            final ProposedPromiseDrop pp = (ProposedPromiseDrop) c.f_referencedDrop;
+          if (c.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
+            final ProposedPromiseDrop pp = c.getDropInfo().getAdapter(ProposedPromiseDrop.class);
             proposals.add(pp);
           } else {
             /*
@@ -212,8 +213,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
             if (c.getMessage().equals(
                 I18N.msg("jsure.eclipse.proposed.promise.content.folder"))) {
               for (Content content : c.getChildrenAsCollection()) {
-                if (content.f_referencedDrop instanceof ProposedPromiseDrop) {
-                  final ProposedPromiseDrop pp = (ProposedPromiseDrop) content.f_referencedDrop;
+                if (content.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
+                  final ProposedPromiseDrop pp = c.getDropInfo().getAdapter(ProposedPromiseDrop.class);
                   proposals.add(pp);
                 }
               }
@@ -277,8 +278,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
         } else if (c2IsNonProof && !c1IsNonProof) {
           result = -1;
         } else {
-          final boolean c1isPromise = c1.f_referencedDrop instanceof PromiseDrop;
-          final boolean c2isPromise = c2.f_referencedDrop instanceof PromiseDrop;
+          final boolean c1isPromise = c1.getDropInfo() != null && c1.getDropInfo().isInstance(PromiseDrop.class);
+          final boolean c2isPromise = c2.getDropInfo() != null && c2.getDropInfo().isInstance(PromiseDrop.class);
           // Separating promise drops from other proof drops
           if (c1isPromise && !c2isPromise) {
             result = 1;
@@ -386,7 +387,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
       final IStructuredSelection s) {
     if (!s.isEmpty()) {
       final Content c = (Content) s.getFirstElement();
-      if (c.f_referencedDrop instanceof ProposedPromiseDrop) {
+      if (c.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
         manager.add(f_addPromiseToCode);
         f_addPromiseToCode.setText(I18N
             .msg("jsure.eclipse.proposed.promise.edit"));
@@ -416,10 +417,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
       manager.add(f_actionShowUnderlyingDropType);
       if (!s.isEmpty()) {
         final Content c = (Content) s.getFirstElement();
-        final Drop d = c.f_referencedDrop;
+        final IDropInfo d = c.getDropInfo();
         if (d != null) {
           f_actionShowUnderlyingDropType.setText("Type: "
-              + d.getClass().getName());
+              + d.getType());
         } else {
           f_actionShowUnderlyingDropType.setText("Type: n/a");
         }

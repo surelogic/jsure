@@ -37,7 +37,8 @@ import edu.cmu.cs.fluid.sea.*;
 /**
  * Class used to represent derived viewer nodes.
  */
-public abstract class AbstractContent<T extends IDropInfo> implements Cloneable, IDiffNode<AbstractContent<T>> {
+public abstract class AbstractContent<T extends IDropInfo, T2 extends AbstractContent<T, T2>> 
+implements Cloneable, IDiffNode<T2> {
 	/**
 	 * Status for diffing
 	 */
@@ -56,7 +57,7 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	 * 
 	 * @see #getChildren()
 	 */
-	private Collection<AbstractContent<T>> f_children;
+	private Collection<T2> f_children;
 
 	/**
 	 * The message to display in the viewer, meant to be accessed by
@@ -71,7 +72,7 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	 */
 	private String f_getMessage;
 	
-	private AbstractContent<T> parent = null;
+	private T2 parent = null;
 	
 	private String f_baseImageName;
 
@@ -110,34 +111,36 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	/**
 	 * A reference to the original node. Non-null only if it's a backedge
 	 */
-	AbstractContent<T> cloneOf = null;
+	T2 cloneOf = null;
 
-	AbstractContent(String msg, Collection<AbstractContent<T>> content, T drop) {
+	@SuppressWarnings("unchecked")
+	AbstractContent(String msg, Collection<T2> content, T drop) {
 		f_message = msg;
 		f_children = content;
-		for(AbstractContent<T> c : content) {
-			c.setParent(this);
+		for(T2 c : content) {
+			c.setParent((T2) this);
 		}		
 		f_referencedDrop = drop;
-		if (drop.isInstance(IRReferenceDrop.class)) {
+		if (drop != null && drop.isInstance(IRReferenceDrop.class)) {
 			f_sourceRef = drop.getSrcRef();
 		}		
 	}
 
-	AbstractContent(String msg, Collection<AbstractContent<T>> content) {
+	/*
+	AbstractContent(String msg, Collection<T2> content) {
 		this(msg, content, null);
 	}
 
 	AbstractContent(String msg) {
-		this(msg, new HashSet<AbstractContent<T>>(), null);
+		this(msg, new HashSet<T2>(), null);
 	}
 
 	AbstractContent(String msg, T drop) {
-		this(msg, new HashSet<AbstractContent<T>>(), drop);
+		this(msg, new HashSet<T2>(), drop);
 	}
 
 	AbstractContent(String msg, IRNode location, T drop) {
-		this(msg, new HashSet<AbstractContent<T>>(), drop);
+		this(msg, new HashSet<T2>(), drop);
 		if (location != null) {
 			f_sourceRef = JavaNode.getSrcRef(location);
 		}
@@ -146,12 +149,14 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	AbstractContent(String msg, IRNode location) {
 		this(msg, location, null);
 	}
+    */
 
-	AbstractContent<T> cloneAsLeaf() {
-		AbstractContent<T> clone = shallowCopy();
+	@SuppressWarnings("unchecked")
+	T2 cloneAsLeaf() {
+		T2 clone = shallowCopy();
 		if (clone != null) {
 			clone.f_status = Status.BACKEDGE;
-			clone.cloneOf = this;
+			clone.cloneOf = (T2) this;
 		}
 		return clone;
 	}
@@ -166,7 +171,7 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 
 	public void freezeChildrenCount() {
 		int size = 0;
-		for (AbstractContent<T> c : f_children) {
+		for (T2 c : f_children) {
 			size += c.freezeCount();
 		}
 		f_numIssues = size;
@@ -175,14 +180,14 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	public int recomputeCounts() {
 		if (f_numIssues < 0) {
 			// No counts previously recorded here
-			for (AbstractContent<T> c : f_children) {
+			for (T2 c : f_children) {
 				c.recomputeCounts();
 			}
 			return -1;
 		}
 		boolean counted = false;
 		int size = 0;
-		for (AbstractContent<T> c : f_children) {
+		for (T2 c : f_children) {
 			int count = c.recomputeCounts();
 			if (count > 0) {
 				size += count;
@@ -228,7 +233,7 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 				name = f.toString();
 			}
 
-			final boolean referencesAResultDrop = getDropInfo().isInstance(ResultDrop.class);
+			final boolean referencesAResultDrop = getDropInfo() != null && getDropInfo().isInstance(ResultDrop.class);
 			if (ref.getLineNumber() > 0) {
 				if (referencesAResultDrop) {
 					result += " at line " + ref.getLineNumber();
@@ -344,12 +349,12 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T extends IDropInfo> 
+	public static <T extends IDropInfo, T2 extends AbstractContent<T, T2>> 
 	Object[] filterNonInfo(Object[] items) {
-		Set<AbstractContent<T>> result = new HashSet<AbstractContent<T>>();
+		Set<T2> result = new HashSet<T2>();
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] instanceof AbstractContent) {
-				AbstractContent<T> item = (AbstractContent<T>) items[i];
+				T2 item = (T2) items[i];
 				if (!item.f_isInfo) {
 					result.add(item);
 				}
@@ -362,7 +367,7 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	}
 
 	public Object[] getNonInfoChildren() {
-		return filterNonInfo(f_children.toArray());
+		return AbstractContent.<T,T2>filterNonInfo(f_children.toArray());
 	}
 
 	public Object[] getChildren() {
@@ -370,56 +375,59 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	}
 
 	public Category getCategory() {
-		if (getDropInfo().isInstance(IRReferenceDrop.class)) {
+		if (getDropInfo() != null && getDropInfo().isInstance(IRReferenceDrop.class)) {
 			return getDropInfo().getCategory();
 		}
 		return null;
 	}
 
-	public void resetChildren(Collection<AbstractContent<T>> c) {
+	@SuppressWarnings("unchecked")
+	public void resetChildren(Collection<T2> c) {
 		if (c == null) {
 			throw new IllegalArgumentException("New children is null");
 		}
 		f_children = c;
-		for(AbstractContent<T> cc : c) {
-			cc.setParent(this);
+		for(T2 cc : c) {
+			cc.setParent((T2) this);
 		}
 	}
 
-	public void addChild(AbstractContent<T> child) {
+	@SuppressWarnings("unchecked")
+	public void addChild(T2 child) {
 		f_children.add(child);
-		child.setParent(this);
+		child.setParent((T2) this);
 	}
 
 	public int numChildren() {
 		return f_children.size();
 	}
 
-	public Collection<AbstractContent<T>> children() {
+	public Collection<T2> children() {
 		return f_children;
 	}
 
-	public static <T extends IDropInfo> 
-	Collection<AbstractContent<T>> diffChildren(Collection<AbstractContent<T>> last,
-			Collection<AbstractContent<T>> now) {
-		Collection<AbstractContent<T>> diffs = Diff.diff(last, now, false);
-		for (AbstractContent<T> c : diffs) {
+	public static <T extends IDropInfo, T2 extends AbstractContent<T, T2>> 
+	Collection<T2> diffChildren(Collection<T2> last,
+			Collection<T2> now) {
+		Collection<T2> diffs = Diff.diff(last, now, false);
+		for (T2 c : diffs) {
 			c.recomputeCounts();
 		}
 		return diffs;
 	}
 
-	public Collection<AbstractContent<T>> getChildrenAsCollection() {
+	public Collection<T2> getChildrenAsCollection() {
 		return f_children;
 	}
 
-	public Collection<AbstractContent<T>> setChildren(Collection<AbstractContent<T>> c) {
+	@SuppressWarnings("unchecked")
+	public Collection<T2> setChildren(Collection<T2> c) {
 		try {
 			return f_children;
 		} finally {
 			f_children = c;
-			for(AbstractContent<T> cc : c) {
-				cc.setParent(this);
+			for(T2 cc : c) {
+				cc.setParent((T2) this);
 			}
 		}
 	}
@@ -454,8 +462,9 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	}
 
 	private class Identity {
-		private AbstractContent<T> content() {
-			return AbstractContent.this;
+		@SuppressWarnings("unchecked")
+		private T2 content() {
+			return (T2) AbstractContent.this;
 		}
 
 		@Override
@@ -474,7 +483,7 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 		public boolean equals(Object o) {
 			//if (o instanceof Identity) {
 			if (Identity.class.isInstance(o)) {
-				AbstractContent<T> c = ((Identity) o).content();
+				T2 c = ((Identity) o).content();
 				if (getDropInfo() == c.getDropInfo()) {
 					return true;
 				}
@@ -495,8 +504,8 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 		return new Comparator<Identity>() {
 
 			public int compare(Identity o1, Identity o2) {
-				AbstractContent<T> c1 = o1.content();
-				AbstractContent<T> c2 = o2.content();
+				T2 c1 = o1.content();
+				T2 c2 = o2.content();
 				if (c1.getDropInfo() == c2.getDropInfo()) {
 					return 0;
 				}
@@ -527,7 +536,7 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 		};
 	}
 
-	public boolean isShallowMatch(AbstractContent<T> n) {
+	public boolean isShallowMatch(T2 n) {
 		return this.f_baseImageName.equals(n.f_baseImageName)
 				&& this.f_imageFlags == n.f_imageFlags
 				&& this.f_isInfo == n.f_isInfo
@@ -538,10 +547,10 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 	}
 
 	@SuppressWarnings("unchecked")
-	public AbstractContent<T> shallowCopy() {
-		AbstractContent<T> clone;
+	public T2 shallowCopy() {
+		T2 clone;
 		try {
-			clone = (AbstractContent<T>) clone();
+			clone = (T2) clone();
 			clone.f_children = Collections.emptySet();
 			clone.f_getMessage = null; // Invalidate cache
 			return clone;
@@ -551,22 +560,22 @@ public abstract class AbstractContent<T extends IDropInfo> implements Cloneable,
 		}
 	}
 
-	public AbstractContent<T> deepCopy() {
-		AbstractContent<T> copy = shallowCopy();
-		copy.f_children = new ArrayList<AbstractContent<T>>();
-		for (AbstractContent<T> c : f_children) {
-			final AbstractContent<T> copyC = c.deepCopy();
+	public T2 deepCopy() {
+		T2 copy = shallowCopy();
+		copy.f_children = new ArrayList<T2>();
+		for (T2 c : f_children) {
+			final T2 copyC = c.deepCopy();
 			copy.f_children.add(copyC);
 			copyC.setParent(copy);
 		}
 		return copy;
 	}
 	
-	public AbstractContent<T> getParent() {
+	public T2 getParent() {
 		return parent;
 	}
 	
-	private void setParent(AbstractContent<T> p) {
+	private void setParent(T2 p) {
 		parent = p;
 	}
 }
