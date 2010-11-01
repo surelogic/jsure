@@ -69,6 +69,9 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		if (idMap.containsKey(d)) {
 			return;
 		}
+		if (!d.isValid()) {
+			return; // ignore invalid drops
+		}
 		final String id = computeId(d);
 		d.preprocessRefs(this);
 		reset();
@@ -169,16 +172,23 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		@Override
 		public Entity makeEntity(String name, Attributes a) {
 			final String type = Entity.getValue(a, TYPE_ATTR);
-			final Class<?> thisType = classMap.get(type);
-			if (ProofDrop.class.isAssignableFrom(thisType)) {
-				return new ProofInfo(name, a);
-			} else {
-				return new Info(name, a);
+			if (type != null) {
+				final Class<?> thisType = classMap.get(type);
+				if (thisType == null) {
+					System.out.println("Unknown type: "+type);
+				}
+				if (ProofDrop.class.isAssignableFrom(thisType)) {			
+					return new ProofInfo(name, a);
+				}
 			}
+			return new Info(name, a);			
 		}
 		
 		@Override
 		protected boolean define(final int id, Entity e) {
+			if (!e.getName().endsWith("drop")) {
+				System.out.println("Got "+e.getName());
+			}
 			add(id, (Info) e);
 			return true;
 		}
@@ -195,7 +205,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			} else if (fromE instanceof ProofInfo) {
 				final ProofInfo fromPI = (ProofInfo) fromE;
 				final ProofInfo toPI = (ProofInfo) toE;
-				if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
+				
+				if (PromiseDrop.useCheckedByResults && PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
+					fromPI.addCheckedByResult(toPI);
+			    } else if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
 					fromPI.addCheckedPromise(toPI);
 				} else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
 					fromPI.addTrustedPromise(toPI);
@@ -297,15 +310,22 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		*/
 		
 		public int count() {
+			// TODO Auto-generated method stub
+			throw new UnsupportedOperationException();
+		}
+		
+		public boolean requestTopLevel() {
+			// TODO Auto-generated method stub
 			throw new UnsupportedOperationException();
 		}
 
 		public <T> T getAdapter(Class<T> type) {
+			// TODO Auto-generated method stub
 			throw new UnsupportedOperationException();
 		}
 
 		public boolean isValid() {
-			return true; // TODO is this right?
+			return true; 
 		}
 
 		public void setCategory(Category c) {
@@ -321,6 +341,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 
 		public ISrcRef getSrcRef() {
+			// TODO Auto-generated method stub
 			throw new UnsupportedOperationException();
 		}
 
@@ -332,10 +353,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			final String thisTypeName = getType();
 			final Class<?> thisType = SeaSnapshot.classMap.get(thisTypeName);
 			return type.isAssignableFrom(thisType);		
-		}
-
-		public boolean requestTopLevel() {
-			throw new UnsupportedOperationException();
 		}
 
 		public boolean hasMatchingDeponents(IDropPredicate p) {
@@ -373,13 +390,26 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	
 	static class ProofInfo extends Info implements IProofDropInfo {
 		/**
+		 * Only for PromiseDrops
+		 */
+		final List<ProofInfo> checkedByResults;
+		/**
 		 * Only for ResultDrops
 		 */
 		final List<ProofInfo> checkedPromises;
 		final List<ProofInfo> trustedPromises;
 		final MultiMap<String,ProofInfo> orTrustedPromises;
 		
+		void addCheckedByResult(ProofInfo info) {
+			if (PromiseDrop.useCheckedByResults) {
+				checkedByResults.add(info);
+			}
+		}
+		
 		void addCheckedPromise(ProofInfo info) {
+			if (!PromiseDrop.useCheckedByResults) {
+				info.checkedByResults.add(this);
+			}
 			checkedPromises.add(info);
 		}
 		
@@ -398,10 +428,16 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				checkedPromises = new ArrayList<ProofInfo>();
 				trustedPromises = new ArrayList<ProofInfo>();
 				orTrustedPromises = new MultiHashMap<String, ProofInfo>();
+				checkedByResults = Collections.emptyList();
 			} else {
 				checkedPromises = Collections.emptyList();
 				trustedPromises = Collections.emptyList();
 				orTrustedPromises = null;
+				if (isInstance(PromiseDrop.class)) {
+					checkedByResults = new ArrayList<ProofInfo>();
+				} else {
+					checkedByResults = Collections.emptyList();
+				}
 			}
 		}
 
@@ -415,20 +451,16 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 		
 		public boolean isConsistent() {
-			throw new UnsupportedOperationException();
+			return "true".equals(getAttribute(ResultDrop.CONSISTENT));
 		}
 
 		public boolean proofUsesRedDot() {
-			throw new UnsupportedOperationException();
+			return "true".equals(getAttribute(USES_RED_DOT_ATTR));
+			
 		}
 
 		public boolean provedConsistent() {
-			throw new UnsupportedOperationException();
-		}
-
-		public boolean isFromSrc() {
-			// TODO Auto-generated method stub
-			return false;
+			return "true".equals(getAttribute(PROVED_ATTR));
 		}
 
 		public Collection<? extends IProofDropInfo> getCheckedBy() {
@@ -449,43 +481,40 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			return orTrustedPromises.get(key);
 		}
 
-		public boolean get_or_proofUsesRedDot() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		public boolean get_or_provedConsistent() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
 		public boolean hasOrLogic() {
 			return orTrustedPromises != null && !orTrustedPromises.isEmpty();
 		}
-
-		public boolean isAssumed() {
-			// TODO Auto-generated method stub
-			return false;
+		
+		public boolean get_or_proofUsesRedDot() {
+			return "true".equals(getAttribute(ResultDrop.OR_USES_RED_DOT));
 		}
 
-		public boolean isCheckedByAnalysis() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		public boolean isIntendedToBeCheckedByAnalysis() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		public boolean isVirtual() {
-			// TODO Auto-generated method stub
-			return false;
+		public boolean get_or_provedConsistent() {
+			return "true".equals(getAttribute(ResultDrop.OR_PROVED));
 		}
 
 		public boolean isVouched() {
-			// TODO Auto-generated method stub
-			return false;
+			return "true".equals(getAttribute(ResultDrop.VOUCHED));
+		}
+		
+		public boolean isAssumed() {
+			return "true".equals(getAttribute(PromiseDrop.ASSUMED));
+		}
+
+		public boolean isCheckedByAnalysis() {
+			return "true".equals(getAttribute(PromiseDrop.CHECKED_BY_ANALYSIS));
+		}
+
+		public boolean isIntendedToBeCheckedByAnalysis() {
+			return "true".equals(getAttribute(PromiseDrop.TO_BE_CHECKED_BY_ANALYSIS));
+		}
+
+		public boolean isFromSrc() {
+			return "true".equals(getAttribute(PromiseDrop.FROM_SRC));
+		}
+		
+		public boolean isVirtual() {
+			return "true".equals(getAttribute(PromiseDrop.VIRTUAL));
 		}
 	}
 }

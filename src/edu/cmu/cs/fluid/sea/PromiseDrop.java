@@ -21,6 +21,19 @@ import edu.cmu.cs.fluid.sea.xml.*;
  */
 public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 		implements ISrcRef {
+	public static final String VIRTUAL = "virtual";
+
+	public static final String FROM_SRC = "from-src";
+
+	public static final String CHECKED_BY_ANALYSIS = "checked-by-analysis";
+	
+	public static final String TO_BE_CHECKED_BY_ANALYSIS = "to-be-checked-by-analysis";
+
+	public static final String ASSUMED = "assumed";
+
+	public static final boolean useCheckedByResults = true;
+	public static final String CHECKED_BY_RESULTS = "checked-by-result";
+	
 	public PromiseDrop(A a) {
 		// set up dependencies if this is being created within a ScopedPromise
 		ScopedPromises.getInstance().initDrop(this);
@@ -511,10 +524,21 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	@Override
 	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		super.snapshotAttrs(s);
-		s.addAttribute("assumed", isAssumed());
-		s.addAttribute("checked-by-analysis", isCheckedByAnalysis());
-		s.addAttribute("from-src", isFromSrc());
-		s.addAttribute("virtual", isVirtual());
+		s.addAttribute(ASSUMED, isAssumed());
+		s.addAttribute(CHECKED_BY_ANALYSIS, isCheckedByAnalysis());
+		s.addAttribute(FROM_SRC, isFromSrc());
+		s.addAttribute(VIRTUAL, isVirtual());
+		s.addAttribute(TO_BE_CHECKED_BY_ANALYSIS, isIntendedToBeCheckedByAnalysis());
+	}
+	
+	@Override
+	public void snapshotRefs(SeaSnapshot s) {
+		super.snapshotRefs(s);
+		if (useCheckedByResults) {
+			for (Drop c : getCheckedBy()) {
+				s.refDrop(CHECKED_BY_RESULTS, c);
+			}
+		}
 	}
 	
 	@Override

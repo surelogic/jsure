@@ -14,10 +14,14 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  */
 @SuppressWarnings("unchecked")
 public class ResultDrop extends ProofDrop implements IResultDrop {
+	public static final String VOUCHED = "vouched";
+	public static final String CONSISTENT = "consistent";
 	public static final String CHECKED_PROMISE = "checked-promise";
 	public static final String TRUSTED_PROMISE = "trusted-promise";
 	public static final String OR_TRUSTED_PROMISE = "or-trusted-promise";
 	public static final String OR_LABEL = "or-label";
+	public static final String OR_USES_RED_DOT = "or-uses-red-dot";
+	public static final String OR_PROVED = "or-proved-consistent";
 
 	/**
 	 * Holds key that describes which message this result is.
@@ -370,8 +374,10 @@ public class ResultDrop extends ProofDrop implements IResultDrop {
 	@Override
 	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		super.snapshotAttrs(s);
-		s.addAttribute("vouched", isVouched());
-		s.addAttribute("consistent", isConsistent());
+		s.addAttribute(VOUCHED, isVouched());
+		s.addAttribute(CONSISTENT, isConsistent());
+		s.addAttribute(OR_USES_RED_DOT, get_or_proofUsesRedDot());
+		s.addAttribute(OR_PROVED, get_or_provedConsistent());
 		if (type != null) {
 			s.addAttribute("result-type", type);
 		} else {
