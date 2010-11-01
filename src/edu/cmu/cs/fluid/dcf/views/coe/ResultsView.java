@@ -638,7 +638,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
     }
     try {
       new SeaSnapshot(location).snapshot(proj, Sea.getDefault());
-      new JSureXMLReader(new TestListener()).read(location);
+      //new JSureXMLReader(new TestListener()).read(location);
+      SeaSnapshot.loadSnapshot(location);
     } catch (final Exception e) {
       SLLogger.getLogger().log(Level.SEVERE, "Problem exporting for Sierra", e);
     }
