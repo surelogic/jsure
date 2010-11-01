@@ -48,6 +48,11 @@ public final class Content extends AbstractContent<Drop,Content> {
 		this(msg, location, null);
 	}
 
+	Content(String msg, ISrcRef ref) {
+		this(msg);
+		f_sourceRef = ref;
+	}
+	
 	public ISrcRef getSrcRef() {
 		/*
 		 * if (referencedDrop instanceof IRReferenceDrop) { return
