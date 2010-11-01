@@ -21,6 +21,10 @@ import edu.cmu.cs.fluid.sea.*;
 public class SeaSnapshot extends AbstractSeaXmlCreator {	
 	public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
 	
+	static final Map<String,Class<? extends Drop>> classMap = new HashMap<String, Class<? extends Drop>>();
+	
+	
+	
 	private final Map<Drop,String> idMap = new HashMap<Drop,String>();
 	
 	public SeaSnapshot(File location) throws IOException {
@@ -53,7 +57,14 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		//pw = null;
 		//JSureXMLReader.readSnapshot(location, null);
 	}
-
+	
+	private static void ensureClassMapping(Class<? extends Drop> cls) {
+		if (classMap.containsKey(cls.getSimpleName())) {
+			return;
+		}
+		classMap.put(cls.getSimpleName(), cls);
+	}
+	
 	public void snapshotDrop(Drop d) {
 		if (idMap.containsKey(d)) {
 			return;
@@ -64,6 +75,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		
 		final String name = d.getEntityName();	
 		final String type = d.getClass().getSimpleName();
+		ensureClassMapping(d.getClass());
 		Entities.start(name, b);
 		Entities.addAttribute(TYPE_ATTR, type, b);
 		Entities.addAttribute(ID_ATTR, id, b);
@@ -156,7 +168,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		
 		@Override
 		public Entity makeEntity(String name, Attributes a) {
-			return new Info(name, a);
+			final String type = Entity.getValue(a, TYPE_ATTR);
+			final Class<?> thisType = classMap.get(type);
+			if (ProofDrop.class.isAssignableFrom(thisType)) {
+				return new ProofInfo(name, a);
+			} else {
+				return new Info(name, a);
+			}
 		}
 		
 		@Override
@@ -167,11 +185,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		
 		@Override
 		protected void handleRef(String fromLabel, int fromId, Entity to) {
-			/*
-			if ("deponent".equals(to.getName())) {
-				return; // skip these
-			}
-			*/
 			final String refType = to.getName();
 			final Info fromE = entities.get(fromId);
 			final int toId = Integer.valueOf(to.getId());
@@ -179,15 +192,20 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			if (Drop.DEPONENT.equals(refType)) {
 				fromE.addDeponent(toE);
 				toE.addDependent(fromE);
-			} else if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
-				fromE.addCheckedPromise(toE);
-			} else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
-				fromE.addTrustedPromise(toE);
-			} else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
-				final String label = to.getAttribute(ResultDrop.OR_LABEL);
-				fromE.addOrTrustedPromise(label, toE);
+			} else if (fromE instanceof ProofInfo) {
+				final ProofInfo fromPI = (ProofInfo) fromE;
+				final ProofInfo toPI = (ProofInfo) toE;
+				if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
+					fromPI.addCheckedPromise(toPI);
+				} else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
+					fromPI.addTrustedPromise(toPI);
+				} else if (ResultDrop.OR_TRUSTED_PROMISE.equals(refType)) {
+					final String label = to.getAttribute(ResultDrop.OR_LABEL);
+					fromPI.addOrTrustedPromise(label, toPI);
+				}
 			} else {
-				System.out.println("NOT Handled: " + refType + " ref from " + fromLabel + " to " + to.getId());
+				throw new IllegalStateException("NOT Handled: " + refType + " ref from " + 
+						                        fromLabel + " to " + to.getId());
 			}
 		}
 	}
@@ -195,9 +213,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	public static class Info extends Entity implements IDropInfo {
 		final List<Info> dependents = new ArrayList<Info>();
 		final List<Info> deponents  = new ArrayList<Info>();
-		final List<Info> checkedPromises;
-		final List<Info> trustedPromises;
-		final MultiMap<String,Info> orTrustedPromises;
+		Category category;
 		
 		void addDeponent(Info info) {
 			deponents.add(info);
@@ -207,31 +223,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			dependents.add(info);
 		}
 		
-		void addCheckedPromise(Info info) {
-			checkedPromises.add(info);
-		}
-		
-		void addTrustedPromise(Info info) {
-			trustedPromises.add(info);
-		}
-		
-		void addOrTrustedPromise(String label, Info info) {
-			orTrustedPromises.put(label, info);
-		}
-		
 		Info(String name, Attributes a) {
 			super(name, a);
-			
-			final boolean isResultDrop = RESULT_DROP.equals(name);			
-			if (isResultDrop || PROMISE_DROP.equals(name)) {
-				checkedPromises = new ArrayList<Info>();
-				trustedPromises = new ArrayList<Info>();
-				orTrustedPromises = new MultiHashMap<String, Info>();
-			} else {
-				checkedPromises = Collections.emptyList();
-				trustedPromises = Collections.emptyList();
-				orTrustedPromises = null;
-			}
 			/*
 			final String name = e.getName();
 			final boolean warning;
@@ -304,60 +297,116 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		*/
 		
 		public int count() {
-			// TODO Auto-generated method stub
-			return 0;
+			throw new UnsupportedOperationException();
 		}
-
-
 
 		public <T> T getAdapter(Class<T> type) {
-			// TODO Auto-generated method stub
-			return null;
+			throw new UnsupportedOperationException();
 		}
 
+		public boolean isValid() {
+			return true; // TODO is this right?
+		}
+
+		public void setCategory(Category c) {
+			category = c;
+		}		
+		
 		public Category getCategory() {
-			// TODO Auto-generated method stub
-			return null;
+			return category;
 		}
 
 		public String getMessage() {
-			// TODO Auto-generated method stub
-			return null;
+			return getAttribute(MESSAGE_ATTR);
 		}
 
 		public ISrcRef getSrcRef() {
-			// TODO Auto-generated method stub
-			return null;
+			throw new UnsupportedOperationException();
 		}
 
 		public String getType() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		public boolean isConsistent() {
-			// TODO Auto-generated method stub
-			return false;
+			return getAttribute(TYPE_ATTR);
 		}
 
 		public boolean isInstance(Class<?> type) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		public boolean proofUsesRedDot() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		public boolean provedConsistent() {
-			// TODO Auto-generated method stub
-			return false;
+			final String thisTypeName = getType();
+			final Class<?> thisType = SeaSnapshot.classMap.get(thisTypeName);
+			return type.isAssignableFrom(thisType);		
 		}
 
 		public boolean requestTopLevel() {
+			throw new UnsupportedOperationException();
+		}
+
+		public boolean hasMatchingDeponents(IDropPredicate p) {
+			for(Info i : deponents) {
+				if (p.match(i)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+	
+	static class ProofInfo extends Info implements IProofDropInfo {
+		/**
+		 * Only for ResultDrops
+		 */
+		final List<ProofInfo> checkedPromises;
+		final List<ProofInfo> trustedPromises;
+		final MultiMap<String,Info> orTrustedPromises;
+		
+		void addCheckedPromise(ProofInfo info) {
+			checkedPromises.add(info);
+		}
+		
+		void addTrustedPromise(ProofInfo info) {
+			trustedPromises.add(info);
+		}
+		
+		void addOrTrustedPromise(String label, Info info) {
+			orTrustedPromises.put(label, info);
+		}
+		
+		ProofInfo(String name, Attributes a) {
+			super(name, a);
+			
+			if (isInstance(ResultDrop.class)) {
+				checkedPromises = new ArrayList<ProofInfo>();
+				trustedPromises = new ArrayList<ProofInfo>();
+				orTrustedPromises = new MultiHashMap<String, Info>();
+			} else {
+				checkedPromises = Collections.emptyList();
+				trustedPromises = Collections.emptyList();
+				orTrustedPromises = null;
+			}
+		}
+
+
+		public Collection<? extends IProofDropInfo> getChecks() {
+			return checkedPromises;
+		}
+
+		public Collection<? extends IProofDropInfo> getTrusts() {
+			return trustedPromises;
+		}
+		
+		public boolean isConsistent() {
+			throw new UnsupportedOperationException();
+		}
+
+		public boolean proofUsesRedDot() {
+			throw new UnsupportedOperationException();
+		}
+
+		public boolean provedConsistent() {
+			throw new UnsupportedOperationException();
+		}
+
+		public boolean isFromSrc() {
 			// TODO Auto-generated method stub
 			return false;
-		}		
+		}
+		
 	}
 }

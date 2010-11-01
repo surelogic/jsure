@@ -25,6 +25,9 @@ public final class DropPredicateFactory {
 				public boolean match(Drop d) {
 					return dropClass.isInstance(d);
 				}
+				public boolean match(IDropInfo d) {
+					return d.isInstance(dropClass);
+				}
 			};
 			f_type.put(dropClass, result);
 		}
@@ -50,6 +53,9 @@ public final class DropPredicateFactory {
 			result = new DropPredicate() {
 				public boolean match(Drop d) {
 					return d.getClass().equals(dropClass);
+				}
+				public boolean match(IDropInfo d) {
+					throw new UnsupportedOperationException();
 				}
 			};
 			f_exactType.put(dropClass, result);

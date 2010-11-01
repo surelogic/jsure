@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import java.util.Collection;
+
 import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
@@ -9,7 +11,7 @@ import edu.cmu.cs.fluid.sea.xml.*;
  *   edu.cmu.cs.fluid.sea.PromiseDrop,
  *   edu.cmu.cs.fluid.sea.ResultDrop
  */
-public abstract class ProofDrop extends IRReferenceDrop {
+public abstract class ProofDrop extends IRReferenceDrop implements IProofDropInfo {
 
   /**
    * Records if this element is able to be proved consistent with regards
@@ -43,6 +45,22 @@ public abstract class ProofDrop extends IRReferenceDrop {
    */
   public boolean proofUsesRedDot() {
     return proofUsesRedDot;
+  }
+  
+  public boolean isConsistent() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
+
+  public Collection<? extends IProofDropInfo> getTrusts() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");  
+  }
+  
+  public Collection<? extends IProofDropInfo> getChecks() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
+  
+  public boolean isFromSrc() {
+	  throw new UnsupportedOperationException("Not a PromiseDrop");
   }
   
   @Override

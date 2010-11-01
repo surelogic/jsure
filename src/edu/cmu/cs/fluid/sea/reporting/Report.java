@@ -85,7 +85,7 @@ public class Report {
     }    
     */
     final Set<Drop> drops = new HashSet<Drop>();
-    final DropPredicate pred = new DropPredicate() {
+    final DropPredicate pred = new AbstractDropPredicate() {
       /* Used to catch every drop that gets added, so we
        * can get its dependents
        */
@@ -117,7 +117,7 @@ public class Report {
   }
     
   public static Set<Drop> getAssociatedDrops(final Set<Drop> drops, final Drop startDrop) {  
-    final DropPredicate pred = new DropPredicate() {
+    final DropPredicate pred = new AbstractDropPredicate() {
       /* Used to catch every drop that gets added, so we
        * can get its dependents
        */

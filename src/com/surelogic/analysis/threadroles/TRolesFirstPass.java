@@ -48,6 +48,7 @@ import edu.cmu.cs.fluid.java.operator.NestedInterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
@@ -222,7 +223,7 @@ private static int cuCount = 0;
       }
     }
     
-    private DropPredicate tRoleDeclPred = new DropPredicate() {
+    private DropPredicate tRoleDeclPred = new AbstractDropPredicate() {
 
       public boolean match(Drop d) {
         return d instanceof TRoleDeclareDrop;

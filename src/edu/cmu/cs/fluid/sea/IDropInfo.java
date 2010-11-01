@@ -8,12 +8,13 @@ public interface IDropInfo {
 	String getType();
 	boolean isInstance(Class<?> type);
 	String getMessage();
-
+	boolean isValid();
+	
 	boolean requestTopLevel();
 	int count();
 	Category getCategory();	
+	void setCategory(Category c);
 	ISrcRef getSrcRef();
-	boolean provedConsistent();
-	boolean proofUsesRedDot();
-	boolean isConsistent();
+	
+	boolean hasMatchingDeponents(IDropPredicate p);
 }

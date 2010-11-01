@@ -261,6 +261,10 @@ public abstract class Drop implements IDropInfo {
 	final public boolean hasMatchingDeponents(DropPredicate pred) {
 		return Sea.hasMatchingDrops(pred, deponents);
 	}
+	
+	public final boolean hasMatchingDeponents(IDropPredicate pred) {
+		return Sea.hasMatchingDrops((DropPredicate) pred, deponents);
+	}
 
 	/**
 	 * Indicates if this drop has any deponent drops.
@@ -591,19 +595,11 @@ public abstract class Drop implements IDropInfo {
 		throw new UnsupportedOperationException();
 	}
 	
+	public void setCategory(Category c) {
+		throw new UnsupportedOperationException();
+	}
+	
 	public ISrcRef getSrcRef() {
-		throw new UnsupportedOperationException();
-	}
-	
-	public boolean provedConsistent() {
-		throw new UnsupportedOperationException();
-	}
-	
-	public boolean proofUsesRedDot() {
-		throw new UnsupportedOperationException();
-	}
-	
-	public boolean isConsistent() {
 		throw new UnsupportedOperationException();
 	}
 }

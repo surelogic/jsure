@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -412,7 +413,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
     
   }
   
-  private static DropPredicate definingDropPred = new DropPredicate() {
+  private static DropPredicate definingDropPred = new AbstractDropPredicate() {
     public boolean match(Drop d) {
       return (d.isValid()) &&
         d instanceof CUDrop ||

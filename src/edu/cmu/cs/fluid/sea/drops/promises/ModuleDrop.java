@@ -27,6 +27,7 @@ import edu.cmu.cs.fluid.java.promise.EnclosingModule;
 import edu.cmu.cs.fluid.java.promise.Module;
 import edu.cmu.cs.fluid.java.promise.Modules;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
@@ -349,7 +350,7 @@ public class ModuleDrop extends PromiseDrop {
     
   }
   
-  private static DropPredicate definingDropPred = new DropPredicate() {
+  private static DropPredicate definingDropPred = new AbstractDropPredicate() {
     public boolean match(Drop d) {
       return (d.isValid()) &&
         d instanceof CUDrop ||

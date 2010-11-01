@@ -22,6 +22,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicate;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
@@ -160,7 +161,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 				|| NewRegionDeclaration.prototype.includes(n);
 	}
 
-	private static DropPredicate definingDropPred = new DropPredicate() {
+	private static DropPredicate definingDropPred = new AbstractDropPredicate() {
 		public boolean match(Drop d) {
 			return d instanceof InRegionPromiseDrop
 			// || d instanceof RegionDeclarationDrop
