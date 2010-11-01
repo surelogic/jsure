@@ -2,6 +2,8 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.Collection;
 
+import com.surelogic.jsure.xml.AbstractXMLReader;
+
 import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
@@ -119,8 +121,8 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDropInf
   @Override
   public void snapshotAttrs(AbstractSeaXmlCreator s) {
 	  super.snapshotAttrs(s);
-	  s.addAttribute("used-red-dot", proofUsesRedDot());
-	  s.addAttribute("proved-consistent", provedConsistent());
+	  s.addAttribute(AbstractXMLReader.USES_RED_DOT_ATTR, proofUsesRedDot());
+	  s.addAttribute(AbstractXMLReader.PROVED_ATTR, provedConsistent());
 	  //System.out.println(getMessage()+" proved consistent: "+provedConsistent());
   }
 }
