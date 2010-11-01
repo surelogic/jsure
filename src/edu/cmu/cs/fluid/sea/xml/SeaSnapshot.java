@@ -15,6 +15,7 @@ import com.surelogic.jsure.xml.*;
 import static com.surelogic.jsure.xml.JSureXMLReader.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
 
@@ -226,7 +227,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	public static class Info extends Entity implements IDropInfo {
 		final List<Info> dependents = new ArrayList<Info>();
 		final List<Info> deponents  = new ArrayList<Info>();
+		final ISrcRef ref;
+		final List<ISupportingInformation> supportingInfos;
 		Category category;
+
 		
 		void addDeponent(Info info) {
 			deponents.add(info);
@@ -282,6 +286,87 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				return true;
 			}			
 			*/
+			if (getSource() != null) {
+				ref = makeSrcRef(getSource());
+			} else {
+				ref = null;
+			}
+			if (!getInfos().isEmpty()) {
+				supportingInfos = new ArrayList<ISupportingInformation>();
+				for(com.surelogic.jsure.xml.Info i : getInfos()) {
+					supportingInfos.add(makeSupportingInfo(i));
+				}
+			} else {
+				supportingInfos = Collections.emptyList();
+			}
+		}
+		
+		private ISupportingInformation makeSupportingInfo(final com.surelogic.jsure.xml.Info i) {
+			return new ISupportingInformation() {
+				final ISrcRef ref = makeSrcRef(i.source);
+				
+				public IRNode getLocation() {
+					return null;
+				}
+				public String getMessage() {
+					return i.message;
+				}
+				public ISrcRef getSrcRef() {
+					return ref;
+				}
+				public boolean sameAs(IRNode link, int num, Object[] args) {
+					throw new UnsupportedOperationException();
+				}
+				public boolean sameAs(IRNode link, String message) {
+					throw new UnsupportedOperationException();
+				}
+				
+			};
+		}
+
+		private static ISrcRef makeSrcRef(final SourceRef ref) {
+			final int line = Integer.valueOf(ref.getLine());
+			return new AbstractSrcRef() {
+				@Override
+				public ISrcRef createSrcRef(int offset) {
+					return this;
+				}
+
+				public String getCUName() {
+					return ref.getAttribute(CUNIT_ATTR);
+				}
+				@Override
+				public Object getEnclosingFile() {
+					return ref.getAttribute(FILE_ATTR);
+				}
+				@Override
+				public int getOffset() {
+					String offset = ref.getAttribute(OFFSET_ATTR);
+					if (offset == null) {
+						throw new UnsupportedOperationException();
+					} else {
+						return Integer.valueOf(offset);
+					}
+				}
+				
+				public Long getHash() {
+					String hash = ref.getAttribute(HASH_ATTR);
+					if (hash == null) {
+						throw new UnsupportedOperationException();
+					} else {
+						return Long.valueOf(hash);
+					}
+				}
+
+				@Override
+				public int getLineNumber() {
+					return line;
+				}
+
+				public String getPackage() {
+					return ref.getAttribute(PKG_ATTR);
+				}				
+			};
 		}
 		
 		/*
@@ -341,8 +426,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 
 		public ISrcRef getSrcRef() {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
+			return ref;		
 		}
 
 		public String getType() {
@@ -383,8 +467,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 
 		public Collection<ISupportingInformation> getSupportingInformation() {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
+			return supportingInfos;
 		}
 	}
 	
