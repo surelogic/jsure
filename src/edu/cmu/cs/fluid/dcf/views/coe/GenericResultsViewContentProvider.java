@@ -254,13 +254,13 @@ extends	AbstractResultsViewContentProvider {
 			categoryFolder.freezeCount();
 
 			// image (try to show proof status if it makes sense)
-			Set<IDropInfo> proofDrops = new HashSet<IDropInfo>();
+			Set<IProofDropInfo> proofDrops = new HashSet<IProofDropInfo>();
 			Set<IDropInfo> warningDrops = new HashSet<IDropInfo>();
 			Set<IDropInfo> infoDrops = new HashSet<IDropInfo>();
 
 			for (C item : categoryFolder.children()) {
 				if (item.getDropInfo().isInstance(ProofDrop.class)) {
-					proofDrops.add(item.getDropInfo());
+					proofDrops.add((IProofDropInfo) item.getDropInfo());
 				} else if (item.getDropInfo().isInstance(InfoDrop.class)) {
 					infoDrops.add(item.getDropInfo());
 					if (item.getDropInfo().isInstance(WarningDrop.class)) {
@@ -282,7 +282,7 @@ extends	AbstractResultsViewContentProvider {
 				boolean choiceConsistent = true;
 				boolean choiceUsesRedDot = false;
 				boolean localConsistent = true;
-				for (IDropInfo proofDrop : proofDrops) {	
+				for (IProofDropInfo proofDrop : proofDrops) {	
 					choiceConsistent &= proofDrop.provedConsistent();
 					if (proofDrop.isInstance(ResultDrop.class)) {
 						localConsistent &= proofDrop.isConsistent();
@@ -470,8 +470,8 @@ extends	AbstractResultsViewContentProvider {
 		boolean consistent = true;
 		boolean hasRedDot = false;
 		for (C node : c.children()) {
-			IDropInfo d = node.getDropInfo();
-			if (d.isInstance(ProofDrop.class)) {
+			if (node.getDropInfo() instanceof IProofDropInfo) {
+				IProofDropInfo d = (IProofDropInfo) node.getDropInfo();
 				hasAResult = true;
 				consistent = consistent && d.provedConsistent();
 				hasRedDot = hasRedDot || d.proofUsesRedDot();
@@ -765,18 +765,59 @@ extends	AbstractResultsViewContentProvider {
 		}
 	}
 
-	/**
-	 * Promise/InfoDrops
-	 */
-	protected abstract void buildModelFromDrops(Collection<C> root);
-	protected abstract void buildModelForResultDrops(Collection<C> root);
-	protected abstract boolean dropsExist(Class<? extends Drop> type);
+	private static DropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
+
+	private static DropPredicate scopedPromisePred = 
+		DropPredicateFactory.matchType(PromisePromiseDrop.class);
 	
+	/**
+	 * Matches non-@Promise PromiseDrops
+	 */
+	private static DropPredicate predicate = new DropPredicate() {
+		public boolean match(IDropInfo d) {
+			return promisePred.match(d) && !scopedPromisePred.match(d);
+		}
+		public boolean match(Drop d) {
+			return promisePred.match(d) && !scopedPromisePred.match(d);
+		}
+	};
+	
+	protected abstract boolean dropsExist(Class<? extends Drop> type);
+	protected abstract <R extends IDropInfo> 
+	Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType);
+	
+	@SuppressWarnings("unchecked")
 	private IResultsViewContentProvider buildModelOfDropSea_internal() {
 		// show at the viewer root
 		Collection<C> root = new HashSet<C>();
 
-		buildModelFromDrops(root);
+		final Collection<IProofDropInfo> promiseDrops = 
+			getDropsOfType(PromiseDrop.class, IProofDropInfo.class);
+		for (IProofDropInfo pd : promiseDrops) {
+			if (pd.isFromSrc()) {
+				// System.out.println("Considering: "+pd.getMessage());
+				if (!pd.hasMatchingDeponents(predicate) || shouldBeTopLevel(pd)) {
+					root.add(encloseDrop((T) pd));
+				} else {
+					// System.out.println("Rejected: "+pd.getMessage());
+				}
+			}
+		}
+
+		final Collection<IDropInfo> infoDrops = 
+			getDropsOfType(InfoDrop.class, IDropInfo.class);
+		if (!infoDrops.isEmpty()) {
+			final String msg = "Suggestions and warnings";
+			C infoFolder = makeContent(msg);
+			infoFolder.setCount(infoDrops.size());
+
+			for (IDropInfo id : infoDrops) {
+				infoFolder.addChild(encloseDrop((T) id));
+			}
+			infoFolder.setBaseImageName(CommonImages.IMG_INFO);
+			infoFolder.f_isInfo = true;
+			root.add(infoFolder);
+		}
 
 		if (dropsExist(PromiseWarningDrop.class)) {
 			/*
@@ -814,7 +855,19 @@ extends	AbstractResultsViewContentProvider {
 			}
 		}
 
-		buildModelForResultDrops(root);
+		final Collection<IProofDropInfo> resultDrops = 
+			getDropsOfType(ResultDrop.class, IProofDropInfo.class);
+		for (IProofDropInfo id : resultDrops) {
+			// only show result drops at the main level if they are not attached
+			// to a promise drop or a result drop
+			if (id.isValid()
+					&& ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
+				if (id.getCategory() == null) {
+					id.setCategory(Category.getInstance("unparented drops"));
+				}
+				root.add(encloseDrop((T) id));
+			}
+		}
 		
 		root = categorize(root);
 		root = packageTypeFolderize(root);

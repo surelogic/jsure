@@ -8,8 +8,6 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.xml.results.coe.CoE_Constants;
 
 import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
-
 
 public class ResultsViewContentProvider 
 extends GenericResultsViewContentProvider<Drop,Content> {
@@ -355,86 +353,18 @@ extends GenericResultsViewContentProvider<Drop,Content> {
 		}
 	}
 
-
-
-
-
-
-
-	private static DropPredicate promisePred = DropPredicateFactory
-			.matchType(PromiseDrop.class);
-
-	private static DropPredicate scopedPromisePred = DropPredicateFactory
-			.matchType(PromisePromiseDrop.class);
-
-	/**
-	 * Matches non-@Promise PromiseDrops
-	 */
-	private static DropPredicate predicate = new DropPredicate() {
-		public boolean match(Drop d) {
-			return promisePred.match(d) && !scopedPromisePred.match(d);
-		}
-	};
-
-	@Override
-	protected void buildModelForResultDrops(Collection<Content> root) {
-		final Set<ResultDrop> resultDrops = Sea.getDefault().getDropsOfType(
-				ResultDrop.class);
-		for (ResultDrop id : resultDrops) {
-			// only show result drops at the main level if they are not attached
-			// to a promise drop or a result drop
-			if (id.isValid()
-					&& ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
-				if (id.getCategory() == null) {
-					id.setCategory(Category.getInstance("unparented drops"));
-				}
-				root.add(encloseDrop(id));
-			}
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	protected void buildModelFromDrops(Collection<Content> root) {
-		/*
-		 * for (ModelDrop md : Sea.getDefault().getDropsOfType(ModelDrop.class))
-		 * { System.out.println("ModelDrop: "+md.getMessage()); }
-		 */
-
-		final Set<? extends PromiseDrop> promiseDrops = Sea.getDefault()
-				.getDropsOfType(PromiseDrop.class);
-		for (PromiseDrop pd : promiseDrops) {
-			if (pd.isFromSrc()) {
-				// System.out.println("Considering: "+pd.getMessage());
-				if (!pd.hasMatchingDeponents(predicate) || shouldBeTopLevel(pd)) {
-					root.add(encloseDrop(pd));
-				} else {
-					// System.out.println("Rejected: "+pd.getMessage());
-				}
-			}
-		}
-
-		final Set<? extends InfoDrop> infoDrops = Sea.getDefault()
-				.getDropsOfType(InfoDrop.class);
-		if (!infoDrops.isEmpty()) {
-			final String msg = "Suggestions and warnings";
-			Content infoFolder = new Content(msg);
-			infoFolder.setCount(infoDrops.size());
-
-			for (InfoDrop id : infoDrops) {
-				infoFolder.addChild(encloseDrop(id));
-			}
-			infoFolder.setBaseImageName(CommonImages.IMG_INFO);
-			infoFolder.f_isInfo = true;
-			root.add(infoFolder);
-		}
-	}
-
 	@Override
 	protected boolean dropsExist(Class<? extends Drop> type) {
 		return !Sea.getDefault().getDropsOfType(type).isEmpty();
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	protected <R extends IDropInfo>
+	Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
+		return (Collection<R>) Sea.getDefault().getDropsOfType(type);
+	}
+	
 	@Override
 	protected Content makeContent(String msg) {
 		return new Content(msg);
