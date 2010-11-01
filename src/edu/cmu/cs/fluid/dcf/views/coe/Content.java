@@ -49,7 +49,7 @@ public final class Content extends AbstractContent<Drop,Content> {
 	}
 
 	Content(String msg, ISrcRef ref) {
-		this(msg);
+		super(msg, ref);
 		f_sourceRef = ref;
 	}
 	

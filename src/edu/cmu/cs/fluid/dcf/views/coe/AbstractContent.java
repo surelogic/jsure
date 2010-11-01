@@ -125,6 +125,13 @@ implements Cloneable, IDiffNode<T2> {
 			f_sourceRef = drop.getSrcRef();
 		}		
 	}
+	
+	AbstractContent(String msg, ISrcRef ref) {
+		f_message = msg;
+		f_children = Collections.emptyList();
+		f_referencedDrop = null;
+		f_sourceRef = ref;	
+	}
 
 	/*
 	AbstractContent(String msg, Collection<T2> content) {
