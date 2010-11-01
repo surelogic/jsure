@@ -1,8 +1,7 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package edu.cmu.cs.fluid.sea.xml;
 
-import static com.surelogic.jsure.xml.AbstractXMLReader.FILE_ATTR;
-import static com.surelogic.jsure.xml.AbstractXMLReader.LINE_ATTR;
+import static com.surelogic.jsure.xml.AbstractXMLReader.*;
 
 import java.io.*;
 import java.net.URI;
@@ -64,6 +63,9 @@ public class AbstractSeaXmlCreator {
 	}
 	
 	protected void addLocation(ISrcRef ref) {
+		if (ref.getOffset() > 0) {
+			addAttribute(OFFSET_ATTR, (long) ref.getOffset());
+		}
 		addAttribute(LINE_ATTR, (long) ref.getLineNumber());
 		String file = ref.getRelativePath();
 		if (file == null) {
