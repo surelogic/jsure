@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.dcf.views.coe;
 
+import java.io.File;
 import java.util.*;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -18,6 +19,7 @@ import com.surelogic.xml.results.coe.CoE_Constants;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -660,10 +662,20 @@ extends	AbstractResultsViewContentProvider {
 		 *            the viewer content item to obtain the Java context for
 		 */
 		public ContentJavaContext(final C content) {
+			final IDropInfo info = content.getDropInfo();		
 			// Get reference IRNode
-			if (!(content.getDropInfo().isInstance(IRReferenceDrop.class)))
-				return;			
-			final IRNode node = content.getDropInfo().getNode();
+			if (!info.isInstance(IRReferenceDrop.class)) {
+				final ISrcRef ref = info.getSrcRef();
+				if (ref != null) {
+					packageName = ref.getPackage();
+					int lastSeparator = ref.getCUName().lastIndexOf(File.separator);
+					typeName = lastSeparator < 0 ? ref.getCUName() : ref.getCUName().substring(lastSeparator+1);					
+					return;
+				}	
+				return;
+			}
+			IRReferenceDrop ird = info.getAdapter(IRReferenceDrop.class);
+			final IRNode node = ird.getNode();
 			if (node == null) {
 				return;
 			}
