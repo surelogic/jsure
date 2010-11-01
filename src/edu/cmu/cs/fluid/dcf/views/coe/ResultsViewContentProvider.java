@@ -13,6 +13,10 @@ import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 
 public class ResultsViewContentProvider 
 extends GenericResultsViewContentProvider<Drop,Content> {
+	public ResultsViewContentProvider() {
+		super(Sea.getDefault());
+	}
+	
 	/**
 	 * Adds referenced supporting information about a drop to the mutable set of
 	 * viewer content items passed into this method.

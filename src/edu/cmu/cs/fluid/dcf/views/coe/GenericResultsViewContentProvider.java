@@ -45,6 +45,12 @@ extends	AbstractResultsViewContentProvider {
 	protected static Object[] m_lastRoot = null;
 	protected static long timeStamp = Sea.INVALIDATED;
 
+	private final Sea sea;
+	
+	GenericResultsViewContentProvider(Sea sea) {
+		this.sea = sea;
+	}
+	
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		if (newInput == null) {
 			m_root = noObjects;
@@ -741,9 +747,9 @@ extends	AbstractResultsViewContentProvider {
 	public IResultsViewContentProvider buildModelOfDropSea() {
 		synchronized (GenericResultsViewContentProvider.class) {
 			long viewTime = timeStamp;
-			long seaTime = Sea.getDefault().getTimeStamp();
+			long seaTime = sea.getTimeStamp();
 			if (seaTime == Sea.INVALIDATED) {
-				seaTime = Sea.getDefault().updateConsistencyProof();
+				seaTime = sea.updateConsistencyProof();
 			}
 
 			SLLogger.getLogger().fine(
@@ -754,7 +760,7 @@ extends	AbstractResultsViewContentProvider {
 			}
 			SLLogger.getLogger().fine("Building model of Drop-Sea");
 			IResultsViewContentProvider rv = buildModelOfDropSea_internal();
-			timeStamp = Sea.getDefault().getTimeStamp();
+			timeStamp = sea.getTimeStamp();
 			return rv;
 		}
 	}
