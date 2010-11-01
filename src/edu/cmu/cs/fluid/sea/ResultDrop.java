@@ -14,6 +14,10 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  */
 @SuppressWarnings("unchecked")
 public class ResultDrop extends ProofDrop implements IResultDrop {
+	public static final String CHECKED_PROMISE = "checked-promise";
+	public static final String TRUSTED_PROMISE = "trusted-promise";
+	public static final String OR_TRUSTED_PROMISE = "or-trusted-promise";
+	public static final String OR_LABEL = "or-label";
 
 	/**
 	 * Holds key that describes which message this result is.
@@ -379,15 +383,15 @@ public class ResultDrop extends ProofDrop implements IResultDrop {
 	public void snapshotRefs(SeaSnapshot s) {
 		super.snapshotRefs(s);
 		for (Drop c : getChecks()) {
-			s.refDrop("checked-promise", c);
+			s.refDrop(CHECKED_PROMISE, c);
 		}
 		for (Drop t : getTrusts()) {
-			s.refDrop("trusted-promise", t);
+			s.refDrop(TRUSTED_PROMISE, t);
 		}
 		if (hasOrLogic()) {
 			for (String label : get_or_TrustLabelSet()) {
 				for (Drop t : get_or_Trusts(label)) {
-					s.refDrop("or-trusted-promise", t, "label", label);
+					s.refDrop(OR_TRUSTED_PROMISE, t, OR_LABEL, label);
 				}
 			}
 		}
