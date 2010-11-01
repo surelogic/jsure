@@ -317,6 +317,12 @@ public abstract class Drop implements IDropInfo {
 		Sea.addMatchingDropsFrom(dependents, pred, drops);
 	}
 
+	final public void addMatchingDependentsTo(Set<IDropInfo> drops,	IDropPredicate pred) {
+		Set<Drop> temp = new HashSet<Drop>();
+		Sea.addMatchingDropsFrom(dependents, (DropPredicate) pred, temp);
+		drops.addAll(temp);
+	}
+	
 	/**
 	 * Invalidates, makes false, the information that this drop represents.
 	 */
@@ -600,6 +606,18 @@ public abstract class Drop implements IDropInfo {
 	}
 	
 	public ISrcRef getSrcRef() {
+		throw new UnsupportedOperationException();
+	}
+
+	public String getJavaAnnotation() {
+		throw new UnsupportedOperationException();
+	}
+
+	public Collection<? extends IDropInfo> getProposals() {
+		throw new UnsupportedOperationException();
+	}
+
+	public Collection<ISupportingInformation> getSupportingInformation() {
 		throw new UnsupportedOperationException();
 	}
 }

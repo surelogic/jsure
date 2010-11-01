@@ -346,6 +346,29 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			}
 			return false;
 		}
+
+		public void addMatchingDependentsTo(Set<IDropInfo> s, IDropPredicate p) {
+			for(Info i : dependents) {
+				if (p.match(i)) {
+					s.add(i);
+				}
+			}
+		}
+
+		public String getJavaAnnotation() {
+			// TODO Auto-generated method stub
+			throw new UnsupportedOperationException();
+		}
+
+		public Collection<? extends IDropInfo> getProposals() {
+			// TODO Auto-generated method stub
+			throw new UnsupportedOperationException();
+		}
+
+		public Collection<ISupportingInformation> getSupportingInformation() {
+			// TODO Auto-generated method stub
+			throw new UnsupportedOperationException();
+		}
 	}
 	
 	static class ProofInfo extends Info implements IProofDropInfo {
@@ -354,7 +377,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		 */
 		final List<ProofInfo> checkedPromises;
 		final List<ProofInfo> trustedPromises;
-		final MultiMap<String,Info> orTrustedPromises;
+		final MultiMap<String,ProofInfo> orTrustedPromises;
 		
 		void addCheckedPromise(ProofInfo info) {
 			checkedPromises.add(info);
@@ -364,7 +387,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			trustedPromises.add(info);
 		}
 		
-		void addOrTrustedPromise(String label, Info info) {
+		void addOrTrustedPromise(String label, ProofInfo info) {
 			orTrustedPromises.put(label, info);
 		}
 		
@@ -374,7 +397,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			if (isInstance(ResultDrop.class)) {
 				checkedPromises = new ArrayList<ProofInfo>();
 				trustedPromises = new ArrayList<ProofInfo>();
-				orTrustedPromises = new MultiHashMap<String, Info>();
+				orTrustedPromises = new MultiHashMap<String, ProofInfo>();
 			} else {
 				checkedPromises = Collections.emptyList();
 				trustedPromises = Collections.emptyList();
@@ -407,6 +430,62 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			// TODO Auto-generated method stub
 			return false;
 		}
-		
+
+		public Collection<? extends IProofDropInfo> getCheckedBy() {
+			throw new UnsupportedOperationException();
+		}
+
+		public Collection<? extends IProofDropInfo> getTrustsComplete() {
+			Collection<ProofInfo> rv = new HashSet<ProofInfo>(trustedPromises);
+			rv.addAll(orTrustedPromises.values());
+			return rv;
+		}
+
+		public Collection<String> get_or_TrustLabelSet() {
+			return orTrustedPromises.keySet();
+		}
+
+		public Collection<? extends IProofDropInfo> get_or_Trusts(String key) {
+			return orTrustedPromises.get(key);
+		}
+
+		public boolean get_or_proofUsesRedDot() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		public boolean get_or_provedConsistent() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		public boolean hasOrLogic() {
+			return orTrustedPromises != null && !orTrustedPromises.isEmpty();
+		}
+
+		public boolean isAssumed() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		public boolean isCheckedByAnalysis() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		public boolean isIntendedToBeCheckedByAnalysis() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		public boolean isVirtual() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		public boolean isVouched() {
+			// TODO Auto-generated method stub
+			return false;
+		}
 	}
 }

@@ -62,6 +62,54 @@ public abstract class ProofDrop extends IRReferenceDrop implements IProofDropInf
   public boolean isFromSrc() {
 	  throw new UnsupportedOperationException("Not a PromiseDrop");
   }
+
+  public Collection<? extends IProofDropInfo> getCheckedBy() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
+
+  public Collection<? extends IProofDropInfo> getTrustsComplete() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
+
+  public Collection<String> get_or_TrustLabelSet() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
+
+  public Collection<? extends IProofDropInfo> get_or_Trusts(String key) {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
+
+  public boolean get_or_proofUsesRedDot() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
+
+  public boolean get_or_provedConsistent() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
+
+  public boolean hasOrLogic() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
+
+  public boolean isAssumed() {
+	  throw new UnsupportedOperationException("Not a PromiseDrop");
+  }
+
+  public boolean isCheckedByAnalysis() {
+	  throw new UnsupportedOperationException("Not a PromiseDrop");
+  }
+
+  public boolean isIntendedToBeCheckedByAnalysis() {
+	  throw new UnsupportedOperationException("Not a PromiseDrop");
+  }
+
+  public boolean isVirtual() {
+	  throw new UnsupportedOperationException("Not a PromiseDrop");
+  }
+
+  public boolean isVouched() {
+	  throw new UnsupportedOperationException("Not a ResultDrop");
+  }
   
   @Override
   public String getEntityName() {

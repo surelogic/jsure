@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
+import java.util.*;
+
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Category;
 
@@ -9,12 +11,17 @@ public interface IDropInfo {
 	boolean isInstance(Class<?> type);
 	String getMessage();
 	boolean isValid();
+	boolean hasMatchingDeponents(IDropPredicate p);
+	void addMatchingDependentsTo(Set<IDropInfo> s, IDropPredicate p);
 	
 	boolean requestTopLevel();
 	int count();
+	
+	ISrcRef getSrcRef();
 	Category getCategory();	
 	void setCategory(Category c);
-	ISrcRef getSrcRef();
+	Collection<ISupportingInformation> getSupportingInformation();
+	Collection<? extends IDropInfo> getProposals();
 	
-	boolean hasMatchingDeponents(IDropPredicate p);
+	String getJavaAnnotation();
 }

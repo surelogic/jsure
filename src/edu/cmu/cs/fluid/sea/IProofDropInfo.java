@@ -6,8 +6,23 @@ import java.util.*;
 public interface IProofDropInfo extends IDropInfo {
 	boolean provedConsistent();
 	boolean proofUsesRedDot();
+
+	boolean isFromSrc();
+	boolean isIntendedToBeCheckedByAnalysis();
 	boolean isConsistent();
+	boolean isCheckedByAnalysis();
+	boolean isAssumed();
+	boolean isVirtual();
+	
+	boolean isVouched();
 	Collection<? extends IProofDropInfo> getTrusts();
 	Collection<? extends IProofDropInfo> getChecks();
-	boolean isFromSrc();
+	boolean hasOrLogic();
+	Collection<String> get_or_TrustLabelSet();
+	boolean get_or_proofUsesRedDot();
+	boolean get_or_provedConsistent();
+	Collection<? extends IProofDropInfo> get_or_Trusts(String key);
+	Collection<? extends IProofDropInfo> getCheckedBy();
+	Collection<? extends IProofDropInfo> getTrustsComplete();
+
 }
