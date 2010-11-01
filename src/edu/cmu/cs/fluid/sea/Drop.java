@@ -563,8 +563,11 @@ public abstract class Drop implements IDropInfo {
 	}
 	
 	/****************************************************************/
-
+	@SuppressWarnings("unchecked")
 	public <T> T getAdapter(Class<T> type) {
+		if (type.isInstance(this)) {
+			return (T) this;
+		}
 		throw new UnsupportedOperationException();
 	}
 	
@@ -585,10 +588,6 @@ public abstract class Drop implements IDropInfo {
 	}
 	
 	public Category getCategory() {
-		throw new UnsupportedOperationException();
-	}
-	
-	public IRNode getNode() {
 		throw new UnsupportedOperationException();
 	}
 	

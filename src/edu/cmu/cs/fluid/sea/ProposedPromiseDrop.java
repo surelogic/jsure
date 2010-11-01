@@ -235,13 +235,4 @@ implements IResultDrop {
 		}
 		return result;
 	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T getAdapter(Class<T> type) {
-		if (type == getClass()) {
-			return (T) this;
-		}
-		return super.getAdapter(type);
-	}
 }
