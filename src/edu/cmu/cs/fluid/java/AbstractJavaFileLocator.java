@@ -339,6 +339,10 @@ public abstract class AbstractJavaFileLocator<T,P> implements IJavaFileLocator<T
 		return null;
 	}
 
+	public Entity makeEntity(String name, Attributes a) {
+		return new Entity(name, a);
+	}
+	  
 	public void start(String uid, String project) {
 		// Nothing to do
 	}

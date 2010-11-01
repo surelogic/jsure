@@ -8,6 +8,8 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
 
+import org.xml.sax.Attributes;
+
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
@@ -296,6 +298,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		final List<Entity> drops = new ArrayList<Entity>();
 		String project;
 		Date time;
+		
+		public Entity makeEntity(String name, Attributes a) {
+			return new Entity(name, a);
+		}
 		
 		public void start(String time, String project) {
 			try {
