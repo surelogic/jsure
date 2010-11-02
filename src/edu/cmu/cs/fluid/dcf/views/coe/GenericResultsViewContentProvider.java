@@ -997,18 +997,18 @@ extends	AbstractResultsViewContentProvider {
 		 */
 		public ContentJavaContext(final C content) {
 			final IDropInfo info = content.getDropInfo();		
-			// Get reference IRNode
-			if (!info.isInstance(IRReferenceDrop.class)) {
+			final IRReferenceDrop ird = info.getAdapter(IRReferenceDrop.class);
+			if (ird == null) {
 				final ISrcRef ref = info.getSrcRef();
 				if (ref != null) {
 					packageName = ref.getPackage();
 					int lastSeparator = ref.getCUName().lastIndexOf(File.separator);
-					typeName = lastSeparator < 0 ? ref.getCUName() : ref.getCUName().substring(lastSeparator+1);					
-					return;
+					typeName = lastSeparator < 0 ? ref.getCUName() : ref.getCUName().substring(lastSeparator+1);									
+					complete = true;
 				}	
 				return;
 			}
-			IRReferenceDrop ird = info.getAdapter(IRReferenceDrop.class);
+			// Get reference IRNode
 			final IRNode node = ird.getNode();
 			if (node == null) {
 				return;
