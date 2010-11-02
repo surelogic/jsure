@@ -62,7 +62,8 @@ public class PersistentResultsView extends ResultsView {
 	  if (location != null && location.exists()) {
 		  try {
 			  dropInfo = SeaSnapshot.loadSnapshot(location);
-			  f_contentProvider.buildModelOfDropSea();
+			  // TODO restore viewer state?
+			  provider.buildModelOfDropSea_internal();
 			  setViewerVisibility(true);
 			  System.out.println("Loaded snapshot");
 		  } catch (Exception e) {
@@ -72,21 +73,36 @@ public class PersistentResultsView extends ResultsView {
 	  }
   }
   
+  GenericResultsViewContentProvider<Info,Content> provider;
+  
   @Override
   protected IResultsViewContentProvider makeContentProvider() {
-	  return new GenericResultsViewContentProvider<Info,Content>(sea) {		  	
+	  return new GenericResultsViewContentProvider<Info,Content>(sea) {		
+		{
+			provider = this;
+		}
 		@Override
     	public IResultsViewContentProvider buildModelOfDropSea() {
     		try {      		
-        		// Persist the Sea, and then load the info
-    			if (dropInfo == null) {
-    				new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
+        		// Persist the Sea, and then load the info    
+    			new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
+    			// TODO save viewer state?
+    			saveViewState();
+    			if (location != null && location.exists() && location.length() > 0) {
+    				dropInfo = SeaSnapshot.loadSnapshot(location);
     			}
-    			dropInfo = SeaSnapshot.loadSnapshot(location);
     		} catch (Exception e) {
     			dropInfo = Collections.emptyList();
     		}
-    		return super.buildModelOfDropSea_internal();
+    		try {
+    			return super.buildModelOfDropSea_internal();
+    		} finally {
+    			f_viewerbook.getDisplay().asyncExec(new Runnable() {
+    				public void run() {
+    					restoreViewState();
+    				}
+    			});
+    		}
     	}
     	
 		@Override

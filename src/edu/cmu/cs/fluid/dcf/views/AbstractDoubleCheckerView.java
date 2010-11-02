@@ -413,7 +413,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	private final LinkedList<String> f_selectionPath = new LinkedList<String>();
 
-	private void saveViewState() {
+	protected final void saveViewState() {
 		if (treeViewer != null) {
 			f_stringPaths.clear();
 			final TreePath[] treePaths = treeViewer.getExpandedTreePaths();
@@ -442,7 +442,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		}
 	}
 
-	private void restoreViewState() {
+	protected final void restoreViewState() {
 		final IContentProvider cp = viewer.getContentProvider();
 		if (cp instanceof ITreeContentProvider) {
 			/*
