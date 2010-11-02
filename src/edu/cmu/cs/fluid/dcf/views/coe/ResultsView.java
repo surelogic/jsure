@@ -385,7 +385,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
   protected void fillContextMenu(final IMenuManager manager,
       final IStructuredSelection s) {
     if (!s.isEmpty()) {
-      final Content c = (Content) s.getFirstElement();
+      final AbstractContent c = (AbstractContent) s.getFirstElement();
       if (c.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
         manager.add(f_addPromiseToCode);
         f_addPromiseToCode.setText(I18N
@@ -404,7 +404,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
     manager.add(f_actionExpand);
     manager.add(f_actionCollapse);
     if (!s.isEmpty()) {
-      final Content c = (Content) s.getFirstElement();
+      final AbstractContent c = (AbstractContent) s.getFirstElement();
       if (c.cloneOf != null) {
         manager.add(f_actionLinkToOriginal);
       }
@@ -415,7 +415,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
       manager.add(new Separator());
       manager.add(f_actionShowUnderlyingDropType);
       if (!s.isEmpty()) {
-        final Content c = (Content) s.getFirstElement();
+        final AbstractContent c = (AbstractContent) s.getFirstElement();
         final IDropInfo d = c.getDropInfo();
         if (d != null) {
           f_actionShowUnderlyingDropType.setText("Type: "
