@@ -1,23 +1,94 @@
 package edu.cmu.cs.fluid.dcf.views.coe;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
+
+import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
+import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 public class PersistentResultsView extends ResultsView {
+  private static final String NAME = "snapshot"+SeaSnapshot.SUFFIX;
+  
   /**
-   * Mainly used to store ProposedPromiseDrops?
+   * TODO Mainly used to store ProposedPromiseDrops?
    * (can this really operate w/o the IRNodes?)
    */
-  final Sea sea = new Sea();
-
-  Collection<Info> dropInfo = null;
+  final Sea sea = Sea.getDefault();//new Sea();
+  
+  final File location;
+  Collection<Info> dropInfo = Collections.emptyList();
+	
+  public PersistentResultsView() {
+	  File location = null;
+	  try {
+		  final File jsureData = PreferenceConstants.getJSureDataDirectory();
+		  if (jsureData != null) {
+			  location = new File(jsureData, NAME);
+		  } else {
+			  location = File.createTempFile("snapshot", SeaSnapshot.SUFFIX);
+		  }   
+	  } catch(IOException e) {
+		  // Nothing to do
+	  }
+	  this.location = location;
+  }
+  
+  @Override
+  public void analysisStarting() {
+	  if (location == null || !location.exists()) {
+		  super.analysisStarting();
+	  }
+	  // Ignore this, so we can continue to look at the old results
+  }
+  
+  @Override 
+  public void seaChanged() {
+	  if (location == null || !location.exists()) {
+		  super.seaChanged();
+	  } else { 
+		  // load it up
+		  finishCreatePartControl();
+	  }
+  }
+  
+  @Override
+  protected void finishCreatePartControl() {
+	  if (location != null && location.exists()) {
+		  try {
+			  dropInfo = SeaSnapshot.loadSnapshot(location);
+			  f_contentProvider.buildModelOfDropSea();
+			  setViewerVisibility(true);
+			  System.out.println("Loaded snapshot");
+		  } catch (Exception e) {
+			  e.printStackTrace();
+			  dropInfo = Collections.emptyList();
+		  }
+	  }
+  }
   
   @Override
   protected IResultsViewContentProvider makeContentProvider() {
-    return new GenericResultsViewContentProvider<Info,Content>(sea) {		
+	  return new GenericResultsViewContentProvider<Info,Content>(sea) {		  	
+		@Override
+    	public IResultsViewContentProvider buildModelOfDropSea() {
+    		try {      		
+        		// Persist the Sea, and then load the info
+    			if (dropInfo == null) {
+    				new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
+    			}
+    			dropInfo = SeaSnapshot.loadSnapshot(location);
+    		} catch (Exception e) {
+    			dropInfo = Collections.emptyList();
+    		}
+    		return super.buildModelOfDropSea_internal();
+    	}
+    	
 		@Override
 		protected boolean dropsExist(Class<? extends Drop> type) {
 			for(Info i : dropInfo) {
