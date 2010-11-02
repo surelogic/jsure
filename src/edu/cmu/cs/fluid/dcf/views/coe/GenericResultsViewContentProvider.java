@@ -132,7 +132,7 @@ extends	AbstractResultsViewContentProvider {
 	 *            the set of drops to enclose and add to the content set
 	 */
 	protected void addDrops(C mutableContentSet,
-			Set<? extends T> dropsToAdd) {
+			Collection<? extends T> dropsToAdd) {
 		for (T drop : dropsToAdd) {
 			mutableContentSet.addChild(encloseDrop(drop));
 		}
@@ -403,10 +403,10 @@ extends	AbstractResultsViewContentProvider {
 						DropPredicateFactory.matchType(PromiseDrop.class));
 				promiseDrop.addMatchingDependentsTo(matching,
 						DropPredicateFactory.matchType(InfoDrop.class));
-				addDrops(result, (Set<? extends T>) matching);
-				addDrops(result, (Set<? extends T>) promiseDrop.getCheckedBy());
+				addDrops(result, (Collection<? extends T>) matching);
+				addDrops(result, (Collection<? extends T>) promiseDrop.getCheckedBy());
 
-			} else if (drop instanceof ResultDrop) {
+			} else if (drop.isInstance(ResultDrop.class)) {
 
 				/*
 				 * RESULT DROP
@@ -435,39 +435,35 @@ extends	AbstractResultsViewContentProvider {
 				add_or_TrustedPromises(result, resultDrop);
 				add_and_TrustedPromises(result, resultDrop);
 
-			} else if (drop instanceof InfoDrop) {
+			} else if (drop.isInstance(InfoDrop.class)) {
 
 				/*
 				 * INFO DROP
 				 */
 
-				InfoDrop infoDrop = (InfoDrop) drop;
-
 				// image
 				result
-				.setBaseImageName(drop instanceof WarningDrop ? CommonImages.IMG_WARNING
+				.setBaseImageName(drop.isInstance(WarningDrop.class) ? CommonImages.IMG_WARNING
 						: CommonImages.IMG_INFO);
 
 				// children
-				addSupportingInformation(result, infoDrop);
-				addProposedPromises(result, infoDrop);
+				addSupportingInformation(result, drop);
+				addProposedPromises(result, drop);
 
 				result.f_isInfo = true;
-				result.f_isInfoWarning = drop instanceof WarningDrop;
+				result.f_isInfoWarning = drop.isInstance(WarningDrop.class);
 
-			} else if (drop instanceof PromiseWarningDrop) {
+			} else if (drop.isInstance(PromiseWarningDrop.class)) {
 
 				/*
 				 * PROMISE WARNING DROP
 				 */
 
-				PromiseWarningDrop promiseWarningDrop = (PromiseWarningDrop) drop;
-
 				// image
 				result.setBaseImageName(CommonImages.IMG_WARNING);
 
 				// children
-				addSupportingInformation(result, promiseWarningDrop);
+				addSupportingInformation(result, drop);
 				result.f_isPromiseWarning = true;
 			} else {
 				LOG.log(Level.SEVERE,
@@ -1115,7 +1111,7 @@ extends	AbstractResultsViewContentProvider {
 	Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType);
 	
 	@SuppressWarnings("unchecked")
-	private IResultsViewContentProvider buildModelOfDropSea_internal() {
+	protected IResultsViewContentProvider buildModelOfDropSea_internal() {
 		// show at the viewer root
 		Collection<C> root = new HashSet<C>();
 
