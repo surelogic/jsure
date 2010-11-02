@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.proxy.AbstractDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -130,6 +131,10 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 	}
 	protected abstract boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor);
 	
+	public void finish(IIRAnalysisEnvironment env) {
+		// Nothing to do
+	}
+	
 	protected static Object runVersioned(AbstractRunner r) {
 		return IDE.runVersioned(r);
 	}
@@ -177,6 +182,19 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 			for(AtomicReference<T> ref : analysisRefs) {
 				ref.get().clearCaches();
 			}
+		}
+	}
+	
+	protected void reportProblem(String msg) {
+		reportProblem(msg, null);
+	}
+	
+	protected void reportProblem(String msg, IRNode context) {
+		WarningDrop d = new WarningDrop(msg);
+		if (context != null) {
+			d.setNodeAndCompilationUnitDependency(context);
+		} else {
+			// TODO what if there's no context?
 		}
 	}
 }

@@ -15,6 +15,7 @@ public interface IIRAnalysis {
 	boolean doAnalysisOnAFile(CUDrop cud, IAnalysisMonitor monitor);
 	IRNode[] analyzeEnd(IIRProject p);
 	void postAnalysis(IIRProject p);
+	void finish(IIRAnalysisEnvironment env);
 	
 	void handleBuilder(AbstractDropBuilder b);
 }
