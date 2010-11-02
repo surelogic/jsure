@@ -11,27 +11,22 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.analysis.InstanceInitializationVisitor;
-import com.surelogic.analysis.JavaSemanticsVisitor;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.callgraph.SimpleCallGraphDrop;
-import edu.cmu.cs.fluid.sea.drops.modules.ModuleModel;
-import edu.cmu.cs.fluid.sea.drops.modules.ModulePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.modules.VisibilityDrop;
+import edu.cmu.cs.fluid.sea.drops.modules.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class ModuleAnalysisAndVisitor {
+public class ModuleAnalysisAndVisitor implements IBinderClient {
   
   private static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.Modules");  //$NON-NLS-1$
   
@@ -44,7 +39,7 @@ public class ModuleAnalysisAndVisitor {
 
   ModuleAnalysisAndVisitor() {
     if (javaEntityStats) {
-      allFields = new HashSet<IRNode>();
+      allFields = new HashSet<IRNode>();	
       publicFields = new HashSet<IRNode>();
     } else {
       allFields = null;
@@ -777,7 +772,7 @@ public class ModuleAnalysisAndVisitor {
       final Category category, final IRNode context,
       final String msgTemplate, final Object... msgArgs) {
     final String msg = MessageFormat.format(msgTemplate, msgArgs);
-    final WarningDrop info = new WarningDrop();
+    final WarningDrop info = new WarningDrop(msgTemplate);
     setResultDep(info, context);
     info.setMessage(msg);
     info.setCategory(category);
@@ -823,10 +818,9 @@ public class ModuleAnalysisAndVisitor {
     VisibilityDrop.checkVisibilityDrops();
     ModuleModel.processWrapperModParents();
     ModuleModel.computeVisibles();
-    
- 
   }
   
+  /*
   public void maPre(final Drop dependOn) {
     resultDependUpon = dependOn;
     VisibilityDrop.visibilityPrePost();
@@ -834,6 +828,7 @@ public class ModuleAnalysisAndVisitor {
     ModuleModel.initModuleModels(dependOn);
     ModuleModel.setModuleInformationIsConsistent(true);
   }
+  */
   
   private static Operator getOperator(final IRNode node) {
     return JJNode.tree.getOperator(node);
@@ -961,4 +956,13 @@ public class ModuleAnalysisAndVisitor {
     return publicFields;
   }
 
+  public void clearCaches() {
+	  // TODO Auto-generated method stub
+
+  }
+
+  public IBinder getBinder() {
+	  // TODO Auto-generated method stub
+	  return null;
+  }
 }
