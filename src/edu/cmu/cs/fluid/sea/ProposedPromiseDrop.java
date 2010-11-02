@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 
 /**
  * Represents a proposed promise in the sea. A proposed promise indicates a
@@ -23,7 +24,8 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  */
 public final class ProposedPromiseDrop extends IRReferenceDrop 
 implements IResultDrop {
-
+	public static final String JAVA_ANNOTATION = "java-annotation";
+	
 	/**
 	 * Constructs a new proposed promise. Intended to be called from analysis
 	 * code.
@@ -178,6 +180,7 @@ implements IResultDrop {
 						+ "\")");
 	}
 
+	@Override
 	public String getJavaAnnotation() {
 		return "@" + getJavaAnnotationNoAtSign();
 	}
@@ -234,5 +237,10 @@ implements IResultDrop {
 				result.add(h);
 		}
 		return result;
+	}
+	@Override
+	public void snapshotAttrs(AbstractSeaXmlCreator s) {
+		super.snapshotAttrs(s);
+		s.addAttribute(JAVA_ANNOTATION, getJavaAnnotation());
 	}
 }
