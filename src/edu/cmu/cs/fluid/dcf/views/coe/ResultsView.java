@@ -91,16 +91,16 @@ public class ResultsView extends AbstractDoubleCheckerView {
       viewer.refresh();
     }
   };
-
+  
   private final Action f_actionExpand = new Action() {
-    @Override
+	@Override
     public void run() {
       final ISelection selection = viewer.getSelection();
       if (selection == null || selection == StructuredSelection.EMPTY) {
         treeViewer.expandToLevel(50);
       } else {
         final Object obj = ((IStructuredSelection) selection).getFirstElement();
-        if (obj instanceof Content) {
+        if (obj instanceof AbstractContent) {
           treeViewer.expandToLevel(obj, 50);
         } else {
           treeViewer.expandToLevel(50);
@@ -117,7 +117,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
         treeViewer.collapseAll();
       } else {
         final Object obj = ((IStructuredSelection) selection).getFirstElement();
-        if (obj instanceof Content) {
+        if (obj instanceof AbstractContent) {
           treeViewer.collapseToLevel(obj, 1);
         } else {
           treeViewer.collapseAll();
@@ -127,15 +127,16 @@ public class ResultsView extends AbstractDoubleCheckerView {
   };
 
   private final Action f_actionLinkToOriginal = new Action() {
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void run() {
       final ISelection selection = viewer.getSelection();
       if (selection == null || selection == StructuredSelection.EMPTY) {
         treeViewer.collapseAll();
       } else {    	  
         final Object obj = ((IStructuredSelection) selection).getFirstElement();
-        if (obj instanceof Content) {
-          final Content c = (Content) obj;
+        if (obj instanceof AbstractContent) {
+          final AbstractContent c = (AbstractContent) obj;
           if (c.cloneOf != null) {
         	
             treeViewer.reveal(c.cloneOf);
@@ -194,8 +195,8 @@ public class ResultsView extends AbstractDoubleCheckerView {
       }
       final List<ProposedPromiseDrop> proposals = new ArrayList<ProposedPromiseDrop>();
       for (final Object element : selection.toList()) {
-        if (element instanceof Content) {
-          final Content c = (Content) element;
+        if (element instanceof AbstractContent) {
+          final AbstractContent<IDropInfo,?> c = (AbstractContent) element;
           /*
            * Deal with the case where a single proposed promise drop is
            * selected.
@@ -210,7 +211,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
              */
             if (c.getMessage().equals(
                 I18N.msg("jsure.eclipse.proposed.promise.content.folder"))) {
-              for (Content content : c.getChildrenAsCollection()) {
+              for (AbstractContent content : c.getChildrenAsCollection()) {
                 if (content.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
                   final ProposedPromiseDrop pp = c.getDropInfo().getAdapter(ProposedPromiseDrop.class);
                   proposals.add(pp);
@@ -532,10 +533,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
   @Override
   protected void handleDoubleClick(final IStructuredSelection selection) {
     final Object obj = selection.getFirstElement();
-    if (obj instanceof Content) {
+    if (obj instanceof AbstractContent) {
       // try to open an editor at the point this item references
       // in the code
-      final Content c = (Content) obj;
+      final AbstractContent c = (AbstractContent) obj;
       if (c.cloneOf != null) {
     	f_actionLinkToOriginal.run();
     	return;
