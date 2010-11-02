@@ -121,8 +121,13 @@ implements Cloneable, IDiffNode<T2> {
 			c.setParent((T2) this);
 		}		
 		f_referencedDrop = drop;
-		if (drop != null && drop.isInstance(IRReferenceDrop.class)) {
-			f_sourceRef = drop.getSrcRef();
+		if (drop != null) {
+			if (drop instanceof IRReferenceDrop) {	
+				IRReferenceDrop ird = (IRReferenceDrop) drop;
+				f_sourceRef = ird.getSrcRef();
+			} else {
+				f_sourceRef = drop.getSrcRef();
+			}
 		}		
 	}
 	
