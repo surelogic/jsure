@@ -92,7 +92,10 @@ public class Activator extends AbstractUIPlugin implements
 
 	private void clearJSureData() {
 		for (File f : PreferenceConstants.getJSureDataDirectory().listFiles()) {
-			FileUtility.recursiveDelete(f, false);
+			if (f.isDirectory()) {
+				FileUtility.recursiveDelete(f, false);
+			}
+			// i.e. don't delete persistent files
 		}
 	}
 
