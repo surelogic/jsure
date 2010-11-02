@@ -37,10 +37,8 @@ import com.surelogic.common.eclipse.dialogs.ImageDialog;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;
-import com.surelogic.jsure.client.eclipse.TestListener;
 import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
-import com.surelogic.jsure.xml.JSureXMLReader;
 
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
@@ -65,7 +63,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 
   private static final Logger LOG = SLLogger.getLogger("ResultsView");
 
-  private final IResultsViewContentProvider f_contentProvider = makeContentProvider();
+  protected final IResultsViewContentProvider f_contentProvider = makeContentProvider();
 
   private final IResultsViewLabelProvider f_labelProvider = makeLabelProvider();
 
@@ -266,10 +264,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	@Override
     public int compare(final Viewer viewer, final Object e1, final Object e2) {
       int result = 0; // = super.compare(viewer, e1, e2);
-      final boolean bothContent = e1 instanceof Content && e2 instanceof Content;
+      final boolean bothContent = e1 instanceof AbstractContent && e2 instanceof AbstractContent;
       if (bothContent) {
-        final Content c1 = (Content) e1;
-        final Content c2 = (Content) e2;
+        final AbstractContent c1 = (AbstractContent) e1;
+        final AbstractContent c2 = (AbstractContent) e2;
         final boolean c1IsNonProof = c1.f_isInfo || c1.f_isPromiseWarning;
         final boolean c2IsNonProof = c2.f_isInfo || c2.f_isPromiseWarning;
         // Separating proof drops from info/warning drops
@@ -320,7 +318,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
           }
         }
       } else {
-        LOG.warning("e1 and e2 are not Content objects: e1 = \""
+        LOG.warning("e1 and e2 are not AbstractContent objects: e1 = \""
             + e1.toString() + "\"; e2 = \"" + e2.toString() + "\"");
         return -1;
       }
