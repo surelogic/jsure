@@ -401,6 +401,9 @@ implements Cloneable, IDiffNode<T2> {
 
 	@SuppressWarnings("unchecked")
 	public void addChild(T2 child) {
+		if (f_children.size() == 0) {
+			f_children = new ArrayList<T2>(1);
+		}
 		f_children.add(child);
 		child.setParent((T2) this);
 	}
