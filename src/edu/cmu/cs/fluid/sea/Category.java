@@ -47,10 +47,13 @@ public final class Category {
    * @return a category
    */
   public static final Category getInstance(String key) {
-    String catKey = key.intern();
-    if (keyToCategory.containsKey(catKey)) {
-      return keyToCategory.get(catKey);
+	if (key == null) {
+		return null;
+	}
+    if (keyToCategory.containsKey(key)) {
+      return keyToCategory.get(key);
     } else {
+      String catKey = key.intern();
       Category newCat = new Category(catKey);
       keyToCategory.put(catKey, newCat);
       return newCat;
