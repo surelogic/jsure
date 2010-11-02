@@ -15,18 +15,20 @@ import com.surelogic.jsure.xml.*;
 import static com.surelogic.jsure.xml.JSureXMLReader.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.AbstractSrcRef;
-import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.sea.drops.effects.*;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {	
 	public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
 	
 	static final Map<String,Class<? extends Drop>> classMap = new HashMap<String, Class<? extends Drop>>();
-	
-	
-	
+	static {
+		classMap.put("PackageDrop", PackageDrop.class);
+		classMap.put("ResultDrop", ResultDrop.class);
+		classMap.put("RegionEffectsPromiseDrop", RegionEffectsPromiseDrop.class);
+	}
 	private final Map<Drop,String> idMap = new HashMap<Drop,String>();
 	
 	public SeaSnapshot(File location) throws IOException {
@@ -67,6 +69,37 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		classMap.put(cls.getSimpleName(), cls);
 	}
 	
+	private static String[] packages = {
+		"edu.cmu.cs.fluid.sea.drops.promises.",
+		"edu.cmu.cs.fluid.sea.",
+		"edu.cmu.cs.fluid.sea.drops.",
+		"edu.cmu.cs.fluid.sea.drops.threadroles.",
+		"edu.cmu.cs.fluid.sea.drops.modules.",
+		"edu.cmu.cs.fluid.sea.drops.callgraph.",
+		"edu.cmu.cs.fluid.sea.drops.layers.",
+	};
+	
+	@SuppressWarnings("unchecked")
+	static Class<?> findType(String type) {
+		Class<?> thisType = classMap.get(type);
+		if (thisType == null) {
+			for(String prefix : packages) {
+				try {						
+					thisType = Class.forName(prefix+type);
+					break;
+				} catch(ClassNotFoundException e) {
+					// Keep going
+				}
+			}
+			if (thisType == null) {
+				throw new IllegalStateException("Unknown type: "+type);
+			} else {
+				ensureClassMapping((Class<? extends Drop>) thisType);
+			}
+		}
+		return thisType;
+	}
+	
 	public void snapshotDrop(Drop d) {
 		if (idMap.containsKey(d)) {
 			return;
@@ -104,7 +137,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 		b.append("/>\n");
 	}
-
+	
 	public void addSrcRef(IRNode context, ISrcRef srcRef) {
 		addSrcRef(context, srcRef, "    ");
 	}
@@ -175,11 +208,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		public Entity makeEntity(String name, Attributes a) {
 			final String type = Entity.getValue(a, TYPE_ATTR);
 			if (type != null) {
-				final Class<?> thisType = classMap.get(type);
-				if (thisType == null) {
-					System.out.println("Unknown type: "+type);
-				}
-				if (ProofDrop.class.isAssignableFrom(thisType)) {			
+				final Class<?> thisType = findType(type);
+				if (thisType != null && ProofDrop.class.isAssignableFrom(thisType)) {			
 					return new ProofInfo(name, a);
 				}
 			}
@@ -191,7 +221,9 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			if (!e.getName().endsWith("drop")) {
 				System.out.println("Got "+e.getName());
 			}
-			add(id, (Info) e);
+			final Info i = (Info) e;
+			add(id, i);
+			i.finishInit();
 			return true;
 		}
 		
@@ -204,6 +236,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			if (Drop.DEPONENT.equals(refType)) {
 				fromE.addDeponent(toE);
 				toE.addDependent(fromE);
+			} else if (IRReferenceDrop.PROPOSED_PROMISE.equals(refType)) {
+				fromE.addProposal(toE);
 			} else if (fromE instanceof ProofInfo) {
 				final ProofInfo fromPI = (ProofInfo) fromE;
 				final ProofInfo toPI = (ProofInfo) toE;
@@ -226,12 +260,16 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	}
 	
 	public static class Info extends Entity implements IDropInfo {
-		final List<Info> dependents = new ArrayList<Info>();
-		final List<Info> deponents  = new ArrayList<Info>();
-		final ISrcRef ref;
-		final List<ISupportingInformation> supportingInfos;
+		final List<Info> dependents; 
+		final List<Info> deponents;
+		final List<Info> proposals;
 		Category category;
+		ISrcRef ref;
+		List<ISupportingInformation> supportingInfos;
 
+		void addProposal(Info info) {
+			proposals.add(info);
+		}
 		
 		void addDeponent(Info info) {
 			deponents.add(info);
@@ -243,6 +281,15 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		
 		Info(String name, Attributes a) {
 			super(name, a);
+			if (name.endsWith("drop")) {
+				dependents = new ArrayList<Info>();
+				deponents  = new ArrayList<Info>();
+				proposals  = new ArrayList<Info>();
+			} else {
+				dependents = Collections.emptyList();
+				deponents = Collections.emptyList();
+				proposals = Collections.emptyList();
+			}
 			/*
 			final String name = e.getName();
 			final boolean warning;
@@ -287,6 +334,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				return true;
 			}			
 			*/
+			category = Category.getInstance(getAttribute(CATEGORY_ATTR));			
+		}
+		
+		void finishInit() {
 			if (getSource() != null) {
 				ref = makeSrcRef(getSource());
 			} else {
@@ -437,7 +488,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 
 		public boolean isInstance(Class<?> type) {
 			final String thisTypeName = getType();
-			final Class<?> thisType = SeaSnapshot.classMap.get(thisTypeName);
+			final Class<?> thisType = findType(thisTypeName);
 			return type.isAssignableFrom(thisType);		
 		}
 
@@ -459,13 +510,11 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 
 		public String getJavaAnnotation() {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
+			return getAttribute(ProposedPromiseDrop.JAVA_ANNOTATION);
 		}
 
 		public Collection<? extends IDropInfo> getProposals() {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
+			return proposals;
 		}
 
 		public Collection<ISupportingInformation> getSupportingInformation() {
@@ -549,7 +598,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 
 		public Collection<? extends IProofDropInfo> getCheckedBy() {
-			throw new UnsupportedOperationException();
+			return checkedByResults;
 		}
 
 		public Collection<? extends IProofDropInfo> getTrustsComplete() {
