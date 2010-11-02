@@ -18,6 +18,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.*;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {	
 	public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
@@ -395,18 +396,19 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		*/
 		
 		public int count() {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
+			String value = getAttribute(PleaseCount.COUNT);
+			if (value == null) {
+				return 0;
+			}
+			return Integer.valueOf(value);
 		}
 		
 		public boolean requestTopLevel() {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
+			return "true".equals(getAttribute(MaybeTopLevel.REQUEST_TOP_LEVEL));
 		}
 
 		public <T> T getAdapter(Class<T> type) {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException();
+			return null;
 		}
 
 		public boolean isValid() {
