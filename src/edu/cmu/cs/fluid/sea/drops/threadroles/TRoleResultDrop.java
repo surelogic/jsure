@@ -12,6 +12,7 @@ import com.surelogic.analysis.threadroles.TRoleMessages;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
+import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 
 
 /**
@@ -34,5 +35,11 @@ implements MaybeTopLevel, PleaseFolderize, IThreadRoleDrop {
       } else {
         return false;
       }
+  }
+  
+  @Override
+  public void snapshotAttrs(AbstractSeaXmlCreator s) {
+	  super.snapshotAttrs(s);
+	  s.addAttribute(REQUEST_TOP_LEVEL, requestTopLevel());
   }
 }

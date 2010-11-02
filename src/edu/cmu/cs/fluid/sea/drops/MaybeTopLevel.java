@@ -8,6 +8,7 @@ package edu.cmu.cs.fluid.sea.drops;
  * @author dfsuther
  */
 public interface MaybeTopLevel {
+  String REQUEST_TOP_LEVEL = "request-top-level";
 
   /**
    * Allow drop to request that it be placed at the top level.

@@ -10,6 +10,7 @@ import com.surelogic.analysis.threadroles.TRoleMessages;
 
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 
 
 /**
@@ -31,4 +32,10 @@ implements PleaseFolderize, PleaseCount, IThreadRoleDrop {
    public int count() {
      return numIssues;
    }
+   
+   @Override
+   public void snapshotAttrs(AbstractSeaXmlCreator s) {
+ 	  super.snapshotAttrs(s);
+ 	  s.addAttribute(COUNT, (long) count());
+   } 	  
 }

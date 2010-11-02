@@ -10,6 +10,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
+import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 
 /**
  * Promise drop for "unique" promises established by the
@@ -73,5 +74,11 @@ implements MaybeTopLevel {
 
   public boolean requestTopLevel() {
 	  return true;
+  }
+  
+  @Override
+  public void snapshotAttrs(AbstractSeaXmlCreator s) {
+	  super.snapshotAttrs(s);
+	  s.addAttribute(REQUEST_TOP_LEVEL, true);
   }
 }
