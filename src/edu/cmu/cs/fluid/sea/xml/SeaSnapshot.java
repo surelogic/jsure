@@ -2,6 +2,8 @@
 package edu.cmu.cs.fluid.sea.xml;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 import org.apache.commons.collections15.MultiMap;
@@ -390,6 +392,22 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				@Override
 				public Object getEnclosingFile() {
 					return ref.getAttribute(FILE_ATTR);
+				}
+				@Override
+				public String getRelativePath() {
+					return ref.getAttribute(PATH_ATTR);
+				}
+				@Override
+				public URI getEnclosingURI() {
+					String uri = ref.getAttribute(URI_ATTR);
+					if (uri != null) {
+						try {
+							return new URI(uri);
+						} catch (URISyntaxException e) {
+							System.out.println("Couldn't parse as URI: "+uri);
+						}
+					}
+					return null;
 				}
 				@Override
 				public int getOffset() {

@@ -453,9 +453,15 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	}
 	
 	static class Categories extends Hashtable2<String,String,Category> {
-		Category getOrCreate(Entity e) {
-			final String file = e.getAttribute(FILE_ATTR);
+		Category getOrCreate(Entity e) {	
 			final String type = e.getAttribute(TYPE_ATTR);
+			String file = e.getAttribute(PATH_ATTR);
+			if (file == null) {
+				file = e.getAttribute(URI_ATTR);
+			}
+			if (file == null) {
+				file = e.getAttribute(FILE_ATTR);
+			}
 			Category c = this.get(file, type);
 			if (c == null) {
 				c = new Category(file, type);

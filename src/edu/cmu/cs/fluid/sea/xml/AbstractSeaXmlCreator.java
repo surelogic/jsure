@@ -67,23 +67,17 @@ public class AbstractSeaXmlCreator {
 			addAttribute(OFFSET_ATTR, (long) ref.getOffset());
 		}
 		addAttribute(LINE_ATTR, (long) ref.getLineNumber());
-		String file = ref.getRelativePath();
-		if (file == null) {
-			URI loc = ref.getEnclosingURI();
-			if (loc != null) {
-				file = loc.toString();
-			}
+		String path = ref.getRelativePath();
+		if (path != null) {
+			addAttribute(PATH_ATTR, path);
 		}
-		if (file == null) {
-			Object o = ref.getEnclosingFile();
-			if (o instanceof String) {
-				file = o.toString();
-			} else {
-				file = o.toString();
-			}
+		URI loc = ref.getEnclosingURI();
+		if (loc != null) {
+			addAttribute(URI_ATTR, loc.toString());
 		}
-		if (file != null) {
-			addAttribute(FILE_ATTR, file);
+		Object o = ref.getEnclosingFile();
+		if (o != null) {
+			addAttribute(FILE_ATTR, o.toString());		
 		}
 	}
 }
