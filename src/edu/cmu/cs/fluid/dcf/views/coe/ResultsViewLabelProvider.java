@@ -24,9 +24,10 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider implemen
 		m_showInferences = showInferences;
 	}
 
+	@SuppressWarnings("unchecked")
 	public String getText(final Object obj) {
-		if (obj instanceof Content) {
-			Content c = (Content) obj;
+		if (obj instanceof AbstractContent) {
+			AbstractContent c = (AbstractContent) obj;
 			/*
 			 * if (c.referencedDrop != null) { return
 			 * c.referencedDrop.getClass().getSimpleName()+": "+c.getMessage();
@@ -34,12 +35,13 @@ public final class ResultsViewLabelProvider extends ColumnLabelProvider implemen
 			 */
 			return c.getMessage();
 		}
-		return "invalid: not of type Content";
+		return "invalid: not of type AbstractContent";
 	}
 
+	@SuppressWarnings("unchecked")
 	public Image getImage(final Object obj) {
-		if (obj instanceof Content) {
-			Content c = (Content) obj;
+		if (obj instanceof AbstractContent) {
+			AbstractContent c = (AbstractContent) obj;
 			int flags = c.getImageFlags();
 			if (m_showInferences) {
 				if (c.f_isInfoWarningDecorate) {
