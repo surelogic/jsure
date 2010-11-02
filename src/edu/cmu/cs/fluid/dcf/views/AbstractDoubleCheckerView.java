@@ -147,8 +147,13 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		Sea.getDefault().addSeaObserver(this);
 
 		f_viewTitle = getPartName();
+		finishCreatePartControl();
 	}
 
+	protected void finishCreatePartControl() {
+		// Nothing to do right now
+	}
+	
 	/**
 	 * Creates the content/label provider and sorter, as well as any other
 	 * viewer state
@@ -543,7 +548,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	 * Implementation of IAnalysisListener
 	 */
 
-	public final void analysisStarting() {
+	public void analysisStarting() {
 		LOG.fine("analysisStarting() called");
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
@@ -581,7 +586,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		}
 	}
 
-	public final void seaChanged() {
+	public void seaChanged() {
 		LOG.fine("seaChanged() called");
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
