@@ -202,7 +202,7 @@
 	</extension>
 	<extension id="ModuleAnalysis2" name="Module Visibility Analyzer (converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis2"
+		<run class="com.surelogic.analysis.modules.Module_IRAnalysis"
 			production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
@@ -332,6 +332,13 @@
 
 	<extension point="org.eclipse.ui.views">
 		<category name="JSure" id="edu.cmu.cs.fluid.dcf"></category>
+
+		<view name="Verification Status (P)"
+			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
+			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.PersistentResultsView"
+			id="edu.cmu.cs.fluid.dcf.views.coe.PersistentResultsView">
+		</view>
+
 		<view name="Verification Status"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
