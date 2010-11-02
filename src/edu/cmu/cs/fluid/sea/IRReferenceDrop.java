@@ -26,6 +26,7 @@ import static com.surelogic.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
  * @see Sea
  */
 public abstract class IRReferenceDrop extends Drop {
+	public static final String PROPOSED_PROMISE = "proposed-promise";
 
 	/**
 	 * The fAST node that this drop is attached to.
@@ -97,6 +98,7 @@ public abstract class IRReferenceDrop extends Drop {
 	 * @return the source reference of the fAST node this information
 	 *         references, can be <code>null</code>
 	 */
+	@Override
 	public ISrcRef getSrcRef() {
 		if (node != null) {
 			ISrcRef ref = JavaNode.getSrcRef(node);
@@ -319,6 +321,7 @@ public abstract class IRReferenceDrop extends Drop {
 	 * @param category
 	 *            The category to set.
 	 */
+	@Override
 	public final void setCategory(Category category) {
 		this.category = category;
 	}
@@ -342,6 +345,9 @@ public abstract class IRReferenceDrop extends Drop {
 		s.addSrcRef(getNode(), getSrcRef());
 		for (ISupportingInformation si : getSupportingInformation()) {
 			s.addSupportingInfo(si);
+		}
+		for (ProposedPromiseDrop pd : getProposals()) {
+			s.refDrop(PROPOSED_PROMISE, pd);
 		}
 	}
 
