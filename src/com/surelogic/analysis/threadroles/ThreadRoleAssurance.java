@@ -37,7 +37,7 @@ public class ThreadRoleAssurance extends AbstractWholeIRAnalysis<TRoleSecondPass
 	    runInVersion(new AbstractRunner() {
 	        public void run() {
 	          LOG.info("Finishing color assurance");
-	          TRoleSecondPass.getInstance().cspEnd(null, getBinder());
+	          TRoleSecondPass.getInstance().cspEnd(getResultDependUponDrop(), getBinder());
 	          LOG.info("Color Assurance complete.");
 	        }
 	      });		

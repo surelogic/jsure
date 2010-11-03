@@ -146,7 +146,10 @@ implements PleaseFolderize, IThreadRoleDrop {
 //    localFullExpr = ColorBDDPack.zero();
     resDrop = null;
 
-    methodName = JJNode.getInfo(node);
+    methodName = JJNode.getInfoOrNull(node);
+    if (methodName == null) {
+    	System.out.println("Got null methodName");
+    }
 
     setNodeAndCompilationUnitDependency(node);
 

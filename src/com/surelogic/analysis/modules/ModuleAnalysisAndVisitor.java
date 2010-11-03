@@ -299,9 +299,11 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     @Override
     public Void visitNamedType(IRNode node) {
       final IRNode typ = binder.getBinding(node);
-
-      checkVisibility(node, typ);
-      
+      if (typ == null) {
+    	  System.out.println("No binding for "+DebugUnparser.toString(node));
+      } else {
+    	  checkVisibility(node, typ);
+      }
       return super.visitNamedType(node);
     }
 

@@ -12,6 +12,7 @@ import java.util.Iterator;
 import com.surelogic.annotation.rules.ThreadRoleRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 
 
@@ -58,7 +59,12 @@ public class SimpleCallGraphDrop extends PhantomDrop implements IThreadRoleDrop 
   private SimpleCallGraphDrop(IRNode node) {
     ThreadRoleRules.setCGDrop(node, this);
     setNodeAndCompilationUnitDependency(node);
-    setMessage(/*"SimpleCallGraphDrop for " + */JJNode.getInfo(node));
+
+    String label = JJNode.getInfoOrNull(node);
+    if (label == null) {
+    	label = DebugUnparser.toString(node);
+    }
+    setMessage(/*"SimpleCallGraphDrop for " + */label);
     synchronized (SimpleCallGraphDrop.class) {
       allCGDrops.add(this);
     }

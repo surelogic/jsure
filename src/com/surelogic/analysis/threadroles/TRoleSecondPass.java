@@ -168,13 +168,18 @@ public class TRoleSecondPass implements IBinderClient {
     final TRoleStats cStats = TRoleStats.getInstance();
     cStats.afterTRsp = cStats.getTRoleStats("After TRoleSecondPass:"); //$NON-NLS-1$
 
-    // InfoDrop rd = TRoleMessages.createInfoDrop(cStats.beforeCfp.toString(),
-    // null);
-    LOG.info(cStats.beforeTRfp.toString());
-    // rd = TRoleMessages.createInfoDrop(cStats.afterCfp.toString(), null);
-    LOG.info(cStats.afterTRfp.toString());
-    // rd = TRoleMessages.createInfoDrop(cStats.afterCsp.toString(), null);
-    LOG.info(cStats.afterTRsp.toString());
+    
+    try {
+    	// InfoDrop rd = TRoleMessages.createInfoDrop(cStats.beforeCfp.toString(),
+    	// null);
+    	LOG.info(cStats.beforeTRfp.toString());
+    	// rd = TRoleMessages.createInfoDrop(cStats.afterCfp.toString(), null);
+    	LOG.info(cStats.afterTRfp.toString());
+    	// rd = TRoleMessages.createInfoDrop(cStats.afterCsp.toString(), null);
+    	LOG.info(cStats.afterTRsp.toString());
+    } catch(NullPointerException e) {
+    	// Ignore
+    }
   }
 
   // private void inferColorReqs() {
@@ -206,7 +211,7 @@ public class TRoleSecondPass implements IBinderClient {
     for (int i = 0; i < allCGD.length; i++) {
       final SimpleCallGraphDrop aCGD = allCGD[i];
       final IRNode mDecl = aCGD.getNode();
-      final String methodName = JJNode.getInfo(mDecl);
+      final String methodName = JavaNames.genMethodConstructorName(mDecl);
 
       // final boolean cutPoint = hasColorCutpoint(mDecl);
       // final boolean userReqs = hasUserWrittenRequireDrops(mDecl);
@@ -215,8 +220,12 @@ public class TRoleSecondPass implements IBinderClient {
 
       // final boolean inhCtx = hasInheritedContextDrops(mDecl);
 
-      if ((!TRoleReqSummaryDrop.getSummaryFor(mDecl).isInferred() || aCGD
-          .tRolesNeedBodyTraversal())
+      TRoleReqSummaryDrop summary = TRoleReqSummaryDrop.getSummaryFor(mDecl);
+      if (summary == null) {
+    	  System.err.println("No summary for "+methodName);
+    	  continue;
+      }
+      if ((!summary.isInferred() || aCGD.tRolesNeedBodyTraversal())
           && aCGD.foundABody()) {
     	if (LOG.isLoggable(Level.FINER))
           LOG.finer("Adding " + methodName + "to worklist 1st time"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -649,7 +658,12 @@ public class TRoleSecondPass implements IBinderClient {
           .getSummaryFor(mDecl);
       final TRoleReqSummaryDrop reqSumm = TRoleReqSummaryDrop
           .getSummaryFor(mDecl);
+      
       final String expandedMName = JavaNames.genQualifiedMethodConstructorName(mDecl);
+      if (reqSumm == null) {
+    	  System.out.println("Continuing ... no summary for "+expandedMName);
+    	  continue;
+      }
       
 //      if (expandedMName.startsWith("jpl.gds.monitor.gui.EvrComposite.createControls")) {
 //	      LOG.severe("found createControls");

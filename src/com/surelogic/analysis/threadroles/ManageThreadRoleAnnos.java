@@ -32,7 +32,6 @@ public class ManageThreadRoleAnnos extends AbstractIRAnalysis<TRolesFirstPass,Vo
 	
 	@Override
 	protected TRolesFirstPass constructIRAnalysis(IBinder binder) {
-	    TRolesFirstPass.getInstance().trfpStart(binder);
 		return TRolesFirstPass.getInstance();
 	}
 
