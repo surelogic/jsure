@@ -13,6 +13,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -167,6 +168,10 @@ public abstract class AbstractBinder implements IBinder {
    * @see edu.cmu.cs.fluid.java.bind.IBinder#findOverriddenParentMethods(edu.cmu.cs.fluid.ir.IRNode)
    */
   public Iteratable<IRNode>  findOverriddenParentMethods(IRNode mth) {
+	  Operator op = JJNode.tree.getOperator(mth);		 
+	  if (ClassInitDeclaration.prototype.includes(op)) {
+		  return EmptyIterator.prototype();
+	  }
 	  final ITypeEnvironment tEnv = getTypeEnvironment();
 	  final IRNode typeDecl = VisitUtil.getEnclosingType(mth);
 	  final IJavaType type = tEnv.convertNodeTypeToIJavaType(typeDecl);
