@@ -18,6 +18,12 @@ public class Module_IRAnalysis extends AbstractWholeIRAnalysis<ModuleAnalysisAnd
 	}
 
 	@Override
+	public void init(IIRAnalysisEnvironment env) {
+		super.init(env);
+		ModuleAnalysisAndVisitor.getInstance().maStart(null);//resultDependUpon);
+	}
+	
+	@Override
 	protected ModuleAnalysisAndVisitor constructIRAnalysis(IBinder binder) {
 		// Setup some fluid analysis stuff (Check that this is correct)
 		final ITypeEnvironment tEnv = binder.getTypeEnvironment();
@@ -45,7 +51,6 @@ public class Module_IRAnalysis extends AbstractWholeIRAnalysis<ModuleAnalysisAnd
 		// runInVersion(new AbstractRunner() {
 		//
 		// public void run() {
-		ModuleAnalysisAndVisitor.getInstance().maStart(null);//resultDependUpon);
 		return ModuleAnalysisAndVisitor.getInstance();
 	}
 
