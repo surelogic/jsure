@@ -307,7 +307,7 @@
 
 	<extension id="ThreadRoleZerothPass1" name="ThreadRole Zeroth Pass (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.threadroles.ThreadRoleZerothPass1"
+		<run class="com.surelogic.analysis.threadroles.ThreadRoleZerothPass"
 			production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.ModuleAnalysis2">
@@ -315,7 +315,7 @@
 	</extension>
 	<extension id="ManageThreadRoleAnnos1" name="ThreadRole Annotation Grabber (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.threadroles.ManageThreadRoleAnnos1"
+		<run class="com.surelogic.analysis.threadroles.ManageThreadRoleAnnos"
 			production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.ThreadRoleZerothPass1">
@@ -323,7 +323,7 @@
 	</extension>
 	<extension id="ThreadRoleAssurance1" name="Thread Role Assurance (Converted)"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.threadroles.ThreadRoleAssurance1"
+		<run class="com.surelogic.analysis.threadroles.ThreadRoleAssurance"
 			production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.ManageThreadRoleAnnos1">
