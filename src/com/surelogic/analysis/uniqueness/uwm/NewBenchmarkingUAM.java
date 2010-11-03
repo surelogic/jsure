@@ -1,5 +1,7 @@
 package com.surelogic.analysis.uniqueness.uwm;
 
+import java.util.Collections;
+
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.effects.Effects;
 
@@ -64,7 +66,7 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 	}
 
 	@Override
-	public IRNode[] analyzeEnd(IIRProject p) {
+	public Iterable<IRNode>  analyzeEnd(IIRProject p) {
     // Create the drops from the drop builders
     finishBuild();
 		
@@ -72,6 +74,6 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 		if (getAnalysis() != null) {
 			getAnalysis().clear();
 		}
-		return JavaGlobals.noNodes;
+		return Collections.emptyList();
 	}
 }

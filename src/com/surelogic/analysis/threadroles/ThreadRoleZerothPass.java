@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.threadroles;
 
+import java.util.Collections;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.*;
@@ -50,8 +51,8 @@ public class ThreadRoleZerothPass extends AbstractIRAnalysis<TRolesFirstPass,Voi
 		return true;
 	}
 
-	public IRNode[] analyzeEnd(IIRProject p) {
-		return JavaGlobals.noNodes;
+	public Iterable<IRNode> analyzeEnd(IIRProject p) {
+		return Collections.emptyList();
 	}
 
 	public void postAnalysis(IIRProject p) {

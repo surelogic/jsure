@@ -13,7 +13,7 @@ public interface IIRAnalysis {
 	void preAnalysis(IIRAnalysisEnvironment env, IIRProject p);
 	void analyzeBegin(IIRProject p);
 	boolean doAnalysisOnAFile(CUDrop cud, IAnalysisMonitor monitor);
-	IRNode[] analyzeEnd(IIRProject p);
+	Iterable<IRNode> analyzeEnd(IIRProject p);
 	void postAnalysis(IIRProject p);
 	void finish(IIRAnalysisEnvironment env);
 	

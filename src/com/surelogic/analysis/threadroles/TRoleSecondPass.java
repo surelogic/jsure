@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 import SableJBDD.bdd.JBDD;
 
+import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.messages.Messages;
 import com.surelogic.common.logging.SLLogger;
 
@@ -58,7 +59,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author dfsuther
  * 
  */
-public class TRoleSecondPass {
+public class TRoleSecondPass implements IBinderClient {
 
   private static final TRoleSecondPass INSTANCE = new TRoleSecondPass();
 
@@ -67,6 +68,7 @@ public class TRoleSecondPass {
   }
 
   private TRoleSecondPass() {
+	  // Nothing to do here
   }
 
   private static IBinder binder = null;
@@ -1728,4 +1730,9 @@ public class TRoleSecondPass {
   public IBinder getBinder() {
     return binder;
   }
+
+public void clearCaches() {
+	// TODO Auto-generated method stub
+	
+}
 }

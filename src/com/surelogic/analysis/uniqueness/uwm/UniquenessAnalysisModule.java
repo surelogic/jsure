@@ -92,7 +92,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	}
 
 	@Override
-	public IRNode[] analyzeEnd(IIRProject p) {
+	public Iterable<IRNode> analyzeEnd(IIRProject p) {
     // Remove any control flow drops that aren't used for anything
     for (final ResultDropBuilder cfDrop : controlFlowDrops) {
       //System.out.println("Looking at control flow drop: "+cfDrop);
@@ -108,7 +108,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		if (getAnalysis() != null) {
 			getAnalysis().clear();
 		}
-		return JavaGlobals.noNodes;
+		return Collections.emptyList();
 	}
 
 	protected boolean checkUniquenessForFile(IRNode compUnit, final IAnalysisMonitor monitor) {

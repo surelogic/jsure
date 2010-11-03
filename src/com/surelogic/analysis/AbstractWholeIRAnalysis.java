@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/AbstractWholeIRAnalysis.java,v 1.5 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -8,7 +9,6 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -110,8 +110,8 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 		// Nothing to do
 	}
 	
-	public IRNode[] analyzeEnd(IIRProject p) {
-		return JavaGlobals.noNodes;
+	public Iterable<IRNode> analyzeEnd(IIRProject p) {
+		return Collections.emptyList();
 	}
 	
 	public void postAnalysis(IIRProject p) {
