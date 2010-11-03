@@ -80,7 +80,7 @@ public abstract class AbstractMessages {
   /**
    * Load the given resource bundle using the specified class loader.
    */
-  protected static void load(final String bundleName, Class clazz) {
+  protected static void load(final String bundleName, Class<?> clazz) {
     final Field[] fieldArray = clazz.getDeclaredFields();
     ClassLoader loader = clazz.getClassLoader();
 
@@ -235,5 +235,20 @@ public abstract class AbstractMessages {
 		  System.out.println("		<findingType>"+e.getValue()+"</findingType>");
 	  }
 	  */
+  }
+  
+  protected static void collectCodeNames(final Class<?> msgClass, final Map<Integer,String> code2name) {
+	  for(Field f : msgClass.getFields()) {
+		  if ((f.getModifiers() & Modifier.STATIC) != 0 && f.getType().equals(int.class)) {
+			  try {
+				  final Integer value = (Integer) f.get(null);
+				  code2name.put(value, f.getName());
+			  } catch (IllegalArgumentException e) {
+				  // skip
+			  } catch (IllegalAccessException e) {
+				  // skip
+			  }
+		  }
+	  }
   }
 }

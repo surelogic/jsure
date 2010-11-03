@@ -279,7 +279,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
         final boolean isPrimitive, final SelfProtectedPromiseDrop declTSDrop,
         final String xtraArg) {
       final ResultDropBuilder result =
-        ResultDropBuilder.create(LockAnalysis.this, Integer.toString(msg));
+        ResultDropBuilder.create(LockAnalysis.this, Messages.toString(msg));
       setResultDependUponDrop(result, varDecl);
       result.addCheckedPromise(threadSafeDrop);
       result.setConsistent();
@@ -334,7 +334,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
         } else {
           final ResultDropBuilder result =
             ResultDropBuilder.create(
-                LockAnalysis.this, Integer.toString(Messages.UNSAFE_FIELD));
+                LockAnalysis.this, Messages.toString(Messages.UNSAFE_FIELD));
           setResultDependUponDrop(result, varDecl);
           result.addCheckedPromise(threadSafeDrop);
           result.setInconsistent();

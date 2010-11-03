@@ -202,7 +202,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		
 		ISrcRef ref = id.getSrcRef();
 		addLocation(ref);
-		addAttribute(OFFSET_ATTR, (long) ref.getOffset());
+		//addAttribute(OFFSET_ATTR, (long) ref.getOffset());
 		addAttribute(HASH_ATTR, computeHash(id.getNode(), false));
 		addAttribute(CONTEXT_ATTR, computeContext(id.getNode(), false));
 		//addAttribute("unparse", unparser.unparseString(id.getNode()));
@@ -223,7 +223,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		}
 	};
 	
-	private long computeHash(IRNode node, boolean debug) {			
+	public static long computeHash(IRNode node) {
+		return computeHash(node, false);
+	}
+	
+	private static long computeHash(IRNode node, boolean debug) {			
 		final String unparse = unparser.unparseString(node);
 		if (debug) {
 			System.out.println("Unparse: "+unparse);

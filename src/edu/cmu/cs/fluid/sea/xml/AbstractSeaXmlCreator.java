@@ -45,11 +45,12 @@ public class AbstractSeaXmlCreator {
 		}
 	}
 	
-	public void addAttribute(String name, Long value) {		
+	public boolean addAttribute(String name, Long value) {		
 		if (value == null) {
-			return;
+			return false;
 		}
 		addAttribute(name, value.toString());		
+		return true;
 	}
 	
 	public void addAttribute(String name, String value) {

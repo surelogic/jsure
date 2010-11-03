@@ -21,6 +21,7 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.effects.*;
+import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {	
 	public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
@@ -109,6 +110,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		if (!d.isValid()) {
 			return; // ignore invalid drops
 		}
+		if (IThreadRoleDrop.class.isInstance(d)) {
+			// Ignoring these for now
+			return;
+		}
 		final String id = computeId(d);
 		d.preprocessRefs(this);
 		reset();
@@ -151,7 +156,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		b.append(indent);
 		Entities.start(SOURCE_REF, b);
 		addLocation(s);		
-		addAttribute(HASH_ATTR, s.getHash());
+		addAttribute(HASH_ATTR, SeaSummary.computeHash(context));
 		addAttribute(CUNIT_ATTR, s.getCUName());
 		addAttribute(PKG_ATTR, s.getPackage());
 		b.append("/>\n");

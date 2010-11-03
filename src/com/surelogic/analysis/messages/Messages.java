@@ -139,10 +139,14 @@ public class Messages extends AbstractMessages {
   
   private static final Map<String,String> value2field = new HashMap<String,String>();
   
-  
+  private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
   
   public static String getName(String msg) {
 	  return value2field.get(msg);
+  }
+ 
+  public static String toString(int code) {
+	  return code2name.get(code);
   }
   
   private Messages() {
@@ -154,5 +158,6 @@ public class Messages extends AbstractMessages {
     load(BUNDLE_NAME, Messages.class);
     
     collectConstantNames(Messages.class, value2field);
+    collectCodeNames(Messages.class, code2name);
   }
 }
