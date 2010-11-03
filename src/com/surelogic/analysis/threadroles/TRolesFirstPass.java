@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import SableJBDD.bdd.JBDD;
 
 import com.surelogic.aast.promise.ThreadRoleNameListNode;
+import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.InstanceInitializationVisitor;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.regions.IRegion;
@@ -80,7 +81,7 @@ import edu.cmu.cs.fluid.util.Iteratable;
  * 
  */
 
-public final class TRolesFirstPass {
+public final class TRolesFirstPass implements IBinderClient {
 
 
 
@@ -2771,4 +2772,14 @@ private static int cuCount = 0;
   public void resetForAFullBuild() {
     compUnitsToVisit.clear();
   }
+
+public void clearCaches() {
+	// TODO Auto-generated method stub
+	
+}
+
+public IBinder getBinder() {
+	// TODO Auto-generated method stub
+	return null;
+}
 }
