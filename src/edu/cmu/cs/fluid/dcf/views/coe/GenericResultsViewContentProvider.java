@@ -54,10 +54,13 @@ extends	AbstractResultsViewContentProvider {
 	}
 	
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
+		/* This kills the contents
+		 * 
 		if (newInput == null) {
 			m_root = noObjects;
 			m_lastRoot = null;
 		}
+		*/
 	}
 
 	public void dispose() {

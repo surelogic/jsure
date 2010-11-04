@@ -85,19 +85,14 @@ public class PersistentResultsView extends ResultsView {
 		  }
 		  // Running too early?
 		  if (viewState != null && viewState.exists()) {
-			  EclipseJob.getInstance().schedule(new AbstractSLJob("Waiting for view") {
-				  public SLStatus run(SLProgressMonitor monitor) {
-					  f_viewerbook.getDisplay().asyncExec(new Runnable() {
-						  public void run() {
-							  try {
-								  //viewer.refresh();
-								  loadViewState(viewState);
-							  } catch (IOException e) {
-								  e.printStackTrace();
-							  }
-						  }
-					  });
-					  return SLStatus.OK_STATUS;
+			  f_viewerbook.getDisplay().asyncExec(new Runnable() {
+				  public void run() {
+					  try {
+						  //viewer.refresh();
+						  loadViewState(viewState);
+					  } catch (IOException e) {
+						  e.printStackTrace();
+					  }
 				  }
 			  });
 		  }
@@ -125,7 +120,6 @@ public class PersistentResultsView extends ResultsView {
     	public IResultsViewContentProvider buildModelOfDropSea() {
 			if (AbstractWholeIRAnalysis.useDependencies) {
 				try {      		
-
 					// Persist the Sea, and then load the info    
 					new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
 					//try {
