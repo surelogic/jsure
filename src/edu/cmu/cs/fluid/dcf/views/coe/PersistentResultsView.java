@@ -7,6 +7,10 @@ import java.util.*;
 import org.eclipse.ui.IMemento;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.common.eclipse.jobs.EclipseJob;
+import com.surelogic.common.jobs.AbstractSLJob;
+import com.surelogic.common.jobs.SLProgressMonitor;
+import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -79,11 +83,22 @@ public class PersistentResultsView extends ResultsView {
 			  e.printStackTrace();
 			  dropInfo = Collections.emptyList();
 		  }
+		  // Running too early?
 		  if (viewState != null && viewState.exists()) {
-			  f_viewerbook.getDisplay().asyncExec(new Runnable() {
-  				public void run() {
-  					loadViewState(viewState);
-  				}
+			  EclipseJob.getInstance().schedule(new AbstractSLJob("Waiting for view") {
+				  public SLStatus run(SLProgressMonitor monitor) {
+					  f_viewerbook.getDisplay().asyncExec(new Runnable() {
+						  public void run() {
+							  try {
+								  //viewer.refresh();
+								  loadViewState(viewState);
+							  } catch (IOException e) {
+								  e.printStackTrace();
+							  }
+						  }
+					  });
+					  return SLStatus.OK_STATUS;
+				  }
 			  });
 		  }
 	  }	  
@@ -91,7 +106,11 @@ public class PersistentResultsView extends ResultsView {
   
   @Override
   public void saveState(IMemento memento) {
-	  saveViewState(viewState);
+	  try {
+		saveViewState(viewState);
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
   }
   
   GenericResultsViewContentProvider<Info,Content> provider;
@@ -109,7 +128,11 @@ public class PersistentResultsView extends ResultsView {
 
 					// Persist the Sea, and then load the info    
 					new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
-					saveViewState(viewState);
+					//try {
+						saveViewState(viewState);
+					//} catch (IOException e) {
+					//	e.printStackTrace();
+					//}
 					if (location != null && location.exists() && location.length() > 0) {
 						dropInfo = SeaSnapshot.loadSnapshot(location);
 					}

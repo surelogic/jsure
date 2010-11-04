@@ -1,9 +1,7 @@
 package edu.cmu.cs.fluid.dcf.views;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -414,13 +412,66 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	private final LinkedList<String> f_selectionPath = new LinkedList<String>();
 
-	protected final void loadViewState(File location) {
-		// TODO
+	protected final void loadViewState(File location) throws IOException {
+		final BufferedReader br = new BufferedReader(new FileReader(location));
+		try {
+			loadStrings(br, f_selectionPath);
+			
+			f_stringPaths.clear();
+			LinkedList<String> path = null;
+			do {
+				path = loadStrings(br, null);
+				if (path == null) {
+					break;
+				}
+				f_stringPaths.add(path);
+			} while (path != null);
+		} finally {
+			br.close();
+		}
+		restoreViewState();
 	}
 	
-	protected final void saveViewState(File location) {
-		// TODO
+	/**
+	 * Create a list if there's something to add
+	 */
+	private static LinkedList<String> loadStrings(BufferedReader br, LinkedList<String> strings) throws IOException {		
+		String line;
+		if (strings != null) {
+			strings.clear();
+		}
+		while ((line = br.readLine()) != null) {
+			if (line.length() == 0) {
+				break;
+			}
+			if (strings == null) {
+				strings = new LinkedList<String>();
+			}
+			strings.add(line);
+		}
+		return strings;
+	}
+	
+	protected final void saveViewState(File location) throws IOException {		
 		saveViewState();
+		
+		final PrintWriter pw = new PrintWriter(location);
+		try {
+			saveStrings(pw, f_selectionPath);
+			for(LinkedList<String> ll : f_stringPaths) {
+				saveStrings(pw, ll);
+			}
+		} finally {
+			pw.close();
+		}
+	}
+	
+	private static void saveStrings(PrintWriter pw, LinkedList<String> strings) {
+		for(String s : strings) {
+			System.out.println("Saving: "+s);
+			pw.println(s); // TODO what if there are newlines?
+		}
+		pw.println(); // Marker for the end of the list
 	}
 	
 	protected final void saveViewState() {
