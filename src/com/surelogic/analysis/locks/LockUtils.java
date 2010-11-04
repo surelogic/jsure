@@ -271,6 +271,9 @@ public final class LockUtils {
     neededLockFactory = nlf;
     targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     
+    if (binder == null || binder.getTypeEnvironment() == null) {
+    	throw new IllegalStateException();
+    }
     lockType = (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(
           binder.getTypeEnvironment().findNamedType(JAVA_UTIL_CONCURRENT_LOCKS_LOCK),
           binder);
