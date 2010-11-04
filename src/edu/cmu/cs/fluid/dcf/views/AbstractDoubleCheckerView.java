@@ -448,6 +448,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				strings = new LinkedList<String>();
 			}
 			strings.add(line);
+			//System.out.println("Loaded: "+line);
 		}
 		return strings;
 	}
@@ -468,7 +469,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	
 	private static void saveStrings(PrintWriter pw, LinkedList<String> strings) {
 		for(String s : strings) {
-			System.out.println("Saving: "+s);
+			//System.out.println("Saving: "+s);
 			pw.println(s); // TODO what if there are newlines?
 		}
 		pw.println(); // Marker for the end of the list
@@ -520,6 +521,8 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			 */
 			if (!f_selectionPath.isEmpty())
 				restoreSavedSelection(tcp, f_selectionPath, null, null);
+		} else {
+			//System.out.println("Not a tree: "+cp);
 		}
 	}
 
@@ -539,6 +542,11 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		final String message = path.removeFirst();
 		if (message == null)
 			return;
+		/*
+		if (elements.length == 0) {
+			System.out.println("No elts to restore to");
+		}
+		*/
 		for (Object element : elements) {
 			if (message.equals(element.toString())) {
 				/*
@@ -551,10 +559,13 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 				 * are marked as expanded but are under a collapsed ancestor.
 				 */
 				if (path.isEmpty()) {
+					//System.out.println("Expanded: "+message);
 					treeViewer.setExpandedState(element, true);
 				} else {
 					restoreSavedPath(tcp, path, element);
 				}
+			} else {
+				//System.out.println("Couldn't find: "+message);
 			}
 		}
 	}
@@ -576,6 +587,11 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		final String message = path.removeFirst();
 		if (message == null)
 			return;
+		/*
+		if (elements.length == 0) {
+			System.out.println("No elts to restore to");
+		}
+		*/
 		boolean found = false;
 		for (Object element : elements) {
 			if (message.equals(element.toString())) {
@@ -587,10 +603,13 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					 */
 					ISelection selection = new TreeSelection(new TreePath(
 							treePath.toArray()));
+					//System.out.println("Selected: "+message);
 					viewer.setSelection(selection);
 				} else {
 					restoreSavedSelection(tcp, path, element, treePath);
 				}
+			} else {
+				//System.out.println("Couldn't find: "+message);
 			}
 		}
 		/*
