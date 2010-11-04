@@ -32,6 +32,8 @@ public class ProposedPromisesChange {
 	public ProposedPromisesChange(final List<ProposedPromiseDrop> drops) {
 		this.drops = drops;
 		
+		// Just compute the label from the projects involved
+		//
 		// Get the projects involved (no dups)
 		Collection<IIRProject> projects = new HashSet<IIRProject>();
 		for(ProposedPromiseDrop p : drops) {
@@ -164,10 +166,10 @@ public class ProposedPromisesChange {
 		final String annotation = drop.getAnnotation();
 		final String contents = drop.getContents();
 		ISrcRef srcRef = drop.getSrcRef();
-		final CU cu = new CU(proj.getName(), srcRef.getPackage(), srcRef.getCUName());
+		final CU cu = new CU(proj.getName(), srcRef.getPackage(), srcRef.getRelativePath());
 		srcRef = drop.getAssumptionRef();
 		final IIRProject fromProj = JavaProjects.getEnclosingProject(drop.getAssumptionNode());	
-		final CU assumptionCU = new CU(fromProj.getName(), srcRef.getPackage(), srcRef.getCUName());
+		final CU assumptionCU = new CU(fromProj.getName(), srcRef.getPackage(), srcRef.getRelativePath());
 		return new AnnotationDescription(annotation, contents, target,
 				assumptionTarget, cu, assumptionCU);
 	}
