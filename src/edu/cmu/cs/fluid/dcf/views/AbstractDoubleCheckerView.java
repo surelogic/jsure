@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.dcf.views;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -413,6 +414,15 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 
 	private final LinkedList<String> f_selectionPath = new LinkedList<String>();
 
+	protected final void loadViewState(File location) {
+		// TODO
+	}
+	
+	protected final void saveViewState(File location) {
+		// TODO
+		saveViewState();
+	}
+	
 	protected final void saveViewState() {
 		if (treeViewer != null) {
 			f_stringPaths.clear();
@@ -441,7 +451,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 			}
 		}
 	}
-
+	
 	protected final void restoreViewState() {
 		final IContentProvider cp = viewer.getContentProvider();
 		if (cp instanceof ITreeContentProvider) {

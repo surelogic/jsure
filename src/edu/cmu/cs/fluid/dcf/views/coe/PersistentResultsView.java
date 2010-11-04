@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import org.eclipse.ui.IMemento;
+
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -14,6 +17,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 public class PersistentResultsView extends ResultsView {
   private static final String NAME = "snapshot"+SeaSnapshot.SUFFIX;
+  private static final String VIEW_STATE = "view.state";
   
   /**
    * TODO Mainly used to store ProposedPromiseDrops?
@@ -22,21 +26,26 @@ public class PersistentResultsView extends ResultsView {
   final Sea sea = Sea.getDefault();//new Sea();
   
   final File location;
+  final File viewState;
   Collection<Info> dropInfo = Collections.emptyList();
 	
   public PersistentResultsView() {
 	  File location = null;
-	  try {
+	  File viewState = null;
+	  if (AbstractWholeIRAnalysis.useDependencies) try {
 		  final File jsureData = PreferenceConstants.getJSureDataDirectory();
 		  if (jsureData != null) {
 			  location = new File(jsureData, NAME);
+			  viewState = new File(jsureData, VIEW_STATE+".xml");
 		  } else {
 			  location = File.createTempFile("snapshot", SeaSnapshot.SUFFIX);
+			  viewState = File.createTempFile(VIEW_STATE, ".xml");
 		  }   
 	  } catch(IOException e) {
 		  // Nothing to do
 	  }
 	  this.location = location;
+	  this.viewState = viewState;
   }
   
   @Override
@@ -70,7 +79,19 @@ public class PersistentResultsView extends ResultsView {
 			  e.printStackTrace();
 			  dropInfo = Collections.emptyList();
 		  }
-	  }
+		  if (viewState != null && viewState.exists()) {
+			  f_viewerbook.getDisplay().asyncExec(new Runnable() {
+  				public void run() {
+  					loadViewState(viewState);
+  				}
+			  });
+		  }
+	  }	  
+  }
+  
+  @Override
+  public void saveState(IMemento memento) {
+	  saveViewState(viewState);
   }
   
   GenericResultsViewContentProvider<Info,Content> provider;
@@ -83,26 +104,30 @@ public class PersistentResultsView extends ResultsView {
 		}
 		@Override
     	public IResultsViewContentProvider buildModelOfDropSea() {
-    		try {      		
-        		// Persist the Sea, and then load the info    
-    			new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
-    			// TODO save viewer state?
-    			saveViewState();
-    			if (location != null && location.exists() && location.length() > 0) {
-    				dropInfo = SeaSnapshot.loadSnapshot(location);
-    			}
-    		} catch (Exception e) {
-    			dropInfo = Collections.emptyList();
-    		}
-    		try {
-    			return super.buildModelOfDropSea_internal();
-    		} finally {
-    			f_viewerbook.getDisplay().asyncExec(new Runnable() {
-    				public void run() {
-    					restoreViewState();
-    				}
-    			});
-    		}
+			if (AbstractWholeIRAnalysis.useDependencies) {
+				try {      		
+
+					// Persist the Sea, and then load the info    
+					new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
+					saveViewState(viewState);
+					if (location != null && location.exists() && location.length() > 0) {
+						dropInfo = SeaSnapshot.loadSnapshot(location);
+					}
+				} catch (Exception e) {
+					dropInfo = Collections.emptyList();
+				}
+				try {
+					return super.buildModelOfDropSea_internal();
+				} finally {
+					f_viewerbook.getDisplay().asyncExec(new Runnable() {
+						public void run() {
+							restoreViewState();
+						}
+					});
+				}
+			} else {
+				return super.buildModelOfDropSea();
+			}
     	}
     	
 		@Override
