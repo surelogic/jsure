@@ -1224,6 +1224,11 @@ public class JavaCanonicalizer {
     }
 
     @Override
+    public Integer visitDefaultValue(IRNode node) {
+    	return doAccept(DefaultValue.getValue(node));
+    }
+    
+    @Override
     public Integer visitDimExprs(IRNode node) {
       return PRIMITIVE_CONTEXT;
     }
@@ -1309,6 +1314,11 @@ public class JavaCanonicalizer {
       return ANY_CONTEXT;
     }
 
+    @Override
+    public Integer visitPrimLiteral(IRNode node) {
+    	return PRIMITIVE_CONTEXT;
+    }
+    
     @Override
     public Integer visitReturnStatement(IRNode node) {
       IRNode rdecl = binder.getBinding(node);
