@@ -103,11 +103,15 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		return thisType;
 	}
 	
+	private static boolean preprocessRefs = false;
+	
 	public void snapshotDrop(Drop d) {
-		if (idMap.containsKey(d)) {
+		if (preprocessRefs && idMap.containsKey(d)) {
 			return;
 		}
+		
 		if (!d.isValid()) {
+			System.out.println("Ignoring invalid: "+d.getMessage());
 			return; // ignore invalid drops
 		}
 		if (IThreadRoleDrop.class.isInstance(d)) {
@@ -115,7 +119,9 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			return;
 		}
 		final String id = computeId(d);
-		d.preprocessRefs(this);
+		if (preprocessRefs) {
+			d.preprocessRefs(this);
+		}
 		reset();
 		
 		final String name = d.getEntityName();	
@@ -127,7 +133,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		d.snapshotAttrs(this);
 		b.append(">\n");
 		d.snapshotRefs(this);
-		b.append("</"+name+">\n");
+		b.append("</"+name+">\n");		
 		flushBuffer(pw);	
     }
 	
