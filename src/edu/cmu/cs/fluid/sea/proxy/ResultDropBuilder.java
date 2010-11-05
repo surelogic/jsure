@@ -29,6 +29,10 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 		return rv;
 	}
 	
+	public void setConsistent(final boolean value) {
+	  isConsistent = value;
+	}
+	
 	public void setConsistent() {
 		isConsistent = true;
 	}

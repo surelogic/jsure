@@ -116,6 +116,7 @@ public interface INodeVisitor<T> {
   T visit(ReadLockNode node); 
   T visit(WriteLockNode node);
   T visit(SingleThreadedNode node);
+  T visit(ContainableNode node);
   T visit(SelfProtectedNode node); 
   T visit(NotThreadSafeNode node); 
   T visit(ImmutableNode node); 

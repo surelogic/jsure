@@ -18,7 +18,6 @@ import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
-//import edu.cmu.cs.fluid.java.analysis.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
@@ -40,6 +39,7 @@ public class LockRules extends AnnotationRules {
 	private static final String PROHIBITS_LOCK = "ProhibitsLock";
 	private static final String POLICY_LOCK = "PolicyLock";
   private static final String SINGLE_THREADED = "SingleThreaded";
+  private static final String CONTAINABLE = "Containable";
   private static final String SELF_PROTECTED = "ThreadSafe";
   private static final String NOT_THREAD_SAFE = "NotThreadSafe";
   private static final String IMMUTABLE = "Immutable";
@@ -58,6 +58,7 @@ public class LockRules extends AnnotationRules {
 	private static final ReturnsLock_ParseRule returnsLockRule = new ReturnsLock_ParseRule();
 	//private static final ProhibitsLock_ParseRule prohibitsLockRule = new ProhibitsLock_ParseRule();
   private static final SingleThreaded_ParseRule singleThreadedRule = new SingleThreaded_ParseRule();
+  private static final Containable_ParseRule containableRule = new Containable_ParseRule();
   private static final SelfProtected_ParseRule selfProtectedRule = new SelfProtected_ParseRule();
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
   private static final ImmutableParseRule immutableRule = new ImmutableParseRule();
@@ -157,6 +158,14 @@ public class LockRules extends AnnotationRules {
     return getBooleanDrop(singleThreadedRule.getStorage(), cdecl);
   }
   
+  public static boolean isContainable(final IRNode cdecl) {
+    return getContainableDrop(cdecl) != null;
+  }
+  
+  public static ContainablePromiseDrop getContainableDrop(final IRNode cdecl) {
+    return getBooleanDrop(containableRule.getStorage(), cdecl);
+  }
+  
   public static boolean isSelfProtected(IRNode cdecl) {
     return getSelfProtectedDrop(cdecl) != null;
   }
@@ -191,6 +200,7 @@ public class LockRules extends AnnotationRules {
 		registerParseRuleStorage(fw, returnsLockRule);
 		//registerParseRuleStorage(fw, prohibitsLockRule);
     registerParseRuleStorage(fw, singleThreadedRule);
+    registerParseRuleStorage(fw, containableRule);
     registerParseRuleStorage(fw, selfProtectedRule);
     registerParseRuleStorage(fw, notThreadSafeRule);
     registerParseRuleStorage(fw, immutableRule);
@@ -1445,6 +1455,30 @@ public class LockRules extends AnnotationRules {
     }    
   }  
   
+  public static class Containable_ParseRule 
+  extends SimpleBooleanAnnotationParseRule<ContainableNode,ContainablePromiseDrop> {
+    public Containable_ParseRule() {
+      super(CONTAINABLE, typeDeclOps, ContainableNode.class);
+    }
+    @Override
+    protected IAASTRootNode makeAAST(int offset) {
+      return new ContainableNode(offset);
+    }
+    @Override
+    protected IPromiseDropStorage<ContainablePromiseDrop> makeStorage() {
+      return BooleanPromiseDropStorage.create(name(), ContainablePromiseDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<ContainableNode> makeScrubber() {
+      return new AbstractAASTScrubber<ContainableNode>(this, ScrubberType.BY_HIERARCHY) {
+        @Override
+        protected PromiseDrop<ContainableNode> makePromiseDrop(ContainableNode a) {
+          final ContainablePromiseDrop d = new ContainablePromiseDrop(a);
+          return storeDropIfNotNull(getStorage(), a, d);          
+        }
+      };
+    }    
+  }  
   public static class SelfProtected_ParseRule 
   extends SimpleBooleanAnnotationParseRule<SelfProtectedNode,SelfProtectedPromiseDrop> {
     public SelfProtected_ParseRule() {

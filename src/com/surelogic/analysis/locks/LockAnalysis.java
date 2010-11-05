@@ -7,15 +7,20 @@ import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.aast.promise.RegionMappingNode;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.messages.Messages;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.LockRules;
+import com.surelogic.annotation.rules.RegionRules;
+import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.TypeBasedAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -24,14 +29,20 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.AggregatePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.SelfProtectedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
+import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 
 public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalysis.Pair> {	
@@ -100,6 +111,12 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
     if (threadSafeDrop != null) {
       new ThreadSafeVisitor(typeDecl, threadSafeDrop).doAccept(classBody);
     }
+    
+    final ContainablePromiseDrop containableDrop = 
+      LockRules.getContainableDrop(typeDecl);
+    if (containableDrop != null) {
+      new ContainableVisitor(typeDecl, containableDrop).doAccept(classBody);
+    }
 	}
 	
 	
@@ -165,9 +182,6 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 	
 	@Override
 	protected LockVisitor constructIRAnalysis(IBinder binder) {		
-	  if (binder == null) {
-		  return null;
-	  }
 	  bca = new BindingContextAnalysis(binder, true);
     return new LockVisitor(this, binder, new Effects(binder),
         new TypeBasedAliasAnalysis(binder), bca, lockModelHandle);
@@ -267,6 +281,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 
 
   private final class ThreadSafeVisitor extends JavaSemanticsVisitor {
+    private final Set<IRNode> varDecls = new HashSet<IRNode>();
     private final PromiseDrop<? extends IAASTRootNode> threadSafeDrop;
     private final Set<RegionLockRecord> lockDeclarations;
     
@@ -280,21 +295,26 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 
     
     
-    private final ResultDropBuilder reportConsistency(
-        final int msg, final IRNode varDecl,
-        final boolean isPrimitive, final SelfProtectedPromiseDrop declTSDrop,
-        final String xtraArg) {
+    private RegionLockRecord getLockForRegion(final IRegion r) {
+      for (final RegionLockRecord lr : lockDeclarations) {
+        if (lr.region.ancestorOf(r)) {
+          return lr;
+        }
+      }
+      return null;
+    }
+    
+    
+    
+    private final ResultDropBuilder createResult(
+        final IRNode varDecl, final boolean isConsistent, 
+        final int msg, final Object... args) {
       final ResultDropBuilder result =
-        ResultDropBuilder.create(LockAnalysis.this, Messages.toString(msg));
+        ResultDropBuilder.create(LockAnalysis.this, Integer.toString(msg));
       setResultDependUponDrop(result, varDecl);
       result.addCheckedPromise(threadSafeDrop);
-      result.setConsistent();
-      result.setResultMessage(msg, VariableDeclarator.getId(varDecl), xtraArg);
-      if (isPrimitive) {
-        result.addSupportingInformation(varDecl, Messages.PRIMITIVE_TYPE);
-      } else {
-        result.addTrustedPromise(declTSDrop);
-      }
+      result.setConsistent(isConsistent);
+      result.setResultMessage(msg, args);
       return result;
     }
     
@@ -303,52 +323,246 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
     @Override
     protected void handleFieldInitialization(
         final IRNode varDecl, final boolean isStatic) {
-      final IJavaType type = getBinder().getJavaType(varDecl);
-      final boolean isPrimitive = type instanceof IJavaPrimitiveType;
-      final SelfProtectedPromiseDrop declTSDrop;
-      if (type instanceof IJavaDeclaredType) {
-        declTSDrop = LockRules.getSelfProtectedDrop(
-            ((IJavaDeclaredType) type).getDeclaration());
-      } else {
-        declTSDrop = null;
-      }
-      final boolean isThreadSafe = isPrimitive || (declTSDrop != null);
-      
-      final boolean isFinal = TypeUtil.isFinal(varDecl);
-      final boolean isVolatile = TypeUtil.isVolatile(varDecl);
-      
-      if (isFinal && isThreadSafe) {
-        reportConsistency(
-            Messages.FINAL_AND_THREADSAFE, varDecl, isPrimitive, declTSDrop, null);
-      } else if (isVolatile && isThreadSafe) {
-        reportConsistency(
-            Messages.VOLATILE_AND_THREADSAFE, varDecl, isPrimitive, declTSDrop, null);
-      } else {
-        final IRegion fieldAsRegion = RegionModel.getInstance(varDecl);
-        RegionLockRecord lock = null;
-        for (final RegionLockRecord lr : lockDeclarations) {
-          if (lr.region.ancestorOf(fieldAsRegion)) {
-            lock = lr;
-            break;
-          }
-        }
+      /*
+       * Field needs to be:
+       * (1) Volatile and thread safe
+       * (2) Final and thread safe
+       * (3) Protected by a lock and thread safe
+       * 
+       * Where "thread safe" means
+       * (1) The declared type of the field is primitive
+       * (2) The declared type of the field is annotated @ThreadSafe
+       * (3) The declared type of the field is annotated @Containable and the
+       *     field is also annotated @Unique, and the referenced object is
+       *     aggregated into lock-protected regions. 
+       */
+      /* Make sure we only visit each variable declaration once.  This is a 
+       * stupid way of doing this, but it's good enough for now.  SHould make 
+       * a new visitor type probably.
+       */
+      if (varDecls.add(varDecl)) {
+        final String id = VariableDeclarator.getId(varDecl);
         
-        if (lock != null && isThreadSafe) {
-          reportConsistency(
-              Messages.PROTECTED_AND_THREADSAFE, varDecl, isPrimitive,
-              declTSDrop, lock.name);
+        /* First check if the field is volatile, final, or lock-protected */
+        final boolean isFinal = TypeUtil.isFinal(varDecl);
+        final boolean isVolatile = TypeUtil.isVolatile(varDecl);
+        final RegionLockRecord fieldLock = getLockForRegion(RegionModel.getInstance(varDecl));
+        
+        if (isFinal || isVolatile || fieldLock != null) {
+          /* Now check if the referenced object is thread safe */
+          final IJavaType type = getBinder().getJavaType(varDecl);
+          final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+          final SelfProtectedPromiseDrop declTSDrop;
+          final ContainablePromiseDrop declContainableDrop;
+          if (type instanceof IJavaDeclaredType) {
+            final IRNode cdecl = ((IJavaDeclaredType) type).getDeclaration();
+            declTSDrop = LockRules.getSelfProtectedDrop(cdecl);
+            declContainableDrop = LockRules.getContainableDrop(cdecl);
+          } else {
+            declTSDrop = null;
+            declContainableDrop = null;
+          }
+          
+          /* @ThreadSafe takes priority over @Containable: If the type is
+           * threadsafe don't check the aggregation status
+           */
+          final UniquePromiseDrop uDrop;
+          final AggregatePromiseDrop aggDrop;
+          boolean isContained = false;
+          if (declTSDrop == null && declContainableDrop != null) {
+            uDrop = UniquenessRules.getUniqueDrop(varDecl);
+            aggDrop = RegionRules.getAggregate(varDecl);
+            if (uDrop != null && aggDrop != null) {
+              isContained = true;
+              for (final RegionMappingNode mapping : aggDrop.getAST().getSpec().getMappingList()) {
+                final IRegion destRegion = mapping.getTo().resolveBinding().getRegion();
+                isContained &= (getLockForRegion(destRegion) != null);
+              }
+            }
+          } else {
+            uDrop = null;
+            aggDrop = null;
+            isContained = false;
+          }
+          
+          if (isPrimitive || declTSDrop != null || isContained) {
+            final ResultDropBuilder result;
+            if (isFinal) {
+              result = createResult(varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
+            } else if(isVolatile) {
+              result = createResult(varDecl, true, Messages.VOLATILE_AND_THREADSAFE, id);
+            } else { // lock protected 
+              result = createResult(varDecl, true, Messages.PROTECTED_AND_THREADSAFE, id, fieldLock.name);
+              result.addTrustedPromise(fieldLock.lockDecl);
+            }
+            
+            if (isPrimitive) {
+              result.addSupportingInformation(varDecl, Messages.PRIMITIVE_TYPE);
+            } else if (declTSDrop != null) {
+              result.addTrustedPromise(declTSDrop);
+            } else { // contained
+              result.addTrustedPromise(uDrop);
+              result.addTrustedPromise(aggDrop);
+              for (final RegionMappingNode mapping : aggDrop.getAST().getSpec().getMappingList()) {
+                final IRegion destRegion = mapping.getTo().resolveBinding().getRegion();
+                result.addTrustedPromise(getLockForRegion(destRegion).lockDecl);
+              }
+            }
+          } else {
+            createResult(varDecl, false, Messages.UNSAFE_REFERENCE, id);
+            /* must be that isPrimitive == false && declTSDrop == null, so
+             * report something about the uniquess/aggregation/contained status
+             * here.
+             */
+          }
         } else {
-          final ResultDropBuilder result =
-            ResultDropBuilder.create(
-                LockAnalysis.this, Messages.toString(Messages.UNSAFE_FIELD));
-          setResultDependUponDrop(result, varDecl);
-          result.addCheckedPromise(threadSafeDrop);
-          result.setInconsistent();
-          result.setResultMessage(
-              Messages.UNSAFE_FIELD, VariableDeclarator.getId(varDecl));
+          createResult(varDecl, false, Messages.UNSAFE_FIELD, id);
         }
-      }      
+      }
     }
   }
   
+
+
+  private final class ContainableVisitor extends JavaSemanticsVisitor {
+    private final Set<IRNode> varDecls = new HashSet<IRNode>();
+    private final PromiseDrop<? extends IAASTRootNode> containableDrop;
+    
+    
+    
+    public ContainableVisitor(
+        final IRNode classDecl, final PromiseDrop<? extends IAASTRootNode> cDrop) {
+      super(classDecl, false);
+      containableDrop = cDrop;
+    }
+    
+    
+    
+    private final ResultDropBuilder createResult(
+        final IRNode decl, final boolean isConsistent, 
+        final int msg, final Object... args) {
+      final ResultDropBuilder result =
+        ResultDropBuilder.create(LockAnalysis.this, Integer.toString(msg));
+      setResultDependUponDrop(result, decl);
+      result.addCheckedPromise(containableDrop);
+      result.setConsistent(isConsistent);
+      result.setResultMessage(msg, args);
+      return result;
+    }
+    
+
+    
+    @Override
+    protected void handleConstructorDeclaration(final IRNode cdecl) {
+      final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
+      final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowedDrop(rcvrDecl);
+
+      final IRNode returnDecl = JavaPromise.getReturnNodeOrNull(cdecl);
+      final UniquePromiseDrop upd = UniquenessRules.getUniqueDrop(returnDecl);
+      
+      // Prefer unique return over borrowed receiver
+      final String id = JavaNames.genMethodConstructorName(cdecl);
+      if (upd != null) {
+        final ResultDropBuilder result =
+          createResult(cdecl, true, Messages.CONSTRUCTOR_UNIQUE_RETURN, id);
+        result.addTrustedPromise(upd);
+      } else if (bpd != null) {
+        final ResultDropBuilder result =
+          createResult(cdecl, true, Messages.CONSTRUCTOR_BORROWED_RECEVIER, id);
+        result.addTrustedPromise(bpd);
+      } else {
+        final ResultDropBuilder result =
+          createResult(cdecl, false, Messages.CONSTRUCTOR_BAD, id);
+        result.addProposal(
+            new ProposedPromiseBuilder("Unique", "return", cdecl, cdecl));
+      }
+      doAcceptForChildren(cdecl);
+    }
+
+    @Override
+    protected void handleMethodDeclaration(final IRNode mdecl) {
+      // Must borrow the receiver if the method is not static
+      if (!TypeUtil.isStatic(mdecl)) {
+        final String id = JavaNames.genMethodConstructorName(mdecl);
+        final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
+        final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowedDrop(rcvrDecl);
+        if (bpd == null) {
+          final ResultDropBuilder result =
+            createResult(mdecl, false, Messages.METHOD_BAD, id);
+          result.addProposal(
+              new ProposedPromiseBuilder("Borrowed", "this", mdecl, mdecl));
+        } else {
+          final ResultDropBuilder result =
+            createResult(mdecl, true, Messages.METHOD_BORROWED_RECEIVER, id);
+          result.addTrustedPromise(bpd);
+        }
+      }
+      doAcceptForChildren(mdecl);
+    }
+    
+    
+    
+    @Override
+    protected void handleFieldInitialization(
+        final IRNode varDecl, final boolean isStatic) {
+      /* Make sure we only visit each variable declaration once.  This is a 
+       * stupid way of doing this, but it's good enough for now.  SHould make 
+       * a new visitor type probably.
+       */
+      if (varDecls.add(varDecl)) {
+        final String id = VariableDeclarator.getId(varDecl);
+        final IJavaType type = getBinder().getJavaType(varDecl);
+        final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+        if (isPrimitive) {
+          createResult(varDecl, true, Messages.FIELD_CONTAINED_PRIMITIVE, id);
+        } else {
+          final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(varDecl);
+          final AggregatePromiseDrop aggDrop = RegionRules.getAggregate(varDecl);
+          final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
+          final ContainablePromiseDrop declContainableDrop;
+          if (typeDecl != null) {
+            declContainableDrop = LockRules.getContainableDrop(typeDecl);
+          } else {
+            declContainableDrop = null;
+          }
+          if (declContainableDrop != null && uniqueDrop != null && aggDrop != null) {
+            final ResultDropBuilder result =
+              createResult(varDecl, true, Messages.FIELD_CONTAINED_OBJECT, id);
+            result.addTrustedPromise(declContainableDrop);
+            result.addTrustedPromise(uniqueDrop);
+            result.addTrustedPromise(aggDrop);
+          } else {
+            final ResultDropBuilder result =
+              createResult(varDecl, false, Messages.FIELD_BAD, id);
+            if (declContainableDrop != null) {
+              result.addTrustedPromise(declContainableDrop);              
+            } else {
+              result.addSupportingInformation(varDecl, Messages.FIELD_NOT_CONTAINABLE);
+              if (type instanceof IJavaDeclaredType) {
+                result.addProposal(new ProposedPromiseBuilder(
+                    "Containable", null, typeDecl, varDecl));
+              }
+            }
+            
+            final IRNode fieldDecl = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
+
+            if (uniqueDrop != null) {
+              result.addTrustedPromise(uniqueDrop);
+            } else {
+              result.addSupportingInformation(varDecl, Messages.FIELD_NOT_UNIQUE);
+              result.addProposal(new ProposedPromiseBuilder("Unique", null, fieldDecl, varDecl));
+              result.addProposal(new ProposedPromiseBuilder("Aggregate", null, fieldDecl, varDecl));
+            }
+            
+            if (aggDrop != null) {
+              result.addTrustedPromise(aggDrop);
+            } else { 
+              result.addSupportingInformation(varDecl, Messages.FIELD_NOT_AGGREGATED);
+              result.addProposal(new ProposedPromiseBuilder("Aggregate", null, fieldDecl, varDecl));
+            }
+          }
+        } 
+      }
+    }
+  }
 }

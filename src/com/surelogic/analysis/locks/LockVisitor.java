@@ -899,8 +899,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private InfoDropBuilder makeInfoDrop(final Category category,
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
-		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot,
-				Messages.toString(msgTemplate), false);
+		final InfoDropBuilder info =
+		  InfoDropBuilder.create(analysisRoot, Integer.toString(msgTemplate), false);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -911,7 +911,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
 		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot,
-				Messages.toString(msgTemplate), true);
+				Integer.toString(msgTemplate), true);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -923,7 +923,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final boolean isConsistent, final int msgTemplate,
 			final Object... msgArgs) {
 		final ResultDropBuilder result = ResultDropBuilder.create(analysisRoot,
-				Messages.toString(msgTemplate));
+		    Integer.toString(msgTemplate));
 		setLockResultDep(result, context);
 		result.setResultMessage(msgTemplate, msgArgs);
 		result.addCheckedPromise(p);
