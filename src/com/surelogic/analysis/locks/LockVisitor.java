@@ -900,7 +900,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
 		final InfoDropBuilder info =
-		  InfoDropBuilder.create(analysisRoot, Integer.toString(msgTemplate), false);
+		  InfoDropBuilder.create(analysisRoot, Messages.toString(msgTemplate), false);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -911,7 +911,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
 		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot,
-				Integer.toString(msgTemplate), true);
+				Messages.toString(msgTemplate), true);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -923,7 +923,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final boolean isConsistent, final int msgTemplate,
 			final Object... msgArgs) {
 		final ResultDropBuilder result = ResultDropBuilder.create(analysisRoot,
-		    Integer.toString(msgTemplate));
+				Messages.toString(msgTemplate));
 		setLockResultDep(result, context);
 		result.setResultMessage(msgTemplate, msgArgs);
 		result.addCheckedPromise(p);

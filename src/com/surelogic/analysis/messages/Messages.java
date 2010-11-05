@@ -1,6 +1,10 @@
 package com.surelogic.analysis.messages;
 
-public final class Messages {
+import java.util.*;
+
+import edu.cmu.cs.fluid.util.AbstractMessages;
+
+public final class Messages extends AbstractMessages {
   // Prevent instantiation
   private Messages() {
     super();
@@ -145,4 +149,16 @@ public final class Messages {
   public static final String LockAnalysis_ds_SingleThreadedEffects = "by effects";
   
   public static final String LockAnalysis_ds_SingleThreadedBorrowedThis = "by borrowed receiver";
+
+  private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
+
+  /** To support JSure-Sierra integration
+  */
+  public static String toString(int code) {
+	  return code2name.get(code);
+  }
+
+  static {
+    collectCodeNames(Messages.class, code2name);
+  }
 }

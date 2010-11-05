@@ -77,7 +77,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 							MethodEffectsRules.getRegionEffectsDrop(member);
 
 						if (maskedFx.isEmpty()) {
-							final ResultDrop rd = new ResultDrop(Integer.toString(Messages.EMPTY_EFFECTS));
+							final ResultDrop rd = new ResultDrop(Messages.toString(Messages.EMPTY_EFFECTS));
 							rd.addCheckedPromise(declaredEffectsDrop);
 							setResultDependUponDrop(rd, member);
 							rd.setConsistent();
@@ -154,7 +154,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	    final IRNode methodBeingChecked, final RegionEffectsPromiseDrop declEffDrop,
 			final boolean isConsistent, final Effect eff, final int msgTemplate,
 			final Object... msgArgs) {
-		final ResultDrop rd = new ResultDrop(Integer.toString(msgTemplate));
+		final ResultDrop rd = new ResultDrop(Messages.toString(msgTemplate));
 		rd.addCheckedPromise(declEffDrop);
 
 		final IRNode src = eff.getSource();

@@ -310,7 +310,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
         final IRNode varDecl, final boolean isConsistent, 
         final int msg, final Object... args) {
       final ResultDropBuilder result =
-        ResultDropBuilder.create(LockAnalysis.this, Integer.toString(msg));
+        ResultDropBuilder.create(LockAnalysis.this, Messages.toString(msg));
       setResultDependUponDrop(result, varDecl);
       result.addCheckedPromise(threadSafeDrop);
       result.setConsistent(isConsistent);
@@ -442,7 +442,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
         final IRNode decl, final boolean isConsistent, 
         final int msg, final Object... args) {
       final ResultDropBuilder result =
-        ResultDropBuilder.create(LockAnalysis.this, Integer.toString(msg));
+        ResultDropBuilder.create(LockAnalysis.this, Messages.toString(msg));
       setResultDependUponDrop(result, decl);
       result.addCheckedPromise(containableDrop);
       result.setConsistent(isConsistent);

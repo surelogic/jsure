@@ -785,7 +785,7 @@ public class LockRules extends AnnotationRules {
         if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          final PromiseWarningDrop wd = new PromiseWarningDrop(Integer.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel));
+          final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.messages.Messages.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel));
           wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel);
           wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
           wd.setCategory(DSC_UNSUPPORTED_MODEL);
@@ -828,7 +828,7 @@ public class LockRules extends AnnotationRules {
         if ((lockDecl.getField() instanceof QualifiedThisExpressionNode)
             || ((lockDecl.getField() instanceof FieldRefNode)
                 && (((FieldRefNode) lockDecl.getField()).getObject() instanceof QualifiedThisExpressionNode))) {
-          final PromiseWarningDrop wd = new PromiseWarningDrop(Integer.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel));
+          final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.messages.Messages.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel));
           wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel);
           wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
           wd.setCategory(DSC_UNSUPPORTED_MODEL);
@@ -1585,7 +1585,7 @@ public class LockRules extends AnnotationRules {
          */
         final String qualifiedName = computeQualifiedName(lockDecl);
         final LockModel model = LockModel.getInstance(qualifiedName, lockDecl.getPromisedFor()); 
-        final PromiseWarningDrop wd = new PromiseWarningDrop(Integer.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_LockViz));
+        final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.messages.Messages.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_LockViz));
         wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_LockViz, field, region);
         wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
         wd.setCategory(DSC_LOCK_VIZ);
