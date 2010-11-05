@@ -493,6 +493,9 @@ public class JavaPromise extends JavaNode {
 		IRNode classNode,
 		IRNode classInitMethod)
 	throws SlotImmutableException {
+		if (classNode == null) {
+			return;
+		}
 		classNode.setSlotValue(classInitMethodSlotInfo, classInitMethod);
 		attachPromiseNode(classNode, classInitMethod);
 	}
