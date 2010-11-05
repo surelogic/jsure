@@ -112,6 +112,9 @@ public class PersistentResultsView extends ResultsView {
   
   @Override
   protected IResultsViewContentProvider makeContentProvider() {
+	  if (!AbstractWholeIRAnalysis.useDependencies) {
+		  return new ResultsViewContentProvider();
+	  }
 	  return new GenericResultsViewContentProvider<Info,Content>(sea) {		
 		{
 			provider = this;
