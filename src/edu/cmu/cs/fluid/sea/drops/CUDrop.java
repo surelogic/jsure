@@ -9,6 +9,7 @@ import com.surelogic.common.i18n.JavaSourceReference;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.CodeInfo;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
@@ -85,6 +86,9 @@ public abstract class CUDrop extends Drop {
   }
 
   public CodeInfo makeCodeInfo() {	  
+	  if (info == null) {
+		  throw new UnsupportedOperationException("No CodeInfo for "+DebugUnparser.toString(cu));
+	  }
 	  info.clearProperty(CodeInfo.DONE);
 	  return info;
   }
