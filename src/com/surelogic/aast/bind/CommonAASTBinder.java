@@ -583,7 +583,8 @@ public class CommonAASTBinder extends AASTBinder {
 				  }
 			  };
 		  }
-		  return null;
+		  //return null;
+		  return emptyPackageB;
 	  }
 	  final IRNode t = findNamedType(qname, context);
 	  if (t != null && TypeDeclaration.prototype.includes(t)) {
@@ -601,6 +602,32 @@ public class CommonAASTBinder extends AASTBinder {
 			  }
 		  };
 	  }
-	  return null;
+	  int lastDot = qname.lastIndexOf('.');
+	  String name;
+	  if (lastDot < 0) {
+		  name = qname;
+	  } else {
+		  name = qname.substring(lastDot+1);
+	  }
+	  // TODO Hack since we don't know if the name exists
+	  if (name.length() == 0) {
+		  return null;
+	  }
+	  if (Character.isUpperCase(name.charAt(0))) {
+		  return new AbstractLayerBinding(LayerBindingKind.TYPE) {
+			  @Override public IRNode getType() {
+				  return null;
+			  }
+		  };
+	  } else {
+		  return emptyPackageB;
+	  }
+	  //return null;  
   }
+  
+  private static ILayerBinding emptyPackageB = new AbstractLayerBinding(LayerBindingKind.PACKAGE) {
+	  @Override public Iterator<IRNode> iterator() {
+		  return Collections.<IRNode>emptyList().iterator();
+	  }
+  };
 }
