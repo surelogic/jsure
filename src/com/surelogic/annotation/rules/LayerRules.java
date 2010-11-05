@@ -168,24 +168,33 @@ public class LayerRules extends AnnotationRules {
 		@Override
 		protected Boolean customScrubBindings(AASTNode node) {
 			if (node instanceof UnidentifiedTargetNode) {
-				final UnidentifiedTargetNode n = (UnidentifiedTargetNode) node;
-				// TODO cycles?
-				String qname = n.getQualifiedName();
-				final int lastDot = qname.indexOf('.');
-				if (lastDot < 0) {
-					// unqualified name
-					IRNode cu  = VisitUtil.findRoot(getCurrent().getPromisedFor());
-					String pkg = VisitUtil.getPackageName(cu);
-					qname = pkg+'.'+qname;
-				} 
-				if (isDeclared(qname) || n.bindingExists()) {
+				if (checkUnidentifiedTargetNode(node)) {
 					return true;
+				} else {
+					context.reportError("Couldn't resolve a binding for " + node
+							+ " on " + getCurrent(), node);
+					checkUnidentifiedTargetNode(node);
 				}
-				context.reportError("Couldn't resolve a binding for " + node
-						+ " on " + getCurrent(), node);
 				return false;
 			}
 			return null;
+		}
+		
+		private boolean checkUnidentifiedTargetNode(AASTNode node) {
+			final UnidentifiedTargetNode n = (UnidentifiedTargetNode) node;
+			// TODO cycles?
+			String qname = n.getQualifiedName();
+			final int lastDot = qname.indexOf('.');
+			if (lastDot < 0) {
+				// unqualified name
+				IRNode cu  = VisitUtil.findRoot(getCurrent().getPromisedFor());
+				String pkg = VisitUtil.getPackageName(cu);
+				qname = pkg+'.'+qname;
+			} 
+			if (isDeclared(qname) || n.bindingExists()) {
+				return true;
+			}
+			return false;
 		}
 		
 		/**
