@@ -6,18 +6,24 @@ import edu.cmu.cs.fluid.java.JavaNode;
 public class CodeContext {
 	private final boolean isStatic;
 	private final boolean fromInterface;
+	private final boolean fromAnnotation;
 
-	public CodeContext(boolean isStatic, boolean fromInterface) {
+	public CodeContext(boolean isStatic, boolean fromInterface, boolean fromAnnotation) {
 		this.isStatic = isStatic;  	
 		this.fromInterface = fromInterface;
+		this.fromAnnotation = fromAnnotation;
 	}
 
 	public CodeContext(CodeContext context, int mods) {
-		this(JavaNode.isSet(mods, JavaNode.STATIC), false);
+		this(JavaNode.isSet(mods, JavaNode.STATIC), false, false);
 	}
 
-	public CodeContext(CodeContext context, boolean fromInterface) {
-		this(context.isStatic, fromInterface);
+	public static CodeContext makeFromInterface(CodeContext context, boolean fromInterface) {
+		return new CodeContext(context.isStatic, fromInterface, false);
+	}
+	
+	public static CodeContext makeFromAnnotation(CodeContext context, boolean fromAnnotation) {
+		return new CodeContext(context.isStatic, false, fromAnnotation);
 	}
 
 	public boolean isStatic() {
@@ -25,5 +31,8 @@ public class CodeContext {
 	}
 	public boolean fromInterface() {
 		return fromInterface;
+	}
+	public boolean fromAnnotation() {
+		return fromAnnotation;
 	}
 }
