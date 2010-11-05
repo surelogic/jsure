@@ -413,6 +413,9 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	private final LinkedList<String> f_selectionPath = new LinkedList<String>();
 
 	protected final void loadViewState(File location) throws IOException {
+		if (location == null || !location.exists()) {
+			return;
+		}
 		final BufferedReader br = new BufferedReader(new FileReader(location));
 		try {
 			loadStrings(br, f_selectionPath);
@@ -455,15 +458,16 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 	
 	protected final void saveViewState(File location) throws IOException {		
 		saveViewState();
-		
-		final PrintWriter pw = new PrintWriter(location);
-		try {
-			saveStrings(pw, f_selectionPath);
-			for(LinkedList<String> ll : f_stringPaths) {
-				saveStrings(pw, ll);
+		if (location != null) {
+			final PrintWriter pw = new PrintWriter(location);
+			try {
+				saveStrings(pw, f_selectionPath);
+				for(LinkedList<String> ll : f_stringPaths) {
+					saveStrings(pw, ll);
+				}
+			} finally {
+				pw.close();
 			}
-		} finally {
-			pw.close();
 		}
 	}
 	
