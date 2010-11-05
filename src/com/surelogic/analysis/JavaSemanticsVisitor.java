@@ -54,6 +54,12 @@ import edu.cmu.cs.fluid.tree.Operator;
 // TODO: Expand to deal with LValue
 public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   private static enum VisitTypeAction {
+    ANNOTATION {
+      @Override
+      public void visit(final JavaSemanticsVisitor v, final IRNode typeDecl) {
+        v.handleAnnotationDeclaration(typeDecl);
+      }
+    },
     CLASS {
       @Override
       public void visit(final JavaSemanticsVisitor v, final IRNode typeDecl) {
@@ -482,7 +488,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * @param action
    *          The action to invoke if we should visit into types.
    */
-  private void visitNonAnnotationTypeDeclaration(
+  private void visitTypeDeclaration(
       final IRNode typeDecl, final VisitTypeAction action) {
     if (visitInsideTypes) {
       final IRNode prevEnclosingType = enclosingType;
@@ -558,7 +564,44 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   protected void handleAsMethodCall(final IRNode call) {
     // Does nothing
   }
+  
+  
+  
+  /**
+   * Visit an annotation declaration.   Does nothing if we should not
+   * visit into types.  Otherwise, it
+   * <ol>
+   * <li>Saves the current enclosing type and method information
+   * <li>Sets the enclosing type to the new class.
+   * <li>Visits the class by calling {@link #handleClassDeclaration(IRNode)}.
+   * <li>Restores the previous enclosing type and method information.
+   * </ol>
+   * 
+   * <p>The default implementation of {@link JavaSemanticsVisitor#handleAnnotationDeclaration(IRNode)}
+   * does nothing.
+   */
+  @Override
+  public final Void visitAnnotationDeclaration(final IRNode classDecl) {
+    visitTypeDeclaration(classDecl, VisitTypeAction.ANNOTATION);
+    return null;
+  }
 
+  /**
+   * Visit an annotation declaration.  Called by {@link #visitAnnotationDeclaration(IRNode)}.
+   * The default implementation does nothing.
+   * 
+   * <p>It is the responsibility of the subclass implementation to visit the 
+   * children of this node (or not) as appropriate to the analysis. 
+   * 
+   * @param classDecl The class declaration node.  (May also be a 
+   * NestedAnnotationDeclaration node.)
+   */
+  protected void handleAnnotationDeclaration(final IRNode classDecl) {
+    // Do nothing
+  }
+
+  
+  
   /**
    * Visit an anonymous class expression.  The most complicated of all the
    * visitations.  Does the following
@@ -902,7 +945,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitClassDeclaration(final IRNode classDecl) {
-    visitNonAnnotationTypeDeclaration(classDecl, VisitTypeAction.CLASS);
+    visitTypeDeclaration(classDecl, VisitTypeAction.CLASS);
     return null;
   }
 
@@ -1306,7 +1349,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitEnumDeclaration(final IRNode enumDecl) {
-    visitNonAnnotationTypeDeclaration(enumDecl, VisitTypeAction.ENUM);
+    visitTypeDeclaration(enumDecl, VisitTypeAction.ENUM);
     return null;
   }
 
@@ -1467,7 +1510,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitInterfaceDeclaration(final IRNode intDecl) {
-    visitNonAnnotationTypeDeclaration(intDecl, VisitTypeAction.INTERFACE);
+    visitTypeDeclaration(intDecl, VisitTypeAction.INTERFACE);
     return null;
   }
 
@@ -1575,7 +1618,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitNestedClassDeclaration(final IRNode classDecl) {
-    visitNonAnnotationTypeDeclaration(classDecl, VisitTypeAction.NESTED_CLASS);
+    visitTypeDeclaration(classDecl, VisitTypeAction.NESTED_CLASS);
     return null;
   }
   
@@ -1610,7 +1653,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitNestedEnumDeclaration(final IRNode enumDecl) {
-    visitNonAnnotationTypeDeclaration(enumDecl, VisitTypeAction.NESTED_ENUM);
+    visitTypeDeclaration(enumDecl, VisitTypeAction.NESTED_ENUM);
     return null;
   }
 
@@ -1645,7 +1688,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    */
   @Override
   public final Void visitNestedInterfaceDeclaration(final IRNode intDecl) {
-    visitNonAnnotationTypeDeclaration(intDecl, VisitTypeAction.NESTED_INTERFACE);
+    visitTypeDeclaration(intDecl, VisitTypeAction.NESTED_INTERFACE);
     return null;
   }
 
