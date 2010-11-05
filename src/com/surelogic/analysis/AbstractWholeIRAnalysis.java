@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.util.CachedSet;
 
 public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extends AbstractIRAnalysis<T,Q> {
 	public static final boolean useDependencies = false;
+	public static final boolean debugDependencies = useDependencies && false;
 	
 	static private class ResultsDepDrop extends Drop {
 		final Class<?> clazz;

@@ -349,7 +349,9 @@ public class Dependencies {
 		final MultiMap<ITypeEnvironment,IRNode> toScan = new MultiHashMap<ITypeEnvironment, IRNode>();
 		// Find the newly annotated decls
 		for(final CodeInfo info : newInfos) {
-			System.err.println("Checking for new dependencies on "+info.getFileName());
+			if (AbstractWholeIRAnalysis.debugDependencies) {		
+				System.out.println("Checking for new dependencies on "+info.getFileName());
+			}
 			// find new decls to compare
 			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
 				final Operator op = JJNode.tree.getOperator(n);
@@ -358,7 +360,9 @@ public class Dependencies {
 					final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
 					if (oldDrops == null) {
 						// New decl, so any annotations are brand-new, and will be analyzed
-						System.err.println("Ignoring new decl: "+name);
+						if (AbstractWholeIRAnalysis.debugDependencies) {						
+							//System.err.println("New decl will be analyzed normally: "+name);
+						}
 						continue; 
 					}
 					// Otherwise, it's an existing decl
