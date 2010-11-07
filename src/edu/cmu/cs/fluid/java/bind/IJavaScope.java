@@ -239,7 +239,8 @@ public interface IJavaScope {
     public static final Selector isntCallable = new AbstractSelector("Not callable") {
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
-        return !(op instanceof MethodDeclaration) && !(op instanceof ConstructorDeclaration);
+        return !(op instanceof MethodDeclaration) && !(op instanceof ConstructorDeclaration) &&
+               !(op instanceof LabeledStatement);
       }      
     };
     public static IBinding lookupNonCallable(IJavaScope scope, String name, IRNode useSite) {
