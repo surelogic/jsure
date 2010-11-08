@@ -27,7 +27,7 @@ implements IDerivedDropCreator<AggregatePromiseDrop> {
    */
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
-    return false;
+    return true;
   }
 
   /**
