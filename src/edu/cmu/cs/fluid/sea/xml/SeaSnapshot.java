@@ -268,8 +268,8 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				final ProofInfo fromPI = (ProofInfo) fromE;
 				final ProofInfo toPI = (ProofInfo) toE;
 				
-				if (PromiseDrop.useCheckedByResults && PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) {
-					fromPI.addCheckedByResult(toPI);
+				if (PromiseDrop.CHECKED_BY_RESULTS.equals(refType)) { 
+					fromPI.addCheckedByResult(toPI);					
 			    } else if (ResultDrop.CHECKED_PROMISE.equals(refType)) {
 					fromPI.addCheckedPromise(toPI);
 				} else if (ResultDrop.TRUSTED_PROMISE.equals(refType)) {
