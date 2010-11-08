@@ -69,7 +69,7 @@ public final class FirstTimeAnalysis extends FirstTimeJob {
 		final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IProject[] order = workspace.computeProjectOrder(workspace.getRoot().getProjects()).projects;
 		for(final IProject p : order) {
-			System.out.println("FTA building "+p.getName());
+			//System.out.println("FTA building "+p.getName());
 			p.build(flag, Nature.DOUBLE_CHECKER_BUILDER_ID, getArguments(), monitor);
 		}
 		if (debug)
