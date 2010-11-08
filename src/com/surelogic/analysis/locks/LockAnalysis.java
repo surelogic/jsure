@@ -29,7 +29,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -401,6 +400,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
             } else if (declTSDrop != null) {
               result.addTrustedPromise(declTSDrop);
             } else { // contained
+              result.addTrustedPromise(declContainableDrop);
               result.addTrustedPromise(uDrop);
               result.addTrustedPromise(aggDrop);
               for (final RegionMappingNode mapping : aggDrop.getAST().getSpec().getMappingList()) {
@@ -543,22 +543,20 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
                     "Containable", null, typeDecl, varDecl));
               }
             }
-            
-            final IRNode fieldDecl = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
 
             if (uniqueDrop != null) {
               result.addTrustedPromise(uniqueDrop);
             } else {
               result.addSupportingInformation(varDecl, Messages.FIELD_NOT_UNIQUE);
-              result.addProposal(new ProposedPromiseBuilder("Unique", null, fieldDecl, varDecl));
-              result.addProposal(new ProposedPromiseBuilder("Aggregate", null, fieldDecl, varDecl));
+              result.addProposal(new ProposedPromiseBuilder("Unique", null, varDecl, varDecl));
+              result.addProposal(new ProposedPromiseBuilder("Aggregate", null, varDecl, varDecl));
             }
             
             if (aggDrop != null) {
               result.addTrustedPromise(aggDrop);
             } else { 
               result.addSupportingInformation(varDecl, Messages.FIELD_NOT_AGGREGATED);
-              result.addProposal(new ProposedPromiseBuilder("Aggregate", null, fieldDecl, varDecl));
+              result.addProposal(new ProposedPromiseBuilder("Aggregate", null, varDecl, varDecl));
             }
           }
         } 
