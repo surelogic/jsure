@@ -403,6 +403,9 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 
 		private static ISrcRef makeSrcRef(final SourceRef ref) {
+			if (ref == null) {
+				return null;
+			}
 			final int line = Integer.valueOf(ref.getLine());
 			return new AbstractSrcRef() {
 				@Override
