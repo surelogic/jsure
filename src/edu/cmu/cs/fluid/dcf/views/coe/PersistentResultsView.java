@@ -7,10 +7,6 @@ import java.util.*;
 import org.eclipse.ui.IMemento;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.common.eclipse.jobs.EclipseJob;
-import com.surelogic.common.jobs.AbstractSLJob;
-import com.surelogic.common.jobs.SLProgressMonitor;
-import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -22,6 +18,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 public class PersistentResultsView extends ResultsView {
   private static final String NAME = "snapshot"+SeaSnapshot.SUFFIX;
   private static final String VIEW_STATE = "view.state";
+  private static final boolean useXML = SeaSnapshot.useFullType || AbstractWholeIRAnalysis.useDependencies;
   
   /**
    * TODO Mainly used to store ProposedPromiseDrops?
@@ -36,7 +33,7 @@ public class PersistentResultsView extends ResultsView {
   public PersistentResultsView() {
 	  File location = null;
 	  File viewState = null;
-	  if (AbstractWholeIRAnalysis.useDependencies) try {
+	  if (useXML) try {
 		  final File jsureData = PreferenceConstants.getJSureDataDirectory();
 		  if (jsureData != null) {
 			  location = new File(jsureData, NAME);
@@ -112,7 +109,7 @@ public class PersistentResultsView extends ResultsView {
   
   @Override
   protected IResultsViewContentProvider makeContentProvider() {
-	  if (!AbstractWholeIRAnalysis.useDependencies) {
+	  if (!useXML) {
 		  return new ResultsViewContentProvider();
 	  }
 	  return new GenericResultsViewContentProvider<Info,Content>(sea) {		
@@ -121,7 +118,7 @@ public class PersistentResultsView extends ResultsView {
 		}
 		@Override
     	public IResultsViewContentProvider buildModelOfDropSea() {
-			if (AbstractWholeIRAnalysis.useDependencies) {
+			if (useXML) {
 				try {      		
 					// Persist the Sea, and then load the info    
 					new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
