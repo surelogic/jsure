@@ -62,7 +62,7 @@ public class Dependencies {
 		if (d == null) {
 			return; // Nothing to do
 		}
-		System.err.println("Marking as changed: "+d);
+		System.out.println("Marking as changed: "+d);
 		changed.add(d);
 		collect(d);
 	}
@@ -302,14 +302,14 @@ public class Dependencies {
 	// TODO what if I've got the same name from two projects?
 	private void collectOldAnnotationInfo() {
 		// Get all the CUs that will be re-annotated
-		System.err.println("Collecting all the CUs to be re-annotated");
+		System.out.println("Collecting all the CUs to be re-annotated");
 		reanalyze.clear();
 		reanalyze.addAll(reprocess);
 		reanalyze.addAll(changed);
 		oldInfo.clear();
 		
 		for(final CUDrop cud : reanalyze) {
-			System.err.println("Collecting old info for "+cud.javaOSFileName);
+			System.out.println("Collecting old info for "+cud.javaOSFileName);
 			// record old decls and what annotations were on them 
 			for(final IRNode n : JJNode.tree.bottomUp(cud.cu)) {
 				final Operator op = JJNode.tree.getOperator(n);
@@ -320,7 +320,7 @@ public class Dependencies {
 					
 					final List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
 					if (!drops.isEmpty()) {
-						System.err.println("Collecting old drops for "+name);
+						System.out.println("Collecting old drops for "+name);
 						oldInfo.putAll(name, drops);
 					} 
 					/*
@@ -343,7 +343,7 @@ public class Dependencies {
 	// 4. scan for dependencies
 	public Collection<CUDrop> findDepsForNewlyAnnotatedDecls(Iterable<CodeInfo> newInfos) {
 		if (oldInfo.isEmpty()) {
-			System.err.println("No old info to compare with");
+			System.out.println("No old info to compare with");
 			return Collections.emptyList();
 		}		
 		final MultiMap<ITypeEnvironment,IRNode> toScan = new MultiHashMap<ITypeEnvironment, IRNode>();
@@ -371,7 +371,7 @@ public class Dependencies {
 					if (oldDrops.size() <= 1) { 
 						// Any new drops will be new annotations on this decl, so we'll have to scan						
 						if (!newDrops.isEmpty()) {
-							System.err.println("Found all-new annotations for "+name);						
+							System.out.println("Found all-new annotations for "+name);						
 							toScan.put(info.getTypeEnv(), n);
 						} else {
 							//System.err.println("No old/new drops for "+name);
@@ -379,24 +379,24 @@ public class Dependencies {
 					} else {
 						// We'll have to compare the drops to see which are truly new			
 						if (newDrops.isEmpty()) {
-							System.err.println("Only removed drops for "+name);
+							System.out.println("Only removed drops for "+name);
 							continue;
 						}
 						Set<Wrapper> diff = new HashSet<Wrapper>();
 						doWrappedDrops(diff, newDrops, true);  // add new drops
 						doWrappedDrops(diff, oldDrops, false); // remove old drops
 						if (!diff.isEmpty()) {
-							System.err.println("Found new annotations for "+name);
+							System.out.println("Found new annotations for "+name);
 							toScan.put(info.getTypeEnv(), n);
 						} else {
-							System.err.println("No new drops for "+name);
+							System.out.println("No new drops for "+name);
 						}
 					}
 				}
 			}
 		}
 		if (toScan.isEmpty()) {
-			System.err.println("No decls to scan for.");
+			System.out.println("No decls to scan for.");
 		} else {
 			for(Entry<ITypeEnvironment,Collection<IRNode>> e : toScan.entrySet()) {		
 				scanForDependencies(e.getKey(), e.getValue());
@@ -596,7 +596,7 @@ public class Dependencies {
 			for(final Entry<IRNode, Collection<IRNode>> e : cu2decls.entrySet()) {
 				final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
 				final String name       = VisitUtil.getPackageName(e.getKey());
-				System.err.println("Scanning for dependencies in package: "+name);
+				System.out.println("Scanning for dependencies in package: "+name);
 				// TODO does this have the right info?
 				final PackageDrop pd = PackageDrop.findPackage(name);			
 				for(CUDrop cud : pd.getCUDrops()) {
@@ -614,7 +614,7 @@ public class Dependencies {
 		}
 
 		private void scanForSubclass(ITypeEnvironment te, IRNode type, Set<IRNode> decls) {
-			System.err.println("Scanning for subclass dependencies: "+JavaNames.getFullTypeName(type));
+			System.out.println("Scanning for subclass dependencies: "+JavaNames.getFullTypeName(type));
 			for(IRNode sub : te.getRawSubclasses(type)) {
 				// TODO check if already on the list first?
 				final IRNode cu  = VisitUtil.findCompilationUnit(sub);
@@ -625,7 +625,7 @@ public class Dependencies {
 		}
 
 		private void scanForPublic(ITypeEnvironment te, Set<IRNode> decls) {
-			System.err.println("Scanning for public dependencies: "+this);
+			System.out.println("Scanning for public dependencies: "+this);
 			// TODO do i need to check binaries?
 			final Set<CUDrop> allCus = Sea.getDefault().getDropsOfType(CUDrop.class);
 			for(CUDrop cud : allCus) {
@@ -641,12 +641,12 @@ public class Dependencies {
 	 */
 	void scanCUDropForDependencies(IBinder binder, CUDrop cud, Set<IRNode> decls) {
 		if (reanalyze.contains(cud)) {
-			System.err.println("Already slated to be reanalyzed: "+cud.javaOSFileName);
+			System.out.println("Already slated to be reanalyzed: "+cud.javaOSFileName);
 			return; // Already on the list
 		}
 		final boolean present = hasUses(binder, cud.cu, decls);
 		if (present) {
-			System.err.println("Queued to be reanalyzed: "+cud.javaOSFileName);
+			System.out.println("Queued to be reanalyzed: "+cud.javaOSFileName);
 			reanalyze.add(cud);
 		}
 	}
