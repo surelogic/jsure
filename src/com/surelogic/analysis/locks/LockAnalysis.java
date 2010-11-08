@@ -227,9 +227,13 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 	}
 	
 	@Override
-	public void postAnalysis(IIRProject p) {
+	public Iterable<IRNode> analyzeEnd(IIRProject p) {
 		finishBuild();
-		
+		return super.analyzeEnd(p);
+	}
+	
+	@Override
+	public void postAnalysis(IIRProject p) {		
 		super.postAnalysis(p);
 		/* Have to do this afterwards, because postAnalysis can cause
 		 * a LockVisitor to be created---which seems wrong---in the
