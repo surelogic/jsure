@@ -25,6 +25,7 @@ import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {	
 	public static final String SUFFIX = RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
+	public static final boolean useFullType = true;
 	
 	static final Map<String,Class<? extends Drop>> classMap = new HashMap<String, Class<? extends Drop>>();
 	static {
@@ -86,12 +87,21 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	static Class<?> findType(String type) {
 		Class<?> thisType = classMap.get(type);
 		if (thisType == null) {
-			for(String prefix : packages) {
+			if (useFullType) {
 				try {						
-					thisType = Class.forName(prefix+type);
-					break;
+					thisType = Class.forName(type);					
 				} catch(ClassNotFoundException e) {
 					// Keep going
+				}
+			} else {
+				for(String prefix : packages) {
+
+					try {						
+						thisType = Class.forName(prefix+type);
+						break;
+					} catch(ClassNotFoundException e) {
+						// Keep going
+					}
 				}
 			}
 			if (thisType == null) {
@@ -129,6 +139,9 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		ensureClassMapping(d.getClass());
 		Entities.start(name, b);
 		Entities.addAttribute(TYPE_ATTR, type, b);
+		if (useFullType) {
+			Entities.addAttribute(FULL_TYPE_ATTR, d.getClass().getName(), b);
+		}
 		Entities.addAttribute(ID_ATTR, id, b);
 		d.snapshotAttrs(this);
 		b.append(">\n");
@@ -219,7 +232,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		
 		@Override
 		public Entity makeEntity(String name, Attributes a) {
-			final String type = Entity.getValue(a, TYPE_ATTR);
+			final String type = Entity.getValue(a, useFullType ? FULL_TYPE_ATTR : TYPE_ATTR);
 			if (type != null) {
 				final Class<?> thisType = findType(type);
 				if (thisType != null && ProofDrop.class.isAssignableFrom(thisType)) {			
@@ -516,7 +529,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 
 		public boolean isInstance(Class<?> type) {
-			final String thisTypeName = getType();
+			final String thisTypeName = getAttribute(useFullType ? FULL_TYPE_ATTR : TYPE_ATTR);
 			final Class<?> thisType = findType(thisTypeName);
 			return type.isAssignableFrom(thisType);		
 		}
