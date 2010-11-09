@@ -181,6 +181,9 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 	
 	@Override
 	protected LockVisitor constructIRAnalysis(IBinder binder) {		
+	  if (binder == null) {
+		  return null;
+	  }
 	  bca = new BindingContextAnalysis(binder, true);
     return new LockVisitor(this, binder, new Effects(binder),
         new TypeBasedAliasAnalysis(binder), bca, lockModelHandle);
