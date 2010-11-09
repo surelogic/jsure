@@ -8,6 +8,7 @@ import com.surelogic.aast.bind.IBinding;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.layers.*;
 import com.surelogic.aast.promise.*;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.bind.*;
 import com.surelogic.annotation.rules.LayerRules;
@@ -571,7 +572,9 @@ public class CommonAASTBinder extends AASTBinder {
 	  if (qname.endsWith("+")) {
 		  final String prefix = qname.substring(0, qname.length()-1);
 		  final List<IRNode> pkgs = new ArrayList<IRNode>();
-		  for(Pair<String,IRNode> p : tEnv.getPackages()) {
+		  
+		  final IIRProject proj = JavaProjects.getEnclosingProject(context);
+		  for(Pair<String,IRNode> p : proj.getTypeEnv().getPackages()) {
 			  if (p.first().startsWith(prefix)) {
 				  pkgs.add(p.second());
 			  }
