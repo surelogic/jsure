@@ -188,7 +188,7 @@ public interface ITypeEnvironment {
 	 * @param name
 	 * @return The canonical PackageDeclaration (possibly annotated) for the package
 	 */
-	IRNode findPackage(String name);
+	IRNode findPackage(String name, IRNode context);
 	
 	Iterable<Pair<String,IRNode>> getPackages();
 

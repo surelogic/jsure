@@ -716,8 +716,8 @@ private long parseIntLiteral(String token) {
 	  return new EmptyIterator<IRNode>();
   }  
   
-  public IRNode findPackage(String name) {
-    return getClassTable().getOuterClass(name,null);
+  public IRNode findPackage(String name, IRNode context) {
+    return getClassTable().getOuterClass(name,context);
   }
 
   public Iterable<Pair<String,IRNode>> getPackages() {

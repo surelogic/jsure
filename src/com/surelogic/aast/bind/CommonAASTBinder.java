@@ -352,7 +352,7 @@ public class CommonAASTBinder extends AASTBinder {
     // file for that package.
     final String importedName = node.getId();
     // try getting a package of that name
-    IRNode res = tEnv.findPackage(importedName);
+    IRNode res = tEnv.findPackage(importedName, node.getPromisedFor());
     if (res == null) {
       res = findNamedType(importedName, node.getPromisedFor());
     }
@@ -532,7 +532,7 @@ public class CommonAASTBinder extends AASTBinder {
 		  name = qname.substring(lastDot+1);
 		  pkg = qname.substring(0, lastDot);
 	  }
-	  final IRNode pkgNode = tEnv.findPackage(pkg);
+	  final IRNode pkgNode = tEnv.findPackage(pkg, context);
 	  final LayerPromiseDrop d = LayerRules.findLayer(pkgNode, name);
 	  if (d != null) {
 		  return new AbstractLayerBinding(LayerBindingKind.LAYER) {
@@ -555,7 +555,7 @@ public class CommonAASTBinder extends AASTBinder {
 		  name = qname.substring(lastDot+1);
 		  pkg = qname.substring(0, lastDot);
 	  }
-	  final IRNode pkgNode = tEnv.findPackage(pkg);
+	  final IRNode pkgNode = tEnv.findPackage(pkg, context);
 	  final TypeSetPromiseDrop d = LayerRules.findTypeSet(pkgNode, name);
 	  if (d != null) {
 		  return new AbstractLayerBinding(LayerBindingKind.TYPESET) {
@@ -594,7 +594,7 @@ public class CommonAASTBinder extends AASTBinder {
 			  }
 		  }; 
 	  }
-	  final IRNode p = tEnv.findPackage(qname);
+	  final IRNode p = tEnv.findPackage(qname, context);
 	  if (p != null) {
 		  return new AbstractLayerBinding(LayerBindingKind.PACKAGE) {
 			  @Override public Iterator<IRNode> iterator() {

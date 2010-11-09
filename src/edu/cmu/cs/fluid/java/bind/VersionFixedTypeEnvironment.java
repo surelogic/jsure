@@ -42,10 +42,10 @@ public class VersionFixedTypeEnvironment extends AbstractTypeEnvironment {
   }
 
   @Override
-  public IRNode findPackage(String name) {
+  public IRNode findPackage(String name, IRNode context) {
     Version.saveVersion(atVersion);
     try {
-      return fixed.findPackage(name);
+      return fixed.findPackage(name, context);
     } finally {
       Version.restoreVersion();
     }
