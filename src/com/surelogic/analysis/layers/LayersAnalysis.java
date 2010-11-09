@@ -97,19 +97,8 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				if (inLayer != null) {
 					for(final LayerPromiseDrop layer : getAnalysis().findLayers(inLayer)) {
 						// Check if in the same layer
-						boolean inSameLayer = false;					
-						if (bindT != null) {
-							final InLayerPromiseDrop bindInLayer = LayerRules.getInLayerDrop(bindT);
-							if (bindInLayer != null) {
-								for(final LayerPromiseDrop bindLayer : getAnalysis().findLayers(bindInLayer)) {
-									if (layer == bindLayer) {
-										inSameLayer = true;
-										break;
-									}
-								}
-							}
-						}
-						if (!inSameLayer) {
+						boolean inSameLayer = inSameLayer(bindT, layer);
+						if (!inSameLayer) {							
 							rd3 = checkBinding(layer, b, bindT, n);
 							if (rd3 != null) {
 								rd3.addCheckedPromise(inLayer);
@@ -128,6 +117,22 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			ResultDrop rd = createSuccessDrop(type, mayReferTo);
 			rd.setResultMessage(351, JavaNames.getRelativeTypeName(type));
 		}	
+	}
+
+	private boolean inSameLayer(IRNode bindT, final LayerPromiseDrop layer) {
+		boolean inSameLayer = false;					
+		if (bindT != null) {
+			final InLayerPromiseDrop bindInLayer = LayerRules.getInLayerDrop(bindT);
+			if (bindInLayer != null) {
+				for(final LayerPromiseDrop bindLayer : getAnalysis().findLayers(bindInLayer)) {
+					if (layer == bindLayer) {
+						inSameLayer = true;
+						break;
+					}
+				}
+			}
+		}
+		return inSameLayer;
 	}
 	
 	private static ResultDrop createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
@@ -154,6 +159,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				final IRNode contextType = VisitUtil.getClosestType(context);
 
 				System.out.println("Found bad ref in "+JavaNames.getFullTypeName(contextType));
+				//inSameLayer(type, (LayerPromiseDrop) d);
 				d.check(type);
 				*/
 				// Create error
@@ -323,7 +329,11 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			return new FilterIterator<String,LayerPromiseDrop>(inLayer.getAST().getLayers().getNames().iterator()) {
 				@Override
 				protected Object select(String qname) {
-					// TODO qualify the qname?
+					if (!qname.contains(".")) {
+						final IRNode cu = VisitUtil.findCompilationUnit(inLayer.getNode());
+						final String pkg = VisitUtil.getPackageName(cu);
+						qname = pkg+'.'+qname;
+					}
 					return layers.get(qname);
 				}				
 			};
