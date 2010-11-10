@@ -20,6 +20,7 @@ import com.surelogic.common.refactor.AnnotationDescription;
 import com.surelogic.common.refactor.Field;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.refactor.AnnotationDescription.CU;
+import com.surelogic.refactor.IRNodeUtil;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.IBinder;
