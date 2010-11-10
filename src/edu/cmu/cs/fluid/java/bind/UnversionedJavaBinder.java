@@ -321,6 +321,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   public static void printStats() {
 	  System.out.println("Partial binding:  "+partialTime+" ms");
 	  System.out.println("Full binding:     "+fullTime+" ms");
+	  partialTime = fullTime = 0;
 	  AbstractJavaBinder.printStats();
 	  BatchJavaTypeVisitor.printStats();
   }
