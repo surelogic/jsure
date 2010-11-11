@@ -113,6 +113,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	    drop.setCategory(null);
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
       setResultDependUponDrop(drop, src);
+      drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
       drop.setResultMessage(Messages.CLASS_INIT_EFFECT,
           id, e.toString(), DebugUnparser.toString(src));
 //	    drop.setMessage(

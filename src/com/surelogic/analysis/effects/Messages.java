@@ -2,11 +2,18 @@ package com.surelogic.analysis.effects;
 
 import java.util.*;
 
+import edu.cmu.cs.fluid.sea.Category;
+
 final class Messages {  
   private Messages() {
     // private constructor to prevent instantiation
   }
  
+  private static final String LockAnalysis_dsc_NontrivialClassInitEffects = "non-trivial effect(s) in a class initializer";
+
+  static final Category DSC_EFFECTS_IN_CLASS_INIT = 
+		Category.getInstance(Messages.LockAnalysis_dsc_NontrivialClassInitEffects);
+  
   public static final int UNACCOUNTED_FOR = 150;
 
   public static final int CHECKED_BY = 151;
