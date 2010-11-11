@@ -357,14 +357,16 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
         if (isFinal || isVolatile || fieldLock != null) {
           /* Now check if the referenced object is thread safe */
           final IJavaType type = getBinder().getJavaType(varDecl);
+          final IRNode typeDecl;
           final boolean isPrimitive = type instanceof IJavaPrimitiveType;
           final SelfProtectedPromiseDrop declTSDrop;
           final ContainablePromiseDrop declContainableDrop;
           if (type instanceof IJavaDeclaredType) {
-            final IRNode cdecl = ((IJavaDeclaredType) type).getDeclaration();
-            declTSDrop = LockRules.getSelfProtectedDrop(cdecl);
-            declContainableDrop = LockRules.getContainableDrop(cdecl);
+            typeDecl = ((IJavaDeclaredType) type).getDeclaration();
+            declTSDrop = LockRules.getSelfProtectedDrop(typeDecl);
+            declContainableDrop = LockRules.getContainableDrop(typeDecl);
           } else {
+            typeDecl = null;
             declTSDrop = null;
             declContainableDrop = null;
           }
@@ -416,11 +418,27 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
               }
             }
           } else {
-            createResult(varDecl, false, Messages.UNSAFE_REFERENCE, id);
-            /* must be that isPrimitive == false && declTSDrop == null, so
-             * report something about the uniquess/aggregation/contained status
-             * here.
-             */
+            final ResultDropBuilder result = 
+              createResult(varDecl, false, Messages.UNSAFE_REFERENCE, id);
+            // type could be a non-declared, non-primitive type, that is, an array
+            if (typeDecl != null) {
+              if (declTSDrop == null) {
+                result.addProposal(new ProposedPromiseBuilder(
+                    "ThreadSafe", null, typeDecl, varDecl));
+              }
+              if (declContainableDrop == null) {
+                result.addProposal(new ProposedPromiseBuilder(
+                    "Containable", null, typeDecl, varDecl));
+              }
+            }
+            if (uDrop == null) {
+              result.addProposal(new ProposedPromiseBuilder(
+                  "Unique", null, varDecl, varDecl));
+            }
+            if (aggDrop == null) {
+              result.addProposal(new ProposedPromiseBuilder(
+                  "Aggregate", null, varDecl, varDecl));
+            }
           }
         } else {
           createResult(varDecl, false, Messages.UNSAFE_FIELD, id);
