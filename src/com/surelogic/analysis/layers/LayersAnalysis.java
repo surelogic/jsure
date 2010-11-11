@@ -159,6 +159,8 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				final IRNode contextType = VisitUtil.getClosestType(context);
 
 				System.out.println("Found bad ref in "+JavaNames.getFullTypeName(contextType));
+				System.out.println("type = "+DebugUnparser.toString(type));
+				System.out.println("context = "+DebugUnparser.toString(context));
 				//inSameLayer(type, (LayerPromiseDrop) d);
 				d.check(type);
 				*/
