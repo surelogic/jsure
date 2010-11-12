@@ -140,9 +140,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
    */
   private void importProject(final File file) {	
     // check for a .project file
-    if (!new File(file, ".project").exists()) {
+    if (!new File(file, ".project").exists()) {    	
     	// Not present, so assume it to be a multi-project container, 
     	// and try to import immediate subdirectories
+    	System.out.println("No .project in "+file+"; trying to find subprojects");
     	for(File f : file.listFiles()) {
     		if (f.isDirectory()) {
     			importProject(f);
@@ -150,6 +151,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     	}
     	return;
     }
+    System.out.println("Found .project in "+file+"; trying to create project");
     initAnalyses(file);
     
     final String project            = file.getName();
