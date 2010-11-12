@@ -36,7 +36,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ltk.ui.refactoring,
  org.eclipse.compare,
  org.eclipse.jdt.launching,
- org.eclipse.debug.core;bundle-version="3.5.1"
+ org.eclipse.debug.core
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: com.surelogic.jsure.client.eclipse.analysis,
