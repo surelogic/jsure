@@ -14,7 +14,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.Entities;
-import com.surelogic.jsure.xml.Entity;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.jsure.xml.IXMLResultListener;
 import com.surelogic.jsure.xml.JSureSummaryXMLReader;
 

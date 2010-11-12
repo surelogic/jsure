@@ -609,11 +609,7 @@ public abstract class Drop implements IDropInfo {
 		throw new UnsupportedOperationException();
 	}
 
-	public String getJavaAnnotation() {
-		throw new UnsupportedOperationException();
-	}
-
-	public Collection<? extends IDropInfo> getProposals() {
+	public Collection<? extends IProposedPromiseDropInfo> getProposals() {
 		throw new UnsupportedOperationException();
 	}
 

@@ -21,7 +21,5 @@ public interface IDropInfo {
 	Category getCategory();	
 	void setCategory(Category c);
 	Collection<ISupportingInformation> getSupportingInformation();
-	Collection<? extends IDropInfo> getProposals();
-	
-	String getJavaAnnotation();
+	Collection<? extends IProposedPromiseDropInfo> getProposals();
 }

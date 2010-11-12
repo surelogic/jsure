@@ -10,9 +10,13 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.xml.sax.Attributes;
 
+import com.surelogic.common.refactor.IJavaDeclInfoClient;
+import com.surelogic.common.refactor.IJavaDeclaration;
+import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.common.xml.Entities;
-import com.surelogic.jsure.xml.*;
+import com.surelogic.common.xml.*;
+import com.surelogic.jsure.xml.AbstractXMLResultListener;
+import com.surelogic.jsure.xml.JSureXMLReader;
 
 import static com.surelogic.jsure.xml.JSureXMLReader.*;
 
@@ -165,16 +169,23 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	}
 	
 	public void addSrcRef(IRNode context, ISrcRef srcRef) {
-		addSrcRef(context, srcRef, "    ");
+		addSrcRef(context, srcRef, "    ", null);
+	}
+	
+	public void addSrcRef(IRNode context, ISrcRef s, String flavor) {
+		addSrcRef(context, s, "    ", flavor);
 	}
 
-	private void addSrcRef(IRNode context, ISrcRef s, String indent) {
+	private void addSrcRef(IRNode context, ISrcRef s, String indent, String flavor) {
 		if (s == null) {
 			return;
 		}
 		b.append(indent);
 		Entities.start(SOURCE_REF, b);
 		addLocation(s);		
+		if (flavor != null) {
+			addAttribute(FLAVOR_ATTR, flavor);
+		}
 		addAttribute(HASH_ATTR, SeaSummary.computeHash(context));
 		addAttribute(CUNIT_ATTR, s.getCUName());
 		addAttribute(PKG_ATTR, s.getPackage());
@@ -186,9 +197,26 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		Entities.start(SUPPORTING_INFO, b);
 		addAttribute(Drop.MESSAGE, si.getMessage());
 		b.append(">\n");
-		addSrcRef(si.getLocation(), si.getSrcRef(), "      ");		
+		addSrcRef(si.getLocation(), si.getSrcRef(), "      ", null);		
 		b.append("</"+SUPPORTING_INFO+">\n");
 	}
+	
+	public void addJavaDeclInfo(final String flavor, final JavaDeclInfo info) {
+		b.append("    ");
+		Entities.start(JAVA_DECL_INFO, b);
+		addAttribute(FLAVOR_ATTR, flavor); 
+		addAttribute(JavaDeclInfo.INFO_KIND, info.getKind().toString());
+		
+		for(Map.Entry<String, String> e : info.getAttributes().entrySet()) {
+			addAttribute(e.getKey(), e.getValue());
+		}
+		b.append(">\n");
+		if (info.getParent() != null) {
+			addJavaDeclInfo(JavaDeclInfo.PARENT, info.getParent());		
+		}
+		b.append("</"+JAVA_DECL_INFO+">\n");
+	}
+	
 	/*
 	private void outputPromiseDropAttrs(StringBuilder b, PromiseDrop d) {
 		d.isAssumed();
@@ -230,13 +258,20 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			}
 		}
 		
-		@Override
 		public Entity makeEntity(String name, Attributes a) {
+			if (JAVA_DECL_INFO.equals(name)) {
+				return new JavaDeclInfo(name, a);
+			}
 			final String type = Entity.getValue(a, useFullType ? FULL_TYPE_ATTR : TYPE_ATTR);
 			if (type != null) {
 				final Class<?> thisType = findType(type);
-				if (thisType != null && ProofDrop.class.isAssignableFrom(thisType)) {			
-					return new ProofInfo(name, a);
+				if (thisType != null) {
+					if (ProposedPromiseDrop.class.isAssignableFrom(thisType)) {
+						return new ProposedPromiseInfo(name, a);
+					}
+					else if (ProofDrop.class.isAssignableFrom(thisType)) {			
+						return new ProofInfo(name, a);
+					}
 				}
 			}
 			return new Info(name, a);			
@@ -263,7 +298,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				fromE.addDeponent(toE);
 				toE.addDependent(fromE);
 			} else if (IRReferenceDrop.PROPOSED_PROMISE.equals(refType)) {
-				fromE.addProposal(toE);
+				fromE.addProposal((ProposedPromiseInfo) toE);
 			} else if (fromE instanceof ProofInfo) {
 				final ProofInfo fromPI = (ProofInfo) fromE;
 				final ProofInfo toPI = (ProofInfo) toE;
@@ -288,12 +323,12 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	public static class Info extends Entity implements IDropInfo {
 		final List<Info> dependents; 
 		final List<Info> deponents;
-		final List<Info> proposals;
+		final List<ProposedPromiseInfo> proposals;
 		Category category;
 		ISrcRef ref;
 		List<ISupportingInformation> supportingInfos;
 
-		void addProposal(Info info) {
+		void addProposal(ProposedPromiseInfo info) {
 			proposals.add(info);
 		}
 		
@@ -310,7 +345,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			if (name.endsWith("drop")) {
 				dependents = new ArrayList<Info>();
 				deponents  = new ArrayList<Info>();
-				proposals  = new ArrayList<Info>();
+				proposals  = new ArrayList<ProposedPromiseInfo>();
 			} else {
 				dependents = Collections.emptyList();
 				deponents = Collections.emptyList();
@@ -371,7 +406,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			}
 			if (!getInfos().isEmpty()) {
 				supportingInfos = new ArrayList<ISupportingInformation>();
-				for(com.surelogic.jsure.xml.Info i : getInfos()) {
+				for(MoreInfo i : getInfos()) {
 					supportingInfos.add(makeSupportingInfo(i));
 				}
 			} else {
@@ -379,7 +414,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			}
 		}
 		
-		private ISupportingInformation makeSupportingInfo(final com.surelogic.jsure.xml.Info i) {
+		private ISupportingInformation makeSupportingInfo(final MoreInfo i) {
 			return new ISupportingInformation() {
 				final ISrcRef ref = makeSrcRef(i.source);
 				
@@ -402,7 +437,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			};
 		}
 
-		private static ISrcRef makeSrcRef(final SourceRef ref) {
+		static ISrcRef makeSrcRef(final SourceRef ref) {
 			if (ref == null) {
 				return null;
 			}
@@ -554,11 +589,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			}
 		}
 
-		public String getJavaAnnotation() {
-			return getAttribute(ProposedPromiseDrop.JAVA_ANNOTATION);
-		}
-
-		public Collection<? extends IDropInfo> getProposals() {
+		public Collection<? extends IProposedPromiseDropInfo> getProposals() {
 			return proposals;
 		}
 
@@ -694,6 +725,70 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		
 		public boolean isVirtual() {
 			return "true".equals(getAttribute(PromiseDrop.VIRTUAL));
+		}
+	}
+
+	static class ProposedPromiseInfo extends Info 
+	implements IProposedPromiseDropInfo, IJavaDeclInfoClient {
+		private JavaDeclInfo fromInfo;
+		private JavaDeclInfo targetInfo;
+		private ISrcRef assumptionRef;
+
+		ProposedPromiseInfo(String name, Attributes a) {
+			super(name, a);
+		}
+		 
+		public String getJavaAnnotation() {
+			return getAttribute(ProposedPromiseDrop.JAVA_ANNOTATION);
+		}
+
+		public String getAnnotation() {
+			return getAttribute(ProposedPromiseDrop.ANNOTATION_TYPE);
+		}
+		
+		public String getContents() {
+			return getAttribute(ProposedPromiseDrop.CONTENTS);
+		}
+
+		public String getTargetProjectName() {
+			return getAttribute(ProposedPromiseDrop.TARGET_PROJECT);
+		}
+
+		public String getFromProjectName() {
+			return getAttribute(ProposedPromiseDrop.FROM_PROJECT);
+		}
+		
+		public ISrcRef getAssumptionRef() {
+			return assumptionRef;
+		}
+
+		public IJavaDeclaration getFromInfo() {
+			return fromInfo.makeDecl();
+		}
+
+		public IJavaDeclaration getTargetInfo() {
+			return targetInfo.makeDecl();
+		}
+
+		public void addInfo(JavaDeclInfo info) {
+			String flavor = info.getAttribute(FLAVOR_ATTR);
+			if (ProposedPromiseDrop.FROM_INFO.equals(flavor)) {
+				fromInfo = info;
+			} else if (ProposedPromiseDrop.TARGET_INFO.equals(flavor)) {
+				targetInfo = info;
+			} else {
+				throw new IllegalStateException("Unknown flavor of info: "+flavor);
+			}
+		}
+		
+		@Override
+		public void addRef(Entity e) {
+			final String name = e.getName();
+			if (SOURCE_REF.equals(name)) {
+				assumptionRef = makeSrcRef(new SourceRef(e));
+			} else {
+				super.addRef(e);
+			}
 		}
 	}
 }

@@ -4,15 +4,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.refactor.IJavaDeclaration;
+import com.surelogic.refactor.IRNodeUtil;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
+import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 
 /**
  * Represents a proposed promise in the sea. A proposed promise indicates a
@@ -23,8 +29,15 @@ import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
  * placing them into a set.
  */
 public final class ProposedPromiseDrop extends IRReferenceDrop 
-implements IResultDrop {
+implements IResultDrop, IProposedPromiseDropInfo {
+	public static final String ANNOTATION_TYPE = "annotation-type";
+	public static final String CONTENTS = "contents";
 	public static final String JAVA_ANNOTATION = "java-annotation";
+	public static final String FROM_PROJECT = "from-project";
+	public static final String TARGET_PROJECT = "target-project";
+	public static final String FROM_INFO = "from-info";
+	public static final String TARGET_INFO = "target-info";
+	public static final String FROM_REF = "from-ref";
 	
 	/**
 	 * Constructs a new proposed promise. Intended to be called from analysis
@@ -180,7 +193,6 @@ implements IResultDrop {
 						+ "\")");
 	}
 
-	@Override
 	public String getJavaAnnotation() {
 		return "@" + getJavaAnnotationNoAtSign();
 	}
@@ -242,5 +254,39 @@ implements IResultDrop {
 	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		super.snapshotAttrs(s);
 		s.addAttribute(JAVA_ANNOTATION, getJavaAnnotation());
+		s.addAttribute(ANNOTATION_TYPE, getAnnotation());
+		s.addAttribute(CONTENTS, getContents());
+		s.addAttribute(TARGET_PROJECT, getTargetProjectName());
+		s.addAttribute(FROM_PROJECT, getFromProjectName());
+	}
+	
+	@Override
+	public void snapshotRefs(SeaSnapshot s) {
+		super.snapshotRefs(s);
+		s.addSrcRef(getAssumptionNode(), getAssumptionRef(), FROM_REF);
+		s.addJavaDeclInfo(FROM_INFO, getFromInfo().snapshot());
+		s.addJavaDeclInfo(TARGET_INFO, getTargetInfo().snapshot());
+	}
+	
+	public String getTargetProjectName() {
+		return JavaProjects.getEnclosingProject(getNode()).getName();
+	}
+	
+	public IJavaDeclaration getTargetInfo() {
+		return makeJavaDecl(getNode());
+	}
+	
+	public String getFromProjectName() {
+		return JavaProjects.getEnclosingProject(f_requestedFrom).getName();
+	}
+	
+	public IJavaDeclaration getFromInfo() {
+		return makeJavaDecl(f_requestedFrom);
+	}
+	
+	private static IJavaDeclaration makeJavaDecl(IRNode node) {
+		final IIRProject proj = JavaProjects.getEnclosingProject(node);
+		final IBinder b = proj.getTypeEnv().getBinder();
+		return IRNodeUtil.convert(b, node);	
 	}
 }
