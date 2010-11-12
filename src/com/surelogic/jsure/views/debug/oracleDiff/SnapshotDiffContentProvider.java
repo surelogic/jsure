@@ -6,7 +6,7 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 
 import edu.cmu.cs.fluid.sea.xml.SeaSummary.*;
-import com.surelogic.jsure.xml.Entity;
+import com.surelogic.common.xml.Entity;
 
 public class SnapshotDiffContentProvider implements ITreeContentProvider, ILabelProvider {
 	private static final Object[] noElements = new Object[0];
