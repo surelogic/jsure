@@ -17,6 +17,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 public class ProposedPromiseView extends AbstractDoubleCheckerView {
@@ -26,7 +27,7 @@ public class ProposedPromiseView extends AbstractDoubleCheckerView {
 	private final Action f_annotate = new ProposedPromisesRefactoringAction() {
 
 		@Override
-		protected List<ProposedPromiseDrop> getProposedDrops() {
+		protected List<? extends IProposedPromiseDropInfo> getProposedDrops() {
 			return getSelectedRows();
 		}
 
@@ -40,7 +41,7 @@ public class ProposedPromiseView extends AbstractDoubleCheckerView {
 		super(true, SWT.MULTI);
 	}
 
-	protected List<ProposedPromiseDrop> getSelectedRows() {
+	protected List<? extends IProposedPromiseDropInfo> getSelectedRows() {
 		final IStructuredSelection selection = (IStructuredSelection) viewer
 				.getSelection();
 		final List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>();

@@ -209,13 +209,13 @@ extends	AbstractResultsViewContentProvider {
 	@SuppressWarnings("unchecked")
 	private void addProposedPromises(C mutableContentSet,
 			IDropInfo about) {
-		Collection<? extends IDropInfo> proposals = about.getProposals();
+		Collection<? extends IProposedPromiseDropInfo> proposals = about.getProposals();
 		int size = proposals.size();
 		if (size == 0) {
 			// no proposed promises, thus bail out
 			return;
 		} else if (size == 1) {
-			IDropInfo pp = proposals.iterator().next();
+			IProposedPromiseDropInfo pp = proposals.iterator().next();
 			final C proposalItem = makeContent("proposed promise: "
 					+ pp.getJavaAnnotation(), (T) pp);
 			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
@@ -226,7 +226,7 @@ extends	AbstractResultsViewContentProvider {
 		C siFolder = makeContent(I18N.msg("jsure.eclipse.proposed.promise.content.folder"));
 		siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 
-		for (IDropInfo pp : proposals) {
+		for (IProposedPromiseDropInfo pp : proposals) {
 			final C proposalItem = makeContent(pp.getJavaAnnotation(), (T) pp);
 			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
 			siFolder.addChild(proposalItem);

@@ -1,5 +1,8 @@
 package com.surelogic.jsure.client.eclipse;
 
+import org.xml.sax.Attributes;
+
+import com.surelogic.common.xml.Entity;
 import com.surelogic.jsure.xml.*;
 
 public class TestListener extends AbstractXMLResultListener {
@@ -19,4 +22,7 @@ public class TestListener extends AbstractXMLResultListener {
 	public void done() {
 	}
 	*/	
+	public Entity makeEntity(String name, Attributes a) {
+		return new Entity(name, a);
+	}
 }

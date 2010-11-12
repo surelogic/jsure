@@ -7,6 +7,7 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 
 import com.surelogic.common.eclipse.*;
 
+import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
 public abstract class ProposedPromisesRefactoringAction extends Action {
@@ -20,13 +21,13 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 	 * @return the list of proposed promise drops for the source code
 	 *         modification. Should not contain duplicate.
 	 */
-	protected abstract List<ProposedPromiseDrop> getProposedDrops();
+	protected abstract List<? extends IProposedPromiseDropInfo> getProposedDrops();
 
 	protected abstract String getDialogTitle();
 
 	@Override
 	public void run() {
-		final List<ProposedPromiseDrop> selected = getProposedDrops();
+		final List<? extends IProposedPromiseDropInfo> selected = getProposedDrops();
 		if (selected.isEmpty()) {
 			return;
 		}

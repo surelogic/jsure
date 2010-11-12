@@ -24,31 +24,27 @@ import com.surelogic.refactor.IRNodeUtil;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.*;
 
 public class ProposedPromisesChange {
-	private final List<ProposedPromiseDrop> drops;
+	private final List<? extends IProposedPromiseDropInfo> drops;
 	private final String label;
 	
-	public ProposedPromisesChange(final List<ProposedPromiseDrop> drops) {
+	public ProposedPromisesChange(final List<? extends IProposedPromiseDropInfo> drops) {
 		this.drops = drops;
 		
 		// Just compute the label from the projects involved
 		//
 		// Get the projects involved (no dups)
-		Collection<IIRProject> projects = new HashSet<IIRProject>();
-		for(ProposedPromiseDrop p : drops) {
-			projects.add(JavaProjects.getEnclosingProject(p.getNode()));
+		Collection<String> projects = new HashSet<String>();
+		for(IProposedPromiseDropInfo p : drops) {
+			projects.add(p.getTargetProjectName());
 		}
 		// Sort them
-		projects = new ArrayList<IIRProject>(projects);
-		Collections.sort((List<IIRProject>) projects, new Comparator<IIRProject>() {
-			public int compare(IIRProject o1, IIRProject o2) {
-				return o1.getName().compareTo(o2.getName());
-			}
-		});
+		projects = new ArrayList<String>(projects);
+		Collections.sort((List<String>) projects);
 		final StringBuilder sb = new StringBuilder();
-		for(IIRProject p : projects) {
+		for(String p : projects) {
 			final int len = sb.length(); 
 			if (len > 0) {
 				if (len > 50) {
@@ -57,12 +53,12 @@ public class ProposedPromisesChange {
 				}
 				sb.append(", ");
 			}
-			sb.append(p.getName());
+			sb.append(p);
 		}
 		label = sb.toString();
 	}
 
-	public List<ProposedPromiseDrop> getDrops() {
+	public List<? extends IProposedPromiseDropInfo> getDrops() {
 		return drops;
 	}
 
@@ -73,13 +69,12 @@ public class ProposedPromisesChange {
 	 * @param root
 	 */
 	void change(final CompositeChange root) {
-		final Set<IIRProject> projects = new HashSet<IIRProject>();
+		final Set<String> projects = new HashSet<String>();
 		final Map<CU, Set<AnnotationDescription>> map = new HashMap<CU, Set<AnnotationDescription>>();
-		for (final ProposedPromiseDrop drop : drops) {
-			final IIRProject proj = JavaProjects.getEnclosingProject(drop.getNode());	
-			projects.add(proj);
+		for (final IProposedPromiseDropInfo drop : drops) {	
+			projects.add(drop.getTargetProjectName());
 			
-			final AnnotationDescription ann = desc(drop, proj);
+			final AnnotationDescription ann = desc(drop);
 			final CU cu = ann.getCU();
 			Set<AnnotationDescription> set = map.get(cu);
 			if (set == null) {
@@ -92,12 +87,12 @@ public class ProposedPromisesChange {
 		final Map<CU, Set<AnnotationDescription>> assumeMap = new HashMap<CU, Set<AnnotationDescription>>();
 		final PromisesAnnotationRewriter rewrite = new PromisesAnnotationRewriter();
 		try {
-			for(final IIRProject proj : projects) {
-				final IJavaProject selectedProject = JDTUtility.getJavaProject(proj.getName());
+			for(final String proj : projects) {
+				final IJavaProject selectedProject = JDTUtility.getJavaProject(proj);
 				for (final IPackageFragment frag : selectedProject
 						.getPackageFragments()) {
 					for (final ICompilationUnit unit : frag.getCompilationUnits()) {
-						final CU check = new CU(proj.getName(), frag.getElementName(), unit
+						final CU check = new CU(proj, frag.getElementName(), unit
 								.getElementName());
 						promiseMap.put(check, map.remove(check));
 					}
@@ -114,12 +109,12 @@ public class ProposedPromisesChange {
 					set.add(ann);
 				}
 			}
-			for(final IIRProject proj : projects) {
-				final IJavaProject selectedProject = JDTUtility.getJavaProject(proj.getName());
+			for(final String proj : projects) {
+				final IJavaProject selectedProject = JDTUtility.getJavaProject(proj);
 				for (final IPackageFragment frag : selectedProject
 						.getPackageFragments()) {
 					for (final ICompilationUnit unit : frag.getCompilationUnits()) {
-						final CU check = new CU(proj.getName(), frag.getElementName(), unit.getElementName());
+						final CU check = new CU(proj, frag.getElementName(), unit.getElementName());
 						rewrite.setCompilationUnit(unit);
 						final Set<AnnotationDescription> promiseSet = promiseMap
 						.get(check);
@@ -154,12 +149,13 @@ public class ProposedPromisesChange {
 	 * @param b
 	 * @return
 	 */
-	static AnnotationDescription desc(final ProposedPromiseDrop drop, final IIRProject proj) {	
-		final IBinder b = proj.getTypeEnv().getBinder();
-		final IJavaDeclaration target = IRNodeUtil.convert(b, drop.getNode());
+	static AnnotationDescription desc(final IProposedPromiseDropInfo drop) {	
+		//final IBinder b = proj.getTypeEnv().getBinder();
+		final IJavaDeclaration target = drop.getTargetInfo();//IRNodeUtil.convert(b, drop.getNode());
+		
 		// @Assume cannot be on a field, so we just stick it on the parent type
 		// in that case
-		IJavaDeclaration from = IRNodeUtil.convert(b, drop.getRequestedFrom());
+		IJavaDeclaration from = drop.getFromInfo();// = IRNodeUtil.convert(b, drop.getRequestedFrom());
 		if (from instanceof Field) {
 			from = ((Field) from).getTypeContext();
 		}
@@ -167,10 +163,9 @@ public class ProposedPromisesChange {
 		final String annotation = drop.getAnnotation();
 		final String contents = drop.getContents();
 		ISrcRef srcRef = drop.getSrcRef();
-		final CU cu = new CU(proj.getName(), srcRef.getPackage(), srcRef.getRelativePath());
+		final CU cu = new CU(drop.getTargetProjectName(), srcRef.getPackage(), srcRef.getRelativePath());
 		srcRef = drop.getAssumptionRef();
-		final IIRProject fromProj = JavaProjects.getEnclosingProject(drop.getAssumptionNode());	
-		final CU assumptionCU = new CU(fromProj.getName(), srcRef.getPackage(), srcRef.getRelativePath());
+		final CU assumptionCU = new CU(drop.getFromProjectName(), srcRef.getPackage(), srcRef.getRelativePath());
 		return new AnnotationDescription(annotation, contents, target,
 				assumptionTarget, cu, assumptionCU);
 	}
