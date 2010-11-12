@@ -4,6 +4,7 @@ import java.io.*;
 
 import org.eclipse.compare.patch.*;
 import org.eclipse.core.resources.*;
+import org.eclipse.jdt.launching.sourcelookup.*;
 
 /**
  * Uses the eclipse Patch APIs (org.eclipse.compare.patch) to patch the specified file
@@ -34,7 +35,14 @@ public class PatchFile extends AbstractCommand {
 			throw new FileNotFoundException("File, " + file + " is not a valid file.");
 		}
 
-		IFile diff = resolveIFile(contents[2]);		
+		IStorage diff = resolveIFile(contents[2]);		
+		if (diff == null) {
+			// Not in the workspace
+			File f = resolveFile(context, contents[2]);
+			if (f != null) {
+				diff = new LocalFileStorage(f);
+			}
+		}
 		//printStream(file.getName(), diff.getContents());
 		
 		IFilePatch[] patches = ApplyPatchOperation.parsePatch(diff);
