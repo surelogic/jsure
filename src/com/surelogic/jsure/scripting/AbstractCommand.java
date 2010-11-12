@@ -2,6 +2,7 @@ package com.surelogic.jsure.scripting;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
@@ -132,7 +133,12 @@ public abstract class AbstractCommand implements ICommand {
 			  System.out.println("Couldn't find file: "+name);
 			  return null;
 		  }
-		  final String path  = oracleFile.getLocationURI().getPath();
+		  final URI pathURI = oracleFile.getLocationURI();
+		  if (pathURI == null) {
+			  System.out.println("Couldn't get URI: "+name);
+			  return null;
+		  }
+		  final String path  = pathURI.getPath();
 		  f = new File(path);
 	  }
 	  return f;
