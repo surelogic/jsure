@@ -49,11 +49,7 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
-import edu.cmu.cs.fluid.sea.Drop;
-import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
-import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -642,5 +638,38 @@ public class ResultsView extends AbstractDoubleCheckerView {
     } catch (final Exception e) {
       SLLogger.getLogger().log(Level.SEVERE, "Problem exporting for Sierra", e);
     }
+  }
+
+  public void showDrop(IDropInfo d) {
+	  // Find the corresponding Content	  
+	  Object c = findContent(d);
+	  treeViewer.reveal(c);
+      treeViewer.setSelection(new StructuredSelection(c), true);
+  }
+  
+  private Object findContent(IDropInfo d) {
+	  for(Object o : f_contentProvider.getElements(null)) {		  
+		  Object rv = findContent((AbstractContent<?,?>) o, d);
+		  if (rv != null) {
+			  return rv;
+		  }
+	  }
+	  return null;
+  }
+  
+  private Object findContent(AbstractContent<?,?> c, IDropInfo d) {
+	  if (c == null) {
+		  return null;
+	  }
+	  if (d == c.getDropInfo()) {
+		  return c;
+	  }
+	  for(Object o : f_contentProvider.getChildren(c)) {
+		  Object rv = findContent((AbstractContent<?,?>) o, d);
+		  if (rv != null) {
+			  return rv;
+		  }
+	  }
+	  return null;
   }
 }
