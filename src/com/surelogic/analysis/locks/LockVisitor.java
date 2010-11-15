@@ -143,53 +143,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	// ////////////////////////////////////////////////////////////////////////////
 	// D R O P - S E A L O C K R E S U L T C A T E G O R I E S
 
-	private static final Category DSC_AGGREGATION_NEEDED = Category
-			.getInstance(Messages.LockAnalysis_dsc_AggregationNeeded);
-
-	private static final Category DSC_FIELD_ACCESS_ASSURED = Category
-			.getInstance(Messages.LockAnalysis_dsc_FieldAccessAssured);
-
-	private static final Category DSC_FIELD_ACCESS_NOT_ASSURED = Category
-			.getInstance(Messages.LockAnalysis_dsc_FieldAccessNotAssured);
-
-	private static final Category DSC_PRECONDITIONS_ASSURED = Category
-			.getInstance(Messages.LockAnalysis_dsc_PreconditionsAssured);
-
-	private static final Category DSC_PRECONDITIONS_NOT_ASSURED = Category
-			.getInstance(Messages.LockAnalysis_dsc_PreconditionsNotAssured);
-
-	private static final Category DSC_INDIRECT_FIELD_ACCESS_ASSURED = Category
-			.getInstance(Messages.LockAnalysis_dsc_IndirectFieldAccessAssured);
-
-	private static final Category DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED = Category
-			.getInstance(Messages.LockAnalysis_dsc_IndirectFieldAccessNotAssured);
-
-	private static final Category DSC_RETURN_ASSURED = Category
-			.getInstance(Messages.LockAnalysis_dsc_ReturnAssured);
-
-	private static final Category DSC_RETURN_NOT_ASSURED = Category
-			.getInstance(Messages.LockAnalysis_dsc_ReturnNotAssured);
-
-	private static final Category DSC_UNIDENTIFIABLE_LOCK_WARNING = Category
-			.getInstance(Messages.LockAnalysis_dsc_UnidentifiableLockWarning);
-
-	private static final Category DSC_SYNCHRONIZED_UNUSED_WARNING = Category
-			.getInstance(Messages.LockAnalysis_dsc_SynchronizationUnusedWarning);
-
-	private static final Category DSC_NONFINAL_EXPRESSION_WARNING = Category
-			.getInstance(Messages.LockAnalysis_dsc_NonfinalExpressionWarning);
-
-	private static final Category DSC_REDUNDANT_SYNCHRONIZED = Category
-			.getInstance(Messages.LockAnalysis_dsc_RedundantSynchronized);
-
-	private static final Category DSC_MIXED_PARADIGM = Category
-			.getInstance(Messages.LockAnalysis_dsc_MixedParadigm);
-
-	private static final Category DSC_NOT_A_LOCK_METHOD = Category
-			.getInstance(Messages.LockAnalysis_dsc_NotALockMethod);
-
-	private static final Category DSC_MATCHING_CALLS = Category
-			.getInstance(Messages.LockAnalysis_dsc_MatchingCalls);
 
 	private final class LVThisExpressionBinder extends
 			AbstractThisExpressionBinder {
@@ -1185,8 +1138,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				.assureNeededLocks(
 						neededLocks,
 						heldJUCLocks,
-						DSC_FIELD_ACCESS_ASSURED,
-						DSC_FIELD_ACCESS_NOT_ASSURED,
+						Messages.DSC_FIELD_ACCESS_ASSURED,
+						Messages.DSC_FIELD_ACCESS_NOT_ASSURED,
 						Messages.LockAnalysis_ds_FieldAccessAssured,
 						Messages.LockAnalysis_ds_FieldAccessAssuredAlternative,
 						Messages.LockAnalysis_ds_FieldAccessOkayClassInit,
@@ -1264,7 +1217,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * should only be allowed to choose one of these.
 						 */
 						final InfoDropBuilder info = makeWarningDrop(
-								DSC_AGGREGATION_NEEDED, fieldRef,
+								Messages.DSC_AGGREGATION_NEEDED, fieldRef,
 								Messages.LockAnalysis_ds_AggregationNeeded,
 								DebugUnparser.toString(fieldRef));
 						// Propose the unique annotation
@@ -1312,7 +1265,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 * that it is not protecting the field f.
 						 */
 						final InfoDropBuilder info = makeWarningDrop(
-								DSC_AGGREGATION_NEEDED, fieldRef,
+								Messages.DSC_AGGREGATION_NEEDED, fieldRef,
 								Messages.LockAnalysis_ds_AggregationNeeded,
 								DebugUnparser.toString(fieldRef));
 						info.addDependUponDrop(innerLock.lockDecl);
@@ -1434,7 +1387,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						if (mayBeAccessedByManyThreads(actualRcvr)) {
 							// final/volatile field in a lock protected class
 							final InfoDropBuilder info = makeWarningDrop(
-									DSC_AGGREGATION_NEEDED,
+									Messages.DSC_AGGREGATION_NEEDED,
 									actualRcvr,
 									Messages.LockAnalysis_ds_AggregationNeeded2,
 									DebugUnparser.toString(actualRcvr));
@@ -1460,7 +1413,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						if (neededLock != null) {
 							// Lock protected field
 							final InfoDropBuilder info = makeWarningDrop(
-									DSC_AGGREGATION_NEEDED,
+									Messages.DSC_AGGREGATION_NEEDED,
 									actualRcvr,
 									Messages.LockAnalysis_ds_AggregationNeeded2,
 									DebugUnparser.toString(actualRcvr));
@@ -1808,8 +1761,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				.assureNeededLocks(
 						locks.goodLocks,
 						heldJUCLocks,
-						DSC_PRECONDITIONS_ASSURED,
-						DSC_PRECONDITIONS_NOT_ASSURED,
+						Messages.DSC_PRECONDITIONS_ASSURED,
+						Messages.DSC_PRECONDITIONS_NOT_ASSURED,
 						Messages.LockAnalysis_ds_PreconditionsAssured,
 						Messages.LockAnalysis_ds_PreconditionsAssuredAlternative,
 						Messages.LockAnalysis_ds_PreconditionsOkayClassInit,
@@ -1824,7 +1777,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final ResultDropBuilder result = makeResultDrop(call, rlDrop,
 					false, Messages.LockAnalysis_ds_PreconditionNotResolvable,
 					lockSpec.toString(), DebugUnparser.toString(call));
-			result.setCategory(DSC_PRECONDITIONS_NOT_ASSURED);
+			result.setCategory(Messages.DSC_PRECONDITIONS_NOT_ASSURED);
 		}
 
 		/*
@@ -1862,8 +1815,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				.assureNeededLocks(
 						neededLocks,
 						heldJUCLocks,
-						DSC_INDIRECT_FIELD_ACCESS_ASSURED,
-						DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED,
+						Messages.DSC_INDIRECT_FIELD_ACCESS_ASSURED,
+						Messages.DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED,
 						Messages.LockAnalysis_ds_IndirectFieldAccessAssured,
 						Messages.LockAnalysis_ds_IndirectFieldAccessAssuredAlternative,
 						Messages.LockAnalysis_ds_IndirectFieldAccessOkayClassInit,
@@ -2317,7 +2270,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		if (lockMethod == LockMethods.IDENTICALLY_NAMED_METHOD) {
 			// Warn about the use of lock()/unlock() methods that aren't from
 			// the lock class
-			makeWarningDrop(DSC_NOT_A_LOCK_METHOD, expr,
+			makeWarningDrop(Messages.DSC_NOT_A_LOCK_METHOD, expr,
 					Messages.LockAnalysis_ds_MasqueradingCall, DebugUnparser
 							.toString(expr));
 		} else if (lockMethod != LockMethods.NOT_A_LOCK_METHOD) {
@@ -2329,7 +2282,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				lockUtils.convertJUCLockExpr(object, heldLockFactory, enclosingMethod, null,
 						lockSet);
 				if (lockSet.isEmpty()) {
-					makeWarningDrop(DSC_UNIDENTIFIABLE_LOCK_WARNING, object,
+					makeWarningDrop(Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING, object,
 							Messages.LockAnalysis_ds_UnidentifiableLock,
 							DebugUnparser.toString(object));
 				}
@@ -2340,7 +2293,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							.getResultFor(expr); // mustRelease.getUnlocksFor(expr);
 					if (unlocks == null) { // POISONED!
 						final InfoDropBuilder match = makeWarningDrop(
-								DSC_MATCHING_CALLS, expr,
+								Messages.DSC_MATCHING_CALLS, expr,
 								Messages.LockAnalysis_ds_PoisonedLockCall,
 								lockMethod.name);
 						for (final HeldLock lock : lockSet) {
@@ -2349,7 +2302,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					} else {
 						if (unlocks.isEmpty()) {
 							final InfoDropBuilder match = makeWarningDrop(
-									DSC_MATCHING_CALLS, expr,
+									Messages.DSC_MATCHING_CALLS, expr,
 									Messages.LockAnalysis_ds_NoMatchingUnlocks,
 									lockMethod.name);
 							for (final HeldLock lock : lockSet) {
@@ -2358,7 +2311,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						} else {
 							for (final IRNode n : unlocks) {
 								final InfoDropBuilder match = makeInfoDrop(
-										DSC_MATCHING_CALLS,
+										Messages.DSC_MATCHING_CALLS,
 										expr,
 										Messages.LockAnalysis_ds_MatchingUnlock,
 										lockMethod.name, JavaNode.getSrcRef(n)
@@ -2381,7 +2334,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							.getResultFor(expr); // mustHold.getLocksFor(expr);
 					if (locks == null) { // POISONED!
 						final InfoDropBuilder match = makeWarningDrop(
-								DSC_MATCHING_CALLS, expr,
+								Messages.DSC_MATCHING_CALLS, expr,
 								Messages.LockAnalysis_ds_PoisonedUnlockCall);
 						for (final HeldLock lock : lockSet) {
 							match.addDependUponDrop(lock.getLockPromise());
@@ -2389,7 +2342,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					} else {
 						if (locks.isEmpty()) {
 							final InfoDropBuilder match = makeWarningDrop(
-									DSC_MATCHING_CALLS, expr,
+									Messages.DSC_MATCHING_CALLS, expr,
 									Messages.LockAnalysis_ds_NoMatchingLocks);
 							for (final HeldLock lock : lockSet) {
 								match.addDependUponDrop(lock.getLockPromise());
@@ -2397,7 +2350,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						} else {
 							for (final IRNode n : locks) {
 								final InfoDropBuilder match = makeInfoDrop(
-										DSC_MATCHING_CALLS, expr,
+										Messages.DSC_MATCHING_CALLS, expr,
 										Messages.LockAnalysis_ds_MatchingLock,
 										MethodCall.getMethod(n), JavaNode
 												.getSrcRef(n).getLineNumber());
@@ -2410,7 +2363,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					}
 				}
 			} else {
-				makeWarningDrop(DSC_NONFINAL_EXPRESSION_WARNING, expr,
+				makeWarningDrop(Messages.DSC_NONFINAL_EXPRESSION_WARNING, expr,
 						Messages.LockAnalysis_ds_NonfinalExpression,
 						DebugUnparser.toString(expr));
 			}
@@ -2423,7 +2376,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		if (rwLockMethod == ReadWriteLockMethods.IDENTICALLY_NAMED_METHOD) {
 			// Warn about the use of lock()/unlock() methods that aren't from
 			// the lock class
-			makeWarningDrop(DSC_NOT_A_LOCK_METHOD, expr,
+			makeWarningDrop(Messages.DSC_NOT_A_LOCK_METHOD, expr,
 					Messages.LockAnalysis_ds_MasqueradingCall2, DebugUnparser
 							.toString(expr));
 		}
@@ -2483,14 +2436,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				if (justMUTEX && !syncLockIsPolicyLock) {
 					if (TypeUtil.isStatic(mdecl)) {
 						makeWarningDrop(
-								DSC_UNIDENTIFIABLE_LOCK_WARNING,
+								Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING,
 								mdecl,
 								Messages.LockAnalysis_ds_SynchronizedStaticMethodWarningDetails,
 								JavaNames.genMethodConstructorName(mdecl),
 								JavaNames.getTypeName(ctxtTypeDecl));
 					} else {
 						makeWarningDrop(
-								DSC_UNIDENTIFIABLE_LOCK_WARNING,
+								Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING,
 								mdecl,
 								Messages.LockAnalysis_ds_SynchronizedMethodWarningDetails,
 								JavaNames.genMethodConstructorName(mdecl));
@@ -2533,7 +2486,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (syncLockIsIdentifiable && !syncLockIsPolicyLock
 					&& !syncFrame.isNeeded()) {
 				final InfoDropBuilder info = makeWarningDrop(
-						DSC_SYNCHRONIZED_UNUSED_WARNING, mdecl,
+						Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, mdecl,
 						Messages.LockAnalysis_ds_SynchronizationUnused,
 						syncFrame);
 				for (final StackLock stackLock : syncFrame) {
@@ -2654,7 +2607,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							ctxtReturnsLockDrop, true,
 							Messages.LockAnalysis_ds_ReturnAssured,
 							ctxtReturnedLock);
-					result.setCategory(DSC_RETURN_ASSURED);
+					result.setCategory(Messages.DSC_RETURN_ASSURED);
 				} else {
 					LOG.log(Level.SEVERE,
 							"null returnLock drop in checkReturnsLock");
@@ -2665,7 +2618,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							ctxtReturnsLockDrop, false,
 							Messages.LockAnalysis_ds_ReturnNotAssured,
 							ctxtReturnedLock);
-					result.setCategory(DSC_RETURN_NOT_ASSURED);
+					result.setCategory(Messages.DSC_RETURN_NOT_ASSURED);
 				} else {
 					LOG.log(Level.SEVERE,
 							"null returnLock drop in checkReturnsLock");
@@ -2696,7 +2649,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final IJavaType typeOfLockExpr = binder.getJavaType(lockExpr);
 			if (lockUtils.implementsLock(typeOfLockExpr)
 					|| lockUtils.implementsReadWriteLock(typeOfLockExpr)) {
-				makeWarningDrop(DSC_MIXED_PARADIGM, lockExpr,
+				makeWarningDrop(Messages.DSC_MIXED_PARADIGM, lockExpr,
 						Messages.LockAnalysis_ds_SyncedJUCLock, DebugUnparser
 								.toString(lockExpr));
 				lockIsIdentifiable = false;
@@ -2730,7 +2683,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						if (ctxtTheHeldLocks.oldFramesContainLock(guard.lock,
 								thisExprBinder, binder)) {
 							final InfoDropBuilder info = makeWarningDrop(
-									DSC_REDUNDANT_SYNCHRONIZED,
+									Messages.DSC_REDUNDANT_SYNCHRONIZED,
 									syncBlock,
 									Messages.LockAnalysis_ds_RedundantSynchronized,
 									guard.lock);
@@ -2762,7 +2715,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						if (!lockFields.isEmpty()) {
 							// (1)
 							makeWarningDrop(
-									DSC_MIXED_PARADIGM,
+									Messages.DSC_MIXED_PARADIGM,
 									lockExpr,
 									lockFields.size() > 1 ? Messages.LockAnalysis_ds_JUCLockFields
 											: Messages.LockAnalysis_ds_JUCLockFields,
@@ -2782,7 +2735,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 													(IJavaDeclaredType) typeOfLockExpr,
 													varDecl)) {
 										final InfoDropBuilder warning = makeWarningDrop(
-												DSC_MIXED_PARADIGM,
+												Messages.DSC_MIXED_PARADIGM,
 												lockExpr,
 												Messages.LockAnalysis_ds_DeclaredJUCLockField,
 												DebugUnparser
@@ -2797,7 +2750,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							}
 						} else {
 							makeWarningDrop(
-									DSC_UNIDENTIFIABLE_LOCK_WARNING,
+									Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING,
 									lockExpr,
 									Messages.LockAnalysis_ds_UnidentifiableLock,
 									DebugUnparser.toString(lockExpr));
@@ -2805,7 +2758,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						lockIsIdentifiable = false;
 					}
 				} else { // Non-final lock expression -> warning!
-					makeWarningDrop(DSC_NONFINAL_EXPRESSION_WARNING, lockExpr,
+					makeWarningDrop(Messages.DSC_NONFINAL_EXPRESSION_WARNING, lockExpr,
 							Messages.LockAnalysis_ds_NonfinalExpression,
 							DebugUnparser.toString(lockExpr));
 					lockIsIdentifiable = false;
@@ -2819,7 +2772,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (lockIsIdentifiable && !lockIsPolicyLock
 					&& !syncFrame.isNeeded()) {
 				final InfoDropBuilder info = makeWarningDrop(
-						DSC_SYNCHRONIZED_UNUSED_WARNING, syncBlock,
+						Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, syncBlock,
 						Messages.LockAnalysis_ds_SynchronizationUnused,
 						syncFrame);
 				for (final StackLock stackLock : syncFrame) {

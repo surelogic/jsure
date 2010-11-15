@@ -27,11 +27,6 @@ import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class LockRules extends AnnotationRules {
-  private static final Category DSC_LOCK_VIZ = Category.getInstance(
-      com.surelogic.analysis.messages.Messages.LockAnalysis_dsc_LockViz);
-  private static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance(
-      com.surelogic.analysis.messages.Messages.LockAnalysis_dsc_UnsupportedModel);
-
   public static final String LOCK = "RegionLock";
 	private static final String IS_LOCK = "IsLock";
 	private static final String REQUIRES_LOCK = "RequiresLock";
@@ -788,7 +783,7 @@ public class LockRules extends AnnotationRules {
           final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.messages.Messages.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel));
           wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel);
           wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
-          wd.setCategory(DSC_UNSUPPORTED_MODEL);
+          wd.setCategory(com.surelogic.analysis.messages.Messages.DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
         }
                 
@@ -831,7 +826,7 @@ public class LockRules extends AnnotationRules {
           final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.messages.Messages.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel));
           wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_UnsupportedModel);
           wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
-          wd.setCategory(DSC_UNSUPPORTED_MODEL);
+          wd.setCategory(com.surelogic.analysis.messages.Messages.DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
         }
 
@@ -1588,7 +1583,7 @@ public class LockRules extends AnnotationRules {
         final PromiseWarningDrop wd = new PromiseWarningDrop(com.surelogic.analysis.messages.Messages.toString(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_LockViz));
         wd.setResultMessage(com.surelogic.analysis.messages.Messages.LockAnalysis_ds_LockViz, field, region);
         wd.setNodeAndCompilationUnitDependency(lockDecl.getPromisedFor());
-        wd.setCategory(DSC_LOCK_VIZ);
+        wd.setCategory(com.surelogic.analysis.messages.Messages.DSC_LOCK_VIZ);
         model.addDependent(wd);
       }
     }
