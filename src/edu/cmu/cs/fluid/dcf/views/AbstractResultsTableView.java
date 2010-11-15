@@ -6,6 +6,8 @@ import java.util.List;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 
 import com.surelogic.common.eclipse.ColumnViewerSorter;
 
@@ -49,6 +51,11 @@ public abstract class AbstractResultsTableView<T extends IDropInfo> extends Abst
 			}
 		}
 		return result;
+	}
+	
+	@Override
+	protected void makeActions() {
+		// nothing
 	}
 	
 	@Override
@@ -107,11 +114,30 @@ public abstract class AbstractResultsTableView<T extends IDropInfo> extends Abst
 		f_content.build();
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	protected final void handleDoubleClick(final IStructuredSelection selection) {
-		final IDropInfo d = (IDropInfo) selection.getFirstElement();
+		final T d = (T) selection.getFirstElement();
 		if (d != null) {
 			highlightLineInJavaEditor(d.getSrcRef());
+			handleDoubleClick(d);
 		}
+	}
+	
+	protected void handleDoubleClick(T d) {
+		// Nothing right now
+	}
+	
+	protected Action makeCopyAction(String label, String tooltip) {
+		Action a = new Action() {
+			@Override
+			public void run() {
+				clipboard.setContents(new Object[] { getSelectedText() },
+						new Transfer[] { TextTransfer.getInstance() });
+			}
+		};	
+		a.setText(label);
+		a.setToolTipText(tooltip);
+		return a;
 	}
 }
