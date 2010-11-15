@@ -361,6 +361,12 @@
 			class="edu.cmu.cs.fluid.dcf.views.ast.FastViewer" id="edu.cmu.cs.fluid.dcf.views.ast.FastViewer">
 		</view>
 
+		<view name="JSure Problems"
+			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/red_x.gif"
+			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.JSureProblemsView"
+			id="edu.cmu.cs.fluid.dcf.views.coe.JSureProblemsView">
+		</view>
+
 		<view name="Modeling Problems"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_model_problems.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView"
