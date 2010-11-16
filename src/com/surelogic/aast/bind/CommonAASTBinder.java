@@ -231,6 +231,11 @@ public class CommonAASTBinder extends AASTBinder {
 
   public IVariableBinding resolve(final ThisExpressionNode node) {
     // FIXME assumed to be on a method
+	final IRNode mdecl = node.getPromisedFor();
+	final IRNode receiver = JavaPromise.getReceiverNodeOrNull(mdecl);
+	if (receiver == null) {
+		return null;
+	}
     return new IVariableBinding() {
       public IJavaType getJavaType() {
         IRNode fast  = node.getPromisedFor();
@@ -238,8 +243,7 @@ public class CommonAASTBinder extends AASTBinder {
         return JavaTypeFactory.getMyThisType(tdecl);
       }
       public IRNode getNode() {
-        IRNode mdecl = node.getPromisedFor();
-        return JavaPromise.getReceiverNodeOrNull(mdecl);
+    	return receiver;
       }
     };
   }
@@ -264,16 +268,17 @@ public class CommonAASTBinder extends AASTBinder {
     if (type == null) {
       return null;
     }
+    final IRNode mdecl = VisitUtil.getClosestClassBodyDecl(node.getPromisedFor());
+    final IRNode rv    = JavaPromise.getQualifiedReceiverNodeByName(mdecl, type.getNode());
+    if (rv == null) {
+        JavaPromise.getQualifiedReceiverNodeByName(mdecl, type.getNode());
+    	return null;
+    }
     return new IVariableBinding() {
       public IJavaType getJavaType() {
         return type.getJavaType();
       }
-      public IRNode getNode() {
-        IRNode mdecl = VisitUtil.getClosestClassBodyDecl(node.getPromisedFor());
-        IRNode rv    = JavaPromise.getQualifiedReceiverNodeByName(mdecl, type.getNode());
-        if (rv == null) {
-          JavaPromise.getQualifiedReceiverNodeByName(mdecl, type.getNode());
-        }
+      public IRNode getNode() {  
         return rv;
       }
     };
