@@ -2933,6 +2933,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       visit(node);
       return null;
     }
+    
+    @Override
+    public Void visitVoidType(IRNode node) {
+    	bind(node, IBinding.NULL);
+    	return null;
+    }
   }
 
   /**
