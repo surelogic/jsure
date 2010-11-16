@@ -477,7 +477,15 @@ public class Dependencies {
 		final DeclarationScanner typeScanner = new DeclarationScanner() {
 			@Override
 			protected void scanCUDrop(IBinder binder, CUDrop cud, Set<IRNode> decls) {
+				if (cud instanceof PackageDrop) {
+					return;
+				}
+				//System.out.println("Scanning for decls using type in "+cud.javaOSFileName);
 				scanCUDropForGivenTypedVarDecls(binder, cud, decls, depScanner);				
+			}
+			@Override
+			protected void handleLocals(IBinder binder, CUDrop cud, Collection<IRNode> decls) {
+				scanCUDrop(binder, cud, new HashSet<IRNode>(decls));
 			}
 		};
 		// Categorize decls by access
@@ -528,8 +536,17 @@ public class Dependencies {
 		
 		private void categorizeDecl(IRNode decl, int mods) {
 			if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
+				//final IRNode type = VisitUtil.getEnclosingType(decl);
 				final IRNode root = VisitUtil.findCompilationUnit(decl);
+				/* Not necessary since it can only be used in the same CU
+				 * 
+				if (NestedTypeDeclaration.prototype.includes(type)) {
+					// If it's in a nested type, it's really accessible anywhere in the CU
+					packageDecls.put(root, decl);
+				} else {
+				*/
 				localDecls.put(root, decl);
+				//}				
 			}
 			else if (JavaNode.isSet(mods, JavaNode.PROTECTED)) {
 				final IRNode type = VisitUtil.getEnclosingType(decl);
@@ -583,9 +600,7 @@ public class Dependencies {
 			}
 		}
 		
-		protected void handleLocals(IBinder binder, CUDrop cud, Collection<IRNode> localDecls) {
-			System.out.println("Ignoring decls in "+cud.javaOSFileName);
-		}
+		protected abstract void handleLocals(IBinder binder, CUDrop cud, Collection<IRNode> localDecls);
 
 		/**
 		 * Look for dependencies in the same package as the decl
@@ -703,6 +718,13 @@ public class Dependencies {
 				}
 				else {
 					throw new IllegalStateException("Unknown decl: "+op.name());
+				}
+			}
+			// This may be necessary if the new annotation on the type affects its method calls, like @RegionLock
+			else if (MethodDeclaration.prototype.includes(op)) {
+				final IRNode type = MethodDeclaration.getReturnType(n);
+				if (types.usesType(binder, type)) {
+					depScanner.categorizeDecl(n, op);
 				}
 			}
 		}
