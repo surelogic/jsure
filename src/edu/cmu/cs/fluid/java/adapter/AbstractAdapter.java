@@ -155,6 +155,12 @@ public class AbstractAdapter {
 			Operator op = JJNode.tree.getOperator(n);
 			if (MethodDeclaration.prototype.includes(op)
 					&& !JavaNode.getModifier(n, JavaNode.STATIC)) {
+				/*
+				final String name = JavaNames.genQualifiedMethodConstructorName(n);
+				if ("test.Outer.foo()".equals(name)) {
+					System.out.println("Making receiver decls for "+name);
+				}
+				*/
 				PromiseUtil.addReceiverDecls(n);
 			} else if (ConstructorDeclaration.prototype.includes(op)) {
 				ReturnValueDeclaration.getReturnNode(n);
