@@ -1230,6 +1230,9 @@ public final class LockUtils {
           final IRNode canonicalQThis =
             JavaPromise.getQualifiedReceiverNodeByName(
                 mdecl, qthis.getType().resolveType().getNode());
+          if (canonicalQThis == null) {
+        	  return null;
+          }
           // Lock is "x.y.Z.this.<LockName>"
           return heldLockFactory.createInstanceLock(canonicalQThis, lockDecl, src, supportingDrop, isAssumed, lockType);
         } else {
