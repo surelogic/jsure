@@ -17,6 +17,7 @@ import org.eclipse.ui.PlatformUI;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.eclipse.EclipseUtility;
 import com.surelogic.common.eclipse.builder.*;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
@@ -25,6 +26,7 @@ import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
+import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -203,7 +205,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		} else {
 			delta.accept(this); // add changes to our per-project resource cache
 		}
-		if (Plugin.getDefault().buildManually) {
+		if (!PreferenceConstants.getAutoAnalyzeOnBuild()) {
 			lastArgs = new HashMap<Object, Object>(args);
 			return null;
 		}
@@ -1181,5 +1183,23 @@ public final class Majordomo extends AbstractJavaBuilder implements
 			LOG.severe("No Majordomo for " + project.getName());
 		}
 
+	}
+
+	public static void analyzeNow(final boolean isAuto) {
+		final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		final IWorkspaceDescription description = workspace.getDescription();
+		for(String proj : description.getBuildOrder()) {
+			final IProject project = EclipseUtility.getProject(proj);
+			// TODO Are these run in order? 
+			final String msg = isAuto ? "Automatic JSure analysis of "+project.getName() :
+				"On-demand JSure analysis of "+project.getName();
+			
+			new FirstTimeJob(msg, project) {
+				@Override
+				protected void doJob(IProgressMonitor monitor) throws CoreException {
+					Majordomo.analyze(project, monitor);
+				}        
+			}.schedule();
+		}
 	}
 }

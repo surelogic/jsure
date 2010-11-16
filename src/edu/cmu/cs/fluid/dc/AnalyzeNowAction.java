@@ -1,24 +1,34 @@
 package edu.cmu.cs.fluid.dc;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.*;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.*;
+//import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
 
 /**
  * Implements a context menu action for IProject and IJavaProject that causes those projects 
  * to be analyzed, if needed
  */
-public final class AnalyzeNowAction extends SelectedProjectsAction {
-  @Override
-  protected boolean doRun(final IProject project) {
-    if (project != null) {
-    	new FirstTimeJob("On-demand JSure analysis of "+project.getName(), project) {
-    		@Override
-    		protected void doJob(IProgressMonitor monitor) throws CoreException {
-    			Majordomo.analyze(project, monitor);
-    		}        
-    	}.schedule();
-    }
-    return false;
-  }
+public final class AnalyzeNowAction implements IWorkbenchWindowActionDelegate {
+	public void dispose() {
+		// Nothing to do
+	}
+
+	public void init(IWorkbenchWindow window) {
+		// Nothing to do
+	}
+
+	public void selectionChanged(IAction action, ISelection selection) {
+		/* This only sets it the first time the action is shown
+		 * 
+ 		boolean value = !PreferenceConstants.getAutoAnalyzeOnBuild();
+		action.setEnabled(value);		
+		System.out.println("Analyze now: "+(value ? "enabled" : "disabled"));
+		*/
+	} 
+
+	public void run(IAction action) {
+		Majordomo.analyzeNow(false);
+	}
 }

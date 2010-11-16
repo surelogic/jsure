@@ -443,6 +443,21 @@
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
+		    <action
+				class="edu.cmu.cs.fluid.dc.ToggleAnalyzeAutoAction"
+				id="com.surelogic.jsure.client.eclipse.actions.ToggleAnalyzeAutoAction"
+				label="Analyze Automatically" tooltip="Toggle whether to run JSure automatically, or on demand"
+				style="toggle"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+			
+		    <action
+				class="edu.cmu.cs.fluid.dc.AnalyzeNowAction"
+				id="com.surelogic.jsure.client.eclipse.actions.AnalyzeNowAction"
+				label="Analyze Now" tooltip="Run JSure analysis now"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.DisableVerificationOfAllProjectsMainAction"
 				id="com.surelogic.jsure.client.eclipse.actions.DisableVerificationOfAllProjectsMainAction"

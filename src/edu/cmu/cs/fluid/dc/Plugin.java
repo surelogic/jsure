@@ -121,12 +121,6 @@ public class Plugin implements IAnalysisContainer {
 	Map<IExtension, IAnalysis> m_analysisModuleCache = new HashMap<IExtension, IAnalysis>();
 
 	/**
-	 * Whether we should build only when the user says so, or when Eclipse says
-	 * to do so
-	 */
-	boolean buildManually = false;
-
-	/**
 	 * Returns the shared double-checker plugin instance to invoke plugin
 	 * methods.
 	 * 

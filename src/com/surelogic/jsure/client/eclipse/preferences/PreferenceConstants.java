@@ -60,6 +60,22 @@ public class PreferenceConstants implements IAutoPerspectiveSwitchPreferences {
 				P_AUTO_OPEN_MODELING_PROBLEMS_VIEW, value);
 	}
 
+	/**
+	 * Whether we should build only when the user says so, or when Eclipse says
+	 * to do so
+	 */
+	public static final String P_AUTO_ANALYZE_ON_BUILD = PREFIX + "auto.analyze.on.build";
+
+	public static boolean getAutoAnalyzeOnBuild() {
+		return Activator.getDefault().getPreferenceStore().getBoolean(
+				P_AUTO_ANALYZE_ON_BUILD);
+	}
+
+	public static void setAutoAnalyzeOnBuild(boolean value) {
+		Activator.getDefault().getPreferenceStore().setValue(
+				P_AUTO_ANALYZE_ON_BUILD, value);
+	}
+	
 	private PreferenceConstants() {
 		// Nothing to do
 	}

@@ -17,5 +17,6 @@ public class PreferenceInitializer extends AbstractPrefInitializer {
     store.setDefault(PreferenceConstants.P_AUTO_PERSPECTIVE_SWITCH, false);
     store.setDefault(PreferenceConstants.P_AUTO_OPEN_MODELING_PROBLEMS_VIEW, true);
     store.setDefault(PreferenceConstants.P_AUTO_OPEN_PROPOSED_PROMISE_VIEW, true);
+    store.setDefault(PreferenceConstants.P_AUTO_ANALYZE_ON_BUILD, true);
   }
 }
