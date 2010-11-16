@@ -413,6 +413,12 @@ public class LockRules extends AnnotationRules {
 				@Override
         protected PromiseDrop<RequiresLockNode> makePromiseDrop(
 						RequiresLockNode a) {
+				    /*
+					if ("RequiresLock test.Outer.Inner.this:L".equals(a.toString())) {
+						System.out.println("Found RequiresLock test.Outer.Inner.this:L");
+						a.getLockList().get(0).resolveBinding();
+					}
+*/
 					return storeDropIfNotNull(getStorage(), a,
 							scrubRequiresLock(getContext(), a));
 
@@ -429,7 +435,7 @@ public class LockRules extends AnnotationRules {
 	 * @param node The RequiresLockNode created by the parser
 	 * @return A new RequiresLockPromise drop if it is a valid annotation, null otherwise
 	 */
-	private static RequiresLockPromiseDrop scrubRequiresLock(
+	static RequiresLockPromiseDrop scrubRequiresLock(
 			IAnnotationScrubberContext context, RequiresLockNode node) {
 		final IRNode promisedFor = node.getPromisedFor();
 		final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
