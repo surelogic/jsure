@@ -335,6 +335,16 @@ public class Dependencies {
 		}
 	}
 	
+	static class AnnotationInfo {
+		final IRNode decl;
+		final Collection<PromiseDrop<?>> drops;
+		
+		AnnotationInfo(IRNode n, Collection<PromiseDrop<?>> annos) {
+			decl = n;
+			drops = annos;
+		}
+	}
+	
 	// Written to collect info from the new AST AFTER the old AST is destroyed,
 	// promises are parsed/scrubbed, but BEFORE analysis
 	//
@@ -346,7 +356,7 @@ public class Dependencies {
 			System.out.println("No old info to compare with");
 			return Collections.emptyList();
 		}		
-		final MultiMap<ITypeEnvironment,IRNode> toScan = new MultiHashMap<ITypeEnvironment, IRNode>();
+		final MultiMap<ITypeEnvironment,AnnotationInfo> toScan = new MultiHashMap<ITypeEnvironment, AnnotationInfo>();
 		// Find the newly annotated decls
 		for(final CodeInfo info : newInfos) {
 			if (AbstractWholeIRAnalysis.debugDependencies) {		
@@ -354,6 +364,7 @@ public class Dependencies {
 			}
 			// find new decls to compare
 			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
+				// TODO what about receivers and what not?
 				final Operator op = JJNode.tree.getOperator(n);
 				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
 					final String name                         = JavaNames.getFullName(n);
@@ -361,7 +372,7 @@ public class Dependencies {
 					if (oldDrops == null) {
 						// New decl, so any annotations are brand-new, and will be analyzed
 						if (AbstractWholeIRAnalysis.debugDependencies) {						
-							//System.err.println("New decl will be analyzed normally: "+name);
+							System.err.println("New decl will be analyzed normally: "+name);
 						}
 						continue; 
 					}
@@ -372,7 +383,7 @@ public class Dependencies {
 						// Any new drops will be new annotations on this decl, so we'll have to scan						
 						if (!newDrops.isEmpty()) {
 							System.out.println("Found all-new annotations for "+name);						
-							toScan.put(info.getTypeEnv(), n);
+							toScan.put(info.getTypeEnv(), new AnnotationInfo(n, newDrops));
 						} else {
 							//System.err.println("No old/new drops for "+name);
 						}
@@ -387,7 +398,11 @@ public class Dependencies {
 						doWrappedDrops(diff, oldDrops, false); // remove old drops
 						if (!diff.isEmpty()) {
 							System.out.println("Found new annotations for "+name);
-							toScan.put(info.getTypeEnv(), n);
+							Collection<PromiseDrop<?>> diffDrops = new ArrayList<PromiseDrop<?>>();
+							for(Wrapper w : diff) {
+								diffDrops.add(w.drop);
+							}
+							toScan.put(info.getTypeEnv(), new AnnotationInfo(n, diffDrops));
 						} else {
 							System.out.println("No new drops for "+name);
 						}
@@ -398,7 +413,7 @@ public class Dependencies {
 		if (toScan.isEmpty()) {
 			System.out.println("No decls to scan for.");
 		} else {
-			for(Entry<ITypeEnvironment,Collection<IRNode>> e : toScan.entrySet()) {		
+			for(Entry<ITypeEnvironment,Collection<AnnotationInfo>> e : toScan.entrySet()) {		
 				scanForDependencies(e.getKey(), e.getValue());
 			}
 		}		
@@ -460,7 +475,7 @@ public class Dependencies {
 	 * 
 	 * @param decls A sequence of existing declarations with new annotations
 	 */
-	private void scanForDependencies(ITypeEnvironment te, Iterable<IRNode> decls) {				
+	private void scanForDependencies(ITypeEnvironment te, Iterable<AnnotationInfo> decls) {				
 		final DeclarationScanner depScanner = new DeclarationScanner() {
 			@Override
 			protected void scanCUDrop(IBinder binder, CUDrop cud, Set<IRNode> decls) {
@@ -489,7 +504,8 @@ public class Dependencies {
 			}
 		};
 		// Categorize decls by access
-		for(final IRNode decl : decls) {
+		for(final AnnotationInfo info : decls) {
+			final IRNode decl = info.decl;
 			final Operator op = JJNode.tree.getOperator(decl);
 			if (TypeDeclaration.prototype.includes(op)) {				
 				collectSubTypeDeclsForScanning(typeScanner, decl, te);
