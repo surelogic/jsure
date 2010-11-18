@@ -17,5 +17,5 @@ public interface IIRAnalysis {
 	void postAnalysis(IIRProject p);
 	void finish(IIRAnalysisEnvironment env);
 	
-	void handleBuilder(AbstractDropBuilder b);
+	void handleBuilder(IDropBuilder b);
 }

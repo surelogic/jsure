@@ -11,7 +11,7 @@ import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.Triple;
 
-public abstract class AbstractDropBuilder {
+public abstract class AbstractDropBuilder implements IDropBuilder {
 	final String type;
 	private boolean isValid = true;
 	private IRNode node;
@@ -117,7 +117,7 @@ public abstract class AbstractDropBuilder {
 			d.addSupportingInformation(p.first(), p.second(), p.third());
 		}
 		for(ProposedPromiseBuilder p : proposals) {
-			d.addProposal(p.build());
+			d.addProposal(p.buildDrop());
 			num++;
 		}
 		return num;

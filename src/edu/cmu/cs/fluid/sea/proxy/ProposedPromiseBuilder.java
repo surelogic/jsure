@@ -5,7 +5,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 
-public class ProposedPromiseBuilder {
+public class ProposedPromiseBuilder implements IDropBuilder {
 	private final String annotation; 
 	private final String contents;
 	private final IRNode at; 
@@ -18,8 +18,13 @@ public class ProposedPromiseBuilder {
 		this.from = from;
 	}
 	
-	public ProposedPromiseDrop build() {
+	public ProposedPromiseDrop buildDrop() {
 		System.out.println("\tCreating proposal: "+annotation+" "+contents+"  from  "+DebugUnparser.toString(from));
 		return new ProposedPromiseDrop(annotation, contents, at, from);
+	}
+	
+	public int build() {
+		buildDrop();
+		return 1;
 	}
 }
