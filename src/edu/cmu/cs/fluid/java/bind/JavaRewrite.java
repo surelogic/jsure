@@ -168,7 +168,7 @@ public class JavaRewrite implements JavaGlobals {
 					changed |= ensureConstructorStuffForObject(x);					
 				} else {
 					changed |= ensureConstructorStuff(x);
-					if (EnumDeclaration.prototype.includes(op)) {
+					if (EnumDeclaration.prototype.includes(op) && !JavaNode.getModifier(x, JavaNode.AS_BINARY)) {
 						if (debug)
 							LOG.finer("Adding implicit methods for "
 									+ JavaNames.getTypeName(x));
