@@ -8,7 +8,6 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ScopedPromiseNode extends TargetedAnnotationNode 
-implements IAASTRootNode 
 { 
   // Fields
   private final String promise;

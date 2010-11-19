@@ -3,10 +3,8 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class VouchSpecificationNode extends TargetedAnnotationNode 
-implements IAASTRootNode 
+public class VouchSpecificationNode extends TargetedAnnotationNode  
 { 
   // Fields
   private final String reason;
@@ -64,6 +62,10 @@ implements IAASTRootNode
   @Override
   public IAASTNode cloneTree() {
 	  return new VouchSpecificationNode(offset, reason);
+  }
+
+  public boolean implies(IAASTRootNode other) {
+	  return false; // TODO Cannot be matched
   }
 }
 

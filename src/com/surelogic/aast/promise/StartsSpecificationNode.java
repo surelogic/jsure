@@ -5,10 +5,8 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class StartsSpecificationNode extends AASTRootNode 
-implements IAASTRootNode 
 {  
   // Fields
 
@@ -50,6 +48,11 @@ implements IAASTRootNode
   @Override
   public IAASTNode cloneTree(){
   	return new StartsSpecificationNode(getOffset());
+  }
+
+  @Override
+  public boolean implies(IAASTRootNode other) {
+	  return isSameClass(other);
   }
 }
 

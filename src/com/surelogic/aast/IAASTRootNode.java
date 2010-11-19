@@ -20,4 +20,5 @@ public interface IAASTRootNode extends IAASTNode {
   void markAsValid();
   void markAsUnbound();
   void markAsUnassociated();
+  boolean implies(IAASTRootNode other);
 }

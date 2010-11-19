@@ -100,4 +100,12 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   protected boolean isStatic(int mods) {
     return JavaNode.isSet(mods, JavaNode.STATIC);
   }
+  
+  protected final boolean isSameClass(IAASTRootNode other) {
+	  return other.getClass() == getClass();
+  }
+  
+  public boolean implies(IAASTRootNode n) {
+	  throw new UnsupportedOperationException();
+  }
 }
