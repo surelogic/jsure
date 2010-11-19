@@ -225,7 +225,7 @@ public final class JavaIdentifier {
 	private static IRNode findNestedType(IRNode type, String id) {
 		for(IRNode member : VisitUtil.getClassBodyMembers(type)) {
 			final Operator op = JJNode.tree.getOperator(member);	
-			if (NestedTypeDeclaration.prototype.includes(op)) {
+			if (TypeDeclaration.prototype.includes(op)) {
 				if (id.equals(JJNode.getInfoOrNull(member))) {
 					return member;
 				}
