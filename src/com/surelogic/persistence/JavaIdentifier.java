@@ -62,15 +62,21 @@ public final class JavaIdentifier {
 		}
 	}
 	
+	private static final String DEFAULT_PKG = "(default)";
+	
 	public static String encodeDecl(IBinder b, IRNode decl) {
 		final IRNode type      = VisitUtil.getClosestType(decl);
 		final IRNode cu        = VisitUtil.getEnclosingCompilationUnit(type);
 		final StringBuilder sb = new StringBuilder();
 		sb.append(JavaProjects.getProject(cu).getName()).append(SEPARATOR);
 
-		final String pkg   = VisitUtil.getPackageName(cu);
-		sb.append(pkg).append(SEPARATOR);
-
+		final String pkg = VisitUtil.getPackageName(cu);
+		if (pkg.equals("")) {
+			sb.append(DEFAULT_PKG).append(SEPARATOR);
+		} else {
+			sb.append(pkg).append(SEPARATOR);
+		}
+		
 		final String types = JavaNames.getRelativeTypeName(type);
 		sb.append(types);
 		if (type == decl) {			
@@ -170,7 +176,8 @@ public final class JavaIdentifier {
 		if (p == null) {
 			return null;
 		}
-		final String pkg   = st.nextToken();
+		String tmp = st.nextToken();
+		final String pkg   = DEFAULT_PKG.equals(tmp) ? "" : tmp;
 		final String types = st.nextToken();
 		final IRNode type  = findType(p, pkg, types);
 		if (type == null) {
@@ -203,10 +210,18 @@ public final class JavaIdentifier {
 	private static IRNode findType(IIRProject p, String pkg, String types) {
 		final int firstDot = types.indexOf('.');
 		if (firstDot < 0) {
+			if (pkg.equals("")) {
+				return p.getTypeEnv().findNamedType(types);
+			}
 			return p.getTypeEnv().findNamedType(pkg+'.'+types);
 		} 
 		// A nested type, so find the outer type
-		final IRNode type = p.getTypeEnv().findNamedType(pkg+'.'+types.substring(0, firstDot));
+		final IRNode type;
+		if (pkg.equals("")) {
+			type = p.getTypeEnv().findNamedType(types.substring(0, firstDot));
+		} else {
+			type = p.getTypeEnv().findNamedType(pkg+'.'+types.substring(0, firstDot));
+		}
 		return findNestedTypeByQName(type, types.substring(firstDot+1));
 	}
 
@@ -236,7 +251,10 @@ public final class JavaIdentifier {
 	
 	private static IRNode findNonFunctionMember(final IRNode type, final String id) {
 		for(IRNode member : VisitUtil.getClassBodyMembers(type)) {
-			final Operator op = JJNode.tree.getOperator(member);			
+			final Operator op = JJNode.tree.getOperator(member);	
+			if (TypeDeclaration.prototype.includes(op)) {
+				continue;
+			}
 			if (FieldDeclaration.prototype.includes(op)) {
 				IRNode vdecls = FieldDeclaration.getVars(member);
 				for(IRNode vdecl : VariableDeclarators.getVarIterator(vdecls)) {
