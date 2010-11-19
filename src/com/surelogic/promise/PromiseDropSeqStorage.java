@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.util.*;
 
 public final class PromiseDropSeqStorage<D extends PromiseDrop<?>> 
 extends AbstractPromiseDropStorage<D>
@@ -79,5 +80,26 @@ implements IPromiseDropSeqStorage<D> {
     checkArgument(n);
     List<D> l = n.getSlotValue(si);    
     return l != null && !l.isEmpty();
+  }
+  
+  public Iterable<D> getDrops(IRNode n) {
+	  if (n == null) {
+		  return EmptyIterator.prototype();
+	  }
+	  final List<D> l;
+	  if (!n.valueExists(si) || (l = n.getSlotValue(si)) == null) {
+		  return EmptyIterator.prototype();
+	  }
+	  return new ProcessIterator<D>(l.iterator()) {
+		  @SuppressWarnings("unchecked")
+		  @Override
+		  protected Object select(Object o) { 
+			  D d = (D) o;
+			  if (d.isValid()) {
+				  return d;
+			  }
+			  return notSelected; 
+		  }
+	  };
   }
 }

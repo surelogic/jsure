@@ -5,6 +5,7 @@ package com.surelogic.promise;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
+import edu.cmu.cs.fluid.util.*;
 
 public final class BooleanPromiseDropStorage<D extends BooleanPromiseDrop<?>> 
 extends AbstractPromiseDropStorage<D>
@@ -60,5 +61,16 @@ implements IBooleanPromiseDropStorage<D> {
     checkArgument(n);
     D old = n.getSlotValue(si);
     return old != null;
+  }
+  
+  public Iterable<D> getDrops(IRNode n) {
+	  if (n == null) {
+		  return EmptyIterator.prototype();
+	  }
+	  D d = n.getSlotValue(si);
+	  if (!d.isValid()) {
+		  return EmptyIterator.prototype();
+	  }
+	  return new SingletonIterator<D>(d);
   }
 }

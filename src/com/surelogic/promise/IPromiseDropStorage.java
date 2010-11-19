@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.sea.*;
  * 
  * @author Edwin.Chan
  */
-public interface IPromiseDropStorage<D extends PromiseDrop> {  
+public interface IPromiseDropStorage<D extends PromiseDrop<?>> {  
   /**
    * @return The name of the SlotInfo to be created
    */
@@ -56,4 +56,6 @@ public interface IPromiseDropStorage<D extends PromiseDrop> {
    * @return true if there is at least one associated drop 
    */
   boolean isDefined(IRNode node);
+  
+  Iterable<D> getDrops(IRNode n);
 }
