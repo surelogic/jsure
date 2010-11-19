@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.Declaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
@@ -99,6 +100,8 @@ public final class JavaNames {
 			result = AnnotationDeclaration.getId(type);
 		} else if (AnonClassExpression.prototype.includes(op)) {
 			result = JJNode.getInfoOrNull(type);
+		} else if (EnumConstantClassDeclaration.prototype.includes(op)) {
+			result = EnumConstantClassDeclaration.getId(type);
 		} else if (Type.prototype.includes(op)) {
 			result = DebugUnparser.toString(type);
 		} else if (VoidType.prototype.includes(op)) {
