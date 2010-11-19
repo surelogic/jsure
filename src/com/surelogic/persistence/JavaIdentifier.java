@@ -21,6 +21,47 @@ import edu.cmu.cs.fluid.tree.Operator;
 public final class JavaIdentifier {
 	private static final String SEPARATOR = ":";
 	
+	public static void testFindEncoding(IIRProjects projs, IBinder b, IRNode cu) {
+		for(IRNode tt : VisitUtil.getTypeDecls(cu)) {
+			testFindEncodingType(projs, b, tt);
+		}
+	}
+	
+	private static void testFindEncodingType(IIRProjects projs, IBinder b, IRNode type) {
+		testFindEncodingDecl(projs, b, type);
+		for(IRNode member : VisitUtil.getClassBodyMembers(type)) {
+			final Operator op = JJNode.tree.getOperator(member);
+			if (NestedTypeDeclaration.prototype.includes(op)) {
+				testFindEncodingType(projs, b, member);
+			} else if (FieldDeclaration.prototype.includes(op)) {
+				for(IRNode vd : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(member))) {
+					testFindEncodingDecl(projs, b, vd);
+				}
+			} else {
+				testFindEncodingDecl(projs, b, member);
+			}			
+		}
+	}
+	
+	private static void testFindEncodingDecl(IIRProjects projs, IBinder b, IRNode decl) {
+		final String encoding = encodeDecl(b, decl);
+		if (encoding == null) {
+			return; // Not meant to be encoded
+		}
+		IRNode found = findDecl(projs, encoding);
+		if (!decl.equals(found)) {
+			if (found == null) {
+				System.err.println("Null match: "+encoding);
+			} else {
+				System.err.println("Not matching: "+encoding+" => "+DebugUnparser.toString(found));
+			}
+			findDecl(projs, encoding);
+			encodeDecl(b, decl);
+		} else {
+			//System.out.println("Found "+encoding);
+		}
+	}
+	
 	public static String encodeDecl(IBinder b, IRNode decl) {
 		final IRNode type      = VisitUtil.getClosestType(decl);
 		final IRNode cu        = VisitUtil.getEnclosingCompilationUnit(type);
@@ -38,10 +79,25 @@ public final class JavaIdentifier {
 		sb.append(SEPARATOR);
 		
 		// A class body member
-		final String id = JJNode.getInfo(decl);
+		final Operator op = JJNode.tree.getOperator(decl);
+		final String id;
+		if (ClassInitializer.prototype.includes(op)) {
+			/*
+			if (JavaNode.getModifier(decl, JavaNode.STATIC)) {
+				id = "<clinit>";
+			} else {
+			*/
+				return null;
+			//}
+		} else {
+			id = JJNode.getInfoOrNull(decl);
+			if (id == null) {
+				System.out.println("Null id for "+op.name());
+			}
+		}
 		sb.append(id);
 
-		final Operator op = JJNode.tree.getOperator(decl);
+
 		final IRNode method;
 		final Operator methodOp;
 		if (ParameterDeclaration.prototype.includes(op)) {
@@ -105,7 +161,7 @@ public final class JavaIdentifier {
 	}
 	
 	public static IRNode findDecl(IIRProjects projs, String code) {
-		final StringTokenizer st = new StringTokenizer(":");
+		final StringTokenizer st = new StringTokenizer(code, ":");
 		if (!st.hasMoreTokens()) {
 			return null;
 		}
@@ -116,7 +172,7 @@ public final class JavaIdentifier {
 		}
 		final String pkg   = st.nextToken();
 		final String types = st.nextToken();
-		final IRNode type  = p.getTypeEnv().findNamedType(pkg+'.'+types);
+		final IRNode type  = findType(p, pkg, types);
 		if (type == null) {
 			return null;
 		}
@@ -144,6 +200,40 @@ public final class JavaIdentifier {
 		return null;
 	}
 
+	private static IRNode findType(IIRProject p, String pkg, String types) {
+		final int firstDot = types.indexOf('.');
+		if (firstDot < 0) {
+			return p.getTypeEnv().findNamedType(pkg+'.'+types);
+		} 
+		// A nested type, so find the outer type
+		final IRNode type = p.getTypeEnv().findNamedType(pkg+'.'+types.substring(0, firstDot));
+		return findNestedTypeByQName(type, types.substring(firstDot+1));
+	}
+
+	private static IRNode findNestedTypeByQName(IRNode type, String types) {
+		if (type == null) {
+			return null;
+		}
+		final int firstDot = types.indexOf('.');
+		if (firstDot < 0) {
+			return findNestedType(type, types);
+		} 
+		final IRNode nextT = findNestedType(type, types.substring(0, firstDot));
+		return findNestedTypeByQName(nextT, types.substring(firstDot+1));		
+	}
+
+	private static IRNode findNestedType(IRNode type, String id) {
+		for(IRNode member : VisitUtil.getClassBodyMembers(type)) {
+			final Operator op = JJNode.tree.getOperator(member);	
+			if (NestedTypeDeclaration.prototype.includes(op)) {
+				if (id.equals(JJNode.getInfoOrNull(member))) {
+					return member;
+				}
+			}
+		}
+		return null;
+	}
+	
 	private static IRNode findNonFunctionMember(final IRNode type, final String id) {
 		for(IRNode member : VisitUtil.getClassBodyMembers(type)) {
 			final Operator op = JJNode.tree.getOperator(member);			
@@ -182,8 +272,23 @@ public final class JavaIdentifier {
 		}
 	}
 	
-	public static boolean isImpliedByPromise(IRNode decl, String annoType, String contents) {
-		IAnnotationParseRule<?,?> r = PromiseFramework.getInstance().getParseDropRule(annoType);
+	/**
+	 * Mainly to find the matching "About" drops
+	 */
+	public static PromiseDrop<?> findMatchingPromise(IRNode decl, String annoType, String contents) {
+		return matchPromise(decl, annoType, contents, false);
+	}
+	
+	/**
+	 * Mainly used to find "Check" drops that imply the required constraint
+	 */
+	public static PromiseDrop<?> isImpliedByPromise(IRNode decl, String annoType, String contents) {
+		return matchPromise(decl, annoType, contents, true);
+	}
+	
+	private static PromiseDrop<?> matchPromise(final IRNode decl, final String annoType, final String contents, 
+			                                   final boolean useImplication) {
+		IAnnotationParseRule<?,?> r = PromiseFramework.getInstance().getParseDropRule(annoType);		
 		MinimalContext c = new MinimalContext(decl, '@'+annoType+' '+contents);
 		if (r.parse(c, contents) == ParseResult.OK) {
 			if (c.created.size() != 1) {
@@ -192,11 +297,12 @@ public final class JavaIdentifier {
 			// Compare to the promise
 			final IAASTRootNode aast = c.created.get(0);
 			for(PromiseDrop<?> d : r.getStorage().getDrops(decl)) {
-				// TODO can there be more than one?
-				return d.getAST().implies(aast);
-			}			
+				if (useImplication ? d.getAST().implies(aast) : d.getAST().equals(aast)) {
+					return d;
+				}
+			}
 		}
-		return false; 
+		return null; 
 	}
 	
 	private static class MinimalContext extends AbstractAnnotationParsingContext {
