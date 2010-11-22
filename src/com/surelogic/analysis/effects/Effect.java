@@ -150,6 +150,11 @@ public abstract class Effect {
     }
     
     @Override
+    public String unparseForPromise() {
+      return "";
+    }
+    
+    @Override
     public String toString() {
       return "nothing";
     }
@@ -227,6 +232,11 @@ public abstract class Effect {
     @Override
     public final boolean isEmpty() {
       return false;
+    }
+    
+    @Override 
+    public final String unparseForPromise() {
+      return target.toString();
     }
   }
   
@@ -584,8 +594,14 @@ public abstract class Effect {
    * the given write effect.
    */
   abstract boolean checksWrite(IBinder binder, Effect implEffect);
-
   
+  
+
+  /**
+   * Convert the effect to a string that can be used in a RegionEffect 
+   * promise.   
+   */
+  public abstract String unparseForPromise();
   
   /**
    * Convert the effect to a String. The string is of the form "<tt>read( </tt><I>target</I><tt> )</tt>"
@@ -599,8 +615,7 @@ public abstract class Effect {
   
   /**
    * Compare two effects. Two effects are equal if the have the same target and
-   * are either both read or both write effects. The source of the two effects
-   * is not used.
+   * are either both read or both write effects and they have the same source.
    * 
    * @param obj
    *          The object to test.

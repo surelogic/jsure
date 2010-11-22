@@ -2,6 +2,8 @@ package com.surelogic.analysis.effects.targets;
 
 import java.util.logging.Level;
 
+import com.surelogic.analysis.regions.IRegion;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
@@ -47,6 +49,11 @@ public final class LocalTarget extends AbstractTarget {
         new Throwable("For stack trace"));
     }
     var = v;
+  }
+  
+  public LocalTarget setRegion(final IRegion newRegion) {
+    // doesn't use the region, so return self
+    return this;
   }
   
   public IJavaType getRelativeClass(final IBinder binder) {

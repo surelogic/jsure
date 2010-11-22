@@ -4,19 +4,32 @@ import java.util.*;
 
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
+import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
+import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.Target;
+import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.Visibility;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
+import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
+import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {	
@@ -37,6 +50,12 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 		getAnalysis().clearCaches();
     if (bca != null) bca.clear();
 	}
+  
+  @Override
+  public Iterable<IRNode> analyzeEnd(IIRProject p) {
+    finishBuild();
+    return super.analyzeEnd(p);
+  }
 	
 	@Override
 	public boolean doAnalysisOnAFile(CUDrop cud, IRNode compUnit, IAnalysisMonitor monitor) {
@@ -68,9 +87,10 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 				 */
 				if (!JavaNode.getModifier(member, JavaNode.ABSTRACT)
 						&& !JavaNode.getModifier(member, JavaNode.NATIVE)) {
+          final Set<Effect> implFx =
+            getAnalysis().getImplementationEffects(member, bca);
 					// only assure if there is declared intent
 					if (declFx != null) {
-					  final Set<Effect> implFx = getAnalysis().getImplementationEffects(member, bca);
 						final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
 
 						final RegionEffectsPromiseDrop declaredEffectsDrop =
@@ -90,9 +110,19 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 							}
 						}
 					} else {
-						/*
-						 * TODO: Suggest inferred effects here...
-						 */
+					  // Infer effects
+					  final Set<Effect> inferredEffects = 
+					    inferEffects(isConstructor, member, implFx);
+//            final InfoDrop drop = new InfoDrop("EffectAssurance");
+//            setResultDependUponDrop(drop, member);
+//            drop.setMessage("(3) Final inferred effects for {0}: {1}",
+//                SomeFunctionDeclaration.getId(member),
+//                Effects.unparseForPromise(inferredEffects));
+            
+            final ProposedPromiseBuilder pb =
+              new ProposedPromiseBuilder("RegionEffects",
+                  Effects.unparseForPromise(inferredEffects), member, member);
+            handleBuilder(pb);
 					}
 				}
 			} else if(TypeUtil.isTypeDecl(member)) {
@@ -100,6 +130,144 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			}			  
 		}
 	}
+
+	
+	
+	private Set<Effect> inferEffects(
+	    final boolean isConstructor, final IRNode member, 
+	    final Set<Effect> implFx) {
+    final Set<Effect> inferred = new HashSet<Effect>();
+    for (final Effect effect : implFx) {
+      final IRNode rcvrNode;
+      if (isConstructor) {
+        rcvrNode = JavaPromise.getReceiverNodeOrNull(member);
+      } else {
+        rcvrNode = null;
+      }
+      
+      if (!effect.isEmpty() &&
+          !effect.isMaskable(getBinder()) &&
+          !(isConstructor && rcvrNode != null && effect.affectsReceiver(rcvrNode))) {
+        Target target = effect.getTarget();
+        if (target instanceof InstanceTarget) {
+          final IRNode ref = ((InstanceTarget) target).getReference();
+          final Operator refOp = JJNode.tree.getOperator(ref);
+          if (!(ReceiverDeclaration.prototype.includes(refOp) ||
+              QualifiedReceiverDeclaration.prototype.includes(refOp) ||
+              ParameterDeclaration.prototype.includes(refOp))) {
+            // Convert to any instance
+            final IJavaType ty = getBinder().getJavaType(ref);
+            target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(
+                (IJavaReferenceType) ty, target.getRegion()); 
+          }
+        }
+
+//        final Effect inferredEffect =
+//          Effect.newEffect(null, effect.isRead(), target);
+
+        final Target cleanedTarget = cleanInferredTarget(member, target);
+        final Effect cleanedEffect =
+          Effect.newEffect(null, effect.isRead(), cleanedTarget);
+        inferred.add(cleanedEffect);
+        
+//        final InfoDrop drop = new InfoDrop("EffectAssurance");
+//        drop.setCategory(null);
+//        final IRNode src = effect.getSource() == null ? member : effect.getSource();
+//        setResultDependUponDrop(drop, src);
+//        drop.setMessage("{0}: Proposing effect {1} from inferred effect {2} for {3} from {4}",
+//            SomeFunctionDeclaration.getId(member),
+//            cleanedEffect.toString(),
+//            inferredEffect.toString(),
+//            effect.toString(), DebugUnparser.toString(src));
+      }
+    } 
+    
+//    for (final Effect e : inferred) {
+//      final InfoDrop drop = new InfoDrop("EffectAssurance");
+//      drop.setCategory(null);
+//      setResultDependUponDrop(drop, member);
+//      drop.setMessage("(1) Final inferred effects for {0}: {1}",
+//          SomeFunctionDeclaration.getId(member),
+//          e.toString());
+//    }
+    
+    final Set<Effect> uncovered = filterEffects(inferred);
+//    for (final Effect e : uncovered) {
+//      final InfoDrop drop = new InfoDrop("EffectAssurance");
+//      drop.setCategory(null);
+//      setResultDependUponDrop(drop, member);
+//      drop.setMessage("(2) Final inferred effects for {0}: {1}",
+//          SomeFunctionDeclaration.getId(member),
+//          e.toString());
+//    }
+    
+//    final InfoDrop drop = new InfoDrop("EffectAssurance");
+//    drop.setCategory(null);
+//    setResultDependUponDrop(drop, member);
+//    drop.setMessage("(3) Final inferred effects for {0}: {1}",
+//        SomeFunctionDeclaration.getId(member),
+//        Effects.unparseForPromise(uncovered));
+    return uncovered;
+  }
+	
+	/**
+	 * Make sure the given target would pass the effects sanity checking
+	 * rules regarding region visibility.
+	 */
+	private Target cleanInferredTarget(final IRNode mdecl, final Target target) {
+	  final Visibility methodViz = Visibility.getVisibilityOf(mdecl);
+	  final Visibility promoteTo = methodViz;
+
+	  /* Fix visibility in general.  Works because a region cannot be a subregion
+	   * of a region less visible than it is.
+	   */
+	  IRegion region = target.getRegion();
+	  while (!region.getVisibility().atLeastAsVisibleAs(promoteTo)) {
+	    region = region.getParentRegion();
+	  }
+	  
+    /* Protected regions are goofy because of package restrictions. Protected
+     * region R cannot be used if the region is declared in a superclass S of
+     * the class C that contains the method being annotated, and S is not in the
+     * same package as C.
+     */
+	  if (region.getVisibility() == Visibility.PROTECTED) {
+      final ITypeEnvironment typeEnvironment = getBinder().getTypeEnvironment();
+	    final IRNode enclosingTypeNode = VisitUtil.getEnclosingType(mdecl);
+	    final IJavaDeclaredType methodInType = JavaTypeFactory.getMyThisType(enclosingTypeNode);
+	    final String enclosingPackageName = JavaNames.getPackageName(enclosingTypeNode);
+	    boolean good = false;
+	    while (region.getVisibility() == Visibility.PROTECTED && !good) {
+	      final IRNode regionClassNode = VisitUtil.getClosestType(region.getNode());
+	      final String regionPackageName = JavaNames.getPackageName(regionClassNode);
+	      final IJavaDeclaredType regionClass = JavaTypeFactory.getMyThisType(regionClassNode);
+        if (methodInType.isSubtype(typeEnvironment, regionClass)
+            && !enclosingPackageName.equals(regionPackageName)) {
+          region = region.getParentRegion();
+	      } else {
+	        good = true; 
+	      }
+	    }
+	  }
+	  
+	  return target.setRegion(region);
+	}
+	
+	private Set<Effect> filterEffects(final Set<Effect> input) {
+	  final Set<Effect> result = new HashSet<Effect>();
+	  for (final Effect testing : input) {
+	    boolean isRedundant = false;
+	    for (final Effect e : input) {
+	      if ((testing != e) && testing.isCheckedBy(getBinder(), e)) {
+	        isRedundant = true;
+	        break;
+	      }
+	    }
+	    if (!isRedundant) result.add(testing);
+	  }
+	  return result;
+	}
+	
 	
 	private void reportClassInitializationEffects(final IRNode typeDecl) {
 	  final IRNode flowUnit = JavaPromise.getClassInitOrNull(typeDecl);
@@ -116,9 +284,6 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
       drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
       drop.setResultMessage(Messages.CLASS_INIT_EFFECT,
           id, e.toString(), DebugUnparser.toString(src));
-//	    drop.setMessage(
-//	        MessageFormat.format("{0}.<clinit> has effect \"{1}\" from {2}",
-//	            id, e.toString(), DebugUnparser.toString(src)));
 	  }
 	}
 
@@ -134,6 +299,8 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			final IRNode constructor, final Set<Effect> declFx,
 			final Set<Effect> implFx) {
 		final IRNode receiverNode = PromiseUtil.getReceiverNode(constructor);
+    final Set<Effect> missing = new HashSet<Effect>();
+    final Set<ResultDropBuilder> badDrops = new HashSet<ResultDropBuilder>();
 		for (final Effect eff : implFx) {
 			/*
 			 * First see if the effect is accounted for by the special case of
@@ -142,20 +309,35 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 			if (eff.affectsReceiver(receiverNode)) {
 				constructResultDrop(constructor, declEffDrop, true, eff, Messages.CONSTRUCTOR_RULE, eff);
 			} else {
-				checkEffect(constructor, declEffDrop, eff, declFx);
+        final ResultDropBuilder r = 
+          checkEffect(constructor, declEffDrop, eff, declFx, missing);
+        if (r != null) badDrops.add(r);				
 			}
 		}
+		
+    if (!missing.isEmpty()) {
+      // Needed effects are those that are declared plus those that are missing
+      missing.addAll(declFx);
+      final Set<Effect> inferred = inferEffects(true, constructor, missing);
+      final ProposedPromiseBuilder proposed = 
+        new ProposedPromiseBuilder("RegionEffects", 
+            Effects.unparseForPromise(inferred), constructor, constructor);
+      for (final ResultDropBuilder r : badDrops) {
+        r.addProposal(proposed);
+      }
+    }       
 	}
 
 	/**
 	 * @param declEffDrop
 	 * @param eff
 	 */
-	private void constructResultDrop(
+	private ResultDropBuilder constructResultDrop(
 	    final IRNode methodBeingChecked, final RegionEffectsPromiseDrop declEffDrop,
 			final boolean isConsistent, final Effect eff, final int msgTemplate,
 			final Object... msgArgs) {
-		final ResultDrop rd = new ResultDrop(Messages.toString(msgTemplate));
+		final ResultDropBuilder rd =
+		  ResultDropBuilder.create(this, Messages.toString(msgTemplate));
 		rd.addCheckedPromise(declEffDrop);
 
 		final IRNode src = eff.getSource();
@@ -205,6 +387,8 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 		setResultDependUponDrop(rd, src);
 		rd.setConsistent(isConsistent);
 		rd.setResultMessage(msgTemplate, msgArgs);
+		
+		return rd;
 	}
 	
 	/**
@@ -213,7 +397,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	 * occurred.
 	 */
 	private void addElaborationEvidence(
-	    final ResultDrop rd, final ElaborationEvidence elabEvidence) {
+	    final ResultDropBuilder rd, final ElaborationEvidence elabEvidence) {
 	  if (elabEvidence != null) {
 	    addElaborationEvidence(rd, elabEvidence.getElaboratedFrom().getElaborationEvidence());
 	    rd.addSupportingInformation(elabEvidence.getMessage(), elabEvidence.getLink());
@@ -228,26 +412,44 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	 */
 	private void checkMethod(final RegionEffectsPromiseDrop declEffDrop, final IRNode method,
 			final Set<Effect> declFx, final Set<Effect> implFx) {
+	  final Set<Effect> missing = new HashSet<Effect>();
+	  final Set<ResultDropBuilder> badDrops = new HashSet<ResultDropBuilder>();
 	  for (final Effect eff : implFx) {
-			checkEffect(method, declEffDrop, eff, declFx);
+	    final ResultDropBuilder r = 
+	      checkEffect(method, declEffDrop, eff, declFx, missing);
+	    if (r != null) badDrops.add(r);
 		}
+	  if (!missing.isEmpty()) {
+	    // Needed effects are those that are declared plus those that are missing
+	    missing.addAll(declFx);
+	    final Set<Effect> inferred = inferEffects(false, method, missing);
+	    final ProposedPromiseBuilder proposed = 
+	      new ProposedPromiseBuilder("RegionEffects", 
+	          Effects.unparseForPromise(inferred), method, method);
+	    for (final ResultDropBuilder r : badDrops) {
+	      r.addProposal(proposed);
+	    }
+	  }
 	}
 
-	/**
-	 * Check an implementation effect against a set of declared effects. Does
-	 * report a good chain of evidence right now if the implementation effect is
-	 * accounted for by multiple declared effects.
-	 *
-	 * @param report
-	 * @param declFx
-	 * @param implEff
-	 */
-	private void checkEffect(final IRNode methodBeingChecked,
+  /**
+   * Check an implementation effect against a set of declared effects. Does
+   * report a good chain of evidence right now if the implementation effect is
+   * accounted for by multiple declared effects.
+   * 
+   * @param missing
+   *          An <em>output</em> set to which the effect will be added if it is
+   *          unaccounted for by the declared effects.
+   * @return The result drop if the effect is <em>not</em> assured. Otherwise
+   *         <code>null</code>.
+   */
+	private ResultDropBuilder checkEffect(final IRNode methodBeingChecked,
 	    final RegionEffectsPromiseDrop declEffDrop, final Effect implEff,
-			final Set<Effect> declFx) {
+			final Set<Effect> declFx, final Set<Effect> missing) {
 	  if (implEff.isEmpty()) {
 	    constructResultDrop(methodBeingChecked, declEffDrop, true, implEff,
 	        Messages.NO_EFFECTS, DebugUnparser.toString(implEff.getSource()));
+	    return null;
 	  } else {
   		boolean checked = false;
   		final Iterator<Effect> iter = declFx.iterator();
@@ -260,8 +462,12 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
   			}
   		}
   		if (!checked) {
-  			constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
-  					Messages.UNACCOUNTED_FOR, implEff);
+  		  missing.add(implEff);
+  			return 
+  			  constructResultDrop(methodBeingChecked, declEffDrop, false, implEff,
+  			      Messages.UNACCOUNTED_FOR, implEff);
+  		} else {
+  		  return null;
   		}
 	  }
 	}

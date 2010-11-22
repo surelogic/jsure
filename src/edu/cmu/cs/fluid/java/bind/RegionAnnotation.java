@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
+import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.promise.*;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -70,28 +71,24 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
   }
 
   /**
-   * Get the visibiliy of a region.
+   * Get the visibility of a region.
    * 
    * @param regDecl
    *          A NewRegionDeclaration or VariableDeclarator node
-   * @return <code>0</code> if the region is default visibility,
-   *         {@link JavaNode#PUBLIC} if publicly visible,
-   *         {@link JavaNode#PROTECTED} if protectedly visible, or
-   *         {@link JavaNode#PRIVATE} if privately visible.
    */
-  public static int getRegionVisibility(final IRNode regDecl) {
+  public static Visibility getRegionVisibility(final IRNode regDecl) {
     final Operator op = tree.getOperator(regDecl);
     if (NewRegionDeclaration.prototype.includes(op)) {
-      return BindUtil.getVisibility(regDecl);
+      return Visibility.getVisibilityOf(regDecl);
     } else if (RegionMapping.prototype.includes(op)) {
-      return 0;
+      return Visibility.DEFAULT;
     } else { // VariableDeclarator
       try {
-        return BindUtil
-            .getVisibility(tree.getParent(tree.getParent(regDecl)));
+        return Visibility.getVisibilityOf(
+            tree.getParent(tree.getParent(regDecl)));
       } catch (NullPointerException e) {
 //        System.out.println(DebugUnparser.toString(regDecl));
-        return 0;
+        return Visibility.DEFAULT;
       }
     }
   }
@@ -225,16 +222,19 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
       if (!predefined) {
         model.setNodeAndCompilationUnitDependency(regionNode);
       }
-      String visibility = " "; //$NON-NLS-1$
+      String visibility;
       switch (getRegionVisibility(regionNode)) {
-      case JavaNode.PRIVATE:
+      case PRIVATE:
         visibility = " private "; //$NON-NLS-1$
         break;
-      case JavaNode.PROTECTED:
+      case PROTECTED:
         visibility = " protected "; //$NON-NLS-1$
         break;
-      case JavaNode.PUBLIC:
+      case PUBLIC:
         visibility = " public "; //$NON-NLS-1$
+        break;
+      default:
+        visibility = " ";
         break;
       }
       model.setResultMessage(Messages.RegionAnnotation_regionDrop, visibility,
@@ -452,7 +452,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
                  * >> Check Visibility of region << Cannot be more visible than
                  * parent (see also checker for @inRegion)
                  */
-                if (!BindUtil.isAsVisibleAs(parentDecl, regionDecl)) {
+                if (!Visibility.atLeastAsVisibleAs(parentDecl, regionDecl)) {
                   report.reportError("region \"" + name //$NON-NLS-1$
                       + "\" is more visible than its superregion \"" //$NON-NLS-1$
                       + parentName + "\"", regionDecl); //$NON-NLS-1$
@@ -797,7 +797,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
              */
             final IRNode fieldDecl = tree
                 .getParent(tree.getParent(promisedFor));
-            if (!BindUtil.isAsVisibleAs(parentDecl, fieldDecl)) {
+            if (!Visibility.atLeastAsVisibleAs(parentDecl, fieldDecl)) {
               report.reportError("region \"" + name //$NON-NLS-1$
                   + "\" is more visible than its superregion \"" + parentName //$NON-NLS-1$
                   + "\"", parentRegion); //$NON-NLS-1$

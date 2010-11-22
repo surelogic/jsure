@@ -536,10 +536,10 @@ public class LockRules extends AnnotationRules {
 					  lockDeclClass.equals(methodDeclClass);
 				}
 				if (lockRefsThis || staticLockFromSameClass) {
-					final int lockViz =
+					final Visibility lockViz =
 					  getLockFieldVisibility(lockModel.getAST(), context.getBinder());
-					final int methodViz = BindUtil.getVisibility(promisedFor);
-					if (!BindUtil.isMoreVisibleThan(lockViz, methodViz)) {
+					final Visibility methodViz = Visibility.getVisibilityOf(promisedFor);
+					if (!lockViz.atLeastAsVisibleAs(methodViz)) {
 						context.reportError(
 						    "lock \"" + lockSpec.getLock().getId() +
 						    "\" is less visible than requiring method/constructor", //$NON-NLS-1$
@@ -1032,14 +1032,10 @@ public class LockRules extends AnnotationRules {
 	 * 
 	 * @param lockDeclNode
 	 *            A LockDeclaration node
-	 * @return <code>0</code> if the lock is default visibility,
-	 *         {@link JavaNode#PUBLIC} if publicly visible,
-	 *         {@link JavaNode#PROTECTED} if protectedly visible, or
-	 *         {@link JavaNode#PRIVATE} if privately visible.
 	 */
-	public static int getLockFieldVisibility(
+	public static Visibility getLockFieldVisibility(
 			final AbstractLockDeclarationNode lockDeclNode, final IBinder binder) {
-		int maxViz = getLockFieldVisibilityRaw(lockDeclNode, binder);
+		Visibility maxViz = getLockFieldVisibilityRaw(lockDeclNode, binder);
 
 		/*
 		 * Get all the methods of the class and see if any of them declare that
@@ -1052,11 +1048,9 @@ public class LockRules extends AnnotationRules {
 		while (decls.hasNext()) {
 			final IRNode member = decls.next();
 			if (MethodDeclaration.prototype.includes(tree.getOperator(member))) {
-				final IRNode returnNode = JavaPromise
-						.getReturnNodeOrNull(member);
+				final IRNode returnNode = JavaPromise.getReturnNodeOrNull(member);
 				if (returnNode != null) {
-					final ReturnsLockPromiseDrop returnedLock = getReturnsLock(returnNode);// getXorNull(returnsSI,
-					// returnNode);
+					final ReturnsLockPromiseDrop returnedLock = getReturnsLock(returnNode);
 					if (returnedLock != null) {
 						final LockModel returnedLockModel = isLockNameOkay(
 								TypeUtil.isStatic(member), returnedLock
@@ -1066,10 +1060,9 @@ public class LockRules extends AnnotationRules {
 						if (returnedLockModel != null
 								&& returnedLockModel.getAST().equals(lockDeclNode)) {
 							// check the viz of the method
-							final int methodViz = BindUtil
-									.getVisibility(member);
-							if (BindUtil.isMoreVisibleThan(methodViz, maxViz)) {
-								maxViz = methodViz;
+							final Visibility methodViz = Visibility.getVisibilityOf(member);
+							if (methodViz.atLeastAsVisibleAs(maxViz)) {
+							  maxViz = methodViz;
 							}
 						}
 					}
@@ -1088,33 +1081,27 @@ public class LockRules extends AnnotationRules {
 	 * 
 	 * @param lockDeclNode
 	 *            A LockDeclaration node
-	 * @return <code>0</code> if the lock is default visibility,
-	 *         {@link JavaNode#PUBLIC} if publicly visible,
-	 *         {@link JavaNode#PROTECTED} if protectedly visible, or
-	 *         {@link JavaNode#PRIVATE} if privately visible.
 	 */
-	public static int getLockFieldVisibilityRaw(
+	public static Visibility getLockFieldVisibilityRaw(
 			final AbstractLockDeclarationNode lockDeclNode, final IBinder binder) {
 		final ExpressionNode field = lockDeclNode.getField();
-		final int retValue;
 		if (field instanceof ThisExpressionNode) {
-			retValue = JavaNode.PUBLIC;
+			return Visibility.PUBLIC;
 		} else if (field instanceof QualifiedThisExpressionNode) {
-		  retValue = JavaNode.PUBLIC;
+		  return Visibility.PUBLIC;
 		} else if (field instanceof ClassLockExpressionNode) {
-			retValue = JavaNode.PUBLIC;
+			return Visibility.PUBLIC;
 		} else {
       FieldRefNode ref = (FieldRefNode) field;
 			final IRNode boundField = ref.resolveBinding().getNode();
 			if (TypeUtil.isInterface(VisitUtil.getEnclosingType(boundField))) {
-				retValue = JavaNode.PUBLIC;
+				return Visibility.PUBLIC;
 			}
 			else {
-				retValue = BindUtil.getVisibility(tree.getParent(tree
-						.getParent(boundField)));
+			  return Visibility.getVisibilityOf(
+			      tree.getParent(tree.getParent(boundField)));
 			}
 		}
-		return retValue;
 	}
 
 	/**
@@ -1577,9 +1564,9 @@ public class LockRules extends AnnotationRules {
       final ExpressionNode field = lockDecl.getField();
       final RegionNameNode region = lockDecl.getRegion();
       final IRegionBinding regionBinding = region.resolveBinding();
-      final int lockViz = getLockFieldVisibility(lockDecl, context.getBinder());
-      final int regionViz = regionBinding.getModel().getVisibility();
-      if (!BindUtil.isMoreVisibleThan(lockViz, regionViz)) { // (5)
+      final Visibility lockViz = getLockFieldVisibility(lockDecl, context.getBinder());
+      final Visibility regionViz = regionBinding.getModel().getVisibility();
+      if (!lockViz.atLeastAsVisibleAs(regionViz)) { // (5)
         /* We create this as a warning drop instead of a modeling error because
          * it doesn't break anything, it only means that the lock model isn't
          * as useful as they probably mean it to be.

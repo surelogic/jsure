@@ -1,7 +1,5 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import java.util.*;
-
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.IIRProject;
@@ -21,6 +19,7 @@ import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
+import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.AbstractDropPredicate;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -104,24 +103,10 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
   }
   
   private static void setResultMessage(RegionModel model, 
-      final boolean isStatic, final int viz, final String name) {
+      final boolean isStatic, final Visibility viz, final String name) {
     final String stat = isStatic ? " static" : "";
-    
-    String visibility = " ";
-    switch (viz) {
-    case JavaNode.PRIVATE:
-      visibility = "private"; //$NON-NLS-1$
-      break;
-    case JavaNode.PROTECTED:
-      visibility = "protected"; //$NON-NLS-1$
-      break;
-    case JavaNode.PUBLIC:
-      visibility = "public"; //$NON-NLS-1$
-      break;
-    }
-    
     model.setResultMessage(
-        Messages.RegionAnnotation_regionDrop, visibility,  stat, name);
+        Messages.RegionAnnotation_regionDrop, viz.getSourceText(),  stat, name);
   }
   
 	/**
@@ -360,27 +345,18 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
     return simpleName;
   }
   
-  public int getVisibility() {
+  public Visibility getVisibility() {
     if (getAST() != null) {
       return getAST().getVisibility();
     }
     // FIX From IR
     IRNode decl = getNode();
     if (decl == null) {
-      return JavaNode.PUBLIC;
+      return Visibility.PUBLIC;
+    } else {
+      return Visibility.getVisibilityOf(decl);
     }
-    int modifiers = VariableDeclarator.getMods(decl);
-    for(int viz : legalVisibilities) {
-      if (JavaNode.isSet(modifiers, viz)) {
-        return viz;
-      }
-    }
-    return 0;
   }
-  
-  private static int[] legalVisibilities = {
-    JavaNode.PRIVATE, JavaNode.PROTECTED, JavaNode.PUBLIC
-  };
   
   public boolean isAccessibleFromType(ITypeEnvironment tEnv, IRNode t) {
     

@@ -27,6 +27,10 @@ public final class ClassTarget extends AbstractTarget {
     elabEvidence = evidence;
   }
   
+  public ClassTarget setRegion(final IRegion newRegion) {
+    return new ClassTarget(newRegion, elabEvidence);
+  }
+  
   public IJavaType getRelativeClass(final IBinder binder) {
     final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
     return JavaTypeFactory.getMyThisType(cdecl);

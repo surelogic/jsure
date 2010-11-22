@@ -25,6 +25,7 @@ import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -184,7 +185,7 @@ public class RegionRules extends AnnotationRules {
           }
           
           // Region cannot be more visible than its parent 
-          if (!BindUtil.isMoreVisibleThan(parentModel.getVisibility(), a.getVisibility())) {
+          if (!parentModel.getVisibility().atLeastAsVisibleAs(a.getVisibility())) {
             context.reportError(a, "Region \"{0}\" is more visible than its parent \"{1}\"", simpleName, parentName);
             annotationIsGood = false;
           }
@@ -308,9 +309,8 @@ public class RegionRules extends AnnotationRules {
           }
 
           // Region cannot be more visible than its parent 
-          if (!BindUtil.isMoreVisibleThan(
-                parentModel.getVisibility(),
-                BindUtil.getVisibility(JJNode.tree.getParent(JJNode.tree.getParent(promisedFor))))) {
+          if (!parentModel.getVisibility().atLeastAsVisibleAs(
+              Visibility.getVisibilityOf(JJNode.tree.getParent(JJNode.tree.getParent(promisedFor))))) {
             context.reportError(a, "Region \"{0}\" is more visible than its parent \"{1}\"",
                 VariableDeclarator.getId(promisedFor), parentName);
             annotationIsGood = false;

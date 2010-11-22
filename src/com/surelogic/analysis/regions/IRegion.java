@@ -5,6 +5,7 @@ import com.surelogic.aast.bind.IRegionBinding;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.util.Visibility;
 
 /**
  * Interface for comparing regions
@@ -32,7 +33,7 @@ public interface IRegion extends IRegionBinding {
   String getName();
   
   /** Get the visibility of the region. */
-  int getVisibility();
+  Visibility getVisibility();
 
   /**
    * Returns true if the region is accessible from type 't'

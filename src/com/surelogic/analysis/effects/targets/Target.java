@@ -23,6 +23,11 @@ public interface Target {
    * @return The region component
    */
   public IRegion getRegion();
+  
+  /**
+   * Get an identical target except that points to a new region.
+   */
+  public Target setRegion(IRegion newRegion);
 
   /**
    * Get the evidence chain describing the targets this target was

@@ -3,9 +3,8 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
-import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.util.Visibility;
 
 public class NewRegionDeclarationNode extends RegionDeclarationNode {
 	// Fields
@@ -91,16 +90,8 @@ public class NewRegionDeclarationNode extends RegionDeclarationNode {
 		return visitor.visit(this);
 	}
 
-	private static int[] legalVisibilities = { JavaNode.PRIVATE,
-			JavaNode.PROTECTED, JavaNode.PUBLIC };
-
-	public int getVisibility() {
-		for (int viz : legalVisibilities) {
-			if (JavaNode.isSet(modifiers, viz)) {
-				return viz;
-			}
-		}
-		return 0;
+	public Visibility getVisibility() {
+	  return Visibility.getVisibility(modifiers);
 	}
 
 	public boolean isStatic() {

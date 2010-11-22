@@ -61,6 +61,10 @@ public final class InstanceTarget extends AbstractTarget {
     elabEvidence = ee;
   }
   
+  public InstanceTarget setRegion(final IRegion newRegion) {
+    return new InstanceTarget(reference, newRegion, elabEvidence);
+  }
+  
   public IJavaType getRelativeClass(final IBinder binder) {
     return binder.getJavaType(reference);
   }
@@ -274,7 +278,6 @@ public final class InstanceTarget extends AbstractTarget {
 
   @Override
   public StringBuilder toString(final StringBuilder sb) {
-    sb.append('<');
     /* Because of BCA, uses of parameters are represented as
      * ParameterDeclarations. These unparse as the parameter declaration in the
      * method header. This is not appropriate for the use here, where we just
@@ -285,7 +288,7 @@ public final class InstanceTarget extends AbstractTarget {
     } else {
       sb.append(DebugUnparser.toString(reference));
     }
-    sb.append(">:");
+    sb.append(':');
     sb.append(region.getName()); // XXX: Doesn't work well with shadowed regions
     return sb;
   }

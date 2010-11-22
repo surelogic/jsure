@@ -56,8 +56,9 @@ public class FieldRegion extends AbstractRegion {
     }
   }
   
-  public int getVisibility() {
-    return BindUtil.getVisibility(JJNode.tree.getParent(JJNode.tree.getParent(field)));
+  public Visibility getVisibility() {
+    return Visibility.getVisibilityOf(
+        JJNode.tree.getParent(JJNode.tree.getParent(field)));
   }
   
   public boolean isAccessibleFromType(ITypeEnvironment tEnv, IRNode t) {

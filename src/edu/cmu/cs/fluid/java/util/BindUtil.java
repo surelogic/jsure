@@ -372,62 +372,62 @@ public class BindUtil implements JavaGlobals {
         PromiseConstants.REGION_INSTANCE_NAME);    
   }
   
-  /**
-   * Get the visibility of a NewRegionDeclaration, FieldDeclaration,
-   * MethodDeclaration, ConstructorDeclaration.
-   */
-  public static int getVisibility(final IRNode decl) {
-    final Operator op = JJNode.tree.getOperator(decl);
-    final int mods;
-    if (EnumConstantDeclaration.prototype.includes(op)) {
-      return JavaNode.PUBLIC;
-    } else if (VariableDeclarator.prototype.includes(op)) {
-      mods = VariableDeclarator.getMods(decl);
-    } else {
-      mods = JavaNode.getModifiers(decl);
-    }
-    return mods & (JavaNode.PRIVATE | JavaNode.PROTECTED | JavaNode.PUBLIC);
-  }
+//  /**
+//   * Get the visibility of a NewRegionDeclaration, FieldDeclaration,
+//   * MethodDeclaration, ConstructorDeclaration.
+//   */
+//  public static int getVisibility(final IRNode decl) {
+//    final Operator op = JJNode.tree.getOperator(decl);
+//    final int mods;
+//    if (EnumConstantDeclaration.prototype.includes(op)) {
+//      return JavaNode.PUBLIC;
+//    } else if (VariableDeclarator.prototype.includes(op)) {
+//      mods = VariableDeclarator.getMods(decl);
+//    } else {
+//      mods = JavaNode.getModifiers(decl);
+//    }
+//    return mods & (JavaNode.PRIVATE | JavaNode.PROTECTED | JavaNode.PUBLIC);
+//  }
   
-  /**
-   * Given two region/field/method declarations determine 
-   * <code>decl1</code> is (at least) as visible as <code>decl2</code>;
-   * e.g., protected is at least as visible as (default).
-   */
-  public static boolean isAsVisibleAs( final IRNode decl1, final IRNode decl2 )
-  {
-    final int vis1 = getVisibility(decl1);
-    final int vis2 = getVisibility(decl2);    
-    return isMoreVisibleThan(vis1, vis2);
-  }
+//  /**
+//   * Given two region/field/method declarations determine 
+//   * <code>decl1</code> is (at least) as visible as <code>decl2</code>;
+//   * e.g., protected is at least as visible as (default).
+//   */
+//  public static boolean isAsVisibleAs( final IRNode decl1, final IRNode decl2 )
+//  {
+//    final int vis1 = getVisibility(decl1);
+//    final int vis2 = getVisibility(decl2);    
+//    return isMoreVisibleThan(vis1, vis2);
+//  }
   
-  public static boolean isAsVisibleAs( final int vis1, final IRNode decl2 )
-  {
-    final int vis2 = getVisibility(decl2);    
-    return isMoreVisibleThan(vis1, vis2);
-  }
+//  public static boolean isAsVisibleAs( final int vis1, final IRNode decl2 )
+//  {
+//    final int vis2 = getVisibility(decl2);    
+//    return isMoreVisibleThan(vis1, vis2);
+//  }
   
-  /**
-   * Given two visibilities return if the first one is as visible or more visible
-   * than the second one.
-   */
-  public static boolean isMoreVisibleThan(final int vis1, final int vis2) {
-    /* Exploiting the fact that
-     *   JavaNode.PRIVATE < JavaNode.PROTECTED < JavaNode.PUBLIC.
-     * But, vis == 0 implies DEFAULT visibility.
-     */
-    if( vis1 == JavaNode.PUBLIC ) {
-      return true;  // vis2 <= vis1
-    } else if( vis1 == JavaNode.PROTECTED ) {
-      return vis2 <= JavaNode.PROTECTED;  // vis2 <= vis1
-    } else if( vis1 == 0 ) {
-      return vis2 <= JavaNode.PRIVATE;
-    } else if( vis1 == JavaNode.PRIVATE ) {
-      return vis2 == JavaNode.PRIVATE;
-    } else {
-      return false;
-    }
-  }
+//  /**
+//   * Given two visibilities return if the first one is as visible or more visible
+//   * than the second one.
+//   */
+//  public static boolean isMoreVisibleThan(final int vis1, final int vis2) {
+//    /* Exploiting the fact that
+//     *   JavaNode.PRIVATE < JavaNode.PROTECTED < JavaNode.PUBLIC.
+//     * But, vis == 0 implies DEFAULT visibility.
+//     */
+//    if( vis1 == JavaNode.PUBLIC ) {
+//      return true;  // vis2 <= vis1
+//    } else if( vis1 == JavaNode.PROTECTED ) {
+//      return vis2 <= JavaNode.PROTECTED;  // vis2 <= vis1
+//    } else if( vis1 == 0 ) {
+//      return vis2 <= JavaNode.PRIVATE;
+//    } else if( vis1 == JavaNode.PRIVATE ) {
+//      return vis2 == JavaNode.PRIVATE;
+//    } else {
+//      return false;
+//    }
+//  }
 
   /**
    * Determine whether the declaration is accessible from the given viewpoint,
@@ -474,14 +474,14 @@ public class BindUtil implements JavaGlobals {
    * @return whether accessible
    */
   public static final boolean isAccessibleInsideType(ITypeEnvironment tEnv, 
-                                                     int visibility, IRNode declaringType, 
+                                                     Visibility visibility, IRNode declaringType, 
                                                      IRNode enclosingType) {
     return isAccessible(tEnv, visibility, declaringType, declaringType, enclosingType, enclosingType);
   }
   
   private static final boolean isAccessible(ITypeEnvironment tEnv, IRNode decl, IRNode from, IRNode enclosingType) {
     // FIX?
-    int viz           = getVisibility(decl);
+    final Visibility viz = Visibility.getVisibilityOf(decl);
     IRNode declaringT = VisitUtil.getEnclosingType(decl); 
     if (declaringT == null && TypeDeclaration.prototype.includes(decl)) {
     	// Top-level type declares itself
@@ -500,16 +500,16 @@ public class BindUtil implements JavaGlobals {
    * @return
    */
   private static final boolean isAccessible(ITypeEnvironment tEnv, 
-                                            int visibility, IRNode decl, IRNode declaringType,
+                                            Visibility visibility, IRNode decl, IRNode declaringType,
                                             IRNode from, IRNode enclosingType) {
-    if (visibility == JavaNode.PUBLIC) return true;
+    if (visibility == Visibility.PUBLIC) return true;
 
     // FIX does this work right for inner classes?    
     IRNode parent = JJNode.tree.getParent(decl);
     for (IRNode here : JJNode.tree.rootWalk(from)) {
       if (here.equals(parent)) return true;
     }
-    if (visibility == JavaNode.PRIVATE) {
+    if (visibility == Visibility.PRIVATE) {
       // check if the use is in an outer class of the decl
       // (or a fellow inner class)
       IRNode fromT = enclosingType;
@@ -548,7 +548,7 @@ public class BindUtil implements JavaGlobals {
         LOG.finest("Different packages: " + declPkgN + " != " + fromPkgN);
       }
     }
-    if (visibility != JavaNode.PROTECTED) return false;
+    if (visibility != Visibility.PROTECTED) return false;
     
     // Handle PROTECTED
     

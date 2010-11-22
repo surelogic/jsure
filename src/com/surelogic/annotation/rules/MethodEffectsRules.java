@@ -33,11 +33,6 @@ import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 
 public class MethodEffectsRules extends AnnotationRules {
-  private static final int PRIVATE = JavaNode.PRIVATE;
-  private static final int DEFAULT = 0;
-  private static final int PROTECTED = JavaNode.PROTECTED;
-  private static final int PUBLIC = JavaNode.PUBLIC;
-  
 	public static final String EFFECTS = "Effects";
 	public static final String REGIONEFFECTS = "RegionEffects";
 
@@ -286,13 +281,12 @@ public class MethodEffectsRules extends AnnotationRules {
             /* Check that the method may access the region, and whether the
              * method-region combination preserved abstraction.
              */
-            final int methodViz = BindUtil.getVisibility(promisedFor);
             if (!region.isAccessibleFromType(typeEnv, enclosingTypeNode)) {
               scrubberContext.reportError(regionSpec, "Region \"{0}\" may not be accessed by {1,choice,0#constructor|1#method} \"{2}\"",
                   regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor));
               good = false;
             }          
-            if (!isAccessibleToAllCallers(enclosingPackageName, methodInType, methodViz, region, typeEnv)) {
+            if (!isAccessibleToAllCallers(enclosingPackageName, methodInType, promisedFor, region, typeEnv)) {
               scrubberContext.reportError(regionSpec, "Region \"{0}\" might not be accessible by all potential callers of {1,choice,0#constructor|1#method} \"{2}\"",
                   regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor));
               good = false;
@@ -316,14 +310,16 @@ public class MethodEffectsRules extends AnnotationRules {
 	
 	
 	private static boolean isAccessibleToAllCallers(
-	    final String packageName, final IJavaDeclaredType type, final int methodViz,
-	    final IRegion region, final ITypeEnvironment typeEnv) {
-	  final int regionViz = region.getVisibility();
-	  if (regionViz == PUBLIC) {
+	    final String packageName, final IJavaDeclaredType type,
+	    final IRNode methodDecl, final IRegion region,
+	    final ITypeEnvironment typeEnv) {
+	  final Visibility methodViz = Visibility.getVisibilityOf(methodDecl);
+	  final Visibility regionViz = region.getVisibility();
+	  if (regionViz == Visibility.PUBLIC) {
 	    // public is always accessible
 	    return true;
-	  } else if (regionViz == PROTECTED) {
-	    if (methodViz != PUBLIC) {
+	  } else if (regionViz == Visibility.PROTECTED) {
+	    if (methodViz != Visibility.PUBLIC) {
 	      /* See if the region is declared in a superclass S of the class C that
          * contains the method being annotated, and S is not in the same package
          * as the class that contains the method being annotated.
@@ -339,10 +335,10 @@ public class MethodEffectsRules extends AnnotationRules {
 	    } else {
 	      return false;
 	    }
-	  } else if (regionViz == DEFAULT) {
-	    return (methodViz == PRIVATE) || (methodViz == DEFAULT);
-	  } else if (regionViz == PRIVATE) {
-	    return (methodViz == PRIVATE);
+	  } else if (regionViz == Visibility.DEFAULT) {
+	    return methodViz.compareTo(Visibility.DEFAULT) <= 0;
+	  } else if (regionViz == Visibility.PRIVATE) {
+	    return (methodViz == Visibility.PRIVATE);
 	  } else {
 	    // should never get here
 	    return false;

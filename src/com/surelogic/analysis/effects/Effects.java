@@ -120,6 +120,38 @@ public final class Effects implements IBinderClient {
 
   
   
+  public static String unparseForPromise(final Set<Effect> fx) {
+    if (fx.isEmpty()) {
+      return "none";
+    } else {
+      final StringBuilder reads = new StringBuilder("reads ");
+      final StringBuilder writes = new StringBuilder("writes ");
+      boolean hasRead = false;
+      boolean hasWrite = false;
+      for (final Effect e : fx) {
+        final String unparsed = e.unparseForPromise();
+        if (e.isRead()) {
+          if (hasRead) reads.append(", ");
+          else hasRead = true;
+          reads.append(unparsed);
+        } else {
+          if (hasWrite) writes.append(", ");
+          else hasWrite = true;
+          writes.append(unparsed);
+        }
+      }
+      
+      if (!hasRead) {
+        return writes.toString();
+      } else if (!hasWrite) {
+        return reads.toString();
+      } else {
+        return reads.toString() + "; " + writes.toString();
+      }
+    }
+  }
+  
+  
   //----------------------------------------------------------------------
   // -- Get the effects of an expression
   //----------------------------------------------------------------------

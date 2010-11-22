@@ -60,6 +60,10 @@ public final class AnyInstanceTarget extends AbstractTarget {
     clazz = c;
   }
 
+  public AnyInstanceTarget setRegion(final IRegion newRegion) {
+    return new AnyInstanceTarget(clazz, newRegion);
+  }
+  
   public IJavaType getRelativeClass(final IBinder binder) {
     return clazz;
   }
