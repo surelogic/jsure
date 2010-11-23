@@ -147,7 +147,7 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 			return ret;
 		}
 		else if (AnnotationElement.prototype.includes(op)) {
-			boolean ret = matchesModifiers(mods, JavaNode.PUBLIC | JavaNode.STATIC | JavaNode.FINAL);
+			boolean ret = matchesModifiers(mods, JavaNode.PUBLIC | JavaNode.FINAL);
 			ret = ret && matchesName(AnnotationElement.getId(irNode));
 			// TODO ret = ret && ftype.matches(FieldDeclaration.getType(irNode));
 			ret = ret && inPattern.matches(irNode);
