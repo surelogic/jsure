@@ -296,7 +296,13 @@ public final class JavaIdentifier {
 		else if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
 			sb.append("private");
 		}
-		if (!ConstructorDeclaration.prototype.includes(op)) {
+		if (EnumConstantDeclaration.prototype.includes(op)) {
+			sb.append(" static final");
+		}
+		else if (AnnotationElement.prototype.includes(op)) {
+			sb.append(" final");
+		}
+		else if (!ConstructorDeclaration.prototype.includes(op)) {
 			if (JavaNode.isSet(mods, JavaNode.STATIC)) {
 				sb.append(" static");
 			} else {
