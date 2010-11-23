@@ -127,7 +127,7 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
 	public boolean matches(IRNode irNode) {
 		if (TypeDeclaration.prototype.includes(irNode)) {
 			// Match type & package
-			return matchesType(irNode, true)
+			return matchesType(irNode, false)
 			// Match modifiers
 					&& matchesModifiers(mods, JavaNode.getModifiers(irNode))
 					//FIXME
