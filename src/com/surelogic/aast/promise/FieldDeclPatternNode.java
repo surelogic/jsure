@@ -7,7 +7,9 @@ import com.surelogic.aast.java.TypeNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class FieldDeclPatternNode extends PromiseTargetNode {
@@ -126,13 +128,28 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 	 */
 	@Override
 	public boolean matches(IRNode irNode) {
-		if (FieldDeclaration.prototype.includes(irNode)) {
+		final Operator op = JJNode.tree.getOperator(irNode);
+		if (FieldDeclaration.prototype.includes(op)) {
 			IRNode vdecl = VariableDeclarators.getVar(FieldDeclaration
 					.getVars(irNode), 0);
 
 			boolean ret = matchesModifiers(mods, FieldDeclaration.getMods(irNode));
 			ret = ret && matchesName(VariableDeclarator.getId(vdecl));
 			ret = ret && ftype.matches(FieldDeclaration.getType(irNode));
+			ret = ret && inPattern.matches(irNode);
+			return ret;
+		}
+		else if (EnumConstantDeclaration.prototype.includes(op)) {
+			boolean ret = matchesModifiers(mods, JavaNode.PUBLIC | JavaNode.STATIC | JavaNode.FINAL);
+			ret = ret && matchesName(EnumConstantDeclaration.getId(irNode));
+			// TODO ret = ret && ftype.matches(FieldDeclaration.getType(irNode));
+			ret = ret && inPattern.matches(irNode);
+			return ret;
+		}
+		else if (AnnotationElement.prototype.includes(op)) {
+			boolean ret = matchesModifiers(mods, JavaNode.PUBLIC | JavaNode.STATIC | JavaNode.FINAL);
+			ret = ret && matchesName(AnnotationElement.getId(irNode));
+			// TODO ret = ret && ftype.matches(FieldDeclaration.getType(irNode));
 			ret = ret && inPattern.matches(irNode);
 			return ret;
 		}
