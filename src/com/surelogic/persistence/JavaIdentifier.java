@@ -60,6 +60,11 @@ public final class JavaIdentifier {
 		} else {
 			//System.out.println("Found "+encoding);
 		}
+		final String target = createTarget(decl);
+		if (!matchesDecl(decl, target)) {
+			System.err.println("Not matching target: "+target);
+			matchesDecl(decl, target);
+		}
 	}
 	
 	private static final String DEFAULT_PKG = "(default)";
@@ -273,20 +278,94 @@ public final class JavaIdentifier {
 	}
 	
 	/**
+	 * For testing matchesDecl()
+	 */
+	public static String createTarget(final IRNode decl) {
+		final Operator op = JJNode.tree.getOperator(decl);
+		final int mods    = getModifiers(decl, op);		
+		if (mods == JavaNode.ALL_FALSE) {
+			return getCorrespondingWildcard(decl, op);
+		}
+		StringBuilder sb  = new StringBuilder(); 
+		if (JavaNode.isSet(mods, JavaNode.PUBLIC)) {
+			sb.append("public");
+		}
+		else if (JavaNode.isSet(mods, JavaNode.PROTECTED)) {
+			sb.append("protected");
+		}
+		else if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
+			sb.append("private");
+		}
+		/*
+		if (JavaNode.isSet(mods, JavaNode.STATIC)) {
+			sb.append(" static");
+		} else {
+			sb.append(" !static");
+		}
+		if (JavaNode.isSet(mods, JavaNode.FINAL)) {
+			sb.append(" final");
+		} else {
+			sb.append(" !final");
+		}
+		*/
+		sb.append(' ').append(getCorrespondingWildcard(decl, op));
+		return sb.toString();
+	}
+	
+	public static int getModifiers(IRNode decl, Operator op) {
+		if (VariableDeclarator.prototype.includes(op)) {
+			return VariableDeclarator.getMods(decl);
+		}
+		return JavaNode.getModifiers(decl);
+	}
+	
+	public static String getCorrespondingWildcard(IRNode n, Operator op) {
+		if (VariableDeclarator.prototype.includes(op)) {
+			return "* "+VariableDeclarator.getId(n); // field
+		}
+		else if (MethodDeclaration.prototype.includes(op)) {
+			return MethodDeclaration.getId(n)+"(**)";
+		}
+		else if (ConstructorDeclaration.prototype.includes(op)) {
+			return "new(**)";
+		}
+		else if (EnumConstantDeclaration.prototype.includes(op)) {
+			return "* "+EnumConstantDeclaration.getId(n); 
+		}
+		else if (TypeDeclaration.prototype.includes(op)) {
+			return JJNode.getInfo(n);
+		}
+		else if (AnnotationElement.prototype.includes(op)) {
+			return "* "+AnnotationElement.getId(n); 
+		}
+		System.err.println("Unexpected op: "+op.name());
+		return "* *";
+	}
+	
+	/**
 	 * Reuses the scoped promise target syntax to check if the
 	 * declaration matches
 	 */
 	public static boolean matchesDecl(final IRNode decl, final String unparsedTarget) {
 		try {
+			
 			Object tn = ScopedPromiseParse.prototype.initParser(unparsedTarget).promiseTarget().getTree();
 			final ScopedPromiseAdaptor.Node node = (ScopedPromiseAdaptor.Node) tn;
-			MinimalContext c = new MinimalContext(decl, unparsedTarget);
-			node.useText(c);
+			final MinimalContext c;
+			if (VariableDeclarator.prototype.includes(decl)) {
+				IRNode member = VisitUtil.getClosestClassBodyDecl(decl);
+				c = new MinimalContext(member, unparsedTarget);
+			} else {
+				c = new MinimalContext(decl, unparsedTarget);
+			}
+			//node.useText(c);
 			
 			final PromiseTargetNode target = (PromiseTargetNode) node.finalizeAST(c);
-			return target.matches(decl);
+			return target.matches(c.getNode());
 		} catch (Exception e) {
-			throw new IllegalStateException("While parsing: "+unparsedTarget, e);
+			e.printStackTrace();
+			//throw new IllegalStateException("While parsing: "+unparsedTarget, e);
+			return false;
 		}
 	}
 	
