@@ -144,10 +144,10 @@ public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, 
 
 // Still have to check for parens
 scopedPromise
-  : '@' IDENTIFIER -> ^(ScopedPromise IDENTIFIER ^(AnyTarget))
-  | '@' IDENTIFIER promiseContent -> ^(ScopedPromise IDENTIFIER promiseContent ^(AnyTarget))
-  | '@' IDENTIFIER FOR promiseTarget -> ^(ScopedPromise IDENTIFIER promiseTarget)  
-  | '@' IDENTIFIER promiseContent FOR promiseTarget -> ^(ScopedPromise IDENTIFIER promiseContent promiseTarget)
+  : '@' identifier -> ^(ScopedPromise identifier ^(AnyTarget))
+  | '@' identifier promiseContent -> ^(ScopedPromise identifier promiseContent ^(AnyTarget))
+  | '@' identifier FOR promiseTarget -> ^(ScopedPromise identifier promiseTarget)  
+  | '@' identifier promiseContent FOR promiseTarget -> ^(ScopedPromise identifier promiseContent promiseTarget)
   ;  
 
 promiseContent
@@ -266,7 +266,7 @@ wildcardPkgQualifierPattern
   
 methodNamePattern
   : WildcardIdentifier
-  | IDENTIFIER
+  | identifier
   | STAR
   | DSTAR
   ;
@@ -304,18 +304,18 @@ typeSigPattern2
 
 simpleNamePattern
   : WildcardIdentifier
-  | IDENTIFIER
+  | identifier
   | STAR  
   ;
 
 namedTypePattern
   : WildcardIdentifier -> ^(NamedTypePattern WildcardIdentifier)
-  | IDENTIFIER -> ^(NamedTypePattern IDENTIFIER)
+  | identifier -> ^(NamedTypePattern identifier)
   | qualifiedName -> ^(NamedTypePattern qualifiedName)  
   ;	
 
 qualifiedName
-  : IDENTIFIER (DOT IDENTIFIER)+
+  : identifier (DOT identifier)+
   ;
 
 namedTypes
@@ -343,8 +343,7 @@ wildcardIdentifier
 */
 
 modifierPattern
-  : accessModPattern staticPattern? 
-// finalPattern?
+  : accessModPattern staticPattern? finalPattern?
   ;
 
 accessModPattern
@@ -356,12 +355,10 @@ staticPattern
   | '!' STATIC -> INSTANCE
   ;
 
-/*
 finalPattern
   : FINAL 
   | '!' FINAL -> MUTABLE
   ;
-*/
  
 /*************************************************************************************
  * All Rules Supporting rules
@@ -385,7 +382,7 @@ fieldRef
   ;
 
 qualifiedFieldRef
-	: typeExpression '.' IDENTIFIER -> ^(FieldRef typeExpression IDENTIFIER)
+	: typeExpression '.' identifier -> ^(FieldRef typeExpression identifier)
 	;
 
 namedType
@@ -393,18 +390,18 @@ namedType
   	;
 
 typeName
-  	: {isType("", ScopedPromisesParser.this.input.LT(1))}? IDENTIFIER
+  	: {isType("", ScopedPromisesParser.this.input.LT(1))}? identifier
   	| qualifiedTypeName  	 	
   	;
 
 qualifiedTypeName
-	: IDENTIFIER ({isType($qualifiedTypeName.text, ScopedPromisesParser.this.input.LT(2))}? 
-	              '.' IDENTIFIER)*	              
+	: identifier ({isType($qualifiedTypeName.text, ScopedPromisesParser.this.input.LT(2))}? 
+	              '.' identifier)*	              
 	;
 	
 simpleFieldRef
-  : thisExpr DOT IDENTIFIER -> ^(FieldRef thisExpr IDENTIFIER) 
-	| IDENTIFIER -> ^(FieldRef ^(ThisExpression THIS) IDENTIFIER)
+  : thisExpr DOT identifier -> ^(FieldRef thisExpr identifier) 
+	| identifier -> ^(FieldRef ^(ThisExpression THIS) identifier)
 	;	
 
 /*************************************************************************************
@@ -417,7 +414,7 @@ simpleExpression
 	;
 
 varUse
-    	: IDENTIFIER ->	^(VariableUseExpression IDENTIFIER)
+    	: identifier ->	^(VariableUseExpression identifier)
     	;
  	
 thisExpr
@@ -437,9 +434,13 @@ accessModifiers
  *************************************************************************************/	
 
 name
-	: // IDENTIFIER ( options {greedy=false;} : ('.' IDENTIFIER))* 
-	  IDENTIFIER (DOT name)*
+	: // identifier ( options {greedy=false;} : ('.' identifier))* 
+	  identifier (DOT name)*
 	;
+
+identifier
+  : IDENTIFIER | IN 
+  ;
 
 /*************************************************************************************
  * Standard Java tokens

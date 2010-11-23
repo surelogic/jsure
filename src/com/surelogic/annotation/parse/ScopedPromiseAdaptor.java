@@ -52,6 +52,12 @@ public class ScopedPromiseAdaptor extends AbstractNodeAdaptor {
         case ScopedPromisesParser.FINAL:
           mods = JavaNode.setModifier(mods, JavaNode.FINAL, true);
           return true;
+        case ScopedPromisesParser.INSTANCE:
+            mods = JavaNode.setModifier(mods, JavaNode.INSTANCE, true);
+            return true;
+        case ScopedPromisesParser.MUTABLE:
+            mods = JavaNode.setModifier(mods, JavaNode.MUTABLE, true);
+            return true;
       }       
       return false;
     }

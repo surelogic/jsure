@@ -161,9 +161,11 @@ public class JavaNode extends JJNode {
   
   public static final int AS_BINARY = (1 << 15);
   
-  public static final int IS_GRANULE = (1 << 16);
+  public static final int MUTABLE = (1 << 16);
   
-  public static final int NOT_GRANULE = (1 << 17);
+  public static final int IS_GRANULE = (1 << 17);
+  
+  public static final int NOT_GRANULE = (1 << 18);
   
   public static final int[] MODIFIERS = {
     ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, 
@@ -204,7 +206,7 @@ public class JavaNode extends JJNode {
   static final String[] modifiers = {"abstract", "final", "native", "private",
       "protected", "public", "static", "synchronized", "transient", "volatile",
       "strictfp", "", // implicit
-      "instance", "varargs", "write", "binary"
+      "instance", "varargs", "write", "binary", "mutable",
   };
 
   // verify that the mask is good 
