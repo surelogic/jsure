@@ -296,18 +296,18 @@ public final class JavaIdentifier {
 		else if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
 			sb.append("private");
 		}
-		/*
-		if (JavaNode.isSet(mods, JavaNode.STATIC)) {
-			sb.append(" static");
-		} else {
-			sb.append(" !static");
+		if (!ConstructorDeclaration.prototype.includes(op)) {
+			if (JavaNode.isSet(mods, JavaNode.STATIC)) {
+				sb.append(" static");
+			} else {
+				sb.append(" !static");
+			}		
+			if (JavaNode.isSet(mods, JavaNode.FINAL)) {
+				sb.append(" final");
+			} else {
+				sb.append(" !final");
+			}
 		}
-		if (JavaNode.isSet(mods, JavaNode.FINAL)) {
-			sb.append(" final");
-		} else {
-			sb.append(" !final");
-		}
-		*/
 		sb.append(' ').append(getCorrespondingWildcard(decl, op));
 		return sb.toString();
 	}
