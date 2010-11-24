@@ -61,6 +61,9 @@ public final class JavaIdentifier {
 			//System.out.println("Found "+encoding);
 		}
 		final String target = createTarget(decl);
+		if (target.endsWith(" 1")) {
+			return; // A generated class
+		}
 		if (!matchesDecl(decl, target)) {
 			System.err.println("Not matching target: "+target);
 			matchesDecl(decl, target);
