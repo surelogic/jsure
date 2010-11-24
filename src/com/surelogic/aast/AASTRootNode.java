@@ -108,4 +108,8 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   public boolean implies(IAASTRootNode n) {
 	  throw new UnsupportedOperationException();
   }
+  
+  public boolean isSameAs(IAASTRootNode n) {
+	  throw new UnsupportedOperationException();
+  }
 }

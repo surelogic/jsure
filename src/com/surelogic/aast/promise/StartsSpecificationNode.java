@@ -54,5 +54,10 @@ public class StartsSpecificationNode extends AASTRootNode
   public boolean implies(IAASTRootNode other) {
 	  return isSameClass(other);
   }
+  
+  @Override
+  public boolean isSameAs(IAASTRootNode other) {
+	  return isSameClass(other);
+  }
 }
 
