@@ -4,7 +4,6 @@ package com.surelogic.aast.promise;
 import java.util.*;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public abstract class AbstractBooleanNode extends AASTRootNode 
 { 
@@ -35,6 +34,11 @@ public abstract class AbstractBooleanNode extends AASTRootNode
     } else {
       return token;
     }
+  }
+    
+  @Override
+  public boolean isSameAs(IAASTRootNode other) {
+	  return isSameClass(other);
   }
 }
 
