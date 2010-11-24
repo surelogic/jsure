@@ -479,11 +479,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	}
 
 	public String getCUName() {
-		return super.getSrcRef().getCUName();
+		ISrcRef ref = super.getSrcRef();
+		return ref == null ? null : ref.getCUName();
 	}
 
 	public String getPackage() {
-		return super.getSrcRef().getPackage();
+		ISrcRef ref = super.getSrcRef();
+		return ref == null ? null : ref.getPackage();
 	}
 
 	/**
