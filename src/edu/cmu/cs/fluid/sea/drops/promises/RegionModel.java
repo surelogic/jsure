@@ -468,6 +468,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
       if (!regionName.equals(m.regionName)) {
         return false;
       }
+      if (!project.equals(m.project)) {
+    	return false;
+      }
       if (this != m) {
         throw new Error("Same name, but different RegionModel object");
       }
