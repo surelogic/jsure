@@ -7,6 +7,7 @@ import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.*;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.*;
+import com.surelogic.annotation.rules.ThreadEffectsRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
@@ -16,6 +17,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.*;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class JavaIdentifier {
@@ -67,6 +69,14 @@ public final class JavaIdentifier {
 		if (!matchesDecl(decl, target)) {
 			System.err.println("Not matching target: "+target);
 			matchesDecl(decl, target);
+		}
+		if (ThreadEffectsRules.startsNothing(decl)) {
+			StartsPromiseDrop d0 = ThreadEffectsRules.getStartsSpec(decl);
+			PromiseDrop<?> pd    = findMatchingPromise(decl, "Starts", "nothing");
+			if (pd == null || !d0.equals(pd)) {
+				System.err.println("No matching promise: "+d0);
+				findMatchingPromise(decl, "Starts", "nothing");
+			}
 		}
 	}
 	
@@ -403,7 +413,7 @@ public final class JavaIdentifier {
 			// Compare to the promise
 			final IAASTRootNode aast = c.created.get(0);
 			for(PromiseDrop<?> d : r.getStorage().getDrops(decl)) {
-				if (useImplication ? d.getAST().implies(aast) : d.getAST().equals(aast)) {
+				if (useImplication ? d.getAST().implies(aast) : d.getAST().isSameAs(aast)) {
 					return d;
 				}
 			}
