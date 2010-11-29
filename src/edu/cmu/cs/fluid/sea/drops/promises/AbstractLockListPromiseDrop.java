@@ -9,7 +9,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.*;
 
-public class AbstractLockListPromiseDrop<N extends AbstractLockListNode> 
+public abstract class AbstractLockListPromiseDrop<N extends AbstractLockListNode> 
 extends PromiseDrop<N> {
 	AbstractLockListPromiseDrop(N node) {
 		super(node);
