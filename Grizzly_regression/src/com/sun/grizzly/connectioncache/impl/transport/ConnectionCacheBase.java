@@ -54,6 +54,7 @@ public abstract class ConnectionCacheBase<C extends Closeable>
     // MUST be initialized in a subclass
     protected ConcurrentQueue<C> reclaimableConnections = null ;
 
+    @Borrowed("this")
     protected boolean debug() {
 	return logger.isLoggable( Level.FINER ) ;
     }
@@ -73,6 +74,7 @@ public abstract class ConnectionCacheBase<C extends Closeable>
     // The name of this class, which is implemented in the subclass.
     // I could derive this from this.getClass().getClassName(), but
     // this is easier.
+    @Borrowed("this")
     protected abstract String thisClassName() ;
 
     @SingleThreaded
@@ -99,6 +101,7 @@ public abstract class ConnectionCacheBase<C extends Closeable>
 	this.numberToReclaim = numberToReclaim ;
     }
     
+    @Borrowed("this")
     protected final void dprint(final String msg) {
 	logger.finer(thisClassName() + msg);
     }

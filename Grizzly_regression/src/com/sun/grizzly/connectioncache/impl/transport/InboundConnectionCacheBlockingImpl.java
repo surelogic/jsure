@@ -37,6 +37,7 @@ import com.surelogic.Promises;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
+import com.surelogic.RequiresLock;
 import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
@@ -45,9 +46,9 @@ import com.surelogic.Unique;
  * @param C  a connection
  * @author Ken Cavanaugh
  */
-@Region("protected TotalRegion")
-@RegionLock("Lock is this protects TotalRegion"/*is INCONSISTENT*/)
-@Promise("@InRegion(TotalRegion) for int total*")
+//@Region("protected TotalRegion")
+//@RegionLock("Lock is this protects TotalRegion"/*is INCONSISTENT*/)
+//@Promise("@InRegion(TotalRegion) for int total*")
 public final class InboundConnectionCacheBlockingImpl<C extends Closeable>
         extends ConnectionCacheBlockingBase<C>
         implements InboundConnectionCache<C> {
@@ -269,6 +270,7 @@ public final class InboundConnectionCacheBlockingImpl<C extends Closeable>
 
     // Atomically either get the ConnectionState for conn OR
     // create a new one AND put it in the cache
+    @RequiresLock("L")
     private ConnectionState<C> getConnectionState( C conn ) {
         // This should be the only place a CacheEntry is constructed.
         if (debug())

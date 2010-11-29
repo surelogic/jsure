@@ -44,12 +44,13 @@ import com.surelogic.Promises;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.Regions;
+import com.surelogic.RequiresLock;
 import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
-@Region("protected TotalRegion")
-@RegionLock("Lock is this protects TotalRegion"/*is INCONSISTENT*/)
-@Promise("@InRegion(TotalRegion) for int total*")
+//@Region("protected TotalRegion")
+//@RegionLock("Lock is this protects TotalRegion"/*is INCONSISTENT*/)
+//@Promise("@InRegion(TotalRegion) for int total*")
 public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 		extends ConnectionCacheBlockingBase<C> implements
 		OutboundConnectionCache<C> {
@@ -148,7 +149,7 @@ public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 		}
 	}
 
-	@SingleThreaded
+	@Borrowed("this")
 	public OutboundConnectionCacheBlockingImpl(final String cacheType,
 			final int highWaterMark, final int numberToReclaim,
 			final int maxParallelConnections, Logger logger) {
@@ -253,6 +254,7 @@ public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 		}
 	}
 
+	@RequiresLock("L")
 	private void decrementTotalIdle() {
 		if (debug())
 			dprint("->decrementTotalIdle: totalIdle = " + totalIdle);
@@ -273,6 +275,7 @@ public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 		}
 	}
 
+	@RequiresLock("L")
 	private void decrementTotalBusy() {
 		if (debug())
 			dprint("->decrementTotalBusy: totalBusy = " + totalBusy);
@@ -294,6 +297,7 @@ public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 	}
 
 	// Update queues and counts to make the result busy.
+	@RequiresLock("L")
 	private void makeResultBusy(C result, ConnectionState<C> cs,
 			CacheEntry<C> entry) {
 
