@@ -3,6 +3,7 @@ package com.surelogic.analysis.effects.targets;
 import com.surelogic.analysis.regions.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 
@@ -97,7 +98,8 @@ public final class AnyInstanceTarget extends AbstractTarget {
   @Override
   boolean checkTargetAgainstAnyInstance(
       final IBinder b, final AnyInstanceTarget actualTarget) {
-    return areDirectlyRelated(b, actualTarget.clazz, this.clazz)
+    return isAncestorOf(b, this.clazz, actualTarget.clazz)
+//    return areDirectlyRelated(b, actualTarget.clazz, this.clazz)
         && this.getRegion().ancestorOf(actualTarget.region);
   }
 
@@ -108,12 +110,13 @@ public final class AnyInstanceTarget extends AbstractTarget {
    return false;
   }
 
-  // Receiver is the target from the declard effect
+  // Receiver is the target from the declared effect
   @Override
   boolean checkTargetAgainstInstance(
       final IBinder b, final InstanceTarget actualTarget) {
     final IJavaType clazz = b.getJavaType(actualTarget.reference);
-    return areDirectlyRelated(b, clazz, this.clazz)
+    return isAncestorOf(b, this.clazz, clazz)
+//    return areDirectlyRelated(b, clazz, this.clazz)
         && this.region.getRegion().ancestorOf(actualTarget.region);
   }
   
@@ -201,8 +204,13 @@ public final class AnyInstanceTarget extends AbstractTarget {
 
   @Override
   public StringBuilder toString(final StringBuilder sb) {
-    sb.append("any(");
-    sb.append(clazz.getName());
+    sb.append("any("); 
+    if (clazz instanceof IJavaDeclaredType) {
+      // Cannot use clazz.getName because it includes type parameters which are not allowed in RegionEffects declarations.
+      sb.append(JavaNames.getFullTypeName(((IJavaDeclaredType) clazz).getDeclaration()));
+    } else { // IJavaArrayType
+      sb.append(clazz.getName());
+    }
     sb.append("):");
     sb.append(region.getName()); // XXX: Doesn't handle region shadowing well
     return sb;

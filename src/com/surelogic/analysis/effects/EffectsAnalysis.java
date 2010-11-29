@@ -13,9 +13,11 @@ import com.surelogic.annotation.rules.MethodEffectsRules;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -28,6 +30,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -156,9 +159,20 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
               QualifiedReceiverDeclaration.prototype.includes(refOp) ||
               ParameterDeclaration.prototype.includes(refOp))) {
             // Convert to any instance
-            final IJavaType ty = getBinder().getJavaType(ref);
+            IJavaType ty = getBinder().getJavaType(ref);
+            IRegion region = target.getRegion();
+            if (ty instanceof IJavaTypeFormal) {
+              // Cannot handle type formals in region annotations yet, convert
+              // to Object
+              ty = getBinder().getTypeEnvironment().getObjectType();
+            } else if (ty instanceof IJavaArrayType) {
+              // not presently supported in region annotations, convert to
+              // any(Object):Instance
+              ty = getBinder().getTypeEnvironment().getObjectType();
+              region = RegionModel.getInstanceRegion();
+            }
             target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(
-                (IJavaReferenceType) ty, target.getRegion()); 
+                (IJavaReferenceType) ty, region); 
           }
         }
 

@@ -485,7 +485,7 @@ public final class LockUtils {
 	  if (result != null) {
 		  return result.booleanValue();
 	  }
-	  boolean rv = binder.getTypeEnvironment().isSubType(s, t);
+	  boolean rv = binder.getTypeEnvironment().isRawSubType(s, t);
 	  subTypeCache.put(s, t, rv);
 	  return rv;
   }
@@ -576,7 +576,7 @@ public final class LockUtils {
 		return false;
 	}
     if (type instanceof IJavaDeclaredType) {
-      return binder.getTypeEnvironment().isSubType(type, lockType);
+      return binder.getTypeEnvironment().isRawSubType(type, lockType);
     } else {
       // Arrays and primitives are not lock types
       return false;
@@ -595,7 +595,7 @@ public final class LockUtils {
 		return false;
 	}
     if (type instanceof IJavaDeclaredType) {
-      return binder.getTypeEnvironment().isSubType(type, readWriteLockType);
+      return binder.getTypeEnvironment().isRawSubType(type, readWriteLockType);
     } else {
       // Arrays and primitives are not lock types
       return false;

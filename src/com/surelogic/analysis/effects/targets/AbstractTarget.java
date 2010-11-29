@@ -46,9 +46,22 @@ abstract class AbstractTarget implements Target {
   static boolean areDirectlyRelated(
     final IBinder b, final IJavaType t1, final IJavaType t2) {
     ITypeEnvironment tEnv = b.getTypeEnvironment();
-    return tEnv.isSubType(t1, t2) || tEnv.isSubType(t2, t1);
+    return tEnv.isRawSubType(t1, t2) || tEnv.isRawSubType(t2, t1);
   }
 
+  /**
+   * Returns whether <code>t1</code> is an ancestor of <code>t2</code>.
+   * This uses ITypeEnvironment.isSubType() which 
+   * already does the right thing for related IJavaArrayType to IJavaDeclaredType.
+   * (This is, arrays are subtypes of java.lang.Object.)
+   */
+  static boolean isAncestorOf(
+    final IBinder b, final IJavaType t1, final IJavaType t2) {
+    ITypeEnvironment tEnv = b.getTypeEnvironment();
+    return tEnv.isRawSubType(t2, t1);
+  }
+
+  
   
   /** Only for use by LocalTarget. */
   AbstractTarget() {

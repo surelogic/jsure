@@ -68,10 +68,10 @@ public final class TypeBasedAliasAnalysis implements IAliasAnalysis {
     final IJavaType type1 = binder.getJavaType(expr1);
     final IJavaType type2 = binder.getJavaType(expr2);
     final ITypeEnvironment typeEnv = binder.getTypeEnvironment();
-    if (typeEnv.isSubType(type1, type2)) {
+    if (typeEnv.isRawSubType(type1, type2)) {
       return true;
     } else {
-      return typeEnv.isSubType(type2, type1);
+      return typeEnv.isRawSubType(type2, type1);
     }
   }
   

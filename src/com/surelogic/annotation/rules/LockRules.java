@@ -952,7 +952,7 @@ public class LockRules extends AnnotationRules {
 				  fieldRefNode.getObject() instanceof QualifiedThisExpressionNode;
 				if (!fieldIsStatic && !fieldIsQualifiedReceiver) {
 					final IJavaType fieldIsFromClass = getEnclosingType(varBinding.getNode());
-					if (!binder.getTypeEnvironment().isSubType(
+					if (!binder.getTypeEnvironment().isRawSubType(
 							promisedForType, fieldIsFromClass)) {
 						context.reportError(
 						    "Field \"" + field + //$NON-NLS-1$

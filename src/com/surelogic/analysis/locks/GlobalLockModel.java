@@ -69,18 +69,24 @@ public final class GlobalLockModel {
   }
  
   private synchronized ClassRecord getClassRecord(final IJavaDeclaredType jt) {
-    ClassRecord cr = classes.get(jt);
+    /* 2010-11-29: Need to use type erasure because type parameters are mucking
+     * up the hierarchy.  In particular a parameterized subtype is showing up
+     * as extending from Object instead of from the proper super class.
+     */
+    final ITypeEnvironment typeEnvironment = binder.getTypeEnvironment();
+    final IJavaDeclaredType erased =
+      (IJavaDeclaredType) typeEnvironment.computeErasure(jt);
+    ClassRecord cr = classes.get(erased);
     if (cr == null) {      
-      final IJavaType parent = jt.getSuperclass(binder.getTypeEnvironment());
-      if (jt == parent) {
-    	  System.out.println("Cycle detected: "+jt);
-      }
+      final IJavaType parent = jt.getSuperclass(typeEnvironment);
       if (parent instanceof IJavaDeclaredType) {
-        cr = new ClassRecord(getClassRecord((IJavaDeclaredType) parent), jt);
+        cr = new ClassRecord(
+            getClassRecord((IJavaDeclaredType) typeEnvironment.computeErasure(parent)),
+            erased);
       } else {
-        cr = new ClassRecord(rootRecord, jt);
+        cr = new ClassRecord(rootRecord, erased);
       }
-      classes.put(jt, cr);
+      classes.put(erased, cr);
     }
     return cr;
   }
@@ -344,7 +350,7 @@ public final class GlobalLockModel {
            */
           final ITypeEnvironment typeEnv = binder.getTypeEnvironment();
           for (final T2 lr : allLockRecords) {
-            if (typeEnv.isSubType(this.classDecl, lr.classDecl)) {
+            if (typeEnv.isRawSubType(this.classDecl, lr.classDecl)) {
               filteredLockRecords.add(lr);
             }
           }

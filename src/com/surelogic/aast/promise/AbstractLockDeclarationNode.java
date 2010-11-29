@@ -91,7 +91,7 @@ public abstract class AbstractLockDeclarationNode extends PromiseDeclarationNode
     final IJavaDeclaredType readWriteLockType = (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(
         typeEnvironment.findNamedType(LockUtils.JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK),
         binder);
-    return typeEnvironment.isSubType(testType, lockType) || typeEnvironment.isSubType(testType, readWriteLockType);
+    return typeEnvironment.isRawSubType(testType, lockType) || typeEnvironment.isRawSubType(testType, readWriteLockType);
   }
 
   public boolean isJUCLock(final LockUtils lockUtils) {
@@ -123,7 +123,7 @@ public abstract class AbstractLockDeclarationNode extends PromiseDeclarationNode
    	    // Probably running on pre-1.5 code
     	return false;
     }
-    return typeEnvironment.isSubType(testType, readWriteLockType);
+    return typeEnvironment.isRawSubType(testType, readWriteLockType);
   }
 
   public boolean isReadWriteLock(final LockUtils lockUtils) {
