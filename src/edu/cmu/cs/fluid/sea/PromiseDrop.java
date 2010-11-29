@@ -47,6 +47,17 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 	public PromiseDrop() {
 		this(null);
 	}
+	
+	/**
+	 * Used to persist references to promiseDrops
+	 */
+	public String getPromiseName() {
+		final String name = getClass().getSimpleName();
+		if (!name.endsWith("PromiseDrop")) {
+			throw new UnsupportedOperationException("No impl for getPromiseName() for "+name);
+		}
+		return name.substring(0, name.length()-11);
+	}
 
 	/**
 	 * Class to hold information about referenced promise annotations.
