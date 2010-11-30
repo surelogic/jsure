@@ -8,6 +8,7 @@ import org.apache.commons.collections15.*;
 import org.apache.commons.collections15.multimap.*;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.persistence.JavaIdentifier;
 import com.surelogic.promise.PromiseDropStorage;
 
 import edu.cmu.cs.fluid.ide.IDE;
@@ -315,7 +316,7 @@ public class Dependencies {
 				final Operator op = JJNode.tree.getOperator(n);
 				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
 					// Does this include the method signature?
-					final String name = JavaNames.getFullName(n);
+					final String name = JavaIdentifier.encodeDecl(cud.getTypeEnv().getBinder(), n);
 					oldInfo.put(name, null); // Used to mark that it was declared
 					
 					final List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
@@ -367,7 +368,7 @@ public class Dependencies {
 				// TODO what about receivers and what not?
 				final Operator op = JJNode.tree.getOperator(n);
 				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
-					final String name                         = JavaNames.getFullName(n);
+					final String name                         = JavaIdentifier.encodeDecl(info.getTypeEnv().getBinder(), n);
 					final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
 					if (oldDrops == null) {
 						// New decl, so any annotations are brand-new, and will be analyzed
