@@ -1,7 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/threads/ThreadEffectsModule.java,v 1.2 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis.threads;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 import com.surelogic.analysis.*;
