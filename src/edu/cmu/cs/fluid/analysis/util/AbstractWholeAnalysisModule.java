@@ -2,9 +2,7 @@ package edu.cmu.cs.fluid.analysis.util;
 
 import org.eclipse.core.resources.IProject;
 
-import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.IIRAnalysis;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.*;
 
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ide.IDE;
@@ -17,7 +15,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
  * @author Edwin.Chan
  */
 public abstract class AbstractWholeAnalysisModule extends AbstractWholeIRAnalysisModule {	
-	private static IIRAnalysisEnvironment env = new IIRAnalysisEnvironment() {
+	private static IIRAnalysisEnvironment env = new AbstractAnalysisEnvironment() {
 		public void ensureClassIsLoaded(String qname) {
 			ConvertToIR.prefetch(qname);
 		}
