@@ -131,6 +131,7 @@ public class PersistentResultsView extends ResultsView {
 						dropInfo = SeaSnapshot.loadSnapshot(location);
 					}
 				} catch (Exception e) {
+					e.printStackTrace();
 					dropInfo = Collections.emptyList();
 				}
 				try {
