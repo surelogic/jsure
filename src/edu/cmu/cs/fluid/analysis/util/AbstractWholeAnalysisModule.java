@@ -21,6 +21,10 @@ public abstract class AbstractWholeAnalysisModule extends AbstractWholeIRAnalysi
 		public void ensureClassIsLoaded(String qname) {
 			ConvertToIR.prefetch(qname);
 		}
+
+		public IAnalysisMonitor getMonitor() {
+			throw new UnsupportedOperationException();
+		}
 	};
 	
 	private final IIRAnalysis analysis;
@@ -48,7 +52,7 @@ public abstract class AbstractWholeAnalysisModule extends AbstractWholeIRAnalysi
 	
 	@Override
 	protected final boolean doAnalysisOnAFile(final CUDrop drop, IAnalysisMonitor monitor) {
-		return analysis.doAnalysisOnAFile(drop, monitor);
+		return analysis.doAnalysisOnAFile(null, drop);
 	}
 	
 	@Override
