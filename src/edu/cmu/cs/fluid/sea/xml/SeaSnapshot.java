@@ -54,20 +54,23 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	}
 	
 	public void snapshot(String project, final Sea sea) throws IOException {
-		reset();
-		Entities.start(ROOT, b);
-		addAttribute(UID_ATTR, UUID.randomUUID().toString());
-		addAttribute(PROJECT_ATTR, project);
-		b.append(">\n");
-		flushBuffer(pw);
+		try {
+			reset();
+			Entities.start(ROOT, b);
+			addAttribute(UID_ATTR, UUID.randomUUID().toString());
+			addAttribute(PROJECT_ATTR, project);
+			b.append(">\n");
+			flushBuffer(pw);
 
-		for(Drop d : sea.getDrops()) {
-			snapshotDrop(d);
+			for(Drop d : sea.getDrops()) {
+				snapshotDrop(d);
+			}
+		} finally {
+			pw.println("</"+ROOT+">\n");
+			pw.close();
+			//pw = null;
+			//JSureXMLReader.readSnapshot(location, null);
 		}
-		pw.println("</"+ROOT+">\n");
-		pw.close();
-		//pw = null;
-		//JSureXMLReader.readSnapshot(location, null);
 	}
 	
 	private static void ensureClassMapping(Class<? extends Drop> cls) {
