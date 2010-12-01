@@ -18,12 +18,16 @@ public class JSureResultsXMLCreator extends AbstractSeaXmlCreator {
 		Entities.start(PersistenceConstants.COMP_UNIT, b, 0);
 		Entities.addAttribute("path", cud.javaOSFileName, b);
 		Entities.closeStart(b, false);
-		flushBuffer(pw);
+		//flushBuffer(pw);
+		System.out.print(b.toString());
+		reset();
 		for(IAnalysisResult r : results) {
 			r.outputToXML(this, 1, b);
-			flushBuffer(pw);
+			System.out.print(b.toString());
+			reset();
 		}
 		Entities.end(PersistenceConstants.COMP_UNIT, b, 0);
-		flushBuffer(pw);
+		System.out.print(b.toString());
+		reset();
 	}
 }
