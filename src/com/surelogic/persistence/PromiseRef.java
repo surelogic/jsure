@@ -28,4 +28,9 @@ public class PromiseRef {
 	public <T extends IAASTRootNode> PromiseRef(PromiseDrop<T> d) {
 		this(d.getPromiseName(), d.getAST().toString(), d.getNode(), false);
 	}
+
+	public void toXML(int indent, StringBuilder sb) {
+		// TODO Auto-generated method stub
+		
+	}
 }
