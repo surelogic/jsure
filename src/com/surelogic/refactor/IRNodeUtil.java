@@ -73,6 +73,13 @@ public class IRNodeUtil {
 				return new TypeContext((Method) parent, JJNode
 						.getInfoOrNull(decl));
 			}
+			if (parent instanceof Field) {
+				return new TypeContext((Field) parent, JJNode
+						.getInfoOrNull(decl));
+			}
+			if (!(parent instanceof TypeContext)) {
+				throw new IllegalStateException();
+			}
 			return new TypeContext((TypeContext) parent, JJNode
 					.getInfoOrNull(decl));
 		}
