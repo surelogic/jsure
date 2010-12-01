@@ -20,7 +20,7 @@ public abstract class AbstractAnalysisResult implements IAnalysisResult, Persist
 	}
 	
 	public String outputToXML(JSureResultsXMLCreator creator, int indent, StringBuilder sb) {
-		Entities.start(RESULT, sb);
+		Entities.start(RESULT, sb, indent);
 		attributesToXML(indent+1, sb);
 		Entities.closeStart(sb, false);
 		about.toXML(indent+1, sb, ABOUT_REF);
