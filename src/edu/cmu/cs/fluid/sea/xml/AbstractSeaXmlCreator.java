@@ -2,65 +2,42 @@
 package edu.cmu.cs.fluid.sea.xml;
 
 import static com.surelogic.jsure.xml.AbstractXMLReader.*;
+import static com.surelogic.jsure.xml.JSureXMLReader.SOURCE_REF;
 
 import java.io.*;
 import java.net.URI;
-import java.util.*;
 
-import com.surelogic.common.xml.Entities;
+import com.surelogic.common.xml.*;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
-public class AbstractSeaXmlCreator {
-	protected final Map<String,String> attributes = new HashMap<String,String>();
-	protected final StringBuilder b = new StringBuilder();
-	protected boolean firstAttr = true;
-	protected final PrintWriter pw;
+/**
+ * Really a JSure-specific XML creator
+ */
+public class AbstractSeaXmlCreator extends XMLCreator {	
+	protected AbstractSeaXmlCreator(OutputStream out) throws IOException {
+		super(out);
+	}
 	
 	AbstractSeaXmlCreator(File location) throws IOException {
-		if (location != null) {
-			pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(location), "UTF-8"));
-			pw.println("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>");
-		} else {
-			pw = null;
-		}
-	}
-		
-	protected void flushBuffer(PrintWriter pw) {
-		if (pw != null) {
-			pw.println(b.toString());
-			reset();
-		}
+		super(location != null ? new FileOutputStream(location) : null);
 	}
 	
-	protected final void reset() {
-		b.setLength(0);
-		firstAttr = true;
-		attributes.clear();
-	}
-	 
-	public void addAttribute(String name, boolean value) {
-		if (value) {
-			addAttribute(name, Boolean.toString(value));
+	public void addSrcRef(IRNode context, ISrcRef s, String indent, String flavor) {
+		if (s == null) {
+			return;
 		}
-	}
-	
-	public boolean addAttribute(String name, Long value) {		
-		if (value == null) {
-			return false;
+		b.append(indent);
+		Entities.start(SOURCE_REF, b);
+		addLocation(s);		
+		if (flavor != null) {
+			addAttribute(FLAVOR_ATTR, flavor);
 		}
-		addAttribute(name, value.toString());		
-		return true;
-	}
-	
-	public void addAttribute(String name, String value) {
-		if (firstAttr) {
-			firstAttr = false;
-		} else {
-			b.append("\n\t");
-		}
-		Entities.addAttribute(name, value, b);
-		attributes.put(name, value);
+		addAttribute(HASH_ATTR, SeaSummary.computeHash(context));
+		addAttribute(CUNIT_ATTR, s.getCUName());
+		addAttribute(PKG_ATTR, s.getPackage());
+		b.append("/>\n");
 	}
 	
 	protected void addLocation(ISrcRef ref) {
