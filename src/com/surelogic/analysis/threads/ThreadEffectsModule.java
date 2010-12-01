@@ -31,8 +31,15 @@ public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAn
 		List<IAnalysisResult> results = getAnalysis().analyzeCompilationUnit(cu, getResultDependUponDrop());	
 		if (!results.isEmpty()) {
 			try {
-				JSureResultsXMLCreator c = new JSureResultsXMLCreator(System.out);
-				c.reportResults(cud, results);
+				try {
+					OutputStream out = env.makeResultStream(cud);
+					if (out != null) {
+						JSureResultsXMLCreator c = new JSureResultsXMLCreator(out);
+						c.reportResults(cud, results);
+					}
+				} finally {
+					env.closeResultStream();
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
