@@ -43,7 +43,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	}
 	
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor) {	
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode cu) {
 		//System.out.println("Analyzing layers for: "+cud.javaOSFileName);
 		for(IRNode type : VisitUtil.getTypeDecls(cu)) {
 			analyzeType(cu, type);

@@ -56,11 +56,10 @@ public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Vo
   }
 
   @Override
-  protected boolean doAnalysisOnAFile(
-      final CUDrop cud, final IRNode compUnit, final IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
     runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
       public void run() {
-        runOverFile(compUnit, monitor);
+        runOverFile(compUnit, env.getMonitor());
       }
     });
     return true;

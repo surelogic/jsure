@@ -205,7 +205,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 	}
 	
 	@Override
-	public boolean doAnalysisOnAFile(CUDrop cud, final IRNode compUnit, IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		if (byCompUnit) {
 			boolean flushed = queueWork(new Pair(compUnit, null));
 			if (flushed) {

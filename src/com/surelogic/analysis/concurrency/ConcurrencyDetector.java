@@ -62,7 +62,7 @@ public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDete
 	}
 
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode cu) {
 		Iterator<IRNode> e = JJNode.tree.bottomUp(cu);
 		while (e.hasNext()) {
 			getAnalysis().doAccept(e.next());

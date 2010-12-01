@@ -114,8 +114,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 	}
 	*/
 	
-	public final boolean doAnalysisOnAFile(final CUDrop cud, 
-			final IAnalysisMonitor monitor) {
+	public final boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env, final CUDrop cud) {
 		/*
 		T analysis = getAnalysis();
 		if (analysis == null) {
@@ -124,12 +123,12 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 		*/
 		Object rv = runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			public void run() {
-				result = doAnalysisOnAFile(cud, cud.cu, monitor);
+				result = doAnalysisOnAFile(env, cud, cud.cu);
 			}
 		});
 		return rv == Boolean.TRUE;
 	}
-	protected abstract boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor);
+	protected abstract boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu);
 	
 	public void finish(IIRAnalysisEnvironment env) {
 		// Nothing to do

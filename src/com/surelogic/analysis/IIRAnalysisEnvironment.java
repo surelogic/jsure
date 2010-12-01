@@ -2,5 +2,6 @@
 package com.surelogic.analysis;
 
 public interface IIRAnalysisEnvironment {
+	IAnalysisMonitor getMonitor();
 	void ensureClassIsLoaded(String qname);
 }

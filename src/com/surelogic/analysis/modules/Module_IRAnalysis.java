@@ -55,8 +55,7 @@ public class Module_IRAnalysis extends AbstractWholeIRAnalysis<ModuleAnalysisAnd
 	}
 
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu,
-			IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode cu) {
 		ModuleAnalysisAndVisitor.getInstance().doOneCU(cu, getBinder());
 		return true;
 	}

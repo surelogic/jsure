@@ -44,7 +44,7 @@ public class ThreadRoleZerothPass extends AbstractIRAnalysis<TRolesFirstPass,Voi
 	}
 	
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu,IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode cu) {
 		// Called by the latter
 		// TRolesFirstPass.getInstance().doImportandRenameWalks(cu, getBinder());		
 	    TRolesFirstPass.getInstance().doOneCUZerothPass(cu, getBinder());

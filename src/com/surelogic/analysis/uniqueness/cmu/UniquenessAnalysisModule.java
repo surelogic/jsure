@@ -105,8 +105,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	}
 	
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode compUnit, IAnalysisMonitor monitor) {
-		return checkUniquenessForFile(compUnit, monitor);
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
+		return checkUniquenessForFile(compUnit, env.getMonitor());
 	}
 
 	@Override

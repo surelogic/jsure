@@ -5,6 +5,7 @@ import java.text.MessageFormat;
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.SimpleClassProcessor;
 import com.surelogic.analysis.testing.CollectMethodCalls.Query;
@@ -35,7 +36,7 @@ public class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMet
 	}
 
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, final IRNode compUnit, IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			public void run() {
 				runOverFile(compUnit);

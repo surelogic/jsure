@@ -26,8 +26,7 @@ public class ThreadRoleAssurance extends AbstractWholeIRAnalysis<TRoleSecondPass
 	}
 
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu,
-			IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode cu) {
 		cuCount++;
 		return true;
 	}

@@ -37,13 +37,13 @@ public class BenchmarkingUAM extends AbstractWholeIRAnalysis<UniqueAnalysis,Void
 	}
 	
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode compUnit, IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		for (final IRNode node : JJNode.tree.topDown(compUnit)) {
 			final Operator op = JJNode.tree.getOperator(node);
 			if (MethodDeclaration.prototype.includes(op) || ConstructorDeclaration.prototype.includes(op)) {
 				String methodName = JavaNames.genQualifiedMethodConstructorName(node);
-				if (monitor != null) {
-					monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+				if (env.getMonitor() != null) {
+					env.getMonitor().subTask("Checking [ Uniqueness Assurance ] " + methodName);
 				}
 				methodName = methodName.replace(',', '_');
 

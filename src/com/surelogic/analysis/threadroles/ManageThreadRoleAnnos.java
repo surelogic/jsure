@@ -41,7 +41,7 @@ public class ManageThreadRoleAnnos extends AbstractIRAnalysis<TRolesFirstPass,Vo
 	}
 	
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu,IAnalysisMonitor monitor) {	
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode cu) {
 	    TRolesFirstPass.getInstance().doOneCU(cu, getBinder());
 		return true;
 	}

@@ -31,7 +31,7 @@ public class WholeIRAnalysisTemplate<T extends IBinderClient,Q> extends Abstract
 	}
 	
 	@Override
-	protected boolean doAnalysisOnAFile(CUDrop cud, IRNode cu, IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu) {
 		// TODO Auto-generated method stub
 		return true;
 	}

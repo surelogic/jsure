@@ -61,7 +61,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
   }
 	
 	@Override
-	public boolean doAnalysisOnAFile(CUDrop cud, IRNode compUnit, IAnalysisMonitor monitor) {
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
         checkEffectsForFile(compUnit);
         return true;
 	}
