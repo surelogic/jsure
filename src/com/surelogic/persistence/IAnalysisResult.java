@@ -2,5 +2,5 @@
 package com.surelogic.persistence;
 
 public interface IAnalysisResult {
-	String toXML(int indent);
+	String outputToXML(JSureResultsXMLCreator creator, int indent, StringBuilder sb);
 }

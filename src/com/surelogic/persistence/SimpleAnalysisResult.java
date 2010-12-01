@@ -2,17 +2,44 @@
 package com.surelogic.persistence;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.xml.Entities;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 
 public class SimpleAnalysisResult extends AbstractAnalysisResult {
 	private final int messageCode;
-	private final Object[] args;
+	private final String[] args;
 	
 	public <T extends IAASTRootNode> SimpleAnalysisResult(PromiseDrop<T> about, IRNode location, int code, Object... args) {
 		super(about, location);
 		messageCode = code;
-		this.args = args;
+		this.args = new String[args.length];
+		for(int i=0; i<args.length; i++) {
+			this.args[i] = args[i].toString();
+		}
+	}
+
+	@Override
+	protected void attributesToXML(int indent, StringBuilder b) {
+		Entities.newLine(b, indent);
+		Entities.addAttribute(PersistenceConstants.MESSAGE, I18N.res(messageCode, (Object[]) args), b);
+		Entities.addAttribute(PersistenceConstants.MESSAGE_CODE, messageCode, b);
+		if (args.length == 0) {
+			Entities.addAttribute(PersistenceConstants.MESSAGE_ARGS, "", b);
+		} else {
+			StringBuilder argsB = new StringBuilder();
+			boolean first = true;
+			for(String arg : args) {
+				if (first) {
+					first = false;
+				} else {
+					argsB.append(", "); // TODO what if the args contain a comma?
+				}
+				argsB.append(arg);
+			}
+			Entities.addAttribute(PersistenceConstants.MESSAGE_ARGS, argsB.toString(), b);
+		}
 	}
 }

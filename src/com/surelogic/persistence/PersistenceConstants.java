@@ -7,5 +7,16 @@ package com.surelogic.persistence;
 public interface PersistenceConstants {
 	String COMP_UNIT = "compUnit";
 	String ANALYSIS = "analysis";
+	
 	String RESULT = "result";
+	String MESSAGE = "message";
+	String MESSAGE_CODE = "code";
+	String MESSAGE_ARGS = "args";
+	String ABOUT_REF = "about-ref";
+	String AND_REF = "and-ref";
+	
+	String PROMISE_LOCATION = "location";
+	String PROMISE = "promise";
+	String PROMISE_CONTENTS = "contents";
+	String USE_IMPLICATION = "match-by-implies";
 }

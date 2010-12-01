@@ -19,4 +19,11 @@ public class AndAnalysisResult extends AbstractAnalysisResult {
 		super(about, location);
 		dependencies = deps;
 	}
+
+	@Override
+	protected void subEntitiesToXML(int indent, StringBuilder sb) {
+		for(PromiseRef ref : dependencies) {
+			ref.toXML(indent, sb, PersistenceConstants.AND_REF);
+		}
+	}
 }
