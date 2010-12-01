@@ -175,22 +175,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	public void addSrcRef(IRNode context, ISrcRef s, String flavor) {
 		addSrcRef(context, s, "    ", flavor);
 	}
-
-	private void addSrcRef(IRNode context, ISrcRef s, String indent, String flavor) {
-		if (s == null) {
-			return;
-		}
-		b.append(indent);
-		Entities.start(SOURCE_REF, b);
-		addLocation(s);		
-		if (flavor != null) {
-			addAttribute(FLAVOR_ATTR, flavor);
-		}
-		addAttribute(HASH_ATTR, SeaSummary.computeHash(context));
-		addAttribute(CUNIT_ATTR, s.getCUName());
-		addAttribute(PKG_ATTR, s.getPackage());
-		b.append("/>\n");
-	}
 	
 	public void addSupportingInfo(ISupportingInformation si) {
 		b.append("    ");
