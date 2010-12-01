@@ -2,12 +2,12 @@
 package com.surelogic.persistence;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.common.xml.XMLConstants;
+import com.surelogic.common.xml.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.*;
 
-public abstract class AbstractAnalysisResult implements IAnalysisResult {
+public abstract class AbstractAnalysisResult implements IAnalysisResult, PersistenceConstants {
 	private final PromiseRef about;
 	private final IRNode location; // TODO how to specify within a CU 
 	
@@ -18,7 +18,7 @@ public abstract class AbstractAnalysisResult implements IAnalysisResult {
 	
 	public String toXML(final int indent) {
 		StringBuilder sb = new StringBuilder(indent);
-		sb.append("<result");	
+		Entities.start("result", sb);
 		attributesToXML(indent+1, sb);
 		sb.append(">\n");
 		about.toXML(indent+1, sb);
