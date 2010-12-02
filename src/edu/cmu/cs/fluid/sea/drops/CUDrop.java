@@ -93,6 +93,10 @@ public abstract class CUDrop extends Drop {
 	  return info;
   }
   
+  public String getRelativePath() {
+	  return info == null ? null : info.getFile().getRelativePath();
+  }
+  
   private void finishInit() {
     if (cu != null) {
       cu.setSlotValue(si, this);
