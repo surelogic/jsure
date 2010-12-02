@@ -1169,8 +1169,8 @@ public class JavacDriver implements IResourceChangeListener {
 		    	findModifiedFiles(newProjects, oldProjects);
 		    }		    
 		    // TODO create constants?
-		    String resultsName = oldProjects == null ? "results.partial.zip" : "results.zip";
-		    newProjects.setResultsFile(new File(dataDir, name+resultsName));
+		    String resultsName = oldProjects != null ? "results.partial.zip" : "results.zip";
+		    newProjects.setResultsFile(new File(dataDir, name+'/'+resultsName));
 		    
 		    AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips);
 		    CopyJob copy = new CopyJob(newProjects, target, zips, analysis);
