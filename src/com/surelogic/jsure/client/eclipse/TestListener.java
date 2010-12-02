@@ -2,8 +2,7 @@ package com.surelogic.jsure.client.eclipse;
 
 import org.xml.sax.Attributes;
 
-import com.surelogic.common.xml.Entity;
-import com.surelogic.jsure.xml.*;
+import com.surelogic.common.xml.*;
 
 public class TestListener extends AbstractXMLResultListener {
 	@Override
