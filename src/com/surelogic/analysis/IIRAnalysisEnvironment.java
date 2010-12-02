@@ -13,4 +13,5 @@ public interface IIRAnalysisEnvironment {
 	
 	OutputStream makeResultStream(CUDrop cud) throws IOException;
 	void closeResultStream() throws IOException;
+	void done();
 }

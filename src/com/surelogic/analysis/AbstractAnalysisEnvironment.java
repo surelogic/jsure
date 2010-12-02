@@ -18,4 +18,8 @@ public abstract class AbstractAnalysisEnvironment implements IIRAnalysisEnvironm
 	public void closeResultStream() throws IOException {
 		// Nothing to do yet
 	}
+	
+	public void done() {
+		// Nothing to do yet
+	}
 }
