@@ -65,6 +65,9 @@ public class VouchRules extends AnnotationRules {
 		public void init(Sea sea) {
 			for (final ResultDrop rd : sea.getDropsOfType(ResultDrop.class)) {
 				if (!rd.isConsistent()) {
+					if (rd.getNode() == null) {
+						continue; // No possible vouch
+					}
 					VouchPromiseDrop vouch = getEnclosingVouch(rd.getNode());
 					if (vouch != null) {
 						rd.setVouched();

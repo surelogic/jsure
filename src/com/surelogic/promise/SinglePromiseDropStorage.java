@@ -68,7 +68,7 @@ implements ISinglePromiseDropStorage<D> {
 		  return EmptyIterator.prototype();
 	  }
 	  D d = n.getSlotValue(si);
-	  if (!d.isValid()) {
+	  if (d == null || !d.isValid()) {
 		  return EmptyIterator.prototype();
 	  }
 	  return new SingletonIterator<D>(d);
