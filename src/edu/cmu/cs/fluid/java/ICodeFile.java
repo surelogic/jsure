@@ -7,4 +7,5 @@ public interface ICodeFile {
   Object getHostEnvResource();
   String getPackage();
   String getProjectName();
+  String getRelativePath();
 }

@@ -5,4 +5,7 @@ public abstract class AbstractCodeFile implements ICodeFile {
 	public String getProjectName() {
 		throw new UnsupportedOperationException();
 	}
+	public String getRelativePath() {
+		return null;
+	}
 }
