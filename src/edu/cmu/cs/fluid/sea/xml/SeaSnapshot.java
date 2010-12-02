@@ -15,7 +15,6 @@ import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.*;
-import com.surelogic.jsure.xml.AbstractXMLResultListener;
 import com.surelogic.jsure.xml.JSureXMLReader;
 
 import static com.surelogic.jsure.xml.JSureXMLReader.*;
