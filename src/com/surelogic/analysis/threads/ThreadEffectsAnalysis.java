@@ -31,6 +31,8 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 	private static final Logger LOG = SLLogger
 			.getLogger("FLUID.analysis.ThreadEffects"); //$NON-NLS-1$
 
+	public static final boolean createDrops = true;
+	
 	private final IBinder binder;
 
 	private Drop resultDependUpon = null;
@@ -157,12 +159,13 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 			}
 		}
 		if (results.isEmpty()) {
+			if (createDrops) {
 			ResultDrop r = new ResultDrop("ThreadEffectsAnalysis_noThreadsDrop");
 			r.setConsistent();
 			r.addCheckedPromise(pd);
 			setResultDependUponDrop(r, block, 1, JavaNames
 					.genMethodConstructorName(block));
-			
+			}			
 			results.add(new SimpleAnalysisResult(pd, block, 1, JavaNames.genMethodConstructorName(block)));
 		}
 		return results;
@@ -215,12 +218,14 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 							//
 							// System.out.println("[ThreadEffects] Thread.start() "
 							// + DebugUnparser.toString(node));
+							if (createDrops) {
 							ResultDrop rd = new ResultDrop(
 									"ThreadEffectsAnalysis_threadEffectDrop");
 							rd.setInconsistent();
 							rd.addCheckedPromise(pd);
 							setResultDependUponDrop(rd, node, 2, DebugUnparser
 									.toString(node));
+							}
 							return new SimpleAnalysisResult(pd, node, 2, DebugUnparser.toString(node));
 						}
 					}
@@ -255,6 +260,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 			return null;
 		
 		// does it promise to start nothing?
+		if (createDrops) {
 		if (ThreadEffectsRules.startsNothing(declaration)) {
 			// get the promise drop
 			StartsPromiseDrop callp = ThreadEffectsRules
@@ -274,7 +280,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 			rd.addProposal(new ProposedPromiseDrop("Starts", "nothing",
 					declaration, node));
 		}		
-
+		}
 		final PromiseRef depend  = new PromiseRef("Starts", "nothing", declaration);		
 		return new AndAnalysisResult(pd, node, depend);
 	}
