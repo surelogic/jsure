@@ -132,6 +132,10 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 		if (ref == null) {
 			return "";
 		}
+		String path = ref.getRelativePath();
+		if (path != null) {
+			return path;
+		}
 		Object o = ref.getEnclosingFile();
 		if (o instanceof IFile) {
 			IFile f = (IFile) o;
@@ -144,6 +148,10 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 			}
 			if (name.endsWith(".class")) {
 				return name;
+			}
+			final int bang = name.lastIndexOf('!');
+			if (bang >= 0) {
+				return name.substring(bang+1);
 			}
 			IFile f = EclipseUtility.resolveIFile(name);
 			if (f == null) {
