@@ -51,6 +51,8 @@ public class JavacDriver implements IResourceChangeListener {
 	 * Clear all the JSure state before each build
 	 */
 	private static final boolean clearBeforeAnalysis = false;
+
+	private static final boolean useSourceZipsDirectly = false;
 	
 	enum BuildState {
 		// Null means no build right now
@@ -1402,27 +1404,40 @@ public class JavacDriver implements IResourceChangeListener {
             }
             */
             final List<JavaSourceFile> srcFiles = new ArrayList<JavaSourceFile>();
-            FileUtility.unzipFile(zf, projectDir, new UnzipCallback() {				
-				public void unzipped(ZipEntry ze, File f) {
-	                // Finish setting up srcFiles
-	                if (ze.getName().endsWith(".java")) {
-	                    final List<String> names = path2qnames.get(ze.getName());
-	                    if (names != null) {
-	                        for(String name : names) {
-	                            //System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
-	                            srcFiles.add(new JavaSourceFile(name.replace('$', '.'), f, null));
-	                        }
-	                    } else if (ze.getName().endsWith("/package-info.java")) {
-	                        System.out.println("What to do about package-info.java?");
-	                    } else {
-	                        System.err.println("Unable to get qname for "+ze.getName());
-	                    }
-	                } else {
-	                	//System.out.println("Not a java file: "+ze.getName());
-	                }
-				}
-			});
-            
+            final UnzipCallback callback = new UnzipCallback() {				
+        		public void unzipped(ZipEntry ze, File f) {
+        			// Finish setting up srcFiles
+        			if (ze.getName().endsWith(".java")) {
+        				final List<String> names = path2qnames.get(ze.getName());
+        				if (names != null) {
+        					for(String name : names) {
+        						//System.out.println("Mapping "+name+" to "+f.getAbsolutePath());
+        						srcFiles.add(new JavaSourceFile(name.replace('$', '.'), f, null));
+        					}
+        				} else if (ze.getName().endsWith("/package-info.java")) {
+        					System.out.println("What to do about package-info.java?");
+        				} else {
+        					System.err.println("Unable to get qname for "+ze.getName());
+        				}
+        			} else {
+        				//System.out.println("Not a java file: "+ze.getName());
+        			}
+        		}
+        	};
+            if (useSourceZipsDirectly) {
+            	// OK jar:///C:/Documents%20and%20Settings/UncleBob/lib/vendorA.jar!com/vendora/LibraryClass.class
+            	final Enumeration<? extends ZipEntry> e = zf.entries();
+            	final String zipPath = zipFile.getAbsolutePath();
+            	while (e.hasMoreElements()) {
+            		ZipEntry ze = e.nextElement();
+            		String path = "jar:///"+zipPath+'!'+ze.getName();
+            		File f      = new File(path.replace('\\', '/'));
+            		System.out.println("URI = "+f.toURI());
+            		callback.unzipped(ze, f);
+            	}
+            } else {
+            	FileUtility.unzipFile(zf, projectDir, callback);
+            }
             this.setFiles(srcFiles);
             super.copySources(zipDir, targetDir);
         }  
@@ -1521,6 +1536,7 @@ public class JavacDriver implements IResourceChangeListener {
             } catch (IOException e) {
                 return SLStatus.createErrorStatus("Problem while zipping sources", e);
             }
+            final long zip = System.currentTimeMillis();
             try {
             	for(Config config : projects.getConfigs()) {
             		config.relocateJars(targetDir);
@@ -1529,7 +1545,8 @@ public class JavacDriver implements IResourceChangeListener {
                 return SLStatus.createErrorStatus("Problem while copying jars", e);
 			}
             final long end = System.currentTimeMillis();
-            System.out.println("Copying = "+(end-start)+" ms");
+            System.out.println("Zipping         = "+(zip-start)+" ms");
+            System.out.println("Relocating jars = "+(end-zip)+" ms");
             
             if (afterJob != null) {
         	    if (XUtil.testing) {
@@ -1559,6 +1576,7 @@ public class JavacDriver implements IResourceChangeListener {
         		ClearProjectListener.clearJSureState();
         	}        	
         	System.out.println("Starting analysis for "+projects.getLabel());
+        	final long start = System.currentTimeMillis();
         	try {
         		for(Config config : projects.getConfigs()) {
         			config.copySources(zipDir, targetDir);
@@ -1566,6 +1584,8 @@ public class JavacDriver implements IResourceChangeListener {
             } catch (IOException e) {
                 return SLStatus.createErrorStatus("Problem while copying sources", e);
             }
+            final long end = System.currentTimeMillis();
+            System.out.println("Copying sources = "+(end-start)+" ms");
             
             JavacEclipse.initialize();
             NotificationHub.notifyAnalysisStarting();
