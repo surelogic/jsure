@@ -1,20 +1,30 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.persistence;
 
+import java.util.*;
+
 import org.xml.sax.Attributes;
 
 import com.surelogic.analysis.*;
 import com.surelogic.common.xml.*;
-import com.surelogic.jsure.xml.JSureXMLReader;
+import com.surelogic.jsure.xml.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.*;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 public class JSureResultsXMLReader extends NestedXMLReader implements IXMLResultListener, PersistenceConstants {
 	private final IIRProjects projects;
+	private final Map<String,SourceCUDrop> cuds = new HashMap<String, SourceCUDrop>();
 
 	public JSureResultsXMLReader(IIRProjects p) {
 		projects = p;
+		for(SourceCUDrop d : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
+			cuds.put(d.javaOSFileName, d);
+		}
 	}
 	
 	@Override
@@ -58,7 +68,9 @@ public class JSureResultsXMLReader extends NestedXMLReader implements IXMLResult
 			}
 			else if (JSureXMLReader.SOURCE_REF.equals(nested.getName())) {				
 				IRNode n = handleSourceRef(nested);				
-				//TODO d.setNodeAndCompilationUnitDependency(n);
+				if (n != null) {
+					d.setNodeAndCompilationUnitDependency(n);
+				}
 			}
 			else if (AND_REF.equals(nested.getName())) {			
 				PromiseDrop<?> pd = handlePromiseRef(nested);
@@ -85,7 +97,26 @@ public class JSureResultsXMLReader extends NestedXMLReader implements IXMLResult
 	}
 	
 	private IRNode handleSourceRef(Entity sr) {
+		final String file = sr.getAttribute(AbstractXMLReader.FILE_ATTR);
+		final long hash   = Long.valueOf(sr.getAttribute(AbstractXMLReader.HASH_ATTR));
+		final int offset  = Integer.valueOf(sr.getAttribute(AbstractXMLReader.OFFSET_ATTR));
+		// final int line    = Integer.valueOf(sr.getAttribute(XMLConstants.LINE_ATTR));
 		// TODO
+		sr.getAttribute(AbstractXMLReader.PATH_ATTR);
+		
+		SourceCUDrop d = cuds.get(file);
+		if (d == null) {
+			return null; // Unknown CU
+		}
+		for(IRNode n : JJNode.tree.topDown(d.cu)) {
+			ISrcRef ref = JavaNode.getSrcRef(n);
+			if (ref != null && ref.getOffset() == offset) {
+				final long nHash = SeaSummary.computeHash(n);
+				if (hash == nHash) {
+					return n;
+				}
+			}
+		}
 		return null;
 	}
 	
