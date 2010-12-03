@@ -314,26 +314,39 @@ public class Dependencies {
 			// record old decls and what annotations were on them 
 			for(final IRNode n : JJNode.tree.bottomUp(cud.cu)) {
 				final Operator op = JJNode.tree.getOperator(n);
-				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
-					// Does this include the method signature?
-					final String name = JavaIdentifier.encodeDecl(cud.getTypeEnv().getBinder(), n);
-					oldInfo.put(name, null); // Used to mark that it was declared
-					
-					final List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
-					if (!drops.isEmpty()) {
-						System.out.println("Collecting old drops for "+name);
-						oldInfo.putAll(name, drops);
-					} 
-					/*
-					if ("testDeps.Deponent".equals(name)) {
-						for(LockModel l : LockRules.getModels(n)) {
-							System.out.println(l.getMessage());
+				if (ClassBodyDeclaration.prototype.includes(op)) {
+					if (FieldDeclaration.prototype.includes(op)) {
+						for(IRNode vd : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(n))) {
+							collectOldInfoAnnotationInfoForDecl(cud, vd);
 						}
+					} else {
+						collectOldInfoAnnotationInfoForDecl(cud, n);
 					}
-					*/
+				}
+				else if (TypeDeclaration.prototype.includes(op)) {
+					collectOldInfoAnnotationInfoForDecl(cud, n);
 				}
 			}
 		}
+	}
+
+	private void collectOldInfoAnnotationInfoForDecl(final CUDrop cud, final IRNode n) {
+		// Does this include the method signature?
+		final String name = JavaIdentifier.encodeDecl(cud.getTypeEnv().getBinder(), n);
+		oldInfo.put(name, null); // Used to mark that it was declared
+		
+		final List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
+		if (!drops.isEmpty()) {
+			System.out.println("Collecting old drops for "+name);
+			oldInfo.putAll(name, drops);
+		} 
+		/*
+		if ("testDeps.Deponent".equals(name)) {
+			for(LockModel l : LockRules.getModels(n)) {
+				System.out.println(l.getMessage());
+			}
+		}
+		*/
 	}
 	
 	static class AnnotationInfo {
