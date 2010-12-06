@@ -18,6 +18,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
+import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -170,6 +171,10 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
               // any(Object):Instance
               ty = getBinder().getTypeEnvironment().getObjectType();
               region = RegionModel.getInstanceRegion();
+            } else if (ty instanceof IJavaWildcardType) {
+              // This is probably going to break in the future as another
+              // missed case is discovered.
+              ty = ((IJavaWildcardType) ty).getUpperBound();
             }
             target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(
                 (IJavaReferenceType) ty, region); 
