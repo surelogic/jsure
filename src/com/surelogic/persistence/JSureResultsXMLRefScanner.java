@@ -55,4 +55,24 @@ public class JSureResultsXMLRefScanner extends AbstractJSureResultsXMLReader<Voi
 	protected void finishResult(Void result, Entity e, boolean checkedPromises) {
 		// Nothing to do
 	}
+	
+	public <T> Collection<T> selectByFile(Map<String,T> map) {
+		return select(map, true);
+	}
+	
+	public <T> Collection<T> selectByTypeLocation(Map<String,T> map) {
+		return select(map, false);
+	}
+	
+	public <T> Collection<T> select(Map<String,T> map, boolean useFile) {
+		List<T> results = new ArrayList<T>();
+		for(String file : useFile ? referencedFiles : referencedTypeLocations) {
+			T result = map.get(file);
+			if (result == null) {
+				throw new IllegalStateException("No result for "+file);
+			}
+			results.add(result);
+		}
+		return results;
+	}
 }
