@@ -82,6 +82,9 @@ public final class JavaIdentifier {
 	
 	private static final String DEFAULT_PKG = "(default)";
 	
+	/**
+	 * project:pkg:type.inner:name:(params)
+	 */
 	public static String encodeDecl(IBinder b, IRNode decl) {
 		final IRNode type      = VisitUtil.getClosestType(decl);
 		final IRNode cu        = VisitUtil.getEnclosingCompilationUnit(type);
@@ -182,6 +185,14 @@ public final class JavaIdentifier {
 	private static String encodeTypeName(IBinder b, IRNode type) {
 		// TODO hack w/o colons
 		return DebugUnparser.toString(type);
+	}
+	
+	public static String extractType(String code) {
+		String[] parts = code.split(SEPARATOR);		
+		if (parts.length < 3) {
+			throw new IllegalArgumentException("Bad encoding: "+code);
+		}
+		return parts[0]+SEPARATOR+parts[1]+SEPARATOR+parts[2];
 	}
 	
 	public static IRNode findDecl(IIRProjects projs, String code) {
