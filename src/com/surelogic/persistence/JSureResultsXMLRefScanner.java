@@ -16,7 +16,7 @@ import edu.cmu.cs.fluid.sea.*;
  */
 public class JSureResultsXMLRefScanner extends AbstractJSureResultsXMLReader<Void> {
 	final Set<String> referencedTypeLocations = new HashSet<String>();
-	final Set<String> referencedFiles = new HashSet<String>();
+	final Set<String> referencedFilePaths = new HashSet<String>();
 	
 	public JSureResultsXMLRefScanner(IIRProjects p) {
 		super(p);
@@ -46,9 +46,9 @@ public class JSureResultsXMLRefScanner extends AbstractJSureResultsXMLReader<Voi
 
 	@Override
 	protected void handleSourceRef(Void result, Entity sr) {
-		final String file = sr.getAttribute(AbstractXMLReader.FILE_ATTR);
-		//sr.getAttribute(AbstractXMLReader.PATH_ATTR);
-		referencedFiles.add(file);
+		//final String file = sr.getAttribute(AbstractXMLReader.FILE_ATTR);
+		final String path = sr.getAttribute(AbstractXMLReader.PATH_ATTR);
+		referencedFilePaths.add(path);
 	}
 	
 	@Override
@@ -56,7 +56,7 @@ public class JSureResultsXMLRefScanner extends AbstractJSureResultsXMLReader<Voi
 		// Nothing to do
 	}
 	
-	public <T> Collection<T> selectByFile(Map<String,T> map) {
+	public <T> Collection<T> selectByFilePath(Map<String,T> map) {
 		return select(map, true);
 	}
 	
@@ -66,7 +66,7 @@ public class JSureResultsXMLRefScanner extends AbstractJSureResultsXMLReader<Voi
 	
 	public <T> Collection<T> select(Map<String,T> map, boolean useFile) {
 		List<T> results = new ArrayList<T>();
-		for(String file : useFile ? referencedFiles : referencedTypeLocations) {
+		for(String file : useFile ? referencedFilePaths : referencedTypeLocations) {
 			T result = map.get(file);
 			if (result == null) {
 				throw new IllegalStateException("No result for "+file);
