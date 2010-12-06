@@ -19,7 +19,7 @@ public class ProposedPromiseBuilder implements IDropBuilder {
 	}
 	
 	public ProposedPromiseDrop buildDrop() {
-		System.out.println("\tCreating proposal: "+annotation+" "+contents+"  from  "+DebugUnparser.toString(from));
+		//System.out.println("\tCreating proposal: "+annotation+" "+contents+"  from  "+DebugUnparser.toString(from));
 		return new ProposedPromiseDrop(annotation, contents, at, from);
 	}
 	
