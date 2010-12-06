@@ -129,6 +129,7 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
  * @author aarong
  * 
  */
+@SuppressWarnings("deprecation")
 public final class LockVisitor extends VoidTreeWalkVisitor implements
 		IBinderClient {
 	/** Logger instance for debugging. */
