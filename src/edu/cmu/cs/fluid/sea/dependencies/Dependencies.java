@@ -380,47 +380,17 @@ public class Dependencies {
 			for(final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
 				// TODO what about receivers and what not?
 				final Operator op = JJNode.tree.getOperator(n);
-				if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
-					final String name                         = JavaIdentifier.encodeDecl(info.getTypeEnv().getBinder(), n);
-					final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
-					if (oldDrops == null) {
-						// New decl, so any annotations are brand-new, and will be analyzed
-						if (AbstractWholeIRAnalysis.debugDependencies) {						
-							System.err.println("New decl will be analyzed normally: "+name);
-						}
-						continue; 
-					}
-					// Otherwise, it's an existing decl
-					final Collection<PromiseDrop<?>> newDrops = PromiseDropStorage.getAllDrops(n);
-					// First elt just marks that it was declared
-					if (oldDrops.size() <= 1) { 
-						// Any new drops will be new annotations on this decl, so we'll have to scan						
-						if (!newDrops.isEmpty()) {
-							System.out.println("Found all-new annotations for "+name);						
-							toScan.put(info.getTypeEnv(), new AnnotationInfo(n, newDrops));
-						} else {
-							//System.err.println("No old/new drops for "+name);
+				if (ClassBodyDeclaration.prototype.includes(op)) {
+					if (FieldDeclaration.prototype.includes(op)) {
+						for(IRNode vd : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(n))) {
+							findDepsForNewlyAnnotatedDecls(toScan, info, vd);
 						}
 					} else {
-						// We'll have to compare the drops to see which are truly new			
-						if (newDrops.isEmpty()) {
-							System.out.println("Only removed drops for "+name);
-							continue;
-						}
-						Set<Wrapper> diff = new HashSet<Wrapper>();
-						doWrappedDrops(diff, newDrops, true);  // add new drops
-						doWrappedDrops(diff, oldDrops, false); // remove old drops
-						if (!diff.isEmpty()) {
-							System.out.println("Found new annotations for "+name);
-							Collection<PromiseDrop<?>> diffDrops = new ArrayList<PromiseDrop<?>>();
-							for(Wrapper w : diff) {
-								diffDrops.add(w.drop);
-							}
-							toScan.put(info.getTypeEnv(), new AnnotationInfo(n, diffDrops));
-						} else {
-							System.out.println("No new drops for "+name);
-						}
+						findDepsForNewlyAnnotatedDecls(toScan, info, n);
 					}
+				}
+				else if (TypeDeclaration.prototype.includes(op)) {
+					findDepsForNewlyAnnotatedDecls(toScan, info, n);
 				}
 			}
 		}
@@ -434,6 +404,49 @@ public class Dependencies {
 		//reanalyze.removeAll(reprocess);
 		reanalyze.removeAll(changed); // These should be invalidated already
 		return reanalyze;
+	}
+	
+	private void findDepsForNewlyAnnotatedDecls(MultiMap<ITypeEnvironment,AnnotationInfo> toScan, CodeInfo info, IRNode n) {
+		final String name                         = JavaIdentifier.encodeDecl(info.getTypeEnv().getBinder(), n);
+		final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
+		if (oldDrops == null) {
+			// New decl, so any annotations are brand-new, and will be analyzed
+			if (AbstractWholeIRAnalysis.debugDependencies) {						
+				System.err.println("New decl will be analyzed normally: "+name);
+			}
+			return; 
+		}
+		// Otherwise, it's an existing decl
+		final Collection<PromiseDrop<?>> newDrops = PromiseDropStorage.getAllDrops(n);
+		// First elt just marks that it was declared
+		if (oldDrops.size() <= 1) { 
+			// Any new drops will be new annotations on this decl, so we'll have to scan						
+			if (!newDrops.isEmpty()) {
+				System.out.println("Found all-new annotations for "+name);						
+				toScan.put(info.getTypeEnv(), new AnnotationInfo(n, newDrops));
+			} else {
+				//System.err.println("No old/new drops for "+name);
+			}
+		} else {
+			// We'll have to compare the drops to see which are truly new			
+			if (newDrops.isEmpty()) {
+				System.out.println("Only removed drops for "+name);
+				return;
+			}
+			Set<Wrapper> diff = new HashSet<Wrapper>();
+			doWrappedDrops(diff, newDrops, true);  // add new drops
+			doWrappedDrops(diff, oldDrops, false); // remove old drops
+			if (!diff.isEmpty()) {
+				System.out.println("Found new annotations for "+name);
+				Collection<PromiseDrop<?>> diffDrops = new ArrayList<PromiseDrop<?>>();
+				for(Wrapper w : diff) {
+					diffDrops.add(w.drop);
+				}
+				toScan.put(info.getTypeEnv(), new AnnotationInfo(n, diffDrops));
+			} else {
+				System.out.println("No new drops for "+name);
+			}
+		}
 	}
 	
 	private static void doWrappedDrops(final Collection<Wrapper> wrapped, final Collection<PromiseDrop<?>> drops, 
