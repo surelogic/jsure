@@ -160,8 +160,19 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
               QualifiedReceiverDeclaration.prototype.includes(refOp) ||
               ParameterDeclaration.prototype.includes(refOp))) {
             // Convert to any instance
-            IJavaType ty = getBinder().getJavaType(ref);
+        	final IJavaType ty0 = getBinder().getJavaType(ref);
+            IJavaType ty = ty0;
             IRegion region = target.getRegion();
+            if (ty instanceof IJavaWildcardType) {
+                // This is probably going to break in the future as another
+                // missed case is discovered.
+                IJavaType upper = ((IJavaWildcardType) ty).getUpperBound();
+                if (upper == null) {
+                  ty = getBinder().getTypeEnvironment().getObjectType();
+                } else {
+              	  ty = upper;
+                }
+              }
             if (ty instanceof IJavaTypeFormal) {
               // Cannot handle type formals in region annotations yet, convert
               // to Object
@@ -171,11 +182,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
               // any(Object):Instance
               ty = getBinder().getTypeEnvironment().getObjectType();
               region = RegionModel.getInstanceRegion();
-            } else if (ty instanceof IJavaWildcardType) {
-              // This is probably going to break in the future as another
-              // missed case is discovered.
-              ty = ((IJavaWildcardType) ty).getUpperBound();
-            }
+            } 
             target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(
                 (IJavaReferenceType) ty, region); 
           }
