@@ -1,6 +1,3 @@
-/*
- * $Header: /cvs/fluid/fluid/src/edu/uwm/cs/fluid/java/control/JavaTransfer.java,v 1.11 2008/06/24 19:13:20 thallora Exp $
- */
 package edu.uwm.cs.fluid.java.control;
 
 import java.util.Iterator;
@@ -14,7 +11,6 @@ import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
-import edu.cmu.cs.fluid.control.UnknownLabel;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -595,10 +591,16 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     final ControlEdge e1 = getStartEdge(source, sink);
     final ControlEdge e2 = getEndEdge(source, sink);
     
-    /* This was wrong.  Was "LabelList.empty", but that made things not work
-     * right on backwards analyses.  John and I fixed this on 2010-01-12.
+    /* John and I thought this was wrong back on 2010-01-12, and changed 
+     * the label list to be "LabelList.empty.addLabel(UnknownLabel.prototype)",
+     * but that was a mistake.  The actual error we were trying to fix at the
+     * time was most likely caused by the below issue with the initial value.
+     * Using the UNKNOWN label causes monotonicity problems with instance
+     * initializers.  John never gave me a justification for why changing to the
+     * unknown label made any sense any how.  On 2010-12-07 I changed this back
+     * to use the empty list.
      */
-    final LabelList ll = LabelList.empty.addLabel(UnknownLabel.prototype);
+    final LabelList ll = LabelList.empty;
 
     /* We used to just initialize with the 'initial' value.  Turns out this 
      * is problematic because the same subanalysis object is returned by 
