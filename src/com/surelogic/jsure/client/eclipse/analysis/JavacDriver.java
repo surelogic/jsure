@@ -1150,29 +1150,24 @@ public class JavacDriver implements IResourceChangeListener {
 			//final boolean hasDeltas = info.hasDeltas();
 		    makeProjects(newProjects);	    
 
-		    final File dataDir = 
-		        //new File(IDE.getInstance().getStringPreference(IDEPreferences.DATA_DIRECTORY));
-		        PreferenceConstants.getJSureDataDirectory();
-		    final String time = SLUtility.toStringHMS(new Date());
-		    final String name = newProjects.getShortLabel()+' '+time.replace(':', '-');		   		    
-		    final File zips   = new File(dataDir, name+"/zips");
-		    final File target = new File(dataDir, name+"/srcs");
+		    final File dataDir         = PreferenceConstants.getJSureDataDirectory();
+		    final Projects oldProjects = (Projects) ProjectsDrop.getProjects();		 
+		    newProjects.computeRun(dataDir, oldProjects != null);
+		    
+		    final File zips   = new File(dataDir, newProjects.getRun()+"/zips");
+		    final File target = new File(dataDir, newProjects.getRun()+"/srcs");
 		    target.mkdirs();
-		    newProjects.setRun(name);
 
 		    JSureHistoricalSourceView.setLastRun(newProjects, new ISourceZipFileHandles() {
                 public Iterable<File> getSourceZips() {
                     return Arrays.asList(zips.listFiles());
                 }		        
 		    });
-
-		    Projects oldProjects = (Projects) ProjectsDrop.getProjects();		    
+   
 		    if (!clearBeforeAnalysis && oldProjects != null) {
 		    	findModifiedFiles(newProjects, oldProjects);
 		    }		    
 		    // TODO create constants?
-		    String resultsName = oldProjects != null ? "results.partial.zip" : "results.zip";
-		    newProjects.setResultsFile(new File(dataDir, name+'/'+resultsName));
 		    
 		    AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips);
 		    CopyJob copy = new CopyJob(newProjects, target, zips, analysis);
