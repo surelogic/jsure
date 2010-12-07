@@ -243,11 +243,11 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
       if (infoLattice.equals(old,lv)) return;
       if (CHECK_MONOTONICITY) {
         if (!infoLattice.lessEq(old,lv)) {
+          if (newString == null) newString = infoLattice.toString(lv);
+          if (oldString == null) oldString = infoLattice.toString(old);
           System.out.println("************** Monotonicity error: was " + oldString + "; now " + newString);
           System.out.flush();
           
-          if (newString == null) newString = infoLattice.toString(lv);
-          oldString = infoLattice.toString(old);
           this.reportMonotonicityError(edge);
           LOG.severe("Monotonicity error: was " + oldString + "; now " + newString);
         }
