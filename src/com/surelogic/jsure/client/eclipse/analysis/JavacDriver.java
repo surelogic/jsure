@@ -1425,9 +1425,8 @@ public class JavacDriver implements IResourceChangeListener {
             	final String zipPath = zipFile.getAbsolutePath();
             	while (e.hasMoreElements()) {
             		ZipEntry ze = e.nextElement();
-            		String path = "jar:///"+zipPath+'!'+ze.getName();
-            		File f      = new File(path.replace('\\', '/'));
-            		System.out.println("URI = "+f.toURI());
+            		File f      = PromiseMatcher.makeZipReference(zipPath, ze.getName());
+            		//System.out.println("URI = "+f.toURI());
             		callback.unzipped(ze, f);
             	}
             } else {
