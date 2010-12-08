@@ -2,6 +2,7 @@
 package com.surelogic.persistence;
 
 import java.util.*;
+import java.util.zip.ZipEntry;
 
 import com.surelogic.analysis.*;
 import com.surelogic.common.xml.*;
@@ -20,6 +21,18 @@ public class JSureResultsXMLRefScanner extends AbstractJSureResultsXMLReader<Voi
 	
 	public JSureResultsXMLRefScanner(IIRProjects p) {
 		super(p);
+	}
+	
+	public String normalizePath(String path) {
+		if (path.startsWith("/")) {
+			path = path.substring(1);
+		}
+		return path;
+	}
+	
+	@Override
+	protected void finishedZipEntry(ZipEntry ze) {
+		referencedFilePaths.add(ze.getName());
 	}
 	
 	@Override
@@ -48,7 +61,7 @@ public class JSureResultsXMLRefScanner extends AbstractJSureResultsXMLReader<Voi
 	protected void handleSourceRef(Void result, Entity sr) {
 		//final String file = sr.getAttribute(AbstractXMLReader.FILE_ATTR);
 		final String path = sr.getAttribute(AbstractXMLReader.PATH_ATTR);
-		referencedFilePaths.add(path);
+		referencedFilePaths.add(normalizePath(path));
 	}
 	
 	@Override
