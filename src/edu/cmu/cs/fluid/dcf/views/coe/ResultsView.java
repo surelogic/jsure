@@ -643,6 +643,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
   public void showDrop(IDropInfo d) {
 	  // Find the corresponding Content	  
 	  Object c = findContent(d);
+	  if (c == null) {
+		  findContent(d);
+		  return;
+	  }
 	  treeViewer.reveal(c);
       treeViewer.setSelection(new StructuredSelection(c), true);
   }
