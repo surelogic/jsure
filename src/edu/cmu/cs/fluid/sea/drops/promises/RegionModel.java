@@ -97,6 +97,11 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
         !n.equals(region.getNode())) {
       throw new IllegalArgumentException("RegionModel doesn't match field decl: "+n);
     }
+    /*
+    else if (n == null && "test.Test.counter".equals(qname)) {
+    	System.out.println("Creating region model for test.Test.counter");
+    }
+    */
     model.setNodeAndCompilationUnitDependency(region.getNode());
     setResultMessage(model, region.isStatic(), region.getVisibility(), qname);
     return model;
