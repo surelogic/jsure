@@ -1,6 +1,12 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.persistence;
 
+import java.io.File;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
 import org.xml.sax.Attributes;
 
 import com.surelogic.analysis.*;
@@ -72,5 +78,20 @@ public abstract class AbstractJSureResultsXMLReader<T> extends NestedXMLReader i
 
 	public final void done() {
 		// Nothing to do here?
+	}
+	
+	public void readXMLArchive(final File results) throws Exception {
+		ZipFile f = new ZipFile(results);
+    	Enumeration<? extends ZipEntry> e = f.entries(); 
+    	while (e.hasMoreElements()) {
+    		ZipEntry ze    = e.nextElement();
+    		InputStream in = f.getInputStream(ze);
+    		read(in);
+    		finishedZipEntry(ze);
+    	}
+	}
+
+	protected void finishedZipEntry(ZipEntry ze) {
+		// Nothing to do
 	}
 }
