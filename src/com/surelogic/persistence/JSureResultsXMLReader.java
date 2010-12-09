@@ -42,6 +42,7 @@ public class JSureResultsXMLReader extends AbstractJSureResultsXMLReader<ResultD
 	@Override
 	protected void handleAboutRef(ResultDrop d, Entity pe, PromiseDrop<?> pd) {
 		if (pd == null) {
+			handlePromiseRef(pe);
 			throw new IllegalStateException("Unmatched about-ref: "+pe.getAttribute(PROMISE_LOCATION));
 		}
 		d.addCheckedPromise(pd);
