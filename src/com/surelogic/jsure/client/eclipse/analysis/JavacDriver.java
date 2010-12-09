@@ -1302,7 +1302,7 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 			*/
 			Config config = proj.getConfig();
-			config.setOption(Config.AS_SOURCE, true);
+			config.setAsSource();
 		}
 		
 		// Remove inactive projects? 
@@ -1587,12 +1587,7 @@ public class JavacDriver implements IResourceChangeListener {
             	boolean ok = false;            	
             	if (clearBeforeAnalysis || oldProjects == null) {
             		ClearProjectListener.clearJSureState();
-            		if (Util.useResultsXML) {
-            			ok = PromiseMatcher.findAndLoad(PreferenceConstants.getJSureDataDirectory());
-            		}
-            		if (!ok) {
-            			ok = Util.openFiles(projects, true);
-            		}
+            		ok = Util.openFiles(projects, true);            		
             	} else {
             		ok = Util.openFiles(oldProjects, projects, true);
             	}
