@@ -1587,9 +1587,9 @@ public class JavacDriver implements IResourceChangeListener {
             	boolean ok;            	
             	if (clearBeforeAnalysis || oldProjects == null) {
             		ClearProjectListener.clearJSureState();
-            		ok = Util.openFiles(projects);
+            		ok = Util.openFiles(projects, true);
             	} else {
-            		ok = Util.openFiles(oldProjects, projects);
+            		ok = Util.openFiles(oldProjects, projects, true);
             	}
             	/*
             	final File rootLoc = EclipseUtility.getProject(config.getProject()).getLocation().toFile();
