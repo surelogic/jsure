@@ -8,10 +8,15 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
+import com.surelogic.fluid.javac.PromiseMatcher;
+import com.surelogic.fluid.javac.Util;
 
 import edu.cmu.cs.fluid.dc.AbstractAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
+import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.util.*;
 
 public class AnalysisDriver extends AbstractAnalysisModule<Void> {
@@ -91,7 +96,21 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 		cus.clear();
 		
 		if (useJavac) {						
+			JavacEclipse.initialize();
 			System.out.println("Configuring build");
+    		if (Util.useResultsXML) {
+				try {
+					boolean ok = PromiseMatcher.findAndLoad(PreferenceConstants.getJSureDataDirectory());
+	    			if (ok) {
+	    				Sea.getDefault().updateConsistencyProof();
+	    				NotificationHub.notifyAnalysisCompleted();
+	    				return;
+	    			}
+				} catch (Exception e) {
+					e.printStackTrace();
+					return;
+				}
+    		}    		
 			JavacDriver.getInstance().configureBuild(args);
 		}
 		args = null;
