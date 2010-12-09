@@ -17,6 +17,7 @@ import com.surelogic.common.eclipse.SWTUtility;
 import com.surelogic.common.eclipse.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
+import com.surelogic.fluid.javac.Util;
 import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
 
 import edu.cmu.cs.fluid.dc.Plugin;
@@ -74,9 +75,11 @@ public class Activator extends AbstractUIPlugin implements
 		SLEclipseStatusUtility.touch();
 		monitor.worked(1);
 
-		clearJSureData();
-		monitor.worked(1);
-
+		if (!Util.useResultsXML) {
+			clearJSureData();
+			monitor.worked(1);
+		}
+		
 		// TODO reload persistent data
 		Eclipse.initialize();
 		monitor.worked(1);

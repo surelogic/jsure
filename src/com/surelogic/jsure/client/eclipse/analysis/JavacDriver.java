@@ -1584,10 +1584,15 @@ public class JavacDriver implements IResourceChangeListener {
             JavacEclipse.initialize();
             NotificationHub.notifyAnalysisStarting();
             try {
-            	boolean ok;            	
+            	boolean ok = false;            	
             	if (clearBeforeAnalysis || oldProjects == null) {
             		ClearProjectListener.clearJSureState();
-            		ok = Util.openFiles(projects, true);
+            		if (Util.useResultsXML) {
+            			ok = PromiseMatcher.findAndLoad(PreferenceConstants.getJSureDataDirectory());
+            		}
+            		if (!ok) {
+            			ok = Util.openFiles(projects, true);
+            		}
             	} else {
             		ok = Util.openFiles(oldProjects, projects, true);
             	}
