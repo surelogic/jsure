@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 
 import com.surelogic.analysis.*;
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.xml.*;
 import com.surelogic.jsure.xml.*;
 
@@ -21,13 +22,6 @@ public class JSureResultsXMLRefScanner extends AbstractJSureResultsXMLReader<Voi
 	
 	public JSureResultsXMLRefScanner(IIRProjects p) {
 		super(p);
-	}
-	
-	public String normalizePath(String path) {
-		if (path.startsWith("/")) {
-			path = path.substring(1);
-		}
-		return path;
 	}
 	
 	@Override
@@ -61,7 +55,7 @@ public class JSureResultsXMLRefScanner extends AbstractJSureResultsXMLReader<Voi
 	protected void handleSourceRef(Void result, Entity sr) {
 		//final String file = sr.getAttribute(AbstractXMLReader.FILE_ATTR);
 		final String path = sr.getAttribute(AbstractXMLReader.PATH_ATTR);
-		referencedFilePaths.add(normalizePath(path));
+		referencedFilePaths.add(FileUtility.normalizePath(path));
 	}
 	
 	@Override
