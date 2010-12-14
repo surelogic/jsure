@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import org.xml.sax.Attributes;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.*;
@@ -463,6 +464,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			}
 			if (file == null) {
 				file = e.getAttribute(FILE_ATTR);
+			}
+			if (file != null) {
+				file = FileUtility.normalizePath(file);
 			}
 			Category c = this.get(file, type);
 			if (c == null) {
