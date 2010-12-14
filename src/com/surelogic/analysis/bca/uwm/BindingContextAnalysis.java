@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -147,9 +148,28 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
             JJNode.tree.getOperator(
                 JJNode.tree.getParentOrNull(
                     JJNode.tree.getParentOrNull(node))))) {
-          final ImmutableSet<IRNode> initObjects =
-            lattice.expressionObjects(before, VariableDeclarator.getInit(node));
-          out = lattice.updateDeclaration(before, node, initObjects);
+          /* Ignore empty initializations.  Really this shouldn't happen.  The
+           * Java definite assignment rules ignore the possibility that the
+           * RHS of an assignment can throw an exception, leaving the the
+           * variable on the LHS still unassigned.  This means that we can have
+           * uses of a variable that flow back to a NoInitialization:
+           * 
+           *   public void m() {
+           *     Object o;  // not initialized
+           *     try {
+           *       o = mightFail(); // method might throw an exception
+           *     } catch (final SomeException e) {
+           *       // don't assign to o
+           *     }
+           *     doStuff(o);  // BCA for o flows to 'o = mightFail()' and 'Object o'
+           *   }
+           */
+          final IRNode initializer = VariableDeclarator.getInit(node);
+          if (!NoInitialization.prototype.includes(initializer)) {
+            final ImmutableSet<IRNode> initObjects =
+              lattice.expressionObjects(before, initializer);
+            out = lattice.updateDeclaration(before, node, initObjects);
+          }
         }
       }
       return out;
