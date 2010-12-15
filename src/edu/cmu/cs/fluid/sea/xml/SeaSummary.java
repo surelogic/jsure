@@ -510,7 +510,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					// Temporarily ignore older for this, because they don't get cleaned out before each build
 					return newer.isEmpty(); 
 				} else {
-					return old.isEmpty();
+					// No longer needed?
+					//return old.isEmpty();
 				}
 			}
 			return old.isEmpty() && newer.isEmpty();
@@ -559,7 +560,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				out.println("\tOld    : "+ignored+" ProposedPromiseDrop(s)");
 			}			
 			int numEffects = 0;
-			if (ignoreProposedEffectsPromises && newer.size() == ignored) { 
+			if (ignoreProposedEffectsPromises && (newer.size() == ignored || old.size() == 0)) { 
 				// Check to see that they're all ProposedPromiseDrops
 				for(Entity o : newer) {
 					final String msg = toString(o);
@@ -570,7 +571,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					}
 				}
 			} 
-			if (ignoreProposedEffectsPromises && numEffects > 0 && numEffects == ignored) {
+			if (ignoreProposedEffectsPromises && numEffects > 0 && numEffects == newer.size()) {
 				out.println("\tNewer  : "+numEffects+" ProposedPromiseDrop @RegionEffects");
 			} else {
 				for(Entity o : sortByOffset(newer)) {
