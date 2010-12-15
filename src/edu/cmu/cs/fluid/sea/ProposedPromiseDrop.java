@@ -78,7 +78,11 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		f_contents = contents;
 		setNodeAndCompilationUnitDependency(at);
 		dependUponCompilationUnitOf(from);
-		//setMessage("Proposal: @"+annotation+'('+contents+')');
+		if (contents == null) {
+			setMessage("ProposedPromiseDrop @"+annotation+"()");
+		} else {
+			setMessage("ProposedPromiseDrop @"+annotation+'('+contents+')');
+		}
 	}
 
 	/**
