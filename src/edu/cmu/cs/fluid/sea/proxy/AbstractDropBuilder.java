@@ -104,7 +104,7 @@ public abstract class AbstractDropBuilder implements IDropBuilder {
 		}
 		if (Drop.debug == null || d.getMessage().startsWith(Drop.debug)) {
 			final IRNode decl = VisitUtil.getClosestType(node);
-			System.out.println("\tMaking: "+d.getMessage()+"  from  "+JavaNames.getRelativeTypeName(decl));
+			//System.out.println("\tMaking: "+d.getMessage()+"  from  "+JavaNames.getRelativeTypeName(decl));
 		}
 		d.setCategory(category);
 		for(Drop deponent : dependUponDrops) {
