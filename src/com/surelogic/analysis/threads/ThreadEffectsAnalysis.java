@@ -148,29 +148,48 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 	private List<IAnalysisResult> examineBlock(IRNode block, Operator blockOp,
 			StartsPromiseDrop pd, String modelName) {
 		final List<IAnalysisResult> results = new ArrayList<IAnalysisResult>(1);
+		boolean noThreadsStarted = true;
+		
 		// TODO: this is busted we do NOT want to go into anonymous classes and
 		// declared classes within a method or constructor
 		final Iterator<IRNode> nodes = JJNode.tree.topDown(block);
 		while (nodes.hasNext()) {
 			final IRNode node = nodes.next();
-			IAnalysisResult issue = checkNodeThreadEffects(pd, node, modelName);
-			if (issue != null) {
-				results.add(issue);
+			Result result = checkNodeThreadEffects(pd, node, modelName);
+			if (result != null) {
+				noThreadsStarted &= result.success;
+
+				IAnalysisResult issue = result.result;
+				if (issue != null) {
+					results.add(issue);
+				}
 			}
 		}
-		if (results.isEmpty()) {
-			if (createDrops) {
+		System.out.println("Block: "+DebugUnparser.toString(block));
+		if (noThreadsStarted && createDrops) {
 			ResultDrop r = new ResultDrop("ThreadEffectsAnalysis_noThreadsDrop");
 			r.setConsistent();
 			r.addCheckedPromise(pd);
 			setResultDependUponDrop(r, block, 1, JavaNames
 					.genMethodConstructorName(block));
-			}			
-			results.add(new SimpleAnalysisResult(pd, block, 1, JavaNames.genMethodConstructorName(block)));
 		}
+		// TODO how to create an equivalent "no threads started" message?
+		// results.add(new SimpleAnalysisResult(pd, block, 1, JavaNames.genMethodConstructorName(block)));					
 		return results;
 	}
 
+	static class Result {
+		// Needed for the new results infrastructure
+		final IAnalysisResult result;
+		// Needed for the old results infrastructure
+		final boolean success;
+		
+		Result(IAnalysisResult r, boolean ok) {
+			result = r;
+			success = ok;
+		}
+	}
+	
 	/**
 	 * Examines a single node in the fAST to check if it is consistent with
 	 * declared thread effects.
@@ -184,7 +203,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 	 * @return <code>true</code> if a problem was found (i.e., a thread was
 	 *         started), <code>false</code> otherwise.
 	 */
-	private IAnalysisResult checkNodeThreadEffects(StartsPromiseDrop pd,
+	private Result checkNodeThreadEffects(StartsPromiseDrop pd,
 			final IRNode node, String modelName) {
 		final Operator op = getOperator(node);
 		if (MethodCall.prototype.includes(op)) {
@@ -226,7 +245,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 							setResultDependUponDrop(rd, node, 2, DebugUnparser
 									.toString(node));
 							}
-							return new SimpleAnalysisResult(pd, node, 2, DebugUnparser.toString(node));
+							return new Result(new SimpleAnalysisResult(pd, node, 2, DebugUnparser.toString(node)), false);
 						}
 					}
 				}
@@ -252,37 +271,43 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 	 *            the call
 	 * @param modelName
 	 */
-	private IAnalysisResult checkCallThreadEffects(StartsPromiseDrop pd,
+	private Result checkCallThreadEffects(StartsPromiseDrop pd,
 			final IRNode node, String modelName) {
 		// CASE (2) check for compatible thread effects
 		IRNode declaration = getBinding(node);
-		if (declaration == null)
+		if (declaration == null) {
 			return null;
-		
+		}
+
 		// does it promise to start nothing?
+		boolean success;
 		if (createDrops) {
-		if (ThreadEffectsRules.startsNothing(declaration)) {
-			// get the promise drop
-			StartsPromiseDrop callp = ThreadEffectsRules
-					.getStartsSpec(declaration);
-			ResultDrop rd = new ResultDrop(
-					"ThreadEffectsAnalysis_callPromiseDrop");
-			rd.addCheckedPromise(pd);
-			rd.addTrustedPromise(callp);
-			setResultDependUponDrop(rd, node, 3, DebugUnparser.toString(node));
-			rd.setConsistent();
+			if (ThreadEffectsRules.startsNothing(declaration)) {
+				// get the promise drop
+				StartsPromiseDrop callp = ThreadEffectsRules
+				.getStartsSpec(declaration);
+				ResultDrop rd = new ResultDrop(
+				"ThreadEffectsAnalysis_callPromiseDrop");
+				rd.addCheckedPromise(pd);
+				rd.addTrustedPromise(callp);
+				setResultDependUponDrop(rd, node, 3, DebugUnparser.toString(node));
+				rd.setConsistent();
+				success = true;
+			} else {
+				ResultDrop rd = new ResultDrop(
+				"ThreadEffectsAnalysis_callNotPromiseDrop");
+				rd.addCheckedPromise(pd);
+				rd.setInconsistent();
+				setResultDependUponDrop(rd, node, 4, DebugUnparser.toString(node));
+				rd.addProposal(new ProposedPromiseDrop("Starts", "nothing",
+						declaration, node));
+				success = false;
+			}		
 		} else {
-			ResultDrop rd = new ResultDrop(
-					"ThreadEffectsAnalysis_callNotPromiseDrop");
-			rd.addCheckedPromise(pd);
-			rd.setInconsistent();
-			setResultDependUponDrop(rd, node, 4, DebugUnparser.toString(node));
-			rd.addProposal(new ProposedPromiseDrop("Starts", "nothing",
-					declaration, node));
-		}		
+			success = true;
 		}
 		final PromiseRef depend  = new PromiseRef("Starts", "nothing", declaration);		
-		return new AndAnalysisResult(pd, node, depend);
+		return new Result(new AndAnalysisResult(pd, node, depend), success);
 	}
 
 	public ThreadEffectsAnalysis(final IBinder b) {
