@@ -1,9 +1,6 @@
 package com.surelogic.analysis.effects;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.QualifiedThisExpressionNode;
@@ -124,11 +121,20 @@ public final class Effects implements IBinderClient {
     if (fx.isEmpty()) {
       return "none";
     } else {
+      // Added to unparse in a consistent order
+      final List<Effect> sorted = new ArrayList<Effect>(fx);
+      Collections.sort(sorted, new Comparator<Effect>() {
+		public int compare(Effect o1, Effect o2) {
+			// Not efficient due to unparse
+			return o1.unparseForPromise().compareTo(o2.unparseForPromise());
+		}
+      });
+      
       final StringBuilder reads = new StringBuilder("reads ");
       final StringBuilder writes = new StringBuilder("writes ");
       boolean hasRead = false;
       boolean hasWrite = false;
-      for (final Effect e : fx) {
+      for (final Effect e : sorted) {
         final String unparsed = e.unparseForPromise();
         if (e.isRead()) {
           if (hasRead) reads.append(", ");
