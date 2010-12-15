@@ -524,6 +524,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			newer.add(e);
 		}
 		
+		private static boolean ignoreProposedEffectsPromises = false;
+		
 		public void match(PrintStream out) {
 			String title = "Category: "+name+" in "+file;
 			title = match(title, out, EXACT,  "Exact  ");
@@ -536,11 +538,44 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			if (title != null && hasChildren()) {
 				out.println(title);
 			}			
+			/*
 			for(Entity o : sortByOffset(old)) {
 				out.println("\tOld    : "+toString(o));
 			}
 			for(Entity o : sortByOffset(newer)) {
 				out.println("\tNewer  : "+toString(o));
+			}
+			*/
+			int ignored = 0;
+			for(Entity o : sortByOffset(old)) {					
+				final String msg = toString(o);
+				if (ignoreProposedEffectsPromises && msg.contains("ProposedPromiseDrop (EMPTY)")) {
+					ignored++;
+				} else {
+					out.println("\tOld    : "+msg);
+				}
+			}
+			if (ignored > 0) {
+				out.println("\tOld    : "+ignored+" ProposedPromiseDrop(s)");
+			}			
+			int numEffects = 0;
+			if (ignoreProposedEffectsPromises && newer.size() == ignored) { 
+				// Check to see that they're all ProposedPromiseDrops
+				for(Entity o : newer) {
+					final String msg = toString(o);
+					if (msg.contains("ProposedPromiseDrop @RegionEffects(")) {
+						numEffects++;
+					} else {
+						break;				
+					}
+				}
+			} 
+			if (ignoreProposedEffectsPromises && numEffects > 0 && numEffects == ignored) {
+				out.println("\tNewer  : "+numEffects+" ProposedPromiseDrop @RegionEffects");
+			} else {
+				for(Entity o : sortByOffset(newer)) {
+					out.println("\tNewer  : "+toString(o));
+				}
 			}
 		}
 		
@@ -551,7 +586,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					return offset(o1) - offset(o2);
 				}
 				private int offset(Entity e) {
-					return Integer.parseInt(e.getAttribute(OFFSET_ATTR));
+					String offset = e.getAttribute(OFFSET_ATTR);
+					if (offset == null) {
+						return -1;
+					}
+					return Integer.parseInt(offset);
 				}
 			});
 			return l;
