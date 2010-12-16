@@ -150,6 +150,13 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 		final List<IAnalysisResult> results = new ArrayList<IAnalysisResult>(1);
 		boolean noThreadsStarted = true;
 		
+		String unparse = JavaNames.genQualifiedMethodConstructorName(block);
+		/*
+		if (unparse.endsWith("CyclicBarrier(int)")) {
+			System.out.println("Block: "+unparse);
+		}
+		*/
+		
 		// TODO: this is busted we do NOT want to go into anonymous classes and
 		// declared classes within a method or constructor
 		final Iterator<IRNode> nodes = JJNode.tree.topDown(block);
@@ -157,15 +164,20 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 			final IRNode node = nodes.next();
 			Result result = checkNodeThreadEffects(pd, node, modelName);
 			if (result != null) {
+				/*
+				if (!result.success) {
+					checkNodeThreadEffects(pd, node, modelName);
+				}
+				*/
 				noThreadsStarted &= result.success;
-
+				
 				IAnalysisResult issue = result.result;
 				if (issue != null) {
 					results.add(issue);
 				}
 			}
 		}
-		System.out.println("Block: "+DebugUnparser.toString(block));
+
 		if (noThreadsStarted && createDrops) {
 			ResultDrop r = new ResultDrop("ThreadEffectsAnalysis_noThreadsDrop");
 			r.setConsistent();
@@ -227,6 +239,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 										"[ThreadEffects] binding failed on start() method call"); //$NON-NLS-1$
 					} else {
 						if (doesMethodSubsumeThreadStart(methodDec)) {
+							System.out.println("Found start() for "+DebugUnparser.toString(node)+" -- "+node);
 							//
 							// THREAD STARTED WITHIN THE BLOCK
 							// (Note: this is simply a problem now as the only
