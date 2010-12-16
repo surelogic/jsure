@@ -306,6 +306,9 @@ public class CommonAASTBinder extends AASTBinder {
     if (node.getParent() instanceof EffectSpecificationNode) {
       EffectSpecificationNode effect = (EffectSpecificationNode) node.getParent();
       IType t                        = effect.getContext().resolveType();
+      if (t == null) {
+    	  effect.getContext().resolveType();
+      }
       return findRegionModel(t, node.getId());
     }
     
@@ -369,6 +372,9 @@ public class CommonAASTBinder extends AASTBinder {
     if (node instanceof IHasVariableBinding) {
       IHasVariableBinding ivb = (IHasVariableBinding) node;
       IVariableBinding vb     = ivb.resolveBinding();
+      if (vb == null) {
+    	  ivb.resolveBinding();
+      }
       return createIType(vb);      
     }
     /*
