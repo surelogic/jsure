@@ -89,7 +89,9 @@ public class ClearProjectListener implements IResourceChangeListener {
 	
 	public static void clearJSureState(List<IProject> removedProjects) {
 		System.out.println("Clearing JSure state");
-		JavacDriver.getInstance().recordProjectAction(ScriptCommands.CLEANUP_DROPS_FIRST, removedProjects);
+		if (JavacDriver.getInstance() != null) {
+			JavacDriver.getInstance().recordProjectAction(ScriptCommands.CLEANUP_DROPS_FIRST, removedProjects);
+		}
 		try {
 			synchronized (Sea.getDefault()) {
 				clearDropSea(clearAll, removedProjects);
