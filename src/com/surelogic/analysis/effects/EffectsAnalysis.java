@@ -268,7 +268,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	      final String regionPackageName = JavaNames.getPackageName(regionClassNode);
 	      final IJavaDeclaredType regionClass = JavaTypeFactory.getMyThisType(regionClassNode);
         if (methodInType.isSubtype(typeEnvironment, regionClass)
-            && !enclosingPackageName.equals(regionPackageName)) {
+            && !equals(enclosingPackageName, regionPackageName)) {
           region = region.getParentRegion();
 	      } else {
 	        good = true; 
@@ -277,6 +277,14 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	  }
 	  
 	  return target.setRegion(region);
+	}
+	
+	private boolean equals(String s1, String s2) {
+		if (s1 != null) {
+			return s1.equals(s2);
+		}
+		// s1 is null
+		return s1 == s2;
 	}
 	
 	private Set<Effect> filterEffects(final Set<Effect> input) {
