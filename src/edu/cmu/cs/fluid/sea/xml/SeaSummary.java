@@ -560,12 +560,16 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				out.println("\tOld    : "+ignored+" ProposedPromiseDrop(s)");
 			}			
 			int numEffects = 0;
+			int numProposals = 0;
 			if (ignoreProposedEffectsPromises && (newer.size() == ignored || old.size() == 0)) { 
 				// Check to see that they're all ProposedPromiseDrops
 				for(Entity o : newer) {
 					final String msg = toString(o);
-					if (msg.contains("ProposedPromiseDrop @RegionEffects(")) {
-						numEffects++;
+					if (msg.contains("ProposedPromiseDrop")) {
+						numProposals++;
+						if (msg.contains("ProposedPromiseDrop @RegionEffects(")) {
+							numEffects++;
+						}
 					} else {
 						break;				
 					}
@@ -574,6 +578,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			if (ignoreProposedEffectsPromises && numEffects > 0 && numEffects == newer.size()) {
 				out.println("\tNewer  : "+numEffects+" ProposedPromiseDrop @RegionEffects");
 			} else {
+				if (numProposals > 0) {
+					out.println("\tNewer  : "+newer.size()+" total, "+numProposals+" proposals, "+numEffects+" @RegionEffects");
+				}
 				for(Entity o : sortByOffset(newer)) {
 					out.println("\tNewer  : "+toString(o));
 				}
