@@ -27,10 +27,10 @@ public class C {
     @RegionEffects("writes test_qualifiedThis.C.this:InstanceRegion" /* is UNASSOCIATED: Static inner class */)
     public void bad_writes_staticInnerClass() {} 
 
-    @RegionEffects("reads test_qualifiedThis.C.this:InstanceRegion" /* is UNASSOCIATED: Static inner class */)
+    @RegionEffects("reads test_qualifiedThis.C.this:InstanceRegion" /* is UNBOUND: Static inner class */)
     public static void bad_static_reads_staticInnerClass() {} 
 
-    @RegionEffects("writes test_qualifiedThis.C.this:InstanceRegion" /* is UNASSOCIATED: Static inner class */)
+    @RegionEffects("writes test_qualifiedThis.C.this:InstanceRegion" /* is UNBOUND: Static inner class */)
     public static void bad_static_writes_staticInnerClass() {} 
   }
   
