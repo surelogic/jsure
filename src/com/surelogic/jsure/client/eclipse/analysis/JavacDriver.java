@@ -219,6 +219,11 @@ public class JavacDriver implements IResourceChangeListener {
 					f.renameTo(new File(deletedDir, f.getName()));
 					FileUtility.recursiveDelete(f);				
 				}
+				File testProps = new File(workspace, proj+File.separatorChar+ScriptCommands.TEST_PROPERTIES);				
+				if (testProps.exists()) {
+					// This will be re-created later from the actual settings used
+					testProps.delete();
+				}
 			}
 			PrintStream out = null;
 			ZipInfo zipInfo = null;
@@ -236,6 +241,7 @@ public class JavacDriver implements IResourceChangeListener {
 					System.out.println("Deleting existing "+zip);
 					zip.delete();
 				}
+				// Zip up most of the project before it gets changed
 				zipInfo = FileUtility.zipDirAndMore(new File(workspace, proj), zip);
 				if (update == null) {
 					out = new PrintStream(scriptF);
@@ -563,6 +569,7 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 			try {
 				final File baseDir = scriptResourcesDir.getParentFile();
+				// Updating a previously created script
 				if (XUtil.updateScript() != null) {	
 					// Only add the sea.xml files
 					for(File f : scriptResourcesDir.listFiles(updateFilter)) {
@@ -596,11 +603,30 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				final File props = new File(baseDir, ScriptCommands.TEST_PROPERTIES);
 				if (!props.exists()) {
-					PrintWriter pw = new PrintWriter(props);
+					// Find out which settings to include
+					final StringBuilder sb = new StringBuilder("moreVMargs=");
+					boolean first = true;
+					for(Map.Entry<Object,Object> e : System.getProperties().entrySet()) {
+						final String key = e.getKey().toString();						
+						if (key.startsWith("SureLogic") && !(key.endsWith("Script"))) {
+							System.out.println(key+" = "+e.getValue());
+							if (first) {
+								first = false;
+							} else {
+								sb.append(' ');
+							}
+							sb.append("-D").append(key).append('=').append(e.getValue());
+						}
+					}
+					System.out.println(sb);
+					PrintWriter pw = new PrintWriter(props);					
+					/*
 					pw.print("moreVMargs=-Dfluid.ir.versioning=Versioning.Off ");
 					pw.print("-Ddoublechecker.useSuperRoots=SuperRoots.Off -Ddc.show.private=true ");
 					pw.print("-Dsurelogic.useNewParser=Parser.On -Dxml.useNewParser=Parser.On ");
 					pw.println("-Drules.useNewScopedPromises=Promise.On");
+					*/
+					pw.println(sb);
 					pw.close();
 					info.zipFile(baseDir, props);
 				}
