@@ -261,7 +261,6 @@ public class JavacDriver implements IResourceChangeListener {
 						}
 					}
 				};
-				updateScript();
 			} else {
 				updateScriptJob = null;
 			}
@@ -623,6 +622,9 @@ public class JavacDriver implements IResourceChangeListener {
 	
 	private static final JavacDriver prototype = new JavacDriver();
 	static {		
+		if (prototype.updateScriptJob != null) {
+			prototype.updateScript();
+		}
 		if (prototype.script != null) {
 			ResourcesPlugin.getWorkspace().addResourceChangeListener(prototype, IResourceChangeEvent.PRE_BUILD);
 			//IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE
