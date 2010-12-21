@@ -1714,15 +1714,21 @@ public class JavacDriver implements IResourceChangeListener {
 	private void checkForExpectedSourceFiles(Projects p, File expected) throws IOException {
 		System.out.println("Checking source files expected for build");
 		final Set<String> cus = RegressionUtility.readLinesAsSet(expected);
+		boolean somethingToBuild = false;
 		for(Config c : p.getConfigs()) {
 			for(JavaSourceFile f : c.getFiles()) {
 				if (!cus.remove(f.relativePath)) {
 					throw new IllegalStateException("Building extra file: "+f.relativePath);
 				}
+				somethingToBuild = true;
 			}
 		}
 		if (!cus.isEmpty()) {
-			throw new IllegalStateException("File not built: "+cus.iterator().next());
+			if (somethingToBuild) {
+				throw new IllegalStateException("File not built: "+cus.iterator().next());
+			} else {
+				throw new IllegalStateException("No files built: "+cus.iterator().next());
+			}
 		}
 	}
 
