@@ -1719,6 +1719,8 @@ public class JavacDriver implements IResourceChangeListener {
 			for(JavaSourceFile f : c.getFiles()) {
 				if (!cus.remove(f.relativePath)) {
 					throw new IllegalStateException("Building extra file: "+f.relativePath);
+				} else {
+					System.out.println("Correctly building: "+f.relativePath);
 				}
 				somethingToBuild = true;
 			}
