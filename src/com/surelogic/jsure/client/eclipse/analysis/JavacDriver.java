@@ -1180,7 +1180,7 @@ public class JavacDriver implements IResourceChangeListener {
 
 		    final File dataDir         = PreferenceConstants.getJSureDataDirectory();
 		    final Projects oldProjects = (Projects) ProjectsDrop.getProjects();		 
-		    newProjects.computeRun(dataDir, oldProjects != null);
+		    newProjects.computeRun(dataDir, oldProjects);
 		    
 		    final File zips   = new File(dataDir, newProjects.getRun()+"/zips");
 		    final File target = new File(dataDir, newProjects.getRun()+"/srcs");
