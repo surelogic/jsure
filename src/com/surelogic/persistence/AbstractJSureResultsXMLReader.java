@@ -81,6 +81,10 @@ public abstract class AbstractJSureResultsXMLReader<T> extends NestedXMLReader i
 	}
 	
 	public void readXMLArchive(final File results) throws Exception {
+		if (!results.exists()) {
+			System.out.println("No results to read");
+			return;
+		}
 		ZipFile f = new ZipFile(results);
     	Enumeration<? extends ZipEntry> e = f.entries(); 
     	while (e.hasMoreElements()) {
