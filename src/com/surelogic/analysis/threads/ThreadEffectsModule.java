@@ -29,20 +29,18 @@ public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAn
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode cu) {
 		List<IAnalysisResult> results = getAnalysis().analyzeCompilationUnit(cu, getResultDependUponDrop());	
-		if (!results.isEmpty()) {
+		try {
 			try {
-				try {
-					OutputStream out = env.makeResultStream(cud);
-					if (out != null) {
-						JSureResultsXMLCreator c = new JSureResultsXMLCreator(out);
-						c.reportResults(cud, results);
-					}
-				} finally {
-					env.closeResultStream();
+				OutputStream out = env.makeResultStream(cud);
+				if (out != null) {
+					JSureResultsXMLCreator c = new JSureResultsXMLCreator(out);
+					c.reportResults(cud, results);
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			} finally {
+				env.closeResultStream();
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return true;
 	}
