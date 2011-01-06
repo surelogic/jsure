@@ -26,6 +26,7 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
 import com.surelogic.fluid.javac.Util;
+import com.surelogic.fluid.javac.jobs.LocalJSureJob;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
@@ -53,6 +54,8 @@ public class JavacDriver implements IResourceChangeListener {
 	private static final boolean clearBeforeAnalysis = false;
 
 	private static final boolean useSourceZipsDirectly = false;
+	
+	private static final boolean useSeparateJVM = false;
 	
 	enum BuildState {
 		// Null means no build right now
@@ -1613,12 +1616,18 @@ public class JavacDriver implements IResourceChangeListener {
             NotificationHub.notifyAnalysisStarting();
             try {
             	boolean ok = false;            	
-            	if (clearBeforeAnalysis || oldProjects == null) {
-            		ClearProjectListener.clearJSureState();
-            		ok = Util.openFiles(projects, true);            		
+            	if (useSeparateJVM) {
+            		final String msg = "Running JSure for "+projects.getLabel();
+            		new LocalJSureJob(msg, projects.size(), null).run(NullSLProgressMonitor.getFactory().createSLProgressMonitor(msg));
             	} else {
-            		ok = Util.openFiles(oldProjects, projects, true);
-            	}
+            		if (clearBeforeAnalysis || oldProjects == null) {
+            			ClearProjectListener.clearJSureState();
+
+            			ok = Util.openFiles(projects, true);            		
+            		} else {
+            			ok = Util.openFiles(oldProjects, projects, true);
+            		}
+            	}            	            	
             	/*
             	final File rootLoc = EclipseUtility.getProject(config.getProject()).getLocation().toFile();
             	final File xmlLocation = new File(rootLoc, "oracle20100415.sea.xml");
