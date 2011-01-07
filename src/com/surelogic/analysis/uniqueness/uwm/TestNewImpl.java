@@ -50,7 +50,7 @@ public class TestNewImpl extends AbstractWholeIRAnalysis<TestNewImpl.Visitor, Vo
   @Override
   protected Visitor constructIRAnalysis(final IBinder binder) {
     e = new Effects(binder);
-    n = new UniquenessAnalysis(binder, e, true);
+    n = new UniquenessAnalysis(binder, true);
     o = new UniqueAnalysis(binder, e, 0);
     return new Visitor(binder);
   }

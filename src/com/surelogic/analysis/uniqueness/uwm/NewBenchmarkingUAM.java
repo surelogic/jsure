@@ -3,7 +3,6 @@ package com.surelogic.analysis.uniqueness.uwm;
 import java.util.Collections;
 
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.effects.Effects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
@@ -27,7 +26,7 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 
 	@Override
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
-	  return new UniquenessAnalysis(binder, new Effects(binder), true);
+	  return new UniquenessAnalysis(binder, true);
 	}
 	
 	@Override

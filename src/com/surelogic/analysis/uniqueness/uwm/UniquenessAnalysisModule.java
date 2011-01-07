@@ -9,7 +9,6 @@ import jsr166y.forkjoin.Ops.Procedure;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.uniqueness.Messages;
 import com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysis.AbruptErrorQuery;
 import com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysis.IsInvalidQuery;
@@ -70,7 +69,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 
 	@Override
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
-		return new UniquenessAnalysis(binder,	new Effects(binder), false);
+		return new UniquenessAnalysis(binder,	false);
 	}
 	
 	@Override
