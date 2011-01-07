@@ -21,13 +21,15 @@ import com.surelogic.common.FileUtility.*;
 import com.surelogic.common.eclipse.*;
 import com.surelogic.common.eclipse.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
+import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
 import com.surelogic.fluid.javac.Util;
+import com.surelogic.fluid.javac.jobs.ILocalJSureConfig;
 import com.surelogic.fluid.javac.jobs.LocalJSureJob;
-import com.surelogic.jsure.client.eclipse.Activator;
+import com.surelogic.common.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import com.surelogic.jsure.scripting.*;
@@ -55,7 +57,7 @@ public class JavacDriver implements IResourceChangeListener {
 
 	private static final boolean useSourceZipsDirectly = false;
 	
-	private static final boolean useSeparateJVM = false;
+	private static final boolean useSeparateJVM = true;
 	
 	enum BuildState {
 		// Null means no build right now
@@ -1617,8 +1619,8 @@ public class JavacDriver implements IResourceChangeListener {
             try {
             	boolean ok = false;            	
             	if (useSeparateJVM) {
-            		final String msg = "Running JSure for "+projects.getLabel();
-            		new LocalJSureJob(msg, projects.size(), null).run(NullSLProgressMonitor.getFactory().createSLProgressMonitor(msg));
+            		LocalJSureJob job = makeLocalJSureJob(projects);
+            		job.run(NullSLProgressMonitor.getFactory().createSLProgressMonitor(job.getName()));
             	} else {
             		if (clearBeforeAnalysis || oldProjects == null) {
             			ClearProjectListener.clearJSureState();
@@ -1663,8 +1665,40 @@ public class JavacDriver implements IResourceChangeListener {
             return SLStatus.OK_STATUS;
         }  
         
-	    
-	    protected void endAnalysis() {
+	    private LocalJSureJob makeLocalJSureJob(final Projects projects) {
+	    	System.out.println("run = "+projects.getRun());
+    		final String msg = "Running JSure for "+projects.getLabel();
+    		final int port = LocalJSureJob.DEFAULT_PORT;
+    		ILocalJSureConfig cfg = new ILocalJSureConfig() {
+				public boolean isVerbose() {
+					return true;
+				}						
+				public String getTestCode() {
+					return TestCode.NONE.name();
+				}						
+				public int getMemorySize() {
+					return 1024;
+				}
+				public String getPluginDir(String id, boolean required) {
+					try {
+						return Activator.getDefault().getDirectoryOf(id);
+					}
+					catch (IllegalStateException e) {
+						if (required) {
+							throw e;
+						} else {
+							return null;
+						}
+					}
+				}						
+				public String getRunDirectory() {
+					return projects.getRunDir().getAbsolutePath();
+				}
+			};
+			return new LocalJSureJob(msg, projects.size(), cfg, port);
+		}
+
+		protected void endAnalysis() {
 	    	final RebuildState state = makeTransition(BuildState.BUILDING, null, null);   	    
     		if (state != null) {
     			EclipseJob.getInstance().scheduleDb(new AbstractSLJob("Rebuilding JSure") {					
