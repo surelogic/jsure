@@ -16,9 +16,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  * <p>
  * This approach won't work if we ever get smart work lists. In this case we
  * will have to create a fresh sub-analysis each time.
- * 
- * @param <A>
- *          The type of the flow analysis to generate.
+ *
  * @param <L>
  *          The type of the lattice that generated flow analyses operate over.
  * @param <T>
