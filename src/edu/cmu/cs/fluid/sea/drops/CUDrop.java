@@ -87,6 +87,9 @@ public abstract class CUDrop extends Drop {
 
   public CodeInfo makeCodeInfo() {	  
 	  if (info == null) {
+		  if (this instanceof PackageDrop) {
+			  return null;
+		  }
 		  throw new UnsupportedOperationException("No CodeInfo for "+DebugUnparser.toString(cu));
 	  }
 	  info.clearProperty(CodeInfo.DONE);
