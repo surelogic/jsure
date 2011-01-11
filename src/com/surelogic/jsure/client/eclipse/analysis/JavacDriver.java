@@ -57,7 +57,7 @@ public class JavacDriver implements IResourceChangeListener {
 
 	private static final boolean useSourceZipsDirectly = false;
 	
-	private static final boolean useSeparateJVM = true;
+	private static final boolean useSeparateJVM = false;
 	
 	enum BuildState {
 		// Null means no build right now
