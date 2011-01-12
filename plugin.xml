@@ -154,13 +154,6 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="UniquenessAssurance2" name="Uniqueness (OLD)"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.uniqueness.cmu.UniquenessAnalysisModule"  production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
   <extension id="UniquenessAssuranceUWM" name="Uniqueness (NEW)"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
     <run class="com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysisModule" production="true">
@@ -168,10 +161,9 @@
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
   </extension>
-  <extension id="BenchmarkingUniqueness" name="Benchmarking Uniqueness (OLD)"
+  <extension id="UniquenessAssuranceSE" name="Uniqueness (Side Effect)"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.uniqueness.BenchmarkingUAM" 
-      production="false">
+    <run class="com.surelogic.analysis.uniqueness.uwm.sideeffecting.UniquenessAnalysisModule" production="false">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
@@ -240,13 +232,6 @@
   <extension id="LV" name="Local Variables"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
     <run class="com.surelogic.analysis.bca.LocalVariablesModule" production="false">
-    </run>
-    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-    </prerequisite>
-  </extension>
-  <extension id="TESTUNIQUENESS" name="TEST NEW UNIQUENESS"
-    point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.uniqueness.uwm.TestNewImpl" production="false">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
