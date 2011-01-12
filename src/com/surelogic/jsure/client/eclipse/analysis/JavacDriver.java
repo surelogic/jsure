@@ -29,7 +29,7 @@ import com.surelogic.fluid.javac.*;
 import com.surelogic.fluid.javac.Util;
 import com.surelogic.fluid.javac.jobs.ILocalJSureConfig;
 import com.surelogic.fluid.javac.jobs.LocalJSureJob;
-import com.surelogic.common.eclipse.Activator;
+import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import com.surelogic.jsure.scripting.*;
@@ -1681,7 +1681,7 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				public String getPluginDir(String id, boolean required) {
 					try {
-						return Activator.getDefault().getDirectoryOf(id);
+						return com.surelogic.common.eclipse.Activator.getDefault().getDirectoryOf(id);
 					}
 					catch (IllegalStateException e) {
 						if (required) {
