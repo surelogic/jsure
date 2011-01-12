@@ -444,6 +444,13 @@
 			</action>
 
 		    <action
+				class="edu.cmu.cs.fluid.dc.AnalyzeNow2Action"
+				id="com.surelogic.jsure.client.eclipse.actions.AnalyzeNow2Action"
+				label="Analyze Now (external)" tooltip="Run JSure analysis now"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
+
+		    <action
 				class="edu.cmu.cs.fluid.dc.ToggleAnalyzeAutoAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ToggleAnalyzeAutoAction"
 				label="Analyze Automatically" tooltip="Toggle whether to run JSure automatically, or on demand"
