@@ -93,7 +93,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   
   @Override
   public void performAnalysis() {
-    super.performAnalysis();
+    realPerformAnalysis();
     // for debugging: find all nodes whose outgoing edges have
     // information but whose incoming edges have no such information
     /*

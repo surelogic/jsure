@@ -5,6 +5,7 @@
  */
 package edu.uwm.cs.fluid.java.analysis;
 
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +19,8 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.*;
 import edu.uwm.cs.fluid.util.Lattice;
@@ -52,6 +55,118 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
     super();
     binder = b;
   }
+  
+  
+  
+
+  /**
+   * Get the flow unit that contains the given node, corrected to current
+   * constructor context if necessary. Specifically, if the given node turns out
+   * to be inside an instance field initializer or an instance initialization
+   * block, then {@value context} is returned instead of the actual flow unit
+   * (which would be in the InitDeclaration pseudo-method). This allows the node
+   * to be properly integrated into the flow control because the flow graph for
+   * every constructor includes the flow through the instance field initializers
+   * and instance initialization blocks, so we need to use the flow graph for
+   * the correct constructor.
+   * 
+   * <p>
+   * If {@value context} null} is {@value null} or the node is not in an
+   * instance field initializer or instance initializer block then this method
+   * returns the same value as {@code getRawFlowUnit(node)}.
+   * 
+   * <p>
+   * The one instance where we actually want to use the InitDeclaration as the
+   * flow unit is when analyzing the constructor of an anonymous class
+   * expression. In this case there is exactly one unnamed constructor, and
+   * there is no other flow unit that makes sense to use at this point. The
+   * caller of this method is responsible for supplying a null} context in this
+   * situation.
+   * 
+   * @param node
+   *          The node whose flow unit should be returned.
+   * @param context
+   *          The ConstructorDeclaration of the constructor currently being
+   *          analyzed, or <code>null</code> if no constructor is currently
+   *          being analyzed.
+   * @return The flow unit that contains the given node, as described above.
+   */
+  public static IRNode getFlowUnit(final IRNode node, final IRNode context) {
+    final IRNode flowUnit = getFlowUnit(node);
+    if (InitDeclaration.prototype.includes(flowUnit) && context != null) {
+      return context;
+    } else {
+      return flowUnit;
+    }
+  }
+  
+  /** return the FlowUnit node that includes this node's component. */
+  public static IRNode getFlowUnit(final IRNode n) {
+    /* We have a problem: The ClassBodyDeclInterface test below triggers a
+     * match for anonymous class expressions.  This is not what we want if our 
+     * starting node 'n' is the anonymous class expression.  In that case, we
+     * still want the flow unit that 'n' is a part of, not the flow unit that 'n'
+     * is.  So if 'n' is an AnonClassExpression, we start the root walk from the 
+     * parent of 'n'.  
+     * 
+     * We also need to check if 'n' is part of an argument to the ACE
+     * Note that we only want to skip the first ACE
+     * 
+     * We search until we hit a FlowUnit (hopefully a method or constructor
+     * declaration) or a ClassBodyDeclInterface.  The latter happens when 'n'
+     * occurs in a field declaration or a class/instance initializer block.  When
+     * that happens we return the appropriate promise node for the single 
+     * Class initializer method or instance initializer method.
+     */
+    boolean skippedACE = false;
+    IRNode start = n;
+    if (AnonClassExpression.prototype.includes(n)) {
+      start = JJNode.tree.getParent(n);
+      skippedACE = true;
+    }
+
+    final Iterator<IRNode> e = tree.rootWalk(start);
+    Operator lastOp = null;
+    Operator last2Op = null;
+    while (e.hasNext()) {
+      final IRNode node = e.next();
+      final Operator op = tree.getOperator(node);
+      if (op instanceof FlowUnit)
+        return node;
+      if (op instanceof ClassBodyDeclInterface) {
+        if (!skippedACE && AnonClassExpression.prototype.includes(op)) {
+          // Check if we're part of the arguments to the ACE
+          if (!NewExpression.prototype.includes(lastOp)
+              || !(last2Op == null || Arguments.prototype.includes(last2Op))) {
+            LOG.warning("Trying to get flow unit from ACE's " + lastOp.name()
+                + ", " + last2Op.name());
+          }
+          skippedACE = true;
+          last2Op = lastOp;
+          lastOp = op;
+          continue;
+        }
+
+        final IRNode classDecl = tree.getParent(tree.getParent(node));
+        final Operator cdOp = tree.getOperator(classDecl);
+        final boolean isInterface =
+          InterfaceDeclaration.prototype.includes(cdOp);
+        if (JavaNode.getModifier(node, JavaNode.STATIC) || isInterface) {
+          /*
+           * We found a static field/method in a class or an (implicitly) static
+           * field in an interface.
+           */
+          return ClassInitDeclaration.getClassInitMethod(classDecl);
+        } else {
+          return InitDeclaration.getInitMethod(classDecl);
+        }
+      }
+      last2Op = lastOp;
+      lastOp = op;
+    }
+    return null;
+  }
+
 
   
 
@@ -66,9 +181,7 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
    *          instance field initializer or instance initialization block.
    */
   private final T getAfter(final IRNode node, final IRNode constructorContext, final WhichPort port) {
-    final A a = getAnalysis(
-        edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
-            node, constructorContext));
+    final A a = getAnalysis(getFlowUnit(node, constructorContext));
     return a == null ? null : a.getAfter(node, port);
   }
 

@@ -283,7 +283,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#performAnalysis()
    */
-  public void performAnalysis() {
+  protected final void realPerformAnalysis() {
     final IDE ide = IDE.getInstance();    
     final long deadline = System.nanoTime() + TIMEOUT_DURATION;
     int globalCount = 0;
@@ -305,6 +305,10 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
       count -= 1;
       globalCount += 1;
     }
+  }
+  
+  public void performAnalysis() {
+    realPerformAnalysis();
   }
 
   /* (non-Javadoc)

@@ -22,7 +22,6 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
-import edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.cmu.cs.fluid.java.analysis.TypeBasedAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -34,6 +33,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleModel;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.EmptyIterator;
+import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 
 
 public class TRoleTargets {
@@ -421,7 +421,7 @@ public class TRoleTargets {
            * constructor context.  To fix this, the caller of this method needs
            * to track the current flow unit of interest.
            */
-          if (new ConflictChecker(binder, tbAlias, IntraproceduralAnalysis.getRawFlowUnit(mcall)).mayConflict(eAsSet, methodFx, mcall)) {
+          if (new ConflictChecker(binder, tbAlias, IntraproceduralAnalysis.getFlowUnit(mcall)).mayConflict(eAsSet, methodFx, mcall)) {
 // was:          if (conflicter.mayConflict(eAsSet, methodFx, mcall)) {
             getTargetsFromAggregation(mcall, actual, mappedRegion, true, outTargets);            
           }
@@ -485,7 +485,7 @@ public class TRoleTargets {
         final TargetRelationship trel = 
           tgt.overlapsWith(
               tbAlias.getMethodFactory(
-                  IntraproceduralAnalysis.getRawFlowUnit(before)).getMayAliasMethod(before),
+                  IntraproceduralAnalysis.getFlowUnit(before)).getMayAliasMethod(before),
               binder, eff.getTarget());
         if (trel.getTargetRelationship() != TargetRelationships.UNRELATED ) {
           res.add(eff.getTarget());

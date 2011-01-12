@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.cmu;
+package com.surelogic.analysis.uniqueness.uwm.sideeffecting;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,12 +9,14 @@ import jsr166y.forkjoin.Ops.Procedure;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.uniqueness.Messages;
+import com.surelogic.analysis.uniqueness.uwm.sideeffecting.UniquenessAnalysis.AbruptErrorQuery;
+import com.surelogic.analysis.uniqueness.uwm.sideeffecting.UniquenessAnalysis.IsInvalidQuery;
+import com.surelogic.analysis.uniqueness.uwm.sideeffecting.UniquenessAnalysis.IsPositivelyAssuredQuery;
+import com.surelogic.analysis.uniqueness.uwm.sideeffecting.UniquenessAnalysis.NormalErrorQuery;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
-import edu.cmu.cs.fluid.control.FlowAnalysis;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -32,7 +34,7 @@ import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 
-public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnalysis,Void> {
+public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Void> {
   private static final Category DSC_UNIQUE_PARAMS_SATISFIED =
     Category.getInstance(Messages.CATEGORY_UNIQUE_PARAMETERS_SATISFIED);
   
@@ -66,30 +68,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	}
 
 	@Override
-	protected UniqueAnalysis constructIRAnalysis(IBinder binder) {
-		//System.out.println(Thread.currentThread()+" : Constructed Unique for "+
-		//           binder.getTypeEnvironment().getProject());
-		return new UniqueAnalysis(binder,	new Effects(binder), 0);
+	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
+		return new UniquenessAnalysis(this, binder,	false);
 	}
-	
-	/*
-	@Override
-	protected void finishAnalyzeBegin(IIRProject p, IBinder binder) {
-		if (runInParallel()) {
-			runInParallel(Void.class, nulls, new Procedure<Void>() {
-				public void op(Void v) {
-					UniqueAnalysis a = getAnalysis();
-					System.out.println(Thread.currentThread()+" : Analysis for "+
-				           a.binder.getTypeEnvironment().getProject());
-				}
-			});
-		} else {
-			UniqueAnalysis a = getAnalysis();
-			System.out.println(Thread.currentThread()+" : Analysis for "+
-		           a.binder.getTypeEnvironment().getProject());
-		}
-	}
-	*/
 	
 	@Override
 	protected void clearCaches() {
@@ -241,7 +222,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		if (isInvalid(insideDecl, node)) {
 		  final ResultDropBuilder cfDrop = pr.controlFlow;
 		  cfDrop.setInconsistent();
-		  cfDrop.addSupportingInformation(getErrorMessage(insideDecl, node), node);
+		  final String errorMessage = getErrorMessage(insideDecl, node);
+      cfDrop.addSupportingInformation(errorMessage, node);
 		}
 	}
 
@@ -250,7 +232,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 		if (JJNode.tree.getOperator(node) instanceof CallInterface) {
 			final Set<ResultDropBuilder> callDrops = pr.callsToDrops.get(node);
 			
-			if (getAnalysis().isPositivelyAssured(node, insideDecl)) {
+			final IsPositivelyAssuredQuery q =
+			  getAnalysis().getIsPositivelyAssuredQuery(insideDecl);
+			if (q.getResultFor(node).booleanValue()) {
 				for (ResultDropBuilder callDrop : callDrops) {
 					callDrop.setConsistent();
 					if (pr.calledUniqueParams.contains(callDrop)) {
@@ -275,19 +259,20 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	 * Is the node the source of a uniqueness problem?
 	 */
 	private boolean isInvalid(final IRNode insideDecl, final IRNode node) {
-		final UniqueAnalysis a = getAnalysis();
-		//System.out.println("Unique using "+a.binder.getTypeEnvironment().getProject());
+		final IsInvalidQuery q = getAnalysis().getIsInvalidQuery(insideDecl);
 		
 		/* Definitely not erroneous */
-		if (!a.isInvalid(node, insideDecl))
+		if (!q.getResultFor(node).booleanValue()) {
 			return false;
+		}
 
 		/* Node is erroneous, but does the error come from a child? */
 		for (Iterator<IRNode> ch = JJNode.tree.children(node); ch.hasNext();) {
 			final IRNode n = ch.next();
 			/* Problem comes from a child, so parent is not to blame */
-			if (a.isInvalid(n, insideDecl))
-				return false;
+			if (q.getResultFor(n).booleanValue()) {
+			  return false;
+			}
 		}
 		/* Not a problem from a child. */
 		return true;
@@ -297,22 +282,22 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
 	 * Assumes that isInvalid( n ) is true
 	 */
   private String getErrorMessage(final IRNode insideDecl, final IRNode n) {
-	  @SuppressWarnings("rawtypes")
-    final FlowAnalysis a = getAnalysis().getAnalysis(insideDecl);
-		final String normErr = getAnalysis().getNormalErrorMessage(a, n);
-		final String abruptErr = getAnalysis().getAbruptErrorMessage(a, n);
+    final NormalErrorQuery normal = getAnalysis().getNormalErrorQuery(insideDecl);
+    final AbruptErrorQuery abrupt = getAnalysis().getAbruptErrorQuery(insideDecl);
+    final String normErr = normal.getResultFor(n);
+    final String abruptErr = abrupt.getResultFor(n);
 
-		if (normErr != UniqueAnalysis.NOT_AN_ERROR) {
-			if (abruptErr != UniqueAnalysis.NOT_AN_ERROR) {
+		if (normErr != UniquenessAnalysis.NOT_AN_ERROR) {
+			if (abruptErr != UniquenessAnalysis.NOT_AN_ERROR) {
 				return "(" + normErr + ", " + abruptErr + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
 			return normErr;
 		}
-		if (abruptErr != UniqueAnalysis.NOT_AN_ERROR) {
+		if (abruptErr != UniquenessAnalysis.NOT_AN_ERROR) {
 			return abruptErr + " (abrupt)"; //$NON-NLS-1$
 		}
 		// Shouldn't ever get here unless we are misused
-		return UniqueAnalysis.NOT_AN_ERROR;
+		return UniquenessAnalysis.NOT_AN_ERROR;
 	}
 
 	private Map<IRNode, PromiseRecord> cachedPromiseRecord = null;
@@ -472,7 +457,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
           aggregatedUniqueParams = null;
         } else {
           final ResultDropBuilder middleDrop = ResultDropBuilder.create(
-              UniquenessAnalysisModule.this, "aggregatedUniqueParams");
+              UniquenessAnalysisModule.this, "UniquenessAssurance_aggregatedUniqueParams");
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
@@ -751,7 +736,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
         final Set<ResultDropBuilder> allCallDrops = new HashSet<ResultDropBuilder>();
         final String label = DebugUnparser.toString(currentNode);
         if (!uniqueReturns.isEmpty()) {
-          final ResultDropBuilder callDrop = getMethodCallDrop("uniqueReturnDrop",
+          final ResultDropBuilder callDrop = getMethodCallDrop("UniquenessAssurance_uniqueReturnDrop",
               currentNode, uniqueReturns, Messages.UNIQUE_RETURN, label);
           if (!isConstructorCall) {
             allCallDrops.add(callDrop);
@@ -968,10 +953,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
     
     
     /* Case 4: invoking method with unique parameter or borrowed parameters.
-     * We care about borrowed parameters because then can affect the 
+     * We care about borrowed parameters because they can affect the 
      * validity of unique fields passed to them.
      */
-    private void visitCallInterface(final IRNode call) {
+//    private void visitCallInterface(final IRNode call) {
+    @Override
+    protected void handleAsMethodCall(final IRNode call) {
       final IRNode declNode = binder.getBinding(call);
 
       if (declNode != null) {
@@ -1001,32 +988,32 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
     
     
     
-    @Override
-    public Void visitAllocationCallExpression(final IRNode call) {
-      visitCallInterface(call);
-      return null;
-    }
-    
-    @Override
-    protected void handleAnonClassExpression(final IRNode expr) {
-      doAccept(AnonClassExpression.getArgs(expr));
-      // Handle as a AllocationCallExpression (CallInterface really)
-      visitCallInterface(expr);
-    }
-    
-    @Override
-    protected void handleEnumConstantClassDeclaration(final IRNode expr) {
-      doAccept(EnumConstantClassDeclaration.getArgs(expr));
-      // Handle as a AllocationCallExpression (CallInterface really)
-      visitCallInterface(expr);
-    }
-
-    @Override
-    public Void visitCall(final IRNode call) {
-      visitCallInterface(call);
-      doAcceptForChildren(call);
-      return null;
-    }
+//    @Override
+//    public Void visitAllocationCallExpression(final IRNode call) {
+//      visitCallInterface(call);
+//      return null;
+//    }
+//    
+//    @Override
+//    protected void handleAnonClassExpression(final IRNode expr) {
+//      doAccept(AnonClassExpression.getArgs(expr));
+//      // Handle as a AllocationCallExpression (CallInterface really)
+//      visitCallInterface(expr);
+//    }
+//
+//    @Override
+//    protected void handleEnumConstantClassDeclaration(final IRNode expr) {
+//      doAccept(EnumConstantClassDeclaration.getArgs(expr));
+//      // Handle as a AllocationCallExpression (CallInterface really)
+//      visitCallInterface(expr);
+//    }
+//    
+//    @Override
+//    public Void visitCall(final IRNode call) {
+//      visitCallInterface(call);
+//      doAcceptForChildren(call);
+//      return null;
+//    }
 
     @Override
     protected void handleConstructorDeclaration(final IRNode cdecl) {
@@ -1096,12 +1083,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniqueAnal
       doAcceptForChildren(mdecl);
     }
     
-    @Override
-    public Void visitSomeFunctionCall(final IRNode call) {
-      visitCallInterface(call);
-      doAcceptForChildren(call);
-      return null;
-    }
+//    @Override
+//    public Void visitSomeFunctionCall(final IRNode call) {
+//      visitCallInterface(call);
+//      doAcceptForChildren(call);
+//      return null;
+//    }
     
     @Override
     protected void handleFieldInitialization(final IRNode varDecl, final boolean isStatic) {

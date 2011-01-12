@@ -984,4 +984,19 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
     }
     return false;
   }
+
+  protected final IRNode getOuterObject(IRNode node) {
+    final IRNode p = tree.getParent(node);
+    if (OuterObjectSpecifier.prototype.includes(p)) {
+      if (OuterObjectSpecifier.getCall(p).equals(node)) return p;
+      else return null;
+    } else {
+      final IRNode gp = tree.getParent(p);
+      if (OuterObjectSpecifier.prototype.includes(gp)) {
+        if (OuterObjectSpecifier.getCall(gp).equals(p)) return gp;
+        else return null;
+      }
+    }
+    return null;
+  }
 }
