@@ -7,7 +7,7 @@ import edu.cmu.cs.fluid.java.analysis.TestJavaAnalysisPackage;
 import edu.cmu.cs.fluid.sea.test.*;
 import edu.cmu.cs.fluid.tree.TestTreePackage;
 import edu.cmu.cs.fluid.util.TestMultiMap;
-import edu.cmu.cs.fluid.util.TestUtilPackage;
+//import edu.cmu.cs.fluid.util.TestUtilPackage;
 import edu.cmu.cs.fluid.version.TestVersionPackage;
 
 public class AllUnitTests extends TestSuite {
@@ -18,7 +18,7 @@ public class AllUnitTests extends TestSuite {
 		addTest(new TestSuite(TestPromiseDrop.class));
 
 		addTest(new TestSuite(TestMultiMap.class));
-		addTest(new TestSuite(TestUtilPackage.class));
+		//addTest(new TestSuite(TestUtilPackage.class));
 		addTest(new TestSuite(TestIRPackage.class));
 		addTest(new TestSuite(TestTreePackage.class));
 
