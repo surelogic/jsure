@@ -57,8 +57,6 @@ public class JavacDriver implements IResourceChangeListener {
 
 	private static final boolean useSourceZipsDirectly = false;
 	
-	private static final boolean useSeparateJVM = false;
-	
 	enum BuildState {
 		// Null means no build right now
 		WAITING, BUILDING
@@ -1173,7 +1171,7 @@ public class JavacDriver implements IResourceChangeListener {
 	    }
 	}
 	
-	private void doBuild(final Projects newProjects, Map<String, Object> args, SLProgressMonitor monitor) {
+	private void doBuild(final Projects newProjects, Map<String, Object> args, SLProgressMonitor monitor, boolean useSeparateJVM) {
 		try {
 			if (!XUtil.testing) {
 				  System.out.println("Configuring analyses for doBuild");
@@ -1202,7 +1200,7 @@ public class JavacDriver implements IResourceChangeListener {
 		    }		    
 		    // TODO create constants?
 		    
-		    AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips);
+		    AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips, useSeparateJVM);
 		    CopyJob copy = new CopyJob(newProjects, target, zips, analysis);
 			if (script != null) {
 				recordFilesToBuild(newProjects);
@@ -1524,7 +1522,7 @@ public class JavacDriver implements IResourceChangeListener {
 					}
 				}			
 			}
-			doBuild(projects, args, monitor);
+			doBuild(projects, args, monitor, ignoreNature);
 			return SLStatus.OK_STATUS;
 		}
 	}
@@ -1591,10 +1589,12 @@ public class JavacDriver implements IResourceChangeListener {
 	
 	class AnalysisJob extends JavacJob {
 		private final Projects oldProjects;
+		private final boolean useSeparateJVM;
 		
-        AnalysisJob(Projects oldProjects, Projects projects, File target, File zips) {
+        AnalysisJob(Projects oldProjects, Projects projects, File target, File zips, boolean useSeparateJVM) {
             super("Running JSure on "+projects.getLabel(), projects, target, zips);
             this.oldProjects = oldProjects;
+            this.useSeparateJVM = useSeparateJVM;
         }
 
         public SLStatus run(SLProgressMonitor monitor) {
