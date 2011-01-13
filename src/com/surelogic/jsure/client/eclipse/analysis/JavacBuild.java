@@ -7,6 +7,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 
+import com.surelogic.common.eclipse.BalloonUtility;
 import com.surelogic.common.eclipse.JDTUtility;
 
 public class JavacBuild {
@@ -19,6 +20,9 @@ public class JavacBuild {
 					JavacDriver.getInstance().registerBuild(p.getProject(), Collections.EMPTY_MAP, null, null);
 				} else {
 					// TODO what error to print?
+					BalloonUtility.showMessage("Compile Errors in "+p.getElementName(), 
+							"JSure is unable to analyze "+p.getElementName()+
+							" due to some compilation errors.  Please fix (or do a clean build).");
 					return;
 				}
 			}
@@ -31,3 +35,4 @@ public class JavacBuild {
 		}	
 	}
 }
+
