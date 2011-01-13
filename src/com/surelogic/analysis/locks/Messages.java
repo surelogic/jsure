@@ -1,4 +1,4 @@
-package com.surelogic.analysis.messages;
+package com.surelogic.analysis.locks;
 
 import java.util.*;
 
@@ -11,14 +11,8 @@ public final class Messages extends AbstractMessages {
     super();
   }
   
-  public static final String ColorSecondPass_inferredColor = "Inferred @ThreadRole {0} for {1}";
-
-  public static final String ColorSecondPass_inheritedColor = "Inherited @ThreadRole {0} for {1}";
-
-  public static final String ColorSecondPass_inheritedTransparent = "Inherited @ThreadRoleTransparent for {0}";
-
-  public static final String ColorSecondPass_colorContextDrop = "{0} is accessed from ThreadRole context {1}";
-
+  
+  
   // Drop-sea category messages
   public static final String LockAnalysis_dsc_LockViz = "lock field(s) less visible than the region(s) being protected";
   public static final Category DSC_LOCK_VIZ = Category.getInstance(LockAnalysis_dsc_LockViz);
@@ -73,6 +67,13 @@ public final class Messages extends AbstractMessages {
   
   public static final String LockAnalysis_dsc_UnsupportedModel = "unsupported lock model(s)";
   public static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance(LockAnalysis_dsc_UnsupportedModel);
+
+  
+  
+  // Labels for the single-threaded result disjunction
+  public static final String LockAnalysis_ds_SingleThreadedUniqueReturn = "by unique return";
+  public static final String LockAnalysis_ds_SingleThreadedEffects = "by effects";
+  public static final String LockAnalysis_ds_SingleThreadedBorrowedThis = "by borrowed receiver";
 
 
   
@@ -148,6 +149,8 @@ public final class Messages extends AbstractMessages {
   public static final int UNSAFE_FIELD = 405;
   public static final int UNSAFE_REFERENCE = 406;
   
+  
+  
   // For Containable assurance
   public static final int CONSTRUCTOR_UNIQUE_RETURN = 450;
   public static final int CONSTRUCTOR_BORROWED_RECEVIER = 451;
@@ -161,14 +164,8 @@ public final class Messages extends AbstractMessages {
   public static final int FIELD_NOT_UNIQUE = 459;
   public static final int FIELD_NOT_AGGREGATED = 460;
   
-  
-  // Labels for the single-threaded result disjunction
-  public static final String LockAnalysis_ds_SingleThreadedUniqueReturn = "by unique return";
-  
-  public static final String LockAnalysis_ds_SingleThreadedEffects = "by effects";
-  
-  public static final String LockAnalysis_ds_SingleThreadedBorrowedThis = "by borrowed receiver";
 
+ 
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
 
   /** To support JSure-Sierra integration

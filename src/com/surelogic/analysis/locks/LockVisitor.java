@@ -36,7 +36,6 @@ import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
 import com.surelogic.analysis.locks.locks.NeededLock;
 import com.surelogic.analysis.locks.locks.NeededLockFactory;
-import com.surelogic.analysis.messages.Messages;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.UniquenessRules;

@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 import SableJBDD.bdd.JBDD;
 
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.messages.Messages;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ide.IDE;

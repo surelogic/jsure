@@ -14,7 +14,6 @@ import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;
-import com.surelogic.analysis.messages.Messages;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
