@@ -1102,13 +1102,13 @@ public class JavacDriver implements IResourceChangeListener {
 		return Integer.parseInt(kind);
 	}
 	@SuppressWarnings("unchecked")
-	void configureBuild(Map args) {
+	void configureBuild(Map args, boolean ignoreNature) {
 		final int k = getBuildKind(args);
 		configureBuild(EclipseUtility.getWorkspacePath(), 
-				(k & IncrementalProjectBuilder.AUTO_BUILD) == IncrementalProjectBuilder.AUTO_BUILD);
+				(k & IncrementalProjectBuilder.AUTO_BUILD) == IncrementalProjectBuilder.AUTO_BUILD, ignoreNature);
 	}
 	
-	public void configureBuild(File location, boolean isAuto /*IProject p*/) {	    
+	public void configureBuild(File location, boolean isAuto /*IProject p*/, boolean ignoreNature) {	    
 		//System.out.println("Finished 'build' for "+p);
 		/*
 		//ProjectDrop.ensureDrop(p.getName(), p);
@@ -1133,7 +1133,7 @@ public class JavacDriver implements IResourceChangeListener {
         	final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
         	((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
         }
-        ConfigureJob configure = new ConfigureJob("Configuring JSure build", location, isAuto, args);
+        ConfigureJob configure = new ConfigureJob("Configuring JSure build", location, isAuto, args, ignoreNature);
         synchronized (this) {
         	if (buildState == null) {
         		buildState = BuildState.WAITING;
@@ -1491,12 +1491,14 @@ public class JavacDriver implements IResourceChangeListener {
 	class ConfigureJob extends AbstractSLJob {
 		final Projects projects;
 		final Map<String, Object> args;
+		final boolean ignoreNature;
 		
-		ConfigureJob(String name, File location, boolean isAuto, Map<String, Object> args) {
+		ConfigureJob(String name, File location, boolean isAuto, Map<String, Object> args, boolean ignoreNature) {
 			super(name);
 			this.args = new HashMap<String, Object>(args);
 			projects = new Projects(location, isAuto, this.args);
 			args.clear();
+			this.ignoreNature = ignoreNature;
 		}
 
 		public SLStatus run(SLProgressMonitor monitor) {
@@ -1510,17 +1512,18 @@ public class JavacDriver implements IResourceChangeListener {
 				// Clear for next build?
 			}
 			makeTransition(BuildState.WAITING, BuildState.BUILDING, null);
-			
-			// Clear projects that are inactive
-			for(IJavaProject jp : JDTUtility.getJavaProjects()) {
-				ProjectInfo info = JavacDriver.this.projects.get(jp.getProject());
-				if (info != null) {
-					info.setActive(Nature.hasNature(jp.getProject()));
-	
-					// Check if it was previously active, but is now a
-					// dependency?
-				}
-			}			
+			if (!ignoreNature) {
+				// Clear projects that are inactive
+				for(IJavaProject jp : JDTUtility.getJavaProjects()) {
+					ProjectInfo info = JavacDriver.this.projects.get(jp.getProject());
+					if (info != null) {
+						info.setActive(Nature.hasNature(jp.getProject()));
+
+						// Check if it was previously active, but is now a
+						// dependency?
+					}
+				}			
+			}
 			doBuild(projects, args, monitor);
 			return SLStatus.OK_STATUS;
 		}
@@ -1711,7 +1714,7 @@ public class JavacDriver implements IResourceChangeListener {
 						}
 */
 			  			System.out.println("Rebuilding ...");
-		    			configureBuild(EclipseUtility.getWorkspacePath(), state == RebuildState.AUTO);
+		    			configureBuild(EclipseUtility.getWorkspacePath(), state == RebuildState.AUTO, false);
 						return SLStatus.OK_STATUS;
 					}
 				});

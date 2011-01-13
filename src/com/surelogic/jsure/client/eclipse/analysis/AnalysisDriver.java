@@ -111,7 +111,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 					return;
 				}
     		}    		
-			JavacDriver.getInstance().configureBuild(args);
+			JavacDriver.getInstance().configureBuild(args, false);
 		}
 		args = null;
 	}

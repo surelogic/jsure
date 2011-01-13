@@ -48,7 +48,7 @@ public class JavacBuild {
 			}
 			JavacEclipse.initialize();
 			System.out.println("Configuring build");	
-			JavacDriver.getInstance().configureBuild(buildArgs);
+			JavacDriver.getInstance().configureBuild(buildArgs, true);
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
