@@ -1621,13 +1621,33 @@ public class JavacDriver implements IResourceChangeListener {
             NotificationHub.notifyAnalysisStarting();
             try {
             	boolean ok = false;            	
-            	if (useSeparateJVM) {
+            	if (useSeparateJVM) {            		
+            		// Normally done by Javac, but needs to be repeated locally
+        	        final boolean noConflict;
+        	        if (oldProjects != null) {
+        	        	noConflict = !projects.conflictsWith(oldProjects);
+        	        	if (noConflict) {
+        	        		projects.init(oldProjects);
+        	        	} else {
+        	        		System.out.println("Detected a conflict between projects");
+        	        	}
+        	        } else {
+        	        	noConflict = true;
+        	        }
             		JavacEclipse.getDefault().savePreferences(projects.getRunDir());
             		LocalJSureJob job = makeLocalJSureJob(projects);
             		SLStatus status = job.run(monitor);
             		if (status == SLStatus.OK_STATUS) {
-            			ok = true;
-            			// TODO load up view state?
+            			ok = true;            			
+            			
+            			// Normally done by Javac, but needs to be repeated locally
+            	    	if (oldProjects != null && noConflict) {    		
+            	    		final Projects merged = projects.merge(oldProjects);
+                			ProjectsDrop.ensureDrop(merged);
+            	    		//System.out.println("Merged projects: "+merged.getLabel());
+            	    	} else {
+            	    		ProjectsDrop.ensureDrop(projects);
+            	    	}
             		} 
             		else if (status != SLStatus.CANCEL_STATUS) {
             			throw status.getException();
