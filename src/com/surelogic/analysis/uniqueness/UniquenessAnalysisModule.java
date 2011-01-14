@@ -25,7 +25,6 @@ import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
@@ -35,14 +34,6 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 
 public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Void> {
-  private static final Category DSC_UNIQUE_PARAMS_SATISFIED =
-    Category.getInstance(Messages.CATEGORY_UNIQUE_PARAMETERS_SATISFIED);
-  
-  private static final Category DSC_UNIQUE_PARAMS_UNSATISFIED =
-    Category.getInstance(Messages.CATEGORY_UNIQUE_PARAMETERS_UNSATISFIED);
-  
-  
-  
   /**
    * Map from promise drops to "intermediate result drops" that are used
    * to allow promises to depend on other promises.  There should be only
@@ -238,7 +229,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 					callDrop.setConsistent();
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setResultMessage(Messages.UNIQUE_PARAMETERS_SATISFIED, DebugUnparser.toString(node));
-					  callDrop.setCategory(DSC_UNIQUE_PARAMS_SATISFIED);
+					  callDrop.setCategory(Messages.DSC_UNIQUE_PARAMS_SATISFIED);
 					}
 				}
 			} else {
@@ -247,7 +238,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           callDrop.addSupportingInformation(getErrorMessage(insideDecl, node), node);
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setResultMessage(Messages.UNIQUE_PARAMETERS_UNSATISFIED, DebugUnparser.toString(node));
-					  callDrop.setCategory(DSC_UNIQUE_PARAMS_UNSATISFIED);
+					  callDrop.setCategory(Messages.DSC_UNIQUE_PARAMS_UNSATISFIED);
 					}
 				}
 			}
@@ -434,7 +425,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		      aggregatedUniqueFields = null;
 		    } else {
           final ResultDropBuilder middleDrop = ResultDropBuilder.create(
-              UniquenessAnalysisModule.this, "UniquenessAssurance_aggregatedUniqueFields");
+              UniquenessAnalysisModule.this, Messages.toString(Messages.AGGREGATED_UNIQUE_FIELDS));
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
@@ -456,7 +447,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           aggregatedUniqueParams = null;
         } else {
           final ResultDropBuilder middleDrop = ResultDropBuilder.create(
-              UniquenessAnalysisModule.this, "UniquenessAssurance_aggregatedUniqueParams");
+              UniquenessAnalysisModule.this, Messages.toString(Messages.AGGREGATED_UNIQUE_PARAMS));
           middleDrop.setConsistent();
           middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_PARAMS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
@@ -477,7 +468,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	ResultDropBuilder getMethodControlFlowDrop(final IRNode block) {
     ResultDropBuilder drop = cachedControlFlow.get(block);
     if (drop == null || !drop.isValid()) {
-      drop = ResultDropBuilder.create(this, "UniquenessAssurance");
+      drop = ResultDropBuilder.create(this, Messages.toString(Messages.METHOD_CONTROL_FLOW));
       drop.setConsistent();
       setResultDependUponDrop(drop, block);
 
@@ -735,7 +726,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         final Set<ResultDropBuilder> allCallDrops = new HashSet<ResultDropBuilder>();
         final String label = DebugUnparser.toString(currentNode);
         if (!uniqueReturns.isEmpty()) {
-          final ResultDropBuilder callDrop = getMethodCallDrop("UniquenessAssurance_uniqueReturnDrop",
+          final ResultDropBuilder callDrop = getMethodCallDrop(Messages.toString(Messages.UNIQUE_RETURN),
               currentNode, uniqueReturns, Messages.UNIQUE_RETURN, label);
           if (!isConstructorCall) {
             allCallDrops.add(callDrop);
@@ -751,7 +742,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           }
         }
         if (!borrowedParams.isEmpty()) {
-          final ResultDropBuilder callDrop = getMethodCallDrop("UniquenessAssurance_borrowedParametersDrop",
+          final ResultDropBuilder callDrop = getMethodCallDrop(Messages.toString(Messages.BORROWED_PARAMETERS),
               currentNode, borrowedParams, Messages.BORROWED_PARAMETERS, label);
           allCallDrops.add(callDrop);
           pr.calledBorrowedParams.add(callDrop);
@@ -765,7 +756,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           /* Here we hold off setting the message and category until the 
            * call is actually assured in checkMethodCall()
            */
-          final ResultDropBuilder callDrop = ResultDropBuilder.create(this, "UniquenessAssurance_uniqueParametersDrop");
+          final ResultDropBuilder callDrop = ResultDropBuilder.create(this, Messages.toString(Messages.UNIQUE_PARAMETERS_SATISFIED));
           callDrop.setConsistent();
           setResultDependUponDrop(callDrop, currentNode);
           // This result checks the uniqueness promises of the parameters
@@ -776,7 +767,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           pr.calledUniqueParams.add(callDrop);
         }
         if (!effects.isEmpty()) {
-          final ResultDropBuilder callDrop = getMethodCallDrop("UniquenessAssurance_effectOfCallDrop",
+          final ResultDropBuilder callDrop = getMethodCallDrop(Messages.toString(Messages.CALL_EFFECT),
               currentNode, effects, Messages.CALL_EFFECT, label);
           allCallDrops.add(callDrop);
           pr.calledEffects.add(callDrop);
