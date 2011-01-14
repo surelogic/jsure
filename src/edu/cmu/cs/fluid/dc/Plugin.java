@@ -36,6 +36,7 @@ import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 
 import edu.cmu.cs.fluid.analysis.util.WholeAnalysisModule;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.CommonStrings;
 
 /**
@@ -68,7 +69,7 @@ public class Plugin implements IAnalysisContainer {
 	/**
 	 * The preference prefix for whether an analysis is on
 	 */
-	public static final String ANALYSIS_ACTIVE_PREFIX = "com.surelogic.jsure.active.";
+	public static final String ANALYSIS_ACTIVE_PREFIX = IDEPreferences.ANALYSIS_ACTIVE_PREFIX;
 	
 	/**
 	 * The {@link Logger}for this class (named <code>edu.cmu.cs.fluid.dc</code>).
