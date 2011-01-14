@@ -156,21 +156,21 @@
 	</extension>
   <extension id="UniquenessAssuranceUWM" name="Uniqueness (NEW)"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysisModule" production="true">
+    <run class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule" production="true">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
   </extension>
   <extension id="UniquenessAssuranceSE" name="Uniqueness (Side Effect)"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.uniqueness.uwm.sideeffecting.UniquenessAnalysisModule" production="false">
+    <run class="com.surelogic.analysis.uniqueness.sideeffecting.UniquenessAnalysisModule" production="false">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
   </extension>
   <extension id="BenchmarkingUniquenessNew" name="Benchmarking Uniqueness (NEW)"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.uniqueness.uwm.NewBenchmarkingUAM" 
+    <run class="com.surelogic.analysis.uniqueness.NewBenchmarkingUAM" 
       production="false">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
