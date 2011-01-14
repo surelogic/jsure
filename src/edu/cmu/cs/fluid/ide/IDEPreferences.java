@@ -5,4 +5,9 @@ public interface IDEPreferences {
 	String ALLOW_JAVADOC_ANNOS = "allow.javadoc.annos";
 	String ANALYSIS_THREAD_COUNT = "analysis.thread.count";
 	String DATA_DIRECTORY = "data.directory";
+
+	/**
+	 * The preference prefix for whether an analysis is on
+	 */
+	public static final String ANALYSIS_ACTIVE_PREFIX = "com.surelogic.jsure.active.";
 }
