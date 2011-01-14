@@ -117,12 +117,6 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 					  // Infer effects
 					  final Set<Effect> inferredEffects = 
 					    inferEffects(isConstructor, member, implFx);
-//            final InfoDrop drop = new InfoDrop("EffectAssurance");
-//            setResultDependUponDrop(drop, member);
-//            drop.setMessage("(3) Final inferred effects for {0}: {1}",
-//                SomeFunctionDeclaration.getId(member),
-//                Effects.unparseForPromise(inferredEffects));
-            
             final ProposedPromiseBuilder pb =
               new ProposedPromiseBuilder("RegionEffects",
                   Effects.unparseForPromise(inferredEffects), member, member);
@@ -188,52 +182,14 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
           }
         }
 
-//        final Effect inferredEffect =
-//          Effect.newEffect(null, effect.isRead(), target);
-
         final Target cleanedTarget = cleanInferredTarget(member, target);
         final Effect cleanedEffect =
           Effect.newEffect(null, effect.isRead(), cleanedTarget);
         inferred.add(cleanedEffect);
-        
-//        final InfoDrop drop = new InfoDrop("EffectAssurance");
-//        drop.setCategory(null);
-//        final IRNode src = effect.getSource() == null ? member : effect.getSource();
-//        setResultDependUponDrop(drop, src);
-//        drop.setMessage("{0}: Proposing effect {1} from inferred effect {2} for {3} from {4}",
-//            SomeFunctionDeclaration.getId(member),
-//            cleanedEffect.toString(),
-//            inferredEffect.toString(),
-//            effect.toString(), DebugUnparser.toString(src));
       }
     } 
     
-//    for (final Effect e : inferred) {
-//      final InfoDrop drop = new InfoDrop("EffectAssurance");
-//      drop.setCategory(null);
-//      setResultDependUponDrop(drop, member);
-//      drop.setMessage("(1) Final inferred effects for {0}: {1}",
-//          SomeFunctionDeclaration.getId(member),
-//          e.toString());
-//    }
-    
-    final Set<Effect> uncovered = filterEffects(inferred);
-//    for (final Effect e : uncovered) {
-//      final InfoDrop drop = new InfoDrop("EffectAssurance");
-//      drop.setCategory(null);
-//      setResultDependUponDrop(drop, member);
-//      drop.setMessage("(2) Final inferred effects for {0}: {1}",
-//          SomeFunctionDeclaration.getId(member),
-//          e.toString());
-//    }
-    
-//    final InfoDrop drop = new InfoDrop("EffectAssurance");
-//    drop.setCategory(null);
-//    setResultDependUponDrop(drop, member);
-//    drop.setMessage("(3) Final inferred effects for {0}: {1}",
-//        SomeFunctionDeclaration.getId(member),
-//        Effects.unparseForPromise(uncovered));
-    return uncovered;
+    return filterEffects(inferred);
   }
 	
 	/**

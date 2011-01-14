@@ -21,8 +21,6 @@ import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.Pair;
 
 public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,Void> {
-	public static final Category DSC_LAYERS_ISSUES = Category.getInstance("Static structure");
-	
 	public LayersAnalysis() {
 		super("Layers");
 	}
@@ -86,7 +84,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				final ResultDrop rd = checkBinding(allows, b, type, n);
 				if (allows != null && rd == null) {					
 					ResultDrop success = createSuccessDrop(type, allows);
-					success.setResultMessage(352, JavaNames.getRelativeTypeName(type));
+					success.setResultMessage(Messages.PERMITTED_REFERENCE, JavaNames.getRelativeTypeName(type));
 				}
 				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
 				if (rd2 != null) {
@@ -111,11 +109,11 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		}
 		if (!problemWithInLayer) {
 			ResultDrop rd = createSuccessDrop(type, inLayer);	
-			rd.setResultMessage(351, JavaNames.getRelativeTypeName(type));
+			rd.setResultMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
 		if (!problemWithMayReferTo) {
 			ResultDrop rd = createSuccessDrop(type, mayReferTo);
-			rd.setResultMessage(351, JavaNames.getRelativeTypeName(type));
+			rd.setResultMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
 	}
 
@@ -137,7 +135,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	
 	private static ResultDrop createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
 		ResultDrop rd = new ResultDrop("Layers -- no errors");
-		rd.setCategory(DSC_LAYERS_ISSUES);
+		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(type);			
 		rd.addCheckedPromise(checked);
 		rd.setConsistent();
@@ -146,7 +144,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	
 	private static ResultDrop createFailureDrop(IRNode type) {
 		ResultDrop rd = new ResultDrop("Layers");
-		rd.setCategory(DSC_LAYERS_ISSUES);
+		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(type);	
 		rd.setInconsistent();
 		return rd;
@@ -217,11 +215,11 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				LayerPromiseDrop layer = getAnalysis().getLayer(last);
 				ResultDrop rd = createFailureDrop(layer.getNode());
 				rd.addCheckedPromise(layer);				
-				rd.setResultMessage(353, backedge); 
+				rd.setResultMessage(Messages.CYCLE, backedge); 
 				
 				final Map<String,TypeSetPromiseDrop> involved = new HashMap<String, TypeSetPromiseDrop>();
 				for(IRNode type : layers.get(backedge)) {
-					rd.addSupportingInformation(type, 354, JavaNames.getFullTypeName(type));
+					rd.addSupportingInformation(type, Messages.TYPE_INVOLVED, JavaNames.getFullTypeName(type));
 					for(Map.Entry<String,TypeSetPromiseDrop> e : getAnalysis().getTypesets()) {
 						if (e.getValue().check(type)) {
 							involved.put(e.getKey(), e.getValue());
@@ -229,7 +227,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 					}
 				}
 				for(Map.Entry<String,TypeSetPromiseDrop> e : involved.entrySet()) {
-					rd.addSupportingInformation(e.getValue().getNode(), 355, e.getKey());
+					rd.addSupportingInformation(e.getValue().getNode(), Messages.TYPESET_INVOLVED, e.getKey());
 				}
 			}
 		};

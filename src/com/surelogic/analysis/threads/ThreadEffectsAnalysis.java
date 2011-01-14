@@ -179,14 +179,14 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 		}
 
 		if (noThreadsStarted && createDrops) {
-			ResultDrop r = new ResultDrop("ThreadEffectsAnalysis_noThreadsDrop");
+			ResultDrop r = new ResultDrop(Messages.toString(Messages.NO_THREADS_STARTED));
 			r.setConsistent();
 			r.addCheckedPromise(pd);
-			setResultDependUponDrop(r, block, 1, JavaNames
+			setResultDependUponDrop(r, block, Messages.NO_THREADS_STARTED, JavaNames
 					.genMethodConstructorName(block));
 		}
 		// TODO how to create an equivalent "no threads started" message?
-		// results.add(new SimpleAnalysisResult(pd, block, 1, JavaNames.genMethodConstructorName(block)));					
+		// results.add(new SimpleAnalysisResult(pd, block, Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block)));					
 		return results;
 	}
 
@@ -251,14 +251,13 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 							// System.out.println("[ThreadEffects] Thread.start() "
 							// + DebugUnparser.toString(node));
 							if (createDrops) {
-							ResultDrop rd = new ResultDrop(
-									"ThreadEffectsAnalysis_threadEffectDrop");
+							ResultDrop rd = new ResultDrop(Messages.toString(Messages.PROHIBITED));
 							rd.setInconsistent();
 							rd.addCheckedPromise(pd);
-							setResultDependUponDrop(rd, node, 2, DebugUnparser
+							setResultDependUponDrop(rd, node, Messages.PROHIBITED, DebugUnparser
 									.toString(node));
 							}
-							return new Result(new SimpleAnalysisResult(pd, node, 2, DebugUnparser.toString(node)), false);
+							return new Result(new SimpleAnalysisResult(pd, node, Messages.PROHIBITED, DebugUnparser.toString(node)), false);
 						}
 					}
 				}
@@ -299,19 +298,17 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 				// get the promise drop
 				StartsPromiseDrop callp = ThreadEffectsRules
 				.getStartsSpec(declaration);
-				ResultDrop rd = new ResultDrop(
-				"ThreadEffectsAnalysis_callPromiseDrop");
+				ResultDrop rd = new ResultDrop(Messages.toString(Messages.CALLED_METHOD_DOES_PROMISE));
 				rd.addCheckedPromise(pd);
 				rd.addTrustedPromise(callp);
-				setResultDependUponDrop(rd, node, 3, DebugUnparser.toString(node));
+				setResultDependUponDrop(rd, node, Messages.CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
 				rd.setConsistent();
 				success = true;
 			} else {
-				ResultDrop rd = new ResultDrop(
-				"ThreadEffectsAnalysis_callNotPromiseDrop");
+				ResultDrop rd = new ResultDrop(Messages.toString(Messages.CALLED_METHOD_DOES_NOT_PROMISE));
 				rd.addCheckedPromise(pd);
 				rd.setInconsistent();
-				setResultDependUponDrop(rd, node, 4, DebugUnparser.toString(node));
+				setResultDependUponDrop(rd, node, Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));
 				rd.addProposal(new ProposedPromiseDrop("Starts", "nothing",
 						declaration, node));
 				success = false;

@@ -2,7 +2,7 @@
 package edu.cmu.cs.fluid.sea.drops.layers;
 
 import com.surelogic.aast.layers.AbstractLayerMatchRootNode;
-import com.surelogic.analysis.layers.LayersAnalysis;
+import com.surelogic.analysis.layers.Messages;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -11,7 +11,7 @@ public abstract class AbstractReferenceCheckDrop<A extends AbstractLayerMatchRoo
 implements IReferenceCheckDrop {
 	AbstractReferenceCheckDrop(A ast) {
 		super(ast);
-		setCategory(LayersAnalysis.DSC_LAYERS_ISSUES);
+		setCategory(Messages.DSC_LAYERS_ISSUES);
 	}
 	
 	@Override
