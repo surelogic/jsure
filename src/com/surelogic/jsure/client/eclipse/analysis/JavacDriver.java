@@ -1624,7 +1624,14 @@ public class JavacDriver implements IResourceChangeListener {
             	if (useSeparateJVM) {
             		JavacEclipse.getDefault().savePreferences(projects.getRunDir());
             		LocalJSureJob job = makeLocalJSureJob(projects);
-            		job.run(NullSLProgressMonitor.getFactory().createSLProgressMonitor(job.getName()));
+            		SLStatus status = job.run(monitor);
+            		if (status == SLStatus.OK_STATUS) {
+            			ok = true;
+            			// TODO load up view state?
+            		} 
+            		else if (status != SLStatus.CANCEL_STATUS) {
+            			throw status.getException();
+            		}
             	} else {
             		if (clearBeforeAnalysis || oldProjects == null) {
             			ClearProjectListener.clearJSureState();
@@ -1647,7 +1654,7 @@ public class JavacDriver implements IResourceChangeListener {
             	    }
                   	return SLStatus.CANCEL_STATUS;
             	}
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 NotificationHub.notifyAnalysisPostponed(); // TODO
                 if (monitor.isCanceled()) {
                     if (lastMonitor == monitor) {
