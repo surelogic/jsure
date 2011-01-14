@@ -2954,7 +2954,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public IRNode getArrayClassDeclaration() {
-      return findNamedType("java.lang.[]");
+      return findNamedType(PromiseConstants.ARRAY_CLASS_NAME);
     }
 
     @Override

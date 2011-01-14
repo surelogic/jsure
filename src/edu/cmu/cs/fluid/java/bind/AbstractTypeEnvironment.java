@@ -152,7 +152,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
     // no need to be synchronized because nodes havce identity
     // and nothing else.
     if (arrayClassDeclaration == null) {
-      arrayClassDeclaration = findNamedType("java.lang.[]");
+      arrayClassDeclaration = findNamedType(PromiseConstants.ARRAY_CLASS_NAME);
       if (arrayClassDeclaration == null) {
         LOG.severe("default implementation for getArrayClassDeclaration doesn't work");
       }
