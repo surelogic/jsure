@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.uwm.sideeffecting.store;
+package com.surelogic.analysis.uniqueness.sideeffecting.store;
 
 /**
  * Replaces the STATE_* constants as well as the PseudoVariable class.  We can

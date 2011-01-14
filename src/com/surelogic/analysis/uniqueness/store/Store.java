@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.uwm.store;
+package com.surelogic.analysis.uniqueness.store;
 
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;

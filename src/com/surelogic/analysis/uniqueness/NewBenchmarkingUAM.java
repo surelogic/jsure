@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.uwm;
+package com.surelogic.analysis.uniqueness;
 
 import java.util.Collections;
 

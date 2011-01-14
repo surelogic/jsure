@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.uwm.store;
+package com.surelogic.analysis.uniqueness.store;
 
 import java.util.HashSet;
 import java.util.Iterator;

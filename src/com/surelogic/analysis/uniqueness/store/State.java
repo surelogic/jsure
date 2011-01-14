@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.uwm.store;
+package com.surelogic.analysis.uniqueness.store;
 
 /**
  * Replaces the STATE_* constants as well as the PseudoVariable class.  We can

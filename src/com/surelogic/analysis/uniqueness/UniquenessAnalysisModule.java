@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.uwm;
+package com.surelogic.analysis.uniqueness;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,10 +10,10 @@ import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.uniqueness.Messages;
-import com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysis.AbruptErrorQuery;
-import com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysis.IsInvalidQuery;
-import com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysis.IsPositivelyAssuredQuery;
-import com.surelogic.analysis.uniqueness.uwm.UniquenessAnalysis.NormalErrorQuery;
+import com.surelogic.analysis.uniqueness.UniquenessAnalysis.AbruptErrorQuery;
+import com.surelogic.analysis.uniqueness.UniquenessAnalysis.IsInvalidQuery;
+import com.surelogic.analysis.uniqueness.UniquenessAnalysis.IsPositivelyAssuredQuery;
+import com.surelogic.analysis.uniqueness.UniquenessAnalysis.NormalErrorQuery;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 

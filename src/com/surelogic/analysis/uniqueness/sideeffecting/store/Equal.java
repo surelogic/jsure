@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.uwm.sideeffecting.store;
+package com.surelogic.analysis.uniqueness.sideeffecting.store;
 
 import edu.cmu.cs.fluid.util.ImmutableSet;
 

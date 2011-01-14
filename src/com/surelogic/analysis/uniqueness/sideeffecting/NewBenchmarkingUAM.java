@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.uwm.sideeffecting;
+package com.surelogic.analysis.uniqueness.sideeffecting;
 
 import java.util.Collections;
 

@@ -1,4 +1,4 @@
-package com.surelogic.analysis.uniqueness.uwm.sideeffecting;
+package com.surelogic.analysis.uniqueness.sideeffecting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +14,9 @@ import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.analysis.uniqueness.uwm.sideeffecting.store.State;
-import com.surelogic.analysis.uniqueness.uwm.sideeffecting.store.Store;
-import com.surelogic.analysis.uniqueness.uwm.sideeffecting.store.StoreLattice;
+import com.surelogic.analysis.uniqueness.sideeffecting.store.State;
+import com.surelogic.analysis.uniqueness.sideeffecting.store.Store;
+import com.surelogic.analysis.uniqueness.sideeffecting.store.StoreLattice;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
