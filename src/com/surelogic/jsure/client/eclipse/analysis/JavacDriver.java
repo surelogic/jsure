@@ -1622,7 +1622,7 @@ public class JavacDriver implements IResourceChangeListener {
             try {
             	boolean ok = false;            	
             	if (useSeparateJVM) {
-            		JavacEclipse.getDefault().savePreferences(targetDir);
+            		JavacEclipse.getDefault().savePreferences(projects.getRunDir());
             		LocalJSureJob job = makeLocalJSureJob(projects);
             		job.run(NullSLProgressMonitor.getFactory().createSLProgressMonitor(job.getName()));
             	} else {
