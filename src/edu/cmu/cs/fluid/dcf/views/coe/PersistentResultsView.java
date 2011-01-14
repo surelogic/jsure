@@ -7,7 +7,10 @@ import java.util.*;
 import org.eclipse.ui.IMemento;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.common.FileUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
+import com.surelogic.fluid.javac.Projects;
+import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
@@ -119,16 +122,26 @@ public class PersistentResultsView extends ResultsView {
 		@Override
     	public IResultsViewContentProvider buildModelOfDropSea() {
 			if (useXML) {
-				try {      		
-					// Persist the Sea, and then load the info    
-					new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
+				try {    
+					// TODO NPE since it's built externally
+					Projects projects = (Projects) ProjectsDrop.getDrop().getIIRProjects();
+					File results = new File(projects.getRunDir(), RemoteJSureRun.RESULTS_XML);
+					if (results.exists() && results.length() > 0) {
+						if (location != null) {
+							FileUtility.copy(results, location);
+						}
+					} else {
+						// Persist the Sea, and then load the info    
+						new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
+						results = location;
+					}
 					//try {
 						saveViewState(viewState);
 					//} catch (IOException e) {
 					//	e.printStackTrace();
 					//}
-					if (location != null && location.exists() && location.length() > 0) {
-						dropInfo = SeaSnapshot.loadSnapshot(location);
+					if (results != null && results.exists() && results.length() > 0) {
+						dropInfo = SeaSnapshot.loadSnapshot(results);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
