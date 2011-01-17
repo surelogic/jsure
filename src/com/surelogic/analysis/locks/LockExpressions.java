@@ -10,7 +10,7 @@ import java.util.Set;
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.InstanceInitAction;
-import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.locks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.locks.locks.HeldLock;
 import com.surelogic.analysis.locks.locks.HeldLockFactory;

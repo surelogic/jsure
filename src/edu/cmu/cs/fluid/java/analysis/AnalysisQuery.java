@@ -1,7 +1,5 @@
 package edu.cmu.cs.fluid.java.analysis;
 
-import com.surelogic.analysis.bca.uwm.BindingContext;
-
 import edu.cmu.cs.fluid.ir.IRNode;
 
 /**
@@ -14,7 +12,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * for hiding any result manipulation that needs to done by passing a raw
  * analysis result through a method in the analysis lattice, for example the
  * method
- * {@link BindingContext#expressionObjects(edu.cmu.cs.fluid.util.ImmutableSet[], IRNode)}
+ * {@link com.surelogic.analysis.bca.BindingContext#expressionObjects(edu.cmu.cs.fluid.util.ImmutableSet[], IRNode)}
  * in the case of binding context analysis.
  * 
  * @param <R>

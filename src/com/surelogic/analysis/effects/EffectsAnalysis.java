@@ -3,7 +3,7 @@ package com.surelogic.analysis.effects;
 import java.util.*;
 
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;

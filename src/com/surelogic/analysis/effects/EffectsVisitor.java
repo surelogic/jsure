@@ -9,7 +9,7 @@ import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;

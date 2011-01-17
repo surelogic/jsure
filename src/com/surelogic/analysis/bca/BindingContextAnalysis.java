@@ -1,4 +1,4 @@
-package com.surelogic.analysis.bca.uwm;
+package com.surelogic.analysis.bca;
 
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.util.IThunk;

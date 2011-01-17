@@ -1,9 +1,9 @@
-package com.surelogic.analysis.bca;
+package com.surelogic.analysis.testing;
 
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.bca.uwm.BindingContext;
-import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
-import com.surelogic.analysis.bca.uwm.BindingContextAnalysis.Query;
+import com.surelogic.analysis.bca.BindingContext;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.bca.BindingContextAnalysis.Query;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;

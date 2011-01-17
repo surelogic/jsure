@@ -9,7 +9,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.aast.promise.RegionMappingNode;
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.LockRules;

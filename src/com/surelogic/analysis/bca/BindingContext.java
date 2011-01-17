@@ -1,4 +1,4 @@
-package com.surelogic.analysis.bca.uwm;
+package com.surelogic.analysis.bca;
 
 import java.util.ArrayList;
 import java.util.List;

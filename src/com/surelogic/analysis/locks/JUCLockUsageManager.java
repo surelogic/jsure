@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.surelogic.analysis.bca.uwm.BindingContextAnalysis;
+import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.locks.locks.HeldLock;
 
 import edu.cmu.cs.fluid.ir.IRNode;
