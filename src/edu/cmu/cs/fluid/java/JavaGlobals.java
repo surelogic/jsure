@@ -20,6 +20,7 @@ public interface JavaGlobals {
 
   static final SyntaxTreeInterface jtree = JJNode.tree;
 
+  @SuppressWarnings("rawtypes")
   static final ImmutableHashOrderSet empty = ImmutableHashOrderSet.empty;
 
   // mostly used for creating code
@@ -42,57 +43,24 @@ public interface JavaGlobals {
   static final Logger XFORM = SLLogger.getLogger("JAVA.xform");
 
   // drop-sea categories
-  static final Category REGION_CAT = Category
-      .getResultInstance("Regions");
-
-  static final Category LOCK_ASSURANCE_CAT = Category
-      .getResultInstance("Concurrency");
-
-  static final Category LOCK_REQUIRESLOCK_CAT = Category
-      .getInstance("lock precondition(s)");
-
-  static final Category UNIQUENESS_CAT = Category
-      .getResultInstance("Uniqueness");
-
-  static final Category EFFECTS_CAT = Category.getResultInstance("Effects");
-
-  static final Category NULL_CAT = Category.getResultInstance("Null values");
-
-  static final Category THREAD_EFFECTS_CAT = Category
-      .getResultInstance("Thread effects");
-
-  static final Category THREAD_ROLES_CAT = Category
-      .getResultInstance("Thread roles analysis");
-  
-  static final Category THREAD_ROLE_REPORT_REGION_CAT = 
-    Category.getResultInstance("Regions marked for TRole reporting");
-  
-  static final Category THREAD_ROLE_CONSTRAINED_REGION_CAT = 
-    Category.getResultInstance("Thread Role Constrained Regions");
-
-  static final Category USES_CAT = Category.getResultInstance("Structure");
-
-  static final Category PROMISE_CAT = Category
-      .getResultInstance("Scoped promises");
-  
-  static final Category VOUCH_CAT = Category.getResultInstance("Vouches");
-
-  static final Category ASSUME_CAT = Category
-      .getResultInstance("Scoped assumptions");
-
-  static final Category PROMISE_SCRUBBER = Category
-      .getResultInstance("Modeling problems");
-
+  static final Category REGION_CAT = Category.getInstance2(100);
+  static final Category LOCK_ASSURANCE_CAT = Category.getInstance2(101);
+  static final Category LOCK_REQUIRESLOCK_CAT = Category.getInstance2(102);
+  static final Category UNIQUENESS_CAT = Category.getInstance2(103);
+  static final Category EFFECTS_CAT = Category.getInstance2(104);
+  static final Category NULL_CAT = Category.getInstance2(105);
+  static final Category THREAD_EFFECTS_CAT = Category.getInstance2(106);
+  static final Category THREAD_ROLES_CAT = Category.getInstance2(107);
+  static final Category THREAD_ROLE_REPORT_REGION_CAT = Category.getInstance2(108);
+  static final Category THREAD_ROLE_CONSTRAINED_REGION_CAT = Category.getInstance2(109);
+  static final Category USES_CAT = Category.getInstance2(110);
+  static final Category PROMISE_CAT = Category.getInstance2(111);
+  static final Category VOUCH_CAT = Category.getInstance2(112);
+  static final Category ASSUME_CAT = Category.getInstance2(113);
+  static final Category PROMISE_SCRUBBER = Category.getInstance2(114);
   static final Category PROMISE_PARSER_PROBLEM = PROMISE_SCRUBBER;
-
-  static final Category PROMISE_PARSER_WARNING = Category
-      .getResultInstance("Javadoc warnings");
-
-  static final Category CONVERT_TO_IR = Category
-      .getResultInstance("Convert to IR");
-  
-  static final Category UNCATEGORIZED = Category
-  .getResultInstance("Uncategorized");
-  
-  static final Category MODULE_CAT = Category.getResultInstance("Modules");
+  static final Category PROMISE_PARSER_WARNING = Category.getInstance2(115);
+  static final Category CONVERT_TO_IR = Category.getInstance2(116);
+  static final Category UNCATEGORIZED = Category.getInstance2(117);
+  static final Category MODULE_CAT = Category.getInstance2(118);
 }

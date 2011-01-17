@@ -11,11 +11,7 @@ final class Messages {
 
   
   
-  private static final String LockAnalysis_dsc_NontrivialClassInitEffects = "non-trivial effect(s) in a class initializer";
-  static final Category DSC_EFFECTS_IN_CLASS_INIT = 
-		Category.getInstance(Messages.LockAnalysis_dsc_NontrivialClassInitEffects);
-  
-  
+  public static final Category DSC_EFFECTS_IN_CLASS_INIT = Category.getInstance2(150); 
   
   public static final int UNACCOUNTED_FOR = 150;
   public static final int CHECKED_BY = 151;

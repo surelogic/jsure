@@ -14,59 +14,24 @@ public final class Messages extends AbstractMessages {
   
   
   // Drop-sea category messages
-  public static final String LockAnalysis_dsc_LockViz = "lock field(s) less visible than the region(s) being protected";
-  public static final Category DSC_LOCK_VIZ = Category.getInstance(LockAnalysis_dsc_LockViz);
-
-  public static final String LockAnalysis_dsc_AggregationNeeded = "protected reference(s) to a possibly shared unprotected object; possible race condition detected";
-  public static final Category DSC_AGGREGATION_NEEDED = Category.getInstance(LockAnalysis_dsc_AggregationNeeded);
-
-  public static final String LockAnalysis_dsc_FieldAccessNotAssured = "unprotected field access(es); possible race condition detected";
-  public static final Category DSC_FIELD_ACCESS_NOT_ASSURED = Category.getInstance(LockAnalysis_dsc_FieldAccessNotAssured);
-
-  public static final String LockAnalysis_dsc_FieldAccessAssured = "protected field access(es)";
-  public static final Category DSC_FIELD_ACCESS_ASSURED = Category.getInstance(LockAnalysis_dsc_FieldAccessAssured);
-
-  public static final String LockAnalysis_dsc_PreconditionsAssured = "lock precondition(s) satisfied";
-  public static final Category DSC_PRECONDITIONS_ASSURED = Category.getInstance(LockAnalysis_dsc_PreconditionsAssured);
-
-  public static final String LockAnalysis_dsc_PreconditionsNotAssured = "lock precondition(s) not satisfied; possible race conditions enabled";
-  public static final Category DSC_PRECONDITIONS_NOT_ASSURED = Category.getInstance(LockAnalysis_dsc_PreconditionsNotAssured);
-
-  public static final String LockAnalysis_dsc_IndirectFieldAccessNotAssured = "unprotected indirect field access(es); possible race condition detected";
-  public static final Category DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED = Category.getInstance(LockAnalysis_dsc_IndirectFieldAccessNotAssured);
-
-  public static final String LockAnalysis_dsc_IndirectFieldAccessAssured = "protected indirect field access(es)";
-  public static final Category DSC_INDIRECT_FIELD_ACCESS_ASSURED = Category.getInstance(LockAnalysis_dsc_IndirectFieldAccessAssured);
-
-  public static final String LockAnalysis_dsc_ReturnAssured = "return statement(s) returning the correct lock";
-  public static final Category DSC_RETURN_ASSURED = Category.getInstance(LockAnalysis_dsc_ReturnAssured);
-
-  public static final String LockAnalysis_dsc_ReturnNotAssured = "return statement(s) possibly returning the wrong lock";
-  public static final Category DSC_RETURN_NOT_ASSURED = Category.getInstance(LockAnalysis_dsc_ReturnNotAssured);
-
-  public static final String LockAnalysis_dsc_UnidentifiableLockWarning = "unidentifiable lock(s); what is the name of the lock? what state is being protected?";
-  public static final Category DSC_UNIDENTIFIABLE_LOCK_WARNING = Category.getInstance(LockAnalysis_dsc_UnidentifiableLockWarning);
-
-  public static final String LockAnalysis_dsc_SynchronizationUnusedWarning = "synchronized block(s) not protecting any state; what state is being protected?";
-  public static final Category DSC_SYNCHRONIZED_UNUSED_WARNING = Category.getInstance(LockAnalysis_dsc_SynchronizationUnusedWarning);
-
-  public static final String LockAnalysis_dsc_NonfinalExpressionWarning = "non-final lock expression(s); analysis cannot determine which lock is being acquired";
-  public static final Category DSC_NONFINAL_EXPRESSION_WARNING = Category.getInstance(LockAnalysis_dsc_NonfinalExpressionWarning);
-
-  public static final String LockAnalysis_dsc_RedundantSynchronized = "redundant lock acquisition(s)";
-  public static final Category DSC_REDUNDANT_SYNCHRONIZED = Category.getInstance(LockAnalysis_dsc_RedundantSynchronized);
-
-  public static final String LockAnalysis_dsc_MixedParadigm = "mixed java.util.concurrent/intrinsic locking usage(s)";
-  public static final Category DSC_MIXED_PARADIGM = Category.getInstance(LockAnalysis_dsc_MixedParadigm);
-
-  public static final String LockAnalysis_dsc_NotALockMethod = "calls to methods masquerading as java.util.concurrent.Lock methods";
-  public static final Category DSC_NOT_A_LOCK_METHOD = Category.getInstance(LockAnalysis_dsc_NotALockMethod);
-  
-  public static final String LockAnalysis_dsc_MatchingCalls = "lock()\u2013unlock() matches";
-  public static final Category DSC_MATCHING_CALLS = Category.getInstance(LockAnalysis_dsc_MatchingCalls);
-  
-  public static final String LockAnalysis_dsc_UnsupportedModel = "unsupported lock model(s)";
-  public static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance(LockAnalysis_dsc_UnsupportedModel);
+  public static final Category DSC_LOCK_VIZ = Category.getInstance2(200);
+  public static final Category DSC_AGGREGATION_NEEDED = Category.getInstance2(201);
+  public static final Category DSC_FIELD_ACCESS_NOT_ASSURED = Category.getInstance2(202);
+  public static final Category DSC_FIELD_ACCESS_ASSURED = Category.getInstance2(203);
+  public static final Category DSC_PRECONDITIONS_ASSURED = Category.getInstance2(204);
+  public static final Category DSC_PRECONDITIONS_NOT_ASSURED = Category.getInstance2(205);
+  public static final Category DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED = Category.getInstance2(206);
+  public static final Category DSC_INDIRECT_FIELD_ACCESS_ASSURED = Category.getInstance2(207);
+  public static final Category DSC_RETURN_ASSURED = Category.getInstance2(208);
+  public static final Category DSC_RETURN_NOT_ASSURED = Category.getInstance2(209);
+  public static final Category DSC_UNIDENTIFIABLE_LOCK_WARNING = Category.getInstance2(210);
+  public static final Category DSC_SYNCHRONIZED_UNUSED_WARNING = Category.getInstance2(211);
+  public static final Category DSC_NONFINAL_EXPRESSION_WARNING = Category.getInstance2(212);
+  public static final Category DSC_REDUNDANT_SYNCHRONIZED = Category.getInstance2(213);
+  public static final Category DSC_MIXED_PARADIGM = Category.getInstance2(214);
+  public static final Category DSC_NOT_A_LOCK_METHOD = Category.getInstance2(215);
+  public static final Category DSC_MATCHING_CALLS = Category.getInstance2(216);
+  public static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance2(217);
 
   
   

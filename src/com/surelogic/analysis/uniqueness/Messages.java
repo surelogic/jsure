@@ -12,13 +12,8 @@ public class Messages  {
 
   
   
-  public static final String CATEGORY_UNIQUE_PARAMETERS_SATISFIED = "Unique precondition(s) satisfied";
-  public static final Category DSC_UNIQUE_PARAMS_SATISFIED =
-    Category.getInstance(CATEGORY_UNIQUE_PARAMETERS_SATISFIED);
-  
-  public static final String CATEGORY_UNIQUE_PARAMETERS_UNSATISFIED = "Unique precondition(s) unsatisfied";
-  public static final Category DSC_UNIQUE_PARAMS_UNSATISFIED =
-    Category.getInstance(CATEGORY_UNIQUE_PARAMETERS_UNSATISFIED);
+  public static final Category DSC_UNIQUE_PARAMS_SATISFIED = Category.getInstance2(300);
+  public static final Category DSC_UNIQUE_PARAMS_UNSATISFIED = Category.getInstance2(301);
   
   
   

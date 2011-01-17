@@ -25,7 +25,6 @@ import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
@@ -35,14 +34,6 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 
 public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Void> {
-  private static final Category DSC_UNIQUE_PARAMS_SATISFIED =
-    Category.getInstance(Messages.CATEGORY_UNIQUE_PARAMETERS_SATISFIED);
-  
-  private static final Category DSC_UNIQUE_PARAMS_UNSATISFIED =
-    Category.getInstance(Messages.CATEGORY_UNIQUE_PARAMETERS_UNSATISFIED);
-  
-  
-  
   /**
    * Map from promise drops to "intermediate result drops" that are used
    * to allow promises to depend on other promises.  There should be only
@@ -239,7 +230,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 					callDrop.setConsistent();
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setResultMessage(Messages.UNIQUE_PARAMETERS_SATISFIED, DebugUnparser.toString(node));
-					  callDrop.setCategory(DSC_UNIQUE_PARAMS_SATISFIED);
+					  callDrop.setCategory(Messages.DSC_UNIQUE_PARAMS_SATISFIED);
 					}
 				}
 			} else {
@@ -248,7 +239,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           callDrop.addSupportingInformation(getErrorMessage(insideDecl, node), node);
 					if (pr.calledUniqueParams.contains(callDrop)) {
 					  callDrop.setResultMessage(Messages.UNIQUE_PARAMETERS_UNSATISFIED, DebugUnparser.toString(node));
-					  callDrop.setCategory(DSC_UNIQUE_PARAMS_UNSATISFIED);
+					  callDrop.setCategory(Messages.DSC_UNIQUE_PARAMS_UNSATISFIED);
 					}
 				}
 			}
