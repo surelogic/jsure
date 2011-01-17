@@ -217,7 +217,7 @@
 	</extension>
 	<extension id="CALLS" name="Method Calls"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.testings.CollectMethodCallsModule" production="false">
+		<run class="com.surelogic.analysis.testing.CollectMethodCallsModule" production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
