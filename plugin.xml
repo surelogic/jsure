@@ -207,14 +207,6 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="EffectDumper" name="Effect Dumper"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.effects.EffectDumper"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
 	<extension id="CALLS" name="Method Calls"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.testing.CollectMethodCallsModule" production="false">
@@ -224,14 +216,14 @@
 	</extension>
   <extension id="BCA" name="Binding Context Analysis"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.bca.BCAModule" production="false">
+    <run class="com.surelogic.analysis.testing.BCAModule" production="false">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
   </extension>
   <extension id="LV" name="Local Variables"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.bca.LocalVariablesModule" production="false">
+    <run class="com.surelogic.analysis.testing.LocalVariablesModule" production="false">
     </run>
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
