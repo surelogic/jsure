@@ -37,6 +37,7 @@ public class JavaRewrite implements JavaGlobals {
 	
 	private void markAsAdded(IRNode parent, IRNode n) {
 		added.add(n);
+		JavaNode.setImplicit(n);
 		/*
 		boolean found = false;
 		for(IRNode c : JJNode.tree.children(parent)) {
@@ -54,15 +55,12 @@ public class JavaRewrite implements JavaGlobals {
 
 	// / insertDefaultCall
 	protected void insertDefaultCall(IRNode mbody, IRNode call) {
-		JavaNode.setModifier(call, JavaNode.IMPLICIT, true);
-
 		IRNode block = MethodBody.getBlock(mbody);
 		JJNode.tree.insertSubtree(block, call); // add to front
 		markAsAdded(block, call);
 	}
 
 	protected void insertDefaultConstructor(IRNode cbody, IRNode constructor) {
-		JavaNode.setModifier(constructor, JavaNode.IMPLICIT, true);
 		// JavaNode.getModifier(node, JavaNode.IMPLICIT);
 
 		JJNode.tree.insertSubtree(cbody, constructor); // add to front
