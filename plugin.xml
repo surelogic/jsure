@@ -119,19 +119,6 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-	<extension id="ConcurrencyDetector" name="Eclipse Concurrency detector"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.threads.ConcurrencyDetector"
-			production="false">
-		</run>
-	</extension>
-	<extension id="IRConcurrencyDetector" name="Concurrency detector"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.threads.IRConcurrencyDetector">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
 	<extension id="Static State Detector" name="Static state detector"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="edu.cmu.cs.fluid.analysis.lock.StaticStateDetector"
