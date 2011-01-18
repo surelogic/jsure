@@ -17,17 +17,8 @@ import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,IRNode> {
-	private static final Category threadCreationCategory = Category
-	.getInstance("java.lang.Thread subtype instance creation(s)");
-
-	private static final Category runnableCreationCategory = Category
-	.getInstance("java.lang.Runnable subtype instance creation(s) - not Thread");
-
-	private static final Category threadStartsCategory = Category
-	.getInstance("thread start(s)");
-
 	private static void reportInference(Category c, int number, String arg, IRNode loc) {
-		InfoDrop id = new InfoDrop("concurrencyDetector");
+		InfoDrop id = new InfoDrop(Messages.toString(number));
 		// rd.addCheckedPromise(pd);
 		id.setNodeAndCompilationUnitDependency(loc);
 		id.setResultMessage(number, arg);
@@ -103,10 +94,10 @@ public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDete
 			IJavaDeclaredType type = (IJavaDeclaredType) t;
 			IRNode decl = type.getDeclaration();
 			if (isThreadSubtype(type)) {
-				reportInference(threadCreationCategory, 50, 
+				reportInference(Messages.DSC_THREAD_CREATION, Messages.INSTANCE_CREATED, 
 						JavaNames.getTypeName(decl), n);
 			} else if (implementsRunnable(type)) {
-				reportInference(runnableCreationCategory, 50, 
+				reportInference(Messages.DSC_RUNNABLE_CREATION, Messages.INSTANCE_CREATED, 
 						JavaNames.getTypeName(decl), n);
 			}
 			return null;
@@ -128,7 +119,7 @@ public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDete
 						tEnv.getBinder());
 				if (type instanceof IJavaDeclaredType
 						&& isThreadStart(m, (IJavaDeclaredType) type)) {
-					reportInference(threadStartsCategory, 51, 
+					reportInference(Messages.DSC_THREAD_STARTS, Messages.THREAD_STARTED, 
 							JavaNames.getTypeName(t), n);
 				}
 			}
