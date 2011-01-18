@@ -15,33 +15,11 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 
+@Deprecated
 public final class StaticStateDetector extends AbstractIRAnalysisModule {
-  /**
-   * Log4j logger for this class
-   */
-  //private static final Logger LOG = Logger.getLogger("analysis.static.state");
-
-  //private static final String STATIC_STATE_DETECTOR = "Static state detector";
-
   private static final StaticStateDetector INSTANCE = new StaticStateDetector();
 
-  private static final Category publicStaticFieldsCategory = Category
-  .getInstance("public static mutable field(s)");
   
-  private static final Category publicStaticObjectFieldsCategory = Category
-  .getInstance("public static Object-typed field(s)");
-  
-  private static final Category publicStaticArraysCategory = Category
-  .getInstance("public static mutable array(s)");
-  
-  private static final Category staticFieldsCategory = Category
-  .getInstance("static mutable field(s)");
-  
-  private static final Category staticObjectFieldsCategory = Category
-  .getInstance("static Object-typed field(s)");
-  
-  private static final Category staticArraysCategory = Category
-  .getInstance("static mutable array(s)");
   
   public static StaticStateDetector getInstance() {
     return INSTANCE;
@@ -66,12 +44,13 @@ public final class StaticStateDetector extends AbstractIRAnalysisModule {
     return true;
   }
 
-  private void reportInference(Category c, String msg, IRNode loc) {
+  private void reportInference(
+      final IRNode loc, final Category c, final int msg, final Object... args) {
     InfoDrop id = new InfoDrop();
     // rd.addCheckedPromise(pd);
     id.setNodeAndCompilationUnitDependency(loc);
-    id.setMessage(msg);
     id.setCategory(c);
+    id.setResultMessage(msg, args);
   }
 
   private class FastVisitor extends Visitor<Object> {
@@ -90,20 +69,23 @@ public final class StaticStateDetector extends AbstractIRAnalysisModule {
       }
       IJavaType t = analysisContext.binder.getJavaType(FieldDeclaration.getType(fd));   
       if (isMutable) {
-        reportInference(isPublic? publicStaticFieldsCategory : staticFieldsCategory, 
-                        "static mutable field of type " + t.getName(), fd);
+        reportInference(fd,
+            isPublic ? Messages.DSC_PUBLIC_STATIC_FIELD : Messages.DSC_STATIC_FIELD,
+                Messages.FIELD, t.getName());
         return null;
       }   
       if (isImmutable(t)) {
         return null;
       }
       if (t instanceof IJavaArrayType || isArrayTyped(fd)) {
-        reportInference(isPublic? publicStaticArraysCategory : staticArraysCategory, 
-                        "static mutable array of type " + t.getName(), fd);
+        reportInference(fd,
+            isPublic ? Messages.DSC_PUBLIC_STATIC_ARRAY : Messages.DSC_STATIC_ARRAY,
+                Messages.ARRAY, t.getName());
       }
-      else if (isObjectTyped(t) && !intendedAsConstant(fd) && hasMutableFields(t)) {        
-        reportInference(isPublic? publicStaticObjectFieldsCategory : staticObjectFieldsCategory, 
-                        "static Object-typed field of type " + t.getName(), fd);
+      else if (isObjectTyped(t) && !intendedAsConstant(fd) && hasMutableFields(t)) {
+        reportInference(fd,
+            isPublic ? Messages.DSC_PUBLIC_STATIC_OBJECT_FIELD : Messages.DSC_STATIC_OBJECT_FIELD,
+                Messages.OBJECT_FIELD, t.getName());
       } 
       return Boolean.TRUE;
     }
