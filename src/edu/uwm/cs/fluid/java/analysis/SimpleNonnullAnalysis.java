@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.IBinderClient;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 
@@ -43,7 +44,7 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
  * the initialization of final variables).
  * @author boyland
  */
-public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice, JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice>> {
+public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice, JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice>> implements IBinderClient {
   public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>>, Lattice>> thunk) {
       super(thunk);
@@ -537,5 +538,15 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       System.out.println("Starting.");
       new Test().test(args);
     }
+  }
+
+
+
+  public IBinder getBinder() {
+    return binder;
+  }
+
+  public void clearCaches() {
+    clear();
   }
 }
