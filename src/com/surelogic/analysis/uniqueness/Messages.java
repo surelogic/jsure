@@ -5,7 +5,7 @@ import java.util.Map;
 
 import edu.cmu.cs.fluid.sea.Category;
 
-public class Messages  {
+public final class Messages  {
   private Messages() {
     // private constructor to prevent instantiation
   }

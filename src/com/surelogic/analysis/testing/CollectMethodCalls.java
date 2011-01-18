@@ -22,7 +22,7 @@ import edu.uwm.cs.fluid.util.UnionLattice;
  * testing the correctness of the control flow graph in regression tests.  
  */
 
-public class CollectMethodCalls extends IntraproceduralAnalysis<ImmutableSet<IRNode>, UnionLattice<IRNode>, JavaForwardAnalysis<ImmutableSet<IRNode>, UnionLattice<IRNode>>> implements IBinderClient {
+final class CollectMethodCalls extends IntraproceduralAnalysis<ImmutableSet<IRNode>, UnionLattice<IRNode>, JavaForwardAnalysis<ImmutableSet<IRNode>, UnionLattice<IRNode>>> implements IBinderClient {
   public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>, UnionLattice<IRNode>> {
     private Query(final Delegate<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>, UnionLattice<IRNode>> d) {
       super(d);

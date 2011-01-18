@@ -3,7 +3,7 @@ package com.surelogic.analysis.threads;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class Messages {  
+final class Messages {  
   private Messages() {
     // private constructor to prevent instantiation
   }

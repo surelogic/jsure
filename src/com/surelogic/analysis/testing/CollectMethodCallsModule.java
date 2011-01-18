@@ -1,10 +1,7 @@
 package com.surelogic.analysis.testing;
 
-import java.text.MessageFormat;
-
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.SimpleClassProcessor;
@@ -15,16 +12,11 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
-public class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMethodCalls, Void> {
-	private static final Category CM_CATEGORY = Category.getInstance("CMCategory");
-	
-	
-	
+public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMethodCalls, Void> {
 	public CollectMethodCallsModule() {
 		super("CMCategory");
 	}
@@ -97,11 +89,10 @@ public class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMet
       for (final IRNode call : calls) {      
         final InfoDrop drop = new InfoDrop();
         setResultDependUponDrop(drop, decl);
-        drop.setCategory(CM_CATEGORY);
+        drop.setCategory(Messages.DSC_COLLECT_METHOD_CALLS);
         final ISrcRef srcRef = JavaNode.getSrcRef(call);
         final int srcLine = srcRef == null ? -1 : srcRef.getLineNumber();
-        final String callString = DebugUnparser.toString(call);
-        drop.setMessage(MessageFormat.format("Calls {0} from line {1}", callString, srcLine));
+        drop.setResultMessage(Messages.CALLS, DebugUnparser.toString(call), srcLine);
       }
     }
   }

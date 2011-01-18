@@ -11,14 +11,11 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
-public class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, Void> {
-  private static final Category BCA_CATEGORY = Category.getInstance("BCACategory");
-	
+public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, Void> {
 	public BCAModule() {
 		super("BCACategory");
 	}
@@ -89,9 +86,10 @@ public class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, V
         final ImmutableSet<IRNode> bindings = currentQuery().getResultFor(use);
         final InfoDrop drop = new InfoDrop();
         setResultDependUponDrop(drop, use);
-        drop.setCategory(BCA_CATEGORY);
-        final String varName = VariableUseExpression.getId(use);
-        drop.setMessage("{0} binds to {1}", varName, BindingContext.setToString(bindings));
+        drop.setCategory(Messages.DSC_BCA);
+        drop.setResultMessage(Messages.BINDS_TO,
+            VariableUseExpression.getId(use),
+            BindingContext.setToString(bindings));
       }
       
       return null;

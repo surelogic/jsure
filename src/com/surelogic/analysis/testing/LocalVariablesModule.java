@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.testing;
 
 import java.util.Iterator;
@@ -11,13 +10,10 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
-public class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient, Void> {
-	private static final Category LV_CATEGORY = Category.getInstance("LVCategory");	
-	
+public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient, Void> {
 	public LocalVariablesModule() {
 		super("LVCategory");
 	}
@@ -56,9 +52,9 @@ public class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient,
 			final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(mdecl);
 			final InfoDrop drop = new InfoDrop();
 			setResultDependUponDrop(drop, mdecl);
-			drop.setCategory(LV_CATEGORY);
-			drop.setMessage("{0}: Local {1}; External {2}", 
-					JavaNames.genQualifiedMethodConstructorName(mdecl), 
+			drop.setCategory(Messages.DSC_LOCAL_VARIABLES);
+			drop.setResultMessage(Messages.LOCAL_VARS, 
+			    JavaNames.genQualifiedMethodConstructorName(mdecl), 
 					listToString(lvd.getLocal()), listToString(lvd.getExternal()));
 		}
 
