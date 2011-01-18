@@ -122,15 +122,15 @@ final class LockExpressions {
     
     public void addSingleThreadedEvidence(final ResultDropBuilder result) {
       if (isUniqueReturn) {
-        result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedUniqueReturn, uDrop);
+        result.addTrustedPromise_or(Messages.UNIQUE_RETURN, uDrop);
       }
       if (isBorrowedThis) {
-        result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedBorrowedThis, bDrop);
+        result.addTrustedPromise_or(Messages.BORROWED_RECEIVER, bDrop);
       }
       if (isEffects) {
         // Note: "by effects" has to be the same string to "and" the "or"
-        result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedEffects, eDrop);
-        result.addTrustedPromise_or(Messages.LockAnalysis_ds_SingleThreadedEffects, teDrop);
+        result.addTrustedPromise_or(Messages.DECLARED_EFFECTS, eDrop);
+        result.addTrustedPromise_or(Messages.DECLARED_EFFECTS, teDrop);
       }
     }
   }

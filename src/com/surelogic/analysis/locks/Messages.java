@@ -2,6 +2,8 @@ package com.surelogic.analysis.locks;
 
 import java.util.*;
 
+import com.surelogic.common.i18n.I18N;
+
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.util.AbstractMessages;
 
@@ -36,9 +38,9 @@ public final class Messages extends AbstractMessages {
   
   
   // Labels for the single-threaded result disjunction
-  public static final String LockAnalysis_ds_SingleThreadedUniqueReturn = "by unique return";
-  public static final String LockAnalysis_ds_SingleThreadedEffects = "by effects";
-  public static final String LockAnalysis_ds_SingleThreadedBorrowedThis = "by borrowed receiver";
+  public static final String BORROWED_RECEIVER = I18N.misc(200);
+  public static final String UNIQUE_RETURN = I18N.misc(201);
+  public static final String DECLARED_EFFECTS = I18N.misc(202);
 
 
   
