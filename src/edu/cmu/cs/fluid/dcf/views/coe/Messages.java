@@ -8,5 +8,5 @@ final class Messages {
   }
   
   
-  public static final Category DSC_UNPARENTED_DROP = Category.getInstance2(149);
+  public static final Category DSC_UNPARENTED_DROP = Category.getInstance(149);
 }

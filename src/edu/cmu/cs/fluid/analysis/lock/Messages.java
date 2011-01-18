@@ -9,12 +9,12 @@ final class Messages {
 
   
   
-  public static final Category DSC_PUBLIC_STATIC_FIELD = Category.getInstance2(70);
-  public static final Category DSC_PUBLIC_STATIC_OBJECT_FIELD = Category.getInstance2(71);
-  public static final Category DSC_PUBLIC_STATIC_ARRAY = Category.getInstance2(72);
-  public static final Category DSC_STATIC_FIELD = Category.getInstance2(73);
-  public static final Category DSC_STATIC_OBJECT_FIELD = Category.getInstance2(74);  
-  public static final Category DSC_STATIC_ARRAY = Category.getInstance2(75);
+  public static final Category DSC_PUBLIC_STATIC_FIELD = Category.getInstance(70);
+  public static final Category DSC_PUBLIC_STATIC_OBJECT_FIELD = Category.getInstance(71);
+  public static final Category DSC_PUBLIC_STATIC_ARRAY = Category.getInstance(72);
+  public static final Category DSC_STATIC_FIELD = Category.getInstance(73);
+  public static final Category DSC_STATIC_OBJECT_FIELD = Category.getInstance(74);  
+  public static final Category DSC_STATIC_ARRAY = Category.getInstance(75);
 
   
   
