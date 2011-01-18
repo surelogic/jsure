@@ -1190,7 +1190,7 @@ extends	AbstractResultsViewContentProvider {
 			if (id.isValid()
 					&& ((id.getChecks().isEmpty() && id.getTrusts().isEmpty()) || shouldBeTopLevel(id))) {
 				if (id.getCategory() == null) {
-					id.setCategory(Category.getInstance("unparented drops"));
+					id.setCategory(Messages.DSC_UNPARENTED_DROP);
 				}
 				root.add(encloseDrop((T) id));
 			}
