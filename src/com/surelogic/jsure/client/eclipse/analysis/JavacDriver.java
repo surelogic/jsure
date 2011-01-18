@@ -1593,7 +1593,11 @@ public class JavacDriver implements IResourceChangeListener {
 		
         AnalysisJob(Projects oldProjects, Projects projects, File target, File zips, boolean useSeparateJVM) {
             super("Running JSure on "+projects.getLabel(), projects, target, zips);
-            this.oldProjects = oldProjects;
+            if (useSeparateJVM) {
+            	this.oldProjects = null;
+            } else {
+            	this.oldProjects = oldProjects;
+            }
             this.useSeparateJVM = useSeparateJVM;
         }
 
