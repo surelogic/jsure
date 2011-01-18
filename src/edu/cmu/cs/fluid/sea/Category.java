@@ -92,14 +92,22 @@ public final class Category {
    *   the same <code>key</code> return the same instance
    * @return a category
    */
-  @Deprecated
   public static Category getInstance(final String key) {
     return getInstance(key, PrefixFormatter.INSTANCE);
   }
 
 
 
-  public static Category getInstance(
+  /**
+   * Returns an instance of a Category that is formatted according to the
+   * provided formatter.
+   * 
+   * @param key the unique identifier for the category, multiple calls with
+   *   the same <code>key</code> return the same instance
+   * @param formatter The formatter to use for the category.
+   * @return a category
+   */
+  private static Category getInstance(
       final String key, final CategoryFormatter formatter) {
     if (key == null) {
       return null;
@@ -114,7 +122,29 @@ public final class Category {
     }
   }
   
-  public static Category getInstance2(final int num) {
+  /**
+   * Returns an instance of a Category identified by the given id in the
+   * SureLogicResults properties file. The formatting of the category is
+   * determined by the key in the property file, which has the format
+   * <tt>category.formatter.nnnnn</tt>. Currently the formatters <tt>prefix</tt>
+   * and <tt>postfix</tt> are recognized. It is an error for a given identifier
+   * to appear in more than one key, for example
+   * 
+   * <pre>
+   * category.prefix.00010 = &hellip;
+   * category.postfix.00010 = &hellip;
+   * </pre>
+   * 
+   * Behavior in this case is undefined.
+   * 
+   * @param num
+   *          The category id to look up.
+   * @return a category
+   * @exception MissingResourceException
+   *              Thrown if no category key using the given id is found in the
+   *              SureLoficResults property file.
+   */
+  public static Category getInstance(final int num) {
     for (final CategoryFormatter formatter : FORMATTERS) {
       try {
         final String key = I18N.category(num, formatter.label());
@@ -155,7 +185,6 @@ public final class Category {
    *   the same <code>key</code> return the same instance
    * @return a category
    */
-  @Deprecated
   public static Category getResultInstance(String key) {
     return getInstance(key, PostfixFormatter.INSTANCE);
   }

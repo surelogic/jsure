@@ -16,24 +16,24 @@ public final class Messages extends AbstractMessages {
   
   
   // Drop-sea category messages
-  public static final Category DSC_LOCK_VIZ = Category.getInstance2(200);
-  public static final Category DSC_AGGREGATION_NEEDED = Category.getInstance2(201);
-  public static final Category DSC_FIELD_ACCESS_NOT_ASSURED = Category.getInstance2(202);
-  public static final Category DSC_FIELD_ACCESS_ASSURED = Category.getInstance2(203);
-  public static final Category DSC_PRECONDITIONS_ASSURED = Category.getInstance2(204);
-  public static final Category DSC_PRECONDITIONS_NOT_ASSURED = Category.getInstance2(205);
-  public static final Category DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED = Category.getInstance2(206);
-  public static final Category DSC_INDIRECT_FIELD_ACCESS_ASSURED = Category.getInstance2(207);
-  public static final Category DSC_RETURN_ASSURED = Category.getInstance2(208);
-  public static final Category DSC_RETURN_NOT_ASSURED = Category.getInstance2(209);
-  public static final Category DSC_UNIDENTIFIABLE_LOCK_WARNING = Category.getInstance2(210);
-  public static final Category DSC_SYNCHRONIZED_UNUSED_WARNING = Category.getInstance2(211);
-  public static final Category DSC_NONFINAL_EXPRESSION_WARNING = Category.getInstance2(212);
-  public static final Category DSC_REDUNDANT_SYNCHRONIZED = Category.getInstance2(213);
-  public static final Category DSC_MIXED_PARADIGM = Category.getInstance2(214);
-  public static final Category DSC_NOT_A_LOCK_METHOD = Category.getInstance2(215);
-  public static final Category DSC_MATCHING_CALLS = Category.getInstance2(216);
-  public static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance2(217);
+  public static final Category DSC_LOCK_VIZ = Category.getInstance(200);
+  public static final Category DSC_AGGREGATION_NEEDED = Category.getInstance(201);
+  public static final Category DSC_FIELD_ACCESS_NOT_ASSURED = Category.getInstance(202);
+  public static final Category DSC_FIELD_ACCESS_ASSURED = Category.getInstance(203);
+  public static final Category DSC_PRECONDITIONS_ASSURED = Category.getInstance(204);
+  public static final Category DSC_PRECONDITIONS_NOT_ASSURED = Category.getInstance(205);
+  public static final Category DSC_INDIRECT_FIELD_ACCESS_NOT_ASSURED = Category.getInstance(206);
+  public static final Category DSC_INDIRECT_FIELD_ACCESS_ASSURED = Category.getInstance(207);
+  public static final Category DSC_RETURN_ASSURED = Category.getInstance(208);
+  public static final Category DSC_RETURN_NOT_ASSURED = Category.getInstance(209);
+  public static final Category DSC_UNIDENTIFIABLE_LOCK_WARNING = Category.getInstance(210);
+  public static final Category DSC_SYNCHRONIZED_UNUSED_WARNING = Category.getInstance(211);
+  public static final Category DSC_NONFINAL_EXPRESSION_WARNING = Category.getInstance(212);
+  public static final Category DSC_REDUNDANT_SYNCHRONIZED = Category.getInstance(213);
+  public static final Category DSC_MIXED_PARADIGM = Category.getInstance(214);
+  public static final Category DSC_NOT_A_LOCK_METHOD = Category.getInstance(215);
+  public static final Category DSC_MATCHING_CALLS = Category.getInstance(216);
+  public static final Category DSC_UNSUPPORTED_MODEL = Category.getInstance(217);
 
   
   

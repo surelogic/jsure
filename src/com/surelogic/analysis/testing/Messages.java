@@ -9,10 +9,10 @@ final class Messages  {
 
   
   
-  public static final Category DSC_BCA = Category.getInstance2(500);
-  public static final Category DSC_COLLECT_METHOD_CALLS = Category.getInstance2(510);
-  public static final Category DSC_LOCAL_VARIABLES = Category.getInstance2(520);
-  public static final Category DSC_NON_NULL = Category.getInstance2(530);
+  public static final Category DSC_BCA = Category.getInstance(500);
+  public static final Category DSC_COLLECT_METHOD_CALLS = Category.getInstance(510);
+  public static final Category DSC_LOCAL_VARIABLES = Category.getInstance(520);
+  public static final Category DSC_NON_NULL = Category.getInstance(530);
   
   
   

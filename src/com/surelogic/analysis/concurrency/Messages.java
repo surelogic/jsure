@@ -11,9 +11,9 @@ final class Messages {
 
   
   
-  public static final Category DSC_THREAD_CREATION = Category.getInstance2(50);
-  public static final Category DSC_RUNNABLE_CREATION = Category.getInstance2(51);
-  public static final Category DSC_THREAD_STARTS = Category.getInstance2(52);
+  public static final Category DSC_THREAD_CREATION = Category.getInstance(50);
+  public static final Category DSC_RUNNABLE_CREATION = Category.getInstance(51);
+  public static final Category DSC_THREAD_STARTS = Category.getInstance(52);
 
   
   

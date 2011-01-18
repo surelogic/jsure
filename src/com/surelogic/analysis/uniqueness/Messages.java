@@ -12,8 +12,8 @@ public final class Messages  {
 
   
   
-  public static final Category DSC_UNIQUE_PARAMS_SATISFIED = Category.getInstance2(300);
-  public static final Category DSC_UNIQUE_PARAMS_UNSATISFIED = Category.getInstance2(301);
+  public static final Category DSC_UNIQUE_PARAMS_SATISFIED = Category.getInstance(300);
+  public static final Category DSC_UNIQUE_PARAMS_UNSATISFIED = Category.getInstance(301);
   
   
   

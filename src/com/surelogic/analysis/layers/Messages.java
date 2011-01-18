@@ -12,7 +12,7 @@ public final class Messages {
 
 
   
-  public static final Category DSC_LAYERS_ISSUES = Category.getInstance2(350);
+  public static final Category DSC_LAYERS_ISSUES = Category.getInstance(350);
   
 
   
