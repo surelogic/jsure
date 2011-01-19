@@ -10,6 +10,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 
 import edu.cmu.cs.fluid.dcf.views.*;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
 
 public class ProposedPromiseView extends AbstractResultsTableView<IProposedPromiseDropInfo> {
@@ -40,7 +41,13 @@ public class ProposedPromiseView extends AbstractResultsTableView<IProposedPromi
 	protected void fillContextMenu(final IMenuManager manager,
 			final IStructuredSelection s) {
 		if (!s.isEmpty()) {
-			manager.add(f_annotate);
+			for (Object o : s.toArray()) {
+				final IProposedPromiseDropInfo p = (IProposedPromiseDropInfo) o;
+				ISrcRef ref = p.getSrcRef();
+				if (ref != null) {
+					manager.add(f_annotate);
+				}
+			}
 		}
 	}
 }
