@@ -5,7 +5,6 @@ Bundle-SymbolicName: edu.cmu.cs.fluid
 Bundle-Version: 3.2.2.qualifier
 Bundle-ClassPath: fluid.jar,
  lib/jars/sablejbdd-0.02.jar,
- lib/jars/collections-generic-4.0.jar,
  lib/jars/log4j-xml-1.3alpha-8.jar,
  lib/jars/log4j-1.3alpha-8.jar
 Bundle-Vendor: SureLogic, Inc.
@@ -133,20 +132,7 @@ Export-Package: .,
  edu.uwm.cs.fluid.java.analysis,
  edu.uwm.cs.fluid.java.control,
  edu.uwm.cs.fluid.tree,
- edu.uwm.cs.fluid.util,
- org.apache.commons.collections15,
- org.apache.commons.collections15.bag,
- org.apache.commons.collections15.bidimap,
- org.apache.commons.collections15.buffer,
- org.apache.commons.collections15.collection,
- org.apache.commons.collections15.comparators,
- org.apache.commons.collections15.functors,
- org.apache.commons.collections15.iterators,
- org.apache.commons.collections15.keyvalue,
- org.apache.commons.collections15.list,
- org.apache.commons.collections15.map,
- org.apache.commons.collections15.multimap,
- org.apache.commons.collections15.set
+ edu.uwm.cs.fluid.util
 Require-Bundle: org.junit,
  com.surelogic.common,
  com.surelogic.jsure.message
