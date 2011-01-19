@@ -13,11 +13,10 @@
 	<!--  X         XXX    XXX X    XXX    XXX X                             -->
 	<!--                                                                     -->
 	<!--  COTS REQUIREMENTS:                                                 -->
-	<!--   JDK, ant, perl (OS: Solaris, Linux, Windows or Mac)               -->
-	<!--   Make sure that "javac", "ant", and "perl" are in your path and    -->
+	<!--   JDK, ant (OS: Solaris, Linux, Windows or Mac)                     -->
 	<!--                                                                     -->
 	<!--  PROPERTIES FILE DETAILS:                                           -->
-	<!--   Either "fluid-build.properities" or ".fluid-build.properties"     -->
+	<!--   Optionally "fluid-build.properities" or ".fluid-build.properties" -->
 	<!--   must exist in "user.home" (as defined by the JRE). Even under     -->
 	<!--   MS Windows use "/" as the directory separator.                    -->
 	<!--                                                                     -->
@@ -31,10 +30,6 @@
 	<!--           fluid.java.skip="fluid/ir/Persistent.java,**/tmp/**"      -->
 	<!--           (Skips "Persistent.java" and anything under any           -->
 	<!--            directory named "tmp")                                   -->
-	<!--     [Special properties for building "ppt9mon" source tree]         -->
-	<!--     "fluid.ms.visual.studio" path to Visual Studio                  -->
-	<!--     "fluid.ms.platform.sdk" path to Microsoft SDK                   -->
-	<!--     "fluid.ms.ppt.dir" path to PowerPoint                           -->
 	<!--                                                                     -->
 	<!--   Property File Location Redirection (**MS Windows**)               -->
 	<!--   The location of "fluid-build.properties" may be redirected from   -->
