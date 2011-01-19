@@ -147,7 +147,7 @@ public final class Category {
   public static Category getInstance(final int num) {
     for (final CategoryFormatter formatter : FORMATTERS) {
       try {
-        final String key = I18N.category(num, formatter.label());
+        final String key = I18N.category(formatter.label(), num);
         if (key == null) {
           return null;
         }
