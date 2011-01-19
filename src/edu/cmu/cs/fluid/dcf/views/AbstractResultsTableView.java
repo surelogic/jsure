@@ -101,11 +101,17 @@ public abstract class AbstractResultsTableView<T extends IDropInfo> extends Abst
 				String t1 = lp.getColumnText(e1, colIdx);
 				String t2 = lp.getColumnText(e2, colIdx);
 				if (intSort) {
-					return Integer.parseInt(t1) - Integer.parseInt(t2);
+					return parseInt(t1) - parseInt(t2);
 				}
 				return t1.compareTo(t2);
 			}
-			
+			private int parseInt(String i) {
+				try {
+					return Integer.parseInt(i);
+				} catch(NumberFormatException e) {
+					return Integer.MIN_VALUE; // Not a number
+				}
+			}
 		};
 	}
 	
