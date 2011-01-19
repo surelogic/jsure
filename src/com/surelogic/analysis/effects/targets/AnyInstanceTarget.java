@@ -52,7 +52,13 @@ public final class AnyInstanceTarget extends AbstractTarget {
   // Force use of the target factories
   AnyInstanceTarget(final IJavaReferenceType c, final IRegion r) {
     super(r);
-    if (c == null ) {
+    
+    // Region cannot be static: use class target
+    if (r.isStatic()) {
+      throw new IllegalArgumentException("Region cannot be static: use a ClassTarget instead");
+    }
+
+    if (c == null) {
       throw new IllegalArgumentException("The class parameter is null");
     }
     else if (!(c instanceof IJavaDeclaredType) && !(c instanceof IJavaArrayType)) {
@@ -61,8 +67,13 @@ public final class AnyInstanceTarget extends AbstractTarget {
     clazz = c;
   }
 
-  public AnyInstanceTarget setRegion(final IRegion newRegion) {
-    return new AnyInstanceTarget(clazz, newRegion);
+  public Target degradeRegion(final IRegion newRegion) {
+    checkNewRegion(newRegion);
+    if (newRegion.isStatic()) {
+      return new ClassTarget(newRegion, null);
+    } else {
+      return new AnyInstanceTarget(clazz, newRegion);
+    }
   }
   
   public IJavaType getRelativeClass(final IBinder binder) {

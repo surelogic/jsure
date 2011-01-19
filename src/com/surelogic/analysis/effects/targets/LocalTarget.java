@@ -51,7 +51,7 @@ public final class LocalTarget extends AbstractTarget {
     var = v;
   }
   
-  public LocalTarget setRegion(final IRegion newRegion) {
+  public LocalTarget degradeRegion(final IRegion newRegion) {
     // doesn't use the region, so return self
     return this;
   }

@@ -89,6 +89,12 @@ abstract class AbstractTarget implements Target {
     return region;
   }
 
+  protected final void checkNewRegion(final IRegion newRegion) {
+    if (!newRegion.ancestorOf(region)) {
+      throw new IllegalArgumentException("New region is not an ancestor of the old region");
+    }
+  }
+    
   // Only instance or class targets have elaboration evidence
   public ElaborationEvidence getElaborationEvidence() {
     return null;

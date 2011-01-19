@@ -25,9 +25,14 @@ public interface Target {
   public IRegion getRegion();
   
   /**
-   * Get an identical target except that points to a new region.
+   * Update the region to the given ancestor region. May change the type of
+   * target if the new region is static.
+   * 
+   * @exception IllegalArgumentException
+   *              thrown if <code>newRegion</code> is not an ancestor of the
+   *              target's current region.
    */
-  public Target setRegion(IRegion newRegion);
+  public Target degradeRegion(IRegion newRegion);
 
   /**
    * Get the evidence chain describing the targets this target was

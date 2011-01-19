@@ -61,8 +61,13 @@ public final class InstanceTarget extends AbstractTarget {
     elabEvidence = ee;
   }
   
-  public InstanceTarget setRegion(final IRegion newRegion) {
-    return new InstanceTarget(reference, newRegion, elabEvidence);
+  public Target degradeRegion(final IRegion newRegion) {
+    checkNewRegion(newRegion);
+    if (newRegion.isStatic()) {
+      return new ClassTarget(newRegion, elabEvidence);
+    } else {
+      return new InstanceTarget(reference, newRegion, elabEvidence);
+    }
   }
   
   public IJavaType getRelativeClass(final IBinder binder) {

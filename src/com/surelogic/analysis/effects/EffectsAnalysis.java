@@ -232,7 +232,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	    }
 	  }
 	  
-	  return target.setRegion(region);
+	  return target.degradeRegion(region);
 	}
 	
 	private boolean equals(String s1, String s2) {

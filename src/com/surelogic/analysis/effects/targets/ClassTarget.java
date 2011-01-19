@@ -27,7 +27,8 @@ public final class ClassTarget extends AbstractTarget {
     elabEvidence = evidence;
   }
   
-  public ClassTarget setRegion(final IRegion newRegion) {
+  public ClassTarget degradeRegion(final IRegion newRegion) {
+    checkNewRegion(newRegion);
     return new ClassTarget(newRegion, elabEvidence);
   }
   
