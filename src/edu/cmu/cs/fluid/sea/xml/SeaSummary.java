@@ -684,6 +684,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					} else {
 						continue; // Skip this attribute
 					}
+				} else {
+					a_n = a_n.trim();
 				}
 			    if (a_o == null) {				
 					if (nullMeansFalse) {
@@ -691,7 +693,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					} else {
 						continue; // Skip this attribute
 					}
-				}		
+				} else {
+					a_o = a_o.trim();
+				}
 				/*
 				// Temporary
 				a_n = a_n.replaceAll("  on  ", " on ");
