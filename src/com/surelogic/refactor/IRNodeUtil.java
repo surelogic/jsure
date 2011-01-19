@@ -26,7 +26,7 @@ public class IRNodeUtil {
 				final String name = MethodDeclaration.getId(decl);
 				final String[] paramNames = getParamTypes(binder,
 						MethodDeclaration.getParams(decl));
-				return new Method((TypeContext) parent, name, paramNames);
+				return new Method((TypeContext) parent, name, paramNames, JavaNode.wasImplicit(decl));
 			}
 			if (TypeDeclaration.prototype.includes(op)) {
 				// TODO fix to handle method/initializer as parent
@@ -53,7 +53,7 @@ public class IRNodeUtil {
 				final String[] paramNames = getParamTypes(binder,
 						ConstructorDeclaration.getParams(decl));
 				return new Method((TypeContext) parent, type.getName(),
-						paramNames);
+						paramNames, JavaNode.wasImplicit(decl));
 			}
 			if (ParameterDeclaration.prototype.includes(op)) {
 				final IRLocation loc = JJNode.tree.getLocation(decl);
