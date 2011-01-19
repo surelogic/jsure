@@ -19,8 +19,16 @@ public final class ProposedPromiseContentProvider extends AbstractResultsTableCo
 				.filterOutDuplicates(Sea.getDefault().getDropsOfType(
 						ProposedPromiseDrop.class));
 		for (ProposedPromiseDrop id : proposedPromiseDrops) {
-			if (id != null)
+			if (id != null && id.getSrcRef() != null) {
+				// TODO omit annotations on implicitly created methods in enums?
+				/*
+				if (id.getSrcRef() == null) {
+					System.out.println("Got proposal on "+DebugUnparser.toString(id.getNode())+" in "+
+							JavaNames.getFullTypeName(VisitUtil.getEnclosingType(id.getNode())));
+				}
+				*/
 				contents.add(id);
+			}
 		}
 		Collections.sort(contents, sortAsString);
 	}
