@@ -5,6 +5,14 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 
+/* Doesn't handle type parameters.  Should check for assignment compatibility,
+ * not subtype relationship.
+ * 
+ * Also the whole IALiasAnlaysis interface seems too heavy weight.  I inherited
+ * this from John Boyland, but I don't think we ever had any other real
+ * implementations of it.
+ */
+@Deprecated
 public final class TypeBasedAliasAnalysis implements IAliasAnalysis {
   /**
    * We don't actually care about the flow unit that contains the
