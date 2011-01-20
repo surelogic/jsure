@@ -1,0 +1,71 @@
+<antlib>
+	<!-- For ant < 1.6 -->
+	<taskdef resource="sl-tasks.properties"/>
+	
+	<taskdef
+        name="importeclipseprojects"
+        classname="com.surelogic.ant.tasks.ImportEclipseProject"
+        onerror="ignore"
+    />
+    
+	<taskdef
+        name="generatebuildproperties"
+        classname="com.surelogic.ant.tasks.GenerateBuildProperties"
+        onerror="ignore"
+    />
+
+	<taskdef
+        name="findfile"
+        classname="com.surelogic.ant.tasks.FindFile"
+        onerror="ignore"
+    />
+
+	<taskdef
+        name="directorylist"
+        classname="com.surelogic.ant.tasks.DirectoryList"
+        onerror="ignore"
+    />
+
+	<taskdef
+        name="testresults"
+        classname="com.surelogic.ant.tasks.TestResults"
+        onerror="ignore"
+    />
+
+	<taskdef
+        name="filenamefrompath"
+        classname="com.surelogic.ant.tasks.FilenameFromPath"
+        onerror="ignore"
+    />
+
+	<taskdef
+        name="getfileextension"
+        classname="com.surelogic.ant.tasks.GetFileExtension"
+        onerror="ignore"
+    />
+
+	<taskdef
+        name="createsitexml"
+        classname="com.surelogic.ant.tasks.CreateSiteXml"
+        onerror="ignore"
+    />
+
+	<taskdef
+        name="getlatestcvstag"
+        classname="com.surelogic.ant.tasks.GetLatestCVSTag"
+        onerror="ignore"
+    />
+
+	<taskdef
+        name="geteclipseversion"
+        classname="com.surelogic.ant.tasks.GetEclipseVersion"
+        onerror="ignore"
+    />
+
+	<taskdef
+        name="getpluginsfromfeature"
+        classname="com.surelogic.ant.tasks.GetPluginsFromFeature"
+        onerror="ignore"
+    />
+
+</antlib>
