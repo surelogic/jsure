@@ -248,7 +248,7 @@ public final class PackageLevelPreprocessing extends
 					String src = icu.getSource();
 					if (pd != null) {
 						ISrcRef srcRef = SrcRef.getInstance(pd, cu, resource, src);
-						pkg.node.setSlotValue(JavaNode.getSrcRefSlotInfo(), srcRef);
+						JavaNode.setSrcRef(pkg.node, srcRef);
 					}
 					parsePackagePromises(pkg);
 				} catch (JavaModelException e) {
