@@ -19,7 +19,7 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
     
     ISrcRef ref = JavaNode.getSrcRef(classNode);
     if (ref != null) {
-    	node.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
+    	JavaNode.setSrcRef(node, ref);
     }
     return node;    
   }
