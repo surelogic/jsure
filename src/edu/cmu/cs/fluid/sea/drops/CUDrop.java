@@ -12,14 +12,13 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
- * Drop representating a compilation unit, suitable for promise and result drops
+ * Drop representing a compilation unit, suitable for promise and result drops
  * to depend upon.  Created and invalidated by the eAST to fAST converter.
  * 
  * @see edu.cmu.cs.fluid.analysis.util.ConvertToIR
@@ -29,8 +28,6 @@ public abstract class CUDrop extends Drop {
   
   protected final CodeInfo info;
   public final String javaOSFileName;
-  
-  public AnalysisContext analysisContext;
 
   public final IRNode cu;
   

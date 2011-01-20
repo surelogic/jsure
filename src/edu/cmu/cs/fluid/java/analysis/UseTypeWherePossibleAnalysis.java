@@ -20,9 +20,7 @@ public final class UseTypeWherePossibleAnalysis {
   private static final Logger LOG = SLLogger
       .getLogger("FLUID.analysis.useTypeWherePossible");
 
-  //private static final String REPORT_CATEGORY = "Type Use Guidance";
-
-  private final AnalysisContext analysisContext;
+  private final IBinder binder;
 
   /**
    * Filled in by UseTypeWherePossibleAnnotation
@@ -106,11 +104,11 @@ public final class UseTypeWherePossibleAnalysis {
   }
 
   private IRNode getBinding(final IRNode n) {
-    return analysisContext.binder.getBinding(n);
+    return binder.getBinding(n);
   }
   
   private IJavaType getJavaType(final IRNode n) {
-    return analysisContext.binder.getJavaType(n);
+    return binder.getJavaType(n);
   }
 
   /**
@@ -298,7 +296,6 @@ public final class UseTypeWherePossibleAnalysis {
 
     typesContiningMethodList.add(getEnclosingType(methodDeclaration));
 
-    IBinder binder = analysisContext.binder;
     for (Iterator<IRNode> i = binder.findOverriddenMethods(methodDeclaration); i
         .hasNext();) {
       IRNode m = i.next();
@@ -413,8 +410,8 @@ public final class UseTypeWherePossibleAnalysis {
     }
   }
 
-  public UseTypeWherePossibleAnalysis(final AnalysisContext ac) {
-    analysisContext = ac;
+  public UseTypeWherePossibleAnalysis(final IBinder b) {
+    binder = b;
   }
 
   public void analyzeCompilationUnit(final IRNode compUnit) {

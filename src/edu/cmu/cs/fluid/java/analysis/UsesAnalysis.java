@@ -9,6 +9,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -21,7 +22,7 @@ public final class UsesAnalysis {
 
   private static final String REPORT_CATEGORY = "Program Structure";
 
-  private final AnalysisContext analysisContext;
+  private final IBinder binder;
 
   /**
    * Filled in by UseTypeWherePossibleAnnotation
@@ -67,7 +68,7 @@ public final class UsesAnalysis {
   }
 
   private IRNode getBinding(final IRNode n) {
-    return analysisContext.binder.getBinding(n);
+    return binder.getBinding(n);
   }
 
   /**
@@ -205,8 +206,8 @@ public final class UsesAnalysis {
     }
   }
 
-  public UsesAnalysis(final AnalysisContext ac) {
-    analysisContext = ac;
+  public UsesAnalysis(final IBinder b) {
+    binder = b;
   }
 
   public void analyzeCompilationUnit(final IRNode compUnit) {

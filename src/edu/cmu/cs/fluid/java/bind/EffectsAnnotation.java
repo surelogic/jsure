@@ -11,10 +11,8 @@ import java.util.Set;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.CogenUtil;
@@ -319,9 +317,6 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
       return true;
     }
 
-    @SuppressWarnings("unused")
-    private AnalysisContext analysisContext;
-
     /**
      * @see edu.cmu.cs.fluid.java.bind.IPromiseCheckRule#checkSanity(edu.cmu.cs.fluid.tree.Operator,
      *      edu.cmu.cs.fluid.ir.IRNode)
@@ -388,8 +383,6 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
       /* This is redundnat, and I should find a better way of generating
        * the label.
        */
-      analysisContext = AnalysisContext.getContext(
-          IDE.getInstance().getTypeEnv().getBinder());
       final Set<Effect> declFx = 
         Effects.getDeclaredMethodEffects(promisedFor, promisedFor);
       
