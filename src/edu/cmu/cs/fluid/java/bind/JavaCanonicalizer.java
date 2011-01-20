@@ -166,7 +166,7 @@ public class JavaCanonicalizer {
   protected void copySrcRef(IRNode orig, IRNode sub) {
 	  ISrcRef ref = JavaNode.getSrcRef(orig);
 	  if (ref != null) {
-		  sub.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
+		  JavaNode.setSrcRef(sub, ref);
 	  }
   }
   

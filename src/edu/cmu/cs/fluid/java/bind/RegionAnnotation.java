@@ -644,7 +644,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
           if (vdecl != null) {
             final IRNode region2 = copyRegion(region);
             if (ref != null) {
-              region2.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
+              JavaNode.setSrcRef(region2, ref);
             }
             setFieldRegion(vdecl, region2);
             results.add(region2);

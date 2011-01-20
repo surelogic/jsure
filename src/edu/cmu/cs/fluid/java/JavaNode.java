@@ -387,10 +387,17 @@ public class JavaNode extends JJNode {
    * Returns the SlotInfo to access the source code reference information
    * within Java IR nodes.
    */
-  public static SlotInfo<ISrcRef> getSrcRefSlotInfo() {
+  private static SlotInfo<ISrcRef> getSrcRefSlotInfo() {
     return f_srcRefSlotInfo;
   }  
 
+  public static void setSrcRef(IRNode node, ISrcRef ref) {
+	  if (ref == null) {
+		  return;
+	  }
+	  node.setSlotValue(getSrcRefSlotInfo(), ref);
+  }
+  
   /**
    * Given an IRNode from a Java AST, this method returns the node's Java
    * source code reference information, or null if no source code reference

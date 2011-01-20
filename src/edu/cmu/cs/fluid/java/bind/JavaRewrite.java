@@ -38,6 +38,12 @@ public class JavaRewrite implements JavaGlobals {
 	private void markAsAdded(IRNode parent, IRNode n) {
 		added.add(n);
 		JavaNode.setImplicit(n);
+		IRNode decl = VisitUtil.getClosestDecl(parent);
+		ISrcRef ref = JavaNode.getSrcRef(decl);
+		if (ref != null) {
+			System.out.println("Adding ref to "+JavaNames.genQualifiedMethodConstructorName(n)+": "+n);
+			JavaNode.setSrcRef(n, ref);
+		}
 		/*
 		boolean found = false;
 		for(IRNode c : JJNode.tree.children(parent)) {
@@ -194,7 +200,6 @@ public class JavaRewrite implements JavaGlobals {
 		final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
 
 		// Post-process nodes to generate a SrcRef?
-		final SlotInfo<ISrcRef> si = JavaNode.getSrcRefSlotInfo();
 		for (IRNode n : added) {
 			Operator op = jtree.getOperator(n);
 
@@ -266,11 +271,11 @@ public class JavaRewrite implements JavaGlobals {
 				}
 				
 				ISrcRef ref = makeDummyRef(pRef, true);
-				markSubtree(si, n, ref);
+				markSubtree(n, ref);
 			} else if (op instanceof MethodDeclaration) {
 				IRNode p = jtree.getParentOrNull(n);
 				ISrcRef pRef = JavaNode.getSrcRef(p);
-				n.setSlotValue(JavaNode.getSrcRefSlotInfo(), pRef);
+				JavaNode.setSrcRef(n, pRef);
 			} else {
 				LOG.severe("Unexpected AST nodes: " + op);
 			}
@@ -292,12 +297,11 @@ public class JavaRewrite implements JavaGlobals {
 		return result;
 	}
 	
-	private void markSubtree(final SlotInfo<ISrcRef> si, final IRNode n,
-			final ISrcRef ref) {
+	private void markSubtree(final IRNode n, final ISrcRef ref) {
 		Iterator<IRNode> enm = jtree.topDown(n);
 		while (enm.hasNext()) {
 			IRNode node = enm.next();
-			node.setSlotValue(si, ref);
+			JavaNode.setSrcRef(node, ref);
 		}
 	}
 	

@@ -715,7 +715,7 @@ public final class ScopedPromises extends AbstractPromiseAnnotation {
       super.parsed(n);
 
       if (ref != null) {
-        n.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
+    	JavaNode.setSrcRef(n, ref);
         if (LOG.isLoggable(Level.FINE)) {
           LOG.fine("ref = " + ref.toString());
         }

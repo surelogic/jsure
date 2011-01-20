@@ -164,9 +164,9 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       final ISrcRef ref = 
     	  new NamedSrcRef("java.lang."+PromiseConstants.REGION_ELEMENT_NAME, "java.lang", 
     			          PromiseConstants.REGION_ELEMENT_NAME);
-      privateCloneMethod.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
-      privateLengthField.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
-      privateArrayType.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
+      JavaNode.setSrcRef(privateCloneMethod, ref);
+      JavaNode.setSrcRef(privateLengthField, ref);
+      JavaNode.setSrcRef(privateArrayType, ref);
       
       //privateArrayType.setSlotValue(qnameSI, "<array superclass>");  
       //System.out.println("arrayType = "+arrayType);

@@ -176,7 +176,7 @@ public class AbstractAdapter {
 				if (makeSrcRefs) {
 					String name = JavaNames.getFullTypeName(n);
 					ISrcRef ref = new NamedSrcRef(name, pkg, cu);
-					n.setSlotValue(JavaNode.getSrcRefSlotInfo(), ref);
+					JavaNode.setSrcRef(n, ref);
 				}
 			}
 		}
