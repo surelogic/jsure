@@ -19,7 +19,6 @@ import edu.cmu.cs.fluid.analysis.util.ConvertToIR;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -46,8 +45,6 @@ public final class ColorAssurance
   private static ITypeEnvironment tEnv;
 
  
-  private IBinder binder;
-
   static private class ResultsDepDrop extends Drop {
   }
 
@@ -101,7 +98,6 @@ public final class ColorAssurance
     
     // Setup some fluid analysis stuff (Check that this is correct)
     tEnv = Eclipse.getDefault().getTypeEnv(project);
-    binder = tEnv.getBinder();
   }
 
   /**
@@ -136,10 +132,6 @@ public final class ColorAssurance
     AbstractFluidAnalysisModule.runInVersion(new AbstractRunner() {
       public void run() {
         LOG.info("Finishing color assurance");
-        
-        analysisContext = AnalysisContext.getContext(Eclipse.getDefault()
-                                                     .getTypeEnv(project).getBinder());
-        
         TRoleSecondPass.getInstance().cspEnd(resultDependUpon, binder);
         LOG.info("Color Assurance complete.");
       }

@@ -24,8 +24,6 @@ public class ModuleAnalysis2 extends AbstractWholeIRAnalysisModule {
 
 	ITypeEnvironment tEnv = null;
 
-	IBinder binder = null;
-
 	public ModuleAnalysis2() {
 		super(ParserNeed.NEW);
 	}
@@ -40,7 +38,6 @@ public class ModuleAnalysis2 extends AbstractWholeIRAnalysisModule {
 
 		// Setup some fluid analysis stuff (Check that this is correct)
 		tEnv = Eclipse.getDefault().getTypeEnv(project);
-		binder = tEnv.getBinder();
 
 		// Hashtable options = JavaCore.getOptions();
 	    /*

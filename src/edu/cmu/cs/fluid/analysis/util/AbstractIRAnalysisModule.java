@@ -2,9 +2,7 @@ package edu.cmu.cs.fluid.analysis.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,7 +20,7 @@ import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.SourceCUDrop;
@@ -51,7 +49,7 @@ public abstract class AbstractIRAnalysisModule extends
 
   protected final boolean useAssumptions = useAssumptions();
 
-  protected AnalysisContext analysisContext;
+  protected IBinder binder;
 
   protected CompilationUnit f_ast;
   
@@ -92,6 +90,7 @@ public abstract class AbstractIRAnalysisModule extends
   @Override
   public void analyzeBegin(IProject p) {
     super.analyzeBegin(p);
+    binder = Eclipse.getDefault().getTypeEnv(p).getBinder();
     msgPrefix = "Running " + getLabel() + " on file: ";
     
     if (lastProjectAnalyzed != p) {
@@ -114,10 +113,7 @@ public abstract class AbstractIRAnalysisModule extends
       constructionOfIRAnalysisNeeded = false;
       runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 
-        @SuppressWarnings("deprecation")
-		public void run() {
-          analysisContext = AnalysisContext.getContext(Eclipse.getDefault()
-              .getTypeEnv(getProject()).getBinder());
+        public void run() {
           constructIRAnalysis();
         }
       });
@@ -138,9 +134,6 @@ public abstract class AbstractIRAnalysisModule extends
     	result = null;
         try {
           if (drop != null) {
-            if (drop.analysisContext == null) {
-              drop.analysisContext = analysisContext;
-            }            
             if (LOG.isLoggable(Level.FINE) && javaFile != null) {
               LOG.fine(msgPrefix + javaFile.getElementName());
             }

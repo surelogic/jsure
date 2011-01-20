@@ -21,7 +21,6 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IHasBinding;
 import edu.cmu.cs.fluid.java.bind.IHasType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
@@ -66,13 +65,10 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
   protected boolean useAssumptions() {
     return false;
   }
-
-  private IBinder binder;
   
   @Override
   public void analyzeBegin(IProject p) {
     super.analyzeBegin(p);
-    binder = Eclipse.getDefault().getTypeEnv(p).getBinder();
     PromiseFramework.getInstance().setBinder(binder);
   }
   
@@ -181,9 +177,6 @@ public final class PromiseScrubber extends AbstractQueuedIRAnalysisModule {
   }
 
   private void processClassFile(CUDrop drop) {
-    if (drop != null) {
-      drop.analysisContext = analysisContext;
-    }
     if (LOG.isLoggable(Level.FINE)) {
       LOG.fine("Scrubbing IType " + drop.javaOSFileName);
     }

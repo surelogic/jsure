@@ -46,7 +46,6 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -117,8 +116,6 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 
 		String javaFileSource;
 
-		public AnalysisContext analysisContext;
-
 		public IRNode cu;
 
 		/**
@@ -130,7 +127,6 @@ public final class ConvertToIR extends AbstractFluidAnalysisModule<Void> {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private String javaFileSource;
 
 	private String javaOSFileName;

@@ -20,7 +20,6 @@ import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
-import edu.cmu.cs.fluid.java.analysis.AnalysisContext;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.util.AbstractRunner;
@@ -61,8 +60,6 @@ public final class ColorZerothPass extends AbstractIRAnalysisModule {
 
   private static ITypeEnvironment tEnv;
 
-  private IBinder binder;
-
   //private EclipseBinder eBinder;
 
   private QueuingSrcNotifyListener listener = new QueuingSrcNotifyListener();
@@ -89,7 +86,6 @@ public final class ColorZerothPass extends AbstractIRAnalysisModule {
 
     // Setup some fluid analysis stuff (Check that this is correct)
     tEnv = Eclipse.getDefault().getTypeEnv(project);
-    binder = tEnv.getBinder();
 
     runInVersion(new AbstractRunner() {
 
@@ -97,7 +93,6 @@ public final class ColorZerothPass extends AbstractIRAnalysisModule {
         CodeInfo info;
         IRNode cu;
 
-        AnalysisContext ac = AnalysisContext.getContext(binder);
         TRolesFirstPass.getInstance().trfpStart(binder);
 
 

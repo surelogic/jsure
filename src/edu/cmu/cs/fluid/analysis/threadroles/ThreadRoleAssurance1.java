@@ -39,8 +39,6 @@ public class ThreadRoleAssurance1 extends AbstractWholeIRAnalysisModule {
   private static int cuCount = 0;
 
   private static ITypeEnvironment tEnv;  
- 
-  private IBinder binder;
 
   static private class ResultsDepDrop extends Drop {
   }
@@ -95,7 +93,6 @@ public class ThreadRoleAssurance1 extends AbstractWholeIRAnalysisModule {
     
     // Setup some fluid analysis stuff (Check that this is correct)
     tEnv = Eclipse.getDefault().getTypeEnv(project);
-    binder = tEnv.getBinder();
   }
 
   /**

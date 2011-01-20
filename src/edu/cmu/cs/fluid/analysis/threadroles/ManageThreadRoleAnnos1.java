@@ -27,10 +27,6 @@ public class ManageThreadRoleAnnos1 extends AbstractIRAnalysisModule {
 
   private static ITypeEnvironment tEnv;
 
-  private IBinder binder;
-
-  //private EclipseBinder eBinder;
-
   private QueuingSrcNotifyListener listener = new QueuingSrcNotifyListener();
 
   public ManageThreadRoleAnnos1() {
@@ -56,7 +52,6 @@ public class ManageThreadRoleAnnos1 extends AbstractIRAnalysisModule {
     
     // Setup some fluid analysis stuff (Check that this is correct)
     tEnv = Eclipse.getDefault().getTypeEnv(project);
-    binder = tEnv.getBinder();
 
     runInVersion(new AbstractRunner() {
 

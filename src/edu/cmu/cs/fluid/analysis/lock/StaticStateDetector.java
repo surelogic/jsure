@@ -55,8 +55,8 @@ public final class StaticStateDetector extends AbstractIRAnalysisModule {
 
   private class FastVisitor extends Visitor<Object> {
     // TODO other forms?
-    IRNode objectClass = analysisContext.binder.getTypeEnvironment().findNamedType("java.lang.Object");
-    IJavaType objectType = JavaTypeFactory.convertNodeTypeToIJavaType(objectClass, analysisContext.binder);
+    IRNode objectClass = binder.getTypeEnvironment().findNamedType("java.lang.Object");
+    IJavaType objectType = JavaTypeFactory.convertNodeTypeToIJavaType(objectClass, binder);
     
     @Override
     public Object visitFieldDeclaration(IRNode fd) {
@@ -67,7 +67,7 @@ public final class StaticStateDetector extends AbstractIRAnalysisModule {
       if (!isStatic) { 
         return null;
       }
-      IJavaType t = analysisContext.binder.getJavaType(FieldDeclaration.getType(fd));   
+      IJavaType t = binder.getJavaType(FieldDeclaration.getType(fd));   
       if (isMutable) {
         reportInference(fd,
             isPublic ? Messages.DSC_PUBLIC_STATIC_FIELD : Messages.DSC_STATIC_FIELD,
@@ -145,7 +145,7 @@ public final class StaticStateDetector extends AbstractIRAnalysisModule {
     }
 
     private boolean isObjectTyped(IJavaType type) {
-      return analysisContext.binder.getTypeEnvironment().isSubType(type, objectType);
+      return binder.getTypeEnvironment().isSubType(type, objectType);
     }
   }
 }
