@@ -20,10 +20,9 @@ import com.surelogic.common.refactor.AnnotationDescription;
 import com.surelogic.common.refactor.Field;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.refactor.AnnotationDescription.CU;
-import com.surelogic.refactor.IRNodeUtil;
+import com.surelogic.fluid.javac.JavacTypeEnvironment;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.*;
 
 public class ProposedPromisesChange {
@@ -73,6 +72,7 @@ public class ProposedPromisesChange {
 		final Map<CU, Set<AnnotationDescription>> map = new HashMap<CU, Set<AnnotationDescription>>();
 		for (final IProposedPromiseDropInfo drop : drops) {	
 			projects.add(drop.getTargetProjectName());
+			projects.add(drop.getFromProjectName());
 			
 			final AnnotationDescription ann = desc(drop);
 			final CU cu = ann.getCU();
@@ -88,6 +88,10 @@ public class ProposedPromisesChange {
 		final PromisesAnnotationRewriter rewrite = new PromisesAnnotationRewriter();
 		try {
 			for(final String proj : projects) {
+				if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+					// All binaries, so use assumption
+					continue;
+				}
 				final IJavaProject selectedProject = JDTUtility.getJavaProject(proj);
 				for (final IPackageFragment frag : selectedProject
 						.getPackageFragments()) {
@@ -98,6 +102,7 @@ public class ProposedPromisesChange {
 					}
 				}
 			}
+			// Not removed by the code above
 			for (final Entry<CU, Set<AnnotationDescription>> e : map.entrySet()) {
 				for (final AnnotationDescription ann : e.getValue()) {
 					final CU cu = ann.getAssumptionCU();
@@ -110,6 +115,9 @@ public class ProposedPromisesChange {
 				}
 			}
 			for(final String proj : projects) {
+				if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+					continue;
+				}
 				final IJavaProject selectedProject = JDTUtility.getJavaProject(proj);
 				for (final IPackageFragment frag : selectedProject
 						.getPackageFragments()) {
