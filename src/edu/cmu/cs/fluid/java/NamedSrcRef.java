@@ -29,4 +29,8 @@ public final class NamedSrcRef extends AbstractSrcRef {
   public String getPackage() {
 	  return pkg;
   }
+  @Override
+  public String getRelativePath() {
+	  return cunit;
+  }
 }
