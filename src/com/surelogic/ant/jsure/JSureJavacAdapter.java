@@ -44,7 +44,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			ToolUtil.scan(config, new Monitor(), true);
 			*/
 			final Projects projects = new Projects(config, new NullSLProgressMonitor());
-			Util.openFiles(projects);
+			Util.openFiles(projects, true);
 		} catch (Throwable t) {
 			t.printStackTrace();
 			throw new BuildException("Exception while scanning", t);
