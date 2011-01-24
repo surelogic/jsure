@@ -5,17 +5,17 @@
 	<property name="src" value="${basedir}/src" />
 	<property name="lib" value="${basedir}/lib" />
 	<property name="classes" value="${basedir}/bin" />
-	
-	<property name="ant.jar" value="${lib}/ant.jar" />
-  <property name="org-netbeans-lib-cvsclient.jar" value="${lib}/org-netbeans-lib-cvsclient.jar"/>
-	<property name="antlib.xml" value="com/surelogic/flashlight/ant/antlib.xml"/>
-	
-	<property name="surelogic-tasks.jar" value="${basedir}/surelogic-tasks.jar" />
 
-	
-	
+	<property name="ant.jar" value="${lib}/ant.jar" />
+	<property name="org-netbeans-lib-cvsclient.jar" value="${lib}/org-netbeans-lib-cvsclient.jar" />
+	<property name="antlib.xml" value="com/surelogic/flashlight/ant/antlib.xml" />
+
+	<property name="surelogic-tasks.jar" value="${basedir}/jsure-tests-ant-tasks.jar" />
+
+
+
 	<target name="clean">
-		<delete file="${surelogic-tasks.jar}"/>
+		<delete file="${surelogic-tasks.jar}" />
 	</target>
 
 	<target name="compile">
@@ -33,13 +33,13 @@
 	<target name="build-ant-jar">
 		<jar destfile="${surelogic-tasks.jar}">
 			<manifest>
-			  <attribute name="Manifest-Version" value="1.0"/>
-  			<attribute name="Class-Path" value="org-netbeans-lib-cvsclient.jar"/>
+				<attribute name="Manifest-Version" value="1.0" />
+				<attribute name="Class-Path" value="org-netbeans-lib-cvsclient.jar" />
 			</manifest>
-			<fileset dir="${classes}"/>
-			<fileset file="${basedir}/sl-tasks.properties"/>
-  		<fileset file="${basedir}/sl-tasks.xml"/>
-	  </jar>
+			<fileset dir="${classes}" />
+			<fileset file="${basedir}/sl-tasks.properties" />
+			<fileset file="${basedir}/sl-tasks.xml" />
+		</jar>
 	</target>
 
 	<target name="build-jars" depends="compile, build-ant-jar" />
