@@ -135,6 +135,7 @@ public class GetLatestCVSTag extends Task
 		Pattern pattern = Pattern.compile(tag, Pattern.CASE_INSENSITIVE);
 		Matcher matcher = null;
 		
+		@SuppressWarnings("unchecked")
 		List<SymName> tags = (List<SymName>) listener.getStatusInformation()
 			.getAllExistingTags();
 		SymName latestTag = null;

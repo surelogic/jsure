@@ -36,8 +36,8 @@ public class GenerateBuildProperties extends Task {
 
 	private static final String LINUX_PROP_FILENAME = "sl.linux.test.properties";
 
-	private static final File defaultsFile = new File(System
-			.getProperty("user.dir"), PROP_FILENAME);
+	private static final File defaultsFile = new File(
+			System.getProperty("user.dir"), PROP_FILENAME);
 
 	private static File propertiesFile; // = new File(System
 	// .getProperty("user.home"), PROP_FILENAME);
@@ -71,8 +71,6 @@ public class GenerateBuildProperties extends Task {
 	private static final String JAVA_PPC = "PowerPC";
 
 	private static final String PPC = "ppc";
-
-	private static final String BOOTCP_KEY = "bootclasspath";
 
 	private static final String VCS_USERNAME_KEY = "vcs.username";
 
@@ -146,11 +144,11 @@ public class GenerateBuildProperties extends Task {
 	}
 
 	/**
-	 * Removes properties that are not in the default properties file anymore Has
-	 * to be run after loading the user's properties
+	 * Removes properties that are not in the default properties file anymore
+	 * Has to be run after loading the user's properties
 	 */
 	private void clearDeprecatedProps() {
-		Enumeration props = properties.propertyNames();
+		Enumeration<?> props = properties.propertyNames();
 		while (props.hasMoreElements()) {
 			String prop = (String) props.nextElement();
 			if (!defaults.containsKey(prop)) {
@@ -263,27 +261,7 @@ public class GenerateBuildProperties extends Task {
 			defaults.setProperty(ANT_WS_KEY, "carbon");
 		}
 		defaults.setProperty(ROOT_KEY, "");
-		
-//		// Scan the classes directory and add all the jar files it contains to the classpath
-//		final String javaHome = getProject().getProperty("java.home");
-//		if (javaHome != null) {
-//		  final File classesDir = new File(new File(javaHome).getParent(), "Classes");
-//		  final StringBuilder jarFiles = new StringBuilder();
-//		  final File[] files = classesDir.listFiles();
-//		  if (files.length > 0) {
-//		    for (final File jarFile : files) {
-//		      if (jarFile.getName().endsWith(".jar")) {
-//  		      jarFiles.append(jarFile.getCanonicalPath());
-//  		      jarFiles.append(':');
-//		      }
-//		    }
-//		    // Remove trailing colon
-//		    jarFiles.deleteCharAt(jarFiles.length()-1);
-//		  }
-//		  defaults.setProperty(BOOTCP_KEY, jarFiles.toString());
-//		}
-//		defaults.setProperty(BOOTCP_KEY,
-//				"${java.home}/../Classes/classes.jar:${java.home}/../Classes/ui.jar");
+
 		fin.close();
 	}
 
@@ -311,16 +289,16 @@ public class GenerateBuildProperties extends Task {
 	 */
 	private void verifyAndSetProperties() {
 		if (properties.size() > 0) {
-			//remove plugin and feature projects properties so they will be reset
+			// remove plugin and feature projects properties so they will be
+			// reset
 			properties.remove("plugin.projects");
 			properties.remove("feature.projects");
-			
-			
-			Enumeration keys = defaults.keys();
+
+			Enumeration<Object> keys = defaults.keys();
 			while (keys.hasMoreElements()) {
 				String key = (String) keys.nextElement();
 				// Don't overwrite existing properties
-				if (!properties.containsKey(key)){
+				if (!properties.containsKey(key)) {
 					properties.put(key, defaults.getProperty(key));
 				}
 			}
@@ -348,18 +326,6 @@ public class GenerateBuildProperties extends Task {
 		}
 	}
 
-	/**
-	 * Prints out all available properties
-	 * 
-	 */
-	private void printAllProperties(Properties props) {
-		Enumeration propEnum = props.propertyNames();
-		while (propEnum.hasMoreElements()) {
-			String key = (String) propEnum.nextElement();
-			log(key + "=" + props.getProperty(key), Project.MSG_INFO);
-		}
-	}
-
 	public boolean isMachineSpecific() {
 		return machineSpecific;
 	}
@@ -377,7 +343,7 @@ public class GenerateBuildProperties extends Task {
 
 	/**
 	 * @param removeUnused
-	 *          the removeUnused to set
+	 *            the removeUnused to set
 	 */
 	public final void setClearDeprecated(boolean removeUnused) {
 		this.clearDeprecated = removeUnused;
@@ -385,7 +351,7 @@ public class GenerateBuildProperties extends Task {
 
 	/**
 	 * @param propertiesFile
-	 *          the propertiesFile to set
+	 *            the propertiesFile to set
 	 */
 	public static final void setPropertiesFile(File propertiesFile) {
 		GenerateBuildProperties.propertiesFile = propertiesFile;

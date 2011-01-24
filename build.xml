@@ -10,12 +10,12 @@
 	<property name="org-netbeans-lib-cvsclient.jar" value="${lib}/org-netbeans-lib-cvsclient.jar" />
 	<property name="antlib.xml" value="com/surelogic/flashlight/ant/antlib.xml" />
 
-	<property name="surelogic-tasks.jar" value="${basedir}/jsure-tests-ant-tasks.jar" />
+	<property name="tasks.jar" value="${basedir}/jsure-tests-ant-tasks.jar" />
 
 
 
 	<target name="clean">
-		<delete file="${surelogic-tasks.jar}" />
+		<delete file="${tasks.jar}" />
 	</target>
 
 	<target name="compile">
@@ -31,7 +31,7 @@
 	</target>
 
 	<target name="build-ant-jar">
-		<jar destfile="${surelogic-tasks.jar}">
+		<jar destfile="${tasks.jar}">
 			<manifest>
 				<attribute name="Manifest-Version" value="1.0" />
 				<attribute name="Class-Path" value="org-netbeans-lib-cvsclient.jar" />
