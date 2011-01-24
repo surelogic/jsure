@@ -15,10 +15,11 @@ public final class ProposedPromiseContentProvider extends AbstractResultsTableCo
 	}
 	
 	protected void getAndSortResults(List<IProposedPromiseDropInfo> contents) {
-		List<ProposedPromiseDrop> proposedPromiseDrops = ProposedPromiseDrop
-				.filterOutDuplicates(Sea.getDefault().getDropsOfType(
-						ProposedPromiseDrop.class));
-		for (ProposedPromiseDrop id : proposedPromiseDrops) {
+		List<IProposedPromiseDropInfo> proposedPromiseDrops = 
+			ProposedPromiseDrop.filterOutDuplicates(
+					PersistentDropInfo.getInstance().
+					<IProposedPromiseDropInfo,ProposedPromiseDrop>getDropsOfType(ProposedPromiseDrop.class));
+		for (IProposedPromiseDropInfo id : proposedPromiseDrops) {
 			if (id != null && id.getSrcRef() != null) {
 				// TODO omit annotations on implicitly created methods in enums?
 				/*

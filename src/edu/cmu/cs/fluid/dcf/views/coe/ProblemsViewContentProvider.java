@@ -15,10 +15,9 @@ public final class ProblemsViewContentProvider extends AbstractResultsTableConte
 	}
 	
 	protected void getAndSortResults(List<IDropInfo> contents) {
-		Set<? extends PromiseWarningDrop> promiseWarningDrops = Sea
-				.getDefault().getDropsOfType(PromiseWarningDrop.class);
-		for (PromiseWarningDrop id : promiseWarningDrops) {
-			// PromiseWarningDrop id = (PromiseWarningDrop) j.next();
+		Set<? extends IDropInfo> promiseWarningDrops = PersistentDropInfo
+				.getInstance().getDropsOfType(PromiseWarningDrop.class);
+		for (IDropInfo id : promiseWarningDrops) {
 			// only show info drops at the main level if they are not
 			// attached
 			// to a promise drop or a result drop
