@@ -735,15 +735,26 @@ public final class CFGDiagrammer {
     return "\"" + "(" + nodeNo + ")" + info.substring(1);
   }
 
+  private String getLabel(final ControlNode node, final String expected) {
+    final String fullClassName = node.getClass().getName();
+    final String className = fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
+    final String id = Integer.toString(node.hashCode());
+    if (className.equals(expected)) {
+      return expected + " {" + id + "}";
+    } else {
+      return expected + " (" + className + ") {" + id + "}";
+    }
+  }
+  
   /**
    * Get the cfg string from a Source which has no inputs
    */
   private String getCFGDiagramFromSource(ControlNode node) {
     String info = "";
     if (node instanceof Never) {
-      info += "\"" + "Never\"";
+      info += "\"" + getLabel(node, "Never") + "\"";
     } else if (node instanceof ComponentSource) {
-      info += "\"" + "ComponentSource\"";
+      info += "\"" + getLabel(node, "ComponentSource") + "\"";
     } else {
       throw new FluidError("unknown Flow " + node);
     }
@@ -756,19 +767,19 @@ public final class CFGDiagrammer {
   private String getCFGDiagramFromFlow(ControlNode node) {
     String info = "";
     if (node instanceof NoOperation) {
-      info += "\"" + "NoOperation\"";
+      info += "\"" + getLabel(node, "NoOperation") + "\"";
     } else if (node instanceof AddLabel) {
-      info += "\"" + "AddLabel\"";
+      info += "\"" + getLabel(node, "AddLabel") + "\"";
     } else if (node instanceof ComponentFlow) {
       Component comp = ((ComponentFlow) node).getComponent();
       IRNode irn = comp.getSyntax();
-      info += "\"" + "ComponentFlow:" + DebugUnparser.toString(irn) + "\"";
+      info += "\"" + getLabel(node, "ComponentFlow") + ":" + DebugUnparser.toString(irn) + "\"";
     } else if (node instanceof SubcomponentFlow) {
       Subcomponent subcomp = ((SubcomponentFlow) node).getSubcomponent();
       IRNode irn = subcomp.getSyntax();
-      info += "\"" + "SubcomponentFlow:" + DebugUnparser.toString(irn) + "\"";
+      info += "\"" + getLabel(node, "SubcomponentFlow") + ":" + DebugUnparser.toString(irn) + "\"";
     } else if (node instanceof PendingLabelStrip) {
-      info += "\"" + "PendingLabelStrip\"";
+      info += "\"" + getLabel(node, "PendingLabelStrip") + "\"";
     } else {
       throw new FluidError("unknown Flow " + node);
     }
@@ -784,23 +795,23 @@ public final class CFGDiagrammer {
     if (node instanceof InputPort) {
       if (node instanceof BlankInputPort) {
         if (node instanceof ComponentBlankEntryPort) {
-          info += "\"" + "ComponentBlankEntryPort\"";
+          info += "\"" + getLabel(node, "ComponentBlankEntryPort") + "\"";
         } else {
           throw new FluidError("unknown Port " + node);
         }
       } else if (node instanceof SimpleInputPort) {
         if (node instanceof ComponentEntryPort) {
-          info += "\"" + "ComponentEntryPort\"";
+          info += "\"" + getLabel(node, "ComponentEntryPort") + "\"";
         } else if (node instanceof SubcomponentAbruptExitPort) {
-          info += "\"" + "SubcomponentAbruptExitPort\"";
+          info += "\"" + getLabel(node, "SubcomponentAbruptExitPort") + "\"";
         } else if (node instanceof SubcomponentNormalExitPort) {
-          info += "\"" + "SubcomponentNormalExitPort\" ";
+          info += "\"" + getLabel(node, "SubcomponentNormalExitPort") + "\" ";
         } else {
           throw new FluidError("unknown Port " + node);
         }
       } else if (node instanceof DoubleInputPort) {
         if (node instanceof SubcomponentBooleanExitPort) {
-          info += "\"" + "SubcomponentBooleanExitPort\"";
+          info += "\"" + getLabel(node, "SubcomponentBooleanExitPort") + "\"";
         } else {
           throw new FluidError("unknown Port " + node);
         }
@@ -810,25 +821,25 @@ public final class CFGDiagrammer {
     } else if (node instanceof OutputPort) {
       if (node instanceof BlankOutputPort) {
         if (node instanceof ComponentBlankAbruptExitPort) {
-          info += "\"" + "ComponentBlankAbruptExitPort\"";
+          info += "\"" + getLabel(node, "ComponentBlankAbruptExitPort") + "\"";
         } else if (node instanceof ComponentBlankNormalExitPort) {
-          info += "\"" + "ComponentBlankNormalExitPort\"";
+          info += "\"" + getLabel(node, "ComponentBlankNormalExitPort") + "\"";
         } else {
           throw new FluidError("unknown Port " + node);
         }
       } else if (node instanceof SimpleOutputPort) {
         if (node instanceof ComponentAbruptExitPort) {
-          info += "\"" + "ComponentAbruptExitPort\" ";
+          info += "\"" + getLabel(node, "ComponentAbruptExitPort") + "\" ";
         } else if (node instanceof ComponentNormalExitPort) {
-          info += "\"" + "ComponentNormalExitPort\"";
+          info += "\"" + getLabel(node, "ComponentNormalExitPort") + "\"";
         } else if (node instanceof SubcomponentEntryPort) {
-          info += "\"" + "SubcomponentEntryPort\"";
+          info += "\"" + getLabel(node, "SubcomponentEntryPort") + "\"";
         } else {
           throw new FluidError("unknown Port " + node);
         }
       } else if (node instanceof DoubleOutputPort) {
         if (node instanceof ComponentBooleanExitPort) {
-          info += "\"" + "ComponentBooleanExitPort\"";
+          info += "\"" + getLabel(node, "ComponentBooleanExitPort") + "\"";
         } else {
           throw new FluidError("unknown Port " + node);
         }
@@ -847,24 +858,24 @@ public final class CFGDiagrammer {
   private String getCFGDiagramFromSplit(ControlNode node) {
     String info = "";
     if (node instanceof Fork) {
-      info += "\"" + "Fork\" ";
+      info += "\"" + getLabel(node, "Fork") + "\" ";
     } else if (node instanceof Choice) {
       if (node instanceof ComponentChoice) {
         Component comp = ((ComponentChoice) node).getComponent();
         IRNode irn = comp.getSyntax();
-        info += "\"" + "ComponentChoice:" + DebugUnparser.toString(irn) + "\"";
+        info += "\"" + getLabel(node, "ComponentChoice") + ":" + DebugUnparser.toString(irn) + "\"";
       } else if (node instanceof SubcomponentChoice) {
         Subcomponent subcomp = ((SubcomponentChoice) node).getSubcomponent();
         IRNode irn = subcomp.getSyntax();
-        info += "\"" + "SubcomponentChoice:" + DebugUnparser.toString(irn)
+        info += "\"" + getLabel(node, "SubcomponentChoice") + ":" + DebugUnparser.toString(irn)
             + "\"";
       } else {
         throw new FluidError("unknown Split " + node);
       }
     } else if (node instanceof DynamicSplit) {
-      info += "\"" + "DynamicSplit\"";
+      info += "\"" + getLabel(node, "DynamicSplit") + "\"";
     } else if (node instanceof TrackedDemerge) {
-      info += "\"" + "TrackedDemerge\"";
+      info += "\"" + getLabel(node, "TrackedDemerge") + "\"";
     } else {
       throw new FluidError("unknown Split " + node);
     }
@@ -877,9 +888,9 @@ public final class CFGDiagrammer {
   private String getCFGDiagramFromJoin(ControlNode node) {
     String info = "";
     if (node instanceof Merge) {
-      info += "\"" + "Merge\"";
+      info += "\"" + getLabel(node, "Merge") + "\"";
     } else if (node instanceof TrackedMerge) {
-      info += "\"" + "TrackedMerge\"";
+      info += "\"" + getLabel(node, "TrackedMerge") + "\"";
     } else {
       throw new FluidError("unknown Join " + node);
     }
@@ -892,11 +903,11 @@ public final class CFGDiagrammer {
   private String getCFGDiagramFromSink(ControlNode node) {
     String info = "";
     if (node instanceof Abort) {
-      info += "\"" + "Abort\" ";
+      info += "\"" + getLabel(node, "Abort") + "\" ";
     } else if (node instanceof ComponentSink) {
       Component comp = ((ComponentSink) node).getComponent();
       IRNode irn = comp.getSyntax();
-      info += "\"" + "ComponentSink:" + DebugUnparser.toString(irn) + "\"";
+      info += "\"" + getLabel(node, "ComponentSink") + ":" + DebugUnparser.toString(irn) + "\"";
     } else {
       throw new FluidError("unknown Sink " + node);
     }
