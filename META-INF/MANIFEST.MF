@@ -18,8 +18,7 @@ Require-Bundle: org.junit,
  com.surelogic.jsure.client.eclipse,
  org.eclipse.swt,
  org.eclipse.jface,
- com.surelogic.fluid.javac;bundle-version="1.1.0"
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+ com.surelogic.fluid.javac
 Export-Package: com.surelogic.jsure.tests
 Bundle-ClassPath: lib/jacl.jar,
  .,
@@ -30,3 +29,4 @@ Bundle-ClassPath: lib/jacl.jar,
 Bundle-Activator: com.surelogic.jsure.tests.TestActivator
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
