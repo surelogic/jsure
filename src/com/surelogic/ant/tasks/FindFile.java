@@ -1,13 +1,3 @@
-/**
- * Provides a mechanism to find a file in a directory
- * Ant Usage:
- * <findfile basedir="directory" regex="file-regular-expression" property="property-to-set"/>
- * 
- * Required parameters:
- * basedir - The directory to search in
- * regex - A regular expression (Java regex) of the file to find
- * property - The property to set with the absolute path of the located file
- */
 package com.surelogic.ant.tasks;
 
 import java.io.File;
@@ -17,8 +7,19 @@ import java.util.regex.Pattern;
 import org.apache.tools.ant.*;
 
 /**
- * @author Ethan.Urie
- * 
+ * Provides a mechanism to find a file in a directory.
+ * <p>
+ * Ant Usage:
+ * <p>
+ * &lt;findfile basedir="directory" regex="file-regular-expression"
+ * property="property-to-set"/&gt;
+ * <p>
+ * Required Ant parameters:
+ * <ul>
+ * <li>basedir - The directory to search in
+ * <li>regex - A regular expression (Java regex) of the file to find
+ * <li>property - The property to set with the absolute path of the located file
+ * </ul>
  */
 public class FindFile extends Task {
 
@@ -27,31 +28,25 @@ public class FindFile extends Task {
 	private File basedir = null;
 
 	private String property = null;
-	
-	private class RegexFilter implements FilenameFilter
-	{
-		public boolean accept(File arg0, String arg1) {
-			if(Pattern.matches(regex, arg1))
-			{
-				return true;
-			}
-			return false;
+
+	private class RegexFilter implements FilenameFilter {
+		public boolean accept(File directory, String fileName) {
+			return Pattern.matches(regex, fileName);
 		}
-		
 	}
 
 	@Override
 	public void execute() {
 		if (basedir.isDirectory()) {
 			File[] matches = basedir.listFiles(new RegexFilter());
-			if(matches.length > 0)
-			{
-				//Set the desired property to the absolute path of the first file found
-				getProject().setProperty(property, matches[0].getAbsolutePath());
-			}
-			else
-			{
-				log("No matches for " + regex + " found in " + basedir.getAbsolutePath(), Project.MSG_ERR);
+			if (matches.length > 0) {
+				// Set the desired property to the absolute path of the first
+				// file found
+				getProject()
+						.setProperty(property, matches[0].getAbsolutePath());
+			} else {
+				log("No matches for " + regex + " found in "
+						+ basedir.getAbsolutePath(), Project.MSG_ERR);
 			}
 		} else {
 			throw new BuildException(basedir.getAbsolutePath()
@@ -82,5 +77,4 @@ public class FindFile extends Task {
 	public void setProperty(String property) {
 		this.property = property;
 	}
-
 }
