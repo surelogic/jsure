@@ -19,6 +19,7 @@ import org.apache.tools.ant.*;
  * No parameters required
  */
 public class GenerateBuildProperties extends Task {
+
 	private Properties properties; // user customizable properties
 
 	private Properties defaults; // Default properties
@@ -116,20 +117,28 @@ public class GenerateBuildProperties extends Task {
 	private void setupPropertiesFile() {
 		if (propertiesFile == null) {
 			final File userHome = new File(System.getProperty("user.home"));
-			String file = getProject().getProperty("test.properties");
+			final String file = getProject().getProperty("test.properties");
 			propertiesFile = new File(userHome, file == null ? PROP_FILENAME
 					: file);
 		}
-		if (!propertiesFile.isFile()) {
+		if (propertiesFile.isFile()) {
+			log("Modifying existing properties file "
+					+ propertiesFile.getAbsolutePath());
+		} else {
 			boolean success = false;
 			try {
 				success = propertiesFile.createNewFile();
 			} catch (IOException e) {
 				// nothing to do
 			}
-			if (!success)
-				throw new BuildException("Properties file, " + propertiesFile
+			if (success) {
+				log("Created properties file "
+						+ propertiesFile.getAbsolutePath());
+			} else {
+				throw new BuildException("Properties file, "
+						+ propertiesFile.getAbsolutePath()
 						+ " is not a valid file and cannot be created.");
+			}
 		}
 	}
 
@@ -276,8 +285,10 @@ public class GenerateBuildProperties extends Task {
 	 */
 	private void verifyAndSetProperties() {
 		if (properties.size() > 0) {
-			// remove plugin and feature projects properties so they will be
-			// reset
+			/*
+			 * remove plug-in and feature project properties so that they will
+			 * be reset.
+			 */
 			properties.remove("plugin.projects");
 			properties.remove("feature.projects");
 
@@ -290,7 +301,7 @@ public class GenerateBuildProperties extends Task {
 				}
 			}
 		}
-		// If the fluid-build.properties is blank, put all our defaults there
+		// If the sl.test.properties file is blank, put all our defaults there
 		else {
 			properties.putAll(defaults);
 		}
