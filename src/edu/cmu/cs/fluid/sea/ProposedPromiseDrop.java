@@ -206,25 +206,25 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		return getJavaAnnotation();
 	}
 
-	public boolean isSameProposalAs(ProposedPromiseDrop other) {
+	public boolean isSameProposalAs(IProposedPromiseDropInfo other) {
 		if (this == other)
 			return true;
 		if (other == null)
 			return false;
 		if (f_annotation == null) {
-			if (other.f_annotation != null)
+			if (other.getAnnotation() != null)
 				return false;
-		} else if (!f_annotation.equals(other.f_annotation))
+		} else if (!f_annotation.equals(other.getAnnotation()))
 			return false;
 		if (f_contents == null) {
-			if (other.f_contents != null)
+			if (other.getContents() != null)
 				return false;
-		} else if (!f_contents.equals(other.f_contents))
+		} else if (!f_contents.equals(other.getContents()))
 			return false;
-		if (getNode() == null) {
-			if (other.getNode() != null)
+		if (getSrcRef() == null) {
+			if (other.getSrcRef() != null)
 				return false;
-		} else if (!getNode().equals(other.getNode()))
+		} else if (!getSrcRef().equals(other.getSrcRef()))
 			return false;
 		return true;
 	}
@@ -238,12 +238,12 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	 *            the list of proposed promises.
 	 * @return the filtered list of proposals.
 	 */
-	public static List<ProposedPromiseDrop> filterOutDuplicates(
-			Collection<ProposedPromiseDrop> proposals) {
-		List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>();
-		for (ProposedPromiseDrop h : proposals) {
+	public static List<IProposedPromiseDropInfo> filterOutDuplicates(
+			Collection<IProposedPromiseDropInfo> proposals) {
+		List<IProposedPromiseDropInfo> result = new ArrayList<IProposedPromiseDropInfo>();
+		for (IProposedPromiseDropInfo h : proposals) {
 			boolean addToResult = true;
-			for (ProposedPromiseDrop i : result) {
+			for (IProposedPromiseDropInfo i : result) {
 				if (h.isSameProposalAs(i)) {
 					addToResult = false;
 					break;

@@ -776,5 +776,28 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				super.addRef(e);
 			}
 		}
+		
+		public boolean isSameProposalAs(IProposedPromiseDropInfo other) {
+			if (this == other)
+				return true;
+			if (other == null)
+				return false;
+			if (getAnnotation() == null) {
+				if (other.getAnnotation() != null)
+					return false;
+			} else if (!getAnnotation().equals(other.getAnnotation()))
+				return false;
+			if (getContents() == null) {
+				if (other.getContents() != null)
+					return false;
+			} else if (!getContents().equals(other.getContents()))
+				return false;
+			if (getSrcRef() == null) {
+				if (other.getSrcRef() != null)
+					return false;
+			} else if (!getSrcRef().equals(other.getSrcRef()))
+				return false;
+			return true;
+		}
 	}
 }
