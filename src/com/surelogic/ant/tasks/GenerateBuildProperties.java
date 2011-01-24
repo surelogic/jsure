@@ -1,12 +1,3 @@
-/**
- * Generates our sl.test.properties file in the user's home directory with detected/generated/guessed values
- * Ant usage:
- * <generatebuildproperties clearDeprecated="false"/>
- * 
- * clearDeprecated - optional, defaults to false. If true, will remove all properties in the user's sl.test.properties file that don't exist in the default file.
- * 
- * No parameters required
- */
 package com.surelogic.ant.tasks;
 
 import java.io.*;
@@ -16,8 +7,16 @@ import java.util.Properties;
 import org.apache.tools.ant.*;
 
 /**
- * @author Ethan.Urie
- * 
+ * Generates our sl.test.properties file in the user's home directory with
+ * detected/generated/guessed values
+ * <p>
+ * Ant usage: &lt;generatebuildproperties clearDeprecated="false"/&gt;
+ * <p>
+ * clearDeprecated - optional, defaults to false. If true, will remove all
+ * properties in the user's sl.test.properties file that don't exist in the
+ * default file.
+ * <p>
+ * No parameters required
  */
 public class GenerateBuildProperties extends Task {
 	private Properties properties; // user customizable properties
@@ -39,8 +38,7 @@ public class GenerateBuildProperties extends Task {
 	private static final File defaultsFile = new File(
 			System.getProperty("user.dir"), PROP_FILENAME);
 
-	private static File propertiesFile; // = new File(System
-	// .getProperty("user.home"), PROP_FILENAME);
+	private static File propertiesFile;
 
 	private static final String SYS_OS_KEY = "os.name";
 
@@ -117,24 +115,26 @@ public class GenerateBuildProperties extends Task {
 
 	private void setupPropertiesFile() {
 		if (propertiesFile == null) {
+			final File userHome = new File(System.getProperty("user.home"));
 			String file = getProject().getProperty("test.properties");
-			if (file == null) {
-				// property is not set
-				propertiesFile = new File(System.getProperty("user.home"),
-						PROP_FILENAME);
-			} else {
-				propertiesFile = new File(System.getProperty("user.home"), file);
-			}
+			propertiesFile = new File(userHome, file == null ? PROP_FILENAME
+					: file);
 		}
 		if (!propertiesFile.isFile()) {
-			throw new BuildException("Properties file, " + propertiesFile
-					+ " is not a valid file.");
+			boolean success = false;
+			try {
+				success = propertiesFile.createNewFile();
+			} catch (IOException e) {
+				// nothing to do
+			}
+			if (!success)
+				throw new BuildException("Properties file, " + propertiesFile
+						+ " is not a valid file and cannot be created.");
 		}
 	}
 
 	/**
-	 * Detects and sets those properties that can be logically deduced
-	 * 
+	 * Detects and sets those properties that can be logically deduced.
 	 */
 	private void generateProperties() {
 		setOSProperties();
@@ -145,7 +145,7 @@ public class GenerateBuildProperties extends Task {
 
 	/**
 	 * Removes properties that are not in the default properties file anymore
-	 * Has to be run after loading the user's properties
+	 * Has to be run after loading the user's properties.
 	 */
 	private void clearDeprecatedProps() {
 		Enumeration<?> props = properties.propertyNames();
@@ -168,8 +168,7 @@ public class GenerateBuildProperties extends Task {
 	}
 
 	/**
-	 * Sets OS-specific properties
-	 * 
+	 * Sets OS-specific properties.
 	 */
 	private void setOSProperties() {
 		// Take care of the special cases
@@ -194,8 +193,7 @@ public class GenerateBuildProperties extends Task {
 	}
 
 	/**
-	 * Sets architecture-specific properties
-	 * 
+	 * Sets architecture-specific properties.
 	 */
 	private void setArchitectureProperties() {
 		String arch = System.getProperty(SYS_ARCH_KEY);
@@ -211,8 +209,7 @@ public class GenerateBuildProperties extends Task {
 	}
 
 	/**
-	 * Sets Java-specific properties
-	 * 
+	 * Sets Java-specific properties.
 	 */
 	private void setJavaProperties() {
 		String javaVersion = System.getProperty("java.specification.version");
@@ -231,10 +228,7 @@ public class GenerateBuildProperties extends Task {
 	}
 
 	/**
-	 * Sets Linux-specific settings
-	 * 
-	 * @throws IOException
-	 * 
+	 * Sets Linux-specific settings.
 	 */
 	private void setLinuxProperties() throws IOException {
 		FileInputStream fin = new FileInputStream(LINUX_PROP_FILENAME);
@@ -248,10 +242,7 @@ public class GenerateBuildProperties extends Task {
 	}
 
 	/**
-	 * Sets Mac OSX-specific settings
-	 * 
-	 * @throws IOException
-	 * 
+	 * Sets Mac OS X-specific settings.
 	 */
 	private void setMacOSXProperties() throws IOException {
 		FileInputStream fin = new FileInputStream(MACOSX_PROP_FILENAME);
@@ -266,10 +257,7 @@ public class GenerateBuildProperties extends Task {
 	}
 
 	/**
-	 * Sets Windows-specific settings
-	 * 
-	 * @throws IOException
-	 * 
+	 * Sets Windows-specific settings.
 	 */
 	private void setWindowsProperties() throws IOException {
 		FileInputStream fin = new FileInputStream(WIN_PROP_FILENAME);
@@ -285,7 +273,6 @@ public class GenerateBuildProperties extends Task {
 	/**
 	 * Takes the properties from the default properties and adds them to the
 	 * properties file if they don't exist.
-	 * 
 	 */
 	private void verifyAndSetProperties() {
 		if (properties.size() > 0) {
@@ -310,9 +297,7 @@ public class GenerateBuildProperties extends Task {
 	}
 
 	/**
-	 * Writes out the fluid-build.properties file
-	 * 
-	 * @throws BuildException
+	 * Writes out the sl.test.properties file.
 	 */
 	private void generatePropertyFile() throws BuildException {
 		try {
@@ -334,25 +319,14 @@ public class GenerateBuildProperties extends Task {
 		this.machineSpecific = genMachineSpecifics;
 	}
 
-	/**
-	 * @return the removeUnused
-	 */
 	public final boolean isClearDeprecated() {
 		return clearDeprecated;
 	}
 
-	/**
-	 * @param removeUnused
-	 *            the removeUnused to set
-	 */
 	public final void setClearDeprecated(boolean removeUnused) {
 		this.clearDeprecated = removeUnused;
 	}
 
-	/**
-	 * @param propertiesFile
-	 *            the propertiesFile to set
-	 */
 	public static final void setPropertiesFile(File propertiesFile) {
 		GenerateBuildProperties.propertiesFile = propertiesFile;
 	}
