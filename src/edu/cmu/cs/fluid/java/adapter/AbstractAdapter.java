@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.common.SLUtility;
+
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.Annotations;
@@ -115,7 +117,7 @@ public class AbstractAdapter {
 
 		String[] text = tview.strTV();
 		String newtext = "";
-		final String eol = System.getProperty("line.separator");
+		final String eol = SLUtility.PLATFORM_LINE_SEPARATOR;
 		for (int i = 0; i < text.length; i++)
 			newtext = newtext + text[i] + eol;
 		return newtext;

@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: JSure/Fluid Analysis/Transformation Core
 Bundle-SymbolicName: edu.cmu.cs.fluid
 Bundle-Version: 4.0.0.qualifier
-Bundle-ClassPath: fluid.jar,
+Bundle-ClassPath: .,
  lib/jars/sablejbdd-0.02.jar,
  lib/jars/log4j-xml-1.3alpha-8.jar,
  lib/jars/log4j-1.3alpha-8.jar
@@ -136,4 +136,5 @@ Export-Package: .,
 Require-Bundle: org.junit,
  com.surelogic.common,
  com.surelogic.jsure.message
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
 
