@@ -132,9 +132,11 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 		if (ref == null) {
 			return "";
 		}
-		String path = ref.getRelativePath();
-		if (path != null) {
-			return path;
+		if (ref.getEnclosingURI() != null) {
+			String path = ref.getRelativePath();
+			if (path != null) {
+				return path;
+			}
 		}
 		Object o = ref.getEnclosingFile();
 		if (o instanceof IFile) {
