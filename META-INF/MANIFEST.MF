@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Test Plug-in
+Bundle-Name: SureLogic JSure Test Plug-in
 Bundle-SymbolicName: com.surelogic.jsure.tests
 Bundle-Version: 1.0.0
-Bundle-Vendor: SURELOGIC
+Bundle-Vendor: SureLogic, Inc.
 Require-Bundle: org.junit,
  org.eclipse.core.runtime,
  edu.cmu.cs.fluid,
