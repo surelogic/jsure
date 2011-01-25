@@ -22,6 +22,15 @@ public class PersistentDropInfo {
 		dropInfo = info;
 	}
 	
+	public synchronized boolean dropsExist(Class<? extends Drop> type) {
+		for(Info i : dropInfo) {
+			if (i.isInstance(type)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public synchronized <T extends IDropInfo, T2 extends Drop> Set<T> getDropsOfType(Class<T2> dropType) {
 		if (!dropInfo.isEmpty()) {
@@ -33,6 +42,7 @@ public class PersistentDropInfo {
 			}
 			return result;
 		}
-		return (Set<T>) Sea.getDefault().getDropsOfType(dropType);
+		return Collections.emptySet();
+		//return (Set<T>) Sea.getDefault().getDropsOfType(dropType);
 	}
 }

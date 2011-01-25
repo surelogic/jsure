@@ -31,7 +31,6 @@ public class PersistentResultsView extends ResultsView {
   
   final File location;
   final File viewState;
-  Collection<Info> dropInfo = Collections.emptyList();
 	
   public PersistentResultsView() {
 	  File location = null;
@@ -74,14 +73,14 @@ public class PersistentResultsView extends ResultsView {
   protected void finishCreatePartControl() {
 	  if (location != null && location.exists()) {
 		  try {
-			  dropInfo = SeaSnapshot.loadSnapshot(location);
+			  PersistentDropInfo.getInstance().setInfo(SeaSnapshot.loadSnapshot(location));
 			  // TODO restore viewer state?
 			  provider.buildModelOfDropSea_internal();
 			  setViewerVisibility(true);
 			  System.out.println("Loaded snapshot");
 		  } catch (Exception e) {
 			  e.printStackTrace();
-			  dropInfo = Collections.emptyList();
+			  PersistentDropInfo.getInstance().setInfo(Collections.<Info>emptyList());
 		  }
 		  // Running too early?
 		  if (viewState != null && viewState.exists()) {
@@ -141,11 +140,11 @@ public class PersistentResultsView extends ResultsView {
 					//	e.printStackTrace();
 					//}
 					if (results != null && results.exists() && results.length() > 0) {
-						dropInfo = SeaSnapshot.loadSnapshot(results);
+						PersistentDropInfo.getInstance().setInfo(SeaSnapshot.loadSnapshot(results));
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
-					dropInfo = Collections.emptyList();
+					PersistentDropInfo.getInstance().setInfo(Collections.<Info>emptyList());
 				}
 				try {
 					return super.buildModelOfDropSea_internal();
@@ -163,25 +162,13 @@ public class PersistentResultsView extends ResultsView {
     	
 		@Override
 		protected boolean dropsExist(Class<? extends Drop> type) {
-			for(Info i : dropInfo) {
-				if (i.isInstance(type)) {
-					return true;
-				}
-			}
-			return false;
+			return PersistentDropInfo.getInstance().dropsExist(type);
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		protected <R extends IDropInfo> 
 		Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
-			List<R> rv = new ArrayList<R>();
-			for(Info i : dropInfo) {
-				if (i.isInstance(type)) {
-					rv.add((R) i);
-				}
-			}
-			return rv;
+			return PersistentDropInfo.getInstance().getDropsOfType(type);
 		}
 		
 		@Override
