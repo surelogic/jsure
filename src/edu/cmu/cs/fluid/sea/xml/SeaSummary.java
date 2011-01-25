@@ -458,20 +458,17 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	static class Categories extends Hashtable2<String,String,Category> {
 		Category getOrCreate(Entity e) {	
 			final String type = e.getAttribute(TYPE_ATTR);
-			String file = e.getAttribute(PATH_ATTR);
-			if (file == null) {
-				file = e.getAttribute(URI_ATTR);
+			String path = e.getAttribute(PATH_ATTR);
+			String uri = e.getAttribute(URI_ATTR);
+			String file = e.getAttribute(FILE_ATTR);			
+			String f = uri == null ? file : path;
+			if (f != null) {
+				f = FileUtility.normalizePath(f);
 			}
-			if (file == null) {
-				file = e.getAttribute(FILE_ATTR);
-			}
-			if (file != null) {
-				file = FileUtility.normalizePath(file);
-			}
-			Category c = this.get(file, type);
+			Category c = this.get(f, type);
 			if (c == null) {
-				c = new Category(file, type);
-				this.put(file, type, c);
+				c = new Category(f, type);
+				this.put(f, type, c);
 			}
 			return c;
 		}
