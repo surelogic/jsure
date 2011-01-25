@@ -136,5 +136,5 @@ Export-Package: .,
 Require-Bundle: org.junit,
  com.surelogic.common,
  com.surelogic.jsure.message
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 
