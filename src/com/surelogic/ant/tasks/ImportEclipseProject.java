@@ -14,14 +14,16 @@ import org.apache.tools.ant.Task;
  * Ant usage:
  * <p>
  * Required parameters:
- * <p>
- * projectparentdir - The directory containing the project directories to import
- * <p>
- * workspacedir - The directory where the projects' workspaces should be created
- * <p>
+ * <ul>
+ * <li>projectparentdir - The directory containing the project directories to
+ * import
+ * <li>workspacedir - The directory where the projects' workspaces should be
+ * created
+ * </ul>
  * Optional parameters:
- * <p>
- * exceptions - A comma-separated list of project names to skip
+ * <ul>
+ * <li>exceptions - A comma-separated list of project names to skip
+ * </ul>
  */
 public class ImportEclipseProject extends Task {
 
@@ -54,8 +56,6 @@ public class ImportEclipseProject extends Task {
 
 	/**
 	 * Checks to see if the user entered valid values for the parameters
-	 * 
-	 * @return
 	 */
 	private void paramsAreValid() throws BuildException {
 		if (projectsParentDir == null) {
@@ -79,7 +79,6 @@ public class ImportEclipseProject extends Task {
 	/**
 	 * Import every project found in the testProjectsParentDir directory into
 	 * Eclipse after making a workspace for it.
-	 * 
 	 */
 	private void importTestProjects() throws BuildException {
 		List<String> args = new ArrayList<String>(9 + extraProjs.size());

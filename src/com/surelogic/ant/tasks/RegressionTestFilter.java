@@ -1,19 +1,10 @@
-/**
- * 
- */
 package com.surelogic.ant.tasks;
 
 import java.io.File;
 import java.io.FileFilter;
 
-/**
- * @author Edwin.Chan
- */
 class RegressionTestFilter implements FileFilter {
 
-	/* (non-Javadoc)
-	 * @see java.io.FileFilter#accept(java.io.File)
-	 */
 	public boolean accept(File f) {
 		boolean rv;
 		if (f.isDirectory()) {

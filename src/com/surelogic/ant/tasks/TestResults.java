@@ -18,12 +18,13 @@ import org.xml.sax.*;
  * Required parameters: file - the full path to the results file
  * <p>
  * Optional parameters: -- In this case, these two are mutually exclusive.
- * Defining both doesn't make any sense -- tests - A comma-separated list of
- * tests to specifically report on. It takes the form of:
- * &lt;classname&gt;:&lt;test method&gt;
- * <p>
- * ignore - A comma-separated list of tests to specifically ignore. It takes the
- * form of: &lt;classname>:&lt;test method&gt;
+ * Defining both doesn't make any sense.
+ * <ul>
+ * <li>tests - A comma-separated list of tests to specifically report on. It
+ * takes the form of: &lt;classname&gt;:&lt;test method&gt;
+ * <li>ignore - A comma-separated list of tests to specifically ignore. It takes
+ * the form of: &lt;classname>:&lt;test method&gt;
+ * </ul>
  */
 public class TestResults extends Task implements ContentHandler, ErrorHandler {
 
