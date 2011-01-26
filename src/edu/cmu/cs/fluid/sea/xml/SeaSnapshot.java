@@ -429,6 +429,16 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			}
 			final int line = Integer.valueOf(ref.getLine());
 			return new AbstractSrcRef() {
+				@Override 
+				public boolean equals(Object o) {
+					if (this.getClass().isInstance(o)) {
+						final ISrcRef other = (ISrcRef) o;
+						return getOffset() == other.getOffset() &&
+							getCUName().equals(other.getCUName()) &&
+							getPackage().equals(other.getPackage());						
+					}
+					return false;
+				}
 				@Override
 				public ISrcRef createSrcRef(int offset) {
 					return this;
