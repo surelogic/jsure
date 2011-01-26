@@ -6,6 +6,8 @@ import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 public class PersistentDropInfo {
+	public static final boolean useInfo = true;
+	
 	private Collection<Info> dropInfo = Collections.emptyList();
 	
 	private PersistentDropInfo() {
@@ -33,16 +35,18 @@ public class PersistentDropInfo {
 	
 	@SuppressWarnings("unchecked")
 	public synchronized <T extends IDropInfo, T2 extends Drop> Set<T> getDropsOfType(Class<T2> dropType) {
-		if (!dropInfo.isEmpty()) {
-			final Set<T> result = new HashSet<T>();			
-			for(Info i : dropInfo) {
-				if (i.isInstance(dropType)) {
-					result.add((T) i);
+		if (useInfo) {
+			if (!dropInfo.isEmpty()) {
+				final Set<T> result = new HashSet<T>();			
+				for(Info i : dropInfo) {
+					if (i.isInstance(dropType)) {
+						result.add((T) i);
+					}
 				}
+				return result;
 			}
-			return result;
+			return Collections.emptySet();
 		}
-		return Collections.emptySet();
-		//return (Set<T>) Sea.getDefault().getDropsOfType(dropType);
+		return (Set<T>) Sea.getDefault().getDropsOfType(dropType);
 	}
 }

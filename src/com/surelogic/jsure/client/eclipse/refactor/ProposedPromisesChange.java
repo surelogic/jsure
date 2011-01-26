@@ -164,6 +164,8 @@ public class ProposedPromisesChange {
 		// @Assume cannot be on a field, so we just stick it on the parent type
 		// in that case
 		IJavaDeclaration from = drop.getFromInfo();// = IRNodeUtil.convert(b, drop.getRequestedFrom());
+		//System.out.println("Target = "+target);
+		//System.out.println("From   = "+from);
 		if (from instanceof Field) {
 			from = ((Field) from).getTypeContext();
 		}

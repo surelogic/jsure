@@ -44,6 +44,7 @@ public class PersistentResultsView extends ResultsView {
 			  location = File.createTempFile("snapshot", SeaSnapshot.SUFFIX);
 			  viewState = File.createTempFile(VIEW_STATE, ".xml");
 		  }   
+		  //System.out.println("Using location: "+location);
 	  } catch(IOException e) {
 		  // Nothing to do
 	  }
@@ -162,12 +163,18 @@ public class PersistentResultsView extends ResultsView {
     	
 		@Override
 		protected boolean dropsExist(Class<? extends Drop> type) {
+			if (!PersistentDropInfo.useInfo) {
+				return false;
+			}
 			return PersistentDropInfo.getInstance().dropsExist(type);
 		}
 
 		@Override
 		protected <R extends IDropInfo> 
 		Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
+			if (!PersistentDropInfo.useInfo) {
+				return Collections.emptyList();
+			}
 			return PersistentDropInfo.getInstance().getDropsOfType(type);
 		}
 		
