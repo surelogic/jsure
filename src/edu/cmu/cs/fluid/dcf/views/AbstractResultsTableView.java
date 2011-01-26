@@ -11,6 +11,7 @@ import org.eclipse.swt.dnd.Transfer;
 
 import com.surelogic.common.eclipse.ColumnViewerSorter;
 
+import edu.cmu.cs.fluid.dcf.views.coe.PersistentDropInfo;
 import edu.cmu.cs.fluid.sea.*;
 
 public abstract class AbstractResultsTableView<T extends IDropInfo> extends AbstractDoubleCheckerView {
@@ -21,6 +22,11 @@ public abstract class AbstractResultsTableView<T extends IDropInfo> extends Abst
 		super(true, style);
 		clazz = c;
 		f_content = content;
+	}
+	
+	@Override
+	protected void subscribe() {
+		PersistentDropInfo.getInstance().addListener(this);
 	}
 	
 	protected String getSelectedText() {

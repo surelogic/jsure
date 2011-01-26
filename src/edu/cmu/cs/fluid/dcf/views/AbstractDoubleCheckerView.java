@@ -141,14 +141,19 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		contributeToActionBars();
 		// start empty until the initial build is done
 		setViewerVisibility(false);
-		// subscribe to listen for analysis notifications
-		NotificationHub.addAnalysisListener(this);
-		Sea.getDefault().addSeaObserver(this);
+
+		subscribe();
 
 		f_viewTitle = getPartName();
 		finishCreatePartControl();
 	}
 
+	protected void subscribe() {
+		// subscribe to listen for analysis notifications
+		NotificationHub.addAnalysisListener(this);
+		Sea.getDefault().addSeaObserver(this);
+	}
+	
 	protected void finishCreatePartControl() {
 		// Nothing to do right now
 	}

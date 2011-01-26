@@ -55,8 +55,8 @@ public class JSureProblemsView extends AbstractResultsTableView<IProofDropInfo> 
 
 		@Override
 		protected void getAndSortResults(List<IProofDropInfo> contents) {
-			Set<? extends ProofDrop> drops = Sea.getDefault().getDropsOfType(ResultDrop.class);
-			for (ProofDrop id : drops) {
+			Set<? extends IProofDropInfo> drops = PersistentDropInfo.getInstance().getDropsOfType(ResultDrop.class);
+			for (IProofDropInfo id : drops) {
 				if (!id.isConsistent()) {
 					contents.add(id);
 				}

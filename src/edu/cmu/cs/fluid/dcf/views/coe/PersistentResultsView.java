@@ -1,25 +1,19 @@
 package edu.cmu.cs.fluid.dcf.views.coe;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import org.eclipse.ui.IMemento;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.common.FileUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
-import com.surelogic.fluid.javac.Projects;
-import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
-import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 public class PersistentResultsView extends ResultsView {
-  private static final String NAME = "snapshot"+SeaSnapshot.SUFFIX;
   private static final String VIEW_STATE = "view.state";
   private static final boolean useXML = SeaSnapshot.useFullType || AbstractWholeIRAnalysis.useDependencies;
   
@@ -29,29 +23,30 @@ public class PersistentResultsView extends ResultsView {
    */
   final Sea sea = Sea.getDefault();//new Sea();
   
-  final File location;
   final File viewState;
 	
   public PersistentResultsView() {
-	  File location = null;
 	  File viewState = null;
 	  if (useXML) try {
 		  final File jsureData = PreferenceConstants.getJSureDataDirectory();
 		  if (jsureData != null) {
-			  location = new File(jsureData, NAME);
 			  viewState = new File(jsureData, VIEW_STATE+".xml");
 		  } else {
-			  location = File.createTempFile("snapshot", SeaSnapshot.SUFFIX);
 			  viewState = File.createTempFile(VIEW_STATE, ".xml");
 		  }   
 		  //System.out.println("Using location: "+location);
 	  } catch(IOException e) {
 		  // Nothing to do
 	  }
-	  this.location = location;
 	  this.viewState = viewState;
   }
   
+  @Override
+  protected void subscribe() {
+	  PersistentDropInfo.getInstance().addListener(this);
+  }
+  
+  /*
   @Override
   public void analysisStarting() {
 	  if (location == null || !location.exists()) {
@@ -69,20 +64,16 @@ public class PersistentResultsView extends ResultsView {
 		  finishCreatePartControl();
 	  }
   }
+  */
   
   @Override
   protected void finishCreatePartControl() {
-	  if (location != null && location.exists()) {
-		  try {
-			  PersistentDropInfo.getInstance().setInfo(SeaSnapshot.loadSnapshot(location));
-			  // TODO restore viewer state?
-			  provider.buildModelOfDropSea_internal();
-			  setViewerVisibility(true);
-			  System.out.println("Loaded snapshot");
-		  } catch (Exception e) {
-			  e.printStackTrace();
-			  PersistentDropInfo.getInstance().setInfo(Collections.<Info>emptyList());
-		  }
+	  if (PersistentDropInfo.getInstance().load()) {
+		  // TODO restore viewer state?
+		  provider.buildModelOfDropSea_internal();
+		  setViewerVisibility(true);
+		  System.out.println("Loaded snapshot");
+
 		  // Running too early?
 		  if (viewState != null && viewState.exists()) {
 			  f_viewerbook.getDisplay().asyncExec(new Runnable() {
@@ -122,31 +113,13 @@ public class PersistentResultsView extends ResultsView {
 		@Override
     	public IResultsViewContentProvider buildModelOfDropSea() {
 			if (useXML) {
-				try {    
-					// TODO NPE since it's built externally
-					Projects projects = (Projects) ProjectsDrop.getDrop().getIIRProjects();
-					File results = new File(projects.getRunDir(), RemoteJSureRun.RESULTS_XML);
-					if (results.exists() && results.length() > 0) {
-						if (location != null) {
-							FileUtility.copy(results, location);
-						}
-					} else {
-						// Persist the Sea, and then load the info    
-						new SeaSnapshot(location).snapshot(ProjectsDrop.getDrop().getIIRProjects().getLabel(), Sea.getDefault());
-						results = location;
-					}
-					//try {
-						saveViewState(viewState);
-					//} catch (IOException e) {
-					//	e.printStackTrace();
-					//}
-					if (results != null && results.exists() && results.length() > 0) {
-						PersistentDropInfo.getInstance().setInfo(SeaSnapshot.loadSnapshot(results));
-					}
-				} catch (Exception e) {
+				try {
+					saveViewState(viewState);
+				} catch (IOException e) {
 					e.printStackTrace();
-					PersistentDropInfo.getInstance().setInfo(Collections.<Info>emptyList());
 				}
+				PersistentDropInfo.getInstance().load();
+				
 				try {
 					return super.buildModelOfDropSea_internal();
 				} finally {
