@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.common.FileUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Projects;
@@ -21,6 +20,7 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 	private static final String NAME = "snapshot"+SeaSnapshot.SUFFIX;
 	public static final boolean useInfo = true;
 	
+	private long timestamp = Long.MIN_VALUE;	
 	private Collection<Info> dropInfo = Collections.emptyList();
 	private final List<AbstractDoubleCheckerView> listeners = new CopyOnWriteArrayList<AbstractDoubleCheckerView>();
 	private final File location;
@@ -51,7 +51,7 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 		return instance;
 	}
 	
-	boolean load() {
+	public boolean load() {
 		if (location != null && location.exists()) {
 			try {
 				final ProjectsDrop drop = ProjectsDrop.getDrop();			
@@ -67,8 +67,12 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 						// Persist the Sea, and then load the info    
 						new SeaSnapshot(location).snapshot(projects.getLabel(), Sea.getDefault());
 					}
-				}				
-				dropInfo = SeaSnapshot.loadSnapshot(location);
+				}	
+				final long lastModified = location.lastModified();
+				if (dropInfo.isEmpty() || lastModified > timestamp) {
+					dropInfo = SeaSnapshot.loadSnapshot(location);
+					timestamp = lastModified;
+				}
 				return true;
 			} catch (Exception e) {
 				dropInfo = Collections.emptyList();

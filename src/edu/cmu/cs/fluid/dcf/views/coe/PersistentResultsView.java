@@ -72,7 +72,7 @@ public class PersistentResultsView extends ResultsView {
 		  // TODO restore viewer state?
 		  provider.buildModelOfDropSea_internal();
 		  setViewerVisibility(true);
-		  System.out.println("Loaded snapshot");
+		  System.out.println("Loaded snapshot for "+this);
 
 		  // Running too early?
 		  if (viewState != null && viewState.exists()) {

@@ -29,6 +29,15 @@ public abstract class AbstractResultsTableView<T extends IDropInfo> extends Abst
 		PersistentDropInfo.getInstance().addListener(this);
 	}
 	
+	@Override
+	protected void finishCreatePartControl() {
+		if (PersistentDropInfo.getInstance().load()) {
+			f_content.build();
+			setViewerVisibility(true);
+			System.out.println("Loaded snapshot for "+this);
+		}
+	}
+		
 	protected String getSelectedText() {
 		IStructuredSelection selection = (IStructuredSelection) viewer
 		.getSelection();
