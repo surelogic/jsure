@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/ir/TestIRPackage.java,v 1.1 2007/01/23 19:59:45 chance Exp $*/
 package edu.cmu.cs.fluid.ir;
 
 import junit.framework.TestCase;

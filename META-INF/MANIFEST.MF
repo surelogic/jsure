@@ -133,8 +133,7 @@ Export-Package: .,
  edu.uwm.cs.fluid.java.control,
  edu.uwm.cs.fluid.tree,
  edu.uwm.cs.fluid.util
-Require-Bundle: org.junit,
- com.surelogic.common,
+Require-Bundle: com.surelogic.common,
  com.surelogic.jsure.message
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 
