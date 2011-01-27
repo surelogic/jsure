@@ -39,6 +39,9 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     }
 
     public static String tryToMapPath(String path) {
+    	if (projects == null) {
+    		return path;
+    	}
 		try {
 	    	final URI uri = new URI(path);
 			for(Config config : projects.getConfigs()) {
