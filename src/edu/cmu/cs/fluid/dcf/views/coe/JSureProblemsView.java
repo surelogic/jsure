@@ -12,7 +12,6 @@ import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.eclipse.SLImages;
-import com.surelogic.common.eclipse.ViewUtility;
 
 import edu.cmu.cs.fluid.dcf.views.*;
 import edu.cmu.cs.fluid.sea.*;
@@ -42,10 +41,7 @@ public class JSureProblemsView extends AbstractResultsTableView<IProofDropInfo> 
 	}
 	
 	protected void handleDoubleClick(IProofDropInfo d) {
-		final ResultsView view = (ResultsView) ViewUtility.showView(ResultsView.class.getName());
-		if (view != null && d instanceof ProofDrop) {
-			view.showDrop((ProofDrop) d);
-		}
+		PersistentDropInfo.showDrop(d);
 	}
 	
 	static class ContentProvider extends AbstractResultsTableContentProvider<IProofDropInfo> {

@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.eclipse.ViewUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Projects;
 import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
@@ -49,6 +50,18 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 	
 	public static PersistentDropInfo getInstance() {
 		return instance;
+	}
+
+	public static void showDrop(IProofDropInfo d) {
+		if (useInfo) {
+			final PersistentResultsView view = (PersistentResultsView) ViewUtility.showView(PersistentResultsView.class.getName());
+			view.showDrop(d);
+		} else {
+			final ResultsView view = (ResultsView) ViewUtility.showView(ResultsView.class.getName());
+			if (view != null && d instanceof ProofDrop) {
+				view.showDrop((ProofDrop) d);
+			}
+		}
 	}
 	
 	public boolean load() {
