@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaPromise;
 
 public class TreeUtil implements JavaGlobals {
-  public static Stack findPathUp(IRNode root, IRNode here) {
+  public static Stack<IRNode> findPathUp(IRNode root, IRNode here) {
     Stack<IRNode> stack = new Stack<IRNode>();
     
     // based on bsi.findRoot
