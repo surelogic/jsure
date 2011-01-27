@@ -1,7 +1,6 @@
 package com.surelogic.jsure.tests;
 
 import junit.framework.TestSuite;
-import edu.cmu.cs.fluid.eclipse.bind.TestObjectBind;
 import edu.cmu.cs.fluid.ir.TestIRPackage;
 import edu.cmu.cs.fluid.java.analysis.TestJavaAnalysisPackage;
 import edu.cmu.cs.fluid.sea.test.*;
@@ -24,8 +23,6 @@ public class AllUnitTests extends TestSuite {
 
 		// Has some problems running with unversioned tests
 		addTest(new TestSuite(TestVersionPackage.class));
-
-		addTest(new TestSuite(TestObjectBind.class));
 
 		addTest(new TestSuite(TestJavaAnalysisPackage.class));
 		addTest(new TestSuite(TestTaskFramework.class));
