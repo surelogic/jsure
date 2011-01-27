@@ -43,7 +43,6 @@ import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAc
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.eclipse.EclipseFileLocator;
-import edu.cmu.cs.fluid.eclipse.adapter.SrcRef;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
@@ -551,7 +550,6 @@ public class ResultsView extends AbstractDoubleCheckerView {
   @Override
   protected void updateView() {
     try {
-      SrcRef.dumpStats();
       AbstractJavaBinder.printStats();
       RegionModel.purgeUnusedRegions();
       LockModel.purgeUnusedLocks();

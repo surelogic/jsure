@@ -23,10 +23,7 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
-import edu.cmu.cs.fluid.eclipse.adapter.Binding;
-import edu.cmu.cs.fluid.eclipse.adapter.JavaSourceFileAdapter;
-import edu.cmu.cs.fluid.eclipse.adapter.ModuleUtil;
-import edu.cmu.cs.fluid.eclipse.adapter.SrcRef;
+import edu.cmu.cs.fluid.eclipse.adapter.*;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -247,7 +244,7 @@ public final class PackageLevelPreprocessing extends
 					// and put it on the package
 					String src = icu.getSource();
 					if (pd != null) {
-						ISrcRef srcRef = SrcRef.getInstance(pd, cu, resource, src);
+						ISrcRef srcRef = null; // SrcRef.getInstance(pd, cu, resource, src);
 						JavaNode.setSrcRef(pkg.node, srcRef);
 					}
 					parsePackagePromises(pkg);
