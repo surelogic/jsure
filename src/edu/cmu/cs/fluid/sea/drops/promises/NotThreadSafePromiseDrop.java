@@ -1,7 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.*;
-import com.surelogic.sea.drops.*;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
