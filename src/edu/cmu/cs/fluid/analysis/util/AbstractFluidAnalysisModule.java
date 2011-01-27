@@ -117,7 +117,7 @@ public abstract class AbstractFluidAnalysisModule<Q> extends
   public void analyzeBegin(IProject p) {
     project = p;
     jProject = JavaCore.create(p);
-    Eclipse.getDefault().setDefaultClassPath(p);
+    //Eclipse.getDefault().setDefaultClassPath(p);
     PromiseFramework.getInstance().setReporter(this);
   }
 
@@ -170,8 +170,8 @@ public abstract class AbstractFluidAnalysisModule<Q> extends
 
             Operator op = JJNode.tree.getOperator(root);
             if (op instanceof IHasBinding) {
-              IRNode binding = Eclipse.getDefault().getTypeEnv(project).getBinder()
-                  .getBinding(root);
+              IRNode binding = null;
+              //Eclipse.getDefault().getTypeEnv(project).getBinder().getBinding(root);
               if (binding != null) {
                 s.print(" binding = " + DebugUnparser.toString(binding));
               } else {

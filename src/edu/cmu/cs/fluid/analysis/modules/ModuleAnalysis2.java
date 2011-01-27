@@ -37,7 +37,7 @@ public class ModuleAnalysis2 extends AbstractWholeIRAnalysisModule {
 		super.analyzeBegin(project);
 
 		// Setup some fluid analysis stuff (Check that this is correct)
-		tEnv = Eclipse.getDefault().getTypeEnv(project);
+	    tEnv = null; // Eclipse.getDefault().getTypeEnv(project);
 
 		// Hashtable options = JavaCore.getOptions();
 	    /*

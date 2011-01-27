@@ -17,7 +17,8 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 public abstract class AbstractWholeAnalysisModule extends AbstractWholeIRAnalysisModule {	
 	private static IIRAnalysisEnvironment env = new AbstractAnalysisEnvironment() {
 		public void ensureClassIsLoaded(String qname) {
-			ConvertToIR.prefetch(qname);
+			//ConvertToIR.prefetch(qname);
+			throw new UnsupportedOperationException();
 		}
 
 		public IAnalysisMonitor getMonitor() {
@@ -39,13 +40,13 @@ public abstract class AbstractWholeAnalysisModule extends AbstractWholeIRAnalysi
 	public final void preBuild(IProject project) {
 		super.preBuild(project);
 		analysis.init(env);
-		analysis.preAnalysis(env, Eclipse.getDefault().makeClassPath(project));
+		//analysis.preAnalysis(env, Eclipse.getDefault().makeClassPath(project));
 	}
 	
 	@Override
 	public final void analyzeBegin(IProject project) {
 		super.analyzeBegin(project);
-		analysis.analyzeBegin(Eclipse.getDefault().makeClassPath(project));
+		//analysis.analyzeBegin(Eclipse.getDefault().makeClassPath(project));
 	}
 	
 	@Override
@@ -62,14 +63,14 @@ public abstract class AbstractWholeAnalysisModule extends AbstractWholeIRAnalysi
 	public final Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
 		if (doingFullProjectPass) {
 			// Ignoring return value, since we're done with the full pass
-			analysis.analyzeEnd(Eclipse.getDefault().makeClassPath(project));
+			//analysis.analyzeEnd(Eclipse.getDefault().makeClassPath(project));
 		}
 		return super.finishAnalysis(project, monitor);
 	}
 	
 	@Override
 	public final void postBuild(IProject project) {
-		analysis.postAnalysis(Eclipse.getDefault().makeClassPath(project));
+		//analysis.postAnalysis(Eclipse.getDefault().makeClassPath(project));
 		super.postBuild(project);
 		IDE.getInstance().clearCaches();
 	}

@@ -15,7 +15,6 @@ import com.surelogic.jsure.client.eclipse.listeners.IClearProjectHelper;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
-import edu.cmu.cs.fluid.analysis.util.ConvertToIR;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -68,7 +67,7 @@ public final class ColorAssurance
   public ColorAssurance() {
     INSTANCE = this;
     TRoleStats.getInstance();
-    ConvertToIR.register(listener);
+    //ConvertToIR.register(listener);
     ClearProjectListener.addHelper(this);
   }
 
@@ -97,7 +96,7 @@ public final class ColorAssurance
     }
     
     // Setup some fluid analysis stuff (Check that this is correct)
-    tEnv = Eclipse.getDefault().getTypeEnv(project);
+    tEnv = null; // Eclipse.getDefault().getTypeEnv(project);
   }
 
   /**

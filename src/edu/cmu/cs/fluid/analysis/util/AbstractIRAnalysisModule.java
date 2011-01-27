@@ -90,7 +90,7 @@ public abstract class AbstractIRAnalysisModule extends
   @Override
   public void analyzeBegin(IProject p) {
     super.analyzeBegin(p);
-    binder = Eclipse.getDefault().getTypeEnv(p).getBinder();
+    binder = null; //Eclipse.getDefault().getTypeEnv(p).getBinder();
     msgPrefix = "Running " + getLabel() + " on file: ";
     
     if (lastProjectAnalyzed != p) {

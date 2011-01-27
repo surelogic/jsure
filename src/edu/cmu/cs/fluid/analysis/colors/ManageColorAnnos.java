@@ -14,8 +14,7 @@ import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
-import edu.cmu.cs.fluid.analysis.util.ConvertToIR;
+import edu.cmu.cs.fluid.analysis.util.*;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -66,7 +65,7 @@ public final class ManageColorAnnos extends AbstractIRAnalysisModule {
 
   public ManageColorAnnos() {
     INSTANCE = this;
-    ConvertToIR.register(listener);
+    //ConvertToIR.register(listener);
   }
 
   private static ManageColorAnnos INSTANCE;
@@ -85,7 +84,7 @@ public final class ManageColorAnnos extends AbstractIRAnalysisModule {
     super.analyzeBegin(project);
     
     // Setup some fluid analysis stuff (Check that this is correct)
-    tEnv = Eclipse.getDefault().getTypeEnv(project);
+    tEnv = null; // Eclipse.getDefault().getTypeEnv(project);
 
     runInVersion(new AbstractRunner() {
 

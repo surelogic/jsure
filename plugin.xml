@@ -65,63 +65,17 @@
 		<run class="com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver" production="false">
 		</run>
 	</extension>
-	<extension id="UpdateSuperRootStorage" name="UWM Bridge"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.UpdateSuperRootStorage"
-			category="required">
-		</run>
-	</extension>
-	<extension id="PackageLevelPreprocessing" name="Preprocessor for package-level constructs"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.PackageLevelPreprocessing"
-			category="required">
-		</run>
-		<prerequisite
-			id="com.surelogic.jsure.client.eclipse.UpdateSuperRootStorage">
-		</prerequisite>
-	</extension>
-	<extension id="ConvertToIR" name="eAST to fAST Converter"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.ConvertToIR" category="required">
-		</run>
-		<prerequisite
-			id="com.surelogic.jsure.client.eclipse.PackageLevelPreprocessing">
-		</prerequisite>
-	</extension>
-	<extension id="PromiseParser" name="Promise Parser"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.PromiseParser"
-			category="required">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.ConvertToIR">
-		</prerequisite>
-	</extension>
+
 	<extension id="PromiseScrubber" name="Promise Scrubber"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.PromiseScrubber"
+		<run class="edu.cmu.cs.fluid.analysis.util.NullAnalysis"
 			category="required">
 		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseParser">
-		</prerequisite>
 	</extension>
-	<extension id="DeleteIR" name="DeleteIR"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.DeleteIR" production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
-	<extension id="TestMultipleProjects" name="TestMultipleProjects"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.TestMultipleProjects"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
-  <extension id="ConcurrencyDetector" name="Concurrency detector"
-    point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.concurrency.ConcurrencyDetector">
+
+    <extension id="ConcurrencyDetector" name="Concurrency detector"
+    	point="com.surelogic.jsure.client.eclipse.analysisModule">
+    	<run class="com.surelogic.analysis.concurrency.ConcurrencyDetector">
     </run>
   </extension>
 	<extension id="Static State Detector" name="Static state detector"

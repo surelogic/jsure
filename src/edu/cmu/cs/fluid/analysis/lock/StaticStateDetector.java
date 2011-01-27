@@ -26,7 +26,7 @@ public final class StaticStateDetector extends AbstractIRAnalysisModule {
   }
   
   public StaticStateDetector() {
-    ConvertToIR.prefetch("java.lang.Object");
+	  //ConvertToIR.prefetch("java.lang.Object");
   }
 
   /*

@@ -11,9 +11,7 @@ import com.surelogic.analysis.threadroles.TRoleSecondPass;
 import com.surelogic.analysis.threadroles.TRoleStats;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
-import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
-import edu.cmu.cs.fluid.analysis.util.ConvertToIR;
+import edu.cmu.cs.fluid.analysis.util.*;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -64,7 +62,7 @@ public class ThreadRoleAssurance1 extends AbstractWholeIRAnalysisModule {
     super(ParserNeed.NEW);
     INSTANCE = this;
     TRoleStats.getInstance();
-    ConvertToIR.register(listener);
+    //ConvertToIR.register(listener);
   }
 
   /**
@@ -92,7 +90,7 @@ public class ThreadRoleAssurance1 extends AbstractWholeIRAnalysisModule {
     }
     
     // Setup some fluid analysis stuff (Check that this is correct)
-    tEnv = Eclipse.getDefault().getTypeEnv(project);
+    tEnv = null; // Eclipse.getDefault().getTypeEnv(project);
   }
 
   /**

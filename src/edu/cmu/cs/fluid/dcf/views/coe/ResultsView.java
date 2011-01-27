@@ -42,7 +42,6 @@ import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAc
 
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
-import edu.cmu.cs.fluid.eclipse.EclipseFileLocator;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
@@ -566,12 +565,14 @@ public class ResultsView extends AbstractDoubleCheckerView {
           .println("Time to build model  = " + (buildEnd - start) + " ms");
       JavacDriver.getInstance().recordViewUpdate();
       
+      /*
       if (IJavaFileLocator.testIRPaging) {
         final EclipseFileLocator loc = (EclipseFileLocator) IDE.getInstance()
             .getJavaFileLocator();
         loc.testUnload(false, false);
         SlotInfo.compactAll();
       }
+      */
       setViewState();
     } catch (final Throwable t) {
       SLLogger.getLogger().log(Level.SEVERE, "Problem updating COE view", t);

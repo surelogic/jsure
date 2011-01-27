@@ -12,7 +12,6 @@ import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
-import edu.cmu.cs.fluid.analysis.util.ConvertToIR;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -32,7 +31,7 @@ public class ManageThreadRoleAnnos1 extends AbstractIRAnalysisModule {
   public ManageThreadRoleAnnos1() {
     super(ParserNeed.NEW);
     INSTANCE = this;
-    ConvertToIR.register(listener);
+    //ConvertToIR.register(listener);
   }
 
   private static ManageThreadRoleAnnos1 INSTANCE;
@@ -51,7 +50,7 @@ public class ManageThreadRoleAnnos1 extends AbstractIRAnalysisModule {
     super.analyzeBegin(project);
     
     // Setup some fluid analysis stuff (Check that this is correct)
-    tEnv = Eclipse.getDefault().getTypeEnv(project);
+    tEnv = null; // Eclipse.getDefault().getTypeEnv(project);
 
     runInVersion(new AbstractRunner() {
 
