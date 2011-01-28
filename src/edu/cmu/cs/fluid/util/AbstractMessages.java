@@ -8,7 +8,8 @@ import java.security.PrivilegedAction;
 import java.util.*;
 import java.util.logging.*;
 
-import edu.cmu.cs.fluid.test.Testing;
+import com.surelogic.test.Testing;
+
 
 public abstract class AbstractMessages {  
   /**
