@@ -4,7 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gensrc"/>
-	<classpathentry kind="src" path="test"/>
 	<classpathentry exported="true" kind="lib" path="lib/jars/sablejbdd-0.02.jar" sourcepath="/Users/dfsuther/Documents/School/Eclipse/sablejbdd-0.02/src"/>
 	<classpathentry exported="true" kind="lib" path="lib/jars/log4j-xml-1.3alpha-8.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jars/log4j-1.3alpha-8.jar"/>
