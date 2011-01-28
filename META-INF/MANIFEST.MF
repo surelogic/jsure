@@ -6,7 +6,6 @@ Bundle-Version: 1.0.0
 Bundle-Vendor: SureLogic, Inc.
 Require-Bundle: com.surelogic.common,
  com.surelogic.common.eclipse,
- com.surelogic.common.adhoc,
  edu.cmu.cs.fluid,
  edu.cmu.cs.fluid.eclipse,
  com.surelogic.fluid.javac,
