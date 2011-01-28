@@ -88,7 +88,7 @@ public class JacksTest extends TestCase {
   }
 
   private static URL getResource(String name) {
-    return TestActivator.getDefault().getBundle().getResource(name);
+    return Activator.getDefault().getBundle().getResource(name);
   }
 
   public void testGetResource() {

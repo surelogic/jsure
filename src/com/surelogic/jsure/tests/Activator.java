@@ -8,14 +8,14 @@ package com.surelogic.jsure.tests;
 
 import org.eclipse.core.runtime.Plugin;
 
-public class TestActivator extends Plugin {
-  private static TestActivator instance;
+public class Activator extends Plugin {
+  private static Activator instance;
 
-  public TestActivator() {
+  public Activator() {
     instance = this;
   }
   
-  static TestActivator getDefault() {
+  static Activator getDefault() {
     return instance;
   }
 }

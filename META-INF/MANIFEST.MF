@@ -6,6 +6,7 @@ Bundle-Version: 1.0.0
 Bundle-Vendor: SureLogic, Inc.
 Require-Bundle: com.surelogic.common,
  com.surelogic.common.eclipse,
+ com.surelogic.common.adhoc,
  edu.cmu.cs.fluid,
  edu.cmu.cs.fluid.eclipse,
  com.surelogic.fluid.javac,
@@ -26,7 +27,7 @@ Bundle-ClassPath: lib/jacl.jar,
  lib/ant.jar,
  lib/ant-junit.jar,
  lib/jdom.jar
-Bundle-Activator: com.surelogic.jsure.tests.TestActivator
+Bundle-Activator: com.surelogic.jsure.tests.Activator
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
