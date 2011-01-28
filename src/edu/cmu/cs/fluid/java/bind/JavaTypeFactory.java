@@ -864,12 +864,19 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   }
   
   public IJavaReferenceType getExtendsBound(ITypeEnvironment tEnv) {
-    IRNode bounds = TypeFormal.getBounds(declaration);
-    if (JJNode.tree.numChildren(bounds) <= 0) {
+    final IRNode bounds = TypeFormal.getBounds(declaration);
+    final int num = JJNode.tree.numChildren(bounds);
+    if (num <= 0) {
       return tEnv.getObjectType();
     }
-    IRNode first = MoreBounds.getBound(bounds, 0);
-    return (IJavaReferenceType)tEnv.convertNodeTypeToIJavaType(first);
+    else if (num == 1) {        
+    	IRNode first = MoreBounds.getBound(bounds, 0);
+    	return (IJavaReferenceType)tEnv.convertNodeTypeToIJavaType(first);
+    } 
+    else {
+    	return (IJavaReferenceType) 
+    	JavaTypeFactory.convertNodeTypeToIJavaType(bounds, tEnv.getBinder());
+    }
   }
 
   @Override
