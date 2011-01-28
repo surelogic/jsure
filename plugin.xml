@@ -181,6 +181,13 @@
     <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
     </prerequisite>
   </extension>
+  <extension id="Types" name="Get Expression Types" 
+    point="com.surelogic.jsure.client.eclipse.analysisModule">
+    <run class="com.surelogic.analysis.testing.TypesModule" production="false">
+    </run>
+    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
+    </prerequisite>
+  </extension>
 	<extension id="ThreadEffectAssurance2" name="Thread effects"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.analysis.threads.ThreadEffectsModule">
