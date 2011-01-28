@@ -48,7 +48,7 @@ public class TestVersionedTree extends TestTree {
 
   @Override
   public void test(String args[]) {
-    Era e = new Era(Version.getVersion());
+    Era e = new Era(Version.getInitialVersion());
     Version.setDefaultEra(e);
 
     // generic tests
