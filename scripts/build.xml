@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="headlessBuilder" default="summarize.results" basedir=".">
+<project name="headlessBuilder" default="build.all.plugins" basedir=".">
 
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath>
@@ -153,35 +153,6 @@
 		<property name="init.already.run" value="true" />
 	</target>
 
-
-	<target name="build.and.test.all.plugins" description="Build all of the SureLogic JSure plugins, the test plugins, and run the tests" depends="init.regression.tests">
-		<build.plugins test="true" />
-	</target>
-
-	<target name="build.all.plugins" description="Build all of the SureLogic JSure plugins" depends="initialize">
-		<build.plugins test="false" />
-	</target>
-
-	<macrodef name="build.plugins">
-		<attribute name="test" default="false" />
-		<sequential>
-			<java dir="${pde.plugin.dir}/scripts" jar="${eclipse.startup.jar}" fork="true" maxmemory="1000M" failonerror="true">
-				<arg line="-application org.eclipse.ant.core.antRunner" />
-				<arg value="-Dtest=@{test}" />
-				<arg value="-Dbuilder=${build.dir}" />
-				<arg value="-Dbase=${root}/" />
-				<arg value="-DbaseLocation=${test.sandbox}/eclipse" />
-				<arg value="-Dworkspace=${dev.workspace.dir}/" />
-				<arg value="-DbuildDirectory=${build.dir}/" />
-				<arg value="-Dtest.sandbox=${test.sandbox}" />
-				<arg value="-Dtest.properties=${test.properties}" />
-				<arg value="-Dtest.workspace.base=${test.workspace.base}" />
-				<arg value="-Dtest.module.dir=${test.module.dir}" />
-			</java>
-		</sequential>
-	</macrodef>
-
-
 	<target name="init.regression.tests" depends="initialize" description="Sets up the workspaces for any regression test projects">
 
 		<!-- make a copy of the test module in the workspace this was started within -->
@@ -215,6 +186,68 @@
 		<copy todir="${test.workspace.base}">
 			<fileset dir="${test.module.dir}" includes="**/test.properties" />
 		</copy>
+	</target>
+
+	<target name="build.all.plugins" description="Build all of the SureLogic JSure plugins" depends="initialize">
+		<mkdir dir="${build.dir}/features" />
+		<mkdir dir="${build.dir}/plugins" />
+
+
+		<!-- Copy our plugins  -->
+		<for list="${plugin.projects}" delimiter="," param="plugin" trim="true" keepgoing="true">
+			<sequential>
+				<copy todir="${build.dir}/plugins/@{plugin}">
+					<fileset dir="../@{plugin}">
+						<exclude name="bin/**,**/CVS/**,**/.svn/**" />
+					</fileset>
+				</copy>
+			</sequential>
+		</for>
+
+		<!-- Copy our features  -->
+		<for list="${feature.projects}" delimiter="," param="feature" trim="true" keepgoing="true">
+			<sequential>
+				<copy todir="${build.dir}/features/@{feature}">
+					<fileset dir="../@{feature}" />
+				</copy>
+			</sequential>
+		</for>
+
+		<move file="${build.dir}/features/jsure-tests-feature" toFile="${build.dir}/features/com.surelogic.jsure.tests" />
+		<ant antfile="build-src.xml" dir="${build.dir}/plugins/common/" />
+		<ant antfile="build-src.xml" dir="${build.dir}/plugins/fluid/" />
+
+		<java dir="${pde.plugin.dir}/scripts" jar="${eclipse.startup.jar}" fork="true" maxmemory="1000M" failonerror="true">
+			<arg line="-application org.eclipse.ant.core.antRunner" />
+			<arg value="-Dbuilder=${build.dir}" />
+		</java>
+
+		<!-- Install into the Eclipse  -->
+		
+	</target>
+
+	<macrodef name="build.plugins">
+		<attribute name="test" default="false" />
+		<sequential>
+			<java dir="${pde.plugin.dir}/scripts" jar="${eclipse.startup.jar}" fork="true" maxmemory="1000M" failonerror="true">
+				<arg line="-application org.eclipse.ant.core.antRunner" />
+				<arg value="-Dtest=@{test}" />
+				<arg value="-Dbuilder=${build.dir}" />
+				<arg value="-Dbase=${root}/" />
+				<arg value="-DbaseLocation=${test.sandbox}/eclipse" />
+				<arg value="-Dworkspace=${dev.workspace.dir}/" />
+				<arg value="-DbuildDirectory=${build.dir}/" />
+				<arg value="-Dtest.sandbox=${test.sandbox}" />
+				<arg value="-Dtest.properties=${test.properties}" />
+				<arg value="-Dtest.workspace.base=${test.workspace.base}" />
+				<arg value="-Dtest.module.dir=${test.module.dir}" />
+			</java>
+		</sequential>
+	</macrodef>
+
+
+	<target name="build.and.test.all.plugins" description="Build all of the SureLogic JSure plugins, the test plugins, and run the tests" depends="init.regression.tests">
+		<build.plugins test="true" />
 	</target>
 
 	<!-- SUMMARIZES THE RESULTS AND PRINTS THEM OUT -->
