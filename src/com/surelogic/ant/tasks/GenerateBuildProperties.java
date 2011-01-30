@@ -30,14 +30,14 @@ public class GenerateBuildProperties extends Task {
 
 	private static final String PROP_FILENAME = "sl.test.properties";
 
-	private static final String MACOSX_PROP_FILENAME = "sl.macosx.test.properties";
+	private static final String MACOSX_PROP_FILENAME = "lib/sl.macosx.test.properties";
 
-	private static final String WIN_PROP_FILENAME = "sl.win.test.properties";
+	private static final String WIN_PROP_FILENAME = "lib/sl.win.test.properties";
 
-	private static final String LINUX_PROP_FILENAME = "sl.linux.test.properties";
+	private static final String LINUX_PROP_FILENAME = "lib/sl.linux.test.properties";
 
 	private static final File defaultsFile = new File(
-			System.getProperty("user.dir"), PROP_FILENAME);
+			System.getProperty("user.dir") + "/lib", PROP_FILENAME);
 
 	private static File propertiesFile;
 

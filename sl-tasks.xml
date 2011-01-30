@@ -51,12 +51,6 @@
     />
 
 	<taskdef
-        name="getlatestcvstag"
-        classname="com.surelogic.ant.tasks.GetLatestCVSTag"
-        onerror="ignore"
-    />
-
-	<taskdef
         name="geteclipseversion"
         classname="com.surelogic.ant.tasks.GetEclipseVersion"
         onerror="ignore"
