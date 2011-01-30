@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+   <extension
+         id="com.surelogic.jsure.tests.ImportProjectsPlatformRunnable"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run class="com.surelogic.jsure.tests.ImportProjectsPlatformRunnable"/>
+      </application>
+   </extension>
+</plugin>

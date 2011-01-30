@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<project name="run-jsure-tests" default="no-default" basedir=".">
+
+	<!-- The property ${eclipse-home} should be passed into this script -->
+	<!-- Set a meaningful default value for when it is not. -->
+	<!--property name="baseLocation" location="C:\work\testing\eclipse"/-->
+	<!--property name="baseLocation" location="${eclipse.home}"/-->
+	<property name="eclipse-home" location="${baseLocation}" />
+
+	<!-- sets the properties eclipse-home, and library-file -->
+	<property name="plugin-name" value="com.surelogic.jsure.tests" />
+	<!--property name="library-file" location="${current.dir}/new/library.xml" /-->
+
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+		<classpath>
+			<pathelement location="${ant.contrib.location}/lib/ant-contrib.jar" />
+		</classpath>
+	</taskdef>
+
+
+	<import file="${library-file}" />
+
+	<!-- This target holds all initialization code that needs to be done for -->
+	<!-- all tests that are to be run. Initialization for individual tests -->
+	<!-- should be done within the body of the suite target. -->
+	<target name="init-test">
+		<tstamp />
+		<delete>
+			<fileset dir="${eclipse-home}" includes="com*.xml" />
+		</delete>
+		<mkdir dir="${eclipse-home}/.tmp" />
+	</target>
+
+	<!-- This target defines the tests that need to be run. -->
+	<target name="regression-suite">
+		<echo message="Running regression test on ${test-workspace}" />
+		<available file="${test-workspace}/test.properties" property="exists">
+		</available>
+		<echo message="${test-workspace}/test.properties exists? ${exists}" />
+		<property file="${test-workspace}/test.properties" />
+		<property name="moreVMargs" value="" />
+		<echo message="moreVMargs = ${moreVMargs}" />
+		<antcall target="core-test">
+			<param name="timeout" value="7200000" />
+			<param name="test-output" value="com.surelogic.jsure.tests.AllRegressionTests.xml" />
+			<param name="junit-report-output" value="${test-workspace}" />
+			<param name="workdir" value="${eclipse-home}" />
+			<param name="application" value="org.eclipse.test.coretestapplication" />
+			<param name="data-dir" value="${test-workspace}" />
+			<param name="plugin-name" value="${plugin-name}" />
+			<param name="extraVMargs" value="-Xmx1000m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false -Dtest.module=${test-module} -Dextra.test.modules=${extra-test-modules} ${moreVMargs}" />
+			<param name="classname" value="com.surelogic.jsure.tests.AllRegressionTests" />
+		</antcall>
+		<move todir="${test-workspace}">
+			<fileset dir="${eclipse-home}">
+				<include name="*.xml" />
+			</fileset>
+		</move>
+	</target>
+
+	<!-- This target defines the tests that need to be run. -->
+	<target name="unit-suite">
+		<antcall target="core-test">
+			<param name="timeout" value="7200000" />
+			<param name="test-output" value="com.surelogic.jsure.tests.AllUnitTests.xml" />
+			<param name="junit-report-output" value="${test-workspace}" />
+			<param name="workdir" value="${eclipse-home}" />
+			<param name="application" value="org.eclipse.test.coretestapplication" />
+			<param name="data-dir" value="${test-workspace}" />
+			<param name="plugin-name" value="${plugin-name}" />
+			<param name="extraVMargs" value="-Xmx1000m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE" />
+			<param name="classname" value="com.surelogic.jsure.tests.AllUnitTests" />
+		</antcall>
+		<move todir="${test-workspace}">
+			<fileset dir="${eclipse-home}">
+				<include name="*.xml" />
+			</fileset>
+		</move>
+	</target>
+
+	<path id="ir.path">
+		<pathelement location=".tmp" />
+		<pathelement location="../build/plugins/fluid/lib/ir" />
+	</path>
+
+	<property name="fluid.ir.path" refid="ir.path" />
+
+	<macrodef name="run-test-suite">
+		<attribute name="classname" />
+		<sequential>
+			<antcall target="core-test">
+				<param name="timeout" value="7200000" />
+				<param name="test-output" value="@{classname}.xml" />
+				<param name="junit-report-output" value="${test-workspace}" />
+				<param name="workdir" value="${eclipse-home}" />
+				<param name="application" value="org.eclipse.test.coretestapplication" />
+				<param name="data-dir" value="${test-workspace}" />
+				<param name="plugin-name" value="${plugin-name}" />
+				<param name="extraVMargs" value="-Xmx1000m -Djava.util.logging.config.file=NONE -Dfluid.ir.path=${fluid.ir.path}" />
+				<param name="classname" value="@{classname}" />
+			</antcall>
+			<move todir="${test-workspace}">
+				<fileset dir="${eclipse-home}">
+					<include name="*.xml" />
+				</fileset>
+			</move>
+		</sequential>
+	</macrodef>
+
+	<target name="persistence-suite">
+		<run-test-suite classname="com.surelogic.jsure.tests.PersistentSaveTests" />
+		<run-test-suite classname="com.surelogic.jsure.tests.PersistentLoadTests" />
+	</target>
+
+	<!-- This target holds code to cleanup the testing environment after -->
+	<!-- after all of the tests have been run. We can use this target to -->
+	<!-- delete temporary files that have been created. -->
+	<target name="cleanup">
+	</target>
+
+	<macrodef name="collect-output">
+		<attribute name="output-suffix" />
+		<sequential>
+			<property name="includes" value="com*.xml" />
+			<property name="output-file" value="${plugin-name}.@{output-suffix}" />
+
+			<antcall target="collect">
+				<param name="includes" value="${includes}" />
+				<param name="output-file" value="${output-file}" />
+				<param name="dir" value="${eclipse-home}" />
+			</antcall>
+		</sequential>
+	</macrodef>
+
+	<!-- This target runs the test suite. Any actions that need to happen -->
+	<!-- after all the tests have been run should go here. -->
+	<target name="run-regression-tests" depends="init-test,regression-suite,cleanup">
+		<property name="includes" value="com*.xml" />
+		<property name="output-file" value="${plugin-name}.regression.xml" />
+
+		<antcall target="collect">
+			<param name="includes" value="${includes}" />
+			<param name="output-file" value="${output-file}" />
+			<param name="dir" value="${eclipse-home}" />
+		</antcall>
+	</target>
+
+	<target name="run-unit-tests" depends="init-test,unit-suite,cleanup">
+		<property name="includes" value="com*.xml" />
+		<property name="output-file" value="${plugin-name}.unit.xml" />
+
+		<antcall target="collect">
+			<param name="includes" value="${includes}" />
+			<param name="output-file" value="${output-file}" />
+			<param name="dir" value="${eclipse-home}" />
+		</antcall>
+	</target>
+
+	<target name="run-specialized-tests" depends="init-test,persistence-suite,cleanup">
+		<collect-output output-suffix="specialized.xml" />
+	</target>
+
+	<target name="no-default">
+		<fail message="There is no default target in this build file. Please specify a target." />
+	</target>
+
+</project>

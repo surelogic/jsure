@@ -1,21 +1,47 @@
-/*
- * Created on May 4, 2007
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
 package com.surelogic.jsure.tests;
 
+import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Plugin;
+import org.osgi.framework.BundleContext;
 
+/**
+ * The activator class controls the plug-in life cycle.
+ */
 public class Activator extends Plugin {
-  private static Activator instance;
 
-  public Activator() {
-    instance = this;
-  }
-  
-  static Activator getDefault() {
-    return instance;
-  }
+	// The shared instance
+	private static Activator plugin;
+
+	private static ILog log = null;
+
+	/**
+	 * The constructor
+	 */
+	public Activator() {
+		plugin = this;
+		log = getLog();
+	}
+
+	public void start(BundleContext context) throws Exception {
+		super.start(context);
+	}
+
+	public void stop(BundleContext context) throws Exception {
+		plugin = null;
+		super.stop(context);
+	}
+
+	/**
+	 * Returns the shared instance
+	 * 
+	 * @return the shared instance
+	 */
+	public static Activator getDefault() {
+		return plugin;
+	}
+
+	static ILog getILog() {
+		return log;
+	}
 }
+

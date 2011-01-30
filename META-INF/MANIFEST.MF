@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: SureLogic JSure Test Plug-in
-Bundle-SymbolicName: com.surelogic.jsure.tests
+Bundle-SymbolicName: com.surelogic.jsure.tests;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Vendor: SureLogic, Inc.
 Require-Bundle: com.surelogic.common,
