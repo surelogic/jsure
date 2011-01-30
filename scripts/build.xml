@@ -147,7 +147,7 @@
 
 		<!-- support the pde build scripts by generating the build.properties 
 		(copying the generated fluid-build.properties) -->
-		<copy file="${user.home}/${test.properties}" toFile="${user.dir}/build.properties" />
+		<copy file="${user.home}/${test.properties}" toFile="${build.dir}/build.properties" />
 
 		<!-- Ensures we don't init 2x in one run -->
 		<property name="init.already.run" value="true" />
@@ -168,7 +168,7 @@
 			<java dir="${pde.plugin.dir}/scripts" jar="${eclipse.startup.jar}" fork="true" maxmemory="1000M" failonerror="true">
 				<arg line="-application org.eclipse.ant.core.antRunner" />
 				<arg value="-Dtest=@{test}" />
-				<arg value="-Dbuilder=${builder.project.dir}" />
+				<arg value="-Dbuilder=${build.dir}" />
 				<arg value="-Dbase=${root}/" />
 				<arg value="-DbaseLocation=${test.sandbox}/eclipse" />
 				<arg value="-Dworkspace=${dev.workspace.dir}/" />
