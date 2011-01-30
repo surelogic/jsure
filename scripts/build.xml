@@ -197,7 +197,7 @@
 		<for list="${plugin.projects}" delimiter="," param="plugin" trim="true" keepgoing="true">
 			<sequential>
 				<copy todir="${build.dir}/plugins/@{plugin}">
-					<fileset dir="../@{plugin}">
+					<fileset dir="../../@{plugin}">
 						<exclude name="bin/**,**/CVS/**,**/.svn/**" />
 					</fileset>
 				</copy>
@@ -208,7 +208,7 @@
 		<for list="${feature.projects}" delimiter="," param="feature" trim="true" keepgoing="true">
 			<sequential>
 				<copy todir="${build.dir}/features/@{feature}">
-					<fileset dir="../@{feature}" />
+					<fileset dir="../../@{feature}" />
 				</copy>
 			</sequential>
 		</for>
