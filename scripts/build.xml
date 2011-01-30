@@ -3,13 +3,13 @@
 
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath>
-			<pathelement location="${user.dir}/lib/ant-contrib.jar" />
+			<pathelement location="${ant.file}/lib/ant-contrib.jar" />
 		</classpath>
 	</taskdef>
 
 	<taskdef resource="sl-tasks.properties">
 		<classpath>
-			<pathelement location="${user.dir}/lib/jsure-tests-ant-tasks.jar" />
+			<pathelement location="${ant.file}/lib/jsure-tests-ant-tasks.jar" />
 		</classpath>
 	</taskdef>
 
