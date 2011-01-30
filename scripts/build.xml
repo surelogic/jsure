@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="headlessBuilder" default="summarize.results" basedir=".">
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="${user.dir}/lib/ant-contrib.jar" />
+		</classpath>
+	</taskdef>
+
+	<taskdef resource="sl-tasks.properties">
+		<classpath>
+			<pathelement location="${user.dir}/lib/jsure-tests-ant-tasks.jar" />
+		</classpath>
+	</taskdef>
+
+	<target name="init-properties" description="Auto generates the main properties file, sl.test.properties and puts it in the user's home directory">
+		<generatebuildproperties machinespecific="${machine.specific.props}" />
+	</target>
+
+
+	<target name="load-properties">
+		<!-- - - - - - - - - - - - -  FROM FLUID BUILD.XML - - - - - - - - - - - -->
+		<!-- Filenames for properties files we are going to read -->
+		<property name="fph.p" value="fluid-property-home.properties" />
+		<property name="fb.p" value="fluid-build.properties" />
+		<property name="test.properties" value="sl.test.properties" />
+
+		<!-- Set optional property values to empty strings -->
+
+		<!-- Check "fluid-property-home.properties" for "user.home" redirection -->
+		<property file="${user.home}/${fph.p}" />
+		<property name="prop-dir" value="${user.home}" />
+		<available property="prop-dir" value="${fluid.property.home}" file="${user.home}/${fph.p}" />
+
+		<!-- Check for existance of "fluid-build.properties" file -->
+		<available property="build-prop-file" value="${prop-dir}/${fb.p}" file="${prop-dir}/${fb.p}" />
+		<!-- or for ".fluid-build.properties" file (to be Unix friendly) -->
+		<available property="build-prop-file" value="${prop-dir}/.${fb.p}" file="${prop-dir}/.${fb.p}" />
+
+		<fail message="No '${fb.p}' or '.${fb.p}' file in '${prop-dir}'" unless="build-prop-file" />
+		<!-- Read the build properties file -->
+		<property file="${build-prop-file}" />
+
+		<!-- Set the directory where you installed eclipse -->
+		<property name="eclipse.dir" value="${test.sandbox}/eclipse" />
+
+		<generatebuildproperties machinespecific="${machine.specific.props}" />
+		<property file="${user.home}/${test.properties}" />
+		<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	</target>
+
+	<target name="show-all-properties" depends="load-properties" description="Prints all properties that are currently set in the project.">
+		<echoproperties />
+	</target>
+
+	<target name="initialize" unless="${init.already.run}" description="Initializes the build by generating properties, cleaning the sandbox, and installing the desired version of Eclipse in it" depends="load-properties">
+
+		<!-- Make the sandbox if it doesn't exist -->
+		<mkdir dir="${test.sandbox}" />
+
+		<!-- Clean out the working directory -->
+		<echo>################## CLEANING SANDBOX: ${test.sandbox} ####################</echo>
+		<if>
+			<equals arg1="${delete.test.module}" arg2="true" />
+			<then>
+				<echo>Deleting everything in ${test.sandbox}</echo>
+				<delete dir="${test.sandbox}" includeemptydirs="true" />
+
+				<!-- Make the sandbox if the delete command deleted it -->
+				<mkdir dir="${test.sandbox}" />
+			</then>
+			<else>
+				<echo>Keeping the regression suite (Danger! Will Robinson, Danger!)</echo>
+				<delete includeemptydirs="true">
+					<fileset dir="${test.sandbox}" excludes="${test.module}/**" />
+				</delete>
+			</else>
+		</if>
+
+		<!-- The path to the zip/tgz/tar of the eclipse distro that should be tested against -->
+		<findfile property="eclipse.archive" basedir="${eclipse.zip.dir}" regex="${eclipse.zip.regex}" />
+
+		<geteclipseversion file="${eclipse.archive}" property="eclipse.version" />
+
+		<!-- The path to the zip of the eclipse test plugin distro that should be tested against -->
+		<findfile property="eclipse.test.zip" basedir="${eclipse.zip.dir}" regex="eclipse-test-framework-${eclipse.version}.zip" />
+		<!-- Unzip our Eclipse install and the related test-framework plugin -->
+		<getfileextension property="extension" file="${eclipse.archive}" />
+		<if>
+			<equals arg1="${extension}" arg2="zip" />
+			<then>
+				<unzip dest="${test.sandbox}" src="${eclipse.archive}" />
+			</then>
+			<!-- We have to run an OS-specific tar command as the Ant one
+			     does not set executable files on OS X and Linux properly
+			     (in fact this is why Eclipse uses tar.gz rather than zip
+			     for distributions on these OSs) -->
+			<elseif>
+				<equals arg1="${extension}" arg2="tgz" />
+				<then>
+					<exec executable="/usr/bin/env">
+						<arg value="tar" />
+						<arg value="xfz" />
+						<arg value="${eclipse.archive}" />
+						<arg value="-C" />
+						<arg value="${test.sandbox}" />
+					</exec>
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${extension}" arg2="gz" />
+				<then>
+					<exec executable="/usr/bin/env">
+						<arg value="tar" />
+						<arg value="xfz" />
+						<arg value="${eclipse.archive}" />
+						<arg value="-C" />
+						<arg value="${test.sandbox}" />
+					</exec>
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${extension}" arg2="tar" />
+				<then>
+					<exec executable="/usr/bin/env">
+						<arg value="tar" />
+						<arg value="xf" />
+						<arg value="${eclipse.archive}" />
+						<arg value="-C" />
+						<arg value="${test.sandbox}" />
+					</exec>
+				</then>
+			</elseif>
+			<else>
+				<fail message="No Eclipse archive found in ${eclipse.zip.dir}" />
+			</else>
+		</if>
+
+		<unzip dest="${test.sandbox}" src="${eclipse.test.zip}" />
+
+		<findfile basedir="${eclipse.dir}/plugins" regex="org\.eclipse\.equinox\.launcher_.*\.jar" property="eclipse.startup.jar" />
+
+		<geteclipseversion file="${eclipse.archive}" property="eclipse.version" />
+
+		<!-- Set the directory where the pde plugin is installed under eclipse -->
+		<findfile property="pde.plugin.dir" basedir="${eclipse.dir}/plugins" regex="org\.eclipse\.pde\.build_.*" />
+
+		<!-- support the pde build scripts by generating the build.properties 
+		(copying the generated fluid-build.properties) -->
+		<copy file="${user.home}/${test.properties}" toFile="${user.dir}/build.properties" />
+
+		<!-- Ensures we don't init 2x in one run -->
+		<property name="init.already.run" value="true" />
+	</target>
+
+
+	<target name="build.and.test.all.plugins" description="Build all of the SureLogic JSure plugins, the test plugins, and run the tests" depends="init.regression.tests">
+		<build.plugins test="true" />
+	</target>
+
+	<target name="build.all.plugins" description="Build all of the SureLogic JSure plugins" depends="initialize">
+		<build.plugins test="false" />
+	</target>
+
+	<macrodef name="build.plugins">
+		<attribute name="test" default="false" />
+		<sequential>
+			<java dir="${pde.plugin.dir}/scripts" jar="${eclipse.startup.jar}" fork="true" maxmemory="1000M" failonerror="true">
+				<arg line="-application org.eclipse.ant.core.antRunner" />
+				<arg value="-Dtest=@{test}" />
+				<arg value="-Dbuilder=${builder.project.dir}" />
+				<arg value="-Dbase=${root}/" />
+				<arg value="-DbaseLocation=${test.sandbox}/eclipse" />
+				<arg value="-Dworkspace=${dev.workspace.dir}/" />
+				<arg value="-DbuildDirectory=${build.dir}/" />
+				<arg value="-Dtest.sandbox=${test.sandbox}" />
+				<arg value="-Dtest.properties=${test.properties}" />
+				<arg value="-Dtest.workspace.base=${test.workspace.base}" />
+				<arg value="-Dtest.module.dir=${test.module.dir}" />
+			</java>
+		</sequential>
+	</macrodef>
+
+
+	<target name="init.regression.tests" depends="initialize" description="Sets up the workspaces for any regression test projects">
+
+		<!-- make a copy of the test module in the workspace this was started within -->
+		<copy todir="${test.sandbox}/${test.module}">
+			<fileset dir="${test.module.path.to.copy.from}/${test.module}" />
+		</copy>
+
+		<mkdir dir="${test.workspace.base}" />
+		<mkdir dir="${test.log.base}" />
+
+		<!-- unzip any zipped tests -->
+		<findtests property="test.project.list" basedir="${test.module.dir}" fullpaths="false" />
+		<for list="${test.project.list}" param="name" trim="true" keepgoing="true">
+			<sequential>
+				<if>
+					<matches string="@{name}" pattern="(.*)\.zip$" />
+					<then>
+						<propertyregex property="zip.name" input="@{name}" regexp="([^\.]*)\.zip" select="\1" override="true" casesensitive="false" />
+						<echo message="Unzipping @{name}" />
+						<mkdir dir="${test.module.dir}/${zip.name}" />
+						<unzip src="${test.module.dir}/@{name}" dest="${test.module.dir}/${zip.name}" />
+					</then>
+					<else>
+						<echo message="No extra processing needed for @{name}" />
+					</else>
+				</if>
+			</sequential>
+		</for>
+
+		<!-- make sure the workspaces contain any test.properties files from the project -->
+		<copy todir="${test.workspace.base}">
+			<fileset dir="${test.module.dir}" includes="**/test.properties" />
+		</copy>
+	</target>
+
+	<!-- SUMMARIZES THE RESULTS AND PRINTS THEM OUT -->
+	<target name="summarize.results" description="Summarizes the regression and unit test results" depends="build.and.test.all.plugins, collect-test-results">
+
+		<echo>
+############################################################
+#               ANNOTATION RULES RESULTS                   #
+############################################################
+		</echo>
+
+		<findtests property="test.project.list" basedir="${test.workspace.base}" fullpaths="true" />
+		<for list="${test.project.list}" param="workspace" trim="true" keepgoing="true">
+			<sequential>
+				<if>
+					<matches string="@{workspace}" pattern="(.*)UnitTests$" />
+					<then>
+						<echo message="Skipping the UnitTests workspace" />
+					</then>
+					<else>
+						<testresults file="@{workspace}/AnnotationRules.log.Tests.xml" logfile="${reg.tests.log.file}" property="tests.failed" />
+					</else>
+				</if>
+			</sequential>
+		</for>
+
+		<echo>
+############################################################
+#                  ECLIPSE LOG RESULTS                     #
+############################################################
+		</echo>
+
+		<findtests property="test.project.list" basedir="${test.workspace.base}" fullpaths="false" />
+		<for list="${test.project.list}" param="workspace" trim="true" keepgoing="true">
+			<sequential>
+				<if>
+					<matches string="@{workspace}" pattern="(.*)UnitTests$" />
+					<then>
+						<echo message="Skipping the UnitTests workspace" />
+					</then>
+					<else>
+						<testresults file="${test.workspace.base}/@{workspace}/@{workspace}.log.Tests.xml" logfile="${reg.tests.log.file}" property="tests.failed" />
+					</else>
+				</if>
+			</sequential>
+		</for>
+		<echo>
+############################################################
+#                REGRESSION TEST RESULTS                   #
+############################################################
+		</echo>
+
+		<findtests property="test.project.list" basedir="${test.workspace.base}" fullpaths="true" />
+		<for list="${test.project.list}" param="workspace" trim="true" keepgoing="true">
+			<sequential>
+				<if>
+					<matches string="@{workspace}" pattern="(.*)UnitTests$" />
+					<then>
+						<echo message="Skipping the UnitTests workspace" />
+					</then>
+					<else>
+						<testresults file="@{workspace}/com.surelogic.jsure.tests.AllRegressionTests.xml" tests="com.surelogic.jsure.tests.RegressionTest:testMajordomo" printtestname="false" logfile="${reg.tests.log.file}" property="tests.failed" />
+					</else>
+				</if>
+			</sequential>
+		</for>
+
+		<echo>
+############################################################
+#                  JUNIT TEST RESULTS                      #
+############################################################
+		</echo>
+
+		<testresults file="${test.workspace.base}/UnitTests/com.surelogic.jsure.tests.AllUnitTests.xml" logfile="${unit.tests.log.file}" property="tests.failed" />
+
+		<if>
+			<equals arg1="${tests.failed}" arg2="FAILED" />
+			<then>
+				<echo>
+####################################################
+					
+					
+      !!!!!!!!!!   	FAILURE		  !!!!!!!!!		   
+					
+					 
+####################################################
+				</echo>
+				<fail message="One or more regression tests and/or unit tests failed. Check the sl.reg.test.results.txt and sl.unit.test.results.txt files in ${test.sandbox} to determine what tests in what projects failed. From there, look at the com.surelogic.jsure.tests.AllTests.xml file in the failed ${test.sandbox}/workspaces/[project] folder." />
+			</then>
+			<else>
+				<echo>
+####################################################
+					
+					
+#              		SUCCESS						   #
+					
+					
+####################################################
+				</echo>
+			</else>
+		</if>
+	</target>
+
+
+	<!-- Gathers our regression and Unit test results -->
+	<target name="collect-test-results">
+		<property file="${user.home}/fluid-build.properties" />
+		<property file="${user.home}/sl.test.properties" />
+
+		<findtests property="test.project.list" basedir="${test.workspace.base}" fullpaths="true" />
+		<for list="${test.project.list}" param="project" trim="true" keepgoing="true">
+			<sequential>
+				<filenamefrompath file="@{project}" property="proj-name" />
+				<copy todir="${test.log.base}">
+					<mapper>
+						<chainedmapper>
+							<flattenmapper />
+							<globmapper from="*.xml" to="${proj-name}-*.xml" />
+						</chainedmapper>
+					</mapper>
+
+					<fileset dir="@{project}">
+						<include name="*.xml" />
+					</fileset>
+				</copy>
+
+			</sequential>
+		</for>
+		<move todir="${test.log.base}">
+			<mapper>
+				<globmapper from="UnitTests-*" to="*" />
+			</mapper>
+			<fileset dir="${test.log.base}">
+				<include name="*.xml" />
+			</fileset>
+		</move>
+	</target>
+
+</project>

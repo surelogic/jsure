@@ -20,8 +20,8 @@ Require-Bundle: com.surelogic.common,
  org.eclipse.swt,
  org.eclipse.jface
 Export-Package: com.surelogic.jsure.tests
-Bundle-ClassPath: lib/jacl.jar,
- .,
+Bundle-ClassPath: .,
+ lib/jacl.jar,
  lib/tcljava.jar,
  lib/ant.jar,
  lib/ant-junit.jar,

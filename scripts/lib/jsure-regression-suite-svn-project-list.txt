@@ -1,0 +1,15 @@
+common
+eclipse-common
+fluid
+fluid-eclipse
+fluid-javac
+jsure-client-eclipse
+jsure-client-eclipse-help
+jsure-design-intent-eclipse-help
+com.surelogic.feature.jsure
+jsure-message
+jsure-tests
+jsure-tests-builder
+jsure-tests-feature
+jsure-xml-results-viewer
+regression

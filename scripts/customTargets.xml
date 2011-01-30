@@ -1,0 +1,277 @@
+<project name="Build specific targets and properties" default="noDefault">
+
+	<!-- - - - - - - - - - - - -  FROM FLUID BUILD.XML - - - - - - - - - - - -->
+	<!-- Filenames for properties files we are going to read -->
+	<property name="fph.p" value="fluid-property-home.properties" />
+	<property name="fb.p" value="fluid-build.properties" />
+	<property name="test.properties" value="sl.test.properties" />
+
+	<!-- Set optional property values to empty strings -->
+
+	<!-- Check "fluid-property-home.properties" for "user.home" redirection -->
+	<property file="${user.home}/${fph.p}" />
+	<property name="prop-dir" value="${user.home}" />
+	<available property="prop-dir" value="${fluid.property.home}" file="${user.home}/${fph.p}" />
+
+	<!-- Check for existance of "fluid-build.properties" file -->
+	<available property="build-prop-file" value="${prop-dir}/${fb.p}" file="${prop-dir}/${fb.p}" />
+	<!-- or for ".fluid-build.properties" file (to be Unix friendly) -->
+	<available property="build-prop-file" value="${prop-dir}/.${fb.p}" file="${prop-dir}/.${fb.p}" />
+
+	<fail message="No '${fb.p}' or '.${fb.p}' file in '${prop-dir}'" unless="build-prop-file" />
+	<!-- Read the build properties file -->
+	<property file="${build-prop-file}" />
+
+	<!-- Set the directory where you installed eclipse -->
+	<property name="eclipse.dir" value="${test.sandbox}/eclipse" />
+
+	<property file="${user.home}/${test.properties}" />
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<dirname file="${ant.file}" property="current.dir" />
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="${current.dir}/lib/ant-contrib.jar" />
+		</classpath>
+	</taskdef>
+
+	<!-- ===================================================================== -->
+	<!-- Run a given ${target} on all elements being built -->
+	<!-- Add on <ant> task for each top level element being built. -->
+	<!-- ===================================================================== -->
+	<property name="allElementsFile" value="${builder}/allElements.xml" />
+	<import file="${allElementsFile}" />
+	<target name="allElements">
+		<antcall target="allElementsDelegator" />
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- ===================================================================== -->
+	<target name="getBaseComponents" depends="checkLocalBase" unless="skipBase">
+		<get src="${eclipseBaseURL}" dest="${buildDirectory}/../temp-base.zip" />
+		<unzip dest="${base}" overwrite="true" src="${buildDirectory}/../temp-base.zip" />
+	</target>
+
+	<target name="checkLocalBase">
+		<available file="${base}" property="skipBase" />
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Check out map files from correct repository -->
+	<!-- Replace values for mapsCheckoutTag as desired. -->
+	<!-- ===================================================================== -->
+	<target name="getMapFiles" depends="checkLocalMaps" unless="skipMaps">
+		<property name="mapsCheckoutTag" value="HEAD" />
+		<cvs cvsRoot="${mapsRepo}" package="${mapsRoot}" dest="${buildDirectory}/maps" tag="${mapsCheckoutTag}" />
+	</target>
+
+	<target name="checkLocalMaps">
+		<available property="skipMaps" file="${buildDirectory}/maps" />
+	</target>
+
+	<target name="tagMapFiles" if="tagMaps">
+		<cvs dest="${buildDirectory}/maps/${mapsRoot}" command="tag ${mapsTagTag}" />
+	</target>
+
+	<!-- ===================================================================== -->
+
+	<target name="clean" unless="noclean">
+		<antcall target="allElements">
+			<param name="target" value="cleanElement" />
+		</antcall>
+	</target>
+
+	<target name="gatherLogs">
+		<mkdir dir="${buildDirectory}/${buildLabel}/compilelogs" />
+		<antcall target="allElements">
+			<param name="target" value="gatherLogs" />
+		</antcall>
+		<unzip dest="${buildDirectory}/${buildLabel}/compilelogs" overwrite="true">
+			<fileset dir="${buildDirectory}/features">
+				<include name="**/*.log.zip" />
+			</fileset>
+		</unzip>
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before setup -->
+	<!-- ===================================================================== -->
+	<target name="preSetup">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after setup but before starting the build proper -->
+	<!-- ===================================================================== -->
+	<target name="postSetup">
+		<antcall target="getBaseComponents" />
+
+		<mkdir dir="${buildDirectory}/features" />
+		<mkdir dir="${buildDirectory}/plugins" />
+
+
+		<!-- Copy our plugins  -->
+		<for list="${plugin.projects}" delimiter="," param="plugin" trim="true" keepgoing="true">
+			<sequential>
+				<copy todir="${buildDirectory}/plugins/@{plugin}">
+					<fileset dir="${builder}/../@{plugin}">
+						<exclude name="bin/**,**/CVS/**,**/.svn/**" />
+					</fileset>
+				</copy>
+			</sequential>
+		</for>
+		<!-- Copy our features  -->
+		<for list="${feature.projects}" delimiter="," param="feature" trim="true" keepgoing="true">
+
+			<sequential>
+				<copy todir="${buildDirectory}/features/@{feature}">
+					<fileset dir="${builder}/../@{feature}" />
+				</copy>
+			</sequential>
+		</for>
+
+		<move file="${buildDirectory}/features/jsure-tests-feature" toFile="${buildDirectory}/features/com.surelogic.jsure.tests" />
+
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before fetching the build elements -->
+	<!-- ===================================================================== -->
+	<target name="preFetch">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after fetching the build elements -->
+	<!-- ===================================================================== -->
+	<target name="postFetch">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before generating the build scripts. -->
+	<!-- ===================================================================== -->
+	<target name="preGenerate">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after generating the build scripts. -->
+	<!-- ===================================================================== -->
+	<target name="postGenerate">
+		<antcall target="clean" />
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before running the build.xmls for the elements being built. -->
+	<!-- ===================================================================== -->
+	<target name="preProcess">
+		<ant antfile="build-src.xml" dir="${buildDirectory}/plugins/common/" />
+		<ant antfile="build-src.xml" dir="${buildDirectory}/plugins/fluid/" />
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after running the build.xmls for the elements being built. -->
+	<!-- ===================================================================== -->
+	<target name="postProcess">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before running assemble. -->
+	<!-- ===================================================================== -->
+	<target name="preAssemble">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after  running assemble. -->
+	<!-- ===================================================================== -->
+	<target name="postAssemble">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do before running package. -->
+	<!-- ===================================================================== -->
+	<target name="prePackage">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after  running package. -->
+	<!-- ===================================================================== -->
+	<target name="postPackage">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do after the build is done. -->
+	<!-- ===================================================================== -->
+	<target name="postBuild">
+		<antcall target="run-tests" />
+		<antcall target="gatherLogs" />
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do to test the build results -->
+	<!-- ===================================================================== -->
+	<target name="install-plugins">
+		<unzip src="${buildDirectory}/${buildLabel}/com.surelogic.feature.jsure-${buildId}.zip" dest="${test.sandbox}" />
+		<unzip src="${buildDirectory}/${buildLabel}/com.surelogic.jsure.tests-${buildId}.zip" dest="${test.sandbox}" />
+		<!--unjar src="${test.sandbox}/eclipse/plugins/com.surelogic.jsure.tests_1.0.0.jar" dest="${test.sandbox}/eclipse/plugins/com.surelogic.jsure.tests_1.0.0" /-->
+		<!--delete file="${test.sandbox}/eclipse/plugins/com.surelogic.jsure.tests_1.0.0.jar" /-->
+	</target>
+
+	<!-- Our test suite has a testcase that runs DoubleChecker so we just run this
+		target for each workspace we want to analyze -->
+
+	<target name="run-tests" depends="check.runTests, install-plugins" if="runTests" description="Runs the test suite in our com.surelogic.jsure.tests plugin for a series of workspaces listed in the ant.properties file">
+		<findtests property="test.project.list" basedir="${test.workspace.base}" />
+		<!-- run regression tests -->
+		<for list="${test.project.list}" delimiter="," param="workspace" trim="true" keepgoing="false">
+			<sequential>
+				<run-a-test test-workspace="${test.workspace.base}/@{workspace}" target="run-regression-tests" test-module="${test.module.dir}/@{workspace}" extra-test-modules="${extra.test.modules}" />
+			</sequential>
+		</for>
+		<!-- run unit tests -->
+		<run-a-test test-workspace="${test.workspace.base}/UnitTests" target="run-unit-tests" test-module="${test.module.dir}/UnitTests" extra-test-modules="" />
+		<!-- run tests that require special handling -->
+		<run-a-test test-workspace="${test.workspace.base}/UnitTests" target="run-specialized-tests" test-module="${test.module.dir}/UnitTests" extra-test-modules="" />
+	</target>
+
+	<macrodef name="run-a-test">
+		<attribute name="test-workspace" />
+		<attribute name="target" />
+		<attribute name="test-module" />
+		<attribute name="extra-test-modules" />
+		<sequential>
+			<echo message="Running on @{test-module}" />
+			<findfile property="test.plugin" basedir="${eclipse.dir}/plugins" regex="org\.eclipse\.test_.*" />
+			<echo message="Using library ${test.plugin}" />
+
+			<ant dir="${test.sandbox}/eclipse" inheritAll="false" antfile="plugins/com.surelogic.jsure.tests_1.0.0/run-jsure-tests.xml" target="@{target}">
+				<property name="os" value="${baseos}" />
+				<property name="ws" value="${basews}" />
+				<property name="arch" value="${basearch}" />
+				<property name="library-file" location="${test.plugin}/library.xml" />
+				<property name="extraVMargs" value="-Xmx1000m" />
+				<property name="test-workspace" value="@{test-workspace}" />
+				<property name="test-module" value="@{test-module}" />
+				<property name="extra-test-modules" value="@{extra-test-modules}" />
+			</ant>
+		</sequential>
+	</macrodef>
+
+	<target name="check.runTests">
+		<condition property="runTests">
+			<istrue value="${test}" />
+		</condition>
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Steps to do to publish the build results -->
+	<!-- ===================================================================== -->
+	<target name="publish">
+	</target>
+
+	<!-- ===================================================================== -->
+	<!-- Default target                                                        -->
+	<!-- ===================================================================== -->
+	<target name="noDefault">
+		<echo message="You must specify a target when invoking this file" />
+	</target>
+
+</project>
