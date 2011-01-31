@@ -40,6 +40,7 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 			// Nothing to do
 		}
 		this.location = location;
+		System.out.println("Drop location = "+location);
 		
 		// subscribe to listen for analysis notifications
 		NotificationHub.addAnalysisListener(this);
@@ -65,32 +66,34 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 	}
 	
 	public boolean load() {
-		if (location != null && location.exists()) {
-			try {
-				final ProjectsDrop drop = ProjectsDrop.getDrop();			
-				// TODO NPE since it's built externally
-				if (drop != null) {
-					final Projects projects = (Projects) drop.getIIRProjects();
-					final File results      = new File(projects.getRunDir(), RemoteJSureRun.RESULTS_XML);
-					if (results.exists() && results.length() > 0) {
-						if (location != null) {
-							FileUtility.copy(results, location);
-						}
-					} else {
-						// Persist the Sea, and then load the info    
-						new SeaSnapshot(location).snapshot(projects.getLabel(), Sea.getDefault());
+		try {
+			final ProjectsDrop drop = ProjectsDrop.getDrop();			
+			// TODO NPE since it's built externally
+			if (drop != null) {
+				final Projects projects = (Projects) drop.getIIRProjects();
+				final File results      = new File(projects.getRunDir(), RemoteJSureRun.RESULTS_XML);
+				if (results.exists() && results.length() > 0) {
+					if (location != null) {
+						FileUtility.copy(results, location);
+						System.out.println("Copying results from "+results);
 					}
-				}	
+				} else {
+					// Persist the Sea, and then load the info    
+					new SeaSnapshot(location).snapshot(projects.getLabel(), Sea.getDefault());
+				}
+			}
+			if (location != null && location.exists()) {
 				final long lastModified = location.lastModified();
 				if (dropInfo.isEmpty() || lastModified > timestamp) {
+					System.out.println("Loading info at "+lastModified);
 					dropInfo = SeaSnapshot.loadSnapshot(location);
 					timestamp = lastModified;
 				}
 				return true;
-			} catch (Exception e) {
+			} else {
 				dropInfo = Collections.emptyList();
 			}
-		} else {
+		} catch (Exception e) {
 			dropInfo = Collections.emptyList();
 		}
 		return false;
