@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -251,7 +252,7 @@ extends TripleLattice<Element<Integer>,
   // === Stack Machine Operations 
   // ==================================================================
 
-  public Store opStart() {
+  public Store opStart(final IMayAlias mayAlias) {
     Store temp = bottom();
     
     /*
@@ -294,11 +295,13 @@ extends TripleLattice<Element<Integer>,
           ParameterDeclaration.prototype.includes(op)) {
         if (isReceiverFromUniqueReturningConstructor
             || UniquenessRules.isBorrowed(local)) {
-          temp = opExisting(temp, State.BORROWED);
+          temp = opExistingBetter(temp, State.BORROWED, mayAlias, local);
+//          temp = opExisting(temp, State.BORROWED);
         } else if (UniquenessRules.isUnique(local)) {
           temp = opNew(temp);
         } else {
-          temp = opExisting(temp, State.SHARED);
+//          temp = opExisting(temp, State.SHARED);
+          temp = opExistingBetter(temp, State.SHARED, mayAlias, local);
         }
         temp = pop(apply(temp, new Add(getStackTop(temp), EMPTY.addElement(local))));
       } else {
@@ -519,6 +522,16 @@ extends TripleLattice<Element<Integer>,
     return join(temp, apply(temp, new Add(pv, nset)));
   }
 
+  private Store opExistingBetter(final Store s, final State pv, final IMayAlias mayAlias, final IRNode decl) {
+//    return opExisting(s, pv);
+    
+    if (!s.isValid()) return s;
+    Store temp = push(s);
+    final ImmutableHashOrderSet<Object> nset = EMPTY.addElement(getStackTop(temp));
+    return join(temp, apply(temp, new AddBetter(mayAlias, decl, pv, nset)));
+  }
+
+  
   /**
    * discard the value on the top of the stack from the set of objects and from
    * the field store, and then pop the stack.

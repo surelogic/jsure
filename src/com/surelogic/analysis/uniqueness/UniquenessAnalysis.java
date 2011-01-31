@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.LocalVariableDeclarations;
+import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.Target;
@@ -67,7 +69,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // ==================================================================
 
   private final boolean timeOut;
-  
+  private final IMayAlias mayAlias;
   
   
   // ==================================================================
@@ -76,6 +78,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   
   public UniquenessAnalysis(final IBinder binder, final boolean to) {
     super(new FixBinder(binder)); // avoid crashes.
+    mayAlias = new TypeBasedMayAlias(binder);
     timeOut = to;
   }
   
@@ -116,7 +119,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     final StoreLattice lattice = new StoreLattice(locals);
     return new JavaForwardAnalysis<Store, StoreLattice>(
         "Uniqueness Analsys (UWM)", lattice,
-        new UniquenessTransfer(binder, lattice, 0, flowUnit, timeOut),
+        new UniquenessTransfer(binder, mayAlias, lattice, 0, flowUnit, timeOut),
         DebugUnparser.viewer, timeOut);
   }
 
@@ -221,16 +224,20 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
     private final IRNode flowUnit;
 
+    private final IMayAlias mayAlias;
+    
     
     
     // ==================================================================
     // === Constructor 
     // ==================================================================
 
-    public UniquenessTransfer(final IBinder binder, final StoreLattice lattice,
+    public UniquenessTransfer(final IBinder binder,
+        final IMayAlias ma, final StoreLattice lattice,
         final int floor, final IRNode fu, final boolean timeOut) {
-      super(binder, lattice, new SubAnalysisFactory(fu, timeOut), floor);
+      super(binder, lattice, new SubAnalysisFactory(fu, ma, timeOut), floor);
       flowUnit = fu;
+      mayAlias = ma;
     }
 
     
@@ -834,7 +841,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     
     public Store transferComponentSource(final IRNode node) {
-      return lattice.opStart();
+      return lattice.opStart(mayAlias);
     }
   }
   
@@ -847,9 +854,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<StoreLattice, Store> {
     private final IRNode flowUnit;
     private final boolean timeOut;
+    private final IMayAlias mayAlias;
     
-    public SubAnalysisFactory(final IRNode fu, final boolean to) {
+    public SubAnalysisFactory(final IRNode fu, final IMayAlias ma, final boolean to) {
       flowUnit = fu;
+      mayAlias = ma;
       timeOut = to;
     }
     
@@ -858,7 +867,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode caller, final IBinder binder, final StoreLattice lattice,
         final Store initialValue, final boolean terminationNormal) {
       final int floor = initialValue.isValid() ? initialValue.getStackSize().intValue() : 0;
-      final UniquenessTransfer transfer = new UniquenessTransfer(binder, lattice, floor, flowUnit, timeOut);
+      final UniquenessTransfer transfer = new UniquenessTransfer(binder, mayAlias, lattice, floor, flowUnit, timeOut);
       return new JavaForwardAnalysis<Store, StoreLattice>("Sub Analysis", lattice, transfer, DebugUnparser.viewer, timeOut);
     }
   }
