@@ -1,6 +1,7 @@
 package com.surelogic.jsure.views.debug.oracleDiff;
 
 import java.io.File;
+import java.util.Map;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.jface.action.IMenuManager;
@@ -8,8 +9,12 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.*;
 
 import com.surelogic.common.eclipse.EclipseUtility;
+import com.surelogic.common.xml.Entity;
+import static com.surelogic.jsure.xml.AbstractXMLReader.*;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
+import edu.cmu.cs.fluid.java.AbstractSrcRef;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.xml.*;
@@ -49,8 +54,40 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void handleDoubleClick(IStructuredSelection selection) {
-		// TODO Auto-generated method stub
-		
+		if (selection.size() == 1) {
+			Object o = selection.getFirstElement();
+			if (o instanceof Entity) {
+				Entity e = (Entity) o;			
+				ISrcRef ref = makeSrcRef(e);
+				highlightLineInJavaEditor(ref);
+			}
+		}		
+	}
+
+	private ISrcRef makeSrcRef(final Entity e) {
+		for(Map.Entry<String,String> me : e.getAttributes().entrySet()) {
+			System.out.println(me.getKey()+" = "+me.getValue());
+		}
+		return new AbstractSrcRef() {
+			public Object getEnclosingFile() {
+				return e.getAttribute(PATH_ATTR);
+			}
+			public int getOffset() {
+				return Integer.parseInt(e.getAttribute(OFFSET_ATTR));
+			}
+			@Override
+			public String getCUName() {
+				return null;
+			}
+			@Override
+			public Long getHash() {
+				return Long.getLong(e.getAttribute(HASH_ATTR));
+			}
+			@Override
+			public String getPackage() {
+				return null;
+			}			
+		};
 	}
 
 	@Override
