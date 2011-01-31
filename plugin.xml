@@ -263,13 +263,13 @@
 	<extension point="org.eclipse.ui.views">
 		<category name="JSure" id="edu.cmu.cs.fluid.dcf"></category>
 
-		<view name="Verification Status (P)"
+		<view name="Verification Status"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.PersistentResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.PersistentResultsView">
 		</view>
 
-		<view name="Verification Status"
+		<view name="Verification Status (Old)"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">

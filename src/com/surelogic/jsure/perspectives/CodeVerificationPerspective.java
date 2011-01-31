@@ -5,9 +5,7 @@ import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 import org.eclipse.ui.IPlaceholderFolderLayout;
 
-import edu.cmu.cs.fluid.dcf.views.coe.ProblemsView;
-import edu.cmu.cs.fluid.dcf.views.coe.ProposedPromiseView;
-import edu.cmu.cs.fluid.dcf.views.coe.ResultsView;
+import edu.cmu.cs.fluid.dcf.views.coe.*;
 
 /**
  * Defines the JSure perspective within the workbench.
@@ -15,7 +13,7 @@ import edu.cmu.cs.fluid.dcf.views.coe.ResultsView;
 public final class CodeVerificationPerspective implements IPerspectiveFactory {
 
 	public void createInitialLayout(IPageLayout layout) {
-		final String statusView = ResultsView.class.getName();
+		final String statusView = PersistentResultsView.class.getName();
 		final String proposedPromiseView = ProposedPromiseView.class.getName();
 		final String problemsView = ProblemsView.class.getName();
 		final String packageExplorer = "org.eclipse.jdt.ui.PackageExplorer";
