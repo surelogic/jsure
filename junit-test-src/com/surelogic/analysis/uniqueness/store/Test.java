@@ -4,6 +4,7 @@ import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 
 import java.net.URL;
 
+import com.surelogic.analysis.PessimisticMayAlias;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -207,7 +208,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart();
+    store = sl.opStart(PessimisticMayAlias.INSTANCE);
     System.out.println(sl.toString(store));
 
     System.out.println("  this");
@@ -278,7 +279,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart();
+    store = sl.opStart(PessimisticMayAlias.INSTANCE);
     System.out.println(sl.toString(store));
 
     System.out.println("  this");
@@ -370,7 +371,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart();
+    store = sl.opStart(PessimisticMayAlias.INSTANCE);
     System.out.println(sl.toString(store));
 
     if (doStore) {
@@ -412,7 +413,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart();
+    store = sl.opStart(PessimisticMayAlias.INSTANCE);
     System.out.println(sl.toString(store));
 
     System.out.println("  0");
