@@ -135,7 +135,7 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 
 	@Override
 	public void analysisStarting() {
-		if (!useInfo) {
+		if (!useInfo || location == null || !location.exists()) {
 			for(AbstractDoubleCheckerView v : listeners) {
 				v.analysisStarting();
 			}
