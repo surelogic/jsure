@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="headlessBuilder" default="build.all.plugins" basedir=".">
+<project name="headlessBuilder" default="load jsure-tests.properties file" basedir=".">
 
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath>
@@ -13,47 +13,28 @@
 		</classpath>
 	</taskdef>
 
-	<target name="init-properties" description="Auto generates the main properties file, sl.test.properties and puts it in the user's home directory">
-		<generatebuildproperties machinespecific="${machine.specific.props}" />
-	</target>
+	<target name="load jsure-tests.properties file">
+		<!-- Filenames for the properties files we are going to try to read -->
+		<property name="jt.p" value="${user.home}/jsure-tests.properties" />
+		<property name="dot.jt.p" value="${user.home}/.jsure-tests.properties" />
 
-
-	<target name="load-properties">
-		<!-- - - - - - - - - - - - -  FROM FLUID BUILD.XML - - - - - - - - - - - -->
-		<!-- Filenames for properties files we are going to read -->
-		<property name="fph.p" value="fluid-property-home.properties" />
-		<property name="fb.p" value="fluid-build.properties" />
-		<property name="test.properties" value="sl.test.properties" />
-
-		<!-- Set optional property values to empty strings -->
-
-		<!-- Check "fluid-property-home.properties" for "user.home" redirection -->
-		<property file="${user.home}/${fph.p}" />
-		<property name="prop-dir" value="${user.home}" />
-		<available property="prop-dir" value="${fluid.property.home}" file="${user.home}/${fph.p}" />
-
-		<!-- Check for existance of "fluid-build.properties" file -->
-		<available property="build-prop-file" value="${prop-dir}/${fb.p}" file="${prop-dir}/${fb.p}" />
+		<!-- Check for existance of "jsure-tests.properties" file -->
+		<available property="jsure-tests.properties.file" value="${jt.p}" file="${jt.p}" />
 		<!-- or for ".fluid-build.properties" file (to be Unix friendly) -->
-		<available property="build-prop-file" value="${prop-dir}/.${fb.p}" file="${prop-dir}/.${fb.p}" />
+		<available property="jsure-tests.properties.file" value="${dot.jt.p}" file="${dot.jt.p}" />
 
-		<fail message="No '${fb.p}' or '.${fb.p}' file in '${prop-dir}'" unless="build-prop-file" />
+		<fail message="No '${fb.p}' or '.${fb.p}' file exists - please use one of these files to setup a JSure test configuration" unless="jsure-tests.properties.file" />
 		<!-- Read the build properties file -->
-		<property file="${build-prop-file}" />
+		<property file="${jsure-tests.properties.file}" />
 
-		<!-- Set the directory where you installed eclipse -->
-		<property name="eclipse.dir" value="${test.sandbox}/eclipse" />
-
-		<generatebuildproperties machinespecific="${machine.specific.props}" />
-		<property file="${user.home}/${test.properties}" />
 		<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 	</target>
 
-	<target name="show-all-properties" depends="load-properties" description="Prints all properties that are currently set in the project.">
+	<target name="show-all-properties" depends="load jsure-tests.properties file" description="Prints all properties that are currently set in the project.">
 		<echoproperties />
 	</target>
 
-	<target name="initialize" unless="${init.already.run}" description="Initializes the build by generating properties, cleaning the sandbox, and installing the desired version of Eclipse in it" depends="load-properties">
+	<target name="initialize" unless="${init.already.run}" description="Initializes the build by generating properties, cleaning the sandbox, and installing the desired version of Eclipse in it" depends="load jsure-tests.properties file">
 
 		<!-- Make the sandbox if it doesn't exist -->
 		<mkdir dir="${test.sandbox}" />
@@ -223,7 +204,7 @@
 		</java>
 
 		<!-- Install into the Eclipse  -->
-		
+
 	</target>
 
 	<macrodef name="build.plugins">
