@@ -38,6 +38,12 @@
         onerror="ignore"
     />
 
+    <taskdef
+        name="getContainingDirectory"
+        classname="com.surelogic.ant.tasks.GetContainingDirectory"
+        onerror="ignore"
+    />
+    
 	<taskdef
         name="getfileextension"
         classname="com.surelogic.ant.tasks.GetFileExtension"
