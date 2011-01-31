@@ -26,6 +26,7 @@
 		<fail message="No '${fb.p}' or '.${fb.p}' file exists - please use one of these files to setup a JSure test configuration" unless="jsure-tests.properties.file" />
 		<!-- Read the build properties file -->
 		<property file="${jsure-tests.properties.file}" />
+		<echo message="Using properties from ${jsure-tests.properties.file}"/>
 
 		<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 	</target>
