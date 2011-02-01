@@ -1,9 +1,0 @@
-magic 0x434f4d50
-node 0xfffffffd
-  region
-    reference 0x16 0x56 #w4p8ol999ahont 0x45 #794ubdfdr77ob
-    0x0000000d
-  :demandimport region=VRD(w4p8ol999ahont,794ubdfdr77ob)
-0x56
-#wo51u3rnuflai
-complete true
