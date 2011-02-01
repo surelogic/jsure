@@ -197,7 +197,7 @@
 		<!-- Delete generated files in the "gensrc" source folder -->
 		<echo message="Cleaning up in ${gensrc}" />
 		<delete includeemptydirs="true">
-			<fileset dir="${gensrc}" includes="**/*" />
+			<fileset dir="${gensrc}" includes="**/*" defaultexcludes="no" />
 		</delete>
 
 		<!-- Delete generated files in edu.cmu.cs.fluid.java.parse -->
