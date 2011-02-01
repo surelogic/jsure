@@ -132,10 +132,6 @@
 		<gen-factory-refs parsername="SLThreadRoleAnnotations" outputname="ThreadRoleFactoryRefs" />
 	</target>
 
-	<target name="generate-test-antlr">
-		<genAntlr target="${src}/com/surelogic/parse/T.g" outputdir="${gensrc}/com/surelogic/parse" />
-	</target>
-
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 	<target name="generate-from-operators">
@@ -156,7 +152,6 @@
   	generate-from-operators,
   	generate-asts-from-operators,
   	generate-crystal-from-operators,
-    generate-test-antlr,
     generate-java-antlr,
     fluid-java-parse-javacc,
     fluid-promise-parse-javacc">
