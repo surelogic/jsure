@@ -103,7 +103,9 @@
 				<property name="extraVMargs" value="-Xmx512m" />
 				<property name="test-workspace" value="@{workspace}" />
 				<property name="test-module" value="@{project}" />
-				<property name="extra-test-modules" value="" />
+				<property name="log-dir" value="@{log}" />
+				<property name="eclipse-home" value="${sandbox.eclipse.dir}" />
+				<property name="my-script-home" value="${antfile.dir}" />
 			</ant>
 		</sequential>
 	</macrodef>
@@ -165,6 +167,7 @@
 
 		<!-- Define the layout of the sandbox -->
 		<property name="sandbox.eclipse.dir" value="${sandbox}${fs}eclipse" />
+		<property name="sandbox.eclipse.plugins.dir" value="${sandbox.eclipse.dir}${fs}plugins" />
 		<property name="sandbox.jsure.build.dir" value="${sandbox}${fs}jsure-build" />
 		<property name="sandbox.suites.dir" value="${sandbox}${fs}suites" />
 		<property name="sandbox.workspace.dir" value="${sandbox}${fs}workspaces" />
@@ -186,8 +189,6 @@
 		<!-- Unarchive Eclipse into the sandbox directory -->
 		<unarchive-to archive="${archive.eclipse.dist}" sandbox="${sandbox}" />
 		<unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}" />
-
-		<property name="sandbox.eclipse.plugins.dir" value="${sandbox.eclipse.dir}${fs}plugins" />
 
 		<findfile property="eclipse.startup.jar" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.equinox\.launcher_.*\.jar" />
 		<fail unless="eclipse.startup.jar" message="Unable to find the Eclipse startup jar (org.eclipse.equinox.launcher.*.jar) within ${sandbox.eclipse.plugins.dir}." />
@@ -318,9 +319,9 @@
 		</copy>
 	</target>
 
-	<target name="run JSure on test suites" depends="setup test suites to analyze">
+	<target name="run JSure on test suites" depends="load jsure-tests.properties file">
 		<findfile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.test_.*" />
-		<fail unless="eclipse.test.plugin.di" message="Unable to find the Eclipse test plug-in (org.eclipse.test_*) within ${sandbox.eclipse.plugins.dir}." />
+		<fail unless="eclipse.test.plugin.dir" message="Unable to find the Eclipse test plug-in (org.eclipse.test_*) within ${sandbox.eclipse.plugins.dir}." />
 		<findfile property="surelogic.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="com\.surelogic\.jsure\.tests_.*" />
 		<fail unless="surelogic.test.plugin.dir" message="Unable to find the SureLogic test plug-in (com.surelogic.jsure.tests_*) within ${sandbox.eclipse.plugins.dir}." />
 

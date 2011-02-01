@@ -1,22 +1,16 @@
 <?xml version="1.0"?>
 <project name="run-jsure-tests" default="no-default" basedir=".">
 
-	<!-- The property ${eclipse-home} should be passed into this script -->
-	<!-- Set a meaningful default value for when it is not. -->
-	<!--property name="baseLocation" location="C:\work\testing\eclipse"/-->
-	<!--property name="baseLocation" location="${eclipse.home}"/-->
-	<property name="eclipse-home" location="${baseLocation}" />
-
 	<!-- sets the properties eclipse-home, and library-file -->
 	<property name="plugin-name" value="com.surelogic.jsure.tests" />
 	<!--property name="library-file" location="${current.dir}/new/library.xml" /-->
 
-	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	<!-- We use this to get additional control tasks (e.g., if and for) -->
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath>
-			<pathelement location="${ant.contrib.location}/lib/ant-contrib.jar" />
+			<pathelement location="${my-script-home}/lib/ant-contrib.jar" />
 		</classpath>
 	</taskdef>
-
 
 	<import file="${library-file}" />
 
@@ -34,21 +28,19 @@
 	<!-- This target defines the tests that need to be run. -->
 	<target name="regression-suite">
 		<echo message="Running regression test on ${test-workspace}" />
-		<available file="${test-workspace}/test.properties" property="exists">
-		</available>
-		<echo message="${test-workspace}/test.properties exists? ${exists}" />
+		<local name="test.properties-exist" />
+		<available file="${test-workspace}/test.properties" property="test.properties-exist" />
+		<fail unless="test.properties-exist" message="${test-workspace}/test.properties does not exist" />
 		<property file="${test-workspace}/test.properties" />
-		<property name="moreVMargs" value="" />
-		<echo message="moreVMargs = ${moreVMargs}" />
 		<antcall target="core-test">
 			<param name="timeout" value="7200000" />
 			<param name="test-output" value="com.surelogic.jsure.tests.AllRegressionTests.xml" />
 			<param name="junit-report-output" value="${test-workspace}" />
 			<param name="workdir" value="${eclipse-home}" />
 			<param name="application" value="org.eclipse.test.coretestapplication" />
-			<param name="data-dir" value="${test-workspace}" />
+			<param name="data-dir" value="${log-dir}" />
 			<param name="plugin-name" value="${plugin-name}" />
-			<param name="extraVMargs" value="-Xmx1000m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false -Dtest.module=${test-module} -Dextra.test.modules=${extra-test-modules} ${moreVMargs}" />
+			<param name="extraVMargs" value="-Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false -Dtest.module=${test-module}" />
 			<param name="classname" value="com.surelogic.jsure.tests.AllRegressionTests" />
 		</antcall>
 		<move todir="${test-workspace}">
