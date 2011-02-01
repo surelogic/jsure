@@ -4,9 +4,9 @@ Bundle-Name: JSure/Fluid Analysis/Transformation Core
 Bundle-SymbolicName: edu.cmu.cs.fluid
 Bundle-Version: 4.0.0.qualifier
 Bundle-ClassPath: .,
- lib/jars/sablejbdd-0.02.jar,
- lib/jars/log4j-xml-1.3alpha-8.jar,
- lib/jars/log4j-1.3alpha-8.jar
+ lib/runtime/sablejbdd-0.02.jar,
+ lib/runtime/log4j-xml-1.3alpha-8.jar,
+ lib/runtime/log4j-1.3alpha-8.jar
 Bundle-Vendor: SureLogic, Inc.
 Export-Package: 
  com.surelogic.aast,
