@@ -403,6 +403,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
     } else if (op instanceof WildcardType) {   
       return getWildcardType(null,null);
     } else if (op instanceof CaptureType) {
+      LOG.warning("Got a CaptureType node");
       final IRNode bounds              = CaptureType.getBounds(nodeType);
       List<IJavaReferenceType> tbounds = new ArrayList<IJavaReferenceType>();
       for(IRNode b : MoreBounds.getBoundIterator(bounds)) {
