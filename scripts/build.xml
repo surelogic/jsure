@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="JSure Tests" default="setup test projects to analyze">
+<project name="JSure Tests" default="setup test suites to analyze">
 
 	<!-- We use this to get additional control tasks (e.g., if and for) -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
@@ -122,15 +122,25 @@
 		<fail unless="archive.eclipse.test.exists" message="${archive.eclipse.test} does not exist on your machine." />
 
 		<!-- Set the directory that this build script is within -->
-		<getContainingDirectory file="${ant.file}" property="jsure.tests.scripts.dir" />
-		<fail unless="jsure.tests.scripts.dir" message="Unable to determine the containing directory of ${ant.file}." />
-		<property name="user.workspace.dir" value="${jsure.tests.scripts.dir}${file.separator}..${file.separator}.." />
+		<dirname property="antfile.dir" file="${ant.file}" />
+		<fail unless="antfile.dir" message="Unable to determine the containing directory of ${ant.file}." />
+
+		<!-- Where the plug-in and feature projects are located -->
+		<property name="user.workspace.dir" value="${antfile.dir}${file.separator}..${file.separator}.." />
+		<echo message=" plug-ins/features in ${user.workspace.dir}" />
+
+		<!-- Set a default for where the test suites are located if the user did not explicitly specify a directory -->
+		<property name="jsure.tests.suites" value="${user.workspace.dir}" />
+		<!-- Set a default for the test suites that we scan if the user did not explicitly sepecify a list -->
+		<property name="jsure.tests.suites.to-scan" value="regression" />
 	</target>
 
 	<target name="setup sandbox directory" depends="load jsure-tests.properties file">
 		<!-- Clean out and create the sandbox directory -->
-		<delete dir="${sandbox}" />
 		<mkdir dir="${sandbox}" />
+		<delete quiet="true" includeemptydirs="true">
+			<fileset dir="${sandbox}" includes="**/*" />
+		</delete>
 		<echo message="Sandbox ${sandbox} created (and cleaned out if necessary)" />
 	</target>
 
@@ -177,6 +187,27 @@
 		<ant antfile="build-src.xml" dir="${jsure.build.plugins.dir}${file.separator}common" />
 		<ant antfile="build-src.xml" dir="${jsure.build.plugins.dir}${file.separator}fluid" />
 
+		<!-- Handle any OS-specific build problems here. -->
+		<!-- THE CODE BELOW MAY NEED TO BE UPDATED AS OS/ECLIPSE VERSIONS CHANGE -->
+		<local name="is.mac" />
+		<condition property="is.mac">
+			<os family="mac" />
+		</condition>
+		<if>
+			<equals arg1="${is.mac}" arg2="true" casesensitive="false" />
+			<then>
+				<!-- On Mac OS X with Java 6 for the automated regression tests we
+                     need to uncomment the below definition to place the lib/javac.jar
+                     file ahead of the bootclasspath. This project only needs the contents
+                     of classes.jar (on OS X). But if Java on OS X is updated then the
+                     absolute path below may need to be updated.-->
+				<propertyfile file="${user.workspace.dir}${file.separator}fluid-javac${file.separator}build.properties">
+					<entry key="bootClasspath" value="lib/javac.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar" />
+				</propertyfile>
+				<echo message="[OS X] fluid-javac bootClasspath changed..." />
+			</then>
+		</if>
+
 		<!-- Copy template headless build.properties file and configure it for a headless build -->
 		<property name="jsure.build.properties" value="${jsure.build.dir}${file.separator}build.properties" />
 		<copy file="${eclipse.pde.plugin.dir}${file.separator}templates${file.separator}headless-build${file.separator}build.properties" toFile="${jsure.build.properties}" />
@@ -212,59 +243,45 @@
 		</for>
 	</target>
 
-	<target name="setup test projects to analyze" depends="load jsure-tests.properties file">
-		<property name="test.suite.dir" value="${sandbox}${file.separator}suite" />
-		<mkdir dir="${test.suite.dir}" />
-		<property name="test.workspace.dir" value="${sandbox}${file.separator}workspaces" />
-		<mkdir dir="${test.workspace.dir}" />
-		<property name="test.log.dir" value="${sandbox}${file.separator}logs" />
-		<mkdir dir="${test.log.dir}" />
+	<target name="setup test suites to analyze" depends="setup Eclipse-based JSure">
+		<!-- Setup directories for the test suites and results to go into in the sandbox -->
+		<property name="sandbox.suites.dir" value="${sandbox}${file.separator}suites" />
+		<mkdir dir="${sandbox.suites.dir}" />
+		<property name="sandbox.workspace.dir" value="${sandbox}${file.separator}workspaces" />
+		<mkdir dir="${sandbox.workspace.dir}" />
+		<property name="sandbox.log.dir" value="${sandbox}${file.separator}logs" />
+		<mkdir dir="${sandbox.log.dir}" />
 
-		<property name="jsure.tests.suites.to-scan" value="regression" />
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
 				<local name="suite.dir" />
-				<condition property="suite.dir" value="@{suite}" else="${user.workspace.dir}${file.separator}@{suite}">
-					<isset property="jsure.tests.suites.not-in-user-workspace" />
-				</condition>
-				<echo message="[suite of projects to scan] ${suite.dir}" />
+				<property name="suite.dir" value="${sandbox.suites.dir}${file.separator}@{suite}" />
+				<echo message="[suite to scan] ${jsure.tests.suites}${file.separator}@{suite} -> ${suite.dir}" />
+				<copy-project-to-a-dir projectDir="@{suite}" fromDir="${jsure.tests.suites}" toDir="${sandbox.suites.dir}" />
 				<local name="project.list" />
-				<findtests property="project.list" basedir="${suite.dir}" fullpaths="false" />
-				<for list="${project.list}" param="name" trim="true">
+				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<for list="${project.list}" param="name.zip" trim="true">
 					<sequential>
-						<copy-project-to-a-dir projectDir="@{name}" fromDir="${suite.dir}" toDir="${test.suite.dir}" />
+						<if>
+							<matches string="@{name.zip}" pattern="(.*)\.zip$" />
+							<then>
+								<!-- This propertyregex line just gets the name of the file without the .zip extension -->
+								<local name="name.no.dot.zip" />
+								<propertyregex property="name.no.dot.zip" input="@{name.zip}" regexp="([^\.]*)\.zip" select="\1" override="true" casesensitive="false" />
+								<mkdir dir="${suite.dir}${file.separator}${name.no.dot.zip}" />
+								<unzip src="${suite.dir}${file.separator}@{name.zip}" dest="${suite.dir}${file.separator}${name.no.dot.zip}" />
+								<echo message="Unzipped @{name.zip} into ${suite.dir}${file.separator}${name.no.dot.zip}" />
+							</then>
+						</if>
 					</sequential>
 				</for>
-			</sequential>
-		</for>
-		<fail />
-
-		<!-- make a copy of the test module in the workspace this was started within -->
-		<!-- TODO MAYBE MAKE THIS A BIT MORE CONFIGURABLE -->
-		<copy-project-to-a-dir projectDir="regression" fromDir="${user.workspace.dir}" toDir="${sandbox}" />
-		<property name="regression.dir" value="${sandbox}${file.separator}regression" />
-
-
-
-		<!-- unzip any zipped tests -->
-		<findtests property="test.project.list" basedir="${regression.dir}" fullpaths="false" />
-		<for list="${test.project.list}" param="name" trim="true">
-			<sequential>
-				<if>
-					<matches string="@{name}" pattern="(.*)\.zip$" />
-					<then>
-						<propertyregex property="zip.name" input="@{name}" regexp="([^\.]*)\.zip" select="\1" override="true" casesensitive="false" />
-						<echo message="Unzipping @{name}" />
-						<mkdir dir="${regression.dir}/${zip.name}" />
-						<unzip src="${regression.dir}/@{name}" dest="${regression.dir}/${zip.name}" />
-					</then>
-				</if>
+				<mkdir dir="${sandbox.log.dir}${file.separator}@{suite}" />
 			</sequential>
 		</for>
 
-		<!-- make sure the workspaces contain any test.properties files from the project -->
-		<copy todir="${test.workspace.dir}">
-			<fileset dir="${regression.dir}" includes="**/test.properties" />
+		<!-- Ensure workspaces contain the test.properties files from the projects -->
+		<copy todir="${sandbox.workspace.dir}">
+			<fileset dir="${sandbox.suites.dir}" includes="**/test.properties" />
 		</copy>
 	</target>
 
