@@ -1,88 +1,28 @@
 <project name="Fluid" default="build-src">
 
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-	<!--                                                                     -->
-	<!--  XXXXXXX   XX                         X    ANT BUILD SCRIPT         -->
-	<!--  X          X               X         X                             -->
-	<!--  X          X                         X    TYPICAL USAGE:           -->
-	<!--  X          X    X    X    XX     XXX X     a complete build        -->
-	<!--  XXXXXX     X    X    X     X    X   XX     > ant                   -->
-	<!--  X          X    X    X     X    X    X     derived file cleanup    -->
-	<!--  X          X    X    X     X    X    X     > ant clean             -->
-	<!--  X          X    X   XX     X    X   XX                             -->
-	<!--  X         XXX    XXX X    XXX    XXX X                             -->
-	<!--                                                                     -->
-	<!--  COTS REQUIREMENTS:                                                 -->
-	<!--   JDK, ant (OS: Solaris, Linux, Windows or Mac)                     -->
-	<!--                                                                     -->
-	<!--  PROPERTIES FILE DETAILS:                                           -->
-	<!--   Optionally "fluid-build.properities" or ".fluid-build.properties" -->
-	<!--   must exist in "user.home" (as defined by the JRE). Even under     -->
-	<!--   MS Windows use "/" as the directory separator.                    -->
-	<!--                                                                     -->
-	<!--   Optional Properties:                                              -->
-	<!--     "fluid.javadoc.dir" path to where to put the Javadoc            -->
-	<!--     "fluid.javadoc.params" additional parameters to the javadoc     -->
-	<!--                            processor.                               -->
-	<!--     "fluid.java.skip" a list of java files (in Ant excludes         -->
-	<!--                       format) to skip (ignore) during compile.      -->
-	<!--         Example (any OS):                                           -->
-	<!--           fluid.java.skip="fluid/ir/Persistent.java,**/tmp/**"      -->
-	<!--           (Skips "Persistent.java" and anything under any           -->
-	<!--            directory named "tmp")                                   -->
-	<!--                                                                     -->
-	<!--   Property File Location Redirection (**MS Windows**)               -->
-	<!--   The location of "fluid-build.properties" may be redirected from   -->
-	<!--   "user.home" (useful on Windows) by creating in "user.home" a      -->
-	<!--   "fluid-property-home.properties" file with the property           -->
-	<!--   "fluid.property.home" defined as the full path to where the       -->
-	<!--   "fluid-build.properities" or ".fluid-build.properties" file is.   -->
-	<!--     Example (Windows 2000/Windows XP):                              -->
-	<!--      fluid.property.home=C:/Documents and Settings/tim/My Documents -->
-	<!--                                                                     -->
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
 	<!-- set global properties for this build -->
 	<property name="src" value="${basedir}/src" />
 	<property name="ops" value="${basedir}/ops" />
 	<property name="gensrc" value="${basedir}/gensrc" />
-	<property name="classes" value="${basedir}/bin" />
-	<property name="dist" value="${basedir}/dist" />
 
-	<!-- Filenames for properties files we are going to read -->
-	<property name="fph.p" value="fluid-property-home.properties" />
-	<property name="fb.p" value="fluid-build.properties" />
-
-	<!-- Specific target directories needed for special builds -->
-	<property name="prop-lib" value="${src}/../lib/properties" />
-	<property name="perl-lib" value="${src}/../lib/perl" />
+	<!-- Specific target directories needed for JavaCC and ANTLR -->
 	<property name="javacc-home" value="${src}/../lib/build.jars" />
 	<property name="antlr-lib" value="${basedir}/../common/lib/build" />
-	<property name="jars-home" value="${src}/../lib/jars" />
 
-	<!-- Target directories that require special handling -->
+	<!-- Target directories that require special handling (older JavaCC) -->
 	<property name="fjp-dir" value="${src}/edu/cmu/cs/fluid/java/parse" />
 	<property name="fpp-dir" value="${src}/edu/cmu/cs/fluid/promise/parse" />
-	<!-- modified to look for operators under ops and put them in gensrc -->
-	<property name="fjo-dir" value="${src}/edu/cmu/cs/fluid/java/operator" />
-	<property name="fjpr-dir" value="${src}/edu/cmu/cs/fluid/java/promise" />
-	<property name="fp-dir" value="${src}/edu/cmu/cs/fluid/parse" />
-
-	<property name="fjo-ops-dir" value="${ops}/edu/cmu/cs/fluid/java/operator" />
-	<property name="fjpr-ops-dir" value="${ops}/edu/cmu/cs/fluid/java/promise" />
-	<property name="fp-ops-dir" value="${ops}/edu/cmu/cs/fluid/parse" />
-	<property name="fjo-gen-dir" value="${gensrc}/edu/cmu/cs/fluid/java/operator" />
-	<property name="fjpr-gen-dir" value="${gensrc}/edu/cmu/cs/fluid/java/promise" />
-	<property name="fp-gen-dir" value="${gensrc}/edu/cmu/cs/fluid/parse" />
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
+	<!-- Load in the ANTLR Ant task -->
 	<taskdef resource="org/apache/tools/ant/antlr/antlib.xml">
 		<classpath>
 			<pathelement location="${antlr-lib}/antlr-ant-task.jar" />
 		</classpath>
 	</taskdef>
 
+	<!-- Runs ANTLR and generates parser code -->
 	<macrodef name="genAntlr">
 		<attribute name="target" />
 		<attribute name="outputdir" />
@@ -92,11 +32,12 @@
 				<classpath>
 					<pathelement location="${antlr-lib}/antlr-3.1.jar" />
 				</classpath>
-				<jvmarg value="-Xmx1024m"/>
+				<jvmarg value="-Xmx1024m" />
 			</antlr3>
 		</sequential>
 	</macrodef>
 
+	<!-- Generates all the operators with a strategy class (passed as classname) -->
 	<macrodef name="opgen">
 		<attribute name="classname" />
 		<sequential>
@@ -111,14 +52,15 @@
 				<arg value="${gensrc}" />
 				<arg value="${ops}/edu/cmu/cs/fluid" />
 			</java>
-			<echo message="Done with @{classname}" />
+			<echo message="Done with opgen @{classname}..." />
 		</sequential>
 	</macrodef>
 
+	<!-- Generates the code that lists AST notes that exist for the promise parsers to work -->
 	<macrodef name="gen-factory-refs">
 		<attribute name="parsername" />
 		<attribute name="outputname" />
-	    <attribute name="importname" default="promise"/>
+		<attribute name="importname" default="promise" />
 		<sequential>
 			<echo message="Starting to generate factory refs" />
 			<java classname="com.surelogic.antlr.GenerateFactoryRefs" output="${gensrc}/com/surelogic/annotation/parse/@{outputname}.java">
@@ -132,74 +74,17 @@
 				<arg value="@{importname}" />
 				<arg value="@{outputname}" />
 			</java>
-			<echo message="Done generating factory refs" />
+			<echo message="Done generating factory refs..." />
 		</sequential>
 	</macrodef>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="build-prop-dir">
-		<!-- Check "fluid-property-home.properties" for "user.home" redirection -->
-		<property file="${user.home}/${fph.p}" />
-		<property name="prop-dir" value="${user.home}" />
-		<available property="prop-dir" value="${fluid.property.home}" file="${user.home}/${fph.p}" />
-		<echo message="Property file directory '${prop-dir}'" />
-
-		<!-- Check for existance of "fluid-build.properties" file -->
-		<available property="build-prop-file" value="${prop-dir}/${fb.p}" file="${prop-dir}/${fb.p}" />
-		<!-- or for ".fluid-build.properties" file (to be Unix friendly) -->
-		<available property="build-prop-file" value="${prop-dir}/.${fb.p}" file="${prop-dir}/.${fb.p}" />
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<target name="build-prop-file-exists" depends="build-prop-dir" unless="build-prop-file">
-		<echo message="No '${fb.p}' or '.${fb.p}' file in '${prop-dir}'" />
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<target name="read-prop-file" depends="build-prop-file-exists">
-		<!-- Read the build properties file -->
-		<property file="${build-prop-file}" />
-		<!-- Set optional property values to empty strings -->
-		<property name="fluid.javadoc.dir" value="${src}/../javadoc/api" />
-		<property name="fluid.javadoc.params" value="" />
-		<property name="fluid.java.skip" value="" />
-		<!-- Show the user what values we are using -->
-		<echo message="Using build property file '${build-prop-file}'" />
-		<echo message="----------------------------------------------------------" />
-		<echo message="--> [optional] Javadoc destination dir (fluid.javadoc.dir) is '${fluid.javadoc.dir}'" />
-		<echo message="--> [optional] Javadoc parameters (fluid.javadoc.params) is '${fluid.javadoc.params}'" />
-		<echo message="--> [optional] Java skip list (fluid.java.skip) is '${fluid.java.skip}'" />
-		<echo message="--> [debug] perl-lib is '${perl-lib}" />
-		<echo message="----------------------------------------------------------" />
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<target name="init" depends="read-prop-file">
-		<!-- Create the time stamp -->
-		<tstamp />
-		<!-- Create the build directory structure used by compile -->
-		<mkdir dir="${classes}" />
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<target name="fluid-java-parse" depends="init">
+	<target name="fluid-java-parse">
 		<!-- Generate Java source code in /edu/cmu/cs/fluid/java/parse -->
 		<jjtree outputdirectory="${fjp-dir}" target="${fjp-dir}/JavaX.jjt" javacchome="${javacc-home}" />
-		<copy file="${fjp-dir}/JavaX.jj" tofile="${fjp-dir}/Java.jj" overwrite="no"/>
-		<!--
-		<exec dir="${fjp-dir}" executable="${fluid.perl}" input="${fjp-dir}/JavaX.jj" output="${fjp-dir}/Java.jj">
-			<arg value="-pe" />
-			<arg value="s/SimpleNode([ \)])/JavaNode$+/g" />
-		</exec>
-		-->
-		<replaceregexp file="${fjp-dir}/Java.jj" flags="g"
-		                         match="SimpleNode([ \)])"
-		                         replace="JavaNode\1"/>
+		<copy file="${fjp-dir}/JavaX.jj" tofile="${fjp-dir}/Java.jj" overwrite="no" />
+		<replaceregexp file="${fjp-dir}/Java.jj" flags="g" match="SimpleNode([ \)])" replace="JavaNode\1" />
 		<!-- Check if we really need to run the JavaCC -->
 		<uptodate property="fjp-uptodate" targetfile="${fjp-dir}/JavaParser.java">
 			<srcfiles dir="${fjp-dir}" includes="Java.jj" />
@@ -211,26 +96,16 @@
 		<delete quiet="true" file="${fjp-dir}/Node.java" />
 		<delete quiet="true" file="${fjp-dir}/Token.java" />
 		<delete quiet="true" file="${fjp-dir}/ParseException.java" />
-		<replaceregexp file="${fjp-dir}/JavaParser.java" flags="g"
-		                         match="if \(true\) throw new ParseException"
-		                         replace="throw new ParseException"/>
+		<replaceregexp file="${fjp-dir}/JavaParser.java" flags="g" match="if \(true\) throw new ParseException" replace="throw new ParseException" />
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="fluid-promise-parse" depends="init">
+	<target name="fluid-promise-parse">
 		<!-- Generate Java source code in /edu/cmu/cs/fluid/promise/parse -->
 		<jjtree outputdirectory="${fpp-dir}" target="${fpp-dir}/PromiseX.jjt" javacchome="${javacc-home}" />
-		<copy file="${fpp-dir}/PromiseX.jj" tofile="${fpp-dir}/Promise.jj" overwrite="no"/>
-		<!--
-		<exec dir="${fpp-dir}" executable="${fluid.perl}" input="${fpp-dir}/PromiseX.jj" output="${fpp-dir}/Promise.jj">
-			<arg value="-pe" />
-			<arg value="s/SimpleNode([ \)])/JavaNode$+/g" />
-		</exec>
-		-->
-		<replaceregexp file="${fpp-dir}/Promise.jj" flags="g"
-		                         match="SimpleNode([ \)])"
-		                         replace="JavaNode\1"/>
+		<copy file="${fpp-dir}/PromiseX.jj" tofile="${fpp-dir}/Promise.jj" overwrite="no" />
+		<replaceregexp file="${fpp-dir}/Promise.jj" flags="g" match="SimpleNode([ \)])" replace="JavaNode\1" />
 
 		<!-- Check if we really need to run the JavaCC -->
 		<uptodate property="fep-uptodate" targetfile="${fpp-dir}/PromiseParser.java">
@@ -240,6 +115,39 @@
 
 	<target name="fluid-promise-parse-javacc" depends="fluid-promise-parse" unless="fep-uptodate">
 		<javacc outputdirectory="${fpp-dir}" target="${fpp-dir}/Promise.jj" javacchome="${javacc-home}" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="generate-java-antlr">
+		<genAntlr target="${src}/com/surelogic/parse/JavaToken.g" outputdir="${gensrc}/com/surelogic/parse" />
+		<genAntlr target="${src}/com/surelogic/parse/JavaPrimitives.g" outputdir="${gensrc}/com/surelogic/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/SLAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/ScopedPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/LayerPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<genAntlr target="${src}/com/surelogic/annotation/parse/SLThreadRoleAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
+		<gen-factory-refs parsername="SLAnnotations" outputname="FactoryRefs" />
+		<gen-factory-refs parsername="ScopedPromises" outputname="MoreFactoryRefs" />
+		<gen-factory-refs parsername="LayerPromises" outputname="LayerFactoryRefs" importname="layers" />
+		<gen-factory-refs parsername="SLThreadRoleAnnotations" outputname="ThreadRoleFactoryRefs" />
+	</target>
+
+	<target name="generate-test-antlr">
+		<genAntlr target="${src}/com/surelogic/parse/T.g" outputdir="${gensrc}/com/surelogic/parse" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="generate-from-operators">
+		<opgen classname="com.surelogic.opgen.OperatorGen" />
+	</target>
+
+	<target name="generate-asts-from-operators">
+		<opgen classname="com.surelogic.opgen.InterfaceGen" />
+	</target>
+
+	<target name="generate-crystal-from-operators">
+		<opgen classname="com.surelogic.opgen.CrystalGen" />
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
@@ -255,25 +163,9 @@
 		<echo message="All source code created..." />
 	</target>
 
-	<target name="new-build-src" depends="
-  	generate-from-operators,
-  	generate-asts-from-operators,
-  	generate-nodes-from-operators,
-  	generate-proxies-from-operators,
-  	generate-syntaxTreeNodes-from-operators,
-  	generate-crystal-from-operators,
-    fluid-java-parse-javacc,
-    fluid-promise-parse-javacc">
-		<echo message="All source code created..." />
-	</target>
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="generate-from-operators">
-		<opgen classname="com.surelogic.opgen.OperatorGen" />
-	</target>
-
-	<target name="generate-asts-from-operators">
-		<opgen classname="com.surelogic.opgen.InterfaceGen" />
-	</target>
+	<!-- Expermenatal build-src stuff that is not currently used -->
 
 	<target name="generate-nodes-from-operators">
 		<opgen classname="com.surelogic.opgen.OperatorNodeGen" />
@@ -292,145 +184,28 @@
 		<opgen classname="com.surelogic.opgen.SyntaxTreeNodeGen" />
 	</target>
 
-	<target name="generate-crystal-from-operators">
-		<opgen classname="com.surelogic.opgen.CrystalGen" />
+	<target name="new-build-src" depends="
+  	generate-from-operators,
+  	generate-asts-from-operators,
+  	generate-nodes-from-operators,
+  	generate-proxies-from-operators,
+  	generate-syntaxTreeNodes-from-operators,
+  	generate-crystal-from-operators,
+    fluid-java-parse-javacc,
+    fluid-promise-parse-javacc">
+		<echo message="All source code created..." />
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="generate-java-antlr">
-		<genAntlr target="${src}/com/surelogic/parse/JavaToken.g" outputdir="${gensrc}/com/surelogic/parse" />
-		<genAntlr target="${src}/com/surelogic/parse/JavaPrimitives.g" outputdir="${gensrc}/com/surelogic/parse" />
-		<genAntlr target="${src}/com/surelogic/annotation/parse/SLAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
-		<genAntlr target="${src}/com/surelogic/annotation/parse/ScopedPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
-		<genAntlr target="${src}/com/surelogic/annotation/parse/LayerPromises.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />		
-		<genAntlr target="${src}/com/surelogic/annotation/parse/SLThreadRoleAnnotations.g" outputdir="${gensrc}/com/surelogic/annotation/parse" />
-		<gen-factory-refs parsername="SLAnnotations" outputname="FactoryRefs" />
-		<gen-factory-refs parsername="ScopedPromises" outputname="MoreFactoryRefs" />
-		<gen-factory-refs parsername="LayerPromises" outputname="LayerFactoryRefs" importname="layers"/>
-		<gen-factory-refs parsername="SLThreadRoleAnnotations" outputname="ThreadRoleFactoryRefs" />
-	</target>
-
-	<target name="generate-test-antlr">
-		<genAntlr target="${src}/com/surelogic/parse/T.g" outputdir="${gensrc}/com/surelogic/parse" />
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<target name="java">
-		<!-- Compile the Java source code from ${src} into ${classes} -->
-		<javac srcdir="${src}" destdir="${classes}" excludes="edu/cmu/cs/fluid/eclipse/**,
-    	     **/test/**,
-             ${fluid.java.skip}" source="1.4" debug="no" deprecation="off" verbose="no" fork="yes" memoryMaximumSize="1024m">
-			<classpath>
-				<fileset dir="../lib/jars">
-
-					<include name="**/*.jar" />
-				</fileset>
-			</classpath>
-		</javac>
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<target name="build-all" depends="build-src,java">
-		<echo message="All source code compiled..." />
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<!-- BUILD THE JAVADOC: all the source code must be generated first -->
-	<target name="javadoc" depends="build-src">
-		<delete quiet="true" dir="${fluid.javadoc.dir}" />
-		<javadoc sourcepath="${src}" packagenames="*" classpath="${fluid.build.cp}" access="private" use="yes" author="yes" splitindex="yes" nodeprecated="no" nodeprecatedlist="no" destdir="${fluid.javadoc.dir}" maxmemory="256m" useexternalfile="yes" additionalparam="-breakiterator -linksource 
-	     -source 1.4
-             -subpackages edu.cmu.cs.fluid:edu.cmu.cs.cspace         
-             -exclude edu.cmu.cs.fluid.eclipse
-             -tag capabilities:a:&quot;Capabilities:&quot;
-             -tag fluid:a:&quot;Fluid:&quot;
-             -tag functional:a:&quot;Functional:&quot;
-             -tag invariant:a:&quot;Invariant:&quot;
-             -tag postcondition:a:&quot;Postcondition:&quot;
-             -tag precondition:a:&quot;Precondition:&quot;
-             -tag pure:a:&quot;Pure:&quot;
-             -tag read:a:&quot;Read:&quot;
-             -tag structure:a:&quot;Structure:&quot;
-             -tag type:a:&quot;Type:&quot;
-             -tag typeparam:a:&quot;Type Parameter:&quot;
-             -tag write:a:&quot;Write:&quot;
-             -tag borrowed:a:&quot;Borrowed:&quot;
-             -tag unshared:a:&quot;Unshared:&quot;
-             -tag unique:a:&quot;Unique:&quot;
-             -tag writes:a:&quot;Write:&quot;
-             -tag reads:a:&quot;Read:&quot;
-             ${fluid.javadoc.params}">
-			<classpath>
-				<fileset dir="../lib">
-					<include name="**/*.jar" />
-				</fileset>
-			</classpath>
-		</javadoc>
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<!-- target name="snapshot" depends="build-all" -->
-	<target name="snapshot">
-		<!-- Create the distribution directory -->
-		<mkdir dir="${dist}/snapshot" />
-
-		<!-- Put everything in ${classes} into the FluidAll-${DSTAMP}.jar file -->
-		<jar jarfile="${dist}/snapshot/FluidAll-${DSTAMP}.jar" basedir="${src}" includes="**" />
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<target name="dist" depends="build-all,javadoc">
-		<!-- Create the distribution directory -->
-		<mkdir dir="${dist}/lib" />
-
-		<!-- Put everything in ${classes} into the Fluid-${DSTAMP}.jar file -->
-		<jar jarfile="${dist}/lib/Fluid-${DSTAMP}.jar" basedir="${classes}" includes="**/*.class,**/*.gif" />
-		<!-- Put everything in ${fluid.javadoc.dir} into the FluidJavadoc-${DSTAMP}.jar file -->
-		<jar jarfile="${dist}/lib/FluidJavadoc-${DSTAMP}.jar" basedir="${fluid.javadoc.dir}" includes="**" />
-	</target>
-
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-	<target name="fluid-promise-parse-clean" depends="read-prop-file">
-		<!-- Delete generated files in fluid/eclipse/promise -->
-		<echo message="Cleaning up in ${fpp-dir}" />
-		<delete quiet="true" file="${fpp-dir}/PromiseX.jj" />
-		<delete quiet="true" file="${fpp-dir}/Promise.jj" />
-		<delete quiet="true" file="${fpp-dir}/PromiseParserTreeConstants.java" />
-		<delete quiet="true" file="${fpp-dir}/PromiseParser.java" />
-		<delete quiet="true" file="${fpp-dir}/PromiseParserConstants.java" />
-		<delete quiet="true" file="${fpp-dir}/PromiseParserTokenManager.java" />
-	</target>
-
-	<target name="clean" depends="read-prop-file">
-		<!-- Clean up the ${classes} tree and delete the ${dist} and ${fluid.javadoc.dir} tree -->
-		<delete quiet="true">
-			<fileset dir="${classes}" includes="**/*.class" />
-		</delete>
-		<delete quiet="true" dir="${dist}" />
-		<delete quiet="true" dir="${fluid.javadoc.dir}" />
-
-		<!-- Clean up ".java" and temporary files created in the source tree -->
-
-		<!-- Delete generated files in /edu/cmu/cs/fluid/java/operator -->
-		<echo message="Cleaning up in ${fjo-dir}" />
-		<delete quiet="true" file="${fjo-dir}/LoadOperator.java" />
-		<delete quiet="true" file="${fjo-dir}/Visitor.java" />
-		<delete quiet="true" file="${fjo-dir}/IVisitor.java" />
-		<delete quiet="true" file="${fjo-dir}/IAcceptor.java" />
-
-		<echo message="Cleaning up in ${fjo-gen-dir}" />
-		<delete quiet="true">
-			<fileset dir="$fjo-gen-dir" includes="*" />
+	<target name="clean">
+		<!-- Delete generated files in the "gensrc" source folder -->
+		<echo message="Cleaning up in ${gensrc}" />
+		<delete includeemptydirs="true">
+			<fileset dir="${gensrc}" includes="**/*" />
 		</delete>
 
-		<!-- Delete generated files in /edu/cmu/cs/fluid/java/parse -->
+		<!-- Delete generated files in edu.cmu.cs.fluid.java.parse -->
 		<echo message="Cleaning up in ${fjp-dir}" />
 		<delete quiet="true" file="${fjp-dir}/Java.jj" />
 		<delete quiet="true" file="${fjp-dir}/JavaCharStream.java" />
@@ -441,19 +216,7 @@
 		<delete quiet="true" file="${fjp-dir}/JavaX.jj" />
 		<delete quiet="true" file="${fjp-dir}/TokenMgrError.java" />
 
-		<!-- Delete generated files in /edu/cmu/cs/fluid/java/promise -->
-		<echo message="Cleaning up in ${fjpr-dir}" />
-		<delete quiet="true" file="${fjpr-dir}/LoadPromises.java" />
-
-		<!-- Delete generated files in /edu/cmu/cs/fluid/parse -->
-		<echo message="Cleaning up in ${fp-dir}" />
-		<delete quiet="true" file="${fp-dir}/LoadParseOp.java" />
-
-		<echo message="Cleaning up in ${gensrc}" />
-		<delete quiet="true" dir="${gensrc}/com" />
-		<delete quiet="true" dir="${gensrc}/edu" />
-
-		<!-- Delete generated files in /edu/cmu/cs/fluid/promise/parse -->
+		<!-- Delete generated files in edu.cmu.cs.fluid.promise.parse -->
 		<echo message="Cleaning up in ${fpp-dir}" />
 		<delete quiet="true" file="${fpp-dir}/JavaCharStream.java" />
 		<delete quiet="true" file="${fpp-dir}/Node.java" />
@@ -466,21 +229,6 @@
 		<delete quiet="true" file="${fpp-dir}/PromiseX.jj" />
 		<delete quiet="true" file="${fpp-dir}/Token.java" />
 		<delete quiet="true" file="${fpp-dir}/TokenMgrError.java" />
-	</target>
-
-	<!-- Clean java-operator -->
-	<target name="clean-java-operator" depends="read-prop-file">
-		<!-- Delete generated files in /edu/cmu/cs/fluid/java/operator -->
-		<echo message="Cleaning up in ${fjo-dir}" />
-		<delete quiet="true" file="${fjo-dir}/LoadOperator.java" />
-		<delete quiet="true" file="${fjo-dir}/Visitor.java" />
-		<delete quiet="true" file="${fjo-dir}/IVisitor.java" />
-		<delete quiet="true" file="${fjo-dir}/IAcceptor.java" />
-
-		<echo message="Cleaning up in ${fjo-gen-dir}" />
-		<delete quiet="true">
-			<fileset dir="$fjo-gen-dir" includes="*" />
-		</delete>
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
