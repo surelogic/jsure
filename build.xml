@@ -7,16 +7,9 @@
 	<property name="classes" value="${basedir}/bin" />
 
 	<property name="ant.jar" value="${lib}/ant.jar" />
-	<property name="org-netbeans-lib-cvsclient.jar" value="${lib}/org-netbeans-lib-cvsclient.jar" />
-	<property name="antlib.xml" value="com/surelogic/flashlight/ant/antlib.xml" />
-
 	<property name="tasks.jar" value="${basedir}/jsure-tests-ant-tasks.jar" />
 
 
-
-	<target name="clean">
-		<delete file="${tasks.jar}" />
-	</target>
 
 	<target name="compile">
 		<delete dir="${classes}" />
@@ -25,7 +18,6 @@
 			<src path="${src}" />
 			<classpath>
 				<pathelement location="${ant.jar}" />
-				<pathelement location="${org-netbeans-lib-cvsclient.jar}" />
 			</classpath>
 		</javac>
 	</target>
@@ -38,11 +30,13 @@
 			</manifest>
 			<fileset dir="${classes}" />
 			<fileset file="${basedir}/sl-tasks.properties" />
-			<fileset file="${basedir}/sl-tasks.xml" />
 		</jar>
 	</target>
 
 	<target name="build-jars" depends="compile, build-ant-jar" />
 
-	<target name="build-jars-eclipse" depends="build-ant-jar" />
+	<target name="clean">
+		<delete file="${tasks.jar}" />
+	</target>
+
 </project>
