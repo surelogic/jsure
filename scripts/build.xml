@@ -124,6 +124,7 @@
 		<!-- Set the directory that this build script is within -->
 		<getContainingDirectory file="${ant.file}" property="jsure.tests.scripts.dir" />
 		<fail unless="jsure.tests.scripts.dir" message="Unable to determine the containing directory of ${ant.file}." />
+		<property name="user.workspace.dir" value="${jsure.tests.scripts.dir}${file.separator}..${file.separator}.." />
 	</target>
 
 	<target name="setup sandbox directory" depends="load jsure-tests.properties file">
@@ -153,23 +154,22 @@
 		<mkdir dir="${jsure.build.dir}" />
 		<mkdir dir="${jsure.build.plugins.dir}" />
 		<mkdir dir="${jsure.build.features.dir}" />
-		<property name="user.workspace.dir" value="${jsure.tests.scripts.dir}${file.separator}..${file.separator}.." />
 
 		<!-- THE LISTS BELOW SHOULD BE UPDATED IF THE PLUG-INs/FEATUREs COMPRISING JSURE CHANGE -->
 		<property name="jsure.plugin.projects" value="common, eclipse-common, fluid, fluid-eclipse, fluid-javac, jsure-client-eclipse, jsure-client-eclipse-help, jsure-design-intent-eclipse-help, jsure-message, jsure-tests, jsure-xml-results-viewer" />
 		<property name="jsure.feature.ids" value="com.surelogic.feature.jsure, com.surelogic.feature.jsure.tests" />
 
 		<!-- Copy JSure plug-in projects for headless build -->
-		<for list="${jsure.plugin.projects}" delimiter="," param="plugin" trim="true" keepgoing="true">
+		<for list="${jsure.plugin.projects}" delimiter="," param="plugin" trim="true">
 			<sequential>
-				<copy-project-to-a-dir projectDir="@{plugin}" fromDir="user.workspace.dir" toDir="${jsure.build.plugins.dir}" />
+				<copy-project-to-a-dir projectDir="@{plugin}" fromDir="${user.workspace.dir}" toDir="${jsure.build.plugins.dir}" />
 			</sequential>
 		</for>
 
 		<!-- Copy JSure feature projects (id must match project name for the PDE) for headless build -->
-		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true" keepgoing="true">
+		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true">
 			<sequential>
-				<copy-project-to-a-dir projectDir="@{feature-id}" fromDir="user.workspace.dir" toDir="${jsure.build.features.dir}" />
+				<copy-project-to-a-dir projectDir="@{feature-id}" fromDir="${user.workspace.dir}" toDir="${jsure.build.features.dir}" />
 			</sequential>
 		</for>
 
@@ -198,31 +198,53 @@
 		</propertyfile>
 
 		<!-- Build our features using a PDE headless build -->
-		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true" keepgoing="true">
+		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true">
 			<sequential>
 				<build-feature-with-pde feature="@{feature-id}" />
 			</sequential>
 		</for>
 
 		<!-- Install the JSure features and plug-ins -->
-		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true" keepgoing="true">
+		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true">
 			<sequential>
 				<unzip src="${jsure.build.output.dir}${file.separator}@{feature-id}-${jsure.build.buildId}.zip" dest="${sandbox}" />
 			</sequential>
 		</for>
 	</target>
 
-	<target name="setup test projects to analyze" depends="setup Eclipse-based JSure">
+	<target name="setup test projects to analyze" depends="load jsure-tests.properties file">
+		<property name="test.suite.dir" value="${sandbox}${file.separator}suite" />
+		<mkdir dir="${test.suite.dir}" />
+		<property name="test.workspace.dir" value="${sandbox}${file.separator}workspaces" />
+		<mkdir dir="${test.workspace.dir}" />
+		<property name="test.log.dir" value="${sandbox}${file.separator}logs" />
+		<mkdir dir="${test.log.dir}" />
+
+		<property name="jsure.tests.suites.to-scan" value="regression" />
+		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
+			<sequential>
+				<local name="suite.dir" />
+				<condition property="suite.dir" value="@{suite}" else="${user.workspace.dir}${file.separator}@{suite}">
+					<isset property="jsure.tests.suites.not-in-user-workspace" />
+				</condition>
+				<echo message="[suite of projects to scan] ${suite.dir}" />
+				<local name="project.list" />
+				<findtests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<for list="${project.list}" param="name" trim="true">
+					<sequential>
+						<copy-project-to-a-dir projectDir="@{name}" fromDir="${suite.dir}" toDir="${test.suite.dir}" />
+					</sequential>
+				</for>
+			</sequential>
+		</for>
+		<fail />
 
 		<!-- make a copy of the test module in the workspace this was started within -->
 		<!-- TODO MAYBE MAKE THIS A BIT MORE CONFIGURABLE -->
 		<copy-project-to-a-dir projectDir="regression" fromDir="${user.workspace.dir}" toDir="${sandbox}" />
 		<property name="regression.dir" value="${sandbox}${file.separator}regression" />
 
-		<property name="test.workspace.dir" value="${sandbox}${file.separator}workspaces" />
-		<mkdir dir="${test.workspace.dir}" />
-		<property name="test.log.dir" value="${sandbox}${file.separator}logs" />
-		<mkdir dir="${test.log.dir}" />
+
 
 		<!-- unzip any zipped tests -->
 		<findtests property="test.project.list" basedir="${regression.dir}" fullpaths="false" />
