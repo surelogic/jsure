@@ -6,7 +6,7 @@
 	<property name="gensrc" value="${basedir}/gensrc" />
 
 	<!-- Specific target directories needed for JavaCC and ANTLR -->
-	<property name="javacc-home" value="${src}/../lib/build.jars" />
+	<property name="build-jars-home" value="${src}/../lib/build" />
 	<property name="antlr-lib" value="${basedir}/../common/lib/build" />
 
 	<!-- Target directories that require special handling (older JavaCC) -->
@@ -45,7 +45,7 @@
 			<java classname="@{classname}" output="${gensrc}/@{classname}.log.txt">
 				<classpath>
 					<pathelement path="${src}/../../jsure-opgen/bin" />
-					<pathelement path="${src}/../lib/build.jars/opgen.jar" />
+					<pathelement path="${build-jars-home}/opgen.jar" />
 					<pathelement path="${java.class.path}" />
 				</classpath>
 				<arg value="-out" />
@@ -66,7 +66,7 @@
 			<java classname="com.surelogic.antlr.GenerateFactoryRefs" output="${gensrc}/com/surelogic/annotation/parse/@{outputname}.java">
 				<classpath>
 					<pathelement path="${src}/../../opgen/bin" />
-					<pathelement path="${src}/../lib/build.jars/opgen.jar" />
+					<pathelement path="${build-jars-home}/opgen.jar" />
 					<pathelement path="${java.class.path}" />
 				</classpath>
 				<arg value="${gensrc}/com/surelogic/annotation/parse/@{parsername}.tokens" />
@@ -82,7 +82,7 @@
 
 	<target name="fluid-java-parse">
 		<!-- Generate Java source code in /edu/cmu/cs/fluid/java/parse -->
-		<jjtree outputdirectory="${fjp-dir}" target="${fjp-dir}/JavaX.jjt" javacchome="${javacc-home}" />
+		<jjtree outputdirectory="${fjp-dir}" target="${fjp-dir}/JavaX.jjt" javacchome="${build-jars-home}" />
 		<copy file="${fjp-dir}/JavaX.jj" tofile="${fjp-dir}/Java.jj" overwrite="no" />
 		<replaceregexp file="${fjp-dir}/Java.jj" flags="g" match="SimpleNode([ \)])" replace="JavaNode\1" />
 		<!-- Check if we really need to run the JavaCC -->
@@ -92,7 +92,7 @@
 	</target>
 
 	<target name="fluid-java-parse-javacc" depends="fluid-java-parse" unless="fjp-uptodate">
-		<javacc outputdirectory="${fjp-dir}" target="${fjp-dir}/Java.jj" javacchome="${javacc-home}" />
+		<javacc outputdirectory="${fjp-dir}" target="${fjp-dir}/Java.jj" javacchome="${build-jars-home}" />
 		<delete quiet="true" file="${fjp-dir}/Node.java" />
 		<delete quiet="true" file="${fjp-dir}/Token.java" />
 		<delete quiet="true" file="${fjp-dir}/ParseException.java" />
@@ -103,7 +103,7 @@
 
 	<target name="fluid-promise-parse">
 		<!-- Generate Java source code in /edu/cmu/cs/fluid/promise/parse -->
-		<jjtree outputdirectory="${fpp-dir}" target="${fpp-dir}/PromiseX.jjt" javacchome="${javacc-home}" />
+		<jjtree outputdirectory="${fpp-dir}" target="${fpp-dir}/PromiseX.jjt" javacchome="${build-jars-home}" />
 		<copy file="${fpp-dir}/PromiseX.jj" tofile="${fpp-dir}/Promise.jj" overwrite="no" />
 		<replaceregexp file="${fpp-dir}/Promise.jj" flags="g" match="SimpleNode([ \)])" replace="JavaNode\1" />
 
@@ -114,7 +114,7 @@
 	</target>
 
 	<target name="fluid-promise-parse-javacc" depends="fluid-promise-parse" unless="fep-uptodate">
-		<javacc outputdirectory="${fpp-dir}" target="${fpp-dir}/Promise.jj" javacchome="${javacc-home}" />
+		<javacc outputdirectory="${fpp-dir}" target="${fpp-dir}/Promise.jj" javacchome="${build-jars-home}" />
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
