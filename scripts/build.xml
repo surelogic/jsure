@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="JSure Tests" default="setup test suites to analyze">
+<project name="JSure Tests" default="run JSure on test suites">
+
+	<property name="fs" value="${file.separator}" />
 
 	<!-- We use this to get additional control tasks (e.g., if and for) -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
@@ -60,8 +62,8 @@
 		<attribute name="fromDir" />
 		<attribute name="toDir" />
 		<sequential>
-			<copy todir="@{toDir}${file.separator}@{projectDir}">
-				<fileset dir="@{fromDir}${file.separator}@{projectDir}">
+			<copy todir="@{toDir}${fs}@{projectDir}">
+				<fileset dir="@{fromDir}${fs}@{projectDir}">
 					<exclude name="bin/**,**/.svn/**" />
 				</fileset>
 			</copy>
@@ -75,7 +77,7 @@
 			<propertyfile file="${jsure.build.properties}">
 				<entry key="topLevelElementId" value="@{feature}" />
 			</propertyfile>
-			<java dir="${eclipse.pde.plugin.dir}${file.separator}scripts" jar="${eclipse.startup.jar}" fork="true" maxmemory="512m" failonerror="true">
+			<java dir="${eclipse.pde.plugin.dir}${fs}scripts" jar="${eclipse.startup.jar}" fork="true" maxmemory="512m" failonerror="true">
 				<arg line="-application org.eclipse.ant.core.antRunner" />
 				<arg value="-Dbuilder=${sandbox.jsure.build.dir}" />
 			</java>
@@ -84,24 +86,24 @@
 
 	<!-- Helps us to run a test in our headless Eclipse-based JSure -->
 	<macrodef name="run-a-test">
-		<attribute name="test-workspace" />
 		<attribute name="target" />
-		<attribute name="test-module" />
-		<attribute name="extra-test-modules" />
+		<attribute name="workspace" />
+		<attribute name="project" />
+		<attribute name="log" />
 		<sequential>
-			<echo message="Running on @{test-module}" />
-			<findfile property="test.plugin" basedir="${sandbox.eclipse.dir}/plugins" regex="org\.eclipse\.test_.*" />
-			<echo message="Using library ${test.plugin}" />
+			<echo message="Running @{target} on @{project}" />
+			<local name="run-jsure-tests" />
+			<property name="run-jsure-tests" value="${surelogic.test.plugin.dir}${fs}scripts${fs}lib${fs}run-jsure-tests.xml" />
 
-			<ant dir="${test.sandbox}/eclipse" inheritAll="false" antfile="plugins/com.surelogic.jsure.tests_1.0.0/run-jsure-tests.xml" target="@{target}">
-				<property name="os" value="${baseos}" />
-				<property name="ws" value="${basews}" />
-				<property name="arch" value="${basearch}" />
-				<property name="library-file" location="${test.plugin}/library.xml" />
-				<property name="extraVMargs" value="-Xmx1000m" />
-				<property name="test-workspace" value="@{test-workspace}" />
-				<property name="test-module" value="@{test-module}" />
-				<property name="extra-test-modules" value="@{extra-test-modules}" />
+			<ant dir="${sandbox.eclipse.dir}" inheritAll="false" antfile="${run-jsure-tests}" target="@{target}">
+				<property name="os" value="" />
+				<property name="ws" value="" />
+				<property name="arch" value="" />
+				<property name="library-file" location="${eclipse.test.plugin.dir}${fs}library.xml" />
+				<property name="extraVMargs" value="-Xmx512m" />
+				<property name="test-workspace" value="@{workspace}" />
+				<property name="test-module" value="@{project}" />
+				<property name="extra-test-modules" value="" />
 			</ant>
 		</sequential>
 	</macrodef>
@@ -110,8 +112,8 @@
 	<target name="load jsure-tests.properties file">
 		<!-- Filenames for the properties files we are going to try to read -->
 		<property name="jt.p-filename" value="jsure-tests.properties" />
-		<property name="jt.p" value="${user.home}${file.separator}${jt.p-filename}" />
-		<property name="dot-jt.p" value="${user.home}${file.separator}.${jt.p-filename}" />
+		<property name="jt.p" value="${user.home}${fs}${jt.p-filename}" />
+		<property name="dot-jt.p" value="${user.home}${fs}.${jt.p-filename}" />
 
 		<!-- Check for existance of "jsure-tests.properties" file -->
 		<available property="jsure-tests.properties.file" value="${jt.p}" file="${jt.p}" />
@@ -139,10 +141,10 @@
 		<echo message=" jsure.tests.archive.${jsure.tests.archive.use}.eclipse.dist=${jsure.tests.archive.eclipse.test}" />
 
 		<!-- Check if the specified archive files exist -->
-		<property name="archive.eclipse.dist" value="${jsure.tests.archive}${file.separator}${jsure.tests.archive.eclipse.dist}" />
+		<property name="archive.eclipse.dist" value="${jsure.tests.archive}${fs}${jsure.tests.archive.eclipse.dist}" />
 		<available property="archive.eclipse.dist.exists" file="${archive.eclipse.dist}" />
 		<fail unless="archive.eclipse.dist.exists" message="${archive.eclipse.dist} does not exist on your machine." />
-		<property name="archive.eclipse.test" value="${jsure.tests.archive}${file.separator}${jsure.tests.archive.eclipse.test}" />
+		<property name="archive.eclipse.test" value="${jsure.tests.archive}${fs}${jsure.tests.archive.eclipse.test}" />
 		<available property="archive.eclipse.test.exists" file="${archive.eclipse.test}" />
 		<fail unless="archive.eclipse.test.exists" message="${archive.eclipse.test} does not exist on your machine." />
 
@@ -151,7 +153,7 @@
 		<fail unless="antfile.dir" message="Unable to determine the containing directory of ${ant.file}." />
 
 		<!-- Where the plug-in and feature projects are located -->
-		<property name="user.workspace.dir" value="${antfile.dir}${file.separator}..${file.separator}.." />
+		<property name="user.workspace.dir" value="${antfile.dir}${fs}..${fs}.." />
 		<echo message=" JSure plug-in/feature projects in ${user.workspace.dir}" />
 
 		<!-- Set a default for where the test suites are located if the user did not explicitly specify a directory -->
@@ -162,11 +164,11 @@
 		<echo message=" jsure.tests.suites.to-scan=${jsure.tests.suites.to-scan}" />
 
 		<!-- Define the layout of the sandbox -->
-		<property name="sandbox.eclipse.dir" value="${sandbox}${file.separator}eclipse" />
-		<property name="sandbox.jsure.build.dir" value="${sandbox}${file.separator}jsure-build" />
-		<property name="sandbox.suites.dir" value="${sandbox}${file.separator}suites" />
-		<property name="sandbox.workspace.dir" value="${sandbox}${file.separator}workspaces" />
-		<property name="sandbox.log.dir" value="${sandbox}${file.separator}logs" />
+		<property name="sandbox.eclipse.dir" value="${sandbox}${fs}eclipse" />
+		<property name="sandbox.jsure.build.dir" value="${sandbox}${fs}jsure-build" />
+		<property name="sandbox.suites.dir" value="${sandbox}${fs}suites" />
+		<property name="sandbox.workspace.dir" value="${sandbox}${fs}workspaces" />
+		<property name="sandbox.log.dir" value="${sandbox}${fs}logs" />
 	</target>
 
 	<target name="setup sandbox directory" depends="load jsure-tests.properties file">
@@ -185,16 +187,16 @@
 		<unarchive-to archive="${archive.eclipse.dist}" sandbox="${sandbox}" />
 		<unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}" />
 
-		<property name="sandbox.eclipse.plugins.dir" value="${sandbox.eclipse.dir}${file.separator}plugins" />
+		<property name="sandbox.eclipse.plugins.dir" value="${sandbox.eclipse.dir}${fs}plugins" />
 
 		<findfile property="eclipse.startup.jar" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.equinox\.launcher_.*\.jar" />
-		<fail unless="eclipse.startup.jar" message="Unable to find the Eclipse startup jar (org.eclipse.equinox.launcher.*.jar) within ${archive.eclipse.dist}." />
+		<fail unless="eclipse.startup.jar" message="Unable to find the Eclipse startup jar (org.eclipse.equinox.launcher.*.jar) within ${sandbox.eclipse.plugins.dir}." />
 		<findfile property="eclipse.pde.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.pde\.build_.*" />
-		<fail unless="eclipse.pde.plugin.dir" message="Unable to find the Eclipse PDE build plug-in (org.eclipse.pde.build.*) within ${archive.eclipse.dist}. Is this an archive of 'Eclipse Classic'?" />
+		<fail unless="eclipse.pde.plugin.dir" message="Unable to find the Eclipse PDE build plug-in (org.eclipse.pde.build.*) within ${sandbox.eclipse.plugins.dir}. Is ${archive.eclipse.dist} an archive of 'Eclipse Classic'?" />
 
 
-		<property name="sandbox.jsure.build.plugins.dir" value="${sandbox.jsure.build.dir}${file.separator}plugins" />
-		<property name="sandbox.jsure.build.features.dir" value="${sandbox.jsure.build.dir}${file.separator}features" />
+		<property name="sandbox.jsure.build.plugins.dir" value="${sandbox.jsure.build.dir}${fs}plugins" />
+		<property name="sandbox.jsure.build.features.dir" value="${sandbox.jsure.build.dir}${fs}features" />
 		<mkdir dir="${sandbox.jsure.build.dir}" />
 		<mkdir dir="${sandbox.jsure.build.plugins.dir}" />
 		<mkdir dir="${sandbox.jsure.build.features.dir}" />
@@ -218,8 +220,8 @@
 		</for>
 
 		<!-- Build necessary source code in common and fluid plug-in projects -->
-		<ant antfile="build-src.xml" dir="${sandbox.jsure.build.plugins.dir}${file.separator}common" />
-		<ant antfile="build-src.xml" dir="${sandbox.jsure.build.plugins.dir}${file.separator}fluid" />
+		<ant antfile="build-src.xml" dir="${sandbox.jsure.build.plugins.dir}${fs}common" />
+		<ant antfile="build-src.xml" dir="${sandbox.jsure.build.plugins.dir}${fs}fluid" />
 
 		<!-- Handle any OS-specific build problems here. -->
 		<!-- THE CODE BELOW MAY NEED TO BE UPDATED AS OS/ECLIPSE VERSIONS CHANGE -->
@@ -235,7 +237,7 @@
                      file ahead of the bootclasspath. This project only needs the contents
                      of classes.jar (on OS X). But if Java on OS X is updated then the
                      absolute path below may need to be updated.-->
-				<propertyfile file="${sandbox.jsure.build.plugins.dir}${file.separator}fluid-javac${file.separator}build.properties">
+				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}fluid-javac${fs}build.properties">
 					<entry key="bootClasspath" value="lib/javac.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar" />
 				</propertyfile>
 				<echo message="[OS X] fluid-javac bootClasspath changed..." />
@@ -243,11 +245,11 @@
 		</if>
 
 		<!-- Copy template headless build.properties file and configure it for a headless build -->
-		<property name="jsure.build.properties" value="${sandbox.jsure.build.dir}${file.separator}build.properties" />
-		<copy file="${eclipse.pde.plugin.dir}${file.separator}templates${file.separator}headless-build${file.separator}build.properties" toFile="${jsure.build.properties}" />
+		<property name="jsure.build.properties" value="${sandbox.jsure.build.dir}${fs}build.properties" />
+		<copy file="${eclipse.pde.plugin.dir}${fs}templates${fs}headless-build${fs}build.properties" toFile="${jsure.build.properties}" />
 		<property name="jsure.build.buildType" value="H" />
 		<property name="jsure.build.buildId" value="TestBuild" />
-		<property name="jsure.build.output.dir" value="${sandbox.jsure.build.dir}${file.separator}${jsure.build.buildType}.${jsure.build.buildId}" />
+		<property name="jsure.build.output.dir" value="${sandbox.jsure.build.dir}${fs}${jsure.build.buildType}.${jsure.build.buildId}" />
 		<propertyfile file="${jsure.build.properties}">
 			<entry key="topLevelElementId" value="com.surelogic.feature.jsure" />
 			<entry key="base" value="${sandbox}" />
@@ -272,7 +274,7 @@
 		<!-- Install the JSure features and plug-ins -->
 		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true">
 			<sequential>
-				<unzip src="${jsure.build.output.dir}${file.separator}@{feature-id}-${jsure.build.buildId}.zip" dest="${sandbox}" />
+				<unzip src="${jsure.build.output.dir}${fs}@{feature-id}-${jsure.build.buildId}.zip" dest="${sandbox}" />
 			</sequential>
 		</for>
 	</target>
@@ -286,8 +288,8 @@
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
 				<local name="suite.dir" />
-				<property name="suite.dir" value="${sandbox.suites.dir}${file.separator}@{suite}" />
-				<echo message="[suite to scan] ${jsure.tests.suites}${file.separator}@{suite} -> ${suite.dir}" />
+				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
+				<echo message="[suite to scan] ${jsure.tests.suites}${fs}@{suite} -> ${suite.dir}" />
 				<copy-project-to-a-dir projectDir="@{suite}" fromDir="${jsure.tests.suites}" toDir="${sandbox.suites.dir}" />
 				<local name="project.list" />
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
@@ -299,14 +301,14 @@
 								<!-- This propertyregex line just gets the name of the file without the .zip extension -->
 								<local name="name.no.dot.zip" />
 								<propertyregex property="name.no.dot.zip" input="@{name.zip}" regexp="([^\.]*)\.zip" select="\1" override="true" casesensitive="false" />
-								<mkdir dir="${suite.dir}${file.separator}${name.no.dot.zip}" />
-								<unzip src="${suite.dir}${file.separator}@{name.zip}" dest="${suite.dir}${file.separator}${name.no.dot.zip}" />
-								<echo message="Unzipped @{name.zip} into ${suite.dir}${file.separator}${name.no.dot.zip}" />
+								<mkdir dir="${suite.dir}${fs}${name.no.dot.zip}" />
+								<unzip src="${suite.dir}${fs}@{name.zip}" dest="${suite.dir}${fs}${name.no.dot.zip}" />
+								<echo message="Unzipped @{name.zip} into ${suite.dir}${fs}${name.no.dot.zip}" />
 							</then>
 						</if>
 					</sequential>
 				</for>
-				<mkdir dir="${sandbox.log.dir}${file.separator}@{suite}" />
+				<mkdir dir="${sandbox.log.dir}${fs}@{suite}" />
 			</sequential>
 		</for>
 
@@ -316,25 +318,32 @@
 		</copy>
 	</target>
 
-	<!-- Our test suite has a testcase that runs DoubleChecker so we just run this
-			target for each workspace we want to analyze -->
+	<target name="run JSure on test suites" depends="setup test suites to analyze">
+		<findfile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.test_.*" />
+		<fail unless="eclipse.test.plugin.di" message="Unable to find the Eclipse test plug-in (org.eclipse.test_*) within ${sandbox.eclipse.plugins.dir}." />
+		<findfile property="surelogic.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="com\.surelogic\.jsure\.tests_.*" />
+		<fail unless="surelogic.test.plugin.dir" message="Unable to find the SureLogic test plug-in (com.surelogic.jsure.tests_*) within ${sandbox.eclipse.plugins.dir}." />
 
-	<target name="run-tests" depends="load jsure-tests.properties file">
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
 				<local name="suite.dir" />
-				<property name="suite.dir" value="${sandbox.suites.dir}${file.separator}@{suite}" />
+				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
 				<local name="workspace.dir" />
-				<property name="suite.dir" value="${sandbox.workspace.dir}${file.separator}@{suite}" />
+				<property name="workspace.dir" value="${sandbox.workspace.dir}${fs}@{suite}" />
+				<local name="log.dir" />
+				<property name="log.dir" value="${sandbox.log.dir}${fs}@{suite}" />
 				<local name="project.list" />
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<run-a-test test-workspace="${test.workspace.base}/@{workspace}" target="run-regression-tests" test-module="${test.module.dir}/@{workspace}" extra-test-modules="${extra.test.modules}" />
+						<run-a-test target="run-regression-tests" project="${suite.dir}/@{project}" workspace="${workspace.dir}/@{project}" log="${log.dir}/@{project}" />
 					</sequential>
 				</for>
 			</sequential>
 		</for>
+
+		<fail message="TODO" />
+
 		<findtests property="test.project.list" basedir="${test.workspace.base}" />
 		<!-- run regression tests -->
 		<for list="${test.project.list}" delimiter="," param="workspace" trim="true" keepgoing="false">
