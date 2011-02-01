@@ -152,7 +152,7 @@
 
 		<!-- Where the plug-in and feature projects are located -->
 		<property name="user.workspace.dir" value="${antfile.dir}${file.separator}..${file.separator}.." />
-		<echo message=" plug-ins/features in ${user.workspace.dir}" />
+		<echo message=" JSure plug-in/feature projects in ${user.workspace.dir}" />
 
 		<!-- Set a default for where the test suites are located if the user did not explicitly specify a directory -->
 		<property name="jsure.tests.suites" value="${user.workspace.dir}" />
@@ -166,7 +166,7 @@
 		<!-- Clean out and create the sandbox directory -->
 		<mkdir dir="${sandbox}" />
 		<delete quiet="true" includeemptydirs="true">
-			<fileset dir="${sandbox}" includes="**/*" />
+			<fileset dir="${sandbox}" includes="**/*" defaultexcludes="false" />
 		</delete>
 		<echo message="Sandbox ${sandbox} created (and cleaned out if necessary)" />
 	</target>
@@ -316,6 +316,21 @@
 			target for each workspace we want to analyze -->
 
 	<target name="run-tests" depends="load jsure-tests.properties file">
+		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
+			<sequential>
+				<local name="suite.dir" />
+				<property name="suite.dir" value="${sandbox.suites.dir}${file.separator}@{suite}" />
+				<local name="workspace.dir" />
+				<property name="suite.dir" value="${sandbox.workspace.dir}${file.separator}@{suite}" />
+				<local name="project.list" />
+				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<for list="${project.list}" delimiter="," param="project" trim="true">
+					<sequential>
+						<run-a-test test-workspace="${test.workspace.base}/@{workspace}" target="run-regression-tests" test-module="${test.module.dir}/@{workspace}" extra-test-modules="${extra.test.modules}" />
+					</sequential>
+				</for>
+			</sequential>
+		</for>
 		<findtests property="test.project.list" basedir="${test.workspace.base}" />
 		<!-- run regression tests -->
 		<for list="${test.project.list}" delimiter="," param="workspace" trim="true" keepgoing="false">
