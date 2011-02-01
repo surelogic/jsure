@@ -82,6 +82,31 @@
 		</sequential>
 	</macrodef>
 
+	<!-- Helps us to run a test in our headless Eclipse-based JSure -->
+	<macrodef name="run-a-test">
+		<attribute name="test-workspace" />
+		<attribute name="target" />
+		<attribute name="test-module" />
+		<attribute name="extra-test-modules" />
+		<sequential>
+			<echo message="Running on @{test-module}" />
+			<findfile property="test.plugin" basedir="${eclipse.dir}/plugins" regex="org\.eclipse\.test_.*" />
+			<echo message="Using library ${test.plugin}" />
+
+			<ant dir="${test.sandbox}/eclipse" inheritAll="false" antfile="plugins/com.surelogic.jsure.tests_1.0.0/run-jsure-tests.xml" target="@{target}">
+				<property name="os" value="${baseos}" />
+				<property name="ws" value="${basews}" />
+				<property name="arch" value="${basearch}" />
+				<property name="library-file" location="${test.plugin}/library.xml" />
+				<property name="extraVMargs" value="-Xmx1000m" />
+				<property name="test-workspace" value="@{test-workspace}" />
+				<property name="test-module" value="@{test-module}" />
+				<property name="extra-test-modules" value="@{extra-test-modules}" />
+			</ant>
+		</sequential>
+	</macrodef>
+
+
 	<target name="load jsure-tests.properties file">
 		<!-- Filenames for the properties files we are going to try to read -->
 		<property name="jt.p-filename" value="jsure-tests.properties" />
@@ -131,8 +156,10 @@
 
 		<!-- Set a default for where the test suites are located if the user did not explicitly specify a directory -->
 		<property name="jsure.tests.suites" value="${user.workspace.dir}" />
+		<echo message=" jsure.tests.suites=${jsure.tests.suites}" />
 		<!-- Set a default for the test suites that we scan if the user did not explicitly sepecify a list -->
 		<property name="jsure.tests.suites.to-scan" value="regression" />
+		<echo message=" jsure.tests.suites.to-scan=${jsure.tests.suites.to-scan}" />
 	</target>
 
 	<target name="setup sandbox directory" depends="load jsure-tests.properties file">
@@ -201,7 +228,7 @@
                      file ahead of the bootclasspath. This project only needs the contents
                      of classes.jar (on OS X). But if Java on OS X is updated then the
                      absolute path below may need to be updated.-->
-				<propertyfile file="${user.workspace.dir}${file.separator}fluid-javac${file.separator}build.properties">
+				<propertyfile file="${jsure.build.plugins.dir}${file.separator}fluid-javac${file.separator}build.properties">
 					<entry key="bootClasspath" value="lib/javac.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar" />
 				</propertyfile>
 				<echo message="[OS X] fluid-javac bootClasspath changed..." />
@@ -284,6 +311,25 @@
 			<fileset dir="${sandbox.suites.dir}" includes="**/test.properties" />
 		</copy>
 	</target>
+
+	<!-- Our test suite has a testcase that runs DoubleChecker so we just run this
+			target for each workspace we want to analyze -->
+
+	<target name="run-tests" depends="load jsure-tests.properties file">
+		<findtests property="test.project.list" basedir="${test.workspace.base}" />
+		<!-- run regression tests -->
+		<for list="${test.project.list}" delimiter="," param="workspace" trim="true" keepgoing="false">
+			<sequential>
+				<run-a-test test-workspace="${test.workspace.base}/@{workspace}" target="run-regression-tests" test-module="${test.module.dir}/@{workspace}" extra-test-modules="${extra.test.modules}" />
+			</sequential>
+		</for>
+		<!-- run unit tests -->
+		<run-a-test test-workspace="${test.workspace.base}/UnitTests" target="run-unit-tests" test-module="${test.module.dir}/UnitTests" extra-test-modules="" />
+		<!-- run tests that require special handling -->
+		<run-a-test test-workspace="${test.workspace.base}/UnitTests" target="run-specialized-tests" test-module="${test.module.dir}/UnitTests" extra-test-modules="" />
+	</target>
+
+
 
 	<!-- SUMMARIZES THE RESULTS AND PRINTS THEM OUT -->
 	<target name="summarize.results" description="Summarizes the regression and unit test results">
