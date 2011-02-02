@@ -25,20 +25,10 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
    */
   protected final IJavaType captureWildcardType(IRNode decl, IJavaType jt) {
     if (jt instanceof IJavaWildcardType) {
-      IJavaWildcardType wt = (IJavaWildcardType) jt;
-      IRNode irBounds        = TypeFormal.getBounds(decl);      
-      IJavaReferenceType lowerBound = null;
-      if (JJNode.tree.hasChildren(irBounds)) {    	  
-    	  for(IRNode b : MoreBounds.getBoundIterator(irBounds)) {
-    		  final IJavaReferenceType bt = (IJavaReferenceType) binder.getJavaType(b);
-    		  if (lowerBound == null) {
-    			  lowerBound = bt;
-    		  } else {
-    			  lowerBound = JavaTypeFactory.getIntersectionType(lowerBound, bt);
-    		  }    	
-    	  }
-      }
-      return JavaTypeFactory.getCaptureType(wt, lowerBound, null);
+      IJavaWildcardType wt          = (IJavaWildcardType) jt;
+      IRNode irBounds               = TypeFormal.getBounds(decl);   
+      IJavaReferenceType lowerBound = JavaTypeFactory.computeGreatestLowerBound(binder, wt.getLowerBound(), irBounds);
+      return JavaTypeFactory.getCaptureType(wt, lowerBound, wt.getUpperBound());
     }
     return jt;
   }

@@ -19,7 +19,9 @@ public interface IJavaCaptureType extends IJavaReferenceType, ICaptureType {
    */
   public IJavaReferenceType getUpperBound();
   
-  /** Get the lower bound (if any), e.g. ? extends X 
+  /** Get the greatest lower bound (if any), e.g. ? extends X, 
+   * by combining the lower bounds from the wildcard type and the type parameter
+   *  
    * @return lower bound (or null, if none)
    * @see com.surelogic.ast.ICaptureType#getLowerBound()
    */

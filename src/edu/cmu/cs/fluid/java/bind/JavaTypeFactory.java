@@ -408,23 +408,46 @@ public class JavaTypeFactory implements IRType, Cleanable {
       IJavaType bt = convertNodeTypeToIJavaType(VarArgsType.getBase(nodeType),binder);
       return getArrayType(bt, 1);
     } else if (op instanceof MoreBounds) {
-      IJavaReferenceType result = null;
-      for (IRLocation loc = JJNode.tree.lastChildLocation(nodeType); loc != null; loc = JJNode.tree.prevChildLocation(nodeType, loc)) {
-        IJavaReferenceType bound = (IJavaReferenceType)convertNodeTypeToIJavaType(JJNode.tree.getChild(nodeType, loc),binder);
-        if (result == null) result = bound;
-        else result = getIntersectionType(bound,result);
-      }
-      if (result == null) {
-        return binder.getTypeEnvironment().getObjectType();
-      } else {
-        return result;
-      }
+      return computeGreatestLowerBound(binder, null, nodeType);
     } else {
       LOG.severe("Cannot convert type " + op);
       return null;
     }
   }
 
+  public static IJavaReferenceType computeGreatestLowerBound(IBinder binder, IJavaReferenceType wildcardBound, IRNode moreBounds) {
+      IJavaReferenceType result = null;
+	  /*
+      for (IRLocation loc = JJNode.tree.lastChildLocation(moreBounds); loc != null; loc = JJNode.tree.prevChildLocation(moreBounds, loc)) {
+        IJavaReferenceType bound = (IJavaReferenceType)convertNodeTypeToIJavaType(JJNode.tree.getChild(moreBounds, loc),binder);
+        if (result == null) result = bound;
+        else result = getIntersectionType(bound,result);
+      }
+      */
+      if (JJNode.tree.hasChildren(moreBounds)) {    	  
+    	  for(IRNode b : MoreBounds.getBoundIterator(moreBounds)) {
+    		  final IJavaReferenceType bt = (IJavaReferenceType) binder.getJavaType(b);
+    		  if (result == null) {
+    			  result = bt;
+    		  } else if (result.isSubtype(binder.getTypeEnvironment(), bt)) {
+    			  // Nothing to do, since result subsumes bt
+    		  } else if (bt.isSubtype(binder.getTypeEnvironment(), result)) {
+    			  // bt is more specific than result
+    			  result = bt;
+    		  } else {
+    			  // No relationship between result and bt already
+    			  result = JavaTypeFactory.getIntersectionType(result, bt);
+    		  }    	
+    	  }
+      }
+      if (result == null) {
+        return binder.getTypeEnvironment().getObjectType();
+      } else {
+        return result;
+      }
+
+  }
+  
   /**
    * Like convertNodeTypeToIJavaType, but primarily handles type declarations.
    * This function does not require an IBinder.  This method has confused
@@ -1009,9 +1032,9 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   final IJavaReferenceType lowerBound;
   final IJavaReferenceType upperBound;
   
-  JavaCaptureType(JavaWildcardType wt, IJavaReferenceType lower, IJavaReferenceType upper) {
+  JavaCaptureType(JavaWildcardType wt, IJavaReferenceType glb, IJavaReferenceType upper) {
     wildcard = wt;
-    lowerBound = lower;
+    lowerBound = glb;
     upperBound = upper;
   }
   

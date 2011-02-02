@@ -34,6 +34,9 @@ public interface IJavaType extends IType {
    */
   public IJavaType subst(IJavaTypeSubstitution s);
   
+  /**
+   * @return true if this type is a subtype of t2
+   */
   public boolean isSubtype(ITypeEnvironment env, IJavaType t2);
   
   public boolean isAssignmentCompatible(ITypeEnvironment env, IJavaType t2, IRNode e2);  
