@@ -53,9 +53,9 @@ public class D {
   }  
   
   protected static void extra(final D other2) {
-    /* Make sure indirect access works correct for non-receiver references.
+    /* Make sure indirect access works correctly for non-receiver references.
      * Here we also test that we partially undo the work of elaboration.  If
-     * we do no undo elaboration, the needed lock will reference the
+     * we do not undo elaboration, the needed lock will reference the
      * variable declarations of other and other2 instead of containing the 
      * VariableUseExpressions that we traditionally have used in the locks.
      */

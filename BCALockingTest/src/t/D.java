@@ -83,7 +83,7 @@ public class D {
     local_e.f1 = v1;
     
     /* Here we need both the locks DLock and OLock because local_e could refer
-     * object referenced by either 'e' or 'e2', and thus we could be aggregated
+     * to the object referenced by either 'e' or 'e2', and thus we could be aggregated
      * into either D_R2 or OTHER.
      */
     local_e.f2 = v2;

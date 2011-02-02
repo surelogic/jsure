@@ -42,7 +42,7 @@ public class A {
   @RegionEffects("writes A_R1, A_R2")
   protected void doStuff3(final int v1, final int v2) {
     // Needs ALock because of effects of doStuff
-    // Uniqueness fails here, and I don't know why: JTB thinks there is a bug
+    // Uniqueness fails here, because of the primordial node
     this.b.c.d.doStuff(v1, v2);
   }
   
