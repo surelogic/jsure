@@ -3,13 +3,13 @@
 
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath>
-			<pathelement location="${my-script-home}/lib/ant-contrib.jar" />
+			<pathelement location="C:/Users/Tim/Source/surelogic-work/jsure-tests/scripts/lib/ant-contrib.jar" />
 		</classpath>
 	</taskdef>
 
 	<property name="jsure-tests-plugin-id" value="com.surelogic.jsure.tests" />
-	<property name="library.xml" value="/Users/tim/Documents/Miscellaneous/jsure-regression-suite/sandbox/eclipse/plugins/org.eclipse.test_3.2.0/library.xml" />
-	<property name="sandbox" value="/Users/tim/Documents/Miscellaneous/jsure-regression-suite/sandbox" />
+	<property name="library.xml" value="C:/cygwin/home/Tim/jsure-regression-suite/sandbox/eclipse/plugins/org.eclipse.test_3.2.0/library.xml" />
+	<property name="sandbox" value="C:/cygwin/home/Tim/jsure-regression-suite/sandbox" />
 	<property name="sandbox.eclipse.dir" value="${sandbox}/eclipse" />
 	<property name="test.dir" value="regression/TestJUCLocks" />
 	<property name="project.dir" value="${sandbox}/suites/${test.dir}" />

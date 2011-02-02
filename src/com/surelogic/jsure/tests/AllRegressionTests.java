@@ -1,18 +1,11 @@
-/**
- * 
- */
 package com.surelogic.jsure.tests;
 
 import junit.framework.TestSuite;
 
-/**
- * @author Ethan.Urie
- *
- */
-public class AllRegressionTests extends TestSuite
-{
-	public AllRegressionTests()
-	{
+public class AllRegressionTests extends TestSuite {
+	public AllRegressionTests() {
+		System.out.println("CONSTRUCTING ALLREGRESSIONTESTS");
+		
 		addTest(new TestSuite(RegressionTest.class));
 	}
 

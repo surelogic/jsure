@@ -32,9 +32,9 @@ public class Activator extends Plugin {
 	}
 
 	/**
-	 * Returns the shared instance
+	 * Gets the shared plug-in instance.
 	 * 
-	 * @return the shared instance
+	 * @return the shared plug-in instance.
 	 */
 	public static Activator getDefault() {
 		return plugin;
@@ -44,4 +44,3 @@ public class Activator extends Plugin {
 		return log;
 	}
 }
-

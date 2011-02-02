@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<project name="com.surelogic.jsure.tests" default="no-default" basedir=".">
+
+	<property name="plugin-name" value="com.surelogic.jsure.tests" />
+
+	<target name="no-default">
+		<fail message="There is no default target in this build file. Please specify a target." />
+	</target>
+</project>
