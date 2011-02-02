@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<project name="try-tests" default="try" basedir=".">
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="${my-script-home}/lib/ant-contrib.jar" />
+		</classpath>
+	</taskdef>
+
+	<property name="jsure-tests-plugin-id" value="com.surelogic.jsure.tests" />
+	<property name="library.xml" value="/Users/tim/Documents/Miscellaneous/jsure-regression-suite/sandbox/eclipse/plugins/org.eclipse.test_3.2.0/library.xml" />
+	<property name="sandbox" value="/Users/tim/Documents/Miscellaneous/jsure-regression-suite/sandbox" />
+	<property name="sandbox.eclipse.dir" value="${sandbox}/eclipse" />
+	<property name="test.dir" value="regression/TestJUCLocks" />
+	<property name="project.dir" value="${sandbox}/suites/${test.dir}" />
+	<property name="workspace.dir" value="${sandbox}/workspaces/${test.dir}" />
+	<property name="log.dir" value="${sandbox}/logs/${test.dir}" />
+
+
+	<!-- This target defines the tests that need to be run. -->
+	<target name="try">
+		<echo message="Running regression test on ${project.dir}" />
+
+		<local name="test.properties-exist" />
+		<available file="${workspace.dir}/test.properties" property="test.properties-exist" />
+		<fail unless="test.properties-exist" message="${workspace.dir}/test.properties does not exist" />
+
+		<property file="${workspace.dir}/test.properties" />
+		<property name="eclipse-home" value="${sandbox.eclipse.dir}" />
+		<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
+			<property name="data-dir" value="${log.dir}" />
+			<property name="plugin-name" value="${jsure-tests-plugin-id}" />
+			<property name="classname" value="com.surelogic.jsure.tests.AllRegressionTests" />
+			<property name="test-output" value="com.surelogic.jsure.tests.AllRegressionTests.xml" />
+			<property name="junit-report-output" value="${workspace.dir}" />
+			<property name="workdir" value="${sandbox.eclipse.dir}" />
+			<property name="application" value="org.eclipse.test.coretestapplication" />
+			<property name="extraVMargs" value="-Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false -Dtest.module=${project.dir}" />
+		</ant>
+	</target>
+</project>
