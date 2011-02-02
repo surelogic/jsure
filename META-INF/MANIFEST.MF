@@ -5,20 +5,13 @@ Bundle-SymbolicName: com.surelogic.jsure.tests;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Vendor: SureLogic, Inc.
 Require-Bundle: com.surelogic.common,
- com.surelogic.common.eclipse,
  edu.cmu.cs.fluid,
- edu.cmu.cs.fluid.eclipse,
  com.surelogic.fluid.javac,
- com.surelogic.jsure.client.eclipse,
- com.surelogic.xml.results.viewer,
  org.junit,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
  org.eclipse.jdt.core,
- org.eclipse.jdt.launching,
- org.eclipse.debug.core,
- org.eclipse.swt,
- org.eclipse.jface
+ org.eclipse.jdt.launching
 Export-Package: com.surelogic.jsure.tests
 Bundle-ClassPath: .,
  lib/jacl.jar,
