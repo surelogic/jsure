@@ -1,9 +1,89 @@
 <?xml version="1.0"?>
-<project name="com.surelogic.jsure.tests" default="no-default" basedir=".">
+<project name="com.surelogic.jsure.tests" default="try" basedir=".">
 
-	<property name="plugin-name" value="com.surelogic.jsure.tests" />
+	<!-- The directory this script is located in (the root of the plug-in) -->
+	<dirname property="antfile.dir" file="${ant.file}" />
 
 	<target name="no-default">
-		<fail message="There is no default target in this build file. Please specify a target." />
+		<fail message="Please specify a target. There is no default target in ${ant-file}." />
 	</target>
+
+	<!-- The property ${eclipse-home} should be passed into this script -->
+	<!-- Set a meaningful default value for when it is not. -->
+	<property name="eclipse-home" value="${antfile.dir}\..\.." />
+
+	<!-- sets the properties eclipse-home, and library-file -->
+	<property name="plugin-name" value="com.surelogic.jsure.tests" />
+	<property name="library-file" value="${eclipse-home}/plugins/org.eclipse.test_3.2.0/library.xml" />
+
+	<!-- This target holds all initialization code that needs to be done for -->
+	<!-- all tests that are to be run. Initialization for individual tests -->
+	<!-- should be done within the body of the suite target. -->
+	<target name="init">
+		<tstamp />
+		<delete>
+			<fileset dir="${eclipse-home}" includes="org*.xml" />
+		</delete>
+	</target>
+
+
+	<property name="sandbox" value="C:/cygwin/home/Tim/jsure-regression-suite/sandbox" />
+	<property name="test.dir" value="regression/TestJUCLocks" />
+	<property name="project.dir" value="${sandbox}/suites/${test.dir}" />
+	<property name="workspace.dir" value="${sandbox}/workspaces/${test.dir}" />
+	<property name="log.dir" value="${sandbox}/logs/${test.dir}" />
+
+
+	<!-- This target defines the tests that need to be run. -->
+	<target name="try">
+		<echo message="Running regression test on ${project.dir}..." />
+		<echo message="" />
+
+		<local name="test.properties-exist" />
+		<available file="${workspace.dir}/test.properties" property="test.properties-exist" />
+		<fail unless="test.properties-exist" message="${workspace.dir}/test.properties does not exist" />
+		<property file="${workspace.dir}/test.properties" />
+		<!-- Blank moreVMargs if not set in test.properties -->
+		<property name="moreVMargs" value=""/>
+		
+		<ant target="core-test" antfile="${library-file}" dir="${eclipse-home}">
+			<property name="data-dir" value="${log.dir}" />
+			<property name="plugin-name" value="${plugin-name}" />
+			<property name="classname" value="com.surelogic.jsure.tests.AllRegressionTests" />
+			<property name="test-output" value="com.surelogic.jsure.tests.AllRegressionTests.xml" />
+			<property name="junit-report-output" value="${workspace.dir}" />
+			<property name="workdir" value="${eclipse-home}" />
+			<property name="application" value="org.eclipse.test.coretestapplication" />
+			<property name="extraVMargs" value="-Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false -Dtest.module=${project.dir} ${moreVMargs}" />
+		</ant>
+	</target>
+
+
+
+	<!-- This target defines the tests that need to be run. -->
+	<target name="suite">
+		<property name="refactoring-folder" value="${eclipse-home}/refactoring_folder" />
+		<delete dir="${refactoring-folder}" quiet="true" />
+		<ant target="ui-test" antfile="${library-file}" dir="${eclipse-home}">
+			<property name="data-dir" value="${refactoring-folder}" />
+			<property name="plugin-name" value="${plugin-name}" />
+			<property name="classname" value="org.eclipse.jdt.ui.tests.refactoring.all.AllAllRefactoringTests" />
+		</ant>
+	</target>
+
+	<!-- This target holds code to cleanup the testing environment after -->
+	<!-- after all of the tests have been run. You can use this target to -->
+	<!-- delete temporary files that have been created. -->
+	<target name="cleanup">
+	</target>
+
+	<!-- This target runs the test suite. Any actions that need to happen -->
+	<!-- after all the tests have been run should go here. -->
+	<target name="run" depends="init,suite,cleanup">
+		<ant target="collect" antfile="${library-file}" dir="${eclipse-home}">
+			<property name="includes" value="org*.xml" />
+			<property name="output-file" value="${plugin-name}.xml" />
+		</ant>
+	</target>
+
 </project>
