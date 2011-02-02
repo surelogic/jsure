@@ -1056,6 +1056,16 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 		  }
       */
 	  }
+	  /*
+	  if (result instanceof IJavaDeclaredType) {
+		  IJavaDeclaredType jdt = (IJavaDeclaredType) result;
+		  for(IJavaType t : jdt.getTypeParameters()) {
+			  if (t instanceof IJavaCaptureType) {
+				  System.out.println("Found capture type ("+t+") for "+DebugUnparser.toString(node));
+			  }
+		  }
+	  }
+	  */
 	  return result;
   }
 

@@ -4,8 +4,6 @@
  */
 package edu.cmu.cs.fluid.java.bind;
 
-import java.util.List;
-
 import com.surelogic.ast.ICaptureType;
 
 /**
@@ -15,9 +13,15 @@ import com.surelogic.ast.ICaptureType;
 public interface IJavaCaptureType extends IJavaReferenceType, ICaptureType {
   IJavaWildcardType getWildcard();
   
-  /** In Java 1.5 and later, return the type parameters
-   * as an immutable list of
-   * {@link edu.cmu.cs.fluid.java.bind.IJavaType} objects.
+  /** Get the upper bound (if any), e.g. ? super X
+   * @return upper bound (or null, if none)
+   * @see com.surelogic.ast.ICaptureType#getUpperBound()
    */
-  List<IJavaReferenceType> getTypeBounds();
+  public IJavaReferenceType getUpperBound();
+  
+  /** Get the lower bound (if any), e.g. ? extends X 
+   * @return lower bound (or null, if none)
+   * @see com.surelogic.ast.ICaptureType#getLowerBound()
+   */
+  public IJavaReferenceType getLowerBound();
 }

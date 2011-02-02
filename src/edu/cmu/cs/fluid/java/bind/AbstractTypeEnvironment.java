@@ -408,7 +408,7 @@ private long parseIntLiteral(String token) {
     if (ty instanceof IJavaCaptureType) {
       IJavaCaptureType ct = (IJavaCaptureType) ty;
       return new AppendIterator<IJavaType>(getSuperTypes(ct.getWildcard()), 
-                                           ct.getTypeBounds().iterator());
+    		                               new SingletonIterator<IJavaType>(ct.getLowerBound()));
     }
     if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wct = (IJavaWildcardType)ty;

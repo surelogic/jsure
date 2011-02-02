@@ -12,12 +12,13 @@ import com.surelogic.ast.IWildcardType;
  * @author boyland
  */
 public interface IJavaWildcardType extends IJavaReferenceType, IWildcardType {
-  /** Get the upper bound (if any).
+  /** Get the upper bound (if any), e.g. ? super X 
    * @return upper bound (or null, if none)
    * @see com.surelogic.ast.IWildcardType#getUpperBound()
    */
   public IJavaReferenceType getUpperBound();
-  /** Get the lower bound (if any)
+  
+  /** Get the lower bound (if any), e.g. ? extends X 
    * @return lower bound (or null, if none)
    * @see com.surelogic.ast.IWildcardType#getLowerBound()
    */

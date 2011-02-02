@@ -569,8 +569,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     } else if (ty instanceof IJavaCaptureType) {
       IJavaCaptureType ct = (IJavaCaptureType) ty;
       IJavaScope sc       = typeScope(ct.getWildcard());
-      for(IJavaReferenceType b : ct.getTypeBounds()) {
-        sc = new IJavaScope.ShadowingScope(sc, typeScope(b));
+      if (ct.getLowerBound() != null) {
+    	  sc = new IJavaScope.ShadowingScope(sc, typeScope(ct.getLowerBound()));
       }
       return sc;
     } else if (ty instanceof IJavaPrimitiveType) {

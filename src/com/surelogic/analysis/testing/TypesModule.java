@@ -105,10 +105,18 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
         final IJavaCaptureType captureType = (IJavaCaptureType) type;
         final IJavaWildcardType wildcard = captureType.getWildcard();
         System.out.printf("%sFor wildcard '%s'%n", prefix, wildcard);
-        for (final IJavaReferenceType t2 : captureType.getTypeBounds()) {
-          System.out.printf("%sUpperbound '%s', a %s%n",
-              prefix, t2, getClassName(t2));
-          showType(nextPrefix, t2);
+        
+        IJavaReferenceType t2 = captureType.getUpperBound();
+        if (t2 != null) {
+        	System.out.printf("%sUpperbound '%s', a %s%n",
+        			prefix, t2, getClassName(t2));
+        	showType(nextPrefix, t2);
+        }
+        IJavaReferenceType t3 = captureType.getLowerBound();
+        if (t3 != null) {
+        	System.out.printf("%sUpperbound '%s', a %s%n",
+        			prefix, t3, getClassName(t3));
+        	showType(nextPrefix, t3);
         }
       } else if (type instanceof IJavaIntersectionType) {
         final IJavaIntersectionType intersectionType = (IJavaIntersectionType) type;

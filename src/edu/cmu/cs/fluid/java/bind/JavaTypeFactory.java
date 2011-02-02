@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.util.CustomizableHashCodeMap;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.Iteratable;
+import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.SingletonMap;
 import edu.cmu.cs.fluid.debug.DebugUtil;
 import edu.cmu.cs.fluid.ir.*;
@@ -165,21 +166,20 @@ public class JavaTypeFactory implements IRType, Cleanable {
     return type;
   }
   
-  private static JavaTypeCache2<IJavaWildcardType, List<IJavaReferenceType>, JavaCaptureType> captureTypes = 
-       new JavaTypeCache2<IJavaWildcardType, List<IJavaReferenceType>, JavaCaptureType>();
+  private static JavaTypeCache2<IJavaWildcardType, Pair<IJavaReferenceType,IJavaReferenceType>, JavaCaptureType> captureTypes = 
+       new JavaTypeCache2<IJavaWildcardType, Pair<IJavaReferenceType,IJavaReferenceType>, JavaCaptureType>();
   
-  public static synchronized IJavaReferenceType getCaptureType(IJavaWildcardType wt, List<IJavaReferenceType> bounds) {
-    if (bounds.isEmpty() || onlyObjectBounds(bounds)) {
-      return wt;
-    }    
+  public static synchronized IJavaReferenceType getCaptureType(IJavaWildcardType wt, IJavaReferenceType lower, IJavaReferenceType upper) { 
+	Pair<IJavaReferenceType,IJavaReferenceType> bounds = new Pair<IJavaReferenceType,IJavaReferenceType>(lower, upper);
     JavaCaptureType ct = captureTypes.get(wt,bounds);
     if (ct == null) {
-      ct = new JavaCaptureType((JavaWildcardType)wt, bounds);
+      ct = new JavaCaptureType((JavaWildcardType)wt, lower, upper);
       captureTypes.put(wt,bounds,ct);
     }
     return ct;    
   }
   
+  /*
   private static boolean onlyObjectBounds(List<IJavaReferenceType> bounds) {
     for(IJavaReferenceType bound : bounds) {
       if (!"java.lang.Object".equals(bound.getName())) {
@@ -188,7 +188,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
     }
     return true;
   }
-
+  */
   public static final IJavaWildcardType wildcardType = new JavaWildcardType(null,null);
   private static CleanableMap<IJavaType,JavaWildcardType> upperBounded = new JavaTypeCache<IJavaType,JavaWildcardType>();
   private static CleanableMap<IJavaType,JavaWildcardType> lowerBounded = new JavaTypeCache<IJavaType,JavaWildcardType>();
@@ -403,13 +403,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
     } else if (op instanceof WildcardType) {   
       return getWildcardType(null,null);
     } else if (op instanceof CaptureType) {
-      LOG.warning("Got a CaptureType node");
-      final IRNode bounds              = CaptureType.getBounds(nodeType);
-      List<IJavaReferenceType> tbounds = new ArrayList<IJavaReferenceType>();
-      for(IRNode b : MoreBounds.getBoundIterator(bounds)) {
-        tbounds.add((IJavaReferenceType) binder.getJavaType(b));
-      }      
-      return getCaptureType(wildcardType, tbounds);
+      throw new IllegalStateException("Got an unexpected CaptureType node");
     } else if (op instanceof VarArgsType) {
       IJavaType bt = convertNodeTypeToIJavaType(VarArgsType.getBase(nodeType),binder);
       return getArrayType(bt, 1);
@@ -1012,47 +1006,43 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
 
 class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   final JavaWildcardType wildcard;
-  final List<IJavaReferenceType> bounds;
+  final IJavaReferenceType lowerBound;
+  final IJavaReferenceType upperBound;
   
-  JavaCaptureType(JavaWildcardType wt, List<IJavaReferenceType> b) {
+  JavaCaptureType(JavaWildcardType wt, IJavaReferenceType lower, IJavaReferenceType upper) {
     wildcard = wt;
-    bounds = b;
+    lowerBound = lower;
+    upperBound = upper;
   }
   
   public IJavaWildcardType getWildcard() {
     return wildcard;
   }
 
-  public List<IJavaReferenceType> getTypeBounds() {
-    return Collections.<IJavaReferenceType>unmodifiableList(bounds);
+  public IJavaReferenceType getUpperBound() {
+	  return upperBound;
+  }
+  
+  public IJavaReferenceType getLowerBound() {
+	  return lowerBound;
   }
   
   @Override public IJavaType subst(IJavaTypeSubstitution s) {
 	if (s == null || s.isNull()) {
 	  return this;
 	}	
-    boolean changedBounds = false;
-    List<IJavaReferenceType> newBounds = new ArrayList<IJavaReferenceType>();
-    for(IJavaReferenceType bound : bounds) {
-      IJavaType t = bound.subst(s);
-      newBounds.add((IJavaReferenceType) t);
-      
-      if (t != bound) {
-        changedBounds = true;
-      }
-    }
-    
+	IJavaType newLower = lowerBound == null ? null : lowerBound.subst(s);
+	IJavaType newUpper = upperBound == null ? null : upperBound.subst(s);
     IJavaType newBase = wildcard.subst(s); // Either wildcard or capture
+    if (newBase == wildcard && newLower == lowerBound && newUpper == upperBound) {
+    	return this;
+    }
     if (newBase instanceof IJavaCaptureType) {
       IJavaCaptureType ct = (IJavaCaptureType) newBase;
-      newBounds.addAll(ct.getTypeBounds());
-      return JavaTypeFactory.getCaptureType(ct.getWildcard(), newBounds);
+      return JavaTypeFactory.getCaptureType(ct.getWildcard(), (IJavaReferenceType) newLower, (IJavaReferenceType) newUpper);
     } else {
       IJavaWildcardType wt = (IJavaWildcardType) newBase;
-      if (wildcard == wt && !changedBounds) {
-        return this;
-      }
-      return JavaTypeFactory.getCaptureType(wt, newBounds);
+      return JavaTypeFactory.getCaptureType(wt, (IJavaReferenceType) newLower, (IJavaReferenceType) newUpper);
     }
   }
   
@@ -1071,14 +1061,11 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   @Override public String toString() {
     String base = wildcard.toString();
 
-    if (bounds.isEmpty()) return base;
     StringBuilder sb = new StringBuilder(base);
-    sb.append("<");
-    boolean first = true;
-    for (Iterator<IJavaReferenceType> it = bounds.iterator(); it.hasNext();) {
-      if (!first) sb.append(',');
-      sb.append(it.next().toString());
-    }
+    sb.append("<");    
+    sb.append(lowerBound);
+    sb.append(',');
+    sb.append(upperBound);
     sb.append(">");
     return sb.toString();
   }
@@ -1086,17 +1073,19 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   @Override
   public boolean isValid() {
     if (!wildcard.isValid()) return false;
-    for (IJavaReferenceType t : bounds) {
-      if (!((JavaReferenceType)t).isValid()) return false;
-    }
+    if (lowerBound != null && !lowerBound.isValid()) return false;    
+    if (upperBound != null && !upperBound.isValid()) return false;    
     return true;
   }
 
   @Override
   public void printStructure(PrintStream out, int indent) {
     super.printStructure(out, indent);
-    for(IJavaReferenceType b : bounds) {
-      b.printStructure(out, indent+2);
+    if (lowerBound != null) {
+    	lowerBound.printStructure(out, indent+2);
+    }
+    if (upperBound != null) {
+    	upperBound.printStructure(out, indent+2);
     }
   }
 }
