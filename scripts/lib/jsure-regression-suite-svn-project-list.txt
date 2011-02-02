@@ -9,6 +9,6 @@ jsure-design-intent-eclipse-help
 com.surelogic.feature.jsure
 jsure-message
 jsure-tests
-jsure-tests-feature
+com.surelogic.feature.jsure.tests
 jsure-xml-results-viewer
 regression
