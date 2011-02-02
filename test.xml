@@ -10,7 +10,7 @@
 
 	<!-- The property ${eclipse-home} should be passed into this script -->
 	<!-- Set a meaningful default value for when it is not. -->
-	<property name="eclipse-home" value="${antfile.dir}\..\.." />
+	<property name="eclipse-home" value="${antfile.dir}/../.." />
 
 	<!-- sets the properties eclipse-home, and library-file -->
 	<property name="plugin-name" value="com.surelogic.jsure.tests" />
@@ -46,7 +46,7 @@
 		<!-- Blank moreVMargs if not set in test.properties -->
 		<property name="moreVMargs" value=""/>
 		
-		<ant target="core-test" antfile="${library-file}" dir="${eclipse-home}">
+		<ant target="ui-test" antfile="${library-file}" dir="${eclipse-home}">
 			<property name="data-dir" value="${log.dir}" />
 			<property name="plugin-name" value="${plugin-name}" />
 			<property name="classname" value="com.surelogic.jsure.tests.AllRegressionTests" />
