@@ -448,7 +448,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
     		  }
     	  }
     	  System.out.println(bounds+" -> "+reduced);
-    	  for(IJavaReferenceType bt : bounds) {
+    	  for(IJavaReferenceType bt : reduced) {
     		  if (result == null) {
     			  result = bt;
     			  /*
