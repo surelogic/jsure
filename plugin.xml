@@ -311,11 +311,6 @@
 		
 	</extension>
 
-	<extension point="org.eclipse.core.runtime.preferences">
-		<initializer
-			class="com.surelogic.jsure.client.eclipse.preferences.PreferenceInitializer" />
-	</extension>
-
 	<!-- JSure perspective links and Java perspective links -->
 
 	<extension point="org.eclipse.ui.perspectives">
