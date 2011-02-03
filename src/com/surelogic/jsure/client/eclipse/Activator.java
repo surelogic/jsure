@@ -116,12 +116,6 @@ public class Activator extends AbstractUIPlugin implements
 		return plugin;
 	}
 
-	public String getLocation(final String loc) {
-		final IPath pluginState = getStateLocation();
-		return pluginState.toOSString() + System.getProperty("file.separator")
-				+ loc;
-	}
-
 	/**
 	 * Returns the workspace instance.
 	 */
