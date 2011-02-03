@@ -4,7 +4,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.dialogs.AbstractConfirmPerspectiveSwitch;
-import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.perspectives.CodeVerificationPerspective;
 
 public final class ConfirmPerspectiveSwitch extends
@@ -14,7 +14,7 @@ public final class ConfirmPerspectiveSwitch extends
 
 	private ConfirmPerspectiveSwitch() {
 		super(CodeVerificationPerspective.class.getName(),
-				PreferenceConstants.prototype);
+				JSurePreferencesUtility.getSwitchPreferences());
 	}
 
 	@Override

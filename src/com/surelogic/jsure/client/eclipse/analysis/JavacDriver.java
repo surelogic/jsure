@@ -25,7 +25,6 @@ import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.ui.BalloonUtility;
-import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
 import com.surelogic.fluid.javac.Util;
 import com.surelogic.fluid.javac.jobs.ILocalJSureConfig;
@@ -33,6 +32,7 @@ import com.surelogic.fluid.javac.jobs.LocalJSureJob;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.scripting.*;
 
 import difflib.*;
@@ -40,6 +40,7 @@ import difflib.*;
 import edu.cmu.cs.fluid.dc.*;
 import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.xml.*;
@@ -1014,7 +1015,7 @@ public class JavacDriver implements IResourceChangeListener {
 					throw new IllegalStateException("Got entryKind: "+cpe.getEntryKind());
 				}
 			}
-			JavacEclipse.getDefault().setPreference(IDE.DEFAULT_JRE, name);
+			JavacEclipse.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, name);
 			return config;
 		}
 		
@@ -1182,7 +1183,7 @@ public class JavacDriver implements IResourceChangeListener {
 			//final boolean hasDeltas = info.hasDeltas();
 		    makeProjects(newProjects);	    
 
-		    final File dataDir         = PreferenceConstants.getJSureDataDirectory();
+		    final File dataDir         = JSurePreferencesUtility.getJSureDataDirectory();
 		    final Projects oldProjects = (Projects) ProjectsDrop.getProjects();		 
 		    newProjects.computeRun(dataDir, oldProjects);
 		    

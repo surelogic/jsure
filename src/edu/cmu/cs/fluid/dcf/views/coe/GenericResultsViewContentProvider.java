@@ -16,8 +16,8 @@ import com.surelogic.common.ui.ViewUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
 import com.surelogic.common.jsure.xml.CoE_Constants;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -1151,7 +1151,7 @@ extends	AbstractResultsViewContentProvider {
 			 * We have modeling problems...make sure the view that shows them is
 			 * visible to the user.
 			 */
-			if (PreferenceConstants.prototype.getAutoOpenModelingProblemsView()) {
+			if (JSurePreferencesUtility.getAutoOpenModelingProblemsView()) {
 				final UIJob job = new SLUIJob() {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
@@ -1169,7 +1169,7 @@ extends	AbstractResultsViewContentProvider {
 			 * We have modeling problems...make sure the view that shows them is
 			 * visible to the user.
 			 */
-			if (PreferenceConstants.prototype.getAutoOpenProposedPromiseView()) {
+			if (JSurePreferencesUtility.getAutoOpenProposedPromiseView()) {
 				final UIJob job = new SLUIJob() {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {

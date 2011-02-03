@@ -6,9 +6,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.ui.ViewUtility;
-import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Projects;
 import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.dc.*;
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
@@ -29,7 +29,7 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 	private PersistentDropInfo() {
 		File location = null;
 		try {
-			final File jsureData = PreferenceConstants.getJSureDataDirectory();
+			final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
 			if (jsureData != null) {
 				location = new File(jsureData, NAME);
 			} else {

@@ -16,9 +16,9 @@ import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.ui.DialogTouchNotificationUI;
 import com.surelogic.common.ui.SWTUtility;
-import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Util;
 import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.eclipse.Eclipse;
@@ -90,7 +90,7 @@ public class Activator extends AbstractUIPlugin implements
 	}
 
 	private void clearJSureData() {
-		for (File f : PreferenceConstants.getJSureDataDirectory().listFiles()) {
+		for (File f : JSurePreferencesUtility.getJSureDataDirectory().listFiles()) {
 			if (f.isDirectory()) {
 				FileUtility.recursiveDelete(f, false);
 			}

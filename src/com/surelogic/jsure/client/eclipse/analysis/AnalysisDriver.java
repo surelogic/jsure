@@ -8,9 +8,9 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.PromiseMatcher;
 import com.surelogic.fluid.javac.Util;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.dc.AbstractAnalysisModule;
 import edu.cmu.cs.fluid.dc.IAnalysis;
@@ -100,7 +100,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 			System.out.println("Configuring build");
     		if (Util.useResultsXML) {
 				try {
-					boolean ok = PromiseMatcher.findAndLoad(PreferenceConstants.getJSureDataDirectory());
+					boolean ok = PromiseMatcher.findAndLoad(JSurePreferencesUtility.getJSureDataDirectory());
 	    			if (ok) {
 	    				Sea.getDefault().updateConsistencyProof();
 	    				NotificationHub.notifyAnalysisCompleted();

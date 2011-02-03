@@ -8,8 +8,8 @@ import java.net.URL;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.common.core.Resources;
-import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -26,7 +26,7 @@ public class JavacEclipse extends Javac {
     }
     
     {
-    	setPreference(IDEPreferences.DATA_DIRECTORY, PreferenceConstants.getJSureDataDirectory().getAbsolutePath());
+    	setPreference(IDEPreferences.DATA_DIRECTORY, JSurePreferencesUtility.getJSureDataDirectory().getAbsolutePath());
     }
     
     public void synchronizeAnalysisPrefs(IPreferenceStore store) {

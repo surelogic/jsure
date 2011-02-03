@@ -6,7 +6,7 @@ import java.util.*;
 import org.eclipse.ui.IMemento;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
@@ -28,7 +28,7 @@ public class PersistentResultsView extends ResultsView {
   public PersistentResultsView() {
 	  File viewState = null;
 	  if (useXML) try {
-		  final File jsureData = PreferenceConstants.getJSureDataDirectory();
+		  final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
 		  if (jsureData != null) {
 			  viewState = new File(jsureData, VIEW_STATE+".xml");
 		  } else {
