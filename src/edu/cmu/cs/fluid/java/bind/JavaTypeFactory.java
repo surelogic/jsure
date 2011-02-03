@@ -436,32 +436,37 @@ public class JavaTypeFactory implements IRType, Cleanable {
     		  final IJavaReferenceType bt = (IJavaReferenceType) binder.getJavaType(b);
     		  bounds.add(bt);
     	  }
-    	  // Remove supertypes of other types in the set
-    	  final Set<IJavaReferenceType> reduced = new HashSet<IJavaReferenceType>(bounds);
-    	  for (IJavaReferenceType bt : bounds) {
-    		  for(IJavaReferenceType possibleSub : reduced) {
-    			  if (!bt.equals(possibleSub) && possibleSub.isSubtype(binder.getTypeEnvironment(), bt)) {
-    				  // Since this is a greatest lower bound, possibleSub subsumes bt
-    				  reduced.remove(bt);
-    				  break;
+    	  if (bounds.size() == 1) {
+    		  // No need to compare, since there's only one
+    		  result = bounds.get(0);
+    	  } else {
+    		  // Remove supertypes of other types in the set
+    		  final Set<IJavaReferenceType> reduced = new HashSet<IJavaReferenceType>(bounds);
+    		  for (IJavaReferenceType bt : bounds) {
+    			  for(IJavaReferenceType possibleSub : reduced) {
+    				  if (!bt.equals(possibleSub) && possibleSub.isSubtype(binder.getTypeEnvironment(), bt)) {
+    					  // Since this is a greatest lower bound, possibleSub subsumes bt
+    					  reduced.remove(bt);
+    					  break;
+    				  }
     			  }
     		  }
-    	  }
-    	  System.out.println(bounds+" -> "+reduced);
-    	  for(IJavaReferenceType bt : reduced) {
-    		  if (result == null) {
-    			  result = bt;
-    			  /*
+    		  System.out.println(bounds+" -> "+reduced);
+    		  for(IJavaReferenceType bt : reduced) {
+    			  if (result == null) {
+    				  result = bt;
+    				  /*
     		  } else if (result.isSubtype(binder.getTypeEnvironment(), bt)) {
     			  // Nothing to do, since result subsumes bt
     		  } else if (bt.isSubtype(binder.getTypeEnvironment(), result)) {
     			  // bt is more specific than result
     			  result = bt;
-    			  */
-    		  } else {
-    			  // No relationship between result and bt already
-    			  result = JavaTypeFactory.getIntersectionType(result, bt);
-    		  }    	
+    				   */
+    			  } else {
+    				  // No relationship between result and bt already
+    				  result = JavaTypeFactory.getIntersectionType(result, bt);
+    			  }    	
+    		  }
     	  }
       }
       if (result == null) {
