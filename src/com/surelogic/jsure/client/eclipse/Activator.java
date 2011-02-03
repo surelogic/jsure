@@ -5,7 +5,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -13,10 +12,10 @@ import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.ui.SWTUtility;
 import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.ui.DialogTouchNotificationUI;
+import com.surelogic.common.ui.SWTUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Util;
 import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
@@ -45,13 +44,15 @@ public class Activator extends AbstractUIPlugin implements
 	 * The constructor
 	 */
 	public Activator() {
-		// Do nothing
+		if (plugin != null)
+			throw new IllegalStateException(Activator.class.getName()
+					+ " instance already exits, it should be a singleton.");
+		plugin = this;
 	}
 
 	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
-		plugin = this;
 		if (doubleChecker == null) {
 			doubleChecker = new Plugin();
 			doubleChecker.start(context);
@@ -101,8 +102,8 @@ public class Activator extends AbstractUIPlugin implements
 	public void stop(final BundleContext context) throws Exception {
 		try {
 			JavacDriver.getInstance().stopScripting();
-			plugin = null;
 		} finally {
+			plugin = null;
 			super.stop(context);
 		}
 	}
