@@ -10,14 +10,7 @@
  *******************************************************************************/
 package edu.cmu.cs.fluid.dcf.views.coe;
 
-import static com.surelogic.xml.results.coe.CoE_Constants.ASSUME;
-import static com.surelogic.xml.results.coe.CoE_Constants.CONSISTENT;
-import static com.surelogic.xml.results.coe.CoE_Constants.INCONSISTENT;
-import static com.surelogic.xml.results.coe.CoE_Constants.INFO;
-import static com.surelogic.xml.results.coe.CoE_Constants.INFO_WARNING;
-import static com.surelogic.xml.results.coe.CoE_Constants.REDDOT;
-import static com.surelogic.xml.results.coe.CoE_Constants.TRUSTED;
-import static com.surelogic.xml.results.coe.CoE_Constants.VIRTUAL;
+import static com.surelogic.common.jsure.xml.CoE_Constants.*;
 
 import java.util.HashMap;
 import java.util.Map;

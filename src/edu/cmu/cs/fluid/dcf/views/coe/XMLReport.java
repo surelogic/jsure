@@ -3,20 +3,7 @@
  */
 package edu.cmu.cs.fluid.dcf.views.coe;
 
-import static com.surelogic.xml.results.coe.CoE_Constants.ANALYSES_TAG;
-import static com.surelogic.xml.results.coe.CoE_Constants.ANALYSIS_FORMAT;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_BASE_IMAGE;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_CVSREVISION;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_CVSSOURCE;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_FLAGS;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_LINE_NUM;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_MESSAGE;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_REDDOTS;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_SOURCE;
-import static com.surelogic.xml.results.coe.CoE_Constants.REDDOTS_TAG;
-import static com.surelogic.xml.results.coe.CoE_Constants.REDDOT_FORMAT;
-import static com.surelogic.xml.results.coe.CoE_Constants.RESULT_TAG;
-import static com.surelogic.xml.results.coe.CoE_Constants.ROOT_TAG;
+import static com.surelogic.common.jsure.xml.CoE_Constants.*;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -39,7 +26,7 @@ import com.surelogic.common.core.SourceZip;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLUtil;
 import com.surelogic.jsure.client.eclipse.Activator;
-import com.surelogic.xml.results.coe.CoE_Constants;
+import com.surelogic.common.jsure.xml.CoE_Constants;
 
 /**
  * Generate an XML representation of the ResultsView output

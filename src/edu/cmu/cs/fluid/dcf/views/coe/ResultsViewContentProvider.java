@@ -1,11 +1,6 @@
 package edu.cmu.cs.fluid.dcf.views.coe;
 
 import java.util.*;
-import java.util.logging.Level;
-
-import com.surelogic.common.CommonImages;
-import com.surelogic.common.i18n.I18N;
-import com.surelogic.xml.results.coe.CoE_Constants;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;

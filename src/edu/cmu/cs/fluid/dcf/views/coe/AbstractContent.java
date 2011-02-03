@@ -1,12 +1,6 @@
 package edu.cmu.cs.fluid.dcf.views.coe;
 
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_CVSREVISION;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_CVSSOURCE;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_LINE_NUM;
-import static com.surelogic.xml.results.coe.CoE_Constants.ATTR_SOURCE;
-import static com.surelogic.xml.results.coe.CoE_Constants.INFO;
-import static com.surelogic.xml.results.coe.CoE_Constants.INFO_WARNING;
-import static com.surelogic.xml.results.coe.CoE_Constants.REDDOT;
+import static com.surelogic.common.jsure.xml.CoE_Constants.*;
 
 import java.util.ArrayList;
 import java.util.Collection;

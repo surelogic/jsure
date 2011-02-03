@@ -7,7 +7,7 @@ import org.eclipse.swt.graphics.Point;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.xml.results.coe.CoE_Constants;
+import com.surelogic.common.jsure.xml.CoE_Constants;
 
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 

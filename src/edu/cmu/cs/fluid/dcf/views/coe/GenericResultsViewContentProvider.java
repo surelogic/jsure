@@ -17,7 +17,7 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;
-import com.surelogic.xml.results.coe.CoE_Constants;
+import com.surelogic.common.jsure.xml.CoE_Constants;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
