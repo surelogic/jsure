@@ -396,10 +396,10 @@ public class JavaTypeFactory implements IRType, Cleanable {
       return getDeclaredType(base.getDeclaration(),typeActuals,outer);
     } else if (op instanceof WildcardSuperType) {
       IJavaReferenceType st = (IJavaReferenceType) convertNodeTypeToIJavaType(WildcardSuperType.getUpper(nodeType),binder);
-      return getWildcardType(null,st);
+      return getWildcardType(st,null);
     } else if (op instanceof WildcardExtendsType) {
       IJavaReferenceType st = (IJavaReferenceType) convertNodeTypeToIJavaType(WildcardExtendsType.getLower(nodeType),binder);
-      return getWildcardType(st,null);
+      return getWildcardType(null,st);
     } else if (op instanceof WildcardType) {   
       return getWildcardType(null,null);
     } else if (op instanceof CaptureType) {
@@ -415,7 +415,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
     }
   }
 
-  public static IJavaReferenceType computeGreatestLowerBound(IBinder binder, IJavaReferenceType wildcardBound, IRNode moreBounds) {
+  public static IJavaReferenceType computeGreatestLowerBound(IBinder binder, IJavaReferenceType wildcardBound, IRNode moreBounds) {	  
       IJavaReferenceType result = null;
 	  /*
       for (IRLocation loc = JJNode.tree.lastChildLocation(moreBounds); loc != null; loc = JJNode.tree.prevChildLocation(moreBounds, loc)) {
@@ -424,16 +424,40 @@ public class JavaTypeFactory implements IRType, Cleanable {
         else result = getIntersectionType(bound,result);
       }
       */
-      if (JJNode.tree.hasChildren(moreBounds)) {    	  
+      final int num = JJNode.tree.numChildren(moreBounds);
+      if (num <= 0) {
+    	result = wildcardBound;  
+      } else {
+    	  final List<IJavaReferenceType> bounds = new ArrayList<IJavaReferenceType>(wildcardBound == null ? num : num+1);
+    	  if (wildcardBound != null) {
+    		  bounds.add(wildcardBound);
+    	  }
     	  for(IRNode b : MoreBounds.getBoundIterator(moreBounds)) {
     		  final IJavaReferenceType bt = (IJavaReferenceType) binder.getJavaType(b);
+    		  bounds.add(bt);
+    	  }
+    	  // Remove supertypes of other types in the set
+    	  final Set<IJavaReferenceType> reduced = new HashSet<IJavaReferenceType>(bounds);
+    	  for (IJavaReferenceType bt : bounds) {
+    		  for(IJavaReferenceType possibleSub : reduced) {
+    			  if (!bt.equals(possibleSub) && possibleSub.isSubtype(binder.getTypeEnvironment(), bt)) {
+    				  // Since this is a greatest lower bound, possibleSub subsumes bt
+    				  reduced.remove(bt);
+    				  break;
+    			  }
+    		  }
+    	  }
+    	  System.out.println(bounds+" -> "+reduced);
+    	  for(IJavaReferenceType bt : bounds) {
     		  if (result == null) {
     			  result = bt;
+    			  /*
     		  } else if (result.isSubtype(binder.getTypeEnvironment(), bt)) {
     			  // Nothing to do, since result subsumes bt
     		  } else if (bt.isSubtype(binder.getTypeEnvironment(), result)) {
     			  // bt is more specific than result
     			  result = bt;
+    			  */
     		  } else {
     			  // No relationship between result and bt already
     			  result = JavaTypeFactory.getIntersectionType(result, bt);
@@ -940,6 +964,11 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
     DebugUtil.println(out, indent, "IntersectionType:secondaryBound"); 
     secondaryBound.printStructure(out, indent+2);
   }
+  
+  @Override
+  public String toString() {
+	return primaryBound+" & "+secondaryBound;
+  }
 }
 
 class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
@@ -1000,13 +1029,13 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
   
   @Override
   public String toString() {
-    if (upperBound != null) {
-      return "? extends "+upperBound;
-    } else if (lowerBound != null) {
-      return "? super "+lowerBound;
-    } else {
-      return "?";
-    }
+	  if (lowerBound != null) {
+	      return "? extends "+lowerBound;
+	  } else if (upperBound != null) {
+		  return "? super "+upperBound;
+	  } else {
+		  return "?";
+	  }
   }
   
   @Override

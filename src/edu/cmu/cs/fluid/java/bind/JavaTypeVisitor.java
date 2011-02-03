@@ -400,10 +400,10 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     	  b.getContextType().equals(objectT) && 
           MethodDeclaration.getId(n).equals("getClass") &&
           JJNode.tree.numChildren(MethodDeclaration.getParams(n)) == 0) {
-        IJavaDeclaredType upper = computeErasure((IJavaDeclaredType) b.getReceiverType());
+        IJavaDeclaredType lower = computeErasure((IJavaDeclaredType) b.getReceiverType());
         IRNode classDecl        = binder.getTypeEnvironment().findNamedType("java.lang.Class");
         List<IJavaType> params = new ArrayList<IJavaType>(1);
-        params.add(JavaTypeFactory.getWildcardType(upper, null));
+        params.add(JavaTypeFactory.getWildcardType(null, lower));
         /*        
         if (upper.equals(objectT)) {
           params.add(JavaTypeFactory.getWildcardType(null, null));
@@ -708,14 +708,14 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   @Override
   public IJavaType visitWildcardSuperType(IRNode node) {
-    IJavaReferenceType lower = (IJavaReferenceType) doAccept(WildcardSuperType.getUpper(node));
-    return JavaTypeFactory.getWildcardType(null, lower);
+    IJavaReferenceType upper = (IJavaReferenceType) doAccept(WildcardSuperType.getUpper(node));
+    return JavaTypeFactory.getWildcardType(upper, null);
   }
   
   @Override
   public IJavaType visitWildcardExtendsType(IRNode node) {
-    IJavaReferenceType upper = (IJavaReferenceType) doAccept(WildcardExtendsType.getLower(node));
-    return JavaTypeFactory.getWildcardType(upper, null);
+    IJavaReferenceType lower = (IJavaReferenceType) doAccept(WildcardExtendsType.getLower(node));
+    return JavaTypeFactory.getWildcardType(null, lower);
   }
   
   protected IJavaPrimitiveType forceUnboxed(IJavaType ty) {

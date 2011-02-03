@@ -97,11 +97,11 @@ public class CogenUtil implements JavaGlobals {
 		IJavaWildcardType wt = (IJavaWildcardType) t;
 		if (wt.getLowerBound() != null) {
 			IRNode lower = createType(tEnv, wt.getLowerBound());
-			return WildcardSuperType.createNode(lower);
+			return WildcardExtendsType.createNode(lower);
 		}
 		if (wt.getUpperBound() != null) {
 			IRNode upper = createType(tEnv, wt.getUpperBound());
-			return WildcardExtendsType.createNode(upper);
+			return WildcardSuperType.createNode(upper);
 		}
 		return WildcardType.prototype.jjtCreate();
 	}
