@@ -1,6 +1,6 @@
 package com.surelogic.jsure.views.debug.oracleDiff;
 
-import static com.surelogic.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
 
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
