@@ -42,7 +42,6 @@ public abstract class IDE {
 	public static final boolean useJavac = true;
 	public static final boolean debugTypedASTs = false;
 	public static final boolean testReloadMemoryLeak = false;
-	public static final String DEFAULT_JRE = "default.JRE";
 
 	/**
 	 * Logger for this class
@@ -578,9 +577,36 @@ public abstract class IDE {
 		clearCaches_internal();
 	}
 
-	public abstract boolean getBooleanPreference(String key);
+	/**
+	 * Looks up a boolean preference.
+	 * 
+	 * @param key
+	 *            the key for the desired preference.
+	 * @param def
+	 *            a default value if the preference is not found.
+	 * @return the value.
+	 */
+	public abstract boolean getBooleanPreference(String key, boolean def);
 
-	public abstract int getIntPreference(String key);
+	/**
+	 * Looks up a int preference.
+	 * 
+	 * @param key
+	 *            the key for the desired preference.
+	 * @param def
+	 *            a default value if the preference is not found.
+	 * @return the value.
+	 */
+	public abstract int getIntPreference(String key, int def);
 
-	public abstract String getStringPreference(String key);
+	/**
+	 * Looks up a string preference.
+	 * 
+	 * @param key
+	 *            the key for the desired preference.
+	 * @param def
+	 *            a default value if the preference is not found.
+	 * @return the value.
+	 */
+	public abstract String getStringPreference(String key, String def);
 }
