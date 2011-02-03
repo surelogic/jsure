@@ -8,7 +8,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.*;
 
-import com.surelogic.common.eclipse.EclipseUtility;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.xml.Entity;
 import static com.surelogic.jsure.xml.AbstractXMLReader.*;
 
