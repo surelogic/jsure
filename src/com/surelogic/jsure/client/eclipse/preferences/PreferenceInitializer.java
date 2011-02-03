@@ -2,7 +2,7 @@ package com.surelogic.jsure.client.eclipse.preferences;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import com.surelogic.common.eclipse.preferences.AbstractPrefInitializer;
+import com.surelogic.common.core.preferences.AbstractPrefInitializer;
 import com.surelogic.jsure.client.eclipse.Activator;
 
 /**

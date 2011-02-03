@@ -7,7 +7,7 @@ import java.net.URL;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import com.surelogic.common.eclipse.Resources;
+import com.surelogic.common.core.Resources;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
 

@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 
 import com.surelogic.common.XUtil;
-import com.surelogic.common.eclipse.preferences.AbstractCommonPreferencePage;
+import com.surelogic.common.ui.preferences.AbstractCommonPreferencePage;
 import com.surelogic.common.i18n.I18N;
 
 public class JSurePreferencePage extends AbstractCommonPreferencePage {

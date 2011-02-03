@@ -33,7 +33,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.eclipse.SLImages;
+import com.surelogic.common.ui.SLImages;
 
 import edu.cmu.cs.fluid.java.CommonStrings;
 

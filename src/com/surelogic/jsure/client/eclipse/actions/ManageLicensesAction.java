@@ -5,8 +5,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
-import com.surelogic.common.eclipse.SWTUtility;
-import com.surelogic.common.eclipse.dialogs.ManageLicensesDialog;
+import com.surelogic.common.ui.SWTUtility;
+import com.surelogic.common.ui.dialogs.ManageLicensesDialog;
 
 public final class ManageLicensesAction implements
 		IWorkbenchWindowActionDelegate {

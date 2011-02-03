@@ -3,7 +3,7 @@ package com.surelogic.jsure.client.eclipse.views;
 import java.net.*;
 
 import com.surelogic.common.ISourceZipFileHandles;
-import com.surelogic.common.eclipse.views.AbstractHistoricalSourceView;
+import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
 import com.surelogic.fluid.javac.*;
 
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {

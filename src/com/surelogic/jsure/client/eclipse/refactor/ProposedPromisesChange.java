@@ -14,8 +14,8 @@ import org.eclipse.text.edits.TextEdit;
 
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
-import com.surelogic.common.eclipse.JDTUtility;
-import com.surelogic.common.eclipse.refactor.PromisesAnnotationRewriter;
+import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.ui.refactor.PromisesAnnotationRewriter;
 import com.surelogic.common.refactor.AnnotationDescription;
 import com.surelogic.common.refactor.Field;
 import com.surelogic.common.refactor.IJavaDeclaration;

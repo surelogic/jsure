@@ -30,10 +30,10 @@ import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.eclipse.SLImages;
-import com.surelogic.common.eclipse.SWTUtility;
-import com.surelogic.common.eclipse.ViewUtility;
-import com.surelogic.common.eclipse.dialogs.ImageDialog;
+import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.SWTUtility;
+import com.surelogic.common.ui.ViewUtility;
+import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.Activator;

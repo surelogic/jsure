@@ -5,7 +5,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
-import com.surelogic.common.eclipse.ViewUtility;
+import com.surelogic.common.ui.ViewUtility;
 import com.surelogic.jsure.perspectives.CodeVerificationPerspective;
 
 public class OpenCodeVerificationPerspectiveAction implements

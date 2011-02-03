@@ -12,8 +12,8 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.eclipse.ViewUtility;
-import com.surelogic.common.eclipse.jobs.SLUIJob;
+import com.surelogic.common.ui.ViewUtility;
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.preferences.PreferenceConstants;

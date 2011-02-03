@@ -8,7 +8,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.Viewer;
 
-import com.surelogic.common.eclipse.EclipseUtility;
+import com.surelogic.common.core.EclipseUtility;
 
 import edu.cmu.cs.fluid.dcf.views.*;
 import edu.cmu.cs.fluid.java.ISrcRef;

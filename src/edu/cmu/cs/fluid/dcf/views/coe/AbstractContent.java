@@ -24,7 +24,7 @@ import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.eclipse.EclipseUtility;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import com.surelogic.tree.diff.Diff;
 import com.surelogic.tree.diff.IDiffNode;

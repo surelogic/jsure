@@ -8,7 +8,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 
 
-import com.surelogic.common.eclipse.actions.AbstractSingleProjectAction;
+import com.surelogic.common.ui.actions.AbstractSingleProjectAction;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.analysis.*;
 

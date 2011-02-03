@@ -35,7 +35,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
 
-import com.surelogic.common.eclipse.SourceZip;
+import com.surelogic.common.core.SourceZip;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XMLUtil;
 import com.surelogic.jsure.client.eclipse.Activator;

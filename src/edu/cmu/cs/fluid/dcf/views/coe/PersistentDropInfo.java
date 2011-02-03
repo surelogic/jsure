@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.eclipse.ViewUtility;
+import com.surelogic.common.ui.ViewUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Projects;
 import com.surelogic.fluid.javac.jobs.RemoteJSureRun;

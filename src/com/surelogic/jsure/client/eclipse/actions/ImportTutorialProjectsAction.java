@@ -6,8 +6,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.eclipse.SWTUtility;
-import com.surelogic.common.eclipse.dialogs.InstallTutorialProjectsDialog;
+import com.surelogic.common.ui.SWTUtility;
+import com.surelogic.common.ui.dialogs.InstallTutorialProjectsDialog;
 
 public class ImportTutorialProjectsAction implements
 		IWorkbenchWindowActionDelegate {

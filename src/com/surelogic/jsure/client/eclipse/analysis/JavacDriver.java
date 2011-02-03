@@ -18,12 +18,13 @@ import com.surelogic.analysis.JSureProperties;
 import com.surelogic.annotation.rules.ModuleRules;
 import com.surelogic.common.*;
 import com.surelogic.common.FileUtility.*;
-import com.surelogic.common.eclipse.*;
-import com.surelogic.common.eclipse.jobs.EclipseJob;
+import com.surelogic.common.core.*;
+import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.*;
 import com.surelogic.fluid.javac.Util;
@@ -1716,7 +1717,7 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				public String getPluginDir(String id, boolean required) {
 					try {
-						return com.surelogic.common.eclipse.Activator.getDefault().getDirectoryOf(id);
+						return EclipseUtility.getDirectoryOf(id);
 					}
 					catch (IllegalStateException e) {
 						if (required) {

@@ -9,7 +9,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 
-import com.surelogic.common.eclipse.*;
+import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.core.JavaProjectResources;
+import com.surelogic.common.ui.BalloonUtility;
+
 
 import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.util.Pair;

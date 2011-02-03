@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.dcf.views;
 
-import com.surelogic.common.eclipse.views.ITableContentProvider;
+import com.surelogic.common.ui.views.ITableContentProvider;
 
 public interface IResultsTableContentProvider extends ITableContentProvider {
 	String[] getColumnLabels();

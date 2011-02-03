@@ -12,10 +12,11 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.eclipse.EclipseUtility;
-import com.surelogic.common.eclipse.SWTUtility;
-import com.surelogic.common.eclipse.logging.SLEclipseStatusUtility;
+import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.ui.SWTUtility;
+import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
+import com.surelogic.common.ui.DialogTouchNotificationUI;
 import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 import com.surelogic.fluid.javac.Util;
 import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
@@ -47,13 +48,6 @@ public class Activator extends AbstractUIPlugin implements
 		// Do nothing
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
-	 * )
-	 */
 	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
@@ -69,10 +63,11 @@ public class Activator extends AbstractUIPlugin implements
 	public void run(IProgressMonitor monitor) throws InvocationTargetException,
 			InterruptedException {
 		monitor.beginTask("Initializing the JSure tool", 6);
+		
 		/*
-		 * "Touch" common-eclipse so the logging gets Eclipse-ified.
+		 * "Touch" common-core-eclipse so the logging gets Eclipse-ified.
 		 */
-		SLEclipseStatusUtility.touch();
+		SLEclipseStatusUtility.touch(new DialogTouchNotificationUI());
 		monitor.worked(1);
 
 		if (!Util.useResultsXML) {

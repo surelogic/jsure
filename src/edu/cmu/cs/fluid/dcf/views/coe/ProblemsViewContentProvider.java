@@ -5,7 +5,7 @@ import java.util.*;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.eclipse.SLImages;
+import com.surelogic.common.ui.SLImages;
 
 import edu.cmu.cs.fluid.sea.*;
 

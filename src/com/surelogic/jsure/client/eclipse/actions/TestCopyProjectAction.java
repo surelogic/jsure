@@ -8,8 +8,8 @@ import java.util.zip.*;
 import org.eclipse.jface.action.IAction;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.eclipse.SourceZip;
-import com.surelogic.common.eclipse.actions.AbstractSingleProjectAction;
+import com.surelogic.common.core.SourceZip;
+import com.surelogic.common.ui.actions.AbstractSingleProjectAction;
 
 public class TestCopyProjectAction extends AbstractSingleProjectAction {
 	public void run(IAction action) {

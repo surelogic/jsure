@@ -4,9 +4,9 @@ import java.util.*;
 
 import org.eclipse.jdt.core.IJavaProject;
 
-import com.surelogic.common.eclipse.actions.AbstractProjectSelectedMenuAction;
-import com.surelogic.common.eclipse.dialogs.JavaProjectSelectionDialog;
-import com.surelogic.common.eclipse.preferences.IPreferenceAccessor;
+import com.surelogic.common.ui.actions.AbstractProjectSelectedMenuAction;
+import com.surelogic.common.ui.dialogs.JavaProjectSelectionDialog;
+import com.surelogic.common.core.preferences.IPreferenceAccessor;
 import com.surelogic.jsure.client.eclipse.analysis.*;
 
 public class AnalyzeNow2Action extends AbstractProjectSelectedMenuAction {

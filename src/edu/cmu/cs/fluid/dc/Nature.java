@@ -8,8 +8,8 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 
-import com.surelogic.common.eclipse.JDTUtility;
-import com.surelogic.common.eclipse.builder.AbstractNature;
+import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.core.builder.AbstractNature;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.logging.SLLogger;
 

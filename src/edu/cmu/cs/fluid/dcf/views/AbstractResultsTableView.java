@@ -9,7 +9,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 
-import com.surelogic.common.eclipse.ColumnViewerSorter;
+import com.surelogic.common.ui.ColumnViewerSorter;
 
 import edu.cmu.cs.fluid.dcf.views.coe.PersistentDropInfo;
 import edu.cmu.cs.fluid.sea.*;

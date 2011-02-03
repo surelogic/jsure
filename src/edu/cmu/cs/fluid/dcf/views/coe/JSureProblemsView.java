@@ -11,7 +11,7 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.eclipse.SLImages;
+import com.surelogic.common.ui.SLImages;
 
 import edu.cmu.cs.fluid.dcf.views.*;
 import edu.cmu.cs.fluid.sea.*;

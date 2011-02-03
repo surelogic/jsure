@@ -5,7 +5,7 @@ import java.util.List;
 import org.eclipse.jface.action.Action;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 
-import com.surelogic.common.eclipse.*;
+import com.surelogic.common.ui.SWTUtility;
 
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;

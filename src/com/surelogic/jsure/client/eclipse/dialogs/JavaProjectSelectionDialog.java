@@ -21,8 +21,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.PlatformUI;
 
-import com.surelogic.common.eclipse.JDTUtility;
-import com.surelogic.common.eclipse.SLImages;
+import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.CommonImages;
 

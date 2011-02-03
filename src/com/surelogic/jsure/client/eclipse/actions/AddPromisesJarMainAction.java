@@ -5,8 +5,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.action.IAction;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.eclipse.SLImages;
-import com.surelogic.common.eclipse.actions.AbstractMainAction;
+import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.actions.AbstractMainAction;
 import com.surelogic.jsure.client.eclipse.dialogs.JavaProjectSelectionDialog;
 
 import edu.cmu.cs.fluid.dc.PromisesJarUtility;

@@ -5,7 +5,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.eclipse.SLImages;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.tree.diff.IDiffNode.Status;
 import com.surelogic.xml.results.coe.CoE_Constants;
 import com.surelogic.xml.results.coe.ResultsTreeNode;
