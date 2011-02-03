@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.sea.xml;
 
-import static com.surelogic.jsure.xml.JSureSummaryXMLReader.*;
+import static com.surelogic.common.jsure.xml.JSureSummaryXMLReader.*;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -15,7 +15,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.*;
-import com.surelogic.jsure.xml.JSureSummaryXMLReader;
+import com.surelogic.common.jsure.xml.JSureSummaryXMLReader;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;

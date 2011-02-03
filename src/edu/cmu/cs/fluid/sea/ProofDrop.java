@@ -2,7 +2,7 @@ package edu.cmu.cs.fluid.sea;
 
 import java.util.Collection;
 
-import com.surelogic.jsure.xml.AbstractXMLReader;
+import com.surelogic.common.jsure.xml.AbstractXMLReader;
 
 import edu.cmu.cs.fluid.sea.xml.*;
 

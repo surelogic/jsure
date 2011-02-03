@@ -5,7 +5,7 @@ import java.util.*;
 
 import com.surelogic.analysis.*;
 import com.surelogic.common.xml.*;
-import com.surelogic.jsure.xml.*;
+import com.surelogic.common.jsure.xml.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;

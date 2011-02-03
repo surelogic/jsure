@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.xml.*;
-import static com.surelogic.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
 
 /**
  * The abstract base class for all drops within the sea which reference fAST

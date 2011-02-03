@@ -7,7 +7,7 @@ import java.util.zip.ZipEntry;
 import com.surelogic.analysis.*;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.xml.*;
-import com.surelogic.jsure.xml.*;
+import com.surelogic.common.jsure.xml.*;
 
 import edu.cmu.cs.fluid.sea.*;
 

@@ -15,9 +15,9 @@ import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.refactor.JavaDeclInfo;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.*;
-import com.surelogic.jsure.xml.JSureXMLReader;
+import com.surelogic.common.jsure.xml.JSureXMLReader;
 
-import static com.surelogic.jsure.xml.JSureXMLReader.*;
+import static com.surelogic.common.jsure.xml.JSureXMLReader.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;

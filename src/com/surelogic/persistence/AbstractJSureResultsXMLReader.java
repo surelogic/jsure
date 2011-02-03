@@ -11,7 +11,7 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.analysis.*;
 import com.surelogic.common.xml.*;
-import com.surelogic.jsure.xml.*;
+import com.surelogic.common.jsure.xml.*;
 
 import edu.cmu.cs.fluid.sea.*;
 
