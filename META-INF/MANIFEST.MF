@@ -54,6 +54,7 @@ Export-Package:
  com.surelogic.task,
  com.surelogic.test,
  com.surelogic.tree,
+ com.surelogic.tree.diff,
  com.surelogic.util,
  com.surelogic.xml,
  edu.cmu.cs.crystal.java.operator,
