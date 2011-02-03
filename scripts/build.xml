@@ -92,7 +92,6 @@
 		<attribute name="log" />
 		<sequential>
 			<echo message="Running @{target} on @{project}" />
-			<local name="run-jsure-tests" />
 			<property name="run-jsure-tests" value="${surelogic.test.plugin.dir}${fs}scripts${fs}lib${fs}run-jsure-tests.xml" />
 
 			<ant dir="${sandbox.eclipse.dir}" inheritAll="false" antfile="${run-jsure-tests}" target="@{target}">
@@ -206,7 +205,7 @@
 		<mkdir dir="${sandbox.jsure.build.features.dir}" />
 
 		<!-- THE LISTS BELOW SHOULD BE UPDATED IF THE PLUG-INs/FEATUREs COMPRISING JSURE CHANGE -->
-		<property name="jsure.plugin.projects" value="common, eclipse-common, fluid, fluid-eclipse, fluid-javac, jsure-client-eclipse, jsure-client-eclipse-help, jsure-design-intent-eclipse-help, jsure-message, jsure-tests, jsure-xml-results-viewer" />
+		<property name="jsure.plugin.projects" value="common, eclipse-common, fluid, fluid-eclipse, fluid-javac, jsure-client-eclipse, jsure-client-eclipse-help, jsure-design-intent-eclipse-help, jsure-tests" />
 		<property name="jsure.feature.ids" value="com.surelogic.feature.jsure, com.surelogic.feature.jsure.tests" />
 
 		<!-- Copy JSure plug-in projects for headless build -->
@@ -229,7 +228,6 @@
 
 		<!-- Handle any OS-specific build problems here. -->
 		<!-- THE CODE BELOW MAY NEED TO BE UPDATED AS OS/ECLIPSE VERSIONS CHANGE -->
-		<local name="is.mac" />
 		<condition property="is.mac">
 			<os family="mac" />
 		</condition>
@@ -251,6 +249,7 @@
 		<!-- Copy template headless build.properties file and configure it for a headless build -->
 		<property name="jsure.build.properties" value="${sandbox.jsure.build.dir}${fs}build.properties" />
 		<copy file="${eclipse.pde.plugin.dir}${fs}templates${fs}headless-build${fs}build.properties" toFile="${jsure.build.properties}" />
+		<copy file="${eclipse.pde.plugin.dir}${fs}templates${fs}headless-build${fs}allElements.xml" toFile="${sandbox.jsure.build.dir}/allElements.xml" />
 		<property name="jsure.build.buildType" value="H" />
 		<property name="jsure.build.buildId" value="TestBuild" />
 		<property name="jsure.build.output.dir" value="${sandbox.jsure.build.dir}${fs}${jsure.build.buildType}.${jsure.build.buildId}" />
@@ -293,11 +292,9 @@
 
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
-				<local name="suite.dir" />
 				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
 				<echo message="[suite to scan] ${jsure.tests.suites}${fs}@{suite} -> ${suite.dir}" />
 				<copy-project-to-a-dir projectDir="@{suite}" fromDir="${jsure.tests.suites}" toDir="${sandbox.suites.dir}" />
-				<local name="project.list" />
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" param="name.zip" trim="true">
 					<sequential>
@@ -305,7 +302,6 @@
 							<matches string="@{name.zip}" pattern="(.*)\.zip$" />
 							<then>
 								<!-- This propertyregex line just gets the name of the file without the .zip extension -->
-								<local name="name.no.dot.zip" />
 								<propertyregex property="name.no.dot.zip" input="@{name.zip}" regexp="([^\.]*)\.zip" select="\1" override="true" casesensitive="false" />
 								<mkdir dir="${suite.dir}${fs}${name.no.dot.zip}" />
 								<unzip src="${suite.dir}${fs}@{name.zip}" dest="${suite.dir}${fs}${name.no.dot.zip}" />
@@ -334,13 +330,9 @@
 
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
-				<local name="suite.dir" />
 				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
-				<local name="workspace.dir" />
 				<property name="workspace.dir" value="${sandbox.workspace.dir}${fs}@{suite}" />
-				<local name="log.dir" />
 				<property name="log.dir" value="${sandbox.log.dir}${fs}@{suite}" />
-				<local name="project.list" />
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
