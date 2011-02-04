@@ -38,5 +38,9 @@ public interface IJavaTypeSubstitution {
     public List<IJavaType> substTypes(List<IJavaType> types) {
       return types;
     }
+    @Override
+    public String toString() {
+    	return "NULL SUBST";
+    }
   };
 }
