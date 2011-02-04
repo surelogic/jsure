@@ -1388,10 +1388,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	if (mSubst == null) {
     	  mSubst = 
     	    FunctionParameterSubstitution.create(AbstractJavaBinder.this, mbind.getNode(), map);
+    	} else {
+    		System.out.println("Ignoring "+mSubst);
     	}
-        if (mSubst != IBinding.NULL) {
+        if (mSubst != IJavaTypeSubstitution.NULL) {
           return new BindingInfo(IBinding.Util.makeMethodBinding(mbind, mSubst), numBoxed, isVarArgs);
         }
+      } else if (mSubst != null) {
+    	  System.out.println("Ignoring "+mSubst);
       }
       return new BindingInfo(mbind, numBoxed, isVarArgs);
     }
