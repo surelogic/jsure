@@ -69,21 +69,20 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 			System.out.println(me.getKey()+" = "+me.getValue());
 		}
 		return new AbstractSrcRef() {
-			public Object getEnclosingFile() {
+			@Override
+      public Object getEnclosingFile() {
 				return e.getAttribute(PATH_ATTR);
 			}
-			public int getOffset() {
+			@Override
+      public int getOffset() {
 				return Integer.parseInt(e.getAttribute(OFFSET_ATTR));
 			}
-			@Override
 			public String getCUName() {
 				return null;
 			}
-			@Override
 			public Long getHash() {
 				return Long.getLong(e.getAttribute(HASH_ATTR));
 			}
-			@Override
 			public String getPackage() {
 				return null;
 			}			
