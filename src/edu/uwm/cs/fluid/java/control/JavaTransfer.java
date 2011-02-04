@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
+import edu.cmu.cs.fluid.control.UnknownLabel;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -598,9 +599,16 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
      * Using the UNKNOWN label causes monotonicity problems with instance
      * initializers.  John never gave me a justification for why changing to the
      * unknown label made any sense any how.  On 2010-12-07 I changed this back
-     * to use the empty list.
+     * to use the empty list.  Later in Dec 2010, I realized that what we need
+     * to do is use the Unknown label for the abrupt case and empty list for the
+     * normal case.  I tried this change out, but it didn't seem to fix my then current
+     * broken examples because of a problem with "dynamicSplitCombiner" in
+     * BackwardAnalysis.  Because it didn't help, I didn't leave the change in.
+     * Now that we have fixed BackwardAnalysis, I am correcting this again 
+     * (on 2011-02-03).
      */
-    final LabelList ll = LabelList.empty;
+    final LabelList ll = terminationNormal ?
+        LabelList.empty : LabelList.empty.addLabel(UnknownLabel.prototype);
 
     /* We used to just initialize with the 'initial' value.  Turns out this 
      * is problematic because the same subanalysis object is returned by 

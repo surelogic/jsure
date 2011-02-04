@@ -275,14 +275,69 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
       return lattice.join(xp,yp);
     }
   };
-  LabeledLattice.Combiner<T,DynamicSplit> dynamicSplitCombiner =
-    new LabeledLattice.AbstractCombiner<T,DynamicSplit>() {
-      public T combine(T x, T y, DynamicSplit arg) {
-        if (!arg.test(true)) x= lattice.bottom();
-        if (!arg.test(false)) y = lattice.bottom();
-        return lattice.join(x,y);
+
+  /*
+   * Updated to this 2011-02-03 based on John's help.  This was a large 
+   * part of the problem for bug 1647!
+   * 
+   * If you read all the comments in LabelledLattice.merge, you will see that
+   * the code goes to great lengths to force the combiner to be called even when
+   * one of the inputs is null/bottom, BUT the code in AbstractCombiner presumes
+   * that null is the identity of the function: f(BOT,x) = f(X,BOT) = x but that
+   * is DEFINITELY not the case for Dynamic split. Depending on the argument,
+   * one may have f(BOT,x) = BOT for all x.
+   * 
+   * This then gets the WRONG value pressed through the system and then a
+   * monotonicity error.
+   * 
+   * was:
+   * 
+   *  LabeledLattice.Combiner<T, DynamicSplit> dynamicSplitCombiner = new LabeledLattice.AbstractCombiner<T,DynamicSplit>() {
+   *      public T combine(T x, T y, DynamicSplit arg) {
+   *        if (!arg.test(true)) x= lattice.bottom();
+   *        if (!arg.test(false)) y = lattice.bottom();
+   *        return lattice.join(x,y);
+   *      }
+   *  };
+   */
+  LabeledLattice.Combiner<T, DynamicSplit> dynamicSplitCombiner = new LabeledLattice.Combiner<T, DynamicSplit>() {
+    public final UnaryOp<T, DynamicSplit> leftBottom = new UnaryOp<T, DynamicSplit>() {
+      public T operate(T x, DynamicSplit arg) {
+        return combine(lattice.bottom(), x, arg);
       }
+    };
+
+    public final UnaryOp<T, DynamicSplit> rightBottom = new UnaryOp<T, DynamicSplit>() {
+      public T operate(T x, DynamicSplit arg) {
+        return combine(x, lattice.bottom(), arg);
+      }
+    };
+
+    public UnaryOp<T, DynamicSplit> bindLeftBottom() {
+      return leftBottom;
+    }
+
+    public UnaryOp<T, DynamicSplit> bindRightBottom() {
+      return rightBottom;
+    }
+
+    public T combine(T x, T y, DynamicSplit arg) {
+      if (!arg.test(true))
+        x = lattice.bottom();
+      if (!arg.test(false))
+        y = lattice.bottom();
+      return lattice.join(x, y);
+    }
   };
+
+//  LabeledLattice.Combiner<T, DynamicSplit> dynamicSplitCombiner = new LabeledLattice.AbstractCombiner<T,DynamicSplit>() {
+//      public T combine(T x, T y, DynamicSplit arg) {
+//        if (!arg.test(true)) x= lattice.bottom();
+//        if (!arg.test(false)) y = lattice.bottom();
+//        return lattice.join(x,y);
+//      }
+//  };
+  
   final LabeledLattice.LabelOp<ControlLabel> addLabelOp =
     new LabeledLattice.LabelOp<ControlLabel>() {
     public LabelList operate(LabelList ll, ControlLabel arg) {
