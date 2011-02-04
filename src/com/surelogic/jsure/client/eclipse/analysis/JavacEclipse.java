@@ -26,7 +26,7 @@ public class JavacEclipse extends Javac {
     }
     
     {
-    	setPreference(IDEPreferences.DATA_DIRECTORY, JSurePreferencesUtility.getJSureDataDirectory().getAbsolutePath());
+    	setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, JSurePreferencesUtility.getJSureDataDirectory().getAbsolutePath());
     }
     
     public void synchronizeAnalysisPrefs(IPreferenceStore store) {
