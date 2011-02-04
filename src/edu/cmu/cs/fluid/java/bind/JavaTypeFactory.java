@@ -450,9 +450,18 @@ public class JavaTypeFactory implements IRType, Cleanable {
     					  break;
     				  }
     			  }
-    		  }
-    		  System.out.println(bounds+" -> "+reduced);
-    		  for(IJavaReferenceType bt : reduced) {
+    		  }    		  
+    		  // order the bounds
+    		  final List<IJavaReferenceType> ordered = new ArrayList<IJavaReferenceType>(reduced);
+    		  Collections.sort(ordered, new Comparator<IJavaReferenceType>() {
+				@Override
+				public int compare(IJavaReferenceType t1, IJavaReferenceType t2) {
+					// TODO is there something better?
+					return t1.toString().compareTo(t2.toString());
+				}    			  
+    		  });
+    		  System.out.println(bounds+" -> "+ordered);
+    		  for(IJavaReferenceType bt : ordered) {
     			  if (result == null) {
     				  result = bt;
     				  /*
