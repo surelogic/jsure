@@ -32,6 +32,7 @@ import org.osgi.framework.BundleContext;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 
@@ -70,9 +71,10 @@ public class Plugin implements IAnalysisContainer {
 	 * The preference prefix for whether an analysis is on
 	 */
 	public static final String ANALYSIS_ACTIVE_PREFIX = IDEPreferences.ANALYSIS_ACTIVE_PREFIX;
-	
+
 	/**
-	 * The {@link Logger}for this class (named <code>edu.cmu.cs.fluid.dc</code>).
+	 * The {@link Logger}for this class (named <code>edu.cmu.cs.fluid.dc</code>
+	 * ).
 	 */
 	private static final Logger LOG = SLLogger.getLogger("edu.cmu.cs.fluid.dc");
 
@@ -82,8 +84,8 @@ public class Plugin implements IAnalysisContainer {
 	 * order.
 	 */
 	IExtension[] allAnalysisExtensions;
-	
-	Map<String,IAnalysisInfo> idToInfoMap;
+
+	Map<String, IAnalysisInfo> idToInfoMap;
 
 	/**
 	 * The list of included (by the user) analysis module extensions. All
@@ -115,8 +117,8 @@ public class Plugin implements IAnalysisContainer {
 
 	/**
 	 * Cache managed by {@link #getAnalysisModule}to ensure that obtaining the
-	 * {@link IAnalysis}object defined by the analysis module extension point
-	 * is only done a single time (i.e., the analysis modules are managed as
+	 * {@link IAnalysis}object defined by the analysis module extension point is
+	 * only done a single time (i.e., the analysis modules are managed as
 	 * singleton objects).
 	 */
 	Map<IExtension, IAnalysis> m_analysisModuleCache = new HashMap<IExtension, IAnalysis>();
@@ -130,7 +132,6 @@ public class Plugin implements IAnalysisContainer {
 	public static Plugin getDefault() {
 		return Activator.getDefault().getDoubleChecker();
 	}
-
 
 	/**
 	 * Returns the workspace instance.
@@ -165,11 +166,12 @@ public class Plugin implements IAnalysisContainer {
 		for (int i = 0; i < projects.length; i++) {
 			final IProject p = projects[i];
 			if (p.isOpen() && Nature.hasNature(p)) {
-				Activator.getDefault().getWorkbench().getDisplay().asyncExec(new Runnable() {
-					public void run() {
-						refreshProjectAndScheduleInitialAnalysis(p);
-					}
-				});
+				Activator.getDefault().getWorkbench().getDisplay()
+						.asyncExec(new Runnable() {
+							public void run() {
+								refreshProjectAndScheduleInitialAnalysis(p);
+							}
+						});
 			}
 		}
 	}
@@ -197,7 +199,7 @@ public class Plugin implements IAnalysisContainer {
 		 */
 		new FirstTimeRefresh(project).schedule();
 
-		//Moved analysis to after the refresh
+		// Moved analysis to after the refresh
 	}
 
 	/**
@@ -208,21 +210,21 @@ public class Plugin implements IAnalysisContainer {
 	public void start(BundleContext context) throws Exception {
 		readAnalysisModuleExtensionPoints();
 		analysisExtensionPointsExcludeNonProduction();
-		initAnalysisDefaults(Activator.getDefault().getPreferenceStore());
-		readStateFromPrefs(Activator.getDefault().getPreferenceStore());
+		initAnalysisDefaults(EclipseUIUtility.getPreferences());
+		readStateFromPrefs(EclipseUIUtility.getPreferences());
 		ensureAllIncludedPrereqsAreIncluded();
 
 		if (analysisExtensionPointsPrerequisitesOK()) {
 			initializeAnalysisLevels();
-		}		
+		}
 		autoBuildJSureProjects();
 	}
 
 	private void initAnalysisDefaults(IPreferenceStore store) {
-		for(IExtension ext : allAnalysisExtensions) {
+		for (IExtension ext : allAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
-			store.setDefault(ANALYSIS_ACTIVE_PREFIX + id, 
-					         !m_nonProductionAnalysisExtensions.contains(ext));
+			store.setDefault(ANALYSIS_ACTIVE_PREFIX + id,
+					!m_nonProductionAnalysisExtensions.contains(ext));
 		}
 	}
 
@@ -248,34 +250,32 @@ public class Plugin implements IAnalysisContainer {
 
 	private boolean isActive(IPreferenceStore store, String id) {
 		/*
-		if (AnalysisDriver.useJavac) {
-			return AnalysisDriver.ID.equals(id);
-		}
-		*/
+		 * if (AnalysisDriver.useJavac) { return AnalysisDriver.ID.equals(id); }
+		 */
 		return store.getBoolean(ANALYSIS_ACTIVE_PREFIX + id);
 	}
-	
+
 	/**
-	 * Read persistent double-checker plugin information. 
-	 * Invoked from {@link #startup}.
+	 * Read persistent double-checker plugin information. Invoked from
+	 * {@link #startup}.
 	 * 
 	 * @see #writeStateToPrefs()
 	 */
 	private void readStateFromPrefs(IPreferenceStore store) {
 		m_includedExtensions.clear();
-		
-		for(IExtension ext : allAnalysisExtensions) {
-			final String id      = ext.getUniqueIdentifier();
-			final boolean active = isActive(store, id); 
+
+		for (IExtension ext : allAnalysisExtensions) {
+			final String id = ext.getUniqueIdentifier();
+			final boolean active = isActive(store, id);
 			if (active) {
-				//System.out.println("Really Included : "+id);
+				// System.out.println("Really Included : "+id);
 				m_includedExtensions.add(CommonStrings.intern(id));
-				
+
 				if (allAnalysisExtensions != null) {
 					ensureAnalysisPrereqsAreIncluded(id);
 				}
 			} else {
-				//System.out.println("Really Excluded : "+id);
+				// System.out.println("Really Excluded : "+id);
 			}
 		}
 	}
@@ -311,16 +311,16 @@ public class Plugin implements IAnalysisContainer {
 	}
 
 	/**
-	 * Saves persistent double-checker plugin information.
-	 * Invoked as part of the save process within {@link SaveParticipant}.
+	 * Saves persistent double-checker plugin information. Invoked as part of
+	 * the save process within {@link SaveParticipant}.
 	 * 
 	 * @see #readStateFromPrefs()
 	 */
 	void writeStateToPrefs(IPreferenceStore store) {
-		for(IExtension ext : allAnalysisExtensions) {
+		for (IExtension ext : allAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
-			store.setValue(ANALYSIS_ACTIVE_PREFIX + id, 
-					       m_includedExtensions.contains(id));
+			store.setValue(ANALYSIS_ACTIVE_PREFIX + id,
+					m_includedExtensions.contains(id));
 		}
 	}
 
@@ -329,20 +329,20 @@ public class Plugin implements IAnalysisContainer {
 		pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		pw.println("<preferences>");
 		pw.println("  <included-analysis-modules>");
-		for(String id : m_includedExtensions) {
-			pw.println("    <id>"+id+"</id>");
+		for (String id : m_includedExtensions) {
+			pw.println("    <id>" + id + "</id>");
 		}
 		pw.println("  </included-analysis-modules>");
 		pw.println("  <excluded-analysis-modules>");
-		for(IExtension ext : m_nonProductionAnalysisExtensions) {
+		for (IExtension ext : m_nonProductionAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
-			pw.println("    <id>"+id+"</id>");
+			pw.println("    <id>" + id + "</id>");
 		}
 		pw.println("  </excluded-analysis-modules>");
 		pw.println("</preferences>");
 		pw.close();
 	}
-	
+
 	// //////////////////////////////////////////////////////////////////////
 	//
 	// ECLIPSE ERROR REPORTING METHODS (VISIBLE THROUGH THE ECLIPSE UI)
@@ -388,8 +388,7 @@ public class Plugin implements IAnalysisContainer {
 	 * @param logMessage
 	 *            a human-readable message
 	 * @param exception
-	 *            a low-level exception, or <code>null</code> if not
-	 *            applicable
+	 *            a low-level exception, or <code>null</code> if not applicable
 	 * 
 	 * @see #elog(org.eclipse.core.runtime.Plugin, int, String)
 	 * @see #elogPrompt(org.eclipse.core.runtime.Plugin, int, String, String,
@@ -399,7 +398,8 @@ public class Plugin implements IAnalysisContainer {
 			String logMessage, Throwable exception) {
 		// build up log information
 		if (from == null) {
-			from = Activator.getDefault(); // default to this plugin if none was provided
+			from = Activator.getDefault(); // default to this plugin if none was
+											// provided
 		}
 		Status logContent = new Status(severity, from.getBundle()
 				.getSymbolicName(), severity, logMessage, exception);
@@ -461,8 +461,7 @@ public class Plugin implements IAnalysisContainer {
 	 *            a human-readable message to describe the issue to the user
 	 *            within the dialog
 	 * @param exception
-	 *            a low-level exception, or <code>null</code> if not
-	 *            applicable
+	 *            a low-level exception, or <code>null</code> if not applicable
 	 * 
 	 * @see #elogPrompt(org.eclipse.core.runtime.Plugin, int, String, String,
 	 *      String)
@@ -577,28 +576,31 @@ public class Plugin implements IAnalysisContainer {
 		idToInfoMap = convertFromExtensions(allAnalysisExtensions);
 	}
 
-	private Map<String,IAnalysisInfo> convertFromExtensions(IExtension[] all) {
-		Map<String,IAnalysisInfo> map = new HashMap<String,IAnalysisInfo>();
-		for(IExtension ext : all) {
+	private Map<String, IAnalysisInfo> convertFromExtensions(IExtension[] all) {
+		Map<String, IAnalysisInfo> map = new HashMap<String, IAnalysisInfo>();
+		for (IExtension ext : all) {
 			IAnalysisInfo info = createAnalysisInfo(ext);
 			map.put(info.getUniqueIdentifier(), info);
 		}
 		return map;
 	}
-	
+
 	private IAnalysisInfo createAnalysisInfo(IExtension am) {
 		IConfigurationElement[] cfgs = am.getConfigurationElements();
 		for (int i = 0; i < cfgs.length; i++) {
 			if (cfgs[i].getName().equalsIgnoreCase("run")) {
 				final String production = cfgs[i].getAttribute("production");
-				final boolean isProduction = 
-					production == null || !production.equals("false");
+				final boolean isProduction = production == null
+						|| !production.equals("false");
 				final String category = cfgs[i].getAttribute("category");
 				return new AnalysisInfo(am) {
-					@Override public boolean isProduction() {
+					@Override
+					public boolean isProduction() {
 						return isProduction;
 					}
-					@Override public String getCategory() {
+
+					@Override
+					public String getCategory() {
 						return category;
 					}
 				};
@@ -609,7 +611,7 @@ public class Plugin implements IAnalysisContainer {
 
 	class AnalysisInfo implements IAnalysisInfo {
 		final IExtension ext;
-		
+
 		AnalysisInfo(IExtension e) {
 			ext = e;
 		}
@@ -617,24 +619,24 @@ public class Plugin implements IAnalysisContainer {
 		public boolean isProduction() {
 			return true;
 		}
-		
+
 		public boolean isIncluded() {
 			return m_includedExtensions.contains(ext.getUniqueIdentifier());
 		}
-		
+
 		public String getUniqueIdentifier() {
 			return ext.getUniqueIdentifier();
 		}
-		
+
 		public String getLabel() {
 			return ext.getLabel();
 		}
-		
+
 		public String getCategory() {
 			return null;
 		}
 	}
-	
+
 	private IAnalysisInfo getAnalysisInfo(String id) {
 		return idToInfoMap.get(id);
 	}
@@ -642,7 +644,7 @@ public class Plugin implements IAnalysisContainer {
 	public Iterable<IAnalysisInfo> getAllAnalysisInfo() {
 		return idToInfoMap.values();
 	}
-	
+
 	/**
 	 * Builds an array of all all analysis extension points that are marked in
 	 * the XML as being non-production (i.e., production="false"). Adds each
@@ -651,26 +653,20 @@ public class Plugin implements IAnalysisContainer {
 	 */
 	private void analysisExtensionPointsExcludeNonProduction() {
 		/*
-		for (int i = 0; i < allAnalysisExtensions.length; i++) {
-			String uid = allAnalysisExtensions[i].getUniqueIdentifier();
-			IConfigurationElement[] configElements = allAnalysisExtensions[i]
-					.getConfigurationElements();
-			for (int j = 0; j < configElements.length; j++) {
-				String production = configElements[j]
-						.getAttribute("production");
-				if (production != null && production.equals("false")) {
-					if (LOG.isLoggable(Level.FINE))
-						LOG.fine("analysis module extension point " + uid
-								+ " is not production and is being excluded");
-					// add to list of non-production
-					m_nonProductionAnalysisExtensions
-							.add(allAnalysisExtensions[i]);
-				}
-			}
-		}
-		*/
+		 * for (int i = 0; i < allAnalysisExtensions.length; i++) { String uid =
+		 * allAnalysisExtensions[i].getUniqueIdentifier();
+		 * IConfigurationElement[] configElements = allAnalysisExtensions[i]
+		 * .getConfigurationElements(); for (int j = 0; j <
+		 * configElements.length; j++) { String production = configElements[j]
+		 * .getAttribute("production"); if (production != null &&
+		 * production.equals("false")) { if (LOG.isLoggable(Level.FINE))
+		 * LOG.fine("analysis module extension point " + uid +
+		 * " is not production and is being excluded"); // add to list of
+		 * non-production m_nonProductionAnalysisExtensions
+		 * .add(allAnalysisExtensions[i]); } } }
+		 */
 		m_nonProductionAnalysisExtensions.clear();
-		for(IAnalysisInfo info : getAllAnalysisInfo()) {
+		for (IAnalysisInfo info : getAllAnalysisInfo()) {
 			if (!info.isProduction()) {
 				AnalysisInfo ai = (AnalysisInfo) info;
 				m_nonProductionAnalysisExtensions.add(ai.ext);
@@ -695,8 +691,8 @@ public class Plugin implements IAnalysisContainer {
 		for (int i = 0; i < allAnalysisExtensions.length; ++i) {
 			if (isExtensionIncluded(allAnalysisExtensions[i])) {
 				// user preference exclude
-				ids
-						.add(CommonStrings.intern(allAnalysisExtensions[i].getUniqueIdentifier()));
+				ids.add(CommonStrings.intern(allAnalysisExtensions[i]
+						.getUniqueIdentifier()));
 				ams.add(allAnalysisExtensions[i]);
 			}
 		}
@@ -708,7 +704,8 @@ public class Plugin implements IAnalysisContainer {
 				IConfigurationElement currentConfigElement = analysisConfigElements[j];
 				if (currentConfigElement.getName().equalsIgnoreCase(
 						"prerequisite")) {
-					if (!ids.contains(CommonStrings.intern(currentConfigElement.getAttribute("id")))) {
+					if (!ids.contains(CommonStrings.intern(currentConfigElement
+							.getAttribute("id")))) {
 						String logMessage = "The identified prerequisite \""
 								+ currentConfigElement.getAttribute("id")
 								+ "\" for \""
@@ -740,8 +737,8 @@ public class Plugin implements IAnalysisContainer {
 	 * @see #allAnalysisExtensions
 	 */
 	private void initializeAnalysisLevels() {
-		m_analysisExtensionSets.clear(); // start with an empty list	
-		
+		m_analysisExtensionSets.clear(); // start with an empty list
+
 		if (AnalysisDriver.useJavac) {
 			// Just run AnalysisDriver
 			for (IExtension ext : allAnalysisExtensions) {
@@ -749,12 +746,12 @@ public class Plugin implements IAnalysisContainer {
 					m_analysisExtensionSets.add(Collections.singleton(ext));
 					analysisExtensions = new IExtension[1];
 					analysisExtensions[0] = ext;
-					System.out.println("Found "+ext.getUniqueIdentifier());
+					System.out.println("Found " + ext.getUniqueIdentifier());
 					return;
 				}
-			}			
+			}
 		}
-		
+
 		// construct the analysis levels based upon the prerequisites provided
 		// in the plugin manifest (held in the analysisExtensions field)
 		// filtering
@@ -800,7 +797,8 @@ public class Plugin implements IAnalysisContainer {
 			m_analysisExtensionSets.add(thisLevel);
 			remainingAnalyses.removeAll(thisLevel);
 			for (IExtension cur : thisLevel) {
-				lowerLevels.add(CommonStrings.intern(cur.getUniqueIdentifier()));
+				lowerLevels
+						.add(CommonStrings.intern(cur.getUniqueIdentifier()));
 			}
 			thisLevel = new HashSet<IExtension>();
 		}
@@ -827,7 +825,8 @@ public class Plugin implements IAnalysisContainer {
 		for (int j = 0; j < analysisConfigElements.length; j++) {
 			IConfigurationElement currentConfigElement = analysisConfigElements[j];
 			if (currentConfigElement.getName().equalsIgnoreCase("prerequisite")) {
-				result.add(CommonStrings.intern(currentConfigElement.getAttribute("id")));
+				result.add(CommonStrings.intern(currentConfigElement
+						.getAttribute("id")));
 			}
 		}
 		return result;
@@ -852,8 +851,9 @@ public class Plugin implements IAnalysisContainer {
 				IConfigurationElement currentConfigElement = analysisConfigElements[j];
 				if (currentConfigElement.getName().equalsIgnoreCase("run")) {
 					try {
-						Object temp = currentConfigElement.createExecutableExtension("class");
-						if (temp instanceof IIRAnalysis) {							
+						Object temp = currentConfigElement
+								.createExecutableExtension("class");
+						if (temp instanceof IIRAnalysis) {
 							result = new WholeAnalysisModule((IIRAnalysis) temp);
 						} else {
 							result = (IAnalysis) temp;
@@ -895,7 +895,8 @@ public class Plugin implements IAnalysisContainer {
 	public Set<IAnalysisInfo> getPrerequisiteAnalysisExtensionPoints(
 			IAnalysisInfo info) {
 		Set<IAnalysisInfo> result = new HashSet<IAnalysisInfo>();
-		IExtension ext = getAnalysisModuleExtensionPoint(info.getUniqueIdentifier());
+		IExtension ext = getAnalysisModuleExtensionPoint(info
+				.getUniqueIdentifier());
 		Set<String> ids = getPrerequisiteAnalysisIdSet(ext);
 		for (String id : ids) {
 			IAnalysisInfo ext2 = getAnalysisInfo(id);
@@ -914,9 +915,9 @@ public class Plugin implements IAnalysisContainer {
 	 * 
 	 * @param id
 	 *            the analysis module extension point identifier to lookup
-	 * @return the {@link IExtension}for <code>id</code>, or
-	 *         <code>null</code> if <code>id</code> does not exist as an
-	 *         analysis module extension point
+	 * @return the {@link IExtension}for <code>id</code>, or <code>null</code>
+	 *         if <code>id</code> does not exist as an analysis module extension
+	 *         point
 	 */
 	private IExtension getAnalysisModuleExtensionPoint(String id) {
 		for (int i = 0; i < allAnalysisExtensions.length; ++i) {
@@ -966,8 +967,8 @@ public class Plugin implements IAnalysisContainer {
 	 * 
 	 * @param analysisModule
 	 *            the analysis module extension point identifier to check for
-	 * @return <code>true</code> if <code>analysisModule</code> exists in
-	 *         the plugin's list of included analysis module extension points,
+	 * @return <code>true</code> if <code>analysisModule</code> exists in the
+	 *         plugin's list of included analysis module extension points,
 	 *         <code>false</code> otherwise
 	 */
 	boolean isExtensionIncluded(IExtension analysisModule) {
@@ -987,8 +988,8 @@ public class Plugin implements IAnalysisContainer {
 		if (isIncludedExtensionsChanged(includedExtensions)) {
 			m_includedExtensions.clear();
 			m_includedExtensions.addAll(includedExtensions);
-			writeStateToPrefs(Activator.getDefault().getPreferenceStore());
-			
+			writeStateToPrefs(EclipseUIUtility.getPreferences());
+
 			if (analysisExtensionPointsPrerequisitesOK()) {
 				initializeAnalysisLevels();
 			}
@@ -1003,8 +1004,8 @@ public class Plugin implements IAnalysisContainer {
 	 * @param includedExtensions
 	 *            the list of inclusions to compare with the plugin state (all
 	 *            elements must be interned)
-	 * @return <code>true</code> if the parameter is different than the
-	 *         current plugin state, <code>false</code> if they are the same
+	 * @return <code>true</code> if the parameter is different than the current
+	 *         plugin state, <code>false</code> if they are the same
 	 */
 	public boolean isIncludedExtensionsChanged(Set<String> includedExtensions) {
 		return !m_includedExtensions.equals(includedExtensions);
@@ -1017,9 +1018,9 @@ public class Plugin implements IAnalysisContainer {
 	 * 
 	 * @param id
 	 *            the analysis module extension point identifier to check for
-	 * @return <code>true</code> if <code>id</code> exists in the plugin's
-	 *         list of included analysis module extension points,
-	 *         <code>false</code> otherwise
+	 * @return <code>true</code> if <code>id</code> exists in the plugin's list
+	 *         of included analysis module extension points, <code>false</code>
+	 *         otherwise
 	 */
 	private boolean isExtensionIncluded(String id) {
 		return m_includedExtensions.contains(id);
