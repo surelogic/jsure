@@ -100,7 +100,7 @@
 		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
-  <extension id="UniquenessAssuranceUWM" name="Uniqueness (NEW)"
+  <extension id="UniquenessAssuranceUWM" name="Uniqueness"
     point="com.surelogic.jsure.client.eclipse.analysisModule">
     <run class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule" production="true">
     </run>
