@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.dc;
 
 import org.eclipse.core.resources.IProject;
 
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 /**
@@ -11,7 +12,8 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 public final class AnalyzeManualAction extends SelectedProjectsAction {
 	@Override
 	protected boolean doRun(IProject current) {
-		JSurePreferencesUtility.setAutoAnalyzeOnBuild(false);
+		EclipseUtility.setBooleanPreference(
+				JSurePreferencesUtility.AUTO_ANALYZE_ON_BUILD, false);
 		return true;
 	}
 }

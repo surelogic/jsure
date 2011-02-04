@@ -45,13 +45,13 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		setupForPerspectiveSwitch(diGroup);
 
 		f_autoOpenProposedPromiseView = new BooleanFieldEditor(
-				JSurePreferencesUtility.P_AUTO_OPEN_PROPOSED_PROMISE_VIEW,
+				JSurePreferencesUtility.AUTO_OPEN_PROPOSED_PROMISE_VIEW,
 				I18N.msg("jsure.eclipse.preference.page.autoOpenProposedPromiseView"),
 				diGroup);
 		setupEditor(diGroup, f_autoOpenProposedPromiseView);
 
 		f_autoOpenModelingProblemsView = new BooleanFieldEditor(
-				JSurePreferencesUtility.P_AUTO_OPEN_MODELING_PROBLEMS_VIEW,
+				JSurePreferencesUtility.AUTO_OPEN_MODELING_PROBLEMS_VIEW,
 				I18N.msg("jsure.eclipse.preference.page.autoOpenModelingProblemsView"),
 				diGroup);
 		setupEditor(diGroup, f_autoOpenModelingProblemsView);
@@ -80,31 +80,31 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 					true, false));
 
 			f_regionModelCap = new BooleanFieldEditor(
-					JSurePreferencesUtility.P_REGION_MODEL_NAME_CAP,
+					JSurePreferencesUtility.REGION_MODEL_NAME_CAP,
 					I18N.msg("jsure.eclipse.preference.page.regionModelNameCap"),
 					modelNamingGroup);
 			setupEditor(modelNamingGroup, f_regionModelCap);
 			f_regionModelCap.fillIntoGrid(modelNamingGroup, 2);
 			f_regionModelCommonString = new BooleanFieldEditor(
-					JSurePreferencesUtility.P_REGION_MODEL_NAME_COMMON_STRING,
+					JSurePreferencesUtility.REGION_MODEL_NAME_COMMON_STRING,
 					I18N.msg("jsure.eclipse.preference.page.regionModelNameCommonString"),
 					modelNamingGroup);
 			setupEditor(modelNamingGroup, f_regionModelCommonString);
 			f_regionModelCommonString.fillIntoGrid(modelNamingGroup, 2);
 			f_regionModelSuffix = new StringFieldEditor(
-					JSurePreferencesUtility.P_REGION_MODEL_NAME_SUFFIX,
+					JSurePreferencesUtility.REGION_MODEL_NAME_SUFFIX,
 					I18N.msg("jsure.eclipse.preference.page.regionModelNameSuffix"),
 					modelNamingGroup);
 			setupEditor(modelNamingGroup, f_regionModelSuffix);
 			f_regionModelSuffix.fillIntoGrid(modelNamingGroup, 2);
 			f_lockModelCap = new BooleanFieldEditor(
-					JSurePreferencesUtility.P_LOCK_MODEL_NAME_CAP,
+					JSurePreferencesUtility.LOCK_MODEL_NAME_CAP,
 					I18N.msg("jsure.eclipse.preference.page.lockModelNameCap"),
 					modelNamingGroup);
 			setupEditor(modelNamingGroup, f_lockModelCap);
 			f_lockModelCap.fillIntoGrid(modelNamingGroup, 2);
 			f_lockModelSuffix = new StringFieldEditor(
-					JSurePreferencesUtility.P_LOCK_MODEL_NAME_SUFFIX,
+					JSurePreferencesUtility.LOCK_MODEL_NAME_SUFFIX,
 					I18N.msg("jsure.eclipse.preference.page.lockModelNameSuffix"),
 					modelNamingGroup);
 			setupEditor(modelNamingGroup, f_lockModelSuffix);

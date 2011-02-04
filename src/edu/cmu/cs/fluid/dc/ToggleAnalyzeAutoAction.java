@@ -5,6 +5,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 public class ToggleAnalyzeAutoAction implements IWorkbenchWindowActionDelegate {
@@ -22,15 +23,19 @@ public class ToggleAnalyzeAutoAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
-		boolean value = JSurePreferencesUtility.getAutoAnalyzeOnBuild();
-		action.setChecked(value);
+		final boolean autoAnalyzeOnBuild = EclipseUtility
+				.getBooleanPreference(JSurePreferencesUtility.AUTO_ANALYZE_ON_BUILD);
+		action.setChecked(autoAnalyzeOnBuild);
 		// System.out.println("Auto-analyze: "+value);
 	}
 
 	public void run(IAction action) {
-		boolean newValue = !JSurePreferencesUtility.getAutoAnalyzeOnBuild();
+		final boolean autoAnalyzeOnBuild = EclipseUtility
+				.getBooleanPreference(JSurePreferencesUtility.AUTO_ANALYZE_ON_BUILD);
+		boolean newValue = !autoAnalyzeOnBuild;
 		action.setChecked(newValue);
-		JSurePreferencesUtility.setAutoAnalyzeOnBuild(newValue);
+		EclipseUtility.setBooleanPreference(
+				JSurePreferencesUtility.AUTO_ANALYZE_ON_BUILD, newValue);
 		if (newValue) {
 			Majordomo.analyzeNow(true);
 		}

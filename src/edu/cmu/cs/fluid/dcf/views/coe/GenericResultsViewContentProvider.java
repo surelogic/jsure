@@ -1,7 +1,16 @@
 package edu.cmu.cs.fluid.dcf.views.coe;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -12,11 +21,12 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.jsure.xml.CoE_Constants;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.ViewUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
-import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -31,15 +41,32 @@ import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.java.promise.TextFile;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.Category;
+import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.DropPredicate;
+import edu.cmu.cs.fluid.sea.DropPredicateFactory;
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IProofDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
+import edu.cmu.cs.fluid.sea.IRReferenceDrop;
+import edu.cmu.cs.fluid.sea.ISupportingInformation;
+import edu.cmu.cs.fluid.sea.InfoDrop;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.PromiseWarningDrop;
+import edu.cmu.cs.fluid.sea.ProofDrop;
+import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
+import edu.cmu.cs.fluid.sea.ResultDrop;
+import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.MaybeTopLevel;
 import edu.cmu.cs.fluid.sea.drops.PleaseCount;
 import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
-abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends AbstractContent<T,C>> 
-extends	AbstractResultsViewContentProvider {
+abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends AbstractContent<T, C>>
+		extends AbstractResultsViewContentProvider {
 	protected static final Object[] noObjects = new Object[0];
 
 	// TODO These are not completely protected, since the arrays get returned
@@ -48,19 +75,17 @@ extends	AbstractResultsViewContentProvider {
 	protected static long timeStamp = Sea.INVALIDATED;
 
 	private final Sea sea;
-	
+
 	GenericResultsViewContentProvider(Sea sea) {
 		this.sea = sea;
 	}
-	
+
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-		/* This kills the contents
+		/*
+		 * This kills the contents
 		 * 
-		if (newInput == null) {
-			m_root = noObjects;
-			m_lastRoot = null;
-		}
-		*/
+		 * if (newInput == null) { m_root = noObjects; m_lastRoot = null; }
+		 */
 	}
 
 	public void dispose() {
@@ -74,7 +99,8 @@ extends	AbstractResultsViewContentProvider {
 	}
 
 	protected Object[] getElementsInternal() {
-		return (isShowInferences() ? m_root : AbstractContent.<T,C>filterNonInfo(m_root));
+		return (isShowInferences() ? m_root : AbstractContent
+				.<T, C> filterNonInfo(m_root));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -89,7 +115,7 @@ extends	AbstractResultsViewContentProvider {
 
 	@SuppressWarnings("unchecked")
 	protected Object[] getChildrenInternal(Object parent) {
-		if (parent instanceof AbstractContent<?,?>) {
+		if (parent instanceof AbstractContent<?, ?>) {
 			C item = (C) parent;
 			return (isShowInferences() ? item.getChildren() : item
 					.getNonInfoChildren());
@@ -115,19 +141,18 @@ extends	AbstractResultsViewContentProvider {
 	protected final C putInContentCache(T key, C value) {
 		return m_contentCache.put(key, value);
 	}
-	
+
 	protected final C getFromContentCache(T key) {
 		return m_contentCache.get(key);
 	}
-	
+
 	protected final boolean existsInCache(T key) {
 		return m_contentCache.containsKey(key);
 	}
-	
+
 	/**
-	 * Encloses in {@link C}items and adds each drop in
-	 * <code>dropsToAdd</code> to the mutable set of viewer content items passed
-	 * into this method.
+	 * Encloses in {@link C}items and adds each drop in <code>dropsToAdd</code>
+	 * to the mutable set of viewer content items passed into this method.
 	 * 
 	 * @param mutableContentSet
 	 *            A parent {@link C} object to add children to
@@ -142,10 +167,13 @@ extends	AbstractResultsViewContentProvider {
 	}
 
 	protected abstract C makeContent(String msg);
+
 	protected abstract C makeContent(String msg, Collection<C> contentRoot);
+
 	protected abstract C makeContent(String msg, T drop);
+
 	protected abstract C makeContent(String msg, ISrcRef ref);
-	
+
 	/**
 	 * Adds referenced supporting information about a drop to the mutable set of
 	 * viewer content items passed into this method.
@@ -156,18 +184,18 @@ extends	AbstractResultsViewContentProvider {
 	 *            the {@link Drop}to add supporting information about
 	 */
 	@SuppressWarnings("unchecked")
-	private void addSupportingInformation(C mutableContentSet,
-			IDropInfo about) {
-		Collection<ISupportingInformation> supportingInformation = 
-			about.getSupportingInformation();
+	private void addSupportingInformation(C mutableContentSet, IDropInfo about) {
+		Collection<ISupportingInformation> supportingInformation = about
+				.getSupportingInformation();
 		int size = supportingInformation.size();
 		if (size == 0) {
 			// no supporting information, thus bail out
 			return;
 		} else if (size == 1) {
 			ISupportingInformation si = supportingInformation.iterator().next();
-			C informationItem = makeContent("supporting information: "
-					+ si.getMessage(), si.getSrcRef());
+			C informationItem = makeContent(
+					"supporting information: " + si.getMessage(),
+					si.getSrcRef());
 			informationItem.setBaseImageName(CommonImages.IMG_INFO);
 			mutableContentSet.addChild(informationItem);
 			return;
@@ -207,23 +235,24 @@ extends	AbstractResultsViewContentProvider {
 	 *            the {@link Drop}to add proposed promises about
 	 */
 	@SuppressWarnings("unchecked")
-	private void addProposedPromises(C mutableContentSet,
-			IDropInfo about) {
-		Collection<? extends IProposedPromiseDropInfo> proposals = about.getProposals();
+	private void addProposedPromises(C mutableContentSet, IDropInfo about) {
+		Collection<? extends IProposedPromiseDropInfo> proposals = about
+				.getProposals();
 		int size = proposals.size();
 		if (size == 0) {
 			// no proposed promises, thus bail out
 			return;
 		} else if (size == 1) {
 			IProposedPromiseDropInfo pp = proposals.iterator().next();
-			final C proposalItem = makeContent("proposed promise: "
-					+ pp.getJavaAnnotation(), (T) pp);
+			final C proposalItem = makeContent(
+					"proposed promise: " + pp.getJavaAnnotation(), (T) pp);
 			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
 			mutableContentSet.addChild(proposalItem);
 			return;
 		}
 		// More than one thing
-		C siFolder = makeContent(I18N.msg("jsure.eclipse.proposed.promise.content.folder"));
+		C siFolder = makeContent(I18N
+				.msg("jsure.eclipse.proposed.promise.content.folder"));
 		siFolder.setBaseImageName(CommonImages.IMG_FOLDER);
 
 		for (IProposedPromiseDropInfo pp : proposals) {
@@ -258,7 +287,8 @@ extends	AbstractResultsViewContentProvider {
 	private void add_and_TrustedPromises(C mutableContentSet,
 			IProofDropInfo result) {
 		// Create a folder to contain the preconditions
-		Collection<? extends IProofDropInfo> trustedPromiseDrops = result.getTrusts();
+		Collection<? extends IProofDropInfo> trustedPromiseDrops = result
+				.getTrusts();
 		int count = trustedPromiseDrops.size();
 		// bail out if no preconditions exist
 		if (count < 1)
@@ -305,8 +335,7 @@ extends	AbstractResultsViewContentProvider {
 		// Create a folder to contain the choices
 		final Collection<String> or_TrustLabels = result.get_or_TrustLabelSet();
 		final int or_TrustLabelsSize = or_TrustLabels.size();
-		C orContentFolder = makeContent(
-				or_TrustLabelsSize
+		C orContentFolder = makeContent(or_TrustLabelsSize
 				+ (or_TrustLabelsSize > 1 ? " possible prerequisite assertion choices:"
 						: " possible prerequisite assertion choice:"));
 		int flags = 0; // assume no adornments
@@ -326,7 +355,8 @@ extends	AbstractResultsViewContentProvider {
 			// set proof bits properly
 			boolean choiceConsistent = true;
 			boolean choiceUsesRedDot = false;
-			Collection<? extends IProofDropInfo> choiceSet = result.get_or_Trusts(key);
+			Collection<? extends IProofDropInfo> choiceSet = result
+					.get_or_Trusts(key);
 
 			// fill in the folder with choices
 			for (IProofDropInfo trustedDrop : choiceSet) {
@@ -356,11 +386,10 @@ extends	AbstractResultsViewContentProvider {
 	@SuppressWarnings("unchecked")
 	protected final C encloseDrop(T drop) {
 		if (drop == null) {
-			LOG
-			.log(Level.SEVERE,
+			LOG.log(Level.SEVERE,
 					"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
 			throw new IllegalArgumentException(
-			"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
+					"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
 		}
 		C result = getFromContentCache(drop);
 		if (result != null) {
@@ -407,7 +436,8 @@ extends	AbstractResultsViewContentProvider {
 				promiseDrop.addMatchingDependentsTo(matching,
 						DropPredicateFactory.matchType(InfoDrop.class));
 				addDrops(result, (Collection<? extends T>) matching);
-				addDrops(result, (Collection<? extends T>) promiseDrop.getCheckedBy());
+				addDrops(result,
+						(Collection<? extends T>) promiseDrop.getCheckedBy());
 
 			} else if (drop.isInstance(ResultDrop.class)) {
 
@@ -427,8 +457,7 @@ extends	AbstractResultsViewContentProvider {
 							: CoE_Constants.INCONSISTENT);
 				}
 				result.setImageFlags(flags);
-				result
-				.setBaseImageName(resultDrop.isConsistent() ? CommonImages.IMG_PLUS
+				result.setBaseImageName(resultDrop.isConsistent() ? CommonImages.IMG_PLUS
 						: resultDrop.isVouched() ? CommonImages.IMG_PLUS_VOUCH
 								: CommonImages.IMG_RED_X);
 
@@ -445,8 +474,7 @@ extends	AbstractResultsViewContentProvider {
 				 */
 
 				// image
-				result
-				.setBaseImageName(drop.isInstance(WarningDrop.class) ? CommonImages.IMG_WARNING
+				result.setBaseImageName(drop.isInstance(WarningDrop.class) ? CommonImages.IMG_WARNING
 						: CommonImages.IMG_INFO);
 
 				// children
@@ -471,15 +499,15 @@ extends	AbstractResultsViewContentProvider {
 			} else {
 				LOG.log(Level.SEVERE,
 						"ResultsViewContentProvider.encloseDrop(Drop) passed an unknown drop type "
-						+ drop.getClass());
+								+ drop.getClass());
 			}
 			return result;
 		}
 	}
 
 	/**
-	 * Adds categories to the graph of C nodes rooted contentRoot and
-	 * returns the new set of root nodes.
+	 * Adds categories to the graph of C nodes rooted contentRoot and returns
+	 * the new set of root nodes.
 	 * 
 	 * @param contentRoot
 	 *            root of a graph of C nodes
@@ -489,8 +517,7 @@ extends	AbstractResultsViewContentProvider {
 		// fake out the recursive function by pretending the root is a C
 		// node
 		C root = makeContent("", contentRoot);
-		categorizeRecursive(root, true, new HashSet<C>(),
-				new HashSet<C>());
+		categorizeRecursive(root, true, new HashSet<C>(), new HashSet<C>());
 		return root.children();
 	}
 
@@ -511,8 +538,7 @@ extends	AbstractResultsViewContentProvider {
 	 * @see #categorize(Set)
 	 */
 	private void categorizeRecursive(C node, boolean atRoot,
-			Set<C> existingCategoryFolderSet,
-			Set<C> contentsOnPathToRoot) {
+			Set<C> existingCategoryFolderSet, Set<C> contentsOnPathToRoot) {
 		Set<C> categorizedChildren = new HashSet<C>();
 		Set<C> toBeCategorized = new HashSet<C>();
 		Map<Category, C> categoryToFolder = new HashMap<Category, C>();
@@ -520,9 +546,8 @@ extends	AbstractResultsViewContentProvider {
 			if (existingCategoryFolderSet.contains(item)) {
 				/*
 				 * This is a previously created folder (went around the loop) so
-				 * just add it to the resulting C set. Do not add it to
-				 * the worklist to be categorized or an infinite loop will
-				 * result.
+				 * just add it to the resulting C set. Do not add it to the
+				 * worklist to be categorized or an infinite loop will result.
 				 */
 				categorizedChildren.add(item);
 			} else {
@@ -549,8 +574,7 @@ extends	AbstractResultsViewContentProvider {
 						 * Get the correct category folder (created it if
 						 * needed) and add this C item to it
 						 */
-						C categoryFolder = categoryToFolder
-								.get(itemCategory);
+						C categoryFolder = categoryToFolder.get(itemCategory);
 						if (categoryFolder == null) {
 							// create the category folder, save it in the map
 							categoryFolder = makeContent(itemCategory
@@ -609,7 +633,7 @@ extends	AbstractResultsViewContentProvider {
 				boolean choiceConsistent = true;
 				boolean choiceUsesRedDot = false;
 				boolean localConsistent = true;
-				for (IProofDropInfo proofDrop : proofDrops) {	
+				for (IProofDropInfo proofDrop : proofDrops) {
 					choiceConsistent &= proofDrop.provedConsistent();
 					if (proofDrop.isInstance(ResultDrop.class)) {
 						localConsistent &= proofDrop.isConsistent();
@@ -644,8 +668,8 @@ extends	AbstractResultsViewContentProvider {
 				/*
 				 * Set<C> newCsOnPathToRoot = new
 				 * HashSet<C>(contentsOnPathToRoot);
-				 * newCsOnPathToRoot.add(item); categorizeRecursive(item,
-				 * false, existingCategoryFolderSet, newCsOnPathToRoot);
+				 * newCsOnPathToRoot.add(item); categorizeRecursive(item, false,
+				 * existingCategoryFolderSet, newCsOnPathToRoot);
 				 */
 				// Changed to add/remove the item from the set
 				contentsOnPathToRoot.add(item);
@@ -662,8 +686,7 @@ extends	AbstractResultsViewContentProvider {
 	 * @param contentRoot
 	 *            root of a graph of C nodes
 	 */
-	private Collection<C> packageTypeFolderize(
-			Collection<C> contentRoot) {
+	private Collection<C> packageTypeFolderize(Collection<C> contentRoot) {
 		// fake out the recursive function by pretending the root is a C
 		// node
 		C root = makeContent("", contentRoot);
@@ -682,27 +705,30 @@ extends	AbstractResultsViewContentProvider {
 			if (existingFolderSet.contains(item)) {
 				/*
 				 * This is a previously created folder (went around the loop) so
-				 * just add it to the resulting C set. Do not add it to
-				 * the worklist to be categorized or an infinite loop will
-				 * result.
+				 * just add it to the resulting C set. Do not add it to the
+				 * worklist to be categorized or an infinite loop will result.
 				 */
 				newChildren.add(item);
 			} else {
 				toBeFolderized.add(item);
 
 				/*
-				 * If the drop the C "item" references has a package and a
-				 * type we'll generate folders for it.
+				 * If the drop the C "item" references has a package and a type
+				 * we'll generate folders for it.
 				 */
 				final IDropInfo drop = item.getDropInfo();
 				boolean hasJavaContext = false;
-				if (drop != null && (drop.isInstance(ResultDrop.class) || drop.isInstance(InfoDrop.class)
-						|| drop.isInstance(PleaseFolderize.class))) {
-					boolean resultHasACategory = drop.isInstance(ResultDrop.class)
+				if (drop != null
+						&& (drop.isInstance(ResultDrop.class)
+								|| drop.isInstance(InfoDrop.class) || drop
+								.isInstance(PleaseFolderize.class))) {
+					boolean resultHasACategory = drop
+							.isInstance(ResultDrop.class)
 							&& drop.getCategory() != null;
 					if (resultHasACategory || drop.isInstance(InfoDrop.class)
 							|| drop.isInstance(PleaseFolderize.class)) {
-						ContentJavaContext<T,C> context = new ContentJavaContext<T,C>(item);
+						ContentJavaContext<T, C> context = new ContentJavaContext<T, C>(
+								item);
 						if (context.complete) {
 							hasJavaContext = true;
 							String packageKey = context.packageName;
@@ -719,9 +745,8 @@ extends	AbstractResultsViewContentProvider {
 								// create the class/type folder, save it in the
 								// map
 								folder = makeContent(typeKey);
-								folder
-										.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE
-												: CommonImages.IMG_CLASS);
+								folder.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE
+										: CommonImages.IMG_CLASS);
 								typeToFolder.put(typeKey, folder);
 							}
 							folder.addChild(item);
@@ -744,11 +769,9 @@ extends	AbstractResultsViewContentProvider {
 		for (Iterator<String> i = packageToClassToFolder.keySet().iterator(); i
 				.hasNext();) {
 			String packageKey = i.next();
-			Map<?, C> typeToFolder = packageToClassToFolder
-					.get(packageKey);
+			Map<?, C> typeToFolder = packageToClassToFolder.get(packageKey);
 
-			C packageFolder = makeContent(packageKey, typeToFolder
-					.values());
+			C packageFolder = makeContent(packageKey, typeToFolder.values());
 			existingFolderSet.add(packageFolder);
 
 			for (C typeFolder : packageFolder.children()) {
@@ -863,7 +886,8 @@ extends	AbstractResultsViewContentProvider {
 		node.f_isInfoDecorated = node.f_isInfo;
 		node.f_isInfoWarningDecorate = node.f_isInfoWarning;
 
-		if (node.getDropInfo() != null && node.getDropInfo().isInstance(PleaseCount.class)) {
+		if (node.getDropInfo() != null
+				&& node.getDropInfo().isInstance(PleaseCount.class)) {
 			node.setCount(node.getDropInfo().count());
 		}
 
@@ -889,26 +913,17 @@ extends	AbstractResultsViewContentProvider {
 	}
 
 	/*
-	private int count(Collection<C> cc, Set<C> counted) {
-		int i=0;
-		for(C c : cc) {
-			if (counted.contains(c)) {
-				continue;
-			}
-			counted.add(c);
-			i++;
-			i += count(c.children(), counted);
-		}
-		return i;
-	}
-	*/
-	
+	 * private int count(Collection<C> cc, Set<C> counted) { int i=0; for(C c :
+	 * cc) { if (counted.contains(c)) { continue; } counted.add(c); i++; i +=
+	 * count(c.children(), counted); } return i; }
+	 */
+
 	/**
 	 * Converts back edges into leaf nodes
 	 */
 	private void breakBackEdges(Collection<C> contentRoot) {
-		//System.out.println("C count: "+count(contentRoot, new HashSet<C>()));
-		
+		// System.out.println("C count: "+count(contentRoot, new HashSet<C>()));
+
 		// fake out the recursive function by pretending the root is a C
 		// node
 		C root = makeContent("", contentRoot);
@@ -925,20 +940,17 @@ extends	AbstractResultsViewContentProvider {
 	 */
 	private void breakBackEdges(C node, Set<C> onPath) {
 		/*
-		Integer count = counts.get(node);
-		if (count == null) {
-			counts.put(node, 1);
-		} else {
-			System.out.println(count+": "+node.getMessage());
-			counts.put(node, count++);
-		}
- 		*/
+		 * Integer count = counts.get(node); if (count == null) {
+		 * counts.put(node, 1); } else {
+		 * System.out.println(count+": "+node.getMessage()); counts.put(node,
+		 * count++); }
+		 */
 		if (node.children().isEmpty()) {
 			node.resetChildren(Collections.<C> emptyList());
 			return;
 		}
 		onPath.add(node);
-		
+
 		// Only used to get consistent results when breaking back edges
 		// NOT for the results view (see CNameSorter)
 		final List<C> children = new ArrayList<C>(node.children());
@@ -957,25 +969,25 @@ extends	AbstractResultsViewContentProvider {
 			/*
 			 * Guard against infinite recursion (drop-sea is a graph)
 			 */
-			//System.out.println("Looking at "+node.getMessage()+" -> "+item.getMessage());
+			// System.out.println("Looking at "+node.getMessage()+" -> "+item.getMessage());
 			if (!onPath.contains(item)) {
 				breakBackEdges(item, onPath);
 			} else {
 				// Need to replace with a leaf
-				//System.out.println("Breaking backedge for: "+item.getMessage());
+				// System.out.println("Breaking backedge for: "+item.getMessage());
 				C leaf = item.cloneAsLeaf();
-				//System.out.println("Cloned: "+leaf.getMessage());
+				// System.out.println("Cloned: "+leaf.getMessage());
 				children.set(i, leaf);
 			}
 		}
 		node.resetChildren(children);
 		// Now it creates a leaf, if I ever see it again
-		//onPath.remove(node);
+		// onPath.remove(node);
 	}
 
-	//Map<C,Integer> counts = new HashMap<C, Integer>();
-	
-	static private class ContentJavaContext<T extends IDropInfo, C extends AbstractContent<T,C>> {
+	// Map<C,Integer> counts = new HashMap<C, Integer>();
+
+	static private class ContentJavaContext<T extends IDropInfo, C extends AbstractContent<T, C>> {
 		/**
 		 * Flags if the entire Java context is well-defined
 		 */
@@ -995,16 +1007,18 @@ extends	AbstractResultsViewContentProvider {
 		 *            the viewer content item to obtain the Java context for
 		 */
 		public ContentJavaContext(final C content) {
-			final IDropInfo info = content.getDropInfo();		
+			final IDropInfo info = content.getDropInfo();
 			final IRReferenceDrop ird = info.getAdapter(IRReferenceDrop.class);
 			if (ird == null) {
 				final ISrcRef ref = info.getSrcRef();
 				if (ref != null) {
 					packageName = ref.getPackage();
-					int lastSeparator = ref.getCUName().lastIndexOf(File.separator);
-					typeName = lastSeparator < 0 ? ref.getCUName() : ref.getCUName().substring(lastSeparator+1);									
+					int lastSeparator = ref.getCUName().lastIndexOf(
+							File.separator);
+					typeName = lastSeparator < 0 ? ref.getCUName() : ref
+							.getCUName().substring(lastSeparator + 1);
 					complete = true;
-				}	
+				}
 				return;
 			}
 			// Get reference IRNode
@@ -1019,8 +1033,8 @@ extends	AbstractResultsViewContentProvider {
 			 */
 			final Operator op = JavaNames.getOperator(node);
 			final boolean isCU = CompilationUnit.prototype.includes(op);
-			final boolean isPkg = PackageDeclaration.prototype.includes(op) || 
-			                      ImportName.prototype.includes(op);
+			final boolean isPkg = PackageDeclaration.prototype.includes(op)
+					|| ImportName.prototype.includes(op);
 
 			// determine package
 			IRNode cu = null;
@@ -1038,10 +1052,11 @@ extends	AbstractResultsViewContentProvider {
 				// determine enclosing type
 				IRNode type = null;
 				if (isCU) {
-					type = VisitUtil.getPrimaryType(node);				
+					type = VisitUtil.getPrimaryType(node);
 				} else if (!isPkg) {
 					type = VisitUtil.getClosestType(node);
-					while (type != null && JJNode.tree.getOperator(type) instanceof CallInterface) {
+					while (type != null
+							&& JJNode.tree.getOperator(type) instanceof CallInterface) {
 						type = VisitUtil.getEnclosingType(type);
 					}
 				}
@@ -1092,11 +1107,12 @@ extends	AbstractResultsViewContentProvider {
 		}
 	}
 
-	private static DropPredicate promisePred = DropPredicateFactory.matchType(PromiseDrop.class);
+	private static DropPredicate promisePred = DropPredicateFactory
+			.matchType(PromiseDrop.class);
 
-	private static DropPredicate scopedPromisePred = 
-		DropPredicateFactory.matchType(PromisePromiseDrop.class);
-	
+	private static DropPredicate scopedPromisePred = DropPredicateFactory
+			.matchType(PromisePromiseDrop.class);
+
 	/**
 	 * Matches non-@Promise PromiseDrops
 	 */
@@ -1104,22 +1120,24 @@ extends	AbstractResultsViewContentProvider {
 		public boolean match(IDropInfo d) {
 			return promisePred.match(d) && !scopedPromisePred.match(d);
 		}
+
 		public boolean match(Drop d) {
 			return promisePred.match(d) && !scopedPromisePred.match(d);
 		}
 	};
-	
+
 	protected abstract boolean dropsExist(Class<? extends Drop> type);
-	protected abstract <R extends IDropInfo> 
-	Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType);
-	
+
+	protected abstract <R extends IDropInfo> Collection<R> getDropsOfType(
+			Class<? extends Drop> type, Class<R> rType);
+
 	@SuppressWarnings("unchecked")
 	protected IResultsViewContentProvider buildModelOfDropSea_internal() {
 		// show at the viewer root
 		Collection<C> root = new HashSet<C>();
 
-		final Collection<IProofDropInfo> promiseDrops = 
-			getDropsOfType(PromiseDrop.class, IProofDropInfo.class);
+		final Collection<IProofDropInfo> promiseDrops = getDropsOfType(
+				PromiseDrop.class, IProofDropInfo.class);
 		for (IProofDropInfo pd : promiseDrops) {
 			if (pd.isFromSrc()) {
 				// System.out.println("Considering: "+pd.getMessage());
@@ -1131,8 +1149,8 @@ extends	AbstractResultsViewContentProvider {
 			}
 		}
 
-		final Collection<IDropInfo> infoDrops = 
-			getDropsOfType(InfoDrop.class, IDropInfo.class);
+		final Collection<IDropInfo> infoDrops = getDropsOfType(InfoDrop.class,
+				IDropInfo.class);
 		if (!infoDrops.isEmpty()) {
 			final String msg = "Suggestions and warnings";
 			C infoFolder = makeContent(msg);
@@ -1151,7 +1169,8 @@ extends	AbstractResultsViewContentProvider {
 			 * We have modeling problems...make sure the view that shows them is
 			 * visible to the user.
 			 */
-			if (JSurePreferencesUtility.getAutoOpenModelingProblemsView()) {
+			if (EclipseUtility
+					.getBooleanPreference(JSurePreferencesUtility.AUTO_OPEN_MODELING_PROBLEMS_VIEW)) {
 				final UIJob job = new SLUIJob() {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
@@ -1169,12 +1188,14 @@ extends	AbstractResultsViewContentProvider {
 			 * We have modeling problems...make sure the view that shows them is
 			 * visible to the user.
 			 */
-			if (JSurePreferencesUtility.getAutoOpenProposedPromiseView()) {
+			if (EclipseUtility
+					.getBooleanPreference(JSurePreferencesUtility.AUTO_OPEN_PROPOSED_PROMISE_VIEW)) {
 				final UIJob job = new SLUIJob() {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
-						ViewUtility.showView(ProposedPromiseView.class
-								.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
+						ViewUtility.showView(
+								ProposedPromiseView.class.getName(), null,
+								IWorkbenchPage.VIEW_VISIBLE);
 						return Status.OK_STATUS;
 					}
 				};
@@ -1182,8 +1203,8 @@ extends	AbstractResultsViewContentProvider {
 			}
 		}
 
-		final Collection<IProofDropInfo> resultDrops = 
-			getDropsOfType(ResultDrop.class, IProofDropInfo.class);
+		final Collection<IProofDropInfo> resultDrops = getDropsOfType(
+				ResultDrop.class, IProofDropInfo.class);
 		for (IProofDropInfo id : resultDrops) {
 			// only show result drops at the main level if they are not attached
 			// to a promise drop or a result drop
@@ -1195,7 +1216,7 @@ extends	AbstractResultsViewContentProvider {
 				root.add(encloseDrop((T) id));
 			}
 		}
-		
+
 		root = categorize(root);
 		root = packageTypeFolderize(root);
 		propagateWarningDecorators(root);
@@ -1217,7 +1238,7 @@ extends	AbstractResultsViewContentProvider {
 	public Object[] getLastElements() {
 		synchronized (GenericResultsViewContentProvider.class) {
 			return (isShowInferences() ? m_lastRoot : AbstractContent
-					.<T,C>filterNonInfo(m_lastRoot));
+					.<T, C> filterNonInfo(m_lastRoot));
 		}
 	}
 }

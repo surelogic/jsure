@@ -53,29 +53,37 @@ public class Activator extends AbstractUIPlugin implements
 	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
+
 		if (doubleChecker == null) {
 			doubleChecker = new Plugin();
 			doubleChecker.start(context);
 		}
+
 		SWTUtility.startup(this);
 	}
 
 	// Used for startup
 	public void run(IProgressMonitor monitor) throws InvocationTargetException,
 			InterruptedException {
-		monitor.beginTask("Initializing the JSure tool", 6);
-		
+		monitor.beginTask("Initializing the JSure tool", 7);
+
 		/*
 		 * "Touch" common-core-eclipse so the logging gets Eclipse-ified.
 		 */
 		SLEclipseStatusUtility.touch(new DialogTouchNotificationUI());
 		monitor.worked(1);
+		
+		/*
+		 * "Touch" the JSure preference initialization.
+		 */
+		JSurePreferencesUtility.initializeDefaultScope();
+		monitor.worked(1);
 
 		if (!Util.useResultsXML) {
 			clearJSureData();
-			monitor.worked(1);
 		}
-		
+		monitor.worked(1);
+
 		// TODO reload persistent data
 		Eclipse.initialize();
 		monitor.worked(1);
@@ -84,13 +92,14 @@ public class Activator extends AbstractUIPlugin implements
 				.schedule();
 		monitor.worked(1);
 
-		//NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
+		// NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
 		JavacDriver.getInstance();
 		monitor.worked(1);
 	}
 
 	private void clearJSureData() {
-		for (File f : JSurePreferencesUtility.getJSureDataDirectory().listFiles()) {
+		for (File f : JSurePreferencesUtility.getJSureDataDirectory()
+				.listFiles()) {
 			if (f.isDirectory()) {
 				FileUtility.recursiveDelete(f, false);
 			}
