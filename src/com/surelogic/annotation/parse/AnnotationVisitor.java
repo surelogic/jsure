@@ -45,8 +45,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
 	public static boolean allowJavadoc(ITypeEnvironment te) {
 		final IDE ide = IDE.getInstance();
-		return ide.getBooleanPreference(IDEPreferences.ALLOW_JAVADOC_ANNOS,
-				te.getMajorJavaVersion() < 5); // project is Java 1.4 or below
+		return ide.getBooleanPreference(IDEPreferences.ALLOW_JAVADOC_ANNOS)
+				|| te.getMajorJavaVersion() < 5; // project is Java 1.4 or below
 	}
 
 	@Override

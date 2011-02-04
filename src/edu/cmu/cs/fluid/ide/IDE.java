@@ -5,7 +5,11 @@
 package edu.cmu.cs.fluid.ide;
 
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,14 +19,19 @@ import com.surelogic.aast.bind.CommonAASTBinder;
 import com.surelogic.analysis.IAnalysisReporter;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.test.*;
+import com.surelogic.test.ITest;
+import com.surelogic.test.ITestOutput;
+import com.surelogic.test.ITestOutputFactory;
+import com.surelogic.test.MultiOutput;
+import com.surelogic.test.SilentTestOutput;
 
 import edu.cmu.cs.fluid.ir.Bundle;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.PlainIRNode;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.ICompUnitListener;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.mvc.examples.SimpleForestApp;
 import edu.cmu.cs.fluid.mvc.version.ModificationManager;
 import edu.cmu.cs.fluid.mvc.version.ModificationManagerFactory;
@@ -383,6 +392,7 @@ public abstract class IDE {
 
 	private static final ModificationManager modManager = new ModificationManagerWrapper(
 			ModificationManagerFactory.prototype.create(vspace, tracker));
+
 	static {
 		try {
 			Version v1 = Version.getVersion();
@@ -582,31 +592,25 @@ public abstract class IDE {
 	 * 
 	 * @param key
 	 *            the key for the desired preference.
-	 * @param def
-	 *            a default value if the preference is not found.
 	 * @return the value.
 	 */
-	public abstract boolean getBooleanPreference(String key, boolean def);
+	public abstract boolean getBooleanPreference(String key);
 
 	/**
 	 * Looks up a int preference.
 	 * 
 	 * @param key
 	 *            the key for the desired preference.
-	 * @param def
-	 *            a default value if the preference is not found.
 	 * @return the value.
 	 */
-	public abstract int getIntPreference(String key, int def);
+	public abstract int getIntPreference(String key);
 
 	/**
 	 * Looks up a string preference.
 	 * 
 	 * @param key
 	 *            the key for the desired preference.
-	 * @param def
-	 *            a default value if the preference is not found.
 	 * @return the value.
 	 */
-	public abstract String getStringPreference(String key, String def);
+	public abstract String getStringPreference(String key);
 }

@@ -496,26 +496,24 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 
 	public static RegionModel getAllRegion() {
 		return RegionModel.getInstance(ALL, IDE.getInstance()
-				.getStringPreference(IDEPreferences.DEFAULT_JRE, null)); // TODO
+				.getStringPreference(IDEPreferences.DEFAULT_JRE)); // TODO
 	}
 
 	public static RegionModel getInstanceRegion() {
 		return RegionModel.getInstance(INSTANCE, IDE.getInstance()
-				.getStringPreference(IDEPreferences.DEFAULT_JRE, null)); // TODO
+				.getStringPreference(IDEPreferences.DEFAULT_JRE)); // TODO
 	}
 
 	public static RegionModel getArrayLengthRegion() {
-		return RegionModel.getInstance(
-				PromiseConstants.REGION_LENGTH_NAME,
-				IDE.getInstance().getStringPreference(
-						IDEPreferences.DEFAULT_JRE, null)); // TODO
+		return RegionModel.getInstance(PromiseConstants.REGION_LENGTH_NAME, IDE
+				.getInstance().getStringPreference(IDEPreferences.DEFAULT_JRE)); // TODO
 	}
 
 	public static RegionModel getArrayElementRegion() {
 		return RegionModel.getInstance(
 				PromiseConstants.REGION_ELEMENT_NAME,
 				IDE.getInstance().getStringPreference(
-						IDEPreferences.DEFAULT_JRE, null)); // TODO
+						IDEPreferences.DEFAULT_JRE)); // TODO
 	}
 
 	public static void printModels() {
