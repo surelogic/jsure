@@ -17,7 +17,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
-import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
 public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.TypesVisitor, Void> {
@@ -38,7 +37,6 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			@Override
       public void run() {
 				runOverFile(compUnit);
 			}
@@ -68,6 +66,7 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
           (srcRef == null) ? 0 : srcRef.getLineNumber(),
           type.toString(), getClassName(type));
       showType("  ", type);
+      System.out.println("--------------------------------------------------");
     }
     
     private void showType(final String prefix, final IJavaType type) {
@@ -147,12 +146,10 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
       showType(e);
     }
 
-    @Override
     public IBinder getBinder() {
       return binder;
     }
 
-    @Override
     public void clearCaches() {
       // do nothing
     }
