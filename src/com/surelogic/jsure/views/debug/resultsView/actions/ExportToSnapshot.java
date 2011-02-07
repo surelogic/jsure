@@ -17,11 +17,12 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
+import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 
-import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.sea.Sea;
+import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
@@ -47,10 +48,15 @@ public class ExportToSnapshot implements IViewActionDelegate {
     IProject resultsBelongTo = null;
     final IProject[] projects =
       ResourcesPlugin.getWorkspace().getRoot().getProjects();
+    IIRProjects projs = ProjectsDrop.getDrop().getIIRProjects();
     for (final IProject current : projects) {
-      if (current.isOpen() && Nature.hasNature(current)) {
-        resultsBelongTo = current;
-        break;
+      if (current.isOpen()) {
+    	  for(String p : projs.getProjectNames()) {
+    		  if (p.equals(current.getName())) {
+    			  resultsBelongTo = current;
+    			  break;
+    		  }
+    	  }
       }
     }
     if (resultsBelongTo == null) {
