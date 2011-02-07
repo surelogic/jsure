@@ -20,8 +20,6 @@ public final class Commands implements ScriptCommands {
     commands.put(CREATE_PROJECT, new CreateProject());
     commands.put(OPEN_PROJECT, new OpenProject());
     commands.put(DELETE_PROJECT, new DeleteProject());
-    commands.put(ADD_NATURE, new AddNature());
-    commands.put(REMOVE_NATURE, new RemoveNature());
     commands.put(CLEANUP_DROPS, new CleanupDrops());
     commands.put("cleanProject", new CleanProject());
     commands.put(CLOSE_PROJECT, new CloseProject());

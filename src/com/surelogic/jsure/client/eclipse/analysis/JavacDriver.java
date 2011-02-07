@@ -53,7 +53,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.analysis.JSureProperties;
 import com.surelogic.annotation.rules.ModuleRules;
@@ -78,7 +77,6 @@ import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.ui.BalloonUtility;
-import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.fluid.javac.Config;
 import com.surelogic.fluid.javac.IClassPathEntry;
 import com.surelogic.fluid.javac.JarEntry;
@@ -102,7 +100,6 @@ import difflib.Delta;
 import difflib.DiffUtils;
 import difflib.Patch;
 import edu.cmu.cs.fluid.dc.Majordomo;
-import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.dc.Plugin;
 import edu.cmu.cs.fluid.ide.IDE;
@@ -1649,19 +1646,22 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				// Clear for next build?
 			}
-			makeTransition(BuildState.WAITING, BuildState.BUILDING, null);
+			makeTransition(BuildState.WAITING, BuildState.BUILDING, null);			
 			if (!ignoreNature) {
+				System.err.println("NOT deactivating projects");
 				// Clear projects that are inactive
-				for (IJavaProject jp : JDTUtility.getJavaProjects()) {
+				/*
+				for (IJavaProject jp : JDTUtility.getJavaProjects()) {					
 					ProjectInfo info = JavacDriver.this.projects.get(jp
 							.getProject());
-					if (info != null) {
+					if (info != null) {						
 						info.setActive(Nature.hasNature(jp.getProject()));
 
 						// Check if it was previously active, but is now a
 						// dependency?
 					}
 				}
+				*/
 			}
 			doBuild(projects, args, monitor, ignoreNature);
 			return SLStatus.OK_STATUS;

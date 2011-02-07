@@ -26,8 +26,6 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.CommonImages;
 
-import edu.cmu.cs.fluid.dc.Nature;
-
 public final class JavaProjectSelectionDialog extends Dialog {
 
 	private final String f_label;
@@ -112,10 +110,12 @@ public final class JavaProjectSelectionDialog extends Dialog {
 			item.setText(jp.getElementName());
 			item.setImage(SLImages.getImage(CommonImages.IMG_PROJECT));
 			item.setData(jp);
+			/*
 			if (Nature.hasNature(jp.getProject())) {
 				f_projectTable.select(index);
 				f_focusProject = jp;
 			}
+			*/
 			index++;
 		}
 

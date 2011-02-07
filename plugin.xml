@@ -14,36 +14,6 @@
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
 	</extension>
-	<extension point="org.eclipse.ui.propertyPages">
-		<page objectClass="org.eclipse.jdt.core.IJavaProject" name="JSure"
-			class="edu.cmu.cs.fluid.dc.PropertyPage" id="edu.cmu.cs.fluid.dc.PropertyPage">
-			<filter name="nature" value="org.eclipse.jdt.core.javanature">
-			</filter>
-		</page>
-		<page objectClass="org.eclipse.core.resources.IProject" name="JSure Assurance Tool"
-			class="edu.cmu.cs.fluid.dc.PropertyPage" id="edu.cmu.cs.fluid.dc.PropertyPage">
-			<filter name="nature" value="org.eclipse.jdt.core.javanature">
-			</filter>
-		</page>
-	</extension>
-	<extension id="dcNature" name="double-checker Nature"
-		point="org.eclipse.core.resources.natures">
-		<runtime>
-			<run class="edu.cmu.cs.fluid.dc.Nature">
-				<parameter name="installBuilder" value="true">
-				</parameter>
-			</run>
-		</runtime>
-		<requires-nature id="org.eclipse.jdt.core.javanature">
-		</requires-nature>
-		<builder id="com.surelogic.jsure.client.eclipse.dcBuilder"></builder>
-	</extension>
-	<extension id="dcBuilder" name="JSure Assurance Tool"
-		point="org.eclipse.core.resources.builders">
-		<builder hasNature="true">
-			<run class="edu.cmu.cs.fluid.dc.Majordomo"></run>
-		</builder>
-	</extension>
 
 	<extension point="org.eclipse.ui.decorators">
 		<decorator lightweight="true" adaptable="true"
@@ -223,15 +193,6 @@
 			production="false">
 		</run>
 		<prerequisite id="com.surelogic.jsure.client.eclipse.ManageColorAnnos">
-		</prerequisite>
-	</extension>
-	<extension id="UseTypeWherePossible" name="Type Use Guidance"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run
-			class="edu.cmu.cs.fluid.analysis.usetypewherepossible.UseTypeWherePossibleGuidance"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
 		</prerequisite>
 	</extension>
 
@@ -447,109 +408,7 @@
 				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarContextAction"
 				enablesFor="1">
 			</action>
-
-			<action
-				id="com.surelogic.jsure.client.eclipse.actions.DisableVerificationContextAction"
-				label="Disable Verification"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
-				tooltip="Disables JSure analysis for the selected projects"
-				menubarPath="jSureMenu/nature.grp"
-				class="com.surelogic.jsure.client.eclipse.actions.DisableVerificationContextAction"
-				enablesFor="+">
-				<enablement>
-					<objectState name="nature"
-						value="com.surelogic.jsure.client.eclipse.dcNature" />
-				</enablement>
-			</action>
-
-			<action
-				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
-				label="Focus Verification on this Project"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
-				tooltip="Enables JSure analysis for the selected project, and disables assurance for all other projects"
-				menubarPath="jSureMenu/nature.grp"
-				class="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
-				enablesFor="1">
-				<enablement>
-					<not>
-						<objectState name="nature"
-							value="com.surelogic.jsure.client.eclipse.dcNature" />
-					</not>
-				</enablement>
-			</action>
-			
-			<action
-				id="com.surelogic.jsure.client.eclipse.actions.AddFluidNatureAction"
-				label="Add JSure Nature on this Project"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
-				tooltip="Enables JSure analysis for the selected project"
-				menubarPath="jSureMenu/nature.grp"
-				class="com.surelogic.jsure.client.eclipse.actions.AddFluidNatureAction"
-				enablesFor="+">
-				<enablement>
-					<not>
-						<objectState name="nature"
-							value="com.surelogic.jsure.client.eclipse.dcNature" />
-					</not>
-				</enablement>
-			</action>
 		</objectContribution>
-	</extension>
-
-	<extension point="org.eclipse.ui.viewActions">
-		<viewContribution id="org.cmu.cs.fluid.dc.projectexplorer.actions"
-			targetID="org.eclipse.jdt.ui.PackageExplorer">
-
-<!--
-	        <action
-				id="com.surelogic.jsure.client.eclipse.actions.TestCopyProjectAction"
-				label="Test Copy Project"
-                toolbarPath="JSure" menubarPath="additions"
-				class="com.surelogic.jsure.client.eclipse.actions.TestCopyProjectAction"
-				enablesFor="1">
-				<enablement>
-					<objectClass name="org.eclipse.jdt.core.IJavaProject" />
-				</enablement>
-			</action>
--->
-			<action
-				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
-				label="Focus Verification on this Project"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
-				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
-				tooltip="Enables JSure analysis for the selected project, and disables assurance for all other projects"
-				toolbarPath="JSure" menubarPath="additions"
-				class="com.surelogic.jsure.client.eclipse.actions.FocusVerificationContextAction"
-				enablesFor="1">
-				<enablement>
-					<and>
-						<objectClass name="org.eclipse.jdt.core.IJavaProject" />
-						<not>
-							<objectState name="nature"
-								value="com.surelogic.jsure.client.eclipse.dcNature" />
-						</not>
-					</and>
-				</enablement>
-			</action>
-
-			<action
-				id="com.surelogic.jsure.client.eclipse.actions.DisableVerificationContextAction"
-				label="Disable Verification"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
-				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify_gray.gif"
-				tooltip="Disables JSure analysis for the selected projects"
-				toolbarPath="JSure" menubarPath="additions"
-				class="com.surelogic.jsure.client.eclipse.actions.DisableVerificationContextAction"
-				enablesFor="+">
-				<enablement>
-					<and>
-						<objectClass name="org.eclipse.jdt.core.IJavaProject" />
-						<objectState name="nature"
-							value="com.surelogic.jsure.client.eclipse.dcNature" />
-					</and>
-				</enablement>
-			</action>
-		</viewContribution>
 	</extension>
 
 	<extension point="org.eclipse.ui.editors.templates">

@@ -10,10 +10,9 @@ import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
+import com.surelogic.jsure.client.eclipse.analysis.JavacBuild;
 import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
 import com.surelogic.jsure.client.eclipse.analysis.ScriptCommands;
-
-import edu.cmu.cs.fluid.dc.FirstTimeAnalysis;
 
 /**
  * Reads the script line by line
@@ -279,10 +278,9 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 			e.printStackTrace();
 		}	
 		System.out.println("build FTA");
-		final IStatus s = new FirstTimeAnalysis(project).run(null);
-		if (!s.isOK()) {
-			throw new CoreException(s);
-		}
+		// TODO
+		//JavacBuild.analyze(selectedProjects);
+		throw new UnsupportedOperationException("Need to build differently for the regression tests");
 	} else {
 		System.out.println("build workspace");
 		ResourcesPlugin.getWorkspace().build(kind, null);

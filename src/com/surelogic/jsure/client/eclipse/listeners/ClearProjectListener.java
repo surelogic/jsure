@@ -6,8 +6,6 @@ import java.util.logging.Level;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.IIRProjects;
@@ -20,7 +18,6 @@ import com.surelogic.fluid.javac.Projects;
 import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
 import com.surelogic.jsure.client.eclipse.analysis.ScriptCommands;
 
-import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
@@ -264,71 +261,5 @@ public class ClearProjectListener implements IResourceChangeListener {
 			}
 		}
 		Sea.getDefault().notifySeaObservers();
-	}
-
-	/**
-	 * Helper method to call after you add or remove the nature for JSure from
-	 * one or more projects.
-	 * 
-	 * Especially if we focus verification
-	 */	
-	public static void postNatureChangeUtility(boolean removedNature) {
-		postNatureChangeUtility(null, removedNature);
-	}
-	
-	/**
-	 * Helper method to call after you add or remove the nature for JSure from
-	 * one or more projects.
-	 */	
-	public static void postNatureChangeUtility(List<IProject> projs, boolean removedNature) {		
-		System.out.println("postNatureChangeUtility "+removedNature);
-		if (removedNature) {
-			ClearProjectListener.clearJSureState(projs);			
-		}
-
-		// Handle projects that are still active
-		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
-				.getProjects();
-		IProject first = null;
-
-		for (final IProject p : projects) {
-			if (p.isOpen() && Nature.hasNature(p)) {
-				if (first == null) {
-					first = p;
-				} else if (!IDE.allowMultipleProjects) {
-					SLLogger.getLogger().severe(
-							"Multiple projects with JSure nature: "
-									+ first.getName() + " and " + p.getName());
-					continue;
-				}
-				Nature.runAnalysis(p);
-			}
-		}
-	}
-
-	public static Collection<IProject> clearNatureFromAllOpenProjects() {
-		// Handle projects that are still active
-		final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
-				.getProjects();
-		if (projects == null) {
-			return Collections.emptyList();
-		}
-		final List<IProject> removed = new ArrayList<IProject>();
-		for (final IProject p : projects) {
-			if (p.isOpen() && Nature.hasNature(p)) {
-				try {
-					Nature.removeNatureFromProject(p);
-					removed.add(p);
-				} catch (final CoreException e) {
-					SLLogger.getLogger().log(
-							Level.SEVERE,
-							"CoreException trying to remove the JSure nature from "
-									+ p.getName(), e);
-				}
-			}
-		}
-		postNatureChangeUtility(!removed.isEmpty());
-		
-		return removed;
 	}
 }

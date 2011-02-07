@@ -156,29 +156,6 @@ public class Plugin implements IAnalysisContainer {
 	}
 
 	/**
-	 * Because JSure does not persist its result we use this method to invoke an
-	 * AUTO_BUILD on each open project in the workspace that has JSure enabled
-	 * for it.
-	 */
-	public void autoBuildJSureProjects() {
-		if (LOG.isLoggable(Level.FINE)) {
-			LOG.fine("autoBuildJSureProjects() called");
-		}
-		IProject[] projects = getWorkspace().getRoot().getProjects();
-		for (int i = 0; i < projects.length; i++) {
-			final IProject p = projects[i];
-			if (p.isOpen() && Nature.hasNature(p)) {
-				Activator.getDefault().getWorkbench().getDisplay()
-						.asyncExec(new Runnable() {
-							public void run() {
-								refreshProjectAndScheduleInitialAnalysis(p);
-							}
-						});
-			}
-		}
-	}
-
-	/**
 	 * Invoke an AUTO_BUILD on the project provided using a created
 	 * ProgressMonitorDialog to track progress.
 	 * 
@@ -219,7 +196,6 @@ public class Plugin implements IAnalysisContainer {
 		if (analysisExtensionPointsPrerequisitesOK()) {
 			initializeAnalysisLevels();
 		}
-		autoBuildJSureProjects();
 	}
 
 	private void initAnalysisDefaults() {

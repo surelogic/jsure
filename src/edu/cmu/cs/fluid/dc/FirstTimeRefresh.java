@@ -20,6 +20,6 @@ public class FirstTimeRefresh extends FirstTimeJob {
 	 * results. Note that this job should run after the one above (I belive
 	 * this is what is occurring in Eclipse).
 	 */	
-	new FirstTimeAnalysis(m_project).schedule();
+    //new FirstTimeAnalysis(m_project).schedule();
   }
 }

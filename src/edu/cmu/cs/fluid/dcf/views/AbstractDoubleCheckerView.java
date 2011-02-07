@@ -58,7 +58,6 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 
 import edu.cmu.cs.fluid.dc.IAnalysisListener;
-import edu.cmu.cs.fluid.dc.Nature;
 import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -680,7 +679,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		if (f_viewerbook != null && !f_viewerbook.isDisposed()) {
 			f_viewerbook.getDisplay().asyncExec(new Runnable() {
 				public void run() {
-					if (!Nature.hasNatureAnyProject()) {
+					if (false) { //!Nature.hasNatureAnyProject()) {
 						f_noResultsToShowLabel.setText(NO_RESULTS);
 						setViewerVisibility(false);
 					} else {				
