@@ -553,11 +553,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       */
     } else if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wt = (IJavaWildcardType) ty;
-      if (wt.getUpperBound() != null) {
-        return typeScope(wt.getUpperBound());  
+      if (wt.getLowerBound() != null) {
+        return typeScope(wt.getLowerBound());  
       }
       /* // Could be any supertype of T, including Object
-      else if (wt.getLowerBound() != null) {
+      else if (wt.getUpperBound() != null) {
         LOG.warning("What type scope do I use for "+wt+"?");
       }
       */
@@ -1343,7 +1343,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     			capture(map, fty, argTypes[i]);
     		}
     	}
-    	
+    	/*
+    	if (argTypes.length == 1 && argTypes[0].toString().equals("java.util.List<? extends capture.B>")) {
+    		System.out.println("matching against "+tmpTypes);
+    	}	
+    	*/
       // Then, substitute and check if compatible
       final boolean isVarArgs = varType != null;
       int numBoxed = 0;    	
