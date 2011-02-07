@@ -412,7 +412,7 @@ private long parseIntLiteral(String token) {
     }
     if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wct = (IJavaWildcardType)ty;
-      IJavaType bt = wct.getUpperBound();
+      IJavaType bt = wct.getLowerBound();
       if (bt != null) {
         return new SingletonIterator<IJavaType>(bt);
       }
@@ -670,12 +670,12 @@ private long parseIntLiteral(String token) {
       IJavaWildcardType sw = (IJavaWildcardType) ss;
       if (tt instanceof IJavaWildcardType) {
         IJavaWildcardType tw = (IJavaWildcardType) tt;
-        if (sw.getUpperBound() != null) {
-          if (tw.getUpperBound() == null) return true; // was false;
-          return isSubType(sw.getUpperBound(), tw.getUpperBound()); // (1)
+        if (sw.getLowerBound() != null) {
+          if (tw.getLowerBound() == null) return true; // was false; (1a)
+          return isSubType(sw.getLowerBound(), tw.getLowerBound()); // (1)
         } else {
-          if (tw.getLowerBound() == null) return false;
-          return isSubType(tw.getLowerBound(), sw.getLowerBound()); // (2)
+          if (tw.getUpperBound() == null) return false; //(2a)
+          return isSubType(tw.getUpperBound(), sw.getUpperBound()); // (2)
         }
       } else {
         return false;
@@ -683,10 +683,10 @@ private long parseIntLiteral(String token) {
     } else {
       if (!(tt instanceof IJavaWildcardType)) return false;
       IJavaWildcardType tw = (IJavaWildcardType)tt;
-      if (tw.getUpperBound() != null) {
-        return isSubType(ss,tw.getUpperBound()); // (4)
-      } else if (tw.getLowerBound() != null) {        
-        return isSubType(tw.getLowerBound(),ss); // (5)
+      if (tw.getLowerBound() != null) {
+        return isSubType(ss,tw.getLowerBound()); // (4)
+      } else if (tw.getUpperBound() != null) {        
+        return isSubType(tw.getUpperBound(),ss); // (5)
       } else {
         return (ss instanceof IJavaReferenceType); // Anything matches ?
       }
@@ -846,8 +846,8 @@ private long parseIntLiteral(String token) {
     }
     if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wt = (IJavaWildcardType) ty;
-      if (wt.getUpperBound() != null) {
-        return computeErasure(wt.getUpperBound());
+      if (wt.getLowerBound() != null) {
+        return computeErasure(wt.getLowerBound());
       } 
       return getObjectType();
     }
