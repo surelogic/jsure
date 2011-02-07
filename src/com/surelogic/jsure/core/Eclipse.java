@@ -18,6 +18,8 @@ import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+
+import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.Resources;
@@ -380,6 +382,11 @@ public final class Eclipse extends IDE {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public IJavaFileLocator getJavaFileLocator() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IAnalysisInfo[] getAnalysisInfo() {
 		throw new UnsupportedOperationException();
 	}
 }
