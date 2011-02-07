@@ -179,7 +179,7 @@ public final class PreferencePage extends
 		 * modules and which have been excluded from the double-checker plugin.
 		 */
 		AnalysisModuleContentProvider() {			
-			// read information from the double-checker plugin
+			// read information from the double-checker plug-in
 			m_checktreeContents = new HashSet<PreferenceTreeNode>();
 			m_originalMap = new HashMap<IAnalysisInfo, PreferenceTreeNode>();
 			// Create core contents (ones we care about)

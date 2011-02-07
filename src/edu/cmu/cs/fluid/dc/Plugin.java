@@ -1,6 +1,8 @@
 package edu.cmu.cs.fluid.dc;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -31,8 +33,8 @@ import org.osgi.framework.BundleContext;
 
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 
@@ -210,8 +212,8 @@ public class Plugin implements IAnalysisContainer {
 	public void start(BundleContext context) throws Exception {
 		readAnalysisModuleExtensionPoints();
 		analysisExtensionPointsExcludeNonProduction();
-		initAnalysisDefaults(EclipseUIUtility.getPreferences());
-		readStateFromPrefs(EclipseUIUtility.getPreferences());
+		initAnalysisDefaults();
+		readStateFromPrefs();
 		ensureAllIncludedPrereqsAreIncluded();
 
 		if (analysisExtensionPointsPrerequisitesOK()) {
@@ -220,11 +222,11 @@ public class Plugin implements IAnalysisContainer {
 		autoBuildJSureProjects();
 	}
 
-	private void initAnalysisDefaults(IPreferenceStore store) {
+	private void initAnalysisDefaults() {
 		for (IExtension ext : allAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
-			store.setDefault(ANALYSIS_ACTIVE_PREFIX + id,
-					!m_nonProductionAnalysisExtensions.contains(ext));
+			EclipseUtility.setDefaultBooleanPreference(ANALYSIS_ACTIVE_PREFIX
+					+ id, !m_nonProductionAnalysisExtensions.contains(ext));
 		}
 	}
 
@@ -248,11 +250,8 @@ public class Plugin implements IAnalysisContainer {
 	//
 	// //////////////////////////////////////////////////////////////////////
 
-	private boolean isActive(IPreferenceStore store, String id) {
-		/*
-		 * if (AnalysisDriver.useJavac) { return AnalysisDriver.ID.equals(id); }
-		 */
-		return store.getBoolean(ANALYSIS_ACTIVE_PREFIX + id);
+	private boolean isActive(String id) {
+		return EclipseUtility.getBooleanPreference(ANALYSIS_ACTIVE_PREFIX + id);
 	}
 
 	/**
@@ -261,12 +260,12 @@ public class Plugin implements IAnalysisContainer {
 	 * 
 	 * @see #writeStateToPrefs()
 	 */
-	private void readStateFromPrefs(IPreferenceStore store) {
+	private void readStateFromPrefs() {
 		m_includedExtensions.clear();
 
 		for (IExtension ext : allAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
-			final boolean active = isActive(store, id);
+			final boolean active = isActive(id);
 			if (active) {
 				// System.out.println("Really Included : "+id);
 				m_includedExtensions.add(CommonStrings.intern(id));
@@ -304,7 +303,7 @@ public class Plugin implements IAnalysisContainer {
 	 * Only used for regression testing
 	 */
 	public void initAnalyses(IPreferenceStore store) {
-		readStateFromPrefs(store);
+		readStateFromPrefs();
 		if (analysisExtensionPointsPrerequisitesOK()) {
 			initializeAnalysisLevels();
 		}
@@ -316,10 +315,10 @@ public class Plugin implements IAnalysisContainer {
 	 * 
 	 * @see #readStateFromPrefs()
 	 */
-	void writeStateToPrefs(IPreferenceStore store) {
+	void writeStateToPrefs() {
 		for (IExtension ext : allAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
-			store.setValue(ANALYSIS_ACTIVE_PREFIX + id,
+			EclipseUtility.setBooleanPreference(ANALYSIS_ACTIVE_PREFIX + id,
 					m_includedExtensions.contains(id));
 		}
 	}
@@ -652,19 +651,6 @@ public class Plugin implements IAnalysisContainer {
 	 * <code>m_excludedExtensions</code> field.
 	 */
 	private void analysisExtensionPointsExcludeNonProduction() {
-		/*
-		 * for (int i = 0; i < allAnalysisExtensions.length; i++) { String uid =
-		 * allAnalysisExtensions[i].getUniqueIdentifier();
-		 * IConfigurationElement[] configElements = allAnalysisExtensions[i]
-		 * .getConfigurationElements(); for (int j = 0; j <
-		 * configElements.length; j++) { String production = configElements[j]
-		 * .getAttribute("production"); if (production != null &&
-		 * production.equals("false")) { if (LOG.isLoggable(Level.FINE))
-		 * LOG.fine("analysis module extension point " + uid +
-		 * " is not production and is being excluded"); // add to list of
-		 * non-production m_nonProductionAnalysisExtensions
-		 * .add(allAnalysisExtensions[i]); } } }
-		 */
 		m_nonProductionAnalysisExtensions.clear();
 		for (IAnalysisInfo info : getAllAnalysisInfo()) {
 			if (!info.isProduction()) {
@@ -988,7 +974,7 @@ public class Plugin implements IAnalysisContainer {
 		if (isIncludedExtensionsChanged(includedExtensions)) {
 			m_includedExtensions.clear();
 			m_includedExtensions.addAll(includedExtensions);
-			writeStateToPrefs(EclipseUIUtility.getPreferences());
+			writeStateToPrefs();
 
 			if (analysisExtensionPointsPrerequisitesOK()) {
 				initializeAnalysisLevels();
