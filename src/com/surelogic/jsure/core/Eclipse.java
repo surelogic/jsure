@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.eclipse;
+package com.surelogic.jsure.core;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -19,12 +19,10 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.Resources;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.fluid.eclipse.preferences.PreferenceConstants;
 
-import edu.cmu.cs.fluid.eclipse.logging.EclipseLogHandler;
-import edu.cmu.cs.fluid.eclipse.logging.ErrorLog;
 import edu.cmu.cs.fluid.ide.IClassPath;
 import edu.cmu.cs.fluid.ide.IClassPathContext;
 import edu.cmu.cs.fluid.ide.IDE;
@@ -127,8 +125,6 @@ public final class Eclipse extends IDE {
 			return;
 		}
 		try {
-			EclipseLogHandler.init();
-
 			tempRoot = root;
 			if (LOG.isLoggable(Level.FINE))
 				LOG.fine("Eclipse being initialized");
@@ -356,11 +352,6 @@ public final class Eclipse extends IDE {
 	}
 
 	@Override
-	public void popupWarning(String msg) {
-		ErrorLog.elogPrompt(IStatus.WARNING, msg, "Warning from JSure", msg);
-	}
-
-	@Override
 	public URL getResourceRoot() {
 		return Resources.findRoot("edu.cmu.cs.fluid");
 	}
@@ -373,17 +364,17 @@ public final class Eclipse extends IDE {
 			// Enable, so we can test it!
 			return true;
 		}
-		return PreferenceConstants.getBooleanPreference(key);
+		return EclipseUtility.getBooleanPreference(key);
 	}
 
 	@Override
 	public int getIntPreference(String key) {
-		return PreferenceConstants.getIntPreference(key);
+		return EclipseUtility.getIntPreference(key);
 	}
 
 	@Override
 	public String getStringPreference(String key) {
-		return PreferenceConstants.getStringPreference(key);
+		return EclipseUtility.getStringPreference(key);
 	}
 
 	@Override

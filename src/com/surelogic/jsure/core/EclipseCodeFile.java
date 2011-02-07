@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.eclipse;
+package com.surelogic.jsure.core;
 
 import java.util.logging.Level;
 

@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.eclipse;
+package com.surelogic.jsure.core;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;

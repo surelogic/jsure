@@ -1,27 +1,19 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JSure/Fluid Analysis/Transformation Core (Eclipse Specific)
-Bundle-SymbolicName: edu.cmu.cs.fluid.eclipse; singleton:=true
+Bundle-SymbolicName: edu.cmu.cs.fluid.eclipse;singleton:=true
 Bundle-Version: 4.0.0.qualifier
 Bundle-ClassPath: .
-Bundle-Activator: edu.cmu.cs.fluid.eclipse.ui.FluidPlugin
-Bundle-Vendor: SureLogic, Inc.
-Export-Package: com.surelogic.fluid.eclipse.preferences,
- edu.cmu.cs.fluid.eclipse,
- edu.cmu.cs.fluid.eclipse.logging,
- edu.cmu.cs.fluid.eclipse.ui
+Bundle-Activator: com.surelogic.jsure.core.Activator
+Bundle-Vendor: SureLogic
+Export-Package: com.surelogic.jsure.core,
+ com.surelogic.jsure.core.preferences
 Require-Bundle: com.surelogic.common,
  com.surelogic.common.core,
  edu.cmu.cs.fluid,
  org.eclipse.core.resources,
- org.eclipse.ui,
- org.eclipse.jdt.core,
- org.eclipse.jface.text,
- org.eclipse.ui.views,
- org.eclipse.ui.workbench.texteditor,
- org.eclipse.ui.ide,
  org.eclipse.core.runtime,
- org.eclipse.jdt.ui
+ org.eclipse.jdt.core
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
