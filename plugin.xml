@@ -368,37 +368,6 @@
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
-		    <action
-				class="edu.cmu.cs.fluid.dc.AnalyzeNow2Action"
-				id="com.surelogic.jsure.client.eclipse.actions.AnalyzeNow2Action"
-				label="Analyze Now (external)" tooltip="Run JSure analysis now"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
-			</action>
-
-		    <action
-				class="edu.cmu.cs.fluid.dc.ToggleAnalyzeAutoAction"
-				id="com.surelogic.jsure.client.eclipse.actions.ToggleAnalyzeAutoAction"
-				label="Analyze Automatically" tooltip="Toggle whether to run JSure automatically, or on demand"
-				style="toggle"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
-			</action>
-			
-		    <action
-				class="edu.cmu.cs.fluid.dc.AnalyzeNowAction"
-				id="com.surelogic.jsure.client.eclipse.actions.AnalyzeNowAction"
-				label="Analyze Now" tooltip="Run JSure analysis now"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
-			</action>
-
-			<action
-				class="com.surelogic.jsure.client.eclipse.actions.DisableVerificationOfAllProjectsMainAction"
-				id="com.surelogic.jsure.client.eclipse.actions.DisableVerificationOfAllProjectsMainAction"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify.gif"
-				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_no_verify_gray.gif"
-				label="Disable Verification Of All Projects" tooltip="Set a particular project to be verified by the JSure tool"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
-			</action>
-
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarMainAction"
 				id="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarMainAction"
@@ -409,12 +378,11 @@
 			</action>
 
 			<action
-				class="com.surelogic.jsure.client.eclipse.actions.FocusVerificationMainAction"
-				id="com.surelogic.jsure.client.eclipse.actions.FocusVerificationMainAction"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
-				disabledIcon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify_gray.gif"
-				label="Focus Verification..." tooltip="Set a particular project to be verified by the JSure tool"
-				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+				class="edu.cmu.cs.fluid.dc.AnalyzeNow2Action"
+				id="com.surelogic.jsure.client.eclipse.actions.ScanDialogAction"
+				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/sierra_scan.gif"
+				label="Scan Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
+				enablesFor="*">
 			</action>
 
 			<action
