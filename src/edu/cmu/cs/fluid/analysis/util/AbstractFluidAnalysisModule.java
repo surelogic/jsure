@@ -25,11 +25,11 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.JSureProperties;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.core.Eclipse;
+import com.surelogic.jsure.core.EclipseCodeFile;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.dc.AbstractAnalysisModule;
-import edu.cmu.cs.fluid.eclipse.Eclipse;
-import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;

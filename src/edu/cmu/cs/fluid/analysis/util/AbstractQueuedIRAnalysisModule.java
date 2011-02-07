@@ -8,8 +8,8 @@ import org.eclipse.core.resources.IProject;
 
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.core.QueuingSrcNotifyListener;
 
-import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.util.AbstractRunner;

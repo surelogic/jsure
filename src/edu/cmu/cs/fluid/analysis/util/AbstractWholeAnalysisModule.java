@@ -3,8 +3,8 @@ package edu.cmu.cs.fluid.analysis.util;
 import org.eclipse.core.resources.IProject;
 
 import com.surelogic.analysis.*;
+import com.surelogic.jsure.core.Eclipse;
 
-import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;

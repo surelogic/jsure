@@ -18,10 +18,10 @@ import com.surelogic.common.ui.DialogTouchNotificationUI;
 import com.surelogic.common.ui.SWTUtility;
 import com.surelogic.fluid.javac.Util;
 import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
+import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.dc.Plugin;
-import edu.cmu.cs.fluid.eclipse.Eclipse;
 
 /**
  * The activator class controls the plug-in life cycle

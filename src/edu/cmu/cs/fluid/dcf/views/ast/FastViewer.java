@@ -10,7 +10,8 @@ import org.eclipse.ui.*;
 import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.views.contentoutline.*;
 
-import edu.cmu.cs.fluid.eclipse.Eclipse;
+import com.surelogic.jsure.core.Eclipse;
+
 
 /**
  * @author Edwin

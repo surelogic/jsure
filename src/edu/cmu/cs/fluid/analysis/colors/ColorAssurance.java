@@ -12,11 +12,11 @@ import com.surelogic.analysis.threadroles.TRoleStats;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.listeners.IClearProjectHelper;
+import com.surelogic.jsure.core.Eclipse;
+import com.surelogic.jsure.core.QueuingSrcNotifyListener;
 
 import edu.cmu.cs.fluid.analysis.util.AbstractFluidAnalysisModule;
 import edu.cmu.cs.fluid.analysis.util.AbstractWholeIRAnalysisModule;
-import edu.cmu.cs.fluid.eclipse.Eclipse;
-import edu.cmu.cs.fluid.eclipse.QueuingSrcNotifyListener;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;

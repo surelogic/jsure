@@ -1,9 +1,9 @@
 package edu.cmu.cs.fluid.analysis.util;
 
 import com.surelogic.annotation.test.TestResult;
+import com.surelogic.jsure.core.Eclipse;
 
 import edu.cmu.cs.fluid.dc.IAnalysisListener;
-import edu.cmu.cs.fluid.eclipse.Eclipse;
 import edu.cmu.cs.fluid.sea.Sea;
 
 public class ConsistencyListener implements IAnalysisListener {

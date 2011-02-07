@@ -21,8 +21,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.core.EclipseCodeFile;
 
-import edu.cmu.cs.fluid.eclipse.EclipseCodeFile;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.ModulePromises;
