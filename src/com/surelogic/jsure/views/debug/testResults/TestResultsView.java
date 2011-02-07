@@ -21,6 +21,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
 import com.surelogic.jsure.client.eclipse.listeners.IClearProjectHelper;
+import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.views.debug.testResults.model.Root;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsLabelProvider;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsTreeContentProvider;
@@ -28,8 +29,6 @@ import com.surelogic.test.AbstractTestOutput;
 import com.surelogic.test.ITest;
 import com.surelogic.test.ITestOutput;
 import com.surelogic.test.ITestOutputFactory;
-
-import edu.cmu.cs.fluid.eclipse.Eclipse;
 
 public final class TestResultsView extends ViewPart {
   private static final ImageDescriptor EXPORT_IMAGE_DESC =
