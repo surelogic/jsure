@@ -29,7 +29,7 @@ public class JavacEclipse extends Javac {
     }
     
     public void synchronizeAnalysisPrefs() {
-		for(String id : Projects.getAvailableAnalyses()) {
+		for(String id : getAvailableAnalyses()) {
 			boolean value = EclipseUtility.getBooleanPreference(Plugin.ANALYSIS_ACTIVE_PREFIX + id);
 			setPreference(id, value);
 		}

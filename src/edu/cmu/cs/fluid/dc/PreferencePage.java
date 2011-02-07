@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ui.SLImages;
@@ -152,7 +153,7 @@ public final class PreferencePage extends
 		private Set<PreferenceTreeNode> m_checktreeContents;
 
 		/**
-		 * A map used to link the {@link IExtension}list from the double-checker
+		 * A map used to link the {@link IAnalysisInfo}list from the double-checker
 		 * plugin to the root level of the {@link PreferenceTreeNode}.
 		 */
 		private Map<IAnalysisInfo, PreferenceTreeNode> m_originalMap;

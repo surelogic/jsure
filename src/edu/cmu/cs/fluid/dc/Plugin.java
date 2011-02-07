@@ -18,9 +18,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtension;
-import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Platform;
@@ -31,14 +28,17 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.BundleContext;
 
+import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.fluid.javac.Javac;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 
 import edu.cmu.cs.fluid.analysis.util.WholeAnalysisModule;
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.CommonStrings;
 
@@ -85,7 +85,7 @@ public class Plugin implements IAnalysisContainer {
 	 * what was read from the plugin manifest. Extensions are not in any special
 	 * order.
 	 */
-	IExtension[] allAnalysisExtensions;
+	IAnalysisInfo[] allAnalysisExtensions;
 
 	Map<String, IAnalysisInfo> idToInfoMap;
 
@@ -102,20 +102,20 @@ public class Plugin implements IAnalysisContainer {
 	 * of {@link #allAnalysisExtensions}. Extensions are not in any special
 	 * order.
 	 */
-	Set<IExtension> m_nonProductionAnalysisExtensions = new HashSet<IExtension>();
+	Set<IAnalysisInfo> m_nonProductionAnalysisExtensions = new HashSet<IAnalysisInfo>();
 
 	/**
 	 * The list of non-excluded registered analysis modules. This is a subset of
 	 * 
 	 * {@link #allAnalysisExtensions}. Extensions are not in any special order.
 	 */
-	IExtension[] analysisExtensions;
+	IAnalysisInfo[] analysisExtensions;
 
 	/**
 	 * The list of analysis levels containing sets of analysis module extensions
 	 * at each level. This List is built by {@link #initializeAnalysisLevels}.
 	 */
-	final List<Set<IExtension>> m_analysisExtensionSets = new ArrayList<Set<IExtension>>();
+	final List<Set<IAnalysisInfo>> m_analysisExtensionSets = new ArrayList<Set<IAnalysisInfo>>();
 
 	/**
 	 * Cache managed by {@link #getAnalysisModule}to ensure that obtaining the
@@ -123,7 +123,7 @@ public class Plugin implements IAnalysisContainer {
 	 * only done a single time (i.e., the analysis modules are managed as
 	 * singleton objects).
 	 */
-	Map<IExtension, IAnalysis> m_analysisModuleCache = new HashMap<IExtension, IAnalysis>();
+	Map<IAnalysisInfo, IAnalysis> m_analysisModuleCache = new HashMap<IAnalysisInfo, IAnalysis>();
 
 	/**
 	 * Returns the shared double-checker plugin instance to invoke plugin
@@ -223,7 +223,7 @@ public class Plugin implements IAnalysisContainer {
 	}
 
 	private void initAnalysisDefaults() {
-		for (IExtension ext : allAnalysisExtensions) {
+		for (IAnalysisInfo ext : allAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
 			EclipseUtility.setDefaultBooleanPreference(ANALYSIS_ACTIVE_PREFIX
 					+ id, !m_nonProductionAnalysisExtensions.contains(ext));
@@ -263,7 +263,7 @@ public class Plugin implements IAnalysisContainer {
 	private void readStateFromPrefs() {
 		m_includedExtensions.clear();
 
-		for (IExtension ext : allAnalysisExtensions) {
+		for (IAnalysisInfo ext : allAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
 			final boolean active = isActive(id);
 			if (active) {
@@ -287,7 +287,7 @@ public class Plugin implements IAnalysisContainer {
 
 	private void ensureAnalysisPrereqsAreIncluded(String id) {
 		// Make sure prerequisites are included
-		IExtension e = getAnalysisModuleExtensionPoint(id);
+		IAnalysisInfo e = getAnalysisModuleExtensionPoint(id);
 		Set<String> s = getPrerequisiteAnalysisIdSet(e);
 		for (String prereq : s) {
 			if (m_includedExtensions.contains(prereq)) {
@@ -316,7 +316,7 @@ public class Plugin implements IAnalysisContainer {
 	 * @see #readStateFromPrefs()
 	 */
 	void writeStateToPrefs() {
-		for (IExtension ext : allAnalysisExtensions) {
+		for (IAnalysisInfo ext : allAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
 			EclipseUtility.setBooleanPreference(ANALYSIS_ACTIVE_PREFIX + id,
 					m_includedExtensions.contains(id));
@@ -333,7 +333,7 @@ public class Plugin implements IAnalysisContainer {
 		}
 		pw.println("  </included-analysis-modules>");
 		pw.println("  <excluded-analysis-modules>");
-		for (IExtension ext : m_nonProductionAnalysisExtensions) {
+		for (IAnalysisInfo ext : m_nonProductionAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
 			pw.println("    <id>" + id + "</id>");
 		}
@@ -567,23 +567,62 @@ public class Plugin implements IAnalysisContainer {
 	 * @see #allAnalysisExtensions
 	 */
 	private void readAnalysisModuleExtensionPoints() {
+		/*
 		IExtensionRegistry pluginRegistry = Platform.getExtensionRegistry();
 		IExtensionPoint extensionPoint = pluginRegistry.getExtensionPoint(
 				Plugin.DOUBLE_CHECKER_PLUGIN_ID,
 				Plugin.ANALYSIS_MODULE_EXTENSION_POINT_ID);
 		allAnalysisExtensions = extensionPoint.getExtensions();
+		*/
+		IAnalysisInfo[] temp = Javac.getDefault().getAnalysisInfo();
+		allAnalysisExtensions = new IAnalysisInfo[temp.length+1];
+		allAnalysisExtensions[0] = new IAnalysisInfo() {			
+			@Override
+			public boolean isProduction() {
+				return false;
+			}			
+			@Override
+			public boolean isIncluded() {
+				return false;
+			}			
+			@Override
+			public String getUniqueIdentifier() {
+				return "com.surelogic.jsure.client.eclipse.AnalysisDriver";
+			}			
+			@Override
+			public String[] getPrerequisiteIds() {
+				return new String[0];
+			}			
+			@Override
+			public String getLabel() {
+				return "Analysis Driver";
+			}			
+			@Override
+			public String getCategory() {
+				return null;
+			}			
+			@Override
+			public Class<?> getAnalysisClass() {
+				return AnalysisDriver.class;
+			}
+		};
+		int i=1;
+		for(IAnalysisInfo ai : temp) {
+			allAnalysisExtensions[i] = ai;
+			i++;
+		}
 		idToInfoMap = convertFromExtensions(allAnalysisExtensions);
 	}
 
-	private Map<String, IAnalysisInfo> convertFromExtensions(IExtension[] all) {
+	private Map<String, IAnalysisInfo> convertFromExtensions(IAnalysisInfo[] all) {
 		Map<String, IAnalysisInfo> map = new HashMap<String, IAnalysisInfo>();
-		for (IExtension ext : all) {
-			IAnalysisInfo info = createAnalysisInfo(ext);
+		for (IAnalysisInfo info : all) {
 			map.put(info.getUniqueIdentifier(), info);
 		}
 		return map;
 	}
 
+	/*
 	private IAnalysisInfo createAnalysisInfo(IExtension am) {
 		IConfigurationElement[] cfgs = am.getConfigurationElements();
 		for (int i = 0; i < cfgs.length; i++) {
@@ -635,6 +674,7 @@ public class Plugin implements IAnalysisContainer {
 			return null;
 		}
 	}
+    */
 
 	private IAnalysisInfo getAnalysisInfo(String id) {
 		return idToInfoMap.get(id);
@@ -654,8 +694,7 @@ public class Plugin implements IAnalysisContainer {
 		m_nonProductionAnalysisExtensions.clear();
 		for (IAnalysisInfo info : getAllAnalysisInfo()) {
 			if (!info.isProduction()) {
-				AnalysisInfo ai = (AnalysisInfo) info;
-				m_nonProductionAnalysisExtensions.add(ai.ext);
+				m_nonProductionAnalysisExtensions.add(info);
 			}
 		}
 	}
@@ -673,7 +712,7 @@ public class Plugin implements IAnalysisContainer {
 		// build up a set of known analysis module identifiers filtering out
 		// those that the user has specifically excluded
 		Set<String> ids = new HashSet<String>(); // analysis module ids
-		Set<IExtension> ams = new HashSet<IExtension>();
+		Set<IAnalysisInfo> ams = new HashSet<IAnalysisInfo>();
 		for (int i = 0; i < allAnalysisExtensions.length; ++i) {
 			if (isExtensionIncluded(allAnalysisExtensions[i])) {
 				// user preference exclude
@@ -683,31 +722,24 @@ public class Plugin implements IAnalysisContainer {
 			}
 		}
 		// check that all prerequisites are in that list
-		for (IExtension analysisModule : ams) {
-			IConfigurationElement[] analysisConfigElements = analysisModule
-					.getConfigurationElements();
-			for (int j = 0; j < analysisConfigElements.length; ++j) {
-				IConfigurationElement currentConfigElement = analysisConfigElements[j];
-				if (currentConfigElement.getName().equalsIgnoreCase(
-						"prerequisite")) {
-					if (!ids.contains(CommonStrings.intern(currentConfigElement
-							.getAttribute("id")))) {
-						String logMessage = "The identified prerequisite \""
-								+ currentConfigElement.getAttribute("id")
-								+ "\" for \""
-								+ analysisModule.getLabel()
-								+ "\" (id = \""
-								+ analysisModule.getUniqueIdentifier()
-								+ "\") does not reference any known analysis module";
-						String title = "Unknown Prerequisite";
-						String dialogMessage = "Unknown analysis module \""
-								+ currentConfigElement.getAttribute("id")
-								+ "\" given as a prerequisite below:\n"
-								+ analysisModuleInfo();
-						elogPrompt(null, IStatus.ERROR, logMessage, title,
-								dialogMessage);
-						result = false; // found a problem
-					}
+		for (IAnalysisInfo analysisModule : ams) {
+			for(String prereq : analysisModule.getPrerequisiteIds()) {
+				if (!ids.contains(CommonStrings.intern(prereq))) {
+					String logMessage = "The identified prerequisite \""
+						+ prereq
+						+ "\" for \""
+						+ analysisModule.getLabel()
+						+ "\" (id = \""
+						+ analysisModule.getUniqueIdentifier()
+						+ "\") does not reference any known analysis module";
+					String title = "Unknown Prerequisite";
+					String dialogMessage = "Unknown analysis module \""
+						+ prereq
+						+ "\" given as a prerequisite below:\n"
+						+ analysisModuleInfo();
+					elogPrompt(null, IStatus.ERROR, logMessage, title,
+							dialogMessage);
+					result = false; // found a problem
 				}
 			}
 		}
@@ -727,10 +759,10 @@ public class Plugin implements IAnalysisContainer {
 
 		if (AnalysisDriver.useJavac) {
 			// Just run AnalysisDriver
-			for (IExtension ext : allAnalysisExtensions) {
+			for (IAnalysisInfo ext : allAnalysisExtensions) {
 				if (AnalysisDriver.ID.equals(ext.getUniqueIdentifier())) {
 					m_analysisExtensionSets.add(Collections.singleton(ext));
-					analysisExtensions = new IExtension[1];
+					analysisExtensions = new IAnalysisInfo[1];
 					analysisExtensions[0] = ext;
 					System.out.println("Found " + ext.getUniqueIdentifier());
 					return;
@@ -743,7 +775,7 @@ public class Plugin implements IAnalysisContainer {
 		// filtering
 		// out those that the user has specifically excluded
 		int bailOutLevel = 0;
-		final Set<IExtension> remainingAnalyses = new HashSet<IExtension>();
+		final Set<IAnalysisInfo> remainingAnalyses = new HashSet<IAnalysisInfo>();
 		for (int i = 0; i < allAnalysisExtensions.length; i++) {
 			if (isExtensionIncluded(allAnalysisExtensions[i])) {
 				// user preferences exclude
@@ -753,10 +785,10 @@ public class Plugin implements IAnalysisContainer {
 		// remainingAnalyses is the set of all non-excluded analysis modules so
 		// use it to set the field analysisExtensions
 		analysisExtensions = remainingAnalyses
-				.toArray(new IExtension[remainingAnalyses.size()]);
+				.toArray(new IAnalysisInfo[remainingAnalyses.size()]);
 		final Set<String> lowerLevels = new HashSet<String>(); // of analysis
 		// ids
-		Set<IExtension> thisLevel = new HashSet<IExtension>();
+		Set<IAnalysisInfo> thisLevel = new HashSet<IAnalysisInfo>();
 		while (remainingAnalyses.size() > 0) {
 			if (bailOutLevel++ > 25) {
 				String logMessage = "Bailed out after 25 levels trying to order analysis modules"
@@ -769,7 +801,7 @@ public class Plugin implements IAnalysisContainer {
 				m_analysisExtensionSets.clear(); // zero out
 				return;
 			}
-			for (IExtension cur : remainingAnalyses) {
+			for (IAnalysisInfo cur : remainingAnalyses) {
 				Set<String> curPrereq = getPrerequisiteAnalysisIdSet(cur);
 				if (curPrereq.size() == 0 || lowerLevels.containsAll(curPrereq)) {
 					thisLevel.add(cur);
@@ -782,11 +814,11 @@ public class Plugin implements IAnalysisContainer {
 			}
 			m_analysisExtensionSets.add(thisLevel);
 			remainingAnalyses.removeAll(thisLevel);
-			for (IExtension cur : thisLevel) {
+			for (IAnalysisInfo cur : thisLevel) {
 				lowerLevels
 						.add(CommonStrings.intern(cur.getUniqueIdentifier()));
 			}
-			thisLevel = new HashSet<IExtension>();
+			thisLevel = new HashSet<IAnalysisInfo>();
 		}
 	}
 
@@ -801,19 +833,13 @@ public class Plugin implements IAnalysisContainer {
 	 *         identifiers from the plugin manifest
 	 */
 	private Set<String> getPrerequisiteAnalysisIdSet(
-			IExtension analysisExtension) {
+			IAnalysisInfo analysisExtension) {
 		if (analysisExtension == null) {
 			return Collections.emptySet();
 		}
 		Set<String> result = new HashSet<String>();
-		IConfigurationElement[] analysisConfigElements = analysisExtension
-				.getConfigurationElements();
-		for (int j = 0; j < analysisConfigElements.length; j++) {
-			IConfigurationElement currentConfigElement = analysisConfigElements[j];
-			if (currentConfigElement.getName().equalsIgnoreCase("prerequisite")) {
-				result.add(CommonStrings.intern(currentConfigElement
-						.getAttribute("id")));
-			}
+		for(String prereq : analysisExtension.getPrerequisiteIds()) {
+			result.add(prereq);
 		}
 		return result;
 	}
@@ -827,43 +853,34 @@ public class Plugin implements IAnalysisContainer {
 	 *            the analysis module extension point to attach to
 	 * @return the analysis module, or <code>null</code> if attachment failed
 	 */
-	IAnalysis getAnalysisModule(IExtension analysisExtension) {
+	IAnalysis getAnalysisModule(IAnalysisInfo analysisExtension) {
 		// is it in the cache?
 		IAnalysis result = m_analysisModuleCache.get(analysisExtension);
 		if (result == null) { // was not in the cache
-			IConfigurationElement[] analysisConfigElements = analysisExtension
-					.getConfigurationElements();
-			for (int j = 0; j < analysisConfigElements.length; ++j) {
-				IConfigurationElement currentConfigElement = analysisConfigElements[j];
-				if (currentConfigElement.getName().equalsIgnoreCase("run")) {
-					try {
-						Object temp = currentConfigElement
-								.createExecutableExtension("class");
-						if (temp instanceof IIRAnalysis) {
-							result = new WholeAnalysisModule((IIRAnalysis) temp);
-						} else {
-							result = (IAnalysis) temp;
-						}
-						/*
-						 * note that "createExecutableExtension()" *ALWAYS*
-						 * creates a new object instance -- we want analysis
-						 * modules to be singletons so we need to cache the
-						 * result in the field "analysisModuleCache"
-						 */
-						m_analysisModuleCache.put(analysisExtension, result); // add
-						// to
-						// cache
-					} catch (CoreException e) {
-						String logMessage = "Unable to load class "
-								+ currentConfigElement.getAttribute("class")
-								+ " for analysis module "
-								+ analysisExtension.getLabel();
-						String title = "Analysis Module Class Missing";
-						String dialogMessage = logMessage;
-						elogPrompt(null, IStatus.ERROR, logMessage, title,
-								dialogMessage, e);
-					}
+			try {
+				Object temp = analysisExtension.getAnalysisClass().newInstance();
+				if (temp instanceof IIRAnalysis) {
+					IIRAnalysis a = (IIRAnalysis) temp;
+					result = new WholeAnalysisModule(a);
+				} else {
+					result = (IAnalysis) temp;
 				}
+				/*
+				 * note that "createExecutableExtension()" *ALWAYS*
+				 * creates a new object instance -- we want analysis
+				 * modules to be singletons so we need to cache the
+				 * result in the field "analysisModuleCache"
+				 */
+				m_analysisModuleCache.put(analysisExtension, result); // add to cache
+			} catch (Exception e) {
+				String logMessage = "Unable to create class "
+					+ analysisExtension.getAnalysisClass().getName()
+					+ " for analysis module "
+					+ analysisExtension.getLabel();
+				String title = "Analysis Module Class Missing";
+				String dialogMessage = logMessage;
+				elogPrompt(null, IStatus.ERROR, logMessage, title,
+						dialogMessage, e);
 			}
 		}
 		return result;
@@ -881,7 +898,7 @@ public class Plugin implements IAnalysisContainer {
 	public Set<IAnalysisInfo> getPrerequisiteAnalysisExtensionPoints(
 			IAnalysisInfo info) {
 		Set<IAnalysisInfo> result = new HashSet<IAnalysisInfo>();
-		IExtension ext = getAnalysisModuleExtensionPoint(info
+		IAnalysisInfo ext = getAnalysisModuleExtensionPoint(info
 				.getUniqueIdentifier());
 		Set<String> ids = getPrerequisiteAnalysisIdSet(ext);
 		for (String id : ids) {
@@ -905,7 +922,7 @@ public class Plugin implements IAnalysisContainer {
 	 *         if <code>id</code> does not exist as an analysis module extension
 	 *         point
 	 */
-	private IExtension getAnalysisModuleExtensionPoint(String id) {
+	private IAnalysisInfo getAnalysisModuleExtensionPoint(String id) {
 		for (int i = 0; i < allAnalysisExtensions.length; ++i) {
 			if (allAnalysisExtensions[i].getUniqueIdentifier().equals(id)) {
 				return allAnalysisExtensions[i];
@@ -925,17 +942,11 @@ public class Plugin implements IAnalysisContainer {
 	String analysisModuleInfo() {
 		StringBuilder result = new StringBuilder();
 		for (int i = 0; i < allAnalysisExtensions.length; ++i) {
-			IConfigurationElement[] analysisConfigElements = allAnalysisExtensions[i]
-					.getConfigurationElements();
 			result.append(allAnalysisExtensions[i].getLabel() + " ("
 					+ allAnalysisExtensions[i].getUniqueIdentifier() + ")\n");
-			for (int j = 0; j < analysisConfigElements.length; ++j) {
-				IConfigurationElement currentConfigElement = analysisConfigElements[j];
-				if (currentConfigElement.getName().equalsIgnoreCase(
-						"prerequisite")) {
-					result.append("+ prerequisite: \""
-							+ currentConfigElement.getAttribute("id") + "\"\n");
-				}
+			for(String prereq : allAnalysisExtensions[i].getPrerequisiteIds()) {
+				result.append("+ prerequisite: \"" + prereq + "\"\n");
+
 			}
 		}
 		return result.toString();
@@ -957,7 +968,7 @@ public class Plugin implements IAnalysisContainer {
 	 *         plugin's list of included analysis module extension points,
 	 *         <code>false</code> otherwise
 	 */
-	boolean isExtensionIncluded(IExtension analysisModule) {
+	boolean isExtensionIncluded(IAnalysisInfo analysisModule) {
 		return isExtensionIncluded(analysisModule.getUniqueIdentifier());
 	}
 

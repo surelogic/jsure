@@ -2,6 +2,8 @@ package edu.cmu.cs.fluid.dc;
 
 import java.util.Set;
 
+import com.surelogic.analysis.IAnalysisInfo;
+
 public interface IAnalysisContainer {
 	Iterable<IAnalysisInfo> getAllAnalysisInfo();
 	

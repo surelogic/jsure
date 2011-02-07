@@ -5,7 +5,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -14,6 +18,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.XUtil;
@@ -57,7 +62,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 * Holds the list of analysis modules at the current level during a call to
 	 * {@link #build}.
 	 */
-	private Set<IExtension> currentLevel;
+	private Set<IAnalysisInfo> currentLevel;
 
 	/**
 	 * Holds a cache of Eclipse ASTs that have been generated during a single
@@ -588,7 +593,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 							final long end = System.currentTimeMillis();
 							System.out
 									.println("Time: " + (end - start) + " ms");
-							for (IExtension ext : currentLevel) {
+							for (IAnalysisInfo ext : currentLevel) {
 								System.out.println("\t" + ext.getLabel());
 							}
 						}
@@ -617,7 +622,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 							final long end = System.currentTimeMillis();
 							System.out
 									.println("Time: " + (end - start) + " ms");
-							for (IExtension ext : currentLevel) {
+							for (IAnalysisInfo ext : currentLevel) {
 								System.out.println("\t" + ext.getLabel());
 							}
 						}
@@ -755,7 +760,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 */
 	private void preBuild(IProject project, Map<Object, Object> args) {
 		Plugin plugin = Plugin.getDefault();
-		for (IExtension ext : plugin.analysisExtensions) {
+		for (IAnalysisInfo ext : plugin.analysisExtensions) {
 			IAnalysis analysisModule = Plugin.getDefault().getAnalysisModule(
 					ext);
 			analysisModule.setLabel(ext.getLabel());
@@ -766,7 +771,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 
 	private Iterator<IAnalysis> getAnalysisModules() {
 		final Plugin plugin = Plugin.getDefault();
-		final IExtension[] extensions = plugin.analysisExtensions;
+		final IAnalysisInfo[] extensions = plugin.analysisExtensions;
 		return new Iterator<IAnalysis>() {
 			int i = 0;
 
@@ -794,7 +799,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 */
 	private void resetAnalysesForFullBuild(IProject project) {
 		Plugin plugin = Plugin.getDefault();
-		IExtension[] extensions = plugin.analysisExtensions;
+		IAnalysisInfo[] extensions = plugin.analysisExtensions;
 		for (int i = 0; i < extensions.length; ++i) {
 			plugin.getAnalysisModule(extensions[i]).resetForAFullBuild(project);
 		}
@@ -808,7 +813,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 *            the Eclipse project referenced
 	 */
 	public void analyzeBeginCurrentLevel(IProject project) {
-		for (IExtension ext : currentLevel) {
+		for (IAnalysisInfo ext : currentLevel) {
 			IAnalysis module = Plugin.getDefault().getAnalysisModule(ext);
 			long start = System.nanoTime();
 			module.analyzeBegin(project);
@@ -833,7 +838,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 *            {@link IResourceDelta#CHANGED}
 	 */
 	private void analyzeResourceCurrentLevel(IResource resource, int kind) {
-		for (IExtension ext : currentLevel) {
+		for (IAnalysisInfo ext : currentLevel) {
 			IAnalysis analysisModule = Plugin.getDefault().getAnalysisModule(
 					ext);
 			if (LOG.isLoggable(Level.FINE)) {
@@ -938,7 +943,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 *            the Eclipse project referenced
 	 */
 	private void analyzeEndCurrentLevel(IProject project) throws CoreException {
-		for (IExtension ext : currentLevel) {
+		for (IAnalysisInfo ext : currentLevel) {
 			IAnalysis analysisModule = Plugin.getDefault().getAnalysisModule(
 					ext);
 			long start = System.nanoTime();
@@ -999,7 +1004,7 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 */
 	private void postBuild(IProject project) {
 		Plugin plugin = Plugin.getDefault();
-		IExtension[] extensions = plugin.analysisExtensions;
+		IAnalysisInfo[] extensions = plugin.analysisExtensions;
 		for (int i = 0; i < extensions.length; ++i) {
 			plugin.getAnalysisModule(extensions[i]).postBuild(project);
 		}
