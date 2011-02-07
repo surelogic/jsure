@@ -237,8 +237,6 @@ public abstract class IDE {
 	public static final String LIB_PREFIX = "Library.";
 	public static final String LIB_EXCLUDES = LIB_PREFIX + "excludes";
 
-	public abstract void popupWarning(String string);
-
 	/*************************************************************
 	 * FIX Hack to support Fluid binder
 	 **************************************************************/
