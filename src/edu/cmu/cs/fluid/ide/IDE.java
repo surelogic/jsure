@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.CommonAASTBinder;
+import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IAnalysisReporter;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
@@ -611,4 +612,6 @@ public abstract class IDE {
 	 * @return the value.
 	 */
 	public abstract String getStringPreference(String key);
+
+	public abstract IAnalysisInfo[] getAnalysisInfo();
 }
