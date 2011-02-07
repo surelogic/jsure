@@ -8,6 +8,7 @@ import edu.cmu.cs.fluid.sea.proxy.*;
 public interface IIRAnalysis {	
 	String name();
 	boolean analyzeAll();
+	boolean runInParallel();
 	
 	void init(IIRAnalysisEnvironment env);
 	void preAnalysis(IIRAnalysisEnvironment env, IIRProject p);

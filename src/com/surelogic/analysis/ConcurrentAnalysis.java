@@ -111,7 +111,7 @@ public class ConcurrentAnalysis<Q> {
 		array.apply(proc);
 	}
 
-	protected final boolean runInParallel() {
+	public final boolean runInParallel() {
 		return runInParallel;
 	}
 }
