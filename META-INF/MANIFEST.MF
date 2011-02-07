@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: JSure Client
+Bundle-Name: JSure Eclipse Client
 Bundle-SymbolicName: com.surelogic.jsure.client.eclipse;singleton:=true
 Bundle-Version: 4.0.0.qualifier
 Bundle-Activator: com.surelogic.jsure.client.eclipse.Activator
@@ -9,8 +9,8 @@ Require-Bundle: com.surelogic.common,
  com.surelogic.common.core,
  com.surelogic.common.ui,
  edu.cmu.cs.fluid,
- edu.cmu.cs.fluid.eclipse,
  com.surelogic.fluid.javac,
+ com.surelogic.jsure.core,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
