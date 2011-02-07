@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: JSure/Fluid Analysis/Transformation Core (Eclipse Specific)
-Bundle-SymbolicName: edu.cmu.cs.fluid.eclipse;singleton:=true
+Bundle-Name: JSure Non-User Interface Eclipse Code
+Bundle-SymbolicName: com.surelogic.jsure.core;singleton:=true
 Bundle-Version: 4.0.0.qualifier
 Bundle-ClassPath: .
 Bundle-Activator: com.surelogic.jsure.core.Activator
