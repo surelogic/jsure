@@ -160,6 +160,8 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
             if (ty instanceof IJavaWildcardType) {
                 // This is probably going to break in the future as another
                 // missed case is discovered.
+            	
+            	// TODO is this right? (? extends T -- T is the lower bound)           	
                 IJavaType upper = ((IJavaWildcardType) ty).getUpperBound();
                 if (upper == null) {
                   ty = getBinder().getTypeEnvironment().getObjectType();
