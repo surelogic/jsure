@@ -5,8 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import org.eclipse.jface.preference.IPreferenceStore;
-
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.Resources;
 import com.surelogic.fluid.javac.*;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -29,10 +28,10 @@ public class JavacEclipse extends Javac {
     	setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, JSurePreferencesUtility.getJSureDataDirectory().getAbsolutePath());
     }
     
-    public void synchronizeAnalysisPrefs(IPreferenceStore store) {
+    public void synchronizeAnalysisPrefs() {
 		for(String id : Projects.getAvailableAnalyses()) {
-			boolean val = store.getBoolean(Plugin.ANALYSIS_ACTIVE_PREFIX + id);
-			setPreference(id, val);
+			boolean value = EclipseUtility.getBooleanPreference(Plugin.ANALYSIS_ACTIVE_PREFIX + id);
+			setPreference(id, value);
 		}
 		/*
 		if (XUtil.testing) {

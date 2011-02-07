@@ -1231,13 +1231,11 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private static int getBuildKind(Map args) {
 		final String kind = (String) args.get(Majordomo.BUILD_KIND);
 		return Integer.parseInt(kind);
 	}
 
-	@SuppressWarnings("unchecked")
 	void configureBuild(Map args, boolean ignoreNature) {
 		final int k = getBuildKind(args);
 		configureBuild(
@@ -1263,8 +1261,7 @@ public class JavacDriver implements IResourceChangeListener {
 		JavacEclipse.initialize();
 		if (!XUtil.testing) {
 			System.out.println("Configuring analyses for build");
-			final IPreferenceStore store = EclipseUIUtility.getPreferences();
-			((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs(store);
+			((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
 		}
 		ConfigureJob configure = new ConfigureJob("Configuring JSure build",
 				location, isAuto, args, ignoreNature);
@@ -1315,10 +1312,7 @@ public class JavacDriver implements IResourceChangeListener {
 		try {
 			if (!XUtil.testing) {
 				System.out.println("Configuring analyses for doBuild");
-				final IPreferenceStore store = EclipseUIUtility
-						.getPreferences();
-				((JavacEclipse) IDE.getInstance())
-						.synchronizeAnalysisPrefs(store);
+				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
 			}
 			// final boolean hasDeltas = info.hasDeltas();
 			makeProjects(newProjects);
