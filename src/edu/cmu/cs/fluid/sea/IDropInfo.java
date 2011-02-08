@@ -4,8 +4,10 @@ import java.util.*;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Category;
+import edu.cmu.cs.fluid.sea.xml.*;
 
 public interface IDropInfo {
+	String getEntityName();
 	<T> T getAdapter(Class<T> type);
 	String getType();
 	boolean isInstance(Class<?> type);
@@ -22,4 +24,5 @@ public interface IDropInfo {
 	void setCategory(Category c);
 	Collection<ISupportingInformation> getSupportingInformation();
 	Collection<? extends IProposedPromiseDropInfo> getProposals();
+	void snapshotAttrs(AbstractSeaXmlCreator s);
 }

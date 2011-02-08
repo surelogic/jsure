@@ -109,7 +109,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		outputDropCounts(drops);
 		
 		for(Drop d : drops) {
-			final IRReferenceDrop id = checkIfReady(d);
+			final IDropInfo id = checkIfReady(d);
 			if (id != null) {
 				summarizeDrop(id);
 			}
@@ -121,7 +121,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	private void outputDropCounts(Set<Drop> drops) {
 		final Map<Class<?>,Integer> counts = new HashMap<Class<?>, Integer>();
 		for(Drop d : drops) {
-			final IRReferenceDrop id = checkIfReady(d);
+			final IDropInfo id = checkIfReady(d);
 			if (id != null) {
 				incr(counts, d.getClass());
 			}
@@ -145,27 +145,26 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static IRReferenceDrop checkIfReady(Drop d) {
-		if (d instanceof PromiseDrop) {
-			PromiseDrop pd = (PromiseDrop) d;
+	private static IDropInfo checkIfReady(IDropInfo d) {
+		if (d.isInstance(PromiseDrop.class)) {
+			IProofDropInfo pd = (IProofDropInfo) d;
 			if (!pd.isFromSrc()) {
 				// no need to do anything
 				return null;
 			} 
 		}
 		// TODO skipping for now
-		if (d instanceof IThreadRoleDrop) {
+		if (d.isInstance(IThreadRoleDrop.class)) {
 			return null;
 		}
-		if (d instanceof PromiseWarningDrop && d.getMessage().contains("ThreadRole")) {
+		if (d.isInstance(PromiseWarningDrop.class) && d.getMessage().contains("ThreadRole")) {
 			return null;
 		}
-		if (d instanceof IRReferenceDrop) {
+		if (d.isInstance(IRReferenceDrop.class)) {
 			// Need a location to report
-			IRReferenceDrop id = (IRReferenceDrop) d;
-			ISrcRef ref = id.getSrcRef();
+			ISrcRef ref = d.getSrcRef();
 			if (ref == null) {
-				if (id.getNode() != null && !d.getMessage().contains("java.lang.Object")) {
+				if (!d.getMessage().contains("java.lang.Object")) {
 					/*
                     if (d.getMessage().startsWith("ThreadRole")) {
 						System.out.println("Found ThreadRole");
@@ -177,12 +176,12 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 				}
 				return null;				
 			}	
-			return id;
+			return d;
 		}
 		return null;
 	}
 
-	private void summarizeDrop(IRReferenceDrop id) {					
+	private void summarizeDrop(IDropInfo id) {					
 		reset();
 		
 		final String name = id.getEntityName();	
@@ -194,7 +193,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		flushBuffer(pw);
 	}
 
-	private void addAttributes(IRReferenceDrop id) {
+	private void addAttributes(IDropInfo id) {
 		final String type = id.getClass().getSimpleName();
 		addAttribute(TYPE_ATTR, type);
 		//addAttribute(MESSAGE_ATTR, id.getMessage());
@@ -202,8 +201,11 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		ISrcRef ref = id.getSrcRef();
 		addLocation(ref);
 		//addAttribute(OFFSET_ATTR, (long) ref.getOffset());
-		addAttribute(HASH_ATTR, computeHash(id.getNode(), false));
-		addAttribute(CONTEXT_ATTR, computeContext(id.getNode(), false));
+		if (id instanceof IRReferenceDrop) {
+			IRReferenceDrop ird = (IRReferenceDrop) id;
+			addAttribute(HASH_ATTR, computeHash(ird.getNode(), false));
+			addAttribute(CONTEXT_ATTR, computeContext(ird.getNode(), false));
+		}
 		//addAttribute("unparse", unparser.unparseString(id.getNode()));
 		// Omitting supporting info
 		/*
@@ -226,7 +228,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return computeHash(node, false);
 	}
 	
-	private static long computeHash(IRNode node, boolean debug) {			
+	public static long computeHash(IRNode node, boolean debug) {			
 		final String unparse = unparser.unparseString(node);
 		if (debug) {
 			System.out.println("Unparse: "+unparse);
@@ -234,7 +236,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return unparse.hashCode();
 	}
 	
-	private long computeContext(IRNode node, boolean debug) {			
+	public static long computeContext(IRNode node, boolean debug) {			
 		final String context = JavaNames.computeContextId(node);
 		if (context != null) {
 			if (debug) {
@@ -265,8 +267,12 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		return d;
 	}
 	
-	public static Diff diff(String project, final Sea sea, File location)
-	throws Exception {
+	public static Diff diff(final Sea sea, File location) throws Exception {
+		Set<Drop> drops = sea.getDrops();
+		return diff(sea.getDrops().toArray(new IDropInfo[drops.size()]), location);
+	}
+	
+	public static Diff diff(IDropInfo[] drops, File location) throws Exception {
 		// Load up current contents
 		final Listener l = read(location);
 		
@@ -275,8 +281,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	
 		final SeaSummary s = new SeaSummary(null);
 		final List<Entity> newDrops = new ArrayList<Entity>();
-		for(Drop d : sea.getDrops()) {
-			IRReferenceDrop id = checkIfReady(d);
+		for(IDropInfo d : drops) {
+			IDropInfo id = checkIfReady(d);
 			if (id != null) {
 				s.reset();
 				s.summarizeDrop(id);

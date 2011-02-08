@@ -313,7 +313,15 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		Category category;
 		ISrcRef ref;
 		List<ISupportingInformation> supportingInfos;
-
+		
+		@Override
+		public void snapshotAttrs(AbstractSeaXmlCreator s) {
+			for(Map.Entry<String, String> a : attributes.entrySet()) {
+				s.addAttribute(a.getKey(), a.getValue());
+			}
+			// TODO handle src refs specially?
+		}
+		
 		void addProposal(ProposedPromiseInfo info) {
 			proposals.add(info);
 		}
@@ -471,7 +479,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				public int getOffset() {
 					String offset = ref.getAttribute(OFFSET_ATTR);
 					if (offset == null) {
-						throw new UnsupportedOperationException();
+						return 0;
 					} else {
 						return Integer.valueOf(offset);
 					}
