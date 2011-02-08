@@ -35,17 +35,17 @@ import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.jsure.core.driver.IAnalysisContainer;
 import com.surelogic.jsure.core.driver.DoubleChecker;
+import com.surelogic.jsure.core.driver.IAnalysisContainer;
 
 import edu.cmu.cs.fluid.java.CommonStrings;
 
 /**
- * Java preference page to set preferences for double-checking. It reads and
- * updates the list of excluded analysis module extension points for
- * double-checking.
+ * Preference page to set preferences for the verifying analyses that are run by
+ * the JSure tool. It reads and updates the list of excluded analysis module
+ * extension points for double-checking.
  */
-public final class PreferencePage extends
+public final class AnalysisSelectionPreferencePage extends
 		org.eclipse.jface.preference.PreferencePage implements
 		IWorkbenchPreferencePage {
 	public static final boolean showPrivate = XUtil.useExperimental();
@@ -54,7 +54,7 @@ public final class PreferencePage extends
 	// "true");
 
 	private static IAnalysisContainer container = DoubleChecker.getDefault();
-	
+
 	CheckboxTreeViewer checktree;
 
 	AnalysisModuleContentProvider analysisModuleContentProvider;
@@ -148,15 +148,16 @@ public final class PreferencePage extends
 	 */
 	final class AnalysisModuleContentProvider extends LabelProvider implements
 			ICheckStateListener, ITreeContentProvider, ITreeViewerListener {
-		
+
 		/**
 		 * The contents for the viewer.
 		 */
 		private Set<PreferenceTreeNode> m_checktreeContents;
 
 		/**
-		 * A map used to link the {@link IAnalysisInfo}list from the double-checker
-		 * plugin to the root level of the {@link PreferenceTreeNode}.
+		 * A map used to link the {@link IAnalysisInfo}list from the
+		 * double-checker plugin to the root level of the
+		 * {@link PreferenceTreeNode}.
 		 */
 		private Map<IAnalysisInfo, PreferenceTreeNode> m_originalMap;
 
@@ -171,7 +172,8 @@ public final class PreferencePage extends
 			Set<String> result = new HashSet<String>();
 			for (PreferenceTreeNode node : m_checktreeContents) {
 				if (node.isOn) {
-					result.add(CommonStrings.intern(node.am.getUniqueIdentifier()));
+					result.add(CommonStrings.intern(node.am
+							.getUniqueIdentifier()));
 				}
 			}
 			return result;
@@ -181,7 +183,7 @@ public final class PreferencePage extends
 		 * Constructs the content provider including reading the valid analysis
 		 * modules and which have been excluded from the double-checker plugin.
 		 */
-		AnalysisModuleContentProvider() {			
+		AnalysisModuleContentProvider() {
 			// read information from the double-checker plug-in
 			m_checktreeContents = new HashSet<PreferenceTreeNode>();
 			m_originalMap = new HashMap<IAnalysisInfo, PreferenceTreeNode>();
@@ -241,7 +243,7 @@ public final class PreferencePage extends
 		private boolean isRequired(IAnalysisInfo am) {
 			return "required".equals(am.getCategory());
 		}
-		
+
 		private PreferenceTreeNode[] filterNodes(Set<PreferenceTreeNode> nodes) {
 			int numVisible = 0;
 			if (showPrivate) {
@@ -457,8 +459,8 @@ public final class PreferencePage extends
 					label = label + ", " + am.getCategory();
 				}
 			}
-			return (label == null) ? am.getLabel() : am.getLabel()
-					+ " (" + label + ")";
+			return (label == null) ? am.getLabel() : am.getLabel() + " ("
+					+ label + ")";
 		}
 
 		/**
