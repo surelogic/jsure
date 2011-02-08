@@ -70,20 +70,6 @@
 		</sequential>
 	</macrodef>
 
-	<!-- Helps us to build a feature with the Ecilpse PDE -->
-	<macrodef name="build-feature-with-pde">
-		<attribute name="feature" />
-		<sequential>
-			<propertyfile file="${jsure.build.properties}">
-				<entry key="topLevelElementId" value="@{feature}" />
-			</propertyfile>
-			<java dir="${eclipse.pde.plugin.dir}${fs}scripts" jar="${eclipse.startup.jar}" fork="true" maxmemory="512m" failonerror="true">
-				<arg line="-application org.eclipse.ant.core.antRunner" />
-				<arg value="-Dbuilder=${sandbox.jsure.build.dir}" />
-			</java>
-		</sequential>
-	</macrodef>
-
 	<!-- Helps us to run a test in our headless Eclipse-based JSure -->
 	<macrodef name="run-a-test">
 		<attribute name="target" />
