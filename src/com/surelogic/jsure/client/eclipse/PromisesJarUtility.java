@@ -38,13 +38,13 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.ide.IDE;
 
+import com.surelogic.common.LibResources;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.dialogs.ConfirmPerspectiveSwitch;
-import com.surelogic.jsure.core.LibResources;
 
 public class PromisesJarUtility {
 
