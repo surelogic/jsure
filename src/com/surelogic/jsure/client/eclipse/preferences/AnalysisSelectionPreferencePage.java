@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.dc;
+package com.surelogic.jsure.client.eclipse.preferences;
 
 import java.util.Arrays;
 import java.util.Comparator;
