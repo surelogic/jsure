@@ -11,9 +11,9 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 public class NewScanDialogAction extends NewScanAction {
 	@Override
-	protected JavaProjectSelectionDialog.Config getDialogInfo(
+	protected JavaProjectSelectionDialog.Configuration getDialogInfo(
 			List<IJavaProject> selectedProjects) {
-		return new JavaProjectSelectionDialog.Config(
+		return new JavaProjectSelectionDialog.Configuration(
 				"Select project(s) to scan:",
 				"Scan Project",
 				SLImages.getImage(CommonImages.IMG_SIERRA_SCAN),
