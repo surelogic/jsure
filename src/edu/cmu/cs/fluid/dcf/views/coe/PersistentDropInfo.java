@@ -13,10 +13,10 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.fluid.javac.Projects;
 import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
+import com.surelogic.jsure.core.listeners.IAnalysisListener;
+import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
-import edu.cmu.cs.fluid.dc.IAnalysisListener;
-import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IDropInfo;

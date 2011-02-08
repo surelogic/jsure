@@ -56,9 +56,9 @@ import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
+import com.surelogic.jsure.core.listeners.IAnalysisListener;
+import com.surelogic.jsure.core.listeners.NotificationHub;
 
-import edu.cmu.cs.fluid.dc.IAnalysisListener;
-import edu.cmu.cs.fluid.dc.NotificationHub;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.SeaObserver;

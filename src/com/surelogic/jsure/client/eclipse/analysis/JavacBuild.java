@@ -14,8 +14,11 @@ import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.JavaProjectResources;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
+import com.surelogic.jsure.core.driver.DriverConstants;
+import com.surelogic.jsure.core.driver.JavacDriver;
+import com.surelogic.jsure.core.driver.JavacEclipse;
+import com.surelogic.jsure.core.driver.Majordomo;
 
-import edu.cmu.cs.fluid.dc.Majordomo;
 import edu.cmu.cs.fluid.util.Pair;
 
 public class JavacBuild {
@@ -33,7 +36,7 @@ public class JavacBuild {
 	}
 
 	private static final Map<?, ?> buildArgs = Collections.singletonMap(
-			Majordomo.BUILD_KIND,
+			DriverConstants.BUILD_KIND,
 			Integer.toString(IncrementalProjectBuilder.FULL_BUILD));
 
 	public static void analyze(List<IJavaProject> selectedProjects) {

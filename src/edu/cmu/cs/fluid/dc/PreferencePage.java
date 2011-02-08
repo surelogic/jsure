@@ -35,6 +35,8 @@ import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.jsure.core.driver.IAnalysisContainer;
+import com.surelogic.jsure.core.driver.DoubleChecker;
 
 import edu.cmu.cs.fluid.java.CommonStrings;
 
@@ -51,7 +53,7 @@ public final class PreferencePage extends
 	// .getProperties().getProperty("dc.show.private", "false").equals(
 	// "true");
 
-	private static IAnalysisContainer container = Plugin.getDefault();
+	private static IAnalysisContainer container = DoubleChecker.getDefault();
 	
 	CheckboxTreeViewer checktree;
 
@@ -81,7 +83,7 @@ public final class PreferencePage extends
 		checktree.setLabelProvider(analysisModuleContentProvider);
 		checktree.addCheckStateListener(analysisModuleContentProvider);
 		checktree.addTreeListener(analysisModuleContentProvider);
-		checktree.setInput(Plugin.getWorkspace());
+		checktree.setInput(DoubleChecker.getWorkspace());
 		analysisModuleContentProvider.setState();
 		data = new GridData();
 		data.horizontalAlignment = GridData.FILL;

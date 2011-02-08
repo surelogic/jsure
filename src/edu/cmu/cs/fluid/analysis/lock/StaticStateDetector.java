@@ -5,6 +5,7 @@ import java.util.*;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.jsure.core.driver.AbstractIRAnalysisModule;
 
 import edu.cmu.cs.fluid.analysis.util.*;
 import edu.cmu.cs.fluid.ir.*;

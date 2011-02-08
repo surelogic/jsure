@@ -242,7 +242,7 @@ public class XMLReport {
 
   private static void generateAnalysisList(PrintWriter pw) {
     pw.println(XMLUtil.openNode(ANALYSES_TAG));
-    for(String id : edu.cmu.cs.fluid.dc.Plugin.getDefault().getIncludedExtensions()) {
+    for(String id : com.surelogic.jsure.core.driver.DoubleChecker.getDefault().getIncludedExtensions()) {
       pw.format(ANALYSIS_FORMAT, id);
     }
     pw.println(XMLUtil.closeNode(ANALYSES_TAG));

@@ -12,8 +12,8 @@ import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.QueuingSrcNotifyListener;
+import com.surelogic.jsure.core.driver.AbstractIRAnalysisModule;
 
-import edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.bind.IBinder;

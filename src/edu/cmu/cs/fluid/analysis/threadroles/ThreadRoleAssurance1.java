@@ -12,6 +12,8 @@ import com.surelogic.analysis.threadroles.TRoleStats;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.QueuingSrcNotifyListener;
+import com.surelogic.jsure.core.driver.AbstractFluidAnalysisModule;
+import com.surelogic.jsure.core.driver.AbstractWholeIRAnalysisModule;
 
 import edu.cmu.cs.fluid.analysis.util.*;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -76,7 +78,7 @@ public class ThreadRoleAssurance1 extends AbstractWholeIRAnalysisModule {
   }
 
   /**
-   * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeBegin(org.eclipse.core.resources.IProject)
+   * @see com.surelogic.jsure.core.driver.IAnalysis#analyzeBegin(org.eclipse.core.resources.IProject)
    */
   @Override
   public void analyzeBegin(IProject project) {
@@ -94,7 +96,7 @@ public class ThreadRoleAssurance1 extends AbstractWholeIRAnalysisModule {
   }
 
   /**
-   * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeResource(org.eclipse.core.resources.IResource,
+   * @see com.surelogic.jsure.core.driver.IAnalysis#analyzeResource(org.eclipse.core.resources.IResource,
    *      int)
    */
   @Override
@@ -104,7 +106,7 @@ public class ThreadRoleAssurance1 extends AbstractWholeIRAnalysisModule {
   }
 
   /**
-   * @see edu.cmu.cs.fluid.analysis.util.AbstractIRAnalysisModule#doAnalysisOnAFile(edu.cmu.cs.fluid.ir.IRNode)
+   * @see com.surelogic.jsure.core.driver.AbstractIRAnalysisModule#doAnalysisOnAFile(edu.cmu.cs.fluid.ir.IRNode)
    */
   @Override
   protected boolean doAnalysisOnAFile(IRNode cu, IAnalysisMonitor monitor) throws JavaModelException {
@@ -118,7 +120,7 @@ public class ThreadRoleAssurance1 extends AbstractWholeIRAnalysisModule {
   }  
 
   /**
-   * @see edu.cmu.cs.fluid.javaassure.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
+   * @see com.surelogic.jsure.core.driver.javaassure.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
    */
   @Override
   public Iterable<IRNode> finishAnalysis(final IProject project, IAnalysisMonitor monitor) {

@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.analysis.util;
 
-import edu.cmu.cs.fluid.dc.AbstractAnalysisModule;
+import com.surelogic.jsure.core.driver.AbstractAnalysisModule;
 
 public class NullAnalysis extends AbstractAnalysisModule<Void> {
 	// Nothing to do

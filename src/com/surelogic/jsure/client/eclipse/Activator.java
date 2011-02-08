@@ -17,11 +17,10 @@ import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.ui.DialogTouchNotificationUI;
 import com.surelogic.common.ui.SWTUtility;
 import com.surelogic.fluid.javac.Util;
-import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
 import com.surelogic.jsure.core.Eclipse;
+import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
-import edu.cmu.cs.fluid.dc.Plugin;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -38,8 +37,6 @@ public class Activator extends AbstractUIPlugin implements
 	// Resource bundle.
 	// private ResourceBundle resourceBundle;
 
-	private Plugin doubleChecker;
-
 	/**
 	 * The constructor
 	 */
@@ -53,11 +50,6 @@ public class Activator extends AbstractUIPlugin implements
 	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
-
-		if (doubleChecker == null) {
-			doubleChecker = new Plugin();
-			doubleChecker.start(context);
-		}
 
 		SWTUtility.startup(this);
 	}
@@ -131,9 +123,5 @@ public class Activator extends AbstractUIPlugin implements
 	 */
 	public static IWorkspace getWorkspace() {
 		return ResourcesPlugin.getWorkspace();
-	}
-
-	public Plugin getDoubleChecker() {
-		return doubleChecker;
 	}
 }

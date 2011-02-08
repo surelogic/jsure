@@ -36,12 +36,9 @@ Require-Bundle: com.surelogic.common,
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: com.surelogic.jsure.client.eclipse.analysis,
- com.surelogic.jsure.client.eclipse.listeners,
- com.surelogic.jsure.scripting,
  edu.cmu.cs.fluid.analysis.util,
  edu.cmu.cs.fluid.dc,
  edu.cmu.cs.fluid.dcf.views,
  edu.cmu.cs.fluid.dcf.views.coe
-Bundle-ClassPath: .,
- lib/java-diff-utils-1.2.jar
+Bundle-ClassPath: .
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

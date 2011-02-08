@@ -39,8 +39,8 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.SWTUtility;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.jsure.client.eclipse.Activator;
-import com.surelogic.jsure.client.eclipse.analysis.JavacDriver;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
+import com.surelogic.jsure.core.driver.JavacDriver;
 
 import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
 import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;

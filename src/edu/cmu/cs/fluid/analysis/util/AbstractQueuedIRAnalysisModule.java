@@ -9,6 +9,7 @@ import org.eclipse.core.resources.IProject;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.QueuingSrcNotifyListener;
+import com.surelogic.jsure.core.driver.AbstractIRAnalysisModule;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
@@ -47,7 +48,7 @@ public abstract class AbstractQueuedIRAnalysisModule extends AbstractIRAnalysisM
   }
 
   /**
-   * @see edu.cmu.cs.fluid.dc.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
+   * @see com.surelogic.jsure.core.driver.IAnalysis#analyzeEnd(org.eclipse.core.resources.IProject)
    */
   @Override
   public Iterable<IRNode> finishAnalysis(IProject project, IAnalysisMonitor monitor) {
