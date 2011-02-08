@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.dcf.views.metrics;
+package com.surelogic.jsure.client.eclipse.views.metrics;
 
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.*;

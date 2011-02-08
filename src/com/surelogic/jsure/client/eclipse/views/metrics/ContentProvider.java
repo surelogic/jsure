@@ -1,7 +1,7 @@
 /**
  * 
  */
-package edu.cmu.cs.fluid.dcf.views.metrics;
+package com.surelogic.jsure.client.eclipse.views.metrics;
 
 import java.util.List;
 import java.util.Map;
