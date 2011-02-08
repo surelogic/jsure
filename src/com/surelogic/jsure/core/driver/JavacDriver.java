@@ -11,20 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -56,11 +43,10 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.JSureProperties;
 import com.surelogic.annotation.rules.ModuleRules;
-import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.FileUtility.UnzipCallback;
-import com.surelogic.common.ISourceZipFileHandles;
+import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
@@ -1226,11 +1212,13 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private static int getBuildKind(Map args) {
 		final String kind = (String) args.get(DriverConstants.BUILD_KIND);
 		return Integer.parseInt(kind);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void configureBuild(Map args, boolean ignoreNature) {
 		final int k = getBuildKind(args);
 		configureBuild(

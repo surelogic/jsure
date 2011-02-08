@@ -17,6 +17,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.JSureProperties;
 import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
@@ -28,6 +29,7 @@ import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
+import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -634,19 +636,41 @@ public final class Majordomo extends AbstractJavaBuilder implements
 
 		private boolean isInteresting(CacheEntry e) {
 			if (e.resource.getParent() instanceof IProject) {
-				return AbstractFluidAnalysisModule
-						.isFluidProperties(e.resource)
-						|| AbstractFluidAnalysisModule.isDotProject(e.resource)
-						|| AbstractFluidAnalysisModule
-								.isDotClasspath(e.resource) || false;
+				return isFluidProperties(e.resource)
+						|| isDotProject(e.resource)
+						|| isDotClasspath(e.resource) || false;
 			} else if (isOnClassPath(e.resource)) {
-				return AbstractFluidAnalysisModule.isJavaSource(e.resource)
-						|| AbstractFluidAnalysisModule
-								.isPromisesXML(e.resource) || false;
+				return isJavaSource(e.resource)
+						|| isPromisesXML(e.resource) || false;
 			}
 			return false;
 		}
 
+		public boolean isPromisesXML(IResource resource) {
+			return (resource.getType() == IResource.FILE && resource.getName()
+					.endsWith(TestXMLParserConstants.SUFFIX));
+		}
+
+		public boolean isJavaSource(IResource resource) {
+			return (resource.getType() == IResource.FILE && resource.getName().endsWith(
+			".java"));
+		}
+
+		public boolean isDotProject(IResource resource) {
+			return (resource.getType() == IResource.FILE && resource.getFullPath()
+					.toString().equals(".project"));
+		}
+
+		public boolean isDotClasspath(IResource resource) {
+			return (resource.getType() == IResource.FILE && resource.getFullPath()
+					.toString().equals(".classpath"));
+		}
+
+		public boolean isFluidProperties(IResource resource) {
+			final String name = resource.getFullPath().toString();
+			return (resource.getType() == IResource.FILE && name.equals(JSureProperties.JSURE_PROPERTIES));
+		}
+		
 		private boolean isOnClassPath(IResource resource) {
 			final IJavaElement jElement = JavaCore.create(resource);
 			if (jElement != null) {

@@ -30,6 +30,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	/**
 	 * @see IAnalysis#preBuild(IProject)
 	 */
+	@Override
 	public void preBuild(IProject p) {
 		project = p;
 		JavacDriver.getInstance().preBuild(p);
@@ -39,6 +40,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	 * @see IAnalysis#setArguments(Map)
 	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	public void setArguments(Map args) {
 		// Grab build arguments
 		/*
@@ -53,6 +55,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	/**
 	 * @see IAnalysis#analyzeResource(IResource, int)
 	 */
+	@Override
 	public boolean analyzeResource(IResource resource, int kind) {
 		//System.out.println("Looking at "+resource);
 		
@@ -64,6 +67,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	/**
 	 * @see IAnalysis#needsAST()
 	 */
+	@Override
 	public boolean needsAST() {
 		return false;
 	}
@@ -71,6 +75,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	/**
 	 * @see IAnalysis#analyzeCompilationUnit(ICompilationUnit, CompilationUnit)
 	 */
+	@Override
 	public boolean analyzeCompilationUnit(ICompilationUnit file, CompilationUnit ast, 
 			IAnalysisMonitor monitor) {
 		//System.out.println("Looking at "+file);
@@ -81,6 +86,7 @@ public class AnalysisDriver extends AbstractAnalysisModule<Void> {
 	/**
 	 * @see IAnalysis#postBuild(IProject)
 	 */
+	@Override
 	public void postBuild(IProject p) {
 		System.out.println("Done with project "+p.getName());
 		if (p != this.project) {

@@ -12,7 +12,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IJavaProject;
@@ -380,7 +379,7 @@ public final class Eclipse extends IDE {
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings("unchecked")
 	public IJavaFileLocator getJavaFileLocator() {
 		throw new UnsupportedOperationException();
 	}
