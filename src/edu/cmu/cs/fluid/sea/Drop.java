@@ -617,7 +617,7 @@ public abstract class Drop implements IDropInfo {
 		throw new UnsupportedOperationException();
 	}
 	
-	public Long getHash() {	
+	public Long getTreeHash() {	
 		throw new UnsupportedOperationException();
 	}
 	

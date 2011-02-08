@@ -371,12 +371,12 @@ public abstract class IRReferenceDrop extends Drop {
 	}
 	
 	@Override
-	public Long getHash() {		
+	public final Long getTreeHash() {		
 		return SeaSummary.computeHash(getNode(), false);
 	}
 	
 	@Override
-	public Long getContextHash() {		
+	public final Long getContextHash() {		
 		return SeaSummary.computeContext(getNode(), false);
 	}
 }

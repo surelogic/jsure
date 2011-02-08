@@ -25,6 +25,6 @@ public interface IDropInfo {
 	Collection<ISupportingInformation> getSupportingInformation();
 	Collection<? extends IProposedPromiseDropInfo> getProposals();
 	void snapshotAttrs(AbstractSeaXmlCreator s);
-	Long getHash();
+	Long getTreeHash();
 	Long getContextHash();
 }

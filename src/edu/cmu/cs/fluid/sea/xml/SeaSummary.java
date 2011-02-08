@@ -201,7 +201,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		ISrcRef ref = id.getSrcRef();
 		addLocation(ref);
 		//addAttribute(OFFSET_ATTR, (long) ref.getOffset());
-		addAttribute(HASH_ATTR, id.getHash());
+		addAttribute(HASH_ATTR, id.getTreeHash());
 		addAttribute(CONTEXT_ATTR, id.getContextHash());
 
 		//addAttribute("unparse", unparser.unparseString(id.getNode()));

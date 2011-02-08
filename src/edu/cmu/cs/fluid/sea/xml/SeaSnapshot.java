@@ -150,7 +150,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 		Entities.addAttribute(ID_ATTR, id, b);
 		if (d instanceof IRReferenceDrop) {
-			addAttribute(HASH_ATTR, d.getHash());
+			addAttribute(HASH_ATTR, d.getTreeHash());
 			addAttribute(CONTEXT_ATTR, d.getContextHash());
 		}
 		d.snapshotAttrs(this);
@@ -327,7 +327,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		}
 		
 		@Override
-		public Long getHash() {			
+		public Long getTreeHash() {			
 			String hash = getAttribute(HASH_ATTR);
 			if (hash == null) {
 				return Long.valueOf(0);
