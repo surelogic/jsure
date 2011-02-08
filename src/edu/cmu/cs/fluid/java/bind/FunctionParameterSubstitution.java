@@ -33,7 +33,7 @@ public class FunctionParameterSubstitution extends AbstractTypeSubstitution {
       Iterator<IRNode> ch = JJNode.tree.children(parent);
       for (IJavaType jt : actuals) {
         if (decl.equals(ch.next())) {
-          return captureWildcardType(decl, jt);
+            return captureWildcardType(jtf, decl, jt);
         }
       }      
     }
