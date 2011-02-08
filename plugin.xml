@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-	<extension-point id="analysisModule" name="JSure Analysis Modules"
-		schema="schema/analysisModule.exsd" />
-
 	<extension point="org.eclipse.ui.preferencePages">
 		<page name="JSure"
 			class="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage"
@@ -13,197 +10,6 @@
 			id="edu.cmu.cs.fluid.dc.PreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 		</page>
-	</extension>
-
-	<extension id="AnalysisDriver" name="Analysis Driver"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver" production="false">
-		</run>
-	</extension>
-
-	<extension id="PromiseScrubber" name="Promise Scrubber"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.util.NullAnalysis"
-			category="required">
-		</run>
-	</extension>
-
-    <extension id="ConcurrencyDetector" name="Concurrency detector"
-    	point="com.surelogic.jsure.client.eclipse.analysisModule">
-    	<run class="com.surelogic.analysis.concurrency.ConcurrencyDetector">
-    </run>
-  </extension>
-	<extension id="Static State Detector" name="Static state detector"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.lock.StaticStateDetector"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
-	<extension id="LayersAssurance" name="Static structure"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.layers.LayersAnalysis">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>	
-	<extension id="LockAssurance3" name="Lock policy"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.locks.LockAnalysis">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
-  <extension id="UniquenessAssuranceUWM" name="Uniqueness"
-    point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.uniqueness.UniquenessAnalysisModule" production="true">
-    </run>
-    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-    </prerequisite>
-  </extension>
-  <extension id="UniquenessAssuranceSE" name="Uniqueness (Side Effect)"
-    point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.uniqueness.sideeffecting.UniquenessAnalysisModule" production="false">
-    </run>
-    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-    </prerequisite>
-  </extension>
-  <extension id="BenchmarkingUniquenessNew" name="Benchmarking Uniqueness (NEW)"
-    point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.uniqueness.NewBenchmarkingUAM" 
-      production="false">
-    </run>
-    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-    </prerequisite>
-  </extension>
-	<extension id="MakeCFGDiagram" name="CFG diagram Maker"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.cfg.MakeCFGDiagram"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
-	<extension id="ModuleAnalysis" name="Module Visibility Analyzer"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.modules.ModuleAnalysis"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
-		</prerequisite>
-	</extension>
-	<extension id="ModuleAnalysis2" name="Module Visibility Analyzer (converted)"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.modules.Module_IRAnalysis"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.UniquenessAssurance2">
-		</prerequisite>
-	</extension>
-	<extension id="EffectAssurance2" name="Object-oriented effects"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.effects.EffectsAnalysis">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
-	<extension id="CALLS" name="Method Calls"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.testing.CollectMethodCallsModule" production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
-  <extension id="BCA" name="Binding Context Analysis"
-    point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.testing.BCAModule" production="false">
-    </run>
-    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-    </prerequisite>
-  </extension>
-  <extension id="LV" name="Local Variables"
-    point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.testing.LocalVariablesModule" production="false">
-    </run>
-    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-    </prerequisite>
-  </extension>
-  <extension id="NonNull" name="Non Null Analysis" 
-    point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.testing.NonNullModule" production="false">
-    </run>
-    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-    </prerequisite>
-  </extension>
-  <extension id="Types" name="Get Expression Types" 
-    point="com.surelogic.jsure.client.eclipse.analysisModule">
-    <run class="com.surelogic.analysis.testing.TypesModule" production="false">
-    </run>
-    <prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-    </prerequisite>
-  </extension>
-	<extension id="ThreadEffectAssurance2" name="Thread effects"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.threads.ThreadEffectsModule">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.PromiseScrubber">
-		</prerequisite>
-	</extension>
-	<extension id="StructureAnalysis" name="Program Static Structure Verification"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.structure.Structure"
-			production="false">
-		</run>
-	</extension>
-	<extension id="ColorZerothPass" name="Coloring Zeroth Pass"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.colors.ColorZerothPass"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.ModuleAnalysis">
-		</prerequisite>
-	</extension>
-	<extension id="ManageColorAnnos" name="Coloring Annotation Grabber"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.colors.ManageColorAnnos"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.ColorZerothPass">
-		</prerequisite>
-	</extension>
-	<extension id="ColorAssurance" name="Thread Color Assurance"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="edu.cmu.cs.fluid.analysis.colors.ColorAssurance"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.ManageColorAnnos">
-		</prerequisite>
-	</extension>
-
-	<extension id="ThreadRoleZerothPass1" name="ThreadRole Zeroth Pass (Converted)"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.threadroles.ThreadRoleZerothPass"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.ModuleAnalysis2">
-		</prerequisite>
-	</extension>
-	<extension id="ManageThreadRoleAnnos1" name="ThreadRole Annotation Grabber (Converted)"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.threadroles.ManageThreadRoleAnnos"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.ThreadRoleZerothPass1">
-		</prerequisite>
-	</extension>
-	<extension id="ThreadRoleAssurance1" name="Thread Role Assurance (Converted)"
-		point="com.surelogic.jsure.client.eclipse.analysisModule">
-		<run class="com.surelogic.analysis.threadroles.ThreadRoleAssurance"
-			production="false">
-		</run>
-		<prerequisite id="com.surelogic.jsure.client.eclipse.ManageThreadRoleAnnos1">
-		</prerequisite>
 	</extension>
 
 	<extension point="org.eclipse.ui.views">
@@ -221,13 +27,13 @@
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
 		</view>
-        -->
+
 		<view name="JSure Verification Status Diffs"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView">
 		</view>
-
+        
 		<view name="JSure Verification Metrics"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
@@ -237,7 +43,8 @@
 		<view name="FAST Viewer" category="edu.cmu.cs.fluid.dcf"
 			class="edu.cmu.cs.fluid.dcf.views.ast.FastViewer" id="edu.cmu.cs.fluid.dcf.views.ast.FastViewer">
 		</view>
-
+        -->
+        
 		<view name="JSure Problems"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/red_x.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.JSureProblemsView"
