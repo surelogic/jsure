@@ -205,8 +205,8 @@
 		<mkdir dir="${sandbox.jsure.build.features.dir}" />
 
 		<!-- THE LISTS BELOW SHOULD BE UPDATED IF THE PLUG-INs/FEATUREs COMPRISING JSURE CHANGE -->
-		<property name="jsure.plugin.projects" value="common, eclipse-common, fluid, fluid-eclipse, fluid-javac, jsure-client-eclipse, jsure-client-eclipse-help, jsure-design-intent-eclipse-help, jsure-tests" />
-		<property name="jsure.feature.ids" value="com.surelogic.feature.jsure, com.surelogic.feature.jsure.tests" />
+		<property name="jsure.plugin.projects" value="common, common-core-eclipse, fluid, fluid-javac, jsure-core-eclipse, jsure-tests" />
+		<property name="jsure.feature.id" value="com.surelogic.feature.jsure.tests" />
 
 		<!-- Copy JSure plug-in projects for headless build -->
 		<for list="${jsure.plugin.projects}" delimiter="," param="plugin" trim="true">
@@ -215,12 +215,8 @@
 			</sequential>
 		</for>
 
-		<!-- Copy JSure feature projects (id must match project name for the PDE) for headless build -->
-		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true">
-			<sequential>
-				<copy-project-to-a-dir projectDir="@{feature-id}" fromDir="${user.workspace.dir}" toDir="${sandbox.jsure.build.features.dir}" />
-			</sequential>
-		</for>
+		<!-- Copy JSure feature project (id must match project name for the PDE) for headless build -->
+		<copy-project-to-a-dir projectDir="${jsure.feature.id}" fromDir="${user.workspace.dir}" toDir="${sandbox.jsure.build.features.dir}" />
 
 		<!-- Build necessary source code in common and fluid plug-in projects -->
 		<ant antfile="build-src.xml" dir="${sandbox.jsure.build.plugins.dir}${fs}common" />
@@ -249,12 +245,13 @@
 		<!-- Copy template headless build.properties file and configure it for a headless build -->
 		<property name="jsure.build.properties" value="${sandbox.jsure.build.dir}${fs}build.properties" />
 		<copy file="${eclipse.pde.plugin.dir}${fs}templates${fs}headless-build${fs}build.properties" toFile="${jsure.build.properties}" />
+		<!-- Should not be necessary to have an allElements file post 3.4 -->
 		<copy file="${eclipse.pde.plugin.dir}${fs}templates${fs}headless-build${fs}allElements.xml" toFile="${sandbox.jsure.build.dir}/allElements.xml" />
 		<property name="jsure.build.buildType" value="H" />
 		<property name="jsure.build.buildId" value="TestBuild" />
 		<property name="jsure.build.output.dir" value="${sandbox.jsure.build.dir}${fs}${jsure.build.buildType}.${jsure.build.buildId}" />
 		<propertyfile file="${jsure.build.properties}">
-			<entry key="topLevelElementId" value="com.surelogic.feature.jsure" />
+			<entry key="topLevelElementId" value="com.surelogic.feature.jsure.tests" />
 			<entry key="base" value="${sandbox}" />
 			<entry key="buildDirectory" value="${sandbox.jsure.build.dir}" />
 			<entry key="compilerArg" value="-nowarn" />
@@ -267,19 +264,13 @@
 			<entry key="buildId" value="${jsure.build.buildId}" />
 		</propertyfile>
 
-		<!-- Build our features using a PDE headless build -->
-		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true">
-			<sequential>
-				<build-feature-with-pde feature="@{feature-id}" />
-			</sequential>
-		</for>
+		<java dir="${eclipse.pde.plugin.dir}${fs}scripts" jar="${eclipse.startup.jar}" fork="true" maxmemory="512m" failonerror="true">
+			<arg line="-application org.eclipse.ant.core.antRunner" />
+			<arg value="-Dbuilder=${sandbox.jsure.build.dir}" />
+		</java>
 
 		<!-- Install the JSure features and plug-ins -->
-		<for list="${jsure.feature.ids}" delimiter="," param="feature-id" trim="true">
-			<sequential>
-				<unzip src="${jsure.build.output.dir}${fs}@{feature-id}-${jsure.build.buildId}.zip" dest="${sandbox}" />
-			</sequential>
-		</for>
+		<unzip src="${jsure.build.output.dir}${fs}${jsure.feature.id}-${jsure.build.buildId}.zip" dest="${sandbox}" />
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->

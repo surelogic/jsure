@@ -1,14 +1,8 @@
 common
-eclipse-common
+common-core-eclipse
 fluid
-fluid-eclipse
 fluid-javac
-jsure-client-eclipse
-jsure-client-eclipse-help
-jsure-design-intent-eclipse-help
-com.surelogic.feature.jsure
-jsure-message
+jsure-core-eclipse
 jsure-tests
 com.surelogic.feature.jsure.tests
-jsure-xml-results-viewer
 regression

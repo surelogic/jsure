@@ -5,10 +5,10 @@ Bundle-SymbolicName: com.surelogic.jsure.tests;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Vendor: SureLogic, Inc.
 Require-Bundle: com.surelogic.common,
+ com.surelogic.common.core,
  edu.cmu.cs.fluid,
  com.surelogic.fluid.javac,
  com.surelogic.jsure.core,
- com.surelogic.common.core,
  org.junit,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
