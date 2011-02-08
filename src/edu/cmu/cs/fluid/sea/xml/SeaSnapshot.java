@@ -149,6 +149,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			Entities.addAttribute(FULL_TYPE_ATTR, d.getClass().getName(), b);
 		}
 		Entities.addAttribute(ID_ATTR, id, b);
+		if (d instanceof IRReferenceDrop) {
+			addAttribute(HASH_ATTR, d.getHash());
+			addAttribute(CONTEXT_ATTR, d.getContextHash());
+		}
 		d.snapshotAttrs(this);
 		b.append(">\n");
 		d.snapshotRefs(this);
@@ -320,6 +324,20 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				s.addAttribute(a.getKey(), a.getValue());
 			}
 			// TODO handle src refs specially?
+		}
+		
+		@Override
+		public Long getHash() {			
+			String hash = getAttribute(HASH_ATTR);
+			if (hash == null) {
+				return Long.valueOf(0);
+			}
+			return Long.parseLong(hash);
+		}
+		
+		@Override
+		public Long getContextHash() {			
+			return Long.parseLong(getAttribute(CONTEXT_ATTR));
 		}
 		
 		void addProposal(ProposedPromiseInfo info) {

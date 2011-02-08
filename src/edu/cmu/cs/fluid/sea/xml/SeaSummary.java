@@ -201,11 +201,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		ISrcRef ref = id.getSrcRef();
 		addLocation(ref);
 		//addAttribute(OFFSET_ATTR, (long) ref.getOffset());
-		if (id instanceof IRReferenceDrop) {
-			IRReferenceDrop ird = (IRReferenceDrop) id;
-			addAttribute(HASH_ATTR, computeHash(ird.getNode(), false));
-			addAttribute(CONTEXT_ATTR, computeContext(ird.getNode(), false));
-		}
+		addAttribute(HASH_ATTR, id.getHash());
+		addAttribute(CONTEXT_ATTR, id.getContextHash());
+
 		//addAttribute("unparse", unparser.unparseString(id.getNode()));
 		// Omitting supporting info
 		/*

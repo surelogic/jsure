@@ -616,4 +616,12 @@ public abstract class Drop implements IDropInfo {
 	public Collection<ISupportingInformation> getSupportingInformation() {
 		throw new UnsupportedOperationException();
 	}
+	
+	public Long getHash() {	
+		throw new UnsupportedOperationException();
+	}
+	
+	public Long getContextHash() {	
+		throw new UnsupportedOperationException();
+	}
 }

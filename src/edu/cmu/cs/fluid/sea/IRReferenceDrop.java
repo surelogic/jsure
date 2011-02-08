@@ -369,4 +369,14 @@ public abstract class IRReferenceDrop extends Drop {
 		return new JavaSourceReference(ref.getPackage(), ref.getCUName(), ref
 				.getLineNumber(), ref.getOffset());
 	}
+	
+	@Override
+	public Long getHash() {		
+		return SeaSummary.computeHash(getNode(), false);
+	}
+	
+	@Override
+	public Long getContextHash() {		
+		return SeaSummary.computeContext(getNode(), false);
+	}
 }
