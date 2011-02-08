@@ -106,8 +106,6 @@
 				label="JSure" path="additions">
 
 				<groupMarker name="client" />
-				<separator name="integration" />
-				<separator name="admin" />
 				<separator name="service" />
 				<separator name="license" />
 				<separator name="additions" />
@@ -132,7 +130,7 @@
 			</action>
 
 			<action
-				class="com.surelogic.jsure.client.eclipse.actions.AnalyzeNow2Action"
+				class="com.surelogic.jsure.client.eclipse.actions.NewScanDialogAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ScanDialogAction"
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/sierra_scan.gif"
 				label="Scan Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"

@@ -10,6 +10,7 @@ import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.analysis.JavacBuild;
 
 public class NewScanAction extends AbstractProjectSelectedMenuAction {
 	@Override
@@ -27,5 +28,6 @@ public class NewScanAction extends AbstractProjectSelectedMenuAction {
 			return;
 		}
 
+		JavacBuild.analyze(selectedProjects);
 	}
 }
