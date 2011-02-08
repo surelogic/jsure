@@ -234,14 +234,12 @@ public class DoubleChecker implements IAnalysisContainer {
 	/**
 	 * Only used for regression testing
 	 */
-	/*
-	public void initAnalyses(IPreferenceStore store) {
+	public void initAnalyses() {
 		readStateFromPrefs();
 		if (analysisExtensionPointsPrerequisitesOK()) {
 			initializeAnalysisLevels();
 		}
 	}
-	*/
 
 	/**
 	 * Saves persistent double-checker plugin information. Invoked as part of
