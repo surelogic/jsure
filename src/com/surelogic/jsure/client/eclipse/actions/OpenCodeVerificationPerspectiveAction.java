@@ -6,7 +6,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.jsure.perspectives.CodeVerificationPerspective;
+import com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective;
 
 public class OpenCodeVerificationPerspectiveAction implements
 		IWorkbenchWindowActionDelegate {

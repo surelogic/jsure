@@ -4,8 +4,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.dialogs.AbstractConfirmPerspectiveSwitch;
+import com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.perspectives.CodeVerificationPerspective;
 
 public final class ConfirmPerspectiveSwitch extends
 		AbstractConfirmPerspectiveSwitch {

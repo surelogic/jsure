@@ -1,4 +1,4 @@
-package com.surelogic.jsure.perspectives;
+package com.surelogic.jsure.client.eclipse.perspectives;
 
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;

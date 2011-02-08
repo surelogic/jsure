@@ -70,7 +70,7 @@
 	<extension point="org.eclipse.ui.perspectives">
 		<perspective name="Code Verification"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
-			class="com.surelogic.jsure.perspectives.CodeVerificationPerspective"
+			class="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective"
 			id="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
 		</perspective>
 	</extension>
