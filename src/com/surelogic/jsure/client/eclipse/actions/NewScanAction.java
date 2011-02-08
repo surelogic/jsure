@@ -4,13 +4,14 @@ import java.util.List;
 
 import org.eclipse.jdt.core.IJavaProject;
 
+import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.actions.AbstractProjectSelectedMenuAction;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.client.eclipse.analysis.JavacBuild;
+import com.surelogic.jsure.core.driver.JavacBuild;
 
 public class NewScanAction extends AbstractProjectSelectedMenuAction {
 	@Override
@@ -28,6 +29,6 @@ public class NewScanAction extends AbstractProjectSelectedMenuAction {
 			return;
 		}
 
-		JavacBuild.analyze(selectedProjects);
+		JavacBuild.analyze(selectedProjects, BalloonUtility.errorListener);
 	}
 }
