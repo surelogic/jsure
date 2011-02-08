@@ -14,10 +14,7 @@ import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.JavaProjectResources;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.BalloonUtility;
-import com.surelogic.jsure.core.driver.DriverConstants;
-import com.surelogic.jsure.core.driver.JavacDriver;
-import com.surelogic.jsure.core.driver.JavacEclipse;
-import com.surelogic.jsure.core.driver.Majordomo;
+import com.surelogic.jsure.core.driver.*;
 
 import edu.cmu.cs.fluid.util.Pair;
 

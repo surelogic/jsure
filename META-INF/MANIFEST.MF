@@ -35,10 +35,7 @@ Require-Bundle: com.surelogic.common,
  org.eclipse.debug.core
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
-Export-Package: com.surelogic.jsure.client.eclipse.analysis,
- edu.cmu.cs.fluid.analysis.util,
- edu.cmu.cs.fluid.dc,
- edu.cmu.cs.fluid.dcf.views,
+Export-Package: edu.cmu.cs.fluid.dcf.views,
  edu.cmu.cs.fluid.dcf.views.coe
 Bundle-ClassPath: .
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
