@@ -17,7 +17,7 @@
 
 		<view name="Verification Status"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
-			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.PersistentResultsView"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.PersistentResultsView">
 		</view>
 
@@ -47,19 +47,19 @@
         
 		<view name="JSure Problems"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/red_x.gif"
-			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.JSureProblemsView"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.JSureProblemsView">
 		</view>
 
 		<view name="Modeling Problems"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_model_problems.gif"
-			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.ProblemsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView">
 		</view>
 
 		<view name="Proposed Promises"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/annotation_proposed.gif"
-			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ProposedPromiseView"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ProposedPromiseView">
 		</view>
 		

@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.dcf.views.coe;
+package com.surelogic.jsure.client.eclipse.views.results;
 
 import static com.surelogic.common.jsure.xml.CoE_Constants.*;
 

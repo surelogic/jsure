@@ -10,8 +10,8 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 
 import com.surelogic.common.ui.ColumnViewerSorter;
+import com.surelogic.jsure.client.eclipse.views.results.PersistentDropInfo;
 
-import edu.cmu.cs.fluid.dcf.views.coe.PersistentDropInfo;
 import edu.cmu.cs.fluid.sea.*;
 
 public abstract class AbstractResultsTableView<T extends IDropInfo> extends AbstractDoubleCheckerView {
