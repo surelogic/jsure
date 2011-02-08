@@ -19,8 +19,8 @@ import org.eclipse.ui.IViewPart;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver;
 
+import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
@@ -69,7 +69,7 @@ public class ExportToSnapshot implements IViewActionDelegate {
     Date date = new Date();
     DateFormat format = new SimpleDateFormat("yyyyMMdd");
     final String oracleName;
-    if (AnalysisDriver.useJavac) {
+    if (IDE.useJavac) {
     	oracleName = "oracleJavac"+format.format(date)+SeaSnapshot.SUFFIX;
     } else {
     	oracleName = "oracle"+format.format(date)+SeaSnapshot.SUFFIX;

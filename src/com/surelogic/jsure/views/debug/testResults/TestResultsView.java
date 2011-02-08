@@ -19,9 +19,9 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.jsure.client.eclipse.listeners.ClearProjectListener;
-import com.surelogic.jsure.client.eclipse.listeners.IClearProjectHelper;
 import com.surelogic.jsure.core.Eclipse;
+import com.surelogic.jsure.core.listeners.ClearProjectListener;
+import com.surelogic.jsure.core.listeners.IClearProjectHelper;
 import com.surelogic.jsure.views.debug.testResults.model.Root;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsLabelProvider;
 import com.surelogic.jsure.views.debug.testResults.model.TestResultsTreeContentProvider;
