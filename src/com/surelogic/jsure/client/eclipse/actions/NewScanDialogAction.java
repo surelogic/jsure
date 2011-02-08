@@ -14,9 +14,9 @@ public class NewScanDialogAction extends NewScanAction {
 	protected JavaProjectSelectionDialog.Configuration getDialogInfo(
 			List<IJavaProject> selectedProjects) {
 		return new JavaProjectSelectionDialog.Configuration(
-				"Select project(s) to scan:",
-				"Scan Project",
-				SLImages.getImage(CommonImages.IMG_SIERRA_SCAN),
+				"Select project(s) to verify:",
+				"Verify Project",
+				SLImages.getImage(CommonImages.IMG_JSURE_VERIFY),
 				selectedProjects,
 				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN);
 	}

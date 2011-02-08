@@ -132,8 +132,8 @@
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.NewScanDialogAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ScanDialogAction"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/sierra_scan.gif"
-				label="Scan Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
+				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
+				label="Verify Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
 				enablesFor="*">
 			</action>
 
@@ -179,33 +179,26 @@
 		<objectContribution id="iprojectContribution"
 			objectClass="org.eclipse.core.resources.IProject" adaptable="true">
 
-			<visibility>
-				<and>
-					<objectState name="nature" value="org.eclipse.jdt.core.javanature" />
-					<objectState name="open" value="true" />
-				</and>
-			</visibility>
-
 			<menu id="jSureMenu" label="JSure">
 				<groupMarker name="nature.grp" />
 			</menu>
-
+			
 			<action
 				id="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarContextAction"
-				label="Add/Update Promises Library"
+				label="Add/Update Promises Library..."
 				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jar.gif"
-				tooltip="Creates promises.jar in this project, and adds it to this project's classpath"
+				tooltip="Add or update the promises library in this project so that annotations can be added to the project's code"
 				menubarPath="jSureMenu/nature.grp"
 				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarContextAction"
 				enablesFor="1">
 			</action>
+			<action
+				id="com.surelogic.sierra.client.eclipse.actions.ScanDialogAction"
+				class="com.surelogic.jsure.client.eclipse.actions.NewScanDialogAction"
+				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
+				label="Verify Project" menubarPath="jSureMenu/nature.grp"
+				enablesFor="+">
+			</action>
 		</objectContribution>
-	</extension>
-
-	<extension point="org.eclipse.ui.editors.templates">
-		<contextType name="JSure Java Context"
-			class="org.eclipse.jdt.internal.corext.template.java.JavaContextType"
-			id="java" />
-		<include file="lib/templates/default-jsure-java5-templates.xml" />
 	</extension>
 </plugin>
