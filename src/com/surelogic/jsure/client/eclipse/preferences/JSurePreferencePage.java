@@ -12,7 +12,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
@@ -50,7 +49,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS,
 				I18N.msg("jsure.eclipse.preference.page.balloonFlag"), diGroup);
 		setupEditor(diGroup, f_balloonFlag);
-		
+
 		setupForPerspectiveSwitch(diGroup);
 
 		f_autoOpenProposedPromiseView = new BooleanFieldEditor(
@@ -152,13 +151,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_selectProjectsToScan.loadDefault();
 		f_allowJavadocAnnos.loadDefault();
 		f_analysisThreadCount.loadDefault();
-		if (XUtil.useExperimental()) {
-			f_regionModelCap.loadDefault();
-			f_regionModelCommonString.loadDefault();
-			f_regionModelSuffix.loadDefault();
-			f_lockModelCap.loadDefault();
-			f_lockModelSuffix.loadDefault();
-		}
+		f_regionModelCap.loadDefault();
+		f_regionModelCommonString.loadDefault();
+		f_regionModelSuffix.loadDefault();
+		f_lockModelCap.loadDefault();
+		f_lockModelSuffix.loadDefault();
 		super.performDefaults();
 	}
 
@@ -170,13 +167,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_selectProjectsToScan.store();
 		f_allowJavadocAnnos.store();
 		f_analysisThreadCount.store();
-		if (XUtil.useExperimental()) {
-			f_regionModelCap.store();
-			f_regionModelCommonString.store();
-			f_regionModelSuffix.store();
-			f_lockModelCap.store();
-			f_lockModelSuffix.store();
-		}
+		f_regionModelCap.store();
+		f_regionModelCommonString.store();
+		f_regionModelSuffix.store();
+		f_lockModelCap.store();
+		f_lockModelSuffix.store();
 		return super.performOk();
 	}
 }
