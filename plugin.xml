@@ -16,26 +16,26 @@
 		<category name="JSure" id="edu.cmu.cs.fluid.dcf"></category>
 
 		<view name="Verification Status"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
 		</view>
 
         <!--
 		<view name="Verification Status (Old)"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
 		</view>
 
 		<view name="JSure Verification Status Diffs"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView">
 		</view>
         
 		<view name="JSure Verification Metrics"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.metrics.MetricsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.MetricsView">
 		</view>
@@ -46,19 +46,19 @@
         -->
         
 		<view name="JSure Problems"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/red_x.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/red_x.gif"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.JSureProblemsView">
 		</view>
 
 		<view name="Modeling Problems"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_model_problems.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_model_problems.gif"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.ProblemsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.ProblemsView">
 		</view>
 
 		<view name="Proposed Promises"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/annotation_proposed.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/annotation_proposed.gif"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView"
 			id="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView">
 		</view>
@@ -69,7 +69,7 @@
 
 	<extension point="org.eclipse.ui.perspectives">
 		<perspective name="Code Verification"
-			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 			class="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective"
 			id="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
 		</perspective>
@@ -114,7 +114,7 @@
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.OpenCodeVerificationPerspectiveAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ShowCodeVerificationPerspectiveAction"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 				label="Open Code Verification Perspective"
 				tooltip="Open the Code Verification perspective to examine JSure tool results"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
@@ -123,7 +123,7 @@
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarMainAction"
 				id="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarMainAction"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jar.gif"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
 				label="Add/Update Promises Library..."
 				tooltip="Add or update the promises library to a project so that annotations can be added to the project's code"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
@@ -132,7 +132,7 @@
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.NewScanDialogAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ScanDialogAction"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 				label="Verify Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
 				enablesFor="*">
 			</action>
@@ -186,7 +186,7 @@
 			<action
 				id="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarContextAction"
 				label="Add/Update Promises Library..."
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jar.gif"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
 				tooltip="Add or update the promises library in this project so that annotations can be added to the project's code"
 				menubarPath="jSureMenu/nature.grp"
 				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarContextAction"
@@ -195,7 +195,7 @@
 			<action
 				id="com.surelogic.sierra.client.eclipse.actions.ScanDialogAction"
 				class="com.surelogic.jsure.client.eclipse.actions.NewScanDialogAction"
-				icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_verify.gif"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 				label="Verify Project" menubarPath="jSureMenu/nature.grp"
 				enablesFor="+">
 			</action>
