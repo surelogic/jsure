@@ -7,9 +7,12 @@ import junit.framework.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
+import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.*;
@@ -332,7 +335,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		// System.out.println("Setting up log for "+project.getName());
 		output = IDE.getInstance().makeLog(project.getName());
 		try {
-			runAnalysis(workspaceFile, project);
+			runAnalysis(workspaceFile, project, projects);
 		} catch (AssertionFailedError e) {
 			output.close();
 			throw e; // pass-through
@@ -405,7 +408,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		return null;
 	}
 
-	private void runAnalysis(final File workspaceFile, final IProject project)
+	private void runAnalysis(final File workspaceFile, final IProject project, IProject[] projects)
 			throws Throwable {
 		final String projectPath = project.getLocation().toOSString();
 		/*
@@ -443,6 +446,17 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		start("Build and analyze");
 		ResourcesPlugin.getWorkspace().build(
 				IncrementalProjectBuilder.AUTO_BUILD, null);
+		
+		List<IJavaProject> jprojects = new ArrayList<IJavaProject>(projects.length);
+		for(IProject p : projects) {
+			jprojects.add(JDTUtility.getJavaProject(p.getName()));			
+		}
+		JavacBuild.analyze(jprojects, new IErrorListener() {			
+			@Override
+			public void reportError(String summary, String msg) {
+				throw new IllegalStateException(msg);
+			}
+		});
 		end("Done analyzing");
 
 		final String projectName = project.getName();
