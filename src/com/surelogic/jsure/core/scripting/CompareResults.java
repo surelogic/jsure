@@ -45,7 +45,7 @@ public class CompareResults extends AbstractCommand {
 		Sea.getDefault().updateConsistencyProof();
 		
 		System.out.println("Using oracle: "+oracle);
-		final SeaSummary.Diff diff = SeaSummary.diff(projectName, Sea.getDefault(), oracle);
+		final SeaSummary.Diff diff = SeaSummary.diff(Sea.getDefault(), oracle);
 
 		final File diffs = resolveFile(context, contents[3], true);	
 		if (!diff.isEmpty()) {
