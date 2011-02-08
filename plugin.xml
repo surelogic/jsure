@@ -15,21 +15,6 @@
 		</page>
 	</extension>
 
-	<extension point="org.eclipse.ui.decorators">
-		<decorator lightweight="true" adaptable="true"
-			label="%jSure.decorator.label" icon="lib/jsure_decr.gif" state="true"
-			id="jSureDecorator">
-			<description>%jSure.decorator.desc</description>
-			<enablement>
-				<and>
-					<objectClass name="org.eclipse.core.resources.IProject" />
-					<objectState name="nature"
-						value="com.surelogic.jsure.client.eclipse.dcNature" />
-				</and>
-			</enablement>
-		</decorator>
-	</extension>
-
 	<extension id="AnalysisDriver" name="Analysis Driver"
 		point="com.surelogic.jsure.client.eclipse.analysisModule">
 		<run class="com.surelogic.jsure.client.eclipse.analysis.AnalysisDriver" production="false">
@@ -230,12 +215,13 @@
 			id="edu.cmu.cs.fluid.dcf.views.coe.PersistentResultsView">
 		</view>
 
+        <!--
 		<view name="Verification Status (Old)"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/jsure_logo.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
 		</view>
-
+        -->
 		<view name="JSure Verification Status Diffs"
 			icon="platform:/plugin/com.surelogic.common/src/com/surelogic/common/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.DiffResultsView"
@@ -287,7 +273,7 @@
 			targetID="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
 			<perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective">
 			</perspectiveShortcut>
-			<viewShortcut id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
+			<viewShortcut id="edu.cmu.cs.fluid.dcf.views.coe.PersistentResultsView">
 			</viewShortcut>
 			<viewShortcut id="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView">
 			</viewShortcut>
