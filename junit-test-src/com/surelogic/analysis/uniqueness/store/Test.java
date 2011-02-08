@@ -4,6 +4,7 @@ import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 
 import java.net.URL;
 
+import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.PessimisticMayAlias;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.UniquenessRules;
@@ -463,7 +464,8 @@ public final class Test extends IDE {
   }
 
   @Override
-  public void popupWarning(String string) {
-    // Nothing to do yet
+  public IAnalysisInfo[] getAnalysisInfo() {
+	  // TODO Auto-generated method stub
+	  return null;
   }  
 }

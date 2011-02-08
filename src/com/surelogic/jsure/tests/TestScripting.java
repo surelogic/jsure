@@ -1,6 +1,6 @@
 package com.surelogic.jsure.tests;
 
-import com.surelogic.jsure.scripting.ScriptReader;
+import com.surelogic.jsure.core.scripting.ScriptReader;
 
 import junit.framework.TestCase;
 

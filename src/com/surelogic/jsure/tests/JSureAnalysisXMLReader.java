@@ -4,13 +4,13 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.*;
 
-import org.eclipse.jface.preference.*;
 import org.jdom.*;
 import org.jdom.input.SAXBuilder;
 
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.dc.Plugin;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 public final class JSureAnalysisXMLReader {
 	static final Logger LOG = SLLogger.getLogger();
@@ -114,18 +114,17 @@ public final class JSureAnalysisXMLReader {
 	
 	/**
 	 * Read persistent double-checker plugin information from
-	 * <code>target</code>. Invoked from {@link #startup}.
+	 * <code>target</code> into Eclipse. Invoked from {@link #startup}.
 	 * 
 	 * @param target
 	 *            {@link File}to read from
 	 * 
 	 * @see #writeStateTo(File)
 	 */
-	static IPreferenceStore readStateFrom(File target) {
+	static void readStateFrom(File target) {
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("Read state from the file " + target.getAbsolutePath());
 		}
-		IPreferenceStore store = new PreferenceStore();
 		SAXBuilder parser = new SAXBuilder();
 		try {
 			Document pluginSaveInformation = parser.build(target);
@@ -137,7 +136,7 @@ public final class JSureAnalysisXMLReader {
 						+ includedAnalysisModules);
 			for (String id : includedAnalysisModules) {
 				//System.out.println("'Included' : "+id);
-				store.setValue(Plugin.ANALYSIS_ACTIVE_PREFIX + id, true);
+				EclipseUtility.setBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, true);
 			}
 
 			List<String> excludedAnalysisModules = getList(root, SF_PREFS,
@@ -150,7 +149,7 @@ public final class JSureAnalysisXMLReader {
 					LOG.warning("Both included and excluded: " + id);
 				}
 				//System.out.println("'Excluded' : "+id);
-				store.setValue(Plugin.ANALYSIS_ACTIVE_PREFIX + id, false);
+				EclipseUtility.setBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, false);
 				// System.out.println("Excluded "+id);
 			}
 		} catch (JDOMException e) {
@@ -163,6 +162,5 @@ public final class JSureAnalysisXMLReader {
 							+ " perhaps because this is the first invocation of double-checker",
 					e);
 		}
-		return store;
 	}
 }

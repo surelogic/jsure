@@ -7,21 +7,17 @@ import junit.framework.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
-import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.jsure.client.eclipse.analysis.*;
+import com.surelogic.jsure.core.Eclipse;
+import com.surelogic.jsure.core.driver.*;
+import com.surelogic.jsure.core.listeners.*;
+import com.surelogic.jsure.core.scripting.*;
 import com.surelogic.test.*;
-import com.surelogic.jsure.scripting.*;
 import com.surelogic.test.xml.JUnitXMLOutput;
 
-import edu.cmu.cs.fluid.analysis.util.ConsistencyListener;
-import edu.cmu.cs.fluid.dc.*;
-import edu.cmu.cs.fluid.dc.Plugin;
-import edu.cmu.cs.fluid.eclipse.Eclipse;
-import edu.cmu.cs.fluid.eclipse.logging.EclipseLogHandler;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
@@ -108,16 +104,15 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				ScriptCommands.ANALYSIS_SETTINGS, true);
 		if (analyses.exists() && analyses.isFile()) {
 			System.out.println("Found project-specific analysis settings.");
-			IPreferenceStore store = JSureAnalysisXMLReader
-					.readStateFrom(analyses);
-			Plugin.getDefault().initAnalyses(store);
+			JSureAnalysisXMLReader.readStateFrom(analyses);
+			DoubleChecker.getDefault().initAnalyses();
 
-			if (AnalysisDriver.useJavac) {
+			if (IDE.useJavac) {
 				System.out
 						.println("Configuring analyses from project-specific settings");
 				JavacEclipse.initialize();
 				((JavacEclipse) IDE.getInstance())
-						.synchronizeAnalysisPrefs(store);
+						.synchronizeAnalysisPrefs();
 			}
 		} else {
 			System.out.println("No project-specific analysis settings.");
@@ -267,11 +262,6 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			System.out.println("Already created:    " + name);
 		}
 
-		if (!Nature.hasNature(project)) {
-			System.out.println("Adding nature to project: " + name);
-			Nature.addNatureToProject(project);
-		}
-
 		// Open and then stop processing
 		if (!project.isOpen()) {
 			project.open(null);
@@ -324,7 +314,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			}
 			if (p.isOpen()) {
 				File script = findFile(p, ScriptCommands.NAME, false);
-				if (script != null || Nature.hasNature(p)) {
+				if (script != null/* || Nature.hasNature(p)*/) {
 					assertNull("More than one project to analyze!?!", project);
 					project = p;
 				}
@@ -608,7 +598,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	}
 
 	private void printActivatedAnalyses() {
-		for (String id : Plugin.getDefault().getIncludedExtensions()) {
+		for (String id : DoubleChecker.getDefault().getIncludedExtensions()) {
 			System.out.println("Activated: " + id);
 		}
 	}
