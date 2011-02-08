@@ -9,8 +9,6 @@ import com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView;
 import com.surelogic.jsure.client.eclipse.views.results.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView;
 
-import edu.cmu.cs.fluid.dcf.views.coe.*;
-
 /**
  * Defines the JSure perspective within the workbench.
  */
