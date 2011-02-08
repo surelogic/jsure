@@ -10,9 +10,10 @@ import org.eclipse.jface.viewers.*;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
+
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
 
-import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Sea;
