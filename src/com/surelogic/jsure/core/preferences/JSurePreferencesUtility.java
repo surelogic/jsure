@@ -68,9 +68,6 @@ public final class JSurePreferencesUtility {
 			EclipseUtility.setDefaultBooleanPreference(LOCK_MODEL_NAME_CAP,
 					true);
 
-			EclipseUtility.setDefaultBooleanPreference(AUTO_ANALYZE_ON_BUILD,
-					true);
-
 			EclipseUtility
 					.setDefaultStringPreference(
 							IDEPreferences.JSURE_DATA_DIRECTORY,
@@ -102,13 +99,6 @@ public final class JSurePreferencesUtility {
 			+ "lockModelNameSuffix";
 	public static final String LOCK_MODEL_NAME_CAP = PREFIX
 			+ "lockModelNameCap";
-
-	/**
-	 * Whether we should build only when the user says so (false), or when
-	 * Eclipse says to do so (true).
-	 */
-	public static final String AUTO_ANALYZE_ON_BUILD = PREFIX
-			+ "auto.analyze.on.build";
 
 	/**
 	 * Gets the JSure data directory. This method ensures that the directory

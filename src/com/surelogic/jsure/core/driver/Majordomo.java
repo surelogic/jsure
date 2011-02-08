@@ -28,7 +28,6 @@ import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
-import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -194,12 +193,6 @@ public final class Majordomo extends AbstractJavaBuilder implements
 			projectCache.cacheRebuild();
 		} else {
 			delta.accept(this); // add changes to our per-project resource cache
-		}
-		final boolean autoAnalyzeOnBuild = EclipseUtility
-				.getBooleanPreference(JSurePreferencesUtility.AUTO_ANALYZE_ON_BUILD);
-		if (!autoAnalyzeOnBuild) {
-			lastArgs = new HashMap<Object, Object>(args);
-			return null;
 		}
 		doBuild(args);
 
