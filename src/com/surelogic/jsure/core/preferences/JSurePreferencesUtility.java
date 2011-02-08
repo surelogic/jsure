@@ -94,6 +94,9 @@ public final class JSurePreferencesUtility {
 	public static final String AUTO_OPEN_PROPOSED_PROMISE_VIEW = PREFIX
 			+ "open.proposed.promise.view";
 
+	public static final String ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN = PREFIX
+			+ "always.allow.user.to.select.projects.to.scan";
+
 	/**
 	 * Whether we should build only when the user says so (false), or when
 	 * Eclipse says to do so (true).
