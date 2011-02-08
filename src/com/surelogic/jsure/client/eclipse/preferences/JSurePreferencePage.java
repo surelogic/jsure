@@ -46,12 +46,12 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
 		final Group diGroup = createGroup(panel, "preference.page.group.app");
 
-		setupForPerspectiveSwitch(diGroup);
-
 		f_balloonFlag = new BooleanFieldEditor(
 				JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS,
 				I18N.msg("jsure.eclipse.preference.page.balloonFlag"), diGroup);
 		setupEditor(diGroup, f_balloonFlag);
+		
+		setupForPerspectiveSwitch(diGroup);
 
 		f_autoOpenProposedPromiseView = new BooleanFieldEditor(
 				JSurePreferencesUtility.AUTO_OPEN_PROPOSED_PROMISE_VIEW,
