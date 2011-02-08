@@ -71,13 +71,13 @@
 		<perspective name="Code Verification"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 			class="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective"
-			id="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
+			id="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
 		</perspective>
 	</extension>
 
 	<extension point="org.eclipse.ui.perspectiveExtensions">
 		<perspectiveExtension
-			targetID="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
+			targetID="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
 			<perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective">
 			</perspectiveShortcut>
 			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
@@ -92,7 +92,7 @@
 	<extension point="org.eclipse.ui.perspectiveExtensions">
 		<perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
 			<perspectiveShortcut
-				id="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
+				id="com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective">
 			</perspectiveShortcut>
 		</perspectiveExtension>
 	</extension>
@@ -131,7 +131,7 @@
 
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
-				id="com.surelogic.jsure.client.eclipse.actions.ScanDialogAction"
+				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 				label="Verify Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
 				enablesFor="*">
@@ -193,8 +193,8 @@
 				enablesFor="1">
 			</action>
 			<action
-				id="com.surelogic.sierra.client.eclipse.actions.ScanDialogAction"
-				class="com.surelogic.jsure.client.eclipse.actions.NewScanDialogAction"
+				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
+				class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 				label="Verify Project" menubarPath="jSureMenu/nature.grp"
 				enablesFor="+">
