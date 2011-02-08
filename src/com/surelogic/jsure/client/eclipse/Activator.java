@@ -70,32 +70,9 @@ public class Activator extends AbstractUIPlugin implements
 		JSurePreferencesUtility.initializeDefaultScope();
 		monitor.worked(1);
 
-		if (!Util.useResultsXML) {
-			clearJSureData();
-		}
-		monitor.worked(1);
-
-		// TODO reload persistent data
-		Eclipse.initialize();
-		monitor.worked(1);
-
 		EclipseUtility.getProductReleaseDateJob(SLLicenseProduct.JSURE, this)
 				.schedule();
 		monitor.worked(1);
-
-		// NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
-		JavacDriver.getInstance();
-		monitor.worked(1);
-	}
-
-	private void clearJSureData() {
-		for (File f : JSurePreferencesUtility.getJSureDataDirectory()
-				.listFiles()) {
-			if (f.isDirectory()) {
-				FileUtility.recursiveDelete(f, false);
-			}
-			// i.e. don't delete persistent files
-		}
 	}
 
 	@Override
