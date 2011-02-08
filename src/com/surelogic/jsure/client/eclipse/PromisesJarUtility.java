@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.dc;
+package com.surelogic.jsure.client.eclipse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,12 +56,12 @@ public class PromisesJarUtility {
 		final IJavaProject jp = JavaCore.create(project);
 		if (JDTUtility.getMajorJavaVersion(jp) < 5) {
 			if (onlyAddJar) {
-				final Shell shell = 
-					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-				MessageDialog.openInformation(
-						shell,
-						"No Need for SureLogic Promises Library",
-						"The SureLogic promises library is only for projects using Java 5 and above.");
+				final Shell shell = PlatformUI.getWorkbench()
+						.getActiveWorkbenchWindow().getShell();
+				MessageDialog
+						.openInformation(shell,
+								"No Need for SureLogic Promises Library",
+								"The SureLogic promises library is only for projects using Java 5 and above.");
 			}
 			EclipseJob.getInstance().schedule(finish);
 			return;
@@ -100,25 +100,19 @@ public class PromisesJarUtility {
 							final StringBuilder sb = new StringBuilder();
 							if (hasCurrentJar) {
 								// We've got the latest, but also older jars
-								sb
-										.append("The latest SureLogic promises library is on the build path, ");
-								sb
-										.append("but there are also older SureLogic promises libraries on the build path:\n\n");
+								sb.append("The latest SureLogic promises library is on the build path, ");
+								sb.append("but there are also older SureLogic promises libraries on the build path:\n\n");
 							} else {
 								// We only have older jars
-								sb
-										.append("The project does not contain the latest SureLogic promises library on its build path, ");
-								sb
-										.append("but there are older SureLogic promises libraries on the build path:\n\n");
+								sb.append("The project does not contain the latest SureLogic promises library on its build path, ");
+								sb.append("but there are older SureLogic promises libraries on the build path:\n\n");
 							}
 							for (IPath p : old) {
-								sb.append('\t').append(p.toString()).append(
-										'\n');
+								sb.append('\t').append(p.toString())
+										.append('\n');
 							}
-							sb
-									.append("\nWould you like to remove the older libraries from the project's build path?");
-							sb
-									.append("\n\nThis action will not delete the older libraries from your disk (you can do that manually).");
+							sb.append("\nWould you like to remove the older libraries from the project's build path?");
+							sb.append("\n\nThis action will not delete the older libraries from your disk (you can do that manually).");
 
 							final MessageDialog dialog = new MessageDialog(
 									shell,
@@ -160,7 +154,7 @@ public class PromisesJarUtility {
 					ConfirmPerspectiveSwitch.prototype.submitUIJob();
 					// Already started by nature change
 					// Nature.runAnalysis(project);
-				} 
+				}
 				return Status.OK_STATUS;
 			}
 		};
@@ -240,8 +234,8 @@ public class PromisesJarUtility {
 			useJar = jp.getProject().getFile(LibResources.PROMISES_JAR);
 			choice = dialog.open();
 		} else {
-			final String foundJarPath = computeRelativePath(foundJar, jp
-					.getProject());
+			final String foundJarPath = computeRelativePath(foundJar,
+					jp.getProject());
 			final MessageDialog dialog = new MessageDialog(shell,
 					"Add Promises to Build Path?", null,
 					"The project contains the latest SureLogic promises JAR file at \""
@@ -256,8 +250,8 @@ public class PromisesJarUtility {
 		}
 
 		if (choice == 1) { // Choose a location
-			final IContainer newLocation = chooseDirectory(shell, jp
-					.getProject(), jp, srcAndOutputDirs);
+			final IContainer newLocation = chooseDirectory(shell,
+					jp.getProject(), jp, srcAndOutputDirs);
 			if (newLocation != null) {
 				useJar = newLocation
 						.getFile(new Path(LibResources.PROMISES_JAR));
@@ -274,15 +268,15 @@ public class PromisesJarUtility {
 			final Shell shell, LocationChoice lc) throws CoreException,
 			IOException, JavaModelException {
 		boolean createJar = !lc.useExisting;
-		
+
 		// Make sure Eclipse is up-to-date with the OS
-		lc.useJar.refreshLocal(0, null); 
-		
+		lc.useJar.refreshLocal(0, null);
+
 		// Ask the user what to do if the file already
 		// exists
 		if (lc.useJar.exists() && !lc.useExisting) {
-			final String useJarPath = computeRelativePath(lc.useJar, jp
-					.getProject());
+			final String useJarPath = computeRelativePath(lc.useJar,
+					jp.getProject());
 			createJar = MessageDialog.openQuestion(shell,
 					"Overwrite Existing Promises?",
 					"The SureLogic promises JAR file already exists at \""
@@ -412,13 +406,13 @@ public class PromisesJarUtility {
 				javaProject.getOutputLocation()));
 		for (IClasspathEntry entry : javaProject.getRawClasspath()) {
 			if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-				sourceAndOutputDirs.add(getWorkspaceFolder(javaProject
-						.getProject(), entry.getPath()));
+				sourceAndOutputDirs.add(getWorkspaceFolder(
+						javaProject.getProject(), entry.getPath()));
 			}
 			final IPath output = entry.getOutputLocation();
 			if (output != null) {
-				sourceAndOutputDirs.add(getWorkspaceFolder(javaProject
-						.getProject(), output));
+				sourceAndOutputDirs.add(getWorkspaceFolder(
+						javaProject.getProject(), output));
 			}
 		}
 		return sourceAndOutputDirs;
@@ -491,8 +485,8 @@ public class PromisesJarUtility {
 
 		final LabelProvider labelProvider = new LabelProvider() {
 			private final Image IMG_PROJECT = PlatformUI.getWorkbench()
-					.getSharedImages().getImage(
-							IDE.SharedImages.IMG_OBJ_PROJECT);
+					.getSharedImages()
+					.getImage(IDE.SharedImages.IMG_OBJ_PROJECT);
 			private final Image IMG_FOLDER = PlatformUI.getWorkbench()
 					.getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER);
 
@@ -572,8 +566,7 @@ public class PromisesJarUtility {
 		final ElementTreeSelectionDialog dialog = new ElementTreeSelectionDialog(
 				shell, labelProvider, contentProvider);
 		dialog.setTitle("Choose a Location");
-		dialog
-				.setMessage("Please choose a location for the promises jar file:");
+		dialog.setMessage("Please choose a location for the promises jar file:");
 		dialog.setInput(root);
 		dialog.setHelpAvailable(false);
 
