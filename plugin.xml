@@ -130,7 +130,7 @@
 			</action>
 
 			<action
-				class="com.surelogic.jsure.client.eclipse.actions.NewScanDialogAction"
+				class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ScanDialogAction"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 				label="Verify Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
