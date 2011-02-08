@@ -123,7 +123,7 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 						SeaSummary.summarize(name, Sea.getDefault(), newFile2);
 					}
 					
-					Diff d = SeaSummary.diff(name, Sea.getDefault(), file);
+					Diff d = SeaSummary.diff(Sea.getDefault(), file);
 					f_contentProvider.setDiff(d);					
 					return;
 				} catch (Exception e) {
