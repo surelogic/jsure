@@ -11,7 +11,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.preferences.AbstractCommonPreferencePage;
@@ -20,8 +22,10 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 public class JSurePreferencePage extends AbstractCommonPreferencePage {
+	private BooleanFieldEditor f_balloonFlag;
 	private BooleanFieldEditor f_autoOpenProposedPromiseView;
 	private BooleanFieldEditor f_autoOpenModelingProblemsView;
+	private BooleanFieldEditor f_selectProjectsToScan;
 	private BooleanFieldEditor f_allowJavadocAnnos;
 	private IntegerFieldEditor f_analysisThreadCount;
 	private BooleanFieldEditor f_regionModelCap;
@@ -44,6 +48,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
 		setupForPerspectiveSwitch(diGroup);
 
+		f_balloonFlag = new BooleanFieldEditor(
+				JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS,
+				I18N.msg("jsure.eclipse.preference.page.balloonFlag"), diGroup);
+		setupEditor(diGroup, f_balloonFlag);
+
 		f_autoOpenProposedPromiseView = new BooleanFieldEditor(
 				JSurePreferencesUtility.AUTO_OPEN_PROPOSED_PROMISE_VIEW,
 				I18N.msg("jsure.eclipse.preference.page.autoOpenProposedPromiseView"),
@@ -55,6 +64,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				I18N.msg("jsure.eclipse.preference.page.autoOpenModelingProblemsView"),
 				diGroup);
 		setupEditor(diGroup, f_autoOpenModelingProblemsView);
+
+		f_selectProjectsToScan = new BooleanFieldEditor(
+				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN,
+				I18N.msg("jsure.eclipse.preference.page.selectProjectsToScan"),
+				diGroup);
 
 		final Group annoGroup = createGroup(panel,
 				"preference.page.group.annos");
@@ -73,7 +87,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_analysisThreadCount.setValidRange(1, 128);
 		setupEditor(threadGroup, f_analysisThreadCount);
 
-		if (XUtil.useExperimental()) {
+		if (EclipseUtility.bundleExists(SLUtility.FLASHLIGHT_ID)) {
 			final Group modelNamingGroup = createGroup(panel,
 					"preference.page.group.modelNaming");
 			modelNamingGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP,
@@ -132,8 +146,10 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
 	@Override
 	protected void performDefaults() {
+		f_balloonFlag.loadDefault();
 		f_autoOpenProposedPromiseView.loadDefault();
 		f_autoOpenModelingProblemsView.loadDefault();
+		f_selectProjectsToScan.loadDefault();
 		f_allowJavadocAnnos.loadDefault();
 		f_analysisThreadCount.loadDefault();
 		if (XUtil.useExperimental()) {
@@ -148,8 +164,10 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
 	@Override
 	public boolean performOk() {
+		f_balloonFlag.store();
 		f_autoOpenProposedPromiseView.store();
 		f_autoOpenModelingProblemsView.store();
+		f_selectProjectsToScan.store();
 		f_allowJavadocAnnos.store();
 		f_analysisThreadCount.store();
 		if (XUtil.useExperimental()) {

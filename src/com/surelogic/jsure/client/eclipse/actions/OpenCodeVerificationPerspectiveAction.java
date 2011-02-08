@@ -5,7 +5,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
-import com.surelogic.common.ui.ViewUtility;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.perspectives.CodeVerificationPerspective;
 
 public class OpenCodeVerificationPerspectiveAction implements
@@ -20,8 +20,8 @@ public class OpenCodeVerificationPerspectiveAction implements
 	}
 
 	public void run(IAction action) {
-		ViewUtility
-				.showPerspective(CodeVerificationPerspective.class.getName());
+		EclipseUIUtility.showPerspective(CodeVerificationPerspective.class
+				.getName());
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {

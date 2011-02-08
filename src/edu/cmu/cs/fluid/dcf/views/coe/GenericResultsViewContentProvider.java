@@ -25,7 +25,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ui.ViewUtility;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
@@ -1174,7 +1174,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 				final UIJob job = new SLUIJob() {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
-						ViewUtility.showView(ProblemsView.class.getName(),
+						EclipseUIUtility.showView(ProblemsView.class.getName(),
 								null, IWorkbenchPage.VIEW_VISIBLE);
 						return Status.OK_STATUS;
 					}
@@ -1193,7 +1193,7 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 				final UIJob job = new SLUIJob() {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
-						ViewUtility.showView(
+						EclipseUIUtility.showView(
 								ProposedPromiseView.class.getName(), null,
 								IWorkbenchPage.VIEW_VISIBLE);
 						return Status.OK_STATUS;
