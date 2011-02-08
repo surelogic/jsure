@@ -15,12 +15,11 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.ui.DialogTouchNotificationUI;
-import com.surelogic.common.ui.SWTUtility;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.fluid.javac.Util;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-
 
 /**
  * The activator class controls the plug-in life cycle
@@ -51,7 +50,7 @@ public class Activator extends AbstractUIPlugin implements
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 
-		SWTUtility.startup(this);
+		EclipseUIUtility.startup(this);
 	}
 
 	// Used for startup
@@ -64,7 +63,7 @@ public class Activator extends AbstractUIPlugin implements
 		 */
 		SLEclipseStatusUtility.touch(new DialogTouchNotificationUI());
 		monitor.worked(1);
-		
+
 		/*
 		 * "Touch" the JSure preference initialization.
 		 */

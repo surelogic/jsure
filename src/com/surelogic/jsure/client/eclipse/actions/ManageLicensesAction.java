@@ -5,7 +5,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
-import com.surelogic.common.ui.SWTUtility;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.dialogs.ManageLicensesDialog;
 
 public final class ManageLicensesAction implements
@@ -20,7 +20,7 @@ public final class ManageLicensesAction implements
 	}
 
 	public void run(IAction action) {
-		ManageLicensesDialog.open(SWTUtility.getShell());
+		ManageLicensesDialog.open(EclipseUIUtility.getShell());
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {

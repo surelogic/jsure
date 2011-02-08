@@ -5,7 +5,7 @@ import java.util.List;
 import org.eclipse.jface.action.Action;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 
-import com.surelogic.common.ui.SWTUtility;
+import com.surelogic.common.ui.EclipseUIUtility;
 
 import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
@@ -40,7 +40,7 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 		final RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(
 				wizard);
 		try {
-			op.run(SWTUtility.getShell(), getDialogTitle());
+			op.run(EclipseUIUtility.getShell(), getDialogTitle());
 		} catch (final InterruptedException e) {
 			// Operation was canceled. Whatever floats their boat.
 		}

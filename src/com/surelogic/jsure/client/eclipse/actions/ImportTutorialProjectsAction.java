@@ -6,7 +6,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.ui.SWTUtility;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.dialogs.InstallTutorialProjectsDialog;
 
 public class ImportTutorialProjectsAction implements
@@ -24,15 +24,15 @@ public class ImportTutorialProjectsAction implements
 	public void run(final IAction action) {
 		final ClassLoader loader = Thread.currentThread()
 				.getContextClassLoader();
-		InstallTutorialProjectsDialog.open(SWTUtility.getShell(),
+		InstallTutorialProjectsDialog.open(EclipseUIUtility.getShell(),
 				CommonImages.IMG_JSURE_LOGO,
-				"/com.surelogic.jsure.client.help/ch01s03.html", loader
-						.getResource("/lib/PlanetBaronJSure.zip"), loader
-						.getResource("/lib/BoundedFIFOJSure.zip"), loader
-						.getResource("/lib/SmallWorldJSure.zip"), loader
-						.getResource("/lib/apache-log4j.zip"), loader
-						.getResource("/lib/java.util.logging.zip"), loader
-						.getResource("/lib/oswego.util.concurrent.zip"));
+				"/com.surelogic.jsure.client.help/ch01s03.html",
+				loader.getResource("/lib/PlanetBaronJSure.zip"),
+				loader.getResource("/lib/BoundedFIFOJSure.zip"),
+				loader.getResource("/lib/SmallWorldJSure.zip"),
+				loader.getResource("/lib/apache-log4j.zip"),
+				loader.getResource("/lib/java.util.logging.zip"),
+				loader.getResource("/lib/oswego.util.concurrent.zip"));
 	}
 
 	public void selectionChanged(final IAction action,

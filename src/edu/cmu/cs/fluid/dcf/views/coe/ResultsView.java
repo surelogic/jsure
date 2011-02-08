@@ -36,7 +36,6 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.common.ui.SWTUtility;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
@@ -237,8 +236,9 @@ public class ResultsView extends AbstractDoubleCheckerView {
 					.getImage(CommonImages.IMG_JSURE_QUICK_REF);
 			final Image icon = SLImages
 					.getImage(CommonImages.IMG_JSURE_QUICK_REF_ICON);
-			final ImageDialog dialog = new ImageDialog(SWTUtility.getShell(),
-					quickRefImage, icon, "Iconography Quick Reference");
+			final ImageDialog dialog = new ImageDialog(
+					EclipseUIUtility.getShell(), quickRefImage, icon,
+					"Iconography Quick Reference");
 			dialog.open();
 		}
 	};
