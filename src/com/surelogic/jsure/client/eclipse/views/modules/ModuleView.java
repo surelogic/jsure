@@ -2,7 +2,7 @@
  * Created on Dec 8, 2005
  *
  */
-package edu.cmu.cs.fluid.dcf.views.modules;
+package com.surelogic.jsure.client.eclipse.views.modules;
 
 import java.util.Set;
 
