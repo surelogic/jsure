@@ -80,11 +80,11 @@
 			targetID="com.surelogic.jsure.perspectives.CodeVerificationPerspective">
 			<perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective">
 			</perspectiveShortcut>
-			<viewShortcut id="edu.cmu.cs.fluid.dcf.views.coe.PersistentResultsView">
+			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
 			</viewShortcut>
-			<viewShortcut id="edu.cmu.cs.fluid.dcf.views.coe.ProblemsView">
+			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.results.ProblemsView">
 			</viewShortcut>
-			<viewShortcut id="edu.cmu.cs.fluid.dcf.views.coe.ProposedPromiseView">
+			<viewShortcut id="com.surelogic.jsure.client.eclipse.views.results.ProposedPromiseView">
 			</viewShortcut>
 		</perspectiveExtension>
 	</extension>
