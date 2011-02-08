@@ -314,16 +314,20 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			}
 			if (p.isOpen()) {
 				File script = findFile(p, ScriptCommands.NAME, false);
-				if (script != null/* || Nature.hasNature(p)*/) {
+				if (script != null) {
 					assertNull("More than one project to analyze!?!", project);
 					project = p;
 				}
 			}
 		}
-
+		
 		if (project == null) {
-			fail("No project");
-			return;
+			if (projects.length != 1) {
+				fail("No project");
+				return;
+			} else {
+				project = projects[0];
+			}
 		}
 		// System.out.println("Setting up log for "+project.getName());
 		output = IDE.getInstance().makeLog(project.getName());
