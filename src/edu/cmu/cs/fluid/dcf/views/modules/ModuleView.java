@@ -10,7 +10,8 @@ import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 
-import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
+import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
+
 import edu.cmu.cs.fluid.sea.drops.promises.ModuleModel;
 
 /**

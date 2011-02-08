@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.dcf.views;
+package com.surelogic.jsure.client.eclipse.views;
 
 import java.util.ArrayList;
 import java.util.List;

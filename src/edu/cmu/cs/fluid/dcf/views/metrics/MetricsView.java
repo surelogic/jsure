@@ -3,7 +3,8 @@ package edu.cmu.cs.fluid.dcf.views.metrics;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.*;
 
-import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
+import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
+
 
 public class MetricsView extends AbstractDoubleCheckerView {
   static class Sorter extends ViewerSorter { 

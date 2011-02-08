@@ -6,6 +6,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.actions.ActionFactory;
 
+import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableView;
+
 import edu.cmu.cs.fluid.dcf.views.*;
 import edu.cmu.cs.fluid.sea.*;
 

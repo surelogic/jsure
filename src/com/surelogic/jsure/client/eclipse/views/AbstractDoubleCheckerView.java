@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.dcf.views;
+package com.surelogic.jsure.client.eclipse.views;
 
 import java.io.*;
 import java.util.*;
@@ -55,7 +55,6 @@ import org.eclipse.ui.part.ViewPart;
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import com.surelogic.jsure.core.listeners.IAnalysisListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 

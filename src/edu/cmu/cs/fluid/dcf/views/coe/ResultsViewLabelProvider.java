@@ -8,8 +8,8 @@ import org.eclipse.swt.graphics.Point;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
+import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
 
-import edu.cmu.cs.fluid.dcf.views.AbstractDoubleCheckerView;
 
 public final class ResultsViewLabelProvider extends ColumnLabelProvider implements
 		IResultsViewLabelProvider {

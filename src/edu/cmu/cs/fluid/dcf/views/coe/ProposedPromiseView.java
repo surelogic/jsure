@@ -8,6 +8,7 @@ import org.eclipse.swt.SWT;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
+import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableView;
 
 import edu.cmu.cs.fluid.dcf.views.*;
 import edu.cmu.cs.fluid.java.ISrcRef;

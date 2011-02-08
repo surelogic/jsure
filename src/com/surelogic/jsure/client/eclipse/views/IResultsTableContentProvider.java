@@ -1,4 +1,4 @@
-package edu.cmu.cs.fluid.dcf.views;
+package com.surelogic.jsure.client.eclipse.views;
 
 import com.surelogic.common.ui.views.ITableContentProvider;
 
