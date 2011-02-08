@@ -14,6 +14,8 @@ public class Activator extends Plugin {
 	 */
 	private static Activator plugin;
 
+	private com.surelogic.jsure.core.driver.DoubleChecker doubleChecker;
+	
 	/**
 	 * Returns the shared instance.
 	 */
@@ -34,6 +36,11 @@ public class Activator extends Plugin {
 		super.start(context);
 
 		JSurePreferencesUtility.initializeDefaultScope();
+		
+		if (doubleChecker == null) {
+			doubleChecker = new com.surelogic.jsure.core.driver.DoubleChecker();
+			doubleChecker.start(context);
+		}
 	}
 
 	@Override
@@ -41,7 +48,12 @@ public class Activator extends Plugin {
 		try {
 			IDE.getInstance().getMemoryPolicy().shutdown();
 		} finally {
+			doubleChecker = null;
 			super.stop(context);
 		}
+	}
+	
+	public com.surelogic.jsure.core.driver.DoubleChecker getDoubleChecker() {
+		return doubleChecker;
 	}
 }
