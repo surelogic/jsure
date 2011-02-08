@@ -37,11 +37,25 @@ public final class JSurePreferencesUtility {
 	 */
 	public static void initializeDefaultScope() {
 		if (f_initializationNeeded.compareAndSet(true, false)) {
+
 			int cpuCount = Runtime.getRuntime().availableProcessors();
 			if (cpuCount < 1)
 				cpuCount = 1;
 			EclipseUtility.setDefaultIntPreference(
 					IDEPreferences.ANALYSIS_THREAD_COUNT, cpuCount);
+
+			EclipseUtility.setDefaultBooleanPreference(
+					SHOW_BALLOON_NOTIFICATIONS, true);
+			EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences()
+					.getPromptPerspectiveSwitchConstant(), true);
+			EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences()
+					.getAutoPerspectiveSwitchConstant(), true);
+			EclipseUtility.setDefaultBooleanPreference(
+					ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN, true);
+			EclipseUtility.setDefaultBooleanPreference(
+					AUTO_OPEN_MODELING_PROBLEMS_VIEW, true);
+			EclipseUtility.setDefaultBooleanPreference(
+					AUTO_OPEN_PROPOSED_PROMISE_VIEW, true);
 
 			EclipseUtility.setDefaultStringPreference(REGION_MODEL_NAME_SUFFIX,
 					"State");
@@ -53,15 +67,6 @@ public final class JSurePreferencesUtility {
 					"Lock");
 			EclipseUtility.setDefaultBooleanPreference(LOCK_MODEL_NAME_CAP,
 					true);
-
-			EclipseUtility.setDefaultBooleanPreference(
-					AUTO_OPEN_MODELING_PROBLEMS_VIEW, true);
-			EclipseUtility.setDefaultBooleanPreference(
-					AUTO_OPEN_PROPOSED_PROMISE_VIEW, true);
-			EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences()
-					.getPromptPerspectiveSwitchConstant(), true);
-			EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences()
-					.getAutoPerspectiveSwitchConstant(), true);
 
 			EclipseUtility.setDefaultBooleanPreference(AUTO_ANALYZE_ON_BUILD,
 					true);
@@ -78,6 +83,15 @@ public final class JSurePreferencesUtility {
 		}
 	}
 
+	public static final String SHOW_BALLOON_NOTIFICATIONS = PREFIX
+			+ "show-balloon-notifications";
+	public static final String ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN = PREFIX
+			+ "always.allow.user.to.select.projects.to.scan";
+	public static final String AUTO_OPEN_MODELING_PROBLEMS_VIEW = PREFIX
+			+ "open.modeling.problems.view";
+	public static final String AUTO_OPEN_PROPOSED_PROMISE_VIEW = PREFIX
+			+ "open.proposed.promise.view";
+
 	public static final String REGION_MODEL_NAME_SUFFIX = PREFIX
 			+ "regionModelNameSuffix";
 	public static final String REGION_MODEL_NAME_CAP = PREFIX
@@ -88,14 +102,6 @@ public final class JSurePreferencesUtility {
 			+ "lockModelNameSuffix";
 	public static final String LOCK_MODEL_NAME_CAP = PREFIX
 			+ "lockModelNameCap";
-
-	public static final String AUTO_OPEN_MODELING_PROBLEMS_VIEW = PREFIX
-			+ "open.modeling.problems.view";
-	public static final String AUTO_OPEN_PROPOSED_PROMISE_VIEW = PREFIX
-			+ "open.proposed.promise.view";
-
-	public static final String ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN = PREFIX
-			+ "always.allow.user.to.select.projects.to.scan";
 
 	/**
 	 * Whether we should build only when the user says so (false), or when
