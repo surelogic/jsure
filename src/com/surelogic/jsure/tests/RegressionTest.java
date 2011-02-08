@@ -14,6 +14,8 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.fluid.javac.Projects;
+import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.*;
 import com.surelogic.jsure.core.listeners.*;
@@ -24,7 +26,10 @@ import com.surelogic.test.xml.JUnitXMLOutput;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.*;
+import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 /**
  * Assumes that the workspace is already setup: -- The appropriate projects have
@@ -473,6 +478,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				end("Done scripting");
 			}
 			// Checks consistency of TestResults
+			// TODO is this right w/ the remote JVM?
 			System.out.println("Updating consistency proof");
 			ConsistencyListener.prototype.analysisCompleted();
 		} finally {
@@ -487,51 +493,23 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				throw t;
 			}
 		}
-		// String resultsName = null;
+		final ProjectsDrop pd = ProjectsDrop.getDrop();
+		final Projects projs = (Projects) pd.getIIRProjects();
+		final File results = new File(projs.getRunDir(), RemoteJSureRun.RESULTS_XML);
 
 		// Export the results from this run
 		start("Exporting results");
 		try {
-			/*
-			 * Old results File f = new File(workspaceFile, projectName +
-			 * ".results.zip"); FileOutputStream out = new FileOutputStream(f);
-			 * System.out.println("Exporting results w/ source");
-			 * XMLReport.exportResultsWithSource(out); out.close(); resultsName
-			 * = f.getAbsolutePath(); assert (f.exists());
-			 * 
-			 * System.out.println("results = " + resultsName);
-			 */
-
-			// Export new results XML
-			// final File location = new File(workspaceFile, projectName +
-			// SeaSnapshot.SUFFIX);
-			// SeaSummary.summarize(projectName, Sea.getDefault(), location);
-			new ExportResults().execute(ICommandContext.nullContext,
-					ScriptCommands.EXPORT_RESULTS, projectName, projectName);
+			// TODO Is this the right location?
+			FileUtility.copy(results, new File(workspaceFile, projectName+SeaSnapshot.SUFFIX));
 			end("Done exporting");
 
 			start("comparing results");
 			System.out
 					.println("Try to compare these results to the results oracle");
 			if (projectPath != null) {
-				resultsOk = compareResults(workspaceFile, projectPath,
+				resultsOk = compareResults(results, workspaceFile, projectPath,
 						projectName, resultsOk);
-				/*
-				 * final String oracleName = getOracleName(projectPath,
-				 * oracleFilter, "oracle.zip");
-				 * System.out.println("Looking for " + oracleName); assert (new
-				 * File(oracleName).exists());
-				 * 
-				 * final Results results = Results.doDiff(oracleName,
-				 * resultsName); assertNotNull(results);
-				 * 
-				 * String diffsName = projectName + ".diffs.xml";
-				 * results.generateXML(diffsName);
-				 * System.out.println("diffs.xml = " + diffsName);
-				 * System.out.println("Has children? " +
-				 * results.root.hasChildren()); if (!useNewSnapshotXML) {
-				 * resultsOk = !results.root.hasChildren(); }
-				 */
 				end("Done comparing");
 			}
 		} catch (FileNotFoundException ex) {
@@ -598,21 +576,30 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		return logOk;
 	}
 
-	private boolean compareResults(final File workspaceFile,
-			final String projectPath, final String projectName,
+	private boolean compareResults(final File resultsSnapshot,
+			final File workspaceFile, final String projectPath, final String projectName,
 			boolean resultsOk) throws Exception {
 		final File xmlLocation = SeaSummary.findSummary(projectPath);
 		if (!xmlLocation.exists()) {
 			return resultsOk;
 		}
+		Collection<Info> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
+		SeaSummary.Diff diff = SeaSummary.diff(newResults.toArray(new IDropInfo[newResults.size()]), xmlLocation);
+		
 		String diffPath = new File(workspaceFile, projectName
 				+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX)
 				.getAbsolutePath();
+		/*
 		CompareResults compare = new CompareResults();
 		// System.out.println("compare "+projectName+" "+xmlLocation.getAbsolutePath()+" "+diffPath);
 		compare.execute(ICommandContext.nullContext, "compare", projectName,
-				xmlLocation.getAbsolutePath(), diffPath);
+				xmlLocation.getAbsolutePath(), diffPath);				
 		return resultsOk && compare.resultsOk;
+		*/
+		if (!diff.isEmpty()) {
+			diff.write(new File(diffPath));
+		}
+		return resultsOk && diff.isEmpty();
 	}
 
 	private void printActivatedAnalyses() {
