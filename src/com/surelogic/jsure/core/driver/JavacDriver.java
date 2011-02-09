@@ -1819,6 +1819,7 @@ public class JavacDriver implements IResourceChangeListener {
 					return SLStatus.CANCEL_STATUS;
 				}
 			} catch (Throwable e) {
+				e.printStackTrace();
 				NotificationHub.notifyAnalysisPostponed(); // TODO
 				if (monitor.isCanceled()) {
 					if (lastMonitor == monitor) {
