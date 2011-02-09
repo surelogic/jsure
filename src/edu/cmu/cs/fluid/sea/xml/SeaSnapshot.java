@@ -318,7 +318,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		ISrcRef ref;
 		List<ISupportingInformation> supportingInfos;
 		
-		@Override
 		public void snapshotAttrs(AbstractSeaXmlCreator s) {
 			for(Map.Entry<String, String> a : attributes.entrySet()) {
 				s.addAttribute(a.getKey(), a.getValue());
@@ -326,7 +325,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			// TODO handle src refs specially?
 		}
 		
-		@Override
 		public Long getTreeHash() {			
 			String hash = getAttribute(HASH_ATTR);
 			if (hash == null) {
@@ -335,7 +333,6 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			return Long.parseLong(hash);
 		}
 		
-		@Override
 		public Long getContextHash() {			
 			return Long.parseLong(getAttribute(CONTEXT_ATTR));
 		}
