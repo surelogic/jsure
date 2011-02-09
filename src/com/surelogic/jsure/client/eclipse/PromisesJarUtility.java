@@ -40,10 +40,10 @@ import org.eclipse.ui.ide.IDE;
 
 import com.surelogic.common.LibResources;
 import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.core.jobs.EclipseJob;
-import com.surelogic.common.ui.jobs.SLUIJob;
-import com.surelogic.common.jobs.SLJob;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.dialogs.ConfirmPerspectiveSwitch;
 
 public class PromisesJarUtility {
@@ -52,18 +52,24 @@ public class PromisesJarUtility {
 	 * Primarily adds the promises.jar if desired
 	 */
 	public static void finishProjectSetup(final IProject project,
-			final boolean onlyAddJar, final SLJob finish) {
+			final boolean onlyAddJar) {
 		final IJavaProject jp = JavaCore.create(project);
-		if (JDTUtility.getMajorJavaVersion(jp) < 5) {
+		final String jpName = project.getName();
+		final String javaSourceVersion = JDTUtility.getJavaSourceVersion(jp);
+		final int majorJavaSourceVersion = JDTUtility
+				.getMajorJavaSourceVersion(jp);
+		if (majorJavaSourceVersion < 5) {
 			if (onlyAddJar) {
-				final Shell shell = PlatformUI.getWorkbench()
-						.getActiveWorkbenchWindow().getShell();
 				MessageDialog
-						.openInformation(shell,
-								"No Need for SureLogic Promises Library",
-								"The SureLogic promises library is only for projects using Java 5 and above.");
+						.openInformation(
+								EclipseUIUtility.getShell(),
+								I18N.msg(
+										"jsure.eclipse.dialog.promises.noPromisesJarNeeded.title",
+										jpName),
+								I18N.msg(
+										"jsure.eclipse.dialog.promises.noPromisesJarNeeded.msg",
+										jpName, javaSourceVersion));
 			}
-			EclipseJob.getInstance().schedule(finish);
 			return;
 		}
 		final boolean foundRegionLock = checkForPromises(jp);
@@ -146,9 +152,6 @@ public class PromisesJarUtility {
 				} catch (final IOException e) {
 					handleError(shell, " while adding "
 							+ LibResources.PROMISES_JAR, e);
-				}
-				if (finish != null) {
-					EclipseJob.getInstance().schedule(finish);
 				}
 				if (!onlyAddJar) {
 					ConfirmPerspectiveSwitch.prototype.submitUIJob();

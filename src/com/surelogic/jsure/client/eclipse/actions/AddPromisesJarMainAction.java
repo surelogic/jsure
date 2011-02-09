@@ -26,7 +26,7 @@ public class AddPromisesJarMainAction extends AbstractMainAction {
 
 	public static void performAction(IProject project) {
 		if (project != null) {
-			PromisesJarUtility.finishProjectSetup(project, true, null);
+			PromisesJarUtility.finishProjectSetup(project, true);
 		}
 	}
 }
