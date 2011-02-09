@@ -19,6 +19,7 @@ import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.*;
 import com.surelogic.jsure.core.listeners.*;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scripting.*;
 import com.surelogic.test.*;
 import com.surelogic.test.xml.JUnitXMLOutput;
@@ -452,6 +453,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		ResourcesPlugin.getWorkspace().build(
 				IncrementalProjectBuilder.AUTO_BUILD, null);
 		
+		System.out.println("JSure data = "+JSurePreferencesUtility.getJSureDataDirectory());
 		List<IJavaProject> jprojects = new ArrayList<IJavaProject>(projects.length);
 		for(IProject p : projects) {
 			jprojects.add(JDTUtility.getJavaProject(p.getName()));			
@@ -494,6 +496,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			}
 		}
 		final ProjectsDrop pd = ProjectsDrop.getDrop();
+		if (pd == null) {
+			throw new IllegalStateException("No results");
+		}
 		final Projects projs = (Projects) pd.getIIRProjects();
 		final File results = new File(projs.getRunDir(), RemoteJSureRun.RESULTS_XML);
 
@@ -614,6 +619,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
 	public synchronized void analysisPostponed() {
 		System.out.println("Analysis postponed");
+		new Throwable("For stack trace").printStackTrace();
 	}
 
 	public synchronized void analysisStarting() {
