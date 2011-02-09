@@ -28,6 +28,9 @@
 		<property file="${workspace.dir}/test.properties" />
 		<property name="eclipse-home" value="${sandbox.eclipse.dir}" />
 		<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
+			<property name="os" value="win32" />
+			<property name="ws" value="win32" />
+			<property name="arch" value="x86_64" />
 			<property name="data-dir" value="${log.dir}" />
 			<property name="plugin-name" value="${jsure-tests-plugin-id}" />
 			<property name="classname" value="com.surelogic.jsure.tests.AllRegressionTests" />

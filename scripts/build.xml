@@ -231,8 +231,6 @@
 		<!-- Copy template headless build.properties file and configure it for a headless build -->
 		<property name="jsure.build.properties" value="${sandbox.jsure.build.dir}${fs}build.properties" />
 		<copy file="${eclipse.pde.plugin.dir}${fs}templates${fs}headless-build${fs}build.properties" toFile="${jsure.build.properties}" />
-		<!-- Should not be necessary to have an allElements file post 3.4 -->
-		<copy file="${eclipse.pde.plugin.dir}${fs}templates${fs}headless-build${fs}allElements.xml" toFile="${sandbox.jsure.build.dir}/allElements.xml" />
 		<property name="jsure.build.buildType" value="H" />
 		<property name="jsure.build.buildId" value="TestBuild" />
 		<property name="jsure.build.output.dir" value="${sandbox.jsure.build.dir}${fs}${jsure.build.buildType}.${jsure.build.buildId}" />
