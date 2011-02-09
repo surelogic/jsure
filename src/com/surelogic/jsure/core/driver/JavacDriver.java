@@ -862,7 +862,7 @@ public class JavacDriver implements IResourceChangeListener {
 
 		private void setOptions(Config config) {
 			IJavaProject jp = JDTUtility.getJavaProject(config.getProject());
-			int version = JDTUtility.getMajorJavaVersion(jp);
+			int version = JDTUtility.getMajorJavaSourceVersion(jp);
 			config.setOption(Config.SOURCE_LEVEL, version);
 			// System.out.println(config.getProject()+": set to level "+version);
 
