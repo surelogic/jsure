@@ -1,6 +1,5 @@
 package com.surelogic.jsure.client.eclipse;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.resources.IWorkspace;
@@ -10,14 +9,11 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.ui.DialogTouchNotificationUI;
 import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.fluid.javac.Util;
-import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 

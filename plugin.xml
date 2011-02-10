@@ -121,10 +121,10 @@
 			</action>
 
 			<action
-				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarMainAction"
-				id="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarMainAction"
+				class="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
+				id="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
-				label="Add/Update Promises Library..."
+				label="Add/Update Promises Library"
 				tooltip="Add or update the promises library to a project so that annotations can be added to the project's code"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
@@ -184,19 +184,19 @@
 			</menu>
 			
 			<action
-				id="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarContextAction"
-				label="Add/Update Promises Library..."
+				id="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
+				class="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
+				label="Add/Update Promises Library"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
-				tooltip="Add or update the promises library in this project so that annotations can be added to the project's code"
 				menubarPath="jSureMenu/nature.grp"
-				class="com.surelogic.jsure.client.eclipse.actions.AddPromisesJarContextAction"
 				enablesFor="1">
 			</action>
 			<action
 				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
 				class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
+				label="Verify Project"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
-				label="Verify Project" menubarPath="jSureMenu/nature.grp"
+				menubarPath="jSureMenu/nature.grp"
 				enablesFor="+">
 			</action>
 		</objectContribution>
