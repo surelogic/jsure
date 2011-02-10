@@ -379,7 +379,7 @@ public final class Eclipse extends IDE {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public IJavaFileLocator getJavaFileLocator() {
 		throw new UnsupportedOperationException();
 	}
