@@ -1,27 +1,30 @@
 package com.surelogic.jsure.core;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.RegionLock;
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.LibResources;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.JDTUtility.IPathFilter;
 import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 
 /**
  * A utility of non-UI JSure-specific methods.
@@ -47,73 +50,151 @@ public final class JSureUtility {
 			public IStatus runInWorkspace(IProgressMonitor monitor)
 					throws CoreException {
 				try {
-					/*
-					 * Set a default location for the added/updated promises
-					 * library.
-					 */
-					IFile jarFile = jp.getProject().getFile(
-							LibResources.PROMISES_JAR);
 
-					final boolean foundRegionLockPromisesOnClasspath = checkForRegionLockPromiseOnClasspathOf(jp);
-					if (foundRegionLockPromisesOnClasspath) {
+					/*
+					 * State holding the workspace or non-workspace proposed
+					 * locations of the new/updated promises.jar file.
+					 */
+					IFile wsFile = null;
+					boolean wsFileIsCurrentVersion = false;
+					File fsFile = null;
+					boolean fsFileIsCurrentVersion = false;
+
+					final List<IPath> promisesJarsOnClasspath = findPromisesJarsOnClasspath(jp);
+					for (IPath path : promisesJarsOnClasspath) {
+						final boolean isCurrentVersion = LibResources.PROMISES_JAR
+								.equals(path.lastSegment());
 						/*
-						 * RegionLock is on the classpath of the Eclipse Java
-						 * project we are examining.
+						 * Unless the promises.jar is the current version we
+						 * remove it from the project's classpath.
 						 */
-						final List<IPath> promisesJarsOnClasspath = findPromisesJarsOnClasspath(jp);
-						for (IPath path : promisesJarsOnClasspath) {
-							if (LibResources.PROMISES_JAR.equals(path
-									.lastSegment())) {
+						if (!isCurrentVersion) {
+							JDTUtility.removeFromClasspath(jp, path);
+						}
+
+						/*
+						 * Check if this path is within the workspace by
+						 * attempting to get an IFile version of it an checking
+						 * if it exists.
+						 * 
+						 * If it doesn't then it is an absolute path on the file
+						 * system.
+						 */
+						IFile fPath = EclipseUtility.getWorkspaceRoot()
+								.getFile(path);
+						if (fPath.exists()) {
+							/*
+							 * The Jar is in the workspace
+							 */
+							if (isCurrentVersion) {
 								/*
-								 * We found the current library. We will use
-								 * this location (which might not be at the root
-								 * of the project) where we will freshen the
-								 * library.
-								 * 
-								 * We go ahead and copy the library bits even
-								 * over an existing current version because this
-								 * helps SureLogic engineers during development
-								 * when the library contents are updated but the
-								 * version is not.
+								 * We found the current library in the Eclipse
+								 * workspace. We go ahead and copy the library
+								 * bits even over an existing current version
+								 * because this helps SureLogic engineers during
+								 * development when the library contents are
+								 * updated but the version is not.
 								 */
-								jarFile = jp.getProject().getFile(path);
-								System.out.println("*** new file location "
-										+ jarFile);
-								break;
+								wsFile = fPath;
+								wsFileIsCurrentVersion = true;
 							} else {
 								/*
 								 * We found an older version of the promises.jar
-								 * file. We'll remove it from the classpath and
-								 * delete it.
+								 * file in the Eclipse workspace.
 								 * 
-								 * We also want to use its containing folder as
-								 * the location to place the new version of our
-								 * library. This is because the user went to the
-								 * trouble of using this location so we'll
-								 * respect that choice.
-								 * 
-								 * Sadly, the below code only seems to work if
-								 * the Jar was within the workspace. If not it
-								 * will put the new Jar at the root of the
-								 * project.
+								 * Unless we already found the current version
+								 * of the promises.jar, we want to use its
+								 * containing folder as the location to place
+								 * the new version of our library. This is
+								 * because the user went to the trouble of using
+								 * this location so we'll respect that choice.
 								 */
-								JDTUtility.removeJarFromClasspath(jp, path);
-								System.out.println("***" + path);
-								IPath newVersionPath = path.removeLastSegments(
-										1).append(LibResources.PROMISES_JAR);
-								final IWorkspaceRoot root = ResourcesPlugin
-										.getWorkspace().getRoot();
-								IFile pathFile = root.getFile(newVersionPath);
-								if (pathFile != null) {
-									jarFile = pathFile;
+								if (!wsFileIsCurrentVersion) {
+									final IContainer parent = fPath.getParent();
+									if (parent != null) {
+										IFile newFileSamePlace = parent
+												.getFile(new Path(
+														LibResources.PROMISES_JAR));
+										if (newFileSamePlace != null)
+											wsFile = newFileSamePlace;
+									}
 								}
-								System.out.println("constructing path from "
-										+ path + " " + newVersionPath
-										+ " file " + pathFile);
+							}
+						} else {
+							/*
+							 * The Jar is outside the workspace
+							 */
+							File fsPath = path.toFile();
+							if (fsPath.isFile()) {
+								if (isCurrentVersion) {
+									/*
+									 * We found the current library outside the
+									 * Eclipse workspace. We go ahead and copy
+									 * the library bits even over an existing
+									 * current version because this helps
+									 * SureLogic engineers during development
+									 * when the library contents are updated but
+									 * the version is not.
+									 */
+									fsFile = fsPath;
+									fsFileIsCurrentVersion = true;
+								} else {
+									/*
+									 * We found an older version of the
+									 * promises.jar outside the Eclipse
+									 * workspace.
+									 * 
+									 * Unless we already found the current
+									 * version of the promises.jar, we want to
+									 * use its containing folder as the location
+									 * to place the new version of our library.
+									 * This is because the user went to the
+									 * trouble of using this location so we'll
+									 * respect that choice.
+									 */
+									if (!fsFileIsCurrentVersion) {
+										File parent = fsPath.getParentFile();
+										if (parent != null) {
+											File newFileSamePlace = new File(
+													parent,
+													LibResources.PROMISES_JAR);
+											fsFile = newFileSamePlace;
+										}
+									}
+								}
+							} else {
+								SLLogger.getLogger()
+										.warning(
+												I18N.err(222,
+														fsPath.toString(),
+														jpName));
 							}
 						}
 					}
-					addPromisesJarAndAddToClasspath(jp, jarFile);
+
+					/*
+					 * Now go ahead and add/update the promises.jar
+					 */
+					if ((wsFile != null && wsFileIsCurrentVersion)
+							|| (wsFile != null && !fsFileIsCurrentVersion)) {
+						EclipseUtility.copy(LibResources.getPromisesJar(),
+								wsFile);
+					} else if (fsFile != null) {
+						FileUtility.copy(LibResources.PROMISES_JAR,
+								LibResources.getPromisesJar(), fsFile);
+					} else {
+						/*
+						 * Use the default location at the root of the project
+						 * for the promises.jar file. Also add the jar to the
+						 * project's classpath.
+						 */
+						final IFile jarFile = jp.getProject().getFile(
+								LibResources.PROMISES_JAR);
+						EclipseUtility.copy(LibResources.getPromisesJar(),
+								jarFile);
+						JDTUtility.addToEndOfClasspath(jp,
+								jarFile.getFullPath());
+					}
 				} catch (final Exception e) {
 					final int code = 221;
 					return SLEclipseStatusUtility.createErrorStatus(code,
@@ -146,41 +227,6 @@ public final class JSureUtility {
 			// Ignore any exception
 		}
 		return false;
-	}
-
-	/**
-	 * Copies the contents of the promises jar from
-	 * {@link LibResources#getPromisesJar()} into the passed file location.
-	 * <p>
-	 * If <tt>jarFile</tt> exists then it is overwritten.
-	 * 
-	 * @param jp
-	 *            an Eclipse Java project.
-	 * @param jarFile
-	 *            a file that may or may not exist in the project. If it exists
-	 *            it will be overwritten.
-	 * @throws CoreException
-	 *             if things go wrong interacting with the Java project.
-	 * @throws IOException
-	 *             if the promises.jar bits can't be read from
-	 *             {@link LibResources#getPromisesJar()}.
-	 */
-	public static void addPromisesJarAndAddToClasspath(final IJavaProject jp,
-			final IFile jarFile) throws CoreException, IOException {
-
-		// Make sure Eclipse is up-to-date with the OS
-		jarFile.refreshLocal(0, null);
-
-		// Create or update the file
-		if (jarFile.exists()) {
-			jarFile.delete(false, false, null);
-		}
-		jarFile.create(LibResources.getPromisesJar(), false, null);
-
-		// Add the promises.jar to the project's classpath
-		if (!JDTUtility.isOnClasspath(jp, jarFile)) {
-			JDTUtility.addJarToClasspath(jp, jarFile);
-		}
 	}
 
 	/**
