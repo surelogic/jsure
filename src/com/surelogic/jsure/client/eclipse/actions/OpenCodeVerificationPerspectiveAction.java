@@ -11,17 +11,17 @@ import com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspecti
 public class OpenCodeVerificationPerspectiveAction implements
 		IWorkbenchWindowActionDelegate {
 
-	public void dispose() {
-		// Nothing to do
+	public void run(IAction action) {
+		EclipseUIUtility.showPerspective(CodeVerificationPerspective.class
+				.getName());
 	}
 
 	public void init(IWorkbenchWindow window) {
 		// Nothing to do
 	}
 
-	public void run(IAction action) {
-		EclipseUIUtility.showPerspective(CodeVerificationPerspective.class
-				.getName());
+	public void dispose() {
+		// Nothing to do
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {

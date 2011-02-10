@@ -119,12 +119,21 @@
 				tooltip="Open the Code Verification perspective to examine JSure tool results"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
+			
+			<action
+				class="com.surelogic.jsure.client.eclipse.actions.SavePromisesLibraryAsAction"
+				id="com.surelogic.jsure.client.eclipse.actions.SavePromisesLibraryAsAction"
+				icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
+				label="Save Promises Library As..."
+				tooltip="Save a copy of the promises library to the disk"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action>
 
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
 				id="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
-				label="Add/Update Promises Library"
+				label="Add/Update Promises Library in Project"
 				tooltip="Add or update the promises library to a project so that annotations can be added to the project's code"
 				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
@@ -133,8 +142,7 @@
 				class="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
 				id="com.surelogic.jsure.client.eclipse.actions.NewScanAction"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
-				label="Verify Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client"
-				enablesFor="*">
+				label="Verify Project" menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
 			</action>
 
 			<action
@@ -186,7 +194,7 @@
 			<action
 				id="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
 				class="com.surelogic.jsure.client.eclipse.actions.AddUpdatePromisesLibraryAction"
-				label="Add/Update Promises Library"
+				label="Add/Update Promises Library in Project"
 				icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
 				menubarPath="jSureMenu/nature.grp"
 				enablesFor="1">
