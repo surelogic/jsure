@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.internal.resources.AliasManager.AddToCollectionDoit;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.WorkspaceJob;
@@ -179,9 +180,18 @@ public final class JSureUtility {
 							|| (wsFile != null && !fsFileIsCurrentVersion)) {
 						EclipseUtility.copy(LibResources.getPromisesJar(),
 								wsFile);
+						if (!wsFileIsCurrentVersion) {
+							JDTUtility.addToEndOfClasspath(jp,
+									wsFile.getFullPath());
+						}
 					} else if (fsFile != null) {
 						FileUtility.copy(LibResources.PROMISES_JAR,
 								LibResources.getPromisesJar(), fsFile);
+						if (!fsFileIsCurrentVersion) {
+							final IPath path = new Path(
+									fsFile.getAbsolutePath());
+							JDTUtility.addToEndOfClasspath(jp, path);
+						}
 					} else {
 						/*
 						 * Use the default location at the root of the project
