@@ -11,8 +11,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 
-import com.surelogic.common.SLUtility;
-import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.preferences.AbstractCommonPreferencePage;
@@ -86,45 +84,43 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_analysisThreadCount.setValidRange(1, 128);
 		setupEditor(threadGroup, f_analysisThreadCount);
 
-		if (EclipseUtility.bundleExists(SLUtility.FLASHLIGHT_ID)) {
-			final Group modelNamingGroup = createGroup(panel,
-					"preference.page.group.modelNaming");
-			modelNamingGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP,
-					true, false));
+		final Group modelNamingGroup = createGroup(panel,
+				"preference.page.group.modelNaming");
+		modelNamingGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true,
+				false));
 
-			f_regionModelCap = new BooleanFieldEditor(
-					JSurePreferencesUtility.REGION_MODEL_NAME_CAP,
-					I18N.msg("jsure.eclipse.preference.page.regionModelNameCap"),
-					modelNamingGroup);
-			setupEditor(modelNamingGroup, f_regionModelCap);
-			f_regionModelCap.fillIntoGrid(modelNamingGroup, 2);
-			f_regionModelCommonString = new BooleanFieldEditor(
-					JSurePreferencesUtility.REGION_MODEL_NAME_COMMON_STRING,
-					I18N.msg("jsure.eclipse.preference.page.regionModelNameCommonString"),
-					modelNamingGroup);
-			setupEditor(modelNamingGroup, f_regionModelCommonString);
-			f_regionModelCommonString.fillIntoGrid(modelNamingGroup, 2);
-			f_regionModelSuffix = new StringFieldEditor(
-					JSurePreferencesUtility.REGION_MODEL_NAME_SUFFIX,
-					I18N.msg("jsure.eclipse.preference.page.regionModelNameSuffix"),
-					modelNamingGroup);
-			setupEditor(modelNamingGroup, f_regionModelSuffix);
-			f_regionModelSuffix.fillIntoGrid(modelNamingGroup, 2);
-			f_lockModelCap = new BooleanFieldEditor(
-					JSurePreferencesUtility.LOCK_MODEL_NAME_CAP,
-					I18N.msg("jsure.eclipse.preference.page.lockModelNameCap"),
-					modelNamingGroup);
-			setupEditor(modelNamingGroup, f_lockModelCap);
-			f_lockModelCap.fillIntoGrid(modelNamingGroup, 2);
-			f_lockModelSuffix = new StringFieldEditor(
-					JSurePreferencesUtility.LOCK_MODEL_NAME_SUFFIX,
-					I18N.msg("jsure.eclipse.preference.page.lockModelNameSuffix"),
-					modelNamingGroup);
-			setupEditor(modelNamingGroup, f_lockModelSuffix);
-			f_lockModelSuffix.fillIntoGrid(modelNamingGroup, 2);
+		f_regionModelCap = new BooleanFieldEditor(
+				JSurePreferencesUtility.REGION_MODEL_NAME_CAP,
+				I18N.msg("jsure.eclipse.preference.page.regionModelNameCap"),
+				modelNamingGroup);
+		setupEditor(modelNamingGroup, f_regionModelCap);
+		f_regionModelCap.fillIntoGrid(modelNamingGroup, 2);
+		f_regionModelCommonString = new BooleanFieldEditor(
+				JSurePreferencesUtility.REGION_MODEL_NAME_COMMON_STRING,
+				I18N.msg("jsure.eclipse.preference.page.regionModelNameCommonString"),
+				modelNamingGroup);
+		setupEditor(modelNamingGroup, f_regionModelCommonString);
+		f_regionModelCommonString.fillIntoGrid(modelNamingGroup, 2);
+		f_regionModelSuffix = new StringFieldEditor(
+				JSurePreferencesUtility.REGION_MODEL_NAME_SUFFIX,
+				I18N.msg("jsure.eclipse.preference.page.regionModelNameSuffix"),
+				modelNamingGroup);
+		setupEditor(modelNamingGroup, f_regionModelSuffix);
+		f_regionModelSuffix.fillIntoGrid(modelNamingGroup, 2);
+		f_lockModelCap = new BooleanFieldEditor(
+				JSurePreferencesUtility.LOCK_MODEL_NAME_CAP,
+				I18N.msg("jsure.eclipse.preference.page.lockModelNameCap"),
+				modelNamingGroup);
+		setupEditor(modelNamingGroup, f_lockModelCap);
+		f_lockModelCap.fillIntoGrid(modelNamingGroup, 2);
+		f_lockModelSuffix = new StringFieldEditor(
+				JSurePreferencesUtility.LOCK_MODEL_NAME_SUFFIX,
+				I18N.msg("jsure.eclipse.preference.page.lockModelNameSuffix"),
+				modelNamingGroup);
+		setupEditor(modelNamingGroup, f_lockModelSuffix);
+		f_lockModelSuffix.fillIntoGrid(modelNamingGroup, 2);
 
-			modelNamingGroup.setLayout(new GridLayout(2, false));
-		}
+		modelNamingGroup.setLayout(new GridLayout(2, false));
 
 		return panel;
 	}
