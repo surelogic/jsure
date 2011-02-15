@@ -301,7 +301,8 @@
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<echo message="Running regression test on ${suite.dir}${fs}@{project}" />
+						<echo message="------------------------------------------------------------" />
+						<echo message="Running regression test on @{project}" />
 
 						<propertyfile file="${suite.dir}${fs}@{project}${fs}test.properties">
 							<entry key="eclipse-home" value="${sandbox.eclipse.dir}" />
