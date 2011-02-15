@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
+import edu.cmu.cs.fluid.java.bind.IJavaCaptureType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -38,14 +39,20 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {	
   private BindingContextAnalysis bca;
+  private IJavaDeclaredType javaLangObject;
+  
+  
   
 	public EffectsAnalysis() {
 		super("EffectAssurance2");
 	}
 
+	
+	
 	@Override
 	protected Effects constructIRAnalysis(final IBinder binder) {
 	  bca = new BindingContextAnalysis(binder, true);
+	  javaLangObject = binder.getTypeEnvironment().getObjectType();
     return new Effects(binder);
 	}
 
@@ -142,51 +149,46 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
       } else {
         rcvrNode = null;
       }
-      
-      if (!effect.isEmpty() &&
-          !effect.isMaskable(getBinder()) &&
-          !(isConstructor && rcvrNode != null && effect.affectsReceiver(rcvrNode))) {
+
+      if (!effect.isEmpty()
+          && !effect.isMaskable(getBinder())
+          && !(isConstructor && rcvrNode != null && effect
+              .affectsReceiver(rcvrNode))) {
         Target target = effect.getTarget();
         if (target instanceof InstanceTarget) {
           final IRNode ref = ((InstanceTarget) target).getReference();
           final Operator refOp = JJNode.tree.getOperator(ref);
-          if (!(ReceiverDeclaration.prototype.includes(refOp) ||
-              QualifiedReceiverDeclaration.prototype.includes(refOp) ||
-              ParameterDeclaration.prototype.includes(refOp))) {
-            // Convert to any instance
-        	final IJavaType ty0 = getBinder().getJavaType(ref);
-            IJavaType ty = ty0;
+          if (!(ReceiverDeclaration.prototype.includes(refOp)
+              || QualifiedReceiverDeclaration.prototype.includes(refOp)
+              || ParameterDeclaration.prototype.includes(refOp))) {
+            IJavaType ty = getBinder().getJavaType(ref);
             IRegion region = target.getRegion();
-            if (ty instanceof IJavaWildcardType) {
-                // This is probably going to break in the future as another
-                // missed case is discovered.
-            	
-            	// TODO is this right? (? extends T -- T is the lower bound)           	
-                IJavaType upper = ((IJavaWildcardType) ty).getUpperBound();
-                if (upper == null) {
-                  ty = getBinder().getTypeEnvironment().getObjectType();
-                } else {
-              	  ty = upper;
-                }
-              }
-            if (ty instanceof IJavaTypeFormal) {
+            if (ty instanceof IJavaCaptureType) {
+              final IJavaType upper = ((IJavaCaptureType) ty).getUpperBound();
+              ty = (upper == null) ? javaLangObject : upper;
+            } else if (ty instanceof IJavaWildcardType) {
+              // dead case?  Turned into Capture types, I think
+              final IJavaType upper = ((IJavaWildcardType) ty).getUpperBound();
+              ty = (upper == null) ? javaLangObject : upper;
+            } else if (ty instanceof IJavaTypeFormal) {
               // Cannot handle type formals in region annotations yet, convert
               // to Object
-              ty = getBinder().getTypeEnvironment().getObjectType();
+              final IJavaType upper = ((IJavaTypeFormal) ty).getSuperclass(getBinder().getTypeEnvironment());
+              ty = (upper == null) ? javaLangObject : upper;
             } else if (ty instanceof IJavaArrayType) {
               // not presently supported in region annotations, convert to
               // any(Object):Instance
-              ty = getBinder().getTypeEnvironment().getObjectType();
+              ty = javaLangObject;
               region = RegionModel.getInstanceRegion();
-            } 
+            }
             target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(
-                (IJavaReferenceType) ty, region); 
+                (IJavaReferenceType) ty, region);
           }
         }
 
         final Target cleanedTarget = cleanInferredTarget(member, target);
-        final Effect cleanedEffect =
-          Effect.newEffect(null, effect.isRead(), cleanedTarget);
+        final Effect cleanedEffect = Effect.newEffect(null, effect.isRead(),
+            cleanedTarget);
         inferred.add(cleanedEffect);
       }
     } 
