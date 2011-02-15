@@ -327,7 +327,7 @@
 		</for>
 
 		<!-- Run unit tests -->
-		<property name="unit.test.dir" value="${sandbox.suites.dir}${fs}UnitTests}" />
+		<property name="unit.test.dir" value="${sandbox.suites.dir}${fs}UnitTests" />
 		<mkdir dir="${unit.test.dir}" />
 
 		<path id="ir.path">
