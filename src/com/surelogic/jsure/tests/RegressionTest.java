@@ -1,12 +1,27 @@
 package com.surelogic.jsure.tests;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Stack;
 
-import junit.framework.*;
+import junit.framework.AssertionFailedError;
+import junit.framework.TestCase;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.annotation.rules.AnnotationRules;
@@ -17,11 +32,17 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.fluid.javac.Projects;
 import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.Eclipse;
-import com.surelogic.jsure.core.driver.*;
-import com.surelogic.jsure.core.listeners.*;
+import com.surelogic.jsure.core.driver.ConsistencyListener;
+import com.surelogic.jsure.core.driver.DoubleChecker;
+import com.surelogic.jsure.core.driver.JavacBuild;
+import com.surelogic.jsure.core.driver.JavacEclipse;
+import com.surelogic.jsure.core.listeners.IAnalysisListener;
+import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.scripting.*;
-import com.surelogic.test.*;
+import com.surelogic.jsure.core.scripting.ScriptCommands;
+import com.surelogic.jsure.core.scripting.ScriptReader;
+import com.surelogic.test.ITest;
+import com.surelogic.test.ITestOutput;
 import com.surelogic.test.xml.JUnitXMLOutput;
 
 import edu.cmu.cs.fluid.ide.IDE;
@@ -29,111 +50,32 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
-import edu.cmu.cs.fluid.sea.xml.*;
+import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
-/**
- * Assumes that the workspace is already setup: -- The appropriate projects have
- * the Fluid nature --
- */
 public class RegressionTest extends TestCase implements IAnalysisListener {
 
-	class InitRunnable implements Runnable {
-		boolean run = false;
+	private boolean initNeeded = true;
 
-		public void run() {
+	@Override
+	protected void setUp() throws Exception {
+		if (initNeeded) {
+			initNeeded = true;
 			Eclipse.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
 			JavacEclipse.getDefault().addTestOutputFactory(
 					JUnitXMLOutput.factory);
 			System.out.println("Added JUnitXMLOutput.factory");
-			run = true;
+
+			final String testModulePath = System.getProperty("test.module");
+			if (testModulePath == null)
+				fail("'-Dtest.module=' was not set prior to invoking a regression test");
+			final File testModule = new File(testModulePath);
+			if (!testModule.isDirectory())
+				fail("'-Dtest.module=" + testModulePath
+						+ "' does not reference a directory");
+			importProject(testModule);
 		}
-
-		public void ensureInit() {
-			if (!run) {
-				run();
-			}
-		}
-	}
-
-	@Override
-	protected void setUp() throws Exception {
-		InitRunnable r = new InitRunnable();
-		// Eclipse.initialize(r);
-		r.ensureInit();
-
-		initializeWorkspace();
-	}
-
-	private void initializeWorkspace() throws IOException {
-		final String testModule = System.getProperty("test.module");
-		final String extraModules = System.getProperty("extra.test.modules");
-		System.out.println(testModule);
-		System.out.println(extraModules);
-		if (testModule != null) {
-			final String module;
-			if (testModule.endsWith(".zip")) {
-				// Clear out all old temporary directories
-				final File tempDir = File.createTempFile("testModule", ".dir");
-				for (File f : tempDir.getParentFile().listFiles()) {
-					if (f.getName().startsWith("testModule")
-							&& f.getName().endsWith(".dir")) {
-						f.delete();
-					}
-				}
-				final int lastSlash = testModule.lastIndexOf('/');
-				final File tempMod = new File(tempDir, testModule.substring(
-						lastSlash + 1, testModule.length() - 4));
-				tempMod.mkdirs();
-				FileUtility.unzipFile(new File(testModule), tempMod);
-				module = tempMod.getAbsolutePath();
-			} else {
-				module = testModule;
-			}
-			importProject(module);
-
-			if (extraModules != null && !extraModules.startsWith("${")) {
-				final StringTokenizer st = new StringTokenizer(",");
-				while (st.hasMoreTokens()) {
-					final String extra = st.nextToken().trim();
-					importProject(extra);
-				}
-			}
-		}
-	}
-
-	private void initAnalyses(File project) {
-		if (initializedAnalysis) {
-			return;
-		}
-		initializedAnalysis = true;
-		printActivatedAnalyses();
-
-		final File analyses = findFile(project,
-				ScriptCommands.ANALYSIS_SETTINGS, true);
-		if (analyses.exists() && analyses.isFile()) {
-			System.out.println("Found project-specific analysis settings.");
-			JSureAnalysisXMLReader.readStateFrom(analyses);
-			DoubleChecker.getDefault().initAnalyses();
-
-			if (IDE.useJavac) {
-				System.out
-						.println("Configuring analyses from project-specific settings");
-				JavacEclipse.initialize();
-				((JavacEclipse) IDE.getInstance())
-						.synchronizeAnalysisPrefs();
-			}
-		} else {
-			System.out.println("No project-specific analysis settings.");
-		}
-	}
-
-	private void importProject(final String projectDir) {
-		final File file = new File(projectDir);
-		if (!file.exists()) {
-			throw new IllegalArgumentException("Couldn't find " + projectDir);
-		}
-		importProject(file);
 	}
 
 	/**
@@ -196,6 +138,31 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 					e.printStackTrace();
 				}
 			}
+		}
+	}
+
+	private void initAnalyses(File project) {
+		if (initializedAnalysis) {
+			return;
+		}
+		initializedAnalysis = true;
+		printActivatedAnalyses();
+
+		final File analyses = findFile(project,
+				ScriptCommands.ANALYSIS_SETTINGS, true);
+		if (analyses.exists() && analyses.isFile()) {
+			System.out.println("Found project-specific analysis settings.");
+			JSureAnalysisXMLReader.readStateFrom(analyses);
+			DoubleChecker.getDefault().initAnalyses();
+
+			if (IDE.useJavac) {
+				System.out
+						.println("Configuring analyses from project-specific settings");
+				JavacEclipse.initialize();
+				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
+			}
+		} else {
+			System.out.println("No project-specific analysis settings.");
 		}
 	}
 
@@ -329,7 +296,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				}
 			}
 		}
-		
+
 		if (project == null) {
 			if (projects.length != 1) {
 				fail("No project");
@@ -414,8 +381,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		return null;
 	}
 
-	private void runAnalysis(final File workspaceFile, final IProject project, IProject[] projects)
-			throws Throwable {
+	private void runAnalysis(final File workspaceFile, final IProject project,
+			IProject[] projects) throws Throwable {
 		final String projectPath = project.getLocation().toOSString();
 		/*
 		 * currentTest = start("Check for analysis settings");
@@ -452,13 +419,15 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		start("Build and analyze");
 		ResourcesPlugin.getWorkspace().build(
 				IncrementalProjectBuilder.AUTO_BUILD, null);
-		
-		System.out.println("JSure data = "+JSurePreferencesUtility.getJSureDataDirectory());
-		List<IJavaProject> jprojects = new ArrayList<IJavaProject>(projects.length);
-		for(IProject p : projects) {
-			jprojects.add(JDTUtility.getJavaProject(p.getName()));			
+
+		System.out.println("JSure data = "
+				+ JSurePreferencesUtility.getJSureDataDirectory());
+		List<IJavaProject> jprojects = new ArrayList<IJavaProject>(
+				projects.length);
+		for (IProject p : projects) {
+			jprojects.add(JDTUtility.getJavaProject(p.getName()));
 		}
-		JavacBuild.analyze(jprojects, new IErrorListener() {			
+		JavacBuild.analyze(jprojects, new IErrorListener() {
 			@Override
 			public void reportError(String summary, String msg) {
 				throw new IllegalStateException(msg);
@@ -500,13 +469,15 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			throw new IllegalStateException("No results");
 		}
 		final Projects projs = (Projects) pd.getIIRProjects();
-		final File results = new File(projs.getRunDir(), RemoteJSureRun.RESULTS_XML);
+		final File results = new File(projs.getRunDir(),
+				RemoteJSureRun.RESULTS_XML);
 
 		// Export the results from this run
 		start("Exporting results");
 		try {
 			// TODO Is this the right location?
-			FileUtility.copy(results, new File(workspaceFile, projectName+SeaSnapshot.SUFFIX));
+			FileUtility.copy(results, new File(workspaceFile, projectName
+					+ SeaSnapshot.SUFFIX));
 			end("Done exporting");
 
 			start("comparing results");
@@ -582,25 +553,28 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	}
 
 	private boolean compareResults(final File resultsSnapshot,
-			final File workspaceFile, final String projectPath, final String projectName,
-			boolean resultsOk) throws Exception {
+			final File workspaceFile, final String projectPath,
+			final String projectName, boolean resultsOk) throws Exception {
 		final File xmlLocation = SeaSummary.findSummary(projectPath);
 		if (!xmlLocation.exists()) {
 			return resultsOk;
 		}
 		Collection<Info> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
-		SeaSummary.Diff diff = SeaSummary.diff(newResults.toArray(new IDropInfo[newResults.size()]), xmlLocation);
-		
+		SeaSummary.Diff diff = SeaSummary.diff(
+				newResults.toArray(new IDropInfo[newResults.size()]),
+				xmlLocation);
+
 		String diffPath = new File(workspaceFile, projectName
 				+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX)
 				.getAbsolutePath();
 		/*
-		CompareResults compare = new CompareResults();
-		// System.out.println("compare "+projectName+" "+xmlLocation.getAbsolutePath()+" "+diffPath);
-		compare.execute(ICommandContext.nullContext, "compare", projectName,
-				xmlLocation.getAbsolutePath(), diffPath);				
-		return resultsOk && compare.resultsOk;
-		*/
+		 * CompareResults compare = new CompareResults(); //
+		 * System.out.println("compare "
+		 * +projectName+" "+xmlLocation.getAbsolutePath()+" "+diffPath);
+		 * compare.execute(ICommandContext.nullContext, "compare", projectName,
+		 * xmlLocation.getAbsolutePath(), diffPath); return resultsOk &&
+		 * compare.resultsOk;
+		 */
 		if (!diff.isEmpty()) {
 			diff.write(new File(diffPath));
 		}
