@@ -1,7 +1,6 @@
 package com.surelogic.jsure.tests;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,12 +55,12 @@ import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 
 public class RegressionTest extends TestCase implements IAnalysisListener {
 
-	private boolean initNeeded = true;
+	private boolean f_initNeeded = true;
 
 	@Override
 	protected void setUp() throws Exception {
-		if (initNeeded) {
-			initNeeded = true;
+		if (f_initNeeded) {
+			f_initNeeded = true;
 			Eclipse.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
 			JavacEclipse.getDefault().addTestOutputFactory(
 					JUnitXMLOutput.factory);
@@ -82,33 +81,37 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	 * Change to check for a .project file If not present, try to import
 	 * immediate sub-directories
 	 */
-	private void importProject(final File file) {
+	private void importProject(final File projectDir) {
 		// check for a .project file
-		if (!new File(file, ".project").exists()) {
+		final File dotProjectFile = new File(projectDir, ".project");
+		if (!dotProjectFile.exists()) {
 			// Not present, so assume it to be a multi-project container,
 			// and try to import immediate sub-directories
-			System.out.println("No .project in " + file
+			System.out.println("No .project in " + projectDir
 					+ "; trying to find subprojects");
-			for (File f : file.listFiles()) {
+			for (File f : projectDir.listFiles()) {
 				if (f.isDirectory()) {
 					importProject(f);
 				}
 			}
 			return;
 		}
-		System.out.println("Found .project in " + file
+		System.out.println("Found .project in " + projectDir
 				+ "; trying to create project");
-		initAnalyses(file);
 
-		final String project = file.getName();
+		initAnalyses(projectDir);
+
+		final String project = projectDir.getName();
 		final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IProjectDescription description = setProjectName(workspace,
-				findDotProjectFile(file));
+		IProjectDescription description = getProjectDescription(workspace,
+				dotProjectFile);
 		final IWorkspaceRoot wsRoot = workspace.getRoot();
 		final IProject proj;
 		if (description != null) {
+			System.out.println("FOUND A PROJECT DESCRIPTION");
 			proj = wsRoot.getProject(description.getName());
 		} else {
+			System.out.println("NO PROJECT DESCRIPTION");
 			proj = wsRoot.getProject(project);
 		}
 		if (!proj.exists()) {
@@ -142,10 +145,6 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	}
 
 	private void initAnalyses(File project) {
-		if (initializedAnalysis) {
-			return;
-		}
-		initializedAnalysis = true;
 		printActivatedAnalyses();
 
 		final File analyses = findFile(project,
@@ -166,53 +165,17 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		}
 	}
 
-	/**
-	 * Return a .project file from the specified location. If there isn't one
-	 * return null.
-	 */
-	private File findDotProjectFile(File directory) {
-		System.out.println("projectFile(File): " + directory.getAbsolutePath());
-		File ret = null;
-		if (directory.isDirectory()) {
-			File[] files = directory.listFiles(this.projectFilter);
-			if (files != null && files.length == 1) {
-				ret = files[0];
-			}
-		}
-		if (ret != null) {
-			System.out.println("Found .project File: " + ret.getAbsolutePath());
-		}
-		return ret;
-	}
-
-	private FileFilter projectFilter = new FileFilter() {
-		// Only accept those files that are .project
-		public boolean accept(File pathName) {
-			return pathName.getName().equals(
-					IProjectDescription.DESCRIPTION_FILE_NAME);
-		}
-	};
-
-	/**
-	 * Set the project name using either the name of the parent of the file or
-	 * the name entry in the XML for the file.
-	 */
-	private IProjectDescription setProjectName(IWorkspace workspace,
-			File projectFile) {
-		System.out
-				.println("setProjectName(File) - ProjectFile:  - projectFile="
-						+ projectFile.getAbsolutePath());
+	private IProjectDescription getProjectDescription(IWorkspace workspace,
+			File dotProjectFile) {
 
 		// If there is no file or the user has already specified forget it
-		if (projectFile != null) {
-			IPath path = new Path(projectFile.getPath());
-			try {
-				return workspace.loadProjectDescription(path);
-			} catch (CoreException exception) {
-				// no good couldn't get the name
-			}
+		IPath path = new Path(dotProjectFile.getPath());
+		try {
+			return workspace.loadProjectDescription(path);
+		} catch (CoreException exception) {
+			fail(exception.getMessage());
 		}
-		return null;
+		return null; // should never happen due to the fail call
 	}
 
 	@Override
@@ -353,7 +316,6 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	private ITestOutput output = null;
 	// private ITest currentTest = null;
 	private final Stack<ITest> currentTest = new Stack<ITest>();
-	private boolean initializedAnalysis = false;
 
 	private File findFile(final IProject project, final String file,
 			boolean checkParent) {
@@ -587,15 +549,18 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		}
 	}
 
+	@Override
 	public synchronized void analysisCompleted() {
 		System.out.println("Analysis completed");
 	}
 
+	@Override
 	public synchronized void analysisPostponed() {
 		System.out.println("Analysis postponed");
 		new Throwable("For stack trace").printStackTrace();
 	}
 
+	@Override
 	public synchronized void analysisStarting() {
 		System.out.println("Analysis starting");
 	}
