@@ -332,8 +332,8 @@
 					<entry key="arch" value="${jsure.tests.archive.eclipse.arch}" />
 					<entry key="os" value="${jsure.tests.archive.eclipse.os}" />
 					<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
-					<entry key="includes" value="com.surelogic.jsure.tests*.xml" />
-					<entry key="outputfile" value="regression-results.xml" />
+					<entry key="includes" value="**/com.surelogic.jsure.tests*.xml" />
+					<entry key="output-file" value="regression-results.xml" />
 				</propertyfile>
 
 				<ant antfile="${library.xml}" target="collect" dir="${suite.dir}">
