@@ -272,7 +272,7 @@
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="run JSure on test suites" depends="load jsure-tests.properties file">
+	<target name="run JSure on test suites" depends="setup test suites to analyze">
 		<findfile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.test_.*" />
 		<fail unless="eclipse.test.plugin.dir" message="Unable to find the Eclipse test plug-in (org.eclipse.test_*) within ${sandbox.eclipse.plugins.dir}." />
 		<property name="library.xml" value="${eclipse.test.plugin.dir}${fs}library.xml" />
