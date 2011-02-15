@@ -293,12 +293,14 @@
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<echo message="Running regression test on ${project.dir}" />
+						<echo message="Running regression test on ${suite.dir}${fs}@{project}" />
 
-						<property file="${workspace.dir}/test.properties" />
-						<property name="eclipse-home" value="${sandbox.eclipse.dir}" />
+						<!-- I think this call is ignored 
+						<property file="${workspace.dir}${fs}@{project}/test.properties" />  -->
+
 						<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
 							<property name="os" value="win32" />
+							<property name="eclipse-home" value="${sandbox.eclipse.dir}" />
 							<property name="ws" value="win32" />
 							<property name="arch" value="x86_64" />
 							<property name="data-dir" value="${log.dir}${fs}@{project}" />
@@ -308,7 +310,7 @@
 							<property name="junit-report-output" value="${workspace.dir}${fs}@{project}" />
 							<property name="workdir" value="${sandbox.eclipse.dir}" />
 							<property name="application" value="org.eclipse.test.coretestapplication" />
-							<property name="extraVMargs" value="-Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false -Dtest.module=${project.dir}" />
+							<property name="extraVMargs" value="-Dtest.module=${suite.dir}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
 						</ant>
 					</sequential>
 				</for>
