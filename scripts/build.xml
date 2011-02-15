@@ -259,11 +259,13 @@
 							<matches string="@{name.zip}" pattern="(.*)\.zip$" />
 							<then>
 								<!-- This propertyregex line just gets the name of the file without the .zip extension -->
+								<!-- skip scripted tests
 								<propertyregex property="name.no.dot.zip" input="@{name.zip}" regexp="([^\.]*)\.zip" select="\1" override="true" casesensitive="false" />
 								<mkdir dir="${suite.dir}${fs}${name.no.dot.zip}" />
 								<unzip src="${suite.dir}${fs}@{name.zip}" dest="${suite.dir}${fs}${name.no.dot.zip}" />
 								<delete file="${suite.dir}${fs}@{name.zip}" />
-								<echo message="Unzipped @{name.zip} into ${suite.dir}${fs}${name.no.dot.zip} (and removed @{name.zip})" />
+								<echo message="Unzipped @{name.zip} into ${suite.dir}${fs}${name.no.dot.zip} (and removed @{name.zip})" /> -->
+								<delete file="${suite.dir}${fs}@{name.zip}" />
 							</then>
 						</if>
 					</sequential>
@@ -324,6 +326,20 @@
 					</sequential>
 				</for>
 			</sequential>
+
+			<!-- Collect results together into "regression-results.xml" -->
+			<propertyfile file="${suite.dir}${fs}collect.properties">
+				<entry key="eclipse-home" value="${sandbox.eclipse.dir}" />
+				<entry key="arch" value="${jsure.tests.archive.eclipse.arch}" />
+				<entry key="os" value="${jsure.tests.archive.eclipse.os}" />
+				<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
+				<entry key="includes" value="com.surelogic.jsure.tests*.xml" />
+				<entry key="outputfile" value="regression-results.xml" />
+			</propertyfile>
+
+			<ant antfile="${library.xml}" target="collect" dir="${suite.dir}">
+				<property file="${suite.dir}${fs}collect.properties" />
+			</ant>
 		</for>
 
 		<!-- Run unit tests -->
@@ -365,7 +381,7 @@
 			<property file="${unit.test.dir}${fs}test.properties" />
 		</ant>
 
-		<!-- This location is no longer needed - everything useful was copied out of it -->
+		<!-- The workspace directory under the sandbox is no longer needed - everything useful was copied out of it -->
 		<delete dir="${sandbox.workspace.dir}" />
 	</target>
 
