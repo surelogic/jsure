@@ -624,4 +624,8 @@ public abstract class Drop implements IDropInfo {
 	public Long getContextHash() {	
 		throw new UnsupportedOperationException();
 	}
+	
+	public String getAttribute(String key) {
+		return null;
+	}
 }

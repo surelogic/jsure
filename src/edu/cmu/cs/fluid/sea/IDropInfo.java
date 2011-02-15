@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.xml.*;
 
 public interface IDropInfo {
+	String getAttribute(String key);
 	String getEntityName();
 	<T> T getAdapter(Class<T> type);
 	String getType();
