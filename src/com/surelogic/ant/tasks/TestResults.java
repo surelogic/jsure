@@ -396,7 +396,6 @@ public class TestResults extends Task implements ContentHandler, ErrorHandler {
 			String qualifiedName, Attributes attrs) throws SAXException {
 		if (TESTCASE.equalsIgnoreCase(simpleName)) {
 			String classname = getAttrValue(attrs, CNAME);
-			// String method = getAttrValue(attrs, NAME);
 			if ((testTable != null && testTable.contains(classname))
 					|| (ignoredTable != null && !ignoredTable
 							.contains(classname))
