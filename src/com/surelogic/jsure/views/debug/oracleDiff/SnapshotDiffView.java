@@ -1,7 +1,7 @@
 package com.surelogic.jsure.views.debug.oracleDiff;
 
 import java.io.File;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.jface.action.IMenuManager;
@@ -11,11 +11,13 @@ import org.eclipse.jface.viewers.*;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
+import com.surelogic.jsure.client.eclipse.views.results.PersistentDropInfo;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
 
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
+import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.xml.*;
@@ -29,6 +31,20 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 		super(false); // Use tree
 	}
 
+	@Override
+	protected void subscribe() {
+		PersistentDropInfo.getInstance().addListener(this);
+	}
+	
+	@Override
+	protected void finishCreatePartControl() {
+		if (PersistentDropInfo.getInstance().load()) {
+			updateView();
+			setViewerVisibility(true);
+			System.out.println("Loaded snapshot for "+this);
+		}
+	}
+	
 	@Override
 	protected void makeActions() {
 		// TODO Auto-generated method stub
@@ -106,33 +122,28 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 
 	@Override
 	protected void updateView() {
-		final ProjectsDrop pd = ProjectsDrop.getDrop();
-		for(String name : pd.getIIRProjects().getProjectNames()) {			
-			final IProject p = EclipseUtility.getProject(name);
-			if (p == null || !p.exists()) {
-				continue;
-			}
-			final File pFile = p.getLocation().toFile();
-			final File file  = SeaSummary.findSummary(pFile.getAbsolutePath());			
-			//IFile file = p.getFile(name + SeaSnapshot.SUFFIX);
-			if (file.exists()) {
-				try {
-					IFile newFile = p.getFile(name + ".new" + SeaSnapshot.SUFFIX);
-					File newFile2 = newFile.getLocation().toFile();
-					if (!newFile2.isFile()) {
-						SeaSummary.summarize(name, Sea.getDefault(), newFile2);
+		final Collection<? extends IDropInfo> info = PersistentDropInfo.getInstance().getRawInfo();
+		if (!info.isEmpty()) {
+			try {
+				File file = null;
+				for(String name : PersistentDropInfo.getInstance().findProjectsLabel().split(", ")) {			
+					final IProject p = EclipseUtility.getProject(name);
+					if (p == null || !p.exists()) {
+						continue;
 					}
-					
-					Diff d = SeaSummary.diff(Sea.getDefault(), file);
-					f_contentProvider.setDiff(d);					
-					return;
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					final File pFile = p.getLocation().toFile();
+					file  = SeaSummary.findSummary(pFile.getAbsolutePath());	
 				}
-			} else {
-				System.out.println("No snapshot to diff against in "+name);
+				Diff d = SeaSummary.diff(info.toArray(new IDropInfo[info.size()]), file);
+				f_contentProvider.setDiff(d);					
+				return;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			
+		} else {
+				System.out.println("No snapshot to diff against");
 		}
 	}
 }
