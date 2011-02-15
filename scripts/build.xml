@@ -103,6 +103,13 @@
 		<property-copy name="jsure.tests.archive.eclipse.test" from="jsure.tests.archive.${jsure.tests.archive.use}.eclipse.test" />
 		<echo message=" jsure.tests.archive.${jsure.tests.archive.use}.eclipse.dist=${jsure.tests.archive.eclipse.test}" />
 
+		<property-copy name="jsure.tests.archive.eclipse.arch" from="jsure.tests.archive.${jsure.tests.archive.use}.eclipse.arch" />
+		<echo message=" jsure.tests.archive.${jsure.tests.archive.use}.eclipse.arch=${jsure.tests.archive.eclipse.arch}" />
+		<property-copy name="jsure.tests.archive.eclipse.os" from="jsure.tests.archive.${jsure.tests.archive.use}.eclipse.os" />
+		<echo message=" jsure.tests.archive.${jsure.tests.archive.use}.eclipse.os=${jsure.tests.archive.eclipse.os}" />
+		<property-copy name="jsure.tests.archive.eclipse.ws" from="jsure.tests.archive.${jsure.tests.archive.use}.eclipse.ws" />
+		<echo message=" jsure.tests.archive.${jsure.tests.archive.use}.eclipse.ws=${jsure.tests.archive.eclipse.ws}" />
+
 		<!-- Check if the specified archive files exist -->
 		<property name="archive.eclipse.dist" value="${jsure.tests.archive}${fs}${jsure.tests.archive.eclipse.dist}" />
 		<available property="archive.eclipse.dist.exists" file="${archive.eclipse.dist}" />
@@ -299,10 +306,10 @@
 						<property file="${workspace.dir}${fs}@{project}/test.properties" />  -->
 
 						<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
-							<property name="os" value="win32" />
 							<property name="eclipse-home" value="${sandbox.eclipse.dir}" />
-							<property name="ws" value="win32" />
-							<property name="arch" value="x86_64" />
+							<property name="arch" value="${jsure.tests.archive.eclipse.arch}" />
+							<property name="os" value="${jsure.tests.archive.eclipse.os}" />
+							<property name="ws" value="${jsure.tests.archive.eclipse.ws}" />
 							<property name="data-dir" value="${log.dir}${fs}@{project}" />
 							<property name="plugin-name" value="${jsure-tests-plugin-id}" />
 							<property name="classname" value="${jsure-tests-plugin-id}.AllRegressionTests" />
