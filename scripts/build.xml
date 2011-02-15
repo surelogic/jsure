@@ -277,6 +277,10 @@
 		<fail unless="eclipse.test.plugin.dir" message="Unable to find the Eclipse test plug-in (org.eclipse.test_*) within ${sandbox.eclipse.plugins.dir}." />
 		<property name="library.xml" value="${eclipse.test.plugin.dir}${fs}library.xml" />
 
+		<!-- JUNIT.XSL hack to fix a bad reference in library.xml -->
+		<mkdir dir="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test" />
+		<copy file="${eclipse.test.plugin.dir}${fs}JUNIT.XSL" tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" />
+
 		<findfile property="surelogic.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="com\.surelogic\.jsure\.tests_.*" />
 		<fail unless="surelogic.test.plugin.dir" message="Unable to find the SureLogic test plug-in (com.surelogic.jsure.tests_*) within ${sandbox.eclipse.plugins.dir}." />
 		<property name="jsure-tests-plugin-id" value="com.surelogic.jsure.tests" />
