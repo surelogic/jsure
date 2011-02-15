@@ -303,16 +303,16 @@
 						<echo message="Running regression test on ${suite.dir}${fs}@{project}" />
 
 						<propertyfile file="${suite.dir}${fs}@{project}${fs}test.properties">
-							<property name="eclipse-home" value="${sandbox.eclipse.dir}" />
-							<property name="arch" value="${jsure.tests.archive.eclipse.arch}" />
-							<property name="os" value="${jsure.tests.archive.eclipse.os}" />
-							<property name="ws" value="${jsure.tests.archive.eclipse.ws}" />
-							<property name="data-dir" value="${suite.dir}${fs}@{project}" />
-							<property name="plugin-name" value="${jsure-tests-plugin-id}" />
-							<property name="classname" value="${jsure-tests-plugin-id}.AllRegressionTests" />
-							<property name="junit-report-output" value="${suite.dir}${fs}@{project}" />
-							<property name="test-output" value="${jsure-tests-plugin-id}.AllRegressionTests.xml" />
-							<property name="extraVMargs" value="-Dtest.module=${suite.dir}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
+							<entry key="eclipse-home" value="${sandbox.eclipse.dir}" />
+							<entry key="arch" value="${jsure.tests.archive.eclipse.arch}" />
+							<entry key="os" value="${jsure.tests.archive.eclipse.os}" />
+							<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
+							<entry key="data-dir" value="${suite.dir}${fs}@{project}" />
+							<entry key="plugin-name" value="${jsure-tests-plugin-id}" />
+							<entry key="classname" value="${jsure-tests-plugin-id}.AllRegressionTests" />
+							<entry key="junit-report-output" value="${suite.dir}${fs}@{project}" />
+							<entry key="test-output" value="${jsure-tests-plugin-id}.AllRegressionTests.xml" />
+							<entry key="extraVMargs" value="-Dtest.module=${suite.dir}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
 						</propertyfile>
 
 						<!-- I think this call is ignored 
