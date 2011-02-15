@@ -2,6 +2,7 @@
 <project name="JSure Tests" default="run JSure on test suites">
 
 	<property name="fs" value="${file.separator}" />
+	<property name="ln" value="----------------------------------------------------------------------" />
 
 	<!-- We use this to get additional control tasks (e.g., if and for) -->
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
@@ -301,7 +302,7 @@
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<echo message="------------------------------------------------------------" />
+						<echo message="${ln}" />
 						<echo message="Running regression test on @{project}" />
 
 						<propertyfile file="${suite.dir}${fs}@{project}${fs}test.properties">
