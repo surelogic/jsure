@@ -262,6 +262,7 @@
 								<propertyregex property="name.no.dot.zip" input="@{name.zip}" regexp="([^\.]*)\.zip" select="\1" override="true" casesensitive="false" />
 								<mkdir dir="${suite.dir}${fs}${name.no.dot.zip}" />
 								<unzip src="${suite.dir}${fs}@{name.zip}" dest="${suite.dir}${fs}${name.no.dot.zip}" />
+								<delete file="${suite.dir}${fs}@{name.zip}" />
 								<echo message="Unzipped @{name.zip} into ${suite.dir}${fs}${name.no.dot.zip}" />
 							</then>
 						</if>
