@@ -12,7 +12,6 @@ class RegressionTestFilter implements FileFilter {
 		} else {
 			rv = f.getName().endsWith(".zip");
 		}
-		//System.out.println(f.getName()+" => "+rv);
 		return rv;
 	}
 }
