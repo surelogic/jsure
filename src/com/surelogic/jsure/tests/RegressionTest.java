@@ -219,30 +219,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		File workspaceFile = new File(workspacePath);
 		System.out.println("workspace = " + workspacePath);
 
-		/*
-		 * for (String name : workspaceFile.list()) { if (name.startsWith(".")
-		 * || name.equals("promises")) { continue; } File f = new File(name); if
-		 * (!f.isDirectory()) { continue; } createAndOpenProject(root, name); }
-		 */
-
 		IProject[] projects = root.getProjects();
-		/*
-		 * for (IProject project : projects) { // check for the .settings folder
-		 * URI location = project.getLocationURI(); File settings = new
-		 * File(location.toString(), ".settings");
-		 * 
-		 * // If there are no project-specific settings, set some if
-		 * (!settings.exists()) { // Set the compiler compliance to Java 1.5 //
-		 * This sets it for the whole system I believe...need to make this on //
-		 * a // per-project basis in case we want multi-project tests Hashtable
-		 * options = JavaCore.getOptions();
-		 * options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_5);
-		 * options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_5);
-		 * options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM,
-		 * JavaCore.VERSION_1_5);
-		 * 
-		 * JavaCore.setOptions(options); } }
-		 */
 
 		// Just used to get events to see how the analysis is running
 		NotificationHub.addAnalysisListener(this);
@@ -351,27 +328,6 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	private void runAnalysis(final File workspaceFile, final IProject project,
 			IProject[] projects) throws Throwable {
 		final String projectPath = project.getLocation().toOSString();
-		/*
-		 * currentTest = start("Check for analysis settings");
-		 * 
-		 * printActivatedAnalyses();
-		 * 
-		 * final File analyses = findFile(project,
-		 * ScriptCommands.ANALYSIS_SETTINGS, true); if (analyses.exists() &&
-		 * analyses.isFile()) {
-		 * System.out.println("Found project-specific analysis settings.");
-		 * IPreferenceStore store =
-		 * JSureAnalysisXMLReader.readStateFrom(analyses);
-		 * Plugin.getDefault().initAnalyses(store);
-		 * 
-		 * if (AnalysisDriver.useJavac) {
-		 * System.out.println("Configuring analyses from project-specific settings"
-		 * ); JavacEclipse.initialize(); ((JavacEclipse)
-		 * IDE.getInstance()).synchronizeAnalysisPrefs(store); } } else {
-		 * System.out.println("No project-specific analysis settings."); }
-		 * 
-		 * end("Done checking analysis settings");
-		 */
 		start("Start logging to a file & refresh");
 		final String logName = EclipseLogHandler.startFileLog(project.getName()
 				+ ".log");
@@ -381,8 +337,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		printActivatedAnalyses();
 		end("Done with refresh");
 
-		// Force a build of the workspace
-		// Does the analysis and updates the consistency proof
+		/*
+		 * Force a build of the workspace which does the analysis and updates
+		 * the consistency proof.
+		 */
 		start("Build and analyze");
 		ResourcesPlugin.getWorkspace().build(
 				IncrementalProjectBuilder.AUTO_BUILD, null);
@@ -400,7 +358,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				throw new IllegalStateException(msg);
 			}
 		});
-		end("Done analyzing");
+		end("Done running JSure analysis...");
 
 		final String projectName = project.getName();
 		boolean resultsOk = true;
@@ -534,14 +492,6 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		String diffPath = new File(workspaceFile, projectName
 				+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX)
 				.getAbsolutePath();
-		/*
-		 * CompareResults compare = new CompareResults(); //
-		 * System.out.println("compare "
-		 * +projectName+" "+xmlLocation.getAbsolutePath()+" "+diffPath);
-		 * compare.execute(ICommandContext.nullContext, "compare", projectName,
-		 * xmlLocation.getAbsolutePath(), diffPath); return resultsOk &&
-		 * compare.resultsOk;
-		 */
 		if (!diff.isEmpty()) {
 			diff.write(new File(diffPath));
 		}
