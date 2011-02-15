@@ -140,7 +140,6 @@
 		<property name="sandbox.jsure.build.dir" value="${sandbox}${fs}jsure-build" />
 		<property name="sandbox.suites.dir" value="${sandbox}${fs}suites" />
 		<property name="sandbox.workspace.dir" value="${sandbox}${fs}workspaces" />
-		<property name="sandbox.log.dir" value="${sandbox}${fs}logs" />
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
@@ -246,13 +245,13 @@
 		<!-- Setup directories for the test suites and results to go into in the sandbox -->
 		<mkdir dir="${sandbox.suites.dir}" />
 		<mkdir dir="${sandbox.workspace.dir}" />
-		<mkdir dir="${sandbox.log.dir}" />
 
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
 				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
 				<echo message="[suite to scan] ${jsure.tests.suites}${fs}@{suite} -> ${suite.dir}" />
 				<copy-project-to-a-dir projectDir="@{suite}" fromDir="${jsure.tests.suites}" toDir="${sandbox.suites.dir}" />
+				<mkdir dir="${sandbox.workspace.dir}${fs}@{suite}" />
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" param="name.zip" trim="true">
 					<sequential>
@@ -269,14 +268,13 @@
 						</if>
 					</sequential>
 				</for>
-				<mkdir dir="${sandbox.log.dir}${fs}@{suite}" />
 			</sequential>
 		</for>
 
-		<!-- Ensure workspaces contain the test.properties files from the projects -->
+		<!-- Ensure workspaces contain the test.properties files from the projects
 		<copy todir="${sandbox.workspace.dir}">
 			<fileset dir="${sandbox.suites.dir}" includes="**/test.properties" />
-		</copy>
+		</copy>  -->
 	</target>
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
@@ -306,18 +304,18 @@
 						<echo message="Running regression test on @{project}" />
 						<echo message="${ln}" />
 						
-						<mkdir dir="${suite.dir}${fs}@{project}${fs}workspace"/>
+						<mkdir dir="${workspace.dir}${fs}@{project}" />
 
 						<propertyfile file="${suite.dir}${fs}@{project}${fs}test.properties">
 							<entry key="eclipse-home" value="${sandbox.eclipse.dir}" />
 							<entry key="arch" value="${jsure.tests.archive.eclipse.arch}" />
 							<entry key="os" value="${jsure.tests.archive.eclipse.os}" />
 							<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
-							<entry key="data-dir" value="${suite.dir}${fs}@{project}${fs}workspace" />
+							<entry key="data-dir" value="${workspace.dir}${fs}@{project}" />
 							<entry key="plugin-name" value="${jsure-tests-plugin-id}" />
 							<entry key="classname" value="${jsure-tests-plugin-id}.RunARegressionTest" />
-							<entry key="junit-report-output" value="${suite.dir}${fs}@{project}" />
-							<entry key="test-output" value="${jsure-tests-plugin-id}.RegressionTestOutput.xml" />
+							<entry key="junit-report-output" value="${workspace.dir}${fs}@{project}" />
+							<entry key="test-output" value="RegressionTestOutput.xml" />
 							<entry key="extraVMargs" value="-Dtest.module=${suite.dir}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
 						</propertyfile>
 
