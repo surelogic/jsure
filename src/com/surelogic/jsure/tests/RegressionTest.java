@@ -117,7 +117,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		if (!proj.exists()) {
 			try {
 				if (description == null) {
-					System.out.println("creating new description: " + null);
+					// TODO This looks broke'd
 					description = workspace.newProjectDescription(project);
 					description.setLocation(new Path(null));
 				}
@@ -126,7 +126,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				proj.create(description, null);
 
 			} catch (CoreException e) {
-				e.printStackTrace();
+				fail(e.getMessage());
 			}
 		}
 		// Project should exist now
