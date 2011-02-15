@@ -302,22 +302,24 @@
 					<sequential>
 						<echo message="Running regression test on ${suite.dir}${fs}@{project}" />
 
-						<!-- I think this call is ignored 
-						<property file="${workspace.dir}${fs}@{project}/test.properties" />  -->
-
-						<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
+						<propertyfile file="${suite.dir}${fs}@{project}${fs}test.properties">
 							<property name="eclipse-home" value="${sandbox.eclipse.dir}" />
 							<property name="arch" value="${jsure.tests.archive.eclipse.arch}" />
 							<property name="os" value="${jsure.tests.archive.eclipse.os}" />
 							<property name="ws" value="${jsure.tests.archive.eclipse.ws}" />
-							<property name="data-dir" value="${log.dir}${fs}@{project}" />
+							<property name="data-dir" value="${suite.dir}${fs}@{project}" />
 							<property name="plugin-name" value="${jsure-tests-plugin-id}" />
 							<property name="classname" value="${jsure-tests-plugin-id}.AllRegressionTests" />
+							<property name="junit-report-output" value="${suite.dir}${fs}@{project}" />
 							<property name="test-output" value="${jsure-tests-plugin-id}.AllRegressionTests.xml" />
-							<property name="junit-report-output" value="${workspace.dir}${fs}@{project}" />
-							<property name="workdir" value="${sandbox.eclipse.dir}" />
-							<property name="application" value="org.eclipse.test.coretestapplication" />
 							<property name="extraVMargs" value="-Dtest.module=${suite.dir}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
+						</propertyfile>
+
+						<!-- I think this call is ignored 
+						<property file="${workspace.dir}${fs}@{project}/test.properties" />  -->
+
+						<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
+							<property file="${suite.dir}${fs}@{project}${fs}test.properties" />
 						</ant>
 					</sequential>
 				</for>
