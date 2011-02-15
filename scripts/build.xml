@@ -310,9 +310,9 @@
 							<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
 							<entry key="data-dir" value="${suite.dir}${fs}@{project}" />
 							<entry key="plugin-name" value="${jsure-tests-plugin-id}" />
-							<entry key="classname" value="${jsure-tests-plugin-id}.AllRegressionTests" />
+							<entry key="classname" value="${jsure-tests-plugin-id}.RunARegressionTest" />
 							<entry key="junit-report-output" value="${suite.dir}${fs}@{project}" />
-							<entry key="test-output" value="${jsure-tests-plugin-id}.AllRegressionTests.xml" />
+							<entry key="test-output" value="${jsure-tests-plugin-id}.RegressionTestOutput.xml" />
 							<entry key="extraVMargs" value="-Dtest.module=${suite.dir}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
 						</propertyfile>
 
