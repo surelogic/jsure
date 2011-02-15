@@ -40,8 +40,6 @@ Export-Package: com.surelogic.analysis.uniqueness.store,
  edu.cmu.cs.fluid.util,
  edu.cmu.cs.fluid.version
 Bundle-ClassPath: .,
- lib/jacl.jar,
- lib/tcljava.jar,
  lib/ant.jar,
  lib/ant-junit.jar,
  lib/jdom.jar
