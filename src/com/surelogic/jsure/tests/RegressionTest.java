@@ -85,10 +85,13 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		// check for a .project file
 		final File dotProjectFile = new File(projectDir, ".project");
 		if (!dotProjectFile.exists()) {
-			// Not present, so assume it to be a multi-project container,
-			// and try to import immediate sub-directories
-			System.out.println("No .project in " + projectDir
-					+ "; trying to find subprojects");
+			/*
+			 * The .project file is not present so so assume it to be a
+			 * multi-project container. We'll try to import each immediate
+			 * sub-directories.
+			 */
+			System.out.println("No .project file found within " + projectDir
+					+ "; trying to find subprojects...");
 			for (File f : projectDir.listFiles()) {
 				if (f.isDirectory()) {
 					importProject(f);
@@ -96,35 +99,35 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			}
 			return;
 		}
-		System.out.println("Found .project in " + projectDir
-				+ "; trying to create project");
+		System.out.println("Found .project file within " + projectDir
+				+ "; trying to create an Eclipse project");
 
 		initAnalyses(projectDir);
 
-		final String project = projectDir.getName();
 		final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IProjectDescription description = getProjectDescription(workspace,
 				dotProjectFile);
 		final IWorkspaceRoot wsRoot = workspace.getRoot();
-		final IProject proj;
-		if (description != null) {
-			System.out.println("FOUND A PROJECT DESCRIPTION");
-			proj = wsRoot.getProject(description.getName());
-		} else {
-			System.out.println("NO PROJECT DESCRIPTION");
-			proj = wsRoot.getProject(project);
-		}
+		System.out.println("Workspace root: "
+				+ wsRoot.getLocationURI().toString());
+
+		if (description == null)
+			fail("Unable to obtain a valid Eclipse project description for "
+					+ projectDir);
+
+		final IProject proj = wsRoot.getProject(description.getName());
+
 		if (!proj.exists()) {
 			try {
-				if (description == null) {
-					// TODO This looks broke'd
-					description = workspace.newProjectDescription(project);
-					description.setLocation(new Path(null));
-				}
+				// if (description == null) {
+				// description = workspace.newProjectDescription(projectName);
+				// description.setLocation(new Path(projectDir
+				// .getAbsolutePath()));
+				// }
 
-				System.out.println("creating project: ");
+				System.out
+						.println("Creating Eclipse project:" + proj.getName());
 				proj.create(description, null);
-
 			} catch (CoreException e) {
 				fail(e.getMessage());
 			}
@@ -135,10 +138,11 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			if (res == null) {
 				// do the default thing of opening the project
 				try {
-					System.out.println("opening project: ");
+					System.out.println("Opening Eclipse project: "
+							+ proj.getName());
 					proj.open(null);
 				} catch (CoreException e) {
-					e.printStackTrace();
+					fail(e.getMessage());
 				}
 			}
 		}
@@ -147,16 +151,17 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	private void initAnalyses(File project) {
 		printActivatedAnalyses();
 
-		final File analyses = findFile(project,
+		final File analysisSettingsFile = findFile(project,
 				ScriptCommands.ANALYSIS_SETTINGS, true);
-		if (analyses.exists() && analyses.isFile()) {
+		if (analysisSettingsFile.exists() && analysisSettingsFile.isFile()) {
 			System.out.println("Found project-specific analysis settings.");
-			JSureAnalysisXMLReader.readStateFrom(analyses);
+			JSureAnalysisXMLReader.readStateFrom(analysisSettingsFile);
 			DoubleChecker.getDefault().initAnalyses();
 
 			if (IDE.useJavac) {
 				System.out
-						.println("Configuring analyses from project-specific settings");
+						.println("Configuring analyses from project-specific settings in "
+								+ analysisSettingsFile.getAbsolutePath());
 				JavacEclipse.initialize();
 				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
 			}
@@ -167,15 +172,13 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 
 	private IProjectDescription getProjectDescription(IWorkspace workspace,
 			File dotProjectFile) {
-
-		// If there is no file or the user has already specified forget it
 		IPath path = new Path(dotProjectFile.getPath());
 		try {
 			return workspace.loadProjectDescription(path);
 		} catch (CoreException exception) {
 			fail(exception.getMessage());
 		}
-		return null; // should never happen due to the fail call
+		return null; // should never get here due to the fail above
 	}
 
 	@Override
@@ -287,10 +290,12 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	private void start(final String tag) {
 		System.out.println("RegressionTest: " + tag);
 		ITest test = new ITest() {
+			@Override
 			public String getClassName() {
 				return tag;
 			}
 
+			@Override
 			public IRNode getNode() {
 				return null;
 			}
@@ -480,7 +485,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			final String logDiffsName = projectName + ".log.diffs.xml";
 			final File oracle = new File(oracleName);
 			final File log = new File(logName);
-			final File diffs = new File(logDiffsName);
+			// final File diffs = new File(logDiffsName);
 			if (!log.exists() && !oracle.exists()) {
 				end("Done comparing logs");
 				// TODO create diffs
