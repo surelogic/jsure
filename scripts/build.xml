@@ -312,7 +312,6 @@
 							<entry key="junit-report-output" value="${workspace.dir}${fs}@{project}" />
 							<entry key="extraVMargs" value="-Dtest.module=${suite.dir}${fs}@{project} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
 						</propertyfile>
-
 						<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
 							<property file="${suite.dir}${fs}@{project}${fs}test.properties" />
 						</ant>
@@ -327,15 +326,47 @@
 			</sequential>
 		</for>
 
+		<!-- Run unit tests -->
+		<property name="unit.test.dir" value="${sandbox.suites.dir}${fs}UnitTests}" />
+		<mkdir dir="${unit.test.dir}" />
+
+		<path id="ir.path">
+			<pathelement location=".tmp" />
+		</path>
+
+		<property name="fluid.ir.path" refid="ir.path" />
+
+		<propertyfile file="${unit.test.dir}${fs}test.properties">
+			<entry key="eclipse-home" value="${sandbox.eclipse.dir}" />
+			<entry key="arch" value="${jsure.tests.archive.eclipse.arch}" />
+			<entry key="os" value="${jsure.tests.archive.eclipse.os}" />
+			<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
+			<entry key="data-dir" value="${unit.test.dir}" />
+			<entry key="plugin-name" value="${jsure-tests-plugin-id}" />
+			<entry key="classname" value="${jsure-tests-plugin-id}.AllUnitTests" />
+			<entry key="junit-report-output" value="${unit.test.dir}" />
+			<entry key="extraVMargs" value="-Dfluid.ir.path=${fluid.ir.path} -Xmx512m -XX:MaxPermSize=256m -Djava.util.logging.config.file=NONE -Ddc.testing=true -Dfluid.loadSystemProps=false" />
+		</propertyfile>
+		<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
+			<property file="${unit.test.dir}${fs}test.properties" />
+		</ant>
+
+		<propertyfile file="${unit.test.dir}${fs}test.properties">
+			<entry key="classname" value="${jsure-tests-plugin-id}.PersistentSaveTests" />
+		</propertyfile>
+		<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
+			<property file="${unit.test.dir}${fs}test.properties" />
+		</ant>
+
+		<propertyfile file="${unit.test.dir}${fs}test.properties">
+			<entry key="classname" value="${jsure-tests-plugin-id}.PersistentLoadTests" />
+		</propertyfile>
+		<ant antfile="${library.xml}" target="core-test" dir="${sandbox.eclipse.dir}">
+			<property file="${unit.test.dir}${fs}test.properties" />
+		</ant>
+
 		<!-- This location is no longer needed - everything useful was copied out of it -->
 		<delete dir="${sandbox.workspace.dir}" />
-
-		<fail message="TODO" />
-
-		<!-- run unit tests -->
-		<run-a-test test-workspace="${test.workspace.base}/UnitTests" target="run-unit-tests" test-module="${test.module.dir}/UnitTests" extra-test-modules="" />
-		<!-- run tests that require special handling -->
-		<run-a-test test-workspace="${test.workspace.base}/UnitTests" target="run-specialized-tests" test-module="${test.module.dir}/UnitTests" extra-test-modules="" />
 	</target>
 
 
