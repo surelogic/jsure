@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.parse.*;
 import edu.cmu.cs.fluid.tree.*;
 
@@ -18,7 +19,7 @@ public class IRNodeUtil {
 		if (decl == null) {
 			return null;
 		}
-		final IRNode parentNode = JJNode.tree.getParentOrNull(decl);
+		final IRNode parentNode = JavaPromise.getParentOrPromisedFor(decl);
 		final IJavaDeclaration parent = convert(binder, parentNode);
 		final Operator op = JJNode.tree.getOperator(decl);
 		if (op instanceof Declaration) {
@@ -30,15 +31,14 @@ public class IRNodeUtil {
 			}
 			if (TypeDeclaration.prototype.includes(op)) {
 				// TODO fix to handle method/initializer as parent
+				final String id = JJNode.getInfoOrNull(decl);
 				if (parent == null) {
-					return new TypeContext(TypeDeclaration.getId(decl));
+					return new TypeContext(id);
 				}
 				if (parent instanceof Method) {
-					return new TypeContext((Method) parent, TypeDeclaration
-							.getId(decl));
-				}
-				return new TypeContext((TypeContext) parent, TypeDeclaration
-						.getId(decl));
+					return new TypeContext((Method) parent, id);
+				}				
+				return new TypeContext((TypeContext) parent, id);
 			}
 			if (VariableDeclarator.prototype.includes(op)) {
 				final IRNode gparent = JJNode.tree.getParentOrNull(parentNode);
@@ -82,10 +82,14 @@ public class IRNodeUtil {
 			}
 			return new TypeContext((TypeContext) parent, JJNode
 					.getInfoOrNull(decl));
+		} else if (InitDeclaration.prototype.includes(op)) {
+			return new Method((TypeContext) parent, "<init>", noStrings, true);
 		}
 		return parent;
 	}
 
+	private static final String[] noStrings = new String[0];
+	
 	private static String[] getParamTypes(final IBinder binder,
 			final IRNode params) {
 		final List<String> names = new ArrayList<String>();
