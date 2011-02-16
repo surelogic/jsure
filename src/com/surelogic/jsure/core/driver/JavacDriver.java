@@ -1799,7 +1799,10 @@ public class JavacDriver implements IResourceChangeListener {
 							ProjectsDrop.ensureDrop(projects);
 						}
 					} else if (status != SLStatus.CANCEL_STATUS) {
-						throw status.getException();
+						if (status.getException() != null) {
+							throw status.getException();
+						}
+						throw new RuntimeException(status.getMessage());
 					}
 				} else {
 					if (clearBeforeAnalysis || oldProjects == null) {
