@@ -35,8 +35,13 @@ echo "Script is in $SCRIPT_PATH"
 echoHeader "CHECK OUT JSURE TOOL FROM SVN"
 JSURE_SVN_PROJECTS_LIST_FILE="$SCRIPT_PATH/lib/jsure-regression-suite-svn-project-list.txt"
 SVN_REPO="https://fluid.surelogic.com/svn/eng"
-SVN_USER=tim
-SVN_PASS=Logic.102
+echo -n "Enter your $SVN_REPO username: "
+read SVN_USER
+echo -n "Enter your $SVN_REPO password: "
+read -s SVN_PASS
+echo
+echo
+
 while read LINE
 do
   echoSubHeader "Checking out $LINE from $SVN_REPO"
