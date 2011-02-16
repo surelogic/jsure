@@ -4,13 +4,6 @@
 	<property name="fs" value="${file.separator}" />
 	<property name="ln" value="----------------------------------------------------------------------" />
 
-	<!-- We use this to get additional control tasks (e.g., if and for) 
-	<taskdef resource="net/sf/antcontrib/antlib.xml">
-		<classpath>
-			<pathelement location="${user.dir}/lib/ant-contrib.jar" />
-		</classpath>
-	</taskdef> -->
-
 	<!-- A set of tasks we cooked up to help the JSure test run -->
 	<taskdef resource="sl-tasks.properties">
 		<classpath>
