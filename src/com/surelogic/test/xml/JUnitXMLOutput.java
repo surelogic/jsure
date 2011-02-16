@@ -151,6 +151,7 @@ public class JUnitXMLOutput extends AbstractTestOutput {
 	}
 
 	public static final ITestOutputFactory factory = new ITestOutputFactory() {
+		@Override
 		public ITestOutput create(String name) {
 			try {
 				final IWorkspaceRoot wsRoot = ResourcesPlugin.getWorkspace()
