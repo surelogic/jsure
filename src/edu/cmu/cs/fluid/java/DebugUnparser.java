@@ -128,4 +128,16 @@ public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
       return DebugUnparser.toString(n);
     }    
   };
+  
+  private static final JavaUnparseStyle noPromisesStyle = new JavaUnparseStyle(false, false);
+  private static final DebugUnparser unparser = new DebugUnparser(5, JJNode.tree) {
+	  @Override
+	  public JavaUnparseStyle getStyle() {
+		  return noPromisesStyle;
+	  }
+  };
+  
+  public static String unparseCode(IRNode n) {
+	  return unparser.unparseString(n);
+  }
 }

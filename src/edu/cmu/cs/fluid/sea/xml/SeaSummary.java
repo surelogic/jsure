@@ -213,21 +213,13 @@ public class SeaSummary extends AbstractSeaXmlCreator {
         */		
 		id.snapshotAttrs(this);
 	}
-
-	private static final JavaUnparseStyle noPromisesStyle = new JavaUnparseStyle(false, false);
-	private static final DebugUnparser unparser = new DebugUnparser(5, JJNode.tree) {
-		@Override
-		public JavaUnparseStyle getStyle() {
-			return noPromisesStyle;
-		}
-	};
 	
 	public static long computeHash(IRNode node) {
 		return computeHash(node, false);
 	}
 	
 	public static long computeHash(IRNode node, boolean debug) {			
-		final String unparse = unparser.unparseString(node);
+		final String unparse = DebugUnparser.unparseCode(node);
 		if (debug) {
 			System.out.println("Unparse: "+unparse);
 		}
