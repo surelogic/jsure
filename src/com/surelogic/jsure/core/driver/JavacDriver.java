@@ -1302,7 +1302,10 @@ public class JavacDriver implements IResourceChangeListener {
 
 			final File dataDir = JSurePreferencesUtility
 					.getJSureDataDirectory();
-			final Projects oldProjects = (Projects) ProjectsDrop.getProjects();
+			final Projects oldProjects = useSeparateJVM ? null : (Projects) ProjectsDrop.getProjects();
+			if (oldProjects != null) {
+				System.out.println("Old projects = "+oldProjects.getLabel());
+			}
 			newProjects.computeRun(dataDir, oldProjects);
 
 			final File zips = new File(dataDir, newProjects.getRun() + "/zips");
