@@ -226,6 +226,9 @@
 			<entry key="javacVerbose" value="false" />
 			<entry key="javacSource" value="1.6" />
 			<entry key="javacTarget" value="1.6" />
+			<entry key="arch" value="${jsure.tests.archive.eclipse.arch}" />
+			<entry key="os" value="${jsure.tests.archive.eclipse.os}" />
+			<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
 			<entry key="buildType" value="${jsure.build.buildType}" />
 			<entry key="buildId" value="${jsure.build.buildId}" />
 		</propertyfile>
@@ -320,25 +323,11 @@
 
 						<move todir="${suite.dir}${fs}@{project}">
 							<fileset dir="${workspace.dir}${fs}@{project}">
-								<include name="*" />
+								<include name="*" defaultexcludes="no" />
 							</fileset>
 						</move>
 					</sequential>
 				</for>
-
-				<!-- Collect results together into "regression-results.xml" -->
-				<propertyfile file="${suite.dir}${fs}collect.properties">
-					<entry key="eclipse-home" value="${sandbox.eclipse.dir}" />
-					<entry key="arch" value="${jsure.tests.archive.eclipse.arch}" />
-					<entry key="os" value="${jsure.tests.archive.eclipse.os}" />
-					<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
-					<entry key="includes" value="**/com.surelogic.jsure.tests*.xml" />
-					<entry key="output-file" value="regression-results.xml" />
-				</propertyfile>
-
-				<ant antfile="${library.xml}" target="collect" dir="${suite.dir}">
-					<property file="${suite.dir}${fs}collect.properties" />
-				</ant>
 			</sequential>
 		</for>
 
