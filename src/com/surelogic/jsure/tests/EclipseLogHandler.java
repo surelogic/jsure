@@ -6,14 +6,16 @@ import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import java.util.logging.XMLFormatter;
+
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 
 import com.surelogic.common.logging.SLLogger;
 
 public class EclipseLogHandler extends Handler {
-	public static final EclipseLogHandler prototype = new EclipseLogHandler();
-	private static FileHandler fileLog;
+
+	private static FileHandler f_fileHandler;
 
 	@Override
 	public void close() throws SecurityException {
@@ -29,34 +31,29 @@ public class EclipseLogHandler extends Handler {
 	public void publish(final LogRecord record) {
 		final Level level = record.getLevel();
 
+		/*
+		 * Only output errors and warnings -- drop the other stuff on the floor.
+		 */
 		if (level == Level.SEVERE || level == Level.WARNING) {
 			SLLogger.getLogger().log(level, record.getMessage(),
 					record.getThrown());
 		}
 	}
 
-	public static synchronized void init() {
-		final Logger log = SLLogger.getLogger("");
-		for (Handler h : log.getHandlers()) {
-			if (prototype == h) {
-				// Already registered
-				return;
-			}
-		}
-		log.addHandler(prototype);
-	}
-
 	public static synchronized String startFileLog(String name) {
-		if (fileLog == null) {
+		if (f_fileHandler == null) {
 			final XMLFormatter xf = new XMLFormatter();
 			try {
-				String file = name + ".xml";
-				File f = new File(file);
-				fileLog = new FileHandler(file);
-				fileLog.setFormatter(xf);
-				fileLog.setLevel(Level.WARNING);
-				SLLogger.addHandler(fileLog);
-				return f.getAbsolutePath();
+				final IWorkspaceRoot wsRoot = ResourcesPlugin.getWorkspace()
+						.getRoot();
+				final File wsFile = new File(wsRoot.getLocationURI());
+				final String logFileName = name + ".xml";
+				final File logFile = new File(wsFile, logFileName);
+				f_fileHandler = new FileHandler(logFile.getAbsolutePath());
+				f_fileHandler.setFormatter(xf);
+				f_fileHandler.setLevel(Level.WARNING);
+				SLLogger.addHandler(f_fileHandler);
+				return logFile.getAbsolutePath();
 			} catch (SecurityException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -69,8 +66,8 @@ public class EclipseLogHandler extends Handler {
 	}
 
 	public static synchronized void stopFileLog() {
-		SLLogger.removeHandler(fileLog);
-		fileLog.close();
-		fileLog = null;
+		SLLogger.removeHandler(f_fileHandler);
+		f_fileHandler.close();
+		f_fileHandler = null;
 	}
 }
