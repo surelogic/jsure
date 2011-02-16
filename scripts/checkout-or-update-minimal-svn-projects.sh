@@ -33,7 +33,7 @@ echo "Subversion `svn --version --quiet`"
 echo "Script is in $SCRIPT_PATH"
 
 echoHeader "CHECK OUT JSURE TOOL FROM SVN"
-JSURE_SVN_PROJECTS_LIST_FILE="$SCRIPT_PATH/lib/jsure-regression-suite-svn-project-list.txt"
+JSURE_SVN_PROJECTS_LIST_FILE="$SCRIPT_PATH/lib/minimal-svn-project-list.txt"
 SVN_REPO="https://fluid.surelogic.com/svn/eng"
 echo -n "Enter your $SVN_REPO username: "
 read SVN_USER
