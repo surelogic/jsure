@@ -7,7 +7,7 @@
 	<!-- A set of tasks we cooked up to help the JSure test run -->
 	<taskdef resource="sl-tasks.properties">
 		<classpath>
-			<pathelement location="${user.dir}/lib/jsure-tests-ant-tasks.jar" />
+			<pathelement location="${antfile.dir}${fs}lib${fs}jsure-tests-ant-tasks.jar" />
 		</classpath>
 	</taskdef>
 
