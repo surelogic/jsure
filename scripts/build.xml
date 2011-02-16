@@ -226,9 +226,6 @@
 			<entry key="javacVerbose" value="false" />
 			<entry key="javacSource" value="1.6" />
 			<entry key="javacTarget" value="1.6" />
-			<entry key="arch" value="${jsure.tests.archive.eclipse.arch}" />
-			<entry key="os" value="${jsure.tests.archive.eclipse.os}" />
-			<entry key="ws" value="${jsure.tests.archive.eclipse.ws}" />
 			<entry key="buildType" value="${jsure.build.buildType}" />
 			<entry key="buildId" value="${jsure.build.buildId}" />
 		</propertyfile>
