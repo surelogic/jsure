@@ -1,6 +1,7 @@
 package com.surelogic.ant.tasks;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +30,18 @@ public class FindTests extends Task {
 	private File basedir = null;
 	private boolean fullpaths = false;
 	private String property = null;
+
+	private final static class RegressionTestFilter implements FileFilter {
+		public boolean accept(File f) {
+			boolean rv;
+			if (f.isDirectory()) {
+				rv = true;
+			} else {
+				rv = f.getName().endsWith(".zip");
+			}
+			return rv;
+		}
+	}
 
 	public void execute() {
 		if (basedir.isDirectory()) {
