@@ -1,20 +1,16 @@
-/*
- * Created on Jul 9, 2004
- *
- */
 package com.surelogic.jsure.tests;
 
-import java.io.*;
-import java.util.logging.*;
-
-import org.eclipse.core.runtime.IStatus;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.XMLFormatter;
 
 import com.surelogic.common.logging.SLLogger;
 
-/**
- * @author Edwin
- * 
- */
 public class EclipseLogHandler extends Handler {
 	public static final EclipseLogHandler prototype = new EclipseLogHandler();
 	private static FileHandler fileLog;
@@ -33,19 +29,10 @@ public class EclipseLogHandler extends Handler {
 	public void publish(final LogRecord record) {
 		final Level level = record.getLevel();
 
-		int severity = IStatus.INFO;
-		if (level == Level.WARNING) {
-			severity = IStatus.WARNING;
-
-			// ignored
-			return;
-		} else if (level == Level.SEVERE) {
-			severity = IStatus.ERROR;
-		} else {
-			// Ignored
-			return;
+		if (level == Level.SEVERE || level == Level.WARNING) {
+			SLLogger.getLogger().log(level, record.getMessage(),
+					record.getThrown());
 		}
-		// ErrorLog.elog(severity, record.getMessage(), record.getThrown());
 	}
 
 	public static synchronized void init() {
@@ -68,7 +55,7 @@ public class EclipseLogHandler extends Handler {
 				fileLog = new FileHandler(file);
 				fileLog.setFormatter(xf);
 				fileLog.setLevel(Level.WARNING);
-				SLLogger.getLogger("").addHandler(fileLog);
+				SLLogger.addHandler(fileLog);
 				return f.getAbsolutePath();
 			} catch (SecurityException e) {
 				e.printStackTrace();
@@ -82,7 +69,7 @@ public class EclipseLogHandler extends Handler {
 	}
 
 	public static synchronized void stopFileLog() {
-		SLLogger.getLogger("").removeHandler(fileLog);
+		SLLogger.removeHandler(fileLog);
 		fileLog.close();
 		fileLog = null;
 	}
