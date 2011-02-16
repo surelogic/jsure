@@ -371,11 +371,9 @@
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 	<target name="summarize and print test results" depends="run JSure on test suites">
-		<echo>
-############################################################
-#                REGRESSION TEST RESULTS                   #
-############################################################
-		</echo>
+		<echo message="${ln}" />
+		<echo message="REGRESSION TEST RESULTS" />
+		<echo message="${ln}" />
 		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
 			<sequential>
 				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
