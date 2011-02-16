@@ -371,6 +371,39 @@
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 	<target name="summarize and print test results" depends="run JSure on test suites">
+		<property name="sandbox.regression-tests.log" value="${sandbox}${fs}SureLogicRegressionTestSummary.txt" />
+		<property name="sandbox.unit-tests.log" value="${sandbox}${fs}SureLogicUnitTestSummary.txt" />
+
+		<echo message="${ln}" />
+		<echo message="ANNOTATION RULES RESULTS" />
+		<echo message="${ln}" />
+		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
+			<sequential>
+				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
+				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<for list="${project.list}" delimiter="," param="project" trim="true">
+					<sequential>
+						<testresults file="${suite.dir}${fs}@{project}${fs}AnnotationRules.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
+					</sequential>
+				</for>
+			</sequential>
+		</for>
+
+		<echo message="${ln}" />
+		<echo message="ECLIPSE LOG RESULTS" />
+		<echo message="${ln}" />
+		<for list="${jsure.tests.suites.to-scan}" delimiter="," param="suite" trim="true">
+			<sequential>
+				<property name="suite.dir" value="${sandbox.suites.dir}${fs}@{suite}" />
+				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
+				<for list="${project.list}" delimiter="," param="project" trim="true">
+					<sequential>
+						<testresults file="${suite.dir}${fs}@{project}${fs}@{project}.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
+					</sequential>
+				</for>
+			</sequential>
+		</for>
+
 		<echo message="${ln}" />
 		<echo message="REGRESSION TEST RESULTS" />
 		<echo message="${ln}" />
@@ -380,147 +413,31 @@
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<testresults file="${sandbox.suites.dir}${fs}@{suite}${fs}@{project}/com.surelogic.jsure.tests.RunARegressionTest.xml" tests="com.surelogic.jsure.tests.RegressionTest:testMajordomo" printtestname="false" logfile="${sandbox}${fs}sl.reg.test.results.txt" property="tests.failed" />
+						<testresults file="${suite.dir}${fs}@{project}${fs}com.surelogic.jsure.tests.RunARegressionTest.xml" tests="com.surelogic.jsure.tests.RegressionTest:testMajordomo" printtestname="false" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
 					</sequential>
 				</for>
 			</sequential>
 		</for>
-	</target>
 
-	<!-- SUMMARIZES THE RESULTS AND PRINTS THEM OUT -->
-	<target name="summarize.results">
+		<echo message="${ln}" />
+		<echo message="JUNIT TEST RESULTS" />
+		<echo message="${ln}" />
+		<testresults file="${unit.test.dir}${fs}com.surelogic.jsure.tests.AllUnitTests.xml" logfile="${sandbox.unit-tests.log}" property="tests.failed" />
 
-		<echo>
-############################################################
-#               ANNOTATION RULES RESULTS                   #
-############################################################
-		</echo>
-
-		<findtests property="test.project.list" basedir="${test.workspace.base}" fullpaths="true" />
-		<for list="${test.project.list}" param="workspace" trim="true" keepgoing="true">
-			<sequential>
-				<if>
-					<matches string="@{workspace}" pattern="(.*)UnitTests$" />
-					<then>
-						<echo message="Skipping the UnitTests workspace" />
-					</then>
-					<else>
-						<testresults file="@{workspace}/AnnotationRules.log.Tests.xml" logfile="${reg.tests.log.file}" property="tests.failed" />
-					</else>
-				</if>
-			</sequential>
-		</for>
-
-		<echo>
-############################################################
-#                  ECLIPSE LOG RESULTS                     #
-############################################################
-		</echo>
-
-		<findtests property="test.project.list" basedir="${test.workspace.base}" fullpaths="false" />
-		<for list="${test.project.list}" param="workspace" trim="true" keepgoing="true">
-			<sequential>
-				<if>
-					<matches string="@{workspace}" pattern="(.*)UnitTests$" />
-					<then>
-						<echo message="Skipping the UnitTests workspace" />
-					</then>
-					<else>
-						<testresults file="${test.workspace.base}/@{workspace}/@{workspace}.log.Tests.xml" logfile="${reg.tests.log.file}" property="tests.failed" />
-					</else>
-				</if>
-			</sequential>
-		</for>
-		<echo>
-############################################################
-#                REGRESSION TEST RESULTS                   #
-############################################################
-		</echo>
-
-		<findtests property="test.project.list" basedir="${test.workspace.base}" fullpaths="true" />
-		<for list="${test.project.list}" param="workspace" trim="true" keepgoing="true">
-			<sequential>
-				<if>
-					<matches string="@{workspace}" pattern="(.*)UnitTests$" />
-					<then>
-						<echo message="Skipping the UnitTests workspace" />
-					</then>
-					<else>
-						<testresults file="@{workspace}/com.surelogic.jsure.tests.AllRegressionTests.xml" tests="com.surelogic.jsure.tests.RegressionTest:testMajordomo" printtestname="false" logfile="${reg.tests.log.file}" property="tests.failed" />
-					</else>
-				</if>
-			</sequential>
-		</for>
-
-		<echo>
-############################################################
-#                  JUNIT TEST RESULTS                      #
-############################################################
-		</echo>
-
-		<testresults file="${test.workspace.base}/UnitTests/com.surelogic.jsure.tests.AllUnitTests.xml" logfile="${unit.tests.log.file}" property="tests.failed" />
 
 		<if>
 			<equals arg1="${tests.failed}" arg2="FAILED" />
 			<then>
-				<echo>
-####################################################
-					
-					
-      !!!!!!!!!!   	FAILURE		  !!!!!!!!!		   
-					
-					 
-####################################################
-				</echo>
-				<fail message="One or more regression tests and/or unit tests failed. Check the sl.reg.test.results.txt and sl.unit.test.results.txt files in ${test.sandbox} to determine what tests in what projects failed. From there, look at the com.surelogic.jsure.tests.AllTests.xml file in the failed ${test.sandbox}/workspaces/[project] folder." />
+				<echo message="${ln}" />
+				<echo message="!!!!!!!!!!   	FAILURE		  !!!!!!!!!" />
+				<echo message="${ln}" />
+				<fail message="One or more regression tests and/or unit tests failed. Check the ${sandbox.regression-tests.log} and ${sandbox.unit-tests.log} files to determine the cause." />
 			</then>
 			<else>
-				<echo>
-####################################################
-					
-					
-#              		SUCCESS						   #
-					
-					
-####################################################
-				</echo>
+				<echo message="${ln}" />
+				<echo message="SUCCESS" />
+				<echo message="${ln}" />
 			</else>
 		</if>
 	</target>
-
-
-	<!-- Gathers our regression and Unit test results -->
-	<target name="collect-test-results">
-		<property file="${user.home}/fluid-build.properties" />
-		<property file="${user.home}/sl.test.properties" />
-
-		<findtests property="test.project.list" basedir="${test.workspace.base}" fullpaths="true" />
-		<for list="${test.project.list}" param="project" trim="true" keepgoing="true">
-			<sequential>
-				<filenamefrompath file="@{project}" property="proj-name" />
-				<copy todir="${test.log.base}">
-					<mapper>
-						<chainedmapper>
-							<flattenmapper />
-							<globmapper from="*.xml" to="${proj-name}-*.xml" />
-						</chainedmapper>
-					</mapper>
-
-					<fileset dir="@{project}">
-						<include name="*.xml" />
-					</fileset>
-				</copy>
-
-			</sequential>
-		</for>
-		<move todir="${test.log.base}">
-			<mapper>
-				<globmapper from="UnitTests-*" to="*" />
-			</mapper>
-			<fileset dir="${test.log.base}">
-				<include name="*.xml" />
-			</fileset>
-		</move>
-	</target>
-
 </project>
