@@ -13,5 +13,5 @@
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
-		<nature>com.surelogic.jsure.client.eclipse.dcNature</nature>
+	</natures>
 </projectDescription>
