@@ -4,6 +4,8 @@
 	<property name="fs" value="${file.separator}" />
 	<property name="ln" value="----------------------------------------------------------------------" />
 
+	<dirname property="antfile.dir" file="${ant.file}" />
+
 	<!-- A set of tasks we cooked up to help the JSure test run -->
 	<taskdef resource="sl-tasks.properties">
 		<classpath>
@@ -111,10 +113,6 @@
 		<property name="archive.eclipse.test" value="${jsure.tests.archive}${fs}${jsure.tests.archive.eclipse.test}" />
 		<available property="archive.eclipse.test.exists" file="${archive.eclipse.test}" />
 		<fail unless="archive.eclipse.test.exists" message="${archive.eclipse.test} does not exist on your machine." />
-
-		<!-- Set the directory that this build script is within -->
-		<dirname property="antfile.dir" file="${ant.file}" />
-		<fail unless="antfile.dir" message="Unable to determine the containing directory of ${ant.file}." />
 
 		<!-- Where the plug-in and feature projects are located -->
 		<property name="user.workspace.dir" value="${antfile.dir}${fs}..${fs}.." />
