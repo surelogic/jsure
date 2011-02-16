@@ -4,12 +4,12 @@
 	<property name="fs" value="${file.separator}" />
 	<property name="ln" value="----------------------------------------------------------------------" />
 
-	<!-- We use this to get additional control tasks (e.g., if and for) -->
+	<!-- We use this to get additional control tasks (e.g., if and for) 
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath>
 			<pathelement location="${user.dir}/lib/ant-contrib.jar" />
 		</classpath>
-	</taskdef>
+	</taskdef> -->
 
 	<!-- A set of tasks we cooked up to help the JSure test run -->
 	<taskdef resource="sl-tasks.properties">
@@ -160,9 +160,9 @@
 		<unarchive-to archive="${archive.eclipse.dist}" sandbox="${sandbox}" />
 		<unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}" />
 
-		<findfile property="eclipse.startup.jar" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.equinox\.launcher_.*\.jar" />
+		<findFile property="eclipse.startup.jar" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.equinox\.launcher_.*\.jar" />
 		<fail unless="eclipse.startup.jar" message="Unable to find the Eclipse startup jar (org.eclipse.equinox.launcher.*.jar) within ${sandbox.eclipse.plugins.dir}." />
-		<findfile property="eclipse.pde.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.pde\.build_.*" />
+		<findFile property="eclipse.pde.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.pde\.build_.*" />
 		<fail unless="eclipse.pde.plugin.dir" message="Unable to find the Eclipse PDE build plug-in (org.eclipse.pde.build.*) within ${sandbox.eclipse.plugins.dir}. Is ${archive.eclipse.dist} an archive of 'Eclipse Classic'?" />
 
 
@@ -277,7 +277,7 @@
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 	<target name="run JSure on test suites" depends="setup test suites to analyze">
-		<findfile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.test_.*" />
+		<findFile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.test_.*" />
 		<fail unless="eclipse.test.plugin.dir" message="Unable to find the Eclipse test plug-in (org.eclipse.test_*) within ${sandbox.eclipse.plugins.dir}." />
 		<property name="library.xml" value="${eclipse.test.plugin.dir}${fs}library.xml" />
 
@@ -285,7 +285,7 @@
 		<mkdir dir="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test" />
 		<copy file="${eclipse.test.plugin.dir}${fs}JUNIT.XSL" tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" />
 
-		<findfile property="surelogic.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="com\.surelogic\.jsure\.tests_.*" />
+		<findFile property="surelogic.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="com\.surelogic\.jsure\.tests_.*" />
 		<fail unless="surelogic.test.plugin.dir" message="Unable to find the SureLogic test plug-in (com.surelogic.jsure.tests_*) within ${sandbox.eclipse.plugins.dir}." />
 		<property name="jsure-tests-plugin-id" value="com.surelogic.jsure.tests" />
 
@@ -383,7 +383,7 @@
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<testresults file="${suite.dir}${fs}@{project}${fs}AnnotationRules.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
+						<testResults file="${suite.dir}${fs}@{project}${fs}AnnotationRules.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
 					</sequential>
 				</for>
 			</sequential>
@@ -398,7 +398,7 @@
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<testresults file="${suite.dir}${fs}@{project}${fs}@{project}.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
+						<testResults file="${suite.dir}${fs}@{project}${fs}@{project}.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
 					</sequential>
 				</for>
 			</sequential>
@@ -413,7 +413,7 @@
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<testresults file="${suite.dir}${fs}@{project}${fs}com.surelogic.jsure.tests.RunARegressionTest.xml" tests="com.surelogic.jsure.tests.RegressionTest:testMajordomo" printtestname="false" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
+						<testResults file="${suite.dir}${fs}@{project}${fs}com.surelogic.jsure.tests.RunARegressionTest.xml" tests="com.surelogic.jsure.tests.RegressionTest:testMajordomo" printtestname="false" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
 					</sequential>
 				</for>
 			</sequential>
@@ -422,7 +422,7 @@
 		<echo message="${ln}" />
 		<echo message="JUNIT TEST RESULTS" />
 		<echo message="${ln}" />
-		<testresults file="${unit.test.dir}${fs}com.surelogic.jsure.tests.AllUnitTests.xml" logfile="${sandbox.unit-tests.log}" property="tests.failed" />
+		<testResults file="${unit.test.dir}${fs}com.surelogic.jsure.tests.AllUnitTests.xml" logfile="${sandbox.unit-tests.log}" property="tests.failed" />
 
 
 		<if>
