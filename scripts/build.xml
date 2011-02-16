@@ -297,7 +297,7 @@
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
 						<echo message="${ln}" />
-						<echo message="Running regression test on @{project}" />
+						<echo message="Running regression test @{project}" />
 						<echo message="${ln}" />
 
 						<mkdir dir="${workspace.dir}${fs}@{project}" />
