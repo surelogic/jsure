@@ -39,6 +39,7 @@ public class JavacBuild {
 		if (selectedProjects == null || selectedProjects.isEmpty())
 			return;
 		try {
+			JavacDriver.getInstance().clearProjectInfo();
 			for (IJavaProject p : selectedProjects) {
 				boolean noErrors = JDTUtility.noCompilationErrors(p,
 						new NullProgressMonitor());

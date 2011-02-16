@@ -1212,6 +1212,10 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 
+	public void clearProjectInfo() {
+		projects.clear();
+	}
+	
 	@SuppressWarnings("unchecked")
 	private static int getBuildKind(Map args) {
 		final String kind = (String) args.get(DriverConstants.BUILD_KIND);
