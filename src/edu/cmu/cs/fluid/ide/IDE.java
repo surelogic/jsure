@@ -271,8 +271,7 @@ public abstract class IDE {
 	 *************************************************************/
 
 	private final Map<String, ITestOutput> xmlLogs = new HashMap<String, ITestOutput>();
-	private ITestOutputFactory factory = XUtil.testing ? SilentTestOutput.factory
-			: SilentTestOutput.factory; // WarningDropOutput.factory;
+	private ITestOutputFactory factory = SilentTestOutput.factory;
 
 	public void addTestOutputFactory(ITestOutputFactory f) {
 		if (f == null) {
@@ -289,10 +288,6 @@ public abstract class IDE {
 	public ITestOutput makeLog(String name) {
 		ITestOutput log = getLog(name);
 		if (log == null && factory != null) {
-			/*
-			 * try { log = factory.create(name); } catch (Exception e) {
-			 * e.printStackTrace(); return null; }
-			 */
 			log = new LazyTestOutput(name);
 		}
 		return log;
@@ -327,7 +322,6 @@ public abstract class IDE {
 					System.out.println(IDE.this.getClass().getSimpleName()
 							+ " making log: " + name);
 					delegate = factory.create(name);
-					// new Throwable().printStackTrace();
 					if (XUtil.testing) {
 						System.out.println("Creating TestOutput " + name + " ("
 								+ delegate + ")");
