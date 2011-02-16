@@ -43,6 +43,9 @@ public class EclipseLogHandler {
 	}
 
 	public static synchronized void stopFileLog() {
+		if (f_fileHandler == null)
+			return;
+
 		SLLogger.removeHandler(f_fileHandler);
 		f_fileHandler.close();
 		f_fileHandler = null;
