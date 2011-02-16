@@ -320,7 +320,7 @@
 
 						<move todir="${suite.dir}${fs}@{project}">
 							<fileset dir="${workspace.dir}${fs}@{project}">
-								<include name="*" defaultexcludes="no" />
+								<fileset dir="${sandbox}" includes="**/*" defaultexcludes="no" />
 							</fileset>
 						</move>
 					</sequential>
@@ -371,10 +371,8 @@
 		<delete dir="${sandbox.workspace.dir}" />
 	</target>
 
-
-
 	<!-- SUMMARIZES THE RESULTS AND PRINTS THEM OUT -->
-	<target name="summarize.results" description="Summarizes the regression and unit test results">
+	<target name="summarize and print test results">
 
 		<echo>
 ############################################################
