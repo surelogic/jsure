@@ -56,6 +56,7 @@ import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.listeners.IAnalysisListener;
+import com.surelogic.jsure.core.listeners.IPersistentDropInfoListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -69,7 +70,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  * from analysis, and to show a message otherwise.
  */
 public abstract class AbstractDoubleCheckerView extends ViewPart implements
-		IAnalysisListener, SeaObserver {
+		IPersistentDropInfoListener {
 	protected static final Logger LOG = SLLogger
 			.getLogger("AbstractDoubleCheckerView");
 

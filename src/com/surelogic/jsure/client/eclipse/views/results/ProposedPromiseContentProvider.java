@@ -6,6 +6,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 
 import edu.cmu.cs.fluid.sea.*;
 

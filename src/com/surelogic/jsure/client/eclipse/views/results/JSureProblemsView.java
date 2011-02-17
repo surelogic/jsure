@@ -13,6 +13,7 @@ import org.eclipse.ui.actions.ActionFactory;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableView;
+import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 
 import edu.cmu.cs.fluid.sea.*;
 
@@ -41,7 +42,7 @@ public class JSureProblemsView extends AbstractResultsTableView<IProofDropInfo> 
 	}
 	
 	protected void handleDoubleClick(IProofDropInfo d) {
-		PersistentDropInfo.showDrop(d);
+		DropInfoUtility.showDrop(d);
 	}
 	
 	static class ContentProvider extends AbstractResultsTableContentProvider<IProofDropInfo> {
