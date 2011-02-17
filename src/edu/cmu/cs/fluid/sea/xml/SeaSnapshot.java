@@ -804,7 +804,12 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		public void addRef(Entity e) {
 			final String name = e.getName();
 			if (SOURCE_REF.equals(name)) {
-				assumptionRef = makeSrcRef(new SourceRef(e));
+				SourceRef sr = new SourceRef(e);
+				if (ProposedPromiseDrop.FROM_REF.equals(e.getAttribute(FLAVOR_ATTR))) {
+					assumptionRef = makeSrcRef(sr);
+				} else {
+					setSource(sr);
+				}				
 			} else {
 				super.addRef(e);
 			}
