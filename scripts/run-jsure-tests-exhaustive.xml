@@ -78,7 +78,7 @@
 					<entry key="sandbox" value="${sandbox}${fs}@{version}" />
 					<entry key="jsure.tests.archive.use" value="@{version}" />
 				</propertyfile>
-				<ant antfile="${antfile.dir}${fs}run-jsure-tests.xml">
+				<ant antfile="${antfile.dir}${fs}run-jsure-tests.xml" inheritall="false">
 					<property file="${sandbox}${fs}test.@{version}.properties" />
 				</ant>
 
