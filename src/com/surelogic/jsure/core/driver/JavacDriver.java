@@ -107,16 +107,6 @@ public class JavacDriver implements IResourceChangeListener {
 
 	private static final boolean useSourceZipsDirectly = false;
 
-	enum BuildState {
-		// Null means no build right now
-		WAITING, BUILDING
-	}
-
-	enum RebuildState {
-		// Null means no need to rebuild
-		AUTO, FULL
-	}
-
 	/**
 	 * If true, create common projects for shared jars Otherwise, jars in
 	 * different are treated as if they're completely unique
@@ -143,41 +133,6 @@ public class JavacDriver implements IResourceChangeListener {
 	private final SLJob updateScriptJob;
 	private final Map<String, Long> deleted;
 	private final File deletedDir;
-
-	/**
-	 * State that needs to be atomically modified
-	 */
-	private BuildState buildState = null;
-	private RebuildState rebuildQueue = null;
-
-	synchronized RebuildState makeTransition(BuildState before,
-			BuildState after, RebuildState rebuild) {
-		if (buildState != before) {
-			throw new IllegalStateException("Build state isn't " + before
-					+ ": " + buildState);
-		}
-		buildState = after;
-		if (after == null) {
-			// Wake up anyone who's waiting for this
-			notifyAll();
-		}
-		try {
-			return rebuildQueue;
-		} finally {
-			rebuildQueue = rebuild;
-		}
-	}
-
-	public synchronized void waitForJSureBuild() {
-		if (buildState != null) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				// ignore
-			}
-		}
-		// Otherwise, just keep going
-	}
 
 	private JavacDriver() {
 		PeriodicUtility.addHandler(new Runnable() {
@@ -358,8 +313,6 @@ public class JavacDriver implements IResourceChangeListener {
 			EclipseJob.getInstance().schedule(
 					new AbstractSLJob("Preparing to run update script job") {
 						public SLStatus run(SLProgressMonitor monitor) {
-							waitForJSureBuild();
-
 							// This cannot lock the workspace, since it prevents
 							// builds from happening
 							System.out.println("Running update script job");
@@ -1252,31 +1205,8 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 		ConfigureJob configure = new ConfigureJob("Configuring JSure build",
 				location, isAuto, args, ignoreNature);
+		
 		synchronized (this) {
-			if (buildState == null) {
-				buildState = BuildState.WAITING;
-			} else {
-				// Build already going
-				System.out.println("Already started ConfigureJob: "
-						+ buildState);
-				if (buildState == BuildState.BUILDING) {
-					// We need to do another build, since there might be some
-					// updates
-					// after the currently running build
-					if (isAuto) {
-						if (rebuildQueue == null) {
-							rebuildQueue = RebuildState.AUTO;
-						}
-						// Otherwise, it's already set correctly to AUTO or FULL
-					} else {
-						rebuildQueue = RebuildState.FULL;
-					}
-				} else {
-					// Ok to ignore, because this will be handled by the
-					// currently waiting build
-				}
-				return;
-			}
 			// Only if there's no build already
 			System.out.println("Starting to configure JSure build");
 			ProjectsDrop pd = ProjectsDrop.getDrop();
@@ -1641,7 +1571,6 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				// Clear for next build?
 			}
-			makeTransition(BuildState.WAITING, BuildState.BUILDING, null);			
 			if (!ignoreNature) {
 				System.err.println("NOT deactivating projects");
 				// Clear projects that are inactive
@@ -1889,25 +1818,7 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 
 		protected void endAnalysis() {
-			final RebuildState state = makeTransition(BuildState.BUILDING,
-					null, null);
-			if (state != null) {
-				EclipseJob.getInstance().scheduleDb(
-						new AbstractSLJob("Rebuilding JSure") {
-							public SLStatus run(SLProgressMonitor monitor) {
-								/*
-								 * try { Thread.sleep(3000); } catch
-								 * (InterruptedException e) {
-								 * e.printStackTrace(); }
-								 */
-								System.out.println("Rebuilding ...");
-								configureBuild(
-										EclipseUtility.getWorkspacePath(),
-										state == RebuildState.AUTO, false);
-								return SLStatus.OK_STATUS;
-							}
-						});
-			}
+			// Nothing to do anymore
 		}
 	}
 

@@ -147,7 +147,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 			  boolean building = executeOneIteration();
 			  if (runAsynchronously && building) {
 				  // Reschedule the rest of the loop
-				  JavacDriver.getInstance().waitForJSureBuild();
+				  //JavacDriver.getInstance().waitForJSureBuild();
 				  
 				  System.out.println("Rescheduling script reader again");
 				  EclipseJob.getInstance().schedule(this);
