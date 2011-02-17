@@ -13,6 +13,8 @@ import com.surelogic.annotation.rules.*;
 import com.surelogic.annotation.rules.LockRulesTestHelper.*;
 import com.surelogic.annotation.rules.MethodEffectsRulesHelper.RegionEffects_ParseRuleHelper;
 import com.surelogic.annotation.rules.RegionRulesTestHelper.*;
+import com.surelogic.fluid.javac.Javac;
+import com.surelogic.jsure.core.Eclipse;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -28,8 +30,10 @@ public class SLParseTest extends TestCase {
 	}
 
 	@Override
-	protected void setUp() throws Exception {
+	protected void setUp() throws Exception {		
 		super.setUp();
+		Eclipse.initialize();
+		Javac.initialize();
 	}
 
 	@Override
