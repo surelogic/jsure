@@ -44,7 +44,20 @@
 
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-	<target name="run JSure on multiple Eclipse versions" depends="load jsure-tests.properties file">
+	<target name="setup sandbox directory" depends="load jsure-tests.properties file">
+		<!-- Clean out and create the sandbox directory -->
+		<mkdir dir="${sandbox}" />
+		<!-- There are symlinks on OS X and Linux under Elipse so we need to blast /eclipse if it exists -->
+		<delete dir="${sandbox.eclipse.dir}" quiet="true" />
+		<delete quiet="true" includeemptydirs="true">
+			<fileset dir="${sandbox}" includes="**/*" defaultexcludes="no" />
+		</delete>
+		<echo message="Sandbox ${sandbox} created (and cleaned out if necessary)" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="run JSure on multiple Eclipse versions" depends="setup sandbox directory">
 
 		<for list="${versions.to.run}" delimiter="," param="version" trim="true">
 			<sequential>
