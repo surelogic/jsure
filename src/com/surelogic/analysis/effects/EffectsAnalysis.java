@@ -277,7 +277,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
       setResultDependUponDrop(drop, src);
       drop.setCategory(Messages.DSC_EFFECTS_IN_CLASS_INIT);
       drop.setResultMessage(Messages.CLASS_INIT_EFFECT,
-          id, e.toString(), DebugUnparser.unparseCode(src));
+          id, e.toString(), DebugUnparser.toString(src));
 	  }
 	}
 
