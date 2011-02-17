@@ -372,7 +372,7 @@ public class JavacDriver implements IResourceChangeListener {
 
 	private static class UpdateScriptReader extends ScriptReader {
 		public UpdateScriptReader(final String proj) {
-			super(EclipseUtility.getProject(proj), true);
+			super(Collections.singletonList(JDTUtility.getJavaProject(proj)), true);
 			// These should be the ops that we auto-inserted
 			commands.put(ScriptCommands.EXPECT_BUILD, NullCommand.prototype);
 			commands.put(ScriptCommands.EXPECT_ANALYSIS, NullCommand.prototype);

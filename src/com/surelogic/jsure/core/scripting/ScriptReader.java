@@ -5,12 +5,14 @@ import java.util.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
+import org.eclipse.jdt.core.*;
 
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
-import com.surelogic.jsure.core.driver.JavacDriver;
+import com.surelogic.common.logging.IErrorListener;
+import com.surelogic.jsure.core.driver.*;
 
 /**
  * Reads the script line by line
@@ -26,18 +28,21 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
   boolean changed   = false;
   boolean buildNow  = false;
   final Map<String,Object> args = new HashMap<String, Object>();  
-  final IProject project;
+  final List<IJavaProject> projects;
   final boolean runAsynchronously;
   
   public Object getArgument(String key) {
 	  return args.get(key);
   }
   
-  public ScriptReader(IProject p, boolean async) {
+  public ScriptReader(List<IJavaProject> p, boolean async) {
 	super("Script Reader");
-	project = p;
+	projects = p;
 	runAsynchronously = async;
 	  
+	commands.put("addNature", NullCommand.prototype);
+	commands.put("removeNature", NullCommand.prototype);
+	
 	// Setup commands to change the state of autoBuild
     commands.put("set", new AbstractCommand() {
       public boolean execute(ICommandContext context, String... contents) throws Exception {
@@ -268,7 +273,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
   }
   
   private void build(int kind) throws CoreException {
-	if (project != null) {
+	if (projects != null) {
 		try {
 			System.out.println("Sleeping to let the file system sync ...");
 			Thread.sleep(1000);
@@ -276,9 +281,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 			e.printStackTrace();
 		}	
 		System.out.println("build FTA");
-		// TODO
-		//JavacBuild.analyze(selectedProjects);
-		throw new UnsupportedOperationException("Need to build differently for the regression tests");
+		JavacBuild.analyze(projects, IErrorListener.throwListener);
 	} else {
 		System.out.println("build workspace");
 		ResourcesPlugin.getWorkspace().build(kind, null);
@@ -294,7 +297,8 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 			throws Exception {
 		final File expected = resolveFile(context, contents[1]);
 		if(expected != null && expected.exists()) {
-			JavacDriver.getInstance().setArg(key, expected);
+			System.out.println("Ignoring "+key+" due to changes in how JSure runs");
+			//JavacDriver.getInstance().setArg(key, expected);
 		} else {
 			throw new FileNotFoundException(contents[1] + " does not exist"); 
 		}
