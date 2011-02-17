@@ -15,6 +15,13 @@
 
 	<dirname property="antfile.dir" file="${ant.file}" />
 
+	<!-- A set of tasks we cooked up to help the JSure test run -->
+	<taskdef resource="sl-tasks.properties">
+		<classpath>
+			<pathelement location="${antfile.dir}${fs}lib${fs}jsure-tests-ant-tasks.jar" />
+		</classpath>
+	</taskdef>
+
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 	<target name="load jsure-tests.properties file">
