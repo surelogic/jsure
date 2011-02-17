@@ -254,7 +254,7 @@
 								<mkdir dir="${suite.dir}${fs}${name.no.dot.zip}" />
 								<unzip src="${suite.dir}${fs}@{name.zip}" dest="${suite.dir}${fs}${name.no.dot.zip}" />
 								<delete file="${suite.dir}${fs}@{name.zip}" />
-								<echo message="Unzipped @{name.zip} into ${suite.dir}${fs}${name.no.dot.zip} (and removed @{name.zip})" /> -->
+								<echo message="Unzipped @{name.zip} into ${suite.dir}${fs}${name.no.dot.zip} (and removed @{name.zip})" />
 							</then>
 						</if>
 					</sequential>
