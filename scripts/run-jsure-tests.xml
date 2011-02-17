@@ -250,7 +250,7 @@
 							<matches string="@{name.zip}" pattern="(.*)\.zip$" />
 							<then>
 								<!-- This propertyregex line just gets the name of the file without the .zip extension -->
-								<propertyregex property="name.no.dot.zip" input="@{name.zip}" regexp="([^\.]*)\.zip" select="\1" override="true" casesensitive="false" />
+								<propertyRegex property="name.no.dot.zip" input="@{name.zip}" regexp="([^\.]*)\.zip" select="\1" override="true" casesensitive="false" />
 								<mkdir dir="${suite.dir}${fs}${name.no.dot.zip}" />
 								<unzip src="${suite.dir}${fs}@{name.zip}" dest="${suite.dir}${fs}${name.no.dot.zip}" />
 								<delete file="${suite.dir}${fs}@{name.zip}" />
