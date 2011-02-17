@@ -11,7 +11,7 @@ import org.eclipse.jface.viewers.*;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.jsure.client.eclipse.views.AbstractDoubleCheckerView;
-import com.surelogic.jsure.client.eclipse.views.results.PersistentDropInfo;
+import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
 
@@ -134,7 +134,7 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
 					final File pFile = p.getLocation().toFile();
 					file  = SeaSummary.findSummary(pFile.getAbsolutePath());	
 				}
-				Diff d = SeaSummary.diff(info.toArray(new IDropInfo[info.size()]), file);
+				Diff d = SeaSummary.diff(info, file);
 				f_contentProvider.setDiff(d);					
 				return;
 			} catch (Exception e) {
