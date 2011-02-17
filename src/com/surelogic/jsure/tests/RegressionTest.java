@@ -69,7 +69,27 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			final String testModulePath = System.getProperty("test.module");
 			if (testModulePath == null)
 				fail("'-Dtest.module=' was not set prior to invoking a regression test");
-			final File testModule = new File(testModulePath);
+
+			final File testModule;
+			// Needed to process scripted/zipped tests when run manually
+			if (testModulePath.endsWith(".zip")) {
+				// Clear out all old temporary directories
+				final File tempDir = File.createTempFile("testModule", ".dir");
+				for (File f : tempDir.getParentFile().listFiles()) {
+					if (f.getName().startsWith("testModule")
+							&& f.getName().endsWith(".dir")) {
+						f.delete();
+					}
+				}
+				final int lastSlash = testModulePath.lastIndexOf('/');
+				final File tempMod = new File(tempDir, testModulePath.substring(
+						lastSlash + 1, testModulePath.length() - 4));
+				tempMod.mkdirs();
+				FileUtility.unzipFile(new File(testModulePath), tempMod);
+				testModule = tempMod;
+			} else {
+				testModule = new File(testModulePath);
+			}
 			if (!testModule.isDirectory())
 				fail("'-Dtest.module=" + testModulePath
 						+ "' does not reference a directory");
@@ -352,12 +372,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		for (IProject p : projects) {
 			jprojects.add(JDTUtility.getJavaProject(p.getName()));
 		}
-		JavacBuild.analyze(jprojects, new IErrorListener() {
-			@Override
-			public void reportError(String summary, String msg) {
-				throw new IllegalStateException(msg);
-			}
-		});
+		JavacBuild.analyze(jprojects, IErrorListener.throwListener);
 		end("Done running JSure analysis...");
 
 		final String projectName = project.getName();
@@ -369,7 +384,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		try {
 			if (script != null) {
 				start("Run scripting");
-				ScriptReader r = new ScriptReader(project, false);
+				ScriptReader r = new ScriptReader(jprojects, false);
 				resultsOk = r.execute(script);
 				end("Done scripting");
 			}
@@ -485,9 +500,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			return resultsOk;
 		}
 		Collection<Info> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);
-		SeaSummary.Diff diff = SeaSummary.diff(
-				newResults.toArray(new IDropInfo[newResults.size()]),
-				xmlLocation);
+		SeaSummary.Diff diff = SeaSummary.diff(newResults, xmlLocation);
 
 		String diffPath = new File(workspaceFile, projectName
 				+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX)
