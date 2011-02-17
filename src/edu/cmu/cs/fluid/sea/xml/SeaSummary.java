@@ -194,7 +194,12 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	}
 
 	private void addAttributes(IDropInfo id) {
-		final String type = id.getClass().getSimpleName();
+		final String type = id.getType();
+		/*
+		if (type.contains("Proposed")) {
+			System.out.println("Found "+type);
+		}
+		*/
 		addAttribute(TYPE_ATTR, type);
 		//addAttribute(MESSAGE_ATTR, id.getMessage());
 		
