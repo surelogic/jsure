@@ -21,6 +21,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.types.RegularExpression;
 import org.apache.tools.ant.types.Substitution;
 import org.apache.tools.ant.util.regexp.Regexp;
+import org.apache.tools.ant.util.regexp.RegexpMatcher;
 
 public class PropertyRegexTask extends AbstractPropertySetterTask {
 	private String input;
@@ -105,7 +106,7 @@ public class PropertyRegexTask extends AbstractPropertySetterTask {
 
 		int options = 0;
 		if (!caseSensitive)
-			options |= Regexp.MATCH_CASE_INSENSITIVE;
+			options |= RegexpMatcher.MATCH_CASE_INSENSITIVE;
 		if (global)
 			options |= Regexp.REPLACE_ALL;
 
@@ -127,7 +128,7 @@ public class PropertyRegexTask extends AbstractPropertySetterTask {
 	protected String doSelect() throws BuildException {
 		int options = 0;
 		if (!caseSensitive)
-			options |= Regexp.MATCH_CASE_INSENSITIVE;
+			options |= RegexpMatcher.MATCH_CASE_INSENSITIVE;
 
 		Regexp sregex = regexp.getRegexp(getProject());
 
