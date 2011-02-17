@@ -259,10 +259,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	
 	public static Diff diff(final Sea sea, File location) throws Exception {
 		Set<Drop> drops = sea.getDrops();
-		return diff(sea.getDrops().toArray(new IDropInfo[drops.size()]), location);
+		return diff(drops, location);
 	}
 	
-	public static Diff diff(IDropInfo[] drops, File location) throws Exception {
+	public static Diff diff(Collection<? extends IDropInfo> drops, File location) throws Exception {
 		// Load up current contents
 		final Listener l = read(location);
 		
@@ -503,7 +503,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					// Temporarily ignore older for this, because they don't get cleaned out before each build
 					return newer.isEmpty(); 
 				} else {
-					// No longer needed?
+					// Needed because we're now using a separate JVM, so no extra drops from past runs
+					return newer.isEmpty();
 					//return old.isEmpty();
 				}
 			}
