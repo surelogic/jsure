@@ -129,8 +129,21 @@ public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
     }    
   };
   
+  private static final JavaUnparseStyle noJavadocStyle = new JavaUnparseStyle(true, false);
   private static final JavaUnparseStyle noPromisesStyle = new JavaUnparseStyle(false, false);
-  private static final DebugUnparser unparser = new DebugUnparser(5, JJNode.tree) {
+  
+  private static final DebugUnparser codeAndPromisesUnparser = new DebugUnparser(5, JJNode.tree) {
+	  @Override
+	  public JavaUnparseStyle getStyle() {
+		  return noJavadocStyle;
+	  }
+  };
+  
+  public static String unparseCodeAndPromises(IRNode n) {
+	  return codeAndPromisesUnparser.unparseString(n);
+  }
+  
+  private static final DebugUnparser onlyCodeUnparser = new DebugUnparser(5, JJNode.tree) {
 	  @Override
 	  public JavaUnparseStyle getStyle() {
 		  return noPromisesStyle;
@@ -138,6 +151,6 @@ public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
   };
   
   public static String unparseCode(IRNode n) {
-	  return unparser.unparseString(n);
+	  return onlyCodeUnparser.unparseString(n);
   }
 }

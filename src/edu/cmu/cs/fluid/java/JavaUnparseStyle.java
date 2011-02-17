@@ -153,8 +153,8 @@ public class JavaUnparseStyle {
 	  this(true, true);
   }
   
-  public JavaUnparseStyle(boolean unparse, boolean comments) {
-	  unparsePromises = unparse;
+  public JavaUnparseStyle(boolean promises, boolean comments) {
+	  unparsePromises = promises;
 	  unparseComments = comments;
   }
 	// private Set unparsePromiseSet = new HashSet();
