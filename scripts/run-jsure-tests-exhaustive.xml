@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JSure Tests Exhaustive" default="run JSure on multiple Eclipse versions">
+
+	<!-- This script invokes run-jsure-tests.xml on several different versions of eclipse.
+	     It is configured via the jsure.tests.archive.use.exhaustive property in the user's
+	     ~/.jsure-tests.properties file. For example:
+	     
+	     jsure.tests.archive.use.exhaustive=3.4.2, 3.6, 3.6.1
+	     
+	     Would invoke run-jsure-tests.xml three times.
+	 -->
+
+	<property name="fs" value="${file.separator}" />
+	<property name="ln" value="----------------------------------------------------------------------" />
+
+	<dirname property="antfile.dir" file="${ant.file}" />
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="load jsure-tests.properties file">
+		<!-- Filenames for the properties files we are going to try to read -->
+		<property name="jt.p-filename" value="jsure-tests.properties" />
+		<property name="jt.p" value="${user.home}${fs}${jt.p-filename}" />
+		<property name="dot-jt.p" value="${user.home}${fs}.${jt.p-filename}" />
+
+		<!-- Check for existance of "jsure-tests.properties" file -->
+		<available property="jsure-tests.properties.file" value="${jt.p}" file="${jt.p}" />
+		<!-- or for ".fluid-build.properties" file (to be Unix friendly) -->
+		<available property="jsure-tests.properties.file" value="${dot-jt.p}" file="${dot-jt.p}" />
+		<fail unless="jsure-tests.properties.file" message="Neither '${jt.p}' nor '${dot-jt.p}' exists. One of these two files must be used to setup your JSure test configuration." />
+
+		<!-- Read the properties file -->
+		<property file="${jsure-tests.properties.file}" />
+		<echo message="Using properties from ${jsure-tests.properties.file}" />
+
+		<!-- Check for required properties -->
+		<fail unless="jsure.tests.sandbox" message="${jsure-tests.properties.file} does not specify a 'jsure.tests.sandbox' property." />
+		<property name="sandbox" value="${jsure.tests.sandbox}" />
+		<echo message=" jsure.tests.sandbox=${sandbox}" />
+		<fail unless="jsure.tests.archive.use.exhaustive" message="${jsure-tests.properties.file} does not specify a 'jsure.tests.archive.use.exhaustive' property." />
+		<property name="versions.to.run" value="${jsure.tests.archive.use.exhaustive}" />
+		<echo message=" jsure.tests.archive.use.exhaustive=${versions.to.run}" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+	<target name="run JSure on multiple Eclipse versions" depends="load jsure-tests.properties file">
+
+		<for list="${versions.to.run}" delimiter="," param="version" trim="true">
+			<sequential>
+				<echo message="${ln}" />
+				<echo message="Starting JSure test run on Eclipse @{version}" />
+				<echo message="${ln}" />
+
+				<mkdir dir="${sandbox}${fs}@{version}" />
+
+				<propertyfile file="${sandbox}${fs}test.@{version}.properties">
+					<entry key="sandbox" value="${sandbox}${fs}@{version}" />
+					<entry key="jsure.tests.archive.use" value="@{version}" />
+				</propertyfile>
+				<ant antfile="${antfile.dir}${fs}run-jsure-tests.xml">
+					<property file="${sandbox}${fs}test.@{version}.properties" />
+				</ant>
+
+				<echo message="${ln}" />
+				<echo message="Completed JSure test run on Eclipse @{version}" />
+				<echo message="${ln}" />
+			</sequential>
+		</for>
+	</target>
+</project>
