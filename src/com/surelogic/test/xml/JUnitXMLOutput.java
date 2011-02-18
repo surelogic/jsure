@@ -11,8 +11,6 @@ import junit.framework.AssertionFailedError;
 import junit.framework.TestResult;
 
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 
 import com.surelogic.ant.junit.SLTest;
 import com.surelogic.ant.junit.XMLJUnitResultFormatter;
@@ -154,11 +152,14 @@ public class JUnitXMLOutput extends AbstractTestOutput {
 		@Override
 		public ITestOutput create(String name) {
 			try {
+				/*
 				final IWorkspaceRoot wsRoot = ResourcesPlugin.getWorkspace()
 						.getRoot();
 				final File wsFile = new File(wsRoot.getLocationURI());
+				*/
 				final String logFileName = name + ".log.Tests.xml";
-				final File logFile = new File(wsFile, logFileName);
+				//final File logFile = new File(wsFile, logFileName);
+				final File logFile = new File(logFileName);
 				return new JUnitXMLOutput(name, new FileOutputStream(logFile));
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
