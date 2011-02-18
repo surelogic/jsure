@@ -171,8 +171,6 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
               final IJavaType upper = ((IJavaWildcardType) ty).getUpperBound();
               ty = (upper == null) ? javaLangObject : upper;
             } else if (ty instanceof IJavaTypeFormal) {
-              // Cannot handle type formals in region annotations yet, convert
-              // to Object
               final IJavaType upper = ((IJavaTypeFormal) ty).getSuperclass(getBinder().getTypeEnvironment());
               ty = (upper == null) ? javaLangObject : upper;
             } else if (ty instanceof IJavaArrayType) {
