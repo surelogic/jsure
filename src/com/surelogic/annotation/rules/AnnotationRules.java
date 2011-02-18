@@ -44,8 +44,9 @@ public abstract class AnnotationRules {
   protected static final Logger LOG = SLLogger.getLogger("annotation.rules");
   
   public static final String XML_LOG_NAME = "AnnotationRules";
+  public static final String XML_LOG_PROP = XML_LOG_NAME+".label";  
   
-  public static final ITestOutput XML_LOG = IDE.getInstance().makeLog(XML_LOG_NAME);
+  public static final ITestOutput XML_LOG = IDE.getInstance().makeLog(System.getProperty(XML_LOG_PROP, XML_LOG_NAME));
   
   /* *************************************************
    *  Constants
