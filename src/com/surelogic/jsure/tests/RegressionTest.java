@@ -245,28 +245,36 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		NotificationHub.addAnalysisListener(this);
 
 		// Assumes that there's only one project getting analyzed
-		IProject project = null;
+		File project = null;
 		for (int i = 0; i < projects.length; i++) {
 			final IProject p = projects[i];
 			if (p.getName().equals("promises")) {
 				continue;
 			}
 			if (p.isOpen()) {
-				File script = findFile(p, ScriptCommands.NAME, false);
+				final String projectPath = p.getLocation().toOSString();
+				final File proj = new File(projectPath);
+				File script = findFile(proj, ScriptCommands.NAME, false);
 				if (script != null) {
 					assertNull("More than one project to analyze!?!", project);
-					project = p;
+					project = proj;
 				}
 			}
 		}
-
+		
 		if (project == null) {
-			if (projects.length != 1) {
-				fail("No project");
-				return;
-			} else {
-				project = projects[0];
+			if (projects.length > 0) {
+				// Check for script at parent of the project
+				final String projectPath = projects[0].getLocation().toOSString();
+				final File parent = new File(projectPath).getParentFile();
+				File script = findFile(parent, ScriptCommands.NAME, false);
+				if (script != null) {
+					project = parent;
+				}
 			}
+		}
+		if (project == null) {
+			fail("No project");
 		}
 		// System.out.println("Setting up log for "+project.getName());
 		output = IDE.getInstance().makeLog(project.getName());
@@ -345,9 +353,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		return null;
 	}
 
-	private void runAnalysis(final File workspaceFile, final IProject project,
+	private void runAnalysis(final File workspaceFile, final File project,
 			IProject[] projects) throws Throwable {
-		final String projectPath = project.getLocation().toOSString();
+		final String projectPath = project.getAbsolutePath();
 		start("Start logging to a file & refresh");
 		final String logName = EclipseLogHandler.startFileLog(project.getName()
 				+ ".log");
