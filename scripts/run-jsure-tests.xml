@@ -309,6 +309,9 @@
 						<move todir="${suite.dir}${fs}@{project}">
 							<fileset dir="${workspace.dir}${fs}@{project}" includes="**/*" defaultexcludes="no" />
 						</move>
+						<move todir="${suite.dir}${fs}@{project}">
+							<fileset dir="${sandbox.eclipse.dir}" includes="*.log.Tests.xml" defaultexcludes="no" />
+						</move>
 					</sequential>
 				</for>
 			</sequential>
@@ -372,7 +375,7 @@
 				<findTests property="project.list" basedir="${suite.dir}" fullpaths="false" />
 				<for list="${project.list}" delimiter="," param="project" trim="true">
 					<sequential>
-						<testResults file="${suite.dir}${fs}@{project}${fs}AnnotationRules.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
+						<testResults file="${suite.dir}${fs}@{project}${fs}RemoteJSureRun.AnnotationRules.log.Tests.xml" logfile="${sandbox.regression-tests.log}" property="tests.failed" />
 					</sequential>
 				</for>
 			</sequential>
