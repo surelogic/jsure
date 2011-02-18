@@ -29,6 +29,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
   boolean buildNow  = false;
   final Map<String,Object> args = new HashMap<String, Object>();  
   final List<IJavaProject> projects;
+  final Set<IJavaProject> active = new HashSet<IJavaProject>(); // Used to simulate when only some are analyzed
   final boolean runAsynchronously;
   
   public Object getArgument(String key) {
@@ -39,9 +40,35 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	super("Script Reader");
 	projects = p;
 	runAsynchronously = async;
-	  
-	commands.put("addNature", NullCommand.prototype);
-	commands.put("removeNature", NullCommand.prototype);
+	findActiveProjects(p);
+	
+	// Commands used for compatibility with old JSure model
+	commands.put("addNature", new AbstractProjectCommand() {		
+		@Override
+		protected boolean execute(ICommandContext context, IProject p)
+				throws Exception {
+			for(IJavaProject jp : projects) {
+				if (jp.getProject().equals(p)) {
+					active.add(jp);
+					break;
+				}
+			}
+			return true;
+		}
+	});
+	commands.put("removeNature", new AbstractProjectCommand() {		
+		@Override
+		protected boolean execute(ICommandContext context, IProject p)
+				throws Exception {
+			for(IJavaProject jp : projects) {
+				if (jp.getProject().equals(p)) {
+					active.remove(jp);
+					break;
+				}
+			}
+			return true;
+		}
+	});
 	
 	// Setup commands to change the state of autoBuild
     commands.put("set", new AbstractCommand() {
@@ -70,6 +97,35 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	commands.put(ScriptCommands.EXPECT_ANALYSIS, new SetFileArg(ScriptCommands.EXPECT_ANALYSIS));
   }
   
+  private void findActiveProjects(List<IJavaProject> p) {
+	  active.clear();
+	  for(IJavaProject jp : p) {
+		final String projectPath = jp.getProject().getLocation().toOSString();
+		final File proj = new File(projectPath);
+		final File dotProj = new File(proj, ".project");
+		// Check if the file contains dcNature
+		if (contains(dotProj, "dcNature")) {
+			active.add(jp);
+		}
+	  }	
+  }
+
+  private boolean contains(File f, String keyword) {
+	  try {
+		  FileReader fr = new FileReader(f);
+		  BufferedReader br = new BufferedReader(fr);
+		  String line;
+		  while ((line = br.readLine()) != null) {
+			  if (line.contains(keyword)) {
+				  return true;
+			  }
+		  }
+	  } catch(IOException e) {
+		  // Ignore
+	  }
+	  return false;
+  }
+
   public static void main(String[] args) throws Exception {
     ScriptReader r = new ScriptReader(null, false);
     try {
@@ -273,7 +329,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
   }
   
   private void build(int kind) throws CoreException {
-	if (projects != null) {
+	if (projects != null && !active.isEmpty()) {
 		try {
 			System.out.println("Sleeping to let the file system sync ...");
 			Thread.sleep(1000);
@@ -281,7 +337,11 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 			e.printStackTrace();
 		}	
 		System.out.println("build FTA");
-		JavacBuild.analyze(projects, IErrorListener.throwListener);
+		JavacBuild.analyze(new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
+		System.out.println("FINISHED build for: ");
+		for(IJavaProject p : active) {
+			System.out.println("\t"+p.getElementName());
+		}
 	} else {
 		System.out.println("build workspace");
 		ResourcesPlugin.getWorkspace().build(kind, null);
