@@ -18,8 +18,8 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.drops.*;
+//import edu.cmu.cs.fluid.sea.Sea;
+//import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.xml.*;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary.Diff;
 
@@ -94,13 +94,16 @@ public class SnapshotDiffView extends AbstractDoubleCheckerView {
       public int getOffset() {
 				return Integer.parseInt(e.getAttribute(OFFSET_ATTR));
 			}
-			public String getCUName() {
+			@Override
+      public String getCUName() {
 				return null;
 			}
-			public Long getHash() {
+			@Override
+      public Long getHash() {
 				return Long.getLong(e.getAttribute(HASH_ATTR));
 			}
-			public String getPackage() {
+			@Override
+      public String getPackage() {
 				return null;
 			}			
 		};
