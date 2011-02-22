@@ -374,8 +374,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		 * the consistency proof.
 		 */
 		start("Build and analyze");
-		ResourcesPlugin.getWorkspace().build(
-				IncrementalProjectBuilder.AUTO_BUILD, null);
+		ScriptReader.waitForBuild(IncrementalProjectBuilder.AUTO_BUILD);
 
 		System.out.println("JSure data = "
 				+ JSurePreferencesUtility.getJSureDataDirectory());
