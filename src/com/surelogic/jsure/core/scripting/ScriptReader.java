@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.jobs.*;
 import org.eclipse.jdt.core.*;
 
 import com.surelogic.common.core.jobs.EclipseJob;
@@ -337,8 +338,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 			e.printStackTrace();
 		}	
 		System.out.println("Building.");
-		// TODO need to compile after changes!!!
-		ResourcesPlugin.getWorkspace().build(kind, null);
+
 		
 		System.out.println("Analyzing.");
 		JavacBuild.analyze(new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
@@ -350,6 +350,19 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 		System.out.println("build workspace");
 		ResourcesPlugin.getWorkspace().build(kind, null);
 	}
+  }
+  
+  public static void waitForBuild(int kind) throws CoreException {
+	  ResourcesPlugin.getWorkspace().build(kind, null);
+	  IJobManager jobMan = Job.getJobManager();
+	  Job[] build = jobMan.find(ResourcesPlugin.FAMILY_AUTO_BUILD); 
+	  if (build.length == 1) {
+		  try {
+			  build[0].join();
+		  } catch (InterruptedException e) {
+			  // ignore
+		  }
+	  }
   }
   
   class SetFileArg extends AbstractCommand {
