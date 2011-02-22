@@ -19,6 +19,7 @@ import org.eclipse.ui.IViewPart;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -86,8 +87,13 @@ public class ExportToSnapshot implements IViewActionDelegate {
     }
     
     try {
+    	/*
 		SeaSummary.summarize(resultsBelongTo.getName(), Sea.getDefault(), 
 				             oracleFile.getLocation().toFile());
+				             */
+    	SeaSummary.summarize(resultsBelongTo.getName(), 
+    			PersistentDropInfo.getInstance().getRawInfo(), 
+    			oracleFile.getLocation().toFile());
 	} catch (IOException e1) {
 		e1.printStackTrace();
 	}
