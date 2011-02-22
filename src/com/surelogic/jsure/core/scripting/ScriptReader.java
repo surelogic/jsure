@@ -336,7 +336,11 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}	
-		System.out.println("build FTA");
+		System.out.println("Building.");
+		// TODO need to compile after changes!!!
+		ResourcesPlugin.getWorkspace().build(kind, null);
+		
+		System.out.println("Analyzing.");
 		JavacBuild.analyze(new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
 		System.out.println("FINISHED build for: ");
 		for(IJavaProject p : active) {
