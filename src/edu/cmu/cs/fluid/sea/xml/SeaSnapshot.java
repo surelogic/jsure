@@ -165,6 +165,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	}
 	
 	public void refDrop(String name, Drop d, String attr, String value) {
+		attributes.clear();
 		b.append("  ");
 		Entities.start(name, b);
 		Entities.addAttribute(ID_ATTR, computeId(d), b);
@@ -183,6 +184,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	}
 	
 	public void addSupportingInfo(ISupportingInformation si) {
+		attributes.clear();
 		b.append("    ");
 		Entities.start(SUPPORTING_INFO, b);
 		addAttribute(Drop.MESSAGE, si.getMessage());
@@ -192,6 +194,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	}
 	
 	public void addJavaDeclInfo(final String flavor, final JavaDeclInfo info) {
+		attributes.clear();
 		b.append("    ");
 		Entities.start(JAVA_DECL_INFO, b);
 		addAttribute(FLAVOR_ATTR, flavor); 

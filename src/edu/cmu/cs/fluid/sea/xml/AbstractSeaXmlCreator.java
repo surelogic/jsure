@@ -28,6 +28,8 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 		if (s == null) {
 			return;
 		}
+		attributes.clear();
+		
 		b.append(indent);
 		Entities.start(SOURCE_REF, b);
 		addLocation(s);		
