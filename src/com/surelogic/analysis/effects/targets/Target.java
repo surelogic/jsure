@@ -1,11 +1,11 @@
 package com.surelogic.analysis.effects.targets;
 
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.AggregationEvidence;
 import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 
@@ -88,7 +88,7 @@ public interface Target {
    * e.g., aliasing.
    */
   public TargetRelationship overlapsWith(
-      IAliasAnalysis.Method am, IBinder binder, Target t);
+      IMayAlias mayAlias, IBinder binder, Target t);
 
   /**
    * Get the name of the target. This is currently the same as calling

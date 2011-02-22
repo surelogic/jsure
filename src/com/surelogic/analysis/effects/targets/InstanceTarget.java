@@ -1,5 +1,6 @@
 package com.surelogic.analysis.effects.targets;
 
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.BCAEvidence;
 import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
@@ -9,7 +10,6 @@ import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.AllocationExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -193,22 +193,22 @@ public final class InstanceTarget extends AbstractTarget {
   }
 
   public TargetRelationship overlapsWith(
-      final IAliasAnalysis.Method am, final IBinder binder, final Target t) {
-    return ((AbstractTarget) t).overlapsWithInstance(am, binder, this);
+      final IMayAlias mayAlias, final IBinder binder, final Target t) {
+    return ((AbstractTarget) t).overlapsWithInstance(mayAlias, binder, this);
   }
 
   
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithLocal(
-      final IAliasAnalysis.Method am, final IBinder binder, final LocalTarget t) {
+      final IBinder binder, final LocalTarget t) {
     return TargetRelationship.newUnrelated();
   }
 
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithAnyInstance(
-      final IAliasAnalysis.Method am, final IBinder binder, final AnyInstanceTarget t) {
+      final IBinder binder, final AnyInstanceTarget t) {
     /* NB. Page 229 of ECOOP paper says we should check that Instance target is
      * shared (!unique). I think this because we want to make sure that
      * overlap is based on the aggregated region hierarchy. We don't have to
@@ -235,7 +235,7 @@ public final class InstanceTarget extends AbstractTarget {
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithClass(
-      final IAliasAnalysis.Method am, final IBinder binder, final ClassTarget t) {
+      final IBinder binder, final ClassTarget t) {
     /* NB. page 229 of ECOOP paper says we should check that Instance target
      * is shared (!unique). I think this because we want to make sure that
      * overlap is based on the aggregated region hierarchy. We don't have to
@@ -262,12 +262,12 @@ public final class InstanceTarget extends AbstractTarget {
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithInstance(
-      final IAliasAnalysis.Method am, final IBinder binder, final InstanceTarget t) {
+      final IMayAlias mayAlias, final IBinder binder, final InstanceTarget t) {
     final IRNode referenceA = t.reference;
     final IRegion regionA = t.region;
     final IRNode referenceB = this.reference;
     final IRegion regionB = this.region;
-    if (am.aliases(referenceA, referenceB)) {
+    if (mayAlias.mayAlias(referenceA, referenceB)) {
       if (regionA.equals(regionB)) {
         return TargetRelationship.newAliased(RegionRelationships.EQUAL);
       } else if (regionA.ancestorOf(regionB)) {

@@ -131,7 +131,7 @@ public class WholeModuleFXDrop extends PhantomDrop {
       final Set<Effect> intRegionWrites = getInterestingRegionWriteFX();
       
       for (Effect efx : fxToFilter) {
-        if (conflicter.mayConflict(intRegionWrites, Collections.singleton(efx), null)) {
+        if (conflicter.mayConflict(intRegionWrites, Collections.singleton(efx))) {
           res.add(efx);
         }
       }

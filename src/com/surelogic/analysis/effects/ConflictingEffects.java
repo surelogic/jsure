@@ -1,11 +1,11 @@
-/* $Header: /cvs/fluid/fluid/src/com/surelogic/analysis/effects/ConflictingEffects.java,v 1.22 2007/10/11 17:19:30 aarong Exp $ */
 package com.surelogic.analysis.effects;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
+import com.surelogic.analysis.alias.IMayAlias;
+
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
@@ -39,7 +39,7 @@ public final class ConflictingEffects {
    * @param A The first set of effects.
    * @param B The second set of effects.
    */
-  ConflictingEffects(final IAliasAnalysis.Method am, final IBinder binder,
+  ConflictingEffects(final IMayAlias mayAlias, final IBinder binder,
       final Set<Effect> A, final Set<Effect> B) {
     setA = Collections.unmodifiableSet(A);
     setB = Collections.unmodifiableSet(B);
@@ -48,7 +48,7 @@ public final class ConflictingEffects {
     for (final Effect effectA : setA) {
       for (final Effect effectB : setB) {
         final EffectRelationship conflict =
-          effectA.conflictsWith(am, binder, effectB);
+          effectA.conflictsWith(mayAlias, binder, effectB);
         if (conflict.isConflict()) {
           pairs.add(new ConflictingPair(effectA, effectB, conflict));
         }

@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.DefaultThisExpressionBinder;
+import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.Target;
@@ -21,8 +23,6 @@ import com.surelogic.analysis.regions.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
-import edu.cmu.cs.fluid.java.analysis.TypeBasedAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
@@ -33,7 +33,6 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleModel;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 
 
 public class TRoleTargets {
@@ -41,8 +40,7 @@ public class TRoleTargets {
   private static IBinder binder = null;
   private static TargetFactory targetFactory = null;
   private static BindingContextAnalysis bindingContextAnalysis = null;
-//  private static ConflictChecker conflicter = null;
-  private static IAliasAnalysis tbAlias = null;
+  private static IMayAlias mayAlias = null;
   
 
   private static final Logger LOG = SLLogger.getLogger("ColorSupport");
@@ -65,8 +63,7 @@ public class TRoleTargets {
     binder = b;
     targetFactory = new ThisBindingTargetFactory(new DefaultThisExpressionBinder(b));
 
-    tbAlias = new TypeBasedAliasAnalysis(b);
-//    conflicter = new ConflictChecker(b, tbAlias);
+    mayAlias = new TypeBasedMayAlias(b);
     bindingContextAnalysis = new BindingContextAnalysis(b, true);
    
     if (INSTANCE == null) {
@@ -421,7 +418,7 @@ public class TRoleTargets {
            * constructor context.  To fix this, the caller of this method needs
            * to track the current flow unit of interest.
            */
-          if (new ConflictChecker(binder, tbAlias, IntraproceduralAnalysis.getFlowUnit(mcall)).mayConflict(eAsSet, methodFx, mcall)) {
+          if (new ConflictChecker(binder, mayAlias).mayConflict(eAsSet, methodFx)) {
 // was:          if (conflicter.mayConflict(eAsSet, methodFx, mcall)) {
             getTargetsFromAggregation(mcall, actual, mappedRegion, true, outTargets);            
           }
@@ -482,11 +479,8 @@ public class TRoleTargets {
          * about the constructor context.  To fix this we need to have the 
          * clients of this method track the current flow unit.
          */ 
-        final TargetRelationship trel = 
-          tgt.overlapsWith(
-              tbAlias.getMethodFactory(
-                  IntraproceduralAnalysis.getFlowUnit(before)).getMayAliasMethod(before),
-              binder, eff.getTarget());
+        final TargetRelationship trel =
+          tgt.overlapsWith(mayAlias, binder, eff.getTarget());
         if (trel.getTargetRelationship() != TargetRelationships.UNRELATED ) {
           res.add(eff.getTarget());
           

@@ -2,13 +2,13 @@ package com.surelogic.analysis.effects.targets;
 
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.AggregationEvidence;
 import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 
 /**
@@ -134,20 +134,19 @@ abstract class AbstractTarget implements Target {
   /* For double dispatching in the implementation of overlapsWith() */  
   
   // Receiver is the argument from the original overlapsWith() call
-  abstract TargetRelationship overlapsWithLocal(
-      IAliasAnalysis.Method am, IBinder binder, LocalTarget t);
+  abstract TargetRelationship overlapsWithLocal(IBinder binder, LocalTarget t);
 
   // Receiver is the argument from the original overlapsWith() call
   abstract TargetRelationship overlapsWithAnyInstance(
-      IAliasAnalysis.Method am, IBinder binder, AnyInstanceTarget t);
+      IBinder binder, AnyInstanceTarget t);
 
   // Receiver is the argument from the original overlapsWith() call
   abstract TargetRelationship overlapsWithClass(
-      IAliasAnalysis.Method am, IBinder binder, ClassTarget t);
+      IBinder binder, ClassTarget t);
 
   // Receiver is the argument from the original overlapsWith() call
   abstract TargetRelationship overlapsWithInstance(
-      IAliasAnalysis.Method am, IBinder binder, InstanceTarget t);
+      IMayAlias mayAlias, IBinder binder, InstanceTarget t);
 
   
   

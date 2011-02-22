@@ -1,10 +1,10 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/LockUtils.java,v 1.66 2009/02/17 14:01:32 aarong Exp $*/
 package com.surelogic.analysis.locks;
 
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.*;
 import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
@@ -34,14 +34,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.IOldTypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
-import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.CharLiteral;
@@ -191,10 +188,7 @@ public final class LockUtils {
   private final Effects effects;
   
   /** The alias analyis to use. */
-  private final IAliasAnalysis aliasAnalysis;
-  
-//  /** Factory for creating held locks */
-//  private final HeldLockFactory heldLockFactory;
+  private final IMayAlias mayAlias;
   
   /** Factory for creating needed locks */
   private final NeededLockFactory neededLockFactory;
@@ -259,15 +253,13 @@ public final class LockUtils {
    * @param ea The effects analysis to use.
    */
   public LockUtils(final AtomicReference<GlobalLockModel> glmRef,
-      final IBinder b, final Effects e, final IAliasAnalysis aa,
-//      final HeldLockFactory hlf,
+      final IBinder b, final Effects e, final IMayAlias ma,
       final NeededLockFactory nlf,
       final ThisExpressionBinder thisExprBinder) {
     sysLockModelHandle = glmRef;
     binder = b;
     effects = e;
-    aliasAnalysis = aa;
-//    heldLockFactory = hlf;
+    mayAlias = ma;
     neededLockFactory = nlf;
     targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     
@@ -339,7 +331,7 @@ public final class LockUtils {
      */
     return new FinalExpressionChecker() {
       final Effects.Query fxQuery = effects.getEffectsQuery(flowUnit, bcaQuery);
-      final ConflictChecker conflicter = new ConflictChecker(binder, aliasAnalysis, flowUnit);
+      final ConflictChecker conflicter = new ConflictChecker(binder, mayAlias);
       
       public boolean isFinal(final IRNode expr) {
         final Operator op = JJNode.tree.getOperator(expr);
@@ -408,7 +400,7 @@ public final class LockUtils {
           final IRNode array = ArrayRefExpression.getArray(expr);
           final IRNode idx = ArrayRefExpression.getIndex(expr);
           if (isFinal(array) && isFinal(idx)) {
-            return !isArrayChangedBySyncBlock(fxQuery, conflicter, array, sync, expr);
+            return !isArrayChangedBySyncBlock(fxQuery, conflicter, array, sync);
           }
         } else if (IntLiteral.prototype.includes(op)) {
           /* Integer constants are final.  We do not consider float, boolean, or
@@ -444,7 +436,7 @@ public final class LockUtils {
     if (sync != null) {
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
       final Set<Effect> exprEffects = fxQuery.getResultFor(expr);
-      return conflicter.mayConflict(bodyEffects, exprEffects, expr);
+      return conflicter.mayConflict(bodyEffects, exprEffects);
     } else {
       
       return true;
@@ -453,12 +445,12 @@ public final class LockUtils {
 
   private boolean isArrayChangedBySyncBlock(
       final Effects.Query fxQuery, final ConflictChecker conflicter, 
-      final IRNode array, final IRNode sync, final IRNode compareBeforeNode) {
+      final IRNode array, final IRNode sync) {
     if (sync != null) {
       final Set<Effect> exprEffects =
         Collections.singleton(Effect.newRead(null, targetFactory.createInstanceTarget(array, elementRegion)));
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
-      return conflicter.mayConflict(bodyEffects, exprEffects, compareBeforeNode);
+      return conflicter.mayConflict(bodyEffects, exprEffects);
     } else {
       return true;
     }
@@ -761,7 +753,7 @@ public final class LockUtils {
         final Target target = effect.getTarget();
         if (target instanceof ClassTarget || target instanceof AnyInstanceTarget) {
           for (final Target exposedTarget : exposedTargets) {
-            if (conflicter.doTargetsOverlap(target, exposedTarget, exposedTarget.getReference())) {
+            if (conflicter.doTargetsOverlap(target, exposedTarget)) {
               getLocksForDirectRegionAccess(bcaQuery, mcall, effect.isRead(), exposedTarget, result);
             }
           }

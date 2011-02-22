@@ -2,11 +2,11 @@ package com.surelogic.analysis.effects.targets;
 
 import java.util.logging.Level;
 
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -123,14 +123,14 @@ public final class LocalTarget extends AbstractTarget {
   }
 
   public TargetRelationship overlapsWith(
-      final IAliasAnalysis.Method am, final IBinder binder, final Target t) {
-    return ((AbstractTarget) t).overlapsWithLocal(am, binder, this);
+      final IMayAlias mayAlias, final IBinder binder, final Target t) {
+    return ((AbstractTarget) t).overlapsWithLocal(binder, this);
   }
 
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithLocal(
-      final IAliasAnalysis.Method am, final IBinder binder, final LocalTarget t) {
+      final IBinder binder, final LocalTarget t) {
     if (var.equals(t.var)) {
       return TargetRelationship.newSameVariable();
     } else {
@@ -141,21 +141,21 @@ public final class LocalTarget extends AbstractTarget {
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithAnyInstance(
-      final IAliasAnalysis.Method am, final IBinder binder, final AnyInstanceTarget t) {
+      final IBinder binder, final AnyInstanceTarget t) {
     return TargetRelationship.newUnrelated();
   }
 
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithClass(
-      final IAliasAnalysis.Method am, final IBinder binder, final ClassTarget t) {
+      final IBinder binder, final ClassTarget t) {
     return TargetRelationship.newUnrelated();
   }
 
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithInstance(
-      final IAliasAnalysis.Method am, final IBinder binder, final InstanceTarget t) {
+      final IMayAlias mayAlias, final IBinder binder, final InstanceTarget t) {
     return TargetRelationship.newUnrelated();
   }
 

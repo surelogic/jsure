@@ -1,10 +1,10 @@
 package com.surelogic.analysis.effects.targets;
 
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.regions.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.*;
 
 /*
@@ -132,22 +132,21 @@ public final class AnyInstanceTarget extends AbstractTarget {
   }
   
   public TargetRelationship overlapsWith(
-      final IAliasAnalysis.Method am, final IBinder binder, final Target t) {
-    return ((AbstractTarget) t).overlapsWithAnyInstance(am, binder, this);
+      final IMayAlias mayAlias, final IBinder binder, final Target t) {
+    return ((AbstractTarget) t).overlapsWithAnyInstance(binder, this);
   }
 
 
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
-  TargetRelationship overlapsWithLocal(
-      final IAliasAnalysis.Method am, final IBinder binder, final LocalTarget t) {
+  TargetRelationship overlapsWithLocal(final IBinder binder, final LocalTarget t) {
     return TargetRelationship.newUnrelated();
   }
 
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithAnyInstance(
-      final IAliasAnalysis.Method am, final IBinder binder, final AnyInstanceTarget t) {
+      final IBinder binder, final AnyInstanceTarget t) {
     final IRegion regionA = t.region;
     final IJavaReferenceType classA = t.clazz;
     final IRegion regionB = this.region;
@@ -169,7 +168,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithClass(
-      final IAliasAnalysis.Method am, final IBinder binder, final ClassTarget t) {
+      final IBinder binder, final ClassTarget t) {
     final IRegion regionA = t.region;
     final IRegion regionB = this.region;
     if (regionA.equals(regionB)) {
@@ -189,7 +188,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithInstance(
-      final IAliasAnalysis.Method am, final IBinder binder, final InstanceTarget t) {
+      final IMayAlias mayAlias, final IBinder binder, final InstanceTarget t) {
     /* NB. page 229 of ECOOP paper says we should check that Instance target
      * is shared (!unique). I think this because we want to make sure that
      * overlap is based on the aggregated region hierarchy. We don't have to

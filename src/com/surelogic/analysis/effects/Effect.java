@@ -1,11 +1,11 @@
 package com.surelogic.analysis.effects;
 
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
 import com.surelogic.analysis.effects.targets.TargetRelationships;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -126,7 +126,7 @@ public abstract class Effect {
     
     @Override
     public EffectRelationship conflictsWith(
-        final IAliasAnalysis.Method am, final IBinder binder, final Effect e) {
+        final IMayAlias mayAlias, final IBinder binder, final Effect e) {
       // Empty effects never conflict with any other effect
       return EffectRelationship.newNoConflict();
     }
@@ -264,11 +264,11 @@ public abstract class Effect {
 
     @Override
     public EffectRelationship conflictsWith(
-        final IAliasAnalysis.Method am, final IBinder binder, final Effect e) {
+        final IMayAlias mayAlias, final IBinder binder, final Effect e) {
       // Conflict only if the other effect is a write effect
       if (e.isWrite()) {
         final TargetRelationship overlap =
-          getTarget().overlapsWith(am, binder, e.getTarget());
+          getTarget().overlapsWith(mayAlias, binder, e.getTarget());
         if (overlap.getTargetRelationship() != TargetRelationships.UNRELATED) {
           return EffectRelationship.newReadAWriteB(overlap);
         }
@@ -344,10 +344,10 @@ public abstract class Effect {
     
     @Override
     public EffectRelationship conflictsWith(
-        final IAliasAnalysis.Method am, final IBinder binder, final Effect e) {
+        final IMayAlias mayAlias, final IBinder binder, final Effect e) {
       if (!e.isEmpty()) {
         final TargetRelationship overlap =
-          getTarget().overlapsWith(am, binder, e.getTarget());
+          getTarget().overlapsWith(mayAlias, binder, e.getTarget());
         if (overlap.getTargetRelationship() != TargetRelationships.UNRELATED) {
           if (e.isRead()) {
             return EffectRelationship.newWriteAReadB(overlap);
@@ -574,7 +574,7 @@ public abstract class Effect {
    *         conflict, which includes describing a non-conflict.
    */
   public abstract EffectRelationship conflictsWith(
-      IAliasAnalysis.Method am, IBinder binder, Effect e);
+     IMayAlias ma, IBinder binder, Effect e);
 
   /**
    * Assuming that the receiver is an implementation effect left over after

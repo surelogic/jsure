@@ -9,6 +9,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.aast.promise.RegionMappingNode;
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.regions.IRegion;
@@ -20,7 +21,6 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.analysis.TypeBasedAliasAnalysis;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
@@ -185,7 +185,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 	  }
 	  bca = new BindingContextAnalysis(binder, true);
     return new LockVisitor(this, binder, new Effects(binder),
-        new TypeBasedAliasAnalysis(binder), bca, lockModelHandle);
+        new TypeBasedMayAlias(binder), bca, lockModelHandle);
 	}
 	
 	@Override

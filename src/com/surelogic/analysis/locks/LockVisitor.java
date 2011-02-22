@@ -26,6 +26,7 @@ import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.InstanceInitializationVisitor;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effects;
@@ -48,7 +49,6 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.analysis.IAliasAnalysis;
 import edu.cmu.cs.fluid.java.analysis.JavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -434,7 +434,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	/**
 	 * The alias analysis to use.
 	 */
-	private final IAliasAnalysis aliasAnalysis;
+	private final IMayAlias mayAlias;
 
 	// /**
 	// * The intrinsic lock flow analysis.
@@ -726,13 +726,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 * @throws SlotAlreadyRegisteredException
 	 */
 	public LockVisitor(final IIRAnalysis a, final IBinder b, final Effects e,
-			final IAliasAnalysis aliasAnalysis,
+	    final IMayAlias ma,
 			final BindingContextAnalysis bca,
 			final AtomicReference<GlobalLockModel> glmRef) {
 		analysisRoot = a;
 		binder = b;
 		bindingContextAnalysis = bca;
-		this.aliasAnalysis = aliasAnalysis;
+		mayAlias = ma;
 		sysLockModelHandle = glmRef;
 		ctxtTypeDecl = null; // this will be set by analyzeClass()
 		ctxtJavaType = null; // this will be set by analyzeClass()
@@ -742,8 +742,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		heldLockFactory = new HeldLockFactory(thisExprBinder);
 		neededLockFactory = new NeededLockFactory(thisExprBinder);
 
-		lockUtils = new LockUtils(glmRef, b, e, aliasAnalysis, //heldLockFactory,
-				neededLockFactory, thisExprBinder);
+		lockUtils = new LockUtils(
+		    glmRef, b, e, mayAlias,	neededLockFactory, thisExprBinder);
 		jucLockUsageManager = new JUCLockUsageManager(lockUtils, binder, bca);
 
 		// Create the subsidiary flow analyses
@@ -1997,8 +1997,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
             ctxtLocksForQuery = ctxtLocksForQuery.getSubAnalysisQuery(expr);
             ctxtMustReleaseQuery = ctxtMustReleaseQuery.getSubAnalysisQuery(expr);
 
-						ctxtConflicter = new ConflictChecker(binder,
-								aliasAnalysis, ctxtInsideMethod);
+						ctxtConflicter = new ConflictChecker(binder, mayAlias);
 						ctxtOnBehalfOfConstructor = false;
 						ctxtInsideConstructor = null;
 						ctxtConstructorName = null;
@@ -2076,8 +2075,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			ctxtBcaQuery = bindingContextAnalysis
 					.getExpressionObjectsQuery(ctxtInsideMethod);
 			updateJUCAnalysisQueries(ctxtInsideMethod);
-			ctxtConflicter = new ConflictChecker(binder, aliasAnalysis,
-			    ctxtInsideMethod);
+			ctxtConflicter = new ConflictChecker(binder, mayAlias);
 			// The receiver is non-existent
 			ctxtTheReceiverNode = null;
 			// We the static locks are held
@@ -2156,7 +2154,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(cdecl);
 			ctxtInsideConstructor = cdecl;
 			ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(cdecl);
-			ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, cdecl);
+			ctxtConflicter = new ConflictChecker(binder, mayAlias);
 			ctxtConstructorName = new Object[] { JavaNames
 					.genMethodConstructorName(cdecl) };
 			ctxtSingleThreadedData = jucLockUsageManager
@@ -2466,7 +2464,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			ctxtBcaQuery = bindingContextAnalysis
 					.getExpressionObjectsQuery(mdecl);
 			updateJUCAnalysisQueries(mdecl);
-			ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, mdecl);
+			ctxtConflicter = new ConflictChecker(binder, mayAlias);
 			final ReturnsLockPromiseDrop returnedLockName = LockUtils
 					.getReturnedLock(mdecl);
 			if (returnedLockName != null) {
@@ -2865,7 +2863,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								.getExpressionObjectsQuery(ctxtInsideMethod);
 						updateJUCAnalysisQueries(ctxtInsideMethod);
 						ctxtConflicter = new ConflictChecker(binder,
-								aliasAnalysis, ctxtInsideMethod);
+								mayAlias);
 						ctxtClassInitializationLocks = convertStaticInitializerBlock(
 								varDecl, ctxtJavaType);
 					}
@@ -2931,7 +2929,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
     ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
     ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
     updateJUCAnalysisQueries(ctxtInsideMethod);
-    ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
+    ctxtConflicter = new ConflictChecker(binder, mayAlias);
     ctxtClassInitializationLocks =
       convertStaticInitializerBlock(constDecl, ctxtJavaType);
 
@@ -2966,7 +2964,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
     ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
     ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
     updateJUCAnalysisQueries(ctxtInsideMethod);
-    ctxtConflicter = new ConflictChecker(binder, aliasAnalysis, ctxtInsideMethod);
+    ctxtConflicter = new ConflictChecker(binder, mayAlias);
     ctxtClassInitializationLocks =
       convertStaticInitializerBlock(constDecl, ctxtJavaType);
 
@@ -3044,8 +3042,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
               ctxtLocksForQuery = ctxtLocksForQuery.getSubAnalysisQuery(constDecl);
               ctxtMustReleaseQuery = ctxtMustReleaseQuery.getSubAnalysisQuery(constDecl);
 
-              ctxtConflicter = new ConflictChecker(binder,
-                  aliasAnalysis, ctxtInsideMethod);
+              ctxtConflicter = new ConflictChecker(binder, mayAlias);
               ctxtOnBehalfOfConstructor = false;
               ctxtInsideConstructor = null;
               ctxtConstructorName = null;
