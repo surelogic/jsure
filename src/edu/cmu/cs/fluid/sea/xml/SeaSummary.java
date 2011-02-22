@@ -22,8 +22,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaUnparseStyle;
-import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 import edu.cmu.cs.fluid.util.Hashtable2;
@@ -94,10 +92,16 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	public static void summarize(String project, final Sea sea, File location) 
 	throws IOException {
 		SeaSummary s = new SeaSummary(location);
-		s.summarize(project, sea);
+		s.summarize(project, sea.getDrops());
 	}
 
-	private void summarize(String project, Sea sea) {
+	public static void summarize(String project, Collection<? extends IDropInfo> drops, File location) 
+	throws IOException {
+		SeaSummary s = new SeaSummary(location);
+		s.summarize(project, drops);
+	}
+	
+	private void summarize(String project, Collection<? extends IDropInfo> drops) {
 		Date now = new Date(System.currentTimeMillis());
 		Entities.start(ROOT, b);
 		addAttribute(TIME_ATTR, DateFormat.getDateTimeInstance().format(now));
@@ -105,10 +109,9 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		b.append(">\n");
 		flushBuffer(pw);
 		
-		final Set<Drop> drops = sea.getDrops();
 		outputDropCounts(drops);
 		
-		for(Drop d : drops) {
+		for(IDropInfo d : drops) {
 			final IDropInfo id = checkIfReady(d);
 			if (id != null) {
 				summarizeDrop(id);
@@ -118,17 +121,17 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		pw.close();
 	}
 		
-	private void outputDropCounts(Set<Drop> drops) {
-		final Map<Class<?>,Integer> counts = new HashMap<Class<?>, Integer>();
-		for(Drop d : drops) {
+	private void outputDropCounts(Collection<? extends IDropInfo> drops) {
+		final Map<String,Integer> counts = new HashMap<String, Integer>();
+		for(IDropInfo d : drops) {
 			final IDropInfo id = checkIfReady(d);
 			if (id != null) {
-				incr(counts, d.getClass());
+				incr(counts, computeSimpleType(id));
 			}
 		}		
-		for(Map.Entry<Class<?>, Integer> e : counts.entrySet()) {
+		for(Map.Entry<String, Integer> e : counts.entrySet()) {
 			Entities.start(COUNT, b);
-			addAttribute(e.getKey().getSimpleName(), e.getValue().toString());
+			addAttribute(e.getKey(), e.getValue().toString());
 			b.append("/>");
 			flushBuffer(pw);
 		}
@@ -193,8 +196,20 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 		flushBuffer(pw);
 	}
 
+	private static String computeSimpleType(IDropInfo id) {
+		String type = id.getType();
+		int lastDot = type.lastIndexOf('.');
+		if (lastDot > 0) {
+			type = type.substring(lastDot+1);
+		}
+		return type;
+	}
+	
 	private void addAttributes(IDropInfo id) {
-		final String type = id.getType();
+		String type = computeSimpleType(id);
+		if (type.endsWith("Info")) {
+			System.out.println("Bad drop type: "+type);
+		}
 		/*
 		if (type.contains("Proposed")) {
 			System.out.println("Found "+type);
