@@ -263,7 +263,11 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		}
 		
 		if (project == null) {
-			if (projects.length > 0) {
+			if (projects.length == 1) {	
+				final String projectPath = projects[0].getLocation().toOSString();
+				project = new File(projectPath);
+			}
+			else if (projects.length > 0) {
 				// Check for script at parent of the project
 				final String projectPath = projects[0].getLocation().toOSString();
 				final File parent = new File(projectPath).getParentFile();
