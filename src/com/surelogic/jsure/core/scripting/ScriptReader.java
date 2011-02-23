@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.core.runtime.jobs.*;
 import org.eclipse.jdt.core.*;
 
+import com.surelogic.common.XUtil;
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
@@ -353,6 +354,10 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
   }
   
   public static void waitForBuild(int kind) throws CoreException {
+      if (XUtil.testing) {
+          // No check in JavacBuild, so no need to try to build
+          return;
+      }
 	  ResourcesPlugin.getWorkspace().build(kind, null);
 	  IJobManager jobMan = Job.getJobManager();
 	  Job[] build = jobMan.find(ResourcesPlugin.FAMILY_AUTO_BUILD); 

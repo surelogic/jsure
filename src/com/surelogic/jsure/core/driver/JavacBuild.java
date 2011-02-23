@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 
+import com.surelogic.common.XUtil;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.JavaProjectResources;
 import com.surelogic.common.logging.IErrorListener;
@@ -41,8 +42,8 @@ public class JavacBuild {
 		try {
 			JavacDriver.getInstance().clearProjectInfo();
 			for (IJavaProject p : selectedProjects) {
-				boolean noErrors = JDTUtility.noCompilationErrors(p,
-						new NullProgressMonitor());
+				boolean noErrors = XUtil.testing ||
+				    JDTUtility.noCompilationErrors(p, new NullProgressMonitor());
 				if (noErrors) {
 					// Collect resources and CUs for build
 					JavaProjectResources jpr = JDTUtility
