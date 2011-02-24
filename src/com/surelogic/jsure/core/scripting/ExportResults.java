@@ -7,7 +7,8 @@ import java.io.*;
 
 import org.eclipse.core.resources.*;
 
-import edu.cmu.cs.fluid.sea.Sea;
+import com.surelogic.jsure.core.listeners.PersistentDropInfo;
+
 import edu.cmu.cs.fluid.sea.xml.*;
 
 /**
@@ -24,7 +25,7 @@ public class ExportResults extends AbstractCommand {
 	public boolean execute(ICommandContext context, String... contents)
 			throws Exception {
 		final IProject project = resolveProject(contents[1]);
-		final File workspaceFile = new File(project.getLocationURI());
+		final File workspaceFile = project == null ? null : new File(project.getLocationURI()).getParentFile();
 		//ws.getRoot().getFullPath().toFile();
 
 		// Export the results from this run
@@ -43,7 +44,8 @@ public class ExportResults extends AbstractCommand {
 				}
 				location = new File(workspaceFile, name);
 			}
-			SeaSummary.summarize(project.getName(), Sea.getDefault(), location);
+			SeaSummary.summarize(PersistentDropInfo.getInstance().findProjectsLabel(), 
+					PersistentDropInfo.getInstance().getRawInfo(), location);
 			System.out.println("Exported: "+location);
 			assert (location.exists());
 		} catch (FileNotFoundException e) {
