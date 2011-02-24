@@ -30,7 +30,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
   boolean changed   = false;
   boolean buildNow  = false;
   final Map<String,Object> args = new HashMap<String, Object>();  
-  final List<IJavaProject> projects;
+  protected final List<IJavaProject> projects;
   final Set<IJavaProject> active = new HashSet<IJavaProject>(); // Used to simulate when only some are analyzed
   final boolean runAsynchronously;
   
@@ -158,8 +158,12 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
   }
   
   public boolean execute(File f) throws Throwable {
-    final Reader r = new InputStreamReader(new FileInputStream(f));  
-    args.put(SCRIPT_DIR, f.getParentFile());
+    return execute(f, f.getParentFile());
+  }
+  
+  public boolean execute(File scriptFile, File workingDir) throws Throwable {
+  final Reader r = new InputStreamReader(new FileInputStream(scriptFile));  
+    args.put(SCRIPT_DIR, workingDir);
     return execute(r);
   }
   

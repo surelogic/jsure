@@ -195,7 +195,10 @@ public class JavacDriver implements IResourceChangeListener {
 				deletedDir = deletedDirFilter.createTempFolder();
 
 				// Import the project into the workspace
-				EclipseUtility.importProject(proj);
+				importScriptedProject(proj);
+				
+				// Refresh the workspace
+				ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 			} catch (Exception e) {
 				throw new IllegalStateException(
 						"Could not create/import project", e);
@@ -275,13 +278,13 @@ public class JavacDriver implements IResourceChangeListener {
 			info = zipInfo;
 
 			if (scriptBeingUpdated != null) {
+				final File scriptDir = new File(workspace, temp);
 				updateScriptJob = new AbstractSLJob("Updating script") {
 					public SLStatus run(SLProgressMonitor monitor) {
 						try {
 							// TODO needs to run after the FTA auto-build
-							final UpdateScriptReader r = new UpdateScriptReader(
-									temp);
-							return r.execute(scriptBeingUpdated) ? SLStatus.OK_STATUS
+							final UpdateScriptReader r = new UpdateScriptReader(scriptDir);
+							return r.execute(scriptBeingUpdated, scriptDir) ? SLStatus.OK_STATUS
 									: SLStatus.CANCEL_STATUS;
 						} catch (Throwable e) {
 							return SLStatus.createErrorStatus(e);
@@ -300,6 +303,34 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 
+	private static void importScriptedProject(final File proj) throws CoreException {
+		File dotProject = new File(proj, EclipseUtility.DOT_PROJECT);
+		if (dotProject.exists()) {
+			EclipseUtility.importProject(proj);
+		} else {
+			for(File dir : proj.listFiles()) {
+				if (dir.isDirectory()) {
+					importScriptedProject(dir);
+				}
+			}
+		}
+	}
+
+	private static List<IJavaProject> findProjects(final File proj) {
+		File dotProject = new File(proj, EclipseUtility.DOT_PROJECT);
+		if (dotProject.exists()) {
+			return Collections.singletonList(JDTUtility.getJavaProject(proj.getName()));
+		} else {
+			List<IJavaProject> rv = new ArrayList<IJavaProject>();
+			for(File dir : proj.listFiles()) {
+				if (dir.isDirectory()) {
+					rv.addAll(findProjects(dir));
+				}
+			}
+			return rv;
+		}
+	}
+	
 	public void updateScript() {
 		if (updateScriptJob != null) {
 			try {
@@ -322,10 +353,10 @@ public class JavacDriver implements IResourceChangeListener {
 					});
 		}
 	}
-
+	
 	private static class UpdateScriptReader extends ScriptReader {
-		public UpdateScriptReader(final String proj) {
-			super(Collections.singletonList(JDTUtility.getJavaProject(proj)), true);
+		public UpdateScriptReader(final File proj) {
+			super(findProjects(proj), true);
 			// These should be the ops that we auto-inserted
 			commands.put(ScriptCommands.EXPECT_BUILD, NullCommand.prototype);
 			commands.put(ScriptCommands.EXPECT_ANALYSIS, NullCommand.prototype);
@@ -334,8 +365,9 @@ public class JavacDriver implements IResourceChangeListener {
 				public boolean execute(ICommandContext context,
 						String... contents) throws Exception {
 					// Reformat the contents for what it expects
-					return super.execute(context, contents[0], proj,
-							contents[2]);
+					return super.execute(context, contents[0], projects.get(0).getElementName(),
+							// Compensate for extra directory when there's multiple projects
+							projects.size() > 1 ? ".."+contents[2] : contents[2]);
 				}
 			});
 		}
@@ -612,7 +644,7 @@ public class JavacDriver implements IResourceChangeListener {
 							throw new IllegalStateException(
 									"Created an extra file: " + f.getName());
 						}
-						System.out.println("Updated " + f.getName() + ": \t"
+						System.out.println("\nUpdated " + f.getName() + ": \t"
 								+ oldLength + " -> " + f.length());
 						try {
 							final Diff d = SeaSummary.diff(new File(deletedDir,
