@@ -852,7 +852,7 @@ public class JavacDriver implements IResourceChangeListener {
 				boolean addSource) throws JavaModelException {
 			final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
 			// TODO what export rules?
-			scanForJDK(projects, jp);
+			JavacProject jre = scanForJDK(projects, jp);
 
 			for (IClasspathEntry cpe : jp.getResolvedClasspath(true)) {
 				// TODO ignorable since they'll be handled by the compiler
@@ -913,7 +913,19 @@ public class JavacDriver implements IResourceChangeListener {
 					break;
 				default:
 					System.out.println("Unexpected: " + cpe);
+				}				
+			}
+			// Add JRE if not already added
+			boolean hasJRE = false;
+			for(IClassPathEntry e : config.getClassPath()) {
+				if (e.equals(jre.getConfig())) {
+					hasJRE = true;
+					break;
 				}
+			}
+			if (!hasJRE) {
+				System.out.println("Adding missing JRE: "+jre.getName());
+				config.addToClassPath(jre.getConfig());
 			}
 		}
 
@@ -1003,26 +1015,45 @@ public class JavacDriver implements IResourceChangeListener {
 			return projects.add(config);
 		}
 
-		private void scanForJDK(Projects projects, IJavaProject jp)
+		private JavacProject scanForJDK(Projects projects, IJavaProject jp)
 				throws JavaModelException {
 			if (jp == null) {
-				return;
+				return null;
 			}
 			for (IClasspathEntry cpe : jp.getRawClasspath()) {
 				switch (cpe.getEntryKind()) {
-				case IClasspathEntry.CPE_CONTAINER:
-					final IClasspathContainer cc = JavaCore
-							.getClasspathContainer(cpe.getPath(), jp);
-					if (cc.getDescription().startsWith(
-							JavacTypeEnvironment.JRE_LIBRARY)) { // HACK
-						JavacProject jcp = findJRE(projects, cc);
-						if (jcp == null) {
-							projects.add(makeConfig(projects, cc));
+				case IClasspathEntry.CPE_CONTAINER:					
+					final String path = cpe.getPath().toPortableString();
+					if (path.startsWith(JavacTypeEnvironment.JRE_NAME)) {											
+						final IClasspathContainer cc = JavaCore.getClasspathContainer(cpe.getPath(), jp);
+						if (cc == null) {
+					        // Creating project from sun.boot.classpath
+							JavacProject jcp = projects.get(path);
+							if (jcp == null) {
+								final String classpath = System.getProperty("sun.boot.class.path");
+								System.out.println("sun.boot.class.path = "+classpath);		
+								
+								final Config config = new Config(path, null, true);	
+								for(String jar : classpath.split(File.pathSeparator)) {
+									final File f = new File(jar);
+									config.addJar(f, true);
+									projects.mapToProject(f, path);
+								}
+								JavacEclipse.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, path);
+								jcp = projects.add(config);
+							}
+							return jcp;
+						} else {
+							JavacProject jcp = findJRE(projects, cc);
+							if (jcp == null) {
+								jcp = projects.add(makeConfig(projects, cc));
+							}
+							return jcp;
 						}
-						return;
 					}
 				}
 			}
+			return null;
 		}
 
 		private JavacProject findJRE(Projects projects,
