@@ -47,7 +47,6 @@ import com.surelogic.test.xml.JUnitXMLOutput;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
-import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
@@ -374,7 +373,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		 * the consistency proof.
 		 */
 		start("Build and analyze");
-		ScriptReader.waitForBuild(IncrementalProjectBuilder.AUTO_BUILD);
+		//ScriptReader.waitForBuild(IncrementalProjectBuilder.AUTO_BUILD);
+		ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
 
 		System.out.println("JSure data = "
 				+ JSurePreferencesUtility.getJSureDataDirectory());
