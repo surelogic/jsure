@@ -30,7 +30,7 @@ public class JavacEclipse extends Javac {
     public void synchronizeAnalysisPrefs() {
 		for(String id : getAvailableAnalyses()) {
 			boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);
-			setPreference(id, value);
+			setPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, value);
 		}
 		/*
 		if (XUtil.testing) {
