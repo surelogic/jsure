@@ -356,7 +356,7 @@ public class JavacDriver implements IResourceChangeListener {
 	
 	private static class UpdateScriptReader extends ScriptReader {
 		public UpdateScriptReader(final File proj) {
-			super(findProjects(proj), true);
+			super(findProjects(proj), false);
 			// These should be the ops that we auto-inserted
 			commands.put(ScriptCommands.EXPECT_BUILD, NullCommand.prototype);
 			commands.put(ScriptCommands.EXPECT_ANALYSIS, NullCommand.prototype);
@@ -628,6 +628,13 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 	}
 
+	private static final Comparator<? super File> fileComparator = new Comparator<File>() {
+		@Override
+		public int compare(File o1, File o2) {			
+			return (int) (o1.lastModified() - o2.lastModified());
+		}
+	};
+	
 	public void stopScripting() {
 		if (info != null) {
 			if (script != null) {
@@ -638,7 +645,9 @@ public class JavacDriver implements IResourceChangeListener {
 				// Updating a previously created script
 				if (XUtil.updateScript() != null) {
 					// Only add the sea.xml files
-					for (File f : scriptResourcesDir.listFiles(updateFilter)) {
+					File[] files = scriptResourcesDir.listFiles(updateFilter);
+					Arrays.sort(files, fileComparator);
+					for (File f : files) {
 						Long oldLength = deleted.remove(f.getName());
 						if (oldLength == null) {
 							throw new IllegalStateException(
