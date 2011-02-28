@@ -3,9 +3,11 @@ package com.surelogic.jsure.core.preferences;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.preferences.AutoPerspectiveSwitchPreferences;
+import com.surelogic.fluid.javac.Javac;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -74,6 +76,13 @@ public final class JSurePreferencesUtility {
 							EclipseUtility
 									.getADataDirectoryPath(FileUtility.JSURE_DATA_PATH_FRAGMENT));
 
+			for(IAnalysisInfo a : Javac.getDefault().getAnalysisInfo()) {
+				//System.out.println("Defaulting "+a.getUniqueIdentifier()+" to "+a.isProduction());
+				EclipseUtility.setDefaultBooleanPreference(
+						IDEPreferences.ANALYSIS_ACTIVE_PREFIX+a.getUniqueIdentifier(), 
+						a.isProduction());
+			}
+			
 			/*
 			 * We'll take the default-default for the other preferences.
 			 */
