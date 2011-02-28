@@ -521,6 +521,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
 		public boolean isEmpty() {
 			if ("ProposedPromiseDrop".equals(name)) {
+				//return true;
+				/*
 				if (AbstractWholeIRAnalysis.useDependencies) {
 					// Temporarily ignore older for this, because they don't get cleaned out before each build
 					return newer.isEmpty(); 
@@ -529,6 +531,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					return newer.isEmpty();
 					//return old.isEmpty();
 				}
+				*/
 			}
 			return old.isEmpty() && newer.isEmpty();
 		}
@@ -552,6 +555,10 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 			if ("ResultDrop".equals(name)) {
 				title = match(title, out, RESULT, "Results");
 			}
+			if (isEmpty()) {
+				return;
+			}
+			
 			if (title != null && hasChildren()) {
 				out.println(title);
 			}			
@@ -722,6 +729,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 					System.out.println("Comparing "+a_n+" to "+a_o+" for "+attr);
 				}
 				*/
+			    //return a_n.equalsIgnoreCase(a_o);
 				return a_n.equals(a_o);
 			}
 			return defaultValue;
