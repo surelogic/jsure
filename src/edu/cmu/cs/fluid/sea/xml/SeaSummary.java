@@ -303,6 +303,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 */
 				Entity e = new Entity(id.getEntityName(), s.attributes);
 				newDrops.add(e);
+			} else {
+				//System.out.println("Ignoring "+d.getMessage());
 			}
 		}
 		//Collections.sort(newDrops, EntityComparator.prototype);
@@ -734,7 +736,16 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 	static final Matcher EXACT = new Matcher() {
 		@Override
 		boolean match(Entity n, Entity o) {
-			return super.match(n, o) && match(n, o, OFFSET_ATTR);
+			boolean rv = super.match(n, o) && match(n, o, OFFSET_ATTR);
+			/*
+			if (!rv) {
+				boolean m1 = match(n, o, true, CATEGORY_ATTR);
+				boolean m2 = match(n, o, MESSAGE_ID_ATTR, MESSAGE_ATTR);
+				boolean m3 = match(true, n, o, true, PROVED_ATTR);
+				boolean m4 = match(n, o, OFFSET_ATTR);
+			}
+            */
+			return rv;			
 		}
 	};
 	
