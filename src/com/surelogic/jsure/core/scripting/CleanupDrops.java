@@ -8,6 +8,7 @@ import com.surelogic.jsure.core.listeners.ClearProjectListener;
 
 public class CleanupDrops extends AbstractCommand {
 	public boolean execute(ICommandContext context, String... contents)	throws Exception {		
+		/*
 		List<IProject> removedProjects;
 		if (contents.length <= 1) {
 			removedProjects = null;
@@ -22,6 +23,8 @@ public class CleanupDrops extends AbstractCommand {
 			}
 		}
 		ClearProjectListener.clearJSureState(removedProjects);		
+		*/
+		System.out.println("Ignoring cleanup");
 		return false;
 	}
 
