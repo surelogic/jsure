@@ -157,8 +157,10 @@ public class DoubleChecker implements IAnalysisContainer {
 	private void initAnalysisDefaults() {
 		for (IAnalysisInfo ext : allAnalysisExtensions) {
 			final String id = ext.getUniqueIdentifier();
+			final boolean active = !m_nonProductionAnalysisExtensions.contains(ext);
+			//System.out.println("Re-defaulting "+id+" to "+active);
 			EclipseUtility.setDefaultBooleanPreference(ANALYSIS_ACTIVE_PREFIX
-					+ id, !m_nonProductionAnalysisExtensions.contains(ext));
+					+ id, active);
 		}
 	}
 
