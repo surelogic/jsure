@@ -18,6 +18,10 @@ public enum ScrubberType {
    */
   BY_HIERARCHY,
   /**
+   * As above, but also process immediate subclasses of types with annotations
+   */
+  INCLUDE_SUBTYPES_BY_HIERARCHY,
+  /**
    * All drops will be given to the scrubber at once
    */
   DIY,

@@ -328,6 +328,15 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	/**
 	 * Intended to be overridden
 	 * 
+	 * @return true if okay
+	 */
+	protected boolean processUnannotatedType(IJavaDeclaredType dt) {
+		return true;
+	}
+	
+	/**
+	 * Intended to be overridden
+	 * 
 	 * @param a
 	 */
 	protected boolean processAAST(A a) {
@@ -386,7 +395,10 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 					scrubByPromisedFor_Type(cls);
 					return;
 				case BY_HIERARCHY:
-					scrubByPromisedFor_Hierarchy(cls);
+					scrubByPromisedFor_Hierarchy(cls, false);
+					return;
+				case INCLUDE_SUBTYPES_BY_HIERARCHY:
+					scrubByPromisedFor_Hierarchy(cls, true);
 					return;
 				case DIY:
 					scrubAll(AASTStore.getASTsByClass(cls));
@@ -487,11 +499,28 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	
 	private class HierarchyWalk {
 		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv();
+		// Empty list = a subclass w/o required annos
 		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
 		final Set<IRNode> done = new HashSet<IRNode>();
+		final boolean includeSubtypes;
+		
+		HierarchyWalk(boolean includeSubtypes) {
+			this.includeSubtypes = includeSubtypes;
+		}
 
 		void init(Class<A> c) {
 			organizeByType(c, byType);
+			
+			if (includeSubtypes) {
+				for(IRNode type : new ArrayList<IRNode>(byType.keySet())) {
+					for(IRNode sub : tEnv.getRawSubclasses(type)) {
+						// Add empty lists for types w/o required annos
+						if (!byType.containsKey(sub)) {
+							byType.put(sub, Collections.<A>emptyList());
+						}
+					}
+				}
+			}
 		}
 
 		/**
@@ -520,7 +549,10 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			List<A> l = byType.get(decl);
 			if (l != null) {
 				startScrubbingType_internal(decl);
-				if (l.size() > 1) {
+				if (l == Collections.emptyList()) {
+					processUnannotatedType(dt);
+				}
+				else if (l.size() > 1) {
 					Collections.sort(l, aastComparator);
 					/*
 					 * for(A a : l) { System.out.println("After sort: "+a); }
@@ -568,8 +600,8 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	 * Scrub the bindings of the specified kind in order of the position of
 	 * their promisedFor (assumed to be a type decl) in the type hierarchy
 	 */
-	private void scrubByPromisedFor_Hierarchy(Class<A> c) {
-		HierarchyWalk walk = new HierarchyWalk();
+	private void scrubByPromisedFor_Hierarchy(Class<A> c, boolean includeSubtypes) {
+		HierarchyWalk walk = new HierarchyWalk(includeSubtypes);
 		walk.init(c);
 		walk.walkHierarchy();
 		walk.checkState();
