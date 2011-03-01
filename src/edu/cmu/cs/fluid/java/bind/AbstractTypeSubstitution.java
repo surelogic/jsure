@@ -1,13 +1,11 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/bind/AbstractTypeSubstitution.java,v 1.1 2007/11/29 17:45:16 chance Exp $*/
 package edu.cmu.cs.fluid.java.bind;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.parse.JJNode;
 
 public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution {
   protected final IBinder binder;
