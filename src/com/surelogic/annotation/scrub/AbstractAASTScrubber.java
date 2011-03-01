@@ -4,6 +4,9 @@ package com.surelogic.annotation.scrub;
 import java.util.*;
 import java.util.logging.Level;
 
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
+
 import com.surelogic.aast.*;
 import com.surelogic.aast.visitor.DescendingVisitor;
 import com.surelogic.annotation.*;
@@ -12,6 +15,7 @@ import com.surelogic.ast.Resolvable;
 import com.surelogic.ast.ResolvableToType;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.StorageType;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -20,6 +24,7 @@ import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ScopedPromiseDrop;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
 /**
@@ -334,6 +339,69 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		return true;
 	}
 	
+	protected void processAASTsForType(List<A> l) {
+		if (StorageType.SEQ.equals(stor.type())) {
+			for(A a : l) {
+		    /*
+			if ("MUTEX".equals(a.toString())) {
+				System.out.println("Scrubbing: "+a.toString());						
+			}
+            */
+				processAAST(a);
+			}
+		} else {
+			MultiMap<IRNode,A> annos = new MultiHashMap<IRNode, A>();
+			for(A a : l) {
+				annos.put(a.getPromisedFor(), a);
+			}
+			for(Map.Entry<IRNode,Collection<A>> e : annos.entrySet()) {
+				processAASTsByNode(e.getValue());
+			}
+		}
+	}
+	
+	protected void processAASTsByNode(Collection<A> l) {
+		if (l.size() == 1) {
+			processAAST(l.iterator().next());
+		} else if (l.isEmpty()) {
+			return;
+		} else {
+			// There should be at most one valid AAST
+			A processedUnsuccessfully = null;
+			for(A a : l) {
+				ScopedPromiseDrop pd = AASTStore.getPromiseSource(a);
+				if (pd == null) {
+					boolean success = processAAST(a);
+					if (success) {
+						for(A a2 : l) {
+							if (a2 != a) {
+								context.reportError("@Promise overridden by explicit annotation", a2);
+							}
+						}
+						return;					
+					} else {
+						processedUnsuccessfully = a;
+						break;
+					}
+				}
+			}
+			if (processedUnsuccessfully != null && l.size() <= 2) {			
+				// At most one other AAST, so use that one instead
+				for(A a : l) {
+					if (a != processedUnsuccessfully) {
+						processAAST(a);
+						return;
+					}
+				}
+			} else {
+				// Create warning for all ASTs
+				for(A a : l) {
+					context.reportError("More than one annotation applies", a);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Intended to be overridden
 	 * 
@@ -465,10 +533,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 				final IRNode decl = e.getKey();
 				startScrubbingType_internal(decl);
 				try {
-					for(A a : l) {
-						//System.out.println("Processing "+a);
-						processAAST(a);
-					}
+					processAASTsForType(l);
 				} finally {
 					finishScrubbingType_internal(decl);
 				}
@@ -560,14 +625,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 					 */
 				}
 				try {
-					for(A a : l) {
-					    /*
-						if ("MUTEX".equals(a.toString())) {
-							System.out.println("Scrubbing: "+a.toString());						
-						}
-                        */
-						processAAST(a);
-					}
+					processAASTsForType(l);
 				} finally {
 					finishScrubbingType_internal(decl);
 				}
@@ -592,6 +650,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 
 	private static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
 		public int compare(IAASTRootNode o1, IAASTRootNode o2) {
+			// TODO What about promisedFor
 			return o1.getOffset() - o2.getOffset();
 		}
 	};

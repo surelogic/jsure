@@ -27,11 +27,17 @@ public final class AASTStore {
     new HashMap<Class,Collection<? extends IAASTRootNode>>();
   
   /**
+   * Map from an AAST to the @Promise drop that created it
+   */
+  static final Map<IAASTRootNode, ScopedPromiseDrop> promiseSource = 
+	  new HashMap<IAASTRootNode, ScopedPromiseDrop>();
+  
+  /**
    * Map from the AAST to the comp unit that it is assumed for
    */
   static final Map<IAASTRootNode, IRNode> assumedFor =
 	new HashMap<IAASTRootNode, IRNode>();
-	
+  
   static IRNode assumedCu = null;
   
   /**
@@ -76,6 +82,7 @@ public final class AASTStore {
     triggers.clear();
     results.clear();
     assumedFor.clear();
+    promiseSource.clear();
   }
   
   @SuppressWarnings("unchecked")
@@ -163,5 +170,13 @@ public final class AASTStore {
   
   public static synchronized void sync() {	  
 	  //System.out.println("Syncing w/ AAST store");
+  }
+
+  public static void setPromiseSource(IAASTRootNode ast, ScopedPromiseDrop pd) {
+	  promiseSource.put(ast, pd);
+  }
+  
+  public static ScopedPromiseDrop getPromiseSource(IAASTRootNode ast) {
+	  return promiseSource.get(ast);
   }
 }

@@ -394,7 +394,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 	/**
 	 * Used to note the creation of an AAST (discarded afterwards)
 	 */
-	static class Proxy extends AnnotationParsingContextProxy {
+	static class Proxy extends AnnotationParsingContextProxy {		
 		private final IAnnotationParseRule<?, ?> rule;
 		private boolean reported;
 		private final Operator op;
@@ -442,6 +442,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 
 		@Override
     protected void postAASTCreate(final AASTRootNode root) {
+			AASTStore.setPromiseSource(root, callback.scopedPromiseDrop);
 			AASTStore.triggerWhenValidated(root, callback);
 			AASTStore.cloneTestResult(callback.scopedPromiseDrop.getAST(), root);
 		}
