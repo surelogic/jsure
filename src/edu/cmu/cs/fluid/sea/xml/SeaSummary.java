@@ -12,6 +12,7 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.*;
@@ -521,7 +522,8 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
 		public boolean isEmpty() {
 			if ("ProposedPromiseDrop".equals(name)) {
-				return newer.isEmpty(); // Ignore ones that disappeared -- most likely duplicates
+				// Ignore ones that disappeared -- most likely duplicates
+				return XUtil.ignoreProposals || newer.isEmpty(); 
 				//return true;
 				/*
 				if (AbstractWholeIRAnalysis.useDependencies) {
