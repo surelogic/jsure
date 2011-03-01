@@ -1174,11 +1174,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         }
         final IRNode typeFormals = SomeFunctionDeclaration.getTypes(mbind.getNode());
         final int numTypeFormals = numChildrenOrZero(typeFormals);
-        IJavaTypeSubstitution methodTypeSubst = null;
+        IJavaTypeSubstitution methodTypeSubst = IJavaTypeSubstitution.NULL;
         if (numTypeArgs != 0) {
           if (numTypeArgs != numTypeFormals) {
         	  continue findMethod;
           } else {
+        	  // Use explicit type arguments
         	  methodTypeSubst = FunctionParameterSubstitution.create(AbstractJavaBinder.this, 
           			                                                 mbind, targs);
           }
@@ -1232,7 +1233,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      */
     private BindingInfo matchMethod(IRNode targs, IRNode args, IJavaType[] argTypes, 
                                   IBinding mbind, IJavaType[] tmpTypes,
-                                  IJavaTypeSubstitution mSubst) {
+                                  final IJavaTypeSubstitution mSubst) {
       final int numTypeArgs = numChildrenOrZero(targs);
       IRNode mdecl = mbind.getNode();
       Operator op  = JJNode.tree.getOperator(mdecl);      
@@ -1273,7 +1274,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     private BindingInfo matchedParameters(IRNode targs, IRNode args, IJavaType[] argTypes, 
                                        IBinding mbind, IRNode formals, IJavaType[] tmpTypes, 
                                        Map<IJavaType,IJavaType> map,
-                                       IJavaTypeSubstitution mSubst) {
+                                       final IJavaTypeSubstitution mSubst) {
     	// Get the last parameter 
     	final IRNode varType;
     	IRLocation lastLoc = JJNode.tree.lastChildLocation(formals);
@@ -1388,21 +1389,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           return null;
         }
       }
-      if (map != null) {
-    	if (map.isEmpty()) {
-    		mSubst = IJavaTypeSubstitution.NULL;
-    	}
-    	else if (mSubst == null) {
-    	  mSubst = 
-    	    FunctionParameterSubstitution.create(AbstractJavaBinder.this, mbind.getNode(), map);
-    	} else {
-    		System.out.println("Reusing previously created substitution "+mSubst);
-    	}
-        if (mSubst != IJavaTypeSubstitution.NULL) {
-          return new BindingInfo(IBinding.Util.makeMethodBinding(mbind, mSubst), numBoxed, isVarArgs);
-        }
-      } else if (mSubst != null) {
-    	  System.out.println("Ignoring "+mSubst);
+
+      final IJavaTypeSubstitution subst;
+      if (map.isEmpty() && mSubst == IJavaTypeSubstitution.NULL) {
+    	  subst = 
+    		  FunctionParameterSubstitution.create(AbstractJavaBinder.this, mbind.getNode(), map);
+      } else {
+    	  if (mSubst != IJavaTypeSubstitution.NULL) {
+    		  System.out.println("Using explicit type arguments at call: "+mSubst);
+    	  }
+    	  subst = mSubst;
+      }
+      if (subst != IJavaTypeSubstitution.NULL) {
+    	  return new BindingInfo(IBinding.Util.makeMethodBinding(mbind, subst), numBoxed, isVarArgs);
       }
       return new BindingInfo(mbind, numBoxed, isVarArgs);
     }
