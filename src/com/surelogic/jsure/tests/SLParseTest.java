@@ -2022,8 +2022,6 @@ public class SLParseTest extends TestCase {
 
 		SelfProtected_ParseRuleHelper selfProtectedRulesHelper = new SelfProtected_ParseRuleHelper();
 
-		SingleThreaded_ParseRuleHelper singleThreadedRulesHelper = new SingleThreaded_ParseRuleHelper();
-
 		TestContext context = new TestContext(null, ClassDeclaration.prototype);
 
 		/* ****************** Test @Lock ******************************* */
@@ -2086,16 +2084,6 @@ public class SLParseTest extends TestCase {
 		assertTrue(context.getOffset() == 0);
 
 		/*
-		 * ****************** Test @SingleThreaded
-		 * *******************************
-		 */
-		context.setOp(ConstructorDeclaration.prototype);
-		singleThreadedRulesHelper.parse(context, "");
-		assertTrue(context.getError() == null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == 0);
-
-		/*
 		 * ****************** Test @SelfProtected
 		 * *******************************
 		 */
@@ -2132,8 +2120,6 @@ public class SLParseTest extends TestCase {
 		IsLock_ParseRuleHelper isLockRulesHelper = new IsLock_ParseRuleHelper();
 
 		SelfProtected_ParseRuleHelper selfProtectedRulesHelper = new SelfProtected_ParseRuleHelper();
-
-		SingleThreaded_ParseRuleHelper singleThreadedRulesHelper = new SingleThreaded_ParseRuleHelper();
 
 		TestContext context = new TestContext(null,
 				PackageDeclaration.prototype);
@@ -2265,40 +2251,6 @@ public class SLParseTest extends TestCase {
 
 		context.setOp(ParameterDeclaration.prototype);
 		isLockRulesHelper.parse(context, "L1");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		/*
-		 * ****************** Test @SingleThreaded
-		 * *******************************
-		 */
-		context.setOp(MethodDeclaration.prototype);
-		singleThreadedRulesHelper.parse(context, "");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		context.setOp(ClassDeclaration.prototype);
-		singleThreadedRulesHelper.parse(context, "");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		context.setOp(ParameterDeclaration.prototype);
-		singleThreadedRulesHelper.parse(context, "");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		context.setOp(FieldDeclaration.prototype);
-		singleThreadedRulesHelper.parse(context, "");
-		assertTrue(context.getError() != null);
-		assertTrue(context.getException() == null);
-		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
-
-		context.setOp(PackageDeclaration.prototype);
-		singleThreadedRulesHelper.parse(context, "");
 		assertTrue(context.getError() != null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);

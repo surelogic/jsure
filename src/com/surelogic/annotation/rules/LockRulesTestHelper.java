@@ -50,11 +50,5 @@ public class LockRulesTestHelper extends LockRules {
 			super();
 		}
 	}
-	public static class SingleThreaded_ParseRuleHelper extends SingleThreaded_ParseRule{
-		
-		public SingleThreaded_ParseRuleHelper(){
-			super();
-		}
-	}
 
 }
