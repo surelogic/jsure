@@ -524,11 +524,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     T rv = defaultValue;
     return rv;
   }
-
-  public T visit(SingleThreadedNode n) {
-    T rv = defaultValue;
-    return rv;
-  }
   
   public T visit(TypeExpressionNode n) {
     T rv = defaultValue;

@@ -52,7 +52,6 @@ public class LockRules extends AnnotationRules {
 	private static final RequiresLock_ParseRule requiresLockRule = new RequiresLock_ParseRule();
 	private static final ReturnsLock_ParseRule returnsLockRule = new ReturnsLock_ParseRule();
 	//private static final ProhibitsLock_ParseRule prohibitsLockRule = new ProhibitsLock_ParseRule();
-  private static final SingleThreaded_ParseRule singleThreadedRule = new SingleThreaded_ParseRule();
   private static final Containable_ParseRule containableRule = new Containable_ParseRule();
   private static final SelfProtected_ParseRule selfProtectedRule = new SelfProtected_ParseRule();
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
@@ -142,16 +141,6 @@ public class LockRules extends AnnotationRules {
 	public static IsLockPromiseDrop getIsLock(IRNode vdecl) {
 		return getDrop(isLockRule.getStorage(), vdecl);
 	}
-
-	@Deprecated
-  public static boolean isSingleThreaded(IRNode cdecl) {
-    return getSingleThreadedDrop(cdecl) != null;
-  }
-
-  @Deprecated
-  public static SingleThreadedPromiseDrop getSingleThreadedDrop(IRNode cdecl) {
-    return getBooleanDrop(singleThreadedRule.getStorage(), cdecl);
-  }
   
   public static boolean isContainable(final IRNode cdecl) {
     return getContainableDrop(cdecl) != null;
@@ -194,7 +183,6 @@ public class LockRules extends AnnotationRules {
 		registerParseRuleStorage(fw, requiresLockRule);
 		registerParseRuleStorage(fw, returnsLockRule);
 		//registerParseRuleStorage(fw, prohibitsLockRule);
-    registerParseRuleStorage(fw, singleThreadedRule);
     registerParseRuleStorage(fw, containableRule);
     registerParseRuleStorage(fw, selfProtectedRule);
     registerParseRuleStorage(fw, notThreadSafeRule);
@@ -1417,31 +1405,6 @@ public class LockRules extends AnnotationRules {
 					binder);
 		}
 	}
-  
-  public static class SingleThreaded_ParseRule 
-  extends SimpleBooleanAnnotationParseRule<SingleThreadedNode,SingleThreadedPromiseDrop> {
-    public SingleThreaded_ParseRule() {
-      super(SINGLE_THREADED, constructorOp, SingleThreadedNode.class);
-    }
-    @Override
-    protected IAASTRootNode makeAAST(int offset) {
-      return new SingleThreadedNode(offset);
-    }
-    @Override
-    protected IPromiseDropStorage<SingleThreadedPromiseDrop> makeStorage() {
-      return BooleanPromiseDropStorage.create(name(), SingleThreadedPromiseDrop.class);
-    }
-    @Override
-    protected IAnnotationScrubber<SingleThreadedNode> makeScrubber() {
-      return new AbstractAASTScrubber<SingleThreadedNode>(this) {
-        @Override
-        protected PromiseDrop<SingleThreadedNode> makePromiseDrop(SingleThreadedNode a) {
-          SingleThreadedPromiseDrop d = new SingleThreadedPromiseDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
-        }
-      };
-    }    
-  }  
   
   public static class Containable_ParseRule 
   extends SimpleBooleanAnnotationParseRule<ContainableNode,ContainablePromiseDrop> {
