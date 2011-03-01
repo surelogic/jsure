@@ -521,6 +521,7 @@ public class SeaSummary extends AbstractSeaXmlCreator {
 
 		public boolean isEmpty() {
 			if ("ProposedPromiseDrop".equals(name)) {
+				return newer.isEmpty(); // Ignore ones that disappeared -- most likely duplicates
 				//return true;
 				/*
 				if (AbstractWholeIRAnalysis.useDependencies) {
