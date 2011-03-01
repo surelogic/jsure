@@ -17,7 +17,6 @@ package EDU.oswego.cs.dl.util.concurrent;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -102,7 +101,6 @@ public class CyclicBarrier implements Barrier {
    * and no command to run at each barrier.
    * @exception IllegalArgumentException if parties less than or equal to zero.
    **/
-  @SingleThreaded
   @Starts("nothing")
   @RegionEffects("none")
   public CyclicBarrier(int parties) { this(parties, null); }
@@ -112,7 +110,7 @@ public class CyclicBarrier implements Barrier {
    * and the given command to run at each barrier point.
    * @exception IllegalArgumentException if parties less than or equal to zero.
    **/
-  @SingleThreaded  @RegionEffects("none") // keep on this line to avoid changing line numbers
+  @RegionEffects("none")
   public CyclicBarrier(int parties, Runnable command) { 
     if (parties <= 0) throw new IllegalArgumentException();
     parties_ = parties; 

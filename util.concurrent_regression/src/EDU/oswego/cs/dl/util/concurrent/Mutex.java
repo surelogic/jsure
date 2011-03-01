@@ -111,7 +111,6 @@ import com.surelogic.RegionLock;
 **/
 @RegionLock("MetaLock is this protects Instance")
 @Promises({
-	@Promise("@SingleThreaded for new(**)"),
 	@Promise("@Borrowed(this) for new(**)")
 })
 public class Mutex implements Sync  {

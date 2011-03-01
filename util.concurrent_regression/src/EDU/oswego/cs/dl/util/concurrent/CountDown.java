@@ -15,7 +15,6 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * A CountDown can serve as a simple one-shot barrier. 
@@ -62,7 +61,6 @@ public class CountDown implements Sync {
   /** 
    * Create a new CountDown with given count value
    **/
-  @SingleThreaded
   @Borrowed("this")
   public CountDown(int count) { count_ = initialCount_ = count; }
 

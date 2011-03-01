@@ -3,7 +3,6 @@ package test_requiresLock_for_parameters;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * Simple class whose methods all have lock preconditions.  Used by
@@ -15,7 +14,6 @@ public class C {
   private int x;
   private int y;
   
-  @SingleThreaded
   @Borrowed("this")
   public C() {
     this.x = 0;

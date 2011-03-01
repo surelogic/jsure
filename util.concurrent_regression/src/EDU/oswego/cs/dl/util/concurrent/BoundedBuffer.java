@@ -23,7 +23,6 @@ import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.Regions;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * Efficient array-based bounded buffer class.
@@ -61,7 +60,6 @@ public class BoundedBuffer implements BoundedChannel {
    * Create a BoundedBuffer with the given capacity.
    * @exception IllegalArgumentException if capacity less or equal to zero
    **/
-  @SingleThreaded
   @Borrowed("this")
   public BoundedBuffer(int capacity) throws IllegalArgumentException {
     if (capacity <= 0) throw new IllegalArgumentException();
@@ -72,7 +70,6 @@ public class BoundedBuffer implements BoundedChannel {
   /**
    * Create a buffer with the current default capacity
    **/
-  @SingleThreaded
   @Borrowed("this")
   public BoundedBuffer() { 
     this(DefaultChannelCapacity.get()); 

@@ -15,7 +15,6 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 import com.surelogic.InRegion;
 import com.surelogic.RegionEffects;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -33,7 +32,6 @@ public class SynchronizedShort extends SynchronizedVariable implements Comparabl
    * Make a new SynchronizedShort with the given initial value,
    * and using its own internal lock.
    **/
-  @SingleThreaded
   @RegionEffects("none")
   @Starts("nothing")
   public SynchronizedShort(short initialValue) { 
@@ -45,7 +43,6 @@ public class SynchronizedShort extends SynchronizedVariable implements Comparabl
    * Make a new SynchronizedShort with the given initial value,
    * and using the supplied lock.
    **/
-  @SingleThreaded
   @RegionEffects("none")
   @Starts("nothing")
   public SynchronizedShort(short initialValue, Object lock) { 

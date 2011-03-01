@@ -6,7 +6,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
-import com.surelogic.SingleThreaded;
 
 
 @RegionLocks({
@@ -33,7 +32,6 @@ public class SingleThreadedTest {
   
 
   
-  @SingleThreaded
   @Borrowed("this")
   public SingleThreadedTest() {
     // Holds L1.w, L2.w, L3.w

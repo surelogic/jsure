@@ -26,7 +26,6 @@ import com.surelogic.RegionLock;
  **/
 @RegionLock("FactoryLock is this protects threadFactory_")
 @Promises({
-	@Promise("@SingleThreaded for new(**)"),
 	@Promise("@Borrowed(this) for new(**)")
 })
 

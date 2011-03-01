@@ -40,7 +40,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 /**

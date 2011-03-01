@@ -21,7 +21,6 @@ import com.surelogic.Promise;
 import com.surelogic.Promises;
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -196,7 +195,6 @@ public class Rendezvous implements Barrier {
    * and the default Rotator function to run at each barrier point.
    * @exception IllegalArgumentException if parties less than or equal to zero.
    **/
-  @SingleThreaded
   @Borrowed("this")
   public Rendezvous(int parties) {
     this(parties, new Rotator());
@@ -209,7 +207,6 @@ public class Rendezvous implements Barrier {
    * @exception IllegalArgumentException
    *              if parties less than or equal to zero.
    */
-  @SingleThreaded
   @RegionEffects("none")
   @Starts("nothing")
   @Borrowed("this")

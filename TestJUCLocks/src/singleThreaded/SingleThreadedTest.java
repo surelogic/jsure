@@ -5,7 +5,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLocks;
-import com.surelogic.SingleThreaded;
 
 @RegionLocks({
   @com.surelogic.RegionLock("L1 is l1 protects f1"),
@@ -31,7 +30,6 @@ public class SingleThreadedTest {
   
 
   
-  @SingleThreaded
   @Borrowed("this")
   public SingleThreadedTest() {
     // Holds L1, L2, L3

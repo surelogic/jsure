@@ -42,7 +42,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * <p>
@@ -101,7 +100,6 @@ public class HttpClient {
      *
      * @see HttpClientParams
      */
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public HttpClient() {
         this(new HttpClientParams());
@@ -117,7 +115,6 @@ public class HttpClient {
      *
      * @since 3.0
      */
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public HttpClient(HttpClientParams params) {
         super();
@@ -155,7 +152,6 @@ public class HttpClient {
      *
      * @since 3.0
      */
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public HttpClient(HttpClientParams params, HttpConnectionManager httpConnectionManager) {
         super();
@@ -179,7 +175,6 @@ public class HttpClient {
      *
      * @since 2.0
      */
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public HttpClient(HttpConnectionManager httpConnectionManager) {
         this(new HttpClientParams(), httpConnectionManager);

@@ -30,7 +30,6 @@ import com.surelogic.Promise;
 import com.surelogic.Promises;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 @Region("EntryRegion")
@@ -73,7 +72,6 @@ public class ConcurrentQueueBlockingImpl<V> implements ConcurrentQueue<V> {
 	@InRegion("EntryRegion")
 	int count = 0;
 
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/ )
     public ConcurrentQueueBlockingImpl(){
 

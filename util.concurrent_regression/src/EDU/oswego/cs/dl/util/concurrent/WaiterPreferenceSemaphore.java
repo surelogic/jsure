@@ -16,7 +16,6 @@
 package EDU.oswego.cs.dl.util.concurrent;
 
 import com.surelogic.RegionEffects;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -56,7 +55,6 @@ public final class WaiterPreferenceSemaphore extends Semaphore  {
   /** 
    * Create a Semaphore with the given initial number of permits.
   **/
-	  @SingleThreaded
 	  @RegionEffects("none")
 	  @Starts("nothing")
   public WaiterPreferenceSemaphore(long initial) {  super(initial); }

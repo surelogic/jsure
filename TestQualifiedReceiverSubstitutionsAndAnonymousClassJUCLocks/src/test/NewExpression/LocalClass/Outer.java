@@ -6,7 +6,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 @RegionLock("F is lockF protects f")
 public class Outer {
@@ -21,7 +20,6 @@ public class Outer {
       public int g;
       
       @RequiresLock("Outer.this:F")
-      @SingleThreaded
       @Borrowed("this")
       public LocalClass() {
         Outer.this.f = 10;
@@ -116,7 +114,6 @@ public class Outer {
       public int g;
       
       @RequiresLock("Outer.this:F")
-      @SingleThreaded
       @Borrowed("this")
       public LocalClass_om2() {
         Outer.this.f = 10;
@@ -131,7 +128,6 @@ public class Outer {
           public int h;
           
           @RequiresLock("LocalClass_om2.this:G, Outer.this:F")
-          @SingleThreaded
           @Borrowed("this")
           public MoreLocalClass_om2() {
             this.h = 10;
@@ -245,7 +241,6 @@ public class Outer {
     public final Lock lockFF = new ReentrantLock();
     public int ff = 100;
     
-    @SingleThreaded
     @Borrowed("this")
     public Middle() {
       // do nothing
@@ -259,7 +254,6 @@ public class Outer {
         public int g;
         
         @RequiresLock("Outer.this:F, Middle.this:FF")
-        @SingleThreaded
         @Borrowed("this")
         public LocalClass_m_om() {
           Outer.this.f = 10;
@@ -366,7 +360,6 @@ public class Outer {
         public int g;
         
         @RequiresLock("Outer.this:F, Middle.this:FF")
-        @SingleThreaded
         @Borrowed("this")
         public LocalClass_m_om2() {
           Outer.this.f = 10;
@@ -382,7 +375,6 @@ public class Outer {
             public int h;
             
             @RequiresLock("LocalClass_m_om2.this:G, Middle.this:FF, Outer.this:F")
-            @SingleThreaded
             @Borrowed("this")
             public MoreLocalClass() {
               this.h = 10;

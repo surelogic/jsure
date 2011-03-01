@@ -38,7 +38,6 @@ import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 /** Manage connections that are initiated from another VM.
@@ -83,7 +82,6 @@ public final class InboundConnectionCacheBlockingImpl<C extends Closeable>
         }
     }
 
-    @SingleThreaded
     public InboundConnectionCacheBlockingImpl( final String cacheType,
             final int highWaterMark, final int numberToReclaim,
             Logger logger ) {

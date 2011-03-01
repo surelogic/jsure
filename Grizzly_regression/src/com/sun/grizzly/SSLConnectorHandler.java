@@ -47,7 +47,6 @@ import com.sun.grizzly.util.SSLOutputWriter;
 import com.sun.grizzly.util.SSLUtils;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * <p>
@@ -201,19 +200,16 @@ public class SSLConnectorHandler implements ConnectorHandler<SSLSelectorHandler,
      */
     private SSLContext sslContext;
     
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public SSLConnectorHandler() {
         this(defaultSSLContext);
     }
     
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public SSLConnectorHandler(SSLConfig sslConfig) {
         this(sslConfig.createSSLContext());
     }
     
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public SSLConnectorHandler(SSLContext sslContext) {
         if (sslContext == null) {

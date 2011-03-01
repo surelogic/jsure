@@ -26,7 +26,6 @@ import com.sun.grizzly.connectioncache.spi.concurrent.ConcurrentQueue;
 import com.sun.grizzly.connectioncache.spi.transport.ConnectionCache;
 import com.surelogic.Promise;
 import com.surelogic.Promises;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Borrowed;
 
 import java.io.Closeable;
@@ -77,7 +76,6 @@ public abstract class ConnectionCacheBase<C extends Closeable>
     @Borrowed("this")
     protected abstract String thisClassName() ;
 
-    @SingleThreaded
     @Borrowed("this")
     ConnectionCacheBase( final String cacheType, 
 	final int highWaterMark, final int numberToReclaim, 

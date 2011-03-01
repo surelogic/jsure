@@ -7,7 +7,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 @RegionLocks({
   @RegionLock("T1 is lockT1 protects t1"),
@@ -39,7 +38,6 @@ public class Test {
         Container.this.c1 = 10;
       }
       
-      @SingleThreaded
       @Borrowed("this")
       @RequiresLock("Test.this:T1, test.AnonymousClass.SuperIsMember.Unqualified.TwoLevels.Test.Container.this:C1")
       public Super() {

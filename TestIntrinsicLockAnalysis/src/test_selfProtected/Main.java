@@ -2,7 +2,6 @@ package test_selfProtected;
 
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 @RegionLock("L is this protects Instance")
 public class Main {
@@ -12,7 +11,6 @@ public class Main {
   private F f = new F();
   private G g = new G();
   
-  @SingleThreaded
   @Borrowed("this")
   public Main() { }
   

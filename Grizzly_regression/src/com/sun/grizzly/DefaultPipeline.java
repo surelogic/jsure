@@ -37,7 +37,6 @@ import com.surelogic.Promise;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 /**
@@ -142,13 +141,11 @@ public class DefaultPipeline extends LinkedList<Callable>
     // ------------------------------------------------------- Constructor -----/
 
 
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public DefaultPipeline(){
         super();
     }
 
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public DefaultPipeline(int maxThreads, int minThreads, String name,
             int port, int priority){
@@ -165,7 +162,6 @@ public class DefaultPipeline extends LinkedList<Callable>
     }
 
 
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public DefaultPipeline(int maxThreads, int minThreads, String name,
             int port){

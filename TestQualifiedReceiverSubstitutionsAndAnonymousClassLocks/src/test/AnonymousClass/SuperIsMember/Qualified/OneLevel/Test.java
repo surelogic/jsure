@@ -7,7 +7,6 @@ import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 @RegionLocks({
@@ -33,7 +32,6 @@ public class Test {
     public int f;
     
     @RequiresLock("Test.this:T1")
-    @SingleThreaded
     @Borrowed("this")
     @RegionEffects("writes Test.this:t1")
     public Super() {

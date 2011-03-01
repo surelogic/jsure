@@ -1,7 +1,6 @@
 package uniqueReturn;
 
 import com.surelogic.RegionEffects;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 import com.surelogic.Unique;
 
@@ -9,20 +8,17 @@ public class TestSingleThreaded {
 	public Object alias;
 	private int value;
 	
-	@SingleThreaded
 	@Unique("return")
 	public TestSingleThreaded() {
 		value = 0;
 	}
 	
-	@SingleThreaded
 	@Starts("nothing")
 	@RegionEffects("none")
 	public TestSingleThreaded(final int v) {
 		value = v;
 	}
 	
-	@SingleThreaded
 	@Starts("nothing")
 	@RegionEffects("none")
 	@Unique("return")
@@ -30,7 +26,6 @@ public class TestSingleThreaded {
 		value = v + w;
 	}
 	
-	@SingleThreaded
 	@Starts("nothing")
 	@RegionEffects("none")
 	@Unique("return")  // violated by this one
@@ -39,7 +34,6 @@ public class TestSingleThreaded {
 		alias = this;
 	}
 	
-	@SingleThreaded
 	@Starts("nothing")// violated by this one
 	@RegionEffects("none")
 	@Unique("return")

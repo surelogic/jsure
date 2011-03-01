@@ -21,7 +21,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 /**
@@ -51,7 +50,6 @@ public class Heap  {
    * Create a Heap with the given initial capacity and comparator
    * @exception IllegalArgumentException if capacity less or equal to zero
    **/
-  @SingleThreaded
   @Borrowed("this")
   public Heap(int capacity, Comparator cmp) 
    throws IllegalArgumentException {
@@ -64,7 +62,6 @@ public class Heap  {
    * Create a Heap with the given capacity,
    * and relying on natural ordering.
    **/
-  @SingleThreaded
   @Borrowed("this")
   public Heap(int capacity) { 
     this(capacity, null); 

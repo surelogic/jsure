@@ -5,7 +5,6 @@ import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 
 /**
@@ -21,7 +20,6 @@ public class TestInstanceFieldRefs {
   private Object protectedField = new Object();
   
   
-  @SingleThreaded
   @Borrowed("this")
   public TestInstanceFieldRefs() {
     // Needed to protect the initialization of "protectedField"

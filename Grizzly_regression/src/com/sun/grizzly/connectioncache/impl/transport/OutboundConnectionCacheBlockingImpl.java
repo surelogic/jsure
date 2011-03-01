@@ -45,7 +45,6 @@ import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.Regions;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 //@Region("protected TotalRegion")

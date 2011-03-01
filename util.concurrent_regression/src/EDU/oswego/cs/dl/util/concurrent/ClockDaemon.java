@@ -18,7 +18,6 @@ import java.util.Date;
 
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * A general-purpose time-based daemon, vaguely similar in functionality
@@ -88,13 +87,11 @@ public class ClockDaemon extends ThreadFactoryUser  {
       return (a < b)? -1 : ((a == b)? 0 : 1);
     }
 
-    @SingleThreaded
     @Borrowed("this")
     TaskNode(long w, Runnable c, long p) {
       timeToRun_ = w; command = c; period = p;
     }
 
-    @SingleThreaded
     @Borrowed("this")
     TaskNode(long w, Runnable c) { this(w, c, -1); }
   }

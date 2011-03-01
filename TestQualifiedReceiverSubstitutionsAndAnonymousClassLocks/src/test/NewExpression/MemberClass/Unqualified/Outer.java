@@ -3,7 +3,6 @@ package test.NewExpression.MemberClass.Unqualified;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 @RegionLock("F is lockF protects f")
 public class Outer {
@@ -16,7 +15,6 @@ public class Outer {
     public int g;
     
     @RequiresLock("Outer.this:F")
-    @SingleThreaded
     @Borrowed("this")
     public Middle() {
       this.g = 10;
@@ -36,7 +34,6 @@ public class Outer {
       public int h;
       
       @RequiresLock("Outer.this:F, test.NewExpression.MemberClass.Unqualified.Outer.Middle.this:G")
-      @SingleThreaded
       @Borrowed("this")
       public Inner() {
         this.h = 5;
@@ -73,7 +70,6 @@ public class Outer {
         public int g;
         
         @RequiresLock("test.NewExpression.MemberClass.Unqualified.Outer.Static1.Outer2.this:XX")
-        @SingleThreaded
         @Borrowed("this")
         public Middle() {
           this.g = 10;
@@ -91,7 +87,6 @@ public class Outer {
           public int h;
           
           @RequiresLock("test.NewExpression.MemberClass.Unqualified.Outer.Static1.Outer2.Middle.this:G, test.NewExpression.MemberClass.Unqualified.Outer.Static1.Outer2.this:XX")
-          @SingleThreaded
           @Borrowed("this")
           public Inner() {
             this.h = 5;

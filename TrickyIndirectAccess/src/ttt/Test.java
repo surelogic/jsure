@@ -7,7 +7,6 @@ import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.Region;
 import com.surelogic.Regions;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 @RegionLocks({
@@ -28,7 +27,6 @@ public class Test {
   @Aggregate("Instance into S2, f1 into R1, f2 into R2")
   private final Inner f = new Inner();
   
-  @SingleThreaded
   @Borrowed("this")
   public Test() {
     super();

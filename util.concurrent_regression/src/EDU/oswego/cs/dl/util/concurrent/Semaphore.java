@@ -18,7 +18,6 @@ package EDU.oswego.cs.dl.util.concurrent;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -103,7 +102,6 @@ public class Semaphore implements Sync  {
    * Negative seeds are also allowed, in which case no acquires will proceed
    * until the number of releases has pushed the number of permits past 0.
   **/
-  @SingleThreaded
   @Borrowed("this")
   @Starts("nothing")
   @RegionEffects("none")

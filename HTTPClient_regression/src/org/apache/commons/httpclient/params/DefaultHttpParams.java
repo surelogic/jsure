@@ -40,7 +40,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * This class represents a collection of HTTP protocol parameters. Protocol
@@ -109,7 +108,6 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 	 *            the parent collection to defer to, if a parameter is not
 	 *            explictly set in the collection itself.
 	 */
-	@SingleThreaded
 	@Borrowed("this" /*is CONSISTENT*/)
 	public DefaultHttpParams(final HttpParams defaults) {
 		super();
@@ -124,7 +122,6 @@ public class DefaultHttpParams implements HttpParams, Serializable, Cloneable {
 	 *
 	 * @see #getDefaultParams()
 	 */
-	@SingleThreaded
 	@Borrowed("this" /*is CONSISTENT*/)
 	public DefaultHttpParams() {
 		this(getDefaultParams());

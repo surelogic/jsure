@@ -17,7 +17,6 @@ import java.lang.reflect.*;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * A  class maintaining a single reference variable serving as the result
@@ -62,7 +61,6 @@ public class FutureResult {
   /** 
    * Create an initially unset FutureResult
    **/
-  @SingleThreaded
   @Borrowed("this")
   public FutureResult() { }
 

@@ -6,7 +6,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.surelogic.Borrowed;
 import com.surelogic.RequiresLock;
 import com.surelogic.ReturnsLock;
-import com.surelogic.SingleThreaded;
 
 @com.surelogic.RegionLock("L is lockField protects Instance")
 public class Test {
@@ -25,7 +24,6 @@ public class Test {
     y = 2;
   }
 
-  @SingleThreaded
   @Borrowed("this")
   public Test(int a, int b) {
     // Holds L

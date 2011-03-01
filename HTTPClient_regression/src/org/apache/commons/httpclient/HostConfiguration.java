@@ -38,7 +38,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 import java.net.InetAddress;
 
@@ -88,7 +87,6 @@ public class HostConfiguration implements Cloneable {
 	/**
 	 * Constructor for HostConfiguration.
 	 */
-	@SingleThreaded
 	@Borrowed("this"/*is CONSISTENT*/)
 	public HostConfiguration() {
 		super();
@@ -100,7 +98,6 @@ public class HostConfiguration implements Cloneable {
 	 * @param hostConfiguration
 	 *            the hostConfiguration to copy
 	 */
-	@SingleThreaded
 	@Borrowed("this"/*is CONSISTENT*/)
 	public HostConfiguration(final HostConfiguration hostConfiguration) {
 		init(hostConfiguration);

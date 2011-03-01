@@ -33,7 +33,6 @@ import com.surelogic.RegionLock;
  **/
 @RegionLock("ItemLock is this protects item_")
 @Promises({
-	@Promise("@SingleThreaded for new(**)"),
 	@Promise("@Borrowed(this) for new(**)")
 })
 public class Slot extends SemaphoreControlledChannel {

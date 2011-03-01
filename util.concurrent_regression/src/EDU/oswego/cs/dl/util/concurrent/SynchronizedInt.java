@@ -15,7 +15,6 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 import com.surelogic.InRegion;
 import com.surelogic.RegionEffects;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -33,7 +32,6 @@ public class SynchronizedInt extends SynchronizedVariable implements Comparable,
    * Make a new SynchronizedInt with the given initial value,
    * and using its own internal lock.
    **/
-	  @SingleThreaded
 	  @RegionEffects("none")
 	  @Starts("nothing")
   public SynchronizedInt(int initialValue) { 
@@ -45,7 +43,6 @@ public class SynchronizedInt extends SynchronizedVariable implements Comparable,
    * Make a new SynchronizedInt with the given initial value,
    * and using the supplied lock.
    **/
-	  @SingleThreaded
 	  @RegionEffects("none")
 	  @Starts("nothing")
   public SynchronizedInt(int initialValue, Object lock) { 

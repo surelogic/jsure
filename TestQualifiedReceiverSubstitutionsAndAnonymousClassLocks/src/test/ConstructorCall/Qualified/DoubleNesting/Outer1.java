@@ -3,14 +3,12 @@ package test.ConstructorCall.Qualified.DoubleNesting;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 @RegionLock("F1 is lockF1 protects f1")
 public class Outer1 {
   public final Object lockF1 = new Object();
   public int f1;
 
-  @SingleThreaded
   @Borrowed("this")
   public Outer1() {
     f1 = 0;
@@ -21,7 +19,6 @@ public class Outer1 {
     public final Object lockF2 = new Object();
     public int f2;
     
-    @SingleThreaded
     @Borrowed("this")
     public Nested1() {
       f2 = 1;
@@ -33,7 +30,6 @@ public class Outer1 {
       public int f3;
       
       @RequiresLock("Outer1.this:F1, test.ConstructorCall.Qualified.DoubleNesting.Outer1.Nested1.this:F2")
-      @SingleThreaded
       @Borrowed("this")
       public Nested2(final int z) {
         this.f3 = z;

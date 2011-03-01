@@ -2,7 +2,6 @@ package test_static_lock_semantics.sibling;
 
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -20,7 +19,6 @@ public class X {
   // GOOD: protected by single-threaded constructor
   public int foo = 0;
   
-  @SingleThreaded
   @RegionEffects("none")
   @Starts("nothing")
   public X() {}

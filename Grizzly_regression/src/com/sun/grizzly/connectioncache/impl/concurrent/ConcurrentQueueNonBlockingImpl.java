@@ -28,7 +28,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Unique;
 
 @Region("HeadRegion")
@@ -60,7 +59,6 @@ public class ConcurrentQueueNonBlockingImpl<V> implements ConcurrentQueue<V> {
     @InRegion("HeadRegion")
     int count = 0 ;
 
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     public ConcurrentQueueNonBlockingImpl(){
 

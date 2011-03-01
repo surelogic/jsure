@@ -2,7 +2,6 @@ package test_singleThreaded_constructor;
 
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -19,7 +18,6 @@ public class TestEffects {
    * GOOD: The constructor writes nothing outside of itself and starts
    * no threads.
    */
-  @SingleThreaded
   @RegionEffects("none")
   @Starts("nothing")
   public TestEffects(int a, int b) {
@@ -33,7 +31,6 @@ public class TestEffects {
    * GOOD: The constructor writes nothing outside of itself (although it reads
    * from other objects), and starts no threads, even though it creates a thread.
    */
-  @SingleThreaded
   @RegionEffects("reads a:Instance, b:Instance")
   @Starts("nothing")
   public TestEffects(MyInt a, MyInt b) {
@@ -49,7 +46,6 @@ public class TestEffects {
    * BAD: The constructor writes nothing outside of itself (although it reads
    * from other objects), but it starts a thread.
    */
-  @SingleThreaded
   @RegionEffects("reads a:Instance")
   @Starts("nothing")
   public TestEffects(MyInt a) {

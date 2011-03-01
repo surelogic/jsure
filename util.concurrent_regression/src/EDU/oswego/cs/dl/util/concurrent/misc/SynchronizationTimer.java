@@ -35,7 +35,6 @@ import com.surelogic.Promise;
 import com.surelogic.Promises;
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 //import com.sun.java.swing.*;
@@ -328,14 +327,12 @@ public class SynchronizationTimer {
       return true;
     }
 
-    @SingleThreaded
     @Borrowed("this")
     TestedClass(String n, Class c, boolean m, boolean sok) {
       name = n; cls = c; multipleOK = m; singleOK = sok;
       buffCls = null;
     }
 
-    @SingleThreaded
     @Borrowed("this")
     TestedClass(String n, Class c, boolean m, boolean sok, Class bc) {
       name = n; cls = c; multipleOK = m; singleOK = sok;
@@ -489,7 +486,6 @@ public class SynchronizationTimer {
     final int number;
     Boolean enabled;
 
-    @SingleThreaded
     @RegionEffects("none")
     @Starts("nothing")
     ThreadInfo(int nthr) {
@@ -1280,7 +1276,6 @@ public class SynchronizationTimer {
 
   @RegionLock("L is this protects Instance")
   @Promises({
-	  @Promise("@SingleThreaded for new()"),
 	  @Promise("@Borrowed(this) for new()")
   })
   static class BarrierTimer implements Runnable {

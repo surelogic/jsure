@@ -3,7 +3,6 @@ package test_requiresLock_for_parameters;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * Tests that requiresLock works on method parameters and that it is properly
@@ -13,7 +12,6 @@ import com.surelogic.SingleThreaded;
 public class Test {
   private int z;
   
-  @SingleThreaded
   @Borrowed("this")
   public Test() {
     this.z = 0;

@@ -23,7 +23,6 @@ import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.Regions;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -76,7 +75,6 @@ public class LinkedQueue implements Channel {
   @InRegion("PutInfo")
   protected int waitingForTake_ = 0;  
 
-  @SingleThreaded
   @RegionEffects("none")
   @Starts("nothing")
   public LinkedQueue() {

@@ -16,7 +16,6 @@ import java.util.*;
 
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 /**
  * The ObservableSync class performs no synchronization
@@ -67,7 +66,6 @@ public class ObservableSync implements Sync {
    * for all notifications. The argument is typically an
    * object that is being managed by this Sync object.
    **/
-  @SingleThreaded
   @Borrowed("this")
   public ObservableSync(Object notificationArgument) {
     arg_ = notificationArgument;

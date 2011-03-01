@@ -4,7 +4,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 @RegionLocks({
   @RegionLock("F1 is lockF1 protects f1"),
@@ -16,7 +15,6 @@ public class Outer1 {
   public int f1;
   public int f2;
 
-  @SingleThreaded
   @Borrowed("this")
   public Outer1() {
     f1 = 0;
@@ -29,7 +27,6 @@ public class Outer1 {
     public int f3;
     
     @RequiresLock("Outer1.this:F1, Outer1.this:F2")
-    @SingleThreaded
     @Borrowed("this")
     public Nested(final int y) {
       this.f3 = y;

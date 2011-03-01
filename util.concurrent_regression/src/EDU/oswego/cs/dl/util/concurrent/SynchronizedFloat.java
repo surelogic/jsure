@@ -15,7 +15,6 @@ package EDU.oswego.cs.dl.util.concurrent;
 
 import com.surelogic.InRegion;
 import com.surelogic.RegionEffects;
-import com.surelogic.SingleThreaded;
 import com.surelogic.Starts;
 
 /**
@@ -33,7 +32,6 @@ public class SynchronizedFloat extends SynchronizedVariable implements Comparabl
    * Make a new SynchronizedFloat with the given initial value,
    * and using its own internal lock.
    **/
-	  @SingleThreaded
 	  @RegionEffects("none")
 	  @Starts("nothing")
   public SynchronizedFloat(float initialValue) { 
@@ -45,7 +43,6 @@ public class SynchronizedFloat extends SynchronizedVariable implements Comparabl
    * Make a new SynchronizedFloat with the given initial value,
    * and using the supplied lock.
    **/
-	  @SingleThreaded
 	  @RegionEffects("none")
 	  @Starts("nothing")
   public SynchronizedFloat(float initialValue, Object lock) { 

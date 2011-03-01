@@ -7,7 +7,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 @RegionLocks({
   @RegionLock("COUNT is lockCount protects count"),
@@ -20,7 +19,6 @@ public class Super {
   public static final Lock lockCount = new ReentrantLock();
   public static int count = 0;
   
-  @SingleThreaded
   @Borrowed("this")
   @RequiresLock("COUNT")
   public Super() {

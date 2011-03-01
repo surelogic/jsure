@@ -30,7 +30,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.SingleThreaded;
 
 @Region("protected TotalRegion")
 @RegionLock("L is this protects TotalRegion"/*is CONSISTENT*/)
@@ -42,7 +41,6 @@ abstract class ConnectionCacheBlockingBase<C extends Closeable>
 	@InRegion("TotalRegion")
     protected int totalIdle ;	// Number of idle connections
     
-    @SingleThreaded
     @Borrowed("this"/*is CONSISTENT*/)
     ConnectionCacheBlockingBase( String cacheType, int highWaterMark,
             int numberToReclaim, Logger logger ) {

@@ -7,7 +7,6 @@ import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.RequiresLock;
-import com.surelogic.SingleThreaded;
 
 /* Want to have different levels of nested of Super -- in direct inner classes and in local classes!
  * Want to have different levels of nested of anonymous class
@@ -48,7 +47,6 @@ public class Outer1 {
         class Super {
           public int f;
           
-          @SingleThreaded
           @Borrowed("this")
           @RequiresLock("Outer1.this:T1, Outer2.this:S1, Outer3.this:R1")
           public Super() {
