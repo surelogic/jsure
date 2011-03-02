@@ -1391,7 +1391,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
 
       final IJavaTypeSubstitution subst;
-      if (map.isEmpty() && mSubst == IJavaTypeSubstitution.NULL) {
+      if (!map.isEmpty() && mSubst == IJavaTypeSubstitution.NULL) {
     	  subst = 
     		  FunctionParameterSubstitution.create(AbstractJavaBinder.this, mbind.getNode(), map);
       } else {
@@ -2089,12 +2089,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 //        }
         if (recType != null) toUse = typeScope(recType);
       }
-      if (toUse != null) {
-        String name = MethodCall.getMethod(node);    
+      if (toUse != null) {        
+        final String name = MethodCall.getMethod(node);            
         /*
-        if ("clone".equals(name) && 
-            recType != null && "sun.font.AttributeValues".equals(recType.getName())) {
-        	System.out.println(node);
+        if ("toArray".equals(name)) {
+        	System.out.println("toArray: "+DebugUnparser.toString(node));
         }
         */
         if (recType instanceof IJavaDeclaredType) {
