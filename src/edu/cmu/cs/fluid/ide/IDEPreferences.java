@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.ide;
 
 public interface IDEPreferences {
 	String PREFIX = "edu.cmu.cs.fluid.";
+	String TOOL_MEMORY_MB = PREFIX + "tool-memory-mb";
 	String ALLOW_JAVADOC_ANNOS = PREFIX + "allow.javadoc.annos";
 	String ANALYSIS_THREAD_COUNT = PREFIX + "analysis.thread.count";
 	String JSURE_DATA_DIRECTORY = PREFIX + "data.directory";
