@@ -45,7 +45,8 @@ public final class JSurePreferencesUtility {
 				cpuCount = 1;
 			EclipseUtility.setDefaultIntPreference(
 					IDEPreferences.ANALYSIS_THREAD_COUNT, cpuCount);
-
+			EclipseUtility.setDefaultIntPreference(IDEPreferences.TOOL_MEMORY_MB, 1024);
+			
 			EclipseUtility.setDefaultBooleanPreference(
 					SHOW_BALLOON_NOTIFICATIONS, true);
 			EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences()
