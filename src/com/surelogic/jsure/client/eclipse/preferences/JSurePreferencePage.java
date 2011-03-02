@@ -3,14 +3,19 @@ package com.surelogic.jsure.client.eclipse.preferences;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.IntegerFieldEditor;
+import org.eclipse.jface.preference.ScaleFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Listener;
 
+import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.preferences.AbstractCommonPreferencePage;
@@ -19,12 +24,15 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 public class JSurePreferencePage extends AbstractCommonPreferencePage {
+	static private final String TOOL_MB_LABEL = "jsure.eclipse.preference.page.toolMemoryPreferenceLabel";
+	
 	private BooleanFieldEditor f_balloonFlag;
 	private BooleanFieldEditor f_autoOpenProposedPromiseView;
 	private BooleanFieldEditor f_autoOpenModelingProblemsView;
 	private BooleanFieldEditor f_selectProjectsToScan;
 	private BooleanFieldEditor f_allowJavadocAnnos;
 	private IntegerFieldEditor f_analysisThreadCount;
+	private ScaleFieldEditor f_toolMemoryMB;
 	private BooleanFieldEditor f_regionModelCap;
 	private BooleanFieldEditor f_regionModelCommonString;
 	private StringFieldEditor f_regionModelSuffix;
@@ -83,6 +91,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				threadGroup);
 		f_analysisThreadCount.setValidRange(1, 128);
 		setupEditor(threadGroup, f_analysisThreadCount);
+		setupMemorySize(threadGroup);
 
 		final Group modelNamingGroup = createGroup(panel,
 				"preference.page.group.modelNaming");
@@ -125,6 +134,38 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		return panel;
 	}
 
+	private void setupMemorySize(Group memoryGroup) {
+		final int estimatedMax = MemoryUtility.computeMaxMemorySizeInMb();
+		int mb = EclipseUtility.getIntPreference(IDEPreferences.TOOL_MEMORY_MB);
+		if (mb > estimatedMax) {
+			mb = estimatedMax;
+			EclipseUtility.setIntPreference(IDEPreferences.TOOL_MEMORY_MB, mb);
+		}
+		final String label = I18N.msg(TOOL_MB_LABEL, mb);
+		f_toolMemoryMB = new ScaleFieldEditor(
+				IDEPreferences.TOOL_MEMORY_MB, label + "     ",
+				memoryGroup);
+		f_toolMemoryMB.fillIntoGrid(memoryGroup, 2);
+		f_toolMemoryMB.setMinimum(256);
+		f_toolMemoryMB.setMaximum(estimatedMax);
+		f_toolMemoryMB.setPageIncrement(256);
+		f_toolMemoryMB.setPage(this);
+		f_toolMemoryMB.setPreferenceStore(EclipseUIUtility.getPreferences());
+		f_toolMemoryMB.load();
+		f_toolMemoryMB.getScaleControl().addListener(SWT.Selection,
+				new Listener() {
+					@Override
+					public void handleEvent(final Event event) {
+						updateMBInLabel();
+					}
+				});
+	}
+
+	private void updateMBInLabel() {
+		final int mb = f_toolMemoryMB.getScaleControl().getSelection();
+		f_toolMemoryMB.setLabelText(I18N.msg(TOOL_MB_LABEL, mb));
+	}
+	
 	private Group createGroup(Composite panel, String suffix) {
 		final Group group = new Group(panel, SWT.NONE);
 		group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
