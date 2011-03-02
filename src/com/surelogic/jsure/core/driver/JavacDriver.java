@@ -1856,7 +1856,6 @@ public class JavacDriver implements IResourceChangeListener {
 		private LocalJSureJob makeLocalJSureJob(final Projects projects) {
 			System.out.println("run = " + projects.getRun());
 			final String msg = "Running JSure for " + projects.getLabel();
-			final int port = LocalJSureJob.DEFAULT_PORT;
 			ILocalJSureConfig cfg = new ILocalJSureConfig() {
 				public boolean isVerbose() {
 					return true;
@@ -1886,7 +1885,7 @@ public class JavacDriver implements IResourceChangeListener {
 					return projects.getRunDir().getAbsolutePath();
 				}
 			};
-			return new LocalJSureJob(msg, projects.size(), cfg, port);
+			return LocalJSureJob.factory.newJob(msg, projects.size(), cfg);
 		}
 
 		protected void endAnalysis() {
