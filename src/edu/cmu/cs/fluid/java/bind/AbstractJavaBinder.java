@@ -1266,14 +1266,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       BindingInfo matched = matchedParameters(targs, args, argTypes, mbind, formals, tmpTypes, 
     		                               map, mSubst);
       if (matched == null) {
-        matched = matchedParameters(targs, args, argTypes, mbind, formals, tmpTypes, null, mSubst);
+    	map = Collections.emptyMap();
+        matched = matchedParameters(targs, args, argTypes, mbind, formals, tmpTypes, map, mSubst);
       }
       return matched;
     }
     
     private BindingInfo matchedParameters(IRNode targs, IRNode args, IJavaType[] argTypes, 
                                        IBinding mbind, IRNode formals, IJavaType[] tmpTypes, 
-                                       Map<IJavaType,IJavaType> map,
+                                       final Map<IJavaType,IJavaType> map,
                                        final IJavaTypeSubstitution mSubst) {
     	// Get the last parameter 
     	final IRNode varType;
