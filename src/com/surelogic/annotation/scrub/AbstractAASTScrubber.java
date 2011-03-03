@@ -357,11 +357,11 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			for(A a : l) {
 				annos.put(a.getPromisedFor(), a);
 			}			
-			final List<IRNode> nodes = new ArrayList<IRNode>(annos.keySet());
-			Collections.sort(nodes, nodeComparator);
+			final List<Map.Entry<IRNode,Collection<A>>> nodes = new ArrayList<Map.Entry<IRNode,Collection<A>>>(annos.entrySet());
+			Collections.sort(nodes, entryComparator);
 			
-			for(IRNode n : nodes) {
-				processAASTsByNode(annos.get(n));
+			for(Map.Entry<IRNode,Collection<A>> e : nodes) {
+				processAASTsByNode(e.getValue());
 			}  
 			/* Unordered among the nodes
 			for(Map.Entry<IRNode,Collection<A>> e : annos.entrySet()) {
@@ -666,18 +666,31 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		}
 	}
 
-	private static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
+	static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
 		public int compare(IAASTRootNode o1, IAASTRootNode o2) {
 			// TODO What about promisedFor
 			return o1.getOffset() - o2.getOffset();
 		}
 	};
 		
-	private static final Comparator<IRNode> nodeComparator = new Comparator<IRNode>() {
-		public int compare(IRNode o1, IRNode o2) {
-			ISrcRef r1 = JavaNode.getSrcRef(o1);
-			ISrcRef r2 = JavaNode.getSrcRef(o2);						
+	final Comparator<Map.Entry<IRNode,Collection<A>>> entryComparator = new Comparator<Map.Entry<IRNode,Collection<A>>>() {
+		public int compare(Map.Entry<IRNode,Collection<A>> o1, Map.Entry<IRNode,Collection<A>> o2) {
+			ISrcRef r1 = JavaNode.getSrcRef(o1.getKey());
+			ISrcRef r2 = JavaNode.getSrcRef(o2.getKey());
+			if (r1 == null || r2 == null) {
+				//throw new IllegalStateException(DebugUnparser.toString(o1));
+				return min(o1.getValue()) - min(o2.getValue());
+			}
 			return r1.getOffset() - r2.getOffset();
+		}
+		private int min(Collection<A> asts) {
+			int min = Integer.MAX_VALUE;
+			for(A a : asts) { 
+				if (a.getOffset() < min) {
+					min = a.getOffset();
+				}
+			}
+			return min;
 		}
 	};
 
