@@ -1,10 +1,6 @@
 <package name="java.awt">
 	<class name="Component">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
-		<Promise>@ThreadRoleTransparent for add*Listener(*)</Promise>
-    <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for add*Listener(*)</Promise>
-    <Promise>@ThreadRoleTransparent for remove*Listener(*)</Promise>
-    <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for remove*Listener(*)</Promise>
 	  <Promise>@ThreadRole(AWT) for remove(**) &amp; !(remove*Listener(**))</Promise>
 	  <Promise>@RegionEffects(writes Instance, java.awt.event.ActionListener:GUIinternal, java.awt.event.ActionListener:GUIstuff) for remove(*)</Promise>
     <Promise>@ThreadRole(AWT) for set*(**)</Promise>

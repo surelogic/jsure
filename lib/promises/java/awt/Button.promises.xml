@@ -5,12 +5,6 @@
 		<MapRegion>Instance into java.awt.event.ActionListener:GUIstuff
 		</MapRegion>
 
-		<Promise>@ThreadRoleTransparent for add*Listener(**) |
-			remove*Listener(**)</Promise>
-		<Promise>@RegionEffects(writes
-			java.awt.event.ActionListener:GUIinternal) for add*Listener(**) |
-			remove*Listener(**)</Promise>
-
 		<Promise>@ThreadRole(AWT) for get*(**) | new(**)</Promise>
 		<Promise>@RegionEffects(reads
 			java.awt.event.ActionListener:GUIinternal) for new(**)</Promise>
