@@ -840,5 +840,22 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				return false;
 			return true;
 		}
+		
+		public long computeHash() {
+			long hash = 0;
+			final String anno = getAnnotation();
+			if (anno != null) {
+				hash += anno.hashCode();
+			}
+			final String contents = getContents();
+			if (contents != null) {
+				hash += contents.hashCode();
+			}
+			final ISrcRef ref = getSrcRef();
+			if (ref != null) {
+				hash += ref.getHash(); // Instead of hashCode()?
+			}
+			return hash;
+		}
 	}
 }

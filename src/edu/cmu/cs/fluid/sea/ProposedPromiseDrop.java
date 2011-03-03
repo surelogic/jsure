@@ -1,8 +1,9 @@
 package edu.cmu.cs.fluid.sea;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+
+import org.apache.commons.collections15.*;
+import org.apache.commons.collections15.multimap.*;
 
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
@@ -221,14 +222,30 @@ implements IResultDrop, IProposedPromiseDropInfo {
 				return false;
 		} else if (!f_contents.equals(other.getContents()))
 			return false;
+		final ISrcRef ref = getSrcRef();
 		if (getSrcRef() == null) {
 			if (other.getSrcRef() != null)
 				return false;
-		} else if (!getSrcRef().equals(other.getSrcRef()))
+		} else if (!ref.equals(other.getSrcRef()))
 			return false;
 		return true;
 	}
 
+	public long computeHash() {
+		long hash = 0;
+		if (f_annotation != null) {
+			hash += f_annotation.hashCode();
+		}
+		if (f_contents != null) {
+			hash += f_contents.hashCode();
+		}
+		final ISrcRef ref = getSrcRef();
+		if (ref != null) {
+			hash += ref.getHash(); // Instead of hashCode()?
+		}
+		return hash;
+	}
+	
 	/**
 	 * Filters out duplicate proposals so that they are not listed.
 	 * <p>
@@ -241,6 +258,22 @@ implements IResultDrop, IProposedPromiseDropInfo {
 	public static List<IProposedPromiseDropInfo> filterOutDuplicates(
 			Collection<IProposedPromiseDropInfo> proposals) {
 		List<IProposedPromiseDropInfo> result = new ArrayList<IProposedPromiseDropInfo>();
+		// Hash results
+		MultiMap<Long,IProposedPromiseDropInfo> hashed = new MultiHashMap<Long,IProposedPromiseDropInfo>();
+		for(IProposedPromiseDropInfo info : proposals) {
+			long hash = info.computeHash();
+			hashed.put(hash, info);
+		}
+		// Filter each list the old way
+		for(Map.Entry<Long,Collection<IProposedPromiseDropInfo>> e : hashed.entrySet()) {
+			result.addAll(filterOutDuplicates_slow(e.getValue()));
+		}		
+		return result;
+	}
+	
+	// n^2 comparisons
+	private static List<IProposedPromiseDropInfo> filterOutDuplicates_slow(Collection<IProposedPromiseDropInfo> proposals) {
+		List<IProposedPromiseDropInfo> result = new ArrayList<IProposedPromiseDropInfo>();
 		for (IProposedPromiseDropInfo h : proposals) {
 			boolean addToResult = true;
 			for (IProposedPromiseDropInfo i : result) {
@@ -251,9 +284,10 @@ implements IResultDrop, IProposedPromiseDropInfo {
 			}
 			if (addToResult)
 				result.add(h);
-		}
+		}		
 		return result;
 	}
+	
 	@Override
 	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		super.snapshotAttrs(s);

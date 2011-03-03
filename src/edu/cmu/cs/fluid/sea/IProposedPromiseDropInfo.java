@@ -14,5 +14,7 @@ public interface IProposedPromiseDropInfo extends IDropInfo {
 	IJavaDeclaration getTargetInfo();
 	IJavaDeclaration getFromInfo();
 	ISrcRef getAssumptionRef();
+	
+	long computeHash();
 	boolean isSameProposalAs(IProposedPromiseDropInfo i);
 }
