@@ -279,10 +279,10 @@ import  java.lang.reflect.*;
  *
  *   The test code is ugly; it has just evolved over the years.  Sorry.
 **/
-@Assumes({
-	@Assume("@RegionEffects(none) for new(*) in Boolean"),
-	@Assume("@Starts(nothing) for new(*) in Boolean")
-})
+//@Assumes({
+//	@Assume("@RegionEffects(none) for new(*) in Boolean"),
+//	@Assume("@Starts(nothing) for new(*) in Boolean")
+//})
 public class SynchronizationTimer {
 
   /** Start up this application **/

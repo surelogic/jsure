@@ -210,10 +210,10 @@ public class Rendezvous implements Barrier {
   @RegionEffects("none")
   @Starts("nothing")
   @Borrowed("this")
-  @Assumes({
-	  @Assume("@RegionEffects(none) for new() in IllegalArgumentException"),
-	  @Assume("@Starts(nothing) for new() in IllegalArgumentException")
-  })
+//  @Assumes({
+//	  @Assume("@RegionEffects(none) for new() in IllegalArgumentException"),
+//	  @Assume("@Starts(nothing) for new() in IllegalArgumentException")
+//  })
   public Rendezvous(int parties, RendezvousFunction function) {
     if (parties <= 0) throw new IllegalArgumentException();
     parties_ = parties;
