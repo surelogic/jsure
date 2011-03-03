@@ -341,6 +341,9 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	
 	protected void processAASTsForType(List<A> l) {
 		if (StorageType.SEQ.equals(stor.type())) {
+			// Sort to process in a consistent order
+			Collections.sort(l, aastComparator);
+
 			for(A a : l) {
 		    /*
 			if ("MUTEX".equals(a.toString())) {
@@ -354,6 +357,13 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			for(A a : l) {
 				annos.put(a.getPromisedFor(), a);
 			}
+			/*
+			List<IRNode> nodes = new ArrayList<IRNode>(annos.keySet());
+			Collections.sort(nodes, nodeComparator);
+			
+			for(IRNode n : nodes) {
+			    processAASTsByNode(annos.get(n));
+			*/
 			for(Map.Entry<IRNode,Collection<A>> e : annos.entrySet()) {
 				processAASTsByNode(e.getValue());
 			}
@@ -366,9 +376,13 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		} else if (l.isEmpty()) {
 			return;
 		} else {
+			// Sort to process in a consistent order
+			List<A> sorted = new ArrayList<A>(l);
+			Collections.sort(sorted, aastComparator);			
+			
 			// There should be at most one valid AAST
 			A processedUnsuccessfully = null;
-			for(A a : l) {
+			for(A a : sorted) {
 				ScopedPromiseDrop pd = AASTStore.getPromiseSource(a);
 				if (pd == null) {
 					boolean success = processAAST(a);
@@ -617,13 +631,6 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 				if (l == Collections.emptyList()) {
 					processUnannotatedType(dt);
 				}
-				else if (l.size() > 1) {
-					Collections.sort(l, aastComparator);
-					/*
-					 * for(A a : l) { System.out.println("After sort: "+a); }
-					 * System.out.println();
-					 */
-				}
 				try {
 					processAASTsForType(l);
 				} finally {
@@ -654,6 +661,15 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 			return o1.getOffset() - o2.getOffset();
 		}
 	};
+	
+	/*
+	private static final Comparator<IRNode> nodeComparator = new Comparator<IRNode>() {
+		public int compare(IRNode o1, IRNode o2) {
+			// TODO What about promisedFor
+			return o1.getOffset() - o2.getOffset();
+		}
+	};
+    */
 
 	/**
 	 * Scrub the bindings of the specified kind in order of the position of
