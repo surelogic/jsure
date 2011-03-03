@@ -45,6 +45,19 @@
 						</exec>
 					</then>
 				</elseif>
+				<elseif>
+					<!-- We don't want to use the untar task because it doesn't set executable files correctly -->
+					<matches string="@{archive}" pattern="(.*)\.tar$" />
+					<then>
+						<exec executable="/usr/bin/env">
+							<arg value="tar" />
+							<arg value="xf" />
+							<arg value="@{archive}" />
+							<arg value="-C" />
+							<arg value="@{sandbox}" />
+						</exec>
+					</then>
+				</elseif>
 				<else>
 					<fail message="Unable to unarchive @{archive} into @{sandbox}. Only .zip and .tar.gz (on Linux/OS X) archives are supported." />
 				</else>
