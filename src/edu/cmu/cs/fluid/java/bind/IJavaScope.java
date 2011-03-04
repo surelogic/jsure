@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AppendIterator;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.FilterIterator;
+import edu.cmu.cs.fluid.util.Iteratable;
 
 
 /**
@@ -57,7 +58,7 @@ public interface IJavaScope {
    * @param selector control over what nodes to return
    * @return a non-null iterator of IR nodes
    */
-  public Iterator<IBinding> lookupAll(String name, IRNode useSite, IJavaScope.Selector selector);
+  public Iteratable<IBinding> lookupAll(String name, IRNode useSite, IJavaScope.Selector selector);
   
   public void printTrace(PrintStream out, int indent);
   
@@ -65,7 +66,7 @@ public interface IJavaScope {
     public IBinding lookup(String name, IRNode useSite, Selector selector) {
       return null;
     }
-    public Iterator<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
       return EMPTY_BINDINGS_ITERATOR;
     }
     public void printTrace(PrintStream out, int indent) {
@@ -325,7 +326,7 @@ public interface IJavaScope {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
-    public Iterator<IBinding> lookupAll(String name, IRNode useSite, Selector sel) {
+    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector sel) {
       return scope.lookupAll(name,useSite,Util.combineSelectors(selector,sel));
     }
 
@@ -368,7 +369,7 @@ public interface IJavaScope {
       return outer.lookup(name,useSite,selector);
     }
     
-    public Iterator<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
       return outer.lookupAll(name,useSite,selector);
     }
     
@@ -449,7 +450,7 @@ public interface IJavaScope {
       return outer.lookup(name,useSite,selector);
     }
     
-    public Iterator<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
       List<IBinding> l = locals.get(name);
       if (l == null) return outer.lookupAll(name,useSite,selector);
       Vector<IBinding> selected = null;
@@ -459,9 +460,9 @@ public interface IJavaScope {
           selected.addElement(binding);
         }
       }
-      Iterator<IBinding> outerResult = outer.lookupAll(name,useSite,selector);
+      Iteratable<IBinding> outerResult = outer.lookupAll(name,useSite,selector);
       if (selected == null) return outerResult;
-      return (Iterator<IBinding>) AppendIterator.append(selected.iterator(),outerResult);
+      return (Iteratable<IBinding>) AppendIterator.append(selected.iterator(),outerResult);
     }
     
     /**
@@ -529,12 +530,12 @@ public interface IJavaScope {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
-    public Iterator<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-      Iterator<IBinding> result1 = scope1.lookupAll(name,useSite,selector);
-      Iterator<IBinding> result2 = scope2.lookupAll(name,useSite,selector);
+    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+      Iteratable<IBinding> result1 = scope1.lookupAll(name,useSite,selector);
+      Iteratable<IBinding> result2 = scope2.lookupAll(name,useSite,selector);
       if (result1.hasNext()) {
         if (result2.hasNext()) {
-          return (Iterator<IBinding>) AppendIterator.append(result1, result2);
+          return (Iteratable<IBinding>) AppendIterator.append(result1, result2);
         } else {
           return result1;
         }
@@ -575,8 +576,8 @@ public interface IJavaScope {
         return scope2.lookup(name,useSite,selector);
       return result;
     }
-    public Iterator<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-      Iterator<IBinding> result = scope1.lookupAll(name,useSite,selector);
+    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+      Iteratable<IBinding> result = scope1.lookupAll(name,useSite,selector);
       if (!result.hasNext())
         return scope2.lookupAll(name,useSite,selector);
       return result;
@@ -654,8 +655,8 @@ public interface IJavaScope {
       return substBinding(result);
     }
 
-    public Iterator<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-      Iterator<IBinding> result = scope.lookupAll(name,useSite,selector);
+    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+      Iteratable<IBinding> result = scope.lookupAll(name,useSite,selector);
       if (!result.hasNext()) return result;
       return new FilterIterator<IBinding,IBinding>(result) {
         @Override

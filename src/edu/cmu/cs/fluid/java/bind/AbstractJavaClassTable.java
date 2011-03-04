@@ -2,13 +2,13 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.io.PrintStream;
-import java.util.Iterator;
 import java.util.logging.Level;
 import edu.cmu.cs.fluid.debug.DebugUtil;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
+import edu.cmu.cs.fluid.util.Iteratable;
 import edu.cmu.cs.fluid.util.SingletonIterator;
 
 
@@ -57,7 +57,7 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
       return null;
     }
 
-    public Iterator<IBinding> lookupAll(String name, IRNode useSite,
+    public Iteratable<IBinding> lookupAll(String name, IRNode useSite,
         Selector selector) {
       IRNode node = getOuterClass(prefix + name,useSite);
       if (LOG.isLoggable(Level.FINER)) {

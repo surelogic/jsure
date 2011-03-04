@@ -745,8 +745,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
-    public Iterator<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-      Iterator<IBinding> firstResult = null;
+    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+      Iteratable<IBinding> firstResult = null;
       List<IBinding> allResults = null;
       //LOG.fine("Looking in superclasses for method: " + name);
       for (IJavaType superType : getSuperTypes()) {
@@ -763,7 +763,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
           LOG.finest("Super of " + JJNode.getInfo(typeDeclaration) + " is " + superType);
         }
         IJavaScope scope = binder.typeScope(superType);
-        Iterator<IBinding> result = scope.lookupAll(name,useSite,selector);
+        Iteratable<IBinding> result = scope.lookupAll(name,useSite,selector);
         if (result.hasNext()) {
           if (firstResult == null) { // common case
             firstResult = result;
@@ -782,7 +782,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
         }
       }
       if (allResults != null) {
-        return allResults.iterator();
+        return IteratorUtil.makeIteratable(allResults);
       } else if (firstResult != null) {
         return firstResult;
       } else {
@@ -842,7 +842,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	return temp;
     }
     
-    public Iterator<IBinding> lookupAll(String name, final IRNode useSite, final Selector selector) {
+    public Iteratable<IBinding> lookupAll(String name, final IRNode useSite, final Selector selector) {
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) {
         LOG.finer("Looking for all " + name + " in " + this);

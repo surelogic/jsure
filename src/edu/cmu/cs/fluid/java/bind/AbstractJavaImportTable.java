@@ -12,10 +12,10 @@ import edu.cmu.cs.fluid.derived.IDerivedInformation;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.Iteratable;
 import edu.cmu.cs.fluid.util.Pair;
 
 /**
@@ -67,7 +67,7 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
     clearScopes(direct);
     clearScopes(indirect);
     addIndirect("java.lang",compilationUnit); // implicit "import java.lang.*;"
-    Iterator enm = JJNode.tree.children(CompilationUnit.getImps(compilationUnit));
+    Iterator<IRNode> enm = JJNode.tree.children(CompilationUnit.getImps(compilationUnit));
     while (enm.hasNext()) {
       IRNode importNode = (IRNode)enm.next();
       //System.out.println("Adding import: " + DebugUnparser.toString(importNode));
@@ -296,7 +296,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     // try all indirect (demand) imports
     {
       for (Map.Entry<IRNode,Entry> e : indirect.entrySet()) {
-    	IRNode key  = e.getKey();
+    	//IRNode key  = e.getKey();
     	Entry entry = e.getValue();
         IJavaScope scope = entry.getScope();
         if (scope == null) continue;
@@ -320,7 +320,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     // found nothing:
     return null;
   }
-  public final synchronized Iterator<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+  public final synchronized Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("Looking for " + name + " in import table.");
     }
@@ -339,12 +339,12 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     // try all indirect (demand) imports
     {
       for (Map.Entry<IRNode,Entry> e : indirect.entrySet()) {
-       	IRNode key  = e.getKey();
+       	//IRNode key  = e.getKey();
        	Entry entry = e.getValue();
         IJavaScope scope = entry.getScope();
         if (scope == null) continue;
         // LOG.finer("Looking for " + name + " indirectly through " + scope);
-        Iterator<IBinding> x = scope.lookupAll(name, useSite, selector);
+        Iteratable<IBinding> x = scope.lookupAll(name, useSite, selector);
         if (x != null && x.hasNext()) {
           entry.addUse(useSite);
           return x;

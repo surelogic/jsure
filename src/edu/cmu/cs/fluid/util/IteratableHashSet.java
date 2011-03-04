@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.util;
 
 import java.util.*;
 
+@SuppressWarnings("serial")
 public class IteratableHashSet<T> extends HashSet<T> implements Iteratable<T> {
   Iterator<T> it = null;
   private void init() {
