@@ -77,6 +77,9 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			return;
 		}
 		classMap.put(cls.getSimpleName(), cls);
+		classMap.put(cls.getName(), cls);
+		Entity.internString(cls.getSimpleName());
+		Entity.internString(cls.getName());
 	}
 	
 	private static String[] packages = {
@@ -314,6 +317,12 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	}
 	
 	public static class Info extends Entity implements IDropInfo {
+		static {
+			for(Category c : Category.getAll()) {
+				internString(c.getMessage()); 
+			}
+		}
+		
 		final List<Info> dependents; 
 		final List<Info> deponents;
 		final List<ProposedPromiseInfo> proposals;
@@ -355,9 +364,9 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		Info(String name, Attributes a) {
 			super(name, a);
 			if (name.endsWith("drop")) {
-				dependents = new ArrayList<Info>();
-				deponents  = new ArrayList<Info>();
-				proposals  = new ArrayList<ProposedPromiseInfo>();
+				dependents = new ArrayList<Info>(1);
+				deponents  = new ArrayList<Info>(1);
+				proposals  = new ArrayList<ProposedPromiseInfo>(0);
 			} else {
 				dependents = Collections.emptyList();
 				deponents = Collections.emptyList();
@@ -752,6 +761,22 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 
 	static class ProposedPromiseInfo extends Info 
 	implements IProposedPromiseDropInfo, IJavaDeclInfoClient {
+		static {
+			internString(ProposedPromiseDrop.FROM_INFO);
+			internString(ProposedPromiseDrop.TARGET_INFO);
+			internString(ProposedPromiseDrop.FROM_REF);
+			internString(ProposedPromiseDrop.class.getName());
+			internString("ProposedPromiseDrop @RegionEffects(writes java.lang.Object:All)");
+			internString("@RegionEffects(writes java.lang.Object:All)");			
+			internString("ProposedPromiseDrop");
+			internString("RegionEffects");
+			internString("writes java.lang.Object:All");
+			internString("ProposedPromiseDrop @RegionEffects(reads this:Instance)");
+			internString("ProposedPromiseDrop @RegionEffects(none)");
+			internString("@RegionEffects(reads this:Instance)");
+			internString("@RegionEffects(none)");
+		}
+		
 		private JavaDeclInfo fromInfo;
 		private JavaDeclInfo targetInfo;
 		private ISrcRef assumptionRef;

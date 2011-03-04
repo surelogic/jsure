@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.sea;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.MissingResourceException;
 
@@ -78,7 +79,14 @@ public final class Category {
     this.formatter = formatter;
   }
 
-  
+  public static Iterable<Category> getAll() {
+	  return new Iterable<Category>() {
+		@Override
+		public Iterator<Category> iterator() {
+			return keyToCategory.values().iterator();
+		}		  
+	  };
+  }
   
   /**
    * Returns an instance of a Category that is formatted with the count
