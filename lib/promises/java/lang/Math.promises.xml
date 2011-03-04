@@ -1,6 +1,5 @@
 <package name="java.lang">
 	<class name="Math">
-		<Promise>@ThreadRoleTransparent for **(**)</Promise>
 		<method name="min" params="long, long">
 			<RegionEffects>none</RegionEffects>
 		</method>

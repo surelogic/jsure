@@ -2,8 +2,6 @@
 	<class name="String">
 		<selfProtected />
 
-		<Promise>@ThreadRoleTransparent for **(**)</Promise>
-
 		<method name="length">
 			<starts>nothing</starts>
 			<RegionEffects>none</RegionEffects>

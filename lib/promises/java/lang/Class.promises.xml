@@ -1,6 +1,5 @@
 <package name="java.lang">
   <class name="Class">
-  	<Promise>@ThreadRoleTransparent for *(**)</Promise>
     <method name="getName">
       <borrowed>this</borrowed>
     </method>

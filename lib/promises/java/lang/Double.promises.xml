@@ -4,7 +4,6 @@
     <class name="Double">
 
 	  <abstractImmutable/>
-      <Promise>@ThreadRoleTransparent for *(**)</Promise>
 
     </class>  
 </package>

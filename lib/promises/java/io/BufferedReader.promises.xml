@@ -2,7 +2,6 @@
 
 <package name="java.io">
 	<class name="BufferedReader">
-		<Promise>@ThreadRoleTransparent for **(**)</Promise>
 	</class>
 
 </package>

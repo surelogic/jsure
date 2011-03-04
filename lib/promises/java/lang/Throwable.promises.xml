@@ -1,6 +1,5 @@
 <package name="java.lang">
  <class name="Throwable">
-      <Promise>@ThreadRoleTransparent for **(**)</Promise>
   <constructor>
    <borrowed>this</borrowed>
    <regionEffects>none</regionEffects>

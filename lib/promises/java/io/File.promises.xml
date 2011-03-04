@@ -7,6 +7,5 @@
 		-->
 		<selfProtected />
 
-		<Promise>@ThreadRoleTransparent for **(**)</Promise>
 	</class>
 </package>

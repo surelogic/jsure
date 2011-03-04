@@ -2,8 +2,5 @@
 
 <package name="java.lang">
 	<class name="Number">
-
-		<Promise>@ThreadRoleTransparent for **(**)</Promise>
-
 	</class>
 </package>

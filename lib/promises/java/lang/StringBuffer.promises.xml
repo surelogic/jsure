@@ -2,9 +2,5 @@
 
 <package name="java.lang">
 	<class name="StringBuffer">
-
-		<Promise>@ThreadRoleTransparent for **(**)</Promise>
-
-
 	</class>
 </package>

@@ -10,48 +10,40 @@
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
    <unique>return</unique>
-   <ThreadRoleTransparent/>
   </constructor>
   <method name="clone">
    <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
   </method>
   <method params="java.lang.Object" name="equals">
    <effects>reads this.Instance</effects>
    <effects>reads arg0.Instance</effects>
    <starts>nothing</starts>
-   <ThreadRoleTransparent/>
   </method>
   <method name="finalize">
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
   </method>
   <method name="getClass">
    <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
   </method>
   <method name="hashCode">
    <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
   </method>
   <method name="notify">
    <requiresLock>MUTEX</requiresLock>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
   </method>
   <method name="notifyAll">
    <requiresLock>MUTEX</requiresLock>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
   </method>
   <method name="toString">
    <starts>nothing</starts>
@@ -61,19 +53,16 @@
    <requiresLock>MUTEX</requiresLock>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
   </method>
   <method params="long" name="wait">
    <requiresLock>MUTEX</requiresLock>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
   </method>
   <method params="long, int" name="wait">
    <requiresLock>MUTEX</requiresLock>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-   <ThreadRoleTransparent/>
   </method>
  </class>
 </package>
