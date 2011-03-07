@@ -167,7 +167,7 @@ public abstract class AbstractBinder implements IBinder {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#findOverriddenParentMethods(edu.cmu.cs.fluid.ir.IRNode)
    */
-  public Iteratable<IRNode>  findOverriddenParentMethods(IRNode mth) {
+  public Iteratable<IBinding>  findOverriddenParentMethods(IRNode mth) {
 	  Operator op = JJNode.tree.getOperator(mth);		 
 	  if (ClassInitDeclaration.prototype.includes(op)) {
 		  return EmptyIterator.prototype();
@@ -176,7 +176,7 @@ public abstract class AbstractBinder implements IBinder {
 	  final IRNode typeDecl = VisitUtil.getEnclosingType(mth);
 	  final IJavaType type = tEnv.convertNodeTypeToIJavaType(typeDecl);
 	  
-	  IteratableHashSet<IRNode> overridden =
+	  IteratableHashSet<IBinding> overridden =
 		  findOverridenParentsFromType(mth, tEnv, type);
 	  if (overridden.isEmpty()) {
 		  IteratableHashSet<IJavaType> nextTsupers = new IteratableHashSet<IJavaType>();
@@ -207,15 +207,15 @@ public abstract class AbstractBinder implements IBinder {
  * @param type The type whose super(s) may contain the method we are looking for.
  * @return
  */
-private IteratableHashSet<IRNode> findOverridenParentsFromType(IRNode mth,
+private IteratableHashSet<IBinding> findOverridenParentsFromType(IRNode mth,
 		final ITypeEnvironment tEnv, final IJavaType type) {
-	final IteratableHashSet<IRNode> overridden = new IteratableHashSet<IRNode>();
+	final IteratableHashSet<IBinding> overridden = new IteratableHashSet<IBinding>();
 	  
 	  for(IJavaType stype : tEnv.getSuperTypes(type)) {
 		  IJavaDeclaredType st = (IJavaDeclaredType) stype;
 		  for(IRNode method : VisitUtil.getClassMethods(st.getDeclaration())) {
 			  if (isOverridingMethod(mth, type, method, st)) {
-				  overridden.add(method);
+				  overridden.add(IBinding.Util.makeBinding(method));
 				  break; // At most one such method
 			  }
 		  }
@@ -226,14 +226,14 @@ private IteratableHashSet<IRNode> findOverridenParentsFromType(IRNode mth,
 /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#findOverriddenMethods(edu.cmu.cs.fluid.ir.IRNode)
    */
-  public Iteratable<IRNode> findOverriddenMethods(final IRNode methodDeclaration) {
-    final IteratableHashSet<IRNode> overridden = new IteratableHashSet<IRNode>();
-    for (Iterator<IRNode> it = findOverriddenParentMethods(methodDeclaration); it.hasNext();) {
-      IRNode pm = it.next();      
+  public Iteratable<IBinding> findOverriddenMethods(final IRNode methodDeclaration) {
+    final IteratableHashSet<IBinding> overridden = new IteratableHashSet<IBinding>();
+    for (Iterator<IBinding> it = findOverriddenParentMethods(methodDeclaration); it.hasNext();) {
+    	IBinding pm = it.next();      
       if (!overridden.contains(pm)) {
     	// Only add/process the method if it hasn't been done before
         overridden.add(pm);
-        for (Iterator<IRNode> it2 = findOverriddenMethods(pm); it2.hasNext();) {
+        for (Iterator<IBinding> it2 = findOverriddenMethods(pm.getNode()); it2.hasNext();) {
           overridden.add(it2.next());
         }
       }

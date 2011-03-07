@@ -8,7 +8,7 @@ import java.util.*;
  */
 public class EmptyIterator<T> extends AbstractRemovelessIterator<T> implements ListIterator<T>
 {
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings("unchecked")
   public static final EmptyIterator prototype = new EmptyIterator();
 
   public EmptyIterator()

@@ -106,7 +106,7 @@ public interface IBinder {
    * @param mth
    * @return
    */
-  Iteratable<IRNode> findOverriddenParentMethods(IRNode mth);
+  Iteratable<IBinding> findOverriddenParentMethods(IRNode mth);
 
   /**
    * Return an iteration over all methods that this method declaration
@@ -114,7 +114,7 @@ public interface IBinder {
    * @param methodDeclaration
    * @return
    */
-  Iteratable<IRNode> findOverriddenMethods(IRNode methodDeclaration);
+  Iteratable<IBinding> findOverriddenMethods(IRNode methodDeclaration);
 
   /**
    * Find some of the overriding methods that are possibly called given the

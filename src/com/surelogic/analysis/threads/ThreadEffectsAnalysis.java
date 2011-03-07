@@ -14,8 +14,7 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -132,8 +131,8 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 		//
 		// otherwise see if this method subsumes Thread.start()
 		//
-		for (IRNode m : binder.findOverriddenMethods(methodDeclaration)) {
-			IRNode subsumedType = VisitUtil.getEnclosingType(m);
+		for (IBinding m : binder.findOverriddenMethods(methodDeclaration)) {
+			IRNode subsumedType = VisitUtil.getEnclosingType(m.getNode());
 			if (subsumedType.equals(getJavaLangThread())) {
 				return true;
 			}

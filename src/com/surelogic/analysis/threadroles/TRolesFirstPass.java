@@ -34,7 +34,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -432,11 +432,11 @@ private static int cuCount = 0;
 
     public void doRenameReqDrops(IRNode node) {
       // see if the current method overrides something
-      Iterator<IRNode> parentIter = binder.findOverriddenParentMethods(node);
+      Iterator<IBinding> parentIter = binder.findOverriddenParentMethods(node);
       while (parentIter.hasNext()) {
         //recur our way up the inherit/implement hierarchy, processing renames
         // as needed.
-        doLibraryMthRenameWalk(parentIter.next());
+        doLibraryMthRenameWalk(parentIter.next().getNode());
       }
       
 //      Collection<TRoleRequireDrop> reqDrops = ThreadRoleRules.getReqDrops(node);
@@ -473,11 +473,11 @@ private static int cuCount = 0;
       final String name = JavaNames.genMethodConstructorName(node);
       
       // see if the current method overrides something
-      Iterator<IRNode> parentIter = binder.findOverriddenParentMethods(node);
+      Iterator<IBinding> parentIter = binder.findOverriddenParentMethods(node);
       while (parentIter.hasNext()) {
         //recur our way up the inherit/implement hierarchy, processing renames
         // as needed.
-        doLibraryMthRenameWalk(parentIter.next());
+        doLibraryMthRenameWalk(parentIter.next().getNode());
       }
       
       if (!(cud instanceof BinaryCUDrop)) return;

@@ -206,7 +206,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
 
     @Override
-    public Iteratable<IRNode> findOverriddenMethods(IRNode methodDeclaration) {
+    public Iteratable<IBinding> findOverriddenMethods(IRNode methodDeclaration) {
       return binder.findOverriddenMethods(methodDeclaration);
     }
   }

@@ -14,7 +14,7 @@ import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -107,7 +107,7 @@ final public class TRoleInherit {
       aCGD.setPotentiallyCallable(true);
     }
     
-    Iterator<IRNode> parentIter = binder.findOverriddenParentMethods(mth);
+    Iterator<IBinding> parentIter = binder.findOverriddenParentMethods(mth);
     if (!parentIter.hasNext()) {
       // nothing to inherit from, so we're done!
       if (finerIsLoggable) {
@@ -128,7 +128,7 @@ final public class TRoleInherit {
     
         
     while (parentIter.hasNext()) {
-      IRNode mDecl = parentIter.next();
+      IRNode mDecl = parentIter.next().getNode();
       
       if (!aCGD.isPotentiallyCallable()) {
         if (ModuleModel.isAPIinParentModule(mDecl)) {

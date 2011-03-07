@@ -42,8 +42,8 @@ public class FluidBinder implements IJavaBinder {
 
   public IMethodDeclarationNode getOverriddenMethod(IMethodDeclarationNode md) {
     binder.findOverriddenParentMethods((IRNode) md);
-    for (IRNode pm : binder.findOverriddenParentMethods((IRNode) md)) {
-      return (IMethodDeclarationNode) mapToBinding(pm);
+    for (edu.cmu.cs.fluid.java.bind.IBinding pm : binder.findOverriddenParentMethods((IRNode) md)) {
+      return (IMethodDeclarationNode) mapToBinding(pm.getNode());
     }
     // FIX Need to sort through the methods above
     return null;
@@ -401,11 +401,11 @@ public class FluidBinder implements IJavaBinder {
   }
   
   @SuppressWarnings("unchecked")
-  private <T> List<T> convertToList(Iterator<IRNode> nodes) {
+  private <T> List<T> convertToList(Iterator<edu.cmu.cs.fluid.java.bind.IBinding> nodes) {
     if (nodes.hasNext()) {
       List<T> l = new ArrayList<T>();
       while (nodes.hasNext()) {
-        l.add((T) nodes.next());
+        l.add((T) nodes.next().getNode());
       }
     }
     return Collections.emptyList();

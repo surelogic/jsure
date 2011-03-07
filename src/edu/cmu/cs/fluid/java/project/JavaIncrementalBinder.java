@@ -170,8 +170,8 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
       }
       changed.add(v);
       if (uses == null) return;
-      for (Iterator it = uses.iterator(); it.hasNext(); ) {
-        IRNode use = (IRNode)it.next();
+      for (Iterator<IRNode> it = uses.iterator(); it.hasNext(); ) {
+        IRNode use = it.next();
         JavaIncrementalBinder.needsTraversal(use,v);
       }
     }
@@ -186,8 +186,8 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
       if (uses.contains(use)) return;
       uses.add(use);
       if (changed == null) return;
-      for (Iterator it = changed.iterator(); it.hasNext();) {
-        Version v = (Version)it.next();
+      for (Iterator<Version> it = changed.iterator(); it.hasNext();) {
+        Version v = it.next();
         JavaIncrementalBinder.needsTraversal(use,v);
       }
     }
@@ -439,21 +439,14 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
     }
   }
   
-  // IBinder and ITypeEnvironment methods    
-  private final Iteratable<IRNode> EMPTY_NODE_ITERATOR = new EmptyIterator<IRNode>();
-  
+  // IBinder and ITypeEnvironment methods  
   @Override
-  public Iteratable<IRNode> findOverriddenParentMethods(IRNode methodDeclaration) {
+  public Iteratable<IBinding> findOverriddenParentMethods(IRNode methodDeclaration) {
     GranuleBindings bindings = ensureBindingsOK(methodDeclaration);
     Collection<IBinding> col = methodDeclaration.getSlotValue(bindings.methodOverridesAttr);
-    if (col == null) return EMPTY_NODE_ITERATOR;
+    if (col == null) return EmptyIterator.prototype();
     // The filter transforms the IBinding into an IRNode
-    return new FilterIterator<IBinding,IRNode>(col.iterator()) {
-      @Override
-      public Object select(IBinding binding) {
-        return binding.getNode();
-      }
-    };
+    return IteratorUtil.makeIteratable(col);
   }
    
   public void debug() {

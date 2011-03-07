@@ -673,6 +673,14 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return cachedFullScope;    
   }
  
+  public IJavaScope asSuperScope(AbstractJavaBinder binder) {
+	  if (binder != cachedBinder) {
+        cachedFullScope = new SuperScope(binder);
+        cachedBinder = binder;
+	  }
+      return cachedFullScope;    
+  }
+  
   /**
    * Only used in asScope() above
    */

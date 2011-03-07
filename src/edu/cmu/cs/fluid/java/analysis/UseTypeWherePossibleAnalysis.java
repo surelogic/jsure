@@ -296,9 +296,9 @@ public final class UseTypeWherePossibleAnalysis {
 
     typesContiningMethodList.add(getEnclosingType(methodDeclaration));
 
-    for (Iterator<IRNode> i = binder.findOverriddenMethods(methodDeclaration); i
+    for (Iterator<IBinding> i = binder.findOverriddenMethods(methodDeclaration); i
         .hasNext();) {
-      IRNode m = i.next();
+      IRNode m = i.next().getNode();
       typesContiningMethodList.add(getEnclosingType(m));
     }
     // list out types found

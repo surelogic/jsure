@@ -62,7 +62,7 @@ public class VersionFixedBinder extends AbstractBinder {
   }
   
   @Override
-  public Iteratable<IRNode> findOverriddenParentMethods(IRNode mth) {
+  public Iteratable<IBinding> findOverriddenParentMethods(IRNode mth) {
     Version.saveVersion(atVersion);
     try {
       return fixed.findOverriddenParentMethods(mth);
