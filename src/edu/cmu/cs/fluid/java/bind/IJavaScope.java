@@ -628,11 +628,24 @@ public interface IJavaScope {
           IBinding newBinding = IBinding.Util.makeBinding(node,context,tEnv, context);
           return newBinding;
         }
-        LOG.warning("substBinding didn't expect to get here...");
+        //LOG.warning("substBinding didn't expect to get here...");
         IJavaDeclaredType c = context;
         while (tdecl != bdecl) {
-          c = ((IJavaNestedType)c).getOuterType();
-          tdecl = c.getDeclaration();
+        	c = c.getSuperclass(tEnv);
+        	if (c == null) {
+        		break;
+        	}
+        	tdecl = c.getDeclaration();
+        }
+        if (c == null) {        
+        	while (tdecl != bdecl) {        
+        		if (c instanceof IJavaNestedType) {
+        			c = ((IJavaNestedType)c).getOuterType();
+        		} else {
+        			break;
+        		}
+         		tdecl = c.getDeclaration();
+        	}
         }
         return IBinding.Util.makeBinding(node,c, tEnv, context);
       }
