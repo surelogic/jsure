@@ -2553,7 +2553,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  BindingInfo best = mb.findBestMethod(superScope.lookupAll(name, mth, IJavaScope.Util.isCallable), null, null, 
 				                               mb.getFormalTypes(t, mth));
 		  if (best != null) {
-			  // TODO why throw away this info?
 			  methods.add(best.method);
 		  }
 	  }
