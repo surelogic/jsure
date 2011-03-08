@@ -1,16 +1,41 @@
 package com.surelogic.jsure.core.driver;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.*;
+import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModelMarker;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -21,11 +46,7 @@ import com.surelogic.analysis.JSureProperties;
 import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.core.builder.*;
-import com.surelogic.common.jobs.NullSLProgressMonitor;
-import com.surelogic.common.jobs.SLStatus;
-import com.surelogic.common.license.SLLicenseProduct;
-import com.surelogic.common.license.SLLicenseUtility;
+import com.surelogic.common.core.builder.AbstractJavaBuilder;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
@@ -159,24 +180,6 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	@Override
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 			throws CoreException {
-
-		/*
-		 * License check
-		 * 
-		 * We guard this check to only be done if it doesn't look like the JSure
-		 * regression suite is running. This is done by looking at a few system
-		 * properties that are set by the regression test.
-		 */
-		if (System.getProperty("test.module") == null
-				&& System.getProperty("extra.test.modules") == null) {
-			final SLStatus failed = SLLicenseUtility.validateSLJob(
-					SLLicenseProduct.JSURE, new NullSLProgressMonitor());
-			if (failed != null) {
-				SLLogger.getLogger().log(failed.getSeverity().toLevel(),
-						failed.getMessage(), failed.getException());
-				return null;
-			}
-		}
 
 		instances.put(getProject().getName(), this);
 		setProgressMonitor(monitor);
@@ -413,15 +416,17 @@ public final class Majordomo extends AbstractJavaBuilder implements
 									if (javaFile != null) {
 										toAddResources.add(javaFile);
 										if (LOG.isLoggable(Level.FINE))
-											LOG.fine("Java file "
-													+ fauxJavaFileName
-													+ " added to analysis due to class file change");
+											LOG
+													.fine("Java file "
+															+ fauxJavaFileName
+															+ " added to analysis due to class file change");
 									}
 								}
 							} else {
 								// Couldn't find the project
-								LOG.severe("Unable to find the Java project for "
-										+ classFile);
+								LOG
+										.severe("Unable to find the Java project for "
+												+ classFile);
 							}
 						}
 					} else {
@@ -452,8 +457,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		private boolean fauxJavaFileNameExistsInCache(String fauxJavaFileName) {
 			boolean found = false;
 			for (CacheEntry element : resourceCache) {
-				if (element.getResource().getFullPath().toString()
-						.endsWith(fauxJavaFileName)) {
+				if (element.getResource().getFullPath().toString().endsWith(
+						fauxJavaFileName)) {
 					found = true;
 					break;
 				}
@@ -481,8 +486,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 			if (classFilePath.substring(classFilePath.length() - 5)
 					.equalsIgnoreCase("class")) {
 				// change ".class" to ".java"
-				String javaFilePath = classFilePath.substring(0,
-						classFilePath.length() - 5)
+				String javaFilePath = classFilePath.substring(0, classFilePath
+						.length() - 5)
 						+ "java";
 				IPath outputPath = prj.getOutputLocation();
 				String outputPathPrefix = outputPath.toString();
@@ -594,8 +599,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 						final long start = System.currentTimeMillis();
 						analyzeBeginCurrentLevel(getProject());
 						for (CacheEntry element : resourceCache) {
-							Majordomo.this.analyzeResourceCurrentLevel(
-									element.getResource(), element.getKind());
+							Majordomo.this.analyzeResourceCurrentLevel(element
+									.getResource(), element.getKind());
 						}
 						analyzeEndCurrentLevel(getProject());
 						if (debug) {
@@ -618,7 +623,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 				javaEltCache.clear();
 
 				if (LOG.isLoggable(Level.FINE))
-					LOG.fine("Ended using " + DoubleChecker.memoryUsed() + " bytes");
+					LOG.fine("Ended using " + DoubleChecker.memoryUsed()
+							+ " bytes");
 			}
 		}
 
@@ -640,8 +646,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 						|| isDotProject(e.resource)
 						|| isDotClasspath(e.resource) || false;
 			} else if (isOnClassPath(e.resource)) {
-				return isJavaSource(e.resource)
-						|| isPromisesXML(e.resource) || false;
+				return isJavaSource(e.resource) || isPromisesXML(e.resource)
+						|| false;
 			}
 			return false;
 		}
@@ -652,25 +658,26 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		}
 
 		public boolean isJavaSource(IResource resource) {
-			return (resource.getType() == IResource.FILE && resource.getName().endsWith(
-			".java"));
+			return (resource.getType() == IResource.FILE && resource.getName()
+					.endsWith(".java"));
 		}
 
 		public boolean isDotProject(IResource resource) {
-			return (resource.getType() == IResource.FILE && resource.getFullPath()
-					.toString().equals(".project"));
+			return (resource.getType() == IResource.FILE && resource
+					.getFullPath().toString().equals(".project"));
 		}
 
 		public boolean isDotClasspath(IResource resource) {
-			return (resource.getType() == IResource.FILE && resource.getFullPath()
-					.toString().equals(".classpath"));
+			return (resource.getType() == IResource.FILE && resource
+					.getFullPath().toString().equals(".classpath"));
 		}
 
 		public boolean isFluidProperties(IResource resource) {
 			final String name = resource.getFullPath().toString();
-			return (resource.getType() == IResource.FILE && name.equals(JSureProperties.JSURE_PROPERTIES));
+			return (resource.getType() == IResource.FILE && name
+					.equals(JSureProperties.JSURE_PROPERTIES));
 		}
-		
+
 		private boolean isOnClassPath(IResource resource) {
 			final IJavaElement jElement = JavaCore.create(resource);
 			if (jElement != null) {
@@ -763,8 +770,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	private void preBuild(IProject project, Map<Object, Object> args) {
 		DoubleChecker plugin = DoubleChecker.getDefault();
 		for (IAnalysisInfo ext : plugin.analysisExtensions) {
-			IAnalysis analysisModule = DoubleChecker.getDefault().getAnalysisModule(
-					ext);
+			IAnalysis analysisModule = DoubleChecker.getDefault()
+					.getAnalysisModule(ext);
 			analysisModule.setLabel(ext.getLabel());
 			analysisModule.preBuild(project);
 			analysisModule.setArguments(args);
@@ -816,7 +823,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 */
 	public void analyzeBeginCurrentLevel(IProject project) {
 		for (IAnalysisInfo ext : currentLevel) {
-			IAnalysis module = DoubleChecker.getDefault().getAnalysisModule(ext);
+			IAnalysis module = DoubleChecker.getDefault()
+					.getAnalysisModule(ext);
 			long start = System.nanoTime();
 			module.analyzeBegin(project);
 			long end = System.nanoTime();
@@ -841,8 +849,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 */
 	private void analyzeResourceCurrentLevel(IResource resource, int kind) {
 		for (IAnalysisInfo ext : currentLevel) {
-			IAnalysis analysisModule = DoubleChecker.getDefault().getAnalysisModule(
-					ext);
+			IAnalysis analysisModule = DoubleChecker.getDefault()
+					.getAnalysisModule(ext);
 			if (LOG.isLoggable(Level.FINE)) {
 				long start = System.nanoTime();
 				analyzeResource(analysisModule, resource, kind);
@@ -946,8 +954,8 @@ public final class Majordomo extends AbstractJavaBuilder implements
 	 */
 	private void analyzeEndCurrentLevel(IProject project) throws CoreException {
 		for (IAnalysisInfo ext : currentLevel) {
-			IAnalysis analysisModule = DoubleChecker.getDefault().getAnalysisModule(
-					ext);
+			IAnalysis analysisModule = DoubleChecker.getDefault()
+					.getAnalysisModule(ext);
 			long start = System.nanoTime();
 			analyzeEnd(project, analysisModule);
 			long end = System.nanoTime();
@@ -975,7 +983,9 @@ public final class Majordomo extends AbstractJavaBuilder implements
 		IResource[] reanalyze = analysisModule.analyzeEnd(project, monitor);
 		if (reanalyze == null) {
 			if (fineIsLoggable) {
-				LOG.fine("Re-analysis of " + project + " for " + analysisModule);
+				LOG
+						.fine("Re-analysis of " + project + " for "
+								+ analysisModule);
 			}
 			project.accept(new ReanalysisVisitor(analysisModule));
 			analyzeEnd(project, analysisModule); // recursive call
@@ -986,8 +996,9 @@ public final class Majordomo extends AbstractJavaBuilder implements
 			}
 			for (int j = 0; j < reanalyze.length; j++) {
 				if (reanalyze[j] == null) {
-					LOG.warning("Ignoring null in resources to be reanalyzed by "
-							+ analysisModule + ": " + j);
+					LOG
+							.warning("Ignoring null in resources to be reanalyzed by "
+									+ analysisModule + ": " + j);
 					continue;
 				}
 				analyzeResource(analysisModule, reanalyze[j],
