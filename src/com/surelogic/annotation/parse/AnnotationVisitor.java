@@ -21,9 +21,12 @@ import edu.cmu.cs.fluid.java.comment.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Iteratable;
+import edu.cmu.cs.fluid.util.*;
 
 public class AnnotationVisitor extends Visitor<Integer> {
+	public static final String IMPLEMENTATION_ONLY = "implementationOnly";
+	public static final String VERIFY = "verify";
+	
 	static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
 	private static final String promisePrefix = "com.surelogic.";
 	private static final String jcipPrefix = "net.jcip.annotations.";
@@ -92,21 +95,30 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		return null;
 	}
 
-	// FIX needs more info about where the contents are coming from
-	private boolean createPromise(IRNode node, String promise, String c,
+	private Context makeContext(IRNode node, String promise, String c,
 			AnnotationSource src, int offset) {
+		return makeContext(node, promise, c, src, offset, false, true);
+	}
+	
+	private Context makeContext(IRNode node, String promise, String c,
+			AnnotationSource src, int offset, boolean implOnly, boolean verify) {
 		/* Bad things happen if contents is null */
 		String contents = (c == null) ? "" : c;
-
-		// System.out.println("Got "+promise+" : "+contents);
-		TestResult.setPromise(nextResult, promise, contents);
-
-		IAnnotationParseRule<?, ?> r = PromiseFramework.getInstance()
-				.getParseDropRule(promise);
+		
+		IAnnotationParseRule<?, ?> r = 
+			PromiseFramework.getInstance().getParseDropRule(promise);
+		
+		return new Context(src, node, r, contents, offset, implOnly, verify);
+	}
+	
+	// FIX needs more info about where the contents are coming from
+	private boolean createPromise(Context context) {
 		try {
-			if (r != null) {
-				Context context = new Context(src, node, r, contents, offset);
-				r.parse(context, contents);
+			if (context.getRule() != null) {	
+				// System.out.println("Got "+promise+" : "+contents);
+				TestResult.setPromise(nextResult, context.getRule().name(), context.getAllText());
+				
+				context.getRule().parse(context, context.getAllText());
 				return context.createdAAST();
 			} else {
 				// FIX throw new Error("No rule for "+promise);
@@ -130,11 +142,26 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	}
 
 	class Context extends SimpleAnnotationParsingContext {
+		final int mods;
+		
 		Context(AnnotationSource src, IRNode n, IAnnotationParseRule<?, ?> r,
-				String text, int offset) {
+				String text, int offset, boolean implOnly, boolean verify) {
 			super(src, n, r, text, offset);
+			
+			int modifiers = JavaNode.ALL_FALSE;
+			if (implOnly) {
+				modifiers |= JavaNode.IMPLEMENTATION_ONLY;
+			}
+			if (!verify) {
+				modifiers |= JavaNode.NO_VERIFY;
+			}
+			mods = modifiers;
 		}
-
+		@Override
+		public int getModifiers() {
+			return mods;
+		}
+		
 		@Override
 		protected String getName() {
 			return name;
@@ -189,8 +216,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
 																			// minimum
 			// trim off the ending */
 			result = result.substring(0, result.length() - 2);
-			createPromise(node, TestRules.TEST_RESULT, result,
-					AnnotationSource.JAVA_5, -1);
+			createPromise(makeContext(node, TestRules.TEST_RESULT, result,
+					AnnotationSource.JAVA_5, -1));
 		}
 	}
 
@@ -198,7 +225,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	public Integer visitMarkerAnnotation(IRNode node) {
 		String promise = mapToPromiseName(node);
 		if (promise != null) {
-			return translate(handleJava5Promise(node, promise, ""));
+			return translate(handleJava5Promise(node, promise, false, true));
 		}
 		return 0;
 	}
@@ -267,23 +294,41 @@ public class AnnotationVisitor extends Visitor<Integer> {
 			Iteratable<IRNode> pairs = ElementValuePairs
 					.getPairIterator(pairsNode);
 			if (pairs.hasNext()) {
+				boolean implOnly = false;
+				boolean verify = true;
 				for (IRNode valuePair : pairs) {
-					if ("value".equals(ElementValuePair.getId(valuePair))) {
+					final String id = ElementValuePair.getId(valuePair);
+					if ("value".equals(id)) {
 						IRNode value = ElementValuePair.getValue(valuePair);
 						if (StringLiteral.prototype.includes(value)) {
 							return translate(handleJava5Promise(node, value,
 									promise, StringLiteral.getToken(value)));
 						}
 					}
+					else if (IMPLEMENTATION_ONLY.equals(id)) {
+						implOnly = extractBoolean(valuePair, implOnly);
+					}
+					else if (VERIFY.equals(id)) {
+						verify = extractBoolean(valuePair, verify);
+					}
 				}
+				return translate(handleJava5Promise(node, promise, implOnly, verify));
 			} else {
-				return translate(handleJava5Promise(node, promise, ""));
+				return translate(handleJava5Promise(node, promise, false, true));
 			}
-			throw new Error("A NormalAnnotation in a SL package?!?");
+			//throw new Error("A NormalAnnotation in a SL package?!?");
 		}
 		return 0;
 	}
 
+	private boolean extractBoolean(IRNode valuePair, boolean defValue) {
+		IRNode value = ElementValuePair.getValue(valuePair);
+		if (TrueExpression.prototype.includes(value)) {
+			return true;
+		}
+		return defValue;
+	}
+	
 	@Override
 	public Integer visitAnnotation(IRNode node) {
 		throw new Error("Unknown Annotation type: "
@@ -376,8 +421,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
 			num += translate(handleJavadocPromise(decl, contents,
 					tag.getOffset()));
 		} else {
-			num += translate(createPromise(decl, capitalize(tag.getTag()),
-					contents, AnnotationSource.JAVADOC, tag.getOffset()));
+			num += translate(createPromise(makeContext(decl, capitalize(tag.getTag()),
+					contents, AnnotationSource.JAVADOC, tag.getOffset())));
 		}
 		return num;
 	}
@@ -393,12 +438,17 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		return tag;
 	}
 
-	public boolean handleJava5Promise(IRNode node, String promise, String c) {
-		return handleJava5Promise(node, node, promise, c);
+	public boolean handleJava5Promise(IRNode node, String promise, boolean implOnly, boolean verify) {
+		return handleJava5Promise(node, node, promise, "", implOnly, verify);
 	}
 
 	public boolean handleJava5Promise(IRNode anno, IRNode here, String promise,
 			String c) {
+		return handleJava5Promise(anno, here, promise, c, false, true);
+	}
+	
+	public boolean handleJava5Promise(IRNode anno, IRNode here, String promise,
+			String c, boolean implOnly, boolean verify) {
 		checkForTestResult(anno);
 
 		ISrcRef src = JavaNode.getSrcRef(here);
@@ -410,12 +460,12 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		 * if (src != null) {
 		 * System.out.println("Handling promise: "+promise+' '+c); }
 		 */
-		return createPromise(here, promise, c, AnnotationSource.JAVA_5, offset);
+		return createPromise(makeContext(here, promise, c, AnnotationSource.JAVA_5, offset, implOnly, verify));
 	}
 
-	public boolean handleXMLPromise(IRNode node, String promise, String c) {
-		return createPromise(node, capitalize(promise), c,
-				AnnotationSource.XML, Integer.MAX_VALUE);
+	public boolean handleXMLPromise(IRNode node, String promise, String c, boolean implOnly, boolean verify) {
+		return createPromise(makeContext(node, capitalize(promise), c,
+				AnnotationSource.XML, Integer.MAX_VALUE, implOnly, verify));
 	}
 
 	/**
@@ -445,8 +495,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		final String tag = text.substring(start, startContents).trim();
 		final String contents = text.substring(startContents + 2, endContents);
 		// System.out.println("Trying to parse: "+tag+" -- "+contents);
-		return createPromise(decl, tag, contents, AnnotationSource.JAVADOC,
-				offset);
+		return createPromise(makeContext(decl, tag, contents, AnnotationSource.JAVADOC,
+				offset));
 	}
 
 	/**
@@ -476,6 +526,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
 				return false;
 			}
 		}
-		return createPromise(decl, tag, "", AnnotationSource.JAVADOC, offset);
+		return createPromise(makeContext(decl, tag, "", AnnotationSource.JAVADOC, offset));
 	}
 }

@@ -9,6 +9,7 @@ import com.surelogic.annotation.parse.AASTAdaptor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.parse.SLParse;
 
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -70,7 +71,14 @@ extends AbstractAnnotationParseRule<A,P> {
     AnnotationLocation loc = translateTokenType(tn.getType(), context.getOp());
     final int offset       = context.mapToSource(tn.getTokenStartIndex());        
     try {
-      IAASTRootNode d = makeAAST(offset);
+      AASTAdaptor.Node node = (AASTAdaptor.Node) tn;
+      int mods;
+      if (node.getModifiers() != JavaNode.ALL_FALSE) {
+    	  mods = node.getModifiers();
+      } else {
+    	  mods = context.getModifiers();
+      }
+      IAASTRootNode d = makeAAST(offset, mods);
       context.reportAAST(offset, loc, tn.getText(), d);
     } catch (Exception e) {
       context.reportException(offset, e);

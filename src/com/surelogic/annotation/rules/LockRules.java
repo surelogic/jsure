@@ -1412,8 +1412,8 @@ public class LockRules extends AnnotationRules {
       super(CONTAINABLE, typeDeclOps, ContainableNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset) {
-      return new ContainableNode(offset);
+    protected IAASTRootNode makeAAST(int offset, int mods) {
+      return new ContainableNode(offset, mods);
     }
     @Override
     protected IPromiseDropStorage<ContainablePromiseDrop> makeStorage() {
@@ -1436,8 +1436,8 @@ public class LockRules extends AnnotationRules {
       super(SELF_PROTECTED, typeDeclOps, SelfProtectedNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset) {
-      return new SelfProtectedNode(offset);
+    protected IAASTRootNode makeAAST(int offset, int mods) {
+      return new SelfProtectedNode(offset, mods);
     }
     @Override
     protected IPromiseDropStorage<SelfProtectedPromiseDrop> makeStorage() {
@@ -1461,7 +1461,7 @@ public class LockRules extends AnnotationRules {
       super(NOT_THREAD_SAFE, typeDeclOps, NotThreadSafeNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset) {
+    protected IAASTRootNode makeAAST(int offset, int mods) {
       return new NotThreadSafeNode(offset);
     }
     @Override
@@ -1489,8 +1489,8 @@ public class LockRules extends AnnotationRules {
       super(IMMUTABLE, typeDeclOps, ImmutableNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset) {
-      return new ImmutableNode(offset);
+    protected IAASTRootNode makeAAST(int offset, int mods) {
+      return new ImmutableNode(offset, mods);
     }
     @Override
     protected IPromiseDropStorage<ImmutablePromiseDrop> makeStorage() {

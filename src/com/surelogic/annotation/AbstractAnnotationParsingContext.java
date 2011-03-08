@@ -27,6 +27,10 @@ ITestAnnotationParsingContext {
     srcType = src;
   }
   
+  public int getModifiers() {
+	  return JavaNode.ALL_FALSE;
+  }
+  
   public final AnnotationSource getSourceType() {
     return srcType;
   }

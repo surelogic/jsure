@@ -24,7 +24,7 @@ public abstract class AbstractBooleanNode extends AASTRootNode
     super(offset);
   }
 
-  protected final String unparse(boolean debug, int indent, String token) {
+  protected String unparse(boolean debug, int indent, String token) {
     if (debug) {
       StringBuilder sb = new StringBuilder();
       if (debug) { indent(sb, indent); }

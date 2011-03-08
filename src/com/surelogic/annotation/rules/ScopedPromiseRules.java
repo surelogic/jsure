@@ -118,7 +118,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 					// Applies to anything that the rule applies to
 					contextOp = r.getOps(null)[0];
 				}
-				Proxy proxy = new Proxy(context, r, contextOp);
+				Proxy proxy = new Proxy(context, r, contextOp, parser.content);
 				r.parse(proxy, parser.content);
 				if (!proxy.createdAAST() && !proxy.hadProblem()) {
 					context.reportError(0, "No AAST created from " + sp.getPromise());
@@ -398,14 +398,20 @@ public class ScopedPromiseRules extends AnnotationRules {
 		private final IAnnotationParseRule<?, ?> rule;
 		private boolean reported;
 		private final Operator op;
+		private final String contents;
 
 		public Proxy(AbstractAnnotationParsingContext context,
-				IAnnotationParseRule<?, ?> rule, Operator op) {
+				IAnnotationParseRule<?, ?> rule, Operator op, String c) {
 			super(context);
 			this.rule = rule;
 			this.op = op;
+			contents = c;
 		}
 
+		public String getAllText() {
+			return contents;
+		}
+		
 		@Override
 		public boolean createdAAST() {
 			return reported;

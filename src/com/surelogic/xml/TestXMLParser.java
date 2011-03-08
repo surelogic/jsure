@@ -455,7 +455,11 @@ public class TestXMLParser extends DefaultHandler implements
 			}
 
 			/** Add this promise to the AAST */
-			boolean added = annoVis.handleXMLPromise(annotatedNode, eName, contents);
+			final boolean implOnly = "true".equals(e.getAttribute(AnnotationVisitor.IMPLEMENTATION_ONLY));
+			final String rawVerify = e.getAttribute(AnnotationVisitor.VERIFY);
+			final boolean verify   = rawVerify == null || "true".equals(rawVerify);
+			
+			boolean added = annoVis.handleXMLPromise(annotatedNode, eName, contents, implOnly, verify);
 			if (added) {
 				numAnnotationsAdded++;
 			}

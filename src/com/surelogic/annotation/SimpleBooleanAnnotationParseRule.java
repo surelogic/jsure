@@ -22,6 +22,19 @@ extends DefaultBooleanAnnotationParseRule<A,P> {
 
   @Override
   protected final Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
+	if (context.getSourceType() == AnnotationSource.JAVA_5 && !context.getAllText().isEmpty()) {		
+		// Only possible for scoped promises
+		// Try to parse the contents
+		return parser.annoParameters().getTree();
+	}
     return parser.nothing().getTree();
+  }
+  
+  @Override
+  protected AnnotationLocation translateTokenType(int type, Operator op) {
+	if (type == SLAnnotationsParser.AnnoParameters) {
+		return AnnotationLocation.DECL;
+	}
+	return super.translateTokenType(type, op);
   }
 }

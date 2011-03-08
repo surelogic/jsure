@@ -1,20 +1,12 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class ContainableNode extends AbstractBooleanNode 
+public class ContainableNode extends AbstractModifiedBooleanNode 
 { 
-  public static final AbstractAASTNodeFactory factory = new Factory("Containable") {   
-    @Override
-    public AASTNode create(int _start) {
-      return new ContainableNode (_start);
-    }
-  };
-
   // Constructors
-  public ContainableNode(int offset) {
-    super(offset);
+  public ContainableNode(int offset, int mods) {
+    super(offset, mods);
   }
 
   @Override
@@ -29,7 +21,7 @@ public class ContainableNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ContainableNode(offset);
+  	return new ContainableNode(offset, mods);
   }
 }
 

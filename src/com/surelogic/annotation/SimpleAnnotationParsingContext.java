@@ -42,6 +42,10 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
     return node;
   }
   
+  public IAnnotationParseRule<?,?> getRule() {
+	  return rule;
+  }
+  
   @Override
   public int mapToSource(int offset) {
     return this.offset;// + offset;

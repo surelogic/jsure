@@ -2,20 +2,12 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class ImmutableNode extends AbstractBooleanNode 
+public class ImmutableNode extends AbstractModifiedBooleanNode 
 { 
-  public static final AbstractAASTNodeFactory factory = new Factory("Immutable") {   
-    @Override
-    public AASTNode create(int _start) {
-      return new ImmutableNode (_start);
-    }
-  };
-
   // Constructors
-  public ImmutableNode(int offset) {
-    super(offset);
+  public ImmutableNode(int offset, int mods) {
+    super(offset, mods);
   }
 
   @Override
@@ -30,7 +22,7 @@ public class ImmutableNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ImmutableNode(offset);
+  	return new ImmutableNode(offset, mods);
   }
 }
 

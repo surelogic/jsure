@@ -87,7 +87,7 @@ public class AssumeFinalRules extends AnnotationRules {
       return loc;
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset) {
+    protected IAASTRootNode makeAAST(int offset, int mods) {
       return new AssumeFinalNode(offset);
     }
     @Override

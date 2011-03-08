@@ -45,6 +45,13 @@ public class AASTAdaptor extends AbstractNodeAdaptor {
         case SLAnnotationsParser.FINAL:
           mods = JavaNode.setModifier(mods, JavaNode.FINAL, true);
           return true;
+        case SLAnnotationsParser.VERIFY: 
+          // Actually, setting the opposite, since it's true by default
+          mods = JavaNode.setModifier(mods, JavaNode.NO_VERIFY, true);
+          return true;
+        case SLAnnotationsParser.IMPLEMENTATION_ONLY:
+          mods = JavaNode.setModifier(mods, JavaNode.IMPLEMENTATION_ONLY, true);
+          return true;
       } 
       return false;
     }

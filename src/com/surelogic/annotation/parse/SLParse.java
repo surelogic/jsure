@@ -19,6 +19,11 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
         System.out.println("WARNING: No factory for "+token);
       }
     }  
+    printAST(initParser("implementationOnly=false").annoParameters().tree);
+    printAST(initParser("implementationOnly=true").annoParameters().tree);
+    printAST(initParser("verify=true").annoParameters().tree);
+    printAST(initParser("verify=false").annoParameters().tree);
+    printAST(initParser("implementationOnly=true,verify=false").annoParameters().tree);
     printAST(initParser("is is nothing").policyLock().tree);
     printAST(initParser("protects is any").policyLock().tree);
     printAST(initParser("into is readLock").policyLock().tree);

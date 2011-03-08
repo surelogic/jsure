@@ -29,6 +29,8 @@ public interface IAnnotationParsingContext {
   
   String getAllText();
   
+  int getModifiers();
+  
   /**   
    * @return The kind of source the text is originally from
    */

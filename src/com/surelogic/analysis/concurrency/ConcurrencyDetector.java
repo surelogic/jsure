@@ -81,6 +81,12 @@ public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDete
 			runnableType = findNamedType(tEnv, "java.lang.Runnable");
 		}
 
+		@Override
+		public Object visitMethodDeclaration(IRNode node) {
+			tEnv.getBinder().findOverriddenParentMethods(node);
+			return null;
+		}
+		
 		// TODO other forms?
 		@Override
 		public Object visitNewExpression(IRNode n) {

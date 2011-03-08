@@ -78,6 +78,7 @@ tokens {
   MethodCall;
   GuardedBy;
   Itself;
+  AnnoParameters;
   END_IMAGINARY;
   
 	//Locking
@@ -222,6 +223,21 @@ testResultComment
     testResult -> testResult
   ;
 	
+/*************************************************************************************
+ * Parameters for annotations
+ *************************************************************************************/ 
+ 
+annoParameters
+  : annoParameter (',' annoParameter)* -> ^(AnnoParameters annoParameter+)
+  ;
+    
+annoParameter
+  : 'implementationOnly' '=' TRUE -> 'implementationOnly'
+  | 'implementationOnly' '=' FALSE -> FALSE // Same as default
+  | 'verify' '=' TRUE -> TRUE               // Same as default
+  | 'verify' '=' FALSE -> 'verify'
+  ;
+
 /*************************************************************************************
  * Uniqueness rules
  *************************************************************************************/	
@@ -650,8 +666,12 @@ simpleName
 identifier
       : IDENTIFIER | 'is' | 'protects' | 
         'none' | 'reads' | 'writes' | 'any' | 'readLock' | 'writeLock' |
-        'into' | 'nothing' | 'itself'
+        'into' | 'nothing' | 'itself' |
+        'implementationOnly' | 'verify' 
       ;
+
+IMPLEMENTATION_ONLY : 'implementationOnly';
+VERIFY : 'verify';
 
 /*************************************************************************************
  * Standard Java tokens

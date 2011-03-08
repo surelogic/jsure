@@ -75,6 +75,10 @@ public abstract class AbstractNodeAdaptor extends CommonTreeAdaptor {
       type  = ty;
     }
     
+    public int getModifiers() {
+    	return mods;
+    }
+    
     @Override
     public boolean isNil() {
       return token == "null";

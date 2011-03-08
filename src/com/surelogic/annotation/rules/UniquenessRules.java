@@ -193,7 +193,7 @@ public class UniquenessRules extends AnnotationRules {
       return loc;
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset) {
+    protected IAASTRootNode makeAAST(int offset, int mods) {
       return new UniqueNode(offset);
     }
     @Override
@@ -257,7 +257,7 @@ public class UniquenessRules extends AnnotationRules {
       return parser.borrowedFunction().getTree();
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset) {
+    protected IAASTRootNode makeAAST(int offset, int mods) {
       return new BorrowedNode(offset);
     }
     @Override
@@ -330,7 +330,7 @@ public class UniquenessRules extends AnnotationRules {
     } 
 		
     @Override
-    protected IAASTRootNode makeAAST(int offset) {
+    protected IAASTRootNode makeAAST(int offset, int mods) {
       return new NotUniqueNode(offset);
     }
     @Override
