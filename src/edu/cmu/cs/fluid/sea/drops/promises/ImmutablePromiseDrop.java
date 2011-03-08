@@ -5,7 +5,7 @@ import com.surelogic.aast.promise.*;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.*;
 
 /**
  * Promise drop for "NotThreadSafe" promises.
@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
  * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class ImmutablePromiseDrop extends BooleanPromiseDrop<ImmutableNode> {
+public final class ImmutablePromiseDrop extends ModifiedBooleanPromiseDrop<ImmutableNode> {
   public ImmutablePromiseDrop(ImmutableNode a) {
     super(a);
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
