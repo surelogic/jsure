@@ -1046,6 +1046,10 @@ public class JavaPromise extends JavaNode {
 	{
 		final boolean debug = LOG.isLoggable(Level.FINE);
 		final JavaUnparseStyle style = u.getStyle();
+		if (!style.unparsePromises()) {
+			return false;
+		}
+		
 		final Operator op = u.getTree().getOperator(node);
 		final Iterator<TokenInfo> tokenInfos = PromiseFramework.getInstance().getTokenInfos(op);
 
