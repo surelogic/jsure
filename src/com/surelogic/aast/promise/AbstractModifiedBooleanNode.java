@@ -34,4 +34,12 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 			return token;
 		}
 	}
+	
+	public final boolean isImplementationOnly() {
+		return getModifier(JavaNode.IMPLEMENTATION_ONLY);
+	}
+	
+	public final boolean verify() {
+		return !getModifier(JavaNode.NO_VERIFY);
+	}
 }
