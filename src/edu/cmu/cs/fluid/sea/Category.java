@@ -81,7 +81,6 @@ public final class Category {
 
   public static Iterable<Category> getAll() {
 	  return new Iterable<Category>() {
-		@Override
 		public Iterator<Category> iterator() {
 			return keyToCategory.values().iterator();
 		}		  
