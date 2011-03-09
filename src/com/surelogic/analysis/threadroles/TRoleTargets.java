@@ -29,6 +29,7 @@ import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.effects.WholeModuleFXDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ModuleModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.threadroles.RegionTRoleModel;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -427,6 +428,29 @@ public class TRoleTargets {
     }
   }
   
+  /* Was in Effects.  Got tired of it being there.  Moved here on 
+   * 2011-03-09.
+   */
+  /** Get the declared effects for a method invoked from a particular call-site.
+   * @param mCall The IRNode for the call site
+   * @param mDecl The IRNode that is the MethodDecl
+   * @return Declared effects for cross-module or TheWorld calls, or null for
+   * same-non-world-module calls.
+   */
+  public static Set<Effect> getDeclaredEffectsWM(
+      final IRNode mCall, final IRNode mDecl) {
+    //if call-site and callee are in different modules, or if either is part of
+    // TheWorld we can only depend on the declared effects!
+    
+    if (!ModuleModel.sameNonWorldModule(mCall, mDecl)) {
+      // it's declared effects, or WritesAll!
+      return Effects.getMethodEffects(mDecl, mCall);
+    } else {
+      // this module does not apply!
+      return null;
+    }
+  }
+  
   /** Get the targets that are affected by this call. Uses wholeModuleFX, and is thus
    * valid only AFTER ModuleEffectsAnalysis has been run.
    * 
@@ -435,7 +459,7 @@ public class TRoleTargets {
    * @return
    */
   public static Set<Target> getTargetsForMethodCall(final IRNode mCall, final IRNode mDecl) {
-    Set<Effect> callFX = Effects.getDeclaredEffectsWM(mCall, mDecl);
+    Set<Effect> callFX = getDeclaredEffectsWM(mCall, mDecl);
     // callFX is now null only when mCall and mDecl are in the same module, AND that
     // module is not TheWorld. Require same module, because can only use declared 
     // effects across modules. Require not TheWorld, because we can't count on TheWorld

@@ -255,7 +255,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    */
   private Set<Effect> getMethodCallEffects(final IRNode call) {
     return Effects.getMethodCallEffects(context.bcaQuery,
-        targetFactory, binder, call, getEnclosingDecl(), false);
+        targetFactory, binder, call, getEnclosingDecl());
   }
   
   @Override

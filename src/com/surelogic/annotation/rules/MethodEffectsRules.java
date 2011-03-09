@@ -1,7 +1,9 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/MethodEffectsRules.java,v 1.39 2008/02/26 15:52:32 aarong Exp $*/
 package com.surelogic.annotation.rules;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -9,6 +11,8 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
+import com.surelogic.analysis.effects.Effect;
+import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
@@ -24,6 +28,8 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -112,7 +118,7 @@ public class MethodEffectsRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber<RegionEffectsNode> makeScrubber() {
 			return new AbstractAASTScrubber<RegionEffectsNode>(this,
-					ScrubberType.UNORDERED, RegionRules.REGIONS_DONE) {
+					ScrubberType.BY_HIERARCHY, RegionRules.REGIONS_DONE) {
 				@Override
 				protected RegionEffectsPromiseDrop makePromiseDrop(
 						RegionEffectsNode a) {
@@ -302,11 +308,70 @@ public class MethodEffectsRules extends AnnotationRules {
 				}
 			}
 		}
+		
+//		/* Check the annotation against the annotation on any declarations that are
+//		 * being overridden.
+//		 */
+//		if (allGood) {
+//		  // Convert the declared effects to set of Effect objects
+//		  final Set<Effect> currentEffects = new HashSet<Effect>();
+//		  Effects.getEffectsFromSpecificationNode(promisedFor, readsAndWrites, currentEffects, null);
+//		  
+//		  System.out.println("Checking consistency of " + JavaNames.genQualifiedMethodConstructorName(promisedFor));
+//		  System.out.println("Has effects " + Effects.unparseForPromise(currentEffects));
+//		  
+//		  // Compare against previous method declarations
+//		  for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
+//		    final IRNode overriddenMethod = context.getNode();
+//		    // Get original effects, compensating for nonexistent
+//		    final Set<Effect> originalEffects = Effects.getMethodEffects(overriddenMethod, null);
+//	      System.out.println("  Checking against " + JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
+//	      System.out.println("  with effects " + Effects.unparseForPromise(originalEffects));
+//		    if (!effectDeclarationIsConsistent(node, scrubberContext, overriddenMethod, originalEffects, currentEffects)) {
+//		      System.out.println("  INCONSISTENT");
+//		      allGood = false;
+//		    } else {
+//          System.out.println("  CONSISTENT");
+//		    }
+//		    System.out.println();
+//		  }
+//		}
+		
 		if (allGood) {
 			drop = new RegionEffectsPromiseDrop(node);
 		}
 		return drop;
 	}
+	
+	
+	
+	private static boolean effectDeclarationIsConsistent(
+	    final RegionEffectsNode node,
+	    final IAnnotationScrubberContext scrubberContext,
+	    final IRNode originalMethod,
+	    final Set<Effect> originalFX, final Set<Effect> currentFX) {
+	  /* Check that each effect in current is equal to or more specific than
+	   * an effect in original.
+	   */
+	  boolean allChecked = true;
+	  final IBinder binder = scrubberContext.getBinder();
+	  for (final Effect current : currentFX) {
+	    boolean isChecked = false;
+	    for (final Effect original : originalFX) {
+	      if (current.isCheckedBy(binder, original)) {
+	        isChecked = true;
+	        break;
+	      }
+	    }
+	    if (!isChecked) {
+  	    scrubberContext.reportError(node, "Declared effect {0} is not accounted for by the declared effects of {1}",
+  	        current.toString(), JavaNames.genQualifiedMethodConstructorName(originalMethod));
+	    }
+	    allChecked &= isChecked;
+	  }
+	  return allChecked;
+	}
+	
 	
 	
 	private static boolean isAccessibleToAllCallers(

@@ -42,7 +42,6 @@ import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.ModuleModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -246,82 +245,68 @@ public final class Effects implements IBinderClient {
    */
   public static Set<Effect> getDeclaredMethodEffects(
       final IRNode mDecl, final IRNode callSite) {
-    // Use the default target factory because we bind the receivers ourselves
-    final TargetFactory tf = DefaultTargetFactory.PROTOTYPE;
-    
     // Get the effects from the promises
     final RegionEffectsPromiseDrop promisedEffects = MethodEffectsRules.getRegionEffectsDrop(mDecl);
     if (promisedEffects == null) { // No promises, return null
       return null;
     } else {
       final Set<Effect> result = new HashSet<Effect>();
-      
       // Convert IRNode representation of effects in Effect objects
-      for(final EffectsSpecificationNode effList : promisedEffects.getEffects()) {
-        for(final EffectSpecificationNode peff : effList.getEffectList()) {
-          final RegionModel region = peff.getRegion().resolveBinding().getModel();
-          final boolean isRead = !peff.getIsWrite();
-          final ExpressionNode pContext = peff.getContext();
-          
-          final Target targ;
-          if (pContext instanceof ImplicitQualifierNode) {
-            if (region.isStatic()) { // Static region -> class target
-              targ = tf.createClassTarget(region);
-            } else { // Instance region -> qualify with receiver
-              // We bind the receiver ourselves, so this is safe
-              targ = tf.createInstanceTarget(JavaPromise.getReceiverNode(mDecl), region);
-            }
-          } else if (pContext instanceof AnyInstanceExpressionNode) {
-            final IJavaType type = 
-              ((AnyInstanceExpressionNode) pContext).getType().resolveType().getJavaType();
-            targ = tf.createAnyInstanceTarget((IJavaReferenceType) type, region);
-          } else if (pContext instanceof QualifiedThisExpressionNode) {
-            final QualifiedThisExpressionNode qthis =
-              (QualifiedThisExpressionNode) pContext;
-            final IRNode canonicalReceiver =
-              JavaPromise.getQualifiedReceiverNodeByName(mDecl, qthis.resolveType().getNode());
-            // We just bound the receiver ourselves, so this is safe
-            targ = tf.createInstanceTarget(canonicalReceiver, region);
-          } else if (pContext instanceof TypeExpressionNode) {
-            targ = tf.createClassTarget(region);
-          } else if (pContext instanceof ThisExpressionNode) {
-            // We bind the receiver ourselves, so this is safe
-            targ = tf.createInstanceTarget(JavaPromise.getReceiverNode(mDecl), region);
-          } else if (pContext instanceof VariableUseExpressionNode) {
-            // The object expression cannot be a receiver, so this is safe
-            targ = tf.createInstanceTarget(((VariableUseExpressionNode) pContext).resolveBinding().getNode(), region);
-          } else {
-            // Shouldn't happen, but we need to ensure that blank final targ is initialized
-            targ = null;
-          }
-          final Effect eff = Effect.newEffect(callSite, isRead, targ);
-          result.add(eff);
-        }
-      }
+      getEffectsFromSpecificationNode(mDecl, promisedEffects.getEffects(), result, callSite);
       if (result.isEmpty()) {
         result.add(Effect.newEmpty(callSite));
       }
       return Collections.unmodifiableSet(result);
     }
   }
-  
-  /** Get the declared effects for a method invoked from a particular call-site.
-   * @param mCall The IRNode for the call site
-   * @param mDecl The IRNode that is the MethodDecl
-   * @return Declared effects for cross-module or TheWorld calls, or null for
-   * same-non-world-module calls.
-   */
-  public static Set<Effect> getDeclaredEffectsWM(
-      final IRNode mCall, final IRNode mDecl) {
-    //if call-site and callee are in different modules, or if either is part of
-    // TheWorld we can only depend on the declared effects!
-    
-    if (!ModuleModel.sameNonWorldModule(mCall, mDecl)) {
-      // it's declared effects, or WritesAll!
-      return getMethodEffects(mDecl, mCall);
-    } else {
-      // this module does not apply!
-      return null;
+
+
+
+  public static void getEffectsFromSpecificationNode(final IRNode mDecl,
+      final Iterable<EffectsSpecificationNode> promisedEffects,
+      final Set<Effect> result, final IRNode callSite) {
+    // Use the default target factory because we bind the receivers ourselves
+    final TargetFactory tf = DefaultTargetFactory.PROTOTYPE;      
+    for(final EffectsSpecificationNode effList : promisedEffects) {
+      for(final EffectSpecificationNode peff : effList.getEffectList()) {
+        final RegionModel region = peff.getRegion().resolveBinding().getModel();
+        final boolean isRead = !peff.getIsWrite();
+        final ExpressionNode pContext = peff.getContext();
+        
+        final Target targ;
+        if (pContext instanceof ImplicitQualifierNode) {
+          if (region.isStatic()) { // Static region -> class target
+            targ = tf.createClassTarget(region);
+          } else { // Instance region -> qualify with receiver
+            // We bind the receiver ourselves, so this is safe
+            targ = tf.createInstanceTarget(JavaPromise.getReceiverNode(mDecl), region);
+          }
+        } else if (pContext instanceof AnyInstanceExpressionNode) {
+          final IJavaType type = 
+            ((AnyInstanceExpressionNode) pContext).getType().resolveType().getJavaType();
+          targ = tf.createAnyInstanceTarget((IJavaReferenceType) type, region);
+        } else if (pContext instanceof QualifiedThisExpressionNode) {
+          final QualifiedThisExpressionNode qthis =
+            (QualifiedThisExpressionNode) pContext;
+          final IRNode canonicalReceiver =
+            JavaPromise.getQualifiedReceiverNodeByName(mDecl, qthis.resolveType().getNode());
+          // We just bound the receiver ourselves, so this is safe
+          targ = tf.createInstanceTarget(canonicalReceiver, region);
+        } else if (pContext instanceof TypeExpressionNode) {
+          targ = tf.createClassTarget(region);
+        } else if (pContext instanceof ThisExpressionNode) {
+          // We bind the receiver ourselves, so this is safe
+          targ = tf.createInstanceTarget(JavaPromise.getReceiverNode(mDecl), region);
+        } else if (pContext instanceof VariableUseExpressionNode) {
+          // The object expression cannot be a receiver, so this is safe
+          targ = tf.createInstanceTarget(((VariableUseExpressionNode) pContext).resolveBinding().getNode(), region);
+        } else {
+          // Shouldn't happen, but we need to ensure that blank final targ is initialized
+          targ = null;
+        }
+        final Effect eff = Effect.newEffect(callSite, isRead, targ);
+        result.add(eff);
+      }
     }
   }
 
@@ -369,8 +354,9 @@ public final class Effects implements IBinderClient {
    *          not elaborated. Normally this should be <code>false</code>.
    * @return An unmodifiable set of effects.
    */
-  public Set<Effect> getMethodCallEffects(final BindingContextAnalysis.Query bcaQuery,
-      final IRNode call, final IRNode caller, final boolean returnRaw) {
+  public Set<Effect> getMethodCallEffects(
+      final BindingContextAnalysis.Query bcaQuery,
+      final IRNode call, final IRNode caller) {
 	  //createdTEBs++;
 	  /*
 	   * Changed to lazily compute things, since bindReceiver doesn't get called very often
@@ -394,8 +380,8 @@ public final class Effects implements IBinderClient {
         return JavaPromise.getQualifiedReceiverNodeByName(caller, outerType);
       }
     };
-    return getMethodCallEffects(bcaQuery, new ThisBindingTargetFactory(teb),
-        binder, call, caller, returnRaw);
+    return getMethodCallEffects(
+        bcaQuery, new ThisBindingTargetFactory(teb), binder, call, caller);
   }
   /*
   static int createdTEBs = 0;
@@ -409,61 +395,32 @@ public final class Effects implements IBinderClient {
   }  
   
   /**
-   * Get the effects of a specific method/constructor call.  The effects are
-   * fully integrated into the context of the caller, that is, region aggregation
-   * is taken into account, and BindingContextAnalysis is used to replace
-   * uses of local variables in instance targets.  Technically speaking, the
-   * effects are properly elaborated.
+   * Get the effects of a specific method/constructor call. The effects are
+   * fully integrated into the context of the caller, that is, region
+   * aggregation is taken into account, and BindingContextAnalysis is used to
+   * replace uses of local variables in instance targets. Technically speaking,
+   * the effects are properly elaborated.
    * 
+   * @param bcaQuery
+   *          Binding context analysis query focused to the flow unit
+   *          represented by <code>callingMethodDecl</code>. It is up to the
+   *          caller to make sure these values are consistent. Although we could
+   *          instead take the BCA analysis itself and force the query to be
+   *          consistent here, we do not because not doing so allows the query
+   *          to be cached by the callers and thus not created over and over
+   *          again for each use.
    * @param call
    *          The node representing the method/constructor call
    * @param targetFactory
-   *          The target factory must insure that ThisExpression or 
-   *          QualifiedThisExpression IRNodes that are passed to 
+   *          The target factory must insure that ThisExpression or
+   *          QualifiedThisExpression IRNodes that are passed to
    *          {@link TargetFactory#createInstanceTarget(IRNode, IRegion)} are
-   *          property bound.  Currently this means that the targetFactory
-   *          had better be an instance of {@link ThisBindingTargetFactory}.
+   *          property bound. Currently this means that the targetFactory had
+   *          better be an instance of {@link ThisBindingTargetFactory}.
    */
   public static Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
       final IBinder binder, final IRNode call, final IRNode callingMethodDecl) {
-    return getMethodCallEffects(
-        bcaQuery, targetFactory, binder, call, callingMethodDecl, false);
-  }
-
-  /**
-   * Get the raw effects of a specific method/constructor call. The effects are
-   * <em>not</em> fully integrated into the context of the caller, that is,
-   * region aggregation is <em>not</em> taken into account, and uses of local
-   * variables in instance targets are kept. Technically speaking, the effects
-   * are <em>not</em> elaborated.
-   * 
-   * @param call
-   *          The node representing the method/constructor call
-   */
-  /* XXX: This method is kept around so that UniqueTransfer.transferCall()
-   * works correctly.  I don't know at the moment whether this is really the
-   * right thing to do.  If it is, then this method needs to be better
-   * integrated with getMethodCallEffects to remove duplicate code.
-   */
-  public static Set<Effect> getRawMethodCallEffects(
-      final TargetFactory targetFactory, final IBinder binder,
-      final IRNode call, final IRNode callingMethodDecl) {
-    return getMethodCallEffects(
-        null, targetFactory, binder, call, callingMethodDecl, true);
-  }
-  
-  /* The bcaQuery needs to be focused to the flow unit represented by callingMethodDecl.
-   * It is up to the caller to make sure these values are consistent.  Although
-   * we could instead take the bca and force the query to be consistent here,
-   * we do not because not doing so allows the query to be cached by the callers
-   * and thus not created over and over again for each use.
-   */
-  // bcaQuery is unused if returnRaw == true
-  static Set<Effect> getMethodCallEffects(
-      final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
-      final IBinder binder, final IRNode call, final IRNode callingMethodDecl, 
-      final boolean returnRaw) {    
     // Get the node of the method/constructor declaration
     final IRNode mdecl = binder.getBinding(call);
     if (mdecl == null) {
@@ -495,13 +452,9 @@ public final class Effects implements IBinderClient {
           if (!isNullExpression(val)) {
             final Target newTarg =
               targetFactory.createInstanceTarget(val, t.getRegion());
-            if (returnRaw) {
-              methodEffects.add(Effect.newEffect(call, eff.isRead(), newTarg));
-            } else {
-              elaborateInstanceTargetEffects(
-                  bcaQuery, targetFactory, binder, call, eff.isRead(),
-                  newTarg, methodEffects);
-            }
+            elaborateInstanceTargetEffects(
+                bcaQuery, targetFactory, binder, call, eff.isRead(),
+                newTarg, methodEffects);
           }
         } else { // See if ref is a QualifiedReceiverDeclaration
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {

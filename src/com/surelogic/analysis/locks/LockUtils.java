@@ -743,7 +743,7 @@ public final class LockUtils {
      * get the lock required to access the region into which the aggregation
      * occurred.
      */
-    final Set<Effect> callFx = effects.getMethodCallEffects(bcaQuery, mcall, enclosingDecl, false); 
+    final Set<Effect> callFx = effects.getMethodCallEffects(bcaQuery, mcall, enclosingDecl); 
     for (final Effect effect : callFx) {
       if (effect.isEmpty()) {
         continue;
