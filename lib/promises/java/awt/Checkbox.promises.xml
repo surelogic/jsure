@@ -2,7 +2,6 @@
 	<class name="Checkbox">
 
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
-		<Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
 
 		<Promise>@ThreadRole(AWT) for get*(**) | new(**)</Promise>
 

@@ -2,7 +2,6 @@
 
 <package name="java.net">
 	<class name="Socket">
-		<Promise>@ThreadRoleTransparent for *(**)</Promise>
 
 	</class>
 </package>

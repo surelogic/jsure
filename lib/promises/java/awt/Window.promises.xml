@@ -1,8 +1,6 @@
 <package name="java.awt">
   <class name="Window">
 
-    <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
-
     <Promise>@ThreadRole(AWT) for get*(**) | is*(**)</Promise>
 
     <Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))</Promise>

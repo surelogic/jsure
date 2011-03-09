@@ -1,8 +1,6 @@
 <package name="java.awt">
   <class name="Toolkit">
 
-    <Promise>@ThreadRoleTransparent for add*Listener(**) | remove*Listener(**)</Promise>
-
     <Promise>@ThreadRoleTransparent for beep()</Promise>
 
   </class>  
