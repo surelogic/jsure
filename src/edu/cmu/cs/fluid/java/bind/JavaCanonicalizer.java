@@ -897,8 +897,7 @@ public class JavaCanonicalizer {
         //System.out.println("Translating iterable loop: "+stmt.toString());
     	final String unparse = DebugUnparser.toString(stmt);
     	  
-    	// Do any analysis before handling children
-    	/*
+    	// Do any analysis before handling children    	
         IBinding mb         = findNoArgMethod(collT, "iterator");
         if (mb == null) {
           findNoArgMethod(collT, "iterator");
@@ -907,8 +906,7 @@ public class JavaCanonicalizer {
         }
         IRNode rtype        = MethodDeclaration.getReturnType(mb.getNode());
         IJavaType rtypeT    = binder.getJavaType(rtype);
-        IJavaType itTB      = mb.convertType(rtypeT);
-        */
+        IJavaDeclaredType itTB = (IJavaDeclaredType) mb.convertType(rtypeT);        
         
       	// handle children    	
     	doAcceptForChildren(stmt);
@@ -942,16 +940,16 @@ public class JavaCanonicalizer {
         IRNode paramInit = makeSimpleCall(it, "next");     
         copySrcRef(stmt, paramInit);
 
-        // Introduce cast to the real type
-        IRNode castType = CogenUtil.createType(binder.getTypeEnvironment(), collT.getTypeParameters().get(0));
+        // Introduce cast to the real type        
+        IRNode castType = CogenUtil.createType(binder.getTypeEnvironment(), itTB.getTypeParameters().get(0));
         paramInit = CastExpression.createNode(castType, paramInit);
         
         IRNode whileLoop = makeEquivWhileLoop(stmt, cond, paramInit); 
         IRNode result    = BlockStatement.createNode(new IRNode[] { /*iterableDecl,*/ itDecl, whileLoop });
         return result;
       }
-    
-    @Override
+
+	@Override
     public Boolean visitImplicitReceiver(IRNode node) {
       IRNode parent = tree.getParent(node);
       IRNode method = binder.getBinding(parent);
