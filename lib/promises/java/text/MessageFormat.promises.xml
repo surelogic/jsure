@@ -3,7 +3,6 @@
 <package name="java.text">
     <!-- what promises could go here? -->
     <class name="MessageFormat">
-     <Promise>@ThreadRoleTransparent for **(**)</Promise>
 
           <method name="format" params="java.lang.Object[],java.lang.StringBuffer,java.text.FieldPosition">
             <parameter index="0">

@@ -2,8 +2,7 @@
 
 <package name="javax.swing">
 	<class name="JTextField">
-		<Promise>@ThreadRoleTransparent for add*Listener(**) |
-			remove*Listener(**) | get*Listener(**)</Promise>
+		<Promise>@ThreadRoleTransparent for get*Listener(**)</Promise>
 
 		<Promise>@ThreadRole(AWT) for new(**) | (*(**) &amp;
 			!(add*Listener(**) | remove*Listener(**) | get*Listener(**)))</Promise>
