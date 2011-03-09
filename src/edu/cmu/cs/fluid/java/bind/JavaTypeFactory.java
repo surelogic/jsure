@@ -403,7 +403,10 @@ public class JavaTypeFactory implements IRType, Cleanable {
     } else if (op instanceof WildcardType) {   
       return getWildcardType(null,null);
     } else if (op instanceof CaptureType) {
-      throw new IllegalStateException("Got an unexpected CaptureType node");
+      IJavaReferenceType lower = (IJavaReferenceType) convertNodeTypeToIJavaType(CaptureType.getLower(nodeType),binder);
+      IJavaReferenceType upper = (IJavaReferenceType) convertNodeTypeToIJavaType(CaptureType.getUpper(nodeType),binder);
+      // TODO broken
+      return getCaptureType(null, lower, upper);
     } else if (op instanceof VarArgsType) {
       IJavaType bt = convertNodeTypeToIJavaType(VarArgsType.getBase(nodeType),binder);
       return getArrayType(bt, 1);

@@ -105,6 +105,18 @@ public class CogenUtil implements JavaGlobals {
 		}
 		return WildcardType.prototype.jjtCreate();
 	}
+	else if (t instanceof IJavaCaptureType) {		
+		IJavaCaptureType ct = (IJavaCaptureType) t;
+		/*
+		IRNode lower = createType(tEnv, ct.getLowerBound());
+		IRNode upper = createType(tEnv, ct.getLowerBound());
+		return CaptureType.createNode(lower, upper);
+		*/
+		return createType(tEnv, ct.getWildcard());
+	}
+	else if (t instanceof  IJavaNullType) {
+		return NamedType.createNode("java.lang.Object");
+	}
 	throw new UnsupportedOperationException("Unsupported type: "+t);
   }
   

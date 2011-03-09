@@ -2,6 +2,6 @@
 public operator CaptureType extends ReferenceType
 {
   syntax {
-    "?" bounds:MoreBounds
+    "capture-of-?" "extends" lower:Type "super" upper:Type
   }
 }

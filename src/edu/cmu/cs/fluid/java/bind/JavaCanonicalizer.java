@@ -815,10 +815,14 @@ public class JavaCanonicalizer {
           copySrcRef(stmt, whileLoop);
           return whileLoop;
       }
-    
+
       private IRNode makeSimpleCall(final String object, String method) {
+    	  return makeSimpleCall(VariableUseExpression.createNode(object), method);
+      }
+      
+      private IRNode makeSimpleCall(IRNode object, String method) {
         IRNode args = Arguments.createNode(noNodes);
-        IRNode rv   = NonPolymorphicMethodCall.createNode(VariableUseExpression.createNode(object), method, args);
+        IRNode rv   = NonPolymorphicMethodCall.createNode(object, method, args);
         return rv;
       }
 
@@ -894,6 +898,7 @@ public class JavaCanonicalizer {
     	final String unparse = DebugUnparser.toString(stmt);
     	  
     	// Do any analysis before handling children
+    	/*
         IBinding mb         = findNoArgMethod(collT, "iterator");
         if (mb == null) {
           findNoArgMethod(collT, "iterator");
@@ -903,21 +908,27 @@ public class JavaCanonicalizer {
         IRNode rtype        = MethodDeclaration.getReturnType(mb.getNode());
         IJavaType rtypeT    = binder.getJavaType(rtype);
         IJavaType itTB      = mb.convertType(rtypeT);
-          
+        */
+        
       	// handle children    	
     	doAcceptForChildren(stmt);
           
         // Create decl for Iterable
-        final String iterable  = "iterable"+unparse.hashCode();
+    	//final String iterable  = "iterable"+unparse.hashCode();
         IRNode collection      = ForEachStatement.getCollection(stmt);
      	tree.removeSubtree(collection);
-        IRNode iterableDecl    = makeDecl(JavaNode.FINAL, iterable, collection, collT);
-        copySrcRef(stmt, iterableDecl);
+     	
+        //IRNode iterableDecl    = makeDecl(JavaNode.FINAL, iterable, collection, collT);
+        //copySrcRef(stmt, iterableDecl);
         
         // Create decl for iterator
         final String it     = "it"+unparse.hashCode();
-        final IRNode itType = CogenUtil.createType(binder.getTypeEnvironment(), itTB);
-        IRNode itCall       = makeSimpleCall(iterable, "iterator");
+        final IRNode itType = //CogenUtil.createType(binder.getTypeEnvironment(), itTB);
+        	// Iterator<?>
+        	ParameterizedType.createNode(NamedType.createNode("java.util.Iterator"), 
+        			TypeActuals.createNode(new IRNode[] { WildcardType.prototype.jjtCreate() }));
+        
+        IRNode itCall       = makeSimpleCall(collection, "iterator");//makeSimpleCall(iterable, "iterator");
         copySrcRef(stmt, itCall);
         
         IRNode itDecl       = makeDecl(JavaNode.FINAL, it, itCall, itType);
@@ -930,9 +941,13 @@ public class JavaCanonicalizer {
         // Create initializer for parameter
         IRNode paramInit = makeSimpleCall(it, "next");     
         copySrcRef(stmt, paramInit);
+
+        // Introduce cast to the real type
+        IRNode castType = CogenUtil.createType(binder.getTypeEnvironment(), collT.getTypeParameters().get(0));
+        paramInit = CastExpression.createNode(castType, paramInit);
         
         IRNode whileLoop = makeEquivWhileLoop(stmt, cond, paramInit); 
-        IRNode result    = BlockStatement.createNode(new IRNode[] { iterableDecl, itDecl, whileLoop });
+        IRNode result    = BlockStatement.createNode(new IRNode[] { /*iterableDecl,*/ itDecl, whileLoop });
         return result;
       }
     
