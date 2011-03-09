@@ -10,6 +10,7 @@ import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.refactor.IJavaDeclaration;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.refactor.IRNodeUtil;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -79,11 +80,14 @@ implements IResultDrop, IProposedPromiseDropInfo {
 		f_contents = contents;
 		setNodeAndCompilationUnitDependency(at);
 		dependUponCompilationUnitOf(from);
+
+		final String msg;
 		if (contents == null) {
-			setMessage("ProposedPromiseDrop @"+annotation+"()");
+			msg = Entity.maybeIntern("ProposedPromiseDrop @"+annotation+"()");
 		} else {
-			setMessage("ProposedPromiseDrop @"+annotation+'('+contents+')');
-		}
+			msg = Entity.maybeIntern("ProposedPromiseDrop @"+annotation+'('+contents+')');
+		}		
+		setMessage(msg);
 	}
 
 	/**
