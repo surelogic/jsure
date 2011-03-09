@@ -2,6 +2,8 @@ package com.surelogic.analysis.effects;
 
 import java.util.*;
 
+import jsr166y.forkjoin.Ops.Procedure;
+
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
@@ -37,17 +39,30 @@ import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {	
+public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {	
+	/** Should we try to run things in parallel */
+	private static boolean wantToRunInParallel = false;
+
+	/**
+	 * Are we actually going to run things in parallel?  Not all JRE have the
+	 * libraries we need to actually run in parallel.
+	 */
+	private static boolean willRunInParallel = wantToRunInParallel && !singleThreaded;
+	
   private BindingContextAnalysis bca;
   private IJavaDeclaredType javaLangObject;
   
-  
-  
 	public EffectsAnalysis() {
-		super("EffectAssurance2");
-	}
-
-	
+		super(willRunInParallel, IRNode.class, "EffectAssurance2");
+		if (runInParallel()) {
+			setWorkProcedure(new Procedure<IRNode>() {
+				@Override
+				public void op(IRNode compUnit) {
+					checkEffectsForFile(compUnit);
+				}				
+			});
+		}
+	}	
 	
 	@Override
 	protected Effects constructIRAnalysis(final IBinder binder) {
@@ -70,7 +85,11 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,Void> {
 	
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
-        checkEffectsForFile(compUnit);
+		if (runInParallel()) {
+			queueWork(compUnit);
+		} else {
+			checkEffectsForFile(compUnit);
+		}
         return true;
 	}
 
