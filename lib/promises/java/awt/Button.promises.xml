@@ -5,22 +5,17 @@
 		<MapRegion>Instance into java.awt.event.ActionListener:GUIstuff
 		</MapRegion>
 
-		<Promise>@ThreadRole(AWT) for get*(**) | new(**)</Promise>
 		<Promise>@RegionEffects(reads
 			java.awt.event.ActionListener:GUIinternal) for new(**)</Promise>
 		<Promise>@RegionEffects(reads Instance) for get*(**)</Promise>
 
-		<Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))
-		</Promise>
 		<Promise>@RegionEffects(writes Instance) for add*(**) &amp;
 			!(add*Listener(**))</Promise>
 
-		<Promise>@ThreadRole(AWT) for process*(**)</Promise>
 		<Promise>@RegionEffects(reads
 			java.awt.event.ActionListener:GUIinternal; writes Instance) for
 			process*(**)</Promise>
 
-		<Promise>@ThreadRole(AWT) for set*(**)</Promise>
 		<Promise>@RegionEffects(writes Instance) for set*(**)</Promise>
 
 	</class>

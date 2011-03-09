@@ -3,13 +3,9 @@
 
     <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-  <Promise>@ThreadRole(AWT) for get*(**)</Promise>
-
   <Promise>@ThreadRole(AWT) for is*(**)</Promise>
 
   <Promise>@ThreadRole(AWT) for remove(*)</Promise>
-
-  <Promise>@ThreadRole(AWT) for set*(**)</Promise>
 
   <Promise>@ThreadRole(AWT) for *Notify()</Promise>
 

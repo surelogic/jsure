@@ -4,8 +4,6 @@
 	<class name="UIManager">
 		<Promise>@ThreadRole(AWT) for public **(**) &amp; !(add*Listener(*)
 			| remove*Listener(*))</Promise>
-		<Promise>@ThreadRoleTransparent for add*Listener(*) |
-			remove*Listener(*)</Promise>
 
 	<!--  Uncomment when nested classes work!
 		<class name="LookAndFeelInfo">

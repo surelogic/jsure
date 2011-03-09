@@ -3,13 +3,5 @@
 
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole(AWT) for get*(**) | new(**)</Promise>
-
-  	<Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))</Promise>
-
-  	<Promise>@ThreadRole(AWT) for process*(**)</Promise>
-
-  	<Promise>@ThreadRole(AWT) for set*(**)</Promise>
-
   </class>  
 </package>

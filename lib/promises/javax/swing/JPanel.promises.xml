@@ -4,11 +4,7 @@
 	<class name="JPanel">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole(AWT) for JPanel(**)</Promise>
-		<Promise>@ThreadRole(AWT) for get*(**)</Promise>
-		<Promise>@ThreadRole(AWT) for set*(**) | updateUI()</Promise>
-
-		<Promise>@ThreadRole(AWT) for paint*(**)</Promise>
+		<Promise>@ThreadRole(AWT) for updateUI()</Promise>
 
 		<constructor params="">
 			<ThreadRole>AWT</ThreadRole>

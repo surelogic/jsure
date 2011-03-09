@@ -3,12 +3,9 @@
 <package name="javax.swing">
 	<class name="AbstractButton">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
-		<Promise>@ThreadRoleTransparent for add*Listener(**)</Promise>
-		<Promise>@ThreadRoleTransparent for remove*Listener(**)</Promise>
 		<Promise>@ThreadRole(AWT) for getAction*(**)</Promise>
 
-
-		<Promise>@ThreadRole(AWT) for *(**) &amp; !(add*Listener(**)) &amp;
+		<Promise>@ThreadRole(AWT) for *(**) &amp; !(get*(**) | set*(**) | add*Listener(**)) &amp;
 			!(remove*Listener(**)) &amp; !(getAction*(**))</Promise>
 	</class>
 </package>

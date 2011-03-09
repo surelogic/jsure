@@ -4,8 +4,5 @@
 	<class name="ImageIcon">
 		<Promise>@ThreadRoleImport("java.awt") for *</Promise>
 
-		<Promise>@ThreadRole(AWT) for get*(**)</Promise>
-		<Promise>@ThreadRole(AWT) for set*(**)</Promise>
-
 	</class>
 </package>

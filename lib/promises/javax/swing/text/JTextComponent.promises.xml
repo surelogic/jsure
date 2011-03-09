@@ -3,18 +3,10 @@
 <package name="javax.swing.text">
 	<class name="JTextComponent">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
-		
-		<Promise>@ThreadRoleTransparent&quot; for add*Listener(**) |
-			remove*Listener(**)</Promise>
 			
 		<Promise>@ThreadRole(AWT) for copy() | cut() | paste()</Promise>
-		<Promise>@ThreadRole(AWT) for get*(**)</Promise>
-		<Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))
-		</Promise>
 		<Promise>@ThreadRole(AWT) for load*(**)</Promise>
 		<Promise>@ThreadRole(AWT) for remove*(**) &amp;
 			!(remove*Listener(**))</Promise>
-		<Promise>@ThreadRole(AWT) for set*(**)</Promise>
-		<Promise>@ThreadRole(AWT) for updateUI()</Promise>
 	</class>
 </package>

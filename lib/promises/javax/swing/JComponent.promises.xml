@@ -3,17 +3,7 @@
 
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRoleTransparent for add*Listener(**) |
-			remove*Listener(**)</Promise>
-
-		<Promise>@ThreadRole(AWT) for get*(**)</Promise>
-
-		<Promise>@ThreadRole(AWT) for add*(**) &amp; !(add*Listener(**))
-		</Promise>
-
 		<Promise>@ThreadRole(AWT) for process*(**)</Promise>
-
-		<Promise>@ThreadRole(AWT) for set*(**)</Promise>
 
 		<Promise>@ThreadRole(AWT) for updateUI()</Promise>
 		<Promise>@ThreadRoleTransparent for revalidate()</Promise>

@@ -5,10 +5,8 @@
 
     <!-- Promise>@MapRegion Instance into java.awt.event.ActionListener:GUIstuff)</Promise -->
 
-    <Promise>@ThreadRole(AWT) for get*(**)</Promise>
     <Promise>@RegionEffects(reads java.awt.event.ActionListener:GUIinternal) for get*(**)</Promise>
     
-    <Promise>@ThreadRole(AWT) for set*(**)</Promise>
     <Promise>@RegionEffects(writes java.awt.event.ActionListener:GUIinternal) for set*(**)</Promise>
     
     <Promise>@ThreadRole(AWT) for draw*(**)</Promise>
@@ -22,7 +20,7 @@
     
     <Promise>@ThreadRole(AWT) for copy*(**)</Promise>
     
-    <Promise>@ThreadRole(AWT) for create(**) | translate(**)</Promise>
+    <Promise>@ThreadRole(AWT) for translate(**)</Promise>
     
     <method name="dispose" params="">
       <ThreadRole>AWT</ThreadRole>

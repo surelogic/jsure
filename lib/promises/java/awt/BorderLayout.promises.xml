@@ -3,8 +3,6 @@
 
     <ThreadRoleImport>java.awt</ThreadRoleImport>
 
-    <Promise>@ThreadRole(AWT) for new(**)</Promise>
-
   <Promise>@ThreadRole(AWT) for *(**)</Promise>
 
     </class>  

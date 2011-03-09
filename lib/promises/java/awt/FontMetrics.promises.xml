@@ -4,7 +4,7 @@
 
     <Promise>@RegionEffects(reads Instance, java.awt.event.ActionListener:GUIstuff, java.awt.event.ActionListener:GUIinternal) for get*()</Promise>
 
-    <Promise>@ThreadRole(AWT) for charWidth*(**) | get*(**)</Promise>
+    <Promise>@ThreadRole(AWT) for charWidth*(**)</Promise>
 
         <method name="stringWidth" params="java.lang.String">
             <ThreadRole>AWT</ThreadRole>

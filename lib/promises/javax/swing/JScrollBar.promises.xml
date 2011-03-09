@@ -4,12 +4,7 @@
 	<class name="JScrollBar">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRoleTransparent&quot; for add*Listener(**) |
-			remove*Listener(**)</Promise>
-
-		<Promise>@ThreadRole(AWT) for get*(**)</Promise>
 		<Promise>@ThreadRole(AWT) for create*(**)</Promise>
-		<Promise>@ThreadRole(AWT) for set*(**)</Promise>
 		<Promise>@ThreadRole(AWT) for updateUI()</Promise>
 
 		<Promise>@ThreadRole(AWT) for fire*(**)</Promise>

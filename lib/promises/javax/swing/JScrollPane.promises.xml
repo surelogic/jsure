@@ -4,9 +4,7 @@
 	<class name="JScrollPane">
 		<ThreadRoleImport>java.awt</ThreadRoleImport>
 
-		<Promise>@ThreadRole(AWT) for get*(**)</Promise>
 		<Promise>@ThreadRole(AWT) for create*(**)</Promise>
-		<Promise>@ThreadRole(AWT) for set*(**)</Promise>
 		<Promise>@ThreadRole(AWT) for updateUI()</Promise>
 
 	</class>
