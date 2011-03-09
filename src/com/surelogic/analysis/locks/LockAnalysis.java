@@ -85,8 +85,8 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 					  final TopLevelAnalysisVisitor topLevel = 
 					    new TopLevelAnalysisVisitor(
 					        new ClassProcessor(getAnalysis(), getResultDependUponDrop()));
-					  // actually n.classBody is a CompilationUnit here!
-						topLevel.doAccept(n.classBody);	
+					  // actually n.typeDecl is a CompilationUnit here!
+						topLevel.doAccept(n.typeDecl);	
 					} else {
 						//System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(n));
 					  actuallyAnalyzeClassBody(
