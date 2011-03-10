@@ -88,7 +88,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     elements = elems;
     inverse = inv;  	
     hashCode = computeHashCode(); 		
-    count(elems.length);
+    //count(elems.length);
   }
   
   static synchronized void count(final int size) {
