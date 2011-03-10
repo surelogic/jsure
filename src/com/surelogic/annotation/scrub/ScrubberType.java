@@ -22,6 +22,11 @@ public enum ScrubberType {
    */
   INCLUDE_SUBTYPES_BY_HIERARCHY,
   /**
+   * Similar to the above, but operates on method/constructor declarations
+   * and processes the immediately overriden methods
+   */
+  INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY,
+  /**
    * All drops will be given to the scrubber at once
    */
   DIY,
