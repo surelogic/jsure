@@ -62,7 +62,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
       throw new IllegalArgumentException("The class parameter is null");
     }
     else if (!(c instanceof IJavaDeclaredType) && !(c instanceof IJavaArrayType)) {
-      throw new IllegalArgumentException("The class parameter must be a IJavaDeclaredType or an IJavaArrayType, not a " + c.getClass().getName());
+      throw new IllegalArgumentException("The class parameter must be an IJavaDeclaredType or an IJavaArrayType, not a " + c.getClass().getName());
     }
     clazz = c;
   }

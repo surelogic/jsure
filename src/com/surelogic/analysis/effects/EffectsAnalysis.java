@@ -56,7 +56,6 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {
 		super(willRunInParallel, IRNode.class, "EffectAssurance2");
 		if (runInParallel()) {
 			setWorkProcedure(new Procedure<IRNode>() {
-				@Override
 				public void op(IRNode compUnit) {
 					checkEffectsForFile(compUnit);
 				}				
@@ -180,23 +179,28 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {
           if (!(ReceiverDeclaration.prototype.includes(refOp)
               || QualifiedReceiverDeclaration.prototype.includes(refOp)
               || ParameterDeclaration.prototype.includes(refOp))) {
+            /* Find a declared type that we can use for the any instance 
+             * effect.
+             */
             IJavaType ty = getBinder().getJavaType(ref);
             IRegion region = target.getRegion();
-            if (ty instanceof IJavaCaptureType) {
-              final IJavaType upper = ((IJavaCaptureType) ty).getUpperBound();
-              ty = (upper == null) ? javaLangObject : upper;
-            } else if (ty instanceof IJavaWildcardType) {
-              // dead case?  Turned into Capture types, I think
-              final IJavaType upper = ((IJavaWildcardType) ty).getUpperBound();
-              ty = (upper == null) ? javaLangObject : upper;
-            } else if (ty instanceof IJavaTypeFormal) {
-              final IJavaType upper = ((IJavaTypeFormal) ty).getSuperclass(getBinder().getTypeEnvironment());
-              ty = (upper == null) ? javaLangObject : upper;
-            } else if (ty instanceof IJavaArrayType) {
-              // not presently supported in region annotations, convert to
-              // any(Object):Instance
-              ty = javaLangObject;
-              region = RegionModel.getInstanceRegion();
+            while (!(ty instanceof IJavaDeclaredType)) {
+              if (ty instanceof IJavaCaptureType) {
+                final IJavaType upper = ((IJavaCaptureType) ty).getUpperBound();
+                ty = (upper == null) ? javaLangObject : upper;
+              } else if (ty instanceof IJavaWildcardType) {
+                // dead case?  Turned into Capture types, I think
+                final IJavaType upper = ((IJavaWildcardType) ty).getUpperBound();
+                ty = (upper == null) ? javaLangObject : upper;
+              } else if (ty instanceof IJavaTypeFormal) {
+                final IJavaType upper = ((IJavaTypeFormal) ty).getSuperclass(getBinder().getTypeEnvironment());
+                ty = (upper == null) ? javaLangObject : upper;
+              } else if (ty instanceof IJavaArrayType) {
+                // not presently supported in region annotations, convert to
+                // any(Object):Instance
+                ty = javaLangObject;
+                region = RegionModel.getInstanceRegion();
+              }
             }
             target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(
                 (IJavaReferenceType) ty, region);
