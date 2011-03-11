@@ -257,7 +257,9 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 	  
   public void clear() {
 	  if (useMapCache) {
-		  mapCache.clear();
+		  synchronized (mapCache) {
+			  mapCache.clear();
+		  }
 	  } else {
 		  cache = new IntraproceduralAnalysisCache<T, L, A>(null, null, null);
 	  }
@@ -276,10 +278,15 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
     
     Version v = Version.getVersion();
     if (useMapCache) {
-    	A fa = mapCache.get(flowUnit, v);
+    	A fa;
+    	synchronized (mapCache) {
+    		fa = mapCache.get(flowUnit, v);
+		}    	
     	if (fa == null) {
     		fa = computeAnalysis(flowUnit, v, debug);
-    		mapCache.put(flowUnit, v, fa);
+    		synchronized (mapCache) {
+        		mapCache.put(flowUnit, v, fa);
+			}
     	}
     	return fa;
     }    
