@@ -636,8 +636,10 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 						}
 					}
 				}		
+				break;
 			case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
 				computeMethodRelatedDeclsToCheck(c);
+				break;
 			default:
 			}
 		}
