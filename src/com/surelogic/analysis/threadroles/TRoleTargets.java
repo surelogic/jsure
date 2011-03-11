@@ -65,7 +65,7 @@ public class TRoleTargets {
     targetFactory = new ThisBindingTargetFactory(new DefaultThisExpressionBinder(b));
 
     mayAlias = new TypeBasedMayAlias(b);
-    bindingContextAnalysis = new BindingContextAnalysis(b, true);
+    bindingContextAnalysis = new BindingContextAnalysis(b, false, true);
    
     if (INSTANCE == null) {
       // Get the Instance region

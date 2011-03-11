@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.*;
+import edu.cmu.cs.fluid.util.Hashtable2;
 import edu.uwm.cs.fluid.util.Lattice;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 import edu.uwm.cs.fluid.control.LabeledLattice.LabeledValue;
@@ -41,8 +42,6 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
   /* The maximum number of analyses cached. */
   public static final int maxCached = 40;
   
-  
-  
   /**
 	 * A mapping from names to declarations, made public for convenience.
 	 */
@@ -52,12 +51,22 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 
   /** Allocate an anonymous analysis. */
   protected IntraproceduralAnalysis(IBinder b) {
-    super();
-    binder = b;
+	  this(b, false);
   }
   
-  
-  
+  protected IntraproceduralAnalysis(IBinder b, boolean useMapCache) {
+    super();
+    binder = b;
+
+    this.useMapCache = useMapCache;
+    if (useMapCache) {
+    	mapCache = new Hashtable2<IRNode, Version, A>();
+    	cache = null;
+    } else {
+    	mapCache = null;    
+    	cache = new IntraproceduralAnalysisCache<T, L, A>(null, null, null);
+    }
+  }
 
   /**
    * Get the flow unit that contains the given node, corrected to current
@@ -235,18 +244,23 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
       final IRNode node, final IRNode constructorContext) {
     return getAfter(node, constructorContext, WhichPort.ABRUPT_EXIT);
   }
-
-  
   
   /*
 	 * Start with a cache with a sentinel. This element will eventually be
 	 * evicted since it is never used.
 	 */
-  private IntraproceduralAnalysisCache<T, L, A> cache =
-    new IntraproceduralAnalysisCache<T, L, A>(null, null, null);
+  private IntraproceduralAnalysisCache<T, L, A> cache; 
 
+  private final Hashtable2<IRNode, Version, A> mapCache;
+  
+  private final boolean useMapCache;
+	  
   public void clear() {
-    cache = new IntraproceduralAnalysisCache<T, L, A>(null, null, null);
+	  if (useMapCache) {
+		  mapCache.clear();
+	  } else {
+		  cache = new IntraproceduralAnalysisCache<T, L, A>(null, null, null);
+	  }
   }
   
   /**
@@ -261,34 +275,23 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
     final boolean debug = LOG.isLoggable(Level.FINE);
     
     Version v = Version.getVersion();
+    if (useMapCache) {
+    	A fa = mapCache.get(flowUnit, v);
+    	if (fa == null) {
+    		fa = computeAnalysis(flowUnit, v, debug);
+    		mapCache.put(flowUnit, v, fa);
+    	}
+    	return fa;
+    }    
     IntraproceduralAnalysisCache<T, L, A> c = cache;
     int cached = 0;
     while (c.flowUnit != flowUnit || c.version != v) {
       // System.out.println("Rejecting " + c.toString());
       c = c.getNext();
       if (c == cache) { // back to the front; no analysis found
-        FlowUnit op = (FlowUnit) tree.getOperator(flowUnit);
-        A fa = createAnalysis(flowUnit);
-        fa.initialize(op.getSource(flowUnit));
-        fa.initialize(op.getNormalSink(flowUnit));
-        fa.initialize(op.getAbruptSink(flowUnit));
+    	A fa = computeAnalysis(flowUnit, v, debug);
         c = new IntraproceduralAnalysisCache<T, L, A>(flowUnit, v, fa);
-
-        try {
-          if (debug) {
-            LOG.fine("Performing " + c.toString() + " ...");
-          }
-          v.clamp();
-          fa.performAnalysis();
-          //printAllAnalysisResults(fa,flowUnit);
-        } catch (SlotUndefinedException e) {
-          LOG.log(Level.SEVERE, "Got exception", e);
-        } finally {
-          v.unclamp();
-        }
-        if (debug) {
-          LOG.fine(" (" + fa.getIterations() + " iterations)");
-        }
+        
         if (cached >= maxCached) {
           // System.out.println("Flushing " + cache.getPrev().toString());
           cache.getPrev().unlink();
@@ -306,6 +309,31 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
     return c.analysis;
   }
 
+  private A computeAnalysis(final IRNode flowUnit, final Version v, final boolean debug) {
+      FlowUnit op = (FlowUnit) tree.getOperator(flowUnit);
+      A fa = createAnalysis(flowUnit);
+      fa.initialize(op.getSource(flowUnit));
+      fa.initialize(op.getNormalSink(flowUnit));
+      fa.initialize(op.getAbruptSink(flowUnit));
+
+      try {
+        if (debug) {
+          LOG.fine("Performing " + toString(v, fa, flowUnit) + " ...");
+        }
+        v.clamp();
+        fa.performAnalysis();
+        //printAllAnalysisResults(fa,flowUnit);
+      } catch (SlotUndefinedException e) {
+        LOG.log(Level.SEVERE, "Got exception", e);
+      } finally {
+        v.unclamp();
+      }
+      if (debug) {
+        LOG.fine(" (" + fa.getIterations() + " iterations)");
+      }
+      return fa;
+  }
+  
   public final IThunk<A> getAnalysisThunk(final IRNode flowUnit) {
     return new Thunk<A>() {
       @Override
@@ -359,6 +387,10 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
    * {@link edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis#getFlowUnit(IRNode, IRNode)}.
 	 */
   protected abstract A createAnalysis(IRNode flowUnit);
+  
+  String toString(Version v, A analysis, IRNode flowUnit) {
+	  return v.toString() + " " + analysis.name + IntraproceduralAnalysisCache.flowUnitName(flowUnit);
+  }
 }
 
 /**

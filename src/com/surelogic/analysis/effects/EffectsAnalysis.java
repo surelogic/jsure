@@ -41,7 +41,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {	
 	/** Should we try to run things in parallel */
-	private static boolean wantToRunInParallel = true;
+	private static boolean wantToRunInParallel = false;
 
 	/**
 	 * Are we actually going to run things in parallel?  Not all JRE have the
@@ -65,7 +65,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {
 	
 	@Override
 	protected Effects constructIRAnalysis(final IBinder binder) {
-	  bca = new BindingContextAnalysis(binder, true);
+	  bca = new BindingContextAnalysis(binder, false, true);
 	  javaLangObject = binder.getTypeEnvironment().getObjectType();
     return new Effects(binder);
 	}

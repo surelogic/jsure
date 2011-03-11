@@ -22,7 +22,7 @@ public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnaly
 
 	@Override
 	protected BindingContextAnalysis constructIRAnalysis(final IBinder binder) {
-	  return new BindingContextAnalysis(binder, true);
+	  return new BindingContextAnalysis(binder, false, true);
 	}
   
   @Override
