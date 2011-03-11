@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.Sea;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
+import edu.cmu.cs.fluid.sea.proxy.*;
 import edu.cmu.cs.fluid.util.CachedSet;
 
 public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extends AbstractIRAnalysis<T,Q> {
@@ -75,7 +75,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 		}
 	}
 	
-	protected final void setResultDependUponDrop(ResultDropBuilder drop, IRNode node) {
+	protected final void setResultDependUponDrop(AbstractDropBuilder drop, IRNode node) {
 		if (useDependencies) {
 			drop.setNodeAndCompilationUnitDependency(node);
 		} else {
@@ -84,7 +84,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 		}		
 	}
 	
-	private final void setResultDependUponDrop(ResultDropBuilder p) {
+	private final void setResultDependUponDrop(AbstractDropBuilder p) {
 		if (!useDependencies) {
 			p.addDependUponDrop(resultDependUpon);
 		} else {

@@ -31,17 +31,17 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
+import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {	
 	/** Should we try to run things in parallel */
-	private static boolean wantToRunInParallel = false;
+	private static boolean wantToRunInParallel = true;
 
 	/**
 	 * Are we actually going to run things in parallel?  Not all JRE have the
@@ -126,7 +126,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {
 							MethodEffectsRules.getRegionEffectsDrop(member);
 
 						if (maskedFx.isEmpty()) {
-							final ResultDrop rd = new ResultDrop(Messages.toString(Messages.EMPTY_EFFECTS));
+							final ResultDropBuilder rd = ResultDropBuilder.create(this, Messages.toString(Messages.EMPTY_EFFECTS));
 							rd.addCheckedPromise(declaredEffectsDrop);
 							setResultDependUponDrop(rd, member);
 							rd.setConsistent();
@@ -292,7 +292,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {
 	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
 	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
-	    final InfoDrop drop = new InfoDrop("EffectAssurance");
+	    final InfoDropBuilder drop = InfoDropBuilder.create(this, "EffectAssurance", false);
 	    drop.setCategory(null);
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
       setResultDependUponDrop(drop, src);
