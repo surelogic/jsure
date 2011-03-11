@@ -383,6 +383,7 @@ System.out.println("matching against "+tmpTypes);
           // Add mapping temporarily to do substitution on extends bound
           IJavaType extendsT = fty.getSuperclass(typeEnvironment);          
           map.put(fty, argType);
+          capture(map, extendsT, argType);
           
           if (typeEnvironment.isSubType(argType, substitute(map, extendsT))) {                      
             return;
