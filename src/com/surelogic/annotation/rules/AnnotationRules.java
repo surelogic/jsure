@@ -23,8 +23,10 @@ import com.surelogic.test.*;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IDropFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
@@ -164,7 +166,14 @@ public abstract class AnnotationRules {
     }
     
     public void reportError(IRNode n, String msgTemplate, Object... args) {
-    	reportError(MessageFormat.format(msgTemplate, args), n, 0);
+    	final ISrcRef ref = JavaNode.getSrcRef(n);
+    	final int offset;
+    	if (ref == null) {
+    		offset = 0;    	
+    	} else {
+    		offset = ref.getOffset();
+    	}
+    	reportError(MessageFormat.format(msgTemplate, args), n, offset);
     }
     
     private void reportError(String msg, IRNode n, int offset) {
