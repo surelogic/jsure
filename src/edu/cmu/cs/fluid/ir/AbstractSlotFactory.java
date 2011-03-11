@@ -20,7 +20,10 @@ public abstract class AbstractSlotFactory implements SlotFactory {
     return this;
   }
 
-  protected static <S,T> HashedSlots<S,T> makeSlots() {	
+  protected static <S,T> Slots<S,T> makeSlots(boolean threadSafe) {	
+	if (threadSafe) { 
+		return new ConcurrentHashedSlots<S,T>();
+	}
     return new HashedSlots<S,T>();
   }
   
@@ -49,26 +52,50 @@ public abstract class AbstractSlotFactory implements SlotFactory {
   }
 
   public static <S,T> SlotInfo<T> makeSlotInfo(SlotStorage<S,T> storage) {
-    return new InfoStoredSlotInfo<S,T>(storage,null,AbstractSlotFactory.<S,T>makeSlots());
+	final Slots<S,T> slots = AbstractSlotFactory.<S,T>makeSlots(storage.isThreadSafe());
+	if (storage.isThreadSafe() && slots.isThreadSafe()) {
+		return new UnsyncdInfoStoredSlotInfo<S, T>(storage, null, slots);
+	}
+    return new InfoStoredSlotInfo<S,T>(storage,null,slots);
   }
   public static <S,T> SlotInfo<T> makeLabeledSlotInfo(SlotStorage<S,T> storage, String label) {
-	    return new InfoStoredSlotInfo<S,T>(storage, label, AbstractSlotFactory.<S,T>makeSlots());
+	  final Slots<S,T> slots = AbstractSlotFactory.<S,T>makeSlots(storage.isThreadSafe());
+	  if (storage.isThreadSafe() && slots.isThreadSafe()) {
+		  return new UnsyncdInfoStoredSlotInfo<S, T>(storage, label, slots);
+	  }
+	  return new InfoStoredSlotInfo<S,T>(storage, label, slots);
   }
   public static <S,T> SlotInfo<T> makeLabeledSlotInfo(SlotStorage<S,T> storage, String label, T defaultValue) {
-	    return new InfoStoredSlotInfo<S,T>(storage, label, defaultValue, AbstractSlotFactory.<S,T>makeSlots());
+	  final Slots<S,T> slots = AbstractSlotFactory.<S,T>makeSlots(storage.isThreadSafe());
+	  if (storage.isThreadSafe() && slots.isThreadSafe()) {
+		  return new UnsyncdInfoStoredSlotInfo<S, T>(storage, label, defaultValue, slots);
+	  }
+	  return new InfoStoredSlotInfo<S,T>(storage, label, defaultValue, slots);
   }
   public static <S,T> SlotInfo<T> makeSlotInfo(SlotStorage<S,T> storage, String name, IRType<T> type) 
        throws SlotAlreadyRegisteredException
   {
-    return new InfoStoredSlotInfo<S,T>(name,type,storage,AbstractSlotFactory.<S,T>makeSlots());
+	  final Slots<S,T> slots = AbstractSlotFactory.<S,T>makeSlots(storage.isThreadSafe());
+	  if (storage.isThreadSafe() && slots.isThreadSafe()) {
+		  return new UnsyncdInfoStoredSlotInfo<S,T>(name,type,storage,slots);
+	  }
+	  return new InfoStoredSlotInfo<S,T>(name,type,storage,slots);
   }
   public static <S,T> SlotInfo<T> makeSlotInfo(SlotStorage<S,T> storage, T defaultValue) {
-    return new InfoStoredSlotInfo<S,T>(storage,null,defaultValue,AbstractSlotFactory.<S,T>makeSlots());
+	  final Slots<S,T> slots = AbstractSlotFactory.<S,T>makeSlots(storage.isThreadSafe());
+	  if (storage.isThreadSafe() && slots.isThreadSafe()) {
+		  return new UnsyncdInfoStoredSlotInfo<S,T>(storage,null,defaultValue,slots);
+	  }
+	  return new InfoStoredSlotInfo<S,T>(storage,null,defaultValue,slots);
   }
   public static <S,T> SlotInfo<T> makeSlotInfo(SlotStorage<S,T> storage, String name, IRType<T> type, T defaultValue)
        throws SlotAlreadyRegisteredException
   {
-    return new InfoStoredSlotInfo<S,T>(name,type,storage,defaultValue,AbstractSlotFactory.<S,T>makeSlots());
+	  final Slots<S,T> slots = AbstractSlotFactory.<S,T>makeSlots(storage.isThreadSafe());
+	  if (storage.isThreadSafe() && slots.isThreadSafe()) {
+		  return new UnsyncdInfoStoredSlotInfo<S,T>(name,type,storage,defaultValue,slots);
+	  }
+	  return new InfoStoredSlotInfo<S,T>(name,type,storage,defaultValue,slots);
   }
 
   
