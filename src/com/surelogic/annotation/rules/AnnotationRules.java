@@ -23,7 +23,6 @@ import com.surelogic.test.*;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -161,13 +160,21 @@ public abstract class AnnotationRules {
     }
 
     public void reportError(String msg, IAASTNode n) {
+    	reportError(msg, n.getPromisedFor(), n.getOffset());
+    }
+    
+    public void reportError(IRNode n, String msgTemplate, Object... args) {
+    	reportError(MessageFormat.format(msgTemplate, args), n, 0);
+    }
+    
+    private void reportError(String msg, IRNode n, int offset) {
       String txt = msg+" on "+n;
       
 //      System.out.println("SCRUBBER: "+txt);
-      PromiseWarningDrop d = new PromiseWarningDrop(n.getOffset());
+      PromiseWarningDrop d = new PromiseWarningDrop(offset);
       d.setMessage(txt);
       d.setCategory(JavaGlobals.PROMISE_SCRUBBER);
-      d.setNodeAndCompilationUnitDependency(n.getPromisedFor());
+      d.setNodeAndCompilationUnitDependency(n);
     }
 
     public void reportWarning(IAASTNode n, String msgTemplate, Object... args) {

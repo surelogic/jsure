@@ -3,6 +3,7 @@ package com.surelogic.annotation.scrub;
 
 import com.surelogic.aast.*;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
@@ -13,6 +14,8 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 public interface IAnnotationScrubberContext {
   
   IBinder getBinder();
+  
+  void reportError(IRNode n, String msgTemplate, Object... args);
   
   void reportError(IAASTNode n, String msgTemplate, Object... args);
   void reportError(String msg, IAASTNode n);
