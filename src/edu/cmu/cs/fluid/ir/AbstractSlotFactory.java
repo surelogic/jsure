@@ -20,7 +20,7 @@ public abstract class AbstractSlotFactory implements SlotFactory {
     return this;
   }
 
-  protected static <S,T> HashedSlots<S,T> makeSlots() {
+  protected static <S,T> HashedSlots<S,T> makeSlots() {	
     return new HashedSlots<S,T>();
   }
   

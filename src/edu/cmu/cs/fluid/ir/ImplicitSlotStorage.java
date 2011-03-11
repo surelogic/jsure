@@ -30,6 +30,11 @@ public class ImplicitSlotStorage<T> implements SlotStorage<T, T> {
     undefinedValue = undefVal;
   }
   
+  public boolean isThreadSafe() {
+	// Ok because there's no state to worry about
+	return true;
+  }
+  
   public SlotFactory getSlotFactory() {
     return factory;
   }

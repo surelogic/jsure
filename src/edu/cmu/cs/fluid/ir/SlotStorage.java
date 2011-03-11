@@ -11,7 +11,11 @@ import java.io.PrintStream;
  * @author boyland
  */
 public interface SlotStorage<S,T> {
-  
+  /**
+   * @return true, if the implementation handles its own synchronization
+   */
+  public boolean isThreadSafe();
+	
   public S newSlot();
   public S newSlot(T initialValue);
   public T getSlotValue(S slotState);

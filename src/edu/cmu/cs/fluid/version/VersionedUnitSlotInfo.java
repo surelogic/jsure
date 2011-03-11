@@ -282,6 +282,10 @@ class VersionedUnitSlotFactory extends VersionedSlotFactory {
 class VersionedUnitStorage implements SlotStorage<VersionedUnitSlot, Void> {
 	public static final VersionedUnitStorage prototype = new VersionedUnitStorage();
 
+	public boolean isThreadSafe() {
+		return false;
+	}
+	
 	public VersionedUnitSlot newSlot() {
 		return NoVersions.prototype;
 	}

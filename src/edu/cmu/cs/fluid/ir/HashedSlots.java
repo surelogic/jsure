@@ -8,6 +8,10 @@ public class HashedSlots<S,T> extends IRNodeHashedMap<S> implements Slots<S,T> {
     super(2);
   }
   
+  public boolean isThreadSafe() {
+	  return false;
+  }
+  
   public S getSlot(IRNode key, S noSlotState) {
     /*
     if (containsKey(key))

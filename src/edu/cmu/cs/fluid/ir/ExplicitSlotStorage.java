@@ -19,6 +19,10 @@ public class ExplicitSlotStorage<T> implements SlotStorage<Slot<T>, T> {
     return factory;
   }
 
+  public boolean isThreadSafe() {
+	return false;
+  }
+  
   public Slot<T> newSlot() {
     return factory.undefinedSlot();
   }

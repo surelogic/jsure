@@ -4,6 +4,11 @@ package edu.cmu.cs.fluid.ir;
 /** Interface to slot storage.
  */
 public interface Slots<S,T> {
+  /**
+   * @return true, if the implementation handles its own synchronization
+   */
+  public boolean isThreadSafe();
+	
   /** Return the slot state for this key (or noSlotState).
    * @param key key (node or slot info) to use to get slot.
    */

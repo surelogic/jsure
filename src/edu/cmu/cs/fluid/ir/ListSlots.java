@@ -9,6 +9,11 @@ public class ListSlots<S,T> extends AssocList<IRNode,S> implements Slots<S,T> {
   public ListSlots() {
     super();
   }
+  
+  public boolean isThreadSafe() {
+	  return false;
+  }
+  
   public S getSlot(IRNode key, S def) {
     return get(key);
   }
