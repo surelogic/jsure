@@ -3,10 +3,16 @@ package com.surelogic.analysis;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
 
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
-public interface IIRAnalysisEnvironment {
+/**
+ * Map is used to share info 
+ *
+ * @author Edwin
+ */
+public interface IIRAnalysisEnvironment extends Map<Object,Object> {
 	IAnalysisMonitor getMonitor();
 	
 	void ensureClassIsLoaded(String qname);
