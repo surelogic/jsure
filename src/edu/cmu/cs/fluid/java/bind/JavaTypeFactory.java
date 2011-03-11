@@ -462,7 +462,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
 					return t1.toString().compareTo(t2.toString());
 				}    			  
     		  });
-    		  System.out.println(bounds+" -> "+ordered);
+    		  //System.out.println(bounds+" -> "+ordered);
     		  for(IJavaReferenceType bt : ordered) {
     			  if (result == null) {
     				  result = bt;
