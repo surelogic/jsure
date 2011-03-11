@@ -566,18 +566,24 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
                                            typeScope(it.getSecondarySupertype()));
     } else if (ty instanceof IJavaCaptureType) {
       IJavaCaptureType ct = (IJavaCaptureType) ty;
+      /*
       IJavaScope sc       = typeScope(ct.getWildcard());
       if (ct.getLowerBound() != null) {
     	  sc = new IJavaScope.ShadowingScope(sc, typeScope(ct.getLowerBound()));
       }
-      return sc;
+      */
+      return typeScope(ct.getUpperBound());
     } else if (ty instanceof IJavaPrimitiveType) {
       // Handling non-canonicalized code
       IJavaPrimitiveType pty = (IJavaPrimitiveType) ty;
       IJavaDeclaredType dty  = JavaTypeFactory.getCorrespondingDeclType(getTypeEnvironment(), pty);
       // Same as above
       return new IJavaScope.SubstScope(javaTypeScope(dty), getTypeEnvironment(), dty);
-    } else {
+    } else if (ty instanceof IJavaNullType) {
+    	// TODO is this right?
+        //return typeScope(typeEnvironment.getObjectType());
+        return IJavaScope.nullScope;
+    } else {    	
       LOG.warning("non-class type! " + ty);      
     }
     return null;
