@@ -65,7 +65,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {
 	
 	@Override
 	protected Effects constructIRAnalysis(final IBinder binder) {
-	  bca = new BindingContextAnalysis(binder, false, true);
+	  bca = new BindingContextAnalysis(binder, true, true);
 	  javaLangObject = binder.getTypeEnvironment().getObjectType();
     return new Effects(binder);
 	}

@@ -183,7 +183,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 	  if (binder == null || binder.getTypeEnvironment() == null) {
 		  return null;
 	  }
-	  bca = new BindingContextAnalysis(binder, false, true);
+	  bca = new BindingContextAnalysis(binder, true, true);
     return new LockVisitor(this, binder, new Effects(binder),
         new TypeBasedMayAlias(binder), bca, lockModelHandle);
 	}
