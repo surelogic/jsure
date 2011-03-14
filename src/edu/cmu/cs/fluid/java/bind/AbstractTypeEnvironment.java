@@ -377,6 +377,8 @@ private long parseIntLiteral(String token) {
   }
   
   /**
+   * http://java.sun.com/docs/books/jls/third_edition/html/typesValues.html#4.10.2
+   * 
    * Return an enumeration of the direct supertypes of the given type.
    * If the type is a class type, return its superclass and each of its interfaces.
    * If the type is an interface type, return "Object" and its super interfaces.
@@ -407,16 +409,16 @@ private long parseIntLiteral(String token) {
     } 
     if (ty instanceof IJavaCaptureType) {
       IJavaCaptureType ct = (IJavaCaptureType) ty;
-      return new AppendIterator<IJavaType>(getSuperTypes(ct.getWildcard()), 
-    		                               new SingletonIterator<IJavaType>(ct.getLowerBound()));
+      
+      return new SingletonIterator<IJavaType>(ct.getLowerBound());
     }
     if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wct = (IJavaWildcardType)ty;
       IJavaType bt = wct.getLowerBound();
       if (bt != null) {
         return new SingletonIterator<IJavaType>(bt);
-      }
-      /*fallthrough*/
+      }      
+      return new SingletonIterator<IJavaType>(javalangobjectType);
     }
     else if (ty instanceof IJavaArrayType) {
       return new TripleIterator<IJavaType>(javalangobjectType, 
@@ -445,8 +447,13 @@ private long parseIntLiteral(String token) {
       }
       superinterfaces = ClassDeclaration.getImpls(tdecl);
     } else if (op instanceof InterfaceDeclaration) {
-      superclass = javalangobjectType;
       superinterfaces = InterfaceDeclaration.getExtensions(tdecl);
+      
+      if (JJNode.tree.hasChildren(superinterfaces)) {
+    	  superclass = null; 
+      } else {
+    	  return new SingletonIterator<IJavaType>(javalangobjectType);
+      }
     } else if (op instanceof EnumDeclaration) {
       IRNode ed = findNamedType("java.lang.Enum");      
       List<IJavaType> params = Collections.singletonList(ty);
@@ -457,13 +464,16 @@ private long parseIntLiteral(String token) {
       IJavaType supertype = convertNodeTypeToIJavaType(supertypenode);
       supertype = supertype.subst(subst);
       if (supertype instanceof IJavaDeclaredType) {
-        IRNode supertdecl = ((IJavaDeclaredType)supertype).getDeclaration();
+    	/*
+        IRNode supertdecl = ((IJavaDeclaredType)supertype).getDeclaration();        
         if (JJNode.tree.getOperator(supertdecl) instanceof InterfaceDeclaration) {
           //complicated case!
           return new PairIterator<IJavaType>(javalangobjectType, supertype);
         } else {
           return new SingletonIterator<IJavaType>(supertype);
         }
+        */
+        return new SingletonIterator<IJavaType>(supertype);
       }    
       LOG.severe("Unexpected anon class superclass " + supertype);
       return EmptyIterator.prototype();
