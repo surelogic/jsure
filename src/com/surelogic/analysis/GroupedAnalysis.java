@@ -17,12 +17,10 @@ public class GroupedAnalysis implements IIRAnalysis {
 		analyses = grouped.toArray(new IIRAnalysis[grouped.size()]);
 	}
 
-	@Override
 	public Class<?> getGroup() {
 		return group;
 	}
 	
-	@Override
 	public String name() {
 		StringBuilder sb = new StringBuilder();
 		for(IIRAnalysis a : analyses) {
@@ -34,31 +32,26 @@ public class GroupedAnalysis implements IIRAnalysis {
 		return sb.toString();
 	}
 
-	@Override
 	public boolean runInParallel() {
 		return analyses[0].runInParallel();
 	}
 	
-	@Override
 	public boolean analyzeAll() {
 		return analyses[0].analyzeAll();
 	}
 
-	@Override
 	public void init(IIRAnalysisEnvironment env) {
 		for(IIRAnalysis a : analyses) {
 			a.init(env);
 		}
 	}
 	
-	@Override
 	public void analyzeBegin(IIRAnalysisEnvironment env, IIRProject p) {
 		for(IIRAnalysis a : analyses) {
 			a.analyzeBegin(env, p);
 		}
 	}
 
-	@Override
 	public boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud) {
 		for(IIRAnalysis a : analyses) {
 			a.doAnalysisOnAFile(env, cud);
@@ -67,7 +60,6 @@ public class GroupedAnalysis implements IIRAnalysis {
 	}
 
 
-	@Override
 	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		for(IIRAnalysis a : analyses) {
 			handleAnalyzeEnd(a, env, p);
@@ -89,21 +81,18 @@ public class GroupedAnalysis implements IIRAnalysis {
 		} while (moreToAnalyze);
 	}
 
-	@Override
 	public void postAnalysis(IIRProject p) {
 		for(IIRAnalysis a : analyses) {
 			a.postAnalysis(p);
 		}
 	}
 
-	@Override
 	public void finish(IIRAnalysisEnvironment env) {
 		for(IIRAnalysis a : analyses) {
 			a.finish(env);
 		}
 	}
 	
-	@Override
 	public void handleBuilder(IDropBuilder b) {
 		throw new UnsupportedOperationException();
 	}

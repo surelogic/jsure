@@ -21,7 +21,7 @@ public final class Messages {
   public static final int UniquenessAnnotation_uniqueDrop2 = 116;
   public static final int RegionAnnotation_regionDrop = 117;
   public static final int LockAnnotation_containableDrop = 118;
-
+  public static final int LockAnnotation_containableAttributedDrop = 119;
   
   /* 2011-01-18: Edwin says these are referenced from code that will become
    * obsolete and deleted.

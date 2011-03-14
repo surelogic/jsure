@@ -21,7 +21,13 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
   
   @Override
   protected void computeBasedOnAST() {
-    String name = JavaNames.getTypeName(getNode());
-    setResultMessage(Messages.LockAnnotation_containableDrop, name);
+    final String name = JavaNames.getTypeName(getNode());
+    final boolean isImplementationOnly = getAST().isImplementationOnly();
+    final boolean isVerify = getAST().verify();
+    if (!isImplementationOnly && isVerify) {
+      setResultMessage(Messages.LockAnnotation_containableDrop, name);
+    } else {
+      setResultMessage(Messages.LockAnnotation_containableAttributedDrop, isImplementationOnly, isVerify, name);
+    }
   }
 }

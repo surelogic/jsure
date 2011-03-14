@@ -53,13 +53,26 @@ public class ThreadEffectsRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<StartsSpecificationNode> makeScrubber() {
-      return new AbstractAASTScrubber<StartsSpecificationNode>(this) {
+      return new AbstractAASTScrubber<StartsSpecificationNode>(this, ScrubberType.BY_HIERARCHY) {
         @Override
         protected PromiseDrop<StartsSpecificationNode> makePromiseDrop(StartsSpecificationNode a) {
-          StartsPromiseDrop d = new StartsPromiseDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
+          return storeDropIfNotNull(getStorage(), a, scrubStarts(getContext(), a));          
         }
       };
     }
+  }
+  
+  private static StartsPromiseDrop scrubStarts(
+      final IAnnotationScrubberContext scrubberContext, 
+      final StartsSpecificationNode a) {
+//    // There are no syntactic checks, on consistency checks
+//    // We only get here if the current method IS annotated!
+//    final IRNode promisedFor = a.getPromisedFor();
+//    for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
+//      final IRNode overriddenMethod = context.getNode();
+//      
+//    }
+    
+    return new StartsPromiseDrop(a);
   }
 }

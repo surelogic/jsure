@@ -105,13 +105,13 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	  lv.analyzeClass(classBody, rd);
 	  
     final SelfProtectedPromiseDrop threadSafeDrop =
-      LockRules.getSelfProtectedDrop(typeDecl);
+      LockRules.getSelfProtected(typeDecl);
     if (threadSafeDrop != null) {
       new ThreadSafeVisitor(typeDecl, threadSafeDrop).doAccept(classBody);
     }
     
     final ContainablePromiseDrop containableDrop = 
-      LockRules.getContainableDrop(typeDecl);
+      LockRules.getContainable(typeDecl);
     if (containableDrop != null) {
       new ContainableVisitor(typeDecl, containableDrop).doAccept(classBody);
     }
@@ -362,8 +362,8 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           final ContainablePromiseDrop declContainableDrop;
           if (type instanceof IJavaDeclaredType) {
             typeDecl = ((IJavaDeclaredType) type).getDeclaration();
-            declTSDrop = LockRules.getSelfProtectedDrop(typeDecl);
-            declContainableDrop = LockRules.getContainableDrop(typeDecl);
+            declTSDrop = LockRules.getSelfProtected(typeDecl);
+            declContainableDrop = LockRules.getContainable(typeDecl);
           } else {
             typeDecl = null;
             declTSDrop = null;
@@ -545,7 +545,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
           final ContainablePromiseDrop declContainableDrop;
           if (typeDecl != null) {
-            declContainableDrop = LockRules.getContainableDrop(typeDecl);
+            declContainableDrop = LockRules.getContainable(typeDecl);
           } else {
             declContainableDrop = null;
           }

@@ -108,6 +108,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 	 *         otherwise
 	 */
 	private boolean startsNothing(final IRNode node) {
+	  /* No annotation means (could) start anything */ 
 		return ThreadEffectsRules.startsNothing(node);
 	}
 
@@ -149,8 +150,8 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 		final List<IAnalysisResult> results = new ArrayList<IAnalysisResult>(1);
 		boolean noThreadsStarted = true;
 		
-		String unparse = JavaNames.genQualifiedMethodConstructorName(block);
 		/*
+    String unparse = JavaNames.genQualifiedMethodConstructorName(block);
 		if (unparse.endsWith("CyclicBarrier(int)")) {
 			System.out.println("Block: "+unparse);
 		}
@@ -333,6 +334,10 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 			final Operator op = getOperator(node);
 			if (MethodDeclaration.prototype.includes(op)) {
 				try {
+				  /* startsNothing(node) == false implies the method could start
+				   * anything (via default annotation). There is nothing to check
+				   * in that case: all code is always consistent with that.
+				   */
 					if (startsNothing(node)) {
 						String modelName = genModelName(node, op);
 						// System.out.println("[ThreadEffects] method @starts nothing "
@@ -373,6 +378,10 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
 				}
 			} else if (ConstructorDeclaration.prototype.includes(op)) {
 				try {
+          /* startsNothing(node) == false implies the method could start
+           * anything (via default annotation). There is nothing to check
+           * in that case: all code is always consistent with that.
+           */
 					if (startsNothing(node)) {
 						String modelName = genModelName(node, op);
 						// System.out.println("[ThreadEffects] constructor @starts nothing "

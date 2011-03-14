@@ -1,5 +1,7 @@
 <package name="java.lang">
  <class name="Object">
+  <Containable implementationOnly="true"/> 
+ 
   <Region>public static All</Region>
   <Region>public Instance extends All</Region>
   <Region>public WaitQueue</Region>

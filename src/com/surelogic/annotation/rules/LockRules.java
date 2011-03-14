@@ -33,7 +33,6 @@ public class LockRules extends AnnotationRules {
 	private static final String RETURNS_LOCK = "ReturnsLock";
 	private static final String PROHIBITS_LOCK = "ProhibitsLock";
 	private static final String POLICY_LOCK = "PolicyLock";
-  private static final String SINGLE_THREADED = "SingleThreaded";
   private static final String CONTAINABLE = "Containable";
   private static final String SELF_PROTECTED = "ThreadSafe";
   private static final String NOT_THREAD_SAFE = "NotThreadSafe";
@@ -143,18 +142,18 @@ public class LockRules extends AnnotationRules {
 	}
   
   public static boolean isContainable(final IRNode cdecl) {
-    return getContainableDrop(cdecl) != null;
+    return getContainable(cdecl) != null;
   }
   
-  public static ContainablePromiseDrop getContainableDrop(final IRNode cdecl) {
+  public static ContainablePromiseDrop getContainable(final IRNode cdecl) {
     return getBooleanDrop(containableRule.getStorage(), cdecl);
   }
   
   public static boolean isSelfProtected(IRNode cdecl) {
-    return getSelfProtectedDrop(cdecl) != null;
+    return getSelfProtected(cdecl) != null;
   }
 
-  public static SelfProtectedPromiseDrop getSelfProtectedDrop(IRNode cdecl) {
+  public static SelfProtectedPromiseDrop getSelfProtected(IRNode cdecl) {
     return getBooleanDrop(selfProtectedRule.getStorage(), cdecl);
   }
   
@@ -270,6 +269,128 @@ public class LockRules extends AnnotationRules {
 		return returnDrop;
 	}
 	
+	private static ContainablePromiseDrop scrubContainable(
+	    final IAnnotationScrubberContext context, final ContainableNode node) {
+	  // We only get here if we have an annotated type
+	  final IRNode promisedFor = node.getPromisedFor();
+    final boolean isInterface = TypeUtil.isInterface(promisedFor);
+    final boolean implementationOnly = node.isImplementationOnly();
+	  boolean bad = false;
+	  
+    if (isInterface) {
+      // the verify attribute is non-sense on interfaces
+      if (!node.verify()) {
+        bad = true;
+        context.reportError(node, "An interface may not be @Containable(verify=false)");
+      }
+      // The implemenationOnly attribute must be false on interfaces
+      if (implementationOnly) {
+        bad = true;
+        context.reportError(node, "An Interface may not be @Containable(implementationOnly=true)");
+      }
+	  } else { // class
+      final IRNode superDecl = context.getBinder().getBinding(
+          ClassDeclaration.getExtension(promisedFor));
+
+      /* A class annotated with implementationOnly=true, cannot implement an
+	     * interface annotated with @Containable.
+	     */
+	    if (implementationOnly) {
+	      final IRNode impls = ClassDeclaration.getImpls(promisedFor);
+	      for (final IRNode intfName : Implements.getIntfIterator(impls)) {
+	        final IRNode intfDecl = context.getBinder().getBinding(intfName);
+	        if (isContainable(intfDecl)) {
+	          bad = true;
+	          context.reportError(node,
+	              "Class may not be @Containable(implementationOnly=true) because it implements the @Containable interface {0}",
+	              JavaNames.getQualifiedTypeName(intfDecl));
+	        }
+	      }
+	      
+	      // java.lang.Object doesn't have a superclass
+	      if (superDecl != promisedFor) {
+  	      final ContainablePromiseDrop superAnno = getContainable(superDecl);
+  	      if (superAnno == null) {
+            bad = true;
+            context.reportError(node,
+                "Class may not be @Containable(implementationOnly=true) because it extends the non-@Containable class {0}",
+                JavaNames.getQualifiedTypeName(superDecl));
+  	      } else if(!superAnno.isImplementationOnly() ) {
+            bad = true;
+            context.reportError(node,
+                "Class may not be @Containable(implementationOnly=true) because it extends the @Containable class {0}",
+                JavaNames.getQualifiedTypeName(superDecl));
+  	      }
+	      }
+	    } else { // implementationOnly == false
+        // java.lang.Object doesn't have a superclass
+        if (superDecl != promisedFor) {
+          final ContainablePromiseDrop superAnno = getContainable(superDecl);
+          if (superAnno == null) {
+            bad = true;
+            context.reportError(node,
+                "Class may not be @Containable because it extends the non-@Containable class {0}",
+                JavaNames.getQualifiedTypeName(superDecl));
+          }
+        }
+	    }
+	  }
+    
+    if (bad) {
+	    return null;
+	  } else {
+	    return new ContainablePromiseDrop(node);
+	  }
+	}
+	
+	private static boolean scrubContainableUnannotated(
+	    final IAnnotationScrubberContext context, 
+	    final IJavaDeclaredType javaType) {
+	  // We have an unannotated class/interface
+	  final IRNode typeDecl = javaType.getDeclaration();
+	  final boolean isInterface = TypeUtil.isInterface(typeDecl);
+	  final Iterable<IJavaType> supers = 
+	    javaType.getSupertypes(context.getBinder().getTypeEnvironment()) ;
+	  
+	  boolean result = true;
+	  
+	  if (isInterface) { // unannotated interface
+	    // If any superinterface is Containable we have an error
+	    for (final IJavaType zuper : supers) {
+	      final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
+	      // ignore CLASS java.lang.Object (which is a super if the interface doesn't extend anything)
+	      if (TypeUtil.isInterface(zuperDecl)) {
+  	      final ContainablePromiseDrop anno = getContainable(zuperDecl);
+  	      if (anno != null) {
+  	        context.reportError(typeDecl,
+  	            "Interface must be annotated @Containable because it extends the @Containable interface {0}",
+  	            JavaNames.getQualifiedTypeName(zuper));
+            result = false;
+  	      }
+	      }
+	    }
+	  } else { // unannotated class
+      for (final IJavaType zuper : supers) {
+        final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
+        final ContainablePromiseDrop anno = getContainable(zuperDecl);
+        if (anno != null) {
+          if (TypeUtil.isInterface(zuperDecl)) {
+            context.reportError(typeDecl,
+                "Class must be annotated @Containable because it implements a @Containable interface {0}",
+                JavaNames.getQualifiedTypeName(zuper));
+            result = false;
+          } else if (!anno.isImplementationOnly()) {
+            context.reportError(typeDecl,
+                "Class must be annotated @Containable because it extends a @Containable class {0}",
+                JavaNames.getQualifiedTypeName(zuper));
+            result = false;
+          }
+        }
+      }
+	  }
+	  return result;
+	}
+	
 	private static SelfProtectedPromiseDrop scrubThreadSafe(
 	  final IAnnotationScrubberContext context, final SelfProtectedNode node) {
 	  /* A thread safe class (not interface) must extend a thread safe class
@@ -295,7 +416,7 @@ public class LockRules extends AnnotationRules {
 	  }
 	  
 	  if (superDecl != null) {
-	    final SelfProtectedPromiseDrop superTSDrop = getSelfProtectedDrop(superDecl);
+	    final SelfProtectedPromiseDrop superTSDrop = getSelfProtected(superDecl);
 	    if (superTSDrop == null) {
 	      /* Check for java.lang.Object.  We already handle java.lang.Enum
 	       * in the EnumDeclaration case. 
@@ -395,18 +516,15 @@ public class LockRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<RequiresLockNode> makeScrubber() {
+		  /* Order by hierarchy so that we know that any ancestral RequiresLock
+		   * annotations are scrubbed.
+		   */
 			return new AbstractAASTScrubber<RequiresLockNode>(this,
-					ScrubberType.UNORDERED, LOCK,
+					ScrubberType.BY_HIERARCHY, LOCK,
 					POLICY_LOCK, RETURNS_LOCK) {
 				@Override
         protected PromiseDrop<RequiresLockNode> makePromiseDrop(
 						RequiresLockNode a) {
-				    /*
-					if ("RequiresLock test.Outer.Inner.this:L".equals(a.toString())) {
-						System.out.println("Found RequiresLock test.Outer.Inner.this:L");
-						a.getLockList().get(0).resolveBinding();
-					}
-*/
 					return storeDropIfNotNull(getStorage(), a,
 							scrubRequiresLock(getContext(), a));
 
@@ -562,6 +680,14 @@ public class LockRules extends AnnotationRules {
     if (drop != null) {
       drop.invalidate();
     }
+    
+    // Check for consistency with ancestors
+    if (allGood) {
+//    for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
+//    final IRNode overriddenMethod = context.getNode();
+      
+    }
+    
 		if (allGood) {
       RequiresLockPromiseDrop returnDrop = new RequiresLockPromiseDrop(node);
       for(LockModel lockDecl : lockDecls) {
@@ -1421,11 +1547,15 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ContainableNode> makeScrubber() {
-      return new AbstractAASTScrubber<ContainableNode>(this, ScrubberType.BY_HIERARCHY) {
+      return new AbstractAASTScrubber<ContainableNode>(this, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY) {
         @Override
         protected PromiseDrop<ContainableNode> makePromiseDrop(ContainableNode a) {
-          final ContainablePromiseDrop d = new ContainablePromiseDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
+          return storeDropIfNotNull(getStorage(), a, scrubContainable(getContext(), a));          
+        }
+        
+        @Override 
+        protected boolean processUnannotatedType(final IJavaDeclaredType dt) {
+          return scrubContainableUnannotated(getContext(), dt);
         }
       };
     }    
