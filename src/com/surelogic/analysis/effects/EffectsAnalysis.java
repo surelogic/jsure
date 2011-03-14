@@ -39,7 +39,7 @@ import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {	
+public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,IRNode> {	
 	/** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = false;
 
@@ -53,7 +53,7 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {
   private IJavaDeclaredType javaLangObject;
   
 	public EffectsAnalysis() {
-		super(willRunInParallel, IRNode.class, "EffectAssurance2");
+		super(willRunInParallel, IRNode.class, "EffectAssurance2", BindingContextAnalysis.factory);
 		if (runInParallel()) {
 			setWorkProcedure(new Procedure<IRNode>() {
 				public void op(IRNode compUnit) {
@@ -77,9 +77,9 @@ public class EffectsAnalysis extends AbstractWholeIRAnalysis<Effects,IRNode> {
 	}
   
   @Override
-  public Iterable<IRNode> analyzeEnd(IIRProject p) {
+  public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
     finishBuild();
-    return super.analyzeEnd(p);
+    return super.analyzeEnd(env, p);
   }
 	
 	@Override

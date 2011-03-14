@@ -43,7 +43,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 
-public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalysis.Pair> {	
+public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,LockVisitor,LockAnalysis.Pair> {	
   /** Should we try to run things in parallel */
   private static boolean wantToRunInParallel = false;
   
@@ -76,7 +76,7 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 	
 	
 	public LockAnalysis() {
-		super(willRunInParallel, queueWork ? Pair.class : null, "LockAssurance");
+		super(willRunInParallel, queueWork ? Pair.class : null, "LockAssurance", BindingContextAnalysis.factory);
 		if (runInParallel()) {
 			setWorkProcedure(new Procedure<Pair>() {
 				public void op(Pair n) {
@@ -229,9 +229,9 @@ public class LockAnalysis extends AbstractWholeIRAnalysis<LockVisitor,LockAnalys
 	}
 	
 	@Override
-	public Iterable<IRNode> analyzeEnd(IIRProject p) {
+	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		finishBuild();
-		return super.analyzeEnd(p);
+		return super.analyzeEnd(env, p);
 	}
 	
 	@Override

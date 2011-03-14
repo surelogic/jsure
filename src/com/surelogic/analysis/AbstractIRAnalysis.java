@@ -40,6 +40,10 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 		return false;
 	}
 	
+	public Class<?> getGroup() {
+		return null;
+	}
+	
 	public String name() {
 		return getClass().getSimpleName();
 	}
@@ -48,6 +52,9 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 		builders.add(b);
 	}
 	
+	/**
+	 * This doesn't affect other analyses, and so it can be called in analyzeEnd()
+	 */
 	protected final void finishBuild() {
 		flushWorkQueue();
 		
@@ -140,7 +147,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 	}
 	protected abstract boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu);
 		
-	public Iterable<IRNode> analyzeEnd(IIRProject p) {
+	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		return EmptyIterator.prototype();
 	}
 	

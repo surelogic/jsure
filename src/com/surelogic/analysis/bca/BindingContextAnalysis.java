@@ -1,6 +1,7 @@
 package com.surelogic.analysis.bca;
 
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.SharedAnalysisFactory;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -35,6 +36,28 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
  */
 
 public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet<IRNode>[], BindingContext, JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext>> implements IBinderClient {
+  public static class Factory extends SharedAnalysisFactory<BindingContextAnalysis> {
+	  private final boolean ignorePrimitives;
+	  BindingContextAnalysis shared;
+	  
+	  public Factory(boolean ignoreP) {
+		  super(BindingContextAnalysis.class);
+		  ignorePrimitives = ignoreP;
+	  }
+	  @Override
+	  protected BindingContextAnalysis create(IBinder b) {
+		  if (shared == null) {
+			  shared = new BindingContextAnalysis(b, true, ignorePrimitives);
+		  }
+		  return shared;		  
+	  }
+	  @Override
+	  protected void clear() {
+		  shared = null;
+	  }
+  }
+  public static final Factory factory = new Factory(true);
+	
   public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>[], BindingContext> {
     private Query(final Delegate<Query, ImmutableSet<IRNode>, ImmutableSet<IRNode>[], BindingContext> d) {
       super(d);

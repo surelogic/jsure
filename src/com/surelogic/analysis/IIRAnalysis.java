@@ -33,9 +33,13 @@ import edu.cmu.cs.fluid.sea.proxy.*;
  * @author Edwin
  */
 public interface IIRAnalysis {	
+	/**
+	 * Used internally for debug output
+	 */
 	String name();
 	boolean analyzeAll();
 	boolean runInParallel();
+	Class<?> getGroup();
 	
 	/**
 	 * Called when the analysis is created, and before any loading
@@ -62,7 +66,7 @@ public interface IIRAnalysis {
 	 * 
 	 * OK to finish things that don't affect any other analyses
 	 */
-	Iterable<IRNode> analyzeEnd(IIRProject p);
+	Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p);
 
 	/**
 	 * Called after all analysis in its group are done

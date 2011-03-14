@@ -192,7 +192,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	 */
 	// TODO potentially slow, because of checking multiple types in layers
 	@Override
-	public Iterable<IRNode> analyzeEnd(IIRProject p) {
+	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		final Map<String,List<IRNode>> layers = new HashMap<String, List<IRNode>>();
 		final Map<String, Set<String>> layerRefs = new HashMap<String, Set<String>>();
 		final CycleDetector detector = new CycleDetector() {
@@ -233,7 +233,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		};
 		collectLayerInfo(detector, layerRefs, layers);
 		detector.checkAll();
-		return super.analyzeEnd(p);
+		return super.analyzeEnd(env, p);
 	}
 
 	/**
