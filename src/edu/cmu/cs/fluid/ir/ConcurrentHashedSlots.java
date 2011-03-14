@@ -62,13 +62,11 @@ public class ConcurrentHashedSlots<S,T> extends ConcurrentHashMap<IRNode,S> impl
     remove(node);
   }
 
-  @Override
   public int cleanup() {
 	  // TODO Auto-generated method stub
 	  return 0;
   }
 
-  @Override
   public boolean compact() {
 	  // TODO Auto-generated method stub
 	  return false;
