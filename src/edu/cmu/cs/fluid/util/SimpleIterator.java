@@ -14,7 +14,14 @@ public abstract class SimpleIterator<T> implements Iteratable<T> {
    * Initialize an iterator with a starting element.
    * @param initial
    */
-  public SimpleIterator(T initial) { super(); nextElement = initial; }
+  public SimpleIterator(T initial) { 
+	  super(); 
+	  if (initial != null) {
+		  nextElement = initial; 
+	  } else {
+		  nextElement = noElement;
+	  }
+  }
 
   public boolean hasNext() {
     if (nextElement != noElement) return true;
