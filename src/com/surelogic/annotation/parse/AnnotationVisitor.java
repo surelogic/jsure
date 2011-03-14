@@ -326,6 +326,9 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		if (TrueExpression.prototype.includes(value)) {
 			return true;
 		}
+		else if (FalseExpression.prototype.includes(value)) {
+			return false;
+		}
 		return defValue;
 	}
 	
