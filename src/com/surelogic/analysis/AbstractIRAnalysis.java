@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.proxy.*;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
+import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends ConcurrentAnalysis<Q> implements IIRAnalysis {
 	private IIRProject project;
@@ -57,8 +58,17 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 		System.out.println("\tBuilding "+builders.size()+" results for "+this.getClass().getSimpleName());
 		builders.clear();
 	}
+		
+	public void init(IIRAnalysisEnvironment env) {
+		// Nothing to do
+	}
+    /*
+	public void preAnalysis(IIRAnalysisEnvironment env) {
+		// Nothing to do	
+	}
+	*/
 	
-	public final void analyzeBegin(final IIRProject p) {
+	public final void analyzeBegin(IIRAnalysisEnvironment env, final IIRProject p) {
 		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv(p);
 		final IBinder binder        = tEnv.getBinder(); 
 		//final IIRProject old        = project;
@@ -129,6 +139,14 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 		return rv == Boolean.TRUE;
 	}
 	protected abstract boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu);
+		
+	public Iterable<IRNode> analyzeEnd(IIRProject p) {
+		return EmptyIterator.prototype();
+	}
+	
+	public void postAnalysis(IIRProject p) {
+		// Nothing to do	
+	}
 	
 	public void finish(IIRAnalysisEnvironment env) {
 		// Nothing to do

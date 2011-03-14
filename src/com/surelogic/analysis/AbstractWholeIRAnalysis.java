@@ -1,7 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/AbstractWholeIRAnalysis.java,v 1.5 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
-import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -96,6 +95,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
 		return true;
 	}
 	
+	@Override
 	public void init(IIRAnalysisEnvironment env) {
 		if (useDependencies) {
 			return;
@@ -107,14 +107,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q> extend
     	resultDependUpon = new ResultsDepDrop(this.getClass());
 	}
 	
-	public final void preAnalysis(IIRAnalysisEnvironment env, IIRProject p) {
-		// Nothing to do
-	}
-	
-	public Iterable<IRNode> analyzeEnd(IIRProject p) {
-		return Collections.emptyList();
-	}
-	
+	@Override
 	public void postAnalysis(IIRProject p) {
 		clearCaches();
 		CachedSet.clearCache();

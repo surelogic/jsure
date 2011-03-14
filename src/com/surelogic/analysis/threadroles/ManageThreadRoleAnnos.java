@@ -22,14 +22,6 @@ public class ManageThreadRoleAnnos extends AbstractIRAnalysis<TRolesFirstPass,Vo
 		return false;
 	}
 	
-	public void init(IIRAnalysisEnvironment env) {
-		// Nothing to do
-	}
-
-	public void preAnalysis(IIRAnalysisEnvironment env, IIRProject p) {
-		// Nothing to do	
-	}
-	
 	@Override
 	protected TRolesFirstPass constructIRAnalysis(IBinder binder) {
 		return TRolesFirstPass.getInstance();
@@ -46,17 +38,10 @@ public class ManageThreadRoleAnnos extends AbstractIRAnalysis<TRolesFirstPass,Vo
 		return true;
 	}
 
+	@Override
 	public Iterable<IRNode> analyzeEnd(IIRProject p) {
 		final Iterable<IRNode> reprocessThese = TRolesFirstPass.getInstance().trfpEnd();
 		// TODO move some of this code to finish()?
 		return reprocessThese;
-	}
-
-	public void postAnalysis(IIRProject p) {
-		// Nothing to do	
-	}
-	
-	public void finish(IIRAnalysisEnvironment env) {
-		// TODO something needed here?
 	}
 }

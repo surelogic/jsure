@@ -1,14 +1,12 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis.threadroles;
 
-import java.util.Collections;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 
@@ -24,12 +22,10 @@ public class ThreadRoleZerothPass extends AbstractIRAnalysis<TRolesFirstPass,Voi
 		return false;
 	}
 	
+	@Override
 	public void init(IIRAnalysisEnvironment env) {
+		super.init(env);
 		TRolesFirstPass.preBuild();
-	}
-
-	public void preAnalysis(IIRAnalysisEnvironment env, IIRProject p) {
-		// Nothing to do	
 	}
 	
 	@Override
@@ -49,13 +45,5 @@ public class ThreadRoleZerothPass extends AbstractIRAnalysis<TRolesFirstPass,Voi
 		// TRolesFirstPass.getInstance().doImportandRenameWalks(cu, getBinder());		
 	    TRolesFirstPass.getInstance().doOneCUZerothPass(cu, getBinder());
 		return true;
-	}
-
-	public Iterable<IRNode> analyzeEnd(IIRProject p) {
-		return Collections.emptyList();
-	}
-
-	public void postAnalysis(IIRProject p) {
-		// Nothing to do	
 	}
 }
