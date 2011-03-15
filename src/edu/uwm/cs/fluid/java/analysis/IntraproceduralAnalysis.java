@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.Thunk;
@@ -281,12 +282,18 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
     	A fa;
     	synchronized (mapCache) {
     		fa = mapCache.get(flowUnit, v);
-		}    	
-    	if (fa == null) {
-    		fa = computeAnalysis(flowUnit, v, debug);
-    		synchronized (mapCache) {
-        		mapCache.put(flowUnit, v, fa);
-			}
+    		if (fa == null) {
+    			// Start with uncomputed analysis
+    			fa = createAnalysis(flowUnit);
+    			mapCache.put(flowUnit, v, fa);
+    		}
+		}    
+    	synchronized (fa) {
+        	// Compute if necessary
+    		if (!fa.isComputed()) {
+    			computeAnalysis(flowUnit, v, debug, fa);
+    			fa.setComputed();
+    		}
     	}
     	return fa;
     }    
@@ -317,11 +324,19 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
   }
 
   private A computeAnalysis(final IRNode flowUnit, final Version v, final boolean debug) {
-      FlowUnit op = (FlowUnit) tree.getOperator(flowUnit);
-      A fa = createAnalysis(flowUnit);
-      fa.initialize(op.getSource(flowUnit));
-      fa.initialize(op.getNormalSink(flowUnit));
-      fa.initialize(op.getAbruptSink(flowUnit));
+	  A fa = createAnalysis(flowUnit);
+	  return computeAnalysis(flowUnit, v, debug, fa);
+  }
+  
+  /**
+   * @param fa expected to be newly created and never used
+   */
+  @RequiresLock("fa.ComputeLock")
+  private A computeAnalysis(final IRNode flowUnit, final Version v, final boolean debug, final A fa) {	  
+	  FlowUnit op = (FlowUnit) tree.getOperator(flowUnit);
+	  fa.initialize(op.getSource(flowUnit));
+	  fa.initialize(op.getNormalSink(flowUnit));
+	  fa.initialize(op.getAbruptSink(flowUnit));
 
       try {
         if (debug) {
