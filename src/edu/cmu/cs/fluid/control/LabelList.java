@@ -1,10 +1,11 @@
 package edu.cmu.cs.fluid.control;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.util.Hashtable2;
+//import edu.cmu.cs.fluid.util.Hashtable2;
 
 public class LabelList {
   /** Logger instance for debugging. */
@@ -15,18 +16,21 @@ public class LabelList {
   }
   
   public static final LabelList empty = new LabelList();
+  /*
   private static final Hashtable2<LabelList,ControlLabel,LabelList> longer = 
     new Hashtable2<LabelList,ControlLabel,LabelList>();
-
+  */
   ControlLabel label = null;
   LabelList shorter = null;
 
   public static void clearCache() {
-	  longer.clear();
+	  //longer.clear();
+	  empty.longer2.clear();
   }
-  
-  public LabelList addLabel(ControlLabel l) {
+  /*
+  public LabelList addLabel_old(ControlLabel l) {
 	LabelList ll;
+
 	synchronized (LabelList.class) {
 		ll = longer.get(this,l);
 		if (ll == null) {
@@ -38,7 +42,25 @@ public class LabelList {
 	}
     return ll;
   }
-
+   */
+  private final ConcurrentHashMap<ControlLabel,LabelList> longer2 =
+	  new ConcurrentHashMap<ControlLabel, LabelList>();
+  
+  public LabelList addLabel(ControlLabel l) {
+		LabelList ll = longer2.get(l);
+		if (ll == null) {
+			ll = new LabelList();
+			ll.label = l;
+			ll.shorter = this;
+			LabelList old = longer2.putIfAbsent(l, ll);		
+			if (old != null) {
+				// Already present, so discard ll
+				return old;
+			}
+		}
+	    return ll;
+	  }
+  
   public LabelList dropLabel(ControlLabel l) {
     if (label.equals(l))
       return shorter;
