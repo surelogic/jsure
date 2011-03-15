@@ -18,7 +18,7 @@ public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAn
 	
 	@Override
 	protected ThreadEffectsAnalysis constructIRAnalysis(IBinder binder) {
-		return new ThreadEffectsAnalysis(binder);
+		return new ThreadEffectsAnalysis(this, binder);
 	}
 	
 	@Override
@@ -43,5 +43,11 @@ public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAn
 			e.printStackTrace();
 		}
 		return true;
+	}
+	
+	@Override
+	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+		finishBuild();
+		return super.analyzeEnd(env, p);
 	}
 }

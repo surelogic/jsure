@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
 import edu.cmu.cs.fluid.sea.drops.layers.*;
+import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.Pair;
@@ -81,17 +82,17 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				}
 				// TODO fix to get this from the method
 				final AllowsReferencesFromPromiseDrop allows = getAnalysis().allowRefs(b.getNode());
-				final ResultDrop rd = checkBinding(allows, b, type, n);
+				final ResultDropBuilder rd = checkBinding(allows, b, type, n);
 				if (allows != null && rd == null) {					
-					ResultDrop success = createSuccessDrop(type, allows);
+					ResultDropBuilder success = createSuccessDrop(type, allows);
 					success.setResultMessage(Messages.PERMITTED_REFERENCE, JavaNames.getRelativeTypeName(type));
 				}
-				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
+				final ResultDropBuilder rd2 = checkBinding(mayReferTo, b, bindT, n);
 				if (rd2 != null) {
 					problemWithMayReferTo = true;
 				}
 
-				ResultDrop rd3 = null;
+				ResultDropBuilder rd3 = null;
 				if (inLayer != null) {
 					for(final LayerPromiseDrop layer : getAnalysis().findLayers(inLayer)) {
 						// Check if in the same layer
@@ -108,11 +109,11 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			}
 		}
 		if (!problemWithInLayer) {
-			ResultDrop rd = createSuccessDrop(type, inLayer);	
+			ResultDropBuilder rd = createSuccessDrop(type, inLayer);	
 			rd.setResultMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
 		if (!problemWithMayReferTo) {
-			ResultDrop rd = createSuccessDrop(type, mayReferTo);
+			ResultDropBuilder rd = createSuccessDrop(type, mayReferTo);
 			rd.setResultMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
 	}
@@ -133,8 +134,8 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return inSameLayer;
 	}
 	
-	private static ResultDrop createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
-		ResultDrop rd = new ResultDrop("Layers -- no errors");
+	private ResultDropBuilder createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
+		ResultDropBuilder rd = ResultDropBuilder.create(this, "Layers -- no errors");
 		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(type);			
 		rd.addCheckedPromise(checked);
@@ -142,15 +143,15 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return rd;
 	}
 	
-	private static ResultDrop createFailureDrop(IRNode type) {
-		ResultDrop rd = new ResultDrop("Layers");
+	private ResultDropBuilder createFailureDrop(IRNode type) {
+		ResultDropBuilder rd = ResultDropBuilder.create(this, "Layers");
 		rd.setCategory(Messages.DSC_LAYERS_ISSUES);
 		rd.setNodeAndCompilationUnitDependency(type);	
 		rd.setInconsistent();
 		return rd;
 	}
 	
-	private ResultDrop checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
+	private ResultDropBuilder checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
 		if (d != null) {
 			if (!d.check(type)) {
 				/*
@@ -163,7 +164,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				d.check(type);
 				*/
 				// Create error
-				ResultDrop rd = createFailureDrop(context);			
+				ResultDropBuilder rd = createFailureDrop(context);			
 				rd.setResultMessage(d.getResultMessageKind(), 
 						            unparseArgs(d.getArgs(b.getNode(), type, context)));
 				/*
@@ -213,7 +214,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				reported.add(p);
 				
 				LayerPromiseDrop layer = getAnalysis().getLayer(last);
-				ResultDrop rd = createFailureDrop(layer.getNode());
+				ResultDropBuilder rd = createFailureDrop(layer.getNode());
 				rd.addCheckedPromise(layer);				
 				rd.setResultMessage(Messages.CYCLE, backedge); 
 				
@@ -233,6 +234,8 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		};
 		collectLayerInfo(detector, layerRefs, layers);
 		detector.checkAll();
+		
+		finishBuild();
 		return super.analyzeEnd(env, p);
 	}
 
