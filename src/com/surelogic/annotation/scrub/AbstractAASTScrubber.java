@@ -512,9 +512,8 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 					scrubByPromisedFor_Type(cls);
 					return;
 				case BY_HIERARCHY:
-					scrubByPromisedFor_Hierarchy(cls, type);
-					return;
 				case INCLUDE_SUBTYPES_BY_HIERARCHY:
+				case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
 					scrubByPromisedFor_Hierarchy(cls, type);
 					return;
 				case DIY:
