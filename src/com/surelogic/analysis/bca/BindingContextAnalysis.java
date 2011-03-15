@@ -40,7 +40,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
 	  private final boolean ignorePrimitives;
 	  
 	  public Factory(boolean ignoreP) {
-		  super(BindingContextAnalysis.class);
+		  super(BindingContextAnalysis.class, true);
 		  ignorePrimitives = ignoreP;
 	  }
 	  @Override
