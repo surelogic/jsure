@@ -19,10 +19,16 @@ public abstract class AbstractAnalysisSharingAnalysis<S, T extends IBinderClient
 	@Override
 	protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
 		super.startAnalyzeBegin(p, binder);
-		sharedAnalysis = factory.create(binder);		
+		sharedAnalysis = factory.get(binder);		
 	}
 	
 	protected final S getSharedAnalysis() {
 		return sharedAnalysis;
+	}
+	
+	@Override
+	protected void clearCaches() {
+		sharedAnalysis = null;
+		factory.clear();
 	}
 }

@@ -38,7 +38,6 @@ import edu.uwm.cs.fluid.java.control.JavaForwardTransfer;
 public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet<IRNode>[], BindingContext, JavaForwardAnalysis<ImmutableSet<IRNode>[], BindingContext>> implements IBinderClient {
   public static class Factory extends SharedAnalysisFactory<BindingContextAnalysis> {
 	  private final boolean ignorePrimitives;
-	  BindingContextAnalysis shared;
 	  
 	  public Factory(boolean ignoreP) {
 		  super(BindingContextAnalysis.class);
@@ -46,14 +45,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
 	  }
 	  @Override
 	  protected BindingContextAnalysis create(IBinder b) {
-		  if (shared == null) {
-			  shared = new BindingContextAnalysis(b, true, ignorePrimitives);
-		  }
-		  return shared;		  
-	  }
-	  @Override
-	  protected void clear() {
-		  shared = null;
+		  return new BindingContextAnalysis(b, true, ignorePrimitives);
 	  }
   }
   public static final Factory factory = new Factory(true);
