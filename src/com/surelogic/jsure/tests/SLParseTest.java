@@ -2020,7 +2020,7 @@ public class SLParseTest extends TestCase {
 
 		IsLock_ParseRuleHelper isLockRulesHelper = new IsLock_ParseRuleHelper();
 
-		SelfProtected_ParseRuleHelper selfProtectedRulesHelper = new SelfProtected_ParseRuleHelper();
+		ThreadSafe_ParseRuleHelper threadSafeRulesHelper = new ThreadSafe_ParseRuleHelper();
 
 		TestContext context = new TestContext(null, ClassDeclaration.prototype);
 
@@ -2084,23 +2084,23 @@ public class SLParseTest extends TestCase {
 		assertTrue(context.getOffset() == 0);
 
 		/*
-		 * ****************** Test @SelfProtected
+		 * ****************** Test @ThreadSafe
 		 * *******************************
 		 */
 		context.setOp(ClassDeclaration.prototype);
-		selfProtectedRulesHelper.parse(context, "");
+		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() == null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == 0);
 
 		context.setOp(InterfaceDeclaration.prototype);
-		selfProtectedRulesHelper.parse(context, "");
+		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() == null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == 0);
 
 		context.setOp(EnumDeclaration.prototype);
-		selfProtectedRulesHelper.parse(context, "");
+		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() == null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == 0);
@@ -2119,7 +2119,7 @@ public class SLParseTest extends TestCase {
 
 		IsLock_ParseRuleHelper isLockRulesHelper = new IsLock_ParseRuleHelper();
 
-		SelfProtected_ParseRuleHelper selfProtectedRulesHelper = new SelfProtected_ParseRuleHelper();
+		ThreadSafe_ParseRuleHelper threadSafeRulesHelper = new ThreadSafe_ParseRuleHelper();
 
 		TestContext context = new TestContext(null,
 				PackageDeclaration.prototype);
@@ -2256,35 +2256,35 @@ public class SLParseTest extends TestCase {
 		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
 
 		/*
-		 * ****************** Test @SelfProtected
+		 * ****************** Test @ThreadSafe
 		 * *******************************
 		 */
 		context.setOp(MethodDeclaration.prototype);
-		selfProtectedRulesHelper.parse(context, "");
+		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() != null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
 
 		context.setOp(PackageDeclaration.prototype);
-		selfProtectedRulesHelper.parse(context, "");
+		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() != null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
 
 		context.setOp(ParameterDeclaration.prototype);
-		selfProtectedRulesHelper.parse(context, "");
+		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() != null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
 
 		context.setOp(FieldDeclaration.prototype);
-		selfProtectedRulesHelper.parse(context, "");
+		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() != null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
 
 		context.setOp(ConstructorDeclaration.prototype);
-		selfProtectedRulesHelper.parse(context, "");
+		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() != null);
 		assertTrue(context.getException() == null);
 		assertTrue(context.getOffset() == IAnnotationParsingContext.UNKNOWN);
@@ -2591,7 +2591,8 @@ public class SLParseTest extends TestCase {
 		 * 
 		 * @see com.surelogic.annotation.IAnnotationParsingContext#getOp()
 		 */
-		public Operator getOp() {
+		@Override
+    public Operator getOp() {
 			return op;
 		}
 
@@ -2612,7 +2613,8 @@ public class SLParseTest extends TestCase {
 		 * com.surelogic.annotation.AnnotationLocation, java.lang.Object,
 		 * com.surelogic.aast.IAASTRootNode)
 		 */
-		public <T extends IAASTRootNode> void reportAAST(int offset,
+		@Override
+    public <T extends IAASTRootNode> void reportAAST(int offset,
 				AnnotationLocation loc, Object o, T ast) {
 			// Nothing to do
 		}
@@ -2624,7 +2626,8 @@ public class SLParseTest extends TestCase {
 		 * com.surelogic.annotation.IAnnotationParsingContext#reportError(int,
 		 * java.lang.String)
 		 */
-		public void reportError(int offset, String msg) {
+		@Override
+    public void reportError(int offset, String msg) {
 			errorOffset = offset;
 			errorMsg = msg;
 		}
@@ -2636,7 +2639,8 @@ public class SLParseTest extends TestCase {
 		 * com.surelogic.annotation.IAnnotationParsingContext#reportException
 		 * (int, java.lang.Exception)
 		 */
-		public void reportException(int offset, Exception e) {
+		@Override
+    public void reportException(int offset, Exception e) {
 			exception = e;
 			errorOffset = offset;
 		}

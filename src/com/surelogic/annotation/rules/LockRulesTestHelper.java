@@ -44,9 +44,9 @@ public class LockRulesTestHelper extends LockRules {
 			super();
 		}
 	}
-	public static class SelfProtected_ParseRuleHelper extends SelfProtected_ParseRule{
+	public static class ThreadSafe_ParseRuleHelper extends ThreadSafe_ParseRule{
 		
-		public SelfProtected_ParseRuleHelper(){
+		public ThreadSafe_ParseRuleHelper(){
 			super();
 		}
 	}
