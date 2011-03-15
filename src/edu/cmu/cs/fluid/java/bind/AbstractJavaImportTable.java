@@ -340,6 +340,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     {
       for (Map.Entry<IRNode,Entry> e : indirect.entrySet()) {
        	//IRNode key  = e.getKey();
+    	//System.out.println("Looking at import "+DebugUnparser.toString(e.getKey()));
        	Entry entry = e.getValue();
         IJavaScope scope = entry.getScope();
         if (scope == null) continue;
