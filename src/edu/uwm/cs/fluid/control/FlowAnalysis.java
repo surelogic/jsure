@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -87,7 +88,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   
   private final boolean shouldTimeOut;
   
-  
+  private boolean isComputed = false;
   
   /** Create a new instance of flow analysis.
    * @param l the lattice of values for the analysis.
@@ -104,6 +105,16 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     worklist = createWorklist();
     nodeViewer = (nv == null) ? IRNodeViewer.defaultViewer : nv;
     shouldTimeOut = timeOut;
+  }
+  
+  @RequiresLock("ComputeLock")
+  public final boolean isComputed() {
+	  return isComputed;
+  }
+  
+  @RequiresLock("ComputeLock")
+  public final void setComputed() {
+	  isComputed = true;
   }
   
   /**
