@@ -71,7 +71,6 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	
 	private final AtomicReference<GlobalLockModel> lockModelHandle = 
 		new AtomicReference<GlobalLockModel>(null);
-	private BindingContextAnalysis bca;
 	
 	
 	
@@ -128,6 +127,8 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	
 	@Override
 	public void startAnalyzeBegin(IIRProject p, IBinder binder) {
+		super.startAnalyzeBegin(p, binder);
+		
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
 		LockModel.purgeUnusedLocks();
@@ -184,9 +185,8 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	  if (binder == null || binder.getTypeEnvironment() == null) {
 		  return null;
 	  }
-	  bca = new BindingContextAnalysis(binder, true, true);
     return new LockVisitor(this, binder, new Effects(binder),
-        new TypeBasedMayAlias(binder), bca, lockModelHandle);
+        new TypeBasedMayAlias(binder), getSharedAnalysis(), lockModelHandle);
 	}
 	
 	@Override
@@ -199,9 +199,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 		} else {
 			analyses.clearCaches();
 		}
-		if (bca != null) {
-			bca.clear();
-		}
+		super.clearCaches();
 	}
 	
 	@Override

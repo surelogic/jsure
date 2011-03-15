@@ -49,7 +49,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	 */
 	private static boolean willRunInParallel = wantToRunInParallel && !singleThreaded;
 	
-  private BindingContextAnalysis bca;
   private IJavaDeclaredType javaLangObject;
   
 	public EffectsAnalysis() {
@@ -65,15 +64,22 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	
 	@Override
 	protected Effects constructIRAnalysis(final IBinder binder) {
-	  bca = new BindingContextAnalysis(binder, true, true);
 	  javaLangObject = binder.getTypeEnvironment().getObjectType();
-    return new Effects(binder);
+	  return new Effects(binder);
 	}
 
 	@Override
 	protected void clearCaches() {
-		getAnalysis().clearCaches();
-    if (bca != null) bca.clear();
+		// TODO mostly copied from LockAnalysis
+		if (!runInParallel()) {
+			Effects lv = getAnalysis();
+			if (lv != null) {
+				lv.clearCaches();
+			}
+		} else {
+			analyses.clearCaches();
+		}
+		super.clearCaches();
 	}
   
   @Override
@@ -117,7 +123,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 				if (!JavaNode.getModifier(member, JavaNode.ABSTRACT)
 						&& !JavaNode.getModifier(member, JavaNode.NATIVE)) {
           final Set<Effect> implFx =
-            getAnalysis().getImplementationEffects(member, bca);
+            getAnalysis().getImplementationEffects(member, getSharedAnalysis());
 					// only assure if there is declared intent
 					if (declFx != null) {
 						final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
@@ -288,7 +294,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  final IRNode flowUnit = JavaPromise.getClassInitOrNull(typeDecl);
 	  final Set<Effect> effects = 
 	    getAnalysis().getEffectsQuery(
-	        flowUnit, bca.getExpressionObjectsQuery(flowUnit)).getResultFor(flowUnit);
+	        flowUnit, getSharedAnalysis().getExpressionObjectsQuery(flowUnit)).getResultFor(flowUnit);
 	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
 	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
