@@ -15,13 +15,13 @@ public final class Messages {
   public static final int UniquenessAnnotation_notUniqueDrop = 110;
   public static final int LockAnnotation_returnsLockDrop = 111;
   public static final int LockAnnotation_selfProtectedDrop = 112;
-  public static final int LockAnnotation_singleThreadedDrop = 113;
   public static final int StartsAnnotation_startNothingDrop = 114;
   public static final int UniquenessAnnotation_uniqueDrop1 = 115;
   public static final int UniquenessAnnotation_uniqueDrop2 = 116;
   public static final int RegionAnnotation_regionDrop = 117;
   public static final int LockAnnotation_containableDrop = 118;
   public static final int LockAnnotation_containableAttributedDrop = 119;
+  public static final int LockAnnotation_immutableAttributedDrop = 120;
   
   /* 2011-01-18: Edwin says these are referenced from code that will become
    * obsolete and deleted.

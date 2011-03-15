@@ -27,7 +27,8 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
     if (!isImplementationOnly && isVerify) {
       setResultMessage(Messages.LockAnnotation_containableDrop, name);
     } else {
-      setResultMessage(Messages.LockAnnotation_containableAttributedDrop, isImplementationOnly, isVerify, name);
+      setResultMessage(Messages.LockAnnotation_containableAttributedDrop,
+          isImplementationOnly, isVerify, name);
     }
   }
 }

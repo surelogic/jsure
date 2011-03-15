@@ -112,6 +112,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     
     final ContainablePromiseDrop containableDrop = 
       LockRules.getContainable(typeDecl);
+    // no @Containable annotation --> Default "annotation" of not containable
     if (containableDrop != null) {
       new ContainableVisitor(typeDecl, containableDrop).doAccept(classBody);
     }
@@ -363,6 +364,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           if (type instanceof IJavaDeclaredType) {
             typeDecl = ((IJavaDeclaredType) type).getDeclaration();
             declTSDrop = LockRules.getSelfProtected(typeDecl);
+            // Null if no @Containable ==> Default annotation of not containable
             declContainableDrop = LockRules.getContainable(typeDecl);
           } else {
             typeDecl = null;
@@ -389,6 +391,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           } else {
             uDrop = null;
             aggDrop = null;
+            // no @Containable annotation --> Default "annotation" of not containable
             isContained = false;
           }
           
@@ -545,6 +548,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
           final ContainablePromiseDrop declContainableDrop;
           if (typeDecl != null) {
+            // no @Containable annotation --> Default "annotation" of not containable
             declContainableDrop = LockRules.getContainable(typeDecl);
           } else {
             declContainableDrop = null;
@@ -561,6 +565,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             if (declContainableDrop != null) {
               result.addTrustedPromise(declContainableDrop);              
             } else {
+              // no @Containable annotation --> Default "annotation" of not containable
               result.addSupportingInformation(varDecl, Messages.FIELD_NOT_CONTAINABLE);
               if (type instanceof IJavaDeclaredType) {
                 result.addProposal(new ProposedPromiseBuilder(

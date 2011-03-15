@@ -22,6 +22,13 @@ public final class ImmutablePromiseDrop extends ModifiedBooleanPromiseDrop<Immut
   @Override
   protected void computeBasedOnAST() {
     String name = JavaNames.getTypeName(getNode());
-    setResultMessage(Messages.LockAnnotation_immutableDrop, name);
+    final boolean isImplementationOnly = getAST().isImplementationOnly();
+    final boolean isVerify = getAST().verify();
+    if (!isImplementationOnly && isVerify) {
+      setResultMessage(Messages.LockAnnotation_immutableDrop, name);
+    } else {
+      setResultMessage(Messages.LockAnnotation_immutableAttributedDrop,
+          isImplementationOnly, isVerify, name);
+    }
   }
 }
