@@ -38,7 +38,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.sea.drops.promises.SelfProtectedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ThreadSafePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
@@ -104,8 +104,8 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	    final IRNode typeDecl, final IRNode classBody) {
 	  lv.analyzeClass(classBody, rd);
 	  
-    final SelfProtectedPromiseDrop threadSafeDrop =
-      LockRules.getSelfProtected(typeDecl);
+    final ThreadSafePromiseDrop threadSafeDrop =
+      LockRules.getThreadSafe(typeDecl);
     if (threadSafeDrop != null) {
       new ThreadSafeVisitor(typeDecl, threadSafeDrop).doAccept(classBody);
     }
@@ -359,11 +359,11 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           final IJavaType type = getBinder().getJavaType(varDecl);
           final IRNode typeDecl;
           final boolean isPrimitive = type instanceof IJavaPrimitiveType;
-          final SelfProtectedPromiseDrop declTSDrop;
+          final ThreadSafePromiseDrop declTSDrop;
           final ContainablePromiseDrop declContainableDrop;
           if (type instanceof IJavaDeclaredType) {
             typeDecl = ((IJavaDeclaredType) type).getDeclaration();
-            declTSDrop = LockRules.getSelfProtected(typeDecl);
+            declTSDrop = LockRules.getThreadSafe(typeDecl);
             // Null if no @Containable ==> Default annotation of not containable
             declContainableDrop = LockRules.getContainable(typeDecl);
           } else {

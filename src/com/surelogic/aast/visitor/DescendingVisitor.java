@@ -594,7 +594,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     return rv;
   }
   
-  public T visit(SelfProtectedNode node) {
+  public T visit(ThreadSafeNode node) {
     T rv = defaultValue;
     return rv;
   }

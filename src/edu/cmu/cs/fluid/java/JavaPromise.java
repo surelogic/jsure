@@ -172,8 +172,8 @@ public class JavaPromise extends JavaNode {
 //	public static final SlotInfo isSynchronizedSlotInfo =
 //	getBooleanVSI("JavaPromise.isSynchronized");
 
-//	public static final SlotInfo isSelfProtectedSlotInfo =
-//	getBooleanVSI("JavaPromise.isSelfProtected");
+//	public static final SlotInfo isThreadSafeSlotInfo =
+//	getBooleanVSI("JavaPromise.isThreadSafe");
 
 //	/* whether the throw list for a method is exhuastive. */
 
@@ -748,7 +748,7 @@ public class JavaPromise extends JavaNode {
 //	isImmutableSlotInfo,
 //	isBorrowedSlotInfo,
 //	isSynchronizedSlotInfo,
-//	isSelfProtectedSlotInfo,
+//	isThreadSafeSlotInfo,
 //	hasExhaustiveThrowsSlotInfo,
 //	isWriteSlotInfo,
 //	transparentSlotInfo,
@@ -929,7 +929,7 @@ public class JavaPromise extends JavaNode {
   private static final Token immutableToken = new Keyword("immutable");
   private static final Token borrowedToken = new Keyword("borrowed");
   private static final Token synchronizedToken = new Keyword("synchronized");
-  private static final Token selfProtectedToken = new Keyword("selfProtected");
+  private static final Token threadSafeToken = new Keyword("threadSafe");
   private static final Token hasExhaustiveThrowsToken =
     new Keyword("hasExhaustiveThrows");
 
@@ -984,8 +984,8 @@ public class JavaPromise extends JavaNode {
       new TokenInfo(SYNCHRONIZED, isSynchronizedSlotInfo, synchronizedToken),
       new TokenInfo(
         SELF_PROTECTED,
-        isSelfProtectedSlotInfo,
-        selfProtectedToken),
+        isThreadSafeSlotInfo,
+        threadSafeToken),
       new TokenInfo(
         EXHAUSTIVE_THROWS,
         hasExhaustiveThrowsSlotInfo,

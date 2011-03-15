@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import com.surelogic.aast.promise.SelfProtectedNode;
+import com.surelogic.aast.promise.ThreadSafeNode;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -13,8 +13,8 @@ import edu.cmu.cs.fluid.sea.drops.*;
  * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class SelfProtectedPromiseDrop extends ModifiedBooleanPromiseDrop<SelfProtectedNode> {
-  public SelfProtectedPromiseDrop(SelfProtectedNode a) {
+public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<ThreadSafeNode> {
+  public ThreadSafePromiseDrop(ThreadSafeNode a) {
     super(a); 
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
@@ -22,6 +22,6 @@ public final class SelfProtectedPromiseDrop extends ModifiedBooleanPromiseDrop<S
   @Override
   protected void computeBasedOnAST() {
     String name = JavaNames.getTypeName(getNode());
-    setResultMessage(Messages.LockAnnotation_selfProtectedDrop, name);
+    setResultMessage(Messages.LockAnnotation_threadSafeDrop, name);
   }
 }

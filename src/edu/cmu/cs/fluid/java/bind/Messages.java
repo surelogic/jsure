@@ -14,7 +14,7 @@ public final class Messages {
   public static final int LockAnnotation_notThreadSafeDrop = 109;
   public static final int UniquenessAnnotation_notUniqueDrop = 110;
   public static final int LockAnnotation_returnsLockDrop = 111;
-  public static final int LockAnnotation_selfProtectedDrop = 112;
+  public static final int LockAnnotation_threadSafeDrop = 112;
   public static final int StartsAnnotation_startNothingDrop = 114;
   public static final int UniquenessAnnotation_uniqueDrop1 = 115;
   public static final int UniquenessAnnotation_uniqueDrop2 = 116;

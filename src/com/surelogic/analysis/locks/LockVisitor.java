@@ -1314,11 +1314,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (type instanceof IJavaSourceRefType) {
 				final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
 				final IRNode typeDeclarationNode = srcRefType.getDeclaration();
-				final boolean isSelfProtected = LockRules
-						.isSelfProtected(typeDeclarationNode);
+				final boolean isThreadSafe = LockRules
+						.isThreadSafe(typeDeclarationNode);
 				final boolean isImmutable = LockRules
 						.isImmutable(typeDeclarationNode);
-				if (isSelfProtected || isImmutable || classDeclaresLocks(type)) {
+				if (isThreadSafe || isImmutable || classDeclaresLocks(type)) {
 					isSafe = true;
 				} else {
 					for (final IJavaType superType : srcRefType
@@ -1358,7 +1358,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 * is true
 	 * <ul>
 	 * <li>The expression is a FieldRef and the field is unique
-	 * <li>The type of the expression indicates via {@literal @selfProtected}
+	 * <li>The type of the expression indicates via <code>ThreadSafe</code>
 	 * that the object protects itself (or otherwise describes how it should be
 	 * protected).
 	 * </ul>

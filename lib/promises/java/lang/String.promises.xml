@@ -1,6 +1,6 @@
 <package name="java.lang">
 	<class name="String">
-		<selfProtected />
+		<threadSafe />
 
 		<method name="length">
 			<starts>nothing</starts>

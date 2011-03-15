@@ -3,10 +3,10 @@ package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
 
-public class SelfProtectedNode extends AbstractModifiedBooleanNode 
+public class ThreadSafeNode extends AbstractModifiedBooleanNode 
 { 
   // Constructors
-  public SelfProtectedNode(int offset, int mods) {
+  public ThreadSafeNode(int offset, int mods) {
     super(offset, mods);
   }
 
@@ -22,7 +22,7 @@ public class SelfProtectedNode extends AbstractModifiedBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new SelfProtectedNode(offset, mods);
+  	return new ThreadSafeNode(offset, mods);
   }
 }
 

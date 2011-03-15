@@ -1,5 +1,5 @@
 <package name="java.util.concurrent">
  <class name="ConcurrentHashMap">
-  <selfProtected/>
+  <threadSafe/>
  </class>
 </package>

@@ -52,7 +52,7 @@ public class LockRules extends AnnotationRules {
 	private static final ReturnsLock_ParseRule returnsLockRule = new ReturnsLock_ParseRule();
 	//private static final ProhibitsLock_ParseRule prohibitsLockRule = new ProhibitsLock_ParseRule();
   private static final Containable_ParseRule containableRule = new Containable_ParseRule();
-  private static final SelfProtected_ParseRule selfProtectedRule = new SelfProtected_ParseRule();
+  private static final ThreadSafe_ParseRule threadSafeRule = new ThreadSafe_ParseRule();
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
   private static final ImmutableParseRule immutableRule = new ImmutableParseRule();
   
@@ -149,12 +149,12 @@ public class LockRules extends AnnotationRules {
     return getBooleanDrop(containableRule.getStorage(), cdecl);
   }
   
-  public static boolean isSelfProtected(IRNode cdecl) {
-    return getSelfProtected(cdecl) != null;
+  public static boolean isThreadSafe(IRNode cdecl) {
+    return getThreadSafe(cdecl) != null;
   }
 
-  public static SelfProtectedPromiseDrop getSelfProtected(IRNode cdecl) {
-    return getBooleanDrop(selfProtectedRule.getStorage(), cdecl);
+  public static ThreadSafePromiseDrop getThreadSafe(IRNode cdecl) {
+    return getBooleanDrop(threadSafeRule.getStorage(), cdecl);
   }
   
   public static boolean isNotThreadSafe(IRNode cdecl) {
@@ -183,7 +183,7 @@ public class LockRules extends AnnotationRules {
 		registerParseRuleStorage(fw, returnsLockRule);
 		//registerParseRuleStorage(fw, prohibitsLockRule);
     registerParseRuleStorage(fw, containableRule);
-    registerParseRuleStorage(fw, selfProtectedRule);
+    registerParseRuleStorage(fw, threadSafeRule);
     registerParseRuleStorage(fw, notThreadSafeRule);
     registerParseRuleStorage(fw, immutableRule);
     registerScrubber(fw, new LockFieldVisibilityScrubber());
@@ -391,8 +391,8 @@ public class LockRules extends AnnotationRules {
 	  return result;
 	}
 	
-	private static SelfProtectedPromiseDrop scrubThreadSafe(
-	  final IAnnotationScrubberContext context, final SelfProtectedNode node) {
+	private static ThreadSafePromiseDrop scrubThreadSafe(
+	  final IAnnotationScrubberContext context, final ThreadSafeNode node) {
 	  /* A thread safe class (not interface) must extend a thread safe class
 	   * java.lang.Object, or java.lang.Enum. 
 	   */
@@ -416,7 +416,7 @@ public class LockRules extends AnnotationRules {
 	  }
 	  
 	  if (superDecl != null) {
-	    final SelfProtectedPromiseDrop superTSDrop = getSelfProtected(superDecl);
+	    final ThreadSafePromiseDrop superTSDrop = getThreadSafe(superDecl);
 	    if (superTSDrop == null) {
 	      /* Check for java.lang.Object.  We already handle java.lang.Enum
 	       * in the EnumDeclaration case. 
@@ -428,7 +428,7 @@ public class LockRules extends AnnotationRules {
 	      }
 	    }
 	  }
-	  return new SelfProtectedPromiseDrop(node);
+	  return new ThreadSafePromiseDrop(node);
 	}
 
 	public static class ProhibitsLock_ParseRule
@@ -1560,25 +1560,25 @@ public class LockRules extends AnnotationRules {
       };
     }    
   }  
-  public static class SelfProtected_ParseRule 
-  extends SimpleBooleanAnnotationParseRule<SelfProtectedNode,SelfProtectedPromiseDrop> {
-    public SelfProtected_ParseRule() {
-      super(SELF_PROTECTED, typeDeclOps, SelfProtectedNode.class);
+  public static class ThreadSafe_ParseRule 
+  extends SimpleBooleanAnnotationParseRule<ThreadSafeNode,ThreadSafePromiseDrop> {
+    public ThreadSafe_ParseRule() {
+      super(SELF_PROTECTED, typeDeclOps, ThreadSafeNode.class);
     }
     @Override
     protected IAASTRootNode makeAAST(int offset, int mods) {
-      return new SelfProtectedNode(offset, mods);
+      return new ThreadSafeNode(offset, mods);
     }
     @Override
-    protected IPromiseDropStorage<SelfProtectedPromiseDrop> makeStorage() {
-      return BooleanPromiseDropStorage.create(name(), SelfProtectedPromiseDrop.class);
+    protected IPromiseDropStorage<ThreadSafePromiseDrop> makeStorage() {
+      return BooleanPromiseDropStorage.create(name(), ThreadSafePromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<SelfProtectedNode> makeScrubber() {
-      return new AbstractAASTScrubber<SelfProtectedNode>(this, ScrubberType.BY_HIERARCHY) {
+    protected IAnnotationScrubber<ThreadSafeNode> makeScrubber() {
+      return new AbstractAASTScrubber<ThreadSafeNode>(this, ScrubberType.BY_HIERARCHY) {
         @Override
-        protected PromiseDrop<SelfProtectedNode> makePromiseDrop(SelfProtectedNode a) {
-//          SelfProtectedPromiseDrop d = new SelfProtectedPromiseDrop(a);
+        protected PromiseDrop<ThreadSafeNode> makePromiseDrop(ThreadSafeNode a) {
+//          ThreadSafePromiseDrop d = new ThreadSafePromiseDrop(a);
           return storeDropIfNotNull(getStorage(), a, scrubThreadSafe(context, a));          
         }
       };

@@ -1,5 +1,5 @@
 <package name="java.util">
  <class name="Hashtable">
-  <selfProtected/>
+  <threadSafe/>
  </class>
 </package>
