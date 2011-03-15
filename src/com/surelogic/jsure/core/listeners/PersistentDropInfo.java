@@ -83,8 +83,11 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 				final long lastModified = location.lastModified();
 				if (dropInfo.isEmpty() || lastModified > timestamp) {
 					System.out.println("Loading info at " + lastModified);
+					final long start = System.currentTimeMillis();
 					dropInfo = SeaSnapshot.loadSnapshot(location);
 					timestamp = lastModified;
+					final long end = System.currentTimeMillis();
+					System.out.println("Finished loading info = "+(end-start)+" ms");
 				}
 				return true;
 			} else {
