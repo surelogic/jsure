@@ -128,7 +128,7 @@ public class LayerRules extends AnnotationRules {
 		}
 	}
  	
-	static abstract class Scrubber<A extends AbstractLayerMatchDeclNode> extends AbstractAASTScrubber<A> {
+	static abstract class Scrubber<A extends AbstractLayerMatchDeclNode, P extends PromiseDrop<A>> extends AbstractAASTScrubber<A, P> {
 		final Map<String,A> decls = new HashMap<String,A>();
 		final CycleDetector refs = new CycleDetector();
 		
@@ -145,7 +145,7 @@ public class LayerRules extends AnnotationRules {
 			return NamedPackageDeclaration.getId(n.getPromisedFor())+'.'+n.getId();
 		}
 		
-		Scrubber(AbstractLayersParseRule<A,? extends PromiseDrop<A>> rule, String...deps) {
+		Scrubber(AbstractLayersParseRule<A, P> rule, String...deps) {
 			super(rule, ScrubberType.DIY, deps);
 		}
 		
@@ -232,7 +232,7 @@ public class LayerRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<TypeSetNode> makeScrubber() {
-			return new Scrubber<TypeSetNode>(this) {
+			return new Scrubber<TypeSetNode, TypeSetPromiseDrop>(this) {
 				@Override
 				protected PromiseDrop<TypeSetNode> makePromiseDrop(TypeSetNode a) {
 					TypeSetPromiseDrop d = new TypeSetPromiseDrop(a);
@@ -262,7 +262,7 @@ public class LayerRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<LayerNode> makeScrubber() {
-			return new Scrubber<LayerNode>(this, TYPESET) {
+			return new Scrubber<LayerNode, LayerPromiseDrop>(this, TYPESET) {
 				@Override
 				protected PromiseDrop<LayerNode> makePromiseDrop(LayerNode a) {
 					LayerPromiseDrop d = new LayerPromiseDrop(a);
@@ -292,7 +292,7 @@ public class LayerRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<InLayerNode> makeScrubber() {
-			return new AbstractAASTScrubber<InLayerNode>(this, ScrubberType.UNORDERED, LAYER) {
+			return new AbstractAASTScrubber<InLayerNode, InLayerPromiseDrop>(this, ScrubberType.UNORDERED, LAYER) {
 				@Override
 				protected PromiseDrop<InLayerNode> makePromiseDrop(InLayerNode a) {
 					List<Drop> layerDrops = new ArrayList<Drop>();
@@ -347,7 +347,7 @@ public class LayerRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<MayReferToNode> makeScrubber() {
-			return new AbstractAASTScrubber<MayReferToNode>(this, ScrubberType.UNORDERED, IN_LAYER) {
+			return new AbstractAASTScrubber<MayReferToNode, MayReferToPromiseDrop>(this, ScrubberType.UNORDERED, IN_LAYER) {
 				@Override
 				protected PromiseDrop<MayReferToNode> makePromiseDrop(MayReferToNode a) {
 					MayReferToPromiseDrop d = new MayReferToPromiseDrop(a);
@@ -377,7 +377,7 @@ public class LayerRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<AllowsReferencesFromNode> makeScrubber() {
-			return new AbstractAASTScrubber<AllowsReferencesFromNode>(this, ScrubberType.UNORDERED, IN_LAYER) {
+			return new AbstractAASTScrubber<AllowsReferencesFromNode, AllowsReferencesFromPromiseDrop>(this, ScrubberType.UNORDERED, IN_LAYER) {
 				@Override
 				protected PromiseDrop<AllowsReferencesFromNode> makePromiseDrop(AllowsReferencesFromNode a) {
 					AllowsReferencesFromPromiseDrop d = new AllowsReferencesFromPromiseDrop(a);

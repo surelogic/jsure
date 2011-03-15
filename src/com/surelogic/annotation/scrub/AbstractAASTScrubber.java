@@ -37,7 +37,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  * 
  * @author Edwin.Chan
  */
-public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
+public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends PromiseDrop<? super A>> extends
 		DescendingVisitor<Boolean> implements IAnnotationScrubber<A> {
 	protected IAnnotationScrubberContext context;
 
@@ -52,8 +52,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	private final ScrubberOrder order;
 	private final String[] dependencies;
 	private final String[] runsBefore;
-	@SuppressWarnings("unchecked")
-	private final IPromiseDropStorage stor;
+	private final IPromiseDropStorage<P> stor;
 
 	/**
 	 * Constructor
@@ -71,9 +70,8 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	 * @param before
 	 *            Any scrubbers that this should run before
 	 */
-	@SuppressWarnings("unchecked")
 	public AbstractAASTScrubber(String name, Class<A> c,
-			IPromiseDropStorage stor, ScrubberType type, String[] before,
+	    IPromiseDropStorage<P> stor, ScrubberType type, String[] before,
 			ScrubberOrder order, String... deps) {
 		super(Boolean.TRUE); // set to default to true
 		this.name = name;
@@ -87,14 +85,14 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 		this.dependencies = deps;
 		this.runsBefore = before;
 	}
-	@SuppressWarnings("unchecked")
+
 	public AbstractAASTScrubber(String name, Class<A> c,
-			IPromiseDropStorage stor, ScrubberType type, String... deps) {
+	    IPromiseDropStorage<P> stor, ScrubberType type, String... deps) {
 		this(name, c, stor, type, NONE, ScrubberOrder.NORMAL, deps);
 	}
-	@SuppressWarnings("unchecked")
+
 	public AbstractAASTScrubber(String name, Class<A> c,
-			IPromiseDropStorage stor, ScrubberType type, ScrubberOrder order,
+	    IPromiseDropStorage<P> stor, ScrubberType type, ScrubberOrder order,
 			String... deps) {
 		this(name, c, stor, type, NONE, order, deps);
 	}
@@ -102,24 +100,23 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	/**
 	 * Defaults to unordered with no dependencies
 	 */
-	@SuppressWarnings("unchecked")
 	public AbstractAASTScrubber(String name, Class<A> c,
-			IPromiseDropStorage stor) {
+	    IPromiseDropStorage<P> stor) {
 		this(name, c, stor, ScrubberType.UNORDERED, NONE, ScrubberOrder.NORMAL,
 				NONE);
 	}
 
-	public AbstractAASTScrubber(ISingleAnnotationParseRule<A, ?> rule,
+	public AbstractAASTScrubber(ISingleAnnotationParseRule<A, P> rule,
 			ScrubberType type, String... deps) {
 		this(rule, type, NONE, ScrubberOrder.NORMAL, deps);
 	}
 
-	public AbstractAASTScrubber(ISingleAnnotationParseRule<A, ?> rule,
+	public AbstractAASTScrubber(ISingleAnnotationParseRule<A, P> rule,
 			ScrubberType type, String[] before, String... deps) {
 		this(rule, type, before, ScrubberOrder.NORMAL, deps);
 	}
 
-	public AbstractAASTScrubber(ISingleAnnotationParseRule<A, ?> rule,
+	public AbstractAASTScrubber(ISingleAnnotationParseRule<A, P> rule,
 			ScrubberType type, String[] before, ScrubberOrder order,
 			String... deps) {
 		this(rule.name(), rule.getAASTType(), rule.getStorage(), type, before,
@@ -129,7 +126,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode> extends
 	/**
 	 * Defaults to unordered with no dependencies
 	 */
-	public AbstractAASTScrubber(ISingleAnnotationParseRule<A, ?> rule) {
+	public AbstractAASTScrubber(ISingleAnnotationParseRule<A, P> rule) {
 		this(rule, ScrubberType.UNORDERED, NONE);
 	}
 

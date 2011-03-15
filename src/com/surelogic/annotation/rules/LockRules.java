@@ -224,7 +224,7 @@ public class LockRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ReturnsLockNode> makeScrubber() {
-			return new AbstractAASTScrubber<ReturnsLockNode>(this,
+			return new AbstractAASTScrubber<ReturnsLockNode, ReturnsLockPromiseDrop>(this,
 					ScrubberType.UNORDERED, LOCK,
 					POLICY_LOCK) {
 				@Override
@@ -453,7 +453,7 @@ public class LockRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ProhibitsLockNode> makeScrubber() {
-			return new AbstractAASTScrubber<ProhibitsLockNode>(this,
+			return new AbstractAASTScrubber<ProhibitsLockNode, ProhibitsLockPromiseDrop>(this,
 					ScrubberType.UNORDERED, LOCK,
 					POLICY_LOCK, RETURNS_LOCK, REQUIRES_LOCK) {
 				@Override
@@ -519,7 +519,7 @@ public class LockRules extends AnnotationRules {
 		  /* Order by hierarchy so that we know that any ancestral RequiresLock
 		   * annotations are scrubbed.
 		   */
-			return new AbstractAASTScrubber<RequiresLockNode>(this,
+			return new AbstractAASTScrubber<RequiresLockNode, RequiresLockPromiseDrop>(this,
 					ScrubberType.BY_HIERARCHY, LOCK,
 					POLICY_LOCK, RETURNS_LOCK) {
 				@Override
@@ -733,7 +733,7 @@ public class LockRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<LockDeclarationNode> makeScrubber() {
-			return new AbstractAASTScrubber<LockDeclarationNode>(this,
+			return new AbstractAASTScrubber<LockDeclarationNode, LockModel>(this,
 					ScrubberType.BY_HIERARCHY, LockRules.REGION_INITIALIZER, RegionRules.REGIONS_DONE) {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
@@ -1239,7 +1239,7 @@ public class LockRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<PolicyLockDeclarationNode> makeScrubber() {
-			return new AbstractAASTScrubber<PolicyLockDeclarationNode>(name(),
+			return new AbstractAASTScrubber<PolicyLockDeclarationNode, LockModel>(name(),
           PolicyLockDeclarationNode.class, lockRule.getStorage(),
 					ScrubberType.BY_HIERARCHY) {
 				@Override
@@ -1291,7 +1291,7 @@ public class LockRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<IsLockNode> makeScrubber() {
-			return new AbstractAASTScrubber<IsLockNode>(this,
+			return new AbstractAASTScrubber<IsLockNode, IsLockPromiseDrop>(this,
 					ScrubberType.UNORDERED, LOCK, POLICY_LOCK) {
 				@Override
         protected PromiseDrop<IsLockNode> makePromiseDrop(IsLockNode a) {
@@ -1547,7 +1547,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ContainableNode> makeScrubber() {
-      return new AbstractAASTScrubber<ContainableNode>(this, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY) {
+      return new AbstractAASTScrubber<ContainableNode, ContainablePromiseDrop>(this, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY) {
         @Override
         protected PromiseDrop<ContainableNode> makePromiseDrop(ContainableNode a) {
           return storeDropIfNotNull(getStorage(), a, scrubContainable(getContext(), a));          
@@ -1575,7 +1575,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ThreadSafeNode> makeScrubber() {
-      return new AbstractAASTScrubber<ThreadSafeNode>(this, ScrubberType.BY_HIERARCHY) {
+      return new AbstractAASTScrubber<ThreadSafeNode, ThreadSafePromiseDrop>(this, ScrubberType.BY_HIERARCHY) {
         @Override
         protected PromiseDrop<ThreadSafeNode> makePromiseDrop(ThreadSafeNode a) {
 //          ThreadSafePromiseDrop d = new ThreadSafePromiseDrop(a);
@@ -1600,7 +1600,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<NotThreadSafeNode> makeScrubber() {
-      return new AbstractAASTScrubber<NotThreadSafeNode>(this) {
+      return new AbstractAASTScrubber<NotThreadSafeNode, NotThreadSafePromiseDrop>(this) {
         @Override
         protected PromiseDrop<NotThreadSafeNode> makePromiseDrop(NotThreadSafeNode a) {
           /* TODO: Should check that the type has no immediate ancestor
@@ -1628,7 +1628,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ImmutableNode> makeScrubber() {
-      return new AbstractAASTScrubber<ImmutableNode>(this) {
+      return new AbstractAASTScrubber<ImmutableNode, ImmutablePromiseDrop>(this) {
         @Override
         protected PromiseDrop<ImmutableNode> makePromiseDrop(ImmutableNode a) {
         	ImmutablePromiseDrop d = new ImmutablePromiseDrop(a);

@@ -38,10 +38,6 @@ import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
-import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
-import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
-import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.callgraph.SimpleCallGraphDrop;
@@ -189,7 +185,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ThreadRoleTransparentNode> makeScrubber() {
-			return new AbstractAASTScrubber<ThreadRoleTransparentNode>(this) {
+			return new AbstractAASTScrubber<ThreadRoleTransparentNode, TRoleTransparentDrop>(this) {
 				@Override
 				protected PromiseDrop<ThreadRoleTransparentNode> makePromiseDrop(
 						ThreadRoleTransparentNode a) {
@@ -255,7 +251,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ThreadRoleNode> makeScrubber() {
-			return new AbstractAASTScrubber<ThreadRoleNode>(this,
+			return new AbstractAASTScrubber<ThreadRoleNode, TRoleRequireDrop>(this,
 					ScrubberType.UNORDERED) {
 				@Override
 				protected TRoleRequireDrop makePromiseDrop(ThreadRoleNode a) {
@@ -286,7 +282,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ThreadRoleImportNode> makeScrubber() {
-			return new AbstractAASTScrubber<ThreadRoleImportNode>(this,
+			return new AbstractAASTScrubber<ThreadRoleImportNode, TRoleImportDrop>(this,
 					ScrubberType.UNORDERED) {
 				@Override
 				protected PromiseDrop<ThreadRoleImportNode> makePromiseDrop(
@@ -339,7 +335,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ThreadRoleGrantNode> makeScrubber() {
-			return new AbstractAASTScrubber<ThreadRoleGrantNode>(this) {
+			return new AbstractAASTScrubber<ThreadRoleGrantNode, TRoleGrantDrop>(this) {
 				@Override
 				protected TRoleGrantDrop makePromiseDrop(ThreadRoleGrantNode a) {
 					TRoleGrantDrop d = new TRoleGrantDrop(a);
@@ -366,7 +362,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ThreadRoleRevokeNode> makeScrubber() {
-			return new AbstractAASTScrubber<ThreadRoleRevokeNode>(this) {
+			return new AbstractAASTScrubber<ThreadRoleRevokeNode, TRoleRevokeDrop>(this) {
 				@Override
 				protected TRoleRevokeDrop makePromiseDrop(ThreadRoleRevokeNode a) {
 					TRoleRevokeDrop d = new TRoleRevokeDrop(a);
@@ -393,7 +389,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ThreadRoleDeclarationNode> makeScrubber() {
-			return new AbstractAASTScrubber<ThreadRoleDeclarationNode>(this) {
+			return new AbstractAASTScrubber<ThreadRoleDeclarationNode, TRoleDeclareDrop>(this) {
 				@Override
 				protected TRoleDeclareDrop makePromiseDrop(
 						ThreadRoleDeclarationNode a) {
@@ -422,7 +418,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ThreadRoleIncompatibleNode> makeScrubber() {
-			return new AbstractAASTScrubber<ThreadRoleIncompatibleNode>(this) {
+			return new AbstractAASTScrubber<ThreadRoleIncompatibleNode, TRoleIncompatibleDrop>(this) {
 				@Override
 				protected TRoleIncompatibleDrop makePromiseDrop(
 						ThreadRoleIncompatibleNode a) {
@@ -454,7 +450,7 @@ public class ThreadRoleRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<ThreadRoleRenameNode> makeScrubber() {
-			return new AbstractAASTScrubber<ThreadRoleRenameNode>(this,
+			return new AbstractAASTScrubber<ThreadRoleRenameNode, TRoleRenameDrop>(this,
 					ScrubberType.UNORDERED) {
 				@Override
 				protected PromiseDrop<ThreadRoleRenameNode> makePromiseDrop(

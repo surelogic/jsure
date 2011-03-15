@@ -90,7 +90,7 @@ public class JcipRules extends AnnotationRules {
 		protected IAnnotationScrubber<GuardedByNode> makeScrubber() {
 			// Run this before Lock to create virtual declarations
 			// TODO group similar decls within a type?
-			return new AbstractAASTScrubber<GuardedByNode>(this, ScrubberType.UNORDERED, 
+			return new AbstractAASTScrubber<GuardedByNode, GuardedByPromiseDrop>(this, ScrubberType.UNORDERED, 
 					new String[] { LockRules.LOCK }, noStrings) {
 				@Override
 				protected PromiseDrop<GuardedByNode> makePromiseDrop(GuardedByNode a) {

@@ -1,7 +1,5 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/MethodEffectsRules.java,v 1.39 2008/02/26 15:52:32 aarong Exp $*/
 package com.surelogic.annotation.rules;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -12,7 +10,6 @@ import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.effects.Effect;
-import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
@@ -29,7 +26,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -117,7 +113,7 @@ public class MethodEffectsRules extends AnnotationRules {
 		
 		@Override
 		protected IAnnotationScrubber<RegionEffectsNode> makeScrubber() {
-			return new AbstractAASTScrubber<RegionEffectsNode>(this,
+			return new AbstractAASTScrubber<RegionEffectsNode, RegionEffectsPromiseDrop>(this,
 					ScrubberType.BY_HIERARCHY, RegionRules.REGIONS_DONE) {
 				@Override
 				protected RegionEffectsPromiseDrop makePromiseDrop(
@@ -345,7 +341,8 @@ public class MethodEffectsRules extends AnnotationRules {
 	
 	
 	
-	private static boolean effectDeclarationIsConsistent(
+	@SuppressWarnings("unused")
+  private static boolean effectDeclarationIsConsistent(
 	    final RegionEffectsNode node,
 	    final IAnnotationScrubberContext scrubberContext,
 	    final IRNode originalMethod,

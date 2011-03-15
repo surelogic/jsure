@@ -153,7 +153,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 		
 		@Override
 		protected IAnnotationScrubber<AssumeScopedPromiseNode> makeScrubber() {
-			return new AbstractAASTScrubber<AssumeScopedPromiseNode>(this, ScrubberType.BY_TYPE, 
+			return new AbstractAASTScrubber<AssumeScopedPromiseNode, AssumePromiseDrop>(this, ScrubberType.BY_TYPE, 
 					                                                 noStrings, ScrubberOrder.FIRST) {
 				final PromiseFramework frame = PromiseFramework.getInstance();
 				Set<IRNode> bindings = null;
@@ -221,7 +221,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 				
 		@Override
 		protected IAnnotationScrubber<ScopedPromiseNode> makeScrubber() {
-			return new AbstractAASTScrubber<ScopedPromiseNode>(this, ScrubberType.UNORDERED, 
+			return new AbstractAASTScrubber<ScopedPromiseNode, PromisePromiseDrop>(this, ScrubberType.UNORDERED, 
 					                                           noStrings, ScrubberOrder.FIRST) {
 				@Override
 				protected boolean customScrub(ScopedPromiseNode a) {
@@ -583,7 +583,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 		}
 	}
 
-  static class PackageScrubber extends AbstractAASTScrubber<PackageScopedPromiseNode> {
+  static class PackageScrubber extends AbstractAASTScrubber<PackageScopedPromiseNode, PromisePromiseDrop> {
     final IPromiseDropStorage<PromisePromiseDrop> storage;
     PackageScrubber(Promise_ParseRule rule) {
       // Set to scrub before the normal @Promise scrubber

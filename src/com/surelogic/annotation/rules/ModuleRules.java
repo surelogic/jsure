@@ -74,7 +74,7 @@ public class ModuleRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<NoVisClauseNode> makeScrubber() {
-      return new AbstractAASTScrubber<NoVisClauseNode>(this, ScrubberType.UNORDERED) {
+      return new AbstractAASTScrubber<NoVisClauseNode, NoVisPromiseDrop>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<NoVisClauseNode> makePromiseDrop(NoVisClauseNode a) {
           NoVisPromiseDrop d = NoVisPromiseDrop.buildNoVisPromiseDrop(a);
@@ -105,7 +105,7 @@ public class ModuleRules extends AnnotationRules {
     
     @Override
     protected IAnnotationScrubber<VisClauseNode> makeScrubber() {
-      return new AbstractAASTScrubber<VisClauseNode>(this, ScrubberType.UNORDERED) {
+      return new AbstractAASTScrubber<VisClauseNode, VisDrop>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<VisClauseNode> makePromiseDrop(VisClauseNode a) {
           VisDrop d = VisDrop.buildVisDrop(a);
@@ -136,7 +136,7 @@ public class ModuleRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ModuleChoiceNode> makeScrubber() {
-      return new AbstractAASTScrubber<ModuleChoiceNode>(this, ScrubberType.UNORDERED) {
+      return new AbstractAASTScrubber<ModuleChoiceNode, ModulePromiseDrop>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<ModuleChoiceNode> makePromiseDrop(ModuleChoiceNode a) {
           ModulePromiseDrop d = ModulePromiseDrop.buildModulePromiseDrop(a);
@@ -167,7 +167,7 @@ public class ModuleRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ExportNode> makeScrubber() {
-      return new AbstractAASTScrubber<ExportNode>(this, ScrubberType.UNORDERED) {
+      return new AbstractAASTScrubber<ExportNode, ExportDrop>(this, ScrubberType.UNORDERED) {
         @Override
         protected PromiseDrop<ExportNode> makePromiseDrop(ExportNode a) {
           ExportDrop d = ExportDrop.buildExportDrop(a);

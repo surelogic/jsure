@@ -103,7 +103,7 @@ public class VouchRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<VouchSpecificationNode> makeScrubber() {
-			return new AbstractAASTScrubber<VouchSpecificationNode>(this) {
+			return new AbstractAASTScrubber<VouchSpecificationNode, VouchPromiseDrop>(this) {
 				@Override
 				protected PromiseDrop<VouchSpecificationNode> makePromiseDrop(
 						VouchSpecificationNode a) {

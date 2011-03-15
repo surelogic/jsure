@@ -85,17 +85,6 @@ public class UniquenessRules extends AnnotationRules {
     return getBooleanDrop(borrowedRule.getStorage(), vdecl);
   }
   
-  public static boolean isImmutable(IRNode vdecl) {
-    return getImmutableDrop(vdecl) != null;
-  }
-  
-  // Suppress warning because the needed type doesn't yet exist
-  @SuppressWarnings("unchecked")
-  public static /*Immutable*/PromiseDrop getImmutableDrop(IRNode vdecl) {
-    //return getBooleanDrop(immutableRule.getStorage(), vdecl);
-    throw new UnsupportedOperationException("no immutable yet");
-  }
-  
   /**
    * Meant for testing
    */
@@ -202,7 +191,7 @@ public class UniquenessRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<UniqueNode> makeScrubber() {
-      return new AbstractAASTScrubber<UniqueNode>(this) {
+      return new AbstractAASTScrubber<UniqueNode, UniquePromiseDrop>(this) {
         @Override
         protected PromiseDrop<UniqueNode> makePromiseDrop(UniqueNode a) {
           //System.out.println("Promised on "+DebugUnparser.toString(a.getPromisedFor()));
@@ -266,7 +255,7 @@ public class UniquenessRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<BorrowedNode> makeScrubber() {
-      return new AbstractAASTScrubber<BorrowedNode>(this,
+      return new AbstractAASTScrubber<BorrowedNode, BorrowedPromiseDrop>(this,
           ScrubberType.UNORDERED, UNIQUE) {
         @Override
         protected PromiseDrop<BorrowedNode> makePromiseDrop(BorrowedNode a) {
@@ -339,7 +328,7 @@ public class UniquenessRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<NotUniqueNode> makeScrubber() {
-      return new AbstractAASTScrubber<NotUniqueNode>(this) {
+      return new AbstractAASTScrubber<NotUniqueNode, NotUniquePromiseDrop>(this) {
         @Override
         protected PromiseDrop<NotUniqueNode> makePromiseDrop(NotUniqueNode a) {
           return storeDropIfNotNull(getStorage(), a, 

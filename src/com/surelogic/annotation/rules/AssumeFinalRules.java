@@ -43,13 +43,6 @@ public class AssumeFinalRules extends AnnotationRules {
     return getBooleanDrop(assumeFinalRule.getStorage(), vdecl);
   }
   
-  // Suppress warning because the needed type doesn't yet exist
-  @SuppressWarnings("unchecked")
-  public static /*Immutable*/PromiseDrop getImmutableDrop(IRNode vdecl) {
-    //return getBooleanDrop(immutableRule.getStorage(), vdecl);
-    throw new UnsupportedOperationException("no immutable yet");
-  }
-  
   /**
    * Meant for testing
    */
@@ -96,7 +89,7 @@ public class AssumeFinalRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<AssumeFinalNode> makeScrubber() {
-      return new AbstractAASTScrubber<AssumeFinalNode>(this) {
+      return new AbstractAASTScrubber<AssumeFinalNode, AssumeFinalPromiseDrop>(this) {
         @Override
         protected PromiseDrop<AssumeFinalNode> makePromiseDrop(AssumeFinalNode a) {
 //          AssumeFinalPromiseDrop d = new AssumeFinalPromiseDrop(a);

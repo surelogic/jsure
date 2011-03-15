@@ -23,7 +23,6 @@ import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -129,7 +128,7 @@ public class RegionRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<NewRegionDeclarationNode> makeScrubber() {
-      return new AbstractAASTScrubber<NewRegionDeclarationNode>(
+      return new AbstractAASTScrubber<NewRegionDeclarationNode, RegionModel>(
           this, ScrubberType.BY_HIERARCHY, REGION_INITIALIZER) {
         @Override
         protected PromiseDrop<NewRegionDeclarationNode> makePromiseDrop(NewRegionDeclarationNode a) {
@@ -247,7 +246,7 @@ public class RegionRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<InRegionNode> makeScrubber() {
-      return new AbstractAASTScrubber<InRegionNode>(this, 
+      return new AbstractAASTScrubber<InRegionNode, InRegionPromiseDrop>(this, 
                                                    ScrubberType.BY_HIERARCHY, REGION) {
         @Override
         protected PromiseDrop<InRegionNode> makePromiseDrop(InRegionNode a) {
@@ -353,7 +352,7 @@ public class RegionRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<FieldMappingsNode> makeScrubber() {
-      return new AbstractAASTScrubber<FieldMappingsNode>(this, ScrubberType.UNORDERED, 
+      return new AbstractAASTScrubber<FieldMappingsNode, MapFieldsPromiseDrop>(this, ScrubberType.UNORDERED, 
                                                          new String[] { IN_REGION }, REGION) {
         @Override
         protected PromiseDrop<FieldMappingsNode> makePromiseDrop(FieldMappingsNode a) {
@@ -404,7 +403,7 @@ public class RegionRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<AggregateNode> makeScrubber() {
-      return new AbstractAASTScrubber<AggregateNode>(this,  
+      return new AbstractAASTScrubber<AggregateNode,AggregatePromiseDrop>(this,  
                                                      ScrubberType.UNORDERED, 
                                                      REGION, IN_REGION, MAP_FIELDS, UniquenessRules.UNIQUENESS_DONE) {
         @Override
@@ -604,7 +603,7 @@ public class RegionRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<AggregateInRegionNode> makeScrubber() {
-      return new AbstractAASTScrubber<AggregateInRegionNode>(this, 
+      return new AbstractAASTScrubber<AggregateInRegionNode, AggregateInRegionPromiseDrop>(this, 
                                                    ScrubberType.UNORDERED, 
                                                    new String[] { AGGREGATE }, REGION) {
         @Override
