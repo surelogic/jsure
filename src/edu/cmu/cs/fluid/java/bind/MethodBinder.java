@@ -267,9 +267,11 @@ System.out.println("matching against "+tmpTypes);
     		subst = 
     			FunctionParameterSubstitution.create(binder, mbind.getNode(), map);
     	} else {
+    		/*
     		if (mSubst != IJavaTypeSubstitution.NULL) {
     			System.out.println("Using explicit type arguments at call: "+mSubst);
     		}
+    		*/
     		subst = mSubst;
     	}
     	if (subst != IJavaTypeSubstitution.NULL) {
