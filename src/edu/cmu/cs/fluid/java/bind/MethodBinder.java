@@ -179,7 +179,8 @@ public class MethodBinder {
     		}
     		return null;
     	}    	    	    	
-
+     	int numBoxed = 0;    	    	
+    	
     	// First, capture type variables
     	// (expanding varargs to fill in what would be null)
     	final Iterator<IRNode> fe = JJNode.tree.children(formals);
@@ -201,6 +202,7 @@ public class MethodBinder {
     			IRNode ptype  = ParameterDeclaration.getType(fe.next());    		
     			fty = binder.getTypeEnvironment().convertNodeTypeToIJavaType(ptype);
     			//fty = JavaTypeFactory.convertNodeTypeToIJavaType(ptype,AbstractJavaBinder.this);
+    			
     			fty = mbind.convertType(fty);
     			if (ptype == varType && 
     					(i < argTypes.length-1 || 
@@ -210,6 +212,13 @@ public class MethodBinder {
     				varArgBase = at.getElementType();     		
     				fty = varArgBase;
     			}
+    		}
+    		// Handle boxing
+    		IJavaType[] newArgTypes = handleBoxing(fty, argTypes, i);
+    		if (newArgTypes != argTypes) {
+    			// arg[i] was (un)boxed
+    			argTypes = newArgTypes;
+    			numBoxed++;
     		}
     		tmpTypes[i] = fty;    		
     		if (map != null) {
@@ -223,7 +232,6 @@ System.out.println("matching against "+tmpTypes);
     	 */
     	// Then, substitute and check if compatible
     	final boolean isVarArgs = varType != null;
-    	int numBoxed = 0;    	
     	for (int i=0; i < argTypes.length; ++i) {       
     		IJavaType fty      = tmpTypes[i];
     		IJavaType captured = map == null ? binder.getTypeEnvironment().computeErasure(fty) : substitute(map, fty);          
@@ -280,7 +288,20 @@ System.out.println("matching against "+tmpTypes);
     	return new BindingInfo(mbind, numBoxed, isVarArgs);
     }
     
-    private boolean onlyNeedsBoxing(IJavaType formal, IJavaType arg) {
+    private IJavaType[] handleBoxing(IJavaType formal, IJavaType[] argTypes, int i) {
+    	final IJavaType arg = argTypes[i];
+    	if (formal instanceof IJavaReferenceType && arg instanceof IJavaPrimitiveType) {
+    		// Box arg to match
+    		IJavaPrimitiveType argP = (IJavaPrimitiveType) arg;
+    		IJavaType boxed         = JavaTypeFactory.getCorrespondingDeclType(typeEnvironment, argP);
+    		IJavaType[] newArgTypes = Arrays.copyOf(argTypes, argTypes.length);
+    		newArgTypes[i] = boxed;
+    		return newArgTypes;
+    	}
+		return argTypes;
+	}
+
+	private boolean onlyNeedsBoxing(IJavaType formal, IJavaType arg) {
     	if (formal instanceof IJavaPrimitiveType && arg instanceof IJavaDeclaredType) {    
     		// Could unbox arg?
     		IJavaDeclaredType argD = (IJavaDeclaredType) arg;
