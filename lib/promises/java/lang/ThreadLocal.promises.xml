@@ -1,5 +1,5 @@
 <package name="java.lang">
  <class name="ThreadLocal">
-  <threadSafe/>
+  <selfProtected/>
  </class>
 </package>
