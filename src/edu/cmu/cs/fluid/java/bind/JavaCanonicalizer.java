@@ -941,13 +941,26 @@ public class JavaCanonicalizer {
         copySrcRef(stmt, paramInit);
 
         // Introduce cast to the real type        
-        IRNode castType = CogenUtil.createType(binder.getTypeEnvironment(), itTB.getTypeParameters().get(0));
+        IRNode castType = CogenUtil.createType(binder.getTypeEnvironment(), computeIteratorType(binder.getTypeEnvironment(), itTB));
         paramInit = CastExpression.createNode(castType, paramInit);
         
         IRNode whileLoop = makeEquivWhileLoop(stmt, cond, paramInit); 
         IRNode result    = BlockStatement.createNode(new IRNode[] { /*iterableDecl,*/ itDecl, whileLoop });
         return result;
       }
+
+	private IJavaType computeIteratorType(ITypeEnvironment te, IJavaDeclaredType type) {
+		if (type.getName().startsWith("java.util.Iterator")) {
+			return type.getTypeParameters().get(0);
+		}
+		for(IJavaType st : type.getSupertypes(te)) {
+			IJavaType value = computeIteratorType(te, (IJavaDeclaredType) st);
+			if (value != null) {
+				return value;
+			}
+		}
+		return null;
+	}
 
 	@Override
     public Boolean visitImplicitReceiver(IRNode node) {
