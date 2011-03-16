@@ -21,7 +21,14 @@ public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<Thre
   
   @Override
   protected void computeBasedOnAST() {
-    String name = JavaNames.getTypeName(getNode());
-    setResultMessage(Messages.LockAnnotation_threadSafeDrop, name);
+    final String name = JavaNames.getTypeName(getNode());
+    final boolean isImplementationOnly = getAST().isImplementationOnly();
+    final boolean isVerify = getAST().verify();
+    if (!isImplementationOnly && isVerify) {
+      setResultMessage(Messages.LockAnnotation_threadSafeDrop, name);
+    } else {
+      setResultMessage(Messages.LockAnnotation_threadSafeAttributedDrop,
+          isImplementationOnly, isVerify, name);
+    }
   }
 }

@@ -35,7 +35,7 @@ public class LockRules extends AnnotationRules {
 	private static final String PROHIBITS_LOCK = "ProhibitsLock";
 	private static final String POLICY_LOCK = "PolicyLock";
   private static final String CONTAINABLE = "Containable";
-  private static final String SELF_PROTECTED = "ThreadSafe";
+  private static final String THREAD_SAFE = "ThreadSafe";
   private static final String NOT_THREAD_SAFE = "NotThreadSafe";
   private static final String IMMUTABLE = "Immutable";
   private static final String LOCK_FIELD_VISIBILITY = "LockFieldVisibility";
@@ -269,168 +269,6 @@ public class LockRules extends AnnotationRules {
 			}
 		}
 		return returnDrop;
-	}
-	
-//	private static ContainablePromiseDrop scrubContainable(
-//	    final IAnnotationScrubberContext context, final ContainableNode node) {
-//	  // We only get here if we have an annotated type
-//	  final IRNode promisedFor = node.getPromisedFor();
-//    final boolean isInterface = TypeUtil.isInterface(promisedFor);
-//    final boolean implementationOnly = node.isImplementationOnly();
-//	  boolean bad = false;
-//	  
-//    if (isInterface) {
-//      // the verify attribute is non-sense on interfaces
-//      if (!node.verify()) {
-//        bad = true;
-//        context.reportError(node, "An interface may not be @Containable(verify=false)");
-//      }
-//      // The implemenationOnly attribute must be false on interfaces
-//      if (implementationOnly) {
-//        bad = true;
-//        context.reportError(node, "An Interface may not be @Containable(implementationOnly=true)");
-//      }
-//	  } else { // class
-//      final IRNode superDecl = context.getBinder().getBinding(
-//          ClassDeclaration.getExtension(promisedFor));
-//
-//      /* A class annotated with implementationOnly=true, cannot implement an
-//	     * interface annotated with @Containable.
-//	     */
-//	    if (implementationOnly) {
-//	      final IRNode impls = ClassDeclaration.getImpls(promisedFor);
-//	      for (final IRNode intfName : Implements.getIntfIterator(impls)) {
-//	        final IRNode intfDecl = context.getBinder().getBinding(intfName);
-//	        if (isContainable(intfDecl)) {
-//	          bad = true;
-//	          context.reportError(node,
-//	              "Class may not be @Containable(implementationOnly=true) because it implements the @Containable interface {0}",
-//	              JavaNames.getQualifiedTypeName(intfDecl));
-//	        }
-//	      }
-//	      
-//	      // java.lang.Object doesn't have a superclass
-//	      if (superDecl != promisedFor) {
-//  	      final ContainablePromiseDrop superAnno = getContainable(superDecl);
-//  	      if (superAnno == null) {
-//            bad = true;
-//            context.reportError(node,
-//                "Class may not be @Containable(implementationOnly=true) because it extends the non-@Containable class {0}",
-//                JavaNames.getQualifiedTypeName(superDecl));
-//  	      } else if(!superAnno.isImplementationOnly() ) {
-//            bad = true;
-//            context.reportError(node,
-//                "Class may not be @Containable(implementationOnly=true) because it extends the @Containable class {0}",
-//                JavaNames.getQualifiedTypeName(superDecl));
-//  	      }
-//	      }
-//	    } else { // implementationOnly == false
-//        // java.lang.Object doesn't have a superclass
-//        if (superDecl != promisedFor) {
-//          final ContainablePromiseDrop superAnno = getContainable(superDecl);
-//          if (superAnno == null) {
-//            bad = true;
-//            context.reportError(node,
-//                "Class may not be @Containable because it extends the non-@Containable class {0}",
-//                JavaNames.getQualifiedTypeName(superDecl));
-//          }
-//        }
-//	    }
-//	  }
-//    
-//    if (bad) {
-//	    return null;
-//	  } else {
-//	    return new ContainablePromiseDrop(node);
-//	  }
-//	}
-	
-//	private static boolean scrubContainableUnannotated(
-//	    final IAnnotationScrubberContext context, 
-//	    final IJavaDeclaredType javaType) {
-//	  // We have an unannotated class/interface
-//	  final IRNode typeDecl = javaType.getDeclaration();
-//	  final boolean isInterface = TypeUtil.isInterface(typeDecl);
-//	  final Iterable<IJavaType> supers = 
-//	    javaType.getSupertypes(context.getBinder().getTypeEnvironment()) ;
-//	  
-//	  boolean result = true;
-//	  
-//	  if (isInterface) { // unannotated interface
-//	    // If any superinterface is Containable we have an error
-//	    for (final IJavaType zuper : supers) {
-//	      final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
-//	      // ignore CLASS java.lang.Object (which is a super if the interface doesn't extend anything)
-//	      if (TypeUtil.isInterface(zuperDecl)) {
-//  	      final ContainablePromiseDrop anno = getContainable(zuperDecl);
-//  	      if (anno != null) {
-//  	        context.reportError(typeDecl,
-//  	            "Interface must be annotated @Containable because it extends the @Containable interface {0}",
-//  	            JavaNames.getQualifiedTypeName(zuper));
-//            result = false;
-//  	      }
-//	      }
-//	    }
-//	  } else { // unannotated class
-//      for (final IJavaType zuper : supers) {
-//        final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
-//        final ContainablePromiseDrop anno = getContainable(zuperDecl);
-//        if (anno != null) {
-//          if (TypeUtil.isInterface(zuperDecl)) {
-//            context.reportError(typeDecl,
-//                "Class must be annotated @Containable because it implements a @Containable interface {0}",
-//                JavaNames.getQualifiedTypeName(zuper));
-//            result = false;
-//          } else if (!anno.isImplementationOnly()) {
-//            context.reportError(typeDecl,
-//                "Class must be annotated @Containable because it extends a @Containable class {0}",
-//                JavaNames.getQualifiedTypeName(zuper));
-//            result = false;
-//          }
-//        }
-//      }
-//	  }
-//	  return result;
-//	}
-	
-	private static ThreadSafePromiseDrop scrubThreadSafe(
-	  final IAnnotationScrubberContext context, final ThreadSafeNode node) {
-	  /* A thread safe class (not interface) must extend a thread safe class
-	   * java.lang.Object, or java.lang.Enum. 
-	   */
-	  final IRNode typeDecl = node.getPromisedFor();
-	  final Operator op = JJNode.tree.getOperator(typeDecl);
-	  final IRNode superDecl;
-	  if (ClassDeclaration.prototype.includes(op)) {
-      superDecl = context.getBinder().getBinding(ClassDeclaration.getExtension(typeDecl));
-	  } else if (AnonClassExpression.prototype.includes(op)) {
-      // XXX: Never going to get here because anonymous classes cannot be annotated
-      superDecl = context.getBinder().getBinding(AnonClassExpression.getType(typeDecl));
-	  } else if (EnumDeclaration.prototype.includes(op)) {
-	    // Super class is java.lang.Enum, nothing to check
-      superDecl = null;
-	  } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
-      // XXX: Never going to get here because anonymous classes cannot be annotated
-      superDecl = null;
-	  } else {
-	    // Interface, nothing to check
-	    superDecl = null;
-	  }
-	  
-	  if (superDecl != null) {
-	    final ThreadSafePromiseDrop superTSDrop = getThreadSafe(superDecl);
-	    if (superTSDrop == null) {
-	      /* Check for java.lang.Object.  We already handle java.lang.Enum
-	       * in the EnumDeclaration case. 
-	       */
-	      final String supername = JavaNames.getFullTypeName(superDecl);
-	      if (!supername.equals("java.lang.Object")) {
-	        context.reportError(node, "Superclass {0} is not ThreadSafe: A ThreadSafe class must extend a ThreadSafe class", supername);
-	        return null;
-	      }
-	    }
-	  }
-	  return new ThreadSafePromiseDrop(node);
 	}
 
 	public static class ProhibitsLock_ParseRule
@@ -1536,8 +1374,9 @@ public class LockRules extends AnnotationRules {
 	  private final String name;
 	  
 	  public TypeAnnotationScrubber(
-	      final SimpleBooleanAnnotationParseRule<A, P> rule, final String n) {
-	    super(rule, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY);
+	      final SimpleBooleanAnnotationParseRule<A, P> rule, final String n,
+	      final String... deps) {
+	    super(rule, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY, deps);
 	    name = n;
 	  }
 	  
@@ -1704,7 +1543,7 @@ public class LockRules extends AnnotationRules {
   public static class ThreadSafe_ParseRule 
   extends SimpleBooleanAnnotationParseRule<ThreadSafeNode,ThreadSafePromiseDrop> {
     public ThreadSafe_ParseRule() {
-      super(SELF_PROTECTED, typeDeclOps, ThreadSafeNode.class);
+      super(THREAD_SAFE, typeDeclOps, ThreadSafeNode.class);
     }
     @Override
     protected IAASTRootNode makeAAST(int offset, int mods) {
@@ -1716,11 +1555,15 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ThreadSafeNode> makeScrubber() {
-      return new AbstractAASTScrubber<ThreadSafeNode, ThreadSafePromiseDrop>(this, ScrubberType.BY_HIERARCHY) {
+      return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop>(this, "ThreadSafe", NOT_THREAD_SAFE) {
         @Override
-        protected PromiseDrop<ThreadSafeNode> makePromiseDrop(ThreadSafeNode a) {
-//          ThreadSafePromiseDrop d = new ThreadSafePromiseDrop(a);
-          return storeDropIfNotNull(a, scrubThreadSafe(context, a));          
+        protected ThreadSafePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
+          return getThreadSafe(superDecl);
+        }
+        
+        @Override
+        protected ThreadSafePromiseDrop createDrop(final ThreadSafeNode node) {
+          return new ThreadSafePromiseDrop(node);
         }
       };
     }    
@@ -1744,8 +1587,9 @@ public class LockRules extends AnnotationRules {
       return new AbstractAASTScrubber<NotThreadSafeNode, NotThreadSafePromiseDrop>(this) {
         @Override
         protected PromiseDrop<NotThreadSafeNode> makePromiseDrop(NotThreadSafeNode a) {
-          /* TODO: Should check that the type has no immediate ancestor
-           * that is annotated as ThreadSafe.  
+          /* We don't check anything here.  We run before checking of 
+           * @ThreadSafe, so we make @ThreadSafe check that type isn't
+           * both @ThreadSafe and @NotThreadSafe, and enforce covariance.
            */
           NotThreadSafePromiseDrop d = new NotThreadSafePromiseDrop(a);
           return storeDropIfNotNull(a, d);          

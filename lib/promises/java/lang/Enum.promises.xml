@@ -1,5 +1,9 @@
 <package name="java.lang">
  <class name="Enum">
+  <Immutable   implementationOnly="true"/> 
+  <Containable implementationOnly="true"/> 
+  <ThreadSafe  implementationOnly="true"/>
+
   <constructor params="java.lang.String, int">
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>

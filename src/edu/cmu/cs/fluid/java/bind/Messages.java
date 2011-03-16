@@ -22,6 +22,7 @@ public final class Messages {
   public static final int LockAnnotation_containableDrop = 118;
   public static final int LockAnnotation_containableAttributedDrop = 119;
   public static final int LockAnnotation_immutableAttributedDrop = 120;
+  public static final int LockAnnotation_threadSafeAttributedDrop = 121;
   
   /* 2011-01-18: Edwin says these are referenced from code that will become
    * obsolete and deleted.
