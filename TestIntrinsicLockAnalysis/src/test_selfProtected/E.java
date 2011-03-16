@@ -1,8 +1,8 @@
 package test_selfProtected;
 
-/**
- * Is self-protected because D is
- */
-public class E extends D {
+import com.surelogic.ThreadSafe;
 
+@ThreadSafe
+public class E implements I {
+	public void m() {}
 }
