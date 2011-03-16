@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -73,7 +74,7 @@ public class PersistentDropInfo implements IAnalysisListener, SeaObserver {
 						FileUtility.copy(results, location);
 						System.out.println("Copying results from " + results);
 					}
-				} else {
+				} else if (projects.getDate().after(new Date(timestamp))) {									
 					// Persist the Sea, and then load the info
 					new SeaSnapshot(location).snapshot(projects.getLabel(),
 							Sea.getDefault());
