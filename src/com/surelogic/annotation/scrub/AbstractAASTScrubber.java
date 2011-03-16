@@ -557,7 +557,15 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	private void startScrubbingType_internal(IRNode decl) {
 		startScrubbingType(decl);	
 		if (useAssumptions()) {
-			final IRNode cu = VisitUtil.getEnclosingCompilationUnit(decl);
+			IRNode cu = VisitUtil.getEnclosingCompilationUnit(decl);
+			if (cu == null) {
+				// Probably already the CU decl
+				cu = decl; 
+				/*
+				IRNode parent = JJNode.tree.getParentOrNull(decl);
+				System.out.println("parent = "+DebugUnparser.toString(parent));
+				*/
+			}
 			PromiseFramework.getInstance().pushTypeContext(cu);
 		}
 	}
