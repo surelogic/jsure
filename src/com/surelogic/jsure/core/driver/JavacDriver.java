@@ -1845,6 +1845,10 @@ public class JavacDriver implements IResourceChangeListener {
 			}
 			NotificationHub.notifyAnalysisCompleted();
 			// recordViewUpdate();
+			
+			// Cleared here after notifications are processed
+			// to prevent redoing some (binder) work 
+			IDE.getInstance().clearCaches();
 
 			if (lastMonitor == monitor) {
 				lastMonitor = null;
