@@ -6,6 +6,7 @@ import static com.surelogic.common.jsure.xml.JSureXMLReader.SOURCE_REF;
 
 import java.io.*;
 import java.net.URI;
+import java.util.*;
 
 import com.surelogic.common.xml.*;
 
@@ -16,6 +17,17 @@ import edu.cmu.cs.fluid.java.ISrcRef;
  * Really a JSure-specific XML creator
  */
 public class AbstractSeaXmlCreator extends XMLCreator {	
+	final Map<IRNode,Long> hashes = new HashMap<IRNode, Long>();
+	
+	Long getHash(IRNode n) {
+		Long hash = hashes.get(n);
+		if (hash == null) {
+			hash = SeaSummary.computeHash(n);
+			hashes.put(n, hash);
+		}
+		return hash;
+	}
+	
 	protected AbstractSeaXmlCreator(OutputStream out) throws IOException {
 		super(out);
 	}
@@ -36,7 +48,7 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 		if (flavor != null) {
 			addAttribute(FLAVOR_ATTR, flavor);
 		}
-		addAttribute(HASH_ATTR, SeaSummary.computeHash(context));
+		addAttribute(HASH_ATTR, getHash(context));
 		addAttribute(CUNIT_ATTR, s.getCUName());
 		addAttribute(PKG_ATTR, s.getPackage());
 		b.append("/>\n");
