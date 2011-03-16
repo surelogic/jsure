@@ -83,10 +83,15 @@ public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
     }
   }
 
-
-  public static synchronized String toString(IRNode node) {
-    return toString(node, MAX);
-		//return reusableUnparser.unparseString(node);
+  private static final ThreadLocal<DebugUnparser> localUnparser = 
+	  new ThreadLocal<DebugUnparser>() {
+	  protected DebugUnparser initialValue() {
+		  return new DebugUnparser(MAX);
+	  }
+  };
+  
+  public static String toString(IRNode node) {
+    return localUnparser.get().unparseString(node);
   }
 
   public static synchronized String toString(IRNode node, int max) {
