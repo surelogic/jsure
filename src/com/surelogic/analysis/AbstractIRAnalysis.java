@@ -175,10 +175,14 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 		private final ThreadLocal<AtomicReference<T>> analysis = new ThreadLocal<AtomicReference<T>>() {
 			@Override
 			protected AtomicReference<T> initialValue() {
-				T a = constructIRAnalysis(binder);
-				AtomicReference<T> ref = new AtomicReference<T>(a);				
-				analysisRefs.add(ref);
-				return ref;
+				try {
+					T a = constructIRAnalysis(binder);
+					AtomicReference<T> ref = new AtomicReference<T>(a);				
+					analysisRefs.add(ref);
+					return ref;
+				} catch (Exception e) {
+					return null;
+				}
 			}
 		};
 		
