@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -166,10 +167,10 @@ public class LockRules extends AnnotationRules {
   }
   
   public static boolean isImmutable(IRNode cdecl) {
-	  return getImmutableDrop(cdecl) != null;
+	  return getImmutable(cdecl) != null;
   }
 
-  public static ImmutablePromiseDrop getImmutableDrop(IRNode cdecl) {
+  public static ImmutablePromiseDrop getImmutable(IRNode cdecl) {
 	  return getBooleanDrop(immutableRule.getStorage(), cdecl);
   }
   
@@ -230,8 +231,7 @@ public class LockRules extends AnnotationRules {
 				@Override
         protected PromiseDrop<ReturnsLockNode> makePromiseDrop(
 						ReturnsLockNode a) {
-					return storeDropIfNotNull(getStorage(), a,
-							scrubReturnsLock(getContext(), a));
+					return storeDropIfNotNull(a, scrubReturnsLock(getContext(), a));
 				}
 			};
 		}
@@ -269,127 +269,127 @@ public class LockRules extends AnnotationRules {
 		return returnDrop;
 	}
 	
-	private static ContainablePromiseDrop scrubContainable(
-	    final IAnnotationScrubberContext context, final ContainableNode node) {
-	  // We only get here if we have an annotated type
-	  final IRNode promisedFor = node.getPromisedFor();
-    final boolean isInterface = TypeUtil.isInterface(promisedFor);
-    final boolean implementationOnly = node.isImplementationOnly();
-	  boolean bad = false;
-	  
-    if (isInterface) {
-      // the verify attribute is non-sense on interfaces
-      if (!node.verify()) {
-        bad = true;
-        context.reportError(node, "An interface may not be @Containable(verify=false)");
-      }
-      // The implemenationOnly attribute must be false on interfaces
-      if (implementationOnly) {
-        bad = true;
-        context.reportError(node, "An Interface may not be @Containable(implementationOnly=true)");
-      }
-	  } else { // class
-      final IRNode superDecl = context.getBinder().getBinding(
-          ClassDeclaration.getExtension(promisedFor));
-
-      /* A class annotated with implementationOnly=true, cannot implement an
-	     * interface annotated with @Containable.
-	     */
-	    if (implementationOnly) {
-	      final IRNode impls = ClassDeclaration.getImpls(promisedFor);
-	      for (final IRNode intfName : Implements.getIntfIterator(impls)) {
-	        final IRNode intfDecl = context.getBinder().getBinding(intfName);
-	        if (isContainable(intfDecl)) {
-	          bad = true;
-	          context.reportError(node,
-	              "Class may not be @Containable(implementationOnly=true) because it implements the @Containable interface {0}",
-	              JavaNames.getQualifiedTypeName(intfDecl));
-	        }
-	      }
-	      
-	      // java.lang.Object doesn't have a superclass
-	      if (superDecl != promisedFor) {
-  	      final ContainablePromiseDrop superAnno = getContainable(superDecl);
-  	      if (superAnno == null) {
-            bad = true;
-            context.reportError(node,
-                "Class may not be @Containable(implementationOnly=true) because it extends the non-@Containable class {0}",
-                JavaNames.getQualifiedTypeName(superDecl));
-  	      } else if(!superAnno.isImplementationOnly() ) {
-            bad = true;
-            context.reportError(node,
-                "Class may not be @Containable(implementationOnly=true) because it extends the @Containable class {0}",
-                JavaNames.getQualifiedTypeName(superDecl));
-  	      }
-	      }
-	    } else { // implementationOnly == false
-        // java.lang.Object doesn't have a superclass
-        if (superDecl != promisedFor) {
-          final ContainablePromiseDrop superAnno = getContainable(superDecl);
-          if (superAnno == null) {
-            bad = true;
-            context.reportError(node,
-                "Class may not be @Containable because it extends the non-@Containable class {0}",
-                JavaNames.getQualifiedTypeName(superDecl));
-          }
-        }
-	    }
-	  }
-    
-    if (bad) {
-	    return null;
-	  } else {
-	    return new ContainablePromiseDrop(node);
-	  }
-	}
+//	private static ContainablePromiseDrop scrubContainable(
+//	    final IAnnotationScrubberContext context, final ContainableNode node) {
+//	  // We only get here if we have an annotated type
+//	  final IRNode promisedFor = node.getPromisedFor();
+//    final boolean isInterface = TypeUtil.isInterface(promisedFor);
+//    final boolean implementationOnly = node.isImplementationOnly();
+//	  boolean bad = false;
+//	  
+//    if (isInterface) {
+//      // the verify attribute is non-sense on interfaces
+//      if (!node.verify()) {
+//        bad = true;
+//        context.reportError(node, "An interface may not be @Containable(verify=false)");
+//      }
+//      // The implemenationOnly attribute must be false on interfaces
+//      if (implementationOnly) {
+//        bad = true;
+//        context.reportError(node, "An Interface may not be @Containable(implementationOnly=true)");
+//      }
+//	  } else { // class
+//      final IRNode superDecl = context.getBinder().getBinding(
+//          ClassDeclaration.getExtension(promisedFor));
+//
+//      /* A class annotated with implementationOnly=true, cannot implement an
+//	     * interface annotated with @Containable.
+//	     */
+//	    if (implementationOnly) {
+//	      final IRNode impls = ClassDeclaration.getImpls(promisedFor);
+//	      for (final IRNode intfName : Implements.getIntfIterator(impls)) {
+//	        final IRNode intfDecl = context.getBinder().getBinding(intfName);
+//	        if (isContainable(intfDecl)) {
+//	          bad = true;
+//	          context.reportError(node,
+//	              "Class may not be @Containable(implementationOnly=true) because it implements the @Containable interface {0}",
+//	              JavaNames.getQualifiedTypeName(intfDecl));
+//	        }
+//	      }
+//	      
+//	      // java.lang.Object doesn't have a superclass
+//	      if (superDecl != promisedFor) {
+//  	      final ContainablePromiseDrop superAnno = getContainable(superDecl);
+//  	      if (superAnno == null) {
+//            bad = true;
+//            context.reportError(node,
+//                "Class may not be @Containable(implementationOnly=true) because it extends the non-@Containable class {0}",
+//                JavaNames.getQualifiedTypeName(superDecl));
+//  	      } else if(!superAnno.isImplementationOnly() ) {
+//            bad = true;
+//            context.reportError(node,
+//                "Class may not be @Containable(implementationOnly=true) because it extends the @Containable class {0}",
+//                JavaNames.getQualifiedTypeName(superDecl));
+//  	      }
+//	      }
+//	    } else { // implementationOnly == false
+//        // java.lang.Object doesn't have a superclass
+//        if (superDecl != promisedFor) {
+//          final ContainablePromiseDrop superAnno = getContainable(superDecl);
+//          if (superAnno == null) {
+//            bad = true;
+//            context.reportError(node,
+//                "Class may not be @Containable because it extends the non-@Containable class {0}",
+//                JavaNames.getQualifiedTypeName(superDecl));
+//          }
+//        }
+//	    }
+//	  }
+//    
+//    if (bad) {
+//	    return null;
+//	  } else {
+//	    return new ContainablePromiseDrop(node);
+//	  }
+//	}
 	
-	private static boolean scrubContainableUnannotated(
-	    final IAnnotationScrubberContext context, 
-	    final IJavaDeclaredType javaType) {
-	  // We have an unannotated class/interface
-	  final IRNode typeDecl = javaType.getDeclaration();
-	  final boolean isInterface = TypeUtil.isInterface(typeDecl);
-	  final Iterable<IJavaType> supers = 
-	    javaType.getSupertypes(context.getBinder().getTypeEnvironment()) ;
-	  
-	  boolean result = true;
-	  
-	  if (isInterface) { // unannotated interface
-	    // If any superinterface is Containable we have an error
-	    for (final IJavaType zuper : supers) {
-	      final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
-	      // ignore CLASS java.lang.Object (which is a super if the interface doesn't extend anything)
-	      if (TypeUtil.isInterface(zuperDecl)) {
-  	      final ContainablePromiseDrop anno = getContainable(zuperDecl);
-  	      if (anno != null) {
-  	        context.reportError(typeDecl,
-  	            "Interface must be annotated @Containable because it extends the @Containable interface {0}",
-  	            JavaNames.getQualifiedTypeName(zuper));
-            result = false;
-  	      }
-	      }
-	    }
-	  } else { // unannotated class
-      for (final IJavaType zuper : supers) {
-        final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
-        final ContainablePromiseDrop anno = getContainable(zuperDecl);
-        if (anno != null) {
-          if (TypeUtil.isInterface(zuperDecl)) {
-            context.reportError(typeDecl,
-                "Class must be annotated @Containable because it implements a @Containable interface {0}",
-                JavaNames.getQualifiedTypeName(zuper));
-            result = false;
-          } else if (!anno.isImplementationOnly()) {
-            context.reportError(typeDecl,
-                "Class must be annotated @Containable because it extends a @Containable class {0}",
-                JavaNames.getQualifiedTypeName(zuper));
-            result = false;
-          }
-        }
-      }
-	  }
-	  return result;
-	}
+//	private static boolean scrubContainableUnannotated(
+//	    final IAnnotationScrubberContext context, 
+//	    final IJavaDeclaredType javaType) {
+//	  // We have an unannotated class/interface
+//	  final IRNode typeDecl = javaType.getDeclaration();
+//	  final boolean isInterface = TypeUtil.isInterface(typeDecl);
+//	  final Iterable<IJavaType> supers = 
+//	    javaType.getSupertypes(context.getBinder().getTypeEnvironment()) ;
+//	  
+//	  boolean result = true;
+//	  
+//	  if (isInterface) { // unannotated interface
+//	    // If any superinterface is Containable we have an error
+//	    for (final IJavaType zuper : supers) {
+//	      final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
+//	      // ignore CLASS java.lang.Object (which is a super if the interface doesn't extend anything)
+//	      if (TypeUtil.isInterface(zuperDecl)) {
+//  	      final ContainablePromiseDrop anno = getContainable(zuperDecl);
+//  	      if (anno != null) {
+//  	        context.reportError(typeDecl,
+//  	            "Interface must be annotated @Containable because it extends the @Containable interface {0}",
+//  	            JavaNames.getQualifiedTypeName(zuper));
+//            result = false;
+//  	      }
+//	      }
+//	    }
+//	  } else { // unannotated class
+//      for (final IJavaType zuper : supers) {
+//        final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
+//        final ContainablePromiseDrop anno = getContainable(zuperDecl);
+//        if (anno != null) {
+//          if (TypeUtil.isInterface(zuperDecl)) {
+//            context.reportError(typeDecl,
+//                "Class must be annotated @Containable because it implements a @Containable interface {0}",
+//                JavaNames.getQualifiedTypeName(zuper));
+//            result = false;
+//          } else if (!anno.isImplementationOnly()) {
+//            context.reportError(typeDecl,
+//                "Class must be annotated @Containable because it extends a @Containable class {0}",
+//                JavaNames.getQualifiedTypeName(zuper));
+//            result = false;
+//          }
+//        }
+//      }
+//	  }
+//	  return result;
+//	}
 	
 	private static ThreadSafePromiseDrop scrubThreadSafe(
 	  final IAnnotationScrubberContext context, final ThreadSafeNode node) {
@@ -459,8 +459,7 @@ public class LockRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<ProhibitsLockNode> makePromiseDrop(
 						ProhibitsLockNode a) {
-					return storeDropIfNotNull(getStorage(), a,
-							scrubProhibitsLock(getContext(), a));
+					return storeDropIfNotNull(a, scrubProhibitsLock(getContext(), a));
 
 				}
 			};
@@ -525,8 +524,7 @@ public class LockRules extends AnnotationRules {
 				@Override
         protected PromiseDrop<RequiresLockNode> makePromiseDrop(
 						RequiresLockNode a) {
-					return storeDropIfNotNull(getStorage(), a,
-							scrubRequiresLock(getContext(), a));
+					return storeDropIfNotNull(a, scrubRequiresLock(getContext(), a));
 
 				}
 			};
@@ -738,7 +736,7 @@ public class LockRules extends AnnotationRules {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						LockDeclarationNode a) {
-					return storeDropIfNotNull(lockRule.getStorage(), a,
+					return AnnotationRules.storeDropIfNotNull(lockRule.getStorage(), a,
 							scrubLock(getContext(), protectedRegions, a));
 				}
 			};
@@ -1245,7 +1243,7 @@ public class LockRules extends AnnotationRules {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						PolicyLockDeclarationNode a) {
-					return storeDropIfNotNull(lockRule.getStorage(), a,
+					return AnnotationRules.storeDropIfNotNull(lockRule.getStorage(), a,
 							scrubPolicyLock(getContext(), a));
 				}
 			};
@@ -1295,8 +1293,7 @@ public class LockRules extends AnnotationRules {
 					ScrubberType.UNORDERED, LOCK, POLICY_LOCK) {
 				@Override
         protected PromiseDrop<IsLockNode> makePromiseDrop(IsLockNode a) {
-					return storeDropIfNotNull(getStorage(), a, scrubIsLock(
-							getContext(), a));
+					return storeDropIfNotNull(a, scrubIsLock(getContext(), a));
 				}
 
 			};
@@ -1531,6 +1528,149 @@ public class LockRules extends AnnotationRules {
 					binder);
 		}
 	}
+	
+	private static abstract class TypeAnnotationScrubber<
+	    A extends AbstractModifiedBooleanNode, P extends ModifiedBooleanPromiseDrop<A>>
+	extends AbstractAASTScrubber<A, P> {
+	  private final String name;
+	  
+	  public TypeAnnotationScrubber(
+	      final SimpleBooleanAnnotationParseRule<A, P> rule, final String n) {
+	    super(rule, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY);
+	    name = n;
+	  }
+	  
+	  @Override
+	  protected final P makePromiseDrop(final A a) {
+	    return storeDropIfNotNull(a, scrubAnnotated(a));          
+	  }
+      
+	  @Override 
+	  protected final boolean processUnannotatedType(final IJavaDeclaredType dt) {
+	    return scrubUnannotated(dt);
+	  }
+	  
+	  private P scrubAnnotated(final A node) {
+	    final IAnnotationScrubberContext context = getContext();
+	    final IRNode promisedFor = node.getPromisedFor();
+	    final boolean isInterface = TypeUtil.isInterface(promisedFor);
+	    final boolean implementationOnly = node.isImplementationOnly();
+	    boolean bad = false;
+	    
+	    if (isInterface) {
+	      // the verify attribute is non-sense on interfaces
+	      if (!node.verify()) {
+	        bad = true;
+	        context.reportError(node, "An interface may not be @{0}(verify=false)", name);
+	      }
+	      // The implemenationOnly attribute must be false on interfaces
+	      if (implementationOnly) {
+	        bad = true;
+	        context.reportError(node, "An Interface may not be @{0}(implementationOnly=true)", name);
+	      }
+	    } else { // class
+	      final IRNode superDecl = context.getBinder().getBinding(
+	          ClassDeclaration.getExtension(promisedFor));
+
+	      /* A class annotated with implementationOnly=true, cannot implement an
+	       * interface annotated with T
+	       */
+	      if (implementationOnly) {
+	        final IRNode impls = ClassDeclaration.getImpls(promisedFor);
+	        for (final IRNode intfName : Implements.getIntfIterator(impls)) {
+	          final IRNode intfDecl = context.getBinder().getBinding(intfName);
+	          if (getSuperTypeAnno(intfDecl) != null) {
+	            bad = true;
+	            context.reportError(node,
+	                "Class may not be @{0}(implementationOnly=true) because it implements the @{0} interface {1}",
+	                name, JavaNames.getQualifiedTypeName(intfDecl));
+	          }
+	        }
+	        
+	        // java.lang.Object doesn't have a superclass
+	        if (superDecl != promisedFor) {
+	          final P superAnno = getSuperTypeAnno(superDecl);
+	          if (superAnno == null) {
+	            bad = true;
+	            context.reportError(node,
+	                "Class may not be @{0}(implementationOnly=true) because it extends the non-@{0} class {1}",
+	                name, JavaNames.getQualifiedTypeName(superDecl));
+	          } else if(!superAnno.isImplementationOnly() ) {
+	            bad = true;
+	            context.reportError(node,
+	                "Class may not be @{0}(implementationOnly=true) because it extends the @{0} class {1}",
+	                name, JavaNames.getQualifiedTypeName(superDecl));
+	          }
+	        }
+	      } else { // implementationOnly == false
+	        // java.lang.Object doesn't have a superclass
+	        if (superDecl != promisedFor) {
+	          if (getSuperTypeAnno(superDecl) == null) {
+	            bad = true;
+	            context.reportError(node,
+	                "Class may not be @{0} because it extends the non-@{0} class {1}",
+	                name, JavaNames.getQualifiedTypeName(superDecl));
+	          }
+	        }
+	      }
+	    }
+	    
+	    if (bad) {
+	      return null;
+	    } else {
+	      return createDrop(node);
+	    }
+	  }
+	  
+	  private boolean scrubUnannotated(final IJavaDeclaredType javaType) {
+      final IAnnotationScrubberContext context = getContext();
+      final IRNode typeDecl = javaType.getDeclaration();
+      final boolean isInterface = TypeUtil.isInterface(typeDecl);
+      final Iterable<IJavaType> supers = 
+        javaType.getSupertypes(context.getBinder().getTypeEnvironment()) ;
+      
+      boolean result = true;
+      
+      if (isInterface) { // unannotated interface
+        // If any superinterface is T we have an error
+        for (final IJavaType zuper : supers) {
+          final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
+          // ignore CLASS java.lang.Object (which is a super if the interface doesn't extend anything)
+          if (TypeUtil.isInterface(zuperDecl)) {
+            if (getSuperTypeAnno(zuperDecl) != null) {
+              context.reportError(typeDecl,
+                  "Interface must be annotated @{0} because it extends the @{0} interface {1}",
+                  name, JavaNames.getQualifiedTypeName(zuper));
+              result = false;
+            }
+          }
+        }
+      } else { // unannotated class
+        for (final IJavaType zuper : supers) {
+          final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
+          final P anno = getSuperTypeAnno(zuperDecl);
+          if (anno != null) {
+            if (TypeUtil.isInterface(zuperDecl)) {
+              context.reportError(typeDecl,
+                  "Class must be annotated @{0} because it implements a @{0} interface {1}",
+                  name, JavaNames.getQualifiedTypeName(zuper));
+              result = false;
+            } else if (!anno.isImplementationOnly()) {
+              context.reportError(typeDecl,
+                  "Class must be annotated @{0} because it extends a @{0} class {1}",
+                  name, JavaNames.getQualifiedTypeName(zuper));
+              result = false;
+            }
+          }
+        }
+      }
+      return result;
+	  }
+	  
+	  protected abstract P getSuperTypeAnno(IRNode superDecl);
+	  
+	  protected abstract P createDrop(A node);
+	}
   
   public static class Containable_ParseRule 
   extends SimpleBooleanAnnotationParseRule<ContainableNode,ContainablePromiseDrop> {
@@ -1547,15 +1687,15 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ContainableNode> makeScrubber() {
-      return new AbstractAASTScrubber<ContainableNode, ContainablePromiseDrop>(this, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY) {
+      return new TypeAnnotationScrubber<ContainableNode, ContainablePromiseDrop>(this, "Containable") {
         @Override
-        protected PromiseDrop<ContainableNode> makePromiseDrop(ContainableNode a) {
-          return storeDropIfNotNull(getStorage(), a, scrubContainable(getContext(), a));          
+        protected ContainablePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
+          return getContainable(superDecl);
         }
         
-        @Override 
-        protected boolean processUnannotatedType(final IJavaDeclaredType dt) {
-          return scrubContainableUnannotated(getContext(), dt);
+        @Override
+        protected ContainablePromiseDrop createDrop(final ContainableNode node) {
+          return new ContainablePromiseDrop(node);
         }
       };
     }    
@@ -1579,7 +1719,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected PromiseDrop<ThreadSafeNode> makePromiseDrop(ThreadSafeNode a) {
 //          ThreadSafePromiseDrop d = new ThreadSafePromiseDrop(a);
-          return storeDropIfNotNull(getStorage(), a, scrubThreadSafe(context, a));          
+          return storeDropIfNotNull(a, scrubThreadSafe(context, a));          
         }
       };
     }    
@@ -1607,7 +1747,7 @@ public class LockRules extends AnnotationRules {
            * that is annotated as ThreadSafe.  
            */
           NotThreadSafePromiseDrop d = new NotThreadSafePromiseDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
+          return storeDropIfNotNull(a, d);          
         }
       };
     }    
@@ -1628,11 +1768,15 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ImmutableNode> makeScrubber() {
-      return new AbstractAASTScrubber<ImmutableNode, ImmutablePromiseDrop>(this) {
+      return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop>(this, "Immutable") {
         @Override
-        protected PromiseDrop<ImmutableNode> makePromiseDrop(ImmutableNode a) {
-        	ImmutablePromiseDrop d = new ImmutablePromiseDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
+        protected ImmutablePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
+          return getImmutable(superDecl);
+        }
+        
+        @Override
+        protected ImmutablePromiseDrop createDrop(final ImmutableNode node) {
+          return new ImmutablePromiseDrop(node);
         }
       };
     }    

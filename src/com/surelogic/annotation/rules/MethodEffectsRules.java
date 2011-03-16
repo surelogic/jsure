@@ -118,8 +118,7 @@ public class MethodEffectsRules extends AnnotationRules {
 				@Override
 				protected RegionEffectsPromiseDrop makePromiseDrop(
 						RegionEffectsNode a) {
-					return storeDropIfNotNull(getStorage(), a, scrubRegionEffects(
-							getContext(), a));
+					return storeDropIfNotNull(a, scrubRegionEffects(getContext(), a));
 				}
 			};
 		}

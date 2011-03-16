@@ -94,8 +94,7 @@ public class AssumeFinalRules extends AnnotationRules {
         protected PromiseDrop<AssumeFinalNode> makePromiseDrop(AssumeFinalNode a) {
 //          AssumeFinalPromiseDrop d = new AssumeFinalPromiseDrop(a);
 //          return storeDropIfNotNull(getStorage(), a, d);          
-          return storeDropIfNotNull(getStorage(), a, 
-              scrubAssumeFinal(getContext(), a));          
+          return storeDropIfNotNull(a, scrubAssumeFinal(getContext(), a));          
         }
       };
     }    

@@ -190,7 +190,7 @@ public class ThreadRoleRules extends AnnotationRules {
 				protected PromiseDrop<ThreadRoleTransparentNode> makePromiseDrop(
 						ThreadRoleTransparentNode a) {
 					TRoleTransparentDrop d = new TRoleTransparentDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -255,8 +255,7 @@ public class ThreadRoleRules extends AnnotationRules {
 					ScrubberType.UNORDERED) {
 				@Override
 				protected TRoleRequireDrop makePromiseDrop(ThreadRoleNode a) {
-					return storeDropIfNotNull(getStorage(), a,
-							new TRoleRequireDrop(a));
+					return storeDropIfNotNull(a, new TRoleRequireDrop(a));
 				}
 			};
 		}
@@ -287,7 +286,7 @@ public class ThreadRoleRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<ThreadRoleImportNode> makePromiseDrop(
 						ThreadRoleImportNode a) {
-					return storeDropIfNotNull(getStorage(), a,
+					return storeDropIfNotNull(a,
 							scrubTRoleImport(getContext(), a,
 									new TRoleImportDrop(a)));
 				}
@@ -339,7 +338,7 @@ public class ThreadRoleRules extends AnnotationRules {
 				@Override
 				protected TRoleGrantDrop makePromiseDrop(ThreadRoleGrantNode a) {
 					TRoleGrantDrop d = new TRoleGrantDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -366,7 +365,7 @@ public class ThreadRoleRules extends AnnotationRules {
 				@Override
 				protected TRoleRevokeDrop makePromiseDrop(ThreadRoleRevokeNode a) {
 					TRoleRevokeDrop d = new TRoleRevokeDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -394,7 +393,7 @@ public class ThreadRoleRules extends AnnotationRules {
 				protected TRoleDeclareDrop makePromiseDrop(
 						ThreadRoleDeclarationNode a) {
 					TRoleDeclareDrop d = new TRoleDeclareDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -423,7 +422,7 @@ public class ThreadRoleRules extends AnnotationRules {
 				protected TRoleIncompatibleDrop makePromiseDrop(
 						ThreadRoleIncompatibleNode a) {
 					TRoleIncompatibleDrop d = new TRoleIncompatibleDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -455,8 +454,7 @@ public class ThreadRoleRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<ThreadRoleRenameNode> makePromiseDrop(
 						ThreadRoleRenameNode a) {
-					return storeDropIfNotNull(getStorage(), a, TRoleRenameDrop
-							.buildTRoleRenameDrop(a));
+					return storeDropIfNotNull(a, TRoleRenameDrop.buildTRoleRenameDrop(a));
 				}
 			};
 		}

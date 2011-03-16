@@ -56,7 +56,7 @@ public class ThreadEffectsRules extends AnnotationRules {
       return new AbstractAASTScrubber<StartsSpecificationNode, StartsPromiseDrop>(this, ScrubberType.BY_HIERARCHY) {
         @Override
         protected PromiseDrop<StartsSpecificationNode> makePromiseDrop(StartsSpecificationNode a) {
-          return storeDropIfNotNull(getStorage(), a, scrubStarts(getContext(), a));          
+          return storeDropIfNotNull(a, scrubStarts(getContext(), a));          
         }
       };
     }

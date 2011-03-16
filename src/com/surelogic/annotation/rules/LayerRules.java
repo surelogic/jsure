@@ -236,7 +236,7 @@ public class LayerRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<TypeSetNode> makePromiseDrop(TypeSetNode a) {
 					TypeSetPromiseDrop d = new TypeSetPromiseDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -266,7 +266,7 @@ public class LayerRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<LayerNode> makePromiseDrop(LayerNode a) {
 					LayerPromiseDrop d = new LayerPromiseDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -321,7 +321,7 @@ public class LayerRules extends AnnotationRules {
 					for(Drop l : layerDrops) {
 						l.addDependent(d);
 					}
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -351,7 +351,7 @@ public class LayerRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<MayReferToNode> makePromiseDrop(MayReferToNode a) {
 					MayReferToPromiseDrop d = new MayReferToPromiseDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -381,7 +381,7 @@ public class LayerRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<AllowsReferencesFromNode> makePromiseDrop(AllowsReferencesFromNode a) {
 					AllowsReferencesFromPromiseDrop d = new AllowsReferencesFromPromiseDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}

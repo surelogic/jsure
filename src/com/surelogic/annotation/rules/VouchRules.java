@@ -108,7 +108,7 @@ public class VouchRules extends AnnotationRules {
 				protected PromiseDrop<VouchSpecificationNode> makePromiseDrop(
 						VouchSpecificationNode a) {
 					VouchPromiseDrop d = new VouchPromiseDrop(a);
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}

@@ -78,7 +78,7 @@ public class ModuleRules extends AnnotationRules {
         @Override
         protected PromiseDrop<NoVisClauseNode> makePromiseDrop(NoVisClauseNode a) {
           NoVisPromiseDrop d = NoVisPromiseDrop.buildNoVisPromiseDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
+          return storeDropIfNotNull(a, d);          
         }
       };
     }    
@@ -109,7 +109,7 @@ public class ModuleRules extends AnnotationRules {
         @Override
         protected PromiseDrop<VisClauseNode> makePromiseDrop(VisClauseNode a) {
           VisDrop d = VisDrop.buildVisDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
+          return storeDropIfNotNull(a, d);          
         }
       };
     }    
@@ -140,7 +140,7 @@ public class ModuleRules extends AnnotationRules {
         @Override
         protected PromiseDrop<ModuleChoiceNode> makePromiseDrop(ModuleChoiceNode a) {
           ModulePromiseDrop d = ModulePromiseDrop.buildModulePromiseDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
+          return storeDropIfNotNull(a, d);          
         }
       };
     }    
@@ -171,7 +171,7 @@ public class ModuleRules extends AnnotationRules {
         @Override
         protected PromiseDrop<ExportNode> makePromiseDrop(ExportNode a) {
           ExportDrop d = ExportDrop.buildExportDrop(a);
-          return storeDropIfNotNull(getStorage(), a, d);          
+          return storeDropIfNotNull(a, d);          
         }
       };
     }    

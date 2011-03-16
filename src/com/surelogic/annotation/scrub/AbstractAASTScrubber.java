@@ -10,6 +10,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import com.surelogic.aast.*;
 import com.surelogic.aast.visitor.DescendingVisitor;
 import com.surelogic.annotation.*;
+import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.*;
 import com.surelogic.ast.Resolvable;
 import com.surelogic.ast.ResolvableToType;
@@ -821,6 +822,10 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		walk.init(c);
 		walk.walkHierarchy();
 		walk.checkState();
+	}
+
+	protected P storeDropIfNotNull(A a, P pd) {
+	  return AnnotationRules.storeDropIfNotNull(stor, a, pd);
 	}
 	
 	protected abstract PromiseDrop<? super A> makePromiseDrop(A ast);

@@ -196,7 +196,7 @@ public class UniquenessRules extends AnnotationRules {
         protected PromiseDrop<UniqueNode> makePromiseDrop(UniqueNode a) {
           //System.out.println("Promised on "+DebugUnparser.toString(a.getPromisedFor()));
           final UniquePromiseDrop storedDrop =
-            storeDropIfNotNull(getStorage(), a, scrubUnique(getContext(), a));
+            storeDropIfNotNull(a, scrubUnique(getContext(), a));
           if (storedDrop != null) {
             uniqueNodes.add(a.getPromisedFor());
           }
@@ -259,7 +259,7 @@ public class UniquenessRules extends AnnotationRules {
           ScrubberType.UNORDERED, UNIQUE) {
         @Override
         protected PromiseDrop<BorrowedNode> makePromiseDrop(BorrowedNode a) {
-          return storeDropIfNotNull(getStorage(), a, scrubBorrowed(getContext(), a));
+          return storeDropIfNotNull(a, scrubBorrowed(getContext(), a));
         }
       };
     }    
@@ -331,8 +331,9 @@ public class UniquenessRules extends AnnotationRules {
       return new AbstractAASTScrubber<NotUniqueNode, NotUniquePromiseDrop>(this) {
         @Override
         protected PromiseDrop<NotUniqueNode> makePromiseDrop(NotUniqueNode a) {
-          return storeDropIfNotNull(getStorage(), a, 
-              checkForReferenceType(NotUnique_ParseRule.this, getContext(), a, "NotUnique"));
+          return storeDropIfNotNull(a, 
+              checkForReferenceType(
+                  NotUnique_ParseRule.this, getContext(), a, "NotUnique"));
         }
       };
     }   

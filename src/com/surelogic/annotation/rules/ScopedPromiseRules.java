@@ -186,7 +186,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 					  d.invalidate();
 					  return null;
 					}
-					storeDropIfNotNull(getStorage(), a, d);
+					storeDropIfNotNull(a, d);
 					return d;
 				}
 				@Override
@@ -242,7 +242,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 						System.out.println("Found scoped promise: "+a);
 					}
                     */
-					return storeDropIfNotNull(getStorage(), a, d);
+					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
@@ -584,12 +584,10 @@ public class ScopedPromiseRules extends AnnotationRules {
 	}
 
   static class PackageScrubber extends AbstractAASTScrubber<PackageScopedPromiseNode, PromisePromiseDrop> {
-    final IPromiseDropStorage<PromisePromiseDrop> storage;
     PackageScrubber(Promise_ParseRule rule) {
       // Set to scrub before the normal @Promise scrubber
       super(PACKAGE_PROMISE, PackageScopedPromiseNode.class, rule.getStorage(), 
             ScrubberType.UNORDERED, new String[]{PROMISE}, ScrubberOrder.FIRST);
-      storage = rule.getStorage();
     }
     
     @Override
@@ -598,7 +596,7 @@ public class ScopedPromiseRules extends AnnotationRules {
       // FIX scrub targets
       applyPromisesToPackage(d);
 
-      return storeDropIfNotNull(storage, a, d);
+      return storeDropIfNotNull(a, d);
     }
   }
 

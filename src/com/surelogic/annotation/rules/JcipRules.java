@@ -95,7 +95,7 @@ public class JcipRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<GuardedByNode> makePromiseDrop(GuardedByNode a) {
 //					GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
-					return storeDropIfNotNull(getStorage(), a, scrubGuardedBy(getContext(), a));
+					return storeDropIfNotNull(a, scrubGuardedBy(getContext(), a));
 				}
 			};
 		}

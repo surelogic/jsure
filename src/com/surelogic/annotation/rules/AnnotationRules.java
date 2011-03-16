@@ -262,7 +262,7 @@ public abstract class AnnotationRules {
    * Store the drop on the IRNode only if it is not null
    * @return The drop passed in
    */
-  protected static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> 
+  public static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> 
   P storeDropIfNotNull(IPromiseDropStorage<P> stor, A a, P pd) {
     if (pd == null) {
       return null;

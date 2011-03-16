@@ -134,7 +134,7 @@ public class RegionRules extends AnnotationRules {
         protected PromiseDrop<NewRegionDeclarationNode> makePromiseDrop(NewRegionDeclarationNode a) {
           final RegionModel m = scrubRegion(getContext(), regionState, a);          
           //System.out.println("Created region "+m.getName());
-          return storeDropIfNotNull(getStorage(), a, m);
+          return storeDropIfNotNull(a, m);
         }
       };
     }
@@ -250,7 +250,7 @@ public class RegionRules extends AnnotationRules {
                                                    ScrubberType.BY_HIERARCHY, REGION) {
         @Override
         protected PromiseDrop<InRegionNode> makePromiseDrop(InRegionNode a) {
-          return storeDropIfNotNull(getStorage(), a, scrubInRegion(getContext(), a));          
+          return storeDropIfNotNull(a, scrubInRegion(getContext(), a));          
         }
       };
     }
@@ -356,7 +356,7 @@ public class RegionRules extends AnnotationRules {
                                                          new String[] { IN_REGION }, REGION) {
         @Override
         protected PromiseDrop<FieldMappingsNode> makePromiseDrop(FieldMappingsNode a) {
-          return storeDropIfNotNull(getStorage(), a, scrubMapFields(getContext(), a));          
+          return storeDropIfNotNull(a, scrubMapFields(getContext(), a));          
         }
       };
     }     
@@ -408,7 +408,7 @@ public class RegionRules extends AnnotationRules {
                                                      REGION, IN_REGION, MAP_FIELDS, UniquenessRules.UNIQUENESS_DONE) {
         @Override
         protected PromiseDrop<AggregateNode> makePromiseDrop(AggregateNode a) {
-          return storeDropIfNotNull(getStorage(), a, scrubAggregate(getContext(), a));
+          return storeDropIfNotNull(a, scrubAggregate(getContext(), a));
         }
       };
     }
@@ -608,7 +608,7 @@ public class RegionRules extends AnnotationRules {
                                                    new String[] { AGGREGATE }, REGION) {
         @Override
         protected PromiseDrop<AggregateInRegionNode> makePromiseDrop(AggregateInRegionNode a) {
-          return storeDropIfNotNull(getStorage(), a, scrubAggregateInRegion(getContext(), a));          
+          return storeDropIfNotNull(a, scrubAggregateInRegion(getContext(), a));          
         }
       };
     }
