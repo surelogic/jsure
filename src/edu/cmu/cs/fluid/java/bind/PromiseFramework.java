@@ -7,6 +7,7 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.*;
 import java.util.Stack;
 import java.util.Map.Entry;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -627,11 +628,22 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
   /**
    * HashMap, but modified to note whether we should create IRNodes if none
    */
-  private static class MyMap extends HashMap<IRNode,IRNode> {
+  private static class MyMap extends ConcurrentHashMap<IRNode,IRNode> {
+	  boolean f_createIfNone = false;
+	  boolean f_onlyAssume = false;
 
-    boolean createIfNone = false;
-
-    boolean onlyAssume = false;
+	  synchronized boolean createIfNone() {
+		  return f_createIfNone;
+	  }
+	  synchronized boolean onlyAssume() {
+		  return f_onlyAssume;
+	  }
+	  synchronized void setCreateIfNone(boolean createIfNone) {
+		  f_createIfNone = createIfNone;
+	  }
+	  synchronized void setOnlyAssume(boolean onlyAssume) {
+		  f_onlyAssume = onlyAssume;
+	  }
   }
 
   private static final MyMap EMPTY = new MyMap() {
@@ -642,6 +654,10 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 
     @Override
     public IRNode put(IRNode k, IRNode v) {
+      throw new NotImplemented();
+    }
+    @Override
+    public IRNode putIfAbsent(IRNode k, IRNode v) {
       throw new NotImplemented();
     }
   };
@@ -657,13 +673,17 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
       if (createIfNone) {
         LOG.info("Creating new type context for " + type);
         context = new MyMap();
-        contextMap.put(type, context);
+        MyMap existing = contextMap.putIfAbsent(type, context);
+        if (existing != null) {
+        	// Use whatever's present
+        	context = existing;
+        }
       } else {
         context = EMPTY;
       }
     } else {
     	//System.out.println("Pushing type context for "+DebugUnparser.toString(type));
-    }
+    }    
     if (LOG.isLoggable(Level.FINE) && context.size() > 0) {
       LOG.fine("Pushing non-empty @assume context");
       Iterator it = context.keySet().iterator();
@@ -672,8 +692,8 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 //        System.out.println("proxy for: "+DebugUnparser.toString(n));
       }
     }
-    context.createIfNone = createIfNone;
-    context.onlyAssume = onlyAssume;
+    context.setCreateIfNone(createIfNone);
+    context.setOnlyAssume(onlyAssume);
     typeContexts.get().push(context);
     return context;
   }
@@ -684,8 +704,8 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    */
   public Map popTypeContext() {
     MyMap map = typeContexts.get().pop();
-    map.createIfNone = false;
-    map.onlyAssume = false;
+    map.setCreateIfNone(false);
+    map.setOnlyAssume(false);
     /*
     if (map.size() > 0) {
       System.out.println("Popping non-empty @assume context");
@@ -747,13 +767,16 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     MyMap m = getCurrentTypeContext();
     Object o = m.get(n);
     if (o == null) {
-      if (m.createIfNone) {
+      if (m.createIfNone()) {
         if (LOG.isLoggable(Level.FINE)) {
           LOG.fine("Creating proxy node for " + n);
         }
         IRNode proxy = new MarkedIRNode("Proxy node");
-        m.put(n, proxy);
+        IRNode present = m.putIfAbsent(n, proxy);
         //System.out.println("Creating proxy for "+DebugUnparser.toString(n));
+        if (present != null) {
+        	return present;
+        }
         return proxy;
       }
       return n;
@@ -768,7 +791,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * @return
    */
   public boolean useAssumptionsOnly() {
-    return getCurrentTypeContext().onlyAssume;
+    return getCurrentTypeContext().onlyAssume();
   }
 
   private ThreadLocal<Stack<MyMap>> typeContexts = new ThreadLocal<Stack<MyMap>>() {
@@ -778,7 +801,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 	  }
   }; 
 
-  private Map<IRNode, MyMap> contextMap = new HashMap<IRNode, MyMap>(); 
+  private ConcurrentMap<IRNode, MyMap> contextMap = new ConcurrentHashMap<IRNode, MyMap>(); 
   
   /**
    * @return true if the node has assumptions stored for it

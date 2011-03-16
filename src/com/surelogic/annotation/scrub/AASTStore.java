@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Stores the AASTs after parsing until they are scrubbed
@@ -29,8 +30,8 @@ public final class AASTStore {
   /**
    * Map from an AAST to the @Promise drop that created it
    */
-  static final Map<IAASTRootNode, ScopedPromiseDrop> promiseSource = 
-	  new HashMap<IAASTRootNode, ScopedPromiseDrop>();
+  static final ConcurrentMap<IAASTRootNode, ScopedPromiseDrop> promiseSource = 
+	  new ConcurrentHashMap<IAASTRootNode, ScopedPromiseDrop>();
   
   /**
    * Map from the AAST to the comp unit that it is assumed for
