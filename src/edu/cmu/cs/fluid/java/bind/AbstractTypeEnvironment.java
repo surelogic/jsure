@@ -499,7 +499,7 @@ private long parseIntLiteral(String token) {
 	  if (this == getObjectType())
 		  return null;
 	  if (ClassDeclaration.prototype.includes(op)) {
-		  if (dt.getName().equals("java.lang.Object")) {
+		  if ("Object".equals(JJNode.getInfo(declaration)) && dt.getName().equals("java.lang.Object")) {
 			  return null;
 		  }
 		  IRNode extension = ClassDeclaration.getExtension(declaration);
