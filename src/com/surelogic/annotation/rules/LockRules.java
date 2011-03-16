@@ -150,8 +150,9 @@ public class LockRules extends AnnotationRules {
     return getBooleanDrop(containableRule.getStorage(), cdecl);
   }
   
-  public static boolean isThreadSafe(IRNode cdecl) {
-    return getThreadSafe(cdecl) != null;
+  public static boolean isThreadSafe(final IRNode cdecl) {
+    final ThreadSafePromiseDrop threadSafe = getThreadSafe(cdecl);
+    return threadSafe != null && !threadSafe.isImplementationOnly();
   }
 
   public static ThreadSafePromiseDrop getThreadSafe(IRNode cdecl) {
@@ -166,8 +167,9 @@ public class LockRules extends AnnotationRules {
 	  return getBooleanDrop(notThreadSafeRule.getStorage(), cdecl);
   }
   
-  public static boolean isImmutable(IRNode cdecl) {
-	  return getImmutable(cdecl) != null;
+  public static boolean isImmutable(final IRNode cdecl) {
+	  final ImmutablePromiseDrop immutable = getImmutable(cdecl);
+    return immutable != null && !immutable.isImplementationOnly();
   }
 
   public static ImmutablePromiseDrop getImmutable(IRNode cdecl) {
@@ -864,7 +866,7 @@ public class LockRules extends AnnotationRules {
       if (!lockDecl.getPromisedFor().equals(regionIsFromClass)) {
         // Check if region contains fields
         if (regionContainsFields(
-            binder.getSuperclass(promisedForType),
+            promisedForType.getSuperclass(binder.getTypeEnvironment()),
             regionBinding.getModel(), binder)) {
           context.reportError(
               "Inherited region \"" + region + //$NON-NLS-1$
@@ -973,8 +975,8 @@ public class LockRules extends AnnotationRules {
 
     final IBinder binder = context.getBinder();
 		final IJavaDeclaredType promisedForType =
-		  (IJavaDeclaredType) JavaTypeFactory.convertIRTypeDeclToIJavaType(
-		      lockDecl.getPromisedFor());
+		  (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(
+		      lockDecl.getPromisedFor(), binder);
 		
     /*
      * >> LocksOnce << --- Check for unique lock names State and policy
@@ -988,7 +990,7 @@ public class LockRules extends AnnotationRules {
 
     // Prime the set of lock names from the ancestor classes
 		final Map<String, String> inheritedLockNames =
-		  getInheritedLockNames(promisedForType, binder);
+		  getInheritedLockNames(promisedForType, binder.getTypeEnvironment());
     
     // Did we inherit a lock with the same name?
     final String ancestorTypeName = inheritedLockNames.get(currentName);
@@ -1063,7 +1065,7 @@ public class LockRules extends AnnotationRules {
 				final boolean fieldIsQualifiedReceiver =
 				  fieldRefNode.getObject() instanceof QualifiedThisExpressionNode;
 				if (!fieldIsStatic && !fieldIsQualifiedReceiver) {
-					final IJavaType fieldIsFromClass = getEnclosingType(varBinding.getNode());
+					final IJavaType fieldIsFromClass = getEnclosingType(varBinding.getNode(), binder);
 					if (!binder.getTypeEnvironment().isRawSubType(
 							promisedForType, fieldIsFromClass)) {
 						context.reportError(
@@ -1095,14 +1097,13 @@ public class LockRules extends AnnotationRules {
 	 * @param type
 	 *            The class whose ancestors should be inspected. The class
 	 *            itself should not be inspected.
-	 * @param binder
-	 *            The binder to use.
+	 * @param typeEnv
+	 *            The type environment to use
 	 */
-	@SuppressWarnings("deprecation")
 	private static Map<String, String> getInheritedLockNames(
-			final IJavaDeclaredType type, final IBinder binder) {
+			final IJavaDeclaredType type, final ITypeEnvironment typeEnv) {
 		final Map<String, String> names = new HashMap<String, String>();
-		IJavaDeclaredType current = binder.getSuperclass(type);
+		IJavaDeclaredType current = type.getSuperclass(typeEnv);
 		while (current != null) {
 			final IRNode classDecl = current.getDeclaration();
 			final String typeName = JavaNames.getQualifiedTypeName(current);
@@ -1117,7 +1118,7 @@ public class LockRules extends AnnotationRules {
 					names.put(name, typeName);
 				}
 			}
-			current = binder.getSuperclass(current);
+			current = current.getSuperclass(typeEnv);
 		}
 		return names;
 	}
@@ -1128,9 +1129,10 @@ public class LockRules extends AnnotationRules {
 	 * @param field
 	 * @return
 	 */
-	private static IJavaType getEnclosingType(IRNode field) {
+	private static IJavaType getEnclosingType(
+	    final IRNode field, final IBinder binder) {
 		IRNode decl = VisitUtil.getEnclosingType(field);
-		return JavaTypeFactory.convertIRTypeDeclToIJavaType(decl);
+		return JavaTypeFactory.convertNodeTypeToIJavaType(decl, binder);
 	}
 
 	/**
@@ -1495,7 +1497,6 @@ public class LockRules extends AnnotationRules {
 	 * Does the given region have any field members in the given class. Copied
 	 * from {@link LockAnnotation}
 	 */
-	@SuppressWarnings("deprecation")
 	private static boolean regionContainsFields(IJavaDeclaredType type,
 			RegionModel region, IBinder binder) {
 		if (type == null) {
@@ -1524,8 +1525,8 @@ public class LockRules extends AnnotationRules {
 				}
 			}
 			// Region is empty in the class, but what about the superclass?
-			return regionContainsFields(binder.getSuperclass(type), region,
-					binder);
+			return regionContainsFields(
+			    type.getSuperclass(binder.getTypeEnvironment()), region, binder);
 		}
 	}
 	
