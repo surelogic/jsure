@@ -91,7 +91,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
   
   
   public BindingContextAnalysis(final IBinder b, boolean useMapCache, final boolean ignoreP) {
-    super(b);
+    super(b, useMapCache);
     ignorePrimitives = ignoreP;
   }
   
