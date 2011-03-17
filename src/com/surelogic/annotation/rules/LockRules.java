@@ -160,10 +160,10 @@ public class LockRules extends AnnotationRules {
   }
   
   public static boolean isNotThreadSafe(IRNode cdecl) {
-	  return getNotThreadSafeDrop(cdecl) != null;
+	  return getNotThreadSafe(cdecl) != null;
   }
 
-  public static NotThreadSafePromiseDrop getNotThreadSafeDrop(IRNode cdecl) {
+  public static NotThreadSafePromiseDrop getNotThreadSafe(IRNode cdecl) {
 	  return getBooleanDrop(notThreadSafeRule.getStorage(), cdecl);
   }
   
@@ -1372,12 +1372,14 @@ public class LockRules extends AnnotationRules {
 	    A extends AbstractModifiedBooleanNode, P extends ModifiedBooleanPromiseDrop<A>>
 	extends AbstractAASTScrubber<A, P> {
 	  private final String name;
+    private final String notName;
 	  
 	  public TypeAnnotationScrubber(
 	      final SimpleBooleanAnnotationParseRule<A, P> rule, final String n,
 	      final String... deps) {
 	    super(rule, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY, deps);
 	    name = n;
+	    notName = "Not" + name;
 	  }
 	  
 	  @Override
@@ -1455,11 +1457,20 @@ public class LockRules extends AnnotationRules {
 	      }
 	    }
 	    
+	    if (!scrubAnnotatedAdditional(node, promisedFor)) {
+	      bad = true;
+	    }
+	    
 	    if (bad) {
 	      return null;
 	    } else {
 	      return createDrop(node);
 	    }
+	  }
+	  
+	  protected boolean scrubAnnotatedAdditional(
+	      final A node, final IRNode promisedFor) {
+	    return true;
 	  }
 	  
 	  private boolean scrubUnannotated(final IJavaDeclaredType javaType) {
@@ -1469,8 +1480,10 @@ public class LockRules extends AnnotationRules {
       final Iterable<IJavaType> supers = 
         javaType.getSupertypes(context.getBinder().getTypeEnvironment()) ;
       
-      boolean result = true;
+      // Are we actually annotated with the NOT form of the annotation?
+      final boolean isNOT = isAnnotatedWithNotForm(typeDecl);
       
+      boolean result = true;      
       if (isInterface) { // unannotated interface
         // If any superinterface is T we have an error
         for (final IJavaType zuper : supers) {
@@ -1478,9 +1491,15 @@ public class LockRules extends AnnotationRules {
           // ignore CLASS java.lang.Object (which is a super if the interface doesn't extend anything)
           if (TypeUtil.isInterface(zuperDecl)) {
             if (getSuperTypeAnno(zuperDecl) != null) {
-              context.reportError(typeDecl,
-                  "Interface must be annotated @{0} because it extends the @{0} interface {1}",
-                  name, JavaNames.getQualifiedTypeName(zuper));
+              if (isNOT) {
+                context.reportError(typeDecl,
+                    "Interface may not be @{0} because it extends the @{1} interface {2}",
+                    notName, name, JavaNames.getQualifiedTypeName(zuper));
+              } else {
+                context.reportError(typeDecl,
+                    "Interface must be annotated @{0} because it extends the @{0} interface {1}",
+                    name, JavaNames.getQualifiedTypeName(zuper));
+              }
               result = false;
             }
           }
@@ -1491,20 +1510,36 @@ public class LockRules extends AnnotationRules {
           final P anno = getSuperTypeAnno(zuperDecl);
           if (anno != null) {
             if (TypeUtil.isInterface(zuperDecl)) {
-              context.reportError(typeDecl,
-                  "Class must be annotated @{0} because it implements a @{0} interface {1}",
-                  name, JavaNames.getQualifiedTypeName(zuper));
+              if (isNOT) {
+                context.reportError(typeDecl,
+                    "Class may not be @{0} because it implements a @{1} interface {2}",
+                    notName, name, JavaNames.getQualifiedTypeName(zuper));
+              } else {
+                context.reportError(typeDecl,
+                    "Class must be annotated @{0} because it implements a @{0} interface {1}",
+                    name, JavaNames.getQualifiedTypeName(zuper));
+              }
               result = false;
             } else if (!anno.isImplementationOnly()) {
-              context.reportError(typeDecl,
-                  "Class must be annotated @{0} because it extends a @{0} class {1}",
-                  name, JavaNames.getQualifiedTypeName(zuper));
+              if (isNOT) {
+                context.reportError(typeDecl,
+                    "Class may not be @{0} because it extends a @{1} class {2}",
+                    notName, name, JavaNames.getQualifiedTypeName(zuper));
+              } else {
+                context.reportError(typeDecl,
+                    "Class must be annotated @{0} because it extends a @{0} class {1}",
+                    name, JavaNames.getQualifiedTypeName(zuper));
+              }
               result = false;
             }
           }
         }
       }
       return result;
+	  }
+	  
+	  protected boolean isAnnotatedWithNotForm(final IRNode typeDecl) {
+	    return false;
 	  }
 	  
 	  protected abstract P getSuperTypeAnno(IRNode superDecl);
@@ -1557,6 +1592,11 @@ public class LockRules extends AnnotationRules {
     protected IAnnotationScrubber<ThreadSafeNode> makeScrubber() {
       return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop>(this, "ThreadSafe", NOT_THREAD_SAFE) {
         @Override
+        protected boolean isAnnotatedWithNotForm(final IRNode typeDecl) {
+          return isNotThreadSafe(typeDecl);
+        }
+        
+        @Override
         protected ThreadSafePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
           return getThreadSafe(superDecl);
         }
@@ -1564,6 +1604,18 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ThreadSafePromiseDrop createDrop(final ThreadSafeNode node) {
           return new ThreadSafePromiseDrop(node);
+        }
+        
+        @Override
+        protected boolean scrubAnnotatedAdditional(
+            final ThreadSafeNode node, final IRNode promisedFor) {
+          final NotThreadSafePromiseDrop notThreadSafe = getNotThreadSafe(promisedFor);
+          if (notThreadSafe != null && !node.isImplementationOnly()) {
+            notThreadSafe.invalidate();
+            getContext().reportError(node, "Cannot be both @ThreadSafe and @NotThreadSafe");
+            return false;
+          }
+          return true;
         }
       };
     }    
