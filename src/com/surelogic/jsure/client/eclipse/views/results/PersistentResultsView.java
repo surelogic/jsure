@@ -71,9 +71,11 @@ public class PersistentResultsView extends ResultsView {
   protected void finishCreatePartControl() {
 	  if (PersistentDropInfo.getInstance().load()) {
 		  // TODO restore viewer state?
+		  final long start = System.currentTimeMillis();
 		  provider.buildModelOfDropSea_internal();
+		  final long end = System.currentTimeMillis();
 		  setViewerVisibility(true);
-		  System.out.println("Loaded snapshot for "+this);
+		  System.out.println("Loaded snapshot for "+this+": "+(end-start)+" ms");
 
 		  // Running too early?
 		  if (viewState != null && viewState.exists()) {
