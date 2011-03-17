@@ -10,7 +10,8 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
- * A parse rule that expects to parse nothing
+ * A parse rule that normally does not parse anything
+ * Now specialized for annotations on types like @ThreadSafe
  * 
  * @author Edwin.Chan
  */

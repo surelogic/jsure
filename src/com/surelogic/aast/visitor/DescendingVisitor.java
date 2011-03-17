@@ -604,6 +604,14 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  return rv;
   }
   
+  public T visit(NotContainableNode node) {
+	  return defaultValue;
+  }
+  
+  public T visit(MutableNode node) {
+	  return defaultValue;
+  }
+  
   public T visit(ImmutableNode node) {
 	  return defaultValue;
   }

@@ -141,4 +141,6 @@ public interface INodeVisitor<T> {
 	T visit(TypeSetNode typeSetNode);
 	T visit(TargetListNode targetListNode);
 	T visit(ModuleScopeNode moduleScopeNode);
+	T visit(NotContainableNode node);
+	T visit(MutableNode node);
 }

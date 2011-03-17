@@ -37,6 +37,8 @@ public class LockRules extends AnnotationRules {
   private static final String CONTAINABLE = "Containable";
   private static final String THREAD_SAFE = "ThreadSafe";
   private static final String NOT_THREAD_SAFE = "NotThreadSafe";
+  private static final String NOT_CONTAINABLE = "NotContainable";
+  private static final String MUTABLE = "Mutable";
   private static final String IMMUTABLE = "Immutable";
   private static final String LOCK_FIELD_VISIBILITY = "LockFieldVisibility";
   private static final String REGION_INITIALIZER = "Region Initializer";
@@ -56,6 +58,8 @@ public class LockRules extends AnnotationRules {
   private static final ThreadSafe_ParseRule threadSafeRule = new ThreadSafe_ParseRule();
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
   private static final ImmutableParseRule immutableRule = new ImmutableParseRule();
+  private static final Mutable_ParseRule mutableRule = new Mutable_ParseRule();
+  private static final NotContainable_ParseRule notContainableRule = new NotContainable_ParseRule();
   
   private interface IProtectedRegions {
 	  void clear();
@@ -189,6 +193,8 @@ public class LockRules extends AnnotationRules {
     registerParseRuleStorage(fw, threadSafeRule);
     registerParseRuleStorage(fw, notThreadSafeRule);
     registerParseRuleStorage(fw, immutableRule);
+    registerParseRuleStorage(fw, mutableRule);
+    registerParseRuleStorage(fw, notContainableRule);
     registerScrubber(fw, new LockFieldVisibilityScrubber());
 	}
 
@@ -1622,7 +1628,7 @@ public class LockRules extends AnnotationRules {
   }
   
   public static class NotThreadSafe_ParseRule 
-  extends SimpleBooleanAnnotationParseRule<NotThreadSafeNode,NotThreadSafePromiseDrop> {
+  extends MarkerAnnotationParseRule<NotThreadSafeNode,NotThreadSafePromiseDrop> {
     public NotThreadSafe_ParseRule() {
       super(NOT_THREAD_SAFE, typeDeclOps, NotThreadSafeNode.class);
     }
@@ -1634,20 +1640,48 @@ public class LockRules extends AnnotationRules {
     protected IPromiseDropStorage<NotThreadSafePromiseDrop> makeStorage() {
       return BooleanPromiseDropStorage.create(name(), NotThreadSafePromiseDrop.class);
     }
+	@Override
+	protected NotThreadSafePromiseDrop createDrop(NotThreadSafeNode a) {
+		return new NotThreadSafePromiseDrop(a);
+	}    
+  }
+  
+  public static class NotContainable_ParseRule 
+  extends MarkerAnnotationParseRule<NotContainableNode,NotContainablePromiseDrop> {
+    public NotContainable_ParseRule() {
+      super(NOT_CONTAINABLE, typeDeclOps, NotContainableNode.class);
+    }
     @Override
-    protected IAnnotationScrubber<NotThreadSafeNode> makeScrubber() {
-      return new AbstractAASTScrubber<NotThreadSafeNode, NotThreadSafePromiseDrop>(this) {
-        @Override
-        protected PromiseDrop<NotThreadSafeNode> makePromiseDrop(NotThreadSafeNode a) {
-          /* We don't check anything here.  We run before checking of 
-           * @ThreadSafe, so we make @ThreadSafe check that type isn't
-           * both @ThreadSafe and @NotThreadSafe, and enforce covariance.
-           */
-          NotThreadSafePromiseDrop d = new NotThreadSafePromiseDrop(a);
-          return storeDropIfNotNull(a, d);          
-        }
-      };
-    }    
+    protected IAASTRootNode makeAAST(int offset, int mods) {
+      return new NotContainableNode(offset);
+    }
+    @Override
+    protected IPromiseDropStorage<NotContainablePromiseDrop> makeStorage() {
+      return BooleanPromiseDropStorage.create(name(), NotContainablePromiseDrop.class);
+    }
+	@Override
+	protected NotContainablePromiseDrop createDrop(NotContainableNode a) {
+		return new NotContainablePromiseDrop(a);
+	}    
+  }
+  
+  public static class Mutable_ParseRule 
+  extends MarkerAnnotationParseRule<MutableNode,MutablePromiseDrop> {
+    public Mutable_ParseRule() {
+      super(MUTABLE, typeDeclOps, MutableNode.class);
+    }
+    @Override
+    protected IAASTRootNode makeAAST(int offset, int mods) {
+      return new MutableNode(offset);
+    }
+    @Override
+    protected IPromiseDropStorage<MutablePromiseDrop> makeStorage() {
+      return BooleanPromiseDropStorage.create(name(), MutablePromiseDrop.class);
+    }
+	@Override
+	protected MutablePromiseDrop createDrop(MutableNode a) {
+		return new MutablePromiseDrop(a);
+	}    
   }
   
   public static class ImmutableParseRule 
