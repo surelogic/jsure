@@ -105,6 +105,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	  
     final ThreadSafePromiseDrop threadSafeDrop =
       LockRules.getThreadSafe(typeDecl);
+    // If null, assume it's not meant to be thread safe
     if (threadSafeDrop != null) {
       new ThreadSafeVisitor(typeDecl, threadSafeDrop).doAccept(classBody);
     }
@@ -361,6 +362,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           final ContainablePromiseDrop declContainableDrop;
           if (type instanceof IJavaDeclaredType) {
             typeDecl = ((IJavaDeclaredType) type).getDeclaration();
+            // Null if no @ThreadSafe ==> not thread safe
             declTSDrop = LockRules.getThreadSafe(typeDecl);
             // Null if no @Containable ==> Default annotation of not containable
             declContainableDrop = LockRules.getContainable(typeDecl);

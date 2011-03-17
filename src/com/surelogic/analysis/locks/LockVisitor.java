@@ -1314,8 +1314,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			if (type instanceof IJavaSourceRefType) {
 				final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
 				final IRNode typeDeclarationNode = srcRefType.getDeclaration();
+				// if null, then assume it's not thread-safe
 				final boolean isThreadSafe = 
 				  LockRules.isThreadSafe(typeDeclarationNode);
+				// if null, then assume it's mutable
 				final boolean isImmutable =
 				  LockRules.isImmutable(typeDeclarationNode);
 				isSafe = isThreadSafe || isImmutable || classDeclaresLocks(type);
