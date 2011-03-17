@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -1383,27 +1384,24 @@ public class LockRules extends AnnotationRules {
 	}
 	
 	private static abstract class TypeAnnotationScrubber<
-	    A extends AbstractModifiedBooleanNode, P extends ModifiedBooleanPromiseDrop<A>>
+	    A extends AbstractModifiedBooleanNode,
+	    P extends ModifiedBooleanPromiseDrop<A>,
+	    NP extends BooleanPromiseDrop<? extends AbstractBooleanNode>>
 	extends AbstractAASTScrubber<A, P> {
 	  private final String name;
     private final String notName;
 	  
 	  public TypeAnnotationScrubber(
-	      final SimpleBooleanAnnotationParseRule<A, P> rule, final String n,
-	      final String... deps) {
+	      final SimpleBooleanAnnotationParseRule<A, P> rule,
+	      final String n, final String notN, final String... deps) {
 	    super(rule, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY, deps);
 	    name = n;
-	    notName = "Not" + name;
+	    notName = notN;
 	  }
 	  
 	  @Override
 	  protected final P makePromiseDrop(final A a) {
 	    return storeDropIfNotNull(a, scrubAnnotated(a));          
-	  }
-      
-	  @Override 
-	  protected final boolean processUnannotatedType(final IJavaDeclaredType dt) {
-	    return scrubUnannotated(dt);
 	  }
 	  
 	  private P scrubAnnotated(final A node) {
@@ -1470,10 +1468,15 @@ public class LockRules extends AnnotationRules {
 	        }
 	      }
 	    }
-	    
-	    if (!scrubAnnotatedAdditional(node, promisedFor)) {
-	      bad = true;
-	    }
+
+	    // Cannot be both T and not T
+	    final NP notDrop = getNotAnnotation(promisedFor);
+      if (notDrop != null && !node.isImplementationOnly()) {
+        notDrop.invalidate();
+        getContext().reportError(
+            node, "Cannot be both @{0} and @{1}", name, notName);
+        bad = true;
+      }
 	    
 	    if (bad) {
 	      return null;
@@ -1481,21 +1484,17 @@ public class LockRules extends AnnotationRules {
 	      return createDrop(node);
 	    }
 	  }
-	  
-	  protected boolean scrubAnnotatedAdditional(
-	      final A node, final IRNode promisedFor) {
-	    return true;
-	  }
-	  
-	  private boolean scrubUnannotated(final IJavaDeclaredType javaType) {
+    
+    @Override 
+    protected final boolean processUnannotatedType(final IJavaDeclaredType dt) {
       final IAnnotationScrubberContext context = getContext();
-      final IRNode typeDecl = javaType.getDeclaration();
+      final IRNode typeDecl = dt.getDeclaration();
       final boolean isInterface = TypeUtil.isInterface(typeDecl);
       final Iterable<IJavaType> supers = 
-        javaType.getSupertypes(context.getBinder().getTypeEnvironment()) ;
+        dt.getSupertypes(context.getBinder().getTypeEnvironment()) ;
       
       // Are we actually annotated with the NOT form of the annotation?
-      final boolean isNOT = isAnnotatedWithNotForm(typeDecl);
+      final boolean isNOT = getNotAnnotation(typeDecl) != null;
       
       boolean result = true;      
       if (isInterface) { // unannotated interface
@@ -1550,11 +1549,9 @@ public class LockRules extends AnnotationRules {
         }
       }
       return result;
-	  }
+    }
 	  
-	  protected boolean isAnnotatedWithNotForm(final IRNode typeDecl) {
-	    return false;
-	  }
+    protected abstract NP getNotAnnotation(IRNode typeDecl);
 	  
 	  protected abstract P getSuperTypeAnno(IRNode superDecl);
 	  
@@ -1576,7 +1573,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ContainableNode> makeScrubber() {
-      return new TypeAnnotationScrubber<ContainableNode, ContainablePromiseDrop>(this, "Containable") {
+      return new TypeAnnotationScrubber<ContainableNode, ContainablePromiseDrop, NotContainablePromiseDrop>(this, "Containable", "NotContainable", NOT_CONTAINABLE) {
         @Override
         protected ContainablePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
           return getContainable(superDecl);
@@ -1585,6 +1582,11 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ContainablePromiseDrop createDrop(final ContainableNode node) {
           return new ContainablePromiseDrop(node);
+        }
+
+        @Override
+        protected NotContainablePromiseDrop getNotAnnotation(final IRNode typeDecl) {
+          return getNotContainable(typeDecl);
         }
       };
     }    
@@ -1604,12 +1606,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ThreadSafeNode> makeScrubber() {
-      return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop>(this, "ThreadSafe", NOT_THREAD_SAFE) {
-        @Override
-        protected boolean isAnnotatedWithNotForm(final IRNode typeDecl) {
-          return isNotThreadSafe(typeDecl);
-        }
-        
+      return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, "ThreadSafe", "NotThreadSafe", NOT_THREAD_SAFE) {
         @Override
         protected ThreadSafePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
           return getThreadSafe(superDecl);
@@ -1619,17 +1616,10 @@ public class LockRules extends AnnotationRules {
         protected ThreadSafePromiseDrop createDrop(final ThreadSafeNode node) {
           return new ThreadSafePromiseDrop(node);
         }
-        
+
         @Override
-        protected boolean scrubAnnotatedAdditional(
-            final ThreadSafeNode node, final IRNode promisedFor) {
-          final NotThreadSafePromiseDrop notThreadSafe = getNotThreadSafe(promisedFor);
-          if (notThreadSafe != null && !node.isImplementationOnly()) {
-            notThreadSafe.invalidate();
-            getContext().reportError(node, "Cannot be both @ThreadSafe and @NotThreadSafe");
-            return false;
-          }
-          return true;
+        protected NotThreadSafePromiseDrop getNotAnnotation(final IRNode typeDecl) {
+          return getNotThreadSafe(typeDecl);
         }
       };
     }    
@@ -1707,7 +1697,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ImmutableNode> makeScrubber() {
-      return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop>(this, "Immutable") {
+      return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, "Immutable", "Mutable", MUTABLE) {
         @Override
         protected ImmutablePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
           return getImmutable(superDecl);
@@ -1716,6 +1706,11 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ImmutablePromiseDrop createDrop(final ImmutableNode node) {
           return new ImmutablePromiseDrop(node);
+        }
+
+        @Override
+        protected MutablePromiseDrop getNotAnnotation(final IRNode typeDecl) {
+          return getMutable(typeDecl);
         }
       };
     }    
