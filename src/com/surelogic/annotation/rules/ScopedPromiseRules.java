@@ -13,8 +13,7 @@ import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.*;
 import com.surelogic.annotation.scrub.*;
 import com.surelogic.parse.AbstractNodeAdaptor;
-import com.surelogic.promise.IPromiseDropStorage;
-import com.surelogic.promise.PromiseDropSeqStorage;
+import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -33,9 +32,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.AssumePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.ScopedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class ScopedPromiseRules extends AnnotationRules {
@@ -134,11 +131,21 @@ public class ScopedPromiseRules extends AnnotationRules {
 
 		protected abstract AASTNode rewrap(IAnnotationParsingContext c, ScopedPromiseNode sp);
 	}
-
+	
 	static class Assume_ParseRule extends 
 	        ScopedPromiseRule<AssumeScopedPromiseNode, AssumePromiseDrop> {
 		protected Assume_ParseRule() {
-			super(ASSUME, methodOrClassDeclOps, AssumeScopedPromiseNode.class);
+			// Normally would use methodOrClassDeclOps, except for hack to handle @Assume("ThreadSafe")
+			super(ASSUME, fieldFuncTypeOps, AssumeScopedPromiseNode.class);
+		}
+		
+		@Override
+		protected Object parse(IAnnotationParsingContext context, ScopedPromisesParser parser) throws RecognitionException {
+			if (context.getOp() instanceof FieldDeclaration) {
+				// Redirect to the appropriate rule
+				return PromiseFramework.getInstance().getParseDropRule(LockRules.ASSUME_FIELD_IS).parse(context, context.getAllText());				
+			}
+			return super.parse(context, parser);
 		}
 		
 		@Override

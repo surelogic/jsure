@@ -10,6 +10,7 @@ import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
+import com.surelogic.analysis.locks.FieldKind;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.*;
@@ -35,14 +36,15 @@ public class LockRules extends AnnotationRules {
 	private static final String RETURNS_LOCK = "ReturnsLock";
 	private static final String PROHIBITS_LOCK = "ProhibitsLock";
 	private static final String POLICY_LOCK = "PolicyLock";
-  private static final String CONTAINABLE = "Containable";
-  private static final String THREAD_SAFE = "ThreadSafe";
+  public static final String CONTAINABLE = "Containable";
+  public static final String THREAD_SAFE = "ThreadSafe";
   private static final String NOT_THREAD_SAFE = "NotThreadSafe";
   private static final String NOT_CONTAINABLE = "NotContainable";
   private static final String MUTABLE = "Mutable";
-  private static final String IMMUTABLE = "Immutable";
+  public static final String IMMUTABLE = "Immutable";
   private static final String LOCK_FIELD_VISIBILITY = "LockFieldVisibility";
   private static final String REGION_INITIALIZER = "Region Initializer";
+  public static final String ASSUME_FIELD_IS = "Assume Field Is";
   
 	private static final AnnotationRules instance = new LockRules();
 
@@ -61,6 +63,7 @@ public class LockRules extends AnnotationRules {
   private static final ImmutableParseRule immutableRule = new ImmutableParseRule();
   private static final Mutable_ParseRule mutableRule = new Mutable_ParseRule();
   private static final NotContainable_ParseRule notContainableRule = new NotContainable_ParseRule();
+  private static final AssumeFieldIs_ParseRule assumeFieldIsRule = new AssumeFieldIs_ParseRule();
   
   private interface IProtectedRegions {
 	  void clear();
@@ -204,6 +207,7 @@ public class LockRules extends AnnotationRules {
     registerParseRuleStorage(fw, immutableRule);
     registerParseRuleStorage(fw, mutableRule);
     registerParseRuleStorage(fw, notContainableRule);
+    registerParseRuleStorage(fw, assumeFieldIsRule);
     registerScrubber(fw, new LockFieldVisibilityScrubber());
 	}
 
@@ -1859,5 +1863,43 @@ public class LockRules extends AnnotationRules {
       // Names don't match, cannot be the same lock
       return false;
     }
-  }
+  } 
+  
+	static class AssumeFieldIs_ParseRule extends DefaultSLAnnotationParseRule<AssumeFieldIsNode,AssumeFieldIsPromiseDrop> {
+		AssumeFieldIs_ParseRule() {
+			super(ASSUME_FIELD_IS, fieldDeclOp, AssumeFieldIsNode.class);
+		}
+
+		// Should only get called by the Assume parse rule
+		@Override
+		protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) 
+		throws Exception {
+			final String id = context.getAllText().trim();
+			final FieldKind kind;
+			if ("final".equals(id)) {
+				kind = FieldKind.Final;
+			} else {				
+				kind = FieldKind.valueOf(id);				
+			}
+			return new AssumeFieldIsNode(context.mapToSource(0), kind);
+		}
+		
+		@Override
+		protected IPromiseDropStorage<AssumeFieldIsPromiseDrop> makeStorage() {
+			return SinglePromiseDropStorage.create(name(), AssumeFieldIsPromiseDrop.class);
+		}
+
+		@Override
+		protected IAnnotationScrubber<AssumeFieldIsNode> makeScrubber() {
+			return new AbstractAASTScrubber<AssumeFieldIsNode, AssumeFieldIsPromiseDrop>(this, ScrubberType.UNORDERED,
+					LockRules.LOCK, LockRules.CONTAINABLE, LockRules.IMMUTABLE, LockRules.THREAD_SAFE) {
+				@Override
+				protected PromiseDrop<AssumeFieldIsNode> makePromiseDrop(AssumeFieldIsNode a) {
+					AssumeFieldIsPromiseDrop d = new AssumeFieldIsPromiseDrop(a);
+					return storeDropIfNotNull(a, d);
+				}
+
+			};
+		}
+	}
 }
