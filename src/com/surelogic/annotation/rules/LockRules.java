@@ -171,6 +171,14 @@ public class LockRules extends AnnotationRules {
 	  return getBooleanDrop(notThreadSafeRule.getStorage(), cdecl);
   }
   
+  public static NotContainablePromiseDrop getNotContainable(IRNode cdecl) {
+	  return getBooleanDrop(notContainableRule.getStorage(), cdecl);
+  }
+  
+  public static MutablePromiseDrop getMutable(IRNode cdecl) {
+	  return getBooleanDrop(mutableRule.getStorage(), cdecl);
+  }
+  
   public static boolean isImmutable(final IRNode cdecl) {
 	  final ImmutablePromiseDrop immutable = getImmutable(cdecl);
     return immutable != null && !immutable.isImplementationOnly();
