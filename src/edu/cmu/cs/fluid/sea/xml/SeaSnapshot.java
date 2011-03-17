@@ -23,7 +23,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.*;
-import edu.cmu.cs.fluid.sea.drops.effects.*;
 import edu.cmu.cs.fluid.sea.drops.threadroles.IThreadRoleDrop;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {	
@@ -31,11 +30,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	public static final boolean useFullType = true;
 	
 	static final Map<String,Class<? extends Drop>> classMap = new HashMap<String, Class<? extends Drop>>();
+	/*
 	static {
 		classMap.put("PackageDrop", PackageDrop.class);
 		classMap.put("ResultDrop", ResultDrop.class);
 		classMap.put("RegionEffectsPromiseDrop", RegionEffectsPromiseDrop.class);
 	}
+	*/
 	private final Map<Drop,String> idMap = new HashMap<Drop,String>();
 	
 	public SeaSnapshot(File location) throws IOException {
@@ -73,13 +74,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 	}
 	
 	private static void ensureClassMapping(Class<? extends Drop> cls) {
-		if (classMap.containsKey(cls.getSimpleName())) {
+		if (classMap.containsKey(cls.getName())) {
 			return;
 		}
-		classMap.put(cls.getSimpleName(), cls);
-		classMap.put(cls.getName(), cls);
-		Entity.internString(cls.getSimpleName());
-		Entity.internString(cls.getName());
+		String simple = Entity.internString(cls.getSimpleName());
+		String qname  = Entity.internString(cls.getName());
+		classMap.put(simple, cls);
+		classMap.put(qname, cls);
 	}
 	
 	private static String[] packages = {
@@ -98,6 +99,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 		if (thisType == null) {
 			if (useFullType) {
 				try {						
+					//System.out.println("Loading class "+type);
 					thisType = Class.forName(type);					
 				} catch(ClassNotFoundException e) {
 					// Keep going
