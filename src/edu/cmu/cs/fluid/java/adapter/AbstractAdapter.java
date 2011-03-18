@@ -9,12 +9,14 @@ import com.surelogic.common.SLUtility;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.Annotations;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
@@ -155,26 +157,40 @@ public class AbstractAdapter {
 		final String cu   = makeSrcRefs ? JavaNames.getTypeName(type) : null; 
 		for (IRNode n : JJNode.tree.topDown(root)) {
 			Operator op = JJNode.tree.getOperator(n);
-			if (MethodDeclaration.prototype.includes(op)
-					&& !JavaNode.getModifier(n, JavaNode.STATIC)) {
+			if (MethodDeclaration.prototype.includes(op)) {
+				ReturnValueDeclaration.getReturnNode(n);
+				
+				if (!JavaNode.getModifier(n, JavaNode.STATIC)) {
 				/*
 				final String name = JavaNames.genQualifiedMethodConstructorName(n);
 				if ("test.Outer.foo()".equals(name)) {
 					System.out.println("Making receiver decls for "+name);
 				}
 				*/
-				PromiseUtil.addReceiverDecls(n);
+					PromiseUtil.addReceiverDecls(n);
+				}				
 			} else if (ConstructorDeclaration.prototype.includes(op)) {
 				ReturnValueDeclaration.getReturnNode(n);
 				PromiseUtil.addReceiverDecls(n);
+			} else if (InterfaceDeclaration.prototype.includes(op)) {
+				ClassInitDeclaration.getClassInitMethod(n);    
+			} else if (AnnotationDeclaration.prototype.includes(op)) {
+				ClassInitDeclaration.getClassInitMethod(n);
+				/*
+				// Are these necessary?
+				IRNode init = InitDeclaration.getInitMethod(n);		
+				PromiseUtil.addReceiverDecls(n);
+				*/
 			} else if (ClassDeclaration.prototype.includes(op)
 					|| AnonClassExpression.prototype.includes(op)
 					|| EnumDeclaration.prototype.includes(op)
 					|| EnumConstantClassDeclaration.prototype.includes(op)) {
 				IRNode init = InitDeclaration.getInitMethod(n);
+				ClassInitDeclaration.getClassInitMethod(n);
 				PromiseUtil.addReceiverDecls(n);
 				PromiseUtil.addReceiverDecls(init);
 
+				//System.out.println("Adding last-minute nodes to "+JavaNames.getFullTypeName(n));
 				if (makeSrcRefs) {
 					String name = JavaNames.getFullTypeName(n);
 					ISrcRef ref = new NamedSrcRef(name, pkg, cu);
