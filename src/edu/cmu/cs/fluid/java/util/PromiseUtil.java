@@ -36,17 +36,22 @@ public final class PromiseUtil {
     Collection<IRNode> added) {
     // force init methods to be precomputed
     // (versioning problems)
-    IRNode init = ClassInitDeclaration.getClassInitMethod(ast);
-    added.add(init);
+    IRNode init = JavaPromise.getClassInitOrNull(ast);
+    if (init == null) {
+    	init = ClassInitDeclaration.getClassInitMethod(ast);    
+    	added.add(init);
+    }
 
     // TODO No receiver on ClassInit?
     // added.add(ReceiverDeclaration.getReceiverNode(init));
 
     Operator op = PromiseConstants.tree.getOperator(ast);
     if (!InterfaceDeclaration.prototype.includes(op)) {
-      IRNode n = InitDeclaration.getInitMethod(ast);
-      added.add(n); // not needed for interfaces
-      
+      IRNode n = JavaPromise.getInitMethodOrNull(ast);
+      if (n == null) {
+    	  n = InitDeclaration.getInitMethod(ast);
+    	  added.add(n); // not needed for interfaces
+      }      
       addReceiverDecls(ast, added);
     }
 
@@ -75,7 +80,10 @@ public final class PromiseUtil {
 //      IRNode type  = MethodDeclaration.getReturnType(node);      
 //      if (!(JJNode.tree.getOperator(type) instanceof VoidType)) {    
     	  // constructors and void methods don't have a return node
+    IRNode rvd = JavaPromise.getReturnNodeOrNull(node);
+    if (rvd == null) {
         added.add(ReturnValueDeclaration.getReturnNode(node));
+    }
 //      }
 //    }
   }
@@ -108,8 +116,10 @@ public final class PromiseUtil {
 
   // Only statically visible ones?
   private static void addReceiverDecls(IRNode here, Collection<IRNode> added) {    
-    added.add(ReceiverDeclaration.getReceiverNode(here));
-    
+	IRNode recv = JavaPromise.getReceiverNodeOrNull(here);
+	if (recv == null) {
+		added.add(ReceiverDeclaration.getReceiverNode(here));
+	}
     Iterator<IRNode> types = VisitUtil.getEnclosingTypes(here, false);
     if (!TypeDeclaration.prototype.includes(here)) {
       if (!types.hasNext()) {
@@ -126,7 +136,10 @@ public final class PromiseUtil {
         continue; // skip these
       } 
       */     
-      added.add(QualifiedReceiverDeclaration.getReceiverNode(here, type));
+      IRNode qrecv = JavaPromise.getQualifiedReceiverNodeByName(here, type);
+      if (qrecv == null) {
+    	  added.add(QualifiedReceiverDeclaration.getReceiverNode(here, type));
+      }
     }
   }
   
@@ -259,6 +272,10 @@ public final class PromiseUtil {
     IBindHelper helper,
     IRNode cu) {
     activateRequiredCuPromises(binder, helper, cu, dummy);
+    if (!dummy.isEmpty()) {
+    	Collection<IRNode> nodes = dummy;
+    	System.out.println("Got "+nodes.size()+" added nodes");
+    }
     dummy.clear();
   }
 
