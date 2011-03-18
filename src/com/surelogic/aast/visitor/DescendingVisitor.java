@@ -753,7 +753,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  return doAccept(n.getTarget());
   }
 
-  @Override
   public T visit(AssumeFieldIsNode node) {
 	  return defaultValue;
   }
