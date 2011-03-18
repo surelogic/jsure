@@ -202,6 +202,11 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   
   @Override
+  public IGranuleBindings ensureBindingsOK(final IRNode node) {    
+	  return super.ensureBindingsOK(node);
+  }
+  
+  @Override
   protected IGranuleBindings makeGranuleBindings(IRNode cu) {
     return new CompUnitBindings(cu);
   }
