@@ -1840,7 +1840,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			// We have to deal with Enumerations correctly, but don't have time
 			// for
 			// that now
-			return ClassInitDeclaration.getClassInitMethod(ctxtTypeDecl);
+			return JavaPromise.getClassInitOrNull(ctxtTypeDecl);
 			// throw new UnsupportedOperationException("No enclosing method");
 		}
 	}
@@ -2063,7 +2063,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		if (TypeUtil.isStatic(expr)) {
 			// always go inside of static initializers
 			final IRNode classDecl = VisitUtil.getClosestType(expr);
-			ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
+			ctxtInsideMethod = JavaPromise.getClassInitOrNull(classDecl);
 			ctxtBcaQuery = bindingContextAnalysis
 					.getExpressionObjectsQuery(ctxtInsideMethod);
 			updateJUCAnalysisQueries(ctxtInsideMethod);
@@ -2850,7 +2850,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					if (isStaticDeclaration) {
 						final IRNode classDecl = VisitUtil
 								.getClosestType(varDecl);
-						ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
+						ctxtInsideMethod = JavaPromise.getClassInitOrNull(classDecl);
 						ctxtBcaQuery = bindingContextAnalysis
 								.getExpressionObjectsQuery(ctxtInsideMethod);
 						updateJUCAnalysisQueries(ctxtInsideMethod);
@@ -2918,7 +2918,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
      * a static field.
      */
     final IRNode classDecl = VisitUtil.getClosestType(constDecl);
-    ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
+    ctxtInsideMethod = JavaPromise.getClassInitOrNull(classDecl);
     ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
     updateJUCAnalysisQueries(ctxtInsideMethod);
     ctxtConflicter = new ConflictChecker(binder, mayAlias);
@@ -2953,7 +2953,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
     
     /* (1) Set up context as if we are entering a static field declaration */
     final IRNode classDecl = VisitUtil.getEnclosingType(constDecl);
-    ctxtInsideMethod = ClassInitDeclaration.getClassInitMethod(classDecl);
+    ctxtInsideMethod = JavaPromise.getClassInitOrNull(classDecl);
     ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(ctxtInsideMethod);
     updateJUCAnalysisQueries(ctxtInsideMethod);
     ctxtConflicter = new ConflictChecker(binder, mayAlias);

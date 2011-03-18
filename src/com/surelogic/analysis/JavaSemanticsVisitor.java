@@ -896,7 +896,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
      * and enumeration constant declarations.
      */
     final IRNode prevEnclosingDecl = enclosingDecl;
-    final IRNode classInit = ClassInitDeclaration.getClassInitMethod(enclosingType);
+    final IRNode classInit = JavaPromise.getClassInitOrNull(enclosingType);
     enterEnclosingDecl(classInit, null);    
     try {
       /* Give subclass an opportunity to deal with the ClassInitDeclaration
