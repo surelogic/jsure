@@ -166,9 +166,9 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
            * We found a static field/method in a class or an (implicitly) static
            * field in an interface.
            */
-          return ClassInitDeclaration.getClassInitMethod(classDecl);
+          return JavaPromise.getClassInitOrNull(classDecl);
         } else {
-          return InitDeclaration.getInitMethod(classDecl);
+          return JavaPromise.getInitMethodOrNull(classDecl);
         }
       }
       last2Op = lastOp;
