@@ -40,10 +40,12 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	final String name;
 	TestResult nextResult = null;
 	boolean clearResult = true;
+	private final boolean allowJavadoc;
 
 	public AnnotationVisitor(ITypeEnvironment te, String label) {
 		tEnv = te;
 		name = label;
+		allowJavadoc = allowJavadoc(te);
 	}
 
 	public static boolean allowJavadoc(ITypeEnvironment te) {
@@ -383,7 +385,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	}
 
 	private int checkForJavadoc(IRNode node, ISrcRef ref) {
-		if (!allowJavadoc(tEnv)) {
+		if (!allowJavadoc) {
 			return 0;
 		}
 		IJavadocElement elt = ref.getJavadoc();
