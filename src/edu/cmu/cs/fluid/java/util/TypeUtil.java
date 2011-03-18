@@ -21,6 +21,7 @@ import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.NewRegionDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.promises.AssumeFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.version.VersionedSlotFactory;
 
@@ -220,15 +221,15 @@ public class TypeUtil implements JavaGlobals {
           System.out.println("@assumeFinal on node " + DebugUnparser.toString(node)
               + "\"");
               */
-    	return true; // assumeFinal promise  
-      /*
-      } else if (AssumeFinalAnnotation.isAssumeFinal(node)) {
-        /*
-        System.out.println("@assumeFinal on node " + DebugUnparser.toString(node)
-            + "\"");
-        return true; // assumeFinal promise
-        */
+        return true; // assumeFinal promise  
+      } else {
+        final AssumeFieldIsPromiseDrop assumeField = LockRules.getAssumeFieldIs(node);
+        if (assumeField != null && assumeField.isFinal()) {
+          // We have an @Assume("final")
+          return true;
+        }
       }
+      
       return false;
     } else if (ParameterDeclaration.prototype.includes(op)) {
       return JavaNode.getModifier(node, JavaNode.FINAL) || AssumeFinalRules.isAssumedFinal(node);

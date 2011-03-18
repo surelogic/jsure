@@ -92,8 +92,6 @@ public class AssumeFinalRules extends AnnotationRules {
       return new AbstractAASTScrubber<AssumeFinalNode, AssumeFinalPromiseDrop>(this) {
         @Override
         protected PromiseDrop<AssumeFinalNode> makePromiseDrop(AssumeFinalNode a) {
-//          AssumeFinalPromiseDrop d = new AssumeFinalPromiseDrop(a);
-//          return storeDropIfNotNull(getStorage(), a, d);          
           return storeDropIfNotNull(a, scrubAssumeFinal(getContext(), a));          
         }
       };

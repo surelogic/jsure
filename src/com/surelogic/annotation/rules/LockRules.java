@@ -192,6 +192,10 @@ public class LockRules extends AnnotationRules {
 	  return getBooleanDrop(immutableRule.getStorage(), cdecl);
   }
   
+  public static AssumeFieldIsPromiseDrop getAssumeFieldIs(final IRNode fieldDecl) {
+    return getDrop(assumeFieldIsRule.getStorage(), fieldDecl);
+  }
+  
   @Override
   public void register(PromiseFramework fw) {
     registerScrubber(fw, initRegionSet);
@@ -247,8 +251,7 @@ public class LockRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber<ReturnsLockNode> makeScrubber() {
 			return new AbstractAASTScrubber<ReturnsLockNode, ReturnsLockPromiseDrop>(this,
-					ScrubberType.UNORDERED, LOCK,
-					POLICY_LOCK) {
+					ScrubberType.UNORDERED, LOCK, POLICY_LOCK) {
 				@Override
         protected PromiseDrop<ReturnsLockNode> makePromiseDrop(
 						ReturnsLockNode a) {
@@ -591,7 +594,9 @@ public class LockRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber<LockDeclarationNode> makeScrubber() {
 			return new AbstractAASTScrubber<LockDeclarationNode, LockModel>(this,
-					ScrubberType.BY_HIERARCHY, LockRules.REGION_INITIALIZER, RegionRules.REGIONS_DONE) {
+					ScrubberType.BY_HIERARCHY, LockRules.REGION_INITIALIZER,
+					RegionRules.REGIONS_DONE, AssumeFinalRules.ASSUME_FINAL,
+					ASSUME_FIELD_IS) {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						LockDeclarationNode a) {
@@ -622,10 +627,18 @@ public class LockRules extends AnnotationRules {
   private static abstract class LockScrubContinuation<T extends AbstractLockDeclarationNode> {
     protected void handleAssumeFinal(final LockModel lockModel, final IRNode lockFieldNode) {
       if (lockFieldNode != null) {
+        // Old way of doing things
         final AssumeFinalPromiseDrop assumeFinal =
           AssumeFinalRules.getAssumeFinalDrop(lockFieldNode);
         if (assumeFinal != null) {
           lockModel.addDependent(assumeFinal);
+        }
+
+        // New way of doing things
+        final AssumeFieldIsPromiseDrop assumeFieldIs =
+          LockRules.getAssumeFieldIs(lockFieldNode);
+        if (assumeFieldIs != null && assumeFieldIs.isFinal()) {
+          lockModel.addDependent(assumeFieldIs);
         }
       }
     }
@@ -812,6 +825,35 @@ public class LockRules extends AnnotationRules {
       return null;
     }
   };
+  
+  private static AssumeFieldIsPromiseDrop scrubAssumeFieldIs(
+      final IAnnotationScrubberContext context, final AssumeFieldIsNode a) {
+    if (a.getKind() == FieldKind.Final) {
+      // Final: Must make sure the field is not actually declared final
+      // Cannot use TypeUtils.isFinal() because that checks for @Assume
+      final IRNode promisedFor = a.getPromisedFor();
+      boolean isAlreadyFinal = false;
+      final Operator op = JJNode.tree.getOperator(promisedFor);
+      if (VariableDeclarator.prototype.includes(op)) {
+        if (TypeUtil.isInterface(VisitUtil.getEnclosingType(promisedFor))) {
+          isAlreadyFinal = true; // declared in an interface
+        } else if (JavaNode.getModifier(JJNode.tree.getParent(
+            JJNode.tree.getParent(promisedFor)), JavaNode.FINAL)) {
+          isAlreadyFinal = true; // declared final
+        }
+      }
+      
+      if (isAlreadyFinal) {
+        context.reportError("Field is already declared to be final; no need to assume it", a);
+        return null;
+      } else {
+        return new AssumeFieldIsPromiseDrop(a);
+      }      
+    } else {
+      // ThreadSafe, Containable, or Immutable.  Nothing to check for (yet?)
+      return new AssumeFieldIsPromiseDrop(a);
+    }
+  }
   
   /**
 	 * Scrubbing code for the Lock annotation
@@ -1098,7 +1140,8 @@ public class LockRules extends AnnotationRules {
 		protected IAnnotationScrubber<PolicyLockDeclarationNode> makeScrubber() {
 			return new AbstractAASTScrubber<PolicyLockDeclarationNode, LockModel>(name(),
           PolicyLockDeclarationNode.class, lockRule.getStorage(),
-					ScrubberType.BY_HIERARCHY) {
+					ScrubberType.BY_HIERARCHY,
+					AssumeFinalRules.ASSUME_FINAL, ASSUME_FIELD_IS) {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						PolicyLockDeclarationNode a) {
@@ -1891,14 +1934,13 @@ public class LockRules extends AnnotationRules {
 
 		@Override
 		protected IAnnotationScrubber<AssumeFieldIsNode> makeScrubber() {
-			return new AbstractAASTScrubber<AssumeFieldIsNode, AssumeFieldIsPromiseDrop>(this, ScrubberType.UNORDERED,
-					LockRules.LOCK, LockRules.CONTAINABLE, LockRules.IMMUTABLE, LockRules.THREAD_SAFE) {
+			return new AbstractAASTScrubber<AssumeFieldIsNode, AssumeFieldIsPromiseDrop>(
+			    this, ScrubberType.UNORDERED) {
 				@Override
 				protected PromiseDrop<AssumeFieldIsNode> makePromiseDrop(AssumeFieldIsNode a) {
-					AssumeFieldIsPromiseDrop d = new AssumeFieldIsPromiseDrop(a);
-					return storeDropIfNotNull(a, d);
+//					AssumeFieldIsPromiseDrop d = new AssumeFieldIsPromiseDrop(a);
+					return storeDropIfNotNull(a, scrubAssumeFieldIs(getContext(), a));
 				}
-
 			};
 		}
 	}
