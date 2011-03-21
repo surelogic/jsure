@@ -61,6 +61,8 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 		  if (result == ParseResult.IGNORE) {
 //		    System.out.println("Ignoring: @"+name()+' '+contents);
 		    return ParseResult.IGNORE;
+		  } else if (result == ParseResult.OK) {
+			return ParseResult.OK;
 		  }
 		  AASTNode an;
 		  if (result instanceof AASTNode) {
