@@ -271,7 +271,9 @@ public class JavaTypeFactory implements IRType, Cleanable {
     }
     for(IJavaType p : params) {
     	if (p == null) {
-    		throw new IllegalArgumentException();
+    		//throw new IllegalArgumentException();
+    		System.err.println("Got null type parameter");
+    		return null;
     	}
     }
     Operator op = JJNode.tree.getOperator(decl);
@@ -393,7 +395,15 @@ public class JavaTypeFactory implements IRType, Cleanable {
       if (base instanceof JavaDeclaredType.Nested) {
         outer = ((JavaDeclaredType.Nested)base).getOuterType();
       }
-      return getDeclaredType(base.getDeclaration(),typeActuals,outer);
+      IJavaType rv = getDeclaredType(base.getDeclaration(),typeActuals,outer);
+      if (rv == null) {
+    	  if (AbstractJavaBinder.isBinary(nodeType)) {
+    		  System.err.println("Couldn't create IJavaType for "+DebugUnparser.toString(nodeType)+" in binary");
+    	  } else {
+    		  throw new IllegalStateException("Couldn't create IJavaType for "+DebugUnparser.toString(nodeType));
+    	  }
+      }
+      return rv;
     } else if (op instanceof WildcardSuperType) {
       IJavaReferenceType st = (IJavaReferenceType) convertNodeTypeToIJavaType(WildcardSuperType.getUpper(nodeType),binder);
       return getWildcardType(st,null);
