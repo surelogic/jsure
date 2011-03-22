@@ -193,7 +193,8 @@ public class JavaNode extends JJNode {
   public static void setModifiers(IRNode node, int i) {
     int prev = getModifiers(node);
     if (prev != i) { // TODO space optimization (more time)
-      node.setSlotValue(modifiersSlotInfo, i);
+      final Integer cached = IntegerTable.newInteger(i);
+      node.setSlotValue(modifiersSlotInfo, cached);
     }
   }
 
