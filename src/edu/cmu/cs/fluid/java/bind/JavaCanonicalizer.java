@@ -270,6 +270,12 @@ public class JavaCanonicalizer {
       if (type == tEnv.getStringType()) {
         return false;
       }
+      if (type == JavaTypeFactory.nullType) {
+    	// Replace with String
+    	IRNode nullString = StringLiteral.createNode("null");
+    	replaceSubtree(node, nullString);
+    	return true;
+      }
       /*
       if (type instanceof IJavaPrimitiveType) {
         generateConversionToString(node, (IJavaPrimitiveType) type);
