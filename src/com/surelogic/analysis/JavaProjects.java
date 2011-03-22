@@ -39,6 +39,15 @@ public class JavaProjects {
 		if (p == null) {
 			return;
 		}
+		/*
+		if (p.getName().equals("Util")) {
+			String name = JavaNames.genPrimaryTypeName(cu);
+			if (name != null) {
+				System.out.println("Marking as in Util: "+JavaNames.genPrimaryTypeName(cu));
+				System.out.println();
+			}
+		}
+		*/
 		// HACK until arrayType is cloned
 		IIRProject old = getProject(cu);
 		if (old == null) {
