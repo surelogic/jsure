@@ -991,6 +991,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	if (isBinary(node)) {
     		if (!unparse.endsWith(" . 1")) {
     			System.err.println("Cannot find a binding for " + unparse+" in "+typeEnvironment);
+    			/*
+    			if (unparse.endsWith("ModuleType")) {
+    				IRNode eType = VisitUtil.getEnclosingType(node);
+    				System.out.println("PROBLEM in "+JavaNames.getFullTypeName(eType));
+    			}
+                */
     		}
     	} else {
     		LOG.warning("Cannot find a binding for " + unparse+" in "+typeEnvironment);
@@ -2246,7 +2252,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }  	
       visit(node); // bind types      
       IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(node);
-      bind(node, ((IJavaDeclaredType) ty).getDeclaration());
+      if (ty != null) {
+    	  bind(node, ((IJavaDeclaredType) ty).getDeclaration());
+      }
        return null;
     }
     
