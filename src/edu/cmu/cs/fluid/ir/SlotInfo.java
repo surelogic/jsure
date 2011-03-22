@@ -198,8 +198,8 @@ public abstract class SlotInfo<T> extends IRObservable {
 	 * Force a cleanup of destroyed nodes
 	 * 
 	 */
-	public void cleanup() {
-		// Nothing to do
+	public int cleanup() {
+		return 0;
 	}
 
 	/**
@@ -213,12 +213,14 @@ public abstract class SlotInfo<T> extends IRObservable {
 		if (!AbstractIRNode.checkIfNumDestroyed(1000)) {
 			return;
 		}
+		int cleaned = 0;
 		for (SlotInfo si : anonSIs) {
-			si.cleanup();
+			cleaned += si.cleanup();
 		}
 		for (SlotInfo si : registry.values()) {
-			si.cleanup();
+			cleaned += si.cleanup();
 		}
+		System.out.println("Cleaned: "+cleaned);
 	}
 
 	public static synchronized void compactAll() {

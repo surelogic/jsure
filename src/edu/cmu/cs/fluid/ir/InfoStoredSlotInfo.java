@@ -138,11 +138,11 @@ public class InfoStoredSlotInfo<S,T> extends StoredSlotInfo<S,T> {
   }
   
   @Override
-  public void cleanup() {
+  public int cleanup() {
     if (slots == null) {
-      return;
+      return 0;
     }
-    slots.cleanup();
+    return slots.cleanup();
   }
   
   @Override
