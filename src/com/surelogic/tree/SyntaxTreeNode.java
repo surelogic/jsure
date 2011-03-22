@@ -75,6 +75,7 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
 	  op = null;
 	  parent = null;
 	  srcRef = null;
+	  modifiers = null;
   }
   /*
   @Override
