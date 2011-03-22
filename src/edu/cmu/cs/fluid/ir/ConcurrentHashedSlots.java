@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.ir;
 
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /** Storage of slots in a ConcurrentHashMap
@@ -63,8 +65,16 @@ public class ConcurrentHashedSlots<S,T> extends ConcurrentHashMap<IRNode,S> impl
   }
 
   public int cleanup() {
-	  // TODO Auto-generated method stub
-	  return 0;
+	  final Iterator<Map.Entry<IRNode,S>> it = entrySet().iterator();
+	  int cleaned = 0;
+	  while (it.hasNext()) {
+		  final Map.Entry<IRNode,S> e = it.next();
+		  if (e.getKey().identity() == IRNode.destroyedNode) {
+			  it.remove();
+			  cleaned++;
+		  }
+	  }  
+	  return cleaned;
   }
 
   public boolean compact() {
