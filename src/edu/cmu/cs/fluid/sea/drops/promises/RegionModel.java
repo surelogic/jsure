@@ -498,15 +498,23 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 	private static String getJRE(IRNode context) {
 		if (context != null) {
 			final IIRProject thisProj   = JavaProjects.getEnclosingProject(context);
-			final IJavaDeclaredType jlo = thisProj.getTypeEnv().getObjectType();
-			final IIRProject jloProj    = JavaProjects.getEnclosingProject(jlo);
-			return jloProj.getName();
+			return getJRE(thisProj);
 		}
 		return 
 		IDE.getInstance().getStringPreference(IDEPreferences.DEFAULT_JRE);
 	}
 	
-	public static RegionModel getAllRegion(IRNode context) {
+	private static String getJRE(IIRProject thisProj) {
+		final IJavaDeclaredType jlo = thisProj.getTypeEnv().getObjectType();
+		final IIRProject jloProj    = JavaProjects.getEnclosingProject(jlo);
+		return jloProj.getName();
+	}
+	
+	public static RegionModel getAllRegion(IIRProject p) {	
+		return RegionModel.getInstance(ALL, getJRE(p)); 
+	}
+	
+	public static RegionModel getAllRegion(IRNode context) {	
 		return RegionModel.getInstance(ALL, getJRE(context)); 
 	}
 

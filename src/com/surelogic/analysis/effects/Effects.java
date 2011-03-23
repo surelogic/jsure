@@ -13,6 +13,8 @@ import com.surelogic.aast.promise.EffectsSpecificationNode;
 import com.surelogic.aast.promise.ImplicitQualifierNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContext;
@@ -94,8 +96,8 @@ public final class Effects implements IBinderClient {
   
   
   private final IBinder binder;
-  
-  
+  private IIRProject allRegionProj = null;
+  private RegionModel allRegion;
   
   public Effects(final IBinder binder) {
     this.binder = binder;
@@ -107,10 +109,19 @@ public final class Effects implements IBinderClient {
   // -- Utility methods
   //----------------------------------------------------------------------
 
-  private static Effect getWritesAnything(final IRNode effectSrc) {
+  private RegionModel getAllRegion(IRNode context) {
+	  final IIRProject p = JavaProjects.getEnclosingProject(context);
+	  if (p != allRegionProj) {
+		  // Update, since it's the wrong project
+		  allRegion = RegionModel.getAllRegion(p);
+		  allRegionProj = p;
+	  }
+	  return allRegion;
+  }
+  
+  private Effect getWritesAnything(final IRNode effectSrc) {	  
     final Target anything =
-      DefaultTargetFactory.PROTOTYPE.createClassTarget(
-          RegionModel.getAllRegion(effectSrc));
+      DefaultTargetFactory.PROTOTYPE.createClassTarget(getAllRegion(effectSrc));
     return Effect.newWrite(effectSrc, anything);
   }
 
@@ -325,7 +336,7 @@ public final class Effects implements IBinderClient {
    *          NewExpression, ConstructorCall, MethodDeclaration, or
    *          ConstructorDeclaration.
    */
-  public static Set<Effect> getMethodEffects(
+  public Set<Effect> getMethodEffects(
       final IRNode mDecl, final IRNode callSite) {
     Set<Effect> effects = getDeclaredMethodEffects(mDecl, callSite);
     if (effects == null) {
@@ -418,7 +429,7 @@ public final class Effects implements IBinderClient {
    *          property bound. Currently this means that the targetFactory had
    *          better be an instance of {@link ThisBindingTargetFactory}.
    */
-  public static Set<Effect> getMethodCallEffects(
+  public Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
       final IBinder binder, final IRNode call, final IRNode callingMethodDecl) {
     // Get the node of the method/constructor declaration

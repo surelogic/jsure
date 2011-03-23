@@ -72,7 +72,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
   // for creating drops
   private final IIRAnalysis analysis;
-
   
   
   // ==================================================================
@@ -272,7 +271,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         .getLogger("FLUID.analysis.unique.transfer");
 
     private final IRNode flowUnit;
-
+    private final Effects effects;
     
     
     // ==================================================================
@@ -284,7 +283,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final int floor, final IRNode fu, final boolean timeOut) {
       super(binder, lattice, new SubAnalysisFactory(cargo, fu, timeOut), floor);
       flowUnit = fu;
-    }
+      effects = new Effects(binder);
+    } 
 
     
     
@@ -749,7 +749,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 //        s = considerEffects(receiverNode, numActuals, actuals,
 //            effects.getMethodCallEffects(null, node, caller, true), s, node);
         s = considerDeclaredEffects(receiverNode, numActuals, formals,
-            Effects.getMethodEffects(mdecl, node), s, node);
+            effects.getMethodEffects(mdecl, node), s, node);
       }
       // We have to possibly compromise arguments
       s = popArguments(numActuals, formals, actuals, s);

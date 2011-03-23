@@ -71,7 +71,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   private final boolean timeOut;
   private final IMayAlias mayAlias;
   
-  
   // ==================================================================
   // === Constructor 
   // ==================================================================
@@ -225,7 +224,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private final IRNode flowUnit;
 
     private final IMayAlias mayAlias;
-    
+    private final Effects effects;
     
     
     // ==================================================================
@@ -238,6 +237,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       super(binder, lattice, new SubAnalysisFactory(fu, ma, timeOut), floor);
       flowUnit = fu;
       mayAlias = ma;
+      effects = new Effects(binder);
     }
 
     
@@ -613,7 +613,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 //        s = considerEffects(receiverNode, numActuals, actuals,
 //            effects.getMethodCallEffects(null, node, caller, true), s);
         s = considerDeclaredEffects(numActuals, formals,
-            Effects.getMethodEffects(mdecl, node), s);
+            effects.getMethodEffects(mdecl, node), s);
       }
       // We have to possibly compromise arguments
       s = popArguments(numActuals, formals, s);

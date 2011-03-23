@@ -158,6 +158,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   private final ThisExpressionBinder thisExprBinder;
 
   private final TargetFactory targetFactory;
+  private final Effects effects;
   
   /**
    * Information about the current method/constructor declaration
@@ -205,6 +206,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     this.ARRAY_ELEMENT = RegionModel.getArrayElementRegion(flowUnit);    
     this.context = Context.forNormalMethod(query, flowUnit);
+    this.effects = new Effects(b);
   }
 
   
@@ -254,7 +256,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
    * {@link #context context.}.
    */
   private Set<Effect> getMethodCallEffects(final IRNode call) {
-    return Effects.getMethodCallEffects(context.bcaQuery,
+    return effects.getMethodCallEffects(context.bcaQuery,
         targetFactory, binder, call, getEnclosingDecl());
   }
   

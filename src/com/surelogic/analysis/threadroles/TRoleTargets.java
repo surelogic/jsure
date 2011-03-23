@@ -363,7 +363,8 @@ public class TRoleTargets {
     // This is no worse than before changing MethodCallUtils.constructFormalToActualMap() to take the enclosing decl, but it is probably not correct: you need to make sure this works properly with initialization traversals.
     final IRNode enclosingMethod = PromiseUtil.getEnclosingMethod(mcall);
 
-    final Set<Effect> methodFx = Effects.getMethodCallEffects(
+    Effects eff = null;
+    final Set<Effect> methodFx = eff.getMethodCallEffects(
         bindingContextAnalysis.getExpressionObjectsQuery(enclosingMethod),
         targetFactory, binder, mcall, enclosingMethod);
     final Operator callOp = getOperator(mcall);
@@ -444,7 +445,8 @@ public class TRoleTargets {
     
     if (!ModuleModel.sameNonWorldModule(mCall, mDecl)) {
       // it's declared effects, or WritesAll!
-      return Effects.getMethodEffects(mDecl, mCall);
+    	Effects e = null;
+      return e.getMethodEffects(mDecl, mCall);
     } else {
       // this module does not apply!
       return null;
