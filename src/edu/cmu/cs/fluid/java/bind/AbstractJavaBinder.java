@@ -1644,10 +1644,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         if (recType instanceof IJavaDeclaredType) {
           IJavaDeclaredType dt = (IJavaDeclaredType) recType;
           if (AnnotationDeclaration.prototype.includes(dt.getDeclaration())) {
-            if (JJNode.tree.hasChildren(args)) {
-              throw new IllegalArgumentException("Illegal call to annotation element: "+DebugUnparser.toString(node));
+            if (!JJNode.tree.hasChildren(args)) {
+                return bindAnnotationElement(node, name, toUse); 
+                //throw new IllegalArgumentException("Illegal call to annotation element: "+DebugUnparser.toString(node));
             }
-            return bindAnnotationElement(node, name, toUse); 
+            // Process as normal method call
           }
         }
         boolean success = bindCall(node,targs,args,name, toUse);
@@ -1678,9 +1679,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
     private Void bindAnnotationElement(IRNode node, String name, IJavaScope toUse) {
-      boolean success = bind(node, toUse, IJavaScope.Util.isAnnotationElt);
+      boolean success = bind(node, toUse, IJavaScope.Util.isAnnoEltOrNoArgMethod);
       if (!success) {
-        bind(node, toUse, IJavaScope.Util.isAnnotationElt);
+        bind(node, toUse, IJavaScope.Util.isAnnoEltOrNoArgMethod);
       }      
       return null;
     }

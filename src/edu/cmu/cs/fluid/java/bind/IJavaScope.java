@@ -203,9 +203,21 @@ public interface IJavaScope {
         return op instanceof AnnotationElement;
       }      
     };
+    
     public static IBinding lookupAnnotationElt(IJavaScope scope, String name, IRNode useSite) {
       return scope.lookup(name,useSite,isAnnotationElt);
     }
+    
+    public static final Selector isAnnoEltOrNoArgMethod = eitherSelector(isAnnotationElt, new AbstractSelector("") {
+		@Override public boolean select(IRNode node) {
+			final Operator op = JJNode.tree.getOperator(node);
+			if (op instanceof MethodDeclaration) {
+				final IRNode params = MethodDeclaration.getParams(node);
+				return !JJNode.tree.hasChildren(params);
+			}
+			return false;
+		}
+	});
     
     public static final Selector isReceiverDecl = new AbstractSelector("Only receiver decls") {
       public boolean select(IRNode node) {
