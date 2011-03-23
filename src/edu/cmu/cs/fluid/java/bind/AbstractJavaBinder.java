@@ -2449,11 +2449,21 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       visit(node); // bind base type
       
       IRNode base = TypeRef.getBase(node);
-      IRNode baseDecl = getLocalIBinding(base).getNode();
-      IJavaScope tScope = typeScope(JavaTypeFactory.convertIRTypeDeclToIJavaType(baseDecl));
-      boolean success = bind(node,tScope,IJavaScope.Util.isTypeDecl);
-      if (!success) {
-        bind(node,tScope,IJavaScope.Util.isTypeDecl);
+      IBinding baseB = getLocalIBinding(base);
+      if (baseB != null) {
+    	  IRNode baseDecl = baseB.getNode();
+    	  IJavaScope tScope = typeScope(JavaTypeFactory.convertIRTypeDeclToIJavaType(baseDecl));
+    	  boolean success = bind(node,tScope,IJavaScope.Util.isTypeDecl);
+    	  if (!success) {
+    		  bind(node,tScope,IJavaScope.Util.isTypeDecl);
+    	  }
+      } else {
+    	  if (AbstractJavaBinder.isBinary(node)) {      
+    		  System.err.println("No binding to bind "+DebugUnparser.toString(node));
+    	  } else {
+    		  LOG.severe("No binding to bind "+DebugUnparser.toString(node));
+    	  }
+    	  bind(node, (IBinding) null);
       }
       return null;
     }
