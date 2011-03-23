@@ -209,7 +209,7 @@ public interface IJavaScope {
     }
     
     public static final Selector isAnnoEltOrNoArgMethod = eitherSelector(isAnnotationElt, new AbstractSelector("") {
-		@Override public boolean select(IRNode node) {
+      public boolean select(IRNode node) {
 			final Operator op = JJNode.tree.getOperator(node);
 			if (op instanceof MethodDeclaration) {
 				final IRNode params = MethodDeclaration.getParams(node);

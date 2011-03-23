@@ -34,6 +34,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.AggregatePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.AssumeFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
@@ -113,7 +114,8 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     final ContainablePromiseDrop containableDrop = 
       LockRules.getContainable(typeDecl);
     // no @Containable annotation --> Default "annotation" of not containable
-    if (containableDrop != null) {
+    // Also check for verify=false
+    if (containableDrop != null && containableDrop.verify()) {
       new ContainableVisitor(typeDecl, containableDrop).doAccept(classBody);
     }
 	}
@@ -543,52 +545,64 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
         if (isPrimitive) {
           createResult(varDecl, true, Messages.FIELD_CONTAINED_PRIMITIVE, id);
         } else {
-          final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(varDecl);
-          final AggregatePromiseDrop aggDrop = RegionRules.getAggregate(varDecl);
-          final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
-          final ContainablePromiseDrop declContainableDrop;
-          if (typeDecl != null) {
-            // no @Containable annotation --> Default "annotation" of not containable
-            declContainableDrop = LockRules.getContainable(typeDecl);
-          } else {
-            declContainableDrop = null;
-          }
-          if (declContainableDrop != null && uniqueDrop != null && aggDrop != null) {
+          final AssumeFieldIsPromiseDrop assumeDrop = LockRules.getAssumeFieldIs(varDecl);
+          if (assumeDrop != null && assumeDrop.isContainable()) {
             final ResultDropBuilder result =
-              createResult(varDecl, true, Messages.FIELD_CONTAINED_OBJECT, id);
-            result.addTrustedPromise(declContainableDrop);
-            result.addTrustedPromise(uniqueDrop);
-            result.addTrustedPromise(aggDrop);
+              createResult(varDecl, true, Messages.FIELD_CONTAINED_ASSUMED, id);
+            result.addTrustedPromise(assumeDrop);
           } else {
-            final ResultDropBuilder result =
-              createResult(varDecl, false, Messages.FIELD_BAD, id);
-            if (declContainableDrop != null) {
-              result.addTrustedPromise(declContainableDrop);              
-            } else {
+            final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(varDecl);
+            final AggregatePromiseDrop aggDrop = RegionRules.getAggregate(varDecl);
+            final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
+            final ContainablePromiseDrop declContainableDrop;
+            if (typeDecl != null) {
               // no @Containable annotation --> Default "annotation" of not containable
-              result.addSupportingInformation(varDecl, Messages.FIELD_NOT_CONTAINABLE);
-              if (type instanceof IJavaDeclaredType) {
-                result.addProposal(new ProposedPromiseBuilder(
-                    "Containable", null, typeDecl, varDecl));
+              declContainableDrop = LockRules.getContainable(typeDecl);
+            } else {
+              declContainableDrop = null;
+            }
+            if (declContainableDrop != null && uniqueDrop != null && aggDrop != null) {
+              final ResultDropBuilder result =
+                createResult(varDecl, true, Messages.FIELD_CONTAINED_OBJECT, id);
+              result.addTrustedPromise(declContainableDrop);
+              result.addTrustedPromise(uniqueDrop);
+              result.addTrustedPromise(aggDrop);
+            } else {
+              final ResultDropBuilder result =
+                createResult(varDecl, false, Messages.FIELD_BAD, id);
+              
+              // Always suggest @Assume("Containable")
+              result.addProposal(new ProposedPromiseBuilder(
+                      "Assume", "Containable", varDecl, varDecl));
+              
+              if (declContainableDrop != null) {
+                result.addTrustedPromise(declContainableDrop);              
+              } else {
+                // no @Containable annotation --> Default "annotation" of not containable
+                result.addSupportingInformation(varDecl, Messages.FIELD_NOT_CONTAINABLE);
+                if (type instanceof IJavaDeclaredType) {
+                  result.addProposal(new ProposedPromiseBuilder(
+                      "Containable", null, typeDecl, varDecl));
+                }
+              }
+  
+              if (uniqueDrop != null) {
+                result.addTrustedPromise(uniqueDrop);
+              } else {
+                result.addSupportingInformation(varDecl, Messages.FIELD_NOT_UNIQUE);
+                result.addProposal(new ProposedPromiseBuilder("Unique", null, varDecl, varDecl));
+                result.addProposal(new ProposedPromiseBuilder("Aggregate", null, varDecl, varDecl));
+              }
+              
+              if (aggDrop != null) {
+                result.addTrustedPromise(aggDrop);
+              } else { 
+                result.addSupportingInformation(varDecl, Messages.FIELD_NOT_AGGREGATED);
+                result.addProposal(new ProposedPromiseBuilder("Aggregate", null, varDecl, varDecl));
               }
             }
-
-            if (uniqueDrop != null) {
-              result.addTrustedPromise(uniqueDrop);
-            } else {
-              result.addSupportingInformation(varDecl, Messages.FIELD_NOT_UNIQUE);
-              result.addProposal(new ProposedPromiseBuilder("Unique", null, varDecl, varDecl));
-              result.addProposal(new ProposedPromiseBuilder("Aggregate", null, varDecl, varDecl));
-            }
-            
-            if (aggDrop != null) {
-              result.addTrustedPromise(aggDrop);
-            } else { 
-              result.addSupportingInformation(varDecl, Messages.FIELD_NOT_AGGREGATED);
-              result.addProposal(new ProposedPromiseBuilder("Aggregate", null, varDecl, varDecl));
-            }
-          }
-        } 
+          } 
+        }
       }
     }
   }
