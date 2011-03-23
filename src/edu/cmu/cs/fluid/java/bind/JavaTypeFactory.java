@@ -382,6 +382,10 @@ public class JavaTypeFactory implements IRType, Cleanable {
         IRNode arg = ch.next();
         typeActuals.add(convertNodeTypeToIJavaType(arg,binder));
       }
+      if (AbstractJavaBinder.isBinary(nodeType) && bt == null) {    	
+    	System.err.println("Null base type for "+DebugUnparser.toString(nodeType));
+    	return null;  
+      }      
       if (!(bt instanceof JavaDeclaredType)) {
         LOG.severe("parameterizing what? " + bt);
         return bt;
