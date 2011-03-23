@@ -11,6 +11,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -441,7 +442,12 @@ private long parseIntLiteral(String token) {
     if (op instanceof ClassDeclaration) {
       superclass = convertNodeTypeToIJavaType(ClassDeclaration.getExtension(tdecl));
       if (superclass == null) {
-        LOG.severe("extension for " + DebugUnparser.toString(tdecl) + " is empty!");
+    	if (AbstractJavaBinder.isBinary(tdecl)) {
+    		System.err.println("null extension for "+DebugUnparser.toString(tdecl));
+    	} else {
+    		LOG.severe("extension for " + DebugUnparser.toString(tdecl) + " is empty!");
+    	}
+ 		superclass = javalangobjectType;
       } else {
     	superclass = superclass.subst(subst);
       }
@@ -621,7 +627,7 @@ private long parseIntLiteral(String token) {
 		if (s instanceof IJavaDeclaredType && t instanceof IJavaDeclaredType) {
 			IJavaDeclaredType sd = ((IJavaDeclaredType)s);
 			IJavaDeclaredType td = ((IJavaDeclaredType)t);
-			if (sd.getDeclaration() == td.getDeclaration()) {
+			if (sd.getDeclaration() == td.getDeclaration() || areEquivalent(sd, td)) {
 				if (ignoreGenerics) {
 					return result = true;
 				}
@@ -655,6 +661,23 @@ private long parseIntLiteral(String token) {
   }
 
   /**
+   * Added to deal with the fact that Eclipse seems to allow classes from different JREs
+   * to be considered the same
+   */
+  private boolean areEquivalent(IJavaDeclaredType sd, IJavaDeclaredType td) {
+	  final String sId = JJNode.getInfoOrNull(sd.getDeclaration());
+	  final String tId = JJNode.getInfoOrNull(td.getDeclaration());
+	  if (sId.equals(tId)) {
+		  final String sName = JavaNames.getFullTypeName(sd.getDeclaration()); 
+		  if (sName.startsWith("java")) {
+			  final String tName = JavaNames.getFullTypeName(td.getDeclaration()); 
+			  return sName.equals(tName);
+		  }
+	  }
+	  return false;
+  }
+
+/**
    * Return whether type first type argument is "contained" in the second type argument.
    * This is a stricter relation than subtyping!
    * @param ss a type argument
