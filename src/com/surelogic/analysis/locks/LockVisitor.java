@@ -1846,9 +1846,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private MustHoldAnalysis.HeldLocks getHeldJUCLocks(final IRNode node) {
-	  if (ctxtHeldLocksQuery == null) {
-		  return null;
-	  }
 	  return ctxtHeldLocksQuery.getResultFor(node);
 	}
 
@@ -1900,6 +1897,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	// Traversal/visitor methods
 	// ----------------------------------------------------------------------
 
+	// Don't go inside of annotations
+	@Override
+	public Void visitAnnotation(final IRNode anno) {
+	  return null;
+	}
+	
+	
+	
 	@Override
 	public Void visitAnonClassExpression(final IRNode expr) {
 		assureCall(expr);
