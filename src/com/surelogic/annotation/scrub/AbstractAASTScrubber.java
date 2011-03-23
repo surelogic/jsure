@@ -9,6 +9,8 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.visitor.DescendingVisitor;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaProjects;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.*;
@@ -361,7 +363,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		return true;
 	}
 	
-	protected void processAASTsForType(List<A> l) {
+	protected void processAASTsForType(IRNode decl, List<A> l) {
 		if (StorageType.SEQ.equals(stor.type())) {
 			// Sort to process in a consistent order
 			Collections.sort(l, aastComparator);
@@ -587,7 +589,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				final IRNode decl = e.getKey();
 				startScrubbingType_internal(decl);
 				try {
-					processAASTsForType(l);
+					processAASTsForType(decl, l);
 				} finally {
 					finishScrubbingType_internal(decl);
 				}
@@ -617,7 +619,6 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	}
 	
 	private class HierarchyWalk {
-		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv();
 		// Empty list = a subclass w/o required annos
 		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
 		final Map<IRNode, List<IRNode>> methodRelatedDeclsToCheck = new HashMap<IRNode, List<IRNode>>();
@@ -633,7 +634,13 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			switch (scrubberType) {
 			case INCLUDE_SUBTYPES_BY_HIERARCHY:
 				for(IRNode type : new ArrayList<IRNode>(byType.keySet())) {
-					for(IRNode sub : tEnv.getRawSubclasses(type)) {
+					final IIRProject p = JavaProjects.getEnclosingProject(type);
+					/*
+					if ("I".equals(JJNode.getInfoOrNull(type))) {
+						System.out.println("Looking at my type");
+					}
+                    */
+					for(IRNode sub : p.getTypeEnv().getRawSubclasses(type)) {
 						// Add empty lists for types w/o required annos
 						if (!byType.containsKey(sub)) {
 							// Mark it as a type that we need to look at
@@ -687,7 +694,8 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				if (type == null) {
 					type = VisitUtil.getEnclosingCompilationUnit(enclosingFunc);
 				}
-				for(IRNode om : tEnv.getBinder().findOverridingMethodsFromType(enclosingFunc, type)) {					
+				final IIRProject p = JavaProjects.getEnclosingProject(type);
+				for(IRNode om : p.getTypeEnv().getBinder().findOverridingMethodsFromType(enclosingFunc, type)) {					
 					switch (loc) {
 					case DECL:
 						declsToCheck.add(om);
@@ -741,9 +749,9 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			if (done.contains(decl)) {
 				return;
 			}
-
+			final IIRProject p = JavaProjects.getEnclosingProject(decl);
 			// get super types
-			for (IJavaType st : tEnv.getSuperTypes(dt)) {
+			for (IJavaType st : p.getTypeEnv().getSuperTypes(dt)) {
 				walkHierarchy((IJavaDeclaredType) st);
 			}
 
@@ -766,7 +774,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 							processUnannotatedType(dt);
 						}
 					} else {
-						processAASTsForType(l);
+						processAASTsForType(dt.getDeclaration(), l);
 						if (type == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
 							processUnannotatedDeclsForType(otherDeclsToCheck);
 						}
