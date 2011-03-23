@@ -22,6 +22,7 @@ import com.surelogic.analysis.locks.locks.NeededLockFactory;
 import com.surelogic.analysis.locks.locks.ILock.Type;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.*;
+import com.surelogic.common.logging.SLLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +34,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
@@ -484,6 +486,10 @@ public final class LockUtils {
   
   private boolean isMethodFrom(final IRNode mcall, final IJavaDeclaredType testType) { //final String testClassName) {
 	  IBinding b = binder.getIBinding(mcall);
+	  if (b == null) {
+		  SLLogger.getLogger().warning("No binding for "+DebugUnparser.toString(mcall));
+		  return false;
+	  }
 	  IJavaDeclaredType context = b.getContextType();
 	  if (context == null) {
 		  IRNode tdecl = VisitUtil.getEnclosingType(b.getNode());
