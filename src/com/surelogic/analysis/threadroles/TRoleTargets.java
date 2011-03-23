@@ -69,12 +69,12 @@ public class TRoleTargets {
    
     if (INSTANCE == null) {
       // Get the Instance region
-      INSTANCE = RegionModel.getInstanceRegion();
+      INSTANCE = RegionModel.getInstanceRegion(null); // TODO
     }
 
     if (ELEMENT == null) {
       // Get the region for array elements
-      ELEMENT = RegionModel.getArrayElementRegion();
+      ELEMENT = RegionModel.getArrayElementRegion(null); // TODO
       ELEMENT.setNode(b.getTypeEnvironment().getArrayClassDeclaration());
 //      ELEMENT = 
 //        RegionModel.getInstance(binder.findRegionInType(IOldTypeEnvironment.arrayType,

@@ -102,10 +102,10 @@ public class FieldRegion extends AbstractRegion {
     //No InRegionPromiseDrop for this field, return the default regions
     else{
       if (isStatic()){
-        return RegionModel.getAllRegion();
+        return RegionModel.getAllRegion(field);
       }
       else{
-        return RegionModel.getInstanceRegion();
+        return RegionModel.getInstanceRegion(field);
       }
     }
   }

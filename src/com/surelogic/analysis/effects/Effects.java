@@ -110,7 +110,7 @@ public final class Effects implements IBinderClient {
   private static Effect getWritesAnything(final IRNode effectSrc) {
     final Target anything =
       DefaultTargetFactory.PROTOTYPE.createClassTarget(
-          RegionModel.getAllRegion());
+          RegionModel.getAllRegion(effectSrc));
     return Effect.newWrite(effectSrc, anything);
   }
 

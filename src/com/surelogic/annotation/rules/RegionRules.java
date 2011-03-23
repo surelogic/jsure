@@ -207,7 +207,7 @@ public class RegionRules extends AnnotationRules {
        * region is static.  Region ALL has no parent. 
        */
       if (!qualifiedName.equals(RegionModel.ALL)) {
-        parentModel = a.isStatic() ? RegionModel.getAllRegion() : RegionModel.getInstanceRegion();
+        parentModel = a.isStatic() ? RegionModel.getAllRegion(a.getPromisedFor()) : RegionModel.getInstanceRegion(a.getPromisedFor());
       }
     }
     

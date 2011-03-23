@@ -173,7 +173,7 @@ public final class LockUtils {
   public static final String MUTEX_NAME = "MUTEX"; //$NON-NLS-1$
   
   /** Reference to the Instance region */
-  private final RegionModel INSTANCE;
+  //private final RegionModel INSTANCE;
 
   
 
@@ -206,7 +206,7 @@ public final class LockUtils {
   private final LockModel mutex;
 
   /** The element region: {@code []}. */
-  private final RegionModel elementRegion;
+  //private final RegionModel elementRegion;
   
   /**
    * The internal representation of the {@link java.util.concurrent.locks.Lock}
@@ -276,7 +276,7 @@ public final class LockUtils {
         binder);
 
     // Get the instance region declaration
-    INSTANCE = RegionModel.getInstanceRegion();
+    //INSTANCE = RegionModel.getInstanceRegion();
     
     // Get the lock decl of the MUTEX lock on Object
     final RegionLockRecord lr = sysLockModelHandle.get().getRegionLockByName(
@@ -301,8 +301,8 @@ public final class LockUtils {
     	}
     }
     */
-    elementRegion = RegionModel.getArrayElementRegion();    
-    elementRegion.setNode(decl);
+    //elementRegion = RegionModel.getArrayElementRegion();    
+    //elementRegion.setNode(decl);
   }
 
   synchronized void clear() {
@@ -450,7 +450,7 @@ public final class LockUtils {
       final IRNode array, final IRNode sync) {
     if (sync != null) {
       final Set<Effect> exprEffects =
-        Collections.singleton(Effect.newRead(null, targetFactory.createInstanceTarget(array, elementRegion)));
+        Collections.singleton(Effect.newRead(null, targetFactory.createInstanceTarget(array, RegionModel.getArrayElementRegion(sync))));
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
       return conflicter.mayConflict(bodyEffects, exprEffects);
     } else {
@@ -1337,8 +1337,8 @@ public final class LockUtils {
     return objExpr;
   }
   
-  public RegionModel getElementRegion() {
-    return elementRegion;
+  public RegionModel getElementRegion(IRNode context) {
+    return RegionModel.getArrayElementRegion(context);
   }
   
   public LockModel getMutex() {
@@ -1388,7 +1388,7 @@ public final class LockUtils {
      * receiver declaration node directly.
      */
     final Effect writesInstance = Effect.newWrite(null,
-        DefaultTargetFactory.PROTOTYPE.createInstanceTarget(rcvrDecl, INSTANCE));
+        DefaultTargetFactory.PROTOTYPE.createInstanceTarget(rcvrDecl, RegionModel.getInstanceRegion(cdecl)));
 
     final Set<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);
     final RegionEffectsPromiseDrop eDrop = MethodEffectsRules.getRegionEffectsDrop(cdecl);

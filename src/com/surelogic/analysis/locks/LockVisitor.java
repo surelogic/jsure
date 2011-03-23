@@ -1846,6 +1846,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	}
 
 	private MustHoldAnalysis.HeldLocks getHeldJUCLocks(final IRNode node) {
+	  if (ctxtHeldLocksQuery == null) {
+		  return null;
+	  }
 	  return ctxtHeldLocksQuery.getResultFor(node);
 	}
 
@@ -2032,7 +2035,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		assureRegionRef(expr, lockUtils.getLocksForDirectRegionAccess(
 				ctxtBcaQuery, expr, !isWrite, lockUtils.createInstanceTarget(
 						ArrayRefExpression.getArray(expr), lockUtils
-								.getElementRegion())));
+								.getElementRegion(expr))));
 		// continue into the expression
 		doAcceptForChildren(expr);
 		return null;

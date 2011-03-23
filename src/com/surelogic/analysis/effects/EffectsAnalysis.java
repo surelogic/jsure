@@ -205,7 +205,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
                 // not presently supported in region annotations, convert to
                 // any(Object):Instance
                 ty = javaLangObject;
-                region = RegionModel.getInstanceRegion();
+                region = RegionModel.getInstanceRegion(member);
               }
             }
             target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(

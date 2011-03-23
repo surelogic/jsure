@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
@@ -396,10 +397,10 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 			else {
 				if (nrdn.isStatic()) {
 					model = ALL.equals(regionName) ? null : RegionModel
-							.getAllRegion();
+							.getAllRegion(this.getNode());
 				} else {
 					model = INSTANCE.equals(regionName) ? RegionModel
-							.getAllRegion() : RegionModel.getInstanceRegion();
+							.getAllRegion(this.getNode()) : RegionModel.getInstanceRegion(this.getNode());
 				}
 			}
 		}
@@ -441,9 +442,9 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 					return null;
 				}
 				if (JavaNode.getModifier(this.getNode(), JavaNode.STATIC)) {
-					return RegionModel.getAllRegion();
+					return RegionModel.getAllRegion(this.getNode());
 				} else {
-					return RegionModel.getInstanceRegion();
+					return RegionModel.getInstanceRegion(this.getNode());
 				}
 			}
 		}
@@ -494,26 +495,32 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		return this.regionName;
 	}
 
-	public static RegionModel getAllRegion() {
-		return RegionModel.getInstance(ALL, IDE.getInstance()
-				.getStringPreference(IDEPreferences.DEFAULT_JRE)); // TODO
+	private static String getJRE(IRNode context) {
+		if (context != null) {
+			final IIRProject thisProj   = JavaProjects.getEnclosingProject(context);
+			final IJavaDeclaredType jlo = thisProj.getTypeEnv().getObjectType();
+			final IIRProject jloProj    = JavaProjects.getEnclosingProject(jlo);
+			return jloProj.getName();
+		}
+		return 
+		IDE.getInstance().getStringPreference(IDEPreferences.DEFAULT_JRE);
+	}
+	
+	public static RegionModel getAllRegion(IRNode context) {
+		return RegionModel.getInstance(ALL, getJRE(context)); 
 	}
 
-	public static RegionModel getInstanceRegion() {
-		return RegionModel.getInstance(INSTANCE, IDE.getInstance()
-				.getStringPreference(IDEPreferences.DEFAULT_JRE)); // TODO
+	public static RegionModel getInstanceRegion(IRNode context) {
+		return RegionModel.getInstance(INSTANCE, getJRE(context)); 
 	}
 
-	public static RegionModel getArrayLengthRegion() {
-		return RegionModel.getInstance(PromiseConstants.REGION_LENGTH_NAME, IDE
-				.getInstance().getStringPreference(IDEPreferences.DEFAULT_JRE)); // TODO
+	public static RegionModel getArrayLengthRegion(IRNode context) {
+		return RegionModel.getInstance(PromiseConstants.REGION_LENGTH_NAME, getJRE(context)); 
 	}
 
-	public static RegionModel getArrayElementRegion() {
+	public static RegionModel getArrayElementRegion(IRNode context) {
 		return RegionModel.getInstance(
-				PromiseConstants.REGION_ELEMENT_NAME,
-				IDE.getInstance().getStringPreference(
-						IDEPreferences.DEFAULT_JRE)); // TODO
+				PromiseConstants.REGION_ELEMENT_NAME, getJRE(context)); 
 	}
 
 	public static void printModels() {
