@@ -33,11 +33,13 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageDeclaration;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -1020,12 +1022,25 @@ public class JavacDriver implements IResourceChangeListener {
 							&& (icu.getJavaProject().isOnClasspath(icu))) {
 						final File f = r.getLocation().toFile();
 						// System.out.println("Found source file: "+f.getPath());
+						/*
 						String typeName = f.getName().substring(0,
 								f.getName().length() - 5);
 						String qname = pkg.length() == 0 ? typeName : pkg + '.'
 								+ typeName;
 						config.addFile(new JavaSourceFile(qname, f, f
 								.getAbsolutePath()));
+								*/
+						final String path = f.getAbsolutePath();
+						/* TODO Problem due to hashing conflict?
+						 *  
+						for(IType t : icu.getAllTypes()) {
+							final String qname = t.getFullyQualifiedName();
+							config.addFile(new JavaSourceFile(qname, f, path));
+						}
+						*/
+						final String qname = computeQualifiedName(icu);						
+						config.addFile(new JavaSourceFile(qname, f, path));
+						
 						if (!added) {
 							added = true;
 							/*
@@ -1220,7 +1235,7 @@ public class JavacDriver implements IResourceChangeListener {
 				|| k == IncrementalProjectBuilder.FULL_BUILD) {
 			// TODO what about resources?
 			projects.put(project, new ProjectInfo(project, cus));
-			System.out.println("Got full build");
+			System.out.println("Got full build for "+project.getName());
 			if (script != null) {
 				cacheCompUnits(cus);
 			}
@@ -1475,20 +1490,12 @@ public class JavacDriver implements IResourceChangeListener {
 			final IPath path = icu.getResource().getFullPath();
 			final IPath loc = icu.getResource().getLocation();
 			final File f = loc.toFile();
-			String qname;
+			final String qname;
+			for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
+				config.addPackage(pd.getElementName());				
+			}							
 			if (f.exists()) {
-				String pkg = null;
-				for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
-					config.addPackage(pd.getElementName());
-					pkg = pd.getElementName();
-				}
-				qname = icu.getElementName();
-				if (qname.endsWith(".java")) {
-					qname = qname.substring(0, qname.length() - 5);
-				}
-				if (pkg != null) {
-					qname = pkg + '.' + qname;
-				}
+				qname = computeQualifiedName(icu);
 			} else { // Removed
 				qname = f.getName();
 			}
@@ -1497,6 +1504,41 @@ public class JavacDriver implements IResourceChangeListener {
 		return files;
 	}
 
+	String computeQualifiedName(ICompilationUnit icu) throws JavaModelException {
+		String qname = null;
+		for(IType t : icu.getTypes()) {
+			qname = t.getFullyQualifiedName();
+			/*
+			if (qname.endsWith("SingleSignOnEntry")) {
+				System.out.println("Looking at "+qname);
+			}
+			*/
+			final int flags = t.getFlags();
+			if (Flags.isPublic(flags)) {
+				// This is the only public top-level type
+				break;
+			} else {
+				System.out.println("Got a non-public type: "+qname);
+			}
+		}
+		if (qname == null) {
+			// Backup method: unreliable since the qname may not match the filename				
+			String pkg = null;
+			for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
+				pkg = pd.getElementName();
+				break;
+			}				
+			qname = icu.getElementName();
+			if (qname.endsWith(".java")) {
+				qname = qname.substring(0, qname.length() - 5);
+			}
+			if (pkg != null) {
+				qname = pkg + '.' + qname;
+			}
+		}
+		return qname;
+	}
+	
 	static class ZippedConfig extends Config {
 		ZippedConfig(String name, File location, boolean isExported) {
 			super(name, location, isExported);
