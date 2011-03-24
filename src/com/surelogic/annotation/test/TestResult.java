@@ -49,6 +49,10 @@ public class TestResult implements ITest {
     return JavaNames.getFullName(decl);
   }
   
+  public String identity() {
+	  return super.toString();
+  } 
+	
   @Override
   public String toString() {
     if (explanation != null) {

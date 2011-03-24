@@ -150,7 +150,10 @@ public class XMLLogDiff {
         }
         public IRNode getNode() {
           return null;
-        } 
+        }
+		public String identity() {
+			return toString();
+		} 
       };
       out.reportStart(o);
       if (e.event.getThrowableInformation() != null) { 

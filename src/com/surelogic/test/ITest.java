@@ -13,4 +13,6 @@ public interface ITest {
    * @return The class being tested
    */
   String getClassName();
+  
+  String identity();
 }
