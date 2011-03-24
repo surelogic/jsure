@@ -20,6 +20,8 @@ public class JavaProjects {
 	
 	public static IIRProject getEnclosingProject(IRNode here) {
 		final IRNode cu = VisitUtil.getEnclosingCompilationUnit(here);
+		//Not the same for some reason
+		//final IRNode cu = VisitUtil.findRoot(here);
 		return getProject(cu);
 	}
 	

@@ -89,6 +89,13 @@ public final class JavaNames {
 		if (type == null) {
 			return result;
 		}
+		// This should be the same as below
+		/*
+		final String temp = JJNode.getInfoOrNull(type);
+		if (temp != null) {
+			return temp;
+		}
+        */
 		final Operator op = getOperator(type);
 		if (ClassDeclaration.prototype.includes(op)) {
 			result = ClassDeclaration.getId(type);

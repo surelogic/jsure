@@ -36,6 +36,7 @@ public abstract class AASTBinder implements IAASTBinder {
   
   protected static IRNode findNearestType(AASTNode here) {
     IRNode promisedFor    = here.getPromisedFor();
+    //return VisitUtil.getClosestType(promisedFor);
     return findNearestType(promisedFor);
   }
   
