@@ -10,6 +10,7 @@ import com.surelogic.annotation.scrub.*;
 import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
@@ -53,26 +54,36 @@ public class ThreadEffectsRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<StartsSpecificationNode> makeScrubber() {
-      return new AbstractAASTScrubber<StartsSpecificationNode, StartsPromiseDrop>(this, ScrubberType.BY_HIERARCHY) {
+      return new AbstractAASTScrubber<StartsSpecificationNode, StartsPromiseDrop>(this, ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
         @Override
         protected PromiseDrop<StartsSpecificationNode> makePromiseDrop(StartsSpecificationNode a) {
-          return storeDropIfNotNull(a, scrubStarts(getContext(), a));          
+          /* Nothing to check here.  An annotated method may override an
+           * unannotated or annotated method.  There is only one form of the
+           * annotation.  Problem case is an unannotated method overriding
+           * an annotated method.  That is checked elsewhere.
+           */
+          return storeDropIfNotNull(a, new StartsPromiseDrop(a));          
+        }
+        
+        @Override
+        protected boolean processUnannotatedMethodRelatedDecl(final IRNode decl) {
+          /* If any of the immediate ancestors are annotated, then we have 
+           * an error. 
+           */
+          boolean good = true;
+          for (final IBinding pBinding : getContext().getBinder().findOverriddenParentMethods(decl)) {
+            final IRNode parent = pBinding.getNode();
+            if (startsNothing(parent)) {
+              // Ancestor is annotated
+              good = false;
+              getContext().reportError(decl,
+                  "Method must be annotated @Starts(\"nothing\") because it overrides @Starts(\"nothing\") {0}",
+                  JavaNames.genQualifiedMethodConstructorName(parent));
+            }
+          }
+          return good;
         }
       };
     }
-  }
-  
-  private static StartsPromiseDrop scrubStarts(
-      final IAnnotationScrubberContext scrubberContext, 
-      final StartsSpecificationNode a) {
-//    // There are no syntactic checks, on consistency checks
-//    // We only get here if the current method IS annotated!
-//    final IRNode promisedFor = a.getPromisedFor();
-//    for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
-//      final IRNode overriddenMethod = context.getNode();
-//      
-//    }
-    
-    return new StartsPromiseDrop(a);
   }
 }

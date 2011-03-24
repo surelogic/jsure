@@ -15,30 +15,30 @@
    <RegionEffects>none</RegionEffects>
    <unique>return</unique>
   </constructor>
-  <method name="clone">
+  <!--method name="clone">
    <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-  </method>
-  <method params="java.lang.Object" name="equals">
+  </method-->
+  <!--method params="java.lang.Object" name="equals">
    <effects>reads this.Instance</effects>
    <effects>reads arg0.Instance</effects>
    <starts>nothing</starts>
-  </method>
-  <method name="finalize">
+  </method-->
+  <!--method name="finalize">
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-  </method>
+  </method-->
   <method name="getClass">
    <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
   </method>
-  <method name="hashCode">
+  <!--method name="hashCode">
    <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-  </method>
+  </method-->
   <method name="notify">
    <requiresLock>MUTEX</requiresLock>
    <starts>nothing</starts>
@@ -49,10 +49,10 @@
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
   </method>
-  <method name="toString">
+  <!--method name="toString">
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-  </method>
+  </method-->
   <method name="wait">
    <requiresLock>MUTEX</requiresLock>
    <starts>nothing</starts>
