@@ -3,7 +3,6 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
 import edu.cmu.cs.fluid.derived.*;
 import edu.cmu.cs.fluid.ide.IDE;
@@ -20,6 +19,13 @@ import edu.cmu.cs.fluid.tree.Operator;
 public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUnitListener {
   private final Map<IRNode,IJavaMemberTable> memberTableCache = 
     new ConcurrentHashMap<IRNode, IJavaMemberTable>();
+  
+  private final ThreadLocal<IJavaMemberTable> objectTable = 
+	  new ThreadLocal<IJavaMemberTable>() {
+	  protected IJavaMemberTable initialValue() {
+		  return JavaMemberTable.makeBatchTable(typeEnvironment.getObjectType());
+	  }
+  };
   
   public UnversionedJavaBinder(final ITypeEnvironment tEnv) {
     super(tEnv);
@@ -171,6 +177,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   @Override
   public IJavaMemberTable typeMemberTable(IJavaSourceRefType type) {
     if (type instanceof IJavaDeclaredType) {
+      if (type == typeEnvironment.getObjectType()) {
+    	  return objectTable.get();
+      }
       IJavaDeclaredType jt = (IJavaDeclaredType) type;
       if (jt.getTypeParameters().isEmpty()) {
     	IRNode decl = jt.getDeclaration();
