@@ -81,5 +81,6 @@ public Both2() {}
 @NotContainable
 @Containable(implementationOnly=true)
 class Both3 {
-public Both3() {}
+	@Unique("return")
+	public Both3() {}
 }
