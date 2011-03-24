@@ -316,7 +316,7 @@ public abstract class IDE {
 			this.name = name;
 		}
 
-		ITestOutput ensureDelegateExists() {
+		synchronized ITestOutput ensureDelegateExists() {
 			if (delegate == null) {
 				try {
 					System.out.println(IDE.this.getClass().getSimpleName()
