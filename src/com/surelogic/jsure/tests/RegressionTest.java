@@ -312,6 +312,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			public String toString() {
 				return "RegressionTest " + tag;
 			}
+			public String identity() {
+				return super.toString();
+			} 
 		};
 		currentTest.push(output.reportStart(test));
 	}
