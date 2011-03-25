@@ -973,7 +973,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
         }else if( binder.getTypeEnvironment().isSubType( at1, at2 ) ) {
           return at2;
         }else {
-          return null;
+          return binder.getTypeEnvironment().getObjectType();
         }
       }else {
         return null;
