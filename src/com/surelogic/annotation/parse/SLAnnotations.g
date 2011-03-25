@@ -469,7 +469,7 @@ regionSpecification
 	
 simpleRegionSpecification	
 	: regionName
-	| (LBRACKET RBRACKET) -> ^(RegionName LBRACKET RBRACKET)
+//	| (LBRACKET RBRACKET) -> ^(RegionName LBRACKET RBRACKET)
 	;
 
 innerClassLockName
