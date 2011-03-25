@@ -511,8 +511,8 @@ public class JavaCanonicalizer {
     			return result = JJNode.copyTree(base);
     		}
     		String name = JJNode.getInfo(tdecl);
-    		if (op instanceof NestedTypeDeclInterface ||
-    				op instanceof NestedEnumDeclaration) {
+    		if (op instanceof NestedTypeDeclInterface || op instanceof NestedEnumDeclaration ||
+    				op instanceof NestedAnnotationDeclaration) {
     			// Check if a local class
     			IRNode enclosing = VisitUtil.getEnclosingClassBodyDecl(tdecl);
     			if (enclosing != null && 
@@ -529,6 +529,7 @@ public class JavaCanonicalizer {
     			qname = CommonStrings.intern(qname);
     			return result = NamedType.createNode(qname);
     		}
+    		//LOG.warning("Creating NamedType: "+name);
     		name = CommonStrings.intern(name);
     		return result = NamedType.createNode(name);
     	} finally {
@@ -993,6 +994,12 @@ public class JavaCanonicalizer {
 
     @Override
     public Boolean visitNameType(IRNode node) {
+      /*
+      String unparse = DebugUnparser.toString(node);
+      if ("org.junit.runners.Parameterized.Parameters".equals(unparse)) {
+    	  System.out.println("Visiting NameType: org.junit.runners.Parameterized.Parameters");
+      }
+*/
       replaceSubtree(node, nameToType(NameType.getName(node)));
       return true;
     }
@@ -1257,7 +1264,10 @@ public class JavaCanonicalizer {
 
     @Override
     public Integer visitDefaultValue(IRNode node) {
-    	return doAccept(DefaultValue.getValue(node));
+    	final IRNode annoElt = tree.getParent(node);
+    	final IRNode type    = AnnotationElement.getType(annoElt);
+    	return doAccept(type);
+    	//return doAccept(DefaultValue.getValue(node));    	
     }
     
     @Override
@@ -1272,6 +1282,7 @@ public class JavaCanonicalizer {
 
     @Override
     public Integer visitElementValuePair(IRNode node) {
+      // TODO
       return PRIMITIVE_CONTEXT;
     }
 
@@ -1352,6 +1363,16 @@ public class JavaCanonicalizer {
     }
     
     @Override
+    public Integer visitPrimitiveType(IRNode node) {
+    	return PRIMITIVE_CONTEXT;
+    }
+    
+    @Override
+    public Integer visitReferenceType(IRNode node) {
+    	return REFERENCE_CONTEXT;
+    }
+    
+    @Override
     public Integer visitReturnStatement(IRNode node) {
       IRNode rdecl = binder.getBinding(node);
       IRNode rtype = ReturnValueDeclaration.getType(rdecl);
@@ -1359,6 +1380,19 @@ public class JavaCanonicalizer {
       return top instanceof PrimitiveType ? PRIMITIVE_CONTEXT : ANY_CONTEXT;
     }
 
+    @Override
+    public Integer visitSingleElementAnnotation(IRNode node) {
+      IBinding b = binder.getIBinding(node);
+      IRNode body = AnnotationDeclaration.getBody(b.getNode());
+      for(IRNode m : tree.children(body)) {
+    	  String name = AnnotationElement.getId(m);
+    	  if ("value".equals(name)) {
+    		  return doAccept(AnnotationElement.getType(m));
+    	  }
+      }
+      return ANY_CONTEXT;
+    }
+    
     @Override
     public Integer visitStatement(IRNode node) {
       return ANY_CONTEXT;
