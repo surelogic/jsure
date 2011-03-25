@@ -89,7 +89,6 @@ public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDete
 
 		@Override
 		public Object visitMethodDeclaration(IRNode node) {
-			tEnv.getBinder().findOverriddenParentMethods(node);
 			return null;
 		}
 		
