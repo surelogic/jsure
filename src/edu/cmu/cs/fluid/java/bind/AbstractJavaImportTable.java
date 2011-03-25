@@ -162,7 +162,7 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
     } else if (op instanceof StaticImport) {
       IRNode tNode = StaticImport.getType(node);
       String name = JJNode.getInfo(node);
-      return new Pair<IJavaScope,String>(resolveTypeAsScope(tNode,useSite,true),name);
+      return new Pair<IJavaScope,String>(resolveTypeAsScope(tNode,useSite,false),name);
     } else if (op instanceof TypedDemandName) {
       IRNode tNode = TypedDemandName.getType(node);
       return new Pair<IJavaScope,String>(resolveTypeAsScope(tNode,useSite,true),null);
