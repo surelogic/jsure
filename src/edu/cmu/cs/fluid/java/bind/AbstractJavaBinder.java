@@ -998,6 +998,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     			}
                 */
     		}
+    	} else if (unparse.startsWith("super")) {
+    		System.err.println("Cannot find a binding for " + unparse+" in "+typeEnvironment);
     	} else {
     		LOG.warning("Cannot find a binding for " + unparse+" in "+typeEnvironment);
     	}
