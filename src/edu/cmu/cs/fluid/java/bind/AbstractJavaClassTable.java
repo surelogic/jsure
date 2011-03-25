@@ -29,7 +29,12 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
    * @see edu.cmu.cs.fluid.java.project.IJavaClassTable#packageScope(java.lang.String)
    */
   public IJavaScope packageScope(String pName) {
-    String prefix = pName.length() == 0 ? "" : (pName + ".");
+    String prefix;
+    if (pName.length() == 0) {
+    	prefix = "";
+    } else {
+    	prefix = pName + ".";
+    }
     prefix = CommonStrings.intern(prefix);
     return new PackageScope(prefix);
   }
