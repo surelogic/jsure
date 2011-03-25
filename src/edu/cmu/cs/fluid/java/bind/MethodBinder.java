@@ -246,21 +246,23 @@ System.out.println("matching against "+tmpTypes);
     				// issue w/ the last/varargs parameter
     				final IJavaArrayType at = (IJavaArrayType) captured;
     				final IJavaType eltType = at.getElementType();
-    				final IRNode varArg = Arguments.getArg(args, i); 
-    				if (VarArgsExpression.prototype.includes(varArg)) {
-    					inner:
-    						for(IRNode arg : VarArgsExpression.getArgIterator(varArg)) {
-    							final IJavaType argType = binder.getJavaType(arg);
-    							if (!isCallCompatible(eltType, argType)) {        	
-    								// Check if need (un)boxing
-    								if (onlyNeedsBoxing(eltType, argType)) {
-    									numBoxed++;
-    									continue inner;
+    				if (args != null) {
+    					final IRNode varArg = Arguments.getArg(args, i); 
+    					if (VarArgsExpression.prototype.includes(varArg)) {
+    						inner:
+    							for(IRNode arg : VarArgsExpression.getArgIterator(varArg)) {
+    								final IJavaType argType = binder.getJavaType(arg);
+    								if (!isCallCompatible(eltType, argType)) {        	
+    									// Check if need (un)boxing
+    									if (onlyNeedsBoxing(eltType, argType)) {
+    										numBoxed++;
+    										continue inner;
+    									}
+    									return null;
     								}
-    								return null;
     							}
-    						}
-    				continue;
+    					continue;
+    					}
     				}
     			}
     			if (debug) {
