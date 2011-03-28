@@ -20,41 +20,41 @@
   </constructor>
   
   <method name="size">
-    <starts>nothing</starts>
+    <!--starts>nothing</starts-->
     <borrowed>this</borrowed>
     <regionEffects>reads Instance</regionEffects>
   </method>
   <method name="clear">
-    <starts>nothing</starts>
+    <!--starts>nothing</starts-->
     <borrowed>this</borrowed>
     <regionEffects>writes Instance</regionEffects>
   </method>
   <method name="add" params="java.lang.Object">
-    <starts>nothing</starts>
+    <!--starts>nothing</starts-->
     <borrowed>this</borrowed>
     <RegionEffects>writes Instance</RegionEffects>
   </method>
   <method name="get" params="int">
-    <starts>nothing</starts>
+    <!--starts>nothing</starts-->
     <borrowed>this</borrowed>
     <regionEffects>reads Instance</regionEffects>
   </method>  
   <method name="set" params="int, java.lang.Object">
-    <starts>nothing</starts>
+    <!--starts>nothing</starts-->
     <borrowed>this</borrowed>
     <regionEffects>writes Instance</regionEffects>
   </method>  
   <method name="toArray" params="java.lang.Object[]">
-    <starts>nothing</starts>
+    <!--starts>nothing</starts-->
     <regionEffects>reads Instance</regionEffects>
   </method>
   <method name="remove" params="int">
-    <starts>nothing</starts>
+    <!--starts>nothing</starts-->
     <borrowed>this</borrowed>
     <regionEffects>writes Instance</regionEffects>
   </method>
   <method name="ensureCapacity" params="int">
-    <starts>nothing</starts>
+    <!--starts>nothing</starts-->
     <borrowed>this</borrowed>
     <RegionEffects>writes Instance</RegionEffects>
   </method>

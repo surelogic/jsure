@@ -8,7 +8,7 @@
        <borrowed/>
     </parameter>
     <RegionEffects>writes this:Instance; reads arg0:[]</RegionEffects>
-    <starts>nothing</starts>
+    <!--starts>nothing</starts-->
   </method>
  </class>
 </package>

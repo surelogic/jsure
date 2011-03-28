@@ -1,12 +1,12 @@
 <package name="java.util">
- <class name="AbstractList">
+ <class name="AbstractCollection">
   <constructor>
    <borrowed>this</borrowed>
    <regionEffects>none</regionEffects>
   </constructor>
 
   <method name="iterator">
-   <starts>nothing</starts>
+   <!--starts>nothing</starts-->
    <borrowed>this</borrowed>  <!-- not really true -->
    <RegionEffects>reads this:Instance</RegionEffects>
   </method>

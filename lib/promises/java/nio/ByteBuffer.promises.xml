@@ -10,7 +10,7 @@
   <method name="put" params="byte[], int, int">
     <RegionEffects>writes Instance</RegionEffects>
     <starts>nothing</starts>
-    <borrowed>this</borrowed>
+    <!--borrowed>this</borrowed-->
   </method>
  </class>
 </package>

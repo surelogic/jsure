@@ -20,7 +20,7 @@
 		<Promise>@ThreadRole(AWT) for paint*(**)</Promise>
 
 		<method name="setDoubleBuffered" params="boolean">
-			<starts>nothing</starts>
+      <!--starts>nothing</starts-->
 			<borrowed>this</borrowed>
 			<RegionEffects>writes this:Instance</RegionEffects>
 		</method>

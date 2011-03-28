@@ -82,7 +82,7 @@
   <method name="isReadOnly">
     <RegionEffects>reads Instance</RegionEffects>
     <borrowed>this</borrowed>
-    <starts>nothing</starts>    
+    <!--starts>nothing</starts-->    
   </method>
   
   <method name="nextGetIndex">
