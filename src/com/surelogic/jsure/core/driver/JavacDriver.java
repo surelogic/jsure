@@ -958,17 +958,19 @@ public class JavacDriver implements IResourceChangeListener {
 					System.out.println("Unexpected: " + cpe);
 				}				
 			}
-			// Add JRE if not already added
-			boolean hasJRE = false;
-			for(IClassPathEntry e : config.getClassPath()) {
-				if (e.equals(jre.getConfig())) {
-					hasJRE = true;
-					break;
+			if (jre != null) {
+				// Add JRE if not already added
+				boolean hasJRE = false;
+				for(IClassPathEntry e : config.getClassPath()) {
+					if (e.equals(jre.getConfig())) {
+						hasJRE = true;
+						break;
+					}
 				}
-			}
-			if (!hasJRE) {
-				System.out.println("Adding missing JRE: "+jre.getName());
-				config.addToClassPath(jre.getConfig());
+				if (!hasJRE) {
+					System.out.println("Adding missing JRE: "+jre.getName());
+					config.addToClassPath(jre.getConfig());
+				}
 			}
 		}
 
