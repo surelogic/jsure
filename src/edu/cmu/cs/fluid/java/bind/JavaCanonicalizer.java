@@ -675,8 +675,21 @@ public class JavaCanonicalizer {
       }
       if (!found) {
         String name = JJNode.getInfo(node);
-        IRNode supercall = CogenUtil.makeDefaultSuperCall();
-        IRNode empty = MethodBody.createNode(BlockStatement.createNode(new IRNode[]{supercall}));
+        final boolean isJavaLangObject;
+        if ("Object".equals(name)) {
+        	 final String qname = JavaNames.getQualifiedTypeName(node);
+        	 isJavaLangObject = "java.lang.Object".equals(qname);
+        } else {
+        	isJavaLangObject = false;
+        }
+        IRNode[] stmts;
+        if (isJavaLangObject) {
+        	stmts = noNodes;
+        } else {
+        	IRNode supercall = CogenUtil.makeDefaultSuperCall();
+        	stmts = new IRNode[]{supercall};
+        }
+        IRNode empty = MethodBody.createNode(BlockStatement.createNode(stmts));
         IRNode cdNode = CogenUtil.makeConstructorDecl(noNodes, JavaNode.PUBLIC, none,
             name, none, none, empty);
         ReceiverDeclaration.getReceiverNode(cdNode); 

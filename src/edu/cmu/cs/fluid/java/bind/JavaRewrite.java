@@ -118,6 +118,10 @@ public class JavaRewrite implements JavaGlobals {
 		if (EnumDeclaration.prototype.includes(type)) {
 			call = makeEnumSuperConstructorCall();
 		} else {			
+			String name = JavaNames.getQualifiedTypeName(type);
+			if ("java.lang.Object".equals(name)) {
+				return false;
+			}		
 			call = CogenUtil.makeDefaultSuperCall();
 			//System.out.println("Creating super(): "+call);
 		}
@@ -621,7 +625,15 @@ public class JavaRewrite implements JavaGlobals {
 		} else {
 			throwsC = JavaGlobals.noNodes;
 		}
-		IRNode[] stmt = new IRNode[] { CogenUtil.makeDefaultSuperCall() };
+		final boolean isJavaLangObject;
+		if ("Object".equals(cName)) {
+			final String qname = JavaNames.getQualifiedTypeName(decl);
+			isJavaLangObject = "java.lang.Object".equals(qname);
+		} else {
+			isJavaLangObject = false;
+		}
+		IRNode[] stmt = isJavaLangObject ? noNodes : 
+				new IRNode[] { CogenUtil.makeDefaultSuperCall() };
 		//System.out.println("Creating constructor with super(): "+stmt[0]);
 		IRNode block = BlockStatement.createNode(stmt);
 		IRNode body = MethodBody.createNode(block);
