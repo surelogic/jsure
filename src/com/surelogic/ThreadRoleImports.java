@@ -5,8 +5,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Container annotation for multiple {@link ThreadRoleImport} annotations. It is a
- * modeling error for a class to have both a {@link ThreadRolImports} and a
+ * Container annotation for multiple {@link ThreadRoleImport} annotations. It is
+ * a modeling error for a class to have both a {@link ThreadRollImports} and a
  * {@link ThreadRoleImport} annotation.
  */
 @Documented
