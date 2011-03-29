@@ -9,7 +9,6 @@ import com.surelogic.*;
 @RegionLock("L is this protects Instance")
 public class IntegerTable {
   @Unique
-  @Aggregate
   private Bucket[] buckets;
     { //@ unique(buckets); //Can't handle yet: unique(buckets[0]);
     }

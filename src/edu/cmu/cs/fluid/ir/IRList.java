@@ -54,8 +54,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   public final ES noSlot = getElemStorage().newSlot(new IRLocation(-1));
   //private final SlotFactory slotFactory;
 
-  @Unique
-  @AggregateInRegion("ListState")
+  @UniqueInRegion("ListState")
   private Header<IntS,S,ES,T> seq = EmptyHeader.prototype();	// dl-list of cells in sequence
   private int initialSize;	// starting size (often 0)
   private IntS sizeSlot;
