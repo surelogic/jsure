@@ -204,7 +204,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     this.binder = b;
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
-    this.ARRAY_ELEMENT = RegionModel.getArrayElementRegion(flowUnit);    
+    this.ARRAY_ELEMENT = RegionModel.getInstanceRegion(flowUnit);    
     this.context = Context.forNormalMethod(query, flowUnit);
     this.effects = new Effects(b);
   }

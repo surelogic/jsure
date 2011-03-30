@@ -73,9 +73,6 @@ public class CommonAASTBinder extends AASTBinder {
       return findRegionModel(dt.getDeclaration(), name);
     }
     if (jt instanceof IJavaArrayType) {
-      if (PromiseConstants.REGION_ELEMENT_NAME.equals(name)) {
-        return RegionModel.getArrayElementRegion(context);
-      }
       if (PromiseConstants.REGION_LENGTH_NAME.equals(name)) {
     	return RegionModel.getArrayLengthRegion(context);
       }

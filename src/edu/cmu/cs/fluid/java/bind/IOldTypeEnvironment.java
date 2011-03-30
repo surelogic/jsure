@@ -138,7 +138,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       final IRNode typeParam   = TypeFormal.createNode("T", MoreBounds.createNode(noNodes));
       
       final IRNode privateArrayType = 
-        CogenUtil.makeClass(false, JavaNode.PUBLIC, PromiseConstants.REGION_ELEMENT_NAME,
+        CogenUtil.makeClass(false, JavaNode.PUBLIC, PromiseConstants.ARRAY_CLASS_NAME,
                             new IRNode[] { typeParam },
                             CogenUtil.makeObjectNamedT(), 
                             new IRNode[] {CogenUtil.createNamedT("java.lang.Cloneable"),
@@ -162,8 +162,8 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       JavaNode.setModifier(privateLengthField, JavaNode.FINAL, true);      
       
       final ISrcRef ref = 
-    	  new NamedSrcRef("java.lang."+PromiseConstants.REGION_ELEMENT_NAME, "java.lang", 
-    			          PromiseConstants.REGION_ELEMENT_NAME);
+    	  new NamedSrcRef(PromiseConstants.ARRAY_CLASS_QNAME, "java.lang", 
+    			          PromiseConstants.ARRAY_CLASS_NAME);
       JavaNode.setSrcRef(privateCloneMethod, ref);
       JavaNode.setSrcRef(privateLengthField, ref);
       JavaNode.setSrcRef(privateArrayType, ref);
@@ -180,7 +180,6 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       createArrayRegion(privateArrayElement);
       createArrayRegion(privateLengthField);
       */
-      createArrayRegion(PromiseConstants.REGION_ELEMENT_NAME, privateArrayType, project);
       createArrayRegion(PromiseConstants.REGION_LENGTH_NAME, privateArrayType, project);
       ReturnValueDeclaration.getReturnNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateCloneMethod);

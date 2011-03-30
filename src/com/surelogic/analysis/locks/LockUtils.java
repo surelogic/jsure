@@ -450,7 +450,7 @@ public final class LockUtils {
       final IRNode array, final IRNode sync) {
     if (sync != null) {
       final Set<Effect> exprEffects =
-        Collections.singleton(Effect.newRead(null, targetFactory.createInstanceTarget(array, RegionModel.getArrayElementRegion(sync))));
+        Collections.singleton(Effect.newRead(null, targetFactory.createInstanceTarget(array, RegionModel.getInstanceRegion(sync))));
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
       return conflicter.mayConflict(bodyEffects, exprEffects);
     } else {
@@ -1338,7 +1338,7 @@ public final class LockUtils {
   }
   
   public RegionModel getElementRegion(IRNode context) {
-    return RegionModel.getArrayElementRegion(context);
+    return RegionModel.getInstanceRegion(context);
   }
   
   public LockModel getMutex() {

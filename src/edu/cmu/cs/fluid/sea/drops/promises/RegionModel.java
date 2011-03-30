@@ -203,8 +203,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 						&& isActiveProject(key.second())
 						&& (drop.colorInfo != null || drop.getAST() != null
 								|| key.first().equals(INSTANCE)
-								|| key.first().equals(ALL) || key.first()
-								.equals(PromiseConstants.REGION_ELEMENT_NAME));
+								|| key.first().equals(ALL));
 			}
 
 			// System.out.println(key+" : "+regionDefinedInCode+", "+keepAnyways);
@@ -524,11 +523,6 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 
 	public static RegionModel getArrayLengthRegion(IRNode context) {
 		return RegionModel.getInstance(PromiseConstants.REGION_LENGTH_NAME, getJRE(context)); 
-	}
-
-	public static RegionModel getArrayElementRegion(IRNode context) {
-		return RegionModel.getInstance(
-				PromiseConstants.REGION_ELEMENT_NAME, getJRE(context)); 
 	}
 
 	public static void printModels() {
