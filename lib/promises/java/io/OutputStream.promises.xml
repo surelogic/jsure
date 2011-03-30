@@ -7,7 +7,7 @@
     <parameter index="0">
        <borrowed/>
     </parameter>
-    <RegionEffects>writes this:Instance; reads arg0:[]</RegionEffects>
+    <RegionEffects>writes this:Instance; reads arg0:Instance</RegionEffects>
     <!--starts>nothing</starts-->
   </method>
  </class>
