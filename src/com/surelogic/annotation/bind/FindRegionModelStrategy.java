@@ -33,10 +33,18 @@ public class FindRegionModelStrategy extends AbstractSuperTypeSearchStrategy<IRe
 			}
 
 			IRegion reg = null;
-      final String qname = AnnotationRules.computeQualifiedName(type, name);
+      String qname = null;// = AnnotationRules.computeQualifiedName(type, name);
       for(RegionModel r : RegionRules.getModels(type)) {
         if (finerIsLoggable) {
           LOG.finer("Looking at "+r.regionName);
+        }
+        // Check simple name to avoid qna
+        if (!r.simpleName.equals(name)) {
+        	continue;
+        }
+        if (qname == null) {
+        	// Lazily compute qname
+        	qname = AnnotationRules.computeQualifiedName(type, name);
         }
         if (r.regionName.equals(qname)) {
           reg = r;
