@@ -15,8 +15,22 @@ import edu.cmu.cs.fluid.sea.*;
  *
  */
 public class BinaryCUDrop extends CUDrop {
+  static final Map<String,BinaryCUDrop> cache = new HashMap<String, BinaryCUDrop>();
+	
   public BinaryCUDrop(CodeInfo info) {
     super(info);
+    
+    final String id = computeId(info.getFile(), this);
+    cache.put(id, this);
+  }
+  
+  static String computeId(ICodeFile file, BinaryCUDrop drop) {
+      String proj = file == null ? null : file.getProjectName();
+      return computeId(proj, drop.javaOSFileName);
+  }
+  
+  static String computeId(String project, String javaName) {
+	  return project+':'+javaName;
   }
   
   /**
@@ -27,6 +41,11 @@ public class BinaryCUDrop extends CUDrop {
    *   not exist.
    */
   static public CUDrop queryCU(String project, String javaName) {
+	CUDrop d = cache.get(computeId(project, javaName));
+	if (d != null && d.isValid()) {
+		return d;
+	}	
+	/*
     @SuppressWarnings("unchecked") 
     Set<BinaryCUDrop> drops = Sea.getDefault().getDropsOfExactType(BinaryCUDrop.class);
     for (BinaryCUDrop drop : drops) {
@@ -36,6 +55,7 @@ public class BinaryCUDrop extends CUDrop {
         return drop;
       }
     }
+    */
     return null;
   }
 
