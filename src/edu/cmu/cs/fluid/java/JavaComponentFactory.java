@@ -29,7 +29,7 @@ public final class JavaComponentFactory implements ComponentFactory {
 	 */
   private static Map<IRNode, Component> components = new HashMap<IRNode, Component>();
   
-  public static void clearCache() {
+  public static synchronized void clearCache() {
 	  //checkCache();
 	  components.clear();
   }
