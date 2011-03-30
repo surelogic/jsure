@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.java;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,9 +28,9 @@ public final class JavaComponentFactory implements ComponentFactory {
 	 * stored in the following table. The structures are transient, and so there
 	 * is no need to use slots. @type Hashtable[IRNode,Component]
 	 */
-  private static final Map<IRNode, Component> components = new HashMap<IRNode, Component>();
+  private static final ConcurrentMap<IRNode, Component> components = new ConcurrentHashMap<IRNode, Component>();
   
-  public static synchronized void clearCache() {
+  public static void clearCache() {
 	  //checkCache();
 	  components.clear();
   }
@@ -38,7 +39,7 @@ public final class JavaComponentFactory implements ComponentFactory {
     return getComponent(node, false);
   }
   
-  public static synchronized Component getComponent(IRNode node, boolean quiet) {
+  public static Component getComponent(IRNode node, boolean quiet) {
     final Component comp = components.get(node);
     if (comp == null)
       // Requires class lock to be held: method is static synchronized
@@ -57,7 +58,11 @@ public final class JavaComponentFactory implements ComponentFactory {
         JavaNode.dumpTree(System.out, node, 1);
       }
       comp.registerFactory(this);
-      components.put(node, comp);
+	  Component old = components.putIfAbsent(node, comp);
+	  if (old != null) {
+		  // Already created by someone else
+		  return old;
+	  }
     } else if (!quiet) {
       LOG.warning(
         "Null control-flow component for " + DebugUnparser.toString(node) + " (OP = " + JJNode.tree.getOperator(node) + ")");
