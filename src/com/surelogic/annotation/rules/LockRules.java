@@ -44,7 +44,7 @@ public class LockRules extends AnnotationRules {
   public static final String IMMUTABLE = "Immutable";
   private static final String LOCK_FIELD_VISIBILITY = "LockFieldVisibility";
   private static final String REGION_INITIALIZER = "Region Initializer";
-  public static final String ASSUME_FIELD_IS = "Assume Field Is";
+  public static final String VOUCH_FIELD_IS = "Vouch Field Is";
   
 	private static final AnnotationRules instance = new LockRules();
 
@@ -63,7 +63,7 @@ public class LockRules extends AnnotationRules {
   private static final ImmutableParseRule immutableRule = new ImmutableParseRule();
   private static final Mutable_ParseRule mutableRule = new Mutable_ParseRule();
   private static final NotContainable_ParseRule notContainableRule = new NotContainable_ParseRule();
-  private static final AssumeFieldIs_ParseRule assumeFieldIsRule = new AssumeFieldIs_ParseRule();
+  private static final VouchFieldIs_ParseRule vouchFieldIsRule = new VouchFieldIs_ParseRule();
   
   private interface IProtectedRegions {
 	  void clear();
@@ -192,8 +192,8 @@ public class LockRules extends AnnotationRules {
 	  return getBooleanDrop(immutableRule.getStorage(), cdecl);
   }
   
-  public static AssumeFieldIsPromiseDrop getAssumeFieldIs(final IRNode fieldDecl) {
-    return getDrop(assumeFieldIsRule.getStorage(), fieldDecl);
+  public static VouchFieldIsPromiseDrop getVouchFieldIs(final IRNode fieldDecl) {
+    return getDrop(vouchFieldIsRule.getStorage(), fieldDecl);
   }
   
   @Override
@@ -211,7 +211,7 @@ public class LockRules extends AnnotationRules {
     registerParseRuleStorage(fw, immutableRule);
     registerParseRuleStorage(fw, mutableRule);
     registerParseRuleStorage(fw, notContainableRule);
-    registerParseRuleStorage(fw, assumeFieldIsRule);
+    registerParseRuleStorage(fw, vouchFieldIsRule);
     registerScrubber(fw, new LockFieldVisibilityScrubber());
 	}
 
@@ -596,7 +596,7 @@ public class LockRules extends AnnotationRules {
 			return new AbstractAASTScrubber<LockDeclarationNode, LockModel>(this,
 					ScrubberType.BY_HIERARCHY, LockRules.REGION_INITIALIZER,
 					RegionRules.REGIONS_DONE, AssumeFinalRules.ASSUME_FINAL,
-					ASSUME_FIELD_IS) {
+					VOUCH_FIELD_IS) {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						LockDeclarationNode a) {
@@ -635,10 +635,10 @@ public class LockRules extends AnnotationRules {
         }
 
         // New way of doing things
-        final AssumeFieldIsPromiseDrop assumeFieldIs =
-          LockRules.getAssumeFieldIs(lockFieldNode);
-        if (assumeFieldIs != null && assumeFieldIs.isFinal()) {
-          lockModel.addDependent(assumeFieldIs);
+        final VouchFieldIsPromiseDrop vouchFieldIs =
+          LockRules.getVouchFieldIs(lockFieldNode);
+        if (vouchFieldIs != null && vouchFieldIs.isFinal()) {
+          lockModel.addDependent(vouchFieldIs);
         }
       }
     }
@@ -826,11 +826,11 @@ public class LockRules extends AnnotationRules {
     }
   };
   
-  private static AssumeFieldIsPromiseDrop scrubAssumeFieldIs(
-      final IAnnotationScrubberContext context, final AssumeFieldIsNode a) {
+  private static VouchFieldIsPromiseDrop scrubVouchFieldIs(
+      final IAnnotationScrubberContext context, final VouchFieldIsNode a) {
     if (a.getKind() == FieldKind.Final) {
       // Final: Must make sure the field is not actually declared final
-      // Cannot use TypeUtils.isFinal() because that checks for @Assume
+      // Cannot use TypeUtils.isFinal() because that checks for @Vouch
       final IRNode promisedFor = a.getPromisedFor();
       boolean isAlreadyFinal = false;
       final Operator op = JJNode.tree.getOperator(promisedFor);
@@ -844,14 +844,14 @@ public class LockRules extends AnnotationRules {
       }
       
       if (isAlreadyFinal) {
-        context.reportError("Field is already declared to be final; no need to assume it", a);
+        context.reportError("Field is already declared to be final; no need to vouch it", a);
         return null;
       } else {
-        return new AssumeFieldIsPromiseDrop(a);
+        return new VouchFieldIsPromiseDrop(a);
       }      
     } else {
       // ThreadSafe, Containable, or Immutable.  Nothing to check for (yet?)
-      return new AssumeFieldIsPromiseDrop(a);
+      return new VouchFieldIsPromiseDrop(a);
     }
   }
   
@@ -1141,7 +1141,7 @@ public class LockRules extends AnnotationRules {
 			return new AbstractAASTScrubber<PolicyLockDeclarationNode, LockModel>(name(),
           PolicyLockDeclarationNode.class, lockRule.getStorage(),
 					ScrubberType.BY_HIERARCHY,
-					AssumeFinalRules.ASSUME_FINAL, ASSUME_FIELD_IS) {
+					AssumeFinalRules.ASSUME_FINAL, VOUCH_FIELD_IS) {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						PolicyLockDeclarationNode a) {
@@ -1908,9 +1908,9 @@ public class LockRules extends AnnotationRules {
     }
   } 
   
-	static class AssumeFieldIs_ParseRule extends DefaultSLAnnotationParseRule<AssumeFieldIsNode,AssumeFieldIsPromiseDrop> {
-		AssumeFieldIs_ParseRule() {
-			super(ASSUME_FIELD_IS, fieldDeclOp, AssumeFieldIsNode.class);
+	static class VouchFieldIs_ParseRule extends DefaultSLAnnotationParseRule<VouchFieldIsNode,VouchFieldIsPromiseDrop> {
+	  VouchFieldIs_ParseRule() {
+			super(VOUCH_FIELD_IS, fieldDeclOp, VouchFieldIsNode.class);
 		}
 
 		// Should only get called by the Assume parse rule
@@ -1924,22 +1924,21 @@ public class LockRules extends AnnotationRules {
 			} else {				
 				kind = FieldKind.valueOf(id);				
 			}
-			return new AssumeFieldIsNode(context.mapToSource(0), kind);
+			return new VouchFieldIsNode(context.mapToSource(0), kind);
 		}
 		
 		@Override
-		protected IPromiseDropStorage<AssumeFieldIsPromiseDrop> makeStorage() {
-			return SinglePromiseDropStorage.create(name(), AssumeFieldIsPromiseDrop.class);
+		protected IPromiseDropStorage<VouchFieldIsPromiseDrop> makeStorage() {
+			return SinglePromiseDropStorage.create(name(), VouchFieldIsPromiseDrop.class);
 		}
 
 		@Override
-		protected IAnnotationScrubber<AssumeFieldIsNode> makeScrubber() {
-			return new AbstractAASTScrubber<AssumeFieldIsNode, AssumeFieldIsPromiseDrop>(
+		protected IAnnotationScrubber<VouchFieldIsNode> makeScrubber() {
+			return new AbstractAASTScrubber<VouchFieldIsNode, VouchFieldIsPromiseDrop>(
 			    this, ScrubberType.UNORDERED) {
 				@Override
-				protected PromiseDrop<AssumeFieldIsNode> makePromiseDrop(AssumeFieldIsNode a) {
-//					AssumeFieldIsPromiseDrop d = new AssumeFieldIsPromiseDrop(a);
-					return storeDropIfNotNull(a, scrubAssumeFieldIs(getContext(), a));
+				protected PromiseDrop<VouchFieldIsNode> makePromiseDrop(VouchFieldIsNode a) {
+					return storeDropIfNotNull(a, scrubVouchFieldIs(getContext(), a));
 				}
 			};
 		}

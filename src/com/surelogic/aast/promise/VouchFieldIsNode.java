@@ -5,7 +5,7 @@ import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
 import com.surelogic.analysis.locks.FieldKind;
 
-public class AssumeFieldIsNode extends AASTRootNode { 
+public class VouchFieldIsNode extends AASTRootNode { 
   // Fields
   private final FieldKind kind;
 
@@ -13,7 +13,7 @@ public class AssumeFieldIsNode extends AASTRootNode {
   /**
    * Lists passed in as arguments must be @unique
    */
-  public AssumeFieldIsNode(int offset,
+  public VouchFieldIsNode(int offset,
 		                   FieldKind kind) {
     super(offset);
     this.kind = kind;
@@ -28,7 +28,7 @@ public class AssumeFieldIsNode extends AASTRootNode {
 
   @Override
   public IAASTNode cloneTree() {
-	  return new AssumeFieldIsNode(offset, kind);
+	  return new VouchFieldIsNode(offset, kind);
   }
 
   @Override

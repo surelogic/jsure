@@ -95,7 +95,7 @@ public class VouchRules extends AnnotationRules {
 				SLAnnotationsParser parser) throws RecognitionException {
 			if (context.getOp() instanceof FieldDeclaration) {
 				// Redirect to the appropriate rule
-				return PromiseFramework.getInstance().getParseDropRule(LockRules.ASSUME_FIELD_IS).parse(context, context.getAllText());				
+				return PromiseFramework.getInstance().getParseDropRule(LockRules.VOUCH_FIELD_IS).parse(context, context.getAllText());				
 			}
 			return new VouchSpecificationNode(context.mapToSource(0), context
 					.getAllText());

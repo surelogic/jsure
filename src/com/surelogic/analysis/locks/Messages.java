@@ -130,7 +130,7 @@ public final class Messages extends AbstractMessages {
   public static final int FIELD_NOT_CONTAINABLE = 458;
   public static final int FIELD_NOT_UNIQUE = 459;
   public static final int FIELD_NOT_AGGREGATED = 460;
-  public static final int FIELD_CONTAINED_ASSUMED = 461;
+  public static final int FIELD_CONTAINED_VOUCHED = 461;
 
  
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();

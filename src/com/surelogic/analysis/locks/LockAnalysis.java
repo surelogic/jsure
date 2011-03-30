@@ -34,13 +34,13 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.AggregatePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.AssumeFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.ThreadSafePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.VouchFieldIsPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.ProposedPromiseBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 
@@ -545,11 +545,11 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
         if (isPrimitive) {
           createResult(varDecl, true, Messages.FIELD_CONTAINED_PRIMITIVE, id);
         } else {
-          final AssumeFieldIsPromiseDrop assumeDrop = LockRules.getAssumeFieldIs(varDecl);
-          if (assumeDrop != null && assumeDrop.isContainable()) {
+          final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
+          if (vouchDrop != null && vouchDrop.isContainable()) {
             final ResultDropBuilder result =
-              createResult(varDecl, true, Messages.FIELD_CONTAINED_ASSUMED, id);
-            result.addTrustedPromise(assumeDrop);
+              createResult(varDecl, true, Messages.FIELD_CONTAINED_VOUCHED, id);
+            result.addTrustedPromise(vouchDrop);
           } else {
             final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(varDecl);
             final AggregatePromiseDrop aggDrop = RegionRules.getAggregate(varDecl);
@@ -571,9 +571,9 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               final ResultDropBuilder result =
                 createResult(varDecl, false, Messages.FIELD_BAD, id);
               
-              // Always suggest @Assume("Containable")
+              // Always suggest @Vouch("Containable")
               result.addProposal(new ProposedPromiseBuilder(
-                      "Assume", "Containable", varDecl, varDecl));
+                      "Vouch", "Containable", varDecl, varDecl));
               
               if (declContainableDrop != null) {
                 result.addTrustedPromise(declContainableDrop);              
