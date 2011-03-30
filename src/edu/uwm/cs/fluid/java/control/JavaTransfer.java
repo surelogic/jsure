@@ -651,30 +651,7 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     }
     return fa.getInfo(e2, ll);
   }
-  
-//  /**
-//   * Return copy of the analysis for use in call initializers. For
-//   * non&ndash;side-effecting analysis, this should method should be idempotent,
-//   * always returning the same analysis object (although there should be one
-//   * sub-analysis object for each constructor declaration flow unit). Backward
-//   * analyses should currently ignore the {@code terminationNormal} argument as
-//   * well, although in some cases it may be worthwhile to create different
-//   * sub-analyses for the normal and abrupt cases.
-//   * 
-//   * <p>
-//   * This approach won't work if we ever get smart work lists. In this case we
-//   * will have to create a fresh sub-analysis each time.
-//   * 
-//   * @param binder
-//   *          The binder to use.
-//   * @param terminationNormal
-//   *          if true then return result of normal termination, otherwise result
-//   *          of abrupt termination.
-//   * @return an analysis
-//   */
-//  protected abstract FlowAnalysis<T, L> createAnalysis(IRNode caller,
-//      IBinder binder, T initialValue, boolean terminationNormal);
-  
+    
   /**
    * Get the starting edge for the analysis of call initializers.  This is the
    * edge that will be used to initialize the analysis.

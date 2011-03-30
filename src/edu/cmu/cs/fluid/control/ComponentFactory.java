@@ -8,11 +8,11 @@ import edu.cmu.cs.fluid.tree.*;
  * create a component for a given IRNode.  Each Component
  * is assigned the factory that created it.
  */
-public abstract class ComponentFactory {
+public interface ComponentFactory {
   /** Return the component for this node, creating (and registering it)
    * as necessary.  The component should be created at most once.
    */
-  public abstract Component getComponent(IRNode node);
+  public Component getComponent(IRNode node);
   /** Return the syntax tree instance for the nodes here. */
-  public abstract SyntaxTreeInterface tree();
+  public SyntaxTreeInterface tree();
 }

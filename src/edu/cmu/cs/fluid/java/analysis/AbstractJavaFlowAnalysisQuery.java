@@ -89,7 +89,6 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      */
     public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
       return owner.getBottomReturningResult(lattice, expr);
-//      return owner.processRawResult(expr, lattice, lattice.bottom());
     }
 
     /**
@@ -122,8 +121,6 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      */
     public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
       return owner.getEvaluatedAnalysisResult(analysis, lattice, expr);
-//      return owner.processRawResult(
-//          expr, lattice, owner.rawResultFactory.getRawResult(expr, analysis));
     }
 
     /**

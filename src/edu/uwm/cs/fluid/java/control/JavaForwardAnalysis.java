@@ -17,7 +17,7 @@ public class JavaForwardAnalysis<T, L extends Lattice<T>>
   
   /**
    * Expose the sub analysis factory so that queries can access the sub analysis
-   * objects.  Cannot have a {@code getSubAnalysis()} method directory because
+   * objects.  Cannot have a {@code getSubAnalysis()} method directly because
    * that would require knowing the actual type of the returned analysis, which
    * creates a cyclic dependency in the type parameters of the FlowAnalysis and 
    * JavaTransfer implementations.  This way only the actual type passed to

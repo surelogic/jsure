@@ -102,9 +102,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	}
 
 	protected boolean checkUniquenessForFile(IRNode compUnit, final IAnalysisMonitor monitor) {
-		// clear the cached information
-		clearPromiseRecordCache();
-
 		try {
 			final Set<TypeAndMethod> methods = shouldAnalyzeCompilationUnit(compUnit);
 
@@ -290,29 +287,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		return UniquenessAnalysis.NOT_AN_ERROR;
 	}
 
-	private Map<IRNode, PromiseRecord> cachedPromiseRecord = null;
 
-	private void clearPromiseRecordCache() {
-		cachedPromiseRecord = new HashMap<IRNode, PromiseRecord>();
-	}
 
 	/**
 	 * @param block
 	 *          A MethodDeclaration, ConstructorDeclaration, InitDeclaration, or ClassInitDeclaration.
 	 */
 	private PromiseRecord getCachedPromiseRecord(final TypeAndMethod block) {
-		/*
-		String name = DebugUnparser.toString(block);
-		if (name.contains("GameMap getMap()")) {
-			System.out.println("Found: "+name);
-		}
-		*/
-		PromiseRecord pr = cachedPromiseRecord.get(block.methodDecl);
-		if (pr == null) {
-			pr = createPromiseRecordFor(block);
-			cachedPromiseRecord.put(block.methodDecl, pr);
-		}
-		return pr;
+	  return createPromiseRecordFor(block);
 	}
 
 	/**
@@ -946,7 +928,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
      * We care about borrowed parameters because they can affect the 
      * validity of unique fields passed to them.
      */
-//    private void visitCallInterface(final IRNode call) {
     @Override
     protected void handleAsMethodCall(final IRNode call) {
       final IRNode declNode = binder.getBinding(call);
@@ -978,33 +959,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
     
     
-//    @Override
-//    public Void visitAllocationCallExpression(final IRNode call) {
-//      visitCallInterface(call);
-//      return null;
-//    }
-//    
-//    @Override
-//    protected void handleAnonClassExpression(final IRNode expr) {
-//      doAccept(AnonClassExpression.getArgs(expr));
-//      // Handle as a AllocationCallExpression (CallInterface really)
-//      visitCallInterface(expr);
-//    }
-//
-//    @Override
-//    protected void handleEnumConstantClassDeclaration(final IRNode expr) {
-//      doAccept(EnumConstantClassDeclaration.getArgs(expr));
-//      // Handle as a AllocationCallExpression (CallInterface really)
-//      visitCallInterface(expr);
-//    }
-//    
-//    @Override
-//    public Void visitCall(final IRNode call) {
-//      visitCallInterface(call);
-//      doAcceptForChildren(call);
-//      return null;
-//    }
-
     @Override
     protected void handleConstructorDeclaration(final IRNode cdecl) {
       // Case 3b: borrowed/unique parameter
@@ -1072,13 +1026,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
       doAcceptForChildren(mdecl);
     }
-    
-//    @Override
-//    public Void visitSomeFunctionCall(final IRNode call) {
-//      visitCallInterface(call);
-//      doAcceptForChildren(call);
-//      return null;
-//    }
     
     @Override
     protected void handleFieldInitialization(final IRNode varDecl, final boolean isStatic) {

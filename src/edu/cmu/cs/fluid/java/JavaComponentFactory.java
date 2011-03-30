@@ -1,7 +1,6 @@
 package edu.cmu.cs.fluid.java;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,7 +14,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.parse.JJOperator;
 import edu.cmu.cs.fluid.tree.*;
 
-public class JavaComponentFactory extends ComponentFactory {
+public final class JavaComponentFactory implements ComponentFactory {
   /**
 	 * Logger for this class
 	 */
@@ -28,32 +27,28 @@ public class JavaComponentFactory extends ComponentFactory {
 	 * stored in the following table. The structures are transient, and so there
 	 * is no need to use slots. @type Hashtable[IRNode,Component]
 	 */
-  private static Map<IRNode,Component> components = new ConcurrentHashMap<IRNode,Component>();
+  private static Map<IRNode, Component> components = new HashMap<IRNode, Component>();
   
   public static void clearCache() {
 	  //checkCache();
 	  components.clear();
   }
-  /*
-  public static void checkCache() {
-	  System.out.println("JavaComponentFactory: "+components.size());
-  }
-  */
-  public static Component lookupComponent(IRNode node) {
-    return (components.get(node));
-  }
-  @Override
+
   public Component getComponent(IRNode node) {
     return getComponent(node, false);
   }
-  public static Component getComponent(IRNode node, boolean quiet) {
-    Component comp = lookupComponent(node);
+  
+  public static synchronized Component getComponent(IRNode node, boolean quiet) {
+    final Component comp = components.get(node);
     if (comp == null)
+      // Requires class lock to be held: method is static synchronized
       return prototype.createComponent(node, quiet);
     else
       return comp;
   }
-  public Component createComponent(final IRNode node, boolean quiet) {
+  
+  // Class lock must be held
+  private Component createComponent(final IRNode node, boolean quiet) {
     JavaOperator op = (JavaOperator) JJNode.tree.getOperator(node);
     Component comp = op.createComponent(node);
     if (comp != null) {
@@ -75,7 +70,7 @@ public class JavaComponentFactory extends ComponentFactory {
     }
     return comp;
   }
-  @Override
+
   public SyntaxTreeInterface tree() {
     return JJOperator.tree;
   }
