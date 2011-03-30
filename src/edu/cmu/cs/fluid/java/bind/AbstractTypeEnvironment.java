@@ -669,10 +669,10 @@ private long parseIntLiteral(String token) {
 	  final String tId = JJNode.getInfoOrNull(td.getDeclaration());
 	  if (sId.equals(tId)) {
 		  final String sName = JavaNames.getFullTypeName(sd.getDeclaration()); 
-		  if (sName.startsWith("java")) {
+		  //if (sName.startsWith("java")) {
 			  final String tName = JavaNames.getFullTypeName(td.getDeclaration()); 
 			  return sName.equals(tName);
-		  }
+		  //}
 	  }
 	  return false;
   }
