@@ -19,9 +19,10 @@ public class JavaProjects {
 	}
 	
 	public static IIRProject getEnclosingProject(IRNode here) {
-		final IRNode cu = VisitUtil.getEnclosingCompilationUnit(here);
-		//Not the same for some reason
+		//This doesn't use getPromisedFor
 		//final IRNode cu = VisitUtil.findRoot(here);
+		final IRNode cu = VisitUtil.findCompilationUnit(here);
+		//final IRNode cu = VisitUtil.getEnclosingCompilationUnit(here);
 		return getProject(cu);
 	}
 	
