@@ -7,6 +7,8 @@ import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 //import com.surelogic.RegionEffects;
+import com.surelogic.Assume;
+import com.surelogic.Assumes;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.RequiresLock;
@@ -127,7 +129,7 @@ public class Test {
       }
 
       @Borrowed("this")
-      @Starts("nothing")
+      @Starts("nothing") 
 //      @RegionEffects("none")
       public void callsNeedyMethod1() {
         Test.this.lockT2.lock();
@@ -148,6 +150,9 @@ public class Test {
     };
   }
   
+  @Assumes({
+  	@Assume("@Starts(nothing) for lock() in Lock in java.util.concurrent.locks"),
+  	@Assume("@Starts(nothing) for unlock() in Lock in java.util.concurrent.locks") })
   public void stuff2(final Test other) {
     other.lockT1.lock();
     try {
