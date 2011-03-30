@@ -20,6 +20,8 @@ import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
 // This is for code that is used to "visit" parts of a tree, given a root
 public class VisitUtil implements JavaGlobals {
   /// findRoot : traverse up until no longer possible
+  //
+  // This doesn't try to use the promisedFor node 
   public static IRNode findRoot(IRNode here) {
 	return OpSearch.rootSearch.find(here);
   }
