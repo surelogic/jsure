@@ -12,6 +12,7 @@ import com.surelogic.promise.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -85,12 +86,17 @@ public class VouchRules extends AnnotationRules {
 			extends
 			DefaultSLAnnotationParseRule<VouchSpecificationNode, VouchPromiseDrop> {
 		protected Vouch_ParseRule() {
-			super(VOUCH, methodOrClassDeclOps, VouchSpecificationNode.class);
+			// Normally would use methodOrClassDeclOps, except for hack to handle @Vouch("ThreadSafe")
+			super(VOUCH, fieldFuncTypeOps, VouchSpecificationNode.class);
 		}
 
 		@Override
 		protected Object parse(IAnnotationParsingContext context,
 				SLAnnotationsParser parser) throws RecognitionException {
+			if (context.getOp() instanceof FieldDeclaration) {
+				// Redirect to the appropriate rule
+				return PromiseFramework.getInstance().getParseDropRule(LockRules.ASSUME_FIELD_IS).parse(context, context.getAllText());				
+			}
 			return new VouchSpecificationNode(context.mapToSource(0), context
 					.getAllText());
 		}

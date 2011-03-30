@@ -135,17 +135,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 	static class Assume_ParseRule extends 
 	        ScopedPromiseRule<AssumeScopedPromiseNode, AssumePromiseDrop> {
 		protected Assume_ParseRule() {
-			// Normally would use methodOrClassDeclOps, except for hack to handle @Assume("ThreadSafe")
-			super(ASSUME, fieldFuncTypeOps, AssumeScopedPromiseNode.class);
-		}
-		
-		@Override
-		protected Object parse(IAnnotationParsingContext context, ScopedPromisesParser parser) throws RecognitionException {
-			if (context.getOp() instanceof FieldDeclaration) {
-				// Redirect to the appropriate rule
-				return PromiseFramework.getInstance().getParseDropRule(LockRules.ASSUME_FIELD_IS).parse(context, context.getAllText());				
-			}
-			return super.parse(context, parser);
+			super(ASSUME, methodOrClassDeclOps, AssumeScopedPromiseNode.class);
 		}
 		
 		@Override
