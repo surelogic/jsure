@@ -27,7 +27,7 @@ public final class JavaComponentFactory implements ComponentFactory {
 	 * stored in the following table. The structures are transient, and so there
 	 * is no need to use slots. @type Hashtable[IRNode,Component]
 	 */
-  private static Map<IRNode, Component> components = new HashMap<IRNode, Component>();
+  private static final Map<IRNode, Component> components = new HashMap<IRNode, Component>();
   
   public static synchronized void clearCache() {
 	  //checkCache();
