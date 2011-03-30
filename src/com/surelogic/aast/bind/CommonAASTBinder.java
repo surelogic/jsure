@@ -587,7 +587,10 @@ public class CommonAASTBinder extends AASTBinder {
 		  final IIRProject proj = JavaProjects.getEnclosingProject(context);
 		  for(Pair<String,IRNode> p : proj.getTypeEnv().getPackages()) {
 			  if (p.first().startsWith(prefix)) {
-				  pkgs.add(p.second());
+				  IRNode pkg = p.second();
+				  if (pkg.identity() != IRNode.destroyedNode) {
+					  pkgs.add(pkg);
+				  }
 			  }
 		  }
 		  if (!pkgs.isEmpty()) {
