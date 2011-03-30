@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
@@ -41,22 +42,21 @@ public final class TreeAccessor implements TestXMLParserConstants {
 	/**
 	 * Method findClass.
 	 */
-	public static IRNode findClass(String name, IRNode top) {
+	public static IRNode findNestedClass(String name, IRNode type) {
 		LOG.info("Looking for class " + name);
 
-		Iterator<IRNode> e = tree.children(top);
-		while (e.hasNext()) {
-			IRNode cl = e.next();
-			Operator op = tree.getOperator(cl);
+		IRNode body = VisitUtil.getClassBody(type);
+		for(IRNode m : ClassBody.getDeclIterator(body)) {
+			Operator op = tree.getOperator(m);
 			if (op instanceof TypeDeclInterface
-					&& name.equals(TypeDeclaration.getId(cl))) {
-				return cl;
+					&& name.equals(TypeDeclaration.getId(m))) {
+				return m;
 			}
 		}
 		String desc = "Couldn't find class " + name + " in "
-				+ DebugUnparser.toString(top);
+				+ DebugUnparser.toString(type);
 		LOG.warning(desc);
-		reportProblem(desc, top);
+		reportProblem(desc, type);
 		return null;
 	}
 

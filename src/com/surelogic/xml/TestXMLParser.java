@@ -29,6 +29,7 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 
 /**
  * assumes running JSure from a directory with "test.Test.promises.xml" in it,
@@ -80,7 +81,7 @@ public class TestXMLParser extends DefaultHandler implements
 	    numAnnotationsAdded = 0;
 	    
 		/** Initalize the node stack */
-		nodeStack.push(new NodeElement(pkgName, root));
+		nodeStack.push(new NodeElement(pkgName, NodeKind.ROOT, root));
 		/** Initalize the node iterator */
 		nodeIterator = VisitUtil.getTypeDecls(root);
 
@@ -123,18 +124,10 @@ public class TestXMLParser extends DefaultHandler implements
 
 	private static final SAXElement IGNORE_ELEMENT = new SAXElement("IGNORE");
 
-	/** Validity checking bools */
-	/* A valid xml promise file will have exactly one of the following */
-	private boolean package_bool = false;
-	private boolean class_bool = false;
-	/* A valid xml promise file will have at most one of the following */
-	private boolean classInit_bool = false;
-	private boolean noParamConstructor_bool = false;
-	/* Parameters may only appear in constructor and method elements */
-	private boolean parameter_bool = false;
-
-	/* Used to determine if we are in a promise block */
-	// private boolean promise_bool = false;
+	private boolean isStackTop(NodeKind kind) {
+		return nodeStack.peek().getKind().equals(kind);
+	}
+	
 	@Override
 	public void startElement(String namespaceURI, String sName, // simple name
 			String qName, // qualified name
@@ -164,7 +157,7 @@ public class TestXMLParser extends DefaultHandler implements
 		if (eName.equalsIgnoreCase(PACKAGE)) {
 
 			/** Only one package is allowed per xml file */
-			if (package_bool)
+			if (!isStackTop(NodeKind.ROOT))
 				malformedXML("Only one package is allowed per xml promise file");
 
 			/** Get the name of the package from the XML */
@@ -190,167 +183,158 @@ public class TestXMLParser extends DefaultHandler implements
 				reportError("Package XML name " + name
 						+ " does not equal AAST name " + pName);
 
-			package_bool = true;
+			nodeStack.push(new NodeElement(name, NodeKind.PKG, CompilationUnit.getPkg(nodeStack.peek().getNode())));
 
-		} else if (package_bool) {
-
+		} else if (isStackTop(NodeKind.PKG)) {
 			if (eName.equalsIgnoreCase(CLASS)) {
+				handleClass(e);
+			}
+		} else if (isStackTop(NodeKind.TYPE)) {
+			if (eName.equalsIgnoreCase(CLASS)) {
+				handleClass(e);
+			} 
+			else if (eName.equalsIgnoreCase(CLASSINIT)) {
+				IRNode classInit = JavaPromise.getClassInitOrNull(nodeStack
+						.peek().getNode());
+				if (classInit != null) {
+					/**
+					 * ClassInit elements have no attributes, so use the
+					 * static tag 'classInit'
+					 */
+					nodeStack.push(new NodeElement("classInit", NodeKind.CLASS_INIT, classInit));
+				} else
+					malformedXML("A class initializer was declared in the "
+							+ "xml but does not exist for "
+							+ JavaNames.getQualifiedTypeName(nodeStack
+									.peek().getNode()));
 
-				/** Only one class is allowed per xml file */
-				if (class_bool)
-					malformedXML("Only one class is allowed per xml promise file");
+			} else if (eName.equalsIgnoreCase(CONSTRUCTOR)) {
 
-				String name = e.getAttribute(NAME_ATTRB);
+				String params = e.getAttribute(PARAMS_ATTRB);
 
-				/** Make sure the class element is well formed */
-				if (name == null)
-					malformedXML("Class element requires a name attribute");
-
-				/** Find this class' AAST node */
-				IRNode next = null;
-				while (nodeIterator.hasNext()) {
-					next = nodeIterator.next();
-
-					if (TreeAccessor.isClassDeclaration(next)) {
-						if (name.equals(ClassDeclaration.getId(next)))
-							break;
-					}
-				}
-
-				if (next != null)
-					nodeStack.push(new NodeElement(name, next));
-				else
-					reportError("Could not find class node " + name);
-
-				class_bool = true;
-
-			} else if (class_bool) {
-				if (eName.equalsIgnoreCase(CLASSINIT)) {
-
-					if (classInit_bool)
-						reportWarn("More than one classInit entry declared");
-
-					IRNode classInit = JavaPromise.getClassInitOrNull(nodeStack
-							.peek().getNode());
-					if (classInit != null) {
-						/**
-						 * ClassInit elements have no attributes, so use the
-						 * static tag 'classInit'
-						 */
-						nodeStack.push(new NodeElement("classInit", classInit));
-					} else
-						malformedXML("A class initializer was declared in the "
-								+ "xml but does not exist for "
-								+ JavaNames.getQualifiedTypeName(nodeStack
-										.peek().getNode()));
-
-					classInit_bool = true;
-
-				} else if (eName.equalsIgnoreCase(CONSTRUCTOR)) {
-
-					String params = e.getAttribute(PARAMS_ATTRB);
-
-					IRNode con = TreeAccessor.findConstructor(params, nodeStack
-							.peek().getNode(), tEnv);
-					if (con != null) {
-						if (params == null) {
+				IRNode con = TreeAccessor.findConstructor(params, nodeStack
+						.peek().getNode(), tEnv);
+				if (con != null) {
+					if (params == null) {
+						/*
 							if (noParamConstructor_bool)
 								malformedXML("Declared more than one constructor"
 										+ " with no parameters");
+						 */
 
-							/**
-							 * No way to identify this node, so call it
-							 * 'constructor'.
-							 */
-							params = "constructor";
-							noParamConstructor_bool = true;
-						}
-						nodeStack.push(new NodeElement(params, con));
-						parameter_bool = true;
-					} else {
-						malformedStartElement(
-								"XML declared but could not find constructor"
-										+ " node " + e.getAttribute(NAME_ATTRB),
-								"constructor", nodeStack.peek().getNode());
+						/**
+						 * No way to identify this node, so call it
+						 * 'constructor'.
+						 */
+						params = "constructor";
+						//noParamConstructor_bool = true;
 					}
-
-				} else if (eName.equalsIgnoreCase(FIELD)) {
-
-					String name = e.getAttribute(NAME_ATTRB);
-
-					/** Make sure the field element is well formed */
-					if (name == null)
-						malformedXML("Field element requires a name attribute");
-
-					IRNode f = TreeAccessor.findField(name, nodeStack.peek()
-							.getNode());
-					if (f != null) {
-						nodeStack.push(new NodeElement(name, f));
-					} else {
-						malformedStartElement("Could not find field node "
-								+ name, name, nodeStack.peek().getNode());
-					}
-
-				} else if (eName.equalsIgnoreCase(METHOD)) {
-
-					String name = e.getAttribute(NAME_ATTRB);
-
-					/** Make sure the method element is well formed */
-					if (name == null)
-						malformedXML("Method element requires a name attribute");
-
-					final IRNode here = nodeStack.peek().getNode();
-					IRNode m = TreeAccessor.findMethod(here, name, 
-							e.getAttribute(PARAMS_ATTRB),
-							tEnv);
-					if (m != null) {
-						nodeStack.push(new NodeElement(name, m));
-						parameter_bool = true;
-					} else {
-						TreeAccessor.findMethod(here, name, 
-								                e.getAttribute(PARAMS_ATTRB), tEnv);
-						malformedStartElement("Could not find method node "
-								+ name, name, here);
-					}
-
-				} else if (eName.equalsIgnoreCase(PARAMETER)) {
-
-					if (!parameter_bool)
-						malformedXML("Can not declare a parameter outside of a "
-								+ "constructor element or method element");
-
-					String index = e.getAttribute(INDEX_ATTRB);
-					String name = e.getAttribute(NAME_ATTRB);
-
-					/** Make sure the parameter element is well formed */
-					if (index == null && name == null)
-						malformedXML("Parameter element requires an index or "
-								+ "name attribute");
-
-					IRNode p = TreeAccessor.findParameter(index, name,
-							nodeStack.peek().getNode());
-					if (p != null)
-						nodeStack.push(new NodeElement((index != null) ? index
-								: name, p));
-					else {
-						malformedStartElement(
-								"Could not find parameter node with index "
-										+ index + " and name " + name, name,
-								nodeStack.peek().getNode());
-					}
-
-					// } else if(eName.equalsIgnoreCase(PROMISE)) {
-
-					// if(!(e.getAttribute(KEYWORD_ATTRB) == null) ||
-					// !(e.getAttribute(CONTENTS_ATTRB) == null))
-					// malformedXML("Detected old style of XML");
-
-					// promise_bool = true;
-				} else if (LOG.isLoggable(Level.FINER)) {
-					LOG.finer("Ignoring start element " + eName);
+					nodeStack.push(new NodeElement(params, NodeKind.CONSTRUCTOR, con));
+				} else {
+					malformedStartElement(
+							"XML declared but could not find constructor"
+							+ " node " + e.getAttribute(NAME_ATTRB),
+							"constructor", nodeStack.peek().getNode());
 				}
-			} // if(class_bool)
-		} // if(package_bool)
+
+			} else if (eName.equalsIgnoreCase(FIELD)) {
+
+				String name = e.getAttribute(NAME_ATTRB);
+
+				/** Make sure the field element is well formed */
+				if (name == null)
+					malformedXML("Field element requires a name attribute");
+
+				IRNode f = TreeAccessor.findField(name, nodeStack.peek()
+						.getNode());
+				if (f != null) {
+					nodeStack.push(new NodeElement(name, NodeKind.FIELD, f));
+				} else {
+					malformedStartElement("Could not find field node "
+							+ name, name, nodeStack.peek().getNode());
+				}
+
+			} else if (eName.equalsIgnoreCase(METHOD)) {
+
+				String name = e.getAttribute(NAME_ATTRB);
+
+				/** Make sure the method element is well formed */
+				if (name == null)
+					malformedXML("Method element requires a name attribute");
+
+				final IRNode here = nodeStack.peek().getNode();
+				IRNode m = TreeAccessor.findMethod(here, name, 
+						e.getAttribute(PARAMS_ATTRB),
+						tEnv);
+				if (m != null) {
+					nodeStack.push(new NodeElement(name, NodeKind.METHOD, m));
+				} else {
+					TreeAccessor.findMethod(here, name, 
+							e.getAttribute(PARAMS_ATTRB), tEnv);
+					malformedStartElement("Could not find method node "
+							+ name, name, here);
+					}
+			}
+		} else if (isStackTop(NodeKind.METHOD) || isStackTop(NodeKind.CONSTRUCTOR)) {
+			if (eName.equalsIgnoreCase(PARAMETER)) {
+
+				String index = e.getAttribute(INDEX_ATTRB);
+				String name = e.getAttribute(NAME_ATTRB);
+
+				/** Make sure the parameter element is well formed */
+				if (index == null && name == null)
+					malformedXML("Parameter element requires an index or "
+							+ "name attribute");
+
+				IRNode p = TreeAccessor.findParameter(index, name,
+						nodeStack.peek().getNode());
+				if (p != null)
+					nodeStack.push(new NodeElement((index != null) ? index
+							: name, NodeKind.PARAM, p));
+				else {
+					malformedStartElement(
+							"Could not find parameter node with index "
+							+ index + " and name " + name, name,
+							nodeStack.peek().getNode());
+				}
+			}
+			// } else if(eName.equalsIgnoreCase(PROMISE)) {
+
+			// if(!(e.getAttribute(KEYWORD_ATTRB) == null) ||
+			// !(e.getAttribute(CONTENTS_ATTRB) == null))
+			// malformedXML("Detected old style of XML");
+
+			// promise_bool = true;
+		} else if (LOG.isLoggable(Level.FINER)) {
+			LOG.finer("Ignoring start element " + eName);
+		}
+	} // if(class_bool)
+		
+	private void handleClass(SAXElement e) throws SAXException {
+		String name = e.getAttribute(NAME_ATTRB);
+
+		/** Make sure the class element is well formed */
+		if (name == null)
+			malformedXML("Class element requires a name attribute");
+
+		/** Find this class' AAST node */
+		IRNode next = null;
+		if (isStackTop(NodeKind.PKG)) {
+			while (nodeIterator.hasNext()) {
+				next = nodeIterator.next();
+
+				if (name.equals(JJNode.getInfoOrNull(next))) {
+					break;
+				}
+			}
+		} else {
+			next = TreeAccessor.findNestedClass(name, nodeStack.peek().getNode());
+		}
+
+		if (next != null)
+			nodeStack.push(new NodeElement(name, NodeKind.TYPE, next));
+		else
+			reportError("Could not find class node " + name);
 	}
 
 	@Override
@@ -412,12 +396,10 @@ public class TestXMLParser extends DefaultHandler implements
 				popNode("constructor");
 			else
 				popNode(e.getAttribute(PARAMS_ATTRB));
-			parameter_bool = false;
 		} else if (eName.equalsIgnoreCase(FIELD)) {
 			popNode(e.getAttribute(NAME_ATTRB));
 		} else if (eName.equalsIgnoreCase(METHOD)) {
 			popNode(e.getAttribute(NAME_ATTRB));
-			parameter_bool = false;
 		} else if (eName.equalsIgnoreCase(PARAMETER)) {
 			popNode((e.getAttribute(INDEX_ATTRB) != null) ? e
 					.getAttribute(INDEX_ATTRB) : e.getAttribute(NAME_ATTRB));
@@ -551,14 +533,24 @@ public class TestXMLParser extends DefaultHandler implements
 		System.err.println("\n" + XMLGenerator.generateStringXML(root, true));
 	}
 
+	enum NodeKind {
+		ROOT, PKG, TYPE, CLASS_INIT, FIELD, METHOD, PARAM, CONSTRUCTOR
+	}
+	
 	/** NodeElements are named AAST nodes */
 	private static class NodeElement {
-		private String name;
-		private IRNode node;
-
-		NodeElement(String name, IRNode node) {
+		private final String name;
+		private final IRNode node;
+		private final NodeKind kind;
+		
+		NodeElement(String name, NodeKind k, IRNode node) {
 			this.name = name;
 			this.node = node;
+			kind = k;
+		}
+
+		public NodeKind getKind() {
+			return kind;
 		}
 
 		public String getName() {
