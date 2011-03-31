@@ -61,7 +61,7 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
     printAST(initParser("  Yo  ").returnsLock().tree);    
     //printAST(initParser("  Foo.Bar:Baz  ").returnsLock().tree);    
     
-    printAST(initParser("  [] into Instance  ").aggregate().tree); 
+    printAST(initParser("  [] into Instance  ").uniqueInRegion().tree); 
     printAST(initParser(" public static Foo   ").region().tree); 
     printAST(initParser(" private Bar extends Foo ").region().tree); 
     printAST(initParser("  bar:Instance  ").inRegion().tree); 

@@ -385,7 +385,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             aggDrop = RegionRules.getAggregate(varDecl);
             if (uDrop != null && aggDrop != null) {
               isContained = true;
-              for (final RegionMappingNode mapping : aggDrop.getAST().getSpec().getMappingList()) {
+              for (final RegionMappingNode mapping : aggDrop.getAST().getMapping().getMappingList()) {
                 final IRegion destRegion = mapping.getTo().resolveBinding().getRegion();
                 isContained &= (getLockForRegion(destRegion) != null);
               }
@@ -416,7 +416,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               result.addTrustedPromise(declContainableDrop);
               result.addTrustedPromise(uDrop);
               result.addTrustedPromise(aggDrop);
-              for (final RegionMappingNode mapping : aggDrop.getAST().getSpec().getMappingList()) {
+              for (final RegionMappingNode mapping : aggDrop.getAST().getMapping().getMappingList()) {
                 final IRegion destRegion = mapping.getTo().resolveBinding().getRegion();
                 result.addTrustedPromise(getLockForRegion(destRegion).lockDecl);
               }

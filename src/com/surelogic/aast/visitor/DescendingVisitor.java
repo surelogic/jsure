@@ -537,15 +537,15 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     return rv;
   }
   
-  public T visit(AggregateInRegionNode n) {
+  public T visit(UniqueInRegionNode n) {
 	  T rv = defaultValue;
 	  rv = combineResults(rv, doAccept(n.getSpec()));
 	  return rv;
   }
   
-  public T visit(AggregateNode n) {
+  public T visit(UniqueMappingNode n) {
     T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getSpec()));
+    rv = combineResults(rv, doAccept(n.getMapping()));
     return rv;
   }
 

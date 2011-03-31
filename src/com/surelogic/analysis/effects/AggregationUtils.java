@@ -130,7 +130,7 @@ public final class AggregationUtils {
     final AggregatePromiseDrop mrs = RegionRules.getAggregate(field);
     if (mrs != null) {
       final Map<RegionModel, IRegion> aggregationMap = new HashMap<RegionModel, IRegion>();
-      for (final RegionMappingNode mapping : mrs.getAST().getSpec().getMappingList()) {
+      for (final RegionMappingNode mapping : mrs.getAST().getMapping().getMappingList()) {
         aggregationMap.put(mapping.getFrom().resolveBinding().getModel(), 
                            mapping.getTo().resolveBinding().getRegion());
       }

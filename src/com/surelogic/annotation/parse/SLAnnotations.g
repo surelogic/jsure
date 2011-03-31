@@ -24,8 +24,8 @@ tokens {
 	RequiresLock;
 	ReturnsLock;
 	InRegion;
-	Aggregate;
-	AggregateInRegion;
+	UniqueMapping;
+	UniqueInRegion;
 	RegionEffects;
 	Reads;
 	Writes; 
@@ -411,9 +411,7 @@ simpleLockExpression
 /*************************************************************************************
  * Effects rules
  *************************************************************************************/	
-aggregate
-    	: mappedRegionSpecification EOF -> ^(Aggregate mappedRegionSpecification)
-    	;
+
     	
 region
 	: fullRegionDecl -> fullRegionDecl
@@ -436,8 +434,9 @@ inRegion
 	: regionSpecification EOF -> ^(InRegion regionSpecification)
 	;
 
-aggregateInRegion
-	: regionSpecification EOF -> ^(AggregateInRegion regionSpecification)
+uniqueInRegion
+  : mappedRegionSpecification EOF -> ^(UniqueMapping mappedRegionSpecification)
+	| regionSpecification EOF -> ^(UniqueInRegion regionSpecification)
 	;
 	
 mapFields

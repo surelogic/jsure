@@ -112,7 +112,7 @@ public interface INodeVisitor<T> {
   T visit(AssumeFinalNode n);
   T visit(TypeExpressionNode n);
   T visit(InRegionNode node);
-  T visit(AggregateNode node);   
+  T visit(UniqueMappingNode node);   
   T visit(ReadLockNode node); 
   T visit(WriteLockNode node);
   T visit(ContainableNode node);
@@ -127,7 +127,7 @@ public interface INodeVisitor<T> {
 	T visit(WildcardTypeQualifierPatternNode wildcardTypeQualifierPatternNode);
 	T visit(NotUniqueNode notUniqueNode);
 	T visit(RegionEffectsNode regionEffectsNode);
-	T visit(AggregateInRegionNode n);
+	T visit(UniqueInRegionNode n);
 	T visit(VouchSpecificationNode n);
 	T visit(MethodCallNode methodCallNode);
 	T visit(GuardedByNode guardedByNode);

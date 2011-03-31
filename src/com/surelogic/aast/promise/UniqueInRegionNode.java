@@ -7,18 +7,18 @@ import java.util.List;
 import com.surelogic.aast.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class AggregateNode extends AASTRootNode 
+public class UniqueInRegionNode extends AbstractUniqueInRegionNode 
 { 
   // Fields
-  private final MappedRegionSpecificationNode spec;
+  private final RegionSpecificationNode spec;
 
   public static final AbstractAASTNodeFactory factory =
-    new AbstractAASTNodeFactory("Aggregate") {
+    new AbstractAASTNodeFactory("AggregateInRegion") {
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
-        MappedRegionSpecificationNode spec =  (MappedRegionSpecificationNode) _kids.get(0);
-        return new AggregateNode (_start, spec        );
+        RegionSpecificationNode spec =  (RegionSpecificationNode) _kids.get(0);
+        return new UniqueInRegionNode (_start, spec        );
       }
     };
 
@@ -26,8 +26,8 @@ public class AggregateNode extends AASTRootNode
   /**
    * Lists passed in as arguments must be @unique
    */
-  public AggregateNode(int offset,
-                     MappedRegionSpecificationNode spec) {
+  public UniqueInRegionNode(int offset,
+                     RegionSpecificationNode spec) {
     super(offset);
     if (spec == null) { throw new IllegalArgumentException("spec is null"); }
     ((AASTNode) spec).setParent(this);
@@ -39,12 +39,13 @@ public class AggregateNode extends AASTRootNode
     StringBuilder sb = new StringBuilder();
     if (debug) { 
     	indent(sb, indent); 
-    	sb.append("AggregateNode\n");
+    	sb.append("AggregateInRegionNode\n");
     	indent(sb, indent+2);
     	sb.append(getSpec().unparse(debug, indent+2));
     } else {
-    	sb.append("@Aggregate ");
-    	sb.append(getSpec().unparse(debug, indent+2));
+    	sb.append("@AggregateInRegion(");
+    	sb.append(getSpec());
+    	sb.append(')');
     }
     return sb.toString();
   }
@@ -52,7 +53,7 @@ public class AggregateNode extends AASTRootNode
   /**
    * @return A non-null node
    */
-  public MappedRegionSpecificationNode getSpec() {
+  public RegionSpecificationNode getSpec() {
     return spec;
   }
   
@@ -62,8 +63,9 @@ public class AggregateNode extends AASTRootNode
   }
   
   @Override
-  public IAASTNode cloneTree(){
-  	return new AggregateNode(offset, (MappedRegionSpecificationNode)spec.cloneTree());
+  public IAASTRootNode cloneTree() {
+    RegionSpecificationNode s = (RegionSpecificationNode)spec.cloneTree();
+    return new UniqueInRegionNode(offset, s);
   }
 }
 

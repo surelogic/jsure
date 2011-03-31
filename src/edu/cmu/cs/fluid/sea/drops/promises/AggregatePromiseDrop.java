@@ -1,6 +1,6 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
-import com.surelogic.aast.promise.AggregateNode;
+import com.surelogic.aast.promise.UniqueMappingNode;
 
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -12,8 +12,8 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.analysis.Region
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
-public final class AggregatePromiseDrop extends PromiseDrop<AggregateNode> {
-  public AggregatePromiseDrop(AggregateNode n) {
+public final class AggregatePromiseDrop extends PromiseDrop<UniqueMappingNode> {
+  public AggregatePromiseDrop(UniqueMappingNode n) {
     super(n);
   }
   
