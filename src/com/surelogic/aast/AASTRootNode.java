@@ -18,7 +18,7 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   
   protected AASTRootNode(int offset) {
     super(offset);    
-  }
+  }  
   
   private static void checkArgument(Object oldVal, Object newVal) {
     if (oldVal != null || newVal == null) {
@@ -26,6 +26,10 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
     }
   }
   
+  public boolean isHandledAsSuperclass() {
+	  return false;
+  }
+   
   public final void setPromisedFor(IRNode n) {
     checkArgument(promisedFor, n);
     promisedFor = n;

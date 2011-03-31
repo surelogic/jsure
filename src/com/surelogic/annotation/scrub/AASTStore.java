@@ -2,6 +2,7 @@
 package com.surelogic.annotation.scrub;
 
 import com.surelogic.aast.*;
+import com.surelogic.aast.promise.UniqueInRegionNode;
 import com.surelogic.annotation.test.TestResult;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -61,13 +62,28 @@ public final class AASTStore {
     addByClass(ast);
   }
   
-  private static synchronized <T extends IAASTRootNode> 
-  void addByClass(T ast) {
+  // RequiresLock
+  private static <T extends IAASTRootNode> 
+  void addByClass(T ast) {  	  
+	  Class<?> cls = ast.getClass();
+	  if (ast.isHandledAsSuperclass()) {
+		  while (IAASTRootNode.class.isAssignableFrom(cls)) {
+			  addByClass(ast, cls);
+			  cls = cls.getSuperclass();
+		  }
+	  } else {
+		  addByClass(ast, cls);
+	  }
+  }
+  
+  // RequiresLock
+  private static <T extends IAASTRootNode> 
+  void addByClass(T ast, Class<?> cls) {
     @SuppressWarnings("unchecked")
-    Collection<T> c = (Collection<T>) byClass.get(ast.getClass());
+    Collection<T> c = (Collection<T>) byClass.get(cls);
     if (c == null) {
       c = new ArrayList<T>();
-      byClass.put(ast.getClass(), c);
+      byClass.put(cls, c);
     }
     c.add(ast);
   }

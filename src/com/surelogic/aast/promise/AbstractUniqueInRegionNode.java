@@ -11,5 +11,9 @@ public abstract class AbstractUniqueInRegionNode extends AASTRootNode {
 	protected AbstractUniqueInRegionNode(int offset) {
 		super(offset);
 	}
+	@Override
+	public final boolean isHandledAsSuperclass() {
+		return true;
+	}	
 	public abstract RegionSpecificationNode getSpec();
 }

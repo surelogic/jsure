@@ -611,7 +611,7 @@ public class RegionRules extends AnnotationRules {
   static UniqueInRegionPromiseDrop scrubUniqueInRegion(IAnnotationScrubberContext context, 
 		                                                     AbstractUniqueInRegionNode a) {
 	  UniqueInRegionPromiseDrop drop = new UniqueInRegionPromiseDrop(a);
-
+	  /*
 	  RegionSpecificationNode spec = a.getSpec();
 	  if (!spec.bindingExists()) {
 		  return null;
@@ -627,6 +627,7 @@ public class RegionRules extends AnnotationRules {
 	  aggregate.setSrcType(a.getSrcType()); // FIX
 	  
 	  AASTStore.addDerived(aggregate, a, drop);	  
+	  */
 	  return drop;
   }
   
