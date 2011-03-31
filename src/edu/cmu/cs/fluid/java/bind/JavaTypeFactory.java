@@ -218,7 +218,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
   }
   
   // declared types  
-  private static final int NUM_ROOTS = 1 << 2;
+  private static final int NUM_ROOTS = 1 << 4;
   private static final int ROOT_MASK = NUM_ROOTS - 1;
   private static final JavaDeclaredType[] rootTypes = new JavaDeclaredType[NUM_ROOTS];
   static {
