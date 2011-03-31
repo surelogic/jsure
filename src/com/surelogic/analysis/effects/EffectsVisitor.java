@@ -143,7 +143,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
   
   
   
-  private final RegionModel ARRAY_ELEMENT;
+  private final RegionModel INSTANCE_REGION;
 
   /**
    * The binder to use.
@@ -204,7 +204,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     this.binder = b;
     this.thisExprBinder = new EVThisExpressionBinder(b);
     this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
-    this.ARRAY_ELEMENT = RegionModel.getInstanceRegion(flowUnit);    
+    this.INSTANCE_REGION = RegionModel.getInstanceRegion(flowUnit);    
     this.context = Context.forNormalMethod(query, flowUnit);
     this.effects = new Effects(b);
   }
@@ -365,7 +365,7 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     final boolean isRead = context.isRead();
     Effects.elaborateInstanceTargetEffects(
         context.bcaQuery, targetFactory, binder, expr, isRead,
-        targetFactory.createInstanceTarget(array, ARRAY_ELEMENT), context.theEffects);
+        targetFactory.createInstanceTarget(array, INSTANCE_REGION), context.theEffects);
     doAcceptForChildren(expr);
     return null;
   }

@@ -289,20 +289,6 @@ public final class LockUtils {
     // Make sure the MUTEX lock shows up in the viewer
     // XXX: NullPointerException if the lock is not found. This is okay because it is catastrophic if MUTEX is not decalred
     mutex.setFromSrc(true);
-
-    // Get the region for array elements
-    final IRNode arrayType = binder.getTypeEnvironment().getArrayClassDeclaration();    
-    IRNode decl = arrayType;
-    /*
-    for(IRNode d : VisitUtil.getClassFieldDeclarators(arrayType)) {
-    	String name = VariableDeclarator.getId(d);
-    	if (PromiseConstants.REGION_ELEMENT_NAME.equals(name)) {
-    		decl = d;
-    	}
-    }
-    */
-    //elementRegion = RegionModel.getArrayElementRegion();    
-    //elementRegion.setNode(decl);
   }
 
   synchronized void clear() {
@@ -1335,10 +1321,6 @@ public final class LockUtils {
       }
     }
     return objExpr;
-  }
-  
-  public RegionModel getElementRegion(IRNode context) {
-    return RegionModel.getInstanceRegion(context);
   }
   
   public LockModel getMutex() {

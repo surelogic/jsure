@@ -101,7 +101,6 @@ public abstract class AnnotationRules {
     ScopedPromiseRules.getInstance().register(fw);
     ThreadRoleRules.getInstance().register(fw);
     ModuleRules.getInstance().register(fw);
-    AssumeFinalRules.getInstance().register(fw);
     VouchRules.getInstance().register(fw);
     JcipRules.getInstance().register(fw);
     LayerRules.getInstance().register(fw);

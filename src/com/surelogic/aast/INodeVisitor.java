@@ -109,7 +109,6 @@ public interface INodeVisitor<T> {
   T visit(EffectsSpecificationNode n);
   T visit(BorrowedNode n);
   T visit(UniqueNode n);
-  T visit(AssumeFinalNode n);
   T visit(TypeExpressionNode n);
   T visit(InRegionNode node);
   T visit(UniqueMappingNode node);   

@@ -216,23 +216,16 @@ public class TypeUtil implements JavaGlobals {
       } else if (JavaNode.getModifier(JJNode.tree.getParent(JJNode.tree
           .getParent(node)), JavaNode.FINAL)) {
         return true; // declared final
-      } else if (AssumeFinalRules.isAssumedFinal(node)) {
-          /*
-          System.out.println("@assumeFinal on node " + DebugUnparser.toString(node)
-              + "\"");
-              */
-        return true; // assumeFinal promise  
-      } else {
-        final VouchFieldIsPromiseDrop assumeField = LockRules.getVouchFieldIs(node);
-        if (assumeField != null && assumeField.isFinal()) {
-          // We have an @Assume("final")
+      } else { // Check for @Vouch("final")
+        final VouchFieldIsPromiseDrop vouchFinal = LockRules.getVouchFieldIs(node);
+        if (vouchFinal != null && vouchFinal.isFinal()) {
+          // We have an @Vouch("final")
           return true;
         }
-      }
-      
+      }      
       return false;
     } else if (ParameterDeclaration.prototype.includes(op)) {
-      return JavaNode.getModifier(node, JavaNode.FINAL) || AssumeFinalRules.isAssumedFinal(node);
+      return JavaNode.getModifier(node, JavaNode.FINAL);
     } else {
       return false;
     }

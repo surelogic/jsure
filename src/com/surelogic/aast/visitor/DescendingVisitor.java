@@ -162,7 +162,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     return rv;
   }
   
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public T visit(ThreadRoleAndNode n) {
     T rv = defaultValue;
     for(AASTNode c : (List<AASTNode>) (List) n.getAndElemsList()) {
@@ -511,11 +511,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   }
 
   public T visit(BorrowedNode n) {
-    T rv = defaultValue;
-    return rv;
-  }
-  
-  public T visit(AssumeFinalNode n) {
     T rv = defaultValue;
     return rv;
   }

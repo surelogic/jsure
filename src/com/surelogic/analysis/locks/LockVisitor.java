@@ -78,7 +78,6 @@ import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
-import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -2039,8 +2038,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		dereferencesSafeObject(expr);
 		assureRegionRef(expr, lockUtils.getLocksForDirectRegionAccess(
 				ctxtBcaQuery, expr, !isWrite, lockUtils.createInstanceTarget(
-						ArrayRefExpression.getArray(expr), lockUtils
-								.getElementRegion(expr))));
+						ArrayRefExpression.getArray(expr), RegionModel.getInstanceRegion(expr))));
 		// continue into the expression
 		doAcceptForChildren(expr);
 		return null;

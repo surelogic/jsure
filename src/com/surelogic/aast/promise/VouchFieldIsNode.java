@@ -41,11 +41,11 @@ public class VouchFieldIsNode extends AASTRootNode {
 		StringBuilder sb = new StringBuilder();
 		if (debug) {
 			indent(sb, indent);
-			sb.append("AssumeFieldIsNode\n");
+			sb.append("VouchFieldIsNode\n");
 			indent(sb, indent + 2);
 			sb.append("id=").append(getKind());
 		} else {
-			sb.append("Assume(\"");
+			sb.append("Vouch(\"");
 			sb.append(getKind());
 			sb.append("\")");
 		}

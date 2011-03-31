@@ -595,8 +595,7 @@ public class LockRules extends AnnotationRules {
 		protected IAnnotationScrubber<LockDeclarationNode> makeScrubber() {
 			return new AbstractAASTScrubber<LockDeclarationNode, LockModel>(this,
 					ScrubberType.BY_HIERARCHY, LockRules.REGION_INITIALIZER,
-					RegionRules.REGIONS_DONE, AssumeFinalRules.ASSUME_FINAL,
-					VOUCH_FIELD_IS) {
+					RegionRules.REGIONS_DONE, VOUCH_FIELD_IS) {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						LockDeclarationNode a) {
@@ -627,14 +626,6 @@ public class LockRules extends AnnotationRules {
   private static abstract class LockScrubContinuation<T extends AbstractLockDeclarationNode> {
     protected void handleAssumeFinal(final LockModel lockModel, final IRNode lockFieldNode) {
       if (lockFieldNode != null) {
-        // Old way of doing things
-        final AssumeFinalPromiseDrop assumeFinal =
-          AssumeFinalRules.getAssumeFinalDrop(lockFieldNode);
-        if (assumeFinal != null) {
-          lockModel.addDependent(assumeFinal);
-        }
-
-        // New way of doing things
         final VouchFieldIsPromiseDrop vouchFieldIs =
           LockRules.getVouchFieldIs(lockFieldNode);
         if (vouchFieldIs != null && vouchFieldIs.isFinal()) {
@@ -1140,8 +1131,7 @@ public class LockRules extends AnnotationRules {
 		protected IAnnotationScrubber<PolicyLockDeclarationNode> makeScrubber() {
 			return new AbstractAASTScrubber<PolicyLockDeclarationNode, LockModel>(name(),
           PolicyLockDeclarationNode.class, lockRule.getStorage(),
-					ScrubberType.BY_HIERARCHY,
-					AssumeFinalRules.ASSUME_FINAL, VOUCH_FIELD_IS) {
+					ScrubberType.BY_HIERARCHY, VOUCH_FIELD_IS) {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						PolicyLockDeclarationNode a) {
