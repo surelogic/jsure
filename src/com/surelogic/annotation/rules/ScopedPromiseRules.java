@@ -178,13 +178,17 @@ public class ScopedPromiseRules extends AnnotationRules {
 				protected PromiseDrop<ScopedPromiseNode> makePromiseDrop(
 						AssumeScopedPromiseNode a) {
 					AssumePromiseDrop d = new AssumePromiseDrop(a);
-					boolean worked = applyAssumptions(bindings, d);					
-					if (!worked) {
+					Result worked = applyAssumptions(bindings, d);					
+					switch (worked) {
+					case FAILURE:						
 					  d.invalidate();
 					  return null;
+					case NOT_APPLICABLE:
+					  context.reportWarning("Assumption not applied", a);
+					default:
 					}
 					storeDropIfNotNull(a, d);
-					return d;
+					return d;					
 				}
 				@Override
 				protected void finishScrubbingType(IRNode decl) {
@@ -356,7 +360,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 			//for (IRNode decl : VisitUtil.getAllTypeDecls(promisedFor)) {
 				Operator op = JJNode.tree.getOperator(decl);
 				if (callback.parseRule.declaredOnValidOp(op)) {
-					if (!callback.parseAndApplyPromise(decl, op)) {
+					if (callback.parseAndApplyPromise(decl, op) == Result.FAILURE) {
 						success = false;
 						//break;
 					}
@@ -366,7 +370,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 			for (IRNode decl : VisitUtil.getClassMethods(promisedFor)) {
 				Operator op = JJNode.tree.getOperator(decl);
 				if (callback.parseRule.declaredOnValidOp(op)) {
-					if (!callback.parseAndApplyPromise(decl, op)) {
+					if (callback.parseAndApplyPromise(decl, op) == Result.FAILURE) {
 						success = false;
 						break;
 					}
@@ -374,7 +378,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 			}
 			if (success && callback.parseRule.declaredOnValidOp(FieldDeclaration.prototype)) {			  
 				for (IRNode decl : VisitUtil.getClassFieldDecls(promisedFor)) {
-					if (!callback.parseAndApplyPromise(decl, FieldDeclaration.prototype)) {
+					if (callback.parseAndApplyPromise(decl, FieldDeclaration.prototype) == Result.FAILURE) {
 						success = false;
 						break;
 					}
@@ -541,7 +545,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 		/**
 		 * @return false if failed
 		 */
-		boolean parseAndApplyPromise(final IRNode decl, Operator op) {			
+		Result parseAndApplyPromise(final IRNode decl, Operator op) {			
 			if (target.matches(decl)) {
 				final ISrcRef ref = JavaNode.getSrcRef(decl);
 				int offset = -1;
@@ -554,7 +558,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 						content, offset);
 				ParseResult result = parseRule.parse(context, content);
 				if (result == ParseResult.IGNORE) {
-					return false;
+					return Result.NOT_APPLICABLE;
 				}
 				else if (result == ParseResult.FAIL || !context.createdAAST()) {
 					StringBuilder msg = new StringBuilder("Could not apply scoped promise, ");
@@ -572,11 +576,12 @@ public class ScopedPromiseRules extends AnnotationRules {
 						msg.append(JavaNames.getFullTypeName(decl));
 					}
 					context.reportError(offset, msg.toString());
-					return false;
+					return Result.FAILURE;
 				}
 				//System.out.println(scopedPromiseDrop.getMessage()+" on "+DebugUnparser.toString(decl));
+				return Result.SUCCESS;
 			}		 
-			return true;
+			return Result.NOT_APPLICABLE;
 		}
 	}
 
@@ -698,20 +703,28 @@ public class ScopedPromiseRules extends AnnotationRules {
   /**
    * @return true if no failure
    */
-  static boolean applyAssumptions(Collection<IRNode> bindings, AssumePromiseDrop d) {	  
+  static Result applyAssumptions(Collection<IRNode> bindings, AssumePromiseDrop d) {	  
 	  //final IRNode cu = VisitUtil.getEnclosingCompilationUnit(d.getNode());
 	  final ScopedPromiseCallback callback = new ScopedPromiseCallback(d);
-	  boolean success = true;
+	  Result success = Result.NOT_APPLICABLE;
 	  for(IRNode decl : bindings) {
 		  Operator op = JJNode.tree.getOperator(decl);
 		  if (callback.parseRule.declaredOnValidOp(op)) {
-			  if (!callback.parseAndApplyPromise(decl, op)) {
+			  Result result = callback.parseAndApplyPromise(decl, op);
+			  switch (result) {
+			  case FAILURE:
 				  //System.out.println("Failure on "+DebugUnparser.toString(decl));
-				  success = false;
-				  break;
+				  return Result.FAILURE;
+			  case SUCCESS:
+				  success = result;
+			  default:
 			  }
 		  }
 	  }
 	  return success;
+  }
+  
+  enum Result {
+	  SUCCESS, NOT_APPLICABLE, FAILURE
   }
 }
