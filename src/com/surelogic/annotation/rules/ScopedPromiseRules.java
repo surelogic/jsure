@@ -135,7 +135,8 @@ public class ScopedPromiseRules extends AnnotationRules {
 	static class Assume_ParseRule extends 
 	        ScopedPromiseRule<AssumeScopedPromiseNode, AssumePromiseDrop> {
 		protected Assume_ParseRule() {
-			super(ASSUME, methodOrClassDeclOps, AssumeScopedPromiseNode.class);
+			// Was methodOrClassDeclOps
+			super(ASSUME, fieldFuncTypeOps, AssumeScopedPromiseNode.class);
 		}
 		
 		@Override
