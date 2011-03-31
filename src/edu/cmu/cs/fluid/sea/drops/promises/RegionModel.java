@@ -521,10 +521,6 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		return RegionModel.getInstance(INSTANCE, getJRE(context)); 
 	}
 
-	public static RegionModel getArrayLengthRegion(IRNode context) {
-		return RegionModel.getInstance(PromiseConstants.REGION_LENGTH_NAME, getJRE(context)); 
-	}
-
 	public static void printModels() {
 		for (RegionModel m : nameToDrop.elements()) {
 			final IRNode n = m.getNode();

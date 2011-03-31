@@ -176,11 +176,6 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       CompilationUnit.createNode(pkg, ImportDeclarations.createNode(new IRNode[0]), 
           TypeDeclarations.createNode(new IRNode[] {privateArrayType}));
 
-      /*
-      createArrayRegion(privateArrayElement);
-      createArrayRegion(privateLengthField);
-      */
-      createArrayRegion(PromiseConstants.REGION_LENGTH_NAME, privateArrayType, project);
       ReturnValueDeclaration.getReturnNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateArrayType);
