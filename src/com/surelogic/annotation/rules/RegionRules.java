@@ -599,7 +599,7 @@ public class RegionRules extends AnnotationRules {
     protected IAnnotationScrubber<AbstractUniqueInRegionNode> makeScrubber() {
       return new AbstractAASTScrubber<AbstractUniqueInRegionNode, UniqueInRegionPromiseDrop>(this, 
                                                    ScrubberType.UNORDERED, 
-                                                   new String[] { /*AGGREGATE*/ }, REGION) {
+                                                   /*new String[] { AGGREGATE },*/ REGION, UniquenessRules.UNIQUE) {
         @Override
         protected PromiseDrop<AbstractUniqueInRegionNode> makePromiseDrop(AbstractUniqueInRegionNode a) {
           return storeDropIfNotNull(a, scrubUniqueInRegion(getContext(), a));          
