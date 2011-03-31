@@ -13,7 +13,7 @@ public class UniqueMappingNode extends AbstractUniqueInRegionNode
   private final MappedRegionSpecificationNode spec;
 
   public static final AbstractAASTNodeFactory factory =
-    new AbstractAASTNodeFactory("Aggregate") {
+    new AbstractAASTNodeFactory("UniqueMapping") {
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {
@@ -39,11 +39,11 @@ public class UniqueMappingNode extends AbstractUniqueInRegionNode
     StringBuilder sb = new StringBuilder();
     if (debug) { 
     	indent(sb, indent); 
-    	sb.append("AggregateNode\n");
+    	sb.append("UniqueMappingNode\n");
     	indent(sb, indent+2);
     	sb.append(getSpec().unparse(debug, indent+2));
     } else {
-    	sb.append("@Aggregate ");
+    	sb.append("UniqueInRegion ");
     	sb.append(getSpec().unparse(debug, indent+2));
     }
     return sb.toString();
