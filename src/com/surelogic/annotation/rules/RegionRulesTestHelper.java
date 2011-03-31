@@ -15,7 +15,7 @@ public class RegionRulesTestHelper extends RegionRules {
 		return instance;
 	}
 	
-	public static class Aggregate_ParseRuleHelper extends Aggregate_ParseRule{
+	public static class Aggregate_ParseRuleHelper extends UniqueInRegion_ParseRule{
 		public Aggregate_ParseRuleHelper(){
 			super();
 		}

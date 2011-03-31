@@ -893,9 +893,9 @@ public class SLParseTest extends TestCase {
 					+ "        id=region1\n" + "      RegionName\n"
 					+ "        id=SuperRegion1\n";
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("region1 into SuperRegion1").aggregate()
+					.initParser("region1 into SuperRegion1").uniqueInRegion()
 					.getTree();
-			AggregateNode node = (AggregateNode) root
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 			assertTrue(node.unparse().equals(expected));
 		} catch (RecognitionException e) {
@@ -916,8 +916,8 @@ public class SLParseTest extends TestCase {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser(
 							"region1 into SuperRegion1, region2 into SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 			assertTrue(node.unparse().equals(expected));
 		} catch (RecognitionException e) {
@@ -941,8 +941,8 @@ public class SLParseTest extends TestCase {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser(
 							"region1 into SuperRegion1, region2 into SuperRegion1, region3 into SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 			assertTrue(node.unparse().equals(expected));
 		} catch (RecognitionException e) {
@@ -964,7 +964,7 @@ public class SLParseTest extends TestCase {
 		 * "        id=SuperRegion1\n"; AASTAdaptor.Node root =
 		 * (AASTAdaptor.Node) SLParse .initParser(
 		 * "Type:region1 into SuperRegion1, Type:region2 into SuperRegion1")
-		 * .aggregate().getTree(); AggregateNode node = (AggregateNode) root
+		 * .uniqueInRegion().getTree(); AggregateNode node = (AggregateNode) root
 		 * .finalizeAST(IAnnotationParsingContext.nullPrototype);
 		 * assertTrue(node.unparse().equals(expected)); } catch
 		 * (RecognitionException e) { e.printStackTrace();
@@ -984,8 +984,8 @@ public class SLParseTest extends TestCase {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser(
 							"region1 into Type:SuperRegion1, region2 into Type:SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 			assertTrue(node.unparse().equals(expected));
 		} catch (RecognitionException e) {
@@ -1008,7 +1008,7 @@ public class SLParseTest extends TestCase {
 		 * "        id=SuperRegion1\n"; AASTAdaptor.Node root =
 		 * (AASTAdaptor.Node) SLParse .initParser(
 		 * "Type.Region:region1 into SuperRegion1, Type.Region:region2 into SuperRegion1"
-		 * ) .aggregate().getTree(); AggregateNode node = (AggregateNode) root
+		 * ) .uniqueInRegion().getTree(); AggregateNode node = (AggregateNode) root
 		 * .finalizeAST(IAnnotationParsingContext.nullPrototype);
 		 * assertTrue(node.unparse().equals(expected)); } catch
 		 * (RecognitionException e) { e.printStackTrace();
@@ -1028,8 +1028,8 @@ public class SLParseTest extends TestCase {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser(
 							"region1 into Type.Region:SuperRegion1, region2 into Type.Region:SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 			assertTrue(node.unparse().equals(expected));
 		} catch (RecognitionException e) {
@@ -1049,8 +1049,8 @@ public class SLParseTest extends TestCase {
 					+ "      RegionName\n" + "        id=SuperRegion1\n";
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("[] into SuperRegion1, [] into SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 			// System.out.println(expected + "<<<");
 			// System.out.println(node.unparse(true) + "<<<");
@@ -1071,9 +1071,9 @@ public class SLParseTest extends TestCase {
 					+ "      RegionName\n" + "        id=region2\n"
 					+ "      RegionName\n" + "        id=[]\n";
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("region1 into [], region2 into []").aggregate()
+					.initParser("region1 into [], region2 into []").uniqueInRegion()
 					.getTree();
-			AggregateNode node = (AggregateNode) root
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 			assertTrue(node.unparse(true).equals(expected));
 		} catch (RecognitionException e) {
@@ -1092,8 +1092,8 @@ public class SLParseTest extends TestCase {
 					+ "      RegionName\n" + "        id=[]\n"
 					+ "      RegionName\n" + "        id=[]\n";
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("[] into [], [] into []").aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.initParser("[] into [], [] into []").uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 			assertTrue(node.unparse().equals(expected));
 
@@ -1109,8 +1109,8 @@ public class SLParseTest extends TestCase {
 	public void testBadAggregate() {
 		try {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("").aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.initParser("").uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		} catch (RecognitionException e) {
 			// OK
@@ -1122,8 +1122,8 @@ public class SLParseTest extends TestCase {
 		try {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("region1 into SuperRegion1, SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		} catch (RecognitionException e) {
 			// OK
@@ -1135,8 +1135,8 @@ public class SLParseTest extends TestCase {
 		try {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("region1, region2 into SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		} catch (RecognitionException e) {
 			// OK
@@ -1147,9 +1147,9 @@ public class SLParseTest extends TestCase {
 
 		try {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("Type.region1 into SuperRegion1 ").aggregate()
+					.initParser("Type.region1 into SuperRegion1 ").uniqueInRegion()
 					.getTree();
-			AggregateNode node = (AggregateNode) root
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		} catch (RecognitionException e) {
 			// OK
@@ -1161,8 +1161,8 @@ public class SLParseTest extends TestCase {
 		try {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("region1 into Type:Type:SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		} catch (RecognitionException e) {
 			// OK
@@ -1174,8 +1174,8 @@ public class SLParseTest extends TestCase {
 		try {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser("Type.Region.region1 into this.SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		} catch (RecognitionException e) {
 			// OK
@@ -1188,8 +1188,8 @@ public class SLParseTest extends TestCase {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
 					.initParser(
 							"region1 into SuperRegion1 region2 into SuperRegion1")
-					.aggregate().getTree();
-			AggregateNode node = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 		} catch (RecognitionException e) {
 			// OK

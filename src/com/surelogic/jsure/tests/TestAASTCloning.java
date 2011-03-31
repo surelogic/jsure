@@ -74,14 +74,14 @@ public class TestAASTCloning extends TestCase {
 	public void testAggregateCloning() {
 		try {
 			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype.initParser("region1 into SuperRegion")
-					.aggregate().getTree();
-			AggregateNode anode = (AggregateNode) root
+					.uniqueInRegion().getTree();
+			UniqueMappingNode anode = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 
-			AggregateNode aClone = (AggregateNode) anode.cloneTree();
+			UniqueMappingNode aClone = (UniqueMappingNode) anode.cloneTree();
 			assertFalse(anode == aClone);
-			MappedRegionSpecificationNode anodeMRS = anode.getSpec();
-			MappedRegionSpecificationNode aCloneMRS = aClone.getSpec();
+			MappedRegionSpecificationNode anodeMRS = anode.getMapping();
+			MappedRegionSpecificationNode aCloneMRS = aClone.getMapping();
 
 			assertFalse(anodeMRS == aCloneMRS);
 			List<RegionMappingNode> aNodeML = anodeMRS.getMappingList();
