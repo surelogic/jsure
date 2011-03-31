@@ -1,15 +1,15 @@
 package AssumeFieldIsFinal;
 
-import com.surelogic.Assume;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
+import com.surelogic.Vouch;
 
 @Region("private BadFinalRegion")
 @RegionLock("BadFinalLock is lock protects BadFinalRegion")
 public class BadFinal {
 
-	@Assume("final")
+	@Vouch("final")
 	private Object lock;
 
 	// Called only once at startup

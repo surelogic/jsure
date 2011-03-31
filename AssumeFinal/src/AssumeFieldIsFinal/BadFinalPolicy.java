@@ -1,12 +1,12 @@
 package AssumeFieldIsFinal;
 
-import com.surelogic.Assume;
 import com.surelogic.PolicyLock;
+import com.surelogic.Vouch;
 
 @PolicyLock("BadFinalLock is lock")
 public class BadFinalPolicy {
 
-	@Assume("Final")
+	@Vouch("Final")
 	private Object lock;
 
 	// Called only once at startup

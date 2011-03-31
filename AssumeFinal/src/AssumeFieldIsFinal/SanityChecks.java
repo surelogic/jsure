@@ -1,12 +1,12 @@
 package AssumeFieldIsFinal;
 
-import com.surelogic.Assume;
+import com.surelogic.Vouch;
 
 @SuppressWarnings("unused")
 public class SanityChecks {
-  @Assume("final" /* is CONSISTENT */)
+  @Vouch("final" /* is CONSISTENT */)
 	private int assumedFinal;
 	
-	@Assume("Final" /* is UNASSOCIATED */) 
+	@Vouch("Final" /* is UNASSOCIATED */) 
 	private final int alreadyFinal = 1;
 }
