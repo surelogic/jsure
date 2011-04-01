@@ -8,6 +8,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.preferences.AutoPerspectiveSwitchPreferences;
 import com.surelogic.fluid.javac.Javac;
+import com.surelogic.fluid.javac.scans.ScanUpdateMode;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -84,6 +85,8 @@ public final class JSurePreferencesUtility {
 						a.isProduction());
 			}
 			
+			EclipseUtility.setDefaultStringPreference(SCAN_UPDATE_MODE, ScanUpdateMode.DIFF_WITH_PREV.toString());
+			
 			/*
 			 * We'll take the default-default for the other preferences.
 			 */
@@ -109,7 +112,11 @@ public final class JSurePreferencesUtility {
 			+ "lockModelNameSuffix";
 	public static final String LOCK_MODEL_NAME_CAP = PREFIX
 			+ "lockModelNameCap";
-
+	
+	public static final String BASELINE_SCAN = PREFIX + "baseline.scan";
+	public static final String CURRENT_SCAN = PREFIX + "current.scan";
+	public static final String SCAN_UPDATE_MODE = PREFIX + "scan.update.mode";
+	
 	/**
 	 * Gets the JSure data directory. This method ensures that the directory
 	 * does exist on the disk. It checks that is is there and, if not, tries to
