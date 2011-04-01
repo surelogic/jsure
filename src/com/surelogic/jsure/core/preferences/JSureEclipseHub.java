@@ -16,6 +16,10 @@ public class JSureEclipseHub extends JSureScansHub {
 		setInstance(new JSureEclipseHub());
 	}
 	
+	public static void init() {
+		// Create the instance above
+	}
+	
 	private JSureEclipseHub() {
 		// Nothing to do
 	}
