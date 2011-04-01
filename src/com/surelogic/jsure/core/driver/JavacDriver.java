@@ -1882,6 +1882,9 @@ public class JavacDriver implements IResourceChangeListener {
 					}
 					return SLStatus.CANCEL_STATUS;
 				}
+				if (XUtil.testing) {
+					throw new RuntimeException(e);
+				} 
 				return SLStatus.createErrorStatus(
 						"Problem while running JSure", e);
 			} finally {
