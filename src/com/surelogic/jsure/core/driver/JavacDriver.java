@@ -75,6 +75,8 @@ import com.surelogic.fluid.javac.PromiseMatcher;
 import com.surelogic.fluid.javac.Util;
 import com.surelogic.fluid.javac.jobs.ILocalJSureConfig;
 import com.surelogic.fluid.javac.jobs.LocalJSureJob;
+import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
+import com.surelogic.fluid.javac.scans.JSureScansHub;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -1857,7 +1859,11 @@ public class JavacDriver implements IResourceChangeListener {
 					} else {
 						ok = Util.openFiles(oldProjects, projects, true);
 					}
+					// Persist the Sea
+					final File location = new File(projects.getRunDir(), RemoteJSureRun.RESULTS_XML);
+					new SeaSnapshot(location).snapshot(projects.getShortLabel(), Sea.getDefault());
 				}
+				JSureScansHub.getInstance().setCurrentScan(projects.getRunDir());
 				/*
 				 * final File rootLoc =
 				 * EclipseUtility.getProject(config.getProject

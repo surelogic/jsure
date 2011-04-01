@@ -29,12 +29,12 @@ public class JSureEclipseHub extends JSureScansHub {
 		ScanStatus changed = ScanStatus.NEITHER_CHANGED;
 		if (baseline != null) {
 			if (update(BASELINE_SCAN, baseline)) {
-				changed.combine(ScanStatus.BASELINE_CHANGED);
+				changed = changed.combine(ScanStatus.BASELINE_CHANGED);
 			}
 		}
 		if (current != null) {
 			if (update(CURRENT_SCAN, current)) {
-				changed.combine(ScanStatus.CURRENT_CHANGED);
+				changed = changed.combine(ScanStatus.CURRENT_CHANGED);
 			}
 		}
 		return changed;
