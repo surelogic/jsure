@@ -32,7 +32,7 @@ public abstract class AbstractResultsTableView<T extends IDropInfo> extends Abst
 	@Override
 	protected void finishCreatePartControl() {
 		if (PersistentDropInfo.getInstance().load()) {
-			f_content.build();
+			f_content.build(null);
 			setViewerVisibility(true);
 			System.out.println("Loaded snapshot for "+this);
 		}
@@ -132,7 +132,7 @@ public abstract class AbstractResultsTableView<T extends IDropInfo> extends Abst
 	
 	@Override
 	protected final void updateView() {
-		f_content.build();
+		f_content.build(null);
 	}
 	
 	@SuppressWarnings("unchecked")

@@ -9,6 +9,7 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.fluid.javac.scans.ScanStatus;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -98,12 +99,12 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 		return f_contents.toArray();
 	}
 	
-	public void build() {
+	public String build(ScanStatus status) {
 		f_contents.clear();
-		getAndSortResults(f_contents);
+		return getAndSortResults(status, f_contents);
 	}
 	
-	protected abstract void getAndSortResults(List<T> contents);
+	protected abstract String getAndSortResults(ScanStatus status, List<T> contents);
 	
 	protected String getMainColumnText(T d) {
 		return d.getMessage();

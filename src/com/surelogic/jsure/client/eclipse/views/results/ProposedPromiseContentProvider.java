@@ -6,7 +6,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.jsure.core.listeners.PersistentDropInfo;
+import com.surelogic.fluid.javac.scans.*;
 
 import edu.cmu.cs.fluid.sea.*;
 
@@ -15,11 +15,14 @@ public final class ProposedPromiseContentProvider extends AbstractResultsTableCo
 		super("Proposed Promise");
 	}
 	
-	protected void getAndSortResults(List<IProposedPromiseDropInfo> contents) {
+	protected String getAndSortResults(ScanStatus s, List<IProposedPromiseDropInfo> contents) {
+		final JSureScanInfo info = JSureScansHub.getInstance().getCurrentScanInfo();
+		if (info == null) {
+			return null;
+		}
 		List<IProposedPromiseDropInfo> proposedPromiseDrops = 
-			ProposedPromiseDrop.filterOutDuplicates(
-					PersistentDropInfo.getInstance().
-					<IProposedPromiseDropInfo,ProposedPromiseDrop>getDropsOfType(ProposedPromiseDrop.class));
+			ProposedPromiseDrop.filterOutDuplicates(				
+					info.<IProposedPromiseDropInfo,ProposedPromiseDrop>getDropsOfType(ProposedPromiseDrop.class));
 		for (IProposedPromiseDropInfo id : proposedPromiseDrops) {
 			if (id != null && id.getSrcRef() != null) {
 				// TODO omit annotations on implicitly created methods in enums?
@@ -33,6 +36,7 @@ public final class ProposedPromiseContentProvider extends AbstractResultsTableCo
 			}
 		}
 		Collections.sort(contents, sortAsString);
+		return info.getLabel();
 	}
 
 	public Image getColumnImage(Object element, int columnIndex) {

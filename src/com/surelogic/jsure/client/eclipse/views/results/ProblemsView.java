@@ -6,11 +6,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.actions.ActionFactory;
 
-import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableView;
+import com.surelogic.jsure.client.eclipse.views.*;
 
 import edu.cmu.cs.fluid.sea.*;
 
-public class ProblemsView extends AbstractResultsTableView<IDropInfo> {
+public class ProblemsView extends AbstractScanTableView<IDropInfo> {
 	private final Action f_copy = makeCopyAction("Copy", "Copy the selected problem to the clipboard");
 	
 	public ProblemsView() {
@@ -27,5 +27,10 @@ public class ProblemsView extends AbstractResultsTableView<IDropInfo> {
 		if (!s.isEmpty()) {
 			manager.add(f_copy);
 		}
+	}
+
+	@Override
+	protected void makeActions() {
+		// TODO Auto-generated method stub
 	}
 }

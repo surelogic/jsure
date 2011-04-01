@@ -6,7 +6,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.jsure.core.listeners.PersistentDropInfo;
+import com.surelogic.fluid.javac.scans.*;
 
 import edu.cmu.cs.fluid.sea.*;
 
@@ -15,9 +15,12 @@ public final class ProblemsViewContentProvider extends AbstractResultsTableConte
 		super("Description");
 	}
 	
-	protected void getAndSortResults(List<IDropInfo> contents) {
-		Set<? extends IDropInfo> promiseWarningDrops = PersistentDropInfo
-				.getInstance().getDropsOfType(PromiseWarningDrop.class);
+	protected String getAndSortResults(ScanStatus s, List<IDropInfo> contents) {
+		final JSureScanInfo info = JSureScansHub.getInstance().getCurrentScanInfo();
+		if (info == null) {
+			return null;
+		}
+		Set<? extends IDropInfo> promiseWarningDrops = info.getDropsOfType(PromiseWarningDrop.class);
 		for (IDropInfo id : promiseWarningDrops) {
 			// only show info drops at the main level if they are not
 			// attached
@@ -25,6 +28,7 @@ public final class ProblemsViewContentProvider extends AbstractResultsTableConte
 			contents.add(id);
 		}
 		Collections.sort(contents, sortByLocation);
+		return info.getLabel();
 	}
 
 	public Image getColumnImage(Object element, int columnIndex) {

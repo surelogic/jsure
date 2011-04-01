@@ -8,12 +8,12 @@ import org.eclipse.swt.SWT;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
-import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableView;
+import com.surelogic.jsure.client.eclipse.views.*;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
 
-public class ProposedPromiseView extends AbstractResultsTableView<IProposedPromiseDropInfo> {
+public class ProposedPromiseView extends AbstractScanTableView<IProposedPromiseDropInfo> {
 	private final Action f_annotate = new ProposedPromisesRefactoringAction() {
 		@Override
 		protected List<? extends IProposedPromiseDropInfo> getProposedDrops() {

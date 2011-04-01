@@ -12,12 +12,12 @@ import org.eclipse.ui.actions.ActionFactory;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableView;
-import com.surelogic.jsure.core.listeners.PersistentDropInfo;
+import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.jsure.client.eclipse.views.*;
 
 import edu.cmu.cs.fluid.sea.*;
 
-public class JSureProblemsView extends AbstractResultsTableView<IProofDropInfo> {
+public class JSureProblemsView extends AbstractScanTableView<IProofDropInfo> {
 	private Action f_copy;
 	
 	public JSureProblemsView() {
@@ -51,14 +51,19 @@ public class JSureProblemsView extends AbstractResultsTableView<IProofDropInfo> 
 		}
 
 		@Override
-		protected void getAndSortResults(List<IProofDropInfo> contents) {
-			Set<? extends IProofDropInfo> drops = PersistentDropInfo.getInstance().getDropsOfType(ResultDrop.class);
+		protected String getAndSortResults(ScanStatus status, List<IProofDropInfo> contents) {
+			final JSureScanInfo info = JSureScansHub.getInstance().getCurrentScanInfo();
+			if (info == null) {
+				return null;
+			}
+			Set<? extends IProofDropInfo> drops = info.getDropsOfType(ResultDrop.class);
 			for (IProofDropInfo id : drops) {
 				if (!id.isConsistent()) {
 					contents.add(id);
 				}
 			}
 			Collections.sort(contents, sortByLocation);
+			return info.getLabel();
 		}
 
 		public Image getColumnImage(Object element, int columnIndex) {
