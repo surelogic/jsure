@@ -1315,10 +1315,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				final IRNode typeDeclarationNode = srcRefType.getDeclaration();
 				// if null, then assume it's not thread-safe
 				final boolean isThreadSafe = 
-				  LockRules.isThreadSafe(typeDeclarationNode);
+				  LockRules.isThreadSafeType(typeDeclarationNode);
 				// if null, then assume it's mutable
 				final boolean isImmutable =
-				  LockRules.isImmutable(typeDeclarationNode);
+				  LockRules.isImmutableType(typeDeclarationNode);
 				isSafe = isThreadSafe || isImmutable || classDeclaresLocks(type);
 			} else if (type instanceof IJavaIntersectionType) {
 				final IJavaIntersectionType iType = (IJavaIntersectionType) type;

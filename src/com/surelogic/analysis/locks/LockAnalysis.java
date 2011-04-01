@@ -36,6 +36,7 @@ import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.AggregatePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.ThreadSafePromiseDrop;
@@ -105,18 +106,26 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	  lv.analyzeClass(classBody, rd);
 	  
     final ThreadSafePromiseDrop threadSafeDrop =
-      LockRules.getThreadSafe(typeDecl);
+      LockRules.getThreadSafeImplementation(typeDecl);
     // If null, assume it's not meant to be thread safe
     if (threadSafeDrop != null) {
       new ThreadSafeVisitor(typeDecl, threadSafeDrop).doAccept(classBody);
     }
     
     final ContainablePromiseDrop containableDrop = 
-      LockRules.getContainable(typeDecl);
+      LockRules.getContainableImplementation(typeDecl);
     // no @Containable annotation --> Default "annotation" of not containable
     // Also check for verify=false
     if (containableDrop != null && containableDrop.verify()) {
       new ContainableVisitor(typeDecl, containableDrop).doAccept(classBody);
+    }
+
+    final ImmutablePromiseDrop immutableDrop = 
+      LockRules.getImmutableImplementation(typeDecl);
+    // no @Immutable annotation --> Default "annotation" of mutable
+    // Also check for verify=false
+    if (immutableDrop != null && immutableDrop.verify()) {
+      new ImmutableVisitor(typeDecl, immutableDrop).doAccept(classBody);
     }
 	}
 	
@@ -346,6 +355,9 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       /* Make sure we only visit each variable declaration once.  This is a 
        * stupid way of doing this, but it's good enough for now.  SHould make 
        * a new visitor type probably.
+       * 
+       * XXX: Why might we get visited more than once?  Must have happened or
+       * I wouldn't have added this, but I don't remember how this happens.
        */
       if (varDecls.add(varDecl)) {
         final String id = VariableDeclarator.getId(varDecl);
@@ -365,9 +377,9 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           if (type instanceof IJavaDeclaredType) {
             typeDecl = ((IJavaDeclaredType) type).getDeclaration();
             // Null if no @ThreadSafe ==> not thread safe
-            declTSDrop = LockRules.getThreadSafe(typeDecl);
+            declTSDrop = LockRules.getThreadSafeType(typeDecl);
             // Null if no @Containable ==> Default annotation of not containable
-            declContainableDrop = LockRules.getContainable(typeDecl);
+            declContainableDrop = LockRules.getContainableType(typeDecl);
           } else {
             typeDecl = null;
             declTSDrop = null;
@@ -537,6 +549,9 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       /* Make sure we only visit each variable declaration once.  This is a 
        * stupid way of doing this, but it's good enough for now.  SHould make 
        * a new visitor type probably.
+       * 
+       * XXX: Why might we get visited more than once?  Must have happened or
+       * I wouldn't have added this, but I don't remember how this happens.
        */
       if (varDecls.add(varDecl)) {
         final String id = VariableDeclarator.getId(varDecl);
@@ -554,13 +569,8 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(varDecl);
             final AggregatePromiseDrop aggDrop = RegionRules.getAggregate(varDecl);
             final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
-            final ContainablePromiseDrop declContainableDrop;
-            if (typeDecl != null) {
-              // no @Containable annotation --> Default "annotation" of not containable
-              declContainableDrop = LockRules.getContainable(typeDecl);
-            } else {
-              declContainableDrop = null;
-            }
+            // no @Containable annotation --> Default "annotation" of not containable
+            final ContainablePromiseDrop declContainableDrop = LockRules.getContainableType(typeDecl);
             if (declContainableDrop != null && uniqueDrop != null && aggDrop != null) {
               final ResultDropBuilder result =
                 createResult(varDecl, true, Messages.FIELD_CONTAINED_OBJECT, id);
@@ -606,4 +616,111 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       }
     }
   }
+  
+  
+  
+  private final class ImmutableVisitor extends JavaSemanticsVisitor {
+    private final Set<IRNode> varDecls = new HashSet<IRNode>();
+    private final PromiseDrop<? extends IAASTRootNode> immutableDrop;
+    
+    
+    
+    public ImmutableVisitor(
+        final IRNode classDecl, final PromiseDrop<? extends IAASTRootNode> cDrop) {
+      super(classDecl, false);
+      immutableDrop = cDrop;
+    }
+    
+    
+    
+    private final ResultDropBuilder createResult(
+        final IRNode decl, final boolean isConsistent, 
+        final int msg, final Object... args) {
+      final ResultDropBuilder result =
+        ResultDropBuilder.create(LockAnalysis.this, Messages.toString(msg));
+      setResultDependUponDrop(result, decl);
+      result.addCheckedPromise(immutableDrop);
+      result.setConsistent(isConsistent);
+      result.setResultMessage(msg, args);
+      return result;
+    }
+
+
+    
+    @Override
+    protected void handleFieldInitialization(
+        final IRNode varDecl, final boolean isStatic) {
+      /* Make sure we only visit each variable declaration once.  This is a 
+       * stupid way of doing this, but it's good enough for now.  SHould make 
+       * a new visitor type probably.
+       * 
+       * XXX: Why might we get visited more than once?  Must have happened or
+       * I wouldn't have added this, but I don't remember how this happens.
+       */
+      if (varDecls.add(varDecl)) {
+        /* (1) Field must be final.
+         * (2) non-primitive fields must be @Immutable
+         * or
+         * Vouched for @Vouch("Immutable")
+         */
+        final String id = VariableDeclarator.getId(varDecl);
+
+        final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
+        if (vouchDrop != null && vouchDrop.isImmutable()) {
+          // VOUCHED OR
+          final ResultDropBuilder result =
+            createResult(varDecl, true, Messages.IMMUTABLE_VOUCHED, id);
+          result.addTrustedPromise(vouchDrop);
+        } else {
+          final boolean isFinal = TypeUtil.isFinal(varDecl);
+          final IJavaType type = getBinder().getJavaType(varDecl);
+          final boolean isPrimitive = (type instanceof IJavaPrimitiveType);
+          ResultDropBuilder result = null;
+          boolean proposeVouch = false;
+          
+          if (isPrimitive) {
+            // PRIMITIVELY TYPED
+            if (isFinal) {
+              result = createResult(varDecl, true, Messages.IMMUTABLE_FINAL_PRIMITIVE, id);
+            } else {
+              result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL, id);
+              proposeVouch = true;
+            }
+          } else {
+            // REFERENCE-TYPED
+            final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
+            // no @Immutable annotation --> Default "annotation" of mutable
+            final ImmutablePromiseDrop declImmutableDrop = LockRules.getImmutableType(typeDecl);
+            
+            if (declImmutableDrop != null) {
+              // IMMUTABLE REFERENCE TYPE
+              if (isFinal) {
+                result = createResult(varDecl, true, Messages.IMMUTABLE_FINAL_IMMUTABLE, id);
+                result.addTrustedPromise(declImmutableDrop);
+              } else {
+                result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL, id);
+                result.addTrustedPromise(declImmutableDrop);
+                proposeVouch = true;
+              }
+            } else {
+              // MUTABLE REFERENCE TYPE
+              proposeVouch = true;
+              if (isFinal) {
+                result = createResult(varDecl, false, Messages.IMMUTABLE_FINAL_NOT_IMMUTABLE, id);
+              } else {
+                result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE, id);
+              }
+              result.addProposal(new ProposedPromiseBuilder(
+                  "Immutable", null, typeDecl, varDecl));
+            }
+          }
+          
+          if (proposeVouch) {
+            result.addProposal(new ProposedPromiseBuilder(
+                "Vouch", "Immutable", varDecl, varDecl));
+          }
+        }
+      }
+    }
+  }  
 }

@@ -149,47 +149,98 @@ public class LockRules extends AnnotationRules {
 	public static IsLockPromiseDrop getIsLock(IRNode vdecl) {
 		return getDrop(isLockRule.getStorage(), vdecl);
 	}
-  
-  public static boolean isContainable(final IRNode cdecl) {
-    return getContainable(cdecl) != null;
+	  
+  public static boolean isContainableType(final IRNode cdecl) {
+    return getContainableType(cdecl) != null;
   }
   
-  public static ContainablePromiseDrop getContainable(final IRNode cdecl) {
+  /**
+   * Return whether the type is thread safe.  Only returns the promise drop if
+   * the drop is not implementation only.
+   * @param cdecl
+   * @return
+   */
+  public static ContainablePromiseDrop getContainableType(final IRNode cdecl) {
+    final ContainablePromiseDrop drop = getBooleanDrop(containableRule.getStorage(), cdecl);
+    if (drop == null) {
+      return null;
+    } else {
+      return drop.isImplementationOnly() ? null : drop;
+    }
+  }
+  
+  /**
+   * Get whether the implementation is containable.  Returns the promise
+   * drop whether or not it is implementation-only.
+   */
+  public static ContainablePromiseDrop getContainableImplementation(final IRNode cdecl) {
     return getBooleanDrop(containableRule.getStorage(), cdecl);
   }
   
-  public static boolean isThreadSafe(final IRNode cdecl) {
-    final ThreadSafePromiseDrop threadSafe = getThreadSafe(cdecl);
-    return threadSafe != null && !threadSafe.isImplementationOnly();
-  }
-
-  public static ThreadSafePromiseDrop getThreadSafe(IRNode cdecl) {
-    return getBooleanDrop(threadSafeRule.getStorage(), cdecl);
+  public static NotContainablePromiseDrop getNotContainable(IRNode cdecl) {
+    return getBooleanDrop(notContainableRule.getStorage(), cdecl);
   }
   
-  public static boolean isNotThreadSafe(IRNode cdecl) {
-	  return getNotThreadSafe(cdecl) != null;
+  public static boolean isThreadSafeType(final IRNode cdecl) {
+    return getThreadSafeType(cdecl) != null;
+  }
+  
+  /**
+   * Return whether the type is thread safe.  Only returns the promise drop if
+   * the drop is not implementation only.
+   * @param cdecl
+   * @return
+   */
+  public static ThreadSafePromiseDrop getThreadSafeType(final IRNode cdecl) {
+    final ThreadSafePromiseDrop drop = getBooleanDrop(threadSafeRule.getStorage(), cdecl);
+    if (drop == null) {
+      return null;
+    } else {
+      return drop.isImplementationOnly() ? null : drop;
+    }
+  }
+
+  /**
+   * Get whether the implementation is thread safe.  Returns the promise
+   * drop whether or not it is implementation-only.
+   */
+  public static ThreadSafePromiseDrop getThreadSafeImplementation(final IRNode cdecl) {
+    return getBooleanDrop(threadSafeRule.getStorage(), cdecl);
   }
 
   public static NotThreadSafePromiseDrop getNotThreadSafe(IRNode cdecl) {
 	  return getBooleanDrop(notThreadSafeRule.getStorage(), cdecl);
   }
+
+  public static boolean isImmutableType(final IRNode cdecl) {
+    return getImmutableType(cdecl) != null;
+  }
   
-  public static NotContainablePromiseDrop getNotContainable(IRNode cdecl) {
-	  return getBooleanDrop(notContainableRule.getStorage(), cdecl);
+  /**
+   * Return whether the type is immutable.  Only returns the promise drop if
+   * the drop is not implementation only.
+   * @param cdecl
+   * @return
+   */
+  public static ImmutablePromiseDrop getImmutableType(final IRNode cdecl) {
+    final ImmutablePromiseDrop drop = getBooleanDrop(immutableRule.getStorage(), cdecl);
+    if (drop == null) {
+      return null;
+    } else {
+      return drop.isImplementationOnly() ? null : drop;
+    }
+  }
+  
+  /**
+   * Get whether the implementation is immutable.  Returns the promise
+   * drop whether or not it is implementation-only.
+   */
+  public static ImmutablePromiseDrop getImmutableImplementation(final IRNode cdecl) {
+    return getBooleanDrop(immutableRule.getStorage(), cdecl);
   }
   
   public static MutablePromiseDrop getMutable(IRNode cdecl) {
-	  return getBooleanDrop(mutableRule.getStorage(), cdecl);
-  }
-  
-  public static boolean isImmutable(final IRNode cdecl) {
-	  final ImmutablePromiseDrop immutable = getImmutable(cdecl);
-    return immutable != null && !immutable.isImplementationOnly();
-  }
-
-  public static ImmutablePromiseDrop getImmutable(IRNode cdecl) {
-	  return getBooleanDrop(immutableRule.getStorage(), cdecl);
+    return getBooleanDrop(mutableRule.getStorage(), cdecl);
   }
   
   public static VouchFieldIsPromiseDrop getVouchFieldIs(final IRNode fieldDecl) {
@@ -1613,7 +1664,7 @@ public class LockRules extends AnnotationRules {
       return new TypeAnnotationScrubber<ContainableNode, ContainablePromiseDrop, NotContainablePromiseDrop>(this, "Containable", "NotContainable", NOT_CONTAINABLE) {
         @Override
         protected ContainablePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
-          return getContainable(superDecl);
+          return getContainableImplementation(superDecl);
         }
         
         @Override
@@ -1646,7 +1697,7 @@ public class LockRules extends AnnotationRules {
       return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, "ThreadSafe", "NotThreadSafe", NOT_THREAD_SAFE) {
         @Override
         protected ThreadSafePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
-          return getThreadSafe(superDecl);
+          return getThreadSafeImplementation(superDecl);
         }
         
         @Override
@@ -1737,7 +1788,7 @@ public class LockRules extends AnnotationRules {
       return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, "Immutable", "Mutable", MUTABLE) {
         @Override
         protected ImmutablePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
-          return getImmutable(superDecl);
+          return getImmutableImplementation(superDecl);
         }
         
         @Override

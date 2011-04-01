@@ -132,6 +132,17 @@ public final class Messages extends AbstractMessages {
   public static final int FIELD_NOT_AGGREGATED = 460;
   public static final int FIELD_CONTAINED_VOUCHED = 461;
 
+  
+  
+  // For Immutable assurance
+  public static final int IMMUTABLE_FINAL_PRIMITIVE = 480;
+  public static final int IMMUTABLE_NOT_FINAL = 481;
+  public static final int IMMUTABLE_FINAL_IMMUTABLE = 482;
+  public static final int IMMUTABLE_FINAL_NOT_IMMUTABLE = 483;
+  public static final int IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE = 484;
+  public static final int IMMUTABLE_VOUCHED = 485;
+    
+  
  
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();
 
