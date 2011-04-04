@@ -388,7 +388,7 @@ public class RegionRules extends AnnotationRules {
     
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
-      throw new UnsupportedOperationException();
+      throw new UnsupportedOperationException(context.getAllText());
     }
     
     @Override
@@ -580,7 +580,10 @@ public class RegionRules extends AnnotationRules {
     protected UniqueInRegion_ParseRule() {
       super(UNIQUE_IN_REGION, fieldDeclOp, UniqueInRegionNode.class);
     }
-  
+    @Override
+	protected boolean producesOtherAASTRootNodes() {
+      return true;
+    }
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
       return parser.uniqueInRegion().getTree();

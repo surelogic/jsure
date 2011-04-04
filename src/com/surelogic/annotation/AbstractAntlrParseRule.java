@@ -75,14 +75,15 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 			  }
 			  an = finalizeAST(context, tn);
 		  }
-		  A n;
+		  IAASTRootNode n;
 		  if (an == null) {
 			  return ParseResult.FAIL;  
 		  }
 		  else if (getAASTType().isInstance(an)) {
-			  @SuppressWarnings("unchecked")
-			  A temp = (A) an;
-			  n = temp;
+			  n = (IAASTRootNode) an;
+		  }
+		  else if (producesOtherAASTRootNodes() && an instanceof IAASTRootNode) {
+			  n = (IAASTRootNode) an;
 		  }
 		  else {
 			  n = makeRoot(an);
@@ -108,6 +109,10 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 		return ParseResult.OK;
 	}
 
+	protected boolean producesOtherAASTRootNodes() {
+		return false;
+	}
+	
 	protected abstract P initParser(String contents) throws Exception;
 	
   protected AASTNode finalizeAST(IAnnotationParsingContext context,
