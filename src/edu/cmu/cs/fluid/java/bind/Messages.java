@@ -30,20 +30,35 @@ public final class Messages {
   /* 2011-01-18: Edwin says these are referenced from code that will become
    * obsolete and deleted.
    */
+  @Deprecated
   public static final String LockAnnotation_prescrubbedLock = "RegionLock {0} (pre-scrubbed, not complete)";
+  @Deprecated
   public static final String LockAnnotation_prescrubbedPolicyLock = "PolicyLock {0} (pre-scrubbed, not complete)";
+  @Deprecated
   public static final String LockAnnotation_prescrubbedRequiresLock = "RequiresLock on {0} (pre-scrubber, not complete)";
+  @Deprecated
   public static final String LockAnnotation_prescrubbedReturnsLock = "ReturnsLock (pre-scrubber, not complete)";
+  @Deprecated
   public static final String EffectsAnnotation_prescrubbedEffects = "method effects promise (pre-scrubbed, not complete) on {0}";
+  @Deprecated
   public static final String NotNullAnnotation_notNullDrop = "NotNull {0} on {1}";
+  @Deprecated
   public static final String UsedByAnnotation_usedByDrop = "UsedBy {0} on {1}";
+  @Deprecated
   public static final String RegionAnnotation_prescrubbedAggregate = "Aggregate promise (pre-scrubbed, not complete)";
+  @Deprecated
   public static final String RegionAnnotation_prescrubbedInRegion = "InRegion promise (pre-scrubbed, not complete)";
+  @Deprecated
   public static final String RegionAnnotation_parentRegionDrop = "Unknown parent region ' {0} ' for {1}";
+  @Deprecated
   public static final String RegionAnnotation_aggregationAllowedDrop = "aggregation allowed because field is declared \"unique\"";
+  @Deprecated
   public static final String RegionAnnotation_aggregationDisallowedDrop = "aggregation disallowed because field is not declared \"unique\"";
-  public static final String RegionAnnotation_aggregateDrop = "Aggregate";
+  @Deprecated
+  public static final String RegionAnnotation_aggregateDrop = "Aggregate"; // only used in RegionAnnotation.java
+  @Deprecated
   public static final String SubtypedByAnnotation_subtypedByDrop = "SubtypedBy({0}) on {1}";
+  @Deprecated
   public static final String SubtypedByAnnotation_typeDrop = "Type {0} exists and is a subtype of {1}";
 
   

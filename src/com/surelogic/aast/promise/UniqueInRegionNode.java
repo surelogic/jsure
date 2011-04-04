@@ -7,7 +7,7 @@ import java.util.List;
 import com.surelogic.aast.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class UniqueInRegionNode extends AbstractUniqueInRegionNode 
+public class UniqueInRegionNode extends AASTRootNode 
 { 
   // Fields
   private final RegionSpecificationNode spec;

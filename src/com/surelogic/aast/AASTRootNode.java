@@ -25,10 +25,6 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
       throw new IllegalArgumentException();
     }
   }
-  
-  public boolean isHandledAsSuperclass() {
-	  return false;
-  }
    
   public final void setPromisedFor(IRNode n) {
     checkArgument(promisedFor, n);

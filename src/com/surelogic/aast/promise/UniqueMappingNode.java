@@ -7,7 +7,7 @@ import java.util.List;
 import com.surelogic.aast.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class UniqueMappingNode extends AbstractUniqueInRegionNode 
+public class UniqueMappingNode extends AASTRootNode 
 { 
   // Fields
   private final MappedRegionSpecificationNode spec;
@@ -41,10 +41,10 @@ public class UniqueMappingNode extends AbstractUniqueInRegionNode
     	indent(sb, indent); 
     	sb.append("UniqueMappingNode\n");
     	indent(sb, indent+2);
-    	sb.append(getSpec().unparse(debug, indent+2));
+    	sb.append(spec.unparse(debug, indent+2));
     } else {
     	sb.append("UniqueInRegion ");
-    	sb.append(getSpec().unparse(debug, indent+2));
+    	sb.append(spec.unparse(debug, indent+2));
     }
     return sb.toString();
   }
@@ -54,10 +54,6 @@ public class UniqueMappingNode extends AbstractUniqueInRegionNode
    */
   public MappedRegionSpecificationNode getMapping() {
     return spec;
-  }
-  
-  public RegionSpecificationNode getSpec() {
-	  return spec.getMappingList().get(0).getTo();
   }
   
   @Override

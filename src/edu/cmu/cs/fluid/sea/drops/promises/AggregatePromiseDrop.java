@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.UniqueMappingNode;
 
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
@@ -36,11 +37,14 @@ public final class AggregatePromiseDrop extends PromiseDrop<UniqueMappingNode> {
   @Override
   protected void computeBasedOnAST() {    
     if (getAST() != null) {
-      setMessage(Messages.RegionAnnotation_aggregateDrop+' '+getAST().getSpec().unparse(false));
+      final String name = JavaNames.getFieldDecl(getNode());
+      final String mappings = getAST().getMapping().unparse(false);
+      setResultMessage(
+          Messages.RegionAnnotation_aggregateInRegionDrop, mappings, name); 
+    }
 //      for(RegionMappingNode m : getAST().getSpec().getMappingList()) {
 //        IRegionBinding b = m.getTo().resolveBinding();
 //        b.getModel().addDependent(this);
 //      }
-    }
   }
 }

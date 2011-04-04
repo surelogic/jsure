@@ -44,9 +44,10 @@ implements IDerivedDropCreator<AggregatePromiseDrop> {
   @Override
   protected void computeBasedOnAST() {
     if (getAST() != null) {
-      String name       = JavaNames.getFieldDecl(getNode());
-      String regionName = getAST().getSpec().unparse(false);
-      setResultMessage(Messages.RegionAnnotation_aggregateInRegionDrop, regionName, name); //$NON-NLS-1$
+      final String name       = JavaNames.getFieldDecl(getNode());
+      final String regionName = getAST().getSpec().unparse(false);
+      setResultMessage(
+          Messages.RegionAnnotation_aggregateInRegionDrop, regionName, name);
     }
   }
   

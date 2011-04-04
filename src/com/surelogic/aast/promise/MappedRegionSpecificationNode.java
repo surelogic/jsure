@@ -7,7 +7,6 @@ import java.util.*;
 
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class MappedRegionSpecificationNode extends FieldRegionSpecificationNode { 
   // Fields
@@ -15,6 +14,7 @@ public class MappedRegionSpecificationNode extends FieldRegionSpecificationNode 
 
   public static final AbstractAASTNodeFactory factory =
     new AbstractAASTNodeFactory("MappedRegionSpecification") {
+      @SuppressWarnings({ "rawtypes", "unchecked" })
       @Override
       public AASTNode create(String _token, int _start, int _stop,
                                       int _mods, String _id, int _dims, List<AASTNode> _kids) {

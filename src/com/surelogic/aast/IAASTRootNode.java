@@ -12,8 +12,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * @author Edwin.Chan
  */
 public interface IAASTRootNode extends IAASTNode {
-  boolean isHandledAsSuperclass();	
-	
   void clearPromisedFor();
   IRNode getPromisedFor();
   AASTStatus getStatus();
