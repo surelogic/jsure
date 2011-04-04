@@ -1,17 +1,11 @@
 package com.surelogic.jsure.client.eclipse.views;
 
-import java.util.*;
-
-import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Composite;
 
 import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.fluid.javac.scans.*;
-import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 
 import edu.cmu.cs.fluid.sea.*;
 
@@ -20,13 +14,11 @@ import edu.cmu.cs.fluid.sea.*;
  * 
  * @author Edwin
  */
-public abstract class AbstractScanTableView<T extends IDropInfo> extends AbstractScanStructuredView {
+public abstract class AbstractScanTableView<T extends IDropInfo> extends AbstractScanStructuredView<T> {
 	final IResultsTableContentProvider f_content;
-	final Class<T> clazz;
 	
 	protected AbstractScanTableView(int style, Class<T> c, IResultsTableContentProvider content) {
-		super(style);
-		clazz = c;
+		super(style, c);
 		f_content = content;
 	}
 	
@@ -98,43 +90,5 @@ public abstract class AbstractScanTableView<T extends IDropInfo> extends Abstrac
 			}
 		}
 		return sb.toString();
-	}
-	
-	protected List<? extends T> getSelectedRows() {
-		final IStructuredSelection selection = (IStructuredSelection) getViewer().getSelection();
-		final List<T> result = new ArrayList<T>();
-		for (final Object element : selection.toList()) {
-			if (clazz.isInstance(element)) {
-				result.add(clazz.cast(element));
-			}
-		}
-		return result;
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	protected final void handleDoubleClick(final IStructuredSelection selection) {
-		final T d = (T) selection.getFirstElement();
-		if (d != null) {
-			highlightLineInJavaEditor(d.getSrcRef());
-			handleDoubleClick(d);
-		}
-	}
-	
-	protected void handleDoubleClick(T d) {
-		// Nothing right now
-	}
-	
-	protected Action makeCopyAction(String label, String tooltip) {
-		Action a = new Action() {
-			@Override
-			public void run() {
-				f_clipboard.setContents(new Object[] { getSelectedText() },
-						new Transfer[] { TextTransfer.getInstance() });
-			}
-		};	
-		a.setText(label);
-		a.setToolTipText(tooltip);
-		return a;
 	}
 }
