@@ -11,7 +11,6 @@ import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.FieldRegion;
-import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
@@ -78,11 +77,11 @@ public class RegionRules extends AnnotationRules {
     return getDrop(inRegionRule.getStorage(), vdecl);
   }
   
-  public static AggregatePromiseDrop getAggregate(IRNode vdecl) {
+  public static ExplicitUniqueInRegionPromiseDrop getAggregate(IRNode vdecl) {
     throw new UnsupportedOperationException();
   }
 
-  public static UniqueInRegionPromiseDrop getAggregateInRegion(IRNode vdecl) {
+  public static SimpleUniqueInRegionPromiseDrop getAggregateInRegion(IRNode vdecl) {
 	  return getDrop(uniqueInRegionRule.getStorage(), vdecl);
   }
   
@@ -381,7 +380,7 @@ public class RegionRules extends AnnotationRules {
   }
   
   public static class UniqueMapping_ParseRule
-  extends DefaultSLAnnotationParseRule<UniqueMappingNode,AggregatePromiseDrop> {
+  extends DefaultSLAnnotationParseRule<UniqueMappingNode,ExplicitUniqueInRegionPromiseDrop> {
     protected UniqueMapping_ParseRule() {
       super(UNIQUE_MAPPING, fieldDeclOp, UniqueMappingNode.class);
     }
@@ -392,23 +391,23 @@ public class RegionRules extends AnnotationRules {
     }
     
     @Override
-    protected IPromiseDropStorage<AggregatePromiseDrop> makeStorage() {
-      return SinglePromiseDropStorage.create(name(), AggregatePromiseDrop.class);
+    protected IPromiseDropStorage<ExplicitUniqueInRegionPromiseDrop> makeStorage() {
+      return SinglePromiseDropStorage.create(name(), ExplicitUniqueInRegionPromiseDrop.class);
     }
     @Override
     protected IAnnotationScrubber<UniqueMappingNode> makeScrubber() {
-      return new AbstractAASTScrubber<UniqueMappingNode, AggregatePromiseDrop>(this, 
+      return new AbstractAASTScrubber<UniqueMappingNode, ExplicitUniqueInRegionPromiseDrop>(this, 
                                                    ScrubberType.UNORDERED, 
                                                    /*new String[] { AGGREGATE },*/ REGION, UniquenessRules.UNIQUE) {
         @Override
-        protected AggregatePromiseDrop makePromiseDrop(UniqueMappingNode a) {
+        protected ExplicitUniqueInRegionPromiseDrop makePromiseDrop(UniqueMappingNode a) {
           return storeDropIfNotNull(a, scrubUniqueMapping(getContext(), a));          
         }
       };
     }
   }
   
-  private static AggregatePromiseDrop scrubUniqueMapping(
+  private static ExplicitUniqueInRegionPromiseDrop scrubUniqueMapping(
       final IAnnotationScrubberContext context, final UniqueMappingNode a) {
     final IRNode promisedFor = a.getPromisedFor();   
     final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(promisedFor);
@@ -417,7 +416,7 @@ public class RegionRules extends AnnotationRules {
       uniqueDrop.invalidate();
       return null;
     }
-    return new AggregatePromiseDrop(a);
+    return new ExplicitUniqueInRegionPromiseDrop(a);
     
 //    boolean annotationIsGood = true;
 //    final IRNode promisedFor = a.getPromisedFor();
@@ -428,7 +427,7 @@ public class RegionRules extends AnnotationRules {
 //     * because @AggregateInRegion generates an @Aggregate, so we have to see if
 //     * we are the @Aggregate that was generated or not.
 //     */
-//    final UniqueInRegionPromiseDrop aggInRegion = getAggregateInRegion(promisedFor);
+//    final SimpleUniqueInRegionPromiseDrop aggInRegion = getAggregateInRegion(promisedFor);
 //    if (aggInRegion != null) {
 //      if (a.getOffset() != aggInRegion.getAST().getOffset()) { // not generated
 //        // bad, cannot have both
@@ -574,7 +573,7 @@ public class RegionRules extends AnnotationRules {
 //    
 //    if (annotationIsGood) {
 //      // Create the annotation drop and link it to the annotated field
-//      final AggregatePromiseDrop ap = new AggregatePromiseDrop(a);
+//      final ExplicitUniqueInRegionPromiseDrop ap = new ExplicitUniqueInRegionPromiseDrop(a);
 //      // We know unique is not null because annotationIsGood is true
 //      ap.addDependent(unique);
 //      fieldAsRegion.getModel().addDependent(ap);
@@ -585,7 +584,7 @@ public class RegionRules extends AnnotationRules {
   }
   
   public static class UniqueInRegion_ParseRule 
-  extends DefaultSLAnnotationParseRule<UniqueInRegionNode,UniqueInRegionPromiseDrop> {
+  extends DefaultSLAnnotationParseRule<UniqueInRegionNode,SimpleUniqueInRegionPromiseDrop> {
     protected UniqueInRegion_ParseRule() {
       super(UNIQUE_IN_REGION, fieldDeclOp, UniqueInRegionNode.class);
     }
@@ -599,23 +598,23 @@ public class RegionRules extends AnnotationRules {
     }
 
     @Override
-    protected IPromiseDropStorage<UniqueInRegionPromiseDrop> makeStorage() {
-      return SinglePromiseDropStorage.create(name(), UniqueInRegionPromiseDrop.class);
+    protected IPromiseDropStorage<SimpleUniqueInRegionPromiseDrop> makeStorage() {
+      return SinglePromiseDropStorage.create(name(), SimpleUniqueInRegionPromiseDrop.class);
     }
     @Override
     protected IAnnotationScrubber<UniqueInRegionNode> makeScrubber() {
-      return new AbstractAASTScrubber<UniqueInRegionNode, UniqueInRegionPromiseDrop>(this, 
+      return new AbstractAASTScrubber<UniqueInRegionNode, SimpleUniqueInRegionPromiseDrop>(this, 
                                                    ScrubberType.UNORDERED, 
                                                    /*new String[] { AGGREGATE },*/ REGION, UniquenessRules.UNIQUE) {
         @Override
-        protected UniqueInRegionPromiseDrop makePromiseDrop(UniqueInRegionNode a) {
+        protected SimpleUniqueInRegionPromiseDrop makePromiseDrop(UniqueInRegionNode a) {
           return storeDropIfNotNull(a, scrubUniqueInRegion(getContext(), a));          
         }
       };
     }
   }
   
-  static UniqueInRegionPromiseDrop scrubUniqueInRegion(
+  static SimpleUniqueInRegionPromiseDrop scrubUniqueInRegion(
 		  final IAnnotationScrubberContext context,
 		  final UniqueInRegionNode a) {
 	  // TODO factor out?
@@ -630,9 +629,9 @@ public class RegionRules extends AnnotationRules {
 	  // TODO move to scrubUniqueMapping
 	  //
 	  //if (a instanceof UniqueInRegionNode) {
-		  return new UniqueInRegionPromiseDrop(a);
+		  return new SimpleUniqueInRegionPromiseDrop(a);
 	  //} else {
-	  //  return new AggregatePromiseDrop((UniqueMappingNode) a);
+	  //  return new ExplicitUniqueInRegionPromiseDrop((UniqueMappingNode) a);
 	  //}
   }
   

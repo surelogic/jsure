@@ -14,9 +14,9 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.analysis.Region
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
-public final class UniqueInRegionPromiseDrop extends PromiseDrop<UniqueInRegionNode> 
-implements IDerivedDropCreator<AggregatePromiseDrop> {
-  public UniqueInRegionPromiseDrop(UniqueInRegionNode n) {
+public final class SimpleUniqueInRegionPromiseDrop extends PromiseDrop<UniqueInRegionNode> 
+implements IDerivedDropCreator<ExplicitUniqueInRegionPromiseDrop> {
+  public SimpleUniqueInRegionPromiseDrop(UniqueInRegionNode n) {
     super(n);
     setCategory(JavaGlobals.REGION_CAT);
   }
@@ -51,7 +51,7 @@ implements IDerivedDropCreator<AggregatePromiseDrop> {
     }
   }
   
-  public void validated(AggregatePromiseDrop pd) {
+  public void validated(final ExplicitUniqueInRegionPromiseDrop pd) {
 	  pd.setVirtual(true);
 	  pd.setSourceDrop(this);
   }

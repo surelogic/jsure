@@ -36,7 +36,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
   private static SlotInfo<RegionModel> regionDrop = SimpleSlotFactory.prototype
       .newAttribute(null);
 
-  private static SlotInfo<AggregatePromiseDrop> aggregateDrop = SimpleSlotFactory.prototype
+  private static SlotInfo<ExplicitUniqueInRegionPromiseDrop> aggregateDrop = SimpleSlotFactory.prototype
       .newAttribute(null);
 
   private static SlotInfo<InRegionPromiseDrop> inRegionDrop = SimpleSlotFactory.prototype
@@ -150,13 +150,13 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
     getAggregateDrop(fieldNode); // create the drop
   }
 
-  public static AggregatePromiseDrop getAggregateDrop(IRNode fieldNode) {
-    AggregatePromiseDrop result = fieldNode.getSlotValue(aggregateDrop);
+  public static ExplicitUniqueInRegionPromiseDrop getAggregateDrop(IRNode fieldNode) {
+    ExplicitUniqueInRegionPromiseDrop result = fieldNode.getSlotValue(aggregateDrop);
     if (result != null) {
       return result;
     } else {
       if (fieldNode.valueExists(fieldAggregateSI)) {
-        result = new AggregatePromiseDrop(null);
+        result = new ExplicitUniqueInRegionPromiseDrop(null);
         result.setMessage(Messages.RegionAnnotation_prescrubbedAggregate); //$NON-NLS-1$
         // the rest is filled in by the promise scrubber
         fieldNode.setSlotValue(aggregateDrop, result);
@@ -893,7 +893,7 @@ public class RegionAnnotation extends AbstractPromiseAnnotation {
           result = false;
         }
 
-        AggregatePromiseDrop ap = getAggregateDrop(promisedFor);
+        ExplicitUniqueInRegionPromiseDrop ap = getAggregateDrop(promisedFor);
         ap.setNode(aggPromise);
         ap.dependUponCompilationUnitOf(promisedFor);
         PromiseDrop unique = UniquenessAnnotation.getUniqueDrop(promisedFor);

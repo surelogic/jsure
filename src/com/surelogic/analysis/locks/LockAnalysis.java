@@ -33,9 +33,9 @@ import edu.cmu.cs.fluid.sea.DropPredicateFactory;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.AggregatePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ExplicitUniqueInRegionPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -390,7 +390,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
            * threadsafe don't check the aggregation status
            */
           final UniquePromiseDrop uDrop;
-          final AggregatePromiseDrop aggDrop;
+          final ExplicitUniqueInRegionPromiseDrop aggDrop;
           boolean isContained = false;
           if (declTSDrop == null && declContainableDrop != null) {
             uDrop = UniquenessRules.getUniqueDrop(varDecl);
@@ -567,7 +567,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             result.addTrustedPromise(vouchDrop);
           } else {
             final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(varDecl);
-            final AggregatePromiseDrop aggDrop = RegionRules.getAggregate(varDecl);
+            final ExplicitUniqueInRegionPromiseDrop aggDrop = RegionRules.getAggregate(varDecl);
             final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
             // no @Containable annotation --> Default "annotation" of not containable
             final ContainablePromiseDrop declContainableDrop = LockRules.getContainableType(typeDecl);

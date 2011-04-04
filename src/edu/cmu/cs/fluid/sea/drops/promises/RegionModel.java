@@ -17,7 +17,6 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.Messages;
-import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
@@ -156,7 +155,7 @@ public class RegionModel extends ModelDrop<NewRegionDeclarationNode> implements
 		public boolean match(Drop d) {
 			return d instanceof InRegionPromiseDrop
 			// || d instanceof RegionDeclarationDrop
-					|| d instanceof AggregatePromiseDrop;
+					|| d instanceof ExplicitUniqueInRegionPromiseDrop;
 		}
 	};
 

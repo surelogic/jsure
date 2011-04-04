@@ -18,7 +18,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.drops.promises.AggregatePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.ExplicitUniqueInRegionPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 /**
@@ -127,7 +127,7 @@ public final class AggregationUtils {
     /* Try to get the aggregation information. If no aggregation is defined,
      * then getFieldRegion will throw a SlotUndefinedException.
      */
-    final AggregatePromiseDrop mrs = RegionRules.getAggregate(field);
+    final ExplicitUniqueInRegionPromiseDrop mrs = RegionRules.getAggregate(field);
     if (mrs != null) {
       final Map<RegionModel, IRegion> aggregationMap = new HashMap<RegionModel, IRegion>();
       for (final RegionMappingNode mapping : mrs.getAST().getMapping().getMappingList()) {

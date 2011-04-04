@@ -13,8 +13,8 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
  * @see edu.cmu.cs.fluid.java.analysis.Region
  * @see edu.cmu.cs.fluid.java.bind.RegionAnnotation
  */
-public final class AggregatePromiseDrop extends PromiseDrop<UniqueMappingNode> {
-  public AggregatePromiseDrop(UniqueMappingNode n) {
+public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueMappingNode> {
+  public ExplicitUniqueInRegionPromiseDrop(UniqueMappingNode n) {
     super(n);
   }
   
