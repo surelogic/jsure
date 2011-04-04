@@ -47,7 +47,7 @@ public class Activator extends Plugin {
 			doubleChecker.start(context);
 		}
 		
-		if (!Util.useResultsXML) {
+		if (false && !Util.useResultsXML) {
 			clearJSureData();
 		}
 		//monitor.worked(1);
