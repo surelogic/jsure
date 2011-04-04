@@ -35,6 +35,7 @@ public class RegionRules extends AnnotationRules {
   public static final String IN_REGION = "InRegion";
   public static final String MAP_FIELDS = "MapFields";
   public static final String UNIQUE_IN_REGION = "UniqueInRegion";
+  public static final String UNIQUE_MAPPING = "Unique Mapping"; // Never meant to be parsed
   public static final String REGION_INITIALIZER = "RegionInitializer";
   public static final String REGIONS_DONE = "RegionsDone";
   
@@ -46,11 +47,12 @@ public class RegionRules extends AnnotationRules {
   private static final InRegion_ParseRule inRegionRule     = new InRegion_ParseRule();
   private static final MapFields_ParseRule mapFieldsRule   = new MapFields_ParseRule();
 
+  private static final UniqueMapping_ParseRule uniqueMappingRule = new UniqueMapping_ParseRule();
   private static final UniqueInRegion_ParseRule uniqueInRegionRule = 
 	  new UniqueInRegion_ParseRule();
   
   private static final SimpleScrubber regionsDone = new SimpleScrubber(REGIONS_DONE, REGION, IN_REGION, 
-		                                                               UNIQUE_IN_REGION) {
+		                                                               UNIQUE_IN_REGION, UNIQUE_MAPPING) {
     @Override
     protected void scrub() {
       // do nothing
@@ -101,6 +103,7 @@ public class RegionRules extends AnnotationRules {
 			}
 		}    	
     }, true);
+    registerParseRuleStorage(fw, uniqueMappingRule);
     registerParseRuleStorage(fw, uniqueInRegionRule);
     registerScrubber(fw, regionsDone);
 //    registerScrubber(fw, new UniquelyNamed_NoCycles());
@@ -377,43 +380,35 @@ public class RegionRules extends AnnotationRules {
     return drop;
   }
   
-  /*
-  public static class Aggregate_ParseRule
+  public static class UniqueMapping_ParseRule
   extends DefaultSLAnnotationParseRule<UniqueMappingNode,AggregatePromiseDrop> {
-    protected Aggregate_ParseRule() {
-      super(AGGREGATE, fieldDeclOp, UniqueMappingNode.class);
-    }
-    @Override
-    protected SLAnnotationsParser initParser(String contents) throws Exception {
-    	if (contents == null || contents.length() == 0) {
-    		contents = "Instance into Instance";
-    	}
-    	return super.initParser(contents);
+    protected UniqueMapping_ParseRule() {
+      super(UNIQUE_MAPPING, fieldDeclOp, UniqueMappingNode.class);
     }
     
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
-      return parser.uniqueInRegion().getTree();
+      throw new UnsupportedOperationException();
     }
+    
     @Override
     protected IPromiseDropStorage<AggregatePromiseDrop> makeStorage() {
       return SinglePromiseDropStorage.create(name(), AggregatePromiseDrop.class);
     }
     @Override
     protected IAnnotationScrubber<UniqueMappingNode> makeScrubber() {
-      return new AbstractAASTScrubber<UniqueMappingNode,AggregatePromiseDrop>(this,  
-                                                     ScrubberType.UNORDERED, 
-                                                     REGION, IN_REGION, MAP_FIELDS, UniquenessRules.UNIQUENESS_DONE) {
+      return new AbstractAASTScrubber<UniqueMappingNode, AggregatePromiseDrop>(this, 
+                                                   ScrubberType.UNORDERED, 
+                                                   /*new String[] { AGGREGATE },*/ REGION, UniquenessRules.UNIQUE) {
         @Override
-        protected PromiseDrop<UniqueMappingNode> makePromiseDrop(UniqueMappingNode a) {
-          return storeDropIfNotNull(a, scrubAggregate(getContext(), a));
+        protected AggregatePromiseDrop makePromiseDrop(UniqueMappingNode a) {
+          return storeDropIfNotNull(a, scrubUniqueMapping(getContext(), a));          
         }
       };
     }
   }
-  */
   
-  private static AggregatePromiseDrop scrubAggregate(
+  private static AggregatePromiseDrop scrubUniqueMapping(
       final IAnnotationScrubberContext context, final UniqueMappingNode a) {
     boolean annotationIsGood = true;
     final IRNode promisedFor = a.getPromisedFor();
@@ -581,9 +576,9 @@ public class RegionRules extends AnnotationRules {
   }
   
   public static class UniqueInRegion_ParseRule 
-  extends DefaultSLAnnotationParseRule<AbstractUniqueInRegionNode,UniqueInRegionPromiseDrop> {
+  extends DefaultSLAnnotationParseRule<UniqueInRegionNode,UniqueInRegionPromiseDrop> {
     protected UniqueInRegion_ParseRule() {
-      super(UNIQUE_IN_REGION, fieldDeclOp, AbstractUniqueInRegionNode.class);
+      super(UNIQUE_IN_REGION, fieldDeclOp, UniqueInRegionNode.class);
     }
   
     @Override
@@ -596,39 +591,37 @@ public class RegionRules extends AnnotationRules {
       return SinglePromiseDropStorage.create(name(), UniqueInRegionPromiseDrop.class);
     }
     @Override
-    protected IAnnotationScrubber<AbstractUniqueInRegionNode> makeScrubber() {
-      return new AbstractAASTScrubber<AbstractUniqueInRegionNode, UniqueInRegionPromiseDrop>(this, 
+    protected IAnnotationScrubber<UniqueInRegionNode> makeScrubber() {
+      return new AbstractAASTScrubber<UniqueInRegionNode, UniqueInRegionPromiseDrop>(this, 
                                                    ScrubberType.UNORDERED, 
                                                    /*new String[] { AGGREGATE },*/ REGION, UniquenessRules.UNIQUE) {
         @Override
-        protected PromiseDrop<AbstractUniqueInRegionNode> makePromiseDrop(AbstractUniqueInRegionNode a) {
+        protected UniqueInRegionPromiseDrop makePromiseDrop(UniqueInRegionNode a) {
           return storeDropIfNotNull(a, scrubUniqueInRegion(getContext(), a));          
         }
       };
     }
   }
   
-  static UniqueInRegionPromiseDrop scrubUniqueInRegion(IAnnotationScrubberContext context, 
-		                                                     AbstractUniqueInRegionNode a) {
-	  UniqueInRegionPromiseDrop drop = new UniqueInRegionPromiseDrop(a);
-	  /*
-	  RegionSpecificationNode spec = a.getSpec();
-	  if (!spec.bindingExists()) {
+  static UniqueInRegionPromiseDrop scrubUniqueInRegion(
+		  final IAnnotationScrubberContext context,
+		  final UniqueInRegionNode a) {
+	  // TODO factor out?
+	  final IRNode promisedFor = a.getPromisedFor();	 
+	  final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(promisedFor);
+	  if (uniqueDrop != null) {
+		  context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
+		  uniqueDrop.invalidate();
 		  return null;
-	  }	  
-	  // Create AggregateNode tree
-	  RegionNameNode instance = new RegionNameNode(a.getOffset(), "Instance");
-	  RegionMappingNode mapping = new RegionMappingNode(a.getOffset(), instance, 
-			                                           (RegionSpecificationNode) spec.cloneTree());
-	  MappedRegionSpecificationNode map = 
-		  new MappedRegionSpecificationNode(a.getOffset(), Collections.singletonList(mapping));
-	  UniqueMappingNode aggregate = new UniqueMappingNode(a.getOffset(), map);
-	  aggregate.setPromisedFor(a.getPromisedFor());
-	  aggregate.setSrcType(a.getSrcType()); // FIX
-	  
-	  AASTStore.addDerived(aggregate, a, drop);	  
-	  */
-	  return drop;
+	  }
+
+	  // TODO move to scrubUniqueMapping
+	  //
+	  //if (a instanceof UniqueInRegionNode) {
+		  return new UniqueInRegionPromiseDrop(a);
+	  //} else {
+	  //  return new AggregatePromiseDrop((UniqueMappingNode) a);
+	  //}
   }
   
   private static String truncateName(final String qualifiedName) {
