@@ -2,13 +2,24 @@ package com.surelogic.jsure.views.debug.oracleDiff;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
 
+import java.io.File;
+import java.util.Collection;
+
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary.*;
-import com.surelogic.common.xml.Entity;
 
-public class SnapshotDiffContentProvider implements ITreeContentProvider, ILabelProvider {
+import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.xml.Entity;
+import com.surelogic.jsure.client.eclipse.views.*;
+import com.surelogic.jsure.core.listeners.PersistentDropInfo;
+import com.surelogic.fluid.javac.scans.*;
+
+public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	private static final Object[] noElements = new Object[0];
 	private static final Object[] nothingToShow = new Object[1];
 	static {
@@ -16,8 +27,35 @@ public class SnapshotDiffContentProvider implements ITreeContentProvider, ILabel
 	}	
 	private Diff diff;
 	
-	public void setDiff(Diff d) {
-		diff = d;
+	@Override
+	public String build(ScanStatus s) {
+		final JSureScanInfo scan = JSureScansHub.getInstance().getCurrentScanInfo();
+		if (scan == null) {
+			return null;
+		}
+		final Collection<? extends IDropInfo> info = scan.getRawInfo();
+		if (!info.isEmpty()) {
+			try {
+				File file = null;
+				for(String name : scan.findProjectsLabel().split(", ")) {			
+					final IProject p = EclipseUtility.getProject(name);
+					if (p == null || !p.exists()) {
+						continue;
+					}
+					final File pFile = p.getLocation().toFile();
+					file  = SeaSummary.findSummary(pFile.getAbsolutePath());	
+				}
+				diff = SeaSummary.diff(info, file);				
+				return scan.getLabel();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		} else {
+				System.out.println("No snapshot to diff against");
+		}
+		return null;
 	}
 	
 	public Object[] getElements(Object input) {
