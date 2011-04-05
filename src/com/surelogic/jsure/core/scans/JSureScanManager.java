@@ -17,7 +17,7 @@ public class JSureScanManager {
 		return prototype;
 	}
 	
-	private final List<IJSureScanListener> listeners = new CopyOnWriteArrayList<IJSureScanListener>();
+	private final List<IJSureScanManagerListener> listeners = new CopyOnWriteArrayList<IJSureScanManagerListener>();
 	private JSureData data;
 	
 	private JSureScanManager() {
@@ -25,16 +25,16 @@ public class JSureScanManager {
 		data = JSureDataDirScanner.scan(dataDir);
 	}
 	
-	public void addListener(IJSureScanListener l) {
+	public void addListener(IJSureScanManagerListener l) {
 		listeners.add(l);
 	}
 	
-	public void removeListener(IJSureScanListener l) {
+	public void removeListener(IJSureScanManagerListener l) {
 		listeners.remove(l);
 	}
 	
 	private void notify(DataDirStatus s, File dir) {
-		for(IJSureScanListener l : listeners) {
+		for(IJSureScanManagerListener l : listeners) {
 			l.updateScans(s, dir);
 		}		
 	}

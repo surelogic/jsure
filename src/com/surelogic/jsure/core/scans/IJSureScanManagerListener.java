@@ -2,6 +2,6 @@ package com.surelogic.jsure.core.scans;
 
 import java.io.File;
 
-public interface IJSureScanListener {
+public interface IJSureScanManagerListener {
 	void updateScans(DataDirStatus s, File dir);
 }
