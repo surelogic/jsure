@@ -137,29 +137,6 @@ public final class JSurePreferencesUtility {
 	}
 
 	/**
-	 * Sets the JSure data directory to an existing directory.
-	 * <p>
-	 * This method simply changes the preference it does not move data from the
-	 * old directory (or even delete the old directory).
-	 * 
-	 * @param dir
-	 *            the new JSure data directory (must exist and be a directory).
-	 * 
-	 * @throws IllegalArgumentException
-	 *             if the passed {@link File} is not a directory or doesn't
-	 *             exist.
-	 */
-	public static void setJSureDataDirectory(final File dir) {
-		if (dir != null && dir.isDirectory()) {
-			EclipseUtility.setStringPreference(
-					IDEPreferences.JSURE_DATA_DIRECTORY, dir.getAbsolutePath());
-		} else {
-			throw new IllegalArgumentException("Bad JSure data directory "
-					+ dir + " it doesn't exist on the disk");
-		}
-	}
-
-	/**
 	 * Gets the switch-to-the-JSure-perspective preferences.
 	 * 
 	 * @return the switch-to-the-JSure-perspective preferences.
