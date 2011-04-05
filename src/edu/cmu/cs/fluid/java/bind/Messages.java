@@ -5,7 +5,7 @@ public final class Messages {
   public static final int LockAnnotation_lockModel = 100;
   public static final int LockAnnotation_policyLockModel = 101;
   public static final int LockAnnotation_requiresLockDrop = 102;
-  public static final int RegionAnnotation_aggregateInRegionDrop = 103;
+  public static final int RegionAnnotation_uniqueInRegionDrop = 103;
   public static final int AssumeFinalAnnotation_finalFieldDrop = 104;
   public static final int UniquenessAnnotation_borrowedDrop = 105;
   public static final int LockAnnotation_immutableDrop = 106;

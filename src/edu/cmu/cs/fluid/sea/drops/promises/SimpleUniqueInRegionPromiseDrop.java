@@ -47,7 +47,7 @@ implements IDerivedDropCreator<ExplicitUniqueInRegionPromiseDrop> {
       final String name       = JavaNames.getFieldDecl(getNode());
       final String regionName = getAST().getSpec().unparse(false);
       setResultMessage(
-          Messages.RegionAnnotation_aggregateInRegionDrop, regionName, name);
+          Messages.RegionAnnotation_uniqueInRegionDrop, regionName, name);
     }
   }
   

@@ -18,6 +18,8 @@ import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
@@ -414,22 +416,66 @@ public class RegionRules extends AnnotationRules {
   static SimpleUniqueInRegionPromiseDrop scrubSimpleUniqueInRegion(
   	  final IAnnotationScrubberContext context,
   	  final UniqueInRegionNode a) {
-    // TODO factor out?
-    final IRNode promisedFor = a.getPromisedFor();	 
+    final IRNode promisedFor = a.getPromisedFor();
+    
+    // Cannot also be @Unique
     final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(promisedFor);
     if (uniqueDrop != null) {
   	  context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
   	  uniqueDrop.invalidate();
   	  return null;
     }
-  
-    // TODO move to scrubUniqueMapping
-    //
-    //if (a instanceof UniqueInRegionNode) {
-  	  return new SimpleUniqueInRegionPromiseDrop(a);
-    //} else {
-    //  return new ExplicitUniqueInRegionPromiseDrop((UniqueMappingNode) a);
-    //}
+
+    boolean isGood = true;
+    
+    // Field must be reference typed
+    final IJavaType type = context.getBinder().getJavaType(promisedFor);
+    if (type instanceof IJavaPrimitiveType) {
+      context.reportError(a, "Annotated field must have a reference type");
+      isGood = false;
+    }
+    
+    // Named region must exist
+    final String name = a.getSpec().getId();
+    final IRegionBinding destDecl = a.getSpec().resolveBinding();
+    if (destDecl == null) {
+      context.reportError(a, "Destination region \"{0}\" does not exist", name);
+      isGood = false;
+    } else {
+      // Named region cannot be final
+      final RegionModel destRegion = destDecl.getModel();
+      if (destRegion.isFinal()) {
+        context.reportError(a, "Destination region \"{0}\" is final", name);
+        isGood = false;
+      }
+      
+      // Named region cannot be volatile
+      if (destRegion.isVolatile()) {
+        context.reportError(a, "Destination region \"{0}\" is volatile", name);
+        isGood = false;
+      }
+      
+      // Named region must be static if the field is static
+      if (TypeUtil.isStatic(promisedFor) && !destRegion.isStatic()) {
+        context.reportError(a, "Destination region \"{0}\" must be static because the annotated field is static", name);
+        isGood = false;
+      }
+      
+      // Named region must be accessible
+      final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
+      if (!destRegion.isAccessibleFromType(
+          context.getBinder().getTypeEnvironment(), enclosingType)) {
+        context.reportError(a, "Destination region \"{0}\" is not accessible to type \"{1}\"",
+            name, JavaNames.getQualifiedTypeName(enclosingType));
+        isGood = false;
+      }
+    }
+    
+    if (isGood) {
+      return new SimpleUniqueInRegionPromiseDrop(a);
+    } else {
+      return null;
+    }
   }
 
   public static class ExplicitUniqueInRegion_ParseRule
