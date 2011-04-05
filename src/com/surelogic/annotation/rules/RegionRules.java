@@ -479,7 +479,10 @@ public class RegionRules extends AnnotationRules {
       if (!TypeUtil.isFinal(promisedFor)) {
         final RegionSpecificationNode regionSpec =
           (RegionSpecificationNode) a.getSpec().cloneTree();
-        final InRegionNode inRegion = new InRegionNode(a.getOffset(), regionSpec);
+        final InRegionNode inRegion =
+          new InRegionNode(a.getOffset(), regionSpec);
+        inRegion.setPromisedFor(promisedFor);
+        inRegion.setSrcType(a.getSrcType());
         AASTStore.addDerived(inRegion, a, drop);
       }
       
