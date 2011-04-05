@@ -39,6 +39,10 @@ public class JSureScanManager {
 		}		
 	}
 	
+	public synchronized JSureData getData() {
+		return data;
+	}
+	
 	public void addedScan(File run) {		
 		if (run == null || !run.isDirectory()) {
 			throw new IllegalArgumentException("Bad scan directory: "+run);
@@ -65,6 +69,7 @@ public class JSureScanManager {
 	 *             if the passed {@link File} is not a directory or doesn't
 	 *             exist.
 	 */
+	// TODO what about the changes via the preference page?
 	public void setJSureDataDirectory(final File dir) {
 		if (dir != null && dir.isDirectory()) {
 			synchronized (this) {
