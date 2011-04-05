@@ -53,7 +53,7 @@ implements IJSureScanListener, IJSureScanManagerListener {
 			    		  if (getViewer() != null) {
 			    			  getViewer().setInput(getViewSite());
 			    		  }
-				    	  // TODO what else is there to do?
+				    	  // TODO what else is there to do with the label?
 			    	  }
 			    	  f_viewerControl.redraw();
 			      }
