@@ -6,7 +6,8 @@ import java.util.*;
 import org.eclipse.ui.IMemento;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.jsure.core.listeners.PersistentDropInfo;
+import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.jsure.core.preferences.JSureEclipseHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
@@ -14,7 +15,7 @@ import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
-public class PersistentResultsView extends ResultsView {
+public class PersistentResultsView extends ResultsView implements IJSureScanListener {
   private static final String VIEW_STATE = "view.state";
   private static final boolean useXML = SeaSnapshot.useFullType || AbstractWholeIRAnalysis.useDependencies;
   
@@ -27,6 +28,8 @@ public class PersistentResultsView extends ResultsView {
   final File viewState;
 	
   public PersistentResultsView() {
+	  JSureEclipseHub.init();
+	  
 	  File viewState = null;
 	  if (useXML) try {
 		  final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
@@ -42,6 +45,12 @@ public class PersistentResultsView extends ResultsView {
 	  this.viewState = viewState;
   }
   
+  @Override
+  public void scansChanged(ScanStatus status) {
+	  seaChanged();
+  }
+  
+  /*
   @Override
   protected void subscribe() {
 	  PersistentDropInfo.getInstance().addListener(this);
@@ -69,7 +78,8 @@ public class PersistentResultsView extends ResultsView {
   
   @Override
   protected void finishCreatePartControl() {
-	  if (PersistentDropInfo.getInstance().load()) {
+	  final JSureScanInfo scan = JSureScansHub.getInstance().getCurrentScanInfo();
+	  if (scan != null) {
 		  // TODO restore viewer state?
 		  final long start = System.currentTimeMillis();
 		  provider.buildModelOfDropSea_internal();
@@ -121,7 +131,6 @@ public class PersistentResultsView extends ResultsView {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				PersistentDropInfo.getInstance().load();
 				
 				try {
 					return super.buildModelOfDropSea_internal();
@@ -139,19 +148,21 @@ public class PersistentResultsView extends ResultsView {
     	
 		@Override
 		protected boolean dropsExist(Class<? extends Drop> type) {
-			if (!PersistentDropInfo.useInfo) {
-				return false;
+			final JSureScanInfo scan = JSureScansHub.getInstance().getCurrentScanInfo();
+			if (scan != null) {
+				return scan.dropsExist(type);
 			}
-			return PersistentDropInfo.getInstance().dropsExist(type);
+			return false;
 		}
 
 		@Override
 		protected <R extends IDropInfo> 
 		Collection<R> getDropsOfType(Class<? extends Drop> type, Class<R> rType) {
-			if (!PersistentDropInfo.useInfo) {
-				return Collections.emptyList();
+			final JSureScanInfo scan = JSureScansHub.getInstance().getCurrentScanInfo();
+			if (scan != null) {
+				return scan.getDropsOfType(type);
 			}
-			return PersistentDropInfo.getInstance().getDropsOfType(type);
+			return Collections.emptyList();
 		}
 		
 		@Override
