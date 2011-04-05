@@ -249,8 +249,8 @@ public class RegionRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<InRegionNode> makeScrubber() {
-      return new AbstractAASTScrubber<InRegionNode, InRegionPromiseDrop>(this, 
-                                                   ScrubberType.BY_HIERARCHY, REGION) {
+      return new AbstractAASTScrubber<InRegionNode, InRegionPromiseDrop>(
+          this, ScrubberType.BY_HIERARCHY, REGION, SIMPLE_UNIQUE_IN_REGION) {
         @Override
         protected PromiseDrop<InRegionNode> makePromiseDrop(InRegionNode a) {
           return storeDropIfNotNull(a, scrubInRegion(getContext(), a));          
@@ -472,7 +472,18 @@ public class RegionRules extends AnnotationRules {
     }
     
     if (isGood) {
-      return new SimpleUniqueInRegionPromiseDrop(a);
+      final SimpleUniqueInRegionPromiseDrop drop = 
+        new SimpleUniqueInRegionPromiseDrop(a);
+
+      // If field is not final then add an @InRegion annotation
+      if (!TypeUtil.isFinal(promisedFor)) {
+        final RegionSpecificationNode regionSpec =
+          (RegionSpecificationNode) a.getSpec().cloneTree();
+        final InRegionNode inRegion = new InRegionNode(a.getOffset(), regionSpec);
+        AASTStore.addDerived(inRegion, a, drop);
+      }
+      
+      return drop;
     } else {
       return null;
     }
