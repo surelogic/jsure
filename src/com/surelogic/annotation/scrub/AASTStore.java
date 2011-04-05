@@ -185,6 +185,8 @@ public final class AASTStore {
 
   /**
    * Identifies the source of a derived AST
+   * 
+   * Call addDerived() if possible
    */
   public static void setPromiseSource(IAASTRootNode ast, PromiseDrop<?> pd) {
 	  promiseSource.put(ast, pd);
