@@ -15,6 +15,11 @@
 	<extension point="org.eclipse.ui.views">
 		<category name="JSure" id="edu.cmu.cs.fluid.dcf"></category>
 
+        <view name="JSure Scans"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScansView"
+			id="com.surelogic.jsure.client.eclipse.views.scans.ScansView">
+		</view>
+
 		<view name="Verification Status"
 			icon="platform:/plugin/com.surelogic.common/lib/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
