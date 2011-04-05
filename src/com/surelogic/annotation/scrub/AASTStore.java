@@ -28,10 +28,10 @@ public final class AASTStore {
     new HashMap<Class,Collection<? extends IAASTRootNode>>();
   
   /**
-   * Map from an AAST to the @Promise drop that created it
+   * Map from an derived AAST to the @Promise drop that created it
    */
-  static final ConcurrentMap<IAASTRootNode, ScopedPromiseDrop> promiseSource = 
-	  new ConcurrentHashMap<IAASTRootNode, ScopedPromiseDrop>();
+  static final ConcurrentMap<IAASTRootNode, PromiseDrop<?>> promiseSource = 
+	  new ConcurrentHashMap<IAASTRootNode, PromiseDrop<?>>();
   
   /**
    * Map from the AAST to the comp unit that it is assumed for
@@ -141,10 +141,18 @@ public final class AASTStore {
   /**
    * A convenience method for rules that create AASTs, like scoped promises
    */
-  public static synchronized void addDerived(IAASTRootNode clone, IAASTRootNode orig, ValidatedDropCallback<?> r) {
+  public static void addDerived(IAASTRootNode clone, PromiseDrop<?> pd) {
+	  addDerived(clone, pd, pd instanceof ValidatedDropCallback<?> ? (ValidatedDropCallback<?>) pd : null);
+  }
+  
+  /**
+   * A convenience method for rules that create AASTs, like scoped promises
+   */
+  public static synchronized void addDerived(IAASTRootNode clone, PromiseDrop<?> pd, ValidatedDropCallback<?> r) {
 	  add(clone);
+	  setPromiseSource(clone, pd);
 	  triggerWhenValidated(clone, r);
-	  cloneTestResult(orig, clone);
+	  cloneTestResult(pd.getAST(), clone);
   }
   
   public static synchronized void associateTestResult(IAASTRootNode root, TestResult result) {
@@ -175,11 +183,14 @@ public final class AASTStore {
 	  //System.out.println("Syncing w/ AAST store");
   }
 
-  public static void setPromiseSource(IAASTRootNode ast, ScopedPromiseDrop pd) {
+  /**
+   * Identifies the source of a derived AST
+   */
+  public static void setPromiseSource(IAASTRootNode ast, PromiseDrop<?> pd) {
 	  promiseSource.put(ast, pd);
   }
   
-  public static ScopedPromiseDrop getPromiseSource(IAASTRootNode ast) {
+  public static PromiseDrop<?> getPromiseSource(IAASTRootNode ast) {
 	  return promiseSource.get(ast);
   }
 }

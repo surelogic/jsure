@@ -449,7 +449,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 		}
 
 		@Override
-    protected void postAASTCreate(final AASTRootNode root) {
+    protected void postAASTCreate(final AASTRootNode root) {			
 			AASTStore.setPromiseSource(root, callback.scopedPromiseDrop);
 			AASTStore.triggerWhenValidated(root, callback);
 			AASTStore.cloneTestResult(callback.scopedPromiseDrop.getAST(), root);

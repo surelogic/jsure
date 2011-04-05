@@ -408,15 +408,15 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			// There should be at most one valid AAST
 			A processedUnsuccessfully = null;
 			for(A a : sorted) {
-				ScopedPromiseDrop pd = AASTStore.getPromiseSource(a);
+				PromiseDrop<?> pd = AASTStore.getPromiseSource(a);
 				if (pd == null) {
 					boolean success = processAAST(a);
 					if (success) {
 						for(A a2 : l) {
 							if (a2 != a) {
 								if ("Starts nothing".equals(a.toString())) {
-									ScopedPromiseDrop sp = AASTStore.getPromiseSource(a);
-									ScopedPromiseDrop sp2 = AASTStore.getPromiseSource(a2);
+									PromiseDrop<?> sp = AASTStore.getPromiseSource(a);
+									PromiseDrop<?> sp2 = AASTStore.getPromiseSource(a2);
 									if (sp != null) {
 										System.out.println("Got Starts nothing: "+DebugUnparser.toString(sp.getNode()));
 									}

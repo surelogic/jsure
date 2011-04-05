@@ -121,7 +121,7 @@ public class JcipRules extends AnnotationRules {
         new LockDeclarationNode(a.getOffset(), id, field, region);
       regionLockDecl.setPromisedFor(classDecl);
       regionLockDecl.setSrcType(a.getSrcType());
-      AASTStore.addDerived(regionLockDecl, a, d);
+      AASTStore.addDerived(regionLockDecl, d);
     } else if (lock instanceof FieldRefNode) {
       final FieldRefNode field = (FieldRefNode) lock.cloneTree();
       
@@ -129,7 +129,7 @@ public class JcipRules extends AnnotationRules {
         new LockDeclarationNode(a.getOffset(), id, field, region);
       regionLockDecl.setPromisedFor(classDecl);
       regionLockDecl.setSrcType(a.getSrcType());
-      AASTStore.addDerived(regionLockDecl, a, d);
+      AASTStore.addDerived(regionLockDecl, d);
     } else if (lock instanceof ClassExpressionNode) {
       final QualifiedClassLockExpressionNode field = 
         new QualifiedClassLockExpressionNode(lock.getOffset(),
@@ -139,7 +139,7 @@ public class JcipRules extends AnnotationRules {
         new LockDeclarationNode(a.getOffset(), id, field, region);
       regionLockDecl.setPromisedFor(classDecl);
       regionLockDecl.setSrcType(a.getSrcType());
-      AASTStore.addDerived(regionLockDecl, a, d);
+      AASTStore.addDerived(regionLockDecl, d);
     } else if (lock instanceof QualifiedThisExpressionNode) {
       final QualifiedThisExpressionNode field = (QualifiedThisExpressionNode) lock.cloneTree();
       
@@ -147,7 +147,7 @@ public class JcipRules extends AnnotationRules {
         new LockDeclarationNode(a.getOffset(), id, field, region);
       regionLockDecl.setPromisedFor(classDecl);
       regionLockDecl.setSrcType(a.getSrcType());
-      AASTStore.addDerived(regionLockDecl, a, d);
+      AASTStore.addDerived(regionLockDecl, d);
     }
     return d;
   }
