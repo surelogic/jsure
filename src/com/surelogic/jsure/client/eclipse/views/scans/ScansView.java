@@ -27,7 +27,19 @@ public class ScansView extends AbstractScanManagerView {
 	
 	@Override
 	protected String updateViewer(ScanStatus status, DataDirStatus dirStatus) {
-		return f_content.build(status, dirStatus);
+		try {
+			String rv = f_content.build(status, dirStatus);
+			if (rv != null) {
+				tableViewer.setInput(f_content);
+			}
+			return rv;
+		} finally {
+			f_viewerControl.getDisplay().asyncExec (new Runnable () {
+			      public void run () {
+			    	  tableViewer.refresh();
+			      }
+			});
+		}
 	}
 	
 	@Override
