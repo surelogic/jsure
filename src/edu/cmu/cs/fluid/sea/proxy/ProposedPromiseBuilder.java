@@ -15,6 +15,9 @@ public class ProposedPromiseBuilder implements IDropBuilder {
 		annotation = anno;
 		this.contents = contents;
 		this.at = at;
+		if (at == null) {
+			throw new IllegalArgumentException();
+		}
 		this.from = from;
 	}
 	
