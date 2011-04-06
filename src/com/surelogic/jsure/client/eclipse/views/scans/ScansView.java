@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.scans;
 
+import java.util.Date;
+
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -173,7 +175,8 @@ public class ScansView extends AbstractScanManagerView {
 			try {
 				switch (columnIndex) {
 				case 0:
-					return SLUtility.toStringHMS(r.getProjects().getDate());
+					final Date d = r.getProjects().getDate();
+					return SLUtility.toStringHMS(d);
 				case 1:
 					return r.getProjects().getLabel();
 				case SIZE:
