@@ -154,9 +154,9 @@ public class ScansView extends AbstractScanManagerView {
 		}
 	
 		static final String[] labels = {
-			"Date", "Projects", "Size in MB"
+			"Status", "Date", "Projects", "Size in MB"
 		};
-		static final int SIZE = 2;
+		static final int SIZE = 3;
 		
 		// Display methods
 		@Override
@@ -175,9 +175,17 @@ public class ScansView extends AbstractScanManagerView {
 			try {
 				switch (columnIndex) {
 				case 0:
+					if (r == current) {
+						return "Current";
+					}
+					if (r == baseline) {
+						return "Baseline";
+					}
+					return "";
+				case 1:
 					final Date d = r.getProjects().getDate();
 					return SLUtility.toStringHMS(d);
-				case 1:
+				case 2:
 					return r.getProjects().getLabel();
 				case SIZE:
 					return String.format("%1$.1f", FileUtility.recursiveSizeInBytes(r.getDir()) / (1024*1024.0));
