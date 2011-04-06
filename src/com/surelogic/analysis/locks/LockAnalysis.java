@@ -710,8 +710,12 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               } else {
                 result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE, id);
               }
-              result.addProposal(new ProposedPromiseBuilder(
-                  "Immutable", null, typeDecl, varDecl));
+              if (typeDecl != null) {
+            	  result.addProposal(new ProposedPromiseBuilder(
+            			  "Immutable", null, typeDecl, varDecl));
+              } else {
+            	  // TODO what if this is a type formal, or something else?
+              }
             }
           }
           
