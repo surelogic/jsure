@@ -152,7 +152,7 @@ public class ScansView extends AbstractScanManagerView {
 		}
 	
 		static final String[] labels = {
-			"Date", "Projects", "Size"
+			"Date", "Projects", "Size in MB"
 		};
 		static final int SIZE = 2;
 		
@@ -177,7 +177,7 @@ public class ScansView extends AbstractScanManagerView {
 				case 1:
 					return r.getProjects().getLabel();
 				case SIZE:
-					return Long.toString(r.getDir().length());
+					return String.format("%1$.1f", FileUtility.recursiveSizeInBytes(r.getDir()) / (1024*1024.0));
 				}
 			} catch(Exception e) {
 				e.printStackTrace();
