@@ -20,6 +20,11 @@
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScansView">
 		</view>
 
+        <view name="JSure Historical Source"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView"
+			id="com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView">
+		</view>
+
 		<view name="Verification Status"
 			icon="platform:/plugin/com.surelogic.common/lib/images/link.gif"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
