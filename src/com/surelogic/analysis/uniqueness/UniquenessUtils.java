@@ -1,5 +1,5 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/effects/AggregationUtils.java,v 1.2 2008/01/18 23:52:03 aarong Exp $*/
-package com.surelogic.analysis.effects;
+package com.surelogic.analysis.uniqueness;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,7 +29,7 @@ import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
  *
  * @author aarong
  */
-public final class AggregationUtils {
+public final class UniquenessUtils {
   /**
    * Compute the regions that a field reference maps into. This process is
    * recursive; that is, if the field reference is o.f1.f2.f3, and f3 maps into

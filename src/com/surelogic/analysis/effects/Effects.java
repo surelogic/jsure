@@ -25,6 +25,7 @@ import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -627,9 +628,9 @@ public final class Effects implements IBinderClient {
       if (isUnique) {
         // The field is unique, see if we can exploit uniqueness aggregation.
         final Map<RegionModel, IRegion> aggregationMap = 
-          AggregationUtils.constructRegionMapping(fieldID);
+          UniquenessUtils.constructRegionMapping(fieldID);
         if (aggregationMap != null) {
-          final IRegion newRegion = AggregationUtils.getMappedRegion(region.getModel(), aggregationMap);
+          final IRegion newRegion = UniquenessUtils.getMappedRegion(region.getModel(), aggregationMap);
           final AggregationEvidence evidence =
             new AggregationEvidence(target, aggregationMap, newRegion);
           final Target newTarget;

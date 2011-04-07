@@ -20,6 +20,7 @@ import com.surelogic.analysis.effects.targets.TargetRelationship;
 import com.surelogic.analysis.effects.targets.TargetRelationships;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 import com.surelogic.analysis.regions.*;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -336,7 +337,7 @@ public class TRoleTargets {
      */
     
     // XXX: This should be stored in a more global place, so as not to be rebuilt each time
-    result.addAll(AggregationUtils.fieldRefAggregatesInto(binder, targetFactory, obj, fieldAsRegion));
+    result.addAll(UniquenessUtils.fieldRefAggregatesInto(binder, targetFactory, obj, fieldAsRegion));
 
   }
   
@@ -398,7 +399,7 @@ public class TRoleTargets {
        * field is not unique or does not have a declared mapping.
        */
       final Map<RegionModel, IRegion> regionMap =
-        AggregationUtils.getRegionMappingFromFieldRef(binder, actual);
+        UniquenessUtils.getRegionMappingFromFieldRef(binder, actual);
       if (regionMap != null) {
         /* For each region in 'e.f' that may be affected that is mapped into a
          * region of 'e', we need to find what locks it may have associated

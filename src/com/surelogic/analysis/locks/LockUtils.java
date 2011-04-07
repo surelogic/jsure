@@ -21,6 +21,7 @@ import com.surelogic.analysis.locks.locks.NeededLock;
 import com.surelogic.analysis.locks.locks.NeededLockFactory;
 import com.surelogic.analysis.locks.locks.ILock.Type;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.logging.SLLogger;
 
@@ -715,7 +716,7 @@ public final class LockUtils {
     			final boolean isUnique = UniquenessRules.isUnique(fieldID);
     			if (isUnique) {
     				final Map<RegionModel, IRegion> aggregationMap = 
-    					AggregationUtils.constructRegionMapping(fieldID);
+    				  UniquenessUtils.constructRegionMapping(fieldID);
     				if (aggregationMap != null) {
     					for (final RegionModel from : aggregationMap.keySet()) {
     						// This is okay because only instance regions can be mapped
