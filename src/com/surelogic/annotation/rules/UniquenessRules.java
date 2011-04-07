@@ -210,13 +210,18 @@ public class UniquenessRules extends AnnotationRules {
       // must be a reference type variable
       boolean good = checkForReferenceType(context, a, "Unique");
       
-      // Unique fields must not be volatile
+      // Unique fields must not be volatile or static final
       final IRNode promisedFor = a.getPromisedFor();
       final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
       if (VariableDeclarator.prototype.includes(promisedForOp)) {
         if (TypeUtil.isVolatile(promisedFor)) {
           good = false;
-          context.reportError("Volatile fields cannot be unique", a);
+          context.reportError(a, "@Unique cannot be used on a volatile field");
+        }
+        
+        if (TypeUtil.isStatic(promisedFor) && TypeUtil.isFinal(promisedFor)) {
+          good = false;
+          context.reportError(a, "@Unique cannot be sued on a static final field: use @UniqueInRegion instead");
         }
       }
 
@@ -361,10 +366,10 @@ public class UniquenessRules extends AnnotationRules {
     }
     
     if (type instanceof IJavaPrimitiveType) {
-      context.reportError(a, "{0} may not be used on primitive types", label);
+      context.reportError(a, "@{0} may not be used with primitive types", label);
       return false;
     } else if (type == JavaTypeFactory.voidType) {
-      context.reportError(a, "{0} may not be used on void types", label);
+      context.reportError(a, "@{0} may not be used with void types", label);
       return false;
     } else {
       return true;
