@@ -1,15 +1,33 @@
 package com.surelogic.jsure.client.eclipse.views;
 
+import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
 import com.surelogic.fluid.javac.*;
+import com.surelogic.fluid.javac.scans.*;
 
-public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
-    private static Projects projects;
+public class JSureHistoricalSourceView extends AbstractHistoricalSourceView implements IJSureScanListener {
+	private static Projects projects;
     private static ISourceZipFileHandles zips;
-    private static boolean viewIsEnabled = false;
+    private static boolean viewIsEnabled = false;    
+    
+    public JSureHistoricalSourceView() {
+    	viewIsEnabled = true;
+    }
+    
+	@Override
+	public void scansChanged(ScanStatus status) {
+		final JSureScanInfo info = JSureScansHub.getInstance().getCurrentScanInfo();
+		projects = info.getProjects();
+		zips = new ISourceZipFileHandles() {
+			public Iterable<File> getSourceZips() {
+				return Arrays.asList(new File(info.getLocation(), "zips").listFiles());
+			}
+		};
+	}
     
     @Override
     protected ISourceZipFileHandles findSources(String run) {
@@ -31,11 +49,6 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView {
     	if (viewIsEnabled) {
     		tryToOpenInEditorUsingFieldName(JSureHistoricalSourceView.class, null, pkg, type, field);       
     	}
-    }
-
-    public static void setLastRun(Projects p, ISourceZipFileHandles handles) {
-    	projects = p;
-        zips = handles;
     }
 
     public static String tryToMapPath(String path) {
