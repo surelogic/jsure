@@ -11,6 +11,7 @@ import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.FieldRegion;
+import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.*;
@@ -522,13 +523,163 @@ public class RegionRules extends AnnotationRules {
   private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
       final IAnnotationScrubberContext context, final UniqueMappingNode a) {
     final IRNode promisedFor = a.getPromisedFor();   
+    final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
     final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(promisedFor);
     if (uniqueDrop != null) {
       context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
       uniqueDrop.invalidate();
       return null;
     }
-    return new ExplicitUniqueInRegionPromiseDrop(a);
+    
+    boolean isGood = true;
+    
+    // Field must be reference typed
+    final IJavaType type = context.getBinder().getJavaType(promisedFor);
+    if (type instanceof IJavaPrimitiveType) {
+      context.reportError(a, "Annotated field must have a reference type");
+      isGood = false;
+    }
+    
+    // Field must be final
+    if (!TypeUtil.isFinal(promisedFor)) {
+      context.reportError(a, "Annotated field must be final");
+      isGood = false;
+    }
+
+    // process the mapping
+    final Set<RegionModel> srcRegions = new HashSet<RegionModel>();
+    final Map<IRegion, IRegion> regionMap = new HashMap<IRegion, IRegion>();
+    final boolean promisedForIsStatic = TypeUtil.isStatic(promisedFor);
+    for(final RegionMappingNode mapping : a.getMapping().getMappingList()) {
+      final RegionNameNode fromNode = mapping.getFrom();
+      final IRegionBinding fromDecl = fromNode.resolveBinding();
+      final String fromId           = fromNode.getId();
+      final RegionSpecificationNode toNode = mapping.getTo();
+      final IRegionBinding toDecl   = toNode.resolveBinding();
+      final String toId             = toNode.getId();
+
+      // Make sure the source region exists
+      if (fromDecl == null) {
+        context.reportError(a, "Source region \"{0}\" not found in aggregated class", fromId);
+        isGood = false;
+      } else {
+        final RegionModel fromRegion = fromDecl.getModel();
+        
+        // Cannot be static
+        if (fromDecl.getRegion().isStatic()) {
+          context.reportError(a, "Source region \"{0}\" is static", fromId);
+          isGood = false;
+        }
+        // Cannot be aggregated more than once
+        if (!srcRegions.add(fromRegion) ) {
+          context.reportError(a, "Source region \"{0}\" is aggregated more than once", fromId);
+          isGood = false;
+        }
+        // Must be accessible
+        if (!fromRegion.isAccessibleFromType(
+            context.getBinder().getTypeEnvironment(), enclosingType)) {
+          context.reportError(a,
+              "Source region \"{0}\" is not accessible to type \"{1}\"",
+              fromRegion.regionName,
+              JavaNames.getQualifiedTypeName(enclosingType));
+          isGood = false;
+        }
+      }
+      
+      // Make sure the dest region exists
+      if (toDecl == null)  {
+        context.reportError(a, "Destination region \"{0}\" not found", toId);
+        isGood = false;
+      } else {
+        // Named region cannot be final
+        final RegionModel toRegion = toDecl.getModel();
+        if (toRegion.isFinal()) {
+          context.reportError(a, "Destination region \"{0}\" is final", toId);
+          isGood = false;
+        }
+        
+        // Named region cannot be volatile
+        if (toRegion.isVolatile()) {
+          context.reportError(a, "Destination region \"{0}\" is volatile", toId);
+          isGood = false;
+        }
+        
+        // Region must be static if the field is static
+        if (promisedForIsStatic && !toRegion.isStatic()) {
+          context.reportError(a, "Destination region \"{0}\" must be static because the annotated field is static", toId);
+          isGood = false;
+        }
+        if (!toRegion.isAccessibleFromType(
+            context.getBinder().getTypeEnvironment(), enclosingType)) {
+          context.reportError(a,
+              "Source region \"{0}\" is not accessible to type \"{1}\"",
+              toRegion.regionName,
+              JavaNames.getQualifiedTypeName(enclosingType));
+          isGood = false;
+        }
+      }
+      
+      /* If the annotation is still okay, record the mapping. If it's bad, we
+       * won't look at this map anyway, so forget about it. But we have to check
+       * the result so we know that both the src and dest regions exist.
+       */
+      if (isGood) {
+        regionMap.put(fromDecl.getRegion(), toDecl.getRegion());
+      }
+    }
+    
+    // The Instance region must be mapped
+    if (!srcRegions.contains(RegionModel.getInstanceRegion(promisedFor))) {
+      context.reportError(a, "The region \"Instance\" must be mapped");
+      isGood = false;
+    }
+
+    if (isGood) {
+      /* Aggregation must respect the region hierarchy: if the annotation maps Ri
+       * into Qi and Rj into Qj, and Ri is a subregion of Rj, then it must be that
+       * Qi is a subregion of Qj.
+       * 
+       * We check each pair of mappings.
+       */
+      final List<Map.Entry<IRegion, IRegion>> entries =
+        new ArrayList<Map.Entry<IRegion, IRegion>>(regionMap.entrySet());
+      final int numEntries = entries.size();
+      for (int first = 0; first < numEntries - 1; first++) {
+        for (int second = first + 1; second < numEntries; second++) {
+          final IRegion firstKey = entries.get(first).getKey();
+          final IRegion firstVal = entries.get(first).getValue();
+          final IRegion secondKey = entries.get(second).getKey();
+          final IRegion secondVal = entries.get(second).getValue();
+          if (firstKey.ancestorOf(secondKey)) {
+            if (!firstVal.ancestorOf(secondVal)) {
+              context.reportError(a,
+                      "Region \"{0}\" is a subregion of \"{1}\" in the aggregated class, but region \"{2}\" is not a subregion of \"{3}\" in the aggregating class",
+                      truncateName(secondKey.toString()),
+                      truncateName(firstKey.toString()),
+                      truncateName(secondVal.toString()),
+                      truncateName(firstVal.toString()));
+              isGood = false;
+            }
+          } else if (secondKey.ancestorOf(firstKey)) {
+            if (!secondVal.ancestorOf(firstVal)) {
+              context.reportError(a,
+                      "Region \"{0}\" is a subregion of \"{1}\" in the aggregated class, but region \"{2}\" is not a subregion of \"{3}\" in the aggregating class",
+                      truncateName(firstKey.toString()),
+                      truncateName(secondKey.toString()),
+                      truncateName(firstVal.toString()),
+                      truncateName(secondVal.toString()));
+              isGood = false;
+            }
+          }
+        }
+      }
+    }
+    
+    if (isGood) {
+      return new ExplicitUniqueInRegionPromiseDrop(a);
+    } else {
+      return null;
+    }
     
 //    boolean annotationIsGood = true;
 //    final IRNode promisedFor = a.getPromisedFor();
@@ -695,7 +846,6 @@ public class RegionRules extends AnnotationRules {
 //    }
   }
   
-  @SuppressWarnings("unused")
   private static String truncateName(final String qualifiedName) {
     final int lastDot = qualifiedName.lastIndexOf('.');
     if (lastDot == -1) {
