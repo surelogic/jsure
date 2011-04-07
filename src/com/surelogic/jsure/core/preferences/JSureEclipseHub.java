@@ -4,6 +4,7 @@ import java.io.File;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.fluid.javac.scans.*;
+
 import static com.surelogic.jsure.core.preferences.JSurePreferencesUtility.*;
 
 /**
@@ -54,5 +55,11 @@ public class JSureEclipseHub extends JSureScansHub {
 	protected File getScanDir(boolean current) {
 		final String dir = EclipseUtility.getStringPreference(current ? CURRENT_SCAN : BASELINE_SCAN);
 		return new File(dir);
+	}
+
+	@Override
+	protected ScanUpdateMode getUpdateMode() {
+		String val = EclipseUtility.getStringPreference(SCAN_UPDATE_MODE);
+		return ScanUpdateMode.valueOf(val);
 	}
 }
