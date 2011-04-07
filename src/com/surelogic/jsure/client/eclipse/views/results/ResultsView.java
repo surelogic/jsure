@@ -46,6 +46,7 @@ import com.surelogic.jsure.core.driver.JavacDriver;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.IProposedPromiseDropInfo;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.ProposedPromiseDrop;
 import edu.cmu.cs.fluid.sea.Sea;
@@ -168,7 +169,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 	private final Action f_addPromiseToCode = new ProposedPromisesRefactoringAction() {
 
 		@Override
-		protected List<ProposedPromiseDrop> getProposedDrops() {
+		protected List<IProposedPromiseDropInfo> getProposedDrops() {
 			/*
 			 * There are two cases: (1) a single proposed promise drop in the
 			 * tree is selected and (2) a container folder for multiple proposed
@@ -179,7 +180,7 @@ public class ResultsView extends AbstractDoubleCheckerView {
 			if (selection == null || selection == StructuredSelection.EMPTY) {
 				return Collections.emptyList();
 			}
-			final List<ProposedPromiseDrop> proposals = new ArrayList<ProposedPromiseDrop>();
+			final List<IProposedPromiseDropInfo> proposals = new ArrayList<IProposedPromiseDropInfo>();
 			for (final Object element : selection.toList()) {
 				if (element instanceof AbstractContent) {
 					final AbstractContent<IDropInfo, ?> c = (AbstractContent) element;
@@ -188,9 +189,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 					 * is selected.
 					 */
 					if (c.getDropInfo().isInstance(ProposedPromiseDrop.class)) {
-						final ProposedPromiseDrop pp = c.getDropInfo()
-								.getAdapter(ProposedPromiseDrop.class);
-						proposals.add(pp);
+						final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c.getDropInfo();
+						if (pp != null) {
+							proposals.add(pp);
+						}
 					} else {
 						/*
 						 * In the case that the user selected a container for
@@ -203,10 +205,10 @@ public class ResultsView extends AbstractDoubleCheckerView {
 									.getChildrenAsCollection()) {
 								if (content.getDropInfo().isInstance(
 										ProposedPromiseDrop.class)) {
-									final ProposedPromiseDrop pp = c
-											.getDropInfo().getAdapter(
-													ProposedPromiseDrop.class);
-									proposals.add(pp);
+									final IProposedPromiseDropInfo pp = (IProposedPromiseDropInfo) c.getDropInfo();
+									if (pp != null) {
+										proposals.add(pp);
+									}
 								}
 							}
 						}
