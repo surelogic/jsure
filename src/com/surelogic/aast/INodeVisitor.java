@@ -143,4 +143,5 @@ public interface INodeVisitor<T> {
 	T visit(NotContainableNode node);
 	T visit(MutableNode node);
 	T visit(VouchFieldIsNode node);
+	T visit(UtilityNode utilityNode);
 }

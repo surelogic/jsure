@@ -751,4 +751,9 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(VouchFieldIsNode node) {
 	  return defaultValue;
   }
+
+  @Override
+  public T visit(UtilityNode node) {
+	  return defaultValue;
+  }
 }
