@@ -15,18 +15,20 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView impl
     private static boolean viewIsEnabled = true;    
     
     public JSureHistoricalSourceView() {
-    	viewIsEnabled = true;
+    	scansChanged(ScanStatus.CURRENT_CHANGED);
     }
     
 	@Override
 	public void scansChanged(ScanStatus status) {
-		final JSureScanInfo info = JSureScansHub.getInstance().getCurrentScanInfo();
-		projects = info.getProjects();
-		zips = new ISourceZipFileHandles() {
-			public Iterable<File> getSourceZips() {
-				return Arrays.asList(new File(info.getLocation(), "zips").listFiles());
-			}
-		};
+		if (status.currentChanged()) {
+			final JSureScanInfo info = JSureScansHub.getInstance().getCurrentScanInfo();
+			projects = info.getProjects();
+			zips = new ISourceZipFileHandles() {
+				public Iterable<File> getSourceZips() {
+					return Arrays.asList(new File(info.getLocation(), "zips").listFiles());
+				}
+			};
+		}
 	}
     
     @Override
