@@ -43,6 +43,11 @@ public abstract class AbstractJSureView extends AbstractSLView {
 					}
 					s = JSureHistoricalSourceView.tryToMapPath(s);
 					file = EclipseUtility.resolveIFile(s);
+					
+					if (file == null) {
+						s = srcRef.getRelativePath();
+						file = EclipseUtility.resolveIFile(s);
+					}
 				} else {
 					return;
 				}
