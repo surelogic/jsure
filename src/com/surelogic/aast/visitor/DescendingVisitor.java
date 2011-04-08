@@ -752,7 +752,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  return defaultValue;
   }
 
-  @Override
   public T visit(UtilityNode node) {
 	  return defaultValue;
   }

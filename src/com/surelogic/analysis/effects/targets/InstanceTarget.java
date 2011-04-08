@@ -5,6 +5,7 @@ import com.surelogic.analysis.effects.BCAEvidence;
 import com.surelogic.analysis.effects.ElaborationEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -98,11 +99,7 @@ public final class InstanceTarget extends AbstractTarget {
     final boolean isUnique;
     if (FieldRef.prototype.includes(exprOp)) {
       final IRNode fieldID = binder.getBinding(expr);
-      if (UniquenessRules.isUnique(fieldID)) {
-        isUnique = (RegionRules.getAggregate(fieldID) != null);
-      } else {
-        isUnique = false;
-      }
+      isUnique = UniquenessUtils.isFieldUnique(fieldID);
     } else {
       isUnique = false;
     }

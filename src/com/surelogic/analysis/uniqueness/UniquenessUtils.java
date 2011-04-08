@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/effects/AggregationUtils.java,v 1.2 2008/01/18 23:52:03 aarong Exp $*/
 package com.surelogic.analysis.uniqueness;
 
 import java.util.Collections;
@@ -7,9 +6,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.RegionMappingNode;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
+import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;
@@ -17,19 +18,64 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ExplicitUniqueInRegionPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
+import edu.cmu.cs.fluid.sea.drops.promises.SimpleUniqueInRegionPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 
 /**
  * Contains methods for helping process aggregated regions.  These methods
  * used to be in EffectsAnalysis, but when the elaboration routines were moved
  * to EffectsVisitor, they needed to be separated out to avoid a circular
  * dependency between EffectsVisitor and EffectsAnalysis.
- *
- * @author aarong
  */
 public final class UniquenessUtils {
+  private UniquenessUtils() {
+    super();
+  }
+  
+  
+
+  /**
+   * Given a VariableDeclarator (from a field declaration) return whether
+   * the field is unique.
+   */
+  public static boolean isFieldUnique(final IRNode varDecl) {
+    return UniquenessRules.getUnique(varDecl) != null || 
+        RegionRules.getSimpleUniqueInRegion(varDecl) != null ||
+        RegionRules.getExplicitUniqueInRegion(varDecl) != null;
+  }
+  
+  
+  
+  /**
+   * Get the promise drop, if any, for the Unique or UniqueInRegion annotation
+   * on the field declaration.
+   * 
+   * @param varDecl
+   *          The VariableDeclarator node to test
+   * @return The promise drop (a {@link UniquePromiseDrop},
+   *         {@link ExplicitUniqueInRegionPromiseDrop} or
+   *         {@link SimpleUniqueInRegionPromiseDrop}, or <code>null</code> if
+   *         the field is not annotated.
+   */
+  public static PromiseDrop<? extends IAASTRootNode> getFieldUnique(final IRNode varDecl) {
+    PromiseDrop<? extends IAASTRootNode> result = 
+      UniquenessRules.getUnique(varDecl);
+    if (result == null) {
+      result = RegionRules.getSimpleUniqueInRegion(varDecl);
+    }
+    if (result == null) {
+      result = RegionRules.getExplicitUniqueInRegion(varDecl);
+    }
+    return result;
+  }
+  
+  
+  
   /**
    * Compute the regions that a field reference maps into. This process is
    * recursive; that is, if the field reference is o.f1.f2.f3, and f3 maps into
@@ -43,7 +89,8 @@ public final class UniquenessUtils {
       final IBinder binder, final TargetFactory targetFactory,
       final IRNode expr, final IRegion region) {
     return Collections.unmodifiableList(
-      fieldRefAggregatesInto(binder, targetFactory, expr, region, new LinkedList<Target>()));
+      fieldRefAggregatesInto(
+          binder, targetFactory, expr, region, new LinkedList<Target>()));
   }
 
   
@@ -74,14 +121,16 @@ public final class UniquenessUtils {
   
       /* Field can only be aggregated if there is another level of indirection. */
       if (FieldRef.prototype.includes(JJNode.tree.getOperator(expr))) {
-        /* expr = e.f1 fieldRef = <e.f1> . <region> */
+        /* expr = e.f1
+         * fieldRef = <e.f1> . <region>
+         */
         final IRNode fieldID = binder.getBinding(expr);
-        final boolean isUnique = UniquenessRules.isUnique(fieldID);
+        final boolean isUnique = isFieldUnique(fieldID);
   
         /* Field can only be aggregated if the indirect field is unique */
         if (isUnique) {
           /* The field is unique, see if we can exploit uniqueness aggregation. */
-          final Map<RegionModel, IRegion> aggregationMap = constructRegionMapping(fieldID);
+          final Map<IRegion, IRegion> aggregationMap = constructRegionMapping(fieldID);
           if (aggregationMap != null) {
             final IRNode newObject = FieldRef.getObject(expr);
             final IRegion newRegion = getMappedRegion(region.getModel(), aggregationMap);
@@ -99,48 +148,53 @@ public final class UniquenessUtils {
     return result;
   }
 
+  
+  
   /**
-   * Build a map of the region mapping, if possible, from the field dereferenced
-   * by the given FieldRef expression. Returns <code>null</code> if the field
-   * is not unique or if the field is unique, but does not declare any
-   * region aggregations. Map is from {@link Region}to {@link Region}.
+   * Build a map of the region mapping from a specific unique field. Map is from
+   * {@link RegionModel} to {@link Region}. Returns <code>null</code> if the
+   * field is not unique.
    * 
-   * @param expr
-   *          a FieldRef expression.
+   * @param field
+   *          A VariableDeclarator for a field declaration.
    */
-  public static Map<RegionModel, IRegion> getRegionMappingFromFieldRef(
-      final IBinder binder, final IRNode expr) {
-    final IRNode fieldID = binder.getBinding(expr);
-    if (UniquenessRules.isUnique(fieldID)) {
-      return constructRegionMapping(fieldID);
+  public static Map<IRegion, IRegion> constructRegionMapping(final IRNode field) {
+    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(field);
+    if (uniqueDrop != null) {
+      final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
+      return Collections.<IRegion, IRegion>singletonMap(
+          instanceRegion, instanceRegion);
+    } else {
+      final SimpleUniqueInRegionPromiseDrop simpleDrop =
+        RegionRules.getSimpleUniqueInRegion(field);
+      if (simpleDrop != null) {
+        final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
+        if (TypeUtil.isFinal(field)) {
+          return Collections.<IRegion, IRegion>singletonMap(
+              instanceRegion, instanceRegion);
+        } else {
+          return Collections.<IRegion, IRegion>singletonMap(
+              instanceRegion, new FieldRegion(field));
+        }
+      } else {
+        final ExplicitUniqueInRegionPromiseDrop explicitDrop =
+          RegionRules.getExplicitUniqueInRegion(field);
+        if (explicitDrop != null) {
+          final Map<IRegion, IRegion> aggregationMap = new HashMap<IRegion, IRegion>();
+          for (final RegionMappingNode mapping :
+              explicitDrop.getAST().getMapping().getMappingList()) {
+            aggregationMap.put(mapping.getFrom().resolveBinding().getModel(), 
+                               mapping.getTo().resolveBinding().getRegion());
+          }
+          return Collections.unmodifiableMap(aggregationMap);
+        }
+      }
     }
     return null;
   }
 
-  /**
-   * Build a map of the region mapping from a specific unique field. Map is
-   * from {@link Region}to {@link Region}. Returns null if the statement
-   * doesn't perform any mappings.
-   */
-  /* Should add a cache later? */
-  public static Map<RegionModel, IRegion> constructRegionMapping(final IRNode field) {
-    /* Try to get the aggregation information. If no aggregation is defined,
-     * then getFieldRegion will throw a SlotUndefinedException.
-     */
-    final ExplicitUniqueInRegionPromiseDrop mrs = RegionRules.getAggregate(field);
-    if (mrs != null) {
-      final Map<RegionModel, IRegion> aggregationMap = new HashMap<RegionModel, IRegion>();
-      for (final RegionMappingNode mapping : mrs.getAST().getMapping().getMappingList()) {
-        aggregationMap.put(mapping.getFrom().resolveBinding().getModel(), 
-                           mapping.getTo().resolveBinding().getRegion());
-      }
-      return Collections.unmodifiableMap(aggregationMap);
-    } else {
-      // No aggregation mapping, return null
-      return null;
-    }
-  }
-
+  
+  
   /**
    * Get the minimum region that a region maps into. A region R may be mapped
    * into more than one region if R and an ancestor of R are mapped into
@@ -148,30 +202,19 @@ public final class UniquenessUtils {
    * affected by the mapping.
    */
   public static IRegion getMappedRegion(
-      final RegionModel r, final Map<RegionModel, IRegion> aggMapping) {
-    RegionModel currentRegion = r;
-    IRegion leastRegion = null;
-
-    /* Walk up the region hierarchy starting at r. Test if each region is
-     * mapped, and if so, add its destination region to the set.
-     * 
-     * (If we enforce well formed aggregation relationships (see p224 of ECOOP
-     * paper), this is probably short-cutable.)
+      final IRegion r, final Map<IRegion, IRegion> aggMapping) {
+    /* Walk up the region hierarchy starting at r.  Because the mapping must
+     * respect the region hierarchy, the first region we find that is mapped
+     * is the answer.
      */
+    IRegion currentRegion = r;
     while (currentRegion != null) {
       final IRegion to = aggMapping.get(currentRegion);
       if (to != null) {
-        if (leastRegion == null) {
-          leastRegion = to;
-        } else {
-          if (leastRegion.ancestorOf(to)) {
-            leastRegion = to;
-          }
-        }
+        return to;
       }
       currentRegion = currentRegion.getParentRegion();
     }
-
-    return leastRegion;
+    return null;
   }
 }

@@ -27,7 +27,6 @@ import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.MethodEffectsRules;
-import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -623,11 +622,11 @@ public final class Effects implements IBinderClient {
         final Set<Target> newTargets) {
       final IRegion region = target.getRegion();
       final IRNode fieldID = binder.getBinding(expr);
-      final boolean isUnique = UniquenessRules.isUnique(fieldID);
+      final boolean isUnique = UniquenessUtils.isFieldUnique(fieldID);
 
       if (isUnique) {
         // The field is unique, see if we can exploit uniqueness aggregation.
-        final Map<RegionModel, IRegion> aggregationMap = 
+        final Map<IRegion, IRegion> aggregationMap = 
           UniquenessUtils.constructRegionMapping(fieldID);
         if (aggregationMap != null) {
           final IRegion newRegion = UniquenessUtils.getMappedRegion(region.getModel(), aggregationMap);

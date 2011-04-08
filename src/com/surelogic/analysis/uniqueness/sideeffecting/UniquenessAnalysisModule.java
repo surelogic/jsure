@@ -6,10 +6,10 @@ import java.util.logging.Level;
 
 import jsr166y.forkjoin.Ops.Procedure;
 
-import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.uniqueness.Messages;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.sideeffecting.UniquenessAnalysis.AbruptErrorQuery;
 import com.surelogic.analysis.uniqueness.sideeffecting.UniquenessAnalysis.IsInvalidQuery;
 import com.surelogic.analysis.uniqueness.sideeffecting.UniquenessAnalysis.IsPositivelyAssuredQuery;
@@ -360,7 +360,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		public final Set<ResultDropBuilder> calledEffects;
 
 		/** The unique fields accessed */
-		public final Set<UniquePromiseDrop> uniqueFields;
+    public final Set<PromiseDrop<? extends IAASTRootNode>> uniqueFields;
 
 		/** Drop for control-flow within this block */
 		public final ResultDropBuilder controlFlow;
@@ -405,7 +405,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       calledBorrowedParams = new HashSet<ResultDropBuilder>();
       calledBorrowedReceiverAsUniqueReturn = new HashSet<ResultDropBuilder>();
 			calledEffects = new HashSet<ResultDropBuilder>();
-			uniqueFields = new HashSet<UniquePromiseDrop>();
+			uniqueFields = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
 			callsToDrops = new HashMap<IRNode, Set<ResultDropBuilder>>();
 			
@@ -431,7 +431,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           middleDrop.setNode(methodDecl);
           middleDrop.setResultMessage(Messages.AGGREGATED_UNIQUE_FIELDS, JavaNames.genQualifiedMethodConstructorName(methodDecl));
           setResultDependUponDrop(middleDrop, methodDecl);
-          for (final UniquePromiseDrop ud : uniqueFields) {
+          for (final PromiseDrop<? extends IAASTRootNode>  ud : uniqueFields) {
             middleDrop.addTrustedPromise(ud);
           }       
           aggregatedUniqueFields = middleDrop;
@@ -523,8 +523,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		      if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
   		      final IRNode variableDeclarators = FieldDeclaration.getVars(bodyDecl);
   		      for (IRNode varDecl : VariableDeclarators.getVarIterator(variableDeclarators)) {
-  		        if (UniquenessRules.isUnique(varDecl)) {
-  		          pr.uniqueFields.add(UniquenessRules.getUniqueDrop(varDecl));
+  		        if (UniquenessUtils.isFieldUnique(varDecl)) {
+  		          pr.uniqueFields.add(UniquenessUtils.getFieldUnique(varDecl));
   		        }
   		      }
 		      }
@@ -698,8 +698,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       // is it a unique field access?
       if (FieldRef.prototype.equals(op)) {
         final IRNode fdecl = getBinder().getBinding(currentNode);
-        if (UniquenessRules.isUnique(fdecl)) {
-          pr.uniqueFields.add(UniquenessRules.getUniqueDrop(fdecl));
+        if (UniquenessUtils.isFieldUnique(fdecl)) {
+          pr.uniqueFields.add(UniquenessUtils.getFieldUnique(fdecl));
         }
       }
 
@@ -809,7 +809,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		final IRNode retDecl = JavaPromise.getReturnNodeOrNull(mdecl);
 		if (retDecl != null) {
 		  final UniquePromiseDrop returnsUniqueDrop =
-		    UniquenessRules.getUniqueDrop(retDecl);
+		    UniquenessRules.getUnique(retDecl);
 		  if (returnsUniqueDrop != null)
 		    uniqueReturns.add(returnsUniqueDrop);
 		}
@@ -817,8 +817,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		// Get the @borrowed and @unique params drops, if any
 		if (!TypeUtil.isStatic(mdecl)) { // don't forget the receiver
 			final IRNode self = JavaPromise.getReceiverNode(mdecl);
-			final BorrowedPromiseDrop borrowedRcvrDrop = UniquenessRules.getBorrowedDrop(self);
-			final UniquePromiseDrop uniqueRcvrDrop = UniquenessRules.getUniqueDrop(self);
+			final BorrowedPromiseDrop borrowedRcvrDrop = UniquenessRules.getBorrowed(self);
+			final UniquePromiseDrop uniqueRcvrDrop = UniquenessRules.getUnique(self);
 			if (borrowedRcvrDrop != null) {
 				borrowedParams.add(borrowedRcvrDrop);
 				borrowedReceiver.add(borrowedRcvrDrop);
@@ -831,8 +831,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 				.getParams(mdecl) : MethodDeclaration.getParams(mdecl);
 		for (int i = 0; i < JJNode.tree.numChildren(myParams); i++) {
 			final IRNode param = JJNode.tree.getChild(myParams, i);
-			final BorrowedPromiseDrop borrowedDrop = UniquenessRules.getBorrowedDrop(param);
-			final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(param);
+			final BorrowedPromiseDrop borrowedDrop = UniquenessRules.getBorrowed(param);
+			final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(param);
 			if (borrowedDrop != null) {
 				borrowedParams.add(borrowedDrop);
 			}
@@ -849,7 +849,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		}
 	}
 
-	private <D extends PromiseDrop<? extends IAASTNode>> ResultDropBuilder
+	private <D extends PromiseDrop<? extends IAASTRootNode>> ResultDropBuilder
 	getMethodCallDrop(final String type, final IRNode n, final Set<D> promises, int num, Object... args) {
 		final ResultDropBuilder rd = ResultDropBuilder.create(this, type);
 		rd.setConsistent();
@@ -947,7 +947,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
      * We care about borrowed parameters because they can affect the 
      * validity of unique fields passed to them.
      */
-//    private void visitCallInterface(final IRNode call) {
     @Override
     protected void handleAsMethodCall(final IRNode call) {
       final IRNode declNode = binder.getBinding(call);
@@ -976,35 +975,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         }
       }
     }
-    
-    
-    
-//    @Override
-//    public Void visitAllocationCallExpression(final IRNode call) {
-//      visitCallInterface(call);
-//      return null;
-//    }
-//    
-//    @Override
-//    protected void handleAnonClassExpression(final IRNode expr) {
-//      doAccept(AnonClassExpression.getArgs(expr));
-//      // Handle as a AllocationCallExpression (CallInterface really)
-//      visitCallInterface(expr);
-//    }
-//
-//    @Override
-//    protected void handleEnumConstantClassDeclaration(final IRNode expr) {
-//      doAccept(EnumConstantClassDeclaration.getArgs(expr));
-//      // Handle as a AllocationCallExpression (CallInterface really)
-//      visitCallInterface(expr);
-//    }
-//    
-//    @Override
-//    public Void visitCall(final IRNode call) {
-//      visitCallInterface(call);
-//      doAcceptForChildren(call);
-//      return null;
-//    }
 
     @Override
     protected void handleConstructorDeclaration(final IRNode cdecl) {
@@ -1031,7 +1001,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     @Override
     public Void visitFieldRef(final IRNode fieldRef) {
       /* Case (2): A use of a unique field. */
-      if (UniquenessRules.isUnique(binder.getBinding(fieldRef))) {
+      if (UniquenessUtils.isFieldUnique(binder.getBinding(fieldRef))) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
       }
       return null;
@@ -1086,7 +1056,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       /* CASE (1): If the field is UNIQUE then we
        * add the current enclosing declaration to the results.
        */
-      if (UniquenessRules.isUnique(varDecl)) {
+      if (UniquenessUtils.isFieldUnique(varDecl)) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
       }
       // analyze the the RHS of the initialization

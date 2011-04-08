@@ -38,6 +38,7 @@ import com.surelogic.analysis.locks.locks.HeldLockFactory;
 import com.surelogic.analysis.locks.locks.NeededLock;
 import com.surelogic.analysis.locks.locks.NeededLockFactory;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
@@ -1186,8 +1187,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 * protected by a lock or if f is volatile or final. Array reference
 			 * is not protected.
 			 */
-			final boolean unprotected = !UniquenessRules.isUnique(this.binder
-					.getBinding(objExpr))
+			final boolean unprotected =
+			  !UniquenessUtils.isFieldUnique(this.binder.getBinding(objExpr))
 					&& (isArrayRef || !isFinalOrVolatile(fieldRef)
 							&& lockUtils.getLockForFieldRef(fieldRef) == null);
 			if (unprotected) {
@@ -1366,8 +1367,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final Operator op = JJNode.tree.getOperator(actualRcvr);
 			if (FieldRef.prototype.includes(op)) {
 				// If the field is unique, it is a safe object
-				final boolean isUnique = UniquenessRules.isUnique(this.binder
-						.getBinding(actualRcvr));
+				final boolean isUnique = UniquenessUtils.isFieldUnique(
+				    this.binder.getBinding(actualRcvr));
 				if (!isUnique) {
 					/*
 					 * See if the field is protected: either directly, or

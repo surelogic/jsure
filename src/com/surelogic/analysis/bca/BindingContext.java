@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.surelogic.analysis.LocalVariableDeclarations;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -367,7 +368,7 @@ public final class BindingContext extends ArrayLattice<UnionLattice<IRNode>, Imm
        * returned."
        */
       /* Don't check for null, if we cannot bind the use, we have big problems */
-      if (UniquenessRules.isUnique(binder.getBinding(expr))) {
+      if (UniquenessUtils.isFieldUnique(binder.getBinding(expr))) {
         return CachedSet.<IRNode>getEmpty().addElement(expr);
       }
     } else if (AssignExpression.prototype.includes(op)) {

@@ -62,26 +62,26 @@ public class UniquenessRules extends AnnotationRules {
   }
   
   public static boolean isUnique(IRNode vdecl) {
-    return getUniqueDrop(vdecl) != null;
+    return getUnique(vdecl) != null;
   }
   
-  public static UniquePromiseDrop getUniqueDrop(IRNode vdecl) {
+  public static UniquePromiseDrop getUnique(IRNode vdecl) {
     return getBooleanDrop(uniqueRule.getStorage(), vdecl);
   }
   
   public static boolean isNotUnique(IRNode vdecl) {
-    return getNotUniqueDrop(vdecl) != null;
+    return getNotUnique(vdecl) != null;
   }
   
-  public static NotUniquePromiseDrop getNotUniqueDrop(IRNode vdecl) {
+  public static NotUniquePromiseDrop getNotUnique(IRNode vdecl) {
     return getBooleanDrop(notUniqueRule.getStorage(), vdecl);
   }
   
   public static boolean isBorrowed(IRNode vdecl) {
-    return getBorrowedDrop(vdecl) != null;
+    return getBorrowed(vdecl) != null;
   }
   
-  public static BorrowedPromiseDrop getBorrowedDrop(IRNode vdecl) {
+  public static BorrowedPromiseDrop getBorrowed(IRNode vdecl) {
     return getBooleanDrop(borrowedRule.getStorage(), vdecl);
   }
   
@@ -128,7 +128,7 @@ public class UniquenessRules extends AnnotationRules {
    * @param conDecl A constructor declaration node
    */
   public static boolean constructorYieldsUnaliasedObject(final IRNode conDecl) {
-    /* Santiy checking already guarantess that at most one of the two case
+    /* Sanity checking already guarantees that at most one of the two case
      * is met.
      */
     // Unique return is the preferred way of doing things, so check it first
@@ -397,10 +397,10 @@ public class UniquenessRules extends AnnotationRules {
     protected void scrub() {
       for (final IRNode uniqueNode : uniqueNodes) {
         // This seems wasteful and redundant
-        final UniquePromiseDrop uniqueDrop = getUniqueDrop(uniqueNode);
+        final UniquePromiseDrop uniqueDrop = getUnique(uniqueNode);
         final UniqueNode uniqueAST = uniqueDrop.getAST();
-        final BorrowedPromiseDrop borrowedDrop = getBorrowedDrop(uniqueNode);
-        final NotUniquePromiseDrop notUniqueDrop = getNotUniqueDrop(uniqueNode);
+        final BorrowedPromiseDrop borrowedDrop = getBorrowed(uniqueNode);
+        final NotUniquePromiseDrop notUniqueDrop = getNotUnique(uniqueNode);
 
         boolean alsoBorrowed = borrowedDrop != null;
         boolean alsoNotUnique = notUniqueDrop != null;

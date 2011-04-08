@@ -42,9 +42,9 @@ public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueM
       setResultMessage(
           Messages.RegionAnnotation_uniqueInRegionDrop, mappings, name); 
     }
-//      for(RegionMappingNode m : getAST().getSpec().getMappingList()) {
-//        IRegionBinding b = m.getTo().resolveBinding();
-//        b.getModel().addDependent(this);
-//      }
+//    for (RegionMappingNode m : getAST().getMapping().getMappingList()) {
+//      IRegionBinding b = m.getTo().resolveBinding();
+//      b.getModel().addDependent(this);
+//    }
   }
 }

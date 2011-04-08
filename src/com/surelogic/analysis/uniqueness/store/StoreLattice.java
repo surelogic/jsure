@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -380,7 +381,7 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opLoad(final Store s, final IRNode fieldDecl) {
     if (!s.isValid()) return s;
-    if (UniquenessRules.isUnique(fieldDecl)) {
+    if (UniquenessUtils.isFieldUnique(fieldDecl)) {
       final Integer n = getStackTop(s);
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
       ImmutableHashOrderSet<Object> affected = EMPTY;
@@ -424,7 +425,7 @@ extends TripleLattice<Element<Integer>,
   public Store opStore(final Store s, final IRNode fieldDecl) {
     if (!s.isValid()) return s;
     final Store temp;
-    if (UniquenessRules.isUnique(fieldDecl)) {
+    if (UniquenessUtils.isFieldUnique(fieldDecl)) {
       ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
       final Integer undertop = getUnderTop(s);
       if (fieldStore.isInfinite()) return s;

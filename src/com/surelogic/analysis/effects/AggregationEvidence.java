@@ -11,14 +11,13 @@ import com.surelogic.analysis.regions.IRegion;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
-import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 
 public final class AggregationEvidence extends ElaborationEvidence {
-  private final Map<RegionModel, IRegion> regionMapping;
+  private final Map<IRegion, IRegion> regionMapping;
   private final IRegion mappedRegion;
   
   public AggregationEvidence(
-      final Target from, final Map<RegionModel, IRegion> map,
+      final Target from, final Map<IRegion, IRegion> map,
       final IRegion mappedRegion) {
     super(from);
     this.regionMapping = map;
@@ -37,7 +36,7 @@ public final class AggregationEvidence extends ElaborationEvidence {
     return mappedRegion;
   }
   
-  public Map<RegionModel, IRegion> getRegionMapping() {
+  public Map<IRegion, IRegion> getRegionMapping() {
     return regionMapping;
   }
   

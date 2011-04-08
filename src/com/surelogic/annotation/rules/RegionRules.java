@@ -82,11 +82,11 @@ public class RegionRules extends AnnotationRules {
     return getDrop(inRegionRule.getStorage(), vdecl);
   }
   
-  public static ExplicitUniqueInRegionPromiseDrop getAggregate(IRNode vdecl) {
-    throw new UnsupportedOperationException();
+  public static ExplicitUniqueInRegionPromiseDrop getExplicitUniqueInRegion(IRNode vdecl) {
+    return getDrop(explicitUniqueInRegionRule.getStorage(), vdecl);
   }
 
-  public static SimpleUniqueInRegionPromiseDrop getAggregateInRegion(IRNode vdecl) {
+  public static SimpleUniqueInRegionPromiseDrop getSimpleUniqueInRegion(IRNode vdecl) {
 	  return getDrop(simpleUniqueInRegionRule.getStorage(), vdecl);
   }
   
@@ -420,7 +420,7 @@ public class RegionRules extends AnnotationRules {
     final IRNode promisedFor = a.getPromisedFor();
     
     // Cannot also be @Unique
-    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(promisedFor);
+    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(promisedFor);
     if (uniqueDrop != null) {
   	  context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
   	  uniqueDrop.invalidate();
@@ -530,7 +530,7 @@ public class RegionRules extends AnnotationRules {
       final IAnnotationScrubberContext context, final UniqueMappingNode a) {
     final IRNode promisedFor = a.getPromisedFor();   
     final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
-    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(promisedFor);
+    final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(promisedFor);
     if (uniqueDrop != null) {
       context.reportError(a, "Cannot be annotated with both @Unique and @UniqueInRegion");
       uniqueDrop.invalidate();

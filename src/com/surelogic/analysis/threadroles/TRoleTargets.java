@@ -398,8 +398,8 @@ public class TRoleTargets {
       /* Get the region mapping for the field 'f'. Mapping is 'null' if the
        * field is not unique or does not have a declared mapping.
        */
-      final Map<RegionModel, IRegion> regionMap =
-        UniquenessUtils.getRegionMappingFromFieldRef(binder, actual);
+      final Map<IRegion, IRegion> regionMap =
+        UniquenessUtils.constructRegionMapping(binder.getBinding(actual));
       if (regionMap != null) {
         /* For each region in 'e.f' that may be affected that is mapped into a
          * region of 'e', we need to find what locks it may have associated

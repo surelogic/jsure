@@ -713,12 +713,12 @@ public final class LockUtils {
     		final IRNode actual = entry.getValue();
     		if (actual != null && FieldRef.prototype.includes(actual)) {
     			final IRNode fieldID = binder.getBinding(actual);
-    			final boolean isUnique = UniquenessRules.isUnique(fieldID);
+    			final boolean isUnique = UniquenessUtils.isFieldUnique(fieldID);
     			if (isUnique) {
-    				final Map<RegionModel, IRegion> aggregationMap = 
+    				final Map<IRegion, IRegion> aggregationMap = 
     				  UniquenessUtils.constructRegionMapping(fieldID);
     				if (aggregationMap != null) {
-    					for (final RegionModel from : aggregationMap.keySet()) {
+    					for (final IRegion from : aggregationMap.keySet()) {
     						// This is okay because only instance regions can be mapped
     						final Target testTarget = targetFactory.createInstanceTarget(actual, from);
     						exposedTargets.add(testTarget);
@@ -784,8 +784,8 @@ public final class LockUtils {
     final com.surelogic.analysis.effects.AggregationEvidence aggEvidence = target.getLastAggregation();
     if (aggEvidence != null) { // We have aggregation
       final IRegion aggedRegion = aggEvidence.getOriginalRegion();
-      final Map<RegionModel, IRegion> aggMap = aggEvidence.getRegionMapping();
-      for (final Map.Entry<RegionModel, IRegion> mapping : aggMap.entrySet()) {
+      final Map<IRegion, IRegion> aggMap = aggEvidence.getRegionMapping();
+      for (final Map.Entry<IRegion, IRegion> mapping : aggMap.entrySet()) {
         if (aggedRegion.ancestorOf(mapping.getKey())) {
           final IRegion destRegion = mapping.getValue();
           if (destRegion.isStatic()) {
@@ -1353,12 +1353,12 @@ public final class LockUtils {
   public LockExpressions.SingleThreadedData isConstructorSingleThreaded(
       final IRNode cdecl, final IRNode rcvrDecl) {
     // get the receiver and see if it is declared to be borrowed
-    final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowedDrop(rcvrDecl);
+    final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(rcvrDecl);
     final boolean isBorrowedThis = bDrop != null;
     
     // See if the return value is declared to be unique
     final IRNode returnNode = JavaPromise.getReturnNodeOrNull(cdecl);
-    final UniquePromiseDrop uDrop = UniquenessRules.getUniqueDrop(returnNode);
+    final UniquePromiseDrop uDrop = UniquenessRules.getUnique(returnNode);
     final boolean isUniqueReturn = uDrop != null;
 
     /*

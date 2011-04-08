@@ -7,14 +7,13 @@ import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
-import com.surelogic.aast.promise.RegionMappingNode;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
-import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -35,7 +34,6 @@ import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ContainablePromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.ExplicitUniqueInRegionPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.ImmutablePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -389,22 +387,23 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           /* @ThreadSafe takes priority over @Containable: If the type is
            * threadsafe don't check the aggregation status
            */
-          final UniquePromiseDrop uDrop;
-          final ExplicitUniqueInRegionPromiseDrop aggDrop;
+          final PromiseDrop<? extends IAASTRootNode> uDrop;
+          final Map<IRegion, IRegion> aggMap;
           boolean isContained = false;
           if (declTSDrop == null && declContainableDrop != null) {
-            uDrop = UniquenessRules.getUniqueDrop(varDecl);
-            aggDrop = RegionRules.getAggregate(varDecl);
-            if (uDrop != null && aggDrop != null) {
+            uDrop = UniquenessUtils.getFieldUnique(varDecl);
+            if (uDrop != null) {
+              aggMap = UniquenessUtils.constructRegionMapping(varDecl);
               isContained = true;
-              for (final RegionMappingNode mapping : aggDrop.getAST().getMapping().getMappingList()) {
-                final IRegion destRegion = mapping.getTo().resolveBinding().getRegion();
+              for (final IRegion destRegion : aggMap.values()) {
                 isContained &= (getLockForRegion(destRegion) != null);
               }
+            } else {
+              aggMap = null;
             }
           } else {
             uDrop = null;
-            aggDrop = null;
+            aggMap = null;
             // no @Containable annotation --> Default "annotation" of not containable
             isContained = false;
           }
@@ -427,9 +426,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             } else { // contained
               result.addTrustedPromise(declContainableDrop);
               result.addTrustedPromise(uDrop);
-              result.addTrustedPromise(aggDrop);
-              for (final RegionMappingNode mapping : aggDrop.getAST().getMapping().getMappingList()) {
-                final IRegion destRegion = mapping.getTo().resolveBinding().getRegion();
+              for (final IRegion destRegion : aggMap.values()) {
                 result.addTrustedPromise(getLockForRegion(destRegion).lockDecl);
               }
             }
@@ -450,10 +447,6 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             if (uDrop == null) {
               result.addProposal(new ProposedPromiseBuilder(
                   "Unique", null, varDecl, varDecl));
-            }
-            if (aggDrop == null) {
-              result.addProposal(new ProposedPromiseBuilder(
-                  "Aggregate", null, varDecl, varDecl));
             }
           }
         } else {
@@ -496,10 +489,10 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     @Override
     protected void handleConstructorDeclaration(final IRNode cdecl) {
       final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
-      final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowedDrop(rcvrDecl);
+      final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowed(rcvrDecl);
 
       final IRNode returnDecl = JavaPromise.getReturnNodeOrNull(cdecl);
-      final UniquePromiseDrop upd = UniquenessRules.getUniqueDrop(returnDecl);
+      final UniquePromiseDrop upd = UniquenessRules.getUnique(returnDecl);
       
       // Prefer unique return over borrowed receiver
       final String id = JavaNames.genMethodConstructorName(cdecl);
@@ -526,7 +519,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       if (!TypeUtil.isStatic(mdecl)) {
         final String id = JavaNames.genMethodConstructorName(mdecl);
         final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
-        final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowedDrop(rcvrDecl);
+        final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowed(rcvrDecl);
         if (bpd == null) {
           final ResultDropBuilder result =
             createResult(mdecl, false, Messages.METHOD_BAD, id);
@@ -566,17 +559,15 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               createResult(varDecl, true, Messages.FIELD_CONTAINED_VOUCHED, id);
             result.addTrustedPromise(vouchDrop);
           } else {
-            final UniquePromiseDrop uniqueDrop = UniquenessRules.getUniqueDrop(varDecl);
-            final ExplicitUniqueInRegionPromiseDrop aggDrop = RegionRules.getAggregate(varDecl);
+            final PromiseDrop<? extends IAASTRootNode> uniqueDrop = UniquenessUtils.getFieldUnique(varDecl);
             final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
             // no @Containable annotation --> Default "annotation" of not containable
             final ContainablePromiseDrop declContainableDrop = LockRules.getContainableType(typeDecl);
-            if (declContainableDrop != null && uniqueDrop != null && aggDrop != null) {
+            if (declContainableDrop != null && uniqueDrop != null) {
               final ResultDropBuilder result =
                 createResult(varDecl, true, Messages.FIELD_CONTAINED_OBJECT, id);
               result.addTrustedPromise(declContainableDrop);
               result.addTrustedPromise(uniqueDrop);
-              result.addTrustedPromise(aggDrop);
             } else {
               final ResultDropBuilder result =
                 createResult(varDecl, false, Messages.FIELD_BAD, id);
@@ -602,14 +593,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
                 result.addSupportingInformation(varDecl, Messages.FIELD_NOT_UNIQUE);
                 result.addProposal(new ProposedPromiseBuilder("Unique", null, varDecl, varDecl));
                 result.addProposal(new ProposedPromiseBuilder("Aggregate", null, varDecl, varDecl));
-              }
-              
-              if (aggDrop != null) {
-                result.addTrustedPromise(aggDrop);
-              } else { 
-                result.addSupportingInformation(varDecl, Messages.FIELD_NOT_AGGREGATED);
-                result.addProposal(new ProposedPromiseBuilder("Aggregate", null, varDecl, varDecl));
-              }
+              }              
             }
           } 
         }
