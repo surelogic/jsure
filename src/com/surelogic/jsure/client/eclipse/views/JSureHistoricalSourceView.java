@@ -12,7 +12,7 @@ import com.surelogic.fluid.javac.scans.*;
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView implements IJSureScanListener {
 	private static Projects projects;
     private static ISourceZipFileHandles zips;
-    private static boolean viewIsEnabled = false;    
+    private static boolean viewIsEnabled = true;    
     
     public JSureHistoricalSourceView() {
     	viewIsEnabled = true;
