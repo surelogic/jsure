@@ -161,21 +161,24 @@ public final class UniquenessUtils {
   public static Map<IRegion, IRegion> constructRegionMapping(final IRNode field) {
     final UniquePromiseDrop uniqueDrop = UniquenessRules.getUnique(field);
     if (uniqueDrop != null) {
+      /* Aggregates Instance into the field if the field is non-final.
+       * Aggregates Instance into Instance if the field is final and non-static.
+       */
       final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
-      return Collections.<IRegion, IRegion>singletonMap(
-          instanceRegion, instanceRegion);
+      if (TypeUtil.isFinal(field)) {
+        return Collections.<IRegion, IRegion>singletonMap(
+            instanceRegion, instanceRegion);
+      } else {
+        return Collections.<IRegion, IRegion>singletonMap(
+            instanceRegion, new FieldRegion(field));
+      }
     } else {
       final SimpleUniqueInRegionPromiseDrop simpleDrop =
         RegionRules.getSimpleUniqueInRegion(field);
       if (simpleDrop != null) {
         final RegionModel instanceRegion = RegionModel.getInstanceRegion(field);
-        if (TypeUtil.isFinal(field)) {
-          return Collections.<IRegion, IRegion>singletonMap(
-              instanceRegion, instanceRegion);
-        } else {
-          return Collections.<IRegion, IRegion>singletonMap(
-              instanceRegion, new FieldRegion(field));
-        }
+        final IRegion dest = simpleDrop.getAST().getSpec().resolveBinding().getRegion();
+        return Collections.<IRegion, IRegion>singletonMap(instanceRegion, dest);
       } else {
         final ExplicitUniqueInRegionPromiseDrop explicitDrop =
           RegionRules.getExplicitUniqueInRegion(field);
