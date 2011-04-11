@@ -55,7 +55,7 @@ public class ScansView extends AbstractScanManagerView {
 			column.getColumn().setText(label);
 			column.getColumn().setWidth(40 * label.length());
 
-			setupSorter(column, i);
+			setupSorter(tableViewer, column, i);
 			i++;
 		}
 
@@ -67,12 +67,12 @@ public class ScansView extends AbstractScanManagerView {
 		return tableViewer.getControl();
 	}
 
-	protected void setupSorter(final TableViewerColumn column, final int colIdx) {
+	protected void setupSorter(final TableViewer tViewer, final TableViewerColumn column, final int colIdx) {
 		final boolean intSort = f_content.isIntSortedColumn(colIdx); //"Line".equals(column.getColumn().getText());
-		new ColumnViewerSorter<JSureRun>(column.getViewer(), column.getColumn()) {
+		new ColumnViewerSorter<JSureRun>(tViewer, column.getColumn()) {
 			@Override
 			protected int doCompare(Viewer viewer, JSureRun e1, JSureRun e2) {
-				ITableLabelProvider lp = ((ITableLabelProvider) column.getViewer().getLabelProvider());
+				ITableLabelProvider lp = ((ITableLabelProvider) tViewer.getLabelProvider());
 				String t1 = lp.getColumnText(e1, colIdx);
 				String t2 = lp.getColumnText(e2, colIdx);
 				if (intSort) {
