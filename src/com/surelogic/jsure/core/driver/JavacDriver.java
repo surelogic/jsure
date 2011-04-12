@@ -1941,6 +1941,11 @@ public class JavacDriver implements IResourceChangeListener {
 				public String getRunDirectory() {
 					return projects.getRunDir().getAbsolutePath();
 				}
+
+                @Override
+                public String getLogPath() {
+                    return new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT).getAbsolutePath();
+                }
 			};
 			return LocalJSureJob.factory.newJob(msg, projects.size(), cfg);
 		}
