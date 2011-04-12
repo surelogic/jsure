@@ -607,7 +607,7 @@ public abstract class Drop implements IDropInfo {
 	}
 	
 	public ISrcRef getSrcRef() {
-		throw new UnsupportedOperationException();
+		return null;
 	}
 
 	public Collection<? extends IProposedPromiseDropInfo> getProposals() {
