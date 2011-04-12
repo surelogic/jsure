@@ -40,7 +40,6 @@ import com.surelogic.analysis.locks.locks.NeededLockFactory;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
-import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;

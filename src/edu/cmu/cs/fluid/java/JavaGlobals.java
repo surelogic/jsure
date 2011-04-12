@@ -63,4 +63,5 @@ public interface JavaGlobals {
   static final Category CONVERT_TO_IR = Category.getInstance(116);
   static final Category UNCATEGORIZED = Category.getInstance(117);
   static final Category MODULE_CAT = Category.getInstance(118);
+  static final Category UTILITY_CAT = Category.getInstance(119);
 }

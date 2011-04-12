@@ -36,6 +36,7 @@ Export-Package:
  com.surelogic.analysis.uniqueness.sideeffecting,
  com.surelogic.analysis.uniqueness.sideeffecting.store,
  com.surelogic.analysis.uniqueness.store,
+ com.surelogic.analysis.utility,
  com.surelogic.annotation,
  com.surelogic.annotation.bind,
  com.surelogic.annotation.parse,

@@ -10,7 +10,7 @@ public class UtilityPromiseDrop extends BooleanPromiseDrop<UtilityNode> {
 
 	public UtilityPromiseDrop(UtilityNode a) {
 		super(a);
-		setCategory(JavaGlobals.LOCK_ASSURANCE_CAT); // TODO
+		setCategory(JavaGlobals.UTILITY_CAT);
 	}
 
 	@Override

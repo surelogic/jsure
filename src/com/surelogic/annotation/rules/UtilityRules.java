@@ -20,19 +20,19 @@ public class UtilityRules extends AnnotationRules {
 
 	private static final AnnotationRules instance = new UtilityRules();
 
-	private static final Utility_ParseRule vouchRule = new Utility_ParseRule();
+	private static final Utility_ParseRule utilityRule = new Utility_ParseRule();
 
 	public static AnnotationRules getInstance() {
 		return instance;
 	}
 
 	public static UtilityPromiseDrop getUtilityDrop(IRNode type) {
-		return getDrop(vouchRule.getStorage(), type);
+		return getDrop(utilityRule.getStorage(), type);
 	}
 
 	@Override
 	public void register(PromiseFramework fw) {
-		registerParseRuleStorage(fw, vouchRule);
+		registerParseRuleStorage(fw, utilityRule);
 	}
 
 	static class Utility_ParseRule
@@ -59,15 +59,16 @@ public class UtilityRules extends AnnotationRules {
 			return new AbstractAASTScrubber<UtilityNode, UtilityPromiseDrop>(this) {
 				@Override
 				protected PromiseDrop<UtilityNode> makePromiseDrop(UtilityNode a) {
-					IRNode promisedFor = a.getPromisedFor();
+					final IRNode promisedFor = a.getPromisedFor();
+          // This can't be on an interface
 					if (InterfaceDeclaration.prototype.includes(promisedFor)) {
-						// This can't be on an interface
+					  getContext().reportError(a, "Cannot use @Utility on an interface");
 						return null;
 					}
 					
 					// TODO check for classes
 					
-					UtilityPromiseDrop d = new UtilityPromiseDrop(a);
+					final UtilityPromiseDrop d = new UtilityPromiseDrop(a);
 					return storeDropIfNotNull(a, d);
 				}
 			};

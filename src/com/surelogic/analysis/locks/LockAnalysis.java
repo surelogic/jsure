@@ -592,7 +592,6 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               } else {
                 result.addSupportingInformation(varDecl, Messages.FIELD_NOT_UNIQUE);
                 result.addProposal(new ProposedPromiseBuilder("Unique", null, varDecl, varDecl));
-                result.addProposal(new ProposedPromiseBuilder("Aggregate", null, varDecl, varDecl));
               }              
             }
           } 
