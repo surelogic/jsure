@@ -1923,7 +1923,7 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 
 				public int getMemorySize() {
-					return 1024;
+					return JSurePreferencesUtility.getMaxMemorySize();
 				}
 
 				public String getPluginDir(String id, boolean required) {

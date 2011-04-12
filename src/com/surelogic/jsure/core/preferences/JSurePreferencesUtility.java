@@ -149,6 +149,13 @@ public final class JSurePreferencesUtility {
 			}
 		};
 	}
+	
+	/**
+	 * Gets the memory size to be used by the remote JSure process
+	 */
+	public static int getMaxMemorySize() {
+	    return EclipseUtility.getIntPreference(IDEPreferences.TOOL_MEMORY_MB);
+	}
 
 	private JSurePreferencesUtility() {
 		// Utility
