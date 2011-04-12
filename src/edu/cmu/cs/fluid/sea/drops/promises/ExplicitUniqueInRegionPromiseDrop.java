@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.UniqueMappingNode;
 
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.Messages;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -16,6 +17,7 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueMappingNode> {
   public ExplicitUniqueInRegionPromiseDrop(UniqueMappingNode n) {
     super(n);
+    setCategory(JavaGlobals.REGION_CAT);
   }
   
   /**

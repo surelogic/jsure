@@ -221,7 +221,7 @@ public class UniquenessRules extends AnnotationRules {
         
         if (TypeUtil.isStatic(promisedFor) && TypeUtil.isFinal(promisedFor)) {
           good = false;
-          context.reportError(a, "@Unique cannot be sued on a static final field: use @UniqueInRegion instead");
+          context.reportError(a, "@Unique cannot be used on a static final field: use @UniqueInRegion instead");
         }
       }
 
