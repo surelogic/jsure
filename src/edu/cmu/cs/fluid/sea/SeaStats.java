@@ -88,7 +88,7 @@ public final class SeaStats {
             if (sr != null) {
                 String path = sr.getRelativePath();
                 int firstSlash = path.indexOf('/');
-                if (firstSlash >= 0) {
+                if (firstSlash >= 0 && path.endsWith(".java")) {
                     return path.substring(0, firstSlash);
                 }
             }
