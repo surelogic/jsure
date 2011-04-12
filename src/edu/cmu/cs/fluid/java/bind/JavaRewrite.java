@@ -612,7 +612,7 @@ public class JavaRewrite implements JavaGlobals {
 
 	// / makeDefaultConstructor
 	IRNode makeDefaultConstructor(IRNode decl) {
-		int mods = JavaNode.PUBLIC;
+		int mods = JavaNode.PUBLIC | JavaNode.IMPLICIT;
 		String cName = JJNode.getInfo(decl);
 		IRNode[] params = noNodes;
 
