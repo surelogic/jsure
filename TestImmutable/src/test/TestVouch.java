@@ -8,10 +8,6 @@ public class TestVouch {
   // GOOD:  final and primitive
   protected final int good1 = 1;
   
-  // BAD: non-final primitive
-  @Vouch("Immutable")
-  protected int bad1 = 2;
-  
   
   
   // GOOD: final and Immutable
