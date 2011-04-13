@@ -35,12 +35,9 @@ import java.util.List;
 
 import org.apache.commons.httpclient.HttpConnectionManager;
 
-import com.surelogic.Aggregate;
-import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.Unique;
 
 /**
  * A utility class for periodically closing idle connections.

@@ -3,14 +3,12 @@ package aggregated_fields;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
-import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
-import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @RegionLocks({
   @RegionLock("RW1 is rwLock1 protects Region1"),
@@ -26,11 +24,9 @@ public class Test {
   private final ReadWriteLock rwLock1 = new ReentrantReadWriteLock();
   private final ReadWriteLock rwLock2 = new ReentrantReadWriteLock();
   private final ReadWriteLock rwLock3 = new ReentrantReadWriteLock();
-
+  
   // [f] Good: needs RW1.writeLock()
-  @Unique
-//  @InRegion("Region1")
-  @Aggregate("Instance into Instance, f1 into Region2, f2 into Region3")
+  @UniqueInRegion("Instance into Instance, f1 into Region2, f2 into Region3")
   private final Inner f; // = new Inner();
   
   @Borrowed("this")

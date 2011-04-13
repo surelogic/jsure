@@ -28,16 +28,12 @@ import java.nio.channels.SelectionKey;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import com.sun.grizzly.util.ByteBufferFactory.ByteBufferType;
-import com.surelogic.Aggregate;
-import com.surelogic.Assume;
-import com.surelogic.Assumes;
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
-import com.surelogic.Promise;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
-import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 /**
  * Simple Thread Pool based on the wait/notify/synchronized mechanism.
@@ -46,7 +42,6 @@ import com.surelogic.Unique;
  */
 @Region("protected Region")
 @RegionLock("ThisLock is this protects Region"/*is INCONSISTENT*/)
-@Promise("@InRegion(Region) for * *")
 // Used to have stuff on this line.  Keep this comment so that the line numbers won't change in the oracle file
 public class DefaultPipeline extends LinkedList<Callable>
         implements Pipeline<Callable>{
@@ -55,86 +50,97 @@ public class DefaultPipeline extends LinkedList<Callable>
     /**
      * The number of thread waiting for a <code>Task</code>
      */
+	  @InRegion("Region")
     protected int waitingThreads = 0;
 
 
     /**
      * The maximum number of Thread
      */
+	  @InRegion("Region")
     protected int maxThreads = 20;
 
 
     /**
      * The minimum numbers of <code>WorkerThreadImpl</code>
      */
+	  @InRegion("Region")
     protected int minThreads = 5;
 
 
     /**
      * The minimum numbers of spare <code>WorkerThreadImpl</code>
      */
+	  @InRegion("Region")
     protected int minSpareThreads = 2;
 
 
     /**
      * The port used.
      */
+	  @InRegion("Region")
     protected int port = 8080;
 
 
     /**
      * The number of <code>WorkerThreadImpl</code>
      */
+	  @InRegion("Region")
     protected int threadCount = 0;
 
 
     /**
      * The name of this Pipeline
      */
+	  @InRegion("Region")
     protected String name = "Grizzly";
 
 
     /**
      * The Thread Priority
      */
+	  @InRegion("Region")
     protected int priority = Thread.NORM_PRIORITY;
 
 
     /**
      * Has the pipeline already started
      */
+	  @InRegion("Region")
     protected boolean isStarted = false;
 
 
     /**
      * <code>WorkerThreadImpl</code> amanged by this pipeline.
      */
-    @Unique
-    @Aggregate("Instance into Region"/*is CONSISTENT*/)
-    @InRegion("Region")
+    @UniqueInRegion("Region"/*is CONSISTENT*/)
     protected transient WorkerThreadImpl[] workerThreads;
 
 
     /**
      * Maximum pending connection before refusing requests.
      */
+	  @InRegion("Region")
     protected int maxQueueSizeInBytes = -1;
 
 
     /**
      * The increment number used when adding new thread.
      */
+	  @InRegion("Region")
     protected int threadsIncrement = 1;
 
     /**
      * The initial ByteBuffer size for newly created WorkerThread instances
      */
+	  @InRegion("Region")
     protected int initialByteBufferSize = 8192;
 
 
     /**
      * The <code>ByteBufferType</code>
      */
+	  @InRegion("Region")
     private ByteBufferType byteBufferType = ByteBufferType.HEAP_VIEW;
 
 

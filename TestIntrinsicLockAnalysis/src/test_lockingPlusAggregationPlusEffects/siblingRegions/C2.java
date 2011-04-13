@@ -1,12 +1,11 @@
 package test_lockingPlusAggregationPlusEffects.siblingRegions;
 
-import com.surelogic.Aggregate;
 import com.surelogic.RegionLock;
 import com.surelogic.Region;
 import com.surelogic.Regions;
+import com.surelogic.UniqueInRegion;
 /* Created on Mar 3, 2005
  */
-import com.surelogic.Unique;
 
 @Regions({
   @Region("public X"),
@@ -14,8 +13,7 @@ import com.surelogic.Unique;
 })
 @RegionLock("L2 is this protects Y")
 public class C2 {
-  @Unique
-  @Aggregate("Instance into Instance, R into X, Q into Y")
+  @UniqueInRegion("Instance into Instance, R into X, Q into Y")
   private final D2 f;
   
   public C2() {

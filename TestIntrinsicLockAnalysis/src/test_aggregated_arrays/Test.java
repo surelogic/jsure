@@ -3,7 +3,6 @@
  */
 package test_aggregated_arrays;
 
-import com.surelogic.Aggregate;
 import com.surelogic.RegionLock;
 import com.surelogic.Unique;
 
@@ -12,7 +11,7 @@ import com.surelogic.Unique;
  */
 @RegionLock("L is this protects Instance")
 public class Test {
-  private @Unique @Aggregate("Instance into Instance") Object[] good;
+  private @Unique Object[] good;
   private Object[] bad;
   
   public synchronized void goodMethod(Object o) {

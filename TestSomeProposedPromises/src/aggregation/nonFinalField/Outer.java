@@ -2,11 +2,7 @@ package aggregation.nonFinalField;
 
 import com.surelogic.InRegion;
 import com.surelogic.Region;
-import com.surelogic.RegionLock;
-import com.surelogic.RegionLocks;
 import com.surelogic.Regions;
-import com.surelogic.RequiresLock;
-import com.surelogic.AggregateInRegion;
 import com.surelogic.Unique;
 
 @Regions({

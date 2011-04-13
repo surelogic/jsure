@@ -1,6 +1,5 @@
 package inRegion.noCycles;
 
-import com.surelogic.Aggregate;
 import com.surelogic.InRegion;
 import com.surelogic.InRegions;
 import com.surelogic.Region;

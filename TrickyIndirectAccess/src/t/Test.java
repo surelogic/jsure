@@ -3,13 +3,12 @@ package t;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.Region;
 import com.surelogic.Regions;
-import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @RegionLocks({
   @RegionLock("RW2 is rwLock2 protects Region2"),
@@ -19,12 +18,12 @@ import com.surelogic.Unique;
   @Region("private Region2"),
   @Region("private Region3")
 })
+@SuppressWarnings("unused")
 public class Test {
   private final ReadWriteLock rwLock2 = new ReentrantReadWriteLock();
   private final ReadWriteLock rwLock3 = new ReentrantReadWriteLock();
 
-  @Unique
-  @Aggregate("Instance into Instance, f1 into Region2, f2 into Region3")
+  @UniqueInRegion("Instance into Instance, f1 into Region2, f2 into Region3")
   private final Inner f = new Inner();
   
   @Borrowed("this")

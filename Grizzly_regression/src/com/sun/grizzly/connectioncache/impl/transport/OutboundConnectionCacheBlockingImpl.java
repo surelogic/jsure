@@ -36,16 +36,9 @@ import com.sun.grizzly.connectioncache.spi.concurrent.ConcurrentQueue;
 import com.sun.grizzly.connectioncache.spi.transport.ConnectionFinder;
 import com.sun.grizzly.connectioncache.spi.transport.ContactInfo;
 import com.sun.grizzly.connectioncache.spi.transport.OutboundConnectionCache;
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
-import com.surelogic.Promise;
-import com.surelogic.Promises;
-import com.surelogic.Region;
-import com.surelogic.RegionLock;
-import com.surelogic.Regions;
 import com.surelogic.RequiresLock;
-import com.surelogic.Unique;
 
 //@Region("protected TotalRegion")
 //@RegionLock("Lock is this protects TotalRegion"/*is INCONSISTENT*/)

@@ -3,7 +3,6 @@
  */
 package test_array_length;
 
-import com.surelogic.Aggregate;
 import com.surelogic.RegionLock;
 import com.surelogic.Unique;
 
@@ -13,7 +12,7 @@ import com.surelogic.Unique;
  */
 @RegionLock("L is this protects Instance")
 public class Test {
-  private final @Unique @Aggregate("Instance into Instance") 
+  private final @Unique
   String[] exec = null;
 
 //  @SuppressWarnings("unused")

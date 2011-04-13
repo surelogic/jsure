@@ -1,10 +1,10 @@
 package test;
 
-import com.surelogic.Aggregate;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.Regions;
 import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @Regions({
   // cannot have a final region as a parent
@@ -55,16 +55,13 @@ public class Test {
   
   /* Cannot aggregate into a final or volatile field */
   
-  @Unique
-  @Aggregate("Instance into finalField" /* is UNASSOCIATED */)
+  @UniqueInRegion("Instance into finalField" /* is UNASSOCIATED */)
   private final Object aggIntoFinal = new Object();
   
-  @Unique
-  @Aggregate("Instance into volatileField" /* is UNASSOCIATED */)
+  @UniqueInRegion("Instance into volatileField" /* is UNASSOCIATED */)
   private final Object aggIntoVolatile = new Object();
   
-  @Unique
-  @Aggregate("Instance into regularField" /* is CONSISTENT */)
+  @UniqueInRegion("Instance into regularField" /* is CONSISTENT */)
   private final Object aggIntoRegular = new Object();
   
   

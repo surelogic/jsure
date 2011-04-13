@@ -1,12 +1,11 @@
 package t;
 
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.Region;
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 import com.surelogic.Regions;
-import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 /**
  * Simple class that aggregates a uniquely referenced E object into its own
@@ -19,8 +18,7 @@ import com.surelogic.Unique;
 })
 @RegionLock("DLock is this protects D_R2")
 public class D {
-  @Unique
-  @Aggregate("f1 into D_R1, f2 into D_R2, Instance into Instance")
+  @UniqueInRegion("f1 into D_R1, f2 into D_R2, Instance into Instance")
   protected final E e = new E();
   
   @Borrowed("this")

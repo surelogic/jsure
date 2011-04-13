@@ -1,6 +1,5 @@
 package testFieldDeclarations;
 
-import com.surelogic.AggregateInRegion;
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
@@ -9,6 +8,7 @@ import com.surelogic.RegionLocks;
 import com.surelogic.Regions;
 import com.surelogic.ThreadSafe;
 import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @Regions({
 		@Region("public LockProtected"),
@@ -35,8 +35,7 @@ public class Test {
   protected final Safe final2 = new Safe();
   
   /* GOOD: final field; containable aggregated type */
-  @Unique
-  @AggregateInRegion("LockProtected")
+  @UniqueInRegion("LockProtected")
   protected final ContainableType final3 = new ContainableType();
   
   
@@ -55,8 +54,7 @@ public class Test {
   protected final ContainableType final7 = new ContainableType();
   
   /* BAD: final field; containable, unique, but not aggregated into a lock-protected region */
-  @Unique
-  @AggregateInRegion("NotProtected")
+  @UniqueInRegion("NotProtected")
   protected final ContainableType final8 = new ContainableType();
 
   
@@ -114,9 +112,7 @@ public class Test {
   protected Safe lockProtected2 = new Safe();
   
   /* GOOD: lockProtected field; containable aggregated type */
-  @InRegion("LockProtected")
-  @Unique
-  @AggregateInRegion("LockProtected")
+  @UniqueInRegion("LockProtected")
   protected ContainableType lockProtected3 = new ContainableType();
   
   
@@ -128,21 +124,23 @@ public class Test {
   /* BAD: lockProtected field; unsafe type */
   @InRegion("LockProtected")
   protected NotSafe lockProtected5 = new NotSafe();
-  
-  /* BAD: lockProtected field; containable, but not aggregated */
-  @InRegion("LockProtected")
-  @Unique
-  protected ContainableType lockProtected6 = new ContainableType();
+
+// DEAD CASE: ALWAYS AGGREGATED NOW  
+//  /* BAD: lockProtected field; containable, but not aggregated */
+//  @InRegion("LockProtected")
+//  @Unique
+//  protected ContainableType lockProtected6 = new ContainableType();
   
   /* BAD: lockProtected field; containable, but not unique */
   @InRegion("LockProtected")
   protected ContainableType lockProtected7 = new ContainableType();
-  
-  /* BAD: lockProtected field; containable, unique, but not aggregated into a lock-protected region */
-  @InRegion("LockProtected")
-  @Unique
-  @AggregateInRegion("Instance")
-  protected ContainableType lockProtected8 = new ContainableType();
+
+// DEAD CASE: CANNOT DO THIS NOW  
+//  /* BAD: lockProtected field; containable, unique, but not aggregated into a lock-protected region */
+//  @InRegion("LockProtected")
+//  @Unique
+//  @AggregateInRegion("Instance")
+//  protected ContainableType lockProtected8 = new ContainableType();
 
 
 
@@ -181,8 +179,7 @@ public class Test {
   protected ContainableType bad7 = new ContainableType();
   
   /* BAD: containable, unique, but not aggregated into a lock-protected region */
-  @Unique
-  @AggregateInRegion("bad8")
+  @UniqueInRegion("NotProtected")
   protected ContainableType bad8 = new ContainableType();
 	
 }

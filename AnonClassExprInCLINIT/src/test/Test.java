@@ -3,10 +3,11 @@ package test;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionEffects;
 import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 public class Test {
 
-	@Unique
+	@UniqueInRegion("All")
 	private static final D d = new D();
 
 	private class Inner {

@@ -1,11 +1,10 @@
 package test;
 
-import com.surelogic.Aggregate;
-import com.surelogic.AggregateInRegion;
-import com.surelogic.Assume;
+import com.surelogic.Vouch;
 import com.surelogic.Borrowed;
 import com.surelogic.Containable;
 import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @Containable
 @SuppressWarnings("unused")
@@ -15,44 +14,34 @@ public class TestAssure {
   
   // Good: Uniquely referenced, aggregated, containable object
   @Unique
-  @Aggregate
   private ContainableClass f2 = null;
 
   // Good: Uniquely referenced, aggregated, containable object
-  @Unique
-  @AggregateInRegion("Instance")
+  @UniqueInRegion("Instance")
   private ContainableClass f3 = null;
 
   // Bad: Just containable
-  @Assume("Containable")
+  @Vouch("Containable")
   private ContainableClass f4 = null;
   
-  // Bad: Just unique and containable
-  @Assume("Containable")
-  @Unique
-  private ContainableClass f5 = null;
-  
   // Bad: Uniquely referenced, aggregated, NON-containable object
-  @Assume("Containable")
+  @Vouch("Containable")
   @Unique
-  @Aggregate
   private NonContainableClass f6 = null;
   
   // Bad: Uniquely referenced, aggregated, NON-containable object
-  @Assume("Containable")
-  @Unique
-  @AggregateInRegion("Instance")
+  @Vouch("Containable")
+  @UniqueInRegion("Instance")
   private NonContainableClass f7 = null;
   
   // Bad: Just Unique
-  @Assume("Containable")
+  @Vouch("Containable")
   @Unique
   private NonContainableClass f8 = null;
   
   // Bad: Array is not containable
-  @Assume("Containable")
+  @Vouch("Containable")
   @Unique
-  @Aggregate
   private int[] f9 = { 0, 1, 2 };
   
 

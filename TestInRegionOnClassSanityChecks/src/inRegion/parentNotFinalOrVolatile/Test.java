@@ -1,6 +1,5 @@
 package inRegion.parentNotFinalOrVolatile;
 
-import com.surelogic.Aggregate;
 import com.surelogic.InRegion;
 import com.surelogic.InRegions;
 import com.surelogic.Region;

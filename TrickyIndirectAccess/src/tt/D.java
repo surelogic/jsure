@@ -1,12 +1,11 @@
 package tt;
 
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.Regions;
-import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @Regions({
   @Region("public D1"),
@@ -21,8 +20,7 @@ public class D {
   public final Object l1 = new Object();
   public final Object l2 = new Object();
   
-  @Unique
-  @Aggregate("Instance into Instance, f1 into D1, f2 into D2")
+  @UniqueInRegion("Instance into Instance, f1 into D1, f2 into D2")
   protected final E e = new E();
   
   public static D getD() {

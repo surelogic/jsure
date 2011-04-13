@@ -27,11 +27,8 @@ import java.nio.channels.Selector;
 import java.util.EmptyStackException;
 import java.util.Stack;
 
-import com.surelogic.Aggregate;
-import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.Unique;
 
 /**
  * Factory used to dispatch/share <code>Selector</code>.

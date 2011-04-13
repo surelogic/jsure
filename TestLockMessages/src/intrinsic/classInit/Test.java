@@ -1,6 +1,5 @@
 package intrinsic.classInit;
 
-import com.surelogic.AggregateInRegion;
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
@@ -8,6 +7,7 @@ import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @RegionLock("Lock is class protects R")
 @Region("static R")
@@ -15,8 +15,7 @@ public class Test {
   @InRegion("R")
   private static int f;
 
-  @Unique
-  @AggregateInRegion("R")
+  @UniqueInRegion("R")
   private static final D d = new D();
 
 

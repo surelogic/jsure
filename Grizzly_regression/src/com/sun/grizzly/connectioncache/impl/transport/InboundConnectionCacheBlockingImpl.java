@@ -30,15 +30,8 @@ import java.util.logging.Logger;
 
 import com.sun.grizzly.connectioncache.spi.concurrent.ConcurrentQueue;
 import com.sun.grizzly.connectioncache.spi.transport.InboundConnectionCache;
-import com.surelogic.Aggregate;
-import com.surelogic.Borrowed;
-import com.surelogic.Promise;
-import com.surelogic.Promises;
-import com.surelogic.Region;
-import com.surelogic.RegionLock;
-import com.surelogic.RegionLocks;
 import com.surelogic.RequiresLock;
-import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 /** Manage connections that are initiated from another VM.
  *
@@ -52,8 +45,7 @@ public final class InboundConnectionCacheBlockingImpl<C extends Closeable>
         extends ConnectionCacheBlockingBase<C>
         implements InboundConnectionCache<C> {
 
-	@Unique
-	@Aggregate("Instance into TotalRegion"/*is CONSISTENT*/)
+	  @UniqueInRegion("TotalRegion" /* is CONSISTENT */)
     private final Map<C,ConnectionState<C>> connectionMap ;
 
     protected String thisClassName() {

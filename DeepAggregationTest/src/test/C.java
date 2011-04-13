@@ -1,12 +1,11 @@
 package test;
 
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.Region;
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 import com.surelogic.Regions;
-import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @Regions({
   @Region("protected C_R1"),
@@ -14,8 +13,7 @@ import com.surelogic.Unique;
 })
 @RegionLock("CLock is this protects C_R2")
 public class C {
-  @Unique
-  @Aggregate("D_R1 into C_R1, D_R2 into C_R2, Instance into Instance")
+  @UniqueInRegion("D_R1 into C_R1, D_R2 into C_R2, Instance into Instance")
   protected final D d = new D();
   
   @Borrowed("this")

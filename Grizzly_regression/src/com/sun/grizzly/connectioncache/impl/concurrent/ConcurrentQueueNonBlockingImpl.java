@@ -23,12 +23,10 @@
 package com.sun.grizzly.connectioncache.impl.concurrent;
 
 import com.sun.grizzly.connectioncache.spi.concurrent.ConcurrentQueue;
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.Unique;
 
 @Region("HeadRegion")
 @RegionLock("Lock is lock protects HeadRegion"/*is CONSISTENT*/)

@@ -52,17 +52,13 @@ import org.apache.commons.httpclient.util.IdleConnectionHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.surelogic.Aggregate;
 import com.surelogic.InRegion;
-//import com.surelogic.NotUnique;
 import com.surelogic.Promise;
 import com.surelogic.Promises;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.Regions;
-import com.surelogic.RequiresLock;
-import com.surelogic.Unique;
 
 /**
  * Manages a set of HttpConnections for various HostConfigurations.

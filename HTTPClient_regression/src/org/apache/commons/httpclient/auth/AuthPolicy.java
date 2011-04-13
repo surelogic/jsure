@@ -37,11 +37,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.surelogic.Aggregate;
-import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.Unique;
 
 /**
  * Authentication policy class. The Authentication policy provides corresponding

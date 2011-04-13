@@ -16,12 +16,11 @@
 package EDU.oswego.cs.dl.util.concurrent;
 import java.util.Comparator;
 
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
-import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 /**
  * A heap-based priority queue, without any concurrency control
@@ -38,9 +37,7 @@ import com.surelogic.Unique;
 @RegionLock("HeapLock is this protects HeapRegion")
 public class Heap  {
   
-  @Unique
-  @Aggregate("Instance into HeapRegion")
-  @InRegion("HeapRegion")
+  @UniqueInRegion("HeapRegion")
   protected Object[] nodes_;  // the tree nodes, packed into an array
   @InRegion("HeapRegion")
   protected int count_ = 0;   // number of used slots

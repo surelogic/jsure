@@ -1,10 +1,9 @@
 package test;
 
-import com.surelogic.Aggregate;
-import com.surelogic.AggregateInRegion;
 import com.surelogic.Borrowed;
 import com.surelogic.Containable;
 import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @Containable(verify=false)
 @SuppressWarnings("unused")
@@ -14,29 +13,21 @@ public class TestNoVerify {
   
   // Good: Uniquely referenced, aggregated, containable object
   @Unique
-  @Aggregate
   private ContainableClass f2 = null;
 
   // Good: Uniquely referenced, aggregated, containable object
-  @Unique
-  @AggregateInRegion("Instance")
+  @UniqueInRegion("Instance")
   private ContainableClass f3 = null;
 
   // Bad: Just containable
   private ContainableClass f4 = null;
   
-  // Bad: Just unique and containable
-  @Unique
-  private ContainableClass f5 = null;
-  
   // Bad: Uniquely referenced, aggregated, NON-containable object
   @Unique
-  @Aggregate
   private NonContainableClass f6 = null;
   
   // Bad: Uniquely referenced, aggregated, NON-containable object
-  @Unique
-  @AggregateInRegion("Instance")
+  @UniqueInRegion("Instance")
   private NonContainableClass f7 = null;
   
   // Bad: Just Unique
@@ -45,7 +36,6 @@ public class TestNoVerify {
   
   // Bad: Array is not containable
   @Unique
-  @Aggregate
   private int[] f9 = { 0, 1, 2 };
   
   

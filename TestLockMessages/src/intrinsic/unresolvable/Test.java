@@ -1,6 +1,5 @@
 package intrinsic.unresolvable;
 
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
@@ -12,7 +11,6 @@ public class Test {
   private int f;
 
   @Unique
-  @Aggregate
   private final D d = new D();
 
 

@@ -1,13 +1,12 @@
 package ttt;
 
-import com.surelogic.Aggregate;
 import com.surelogic.Borrowed;
 import com.surelogic.RegionEffects;
 import com.surelogic.RegionLock;
 import com.surelogic.RegionLocks;
 import com.surelogic.Region;
 import com.surelogic.Regions;
-import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 
 @RegionLocks({
   @RegionLock("L1 is l1 protects R1"),
@@ -23,8 +22,7 @@ public class Test {
   public final Object l1 = new Object();
   public final Object l2 = new Object();
 
-  @Unique
-  @Aggregate("Instance into S2, f1 into R1, f2 into R2")
+  @UniqueInRegion("Instance into S2, f1 into R1, f2 into R2")
   private final Inner f = new Inner();
   
   @Borrowed("this")
