@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.sea.*;
  * 
  * @author Edwin
  */
-public abstract class AbstractScanTreeView<T extends IDropInfo> extends AbstractScanStructuredView<T> {
+public abstract class AbstractScanTreeView<T> extends AbstractScanStructuredView<T> {
 	final IJSureTreeContentProvider f_content;
 	
 	protected AbstractScanTreeView(int style, Class<T> c, IJSureTreeContentProvider content) {

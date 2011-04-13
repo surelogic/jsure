@@ -19,7 +19,7 @@ import edu.cmu.cs.fluid.sea.IDropInfo;
  * 
  * @author Edwin
  */
-public abstract class AbstractScanStructuredView<T extends IDropInfo> extends AbstractJSureScanView {
+public abstract class AbstractScanStructuredView<T> extends AbstractJSureScanView {
 	private final int f_extraStyle;
 	private StructuredViewer f_viewer;
 	final Class<T> clazz;
@@ -75,7 +75,10 @@ public abstract class AbstractScanStructuredView<T extends IDropInfo> extends Ab
 	protected final void handleDoubleClick(final IStructuredSelection selection) {
 		final T d = (T) selection.getFirstElement();
 		if (d != null) {
-			highlightLineInJavaEditor(d.getSrcRef());
+		    if (d instanceof IDropInfo) {
+		        IDropInfo di = (IDropInfo) d;		    
+		        highlightLineInJavaEditor(di.getSrcRef());
+		    }
 			handleDoubleClick(d);
 		}
 	}

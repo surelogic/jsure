@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.sea.*;
  * 
  * @author Edwin
  */
-public abstract class AbstractScanTableView<T extends IDropInfo> extends AbstractScanStructuredView<T> {
+public abstract class AbstractScanTableView<T> extends AbstractScanStructuredView<T> {
 	final IResultsTableContentProvider f_content;
 	
 	protected AbstractScanTableView(int style, Class<T> c, IResultsTableContentProvider content) {
