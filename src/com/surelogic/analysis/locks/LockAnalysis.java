@@ -299,6 +299,9 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     private final Set<IRNode> varDecls = new HashSet<IRNode>();
     private final PromiseDrop<? extends IAASTRootNode> threadSafeDrop;
     private final Set<RegionLockRecord> lockDeclarations;
+    private boolean hasFields = false;
+    
+    
     
     public ThreadSafeVisitor(
         final IRNode classDecl, final PromiseDrop<? extends IAASTRootNode> tsDrop) {
@@ -336,8 +339,23 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     
     
     @Override
+    public Void visitClassBody(final IRNode classBody) {
+      super.visitClassBody(classBody);
+      // We only visit annotated classes
+      if (!hasFields) {
+        createResult(classBody, true, Messages.TRIVIALLY_THREADSAFE);
+      }
+      return null;
+    }
+    
+    
+    
+    @Override
     protected void handleFieldInitialization(
         final IRNode varDecl, final boolean isStatic) {
+      // we have a field
+      hasFields = true;
+      
       /*
        * Field needs to be:
        * (1) Volatile and thread safe
