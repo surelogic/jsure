@@ -1,4 +1,4 @@
-package AssumeFieldIsFinal;
+package vouchFinal;
 
 import com.surelogic.PolicyLock;
 import com.surelogic.Vouch;

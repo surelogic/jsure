@@ -1,4 +1,4 @@
-package AssumeFieldIsFinal;
+package vouchFinal;
 
 import com.surelogic.InRegion;
 import com.surelogic.Region;
