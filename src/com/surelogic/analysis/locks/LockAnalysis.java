@@ -106,7 +106,8 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     final ThreadSafePromiseDrop threadSafeDrop =
       LockRules.getThreadSafeImplementation(typeDecl);
     // If null, assume it's not meant to be thread safe
-    if (threadSafeDrop != null) {
+    // Also check for verify=false
+    if (threadSafeDrop != null && threadSafeDrop.verify()) {
       new ThreadSafeVisitor(typeDecl, threadSafeDrop).doAccept(classBody);
     }
     
@@ -360,97 +361,105 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       if (varDecls.add(varDecl)) {
         final String id = VariableDeclarator.getId(varDecl);
         
-        /* First check if the field is volatile, final, or lock-protected */
-        final boolean isFinal = TypeUtil.isFinal(varDecl);
-        final boolean isVolatile = TypeUtil.isVolatile(varDecl);
-        final RegionLockRecord fieldLock = getLockForRegion(RegionModel.getInstance(varDecl));
-        
-        if (isFinal || isVolatile || fieldLock != null) {
-          /* Now check if the referenced object is thread safe */
-          final IJavaType type = getBinder().getJavaType(varDecl);
-          final IRNode typeDecl;
-          final boolean isPrimitive = type instanceof IJavaPrimitiveType;
-          final ThreadSafePromiseDrop declTSDrop;
-          final ContainablePromiseDrop declContainableDrop;
-          if (type instanceof IJavaDeclaredType) {
-            typeDecl = ((IJavaDeclaredType) type).getDeclaration();
-            // Null if no @ThreadSafe ==> not thread safe
-            declTSDrop = LockRules.getThreadSafeType(typeDecl);
-            // Null if no @Containable ==> Default annotation of not containable
-            declContainableDrop = LockRules.getContainableType(typeDecl);
-          } else {
-            typeDecl = null;
-            declTSDrop = null;
-            declContainableDrop = null;
-          }
+        // Check for vouch
+        final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
+        if (vouchDrop != null && vouchDrop.isThreadSafe()) {
+          final ResultDropBuilder result =
+            createResult(varDecl, true, Messages.VOUCHED_THREADSAFE, id);
+          result.addTrustedPromise(vouchDrop);
+        } else {
+          /* First check if the field is volatile, final, or lock-protected */
+          final boolean isFinal = TypeUtil.isFinal(varDecl);
+          final boolean isVolatile = TypeUtil.isVolatile(varDecl);
+          final RegionLockRecord fieldLock = getLockForRegion(RegionModel.getInstance(varDecl));
           
-          /* @ThreadSafe takes priority over @Containable: If the type is
-           * threadsafe don't check the aggregation status
-           */
-          final PromiseDrop<? extends IAASTRootNode> uDrop;
-          final Map<IRegion, IRegion> aggMap;
-          boolean isContained = false;
-          if (declTSDrop == null && declContainableDrop != null) {
-            uDrop = UniquenessUtils.getFieldUnique(varDecl);
-            if (uDrop != null) {
-              aggMap = UniquenessUtils.constructRegionMapping(varDecl);
-              isContained = true;
-              for (final IRegion destRegion : aggMap.values()) {
-                isContained &= (getLockForRegion(destRegion) != null);
-              }
+          if (isFinal || isVolatile || fieldLock != null) {
+            /* Now check if the referenced object is thread safe */
+            final IJavaType type = getBinder().getJavaType(varDecl);
+            final IRNode typeDecl;
+            final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+            final ThreadSafePromiseDrop declTSDrop;
+            final ContainablePromiseDrop declContainableDrop;
+            if (type instanceof IJavaDeclaredType) {
+              typeDecl = ((IJavaDeclaredType) type).getDeclaration();
+              // Null if no @ThreadSafe ==> not thread safe
+              declTSDrop = LockRules.getThreadSafeType(typeDecl);
+              // Null if no @Containable ==> Default annotation of not containable
+              declContainableDrop = LockRules.getContainableType(typeDecl);
             } else {
-              aggMap = null;
-            }
-          } else {
-            uDrop = null;
-            aggMap = null;
-            // no @Containable annotation --> Default "annotation" of not containable
-            isContained = false;
-          }
-          
-          if (isPrimitive || declTSDrop != null || isContained) {
-            final ResultDropBuilder result;
-            if (isFinal) {
-              result = createResult(varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
-            } else if(isVolatile) {
-              result = createResult(varDecl, true, Messages.VOLATILE_AND_THREADSAFE, id);
-            } else { // lock protected 
-              result = createResult(varDecl, true, Messages.PROTECTED_AND_THREADSAFE, id, fieldLock.name);
-              result.addTrustedPromise(fieldLock.lockDecl);
+              typeDecl = null;
+              declTSDrop = null;
+              declContainableDrop = null;
             }
             
-            if (isPrimitive) {
-              result.addSupportingInformation(varDecl, Messages.PRIMITIVE_TYPE);
-            } else if (declTSDrop != null) {
-              result.addTrustedPromise(declTSDrop);
-            } else { // contained
-              result.addTrustedPromise(declContainableDrop);
-              result.addTrustedPromise(uDrop);
-              for (final IRegion destRegion : aggMap.values()) {
-                result.addTrustedPromise(getLockForRegion(destRegion).lockDecl);
+            /* @ThreadSafe takes priority over @Containable: If the type is
+             * threadsafe don't check the aggregation status
+             */
+            final PromiseDrop<? extends IAASTRootNode> uDrop;
+            final Map<IRegion, IRegion> aggMap;
+            boolean isContained = false;
+            if (declTSDrop == null && declContainableDrop != null) {
+              uDrop = UniquenessUtils.getFieldUnique(varDecl);
+              if (uDrop != null) {
+                aggMap = UniquenessUtils.constructRegionMapping(varDecl);
+                isContained = true;
+                for (final IRegion destRegion : aggMap.values()) {
+                  isContained &= (getLockForRegion(destRegion) != null);
+                }
+              } else {
+                aggMap = null;
+              }
+            } else {
+              uDrop = null;
+              aggMap = null;
+              // no @Containable annotation --> Default "annotation" of not containable
+              isContained = false;
+            }
+            
+            if (isPrimitive || declTSDrop != null || isContained) {
+              final ResultDropBuilder result;
+              if (isFinal) {
+                result = createResult(varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
+              } else if(isVolatile) {
+                result = createResult(varDecl, true, Messages.VOLATILE_AND_THREADSAFE, id);
+              } else { // lock protected 
+                result = createResult(varDecl, true, Messages.PROTECTED_AND_THREADSAFE, id, fieldLock.name);
+                result.addTrustedPromise(fieldLock.lockDecl);
+              }
+              
+              if (isPrimitive) {
+                result.addSupportingInformation(varDecl, Messages.PRIMITIVE_TYPE);
+              } else if (declTSDrop != null) {
+                result.addTrustedPromise(declTSDrop);
+              } else { // contained
+                result.addTrustedPromise(declContainableDrop);
+                result.addTrustedPromise(uDrop);
+                for (final IRegion destRegion : aggMap.values()) {
+                  result.addTrustedPromise(getLockForRegion(destRegion).lockDecl);
+                }
+              }
+            } else {
+              final ResultDropBuilder result = 
+                createResult(varDecl, false, Messages.UNSAFE_REFERENCE, id);
+              // type could be a non-declared, non-primitive type, that is, an array
+              if (typeDecl != null) {
+                if (declTSDrop == null) {
+                  result.addProposal(new ProposedPromiseBuilder(
+                      "ThreadSafe", null, typeDecl, varDecl));
+                }
+                if (declContainableDrop == null) {
+                  result.addProposal(new ProposedPromiseBuilder(
+                      "Containable", null, typeDecl, varDecl));
+                }
+              }
+              if (uDrop == null) {
+                result.addProposal(new ProposedPromiseBuilder(
+                    "Unique", null, varDecl, varDecl));
               }
             }
           } else {
-            final ResultDropBuilder result = 
-              createResult(varDecl, false, Messages.UNSAFE_REFERENCE, id);
-            // type could be a non-declared, non-primitive type, that is, an array
-            if (typeDecl != null) {
-              if (declTSDrop == null) {
-                result.addProposal(new ProposedPromiseBuilder(
-                    "ThreadSafe", null, typeDecl, varDecl));
-              }
-              if (declContainableDrop == null) {
-                result.addProposal(new ProposedPromiseBuilder(
-                    "Containable", null, typeDecl, varDecl));
-              }
-            }
-            if (uDrop == null) {
-              result.addProposal(new ProposedPromiseBuilder(
-                  "Unique", null, varDecl, varDecl));
-            }
+            createResult(varDecl, false, Messages.UNSAFE_FIELD, id);
           }
-        } else {
-          createResult(varDecl, false, Messages.UNSAFE_FIELD, id);
         }
       }
     }
