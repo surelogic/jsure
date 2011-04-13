@@ -20,9 +20,9 @@ import edu.cmu.cs.fluid.sea.IDropInfo;
 //import edu.cmu.cs.fluid.sea.drops.*;
 
 
-public class SnapshotDiffView extends AbstractScanTreeView<IDropInfo> {
+public class SnapshotDiffView extends AbstractScanTreeView<Object> {
 	public SnapshotDiffView() {
-		super(SWT.NONE, IDropInfo.class, new SnapshotDiffContentProvider());
+		super(SWT.NONE, Object.class, new SnapshotDiffContentProvider());
 	}
 	
 	@Override
@@ -49,6 +49,15 @@ public class SnapshotDiffView extends AbstractScanTreeView<IDropInfo> {
 		
 	}
 
+	@Override
+	protected void handleDoubleClick(Object d) {
+	    if (d instanceof Entity) {
+	        Entity e = (Entity) d;
+	        ISrcRef r = makeSrcRef(e);
+	        highlightLineInJavaEditor(r);
+	    }
+	}
+	
 	private ISrcRef makeSrcRef(final Entity e) {
 		for(Map.Entry<String,String> me : e.getAttributes().entrySet()) {
 			System.out.println(me.getKey()+" = "+me.getValue());
