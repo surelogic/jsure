@@ -4,5 +4,5 @@ import com.surelogic.ThreadSafe;
 
 @ThreadSafe
 public class Safe {
-  // empty
+	// Trivially safe: no state
 }
