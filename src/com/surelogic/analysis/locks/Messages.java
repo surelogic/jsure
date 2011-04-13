@@ -141,7 +141,7 @@ public final class Messages extends AbstractMessages {
   public static final int IMMUTABLE_FINAL_NOT_IMMUTABLE = 483;
   public static final int IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE = 484;
   public static final int IMMUTABLE_VOUCHED = 485;
-    
+  public static final int TRIVIALLY_IMMUTABLE = 486;
   
  
   private static final Map<Integer,String> code2name = new HashMap<Integer,String>();

@@ -614,6 +614,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
   private final class ImmutableVisitor extends JavaSemanticsVisitor {
     private final Set<IRNode> varDecls = new HashSet<IRNode>();
     private final PromiseDrop<? extends IAASTRootNode> immutableDrop;
+    private boolean hasFields = false;
     
     
     
@@ -637,11 +638,25 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       return result;
     }
 
+    
+    
+    @Override
+    public Void visitClassBody(final IRNode classBody) {
+      super.visitClassBody(classBody);
+      // We are only called on classes annotated with @Immutable
+      if (!hasFields) {
+        createResult(classBody, true, Messages.TRIVIALLY_IMMUTABLE);
+      }
+      return null;
+    }
 
     
     @Override
     protected void handleFieldInitialization(
         final IRNode varDecl, final boolean isStatic) {
+      // We have a field
+      hasFields = true;
+      
       /* Make sure we only visit each variable declaration once.  This is a 
        * stupid way of doing this, but it's good enough for now.  SHould make 
        * a new visitor type probably.
@@ -676,7 +691,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               result = createResult(varDecl, true, Messages.IMMUTABLE_FINAL_PRIMITIVE, id);
             } else {
               result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL, id);
-              proposeVouch = true;
+              // Cannot use vouch on primitive types
             }
           } else {
             // REFERENCE-TYPED
