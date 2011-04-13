@@ -13,10 +13,10 @@ import com.surelogic.UniqueInRegion;
 		@Region("public NotProtected")
 })
 @RegionLock("L is this protects LockProtected")
-@ThreadSafe
-public class Test {
+@ThreadSafe(verify=false)
+public class TestNoVerify {
 	@Unique("return")
-	public Test() {
+	public TestNoVerify() {
 		super();
 	}
 	
@@ -44,7 +44,7 @@ public class Test {
   /* BAD: final field; unsafe type */
   protected final NotSafe final5 = new NotSafe();
   
-  /* BAD: final field; containable, but not aggregated into a locked region */
+  /* BAD: final field; containable, but not aggregated into lock protected region */
   @Unique
   protected final ContainableType final6 = new ContainableType();
   
