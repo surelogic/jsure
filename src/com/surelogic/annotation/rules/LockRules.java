@@ -870,31 +870,56 @@ public class LockRules extends AnnotationRules {
   
   private static VouchFieldIsPromiseDrop scrubVouchFieldIs(
       final IAnnotationScrubberContext context, final VouchFieldIsNode a) {
-    if (a.getKind() == FieldKind.Final) {
+    final IRNode promisedFor = a.getPromisedFor();
+    final IJavaType javaType = context.getBinder().getJavaType(promisedFor);
+    switch (a.getKind()) {
+    case Final:
       // Final: Must make sure the field is not actually declared final
       // Cannot use TypeUtils.isFinal() because that checks for @Vouch
-      final IRNode promisedFor = a.getPromisedFor();
       boolean isAlreadyFinal = false;
-      final Operator op = JJNode.tree.getOperator(promisedFor);
-      if (VariableDeclarator.prototype.includes(op)) {
-        if (TypeUtil.isInterface(VisitUtil.getEnclosingType(promisedFor))) {
-          isAlreadyFinal = true; // declared in an interface
-        } else if (JavaNode.getModifier(JJNode.tree.getParent(
-            JJNode.tree.getParent(promisedFor)), JavaNode.FINAL)) {
-          isAlreadyFinal = true; // declared final
-        }
+      if (TypeUtil.isInterface(VisitUtil.getEnclosingType(promisedFor))) {
+        isAlreadyFinal = true; // declared in an interface
+      } else {
+        isAlreadyFinal = JavaNode.getModifier(JJNode.tree.getParent(
+            JJNode.tree.getParent(promisedFor)), JavaNode.FINAL);
       }
-      
       if (isAlreadyFinal) {
         context.reportError("Field is already declared to be final; no need to vouch it", a);
         return null;
-      } else {
-        return new VouchFieldIsPromiseDrop(a);
-      }      
-    } else {
-      // ThreadSafe, Containable, or Immutable.  Nothing to check for (yet?)
-      return new VouchFieldIsPromiseDrop(a);
+      }
+      break;
+    case ThreadSafe:
+      if (javaType instanceof IJavaPrimitiveType) {
+        context.reportError(a, "Cannot be used on primitively typed field");
+        return null;
+      } else if ((javaType instanceof IJavaSourceRefType) && 
+          (getNotThreadSafe(((IJavaSourceRefType) javaType).getDeclaration()) != null)) {
+        context.reportError(a, "Cannot be used when the type of field is explicitly @NotThreadSafe");
+        return null;
+      }
+      break;
+    case Containable:
+      if (javaType instanceof IJavaPrimitiveType) {
+        context.reportError(a, "Cannot be used on a field with primitive type");
+        return null;
+      } else if ((javaType instanceof IJavaSourceRefType) && 
+          (getNotContainable(((IJavaSourceRefType) javaType).getDeclaration()) != null)) {
+        context.reportError(a, "Cannot be used when the type of field is explicitly @NotContainable");
+        return null;
+      }
+      break;
+    case Immutable:
+      if (javaType instanceof IJavaPrimitiveType) {
+        context.reportError(a, "Cannot be used on a field with primitive type");
+        return null;
+      } else if ((javaType instanceof IJavaSourceRefType) && 
+          (getMutable(((IJavaSourceRefType) javaType).getDeclaration()) != null)) {
+        context.reportError(a, "Cannot be used when the type of field is explicitly @Mutable");
+        return null;
+      }
+      break;
     }
+    return new VouchFieldIsPromiseDrop(a);
   }
   
   /**
@@ -1976,7 +2001,8 @@ public class LockRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber<VouchFieldIsNode> makeScrubber() {
 			return new AbstractAASTScrubber<VouchFieldIsNode, VouchFieldIsPromiseDrop>(
-			    this, ScrubberType.UNORDERED) {
+			    this, ScrubberType.UNORDERED, NOT_THREAD_SAFE, NOT_CONTAINABLE, 
+			    MUTABLE) {
 				@Override
 				protected PromiseDrop<VouchFieldIsNode> makePromiseDrop(VouchFieldIsNode a) {
 					return storeDropIfNotNull(a, scrubVouchFieldIs(getContext(), a));
