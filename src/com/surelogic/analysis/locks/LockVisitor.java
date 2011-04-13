@@ -1221,9 +1221,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								DebugUnparser.toString(fieldRef));
 						// Propose the unique annotation
 						final IRNode fieldDecl = binder.getBinding(objExpr);
-						info.addProposal(new ProposedPromiseBuilder("Unique",
-								null, fieldDecl, fieldRef));
-
 						final IJavaType rcvrType = binder.getJavaType(FieldRef
 								.getObject(objExpr));
 						if (rcvrType instanceof IJavaDeclaredType) {
@@ -1239,11 +1236,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
                     // Propose the aggregate annotation
                     final String simpleRegionName = ((RegionLockRecord) lockRecord).region.simpleName;
                     if ("Instance".equals(simpleRegionName)) {
-                      info.addProposal(new ProposedPromiseBuilder("Aggregate",
+                      info.addProposal(new ProposedPromiseBuilder("Unique",
                           null, fieldDecl, fieldRef));
                     } else {
                       info.addProposal(new ProposedPromiseBuilder(
-                          "AggregateInRegion", simpleRegionName, fieldDecl,
+                          "UniqueInRegion", simpleRegionName, fieldDecl,
                           fieldRef));
                     }
 									}
@@ -1271,19 +1268,15 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 						/*
 						 * Propose that the field be @Unique and aggregated.
-						 * Right now these annotations are independent, but in
-						 * the future they should be linked by an AND.
 						 */
 						final IRNode fieldDecl = binder.getBinding(objExpr);
-						info.addProposal(new ProposedPromiseBuilder("Unique", null,
-								fieldDecl, fieldRef));
 						final String simpleRegionName = innerLock.region.simpleName;
             if ("Instance".equals(simpleRegionName)) {
-              info.addProposal(new ProposedPromiseBuilder("Aggregate",
+              info.addProposal(new ProposedPromiseBuilder("Unique",
                   null, fieldDecl, fieldRef));
             } else {
               info.addProposal(new ProposedPromiseBuilder(
-                  "AggregateInRegion", simpleRegionName, fieldDecl,
+                  "UniqueInRegion", simpleRegionName, fieldDecl,
                   fieldRef));
             }
 					}
