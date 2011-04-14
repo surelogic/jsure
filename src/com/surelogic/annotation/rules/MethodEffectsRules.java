@@ -1,5 +1,6 @@
 package com.surelogic.annotation.rules;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.effects.Effect;
+import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
@@ -26,6 +28,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -114,12 +117,36 @@ public class MethodEffectsRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber<RegionEffectsNode> makeScrubber() {
 			return new AbstractAASTScrubber<RegionEffectsNode, RegionEffectsPromiseDrop>(this,
-					ScrubberType.BY_HIERARCHY, RegionRules.REGIONS_DONE) {
+					ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, RegionRules.REGIONS_DONE) {
 				@Override
 				protected RegionEffectsPromiseDrop makePromiseDrop(
 						RegionEffectsNode a) {
 					return storeDropIfNotNull(a, scrubRegionEffects(getContext(), a));
 				}
+				
+        @Override
+        protected boolean processUnannotatedMethodRelatedDecl(final IRNode decl) {
+          return true;
+          
+          // XXX: Unannotated method is writes("All")
+          
+          // from Starts("Nothing')
+//          /* If any of the immediate ancestors are annotated, then we have 
+//           * an error. 
+//           */
+//          boolean good = true;
+//          for (final IBinding pBinding : getContext().getBinder().findOverriddenParentMethods(decl)) {
+//            final IRNode parent = pBinding.getNode();
+//            if (startsNothing(parent)) {
+//              // Ancestor is annotated
+//              good = false;
+//              getContext().reportError(decl,
+//                  "Method must be annotated @Starts(\"nothing\") because it overrides @Starts(\"nothing\") {0}",
+//                  JavaNames.genQualifiedMethodConstructorName(parent));
+//            }
+//          }
+//          return good;
+        }				
 			};
 		}
 	}
@@ -308,9 +335,15 @@ public class MethodEffectsRules extends AnnotationRules {
 //		 * being overridden.
 //		 */
 //		if (allGood) {
+//		  final Effects fx = new Effects(scrubberContext.getBinder());
 //		  // Convert the declared effects to set of Effect objects
 //		  final Set<Effect> currentEffects = new HashSet<Effect>();
-//		  Effects.getEffectsFromSpecificationNode(promisedFor, readsAndWrites, currentEffects, null);
+//		  Effects.getEffectsFromSpecificationNode(
+//		      promisedFor, readsAndWrites, currentEffects, null);
+//		  
+//		  /* PROBLEM: Need to normalize the actual and formal parameters so
+//		   * that they can be compared.
+//		   */
 //		  
 //		  System.out.println("Checking consistency of " + JavaNames.genQualifiedMethodConstructorName(promisedFor));
 //		  System.out.println("Has effects " + Effects.unparseForPromise(currentEffects));
@@ -319,7 +352,7 @@ public class MethodEffectsRules extends AnnotationRules {
 //		  for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
 //		    final IRNode overriddenMethod = context.getNode();
 //		    // Get original effects, compensating for nonexistent
-//		    final Set<Effect> originalEffects = Effects.getMethodEffects(overriddenMethod, null);
+//		    final Set<Effect> originalEffects = fx.getMethodEffects(overriddenMethod, promisedFor);
 //	      System.out.println("  Checking against " + JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
 //	      System.out.println("  with effects " + Effects.unparseForPromise(originalEffects));
 //		    if (!effectDeclarationIsConsistent(node, scrubberContext, overriddenMethod, originalEffects, currentEffects)) {
@@ -340,33 +373,32 @@ public class MethodEffectsRules extends AnnotationRules {
 	
 	
 	
-	@SuppressWarnings("unused")
-  private static boolean effectDeclarationIsConsistent(
-	    final RegionEffectsNode node,
-	    final IAnnotationScrubberContext scrubberContext,
-	    final IRNode originalMethod,
-	    final Set<Effect> originalFX, final Set<Effect> currentFX) {
-	  /* Check that each effect in current is equal to or more specific than
-	   * an effect in original.
-	   */
-	  boolean allChecked = true;
-	  final IBinder binder = scrubberContext.getBinder();
-	  for (final Effect current : currentFX) {
-	    boolean isChecked = false;
-	    for (final Effect original : originalFX) {
-	      if (current.isCheckedBy(binder, original)) {
-	        isChecked = true;
-	        break;
-	      }
-	    }
-	    if (!isChecked) {
-  	    scrubberContext.reportError(node, "Declared effect {0} is not accounted for by the declared effects of {1}",
-  	        current.toString(), JavaNames.genQualifiedMethodConstructorName(originalMethod));
-	    }
-	    allChecked &= isChecked;
-	  }
-	  return allChecked;
-	}
+//  private static boolean effectDeclarationIsConsistent(
+//	    final RegionEffectsNode node,
+//	    final IAnnotationScrubberContext scrubberContext,
+//	    final IRNode originalMethod,
+//	    final Set<Effect> originalFX, final Set<Effect> currentFX) {
+//	  /* Check that each effect in current is equal to or more specific than
+//	   * an effect in original.
+//	   */
+//	  boolean allChecked = true;
+//	  final IBinder binder = scrubberContext.getBinder();
+//	  for (final Effect current : currentFX) {
+//	    boolean isChecked = false;
+//	    for (final Effect original : originalFX) {
+//	      if (current.isCheckedBy(binder, original)) {
+//	        isChecked = true;
+//	        break;
+//	      }
+//	    }
+//	    if (!isChecked) {
+//  	    scrubberContext.reportError(node, "Declared effect {0} is not accounted for by the declared effects of {1}",
+//  	        current.toString(), JavaNames.genQualifiedMethodConstructorName(originalMethod));
+//	    }
+//	    allChecked &= isChecked;
+//	  }
+//	  return allChecked;
+//	}
 	
 	
 	

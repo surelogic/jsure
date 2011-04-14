@@ -20,6 +20,7 @@ import com.surelogic.promise.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -302,12 +303,37 @@ public class LockRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber<ReturnsLockNode> makeScrubber() {
 			return new AbstractAASTScrubber<ReturnsLockNode, ReturnsLockPromiseDrop>(this,
-					ScrubberType.UNORDERED, LOCK, POLICY_LOCK) {
+					ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, LOCK, POLICY_LOCK) {
 				@Override
         protected PromiseDrop<ReturnsLockNode> makePromiseDrop(
 						ReturnsLockNode a) {
 					return storeDropIfNotNull(a, scrubReturnsLock(getContext(), a));
 				}
+        
+        @Override
+        protected boolean processUnannotatedMethodRelatedDecl(
+            final IRNode returnDecl) {
+          /* If any of the immediate ancestors are annotated, then we have 
+           * an error because unannotated is the same as saying we don't return
+           * any particular lock.  Violate covariance.
+           */
+          boolean good = true;
+          final IRNode mdecl = JavaPromise.getPromisedFor(returnDecl);
+          for (final IBinding pBinding : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+            final IRNode parent = pBinding.getNode();
+            final IRNode parentReturn = JavaPromise.getReturnNode(parent);
+            final ReturnsLockPromiseDrop superDrop = getReturnsLock(parentReturn);
+            if (superDrop != null) {
+              // Ancestor is annotated
+              final String id = superDrop.getAST().getLock().getId();
+              good = false;
+              getContext().reportError(mdecl,
+                  "Method must be annotated @ReturnsLock(\"{0}\") because it overrides @ReturnsLock(\"{0}\") {1}",
+                  id, JavaNames.genQualifiedMethodConstructorName(parent));
+            }
+          }
+          return good;
+        }
 			};
 		}
 
@@ -320,28 +346,52 @@ public class LockRules extends AnnotationRules {
 	 */
 	private static ReturnsLockPromiseDrop scrubReturnsLock(
 			IAnnotationScrubberContext context, ReturnsLockNode node) {
-
-		ReturnsLockPromiseDrop returnDrop = null;
-
 		final IRNode returnNode = node.getPromisedFor();
-		if (returnNode != null) {
-		  // Get the method that the returnNode is associated with
-		  final IRNode annotatedMethod = JavaPromise.getParentOrPromisedFor(returnNode);
-      final LockNameNode lockName = node.getLock();
-			if (lockName != null) {
-				/*
-				 * >> LocksOK << --- Lock name is bindable
-				 */
-				// Check if the lock name is good; if not we cannot continue
-				final LockModel lockDecl = isLockNameOkay(JavaNode.getModifier(
-				    annotatedMethod, JavaNode.STATIC), lockName, context);
-				if (lockDecl != null) {
-					returnDrop = new ReturnsLockPromiseDrop(node);
-					lockDecl.addDependent(returnDrop);
-				}
-			}
+    final IRNode annotatedMethod = JavaPromise.getPromisedFor(returnNode);
+    final LockNameNode lockName = node.getLock();
+
+    boolean okay = false;
+		LockModel lockDecl = null; 
+		if (lockName != null) {
+			/*
+			 * >> LocksOK << --- Lock name is bindable
+			 */
+			// Check if the lock name is good; if not we cannot continue
+			lockDecl = isLockNameOkay(JavaNode.getModifier(
+			    annotatedMethod, JavaNode.STATIC), lockName, context);
+			okay = (lockDecl != null);
 		}
-		return returnDrop;
+		
+		/* Check consistency with ancestors */
+		if (okay) {
+      for (final IBinding pBinding : context.getBinder().findOverriddenParentMethods(annotatedMethod)) {
+        final IRNode parent = pBinding.getNode();
+        final IRNode parentReturn = JavaPromise.getReturnNode(parent);
+        final ReturnsLockPromiseDrop superDrop = getReturnsLock(parentReturn);
+        /* Okay is the ancestor is not annotated, becuase that means it has
+         * no declared behavior.  Covariance allows us to add a new restriction.
+         */
+        if (superDrop != null) {
+          // Ancestor is annotated: must match
+          final LockNameNode superLock = superDrop.getAST().getLock();
+          if (superLock.resolveBinding().getModel() != lockDecl) {
+            final String id = superLock.getId();
+            okay = false;
+            context.reportError(annotatedMethod,
+              "Method must be annotated @ReturnsLock(\"{0}\") because it overrides @ReturnsLock(\"{0}\") {1}",
+              id, JavaNames.genQualifiedMethodConstructorName(parent));
+          }
+        }
+      }
+		}
+		
+    if (okay) {
+      final ReturnsLockPromiseDrop returnDrop = new ReturnsLockPromiseDrop(node);
+      lockDecl.addDependent(returnDrop);
+      return returnDrop;
+    } else {
+      return null;
+    }
 	}
 
 	public static class ProhibitsLock_ParseRule
@@ -1130,6 +1180,9 @@ public class LockRules extends AnnotationRules {
 			if (MethodDeclaration.prototype.includes(tree.getOperator(member))) {
 				final IRNode returnNode = JavaPromise.getReturnNodeOrNull(member);
 				if (returnNode != null) {
+				  /* No returns lock means it is not committed to returning any 
+				   * particular value.
+				   */
 					final ReturnsLockPromiseDrop returnedLock = getReturnsLock(returnNode);
 					if (returnedLock != null) {
 						final LockModel returnedLockModel = isLockNameOkay(
