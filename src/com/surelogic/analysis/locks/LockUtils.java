@@ -865,6 +865,7 @@ public final class LockUtils {
       return locks;
     }
     final RequiresLockPromiseDrop reqLockD = LockRules.getRequiresLock(mdecl);
+    /* No RequiresLock means no lock precondition. */
     if (reqLockD == null) {
       return locks;
     }
@@ -1438,6 +1439,7 @@ public final class LockUtils {
       final HeldLockFactory heldLockFactory, final IRNode rcvr,
       final Set<HeldLock> preconditions) {
     final RequiresLockPromiseDrop drop = LockRules.getRequiresLock(methodDecl);
+    /* No RequiresLock means no lock precondition. */
     if (drop != null) {
       for(final LockSpecificationNode requiredLock : drop.getAST().getLockList()) {
         final LockModel lm = requiredLock.resolveBinding().getModel();

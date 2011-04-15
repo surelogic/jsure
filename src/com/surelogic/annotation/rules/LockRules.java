@@ -29,6 +29,7 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.Iteratable;
 
 public class LockRules extends AnnotationRules {
   public static final String LOCK = "RegionLock";
@@ -368,19 +369,38 @@ public class LockRules extends AnnotationRules {
         final IRNode parent = pBinding.getNode();
         final IRNode parentReturn = JavaPromise.getReturnNode(parent);
         final ReturnsLockPromiseDrop superDrop = getReturnsLock(parentReturn);
-        /* Okay is the ancestor is not annotated, becuase that means it has
+        /* Okay is the ancestor is not annotated, because that means it has
          * no declared behavior.  Covariance allows us to add a new restriction.
          */
         if (superDrop != null) {
           // Ancestor is annotated: must match
+          
+          // Should have the same number of arguments
+          final Iteratable<IRNode> p1 = Parameters.getFormalIterator(MethodDeclaration.getParams(annotatedMethod));
+          final Iteratable<IRNode> p2 = Parameters.getFormalIterator(MethodDeclaration.getParams(parent));
+          int count = 0;
+          final Map<IRNode, Integer> positionMap = new HashMap<IRNode, Integer>();
+          for (final IRNode arg1 : p1) {
+            positionMap.put(arg1, count);
+            positionMap.put(p2.next(), count);
+            count += 1;
+          }
+          
           final LockNameNode superLock = superDrop.getAST().getLock();
-          if (superLock.resolveBinding().getModel() != lockDecl) {
-            final String id = superLock.getId();
+          if (!lockName.namesSameLockAs(superLock, positionMap)) {
             okay = false;
             context.reportError(annotatedMethod,
-              "Method must be annotated @ReturnsLock(\"{0}\") because it overrides @ReturnsLock(\"{0}\") {1}",
-              id, JavaNames.genQualifiedMethodConstructorName(parent));
+                "Method does not return same lock as its super: {0}",
+                JavaNames.genQualifiedMethodConstructorName(parent));
           }
+          
+//          if (superLock.resolveBinding().getModel() != lockDecl) {
+//            final String id = superLock.getId();
+//            okay = false;
+//            context.reportError(annotatedMethod,
+//              "Method must be annotated @ReturnsLock(\"{0}\") because it overrides @ReturnsLock(\"{0}\") {1}",
+//              id, JavaNames.genQualifiedMethodConstructorName(parent));
+//          }
         }
       }
 		}
@@ -482,14 +502,22 @@ public class LockRules extends AnnotationRules {
 		   * annotations are scrubbed.
 		   */
 			return new AbstractAASTScrubber<RequiresLockNode, RequiresLockPromiseDrop>(this,
-					ScrubberType.BY_HIERARCHY, LOCK,
+					ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, LOCK,
 					POLICY_LOCK, RETURNS_LOCK) {
 				@Override
         protected PromiseDrop<RequiresLockNode> makePromiseDrop(
 						RequiresLockNode a) {
 					return storeDropIfNotNull(a, scrubRequiresLock(getContext(), a));
-
 				}
+        
+        @Override
+        protected boolean processUnannotatedMethodRelatedDecl(
+            final IRNode methodDecl) {
+          /* Always good to be unannotated, because we are contravariant.
+           * (Problem case is adding annotations.)
+           */
+          return true;
+        }
 			};
 		}
 	}
@@ -558,11 +586,9 @@ public class LockRules extends AnnotationRules {
 					QualifiedLockNameNode qLockName = (QualifiedLockNameNode) lockName;
 					final ExpressionNode expression = qLockName.getBase();
 					lockRefsThis = (expression instanceof ThisExpressionNode);
-				}
-				else if (lockName instanceof SimpleLockNameNode) {
+				} else if (lockName instanceof SimpleLockNameNode) {
 					lockRefsThis = !lockModel.getAST().isLockStatic();
-				}
-				else {
+				} else {
 					// Shouldn't get here
 					lockRefsThis = false;
 				}
