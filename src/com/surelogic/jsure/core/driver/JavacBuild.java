@@ -64,7 +64,7 @@ public class JavacBuild {
 			}
 			JavacEclipse.initialize();
 			System.out.println("Configuring build");
-			JavacDriver.getInstance().configureBuild(buildArgs, true);
+			JavacDriver.getInstance().doExplicitBuild(buildArgs, true);
 		} catch (CoreException e) {
 			SLLogger.getLogger().log(Level.SEVERE,
 					"Failure setting up to analyze: " + selectedProjects, e);

@@ -11,6 +11,9 @@ public interface ScriptCommands {
 	
 	String GO_FIRST = "!";
 	
+	boolean USE_EXPECT = false;
+	String RUN_JSURE = "runJSure";
+	
 	String EXPECT_BUILD = "expectBuild";
 	String EXPECT_BUILD_FIRST = "!"+EXPECT_BUILD;
 	String EXPECT_ANALYSIS = Util.EXPECT_ANALYSIS;
@@ -24,8 +27,7 @@ public interface ScriptCommands {
 	String DELETE_PROJECT = "deleteProject";
 	String OPEN_PROJECT = "openProject";
 	String CLOSE_PROJECT = "closeProject";
-    String ADD_NATURE = "addNature";
-    String REMOVE_NATURE = "removeNature";
+
     String CLEANUP_DROPS = "cleanupDrops";
     String CLEANUP_DROPS_FIRST = "!cleanupDrops";
     String EXPORT_RESULTS = "exportResults";

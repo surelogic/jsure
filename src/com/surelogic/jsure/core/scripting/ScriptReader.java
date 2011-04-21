@@ -95,6 +95,13 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
         return false;
       }  
     });
+    commands.put(ScriptCommands.RUN_JSURE, new AbstractCommand() {
+        @Override
+        public boolean execute(ICommandContext context, String... contents) throws Exception {
+            build();
+            return false;
+        }        
+    });
 	commands.put(ScriptCommands.EXPECT_BUILD, new SetFileArg(ScriptCommands.EXPECT_BUILD));
 	commands.put(ScriptCommands.EXPECT_ANALYSIS, new SetFileArg(ScriptCommands.EXPECT_ANALYSIS));
   }

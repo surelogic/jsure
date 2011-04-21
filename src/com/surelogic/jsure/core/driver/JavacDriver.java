@@ -1267,6 +1267,14 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 
 	@SuppressWarnings("unchecked")
+	public void doExplicitBuild(Map args, boolean ignoreNature) {
+	    if (script != null) {
+	        printToScript(ScriptCommands.RUN_JSURE);
+	    }
+	    configureBuild(args, ignoreNature);
+	}
+	
+	@SuppressWarnings("unchecked")
 	public void configureBuild(Map args, boolean ignoreNature) {
 		final int k = getBuildKind(args);
 		configureBuild(
@@ -1355,7 +1363,7 @@ public class JavacDriver implements IResourceChangeListener {
 			AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects,
 					target, zips, useSeparateJVM);
 			CopyJob copy = new CopyJob(newProjects, target, zips, analysis);
-			if (script != null) {
+			if (ScriptCommands.USE_EXPECT && script != null) {
 				recordFilesToBuild(newProjects);
 			}
 			if (XUtil.testing) {
@@ -1705,7 +1713,7 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				*/
 			}
-			doBuild(projects, args, monitor, ignoreNature);
+			doBuild(projects, args, monitor, ignoreNature);// false);
 			return SLStatus.OK_STATUS;
 		}
 	}
