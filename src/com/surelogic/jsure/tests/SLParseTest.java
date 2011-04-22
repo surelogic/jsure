@@ -336,26 +336,6 @@ public class SLParseTest extends TestCase {
 			e.printStackTrace();
 			fail("Unexpected exception");
 		}
-		try {
-			expected = "NewRegionDeclaration\n" + "  modifiers="
-					+ (JavaNode.PUBLIC | JavaNode.STATIC) + "\n"
-					+ "  id=region1\n" + "  RegionName\n" + "    id=[]\n";
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("public static region1 extends []").region()
-					.getTree();
-			RegionDeclarationNode ldn = (RegionDeclarationNode) root
-					.finalizeAST(IAnnotationParsingContext.nullPrototype);
-			// System.out.println(expected);
-			// System.out.println(ldn.unparse(true));
-
-			assertTrue(ldn.unparse(true).equals(expected));
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		}
 	}
 
 	public void testBadRegionAAST() {
@@ -711,22 +691,6 @@ public class SLParseTest extends TestCase {
 			e.printStackTrace();
 			fail("Unexpected exception");
 		}
-		try {
-			expected = "InRegionNode\n" + "    RegionName\n" + "    id=[]\n";
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("[]").inRegion().getTree();
-			InRegionNode ldn = (InRegionNode) root
-					.finalizeAST(IAnnotationParsingContext.nullPrototype);
-			// System.out.println(expected + "<<<");
-			// System.out.println(ldn.unparse(true) + "<<<");
-			assertTrue(ldn.unparse(true).equals(expected));
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		}
 	}
 
 	public void testBadMapIntoAAST() {
@@ -888,7 +852,7 @@ public class SLParseTest extends TestCase {
 	public void testGoodAggregate() {
 		String expected;
 		try {
-			expected = "AggregateNode\n" + "    MappedRegionSpecification\n"
+			expected = "UniqueMappingNode\n" + "    MappedRegionSpecification\n"
 					+ "    RegionMapping\n" + "      RegionName\n"
 					+ "        id=region1\n" + "      RegionName\n"
 					+ "        id=SuperRegion1\n";
@@ -897,6 +861,7 @@ public class SLParseTest extends TestCase {
 					.getTree();
 			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
+			//String unparse = node.unparse();
 			assertTrue(node.unparse().equals(expected));
 		} catch (RecognitionException e) {
 			e.printStackTrace();
@@ -907,7 +872,7 @@ public class SLParseTest extends TestCase {
 		}
 
 		try {
-			expected = "AggregateNode\n" + "    MappedRegionSpecification\n"
+			expected = "UniqueMappingNode\n" + "    MappedRegionSpecification\n"
 					+ "    RegionMapping\n" + "      RegionName\n"
 					+ "        id=region1\n" + "      RegionName\n"
 					+ "        id=SuperRegion1\n" + "    RegionMapping\n"
@@ -929,7 +894,7 @@ public class SLParseTest extends TestCase {
 		}
 
 		try {
-			expected = "AggregateNode\n" + "    MappedRegionSpecification\n"
+			expected = "UniqueMappingNode\n" + "    MappedRegionSpecification\n"
 					+ "    RegionMapping\n" + "      RegionName\n"
 					+ "        id=region1\n" + "      RegionName\n"
 					+ "        id=SuperRegion1\n" + "    RegionMapping\n"
@@ -973,7 +938,7 @@ public class SLParseTest extends TestCase {
 		 */
 
 		try {
-			expected = "AggregateNode\n" + "    MappedRegionSpecification\n"
+			expected = "UniqueMappingNode\n" + "    MappedRegionSpecification\n"
 					+ "    RegionMapping\n" + "      RegionName\n"
 					+ "        id=region1\n" + "      QualifiedRegionName\n"
 					+ "        NamedType\n" + "          type=Type\n"
@@ -1016,7 +981,7 @@ public class SLParseTest extends TestCase {
 		 * e.printStackTrace(); fail("Unexpected exception"); }
 		 */
 		try {
-			expected = "AggregateNode\n" + "    MappedRegionSpecification\n"
+			expected = "UniqueMappingNode\n" + "    MappedRegionSpecification\n"
 					+ "    RegionMapping\n" + "      RegionName\n"
 					+ "        id=region1\n" + "      QualifiedRegionName\n"
 					+ "        NamedType\n" + "          type=Type.Region\n"
@@ -1032,71 +997,6 @@ public class SLParseTest extends TestCase {
 			UniqueMappingNode node = (UniqueMappingNode) root
 					.finalizeAST(IAnnotationParsingContext.nullPrototype);
 			assertTrue(node.unparse().equals(expected));
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		try {
-			expected = "AggregateNode\n" + "    MappedRegionSpecification\n"
-					+ "    RegionMapping\n" + "      RegionName\n"
-					+ "        id=[]\n" + "      RegionName\n"
-					+ "        id=SuperRegion1\n" + "    RegionMapping\n"
-					+ "      RegionName\n" + "        id=[]\n"
-					+ "      RegionName\n" + "        id=SuperRegion1\n";
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("[] into SuperRegion1, [] into SuperRegion1")
-					.uniqueInRegion().getTree();
-			UniqueMappingNode node = (UniqueMappingNode) root
-					.finalizeAST(IAnnotationParsingContext.nullPrototype);
-			// System.out.println(expected + "<<<");
-			// System.out.println(node.unparse(true) + "<<<");
-			assertTrue(node.unparse(true).equals(expected));
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		try {
-			expected = "AggregateNode\n" + "    MappedRegionSpecification\n"
-					+ "    RegionMapping\n" + "      RegionName\n"
-					+ "        id=region1\n" + "      RegionName\n"
-					+ "        id=[]\n" + "    RegionMapping\n"
-					+ "      RegionName\n" + "        id=region2\n"
-					+ "      RegionName\n" + "        id=[]\n";
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("region1 into [], region2 into []").uniqueInRegion()
-					.getTree();
-			UniqueMappingNode node = (UniqueMappingNode) root
-					.finalizeAST(IAnnotationParsingContext.nullPrototype);
-			assertTrue(node.unparse(true).equals(expected));
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		try {
-			expected = "AggregateNode\n" + "    MappedRegionSpecification\n"
-					+ "    RegionMapping\n" + "      RegionName\n"
-					+ "        id=[]\n" + "      RegionName\n"
-					+ "        id=[]\n" + "    RegionMapping\n"
-					+ "      RegionName\n" + "        id=[]\n"
-					+ "      RegionName\n" + "        id=[]\n";
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("[] into [], [] into []").uniqueInRegion().getTree();
-			UniqueMappingNode node = (UniqueMappingNode) root
-					.finalizeAST(IAnnotationParsingContext.nullPrototype);
-			assertTrue(node.unparse().equals(expected));
-
 		} catch (RecognitionException e) {
 			e.printStackTrace();
 			fail("Unexpected exception");
@@ -1531,25 +1431,7 @@ public class SLParseTest extends TestCase {
 			e.printStackTrace();
 			fail("Unexpected exception");
 		}
-		try {
-			expected = "RegionEffects\n" + "  Reads\n"
-					+ "    EffectSpecification\n" + "      isWrite=false\n"
-					+ "      QualifiedThisExpression\n" + "        NamedType\n"
-					+ "          type=Class\n" + "      RegionName\n"
-					+ "        id=[]\n";
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("reads Class.this:[]").regionEffects()
-					.getTree();
-			RegionEffectsNode node = (RegionEffectsNode) root
-					.finalizeAST(IAnnotationParsingContext.nullPrototype);
-			assertTrue(node.unparse().equals(expected));
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		}
+
 		try {
 			expected = "RegionEffects\n" + "  Reads\n"
 					+ "    EffectSpecification\n" + "      isWrite=false\n"
@@ -1677,25 +1559,7 @@ public class SLParseTest extends TestCase {
 			e.printStackTrace();
 			fail("Unexpected exception");
 		}
-		try {
-			expected = "RegionEffects\n" + "  Writes\n"
-					+ "    EffectSpecification\n" + "      isWrite=false\n"
-					+ "      QualifiedThisExpression\n" + "        NamedType\n"
-					+ "          type=Class\n" + "      RegionName\n"
-					+ "        id=[]\n";
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("writes Class.this:[]").regionEffects()
-					.getTree();
-			RegionEffectsNode node = (RegionEffectsNode) root
-					.finalizeAST(IAnnotationParsingContext.nullPrototype);
-			assertTrue(node.unparse().equals(expected));
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		}
+
 		try {
 			expected = "RegionEffects\n" + "  Writes\n"
 					+ "    EffectSpecification\n" + "      isWrite=false\n"
@@ -1734,29 +1598,7 @@ public class SLParseTest extends TestCase {
 			e.printStackTrace();
 			fail("Unexpected exception");
 		}
-		try {
-			expected = "RegionEffects\n" + "  Writes\n"
-					+ "    EffectSpecification\n" + "      isWrite=false\n"
-					+ "      QualifiedThisExpression\n" + "        NamedType\n"
-					+ "          type=Class\n" + "      RegionName\n"
-					+ "        id=[]\n" + "  Reads\n"
-					+ "    EffectSpecification\n" + "      isWrite=false\n"
-					+ "      QualifiedThisExpression\n" + "        NamedType\n"
-					+ "          type=Class\n" + "      RegionName\n"
-					+ "        id=[]\n";
-			AASTAdaptor.Node root = (AASTAdaptor.Node) SLParse.prototype
-					.initParser("writes Class.this:[]; reads Class.this:[]")
-					.regionEffects().getTree();
-			RegionEffectsNode node = (RegionEffectsNode) root
-					.finalizeAST(IAnnotationParsingContext.nullPrototype);
-			assertTrue(node.unparse().equals(expected));
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		}
+
 		try {
 			expected = "RegionEffects\n" + "  Reads\n"
 					+ "    EffectSpecification\n" + "      isWrite=false\n"
