@@ -193,6 +193,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_regionModelSuffix.loadDefault();
 		f_lockModelCap.loadDefault();
 		f_lockModelSuffix.loadDefault();
+		f_toolMemoryMB.loadDefault();
 		super.performDefaults();
 	}
 
@@ -209,6 +210,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_regionModelSuffix.store();
 		f_lockModelCap.store();
 		f_lockModelSuffix.store();
+		f_toolMemoryMB.store();
 		return super.performOk();
 	}
 }
