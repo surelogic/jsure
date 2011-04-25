@@ -86,7 +86,7 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	private void updateViewState(ScanStatus status) {
 		if (status.changed()) {
 			final String label = updateViewer(status);
-			f_viewerbook.getDisplay().asyncExec (new Runnable () {
+			f_viewerControl.getDisplay().asyncExec (new Runnable () {
 			      public void run () {
 			    	  if (label != null) {
 			    		  if (getViewer() != null) {
