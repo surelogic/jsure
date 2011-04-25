@@ -17,9 +17,6 @@ import com.surelogic.aast.java.VariableUseExpressionNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
-import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public class QualifiedLockNameNode extends LockNameNode { 
   // Fields
@@ -110,46 +107,57 @@ public class QualifiedLockNameNode extends LockNameNode {
   @Override
   final boolean namesSameLockAsQualifiedLock(final QualifiedLockNameNode other,
       final Map<IRNode, Integer> positionMap) {
-    final ExpressionNode base = getBase();
-    final ExpressionNode otherBase = other.getBase();
-    
-    if ((base instanceof TypeExpressionNode) &&
-        (otherBase instanceof TypeExpressionNode)) {
-      final IType type = ((TypeExpressionNode) base).getType().resolveType();
-      final IType otherType = ((TypeExpressionNode) otherBase).getType().resolveType();
-      return type.equals(otherType) && getId().equals(other.getId());
-    }
-    
-    if ((base instanceof VariableUseExpressionNode) && 
-        (otherBase instanceof VariableUseExpressionNode)) {
-      final IRNode formal = ((VariableUseExpressionNode) base).resolveBinding().getNode();
-      final IRNode otherFormal = ((VariableUseExpressionNode) otherBase).resolveBinding().getNode();
-      final int pos = positionMap.get(formal);
-      final int otherPos = positionMap.get(otherFormal);
-      return (pos == otherPos) && getId().equals(other.getId());
-    }
-    
-    if (base instanceof ThisExpressionNode) {
-      if (otherBase instanceof ThisExpressionNode) {
-        return getId().equals(other.getId());
-      } else if (otherBase instanceof QualifiedThisExpressionNode) {
-        /* Qualified type must be the type that contains the annotated method */
-        final IRNode otherType = ((IJavaDeclaredType) (((QualifiedThisExpressionNode) otherBase).getType().resolveType().getJavaType())).getDeclaration();
-        final IRNode otherEnclosingType = VisitUtil.getEnclosingType(otherBase.getPromisedFor());
-        return otherEnclosingType.equals(otherType) && getId().equals(other.getId());
+    if (getId().equals(other.getId())) {
+      final ExpressionNode base = getBase();
+      final ExpressionNode otherBase = other.getBase();
+      
+      // Static locks: must be the same type name
+      if ((base instanceof TypeExpressionNode) &&
+          (otherBase instanceof TypeExpressionNode)) {
+        final IType type = ((TypeExpressionNode) base).getType().resolveType();
+        final IType otherType = ((TypeExpressionNode) otherBase).getType().resolveType();
+        return type.equals(otherType);
       }
-    }
-    
-    if (base instanceof QualifiedThisExpressionNode) {
-      if (otherBase instanceof QualifiedThisExpressionNode) {
-        final IType type = ((QualifiedThisExpressionNode) base).getType().resolveType();
-        final IType otherType = ((QualifiedThisExpressionNode) otherBase).getType().resolveType();
-        return type.equals(otherType) && getId().equals(other.getId());
-      } else if (otherBase instanceof ThisExpressionNode) {
-        /* Qualified type must be the type that contains the annotated method */
-        final IRNode type = ((IJavaDeclaredType) (((QualifiedThisExpressionNode) base).getType().resolveType().getJavaType())).getDeclaration();
-        final IRNode enclosingType = VisitUtil.getEnclosingType(base.getPromisedFor());
-        return enclosingType.equals(type) && getId().equals(other.getId());
+      
+      // Variable use expression: Must name the same formal parameter.  
+      // Normalize names by checking for the parameter position.
+      if ((base instanceof VariableUseExpressionNode) && 
+          (otherBase instanceof VariableUseExpressionNode)) {
+        final IRNode formal = ((VariableUseExpressionNode) base).resolveBinding().getNode();
+        final IRNode otherFormal = ((VariableUseExpressionNode) otherBase).resolveBinding().getNode();
+        final int pos = positionMap.get(formal);
+        final int otherPos = positionMap.get(otherFormal);
+        return (pos == otherPos);
+      }
+      
+      if (base instanceof ThisExpressionNode) {
+        if (otherBase instanceof ThisExpressionNode) {
+          // Two "this" expressions
+          return true;
+        } else if (otherBase instanceof QualifiedThisExpressionNode) {
+          // One "this" expression, and one "C.this".  Equal if C is the 
+          // class that contains the annotated method.
+          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) otherBase);
+        }
+      }
+      
+      if (base instanceof QualifiedThisExpressionNode) {
+        if (otherBase instanceof QualifiedThisExpressionNode) {
+          // C. this and D.this.  Equal if C and D are the same type...
+          final IType type = ((QualifiedThisExpressionNode) base).getType().resolveType();
+          final IType otherType = ((QualifiedThisExpressionNode) otherBase).getType().resolveType();
+          if (type.equals(otherType)) {
+            return true;
+          } else {
+            // ...or if C and D are the types that contain the annotated methods
+            return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base)
+                && namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) otherBase);
+          }
+        } else if (otherBase instanceof ThisExpressionNode) {
+          // One "this" expression, and one "C.this".  Equal if C is the 
+          // class that contains the annotated method.
+          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base);
+        }
       }
     }
     return false;

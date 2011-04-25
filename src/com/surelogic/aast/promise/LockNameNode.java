@@ -4,9 +4,11 @@ package com.surelogic.aast.promise;
 import java.util.Map;
 
 import com.surelogic.aast.INodeVisitor;
-import com.surelogic.aast.java.VariableUseExpressionNode;
+import com.surelogic.aast.java.QualifiedThisExpressionNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public abstract class LockNameNode extends LockSpecificationNode { 
   // Fields
@@ -61,13 +63,21 @@ public abstract class LockNameNode extends LockSpecificationNode {
    * other isn't?  Need to play with this.  I still thing the unique names 
    * save us.
    */
-  public abstract boolean namesSameLockAs(LockNameNode other,
-      Map<IRNode, Integer> positionMap);
+  public abstract boolean namesSameLockAs(
+      LockNameNode other, Map<IRNode, Integer> positionMap);
   
   abstract boolean namesSameLockAsSimpleLock(SimpleLockNameNode other,
       Map<IRNode, Integer> positionMap);
   
-  abstract boolean namesSameLockAsQualifiedLock(QualifiedLockNameNode other,
-      Map<IRNode, Integer> positionMap);
+  abstract boolean namesSameLockAsQualifiedLock(
+      QualifiedLockNameNode other, Map<IRNode, Integer> positionMap);
+
+  static boolean namesEnclosingTypeOfAnnotatedMethod(final QualifiedThisExpressionNode base) {
+    final IRNode declOfEnclosingType =
+      VisitUtil.getEnclosingType(base.getPromisedFor());
+    final IRNode declOfNamedType =
+      ((IJavaDeclaredType) base.getType().resolveType().getJavaType()).getDeclaration();
+    return declOfEnclosingType.equals(declOfNamedType);
+  }
 }
 

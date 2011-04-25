@@ -14,8 +14,6 @@ import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public class SimpleLockNameNode extends LockNameNode { 
   // Fields
@@ -81,27 +79,25 @@ public class SimpleLockNameNode extends LockNameNode {
   @Override
   final boolean namesSameLockAsSimpleLock(final SimpleLockNameNode other,
       final Map<IRNode, Integer> positionMap) {
-    // Two simple lock names: Names must match
+    // Two simple lock names: Both represent a lock of the receiver.  
+    // Lock Names must match
     return other.getId().equals(this.getId());
   }
 
   @Override
   final boolean namesSameLockAsQualifiedLock(final QualifiedLockNameNode other,
       final Map<IRNode, Integer> positionMap) {
-    /* Simple lock name and qualified lock name: They match if the
-     * qualifier is "this" and the lock names match.
-     */
-    final ExpressionNode base = other.getBase();
-    if (base instanceof ThisExpressionNode) {
-      return other.getId().equals(this.getId());
-    } else if (base instanceof QualifiedThisExpressionNode) {
-      /* Qualified type must be the type that contains the annotated method */
-      final IRNode otherType = ((IJavaDeclaredType) (((QualifiedThisExpressionNode) base).getType().resolveType().getJavaType())).getDeclaration();
-      final IRNode otherEnclosingType = VisitUtil.getEnclosingType(base.getPromisedFor());
-      return otherEnclosingType.equals(otherType) && getId().equals(other.getId());
-    } else {
-      return false;
+    if (getId().equals(other.getId())) {
+      final ExpressionNode base = other.getBase();
+      if (base instanceof ThisExpressionNode) {
+        // Other expression is an explicit this
+        return other.getId().equals(this.getId());
+      } else if (base instanceof QualifiedThisExpressionNode) {
+        /* Qualified type must be the type that contains the annotated method */
+        return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base);
+      }
     }
+    return false;
   }
 }
 
