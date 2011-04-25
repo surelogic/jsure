@@ -6,6 +6,7 @@ import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.BalloonUtility;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.actions.AbstractProjectSelectedMenuAction;
 import com.surelogic.common.ui.dialogs.JavaProjectSelectionDialog;
@@ -14,6 +15,7 @@ import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.license.SLLicenseProduct;
 import com.surelogic.common.license.SLLicenseUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.jsure.client.eclipse.perspectives.CodeVerificationPerspective;
 import com.surelogic.jsure.core.driver.JavacBuild;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
@@ -33,7 +35,11 @@ public class NewScanAction extends AbstractProjectSelectedMenuAction {
 			return;
 		}
 
-		JavacBuild.analyze(selectedProjects, BalloonUtility.errorListener);
+		boolean success = JavacBuild.analyze(selectedProjects, BalloonUtility.errorListener);
+		if (success) {
+			// TODO check if we should auto-switch
+			EclipseUIUtility.showPerspective(CodeVerificationPerspective.class.getName());
+		}
 	}
 
 	@Override
