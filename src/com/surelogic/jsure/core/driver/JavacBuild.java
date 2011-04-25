@@ -36,9 +36,9 @@ public class JavacBuild {
 			DriverConstants.BUILD_KIND,
 			Integer.toString(IncrementalProjectBuilder.FULL_BUILD));
 
-	public static void analyze(List<IJavaProject> selectedProjects, IErrorListener l) {
+	public static boolean analyze(List<IJavaProject> selectedProjects, IErrorListener l) {
 		if (selectedProjects == null || selectedProjects.isEmpty())
-			return;
+			return false;
 		try {
 			JavacDriver.getInstance().clearProjectInfo();
 			for (IJavaProject p : selectedProjects) {
@@ -59,15 +59,17 @@ public class JavacBuild {
 									"JSure is unable to analyze "
 											+ p.getElementName()
 											+ " due to some compilation errors.  Please fix (or do a clean build).");
-					return;
+					return false;
 				}
 			}
 			JavacEclipse.initialize();
 			System.out.println("Configuring build");
 			JavacDriver.getInstance().doExplicitBuild(buildArgs, true);
+			return true;
 		} catch (CoreException e) {
 			SLLogger.getLogger().log(Level.SEVERE,
 					"Failure setting up to analyze: " + selectedProjects, e);
+			return false;
 		}
 	}
 }
