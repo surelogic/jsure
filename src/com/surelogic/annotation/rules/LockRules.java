@@ -1664,8 +1664,12 @@ public class LockRules extends AnnotationRules {
 	    if (bad) {
 	      return null;
 	    } else {
-	      return createDrop(node);
+	      return moreChecks(node, promisedFor) ? createDrop(node) : null;
 	    }
+	  }
+	  
+	  protected boolean moreChecks(A node, IRNode promisedFor) {
+	    return true;
 	  }
     
     @Override 
@@ -1880,7 +1884,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ImmutableNode> makeScrubber() {
-      return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, "Immutable", "Mutable", MUTABLE) {
+      return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, "Immutable", "Mutable", MUTABLE, NOT_THREAD_SAFE) {
         @Override
         protected ImmutablePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
           return getImmutableImplementation(superDecl);
@@ -1894,6 +1898,15 @@ public class LockRules extends AnnotationRules {
         @Override
         protected MutablePromiseDrop getNotAnnotation(final IRNode typeDecl) {
           return getMutable(typeDecl);
+        }
+        
+        @Override
+        protected boolean moreChecks(final ImmutableNode p, final IRNode promisedFor) {
+          if (getNotThreadSafe(promisedFor) != null) {
+            getContext().reportError(p, "Cannot be @Immutable and @NotThreadSafe");
+            return false;
+          }
+          return true;
         }
       };
     }    
