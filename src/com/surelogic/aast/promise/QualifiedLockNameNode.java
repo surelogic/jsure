@@ -147,7 +147,8 @@ public class QualifiedLockNameNode extends LockNameNode {
           // C. this and D.this.  Equal if C and D are the same type...
           final IType type = ((QualifiedThisExpressionNode) base).getType().resolveType();
           final IType otherType = ((QualifiedThisExpressionNode) otherBase).getType().resolveType();
-          if (type.equals(otherType)) {
+          if (type.getJavaType().equals(otherType.getJavaType())) {
+//          if (type.equals(otherType)) {
             return true;
           } else {
             // ...or if C and D are the types that contain the annotated methods
