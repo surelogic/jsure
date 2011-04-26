@@ -17,6 +17,7 @@ import com.surelogic.aast.java.VariableUseExpressionNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 public class QualifiedLockNameNode extends LockNameNode { 
   // Fields
@@ -111,12 +112,12 @@ public class QualifiedLockNameNode extends LockNameNode {
       final ExpressionNode base = getBase();
       final ExpressionNode otherBase = other.getBase();
       
-      // Static locks: must be the same type name
+      // Static locks: must be the same lock model
       if ((base instanceof TypeExpressionNode) &&
           (otherBase instanceof TypeExpressionNode)) {
-        final IType type = ((TypeExpressionNode) base).getType().resolveType();
-        final IType otherType = ((TypeExpressionNode) otherBase).getType().resolveType();
-        return type.equals(otherType);
+        final LockModel model = resolveBinding().getModel();
+        final LockModel otherModel = other.resolveBinding().getModel();
+        return model.equals(otherModel);
       }
       
       // Variable use expression: Must name the same formal parameter.  

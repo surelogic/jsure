@@ -326,11 +326,10 @@ public class LockRules extends AnnotationRules {
             final ReturnsLockPromiseDrop superDrop = getReturnsLock(parentReturn);
             if (superDrop != null) {
               // Ancestor is annotated
-              final String id = superDrop.getAST().getLock().getId();
               good = false;
               getContext().reportError(mdecl,
-                  "Method must be annotated @ReturnsLock(\"{0}\") because it overrides @ReturnsLock(\"{0}\") {1}",
-                  id, JavaNames.genQualifiedMethodConstructorName(parent));
+                  "Method does not return same lock as the method it overrides: {0}",
+                  JavaNames.genQualifiedMethodConstructorName(parent));
             }
           }
           return good;
@@ -390,17 +389,9 @@ public class LockRules extends AnnotationRules {
           if (!lockName.namesSameLockAs(superLock, positionMap)) {
             okay = false;
             context.reportError(annotatedMethod,
-                "Method does not return same lock as its super: {0}",
+                "Method does not return same lock as the method it overrides: {0}",
                 JavaNames.genQualifiedMethodConstructorName(parent));
           }
-          
-//          if (superLock.resolveBinding().getModel() != lockDecl) {
-//            final String id = superLock.getId();
-//            okay = false;
-//            context.reportError(annotatedMethod,
-//              "Method must be annotated @ReturnsLock(\"{0}\") because it overrides @ReturnsLock(\"{0}\") {1}",
-//              id, JavaNames.genQualifiedMethodConstructorName(parent));
-//          }
         }
       }
 		}

@@ -11,9 +11,11 @@ import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.QualifiedThisExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
+import com.surelogic.aast.java.TypeExpressionNode;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
 public class SimpleLockNameNode extends LockNameNode { 
   // Fields
@@ -79,7 +81,7 @@ public class SimpleLockNameNode extends LockNameNode {
   @Override
   final boolean namesSameLockAsSimpleLock(final SimpleLockNameNode other,
       final Map<IRNode, Integer> positionMap) {
-    // Two simple lock names: Both represent a lock of the receiver.  
+    // Two simple lock names: Both represent a lock of the receiver or a static lock
     // Lock Names must match
     return other.getId().equals(this.getId());
   }
@@ -88,13 +90,21 @@ public class SimpleLockNameNode extends LockNameNode {
   final boolean namesSameLockAsQualifiedLock(final QualifiedLockNameNode other,
       final Map<IRNode, Integer> positionMap) {
     if (getId().equals(other.getId())) {
-      final ExpressionNode base = other.getBase();
-      if (base instanceof ThisExpressionNode) {
-        // Other expression is an explicit this
-        return other.getId().equals(this.getId());
-      } else if (base instanceof QualifiedThisExpressionNode) {
-        /* Qualified type must be the type that contains the annotated method */
-        return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base);
+      final ExpressionNode otherBase = other.getBase();
+      final LockModel model = resolveBinding().getModel();
+      if (!model.isLockStatic()) { // first lock is from the receiver
+        if (otherBase instanceof ThisExpressionNode) {
+          // Other expression is an explicit this
+          return true;
+        } else if (otherBase instanceof QualifiedThisExpressionNode) {
+          /* Qualified type must be the type that contains the annotated method */
+          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) otherBase);
+        }
+      } else { // First lock is a static lock from the current class
+        if (otherBase instanceof TypeExpressionNode) {
+          // must refer to the same static lock model
+          return model.equals(other.resolveBinding().getModel());
+        }
       }
     }
     return false;
