@@ -35,6 +35,10 @@ public class QueueWorklist implements Worklist {
     return !queue.isEmpty();
   }
 
+  public int size() {
+	return queue.size();
+  }
+  
   public ControlNode next() {
     return queue.remove();
   }

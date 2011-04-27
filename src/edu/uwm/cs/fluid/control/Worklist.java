@@ -34,6 +34,11 @@ public interface Worklist extends Cloneable {
   public boolean hasNext();
   
   /**
+   * The current size of the worklist
+   */
+  public int size();
+  
+  /**
    * Return the next node on the worklist.
    * @return node next to consider.
    */

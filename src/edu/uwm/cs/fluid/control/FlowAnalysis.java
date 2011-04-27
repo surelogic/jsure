@@ -304,6 +304,8 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     while (worklist.hasNext()) {
       if (count == 0) {
         count = COUNT_BEFORE_CHECK;
+
+        //System.out.println("Worklist: "+worklist.size());
         if (ide.isCancelled()) {
           throw new FluidInterruptedException();
         }

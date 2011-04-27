@@ -50,6 +50,10 @@ public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> 
     return !pqueue.isEmpty();
   }
 
+  public int size() {
+	return pqueue.size();
+  }
+  
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.Worklist#next()
    */
