@@ -145,7 +145,7 @@ public class CogenUtil implements JavaGlobals {
     }
     String name = JJNode.getInfo(tdecl);
     if (op instanceof NestedTypeDeclInterface ||
-        op instanceof NestedEnumDeclaration) {
+        op instanceof NestedEnumDeclaration || op instanceof NestedAnnotationDeclaration) {
       // Check if a local class
       IRNode enclosing = VisitUtil.getEnclosingClassBodyDecl(tdecl);
       if (enclosing != null && SomeFunctionDeclaration.prototype.includes(enclosing)) {
