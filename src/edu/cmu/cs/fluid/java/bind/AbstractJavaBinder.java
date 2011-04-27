@@ -1415,7 +1415,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IJavaScope withThis = scope;
       if (!JavaNode.getModifier(node,JavaNode.STATIC)) {
         IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(node));
-        if (!InterfaceDeclaration.prototype.includes(tdecl)) {
+        if (!InterfaceDeclaration.prototype.includes(tdecl) && !AnnotationDeclaration.prototype.includes(tdecl)) {
         	IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
         	addReceiverDeclForType(tdecl, sc);
         	withThis = sc;
