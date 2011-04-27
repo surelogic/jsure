@@ -278,7 +278,8 @@ public interface IJavaScope {
     				                    JavaNode.STATIC);
     	}
     	if (NestedTypeDeclaration.prototype.includes(op) || 
-    		NestedEnumDeclaration.prototype.includes(op)) {
+    		NestedEnumDeclaration.prototype.includes(op) ||
+    		NestedAnnotationDeclaration.prototype.includes(op)) {
     		return true;
     	}
     	if (EnumConstantDeclaration.prototype.includes(op)) {
