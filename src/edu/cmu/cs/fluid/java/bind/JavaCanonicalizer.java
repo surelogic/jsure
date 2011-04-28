@@ -997,6 +997,12 @@ public class JavaCanonicalizer {
     
     @Override
     public Boolean visitNameExpression(IRNode node) {
+        /*
+        String unparse = DebugUnparser.toString(node);
+        if (unparse.contains("Project")) {
+      	  System.out.println("visitNameExpression: "+unparse);
+        }
+        */
       generateBoxUnbox(node); // generate boxing as needed
       IRNode name = NameExpression.getName(node);
       if (binder.getIBinding(node).getNode() == null) return false;
