@@ -4,6 +4,7 @@ import java.util.Date;
 
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -93,6 +94,12 @@ public class ScansView extends AbstractScanManagerView {
 	@Override
 	protected void makeActions() {
 		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	protected void fillContextMenu(IMenuManager manager,
+			IStructuredSelection s) {
+		// TODO 
 	}
 	
 	@Override
