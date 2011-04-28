@@ -1331,8 +1331,8 @@ public class JavacDriver implements IResourceChangeListener {
 				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
 			}
 			// final boolean hasDeltas = info.hasDeltas();
-			makeProjects(newProjects);
-
+			makeProjects(newProjects, monitor);
+			
 			final File dataDir = JSurePreferencesUtility
 					.getJSureDataDirectory();
 			final Projects oldProjects = useSeparateJVM ? null : (Projects) ProjectsDrop.getProjects();
@@ -1456,12 +1456,15 @@ public class JavacDriver implements IResourceChangeListener {
 	}
 
 	// TODO how to set up for deltas?
-	private Projects makeProjects(final Projects projects)
+	private Projects makeProjects(final Projects projects, SLProgressMonitor monitor)
 			throws JavaModelException {
-		findSharedJars(projects);
-
-		List<ProjectInfo> infos = new ArrayList<ProjectInfo>(
+		final List<ProjectInfo> infos = new ArrayList<ProjectInfo>(
 				this.projects.values());
+		monitor.begin(infos.size()+2);
+		
+		findSharedJars(projects);
+		monitor.worked(1);
+		
 		for (ProjectInfo info : infos) {
 			if (!projects.contains(info.project.getName())) {
 				if (info.isActive()) {
@@ -1483,6 +1486,7 @@ public class JavacDriver implements IResourceChangeListener {
 			 */
 			Config config = proj.getConfig();
 			config.setAsSource();
+			monitor.worked(1);
 		}
 
 		// Remove inactive projects?
@@ -1491,6 +1495,7 @@ public class JavacDriver implements IResourceChangeListener {
 				this.projects.remove(info.project);
 			}
 		}
+		monitor.worked(1);
 		return projects;
 
 	}
@@ -1748,6 +1753,7 @@ public class JavacDriver implements IResourceChangeListener {
 		}
 
 		public SLStatus run(SLProgressMonitor monitor) {
+			monitor.begin(3);
 			final long start = System.currentTimeMillis();
 			try {
 				for (Config config : projects.getConfigs()) {
@@ -1757,6 +1763,7 @@ public class JavacDriver implements IResourceChangeListener {
 				return SLStatus.createErrorStatus(
 						"Problem while zipping sources", e);
 			}
+			monitor.worked(1);
 			final long zip = System.currentTimeMillis();
 			try {
 				for (Config config : projects.getConfigs()) {
@@ -1767,9 +1774,10 @@ public class JavacDriver implements IResourceChangeListener {
 						e);
 			}
 			final long end = System.currentTimeMillis();
+			monitor.worked(1);
 			System.out.println("Zipping         = " + (zip - start) + " ms");
 			System.out.println("Relocating jars = " + (end - zip) + " ms");
-
+			
 			if (afterJob != null) {
 				if (XUtil.testing) {
 					afterJob.run(monitor);
@@ -1778,6 +1786,7 @@ public class JavacDriver implements IResourceChangeListener {
 							Util.class.getName());
 				}
 			}
+			monitor.worked(1);
 			return SLStatus.OK_STATUS;
 		}
 	}
