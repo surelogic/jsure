@@ -1964,7 +1964,7 @@ public class JavacDriver implements IResourceChangeListener {
                     return new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT).getAbsolutePath();
                 }
 			};
-			return LocalJSureJob.factory.newJob(msg, 20/*projects.size()*/, cfg);
+			return LocalJSureJob.factory.newJob(msg, 100, cfg);
 		}
 
 		protected void endAnalysis() {
