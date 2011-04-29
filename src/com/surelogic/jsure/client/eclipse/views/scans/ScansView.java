@@ -6,6 +6,7 @@ import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -27,6 +28,12 @@ import com.surelogic.jsure.core.scans.*;
 public class ScansView extends AbstractScanManagerView {
 	final ContentProvider f_content = new ContentProvider();
 	TableViewer tableViewer;
+	private Action f_deleteScanAction, f_setAsBaselineAction, f_setAsCurrentAction;
+	
+	@Override
+	protected StructuredViewer getViewer() {
+		return tableViewer;
+	}
 	
 	@Override
 	protected String updateViewer(ScanStatus status, DataDirStatus dirStatus) {
@@ -93,13 +100,47 @@ public class ScansView extends AbstractScanManagerView {
 	
 	@Override
 	protected void makeActions() {
-		// TODO Auto-generated method stub
+		f_deleteScanAction = new MultiSelectAction<JSureRun>("Delete scan(s)") {
+			@Override
+			public boolean run(IStructuredSelection s) {
+				// TODO popup confirm dialog
+				boolean deleted = super.run(s);
+				if (deleted) {
+					JSureScanManager.getInstance().removedScans();
+				}
+				return deleted;
+			}
+			@Override
+			protected boolean run(JSureRun elt) {
+				return FileUtility.recursiveDelete(elt.getDir());
+			}
+		};
+		f_setAsBaselineAction = new SingleSelectAction<JSureRun>("Set as baseline") {
+			@Override
+			protected boolean run(JSureRun elt) {
+				JSureScansHub.getInstance().setBaselineScan(elt.getDir());
+				return true;
+			}
+		};
+		f_setAsCurrentAction = new SingleSelectAction<JSureRun>("Set as current") {
+			@Override
+			protected boolean run(JSureRun elt) {
+				JSureScansHub.getInstance().setCurrentScan(elt.getDir());
+				return true;
+			}
+		};
 	}
 	
 	@Override
 	protected void fillContextMenu(IMenuManager manager,
 			IStructuredSelection s) {
-		// TODO 
+		if (!s.isEmpty()) {
+			if (s.size() == 1) {
+				manager.add(f_setAsCurrentAction);
+				manager.add(f_setAsBaselineAction);
+			}
+			manager.add(f_deleteScanAction); 
+		}
 	}
 	
 	@Override
