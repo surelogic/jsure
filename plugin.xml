@@ -19,6 +19,11 @@
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScansView"
 			id="com.surelogic.jsure.client.eclipse.views.scans.ScansView">
 		</view>
+		
+		<view name="JSure Scan Summaries"
+			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView"
+			id="com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView">
+		</view>
 
         <view name="JSure Historical Source"
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView"

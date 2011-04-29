@@ -28,12 +28,22 @@ implements IJSureScanListener, IJSureScanManagerListener {
 		updateViewState(ScanStatus.BOTH_CHANGED, DataDirStatus.CHANGED);
 	}
 
-	public void updateScans(DataDirStatus s, File dir) {
-		updateViewState(ScanStatus.NEITHER_CHANGED, s);
+	public void updateScans(final DataDirStatus s, File dir) {
+		f_viewerControl.getDisplay().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				updateViewState(ScanStatus.NEITHER_CHANGED, s);
+			}
+		});
 	}
 	
-	public void scansChanged(ScanStatus status) {
-		updateViewState(status, DataDirStatus.UNCHANGED);
+	public void scansChanged(final ScanStatus status) {
+		f_viewerControl.getDisplay().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				updateViewState(status, DataDirStatus.UNCHANGED);
+			}
+		});
 	}
 		
 	/**
