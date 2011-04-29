@@ -1,6 +1,8 @@
 package edu.cmu.cs.fluid.sea;
 
+import java.io.*;
 import java.util.*;
+import java.util.zip.*;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
@@ -114,4 +116,37 @@ public final class SeaStats {
             }		    
 		}
 	};
+	
+	public static final String ALL_PROJECTS = "all projects";
+	
+	public static void createSummaryZip(File zip, Collection<? extends IDropInfo> info, 
+	   		                            Splitter<String> split, Counter[] counters) 
+	throws IOException {
+		final ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zip));
+		try {
+			final ZipEntry totals = new ZipEntry(ALL_PROJECTS);
+			out.putNextEntry(totals);
+			for(Map.Entry<String,Integer> e : count(info, counters).entrySet()) {
+				final String line = e.getKey()+"="+e.getValue();
+		        out.write(line.getBytes());
+		        out.write('\n');
+			}
+			
+			for(Map.Entry<String,Map<String,Integer>> e : count(split(info, split), counters).entrySet()) 
+			{
+				final ZipEntry anEntry = new ZipEntry(e.getKey());
+			    System.out.println("Project "+e.getKey());
+				out.putNextEntry(anEntry);				
+				
+			    for(Map.Entry<String,Integer> e2 : e.getValue().entrySet()) {
+			    	final String line = e2.getKey()+"="+e2.getValue();
+			        System.out.println("\t"+line);
+			        out.write(line.getBytes());
+			        out.write('\n');
+			    }
+			}
+		} finally {
+			out.close();
+		}
+	}
 }
