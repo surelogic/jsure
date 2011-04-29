@@ -38,7 +38,7 @@ public abstract class AbstractJSureResultsXMLReader<T> extends NestedXMLReader i
 	}
 
 	public final void start(String uid, String project) {
-		System.out.println("uid = "+uid);
+		//System.out.println("uid = "+uid);
 	}
 	
 	public void notify(Entity e) {
