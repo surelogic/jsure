@@ -56,6 +56,15 @@ public class JSureScanManager {
 		notify(DataDirStatus.ADDED, run);
 	}
 	
+	public void removedScans() {
+		File dir;
+		synchronized (this) {
+			dir = data.getDataDir();
+			data = JSureDataDirScanner.scan(data.getDataDir());
+		}
+		notify(DataDirStatus.CHANGED, dir);
+	}
+	
 	/**
 	 * Sets the JSure data directory to an existing directory.
 	 * <p>
