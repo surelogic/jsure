@@ -18,6 +18,7 @@ import com.surelogic.common.*;
 import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.views.ITableContentProvider;
 import com.surelogic.fluid.javac.JavacTypeEnvironment;
+import com.surelogic.fluid.javac.Projects;
 import com.surelogic.fluid.javac.scans.*;
 import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
 import com.surelogic.fluid.javac.persistence.*;
@@ -44,11 +45,19 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	
 	@Override
 	protected String updateViewer(ScanStatus status, DataDirStatus dirStatus) {
+		return updateViewer(status, dirStatus, false);
+	}
+	
+	private String updateViewer(ScanStatus status, DataDirStatus dirStatus, boolean selectedProjsChanged) {
 		try {
-			f_projectsContent.build(dirStatus);
-			projectList.setInput(f_projectsContent);
+			final IStructuredSelection sel = (IStructuredSelection) projectList.getSelection();
+			boolean changed = f_projectsContent.build(dirStatus);
+			if (changed) {
+				projectList.setInput(f_projectsContent);
+				projectList.setSelection(sel);
+			}		
 			
-			String rv = f_content.build(status, dirStatus);
+			String rv = f_content.build(status, dirStatus, changed || selectedProjsChanged);
 			if (rv != null) {
 				tableViewer.setInput(f_content);
 			}
@@ -71,6 +80,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		projectList.setContentProvider(f_projectsContent);
 		projectList.setLabelProvider(f_projectsContent);
 		projectList.getList().pack();
+		projectList.addSelectionChangedListener(new ProjectSelectionListener());
 		
 		tableViewer = new TableViewer(f_form, SWT.H_SCROLL
 				| SWT.V_SCROLL | SWT.FULL_SELECTION);
@@ -146,11 +156,16 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	
 	static class Summary {
 		private final JSureRun run;
-		final Properties props = new Properties();
+		final Properties props;
 		
 		Summary(JSureRun r, InputStream in) throws IOException {
-			run = r;
+			this(r, new Properties());
 			props.load(in);
+		}
+
+		Summary(JSureRun r, Properties totals) {
+			run = r;
+			props = totals;
 		}
 
 		public String getKey(String key) {
@@ -160,27 +175,70 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	
 	private static final Summary[] noSummaries = new Summary[0];
 	
-	static class ContentProvider implements ITableContentProvider {
+	static final String[] labels = {
+		"Date", "Projects", PROMISES, CONSISTENT, INCONSISTENT, VOUCHES, ASSUMES, INFO, WARNING,
+	};
+	
+	static final int KEYS = 2;
+	
+	class ContentProvider implements ITableContentProvider {
 		JSureRun[] runs;
 		Summary[] summaries;
 		
-		public String build(ScanStatus status, DataDirStatus dirStatus) {
+		public String build(ScanStatus status, DataDirStatus dirStatus, boolean selectedProjectsChanged) {
 			final JSureData data = JSureScanManager.getInstance().getData();
-			if (dirStatus != DataDirStatus.UNCHANGED) {
+			if (selectedProjectsChanged || dirStatus != DataDirStatus.UNCHANGED) {
                 // Enough changed
 				runs = data.getAllRuns();
+
+				// Get selected projects
+				final IStructuredSelection ss = (IStructuredSelection) projectList.getSelection();
+				final Object[] selectedProjects = ss.toArray();
 				
 				// Look for summaries
 				final List<Summary> summaries = new ArrayList<Summary>();
-				for(JSureRun r : runs) {
+				runLoop:
+				for(JSureRun r : runs) {					
+					if (selectedProjects.length > 0) {
+						// Check if the run includes all of the selected projects
+						try {
+							final Projects runProjects = r.getProjects();
+							for(Object proj : selectedProjects) {
+								if (runProjects.get((String) proj) == null) {
+									continue runLoop;
+								}
+							}
+						} catch(Exception e) {
+							e.printStackTrace();
+							continue runLoop;
+						}
+					}
 					File summary = new File(r.getDir(), RemoteJSureRun.SUMMARIES_ZIP);
 					if (summary.exists()) {
 						try {
-							ZipFile zf = new ZipFile(summary);
-							ZipEntry e = zf.getEntry(SeaStats.ALL_PROJECTS);
-							if (e != null) {
-								Summary s = new Summary(r, zf.getInputStream(e));
+							final ZipFile zf = new ZipFile(summary);
+							if (selectedProjects.length > 0) {
+								// Use selected projects to filter runs/summaries							
+								final Properties totals = new Properties();
+								for(Object proj : selectedProjects) {
+									ZipEntry ze = zf.getEntry((String) proj);
+									Properties props = new Properties();
+									props.load(zf.getInputStream(ze));
+									// Add to totals
+									for(Map.Entry<Object,Object> e : props.entrySet()) {
+										final int i = Integer.parseInt((String) e.getValue());
+										final int j = Integer.parseInt((String) totals.getProperty((String) e.getKey(), "0"));
+										totals.put(e.getKey(), Integer.toString(i+j));
+									}
+								}
+								Summary s = new Summary(r, totals);
 								summaries.add(s);
+							} else {							
+								ZipEntry e = zf.getEntry(SeaStats.ALL_PROJECTS);
+								if (e != null) {
+									Summary s = new Summary(r, zf.getInputStream(e));
+									summaries.add(s);
+								}
 							}
 						} catch(IOException e) {
 							e.printStackTrace();
@@ -213,12 +271,6 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		public int numColumns() {
 			return labels.length;
 		}
-	
-		static final String[] labels = {
-			"Date", "Projects", PROMISES, CONSISTENT, INCONSISTENT, VOUCHES, ASSUMES, INFO, WARNING,
-		};
-		
-		static final int KEYS = 2;
 		
 		// Display methods
 		@Override
@@ -276,7 +328,10 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	class ProjectContentProvider implements IStructuredContentProvider, ILabelProvider {
 		String[] projectNames = new String[0];
 		
-		public void build(DataDirStatus dirStatus) {
+		/**
+		 * @return true if changed
+		 */
+		public boolean build(DataDirStatus dirStatus) {
 			final JSureData data = JSureScanManager.getInstance().getData();
 			if (dirStatus != DataDirStatus.UNCHANGED) {
                 // Enough changed, so find all the relevant projects
@@ -294,7 +349,9 @@ public class ScanSummaryView extends AbstractScanManagerView {
 				}
 				projectNames = names.toArray(projectNames);
 				Arrays.sort(projectNames);
+				return true;
 			}
+			return false;
 		}
 		
 		@Override
@@ -335,5 +392,12 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		public void removeListener(ILabelProviderListener listener) {
 			// TODO Auto-generated method stub
 		}
+	}
+
+	class ProjectSelectionListener implements ISelectionChangedListener {
+		@Override
+		public void selectionChanged(SelectionChangedEvent event) {
+			updateViewer(ScanStatus.NEITHER_CHANGED, DataDirStatus.UNCHANGED, true);
+		}		
 	}
 }
