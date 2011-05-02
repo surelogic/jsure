@@ -6,21 +6,18 @@ import java.util.List;
 import java.util.zip.*;
 
 import org.eclipse.jface.action.*;
-import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.StructuredViewer;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.*;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import com.surelogic.common.*;
 import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.views.ITableContentProvider;
+import com.surelogic.fluid.javac.JavacTypeEnvironment;
 import com.surelogic.fluid.javac.scans.*;
 import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
 import com.surelogic.fluid.javac.persistence.*;
@@ -35,6 +32,9 @@ import static edu.cmu.cs.fluid.sea.SeaStats.*;
  */
 public class ScanSummaryView extends AbstractScanManagerView {
 	final ContentProvider f_content = new ContentProvider();
+	final ProjectContentProvider f_projectsContent = new ProjectContentProvider();
+	SashForm f_form;
+	ListViewer projectList;
 	TableViewer tableViewer;
 	
 	@Override
@@ -45,6 +45,9 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	@Override
 	protected String updateViewer(ScanStatus status, DataDirStatus dirStatus) {
 		try {
+			f_projectsContent.build(dirStatus);
+			projectList.setInput(f_projectsContent);
+			
 			String rv = f_content.build(status, dirStatus);
 			if (rv != null) {
 				tableViewer.setInput(f_content);
@@ -60,8 +63,16 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	}
 	
 	@Override
-	protected Control buildViewer(Composite parent) {
-		tableViewer = new TableViewer(parent, SWT.H_SCROLL
+	protected Control buildViewer(Composite parent) {		
+		f_form = new SashForm(parent, SWT.HORIZONTAL);
+		f_form.setLayout(new FillLayout());
+		
+		projectList = new ListViewer(f_form);
+		projectList.setContentProvider(f_projectsContent);
+		projectList.setLabelProvider(f_projectsContent);
+		projectList.getList().pack();
+		
+		tableViewer = new TableViewer(f_form, SWT.H_SCROLL
 				| SWT.V_SCROLL | SWT.FULL_SELECTION);
 		// Setup columns
 		int i = 0;
@@ -79,6 +90,8 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		tableViewer.getTable().setLinesVisible(true);
 		tableViewer.getTable().setHeaderVisible(true);
 		tableViewer.getTable().pack();
+		
+		f_form.setWeights(new int[] {20,80});
 		return tableViewer.getControl();
 	}
 
@@ -257,6 +270,70 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		@Override
 		public void dispose() {
 			// TODO Auto-generated method stub			
+		}
+	}
+	
+	class ProjectContentProvider implements IStructuredContentProvider, ILabelProvider {
+		String[] projectNames = new String[0];
+		
+		public void build(DataDirStatus dirStatus) {
+			final JSureData data = JSureScanManager.getInstance().getData();
+			if (dirStatus != DataDirStatus.UNCHANGED) {
+                // Enough changed, so find all the relevant projects
+				final Set<String> names = new HashSet<String>();
+				for(JSureRun r : data.getAllRuns()) {
+					try {
+						for(String p : r.getProjects().getProjectNames()) {
+							if (!p.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+								names.add(p);
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				projectNames = names.toArray(projectNames);
+				Arrays.sort(projectNames);
+			}
+		}
+		
+		@Override
+		public Object[] getElements(Object inputElement) {
+			return projectNames;
+		}
+
+		@Override
+		public void dispose() {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public Image getImage(Object element) {
+			return null;
+		}
+
+		@Override
+		public String getText(Object element) {
+			return (String) element;
+		}
+
+		@Override
+		public void addListener(ILabelProviderListener listener) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public boolean isLabelProperty(Object element, String property) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+		@Override
+		public void removeListener(ILabelProviderListener listener) {
+			// TODO Auto-generated method stub
 		}
 	}
 }
