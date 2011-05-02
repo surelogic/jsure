@@ -17,7 +17,7 @@ import com.surelogic.aast.AbstractAASTNodeFactory;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
-public class SimpleLockNameNode extends LockNameNode { 
+public final class SimpleLockNameNode extends LockNameNode { 
   // Fields
 
   public static final AbstractAASTNodeFactory factory =
@@ -71,39 +71,43 @@ public class SimpleLockNameNode extends LockNameNode {
   public IAASTNode cloneTree(){
   	return new SimpleLockNameNode(getOffset(), new String(getId()));
   }
+  
+  
 
   @Override
-  public final boolean namesSameLockAs(final LockNameNode other,
-      final Map<IRNode, Integer> positionMap) {
-    return other.namesSameLockAsSimpleLock(this, positionMap);
+  public final boolean namesSameLockAs(final LockNameNode ancestor,
+      final Map<IRNode, Integer> positionMap, final How how) {
+    return ancestor.namesSameLockAsSimpleLock(this, positionMap, how);
   }
 
   @Override
-  final boolean namesSameLockAsSimpleLock(final SimpleLockNameNode other,
-      final Map<IRNode, Integer> positionMap) {
+  final boolean namesSameLockAsSimpleLock(final SimpleLockNameNode overriding,
+      final Map<IRNode, Integer> positionMap, final How how) {
     // Two simple lock names: Both represent a lock of the receiver or a static lock
-    // Lock Names must match
-    return other.getId().equals(this.getId());
+    // Lock models must be the same
+    return resolveBinding().getModel().equals(
+        overriding.resolveBinding().getModel());
   }
 
   @Override
-  final boolean namesSameLockAsQualifiedLock(final QualifiedLockNameNode other,
-      final Map<IRNode, Integer> positionMap) {
-    if (getId().equals(other.getId())) {
-      final ExpressionNode otherBase = other.getBase();
+  final boolean namesSameLockAsQualifiedLock(
+      final QualifiedLockNameNode overriding,
+      final Map<IRNode, Integer> positionMap, final How how) {
+    if (getId().equals(overriding.getId())) {
+      final ExpressionNode overridingBase = overriding.getBase();
       final LockModel model = resolveBinding().getModel();
       if (!model.isLockStatic()) { // first lock is from the receiver
-        if (otherBase instanceof ThisExpressionNode) {
+        if (overridingBase instanceof ThisExpressionNode) {
           // Other expression is an explicit this
           return true;
-        } else if (otherBase instanceof QualifiedThisExpressionNode) {
+        } else if (overridingBase instanceof QualifiedThisExpressionNode) {
           /* Qualified type must be the type that contains the annotated method */
-          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) otherBase);
+          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingBase);
         }
       } else { // First lock is a static lock from the current class
-        if (otherBase instanceof TypeExpressionNode) {
+        if (overridingBase instanceof TypeExpressionNode) {
           // must refer to the same static lock model
-          return model.equals(other.resolveBinding().getModel());
+          return model.equals(overriding.resolveBinding().getModel());
         }
       }
     }

@@ -48,6 +48,31 @@ public abstract class LockNameNode extends LockSpecificationNode {
   
   
   
+  @Override
+  public final boolean satisfiesSpecfication(
+      final LockSpecificationNode ancestor, final Map<IRNode, Integer> positionMap,
+      final How how) {
+    return ancestor.lockNameSatisfiesSpecification(this, positionMap, how);
+  }
+
+  @Override
+  final boolean jucLockSatistiesSpecification(
+      final JUCLockNode overriding, final Map<IRNode, Integer> positionMap,
+      final How how) {
+    // Never the same as a JUC lock
+    return false;
+  }
+  
+  @Override
+  final boolean lockNameSatisfiesSpecification(
+      final LockNameNode overriding, final Map<IRNode, Integer> positionMap,
+      final How how) {
+    // forward to namesSameLockAs()
+    return overriding.namesSameLockAs(this, positionMap, how);
+  }
+
+  
+  
   /**
    * Compare two lock names from two declarations of the same method to see if they refer to same lock.
    * This is complicated by the fact that the formal arguments of the two
@@ -57,20 +82,18 @@ public abstract class LockNameNode extends LockSpecificationNode {
    * the same map because the keys, the <code>VariableUseExpressionNode</code> objects, are 
    * globally unique.
    * 
-   * <p>Qualified receiver expressions do not require mapping because they
-   * are identified by type name.  How does this work out in practice?  What if
-   * we have different sets of outer types?  What if one is a nested type, but the
-   * other isn't?  Need to play with this.  I still thing the unique names 
-   * save us.
+   * <p>This is the same as {@link #satisfiesSpecfication(LockSpecificationNode, Map)},
+   * but the implementation is specific to LockNameNodes.
    */
   public abstract boolean namesSameLockAs(
-      LockNameNode other, Map<IRNode, Integer> positionMap);
+      LockNameNode ancestor, Map<IRNode, Integer> positionMap, How how);
   
-  abstract boolean namesSameLockAsSimpleLock(SimpleLockNameNode other,
-      Map<IRNode, Integer> positionMap);
+  abstract boolean namesSameLockAsSimpleLock(SimpleLockNameNode overriding,
+      Map<IRNode, Integer> positionMap, How how);
   
   abstract boolean namesSameLockAsQualifiedLock(
-      QualifiedLockNameNode other, Map<IRNode, Integer> positionMap);
+      QualifiedLockNameNode overriding, Map<IRNode, Integer> positionMap,
+      How how);
 
   static boolean namesEnclosingTypeOfAnnotatedMethod(final QualifiedThisExpressionNode base) {
     final IRNode declOfEnclosingType =

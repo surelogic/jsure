@@ -2,10 +2,13 @@
 package com.surelogic.aast.promise;
 
 import java.util.List;
+import java.util.Map;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.AbstractAASTNodeFactory;
+
+import edu.cmu.cs.fluid.ir.IRNode;
 
 /**
  * Represents an AAST node for the .readLock() annotation
@@ -82,4 +85,31 @@ public final class ReadLockNode extends JUCLockNode {
   	return new ReadLockNode(getOffset(), (LockNameNode)getLock().cloneTree());
   }
 	
+  
+  
+  @Override
+  public boolean namesSameLockAs(
+      final JUCLockNode ancestor, final Map<IRNode, Integer> positionMap,
+      final How how) {
+    return ancestor.namesSameLockAsReadLock(this, positionMap, how);
+  }
+  
+  @Override
+  boolean namesSameLockAsReadLock(
+      final ReadLockNode overriding, final Map<IRNode, Integer> positionMap,
+      final How how) {
+    return overriding.getLock().namesSameLockAs(getLock(), positionMap, how);
+  }
+  
+  @Override
+  boolean namesSameLockAsWriteLock(
+      final WriteLockNode overriding, final Map<IRNode, Integer> positionMap,
+      final How how) {
+    if (how == How.COVARIANT) {
+      // Read lock requirement can be made more specific into a write lock requirement
+      return overriding.getLock().namesSameLockAs(getLock(), positionMap, how);
+    } else {
+      return false;
+    }
+  }
 }

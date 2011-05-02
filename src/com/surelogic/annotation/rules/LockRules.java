@@ -268,7 +268,22 @@ public class LockRules extends AnnotationRules {
     registerScrubber(fw, new LockFieldVisibilityScrubber());
 	}
 
-	/**
+	private static Map<IRNode, Integer> buildParameterMap(
+      final IRNode annotatedMethod, final IRNode parent) {
+    // Should have the same number of arguments
+    final Iteratable<IRNode> p1 = Parameters.getFormalIterator(MethodDeclaration.getParams(annotatedMethod));
+    final Iteratable<IRNode> p2 = Parameters.getFormalIterator(MethodDeclaration.getParams(parent));
+    int count = 0;
+    final Map<IRNode, Integer> positionMap = new HashMap<IRNode, Integer>();
+    for (final IRNode arg1 : p1) {
+      positionMap.put(arg1, count);
+      positionMap.put(p2.next(), count);
+      count += 1;
+    }
+    return positionMap;
+  }
+
+  /**
 	 * Parse rule for the ReturnsLock annotation
 	 * 
 	 * @author ethan
@@ -374,19 +389,11 @@ public class LockRules extends AnnotationRules {
         if (superDrop != null) {
           // Ancestor is annotated: must match
           
-          // Should have the same number of arguments
-          final Iteratable<IRNode> p1 = Parameters.getFormalIterator(MethodDeclaration.getParams(annotatedMethod));
-          final Iteratable<IRNode> p2 = Parameters.getFormalIterator(MethodDeclaration.getParams(parent));
-          int count = 0;
-          final Map<IRNode, Integer> positionMap = new HashMap<IRNode, Integer>();
-          for (final IRNode arg1 : p1) {
-            positionMap.put(arg1, count);
-            positionMap.put(p2.next(), count);
-            count += 1;
-          }
+          final Map<IRNode, Integer> positionMap =
+            buildParameterMap(annotatedMethod, parent);
           
           final LockNameNode superLock = superDrop.getAST().getLock();
-          if (!lockName.namesSameLockAs(superLock, positionMap)) {
+          if (!lockName.namesSameLockAs(superLock, positionMap, LockSpecificationNode.How.COVARIANT)) {
             okay = false;
             context.reportError(annotatedMethod,
                 "Method does not return same lock as the method it overrides: {0}",
@@ -405,7 +412,7 @@ public class LockRules extends AnnotationRules {
     }
 	}
 
-	public static class ProhibitsLock_ParseRule
+  public static class ProhibitsLock_ParseRule
 	extends
 	DefaultSLAnnotationParseRule<ProhibitsLockNode, ProhibitsLockPromiseDrop> {
 		public ProhibitsLock_ParseRule() {
@@ -523,8 +530,8 @@ public class LockRules extends AnnotationRules {
 	 */
 	static RequiresLockPromiseDrop scrubRequiresLock(
 			IAnnotationScrubberContext context, RequiresLockNode node) {
-		final IRNode promisedFor = node.getPromisedFor();
-		final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
+		final IRNode annotatedMethod = node.getPromisedFor();
+		final Operator promisedForOp = JJNode.tree.getOperator(annotatedMethod);
 
 		boolean allGood = true; // assume the best
 		final Set<LockSpecificationNode> uniqueLocks = new HashSet<LockSpecificationNode>();
@@ -540,7 +547,7 @@ public class LockRules extends AnnotationRules {
 			 */
 			// If the lock name is bad we cannot continue
 			final LockModel lockModel =
-			  isLockNameOkay(TypeUtil.isStatic(promisedFor), lockName, context);
+			  isLockNameOkay(TypeUtil.isStatic(annotatedMethod), lockName, context);
 			if (lockModel != null) {
 				lockDecls.add(lockModel);
 
@@ -615,14 +622,14 @@ public class LockRules extends AnnotationRules {
 					final IRNode lockDeclClass =
 					  VisitUtil.getClosestType(lockModel.getNode());
 					final IRNode methodDeclClass =
-					  VisitUtil.getEnclosingType(promisedFor);
+					  VisitUtil.getEnclosingType(annotatedMethod);
 					staticLockFromSameClass =
 					  lockDeclClass.equals(methodDeclClass);
 				}
 				if (lockRefsThis || staticLockFromSameClass) {
 					final Visibility lockViz =
 					  getLockFieldVisibility(lockModel.getAST(), context.getBinder());
-					final Visibility methodViz = Visibility.getVisibilityOf(promisedFor);
+					final Visibility methodViz = Visibility.getVisibilityOf(annotatedMethod);
 					if (!lockViz.atLeastAsVisibleAs(methodViz)) {
 						context.reportError(
 						    "lock \"" + lockSpec.getLock().getId() +
@@ -654,16 +661,47 @@ public class LockRules extends AnnotationRules {
 
 			allGood &= currentGood;
 		}
-    RequiresLockPromiseDrop drop = getRequiresLock(promisedFor);
+    RequiresLockPromiseDrop drop = getRequiresLock(annotatedMethod);
     if (drop != null) {
       drop.invalidate();
     }
     
     // Check for consistency with ancestors
     if (allGood) {
-//    for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
-//    final IRNode overriddenMethod = context.getNode();
-      
+      for (final IBinding pBinding : context.getBinder().findOverriddenParentMethods(annotatedMethod)) {
+        final IRNode parent = pBinding.getNode();
+        
+        // See if the ancestor is annotated
+        final RequiresLockPromiseDrop parentDrop = getRequiresLock(parent);
+        if (parentDrop == null) {
+          /* Ancestor is not annotated.  Immediate problem because RequiresLock
+           * is contravariant: We cannot *add* constraints.  
+           * 
+           * But, okay if the current annotation is the empty set of locks.
+           */
+          if (!locks.isEmpty()) {
+            allGood = false;
+            context.reportError(node, "Overridden method {0} is not annotated with @RequiresLock",
+                JavaNames.genQualifiedMethodConstructorName(parent));
+          }
+        } else {
+          /* Every lock in the current annotation must be present in the 
+           * parent annotation.  We can remove locks, but not add them.
+           */
+          final Map<IRNode, Integer> positionMap =
+            buildParameterMap(annotatedMethod, parent);
+          final List<LockSpecificationNode> parentLocks = parentDrop.getAST().getLockList();
+          outer: for (final LockSpecificationNode lock : locks) {
+            for (final LockSpecificationNode parentLock : parentLocks) {
+              if (lock.satisfiesSpecfication(parentLock, positionMap, LockSpecificationNode.How.CONTRAVARIANT)) {
+                continue outer;
+              }
+            }
+            allGood = false;
+            context.reportError(node, "Cannot add lock {0} to @RequiresLock annotation", lock.unparse(false));
+          }
+        }
+      }      
     }
     
 		if (allGood) {

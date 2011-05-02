@@ -19,7 +19,7 @@ import com.surelogic.aast.AbstractAASTNodeFactory;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 
-public class QualifiedLockNameNode extends LockNameNode { 
+public final class QualifiedLockNameNode extends LockNameNode { 
   // Fields
   private final ExpressionNode base;
 
@@ -89,73 +89,97 @@ public class QualifiedLockNameNode extends LockNameNode {
   
   @Override
   public IAASTNode cloneTree(){
-  	return new QualifiedLockNameNode(getOffset(), (ExpressionNode)getBase().cloneTree(), new String(getId()));
+  	return new QualifiedLockNameNode(getOffset(),
+  	    (ExpressionNode)getBase().cloneTree(), new String(getId()));
+  }
+
+  
+  
+  @Override
+  public final boolean namesSameLockAs(final LockNameNode ancestor,
+      final Map<IRNode, Integer> positionMap, final How how) {
+    return ancestor.namesSameLockAsQualifiedLock(this, positionMap, how);
   }
 
   @Override
-  public final boolean namesSameLockAs(final LockNameNode other,
-      final Map<IRNode, Integer> positionMap) {
-    return other.namesSameLockAsQualifiedLock(this, positionMap);
-  }
+  final boolean namesSameLockAsSimpleLock(final SimpleLockNameNode overriding,
+      final Map<IRNode, Integer> positionMap, final How how) {
+    /* Duplicated from SimpleLockNameNode.nameSameLockAsQualifiedLock(). Don't
+     * share code directly because we want to maintain the overriding/ancestor
+     * distinction.
+     */
 
-  @Override
-  final boolean namesSameLockAsSimpleLock(final SimpleLockNameNode other,
-      final Map<IRNode, Integer> positionMap) {
-    // Avoid code duplication: forward to simple lock name
-    return other.namesSameLockAsQualifiedLock(this, positionMap);
-  }
-
-  @Override
-  final boolean namesSameLockAsQualifiedLock(final QualifiedLockNameNode other,
-      final Map<IRNode, Integer> positionMap) {
-    if (getId().equals(other.getId())) {
+    if (getId().equals(overriding.getId())) {
       final ExpressionNode base = getBase();
-      final ExpressionNode otherBase = other.getBase();
+      final LockModel model = overriding.resolveBinding().getModel();
+      if (!model.isLockStatic()) { // first lock is from the receiver
+        if (base instanceof ThisExpressionNode) {
+          // Other expression is an explicit this
+          return true;
+        } else if (base instanceof QualifiedThisExpressionNode) {
+          /* Qualified type must be the type that contains the annotated method */
+          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base);
+        }
+      } else { // First lock is a static lock from the current class
+        if (base instanceof TypeExpressionNode) {
+          // must refer to the same static lock model
+          return model.equals(overriding.resolveBinding().getModel());
+        }
+      }
+    }
+    return false;
+  }
+
+  @Override
+  final boolean namesSameLockAsQualifiedLock(final QualifiedLockNameNode overriding,
+      final Map<IRNode, Integer> positionMap, final How how) {
+    if (getId().equals(overriding.getId())) {
+      final ExpressionNode base = getBase();
+      final ExpressionNode overridingBase = overriding.getBase();
       
       // Static locks: must be the same lock model
       if ((base instanceof TypeExpressionNode) &&
-          (otherBase instanceof TypeExpressionNode)) {
+          (overridingBase instanceof TypeExpressionNode)) {
         final LockModel model = resolveBinding().getModel();
-        final LockModel otherModel = other.resolveBinding().getModel();
-        return model.equals(otherModel);
+        final LockModel overridingModel = overriding.resolveBinding().getModel();
+        return model.equals(overridingModel);
       }
       
       // Variable use expression: Must name the same formal parameter.  
       // Normalize names by checking for the parameter position.
       if ((base instanceof VariableUseExpressionNode) && 
-          (otherBase instanceof VariableUseExpressionNode)) {
+          (overridingBase instanceof VariableUseExpressionNode)) {
         final IRNode formal = ((VariableUseExpressionNode) base).resolveBinding().getNode();
-        final IRNode otherFormal = ((VariableUseExpressionNode) otherBase).resolveBinding().getNode();
+        final IRNode overridingFormal = ((VariableUseExpressionNode) overridingBase).resolveBinding().getNode();
         final int pos = positionMap.get(formal);
-        final int otherPos = positionMap.get(otherFormal);
-        return (pos == otherPos);
-      }
+        final int overridingPos = positionMap.get(overridingFormal);
+        return (pos == overridingPos);
+      }        
       
       if (base instanceof ThisExpressionNode) {
-        if (otherBase instanceof ThisExpressionNode) {
+        if (overridingBase instanceof ThisExpressionNode) {
           // Two "this" expressions
           return true;
-        } else if (otherBase instanceof QualifiedThisExpressionNode) {
+        } else if (overridingBase instanceof QualifiedThisExpressionNode) {
           // One "this" expression, and one "C.this".  Equal if C is the 
           // class that contains the annotated method.
-          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) otherBase);
+          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingBase);
         }
       }
       
       if (base instanceof QualifiedThisExpressionNode) {
-        if (otherBase instanceof QualifiedThisExpressionNode) {
+        if (overridingBase instanceof QualifiedThisExpressionNode) {
           // C. this and D.this.  Equal if C and D are the same type...
           final IType type = ((QualifiedThisExpressionNode) base).getType().resolveType();
-          final IType otherType = ((QualifiedThisExpressionNode) otherBase).getType().resolveType();
-          if (type.getJavaType().equals(otherType.getJavaType())) {
-//          if (type.equals(otherType)) {
+          final IType overridingType = ((QualifiedThisExpressionNode) overridingBase).getType().resolveType();
+          if (type.getJavaType().equals(overridingType.getJavaType())) {
             return true;
           } else {
             // ...or if C and D are the types that contain the annotated methods
             return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base)
-                && namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) otherBase);
+                && namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingBase);
           }
-        } else if (otherBase instanceof ThisExpressionNode) {
+        } else if (overridingBase instanceof ThisExpressionNode) {
           // One "this" expression, and one "C.this".  Equal if C is the 
           // class that contains the annotated method.
           return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base);
