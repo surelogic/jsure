@@ -101,6 +101,10 @@ public final class SeaStats {
 	public static final Counter[] STANDARD_COUNTERS = {
 		new Counter() {
             public String count(IDropInfo d) {
+            	ISrcRef sr = d.getSrcRef();
+                if (sr == null || !sr.getRelativePath().endsWith(".java")) {
+                	return null; // Not from source
+                }
                 String l = labelMap.get(d.getType());
                 if (l != null) {
                     return l;
