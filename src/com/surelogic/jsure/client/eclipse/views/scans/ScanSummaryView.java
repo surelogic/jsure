@@ -10,6 +10,7 @@ import org.eclipse.jface.viewers.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
@@ -72,7 +73,9 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		} finally {
 			f_viewerControl.getDisplay().asyncExec (new Runnable () {
 			      public void run () {
+			    	  projectList.refresh();
 			    	  tableViewer.refresh();
+			    	  summaryChart.redraw();
 			      }
 			});
 		}
@@ -128,11 +131,30 @@ public class ScanSummaryView extends AbstractScanManagerView {
 			s.setSymbolColor(colors[j]);
 			s.setLineColor(colors[j]);
 		}
+		summaryChart.addMenuDetectListener(new MenuDetectListener() {
+			public void menuDetected(MenuDetectEvent e) {
+				final Menu contextMenu = new Menu(summaryChart.getShell(), SWT.POP_UP);
+				setupChartContextMenu(contextMenu);
+				summaryChart.setMenu(contextMenu);
+			}
+		});
 		
 		f_form.setWeights(new int[] {20,40,40});
 		return tableViewer.getControl();
 	}
 
+	private void setupChartContextMenu(Menu menu) {
+		MenuItem zoomIn = new MenuItem(menu, SWT.PUSH);
+		zoomIn.setText("Zoom in");
+		zoomIn.addSelectionListener(new SelectionAdapter() {			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				summaryChart.getAxisSet().zoomIn();
+				summaryChart.redraw();
+			}
+		});
+	}
+	
 	protected void setupSorter(final TableViewer tViewer, final TableViewerColumn column, final int colIdx) {
 		final boolean intSort = f_content.isIntSortedColumn(colIdx); //"Line".equals(column.getColumn().getText());
 		new ColumnViewerSorter<Summary>(tViewer, column.getColumn()) {
