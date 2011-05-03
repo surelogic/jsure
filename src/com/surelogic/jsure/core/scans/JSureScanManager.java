@@ -51,7 +51,7 @@ public class JSureScanManager {
 			if (!data.getDataDir().equals(run.getParentFile())) {
 				throw new IllegalArgumentException("Scan directory is not under the JSure data dir: "+run);
 			}
-			data = JSureDataDirScanner.scan(data.getDataDir());
+			data = JSureDataDirScanner.scan(data);
 		}
 		notify(DataDirStatus.ADDED, run);
 	}
@@ -60,7 +60,7 @@ public class JSureScanManager {
 		File dir;
 		synchronized (this) {
 			dir = data.getDataDir();
-			data = JSureDataDirScanner.scan(data.getDataDir());
+			data = JSureDataDirScanner.scan(data);
 		}
 		notify(DataDirStatus.CHANGED, dir);
 	}
