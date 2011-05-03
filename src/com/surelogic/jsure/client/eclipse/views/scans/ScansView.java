@@ -235,8 +235,8 @@ public class ScansView extends AbstractScanManagerView {
 					return SLUtility.toStringHMS(d);
 				case 2:
 					return r.getProjects().getLabel();
-				case SIZE:
-					return String.format("%1$.1f", FileUtility.recursiveSizeInBytes(r.getDir()) / (1024*1024.0));
+				case SIZE:					
+					return String.format("%1$.1f", r.getSizeInMB());
 				}
 			} catch(Exception e) {
 				e.printStackTrace();
