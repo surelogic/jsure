@@ -1,5 +1,6 @@
 package com.surelogic.annotation.rules;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -171,11 +172,16 @@ public class MethodEffectsRules extends AnnotationRules {
 		  ConstructorDeclaration.prototype.includes(promisedFor);
 		final boolean isStatic = TypeUtil.isStatic(promisedFor);
 
-		boolean allGood = true;
+		// Used in consistency checking below
+    final List<EffectSpecificationNode> overridingEffects = 
+      new ArrayList<EffectSpecificationNode>();
+    boolean allGood = true;
 		// Iterate over the ReadNodes and WriteNodes - there should be a max of one
 		// each
 		for (final EffectsSpecificationNode esNode : readsAndWrites) {
 			final List<EffectSpecificationNode> effects = esNode.getEffectList();
+			overridingEffects.addAll(effects);
+			
 			boolean good = true;
 			// For each ReadNode and WriteNode, check their effects specification
 			for (final EffectSpecificationNode effectNode : effects) {
@@ -329,6 +335,18 @@ public class MethodEffectsRules extends AnnotationRules {
 					allGood = false;
 				}
 			}
+		}
+
+		/* Check the annotation against the annotation on any declarations that are
+		 * being overridden.
+		 */
+		if (allGood) {
+      // Compare against previous method declarations
+      for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
+        final IRNode overriddenMethod = context.getNode();
+        
+        // XXX:
+      }
 		}
 		
 //		/* Check the annotation against the annotation on any declarations that are

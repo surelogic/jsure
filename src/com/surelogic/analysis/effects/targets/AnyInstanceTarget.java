@@ -110,7 +110,6 @@ public final class AnyInstanceTarget extends AbstractTarget {
   boolean checkTargetAgainstAnyInstance(
       final IBinder b, final AnyInstanceTarget actualTarget) {
     return isAncestorOf(b, this.clazz, actualTarget.clazz)
-//    return areDirectlyRelated(b, actualTarget.clazz, this.clazz)
         && this.getRegion().ancestorOf(actualTarget.region);
   }
 
@@ -127,7 +126,6 @@ public final class AnyInstanceTarget extends AbstractTarget {
       final IBinder b, final InstanceTarget actualTarget) {
     final IJavaType clazz = b.getJavaType(actualTarget.reference);
     return isAncestorOf(b, this.clazz, clazz)
-//    return areDirectlyRelated(b, clazz, this.clazz)
         && this.region.getRegion().ancestorOf(actualTarget.region);
   }
   
