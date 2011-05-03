@@ -10,9 +10,13 @@ import org.eclipse.jface.viewers.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+import org.swtchart.*;
+import org.swtchart.ILineSeries.PlotSymbolType;
+import org.swtchart.ISeries.SeriesType;
 
 import com.surelogic.common.*;
 import com.surelogic.common.ui.ColumnViewerSorter;
@@ -37,6 +41,8 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	SashForm f_form;
 	ListViewer projectList;
 	TableViewer tableViewer;
+	Chart summaryChart;
+	Color[] colors;
 	
 	@Override
 	protected StructuredViewer getViewer() {
@@ -60,6 +66,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 			String rv = f_content.build(status, dirStatus, changed || selectedProjsChanged);
 			if (rv != null) {
 				tableViewer.setInput(f_content);
+				updateChart();
 			}
 			return rv;
 		} finally {
@@ -100,8 +107,29 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		tableViewer.getTable().setLinesVisible(true);
 		tableViewer.getTable().setHeaderVisible(true);
 		tableViewer.getTable().pack();
+	
+		colors = new Color[] {
+			null, null,			
+			parent.getDisplay().getSystemColor(SWT.COLOR_BLUE), // PROMISES
+			parent.getDisplay().getSystemColor(SWT.COLOR_GREEN),// CONSISTENT
+			parent.getDisplay().getSystemColor(SWT.COLOR_RED),  // INCONSISTENT
+			parent.getDisplay().getSystemColor(SWT.COLOR_MAGENTA), // VOUCHES
+			parent.getDisplay().getSystemColor(SWT.COLOR_GRAY), // ASSUMES
+			parent.getDisplay().getSystemColor(SWT.COLOR_BLACK), // INFO
+			parent.getDisplay().getSystemColor(SWT.COLOR_DARK_YELLOW),// WARNING
+		};
 		
-		f_form.setWeights(new int[] {20,80});
+		summaryChart = new Chart(f_form, SWT.NONE);
+		final ISeriesSet set = summaryChart.getSeriesSet();
+		final PlotSymbolType[] symbols = PlotSymbolType.values();
+		for(int j=KEYS; j<labels.length; j++) {
+			final ILineSeries s = (ILineSeries) set.createSeries(SeriesType.LINE, labels[j]);	
+			s.setSymbolType(symbols[j % symbols.length]);
+			s.setSymbolColor(colors[j]);
+			s.setLineColor(colors[j]);
+		}
+		
+		f_form.setWeights(new int[] {20,40,40});
 		return tableViewer.getControl();
 	}
 
@@ -400,4 +428,22 @@ public class ScanSummaryView extends AbstractScanManagerView {
 			updateViewer(ScanStatus.NEITHER_CHANGED, DataDirStatus.UNCHANGED, true);
 		}		
 	}
+	
+	private void updateChart() {		
+		for(int j=KEYS; j<labels.length; j++) {
+			final List<Double> series = new ArrayList<Double>();
+			for(Summary s : f_content.summaries) {
+				final String num = s.getKey(labels[j]);
+				series.add(Double.parseDouble(num));
+			}
+			// Convert to double[]
+			double[] ySeries = new double[series.size()];
+			for(int i=0; i<series.size(); i++) {
+				ySeries[i] = series.get(i);
+			}
+			summaryChart.getSeriesSet().getSeries(labels[j]).setYSeries(ySeries);
+		}
+		summaryChart.getAxisSet().adjustRange();
+	}
+
 }
