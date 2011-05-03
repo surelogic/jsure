@@ -55,19 +55,20 @@ implements IJSureScanListener, IJSureScanManagerListener {
 	 * Update the internal state, presumably after a new scan
 	 */
 	private void updateViewState(ScanStatus status, DataDirStatus dirStatus) {
-		if (status.changed()) {
+		if (status.changed() || dirStatus != DataDirStatus.UNCHANGED) {
 			final String label = updateViewer(status, dirStatus);
-			f_viewerControl.getDisplay().asyncExec (new Runnable () {
-			      public void run () {
-			    	  if (label != null) {
-			    		  if (getViewer() != null) {
-			    			  getViewer().setInput(getViewSite());
-			    		  }
-				    	  // TODO what else is there to do with the label?
-			    	  }
-			    	  f_viewerControl.redraw();
-			      }
-			 });
+			if (label != null) {
+				f_viewerControl.getDisplay().asyncExec (new Runnable () {
+					public void run () {
+
+						if (getViewer() != null) {
+							getViewer().setInput(getViewSite());
+						}
+						// TODO what else is there to do with the label?			    	  
+						f_viewerControl.redraw();
+					}
+				});
+			}
 		}
 	}
 }
