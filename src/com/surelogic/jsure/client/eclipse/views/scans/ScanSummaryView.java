@@ -1,6 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.scans;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.zip.*;
@@ -16,6 +17,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.swtchart.*;
+import org.swtchart.IAxis.Position;
 import org.swtchart.ILineSeries.PlotSymbolType;
 import org.swtchart.ISeries.SeriesType;
 
@@ -117,19 +119,33 @@ public class ScanSummaryView extends AbstractScanManagerView {
 			parent.getDisplay().getSystemColor(SWT.COLOR_GREEN),// CONSISTENT
 			parent.getDisplay().getSystemColor(SWT.COLOR_RED),  // INCONSISTENT
 			parent.getDisplay().getSystemColor(SWT.COLOR_MAGENTA), // VOUCHES
-			parent.getDisplay().getSystemColor(SWT.COLOR_GRAY), // ASSUMES
+			parent.getDisplay().getSystemColor(SWT.COLOR_CYAN), // ASSUMES
 			parent.getDisplay().getSystemColor(SWT.COLOR_BLACK), // INFO
-			parent.getDisplay().getSystemColor(SWT.COLOR_DARK_YELLOW),// WARNING
+			parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY),// WARNING
 		};
 		
 		summaryChart = new Chart(f_form, SWT.NONE);
+		summaryChart.getTitle().setVisible(false);
 		final ISeriesSet set = summaryChart.getSeriesSet();
 		final PlotSymbolType[] symbols = PlotSymbolType.values();
+		final int[] yAxes = new int[2];
+		final IAxisSet axes = summaryChart.getAxisSet();
+		yAxes[0] = axes.getYAxisIds()[0];
+		yAxes[1] = axes.createYAxis();		
+		for(int j=0; j<2; j++) {
+			final IAxis yAxis = axes.getYAxis(yAxes[j]);
+			yAxis.getTitle().setVisible(false);
+			if (j > 0) {
+				yAxis.setPosition(Position.Secondary);
+				yAxis.getTick().setForeground(colors[HIGH]);
+			}
+		}
 		for(int j=KEYS; j<labels.length; j++) {
 			final ILineSeries s = (ILineSeries) set.createSeries(SeriesType.LINE, labels[j]);	
 			s.setSymbolType(symbols[j % symbols.length]);
 			s.setSymbolColor(colors[j]);
 			s.setLineColor(colors[j]);
+			s.setYAxisId(yAxes[j >= HIGH ? 1 : 0]);
 		}
 		summaryChart.addMenuDetectListener(new MenuDetectListener() {
 			public void menuDetected(MenuDetectEvent e) {
@@ -230,6 +246,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	};
 	
 	static final int KEYS = 2;
+	static final int HIGH = 7;
 	
 	class ContentProvider implements ITableContentProvider {
 		JSureRun[] runs;
@@ -451,6 +468,9 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		}		
 	}
 	
+	private final SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss\nyy-MM-dd");
+	private static final String[] noStrings = new String[0];
+	
 	private void updateChart() {		
 		for(int j=KEYS; j<labels.length; j++) {
 			final List<Double> series = new ArrayList<Double>();
@@ -465,7 +485,23 @@ public class ScanSummaryView extends AbstractScanManagerView {
 			}
 			summaryChart.getSeriesSet().getSeries(labels[j]).setYSeries(ySeries);
 		}
-		summaryChart.getAxisSet().adjustRange();
+		// Set labels
+		final List<String> xLabels = new ArrayList<String>();
+		for(Summary s : f_content.summaries) {
+			try {
+				Date d = s.run.getProjects().getDate();
+				xLabels.add(format.format(d));
+			} catch (Exception e) {
+				e.printStackTrace();
+				xLabels.add(s.run.getName());
+			}
+		}
+		final IAxisSet axisSet = summaryChart.getAxisSet();
+		final IAxis xAxis = axisSet.getXAxis(0);
+		xAxis.setCategorySeries(xLabels.toArray(noStrings));
+		xAxis.enableCategory(true);
+		xAxis.getTitle().setVisible(false);
+		axisSet.adjustRange();
 	}
 
 }
