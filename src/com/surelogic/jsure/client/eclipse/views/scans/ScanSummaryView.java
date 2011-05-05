@@ -501,7 +501,13 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		xAxis.setCategorySeries(xLabels.toArray(noStrings));
 		xAxis.enableCategory(true);
 		xAxis.getTitle().setVisible(false);
+				
 		axisSet.adjustRange();
+		for(IAxis y : axisSet.getYAxes()) {
+			if (y.getRange().lower != 0.0) {
+				y.setRange(new Range(0, y.getRange().upper));
+			}
+		}
 	}
 
 }
