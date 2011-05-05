@@ -142,7 +142,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		}
 		for(int j=KEYS; j<labels.length; j++) {
 			final ILineSeries s = (ILineSeries) set.createSeries(SeriesType.LINE, labels[j]);	
-			s.setSymbolType(symbols[j % symbols.length]);
+			s.setSymbolType(symbols[1 + j % (symbols.length-1)]); // to avoid NONE
 			s.setSymbolColor(colors[j]);
 			s.setLineColor(colors[j]);
 			s.setYAxisId(yAxes[j >= HIGH ? 1 : 0]);
