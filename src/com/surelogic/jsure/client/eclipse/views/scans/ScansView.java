@@ -22,7 +22,6 @@ import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.views.ITableContentProvider;
 import com.surelogic.fluid.javac.scans.*;
 import com.surelogic.fluid.javac.persistence.*;
-import com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView.Summary;
 import com.surelogic.jsure.core.scans.*;
 
 /**
