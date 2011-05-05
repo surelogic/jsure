@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.scans;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 
 import org.eclipse.jface.action.*;
@@ -20,6 +22,7 @@ import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.views.ITableContentProvider;
 import com.surelogic.fluid.javac.scans.*;
 import com.surelogic.fluid.javac.persistence.*;
+import com.surelogic.jsure.client.eclipse.views.scans.ScanSummaryView.Summary;
 import com.surelogic.jsure.core.scans.*;
 
 /**
@@ -153,6 +156,18 @@ public class ScansView extends AbstractScanManagerView {
 		// TODO Auto-generated method stub	
 	}
 	
+	static final Comparator<JSureRun> runsByDate = new Comparator<JSureRun>() {		
+		@Override
+		public int compare(JSureRun r1, JSureRun r2) {			
+			try {
+				return r1.getProjects().getDate().compareTo(r2.getProjects().getDate());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return 0;
+		}
+	};
+	
 	static class ContentProvider implements ITableContentProvider {
 		JSureRun[] runs;
 		JSureRun baseline, current;
@@ -169,8 +184,10 @@ public class ScansView extends AbstractScanManagerView {
 				}
 			} else { // Enough changed
 				runs = data.getAllRuns();
+				Arrays.sort(runs, runsByDate);
+				
 				baseline = findScan(data, JSureScansHub.getInstance().getBaselineScanInfo());
-				current = findScan(data, JSureScansHub.getInstance().getCurrentScanInfo());
+				current = findScan(data, JSureScansHub.getInstance().getCurrentScanInfo());				
 			}
 			return "";
 		}

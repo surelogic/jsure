@@ -248,6 +248,18 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	static final int KEYS = 2;
 	static final int HIGH = 7;
 	
+	static final Comparator<Summary> summaryByDate = new Comparator<Summary>() {		
+		@Override
+		public int compare(Summary s1, Summary s2) {			
+			try {
+				return s1.run.getProjects().getDate().compareTo(s2.run.getProjects().getDate());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return 0;
+		}
+	};
+	
 	class ContentProvider implements ITableContentProvider {
 		JSureRun[] runs;
 		Summary[] summaries;
@@ -313,6 +325,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 					}
 				}
 				this.summaries = summaries.toArray(noSummaries);
+				Arrays.sort(this.summaries, summaryByDate);
 			} else {
 				this.summaries = noSummaries;
 			}
