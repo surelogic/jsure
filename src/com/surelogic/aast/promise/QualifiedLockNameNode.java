@@ -89,8 +89,8 @@ public final class QualifiedLockNameNode extends LockNameNode {
   
   @Override
   public IAASTNode cloneTree(){
-  	return new QualifiedLockNameNode(getOffset(),
-  	    (ExpressionNode)getBase().cloneTree(), new String(getId()));
+    return new QualifiedLockNameNode(getOffset(),
+        (ExpressionNode)getBase().cloneTree(), new String(getId()));
   }
 
   
@@ -110,20 +110,14 @@ public final class QualifiedLockNameNode extends LockNameNode {
      */
 
     if (getId().equals(overriding.getId())) {
-      final ExpressionNode base = getBase();
-      final LockModel model = overriding.resolveBinding().getModel();
-      if (!model.isLockStatic()) { // first lock is from the receiver
-        if (base instanceof ThisExpressionNode) {
-          // Other expression is an explicit this
-          return true;
-        } else if (base instanceof QualifiedThisExpressionNode) {
-          /* Qualified type must be the type that contains the annotated method */
-          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base);
-        }
+      final ExpressionNode ancestorBase = getBase();
+      final LockModel overridingModel = overriding.resolveBinding().getModel();
+      if (!overridingModel.isLockStatic()) { // first lock is from the receiver
+        return specifiesTheReceiver(ancestorBase);
       } else { // First lock is a static lock from the current class
-        if (base instanceof TypeExpressionNode) {
+        if (ancestorBase instanceof TypeExpressionNode) {
           // must refer to the same static lock model
-          return model.equals(overriding.resolveBinding().getModel());
+          return overridingModel.equals(overriding.resolveBinding().getModel());
         }
       }
     }
@@ -134,11 +128,11 @@ public final class QualifiedLockNameNode extends LockNameNode {
   final boolean namesSameLockAsQualifiedLock(final QualifiedLockNameNode overriding,
       final Map<IRNode, Integer> positionMap, final How how) {
     if (getId().equals(overriding.getId())) {
-      final ExpressionNode base = getBase();
+      final ExpressionNode ancestorBase = getBase();
       final ExpressionNode overridingBase = overriding.getBase();
       
       // Static locks: must be the same lock model
-      if ((base instanceof TypeExpressionNode) &&
+      if ((ancestorBase instanceof TypeExpressionNode) &&
           (overridingBase instanceof TypeExpressionNode)) {
         final LockModel model = resolveBinding().getModel();
         final LockModel overridingModel = overriding.resolveBinding().getModel();
@@ -147,44 +141,43 @@ public final class QualifiedLockNameNode extends LockNameNode {
       
       // Variable use expression: Must name the same formal parameter.  
       // Normalize names by checking for the parameter position.
-      if ((base instanceof VariableUseExpressionNode) && 
+      if ((ancestorBase instanceof VariableUseExpressionNode) && 
           (overridingBase instanceof VariableUseExpressionNode)) {
-        final IRNode formal = ((VariableUseExpressionNode) base).resolveBinding().getNode();
+        final IRNode formal = ((VariableUseExpressionNode) ancestorBase).resolveBinding().getNode();
         final IRNode overridingFormal = ((VariableUseExpressionNode) overridingBase).resolveBinding().getNode();
         final int pos = positionMap.get(formal);
         final int overridingPos = positionMap.get(overridingFormal);
         return (pos == overridingPos);
       }        
       
-      if (base instanceof ThisExpressionNode) {
-        if (overridingBase instanceof ThisExpressionNode) {
-          // Two "this" expressions
-          return true;
-        } else if (overridingBase instanceof QualifiedThisExpressionNode) {
-          // One "this" expression, and one "C.this".  Equal if C is the 
-          // class that contains the annotated method.
-          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingBase);
-        }
+      if (ancestorBase instanceof ThisExpressionNode) {
+        return specifiesTheReceiver(overridingBase);
       }
       
-      if (base instanceof QualifiedThisExpressionNode) {
-        if (overridingBase instanceof QualifiedThisExpressionNode) {
-          // C. this and D.this.  Equal if C and D are the same type...
-          final IType type = ((QualifiedThisExpressionNode) base).getType().resolveType();
-          final IType overridingType = ((QualifiedThisExpressionNode) overridingBase).getType().resolveType();
-          if (type.getJavaType().equals(overridingType.getJavaType())) {
-            return true;
-          } else {
-            // ...or if C and D are the types that contain the annotated methods
-            return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base)
-                && namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingBase);
+      if (ancestorBase instanceof QualifiedThisExpressionNode) {
+        // Check if the ancestor really is just the 0th-qualified outer class, that is, the normal receiver
+        if (namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) ancestorBase)) {
+          return specifiesTheReceiver(overridingBase);
+        } else { // ancestor is a real qualified receiver
+          if (overridingBase instanceof QualifiedThisExpressionNode) {
+            // C. this and D.this.  Equal if C and D are the same type...
+            final IType type = ((QualifiedThisExpressionNode) ancestorBase).getType().resolveType();
+            final IType overridingType = ((QualifiedThisExpressionNode) overridingBase).getType().resolveType();
+            return type.getJavaType().equals(overridingType.getJavaType());
           }
-        } else if (overridingBase instanceof ThisExpressionNode) {
-          // One "this" expression, and one "C.this".  Equal if C is the 
-          // class that contains the annotated method.
-          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base);
         }
       }
+    }
+    return false;
+  }
+  
+  private static boolean specifiesTheReceiver(final ExpressionNode base) {
+    if (base instanceof ThisExpressionNode) {
+      // Other expression is an explicit this
+      return true;
+    } else if (base instanceof QualifiedThisExpressionNode) {
+      /* Qualified type must be the type that contains the annotated method */
+      return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base);
     }
     return false;
   }

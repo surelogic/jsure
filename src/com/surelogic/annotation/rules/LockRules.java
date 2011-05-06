@@ -698,7 +698,9 @@ public class LockRules extends AnnotationRules {
               }
             }
             allGood = false;
-            context.reportError(node, "Cannot add lock {0} to @RequiresLock annotation", lock.unparse(false));
+            context.reportError(node, "Cannot add lock {0} to @RequiresLock annotation of {1}",
+                lock.unparse(false),
+                JavaNames.genQualifiedMethodConstructorName(parent));
           }
         }
       }      

@@ -1,18 +1,8 @@
-<package name="java.util">
- <class name="AbstractMap">
-  <method name="hashCode">
-   <!--starts>nothing</starts-->
-   <borrowed>this</borrowed>
-   <RegionEffects>reads Instance</RegionEffects>
-   <transparent/>
-  </method>
-
+<package name="java.security">
+ <class name="Provider">
+  <selfProtected/>
+ 
   <method name="keySet">
-    <borrowed>this</borrowed>
-    <RegionEffects>reads Instance</RegionEffects>
-  </method>
-  
-  <method name="size">
     <borrowed>this</borrowed>
     <RegionEffects>reads Instance</RegionEffects>
   </method>
@@ -20,11 +10,6 @@
   <method name="get" params="java.lang.Object">
     <borrowed>this</borrowed>
     <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
-  </method>
-
-  <method name="containsKey" params="java.lang.Object">
-    <borrowed>this</borrowed>
-    <RegionEffects> reads Instance, arg0:Instance</RegionEffects>
   </method>
 
   <method name="remove" params="java.lang.Object">

@@ -1,9 +1,9 @@
 package com.surelogic.annotation.rules;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -11,8 +11,6 @@ import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
-import com.surelogic.analysis.effects.Effect;
-import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
@@ -28,21 +26,24 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
+import edu.cmu.cs.fluid.util.Iteratable;
 
 public class MethodEffectsRules extends AnnotationRules {
 	public static final String EFFECTS = "Effects";
 	public static final String REGIONEFFECTS = "RegionEffects";
-
+	
 	private static final AnnotationRules instance = new MethodEffectsRules();
 
 	private static final RegionEffects_ParseRule regionEffectsRule = new RegionEffects_ParseRule();
@@ -128,27 +129,37 @@ public class MethodEffectsRules extends AnnotationRules {
 				
         @Override
         protected boolean processUnannotatedMethodRelatedDecl(final IRNode decl) {
-          return true;
-          
-          // XXX: Unannotated method is writes("All")
-          
-          // from Starts("Nothing')
-//          /* If any of the immediate ancestors are annotated, then we have 
-//           * an error. 
-//           */
-//          boolean good = true;
-//          for (final IBinding pBinding : getContext().getBinder().findOverriddenParentMethods(decl)) {
-//            final IRNode parent = pBinding.getNode();
-//            if (startsNothing(parent)) {
-//              // Ancestor is annotated
-//              good = false;
-//              getContext().reportError(decl,
-//                  "Method must be annotated @Starts(\"nothing\") because it overrides @Starts(\"nothing\") {0}",
-//                  JavaNames.genQualifiedMethodConstructorName(parent));
-//            }
-//          }
-//          return good;
-        }				
+          boolean allGood = true;
+          final IRegion regionAll = RegionModel.getAllRegion(decl);
+          for (final IBinding context : getContext().getBinder().findOverriddenParentMethods(decl)) {
+            final IRNode overriddenMethod = context.getNode();
+            final RegionEffectsPromiseDrop fxDrop = getRegionEffectsDrop(overriddenMethod);
+            if (fxDrop != null) {
+              final RegionEffectsNode overriddenFx = fxDrop.getAST();
+              // Each overridden effect must be satisfied by write(All)
+              boolean good = true;
+              outer: for (final EffectsSpecificationNode n1 : overriddenFx.getEffectsList()) {
+                for (final EffectSpecificationNode ancestorSpec : n1.getEffectList()) {
+                  if (!ancestorSpec.satisfiedByWritesAll(regionAll)) {
+                    good = false;
+                    allGood = false;
+                    break outer;
+                  }
+                }
+              }
+              if (!good) {
+                getContext().reportError(decl,
+                    "Cannot add effect writes java.lang.Object:All to the declared effects of {0}",
+                    JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
+              }          
+            } else {
+              /* No annotation is same as @RegionEffects("writes java.lang.Object:All").  
+               * Nothing to check in this case.  
+               */
+            }
+          } 
+          return allGood;
+        }
 			};
 		}
 	}
@@ -159,7 +170,7 @@ public class MethodEffectsRules extends AnnotationRules {
 	 * @param node The {@link RegionEffectsNode} to be scrubbed
 	 * @return A correct {@link RegionEffectsPromiseDrop} if everything in the AAST checked out, null otherwise
 	 */
-	static RegionEffectsPromiseDrop scrubRegionEffects(
+	private static RegionEffectsPromiseDrop scrubRegionEffects(
 			IAnnotationScrubberContext scrubberContext, RegionEffectsNode node) {
 		RegionEffectsPromiseDrop drop = null;
 		final List<EffectsSpecificationNode> readsAndWrites = node.getEffectsList();
@@ -342,83 +353,48 @@ public class MethodEffectsRules extends AnnotationRules {
 		 * being overridden.
 		 */
 		if (allGood) {
-			if (SomeFunctionDeclaration.prototype.includes(promisedFor)) { // Not a class init or other node
-				// Compare against previous method declarations
-				for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
-					final IRNode overriddenMethod = context.getNode();
-					// XXX:
-				}
-			}
+      if (SomeFunctionDeclaration.prototype.includes(promisedFor)) { // Not a class init or other node
+        // Compare against previous method declarations
+        for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
+          final IRNode overriddenMethod = context.getNode();
+          final Map<IRNode, Integer> positionMap = buildParameterMap(promisedFor, overriddenMethod);
+          
+          final RegionEffectsPromiseDrop fxDrop = getRegionEffectsDrop(overriddenMethod);
+          if (fxDrop != null) {
+            final RegionEffectsNode overriddenFx = fxDrop.getAST();
+            // Each overriding effect must satisfy one of the ancestor effects
+            for (EffectSpecificationNode overridingSpec : overridingEffects) {
+              boolean found = false;
+              outer: for (final EffectsSpecificationNode n1 : overriddenFx.getEffectsList()) {
+                for (final EffectSpecificationNode ancestorSpec : n1.getEffectList()) {
+                  if (overridingSpec.satisfiesSpecfication(ancestorSpec, positionMap, typeEnv)) {
+                    found = true;
+                    break outer;
+                  }
+                }
+              }
+              if (!found) {
+                allGood = false;
+                scrubberContext.reportError(node,
+                    "Cannot add effect {0} to the declared effects of {1}",
+                    overridingSpec.standAloneUnparse(),
+                    JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
+              }
+            }          
+          } else {
+            /* No annotation is same as @RegionEffects("writes java.lang.Object:All").  
+             * Nothing to check in this case.  
+             */
+          }
+        }
+      }
 		}
-		
-//		/* Check the annotation against the annotation on any declarations that are
-//		 * being overridden.
-//		 */
-//		if (allGood) {
-//		  final Effects fx = new Effects(scrubberContext.getBinder());
-//		  // Convert the declared effects to set of Effect objects
-//		  final Set<Effect> currentEffects = new HashSet<Effect>();
-//		  Effects.getEffectsFromSpecificationNode(
-//		      promisedFor, readsAndWrites, currentEffects, null);
-//		  
-//		  /* PROBLEM: Need to normalize the actual and formal parameters so
-//		   * that they can be compared.
-//		   */
-//		  
-//		  System.out.println("Checking consistency of " + JavaNames.genQualifiedMethodConstructorName(promisedFor));
-//		  System.out.println("Has effects " + Effects.unparseForPromise(currentEffects));
-//		  
-//		  // Compare against previous method declarations
-//		  for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
-//		    final IRNode overriddenMethod = context.getNode();
-//		    // Get original effects, compensating for nonexistent
-//		    final Set<Effect> originalEffects = fx.getMethodEffects(overriddenMethod, promisedFor);
-//	      System.out.println("  Checking against " + JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
-//	      System.out.println("  with effects " + Effects.unparseForPromise(originalEffects));
-//		    if (!effectDeclarationIsConsistent(node, scrubberContext, overriddenMethod, originalEffects, currentEffects)) {
-//		      System.out.println("  INCONSISTENT");
-//		      allGood = false;
-//		    } else {
-//          System.out.println("  CONSISTENT");
-//		    }
-//		    System.out.println();
-//		  }
-//		}
-		
+
 		if (allGood) {
 			drop = new RegionEffectsPromiseDrop(node);
 		}
 		return drop;
 	}
-	
-	
-	
-//  private static boolean effectDeclarationIsConsistent(
-//	    final RegionEffectsNode node,
-//	    final IAnnotationScrubberContext scrubberContext,
-//	    final IRNode originalMethod,
-//	    final Set<Effect> originalFX, final Set<Effect> currentFX) {
-//	  /* Check that each effect in current is equal to or more specific than
-//	   * an effect in original.
-//	   */
-//	  boolean allChecked = true;
-//	  final IBinder binder = scrubberContext.getBinder();
-//	  for (final Effect current : currentFX) {
-//	    boolean isChecked = false;
-//	    for (final Effect original : originalFX) {
-//	      if (current.isCheckedBy(binder, original)) {
-//	        isChecked = true;
-//	        break;
-//	      }
-//	    }
-//	    if (!isChecked) {
-//  	    scrubberContext.reportError(node, "Declared effect {0} is not accounted for by the declared effects of {1}",
-//  	        current.toString(), JavaNames.genQualifiedMethodConstructorName(originalMethod));
-//	    }
-//	    allChecked &= isChecked;
-//	  }
-//	  return allChecked;
-//	}
 	
 	
 	
@@ -457,4 +433,22 @@ public class MethodEffectsRules extends AnnotationRules {
 	    return false;
 	  }
 	}
+
+
+
+  // XXX: From LockRules --- find a better place for this
+  private static Map<IRNode, Integer> buildParameterMap(
+      final IRNode annotatedMethod, final IRNode parent) {
+    // Should have the same number of arguments
+    final Iteratable<IRNode> p1 = Parameters.getFormalIterator(MethodDeclaration.getParams(annotatedMethod));
+    final Iteratable<IRNode> p2 = Parameters.getFormalIterator(MethodDeclaration.getParams(parent));
+    int count = 0;
+    final Map<IRNode, Integer> positionMap = new HashMap<IRNode, Integer>();
+    for (final IRNode arg1 : p1) {
+      positionMap.put(arg1, count);
+      positionMap.put(p2.next(), count);
+      count += 1;
+    }
+    return positionMap;
+  }
 }

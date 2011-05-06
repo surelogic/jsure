@@ -1,0 +1,13 @@
+<package name="java.util">
+ <class name="SortedMap">
+  <method name="keySet">
+    <borrowed>this</borrowed>
+    <RegionEffects>reads Instance</RegionEffects>
+  </method>
+
+  <method name="values">
+    <borrowed>this</borrowed>
+    <RegionEffects>reads Instance</RegionEffects>
+  </method>
+ </class>
+</package>

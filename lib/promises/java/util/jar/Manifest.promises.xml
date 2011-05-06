@@ -1,0 +1,14 @@
+<package name="java.util.jar">
+ <class name="Manifest">
+ 
+  <class name="FastInputStream">
+   <method name="read" params="byte[],int,int">
+    <parameter index="0">
+       <borrowed/>
+    </parameter>
+    <RegionEffects>writes this:Instance, arg0:Instance</RegionEffects>
+    <!--starts>nothing</starts-->
+   </method>
+  </class>
+ </class>
+</package>

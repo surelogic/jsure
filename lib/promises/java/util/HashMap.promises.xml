@@ -38,5 +38,36 @@
     <borrowed>this</borrowed>
     <RegionEffects>reads Instance</RegionEffects>
   </method>
+ 
+  <method name="clear">
+    <borrowed>this</borrowed>
+    <RegionEffects>writes Instance</RegionEffects>
+  </method>
+
+
+
+  <class name="EntrySet">
+   <method name="iterator">
+    <!--starts>nothing</starts-->
+    <borrowed>this</borrowed>  <!-- not really true -->
+    <RegionEffects>reads this:Instance</RegionEffects>
+   </method>
+  </class>
+
+  <class name="KeySet">
+   <method name="iterator">
+    <!--starts>nothing</starts-->
+    <borrowed>this</borrowed>  <!-- not really true -->
+    <RegionEffects>reads this:Instance</RegionEffects>
+   </method>
+  </class>
+
+  <class name="Values">
+   <method name="iterator">
+    <!--starts>nothing</starts-->
+    <borrowed>this</borrowed>  <!-- not really true -->
+    <RegionEffects>reads this:Instance</RegionEffects>
+   </method>
+  </class>
  </class>
 </package>

@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
 <package name="java.io">
-    <class name="PrintStream">
+ <class name="FilterOutputStream">
+  <constructor>
+    <borrowed>this</borrowed>
+  </constructor>
   
   <method name="write" params="byte[],int,int">
     <parameter index="0">
@@ -10,5 +11,5 @@
     <RegionEffects>writes this:Instance; reads arg0:Instance</RegionEffects>
     <!--starts>nothing</starts-->
   </method>
-    </class>
+ </class>
 </package>

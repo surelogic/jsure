@@ -70,14 +70,12 @@ public class EffectSpecificationNode extends AASTNode {
 			indent(sb, indent + 2);
 			sb.append("isWrite=").append(getIsWrite());
 			sb.append("\n");
-		}
-		if (debug) {
-		  sb.append(getContext().unparse(true, indent + 2));
-		  sb.append(getRegion().unparse(true, indent + 2));
+      sb.append(getContext().unparse(true, indent + 2));
+      sb.append(getRegion().unparse(true, indent + 2));
 		} else {
 		  /* This is super sleazy, but I don't know what else to do. 
 		   * ImplicitQualifierNode is really just a place holder to keep the
-		   * parse tree happy.  All the informaton I need to interpret that node
+		   * parse tree happy.  All the information I need to interpret that node
 		   * is in the region itself: if the region is instance, then we pretend
 		   * the qualifier is "this", other wise we pretend the qualifier is
 		   * the class name, which we already know from the bound region.
@@ -102,6 +100,13 @@ public class EffectSpecificationNode extends AASTNode {
 		return sb.toString();
 	}
 
+	/**
+	 * Unparse the node for use stand alone, that is, not being nested 
+	 * inside an unparsing of its ancestors.
+	 */
+	public String standAloneUnparse() {
+	  return (isWrite ? "writes " : "reads ") + unparse(false);
+	}
 	/**
 	 * @return A non-null boolean
 	 */
@@ -172,21 +177,10 @@ public class EffectSpecificationNode extends AASTNode {
         final ExpressionNode ancestorContext = ancestor.context;
         final ExpressionNode overridingContext = this.context;
         if (ancestorContext instanceof ImplicitQualifierNode) {
-          if (ancestorRegion.isStatic()) {
-            // Affects class region: done
+          if (ancestorRegion.isStatic()) { // Affects class region: done
             return true;
-          } else {
-            // Affects region of the receiver
-            if (overridingContext instanceof ImplicitQualifierNode) {
-              return !overridingRegion.isStatic();
-            } else if (overridingContext instanceof ThisExpressionNode) {
-              // Two "this" expressions
-              return true;
-            } else if (overridingContext instanceof QualifiedThisExpressionNode) {
-              // One "this" expression, and one "C.this".  Equal if C is the 
-              // class that contains the annotated method.
-              return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingContext);
-            }
+          } else { // Affects region of the receiver
+            return overridingSpecNamesTheReciever(overridingContext, overridingRegion);
           }
         } else if (ancestorContext instanceof AnyInstanceExpressionNode) {
           final IJavaType ancestorType = ((AnyInstanceExpressionNode) ancestorContext).getType().resolveType().getJavaType();
@@ -205,36 +199,31 @@ public class EffectSpecificationNode extends AASTNode {
                     overridingRegion.isStatic())) {
               return false;
             } else { // Instance targets must be of a compatible type
-              // TODO
               final IJavaType overridingType = 
                 overridingContext.resolveType().getJavaType();
               return typeEnv.isRawSubType(overridingType, ancestorType);
             }
           }
         } else if (ancestorContext instanceof QualifiedThisExpressionNode) {
+          // XXX: FIX this and then fix the LockNameNode methods...
+          
           /* Affects region of a qualified receiver.  Overriding method must
            * use the same qualified receiver, unless one of the qualified
            * receivers is actually the regular receiver being named by the
            * 0th-outer class.
            */
-          // C. this and D.this.  Equal if C and D are the same type...
-          if (overridingContext instanceof QualifiedThisExpressionNode) {
-            final IType ancestorType = ((QualifiedThisExpressionNode) ancestorContext).getType().resolveType();
-            final IType overridingType = ((QualifiedThisExpressionNode) overridingContext).getType().resolveType();
-            if (ancestorType.getJavaType().equals(overridingType.getJavaType())) {
-              return true;
-            } else {
-              // ...or if C and D are the types that contain the annotated methods (both 0th-outer class)
-              return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) ancestorContext)
-                  && namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingContext);
-            }
-          } else if (overridingContext instanceof ThisExpressionNode) {
-            // Ancestor specification must be using the 0th-outer class to name the regular receiver
-            return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) ancestorContext);
-          } else if (overridingContext instanceof ImplicitQualifierNode) {
-            if (!overridingRegion.isStatic()) {
-              // Ancestor specification must be using the 0th-outer class to name the regular receiver
-              return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) ancestorContext);
+          
+          // First check if the qualified receiver is really the regular receiver
+          if (namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) ancestorContext)) {
+            /* Affects region of the receiver.  Overriding method must name
+             * the receiver implicitly, explicitly, or via the 0th-outer class.
+             */
+            return overridingSpecNamesTheReciever(overridingContext, overridingRegion);
+          } else { // We have a true receiver of an outer class
+            if (overridingContext instanceof QualifiedThisExpressionNode) {
+              final IType ancestorType = ((QualifiedThisExpressionNode) ancestorContext).getType().resolveType();
+              final IType overridingType = ((QualifiedThisExpressionNode) overridingContext).getType().resolveType();
+              return ancestorType.getJavaType().equals(overridingType.getJavaType());
             }
           }
         } else if (ancestorContext instanceof TypeExpressionNode) {
@@ -244,16 +233,7 @@ public class EffectSpecificationNode extends AASTNode {
           /* Affects region of the receiver.  Overriding method must name
            * the receiver implicitly, explicitly, or via the 0th-outer class.
            */
-          if (overridingContext instanceof ImplicitQualifierNode) {
-            return !overridingRegion.isStatic();
-          } else if (overridingContext instanceof ThisExpressionNode) {
-            // Two "this" expressions
-            return true;
-          } else if (overridingContext instanceof QualifiedThisExpressionNode) {
-            // One "this" expression, and one "C.this".  Equal if C is the 
-            // class that contains the annotated method.
-            return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingContext);
-          }
+          return overridingSpecNamesTheReciever(overridingContext, overridingRegion);
         } else if (ancestorContext instanceof VariableUseExpressionNode) {
           /* Affects region of a formal argument; Overriding declaration must
            * affect the same argument.
@@ -302,6 +282,40 @@ public class EffectSpecificationNode extends AASTNode {
     return false;
   }
 
+  private static boolean overridingSpecNamesTheReciever(
+      final ExpressionNode overridingContext, 
+      final IRegion overridingRegion) {
+    if (overridingContext instanceof ImplicitQualifierNode) {
+      return !overridingRegion.isStatic();
+    } else if (overridingContext instanceof ThisExpressionNode) {
+      // Two "this" expressions
+      return true;
+    } else if (overridingContext instanceof QualifiedThisExpressionNode) {
+      // One "this" expression, and one "C.this".  Equal if C is the 
+      // class that contains the annotated method.
+      return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingContext);
+    }
+    return false;
+  }
+  
+  /**
+   * Returns whether the effect specification node is satisfied by the 
+   * effect "writes All".
+   */
+  public final boolean satisfiedByWritesAll(final IRegion regionAll) {
+    /* Ancestor must be writes All (ImplicitQualifierNode) or 
+     * writes java.lang.Object:All (TypeExpressionNode)
+     */
+    if (this.isWrite) {
+      final IRegion ancestorRegion = this.region.resolveBinding().getRegion();
+      if (ancestorRegion.equals(regionAll)) {
+        return (this.context instanceof ImplicitQualifierNode) ||
+            (this.context instanceof TypeExpressionNode);
+      }
+    }
+    return false;
+  }
+  
 
 
   // Copied from LockNameNode.  Need to find a general place to put this

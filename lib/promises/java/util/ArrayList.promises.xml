@@ -58,5 +58,10 @@
     <borrowed>this</borrowed>
     <RegionEffects>writes Instance</RegionEffects>
   </method>
+  
+  <method name="isEmpty">
+   <borrowed>this</borrowed>  
+   <RegionEffects>reads this:Instance</RegionEffects>
+  </method>
  </class>
 </package>
