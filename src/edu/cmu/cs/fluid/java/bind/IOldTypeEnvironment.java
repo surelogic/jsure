@@ -9,6 +9,7 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.*;
 
 import com.surelogic.aast.promise.*;
+import com.surelogic.analysis.IIRProject;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
@@ -117,8 +118,8 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
     
     private static final Map<String,IRNode> types = new Hashtable<String, IRNode>();
     
-    public static IRNode createArrayType(String project) {
-      final IRNode rv = types.get(project);
+    public static IRNode createArrayType(String project, IIRProject p) {      
+      final IRNode rv = types.get(project+p.hashCode());
       if (rv != null) {
     	  return rv;
       }
