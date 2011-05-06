@@ -35,6 +35,7 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 
@@ -158,7 +159,7 @@ public class MethodEffectsRules extends AnnotationRules {
 	 * @param node The {@link RegionEffectsNode} to be scrubbed
 	 * @return A correct {@link RegionEffectsPromiseDrop} if everything in the AAST checked out, null otherwise
 	 */
-	private static RegionEffectsPromiseDrop scrubRegionEffects(
+	static RegionEffectsPromiseDrop scrubRegionEffects(
 			IAnnotationScrubberContext scrubberContext, RegionEffectsNode node) {
 		RegionEffectsPromiseDrop drop = null;
 		final List<EffectsSpecificationNode> readsAndWrites = node.getEffectsList();
@@ -341,12 +342,13 @@ public class MethodEffectsRules extends AnnotationRules {
 		 * being overridden.
 		 */
 		if (allGood) {
-      // Compare against previous method declarations
-      for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
-        final IRNode overriddenMethod = context.getNode();
-        
-        // XXX:
-      }
+			if (SomeFunctionDeclaration.prototype.includes(promisedFor)) { // Not a class init or other node
+				// Compare against previous method declarations
+				for (final IBinding context : scrubberContext.getBinder().findOverriddenParentMethods(promisedFor)) {
+					final IRNode overriddenMethod = context.getNode();
+					// XXX:
+				}
+			}
 		}
 		
 //		/* Check the annotation against the annotation on any declarations that are
