@@ -1,0 +1,11 @@
+<package name="java.io">
+ <class name="ByteArrayOutputStream">
+  <method name="write" params="byte[],int,int">
+    <parameter index="0">
+       <borrowed/>
+    </parameter>
+    <RegionEffects>writes this:Instance; reads arg0:Instance</RegionEffects>
+    <!--starts>nothing</starts-->
+  </method>
+ </class>
+</package>

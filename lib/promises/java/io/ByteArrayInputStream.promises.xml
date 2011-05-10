@@ -1,9 +1,5 @@
 <package name="java.io">
- <class name="FileInputStream">
-  <constructor params="java.io.File">
-    <borrowed>this</borrowed>
-  </constructor>
-
+ <class name="ByteArrayInputStream">
   <method name="read" params="byte[],int,int">
     <parameter index="0">
        <borrowed/>

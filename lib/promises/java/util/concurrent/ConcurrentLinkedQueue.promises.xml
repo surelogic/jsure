@@ -1,0 +1,14 @@
+<package name="java.util.concurrent">
+ <class name="ConcurrentLinkedQueue">
+  <method name="iterator">
+   <!--starts>nothing</starts-->
+   <borrowed>this</borrowed>  <!-- not really true -->
+   <RegionEffects>reads this:Instance</RegionEffects>
+  </method>
+  
+  <method name="isEmpty">
+   <borrowed>this</borrowed>  
+   <RegionEffects>reads this:Instance</RegionEffects>
+  </method>
+ </class>
+</package>

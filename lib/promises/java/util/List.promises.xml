@@ -14,6 +14,11 @@
    <borrowed>this</borrowed>  <!-- not really true -->
    <RegionEffects>reads this:Instance</RegionEffects>
   </method>
+
+  <method name="listIterator" params="int">
+   <borrowed>this</borrowed>  <!-- not really true -->
+   <RegionEffects>reads this:Instance</RegionEffects>
+  </method>
   
   <method name="isEmpty">
    <borrowed>this</borrowed>  
