@@ -1,6 +1,6 @@
 <package name="java.io">
  <class name="FilterInputStream">
-  <constructor>
+  <constructor params="java.io.InputStream">
     <borrowed>this</borrowed>
   </constructor>
   <method name="read" params="byte[],int,int">

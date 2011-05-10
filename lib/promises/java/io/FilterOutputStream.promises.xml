@@ -1,6 +1,6 @@
 <package name="java.io">
  <class name="FilterOutputStream">
-  <constructor>
+  <constructor params="java.io.OutputStream">
     <borrowed>this</borrowed>
   </constructor>
   
