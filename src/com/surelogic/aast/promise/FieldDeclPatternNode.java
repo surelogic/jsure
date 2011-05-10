@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class FieldDeclPatternNode extends PromiseTargetNode {
+public class FieldDeclPatternNode extends ConcreteTargetNode {
 	// Fields
 	private final int mods;
 	private final TypeNode ftype;
@@ -175,5 +175,15 @@ public class FieldDeclPatternNode extends PromiseTargetNode {
 		return new FieldDeclPatternNode(getOffset(), getMods(),
 				(TypeNode) getFtype().cloneTree(), (InPatternNode) getInPattern().cloneTree(),
 				new String(getName()));
+	}
+	
+	@Override
+	public boolean isFullWildcard() {
+		if (mods == JavaNode.ALL_FALSE && "*".equals(name) && inPattern.isFullWildcard() && 
+			ftype instanceof NamedTypePatternNode) {
+			NamedTypePatternNode ft = (NamedTypePatternNode) ftype;
+			return ft.isFullWildcard();
+		}
+		return false;
 	}
 }

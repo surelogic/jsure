@@ -34,8 +34,12 @@ import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.PackageDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.Hashtable2;
 
 public class ScopedPromiseRules extends AnnotationRules {
+    private static final boolean lookForFullWildcardScopedPromises = false;
+	private static final boolean createPkgScopedPromisesDirectly = lookForFullWildcardScopedPromises;
+	
 	public static final String ASSUME = "Assume";
 	public static final String PROMISE = "Promise";
 	public static final String PACKAGE_PROMISE = "Package Promise";
@@ -231,13 +235,40 @@ public class ScopedPromiseRules extends AnnotationRules {
 				}
 				
 				@Override
+				protected Collection<ScopedPromiseNode> preprocessAASTsForSeq(Collection<ScopedPromiseNode> l) {
+					if (!lookForFullWildcardScopedPromises) {
+					    return l;
+					}
+				    /*
+					if (l.size() > 1) {
+						System.out.println("Preprocessing AASTs for "+JavaNames.getFullName(l.iterator().next().getPromisedFor()));
+					}
+                    */
+					// Check for wildcard promises that subsume other promises
+					final Hashtable2<String,IRNode,Promises> promises = new Hashtable2<String, IRNode, Promises>();										
+					for(ScopedPromiseNode p : l) {						
+						Promises processed = promises.get(p.getPromise(), p.getPromisedFor());
+						if (processed == null) {
+							promises.put(p.getPromise(), p.getPromisedFor(), new Promises(p));
+						} else {
+							processed.process(p);
+						}
+					}
+					return l;
+				}
+				
+				@Override
 				protected PromiseDrop<ScopedPromiseNode> makePromiseDrop(
 						ScopedPromiseNode a) {
 					PromisePromiseDrop d = new PromisePromiseDrop(a);
-					boolean worked = applyScopedPromises(d);					
-					if (!worked) {
-					  d.invalidate();
-					  return null;
+					if (a.subsumedBy() == null) {
+						boolean worked = applyScopedPromises(d);					
+						if (!worked) {
+							d.invalidate();
+							return null;
+						}
+					} else {
+						System.out.println("Subsumed: "+a);
 					}
 					/*
 					if (a.toString().contains("InRegion(TotalRegion)")) {
@@ -247,6 +278,52 @@ public class ScopedPromiseRules extends AnnotationRules {
 					return storeDropIfNotNull(a, d);
 				}
 			};
+		}
+	}
+	
+	static class Promises {
+		ScopedPromiseNode wildcard;
+		final List<ScopedPromiseNode> others = new ArrayList<ScopedPromiseNode>();
+		
+		public Promises(ScopedPromiseNode first) {
+			process(first);
+		}
+
+		public void process(ScopedPromiseNode p) {
+			// Look for wildcard
+			if (p.getTargets() instanceof ConcreteTargetNode) {
+				ConcreteTargetNode c = (ConcreteTargetNode) p.getTargets();
+				if (c.isFullWildcard()) {
+					if (wildcard != null) {
+						if (wildcard.getTargets().appliesTo().includes(p.getTargets().appliesTo())) {
+							// The old wildcard covers the new one
+							markAsSubsumed(p, wildcard);
+							return;
+						}
+						//throw new IllegalStateException(wildcard+" and "+p);
+					}
+					wildcard = p;
+					for(ScopedPromiseNode o : others) {
+						markAsSubsumed(o, wildcard);
+					}
+					return;
+				}
+			}
+			if (wildcard != null) {
+				markAsSubsumed(p, wildcard);
+			}
+			others.add(p);
+			/*
+			if (others.size() > (wildcard == null ? 1 : 0)) {
+				System.out.println("Looking at Promises for "+JavaNames.getFullName(p.getPromisedFor()));
+			}
+            */
+		}
+		
+		private void markAsSubsumed(ScopedPromiseNode p, ScopedPromiseNode wildcard) {
+			if (wildcard.getTargets().appliesTo().includes(p.getTargets().appliesTo())) {
+				p.markAsSubsumed(wildcard);
+			}
 		}
 	}
 	
@@ -606,7 +683,7 @@ public class ScopedPromiseRules extends AnnotationRules {
   /**
    * Apply promises to types in the package
    */
-  static void applyPromisesToPackage(PromisePromiseDrop d) {
+  static void applyPromisesToPackage(final PromisePromiseDrop d) {
 	/*
 	if (d.getEnclosingFile() != null) {
 		System.out.println(d.getEnclosingFile()+": "+d.getMessage());
@@ -619,8 +696,27 @@ public class ScopedPromiseRules extends AnnotationRules {
     	System.out.println("No package drop for "+d.getAST());
     	return;
     }
+    final ScopedPromiseNode orig = d.getAST();
     for(IRNode type : pkg.getTypes()) {
-      applyPromiseOnType(type, d); 
+      //System.out.println("Applying "+d.getAST()+" to "+JavaNames.getFullName(type));
+
+      if (createPkgScopedPromisesDirectly) {
+    	  // This directly applies the package-level @Promise to the types
+    	  applyPromiseOnType(type, d); 
+      } else {
+    	  // create type-level @Promise
+    	  final ScopedPromiseNode copy = new ScopedPromiseNode(orig.getOffset(), orig.getPromise(), 
+    			                                               (PromiseTargetNode) orig.getTargets().cloneTree());
+    	  copy.setPromisedFor(type);
+    	  copy.setSrcType(orig.getSrcType());
+    	  AASTStore.addDerived(copy, d, new ValidatedDropCallback<PromisePromiseDrop>() {
+			@Override
+			public void validated(PromisePromiseDrop pd) {
+				pd.setVirtual(true);
+				pd.setSourceDrop(d);
+			}
+    	  });
+      }
     }
   }
   

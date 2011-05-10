@@ -118,4 +118,6 @@ public abstract class InTypePatternNode extends AASTNode {
 		ret = ret.replaceAll("([^\\.]?)\\*", "$1[^\\\\.]*");
 		return ret;
 	}
+
+	public abstract boolean isFullWildcard();
 }

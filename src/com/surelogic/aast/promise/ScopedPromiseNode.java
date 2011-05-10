@@ -5,14 +5,14 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ScopedPromiseNode extends TargetedAnnotationNode 
 { 
   // Fields
   private final String promise;
   private final PromiseTargetNode targets;
-
+  private ScopedPromiseNode subsumedBy;
+  
   public static final AbstractAASTNodeFactory factory =
     new AbstractAASTNodeFactory("ScopedPromise") {
       @Override
@@ -85,6 +85,14 @@ public class ScopedPromiseNode extends TargetedAnnotationNode
   @Override
   public IAASTNode cloneTree(){
   	return new ScopedPromiseNode(getOffset(), new String(getPromise()), (PromiseTargetNode)getTargets().cloneTree());
+  }
+
+  public void markAsSubsumed(ScopedPromiseNode wildcard) {
+	  subsumedBy = wildcard;
+  }
+  
+  public ScopedPromiseNode subsumedBy() {
+	  return subsumedBy;
   }
 }
 

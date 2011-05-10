@@ -4,7 +4,6 @@ package com.surelogic.aast.promise;
 import java.util.List;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -103,5 +102,10 @@ public class WildcardTypeQualifierPatternNode extends InTypePatternNode {
 	@Override
 	public IAASTNode cloneTree() {
 		return new WildcardTypeQualifierPatternNode(offset, new String(typePattern));
+	}
+	
+	@Override
+	public boolean isFullWildcard() {
+		return typePattern.length() == 0 || "*".equals(typePattern) || "**".equals(typePattern);
 	}
 }

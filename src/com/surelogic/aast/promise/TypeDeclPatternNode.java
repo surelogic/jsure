@@ -16,7 +16,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class TypeDeclPatternNode extends PromiseTargetNode implements
+public class TypeDeclPatternNode extends ConcreteTargetNode implements
 		ResolvableToType {
 	// Fields
 	private final int mods;
@@ -190,5 +190,10 @@ public class TypeDeclPatternNode extends PromiseTargetNode implements
   @Override
   public IAASTNode cloneTree(){
   	return new TypeDeclPatternNode(getOffset(), getMods(), new String(getType()), (InPatternNode)getInPattern().cloneTree());
+  }
+
+  @Override
+  public boolean isFullWildcard() {
+	  return mods == JavaNode.ALL_FALSE && (type.length() == 0 || "*".equals(type)) && inPattern.isFullWildcard();
   }
 }

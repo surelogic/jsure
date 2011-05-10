@@ -90,4 +90,9 @@ public class InAndPatternNode extends InTypePatternNode {
 		
 		return new InAndPatternNode(offset, t1, t2);
 	}
+	
+	@Override
+	public boolean isFullWildcard() {
+		return false;
+	}
 }

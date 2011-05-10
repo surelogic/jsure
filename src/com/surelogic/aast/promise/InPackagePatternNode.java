@@ -6,7 +6,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 
 import com.surelogic.aast.*;
-import com.surelogic.aast.AbstractAASTNodeFactory;
 
 /**
  * Extends InTypePatternNode, only for convenience in reusing And, Or, Not nodes
@@ -80,5 +79,10 @@ public class InPackagePatternNode extends InTypePatternNode {
 	@Override
 	public IAASTNode cloneTree(){
 		return new InPackagePatternNode(getOffset(), pattern);		
+	}
+	
+	@Override
+	public boolean isFullWildcard() {
+		return pattern.length() == 0 || "*".equals(pattern) || "**".equals(pattern);
 	}
 }

@@ -9,11 +9,12 @@ import com.surelogic.aast.AbstractAASTNodeFactory;
 import com.surelogic.parse.TempListNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class ConstructorDeclPatternNode extends PromiseTargetNode {
+public class ConstructorDeclPatternNode extends ConcreteTargetNode {
 	// Fields
 	private final int mods;
 	private final List<TypeNode> sig;
@@ -236,5 +237,15 @@ public class ConstructorDeclPatternNode extends PromiseTargetNode {
 
 		return new ConstructorDeclPatternNode(getOffset(), getMods(),
 				sigCopy, (InPatternNode) getInPattern().cloneTree());
+	}
+
+	@Override
+	public boolean isFullWildcard() {
+		if (mods == JavaNode.ALL_FALSE && sig.size() == 1 && inPattern.isFullWildcard() && 
+			sig.get(0) instanceof NamedTypePatternNode) {
+			NamedTypePatternNode st = (NamedTypePatternNode) sig.get(0);
+			return st.isFullWildcard();
+		}
+		return false;
 	}
 }

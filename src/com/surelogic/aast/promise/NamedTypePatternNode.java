@@ -30,7 +30,7 @@ public class NamedTypePatternNode extends NamedTypeNode {
 
   @Override
   public boolean typeExists() {
-    if (getType().equals("*") || getType().equals("**")) {
+    if (isFullWildcard()) {
       return true;
     }
     return true;
@@ -53,5 +53,9 @@ public class NamedTypePatternNode extends NamedTypeNode {
   @Override
   public IAASTNode cloneTree(){
   	return new NamedTypePatternNode(getOffset(), getType());
+  }
+
+  public boolean isFullWildcard() {
+	  return getType().equals("*") || getType().equals("**");
   }
 }

@@ -127,7 +127,12 @@ public class InPatternNode extends AASTNode {
 	@Override
 	public IAASTNode cloneTree() {
 		return new InPatternNode(getOffset(),
-				(InTypePatternNode) getInTypePattern().cloneTree(),
-				(InPackagePatternNode) getInPackagePattern().cloneTree());
+				getInTypePattern() != null ? (InTypePatternNode) getInTypePattern().cloneTree() : null,
+				getInPackagePattern() != null ? (InPackagePatternNode) getInPackagePattern().cloneTree() : null);
+	}
+
+	public boolean isFullWildcard() {
+		return (typeNode == null || typeNode.isFullWildcard()) && 
+		       (packageNode == null || packageNode.isFullWildcard());
 	}
 }
