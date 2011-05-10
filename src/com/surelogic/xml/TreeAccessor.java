@@ -43,7 +43,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 	 * Method findClass.
 	 */
 	public static IRNode findNestedClass(String name, IRNode type) {
-		LOG.info("Looking for class " + name);
+		//LOG.info("Looking for class " + name);
 
 		IRNode body = VisitUtil.getClassBody(type);
 		for(IRNode m : ClassBody.getDeclIterator(body)) {
