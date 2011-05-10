@@ -30,7 +30,6 @@ import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.ScopedPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
@@ -368,7 +367,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			// Sort to process in a consistent order
 			Collections.sort(l, aastComparator);
 
-			for(A a : l) {
+			for(A a : preprocessAASTsForSeq(l)) {
 		    /*
 			if ("MUTEX".equals(a.toString())) {
 				System.out.println("Scrubbing: "+a.toString());						
@@ -395,6 +394,16 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		}
 	}
 	
+	/**
+	 * Written for seq promises
+	 */
+	protected Collection<A> preprocessAASTsForSeq(Collection<A> l) {
+		return l;
+	}
+	
+	/**
+	 * Written for boolean/node promises that can really only take one AAST per node
+	 */
 	protected void processAASTsByNode(Collection<A> l) {
 		if (l.size() == 1) {
 			processAAST(l.iterator().next());
@@ -579,7 +588,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		finishScrubbingType(decl);
 	}
 	
-	private void scrubByPromisedFor_Type(Class<A> c) {
+	void scrubByPromisedFor_Type(Class<A> c) {
 		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
 		organizeByType(c, byType);
 		
@@ -807,8 +816,13 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 
 	static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
 		public int compare(IAASTRootNode o1, IAASTRootNode o2) {
-			// TODO What about promisedFor
-			return o1.getOffset() - o2.getOffset();
+			final IRNode p1 = o1.getPromisedFor();
+			final IRNode p2 = o2.getPromisedFor();
+			if (p1.equals(p2)) {
+				return o1.getOffset() - o2.getOffset();
+			} else {
+				return p1.hashCode() - p2.hashCode();
+			}
 		}
 	};
 		
