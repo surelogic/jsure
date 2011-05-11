@@ -38,7 +38,7 @@ import edu.cmu.cs.fluid.util.Hashtable2;
 
 public class ScopedPromiseRules extends AnnotationRules {
     private static final boolean lookForFullWildcardScopedPromises = false;
-	private static final boolean createPkgScopedPromisesDirectly = lookForFullWildcardScopedPromises;
+	private static final boolean createPkgScopedPromisesDirectly = !lookForFullWildcardScopedPromises;
 	
 	public static final String ASSUME = "Assume";
 	public static final String PROMISE = "Promise";
