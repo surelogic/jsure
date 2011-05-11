@@ -33,6 +33,10 @@ public class TestVouched {
   /* GOOD: final field; ThreadSafe type */
   @Vouch("ThreadSafe")
   protected final Safe final2 = new Safe();
+
+  /* GOOD: final field; ThreadSafe type */
+  @Vouch("ThreadSafe")
+  protected final Safe2 final2a = new Safe2();
   
   /* GOOD: final field; containable aggregated type */
   @Vouch("ThreadSafe")
@@ -75,6 +79,10 @@ public class TestVouched {
   /* GOOD: volatile field; ThreadSafe type */
   @Vouch("ThreadSafe")
   protected volatile Safe volatile2 = new Safe();
+  
+  /* GOOD: volatile field; ThreadSafe type */
+  @Vouch("ThreadSafe")
+  protected volatile Safe2 volatile2a = new Safe2();
   
   // volatile fields cannot be unique, so we cannot aggregate a Contained type
 //  /* GOOD: volatile field; containable aggregated type */
@@ -121,6 +129,11 @@ public class TestVouched {
   @Vouch("ThreadSafe")
   @InRegion("LockProtected")
   protected Safe lockProtected2 = new Safe();
+
+  /* GOOD: lockProtected field; ThreadSafe type */
+  @Vouch("ThreadSafe")
+  @InRegion("LockProtected")
+  protected Safe2 lockProtected2a = new Safe2();
   
   /* GOOD: lockProtected field; containable aggregated type */
   @Vouch("ThreadSafe")
@@ -169,6 +182,10 @@ public class TestVouched {
   /* BAD: ThreadSafe type */
   @Vouch("ThreadSafe")
   protected Safe bad2 = new Safe();
+
+  /* BAD: ThreadSafe type */
+  @Vouch("ThreadSafe")
+  protected Safe2 bad2a = new Safe2();
   
   /* Impossible case because there is no way to aggregate the object into 
    * a lock-protected region while still leaving field bad3 unprotected by a
