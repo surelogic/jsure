@@ -2,7 +2,6 @@ package com.surelogic.jsure.client.eclipse.preferences;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
-import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.jface.preference.ScaleFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
@@ -25,13 +24,14 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	static private final String TOOL_MB_LABEL = "jsure.eclipse.preference.page.toolMemoryPreferenceLabel";
+	static private final String THREADS_LABEL = "jsure.eclipse.preference.page.thread.msg";
 	
 	private BooleanFieldEditor f_balloonFlag;
 	private BooleanFieldEditor f_autoOpenProposedPromiseView;
 	private BooleanFieldEditor f_autoOpenModelingProblemsView;
 	private BooleanFieldEditor f_selectProjectsToScan;
 	private BooleanFieldEditor f_allowJavadocAnnos;
-	private IntegerFieldEditor f_analysisThreadCount;
+	private ScaleFieldEditor f_analysisThreadCount;
 	private ScaleFieldEditor f_toolMemoryMB;
 	private BooleanFieldEditor f_regionModelCap;
 	private BooleanFieldEditor f_regionModelCommonString;
@@ -85,12 +85,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 
 		final Group threadGroup = createGroup(panel,
 				"preference.page.group.thread");
-		f_analysisThreadCount = new IntegerFieldEditor(
-				IDEPreferences.ANALYSIS_THREAD_COUNT,
-				I18N.msg("jsure.eclipse.preference.page.thread.msg"),
-				threadGroup);
-		f_analysisThreadCount.setValidRange(1, 128);
-		setupEditor(threadGroup, f_analysisThreadCount);
+		setupThreadCount(threadGroup);
 		setupMemorySize(threadGroup);
 
 		final Group modelNamingGroup = createGroup(panel,
@@ -134,6 +129,38 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		return panel;
 	}
 
+	private void setupScaleEditor(Group group, final ScaleFieldEditor editor, int min, int max, int incr, final String label) {
+		editor.fillIntoGrid(group, 2);
+		editor.setMinimum(min);
+		editor.setMaximum(max);
+		editor.setPageIncrement(incr);
+		editor.setPage(this);
+		editor.setPreferenceStore(EclipseUIUtility.getPreferences());
+		editor.load();
+		editor.getScaleControl().addListener(SWT.Selection,
+				new Listener() {
+			@Override
+			public void handleEvent(final Event event) {
+				updateScaleLabel(editor, label);
+			}
+		});
+	}
+	
+	private void updateScaleLabel(ScaleFieldEditor editor, String msg) {
+		final int param = editor.getScaleControl().getSelection();
+		editor.setLabelText(I18N.msg(msg, param));
+	}
+	
+	private void setupThreadCount(Group threadGroup) {
+		int threads = EclipseUtility.getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
+		f_analysisThreadCount = new ScaleFieldEditor(
+				IDEPreferences.ANALYSIS_THREAD_COUNT,
+				I18N.msg(THREADS_LABEL, threads),
+				threadGroup);
+		int max = Runtime.getRuntime().availableProcessors();
+		setupScaleEditor(threadGroup, f_analysisThreadCount, 1, max, 1, THREADS_LABEL);
+	}
+	
 	private void setupMemorySize(Group memoryGroup) {
 		final int estimatedMax = MemoryUtility.computeMaxMemorySizeInMb();
 		int mb = EclipseUtility.getIntPreference(IDEPreferences.TOOL_MEMORY_MB);
@@ -144,26 +171,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		final String label = I18N.msg(TOOL_MB_LABEL, mb);
 		f_toolMemoryMB = new ScaleFieldEditor(
 				IDEPreferences.TOOL_MEMORY_MB, label + "     ",
-				memoryGroup);
-		f_toolMemoryMB.fillIntoGrid(memoryGroup, 2);
-		f_toolMemoryMB.setMinimum(256);
-		f_toolMemoryMB.setMaximum(estimatedMax);
-		f_toolMemoryMB.setPageIncrement(256);
-		f_toolMemoryMB.setPage(this);
-		f_toolMemoryMB.setPreferenceStore(EclipseUIUtility.getPreferences());
-		f_toolMemoryMB.load();
-		f_toolMemoryMB.getScaleControl().addListener(SWT.Selection,
-				new Listener() {
-					@Override
-					public void handleEvent(final Event event) {
-						updateMBInLabel();
-					}
-				});
-	}
-
-	private void updateMBInLabel() {
-		final int mb = f_toolMemoryMB.getScaleControl().getSelection();
-		f_toolMemoryMB.setLabelText(I18N.msg(TOOL_MB_LABEL, mb));
+				memoryGroup);		
+		setupScaleEditor(memoryGroup, f_toolMemoryMB, 256, estimatedMax, 256, TOOL_MB_LABEL);
 	}
 	
 	private Group createGroup(Composite panel, String suffix) {
