@@ -26,7 +26,7 @@ public class Outer1 {
         Outer1.this.f2;
     }
     
-    @RegionEffects("reads this:f3, Outer1.this:f1, Outer1.this:f2")
+    @RegionEffects("reads this:f3, any(Outer1):f1, any(Outer1):f2")
     public int testReceiverIsThis() {
       // Effects on qualified receiver are still reported as effects on qualified receiver
       return this.doStuff();
