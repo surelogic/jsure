@@ -132,6 +132,8 @@ public class LockRules extends AnnotationRules {
 		return instance;
 	}
 
+	
+	
 	public static Iterable<LockModel> getModels(IRNode type) {
 		return getDrops(lockRule.getStorage(), type);
 	}
@@ -152,6 +154,8 @@ public class LockRules extends AnnotationRules {
 		return getDrop(isLockRule.getStorage(), vdecl);
 	}
 	  
+	
+	
   public static boolean isContainableType(final IRNode cdecl) {
     return getContainableType(cdecl) != null;
   }
@@ -182,6 +186,8 @@ public class LockRules extends AnnotationRules {
   public static NotContainablePromiseDrop getNotContainable(IRNode cdecl) {
     return getBooleanDrop(notContainableRule.getStorage(), cdecl);
   }
+  
+  
   
   public static boolean isThreadSafeType(final IRNode cdecl) {
     return getThreadSafeType(cdecl) != null;
@@ -214,6 +220,8 @@ public class LockRules extends AnnotationRules {
 	  return getBooleanDrop(notThreadSafeRule.getStorage(), cdecl);
   }
 
+  
+  
   public static boolean isImmutableType(final IRNode cdecl) {
     return getImmutableType(cdecl) != null;
   }
@@ -245,9 +253,38 @@ public class LockRules extends AnnotationRules {
     return getBooleanDrop(mutableRule.getStorage(), cdecl);
   }
   
+  
+  
+  /**
+   * Is the type threadsafe, that is it annotated with ThreadSafe or 
+   * Immutable?
+   * @see isThreadSafeType
+   * @see isImmutableType
+   */
+  public static boolean isThreadSafe(final IRNode tdecl) {
+    return isImmutableType(tdecl) || isThreadSafeType(tdecl);
+  }
+  
+  /**
+   * Get the most specific promise that allows us to consider this type
+   * to be thread safe.  If the class is annotated as Immutable, then the
+   * immutable promise is returned in preference to any ThreadSafe annotation
+   * that may be present.
+   * @see getThreadSafeType
+   * @see getImmutableType
+   */
+  public static PromiseDrop<? extends AbstractModifiedBooleanNode> getThreadSafePromise(final IRNode tdecl) {
+    final ImmutablePromiseDrop immutable = getImmutableType(tdecl);
+    return (immutable == null) ? getThreadSafeType(tdecl) : immutable;
+  }
+  
+  
+  
   public static VouchFieldIsPromiseDrop getVouchFieldIs(final IRNode fieldDecl) {
     return getDrop(vouchFieldIsRule.getStorage(), fieldDecl);
   }
+  
+  
   
   @Override
   public void register(PromiseFramework fw) {

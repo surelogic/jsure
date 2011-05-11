@@ -1375,6 +1375,9 @@ public final class LockUtils {
         DefaultTargetFactory.PROTOTYPE.createInstanceTarget(rcvrDecl, RegionModel.getInstanceRegion(cdecl)));
 
     final Set<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);
+    /* Ultimately this is only used if the effects are declared and of
+     * interest.
+     */
     final RegionEffectsPromiseDrop eDrop = MethodEffectsRules.getRegionEffectsDrop(cdecl);
     final StartsPromiseDrop teDrop = ThreadEffectsRules.getStartsSpec(cdecl);
     boolean isEffectsWork = teDrop != null;

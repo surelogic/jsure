@@ -710,7 +710,7 @@ public class ScopedPromiseRules extends AnnotationRules {
     	  copy.setPromisedFor(type);
     	  copy.setSrcType(orig.getSrcType());
     	  AASTStore.addDerived(copy, d, new ValidatedDropCallback<PromisePromiseDrop>() {
-			@Override
+
 			public void validated(PromisePromiseDrop pd) {
 				pd.setVirtual(true);
 				pd.setSourceDrop(d);

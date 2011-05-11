@@ -844,6 +844,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		// get effects
 		if (true) {
 			final RegionEffectsPromiseDrop fx = MethodEffectsRules.getRegionEffectsDrop(mdecl);
+      // We don't depend on undeclared effects
 			if (fx != null)
 				effects.add(fx);
 		}

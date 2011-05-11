@@ -112,6 +112,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 				ConstructorDeclaration.prototype.includes(op);
 			final boolean isMethod = MethodDeclaration.prototype.includes(op);
 			if (isConstructor || isMethod) {
+			  // NULL if there are no declared effects
 				final Set<Effect> declFx =
 					Effects.getDeclaredMethodEffects(member, member);
 
@@ -128,6 +129,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 					if (declFx != null) {
 						final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
 
+						// This won't be null because we know we have declared effects
 						final RegionEffectsPromiseDrop declaredEffectsDrop =
 							MethodEffectsRules.getRegionEffectsDrop(member);
 
@@ -367,6 +369,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			final IRNode mdecl = getBinder().getBinding(src);
 			final RegionEffectsPromiseDrop cutpoint =
 				MethodEffectsRules.getRegionEffectsDrop(mdecl);
+			// No drops to make if there are no declared effects
 			if (cutpoint != null) {
 				rd.addTrustedPromise(cutpoint);
 				// Add parameter bindings

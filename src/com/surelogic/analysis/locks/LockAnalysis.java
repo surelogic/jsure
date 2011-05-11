@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
@@ -396,12 +397,12 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             final IJavaType type = getBinder().getJavaType(varDecl);
             final IRNode typeDecl;
             final boolean isPrimitive = type instanceof IJavaPrimitiveType;
-            final ThreadSafePromiseDrop declTSDrop;
+            final PromiseDrop<? extends AbstractModifiedBooleanNode> declTSDrop;
             final ContainablePromiseDrop declContainableDrop;
             if (type instanceof IJavaDeclaredType) {
               typeDecl = ((IJavaDeclaredType) type).getDeclaration();
               // Null if no @ThreadSafe ==> not thread safe
-              declTSDrop = LockRules.getThreadSafeType(typeDecl);
+              declTSDrop = LockRules.getThreadSafePromise(typeDecl);
               // Null if no @Containable ==> Default annotation of not containable
               declContainableDrop = LockRules.getContainableType(typeDecl);
             } else {
