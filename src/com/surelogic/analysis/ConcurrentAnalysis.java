@@ -11,9 +11,9 @@ import org.apache.commons.lang.SystemUtils;
 import edu.cmu.cs.fluid.ide.*;
 
 public class ConcurrentAnalysis<Q> {
-	public static final boolean singleThreaded = false || SystemUtils.IS_JAVA_1_5;
 	public static final int threadCount = IDE.getInstance().getIntPreference(
 			IDEPreferences.ANALYSIS_THREAD_COUNT);
+	public static final boolean singleThreaded = false || SystemUtils.IS_JAVA_1_5 || threadCount < 2;
 	public static final ForkJoinExecutor pool = singleThreaded ? null
 			: new ForkJoinPool(threadCount);
 
