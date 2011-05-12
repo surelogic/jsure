@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/UniquenessRules.java,v 1.31 2008/01/25 22:13:53 aarong Exp $*/
 package com.surelogic.annotation.rules;
 
 import java.util.HashSet;
@@ -19,7 +18,9 @@ import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
@@ -191,16 +192,63 @@ public class UniquenessRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<UniqueNode> makeScrubber() {
-      return new AbstractAASTScrubber<UniqueNode, UniquePromiseDrop>(this) {
+      return new AbstractAASTScrubber<UniqueNode, UniquePromiseDrop>(
+          this, ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
         @Override
         protected PromiseDrop<UniqueNode> makePromiseDrop(UniqueNode a) {
-          //System.out.println("Promised on "+DebugUnparser.toString(a.getPromisedFor()));
           final UniquePromiseDrop storedDrop =
             storeDropIfNotNull(a, scrubUnique(getContext(), a));
           if (storedDrop != null) {
             uniqueNodes.add(a.getPromisedFor());
           }
           return storedDrop;          
+        }
+        
+        @Override
+        protected boolean processUnannotatedMethodRelatedDecl(
+            final IRNode unannotatedNode) {
+          final Operator op = JJNode.tree.getOperator(unannotatedNode);
+          if (ParameterDeclaration.prototype.includes(op)) {
+            return processUnannotatedParameter(unannotatedNode,
+                JJNode.tree.getParent(JJNode.tree.getParent(unannotatedNode)));
+          } else if (ReceiverDeclaration.prototype.includes(op)) {
+            return processUnannotatedReceiver(unannotatedNode,
+                JavaPromise.getPromisedFor(unannotatedNode));
+          } else if (ReturnValueDeclaration.prototype.includes(op)) {
+            return processUnannotatedReturn(unannotatedNode,
+                JavaPromise.getPromisedFor(unannotatedNode));
+          }
+          
+          // Shouldn't get here
+          return true;
+        }
+
+        private boolean processUnannotatedParameter(
+            final IRNode param, final IRNode mdecl) {
+          return true;
+        }
+
+        private boolean processUnannotatedReceiver(
+            final IRNode param, final IRNode mdecl) {
+          return true;
+        }
+
+        private boolean processUnannotatedReturn(
+            final IRNode param, final IRNode mdecl) {
+          boolean good = true;
+          for (final IBinding context : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+            final IRNode parentMethod = context.getNode();
+            final IRNode parentReturn = JavaPromise.getReturnNode(parentMethod);
+            final UniquePromiseDrop parentUnique = getUnique(parentReturn);
+            if (parentUnique != null) {
+              // Parent has unique return, we should have one too
+              good = false;
+              getContext().reportError(mdecl,
+                  "Cannot remove unique return value from annotation of {0}",
+                  JavaNames.genQualifiedMethodConstructorName(parentMethod));
+            }
+          }
+          return good;
         }
       };
     }
