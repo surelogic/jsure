@@ -693,7 +693,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				else if (ReturnValueDeclaration.prototype.includes(op)) {
 					loc = AnnotationLocation.RETURN_VAL;
 				}
-				else if (ClassInitDeclaration.prototype.includes(op)) {
+				else if (VariableDeclarator.prototype.includes(op) || ClassInitDeclaration.prototype.includes(op)) {
 				    // These can't be overridden by anything else
 				    continue;
 				}
