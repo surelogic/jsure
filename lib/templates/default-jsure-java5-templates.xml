@@ -68,45 +68,33 @@
             id="com.surelogic.jsure.templates.requiresLock" context="java" 
             enabled="true">RequiresLock("${foo}.${Bar}:${lock}")</template>
   
-  <template name="SingleThreaded" 
-            description="singleThreaded constructor with borrowed this" 
+  <template name="ThreadConfined" 
+            description="Thread-confined constructor with borrowed this" 
             id="com.surelogic.jsure.templates.singleThreaded.borrowed" context="java" 
-            enabled="true">SingleThreaded
-    @Borrowed("this")</template>
+            enabled="true">Unique("return")</template>
   
-  <template name="SingleThreaded" 
-            description="singleThreaded constructor writing/starting nothing" 
+  <template name="ThreadConfined" 
+            description="Thread-confined constructor writing/starting nothing" 
             id="com.surelogic.jsure.templates.singleThreaded.nothing" context="java" 
-            enabled="true">SingleThreaded
-    @RegionEffects("reads All")
+            enabled="true">RegionEffects("reads All")
     @Starts("nothing")</template>
   
   <!-- Uniqueness annotations -->
     <template name="Unique" 
-            description="Unique and Aggregate" 
+            description="Unique" 
             id="com.surelogic.jsure.templates.unique" context="java" 
-            enabled="true">Unique
-    @Aggregate</template>  
+            enabled="true">Unique</template>  
   
   <template name="Unique" 
-            description="Unique and aggregated Object" 
+            description="Unique Object" 
             id="com.surelogic.jsure.templates.unique" context="java" 
-            enabled="true">Unique
-    @AggregateInRegion("${region}")</template>  
+            enabled="true">UniqueInRegion("${region}")</template>  
   
   <template name="InRegion" 
-            description="Unique and aggregated Object" 
+            description="Unique Object/array" 
             id="com.surelogic.jsure.templates.mappedObject" context="java" 
             enabled="true">InRegion("${region}")
-    @Unique
-    @AggregateInRegion("${region}")</template>  
-  
-  <template name="InRegion" 
-            description="Unique and aggregated array" 
-            id="com.surelogic.jsure.templates.mappedArray" context="java" 
-            enabled="true">InRegion("${region}")
-    @Unique
-    @AggregateInRegion("${region}")</template>  
+    @UniqueInRegion("${region}")</template>  
     
   <!-- Scoped promises -->
   <template name="Promise" 
@@ -135,10 +123,9 @@
             enabled="true">Promise("@${promise} for **(**)")</template>
   
   <template name="Promise" 
-            description="singleThreaded/borrowed on the default constructor" 
+            description="unique on the default constructor" 
             id="com.surelogic.jsure.templates.promise.methods" context="java" 
-            enabled="true">@Promises({ @Promise("@SingleThreaded for new()"),
-    @Promise("@Borrowed(this) for new()"),
+            enabled="true">Promises({ @Promise("@Unique(return) for new()"),
     })</template>  
   
   <!-- Starts annotations -->

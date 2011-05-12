@@ -224,4 +224,11 @@
 			</action>
 		</objectContribution>
 	</extension>
+	
+	<extension point="org.eclipse.ui.editors.templates">
+		<contextType name="JSure Java Context"
+			class="org.eclipse.jdt.internal.corext.template.java.JavaContextType"
+			id="java" />
+		<include file="lib/templates/default-jsure-java5-templates.xml" />
+	</extension>	
 </plugin>
