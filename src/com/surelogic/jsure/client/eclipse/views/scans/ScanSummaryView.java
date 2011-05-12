@@ -46,6 +46,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	TableViewer tableViewer;
 	Chart summaryChart;
 	Color[] colors;
+	MenuDetectListener f_chartMenuListener;
 	
 	@Override
 	protected StructuredViewer getViewer() {
@@ -147,13 +148,16 @@ public class ScanSummaryView extends AbstractScanManagerView {
 			s.setLineColor(colors[j]);
 			s.setYAxisId(yAxes[j >= HIGH ? 1 : 0]);
 		}
-		summaryChart.addMenuDetectListener(new MenuDetectListener() {
+		f_chartMenuListener = new MenuDetectListener() {
 			public void menuDetected(MenuDetectEvent e) {
 				final Menu contextMenu = new Menu(summaryChart.getShell(), SWT.POP_UP);
 				setupChartContextMenu(contextMenu);
 				summaryChart.setMenu(contextMenu);
+				summaryChart.getPlotArea().setMenu(contextMenu);
 			}
-		});
+		};		
+		summaryChart.addMenuDetectListener(f_chartMenuListener);
+		summaryChart.getPlotArea().addMenuDetectListener(f_chartMenuListener);
 		
 		f_form.setWeights(new int[] {20,40,40});
 		return tableViewer.getControl();
