@@ -8,6 +8,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.annotation.rules.UtilityRules;
 
@@ -15,6 +16,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
@@ -23,6 +25,7 @@ import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.Implements;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ThrowStatement;
@@ -187,6 +190,49 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 
 
   public static final class UtilityVisitor implements IBinderClient {
+    
+    private final class BodyVisitor extends JavaSemanticsVisitor {
+      private final IRNode utilityClass;
+      private final UtilityPromiseDrop uDrop;
+      
+      
+      
+      public BodyVisitor(final IRNode classDecl, final UtilityPromiseDrop drop) {
+        super(classDecl, true);
+        utilityClass = classDecl;
+        uDrop = drop;
+      }
+      
+      
+      
+      @Override
+      protected void handleNewExpression(final IRNode newExpr) {
+        final IRNode clazz = binder.getBinding(NewExpression.getType(newExpr));
+        if (clazz.equals(utilityClass)) {
+          createResult(uDrop, newExpr, false, Messages.INSTANCE_CREATED);
+        }
+        super.handleNewExpression(newExpr);
+      }
+      
+      @Override
+      protected void handleNestedClassDeclaration(final IRNode nestedClass) {
+        final IRNode extendz = binder.getBinding(NestedClassDeclaration.getExtension(nestedClass));
+        if (extendz.equals(utilityClass)) {
+          createResult(uDrop, nestedClass, false, Messages.SUBCLASSED);
+        }
+        doAcceptForChildren(nestedClass);
+      }
+      
+      @Override
+      protected void handleAnonClassExpression(final IRNode anonClass) {
+        final IRNode extendz = binder.getBinding(AnonClassExpression.getType(anonClass));
+        if (extendz.equals(utilityClass)) {
+          createResult(uDrop, anonClass, false, Messages.INSTANCE_CREATED);
+        }
+        super.handleAnonClassExpression(anonClass);
+      }
+    }
+    
     private final UtilityAnalysis analysis;
     private final IBinder binder;
 
@@ -201,11 +247,11 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
     
     private final void createResult(
         final UtilityPromiseDrop uDrop,
-        final IRNode decl, final boolean isConsistent, 
+        final IRNode node, final boolean isConsistent, 
         final int msg, final Object... args) {
       final ResultDropBuilder result =
         ResultDropBuilder.create(analysis, Messages.toString(msg));
-      analysis.setResultDependUponDrop(result, decl);
+      analysis.setResultDependUponDrop(result, node);
       result.addCheckedPromise(uDrop);
       result.setConsistent(isConsistent);
       result.setResultMessage(msg, args);
@@ -232,24 +278,6 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
         createResult(drop, classDecl, true, Messages.CLASS_IS_PUBLIC);
       } else {
         createResult(drop, classDecl, false, Messages.CLASS_IS_NOT_PUBLIC);
-      }
-      
-      // Class must extend java.lang.Object
-      final IRNode superDecl =
-        binder.getBinding(ClassDeclaration.getExtension(classDecl));
-      if (JavaNames.getQualifiedTypeName(superDecl).equals("java.lang.Object")) {
-        createResult(drop, classDecl, true, Messages.CLASS_EXTENDS_OBJECT);
-      } else {
-        createResult(drop, classDecl, false, Messages.CLASS_DOES_NOT_EXTEND_OBJECT);
-      }
-      
-      // Class must not implement any interfaces
-      final Iterator<IRNode> interfaces =
-        Implements.getIntfIterator(ClassDeclaration.getImpls(classDecl));
-      if (!interfaces.hasNext()) {
-        createResult(drop, classDecl, true, Messages.CLASS_IMPLEMENTS_NOTHING);
-      } else {
-        createResult(drop, classDecl, false, Messages.CLASS_IMPLEMENTS_SOMETHING);
       }
       
       IRNode constructorDecl = null;
@@ -351,6 +379,9 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
           createResult(drop, constructorDecl, true, Messages.CONSTRUCTOR_OKAY);
         }
       }
+      
+      // Check for class instantiation and extension
+      new BodyVisitor(classDecl, drop).doAccept(classBody);
     }    
     
     public IBinder getBinder() {
