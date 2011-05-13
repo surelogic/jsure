@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 
 import com.sun.grizzly.connectioncache.spi.concurrent.ConcurrentQueue;
 import com.sun.grizzly.connectioncache.spi.transport.InboundConnectionCache;
+import com.surelogic.Borrowed;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 
@@ -48,7 +49,7 @@ public final class InboundConnectionCacheBlockingImpl<C extends Closeable>
 	  @UniqueInRegion("TotalRegion" /* is CONSISTENT */)
     private final Map<C,ConnectionState<C>> connectionMap ;
 
-    protected String thisClassName() {
+    @Borrowed("this") protected String thisClassName() {
         return "InboundConnectionCacheBlockingImpl" ;
     }
 

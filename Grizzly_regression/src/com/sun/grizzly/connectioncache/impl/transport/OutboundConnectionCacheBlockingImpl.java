@@ -66,7 +66,7 @@ public final class OutboundConnectionCacheBlockingImpl<C extends Closeable>
 		return maxParallelConnections;
 	}
 
-	protected String thisClassName() {
+  @Borrowed("this") protected String thisClassName() {
 		return "OutboundConnectionCacheBlockingImpl";
 	}
 
