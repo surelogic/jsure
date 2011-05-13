@@ -33,6 +33,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.Iteratable;
 
 public class UniquenessRules extends AnnotationRules {
   public static final String UNIQUE = "Unique";
@@ -207,48 +208,30 @@ public class UniquenessRules extends AnnotationRules {
         @Override
         protected boolean processUnannotatedMethodRelatedDecl(
             final IRNode unannotatedNode) {
+          /* Only care if the unannotated node is a return value declaration.
+           * Parameters (and receivers) can remove uniqueness requirements
+           * with out harm. 
+           */
           final Operator op = JJNode.tree.getOperator(unannotatedNode);
-          if (ParameterDeclaration.prototype.includes(op)) {
-            return processUnannotatedParameter(unannotatedNode,
-                JJNode.tree.getParent(JJNode.tree.getParent(unannotatedNode)));
-          } else if (ReceiverDeclaration.prototype.includes(op)) {
-            return processUnannotatedReceiver(unannotatedNode,
-                JavaPromise.getPromisedFor(unannotatedNode));
-          } else if (ReturnValueDeclaration.prototype.includes(op)) {
-            return processUnannotatedReturn(unannotatedNode,
-                JavaPromise.getPromisedFor(unannotatedNode));
-          }
-          
-          // Shouldn't get here
-          return true;
-        }
-
-        private boolean processUnannotatedParameter(
-            final IRNode param, final IRNode mdecl) {
-          return true;
-        }
-
-        private boolean processUnannotatedReceiver(
-            final IRNode param, final IRNode mdecl) {
-          return true;
-        }
-
-        private boolean processUnannotatedReturn(
-            final IRNode param, final IRNode mdecl) {
-          boolean good = true;
-          for (final IBinding context : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
-            final IRNode parentMethod = context.getNode();
-            final IRNode parentReturn = JavaPromise.getReturnNode(parentMethod);
-            final UniquePromiseDrop parentUnique = getUnique(parentReturn);
-            if (parentUnique != null) {
-              // Parent has unique return, we should have one too
-              good = false;
-              getContext().reportError(mdecl,
-                  "Cannot remove unique return value from annotation of {0}",
-                  JavaNames.genQualifiedMethodConstructorName(parentMethod));
+          if (ReturnValueDeclaration.prototype.includes(op)) {
+            final IRNode mdecl = JavaPromise.getPromisedFor(unannotatedNode);
+            boolean good = true;
+            for (final IBinding context : getContext().getBinder().findOverriddenParentMethods(mdecl)) {
+              final IRNode parentMethod = context.getNode();
+              final IRNode parentReturn = JavaPromise.getReturnNode(parentMethod);
+              final UniquePromiseDrop parentUnique = getUnique(parentReturn);
+              if (parentUnique != null) {
+                // Parent has unique return, we should have one too
+                good = false;
+                getContext().reportError(mdecl,
+                    "Cannot remove unique return value from annotations of {0}",
+                    JavaNames.genQualifiedMethodConstructorName(parentMethod));
+              }
             }
+            return good;
+          } else {
+            return true;
           }
-          return good;
         }
       };
     }
@@ -274,10 +257,71 @@ public class UniquenessRules extends AnnotationRules {
       }
 
       if (good) {
+        /* Check consistency of annotated parameters and receiver declarations.
+         * Cannot add @Unique to a previously unannotated parameter/receiver.
+         */
+        if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
+          good = consistencyCheckReceiver(context, promisedFor);
+        } else if(ParameterDeclaration.prototype.includes(promisedForOp)) {
+          good = consistencyCheckParameter(context, promisedFor);          
+        }
+      }
+      
+      if (good) {
         return new UniquePromiseDrop(a);
       } else {
         return null;
       }
+    }
+    
+    private boolean consistencyCheckReceiver(
+        final IAnnotationScrubberContext context, final IRNode rcvrDecl) {
+      final IRNode mdecl = JavaPromise.getPromisedFor(rcvrDecl);
+      boolean good = true;
+      for (final IBinding bc : context.getBinder().findOverriddenParentMethods(mdecl)) {
+        final IRNode parentMethod = bc.getNode();
+        final IRNode parentRcvr = JavaPromise.getReceiverNode(parentMethod);
+        final UniquePromiseDrop parentUnique = getUnique(parentRcvr);
+        if (parentUnique == null) {
+          // Parent isn't unique, we cannot be
+          good = false;
+          context.reportError(mdecl,
+              "Cannot add unique receiver declaration to annotations of {0}",
+              JavaNames.genQualifiedMethodConstructorName(parentMethod));
+        }
+      }
+      return good;
+    }
+    
+    private boolean consistencyCheckParameter(
+        final IAnnotationScrubberContext context, final IRNode paramDecl) {
+      final IRNode mdecl = JJNode.tree.getParent(JJNode.tree.getParent(paramDecl));
+      boolean good = true;
+      for (final IBinding bc : context.getBinder().findOverriddenParentMethods(mdecl)) {
+        final IRNode parentMethod = bc.getNode();
+        
+        // find the same parameter in the original
+        final IRNode params = MethodDeclaration.getParams(mdecl);
+        final IRNode parentParams = MethodDeclaration.getParams(parentMethod);
+        final Iteratable<IRNode> paramsIter = Parameters.getFormalIterator(params);
+        final Iteratable<IRNode> parentParamsIter = Parameters.getFormalIterator(parentParams);
+        while (paramsIter.hasNext()) {
+          final IRNode p = paramsIter.next();
+          final IRNode p2 = parentParamsIter.next();
+          if (p == paramDecl) { // found the original param
+            final UniquePromiseDrop parentUnique = getUnique(p2);
+            if (parentUnique == null) {
+              // Parent isn't unique, we cannot be
+              good = false;
+              context.reportError(paramDecl,
+                  "Cannot add unique declaration to parameter {0} of {1}",
+                  ParameterDeclaration.getId(p2),
+                  JavaNames.genQualifiedMethodConstructorName(parentMethod));
+            }
+          }
+        }
+      }
+      return good;
     }
   }
 
@@ -309,10 +353,74 @@ public class UniquenessRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber<BorrowedNode> makeScrubber() {
       return new AbstractAASTScrubber<BorrowedNode, BorrowedPromiseDrop>(this,
-          ScrubberType.UNORDERED, UNIQUE) {
+          ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, UNIQUE) {
         @Override
         protected PromiseDrop<BorrowedNode> makePromiseDrop(BorrowedNode a) {
           return storeDropIfNotNull(a, scrubBorrowed(getContext(), a));
+        }
+        
+        @Override
+        protected boolean processUnannotatedMethodRelatedDecl(
+            final IRNode promisedFor) {
+          /* Cannot remove @Borrowed annotations */
+          final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
+          if (ReceiverDeclaration.prototype.includes(promisedForOp)) {
+            return consistencyCheckReceiver(context, promisedFor);
+          } else if(ParameterDeclaration.prototype.includes(promisedForOp)) {
+            return consistencyCheckParameter(context, promisedFor);          
+          }
+          
+          return true;
+        }
+        
+        private boolean consistencyCheckReceiver(
+            final IAnnotationScrubberContext context, final IRNode rcvrDecl) {
+          final IRNode mdecl = JavaPromise.getPromisedFor(rcvrDecl);
+          boolean good = true;
+          for (final IBinding bc : context.getBinder().findOverriddenParentMethods(mdecl)) {
+            final IRNode parentMethod = bc.getNode();
+            final IRNode parentRcvr = JavaPromise.getReceiverNode(parentMethod);
+            final BorrowedPromiseDrop parentBorrowed = getBorrowed(parentRcvr);
+            if (parentBorrowed != null) {
+              // Parent is borrowed, we must be too
+              good = false;
+              context.reportError(mdecl,
+                  "Cannot remove borrowed receiver from annotations of {0}",
+                  JavaNames.genQualifiedMethodConstructorName(parentMethod));
+            }
+          }
+          return good;
+        }
+        
+        private boolean consistencyCheckParameter(
+            final IAnnotationScrubberContext context, final IRNode paramDecl) {
+          final IRNode mdecl = JJNode.tree.getParent(JJNode.tree.getParent(paramDecl));
+          boolean good = true;
+          for (final IBinding bc : context.getBinder().findOverriddenParentMethods(mdecl)) {
+            final IRNode parentMethod = bc.getNode();
+            
+            // find the same parameter in the original
+            final IRNode params = MethodDeclaration.getParams(mdecl);
+            final IRNode parentParams = MethodDeclaration.getParams(parentMethod);
+            final Iteratable<IRNode> paramsIter = Parameters.getFormalIterator(params);
+            final Iteratable<IRNode> parentParamsIter = Parameters.getFormalIterator(parentParams);
+            while (paramsIter.hasNext()) {
+              final IRNode p = paramsIter.next();
+              final IRNode p2 = parentParamsIter.next();
+              if (p == paramDecl) { // found the original param
+                final BorrowedPromiseDrop parentBorrowed = getBorrowed(p2);
+                if (parentBorrowed != null) {
+                  // Parent is borrowed, we must be too
+                  good = false;
+                  context.reportError(paramDecl,
+                      "Cannot remove borrowed declaration from parameter {0} of {1}",
+                      ParameterDeclaration.getId(p2),
+                      JavaNames.genQualifiedMethodConstructorName(parentMethod));
+                }
+              }
+            }
+          }
+          return good;
         }
       };
     }    
