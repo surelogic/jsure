@@ -7,7 +7,8 @@ public interface IDEPreferences {
 	String ANALYSIS_THREAD_COUNT = PREFIX + "analysis.thread.count";
 	String JSURE_DATA_DIRECTORY = PREFIX + "data.directory";
 	String DEFAULT_JRE = PREFIX + "default.JRE";
-
+	String JSURE_XML_DIRECTORY = PREFIX + "xml.directory";
+	
 	/**
 	 * The preference prefix for whether an analysis is on
 	 */
