@@ -60,7 +60,9 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  objectType.set(null);
 	  stringType = null;
 	  convertedTypeCache.clear();
-	  subTypeCache.clear();
+	  synchronized (subTypeCache) {
+		  subTypeCache.clear();
+	  }
   }
   
   public static void printStats() {
@@ -568,10 +570,13 @@ private long parseIntLiteral(String token) {
   protected boolean isSubType(IJavaType s, IJavaType t, final boolean ignoreGenerics) {
 	if (!ignoreGenerics) {
 		//total++;
-		Boolean result = subTypeCache.get(s, t);
-		if (result != null) {
-			//cached++;
-			return result.booleanValue();
+		synchronized (subTypeCache) {
+			Boolean result = subTypeCache.get(s, t);
+
+			if (result != null) {
+				//cached++;
+				return result.booleanValue();
+			}
 		}
 	}
 	if (s == null || t == null) {
@@ -655,7 +660,9 @@ private long parseIntLiteral(String token) {
 		return result = false;
 	} finally {
 		if (!ignoreGenerics) {
-			subTypeCache.put(s, t, result);
+			synchronized (subTypeCache) {
+				subTypeCache.put(s, t, result);
+			}
 		}
 	}
   }
