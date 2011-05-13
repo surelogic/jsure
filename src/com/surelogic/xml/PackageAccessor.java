@@ -99,7 +99,7 @@ public class PackageAccessor implements TestXMLParserConstants {
 		return new OutputStreamWriter(dir.openFileWrite(className + PROMISES_XML));
 	}
 
-	public static InputSource readPackage(String pkgName, String className) 
+	public static InputSource readPackage(File root, String pkgName, String className) 
 	throws IOException {
 		String dirName = packagePath(pkgName, false); 
 		/*
@@ -108,10 +108,14 @@ public class PackageAccessor implements TestXMLParserConstants {
 		
 		System.out.println("Looking for file " + className + " in path " + DIR_PREFIX + dirName);
 		*/
-		URL root  = IDE.getInstance().getResourceRoot();	
-		URL clazz = new URL(root, "lib/promises/" + dirName + className);		
-		InputStream is = clazz.openStream();
-		
+		InputStream is = null;
+		if (root == null) {
+			URL rroot = IDE.getInstance().getResourceRoot();	
+			URL clazz = new URL(rroot, "lib/promises/" + dirName + className);		
+			is = clazz.openStream();
+		} else {
+			is = new FileInputStream(new File(root, dirName + className));
+		}
 		if (is == null) {
 			throw new FileNotFoundException(className + " doesn't exist");  
 		}

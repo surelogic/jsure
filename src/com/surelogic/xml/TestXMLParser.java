@@ -1,8 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/xml/TestXMLParser.java,v 1.36 2008/11/06 18:41:16 chance Exp $*/
 package com.surelogic.xml;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.EmptyStackException;
 import java.util.Iterator;
 import java.util.Stack;
@@ -26,7 +25,6 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -72,11 +70,15 @@ public class TestXMLParser extends DefaultHandler implements
 	}
 	
 	public static int process(ITypeEnvironment tEnv, IRNode root, String xml) throws Exception {
-		TestXMLParser handler = new TestXMLParser(tEnv);
-		return handler.processAST(root, xml);
+		return process(tEnv, null, root, xml);
 	}
 	
-	public int processAST(IRNode root, String xml) throws Exception {
+	public static int process(ITypeEnvironment tEnv, File f, IRNode root, String xml) throws Exception {
+		TestXMLParser handler = new TestXMLParser(tEnv);
+		return handler.processAST(f, root, xml);
+	}
+	
+	public int processAST(File file, IRNode root, String xml) throws Exception {
 		String pkgName = VisitUtil.getPackageName(root);
 	    numAnnotationsAdded = 0;
 	    
@@ -85,7 +87,7 @@ public class TestXMLParser extends DefaultHandler implements
 		/** Initalize the node iterator */
 		nodeIterator = VisitUtil.getTypeDecls(root);
 
-		InputSource in = PackageAccessor.readPackage(pkgName, PackageAccessor
+		InputSource in = PackageAccessor.readPackage(file, pkgName, PackageAccessor
 				.promiseFileName(xml));
 		if (in == null) {
 			throw new FileNotFoundException(xml + " doesn't exist");
