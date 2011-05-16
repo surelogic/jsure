@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
-<sea-summary time='Apr 12, 2011 1:17:12 PM'
+<sea-summary time='May 16, 2011 2:47:46 PM'
 	 project='TestUtilityScrubbing'>
 
 <count WarningDrop='1'/>
 <count LockModel='1'/>
 <count UtilityPromiseDrop='1'/>
 <count ProposedPromiseDrop='1'/>
-<count ResultDrop='5'/>
+<count ResultDrop='3'/>
 <count PromiseWarningDrop='1'/>
 <promise-drop type='LockModel'
 	 offset='2147483647'
@@ -15,7 +15,7 @@
 	 file='java.lang.Object'
 	 hash='1709211273'
 	 context='1063877011'
-	 id='298'
+	 id='30'
 	 message='RegionLock java.lang.Object.MUTEX is this protects WaitQueue on Object'
 	 category='Concurrency'
 	 to-be-checked-by-analysis='true'
@@ -25,22 +25,6 @@
 	 proved-consistent='true'
 	 full-type='edu.cmu.cs.fluid.sea.drops.promises.LockModel'/>
 
-<result-drop type='ResultDrop'
-	 offset='74'
-	 line='7'
-	 path='TestUtilityScrubbing/src/test/U.java'
-	 uri='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
-	 file='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
-	 hash='-333117170'
-	 context='637793953'
-	 id='927'
-	 message='Declares a single private no-argument constructor'
-	 result-type='PRIVATE_NO_ARG_CONSTRUCTOR'
-	 message-id='(614)'
-	 proved-consistent='true'
-	 consistent='true'
-	 full-type='edu.cmu.cs.fluid.sea.ResultDrop'/>
-
 <promise-drop type='UtilityPromiseDrop'
 	 offset='46'
 	 line='5'
@@ -49,7 +33,7 @@
 	 file='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
 	 hash='1289851970'
 	 context='-877171207'
-	 id='929'
+	 id='32'
 	 message='Utility on U'
 	 category='Utility classes'
 	 to-be-checked-by-analysis='true'
@@ -60,49 +44,20 @@
 	 full-type='edu.cmu.cs.fluid.sea.drops.promises.UtilityPromiseDrop'/>
 
 <result-drop type='ResultDrop'
-	 offset='46'
-	 line='5'
+	 offset='74'
+	 line='7'
 	 path='TestUtilityScrubbing/src/test/U.java'
 	 uri='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
 	 file='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
-	 hash='1289851970'
-	 context='-877171207'
-	 id='965'
-	 message='Class extends java.lang.Object'
-	 result-type='CLASS_EXTENDS_OBJECT'
-	 message-id='(602)'
+	 hash='-333117170'
+	 context='637793953'
+	 id='34'
+	 message='Declares a single private no-argument constructor'
+	 result-type='PRIVATE_NO_ARG_CONSTRUCTOR'
+	 message-id='(614)'
 	 proved-consistent='true'
 	 consistent='true'
 	 full-type='edu.cmu.cs.fluid.sea.ResultDrop'/>
-
-<result-drop type='ResultDrop'
-	 offset='46'
-	 line='5'
-	 path='TestUtilityScrubbing/src/test/U.java'
-	 uri='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
-	 file='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
-	 hash='1289851970'
-	 context='-877171207'
-	 id='1028'
-	 message='Class does implement any interfaces'
-	 result-type='CLASS_IMPLEMENTS_NOTHING'
-	 message-id='(604)'
-	 proved-consistent='true'
-	 consistent='true'
-	 full-type='edu.cmu.cs.fluid.sea.ResultDrop'/>
-
-<ir-drop type='PromiseWarningDrop'
-	 offset='46'
-	 line='5'
-	 path='TestUtilityScrubbing/src/test/I.java'
-	 uri='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/I.java'
-	 file='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/I.java'
-	 hash='1828982763'
-	 context='-877171219'
-	 message='Cannot use @Utility on an interface on Utility'
-	 id='1306'
-	 category='Modeling problems'
-	 full-type='edu.cmu.cs.fluid.sea.PromiseWarningDrop'/>
 
 <result-drop type='ResultDrop'
 	 offset='74'
@@ -112,7 +67,7 @@
 	 file='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
 	 hash='-333117170'
 	 context='637793953'
-	 id='1497'
+	 id='35'
 	 message='Constructor only invokes the super constructor'
 	 result-type='CONSTRUCTOR_OKAY'
 	 message-id='(616)'
@@ -128,7 +83,7 @@
 	 file='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
 	 hash='1289851970'
 	 context='-877171207'
-	 id='1498'
+	 id='36'
 	 message='Class is public'
 	 result-type='CLASS_IS_PUBLIC'
 	 message-id='(600)'
@@ -147,8 +102,21 @@
 	 result-type='CONSIDER_FINAL'
 	 message-id='(620)'
 	 message='Consider declaring the class final'
-	 id='1713'
+	 id='256'
 	 full-type='edu.cmu.cs.fluid.sea.WarningDrop'/>
+
+<ir-drop type='PromiseWarningDrop'
+	 offset='46'
+	 line='5'
+	 path='TestUtilityScrubbing/src/test/I.java'
+	 uri='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/I.java'
+	 file='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/I.java'
+	 hash='1828982763'
+	 context='-877171219'
+	 message='Cannot use @Utility on an interface on Utility'
+	 id='498'
+	 category='Modeling problems'
+	 full-type='edu.cmu.cs.fluid.sea.PromiseWarningDrop'/>
 
 <ir-drop type='ProposedPromiseDrop'
 	 offset='74'
@@ -158,7 +126,7 @@
 	 file='file:/Users/aarong/Work/Eclipse-Workspaces/Eclipse-3.6/Fluid%20Regression/TestUtilityScrubbing/src/test/U.java'
 	 hash='-333117170'
 	 context='637793953'
-	 id='1813'
+	 id='1280'
 	 message='ProposedPromiseDrop @RegionEffects(none)'
 	 target-project='TestUtilityScrubbing'
 	 java-annotation='@RegionEffects(&quot;none&quot;)'
