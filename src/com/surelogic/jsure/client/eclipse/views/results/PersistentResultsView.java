@@ -195,4 +195,10 @@ public class PersistentResultsView extends ResultsView implements IJSureScanList
 		super(msg, ref);
 	}
   }
+
+  @Override
+  protected String getViewLabel() {
+	  final JSureScanInfo scan = JSureScansHub.getInstance().getCurrentScanInfo();
+	  return scan != null ? scan.getLabel() : null;
+  }
 }

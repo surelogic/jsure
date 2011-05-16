@@ -142,6 +142,7 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 		subscribe();
 
 		f_viewTitle = getPartName();
+		updateViewTitle();
 		finishCreatePartControl();
 	}
 
@@ -709,17 +710,23 @@ public abstract class AbstractDoubleCheckerView extends ViewPart implements
 					"Didn't get a view title from XML using \"" + f_viewTitle
 							+ "\"");
 		}
-		/*
-		 * Try to get a project name from drop-sea and add it.
-		 */
-		final IIRProjects projects = ProjectsDrop.getProjects();
-		if (projects != null) {
-			setPartName(f_viewTitle + " (" + projects.getLabel() + ")");
+
+		final String label = getViewLabel();
+		if (label != null) {
+			setPartName(f_viewTitle + " (" + label + ")");
 		} else {
 			setPartName(f_viewTitle);
 		}
 	}
 
+	protected String getViewLabel() {
+		/*
+		 * Try to get a project name from drop-sea and add it.
+		 */
+		final IIRProjects projects = ProjectsDrop.getProjects();
+		return projects != null ? projects.getLabel() : null;
+	}
+	
 	/*
 	 * For use by view contribution actions in other plug-ins so that they can
 	 * get a pointer to the TreeViewer
