@@ -1,9 +1,0 @@
-<package name="java.awt">
-    <class name="BorderLayout">
-
-    <ThreadRoleImport>java.awt</ThreadRoleImport>
-
-  <Promise>@ThreadRole(AWT) for *(**)</Promise>
-
-    </class>  
-</package>

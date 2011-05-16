@@ -1,7 +1,0 @@
-<package name="java.awt.event">
-  <class name="ComponentListener">
-
-    <Promise>@ThreadRole(AWT) for component*(java.awt.event.ComponentEvent)</Promise>
-    
-  </class>  
-</package>

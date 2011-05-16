@@ -1,7 +1,0 @@
-<package name="java.awt.event">
-  <class name="ItemListener">
-    <method name="itemStateChanged" params="java.awt.event.ItemEvent">
-      <ThreadRole>AWT</ThreadRole>
-    </method>
-  </class>  
-</package>

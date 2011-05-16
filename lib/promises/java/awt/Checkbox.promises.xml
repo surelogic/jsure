@@ -1,7 +1,0 @@
-<package name="java.awt">
-	<class name="Checkbox">
-
-		<ThreadRoleImport>java.awt</ThreadRoleImport>
-
-  </class>  
-</package>

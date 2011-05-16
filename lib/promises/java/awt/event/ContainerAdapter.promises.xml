@@ -1,5 +1,0 @@
-<package name="java.awt.event">
-  <class name="ContainerAdapter">
-    <Promise>@ThreadRole(AWT) for *(**) | new(**)</Promise>
-  </class>  
-</package>

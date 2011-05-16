@@ -1,6 +1,0 @@
-<package name="java.awt.event">
-    <class name="ActionEvent">
-    <ThreadRoleImport>java.awt</ThreadRoleImport>
-      <Promise>@ThreadRole(AWT) for **(**) &amp; !(get*())</Promise>
-    </class>  
-</package>

@@ -1,7 +1,0 @@
-<package name="java.awt.event">
-  <class name="InputEvent">
-    <Promise>@ThreadRole(AWT) for *(**) &amp; !(get*(**))</Promise>
-    <MapRegion>Instance into java.awt.event.ActionListener:GUIstuff</MapRegion>
-    <Promise>@RegionEffects(writes Instance) for consume()</Promise>
-  </class>
-</package>

@@ -1,9 +1,0 @@
-<package name="java.awt.event">
- <class name="ActionListener">
-  <Region>public static GUIstuff</Region>
-  <Region>public static GUIinternal</Region>
-  <method name="actionPerformed" params="java.awt.event.ActionEvent">
- 		<ThreadRole>AWT</ThreadRole>
-  </method>
- </class>
-</package>

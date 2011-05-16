@@ -1,5 +1,0 @@
-<package name="java.awt.event">
-  <class name="KeyEventDispatcher">
-    <Promise>@ThreadRole(AWT) for *(**)</Promise>
-  </class>
-</package>

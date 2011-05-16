@@ -1,5 +1,0 @@
-<package name="java.awt.event">
-  <class name="FocusEvent">
-    <Promise>@ThreadRole(AWT) for *(**) | new(**)</Promise>
-  </class>  
-</package>

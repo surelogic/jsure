@@ -1,9 +1,0 @@
-<package name="java.awt.dnd">
-    <class name="DragGestureListener">
-    
-    <ThreadRoleImport>java.awt</ThreadRoleImport>
-
-      <Promise>@ThreadRole(AWT) for dragGestureRecognized(*)</Promise>
-
-    </class>  
-</package>
