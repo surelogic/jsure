@@ -55,26 +55,29 @@ public class PersistentResultsView extends ResultsView implements IJSureScanList
   protected void subscribe() {
 	  PersistentDropInfo.getInstance().addListener(this);
   }
+  */
   
-  /*
   @Override
   public void analysisStarting() {
+	  /*
 	  if (location == null || !location.exists()) {
 		  super.analysisStarting();
 	  }
+	  */
 	  // Ignore this, so we can continue to look at the old results
   }
   
   @Override 
   public void seaChanged() {
+	  /*
 	  if (location == null || !location.exists()) {
 		  super.seaChanged();
 	  } else { 
+	  */
 		  // load it up
 		  finishCreatePartControl();
-	  }
+	  //}
   }
-  */
   
   @Override
   protected void finishCreatePartControl() {
