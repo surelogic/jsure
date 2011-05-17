@@ -1,5 +1,8 @@
 package com.surelogic.jsure.client.eclipse.views;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.*;
@@ -11,9 +14,15 @@ import org.eclipse.ui.ide.IDE;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.views.AbstractSLView;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
+import com.surelogic.jsure.core.driver.JavacEclipse;
+import com.surelogic.xml.TestXMLParserConstants;
+import com.surelogic.xml.XMLGenerator;
 
+import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.ISrcRef;
 
 /**
@@ -55,10 +64,47 @@ public abstract class AbstractJSureView extends AbstractSLView {
 						srcRef.getCUName(), srcRef.getLineNumber());
 
 				if (file != null) {
-					IJavaElement elt = JavaCore.create(file);
-					if (elt != null) {					    
+					IJavaElement elt = JavaCore.create(file);					
+					if (elt instanceof IClassFile) {
+						final String root = JavacEclipse.getDefault().getStringPreference(IDEPreferences.JSURE_XML_DIRECTORY);
+						final char slash  = File.separatorChar;
+						final String pkg  = srcRef.getPackage().replace('.', slash);
+						String name = srcRef.getCUName();
+						if (name.endsWith(".class")) {
+							name = name.substring(0, name.length() - 6);
+						}
+						final String path = root + slash + pkg + slash + name + TestXMLParserConstants.SUFFIX;
+						final File xml = new File(path);
+						if (!xml.exists()) {
+							xml.getParentFile().mkdirs();
+							
+							// Create a template?
+							try {
+								PrintWriter pw = new PrintWriter(xml);
+								IRNode ast = null;
+								if (ast != null) {
+									// Currently unused, since there's no good way to get the right AST
+									final String s = XMLGenerator.generateStringXML(ast, true);
+									pw.println(s);
+								} else {
+									pw.println("<package name=\""+srcRef.getPackage()+"\">");
+									pw.println("  <class name=\""+name+"\">");
+									pw.println("  </class>");								
+									pw.println("</package>");
+								}
+								pw.close();
+							} catch (FileNotFoundException e) {
+								e.printStackTrace();
+							}
+						}
+						boolean success = EclipseUIUtility.openInEditor(path);
+						if (success) {
+							return;
+						}
+					}					
+					if (elt != null) {					    						
 						IEditorPart ep = JavaUI.openInEditor(elt);						
-
+						
 						IMarker location = null;
 						try {
 							location = ResourcesPlugin.getWorkspace().getRoot()
