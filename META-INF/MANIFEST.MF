@@ -33,7 +33,7 @@ Require-Bundle: com.surelogic.common,
  org.eclipse.compare,
  org.eclipse.jdt.launching,
  org.eclipse.debug.core,
- org.eclipse.wst.xml.ui;bundle-version="1.1.2"
+ org.eclipse.wst.xml.ui
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: com.surelogic.jsure.client.eclipse.views,
