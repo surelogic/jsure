@@ -45,7 +45,7 @@ public class XMLGenerator
 	private static final int MAX_PARAMS = 3;
 
 	/**
-	 * Given the root of an AAST, output the XML representation of the 
+	 * Given the root of an AST, output the XML representation of the 
 	 * annotations.
 	 * @param root
 	 */
