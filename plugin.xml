@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
+	<!--extension point="org.eclipse.ui.editors">
+        <editor	
+           name="Promises XML Editor"
+           icon="feature.gif"
+           class="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor"
+           id="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor"
+           default="true"
+           extensions="xml"
+           matchingStrategy="com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditorMatcher"/>
+	</extension-->
+    <!-- we need to do custom matching above since Eclipse can't match against all of '.promises.xml' -->
+    
 	<extension point="org.eclipse.ui.preferencePages">
 		<page name="JSure"
 			class="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage"
@@ -40,6 +52,7 @@
 		<view name="Verification Status (Old)"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 			category="edu.cmu.cs.fluid.dcf" class="edu.cmu.cs.fluid.dcf.views.coe.ResultsView"
+			
 			id="edu.cmu.cs.fluid.dcf.views.coe.ResultsView">
 		</view>
 
