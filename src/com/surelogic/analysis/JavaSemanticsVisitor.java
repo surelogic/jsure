@@ -164,7 +164,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * {@link #visitNestedClassDeclaration(IRNode)}, {@link #visitEnumDeclaration(IRNode)},
    * {@link #visitNestedEnumDeclaration(IRNode)}, {@link #visitInterfaceDeclaration(IRNode)},
    * {@link #visitNestedInterfaceDeclaration(IRNode)},
-   * and {@link #visitAnonClassExpression(IRNode)}.
+   * {@link #visitAnonClassExpression(IRNode)}, and 
+   * {@link #visitEnumConstantClassDeclaration(IRNode)}.
    */
   private final boolean visitInsideTypes;
   
