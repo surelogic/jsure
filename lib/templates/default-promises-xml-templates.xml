@@ -1,132 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <templates>
+  <!-- Basic promises XML constructs -->
+  <template name="Nested type" description="Nested type" 
+            id="com.surelogic.jsure.xml.templates.nested.type" context="xml_tag" 
+            enabled="true">&lt;class name="${name}"&gt;
+    &lt;/class&gt;</template>   
+  
+  <template name="Constructor" description="Constructor (no-arg)" 
+            id="com.surelogic.jsure.xml.templates.constructor.noarg" context="xml_tag" 
+            enabled="true">&lt;constructor&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/constructor&gt;</template>
+
+  <template name="Method" description="Method (no-arg)" 
+            id="com.surelogic.jsure.xml.templates.method.int.param" context="xml_tag" 
+            enabled="true">&lt;method name="${name}"&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/method&gt;</template>   
+
+  <template name="Method" description="Method w/ int parameter" 
+            id="com.surelogic.jsure.xml.templates.method.int.param" context="xml_tag" 
+            enabled="true">&lt;method name="${name} params="int"&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/method&gt;</template>    
+
+  <template name="Method" description="Method w/ Object parameter" 
+            id="com.surelogic.jsure.xml.templates.method.obj.param" context="xml_tag" 
+            enabled="true">&lt;method name="${name} params="${java.lang.Object}"&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/method&gt;</template>   
+
+  <template name="Method" description="Method w/ parameters" 
+            id="com.surelogic.jsure.xml.templates.method.params" context="xml_tag" 
+            enabled="true">&lt;method name="${name} params="${p1},${p2}"&gt;
+      &lt;${promise}&gt;&lt;/${promise}&gt;
+    &lt;/method&gt;</template>    
+
   <!-- Region annotations (@Region, @InRegion, @MapFields) -->
-  <template name="Region" 
-            description="New region with default parent" 
-            id="com.surelogic.jsure.templates.region" context="java" 
-            enabled="true">&lt;Region&gt;${accessMod} ${name}&lt;/Region&gt;</template>
-            
-  <template name="Region" 
-            description="New region with explicit parent" 
-            id="com.surelogic.jsure.templates.region2" context="java" 
-            enabled="true">Region("${accessMod} ${name} extends ${parentRegion}")</template>
   
   <!-- Effects annotations (@Reads, @Writes) -->
-  <!-- Lock annotations (@RegionLock, @PolicyLock, @IsLock, @ReturnsLock, @SingleThreaded) -->
-  <template name="RegionLock" 
-            description="Lock declaration" 
-            id="com.surelogic.jsure.templates.lock" context="java" 
-            enabled="true">RegionLock("${name} is ${lockExpr} protects ${region})"</template>
-  
-  <template name="RegionLock" 
-            description="Lock decl - this protects Instance" 
-            id="com.surelogic.jsure.templates.lock.this" context="java" 
-            enabled="true">RegionLock("${name} is this protects Instance")</template>
-  
-  <template name="RegionLock" 
-            description="Lock decl - this protects all of this Object's fields" 
-            id="com.surelogic.jsure.templates.lock.this.fields" context="java" 
-            enabled="true">Region("${accessMod} ${name}State")
-    @Promise("@InRegion(${name}State) for * *")
-    @RegionLock("${name}Lock is this protects ${name}State")</template>
-  
-  <template name="Region" 
-            description="'State' region and corresponding lock decl" 
-            id="com.surelogic.jsure.templates.region.lock" context="java" 
-            enabled="true">Region("State")
-    @RegionLock("Lock is ${lockExpr} protects State")</template>
-  
-  <template name="Region" 
-            description="Region and corresponding lock decl" 
-            id="com.surelogic.jsure.templates.region.lock" context="java" 
-            enabled="true">Region("${accessMod} ${name}State")
-    @RegionLock("${name}Lock is ${lockExpr} protects ${name}State")</template>
-
-  <template name="Regions" 
-            description="Region and corresponding lock decl (out of many)" 
-            id="com.surelogic.jsure.templates.region.locks" context="java" 
-            enabled="true">Regions({
-        @Region("${accessMod} ${name}State"),
-    })
-    @RegionLocks({
-        @RegionLock("${name}Lock is ${lockExpr} protects ${name}State"),
-    })</template>
-
-  <template name="PolicyLock" 
-            description="Policy lock declaration" 
-            id="com.surelogic.jsure.templates.policyLock" context="java" 
-            enabled="true">PolicyLock("${name} is ${lockExpr}")</template>
-  
-  <template name="RequiresLock" 
-            description="Caller need to acquire lock" 
-            id="com.surelogic.jsure.templates.requiresLock" context="java" 
-            enabled="true">RequiresLock("${lock}")</template>
-  
-    <template name="RequiresLock" 
-            description="Caller need to acquire lock in different class" 
-            id="com.surelogic.jsure.templates.requiresLock" context="java" 
-            enabled="true">RequiresLock("${foo}.${Bar}:${lock}")</template>
-  
-  <template name="ThreadConfined" 
-            description="Thread-confined constructor with borrowed this" 
-            id="com.surelogic.jsure.templates.singleThreaded.borrowed" context="java" 
-            enabled="true">Unique("return")</template>
-  
-  <template name="ThreadConfined" 
-            description="Thread-confined constructor writing/starting nothing" 
-            id="com.surelogic.jsure.templates.singleThreaded.nothing" context="java" 
-            enabled="true">RegionEffects("reads All")
-    @Starts("nothing")</template>
-  
+  <!-- Lock annotations (@RegionLock, @PolicyLock, @IsLock, @ReturnsLock, @SingleThreaded) -->  
   <!-- Uniqueness annotations -->
-    <template name="Unique" 
-            description="Unique" 
-            id="com.surelogic.jsure.templates.unique" context="java" 
-            enabled="true">Unique</template>  
-  
-  <template name="Unique" 
-            description="Unique Object" 
-            id="com.surelogic.jsure.templates.unique" context="java" 
-            enabled="true">UniqueInRegion("${region}")</template>  
-  
-  <template name="InRegion" 
-            description="Unique Object/array" 
-            id="com.surelogic.jsure.templates.mappedObject" context="java" 
-            enabled="true">InRegion("${region}")
-    @UniqueInRegion("${region}")</template>  
     
   <!-- Scoped promises -->
   <template name="Promise" 
             description="Scoped promise" 
-            id="com.surelogic.jsure.templates.promise" context="java" 
-            enabled="true">Promise("@${promise} for ${targets}")</template>
+            id="com.surelogic.jsure.xml.templates.promise" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;@${promise} for ${targets}&lt;/Promise&gt;</template>
   
    <template name="Promise" 
             description="Scoped promise on all fields" 
-            id="com.surelogic.jsure.templates.promise.fields" context="java" 
-            enabled="true">Promise("@${promise} for * *")</template>
+            id="com.surelogic.jsure.xml.templates.promise.fields" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;${promise}() for * *&lt;/Promise&gt;</template>
   
   <template name="Promise" 
             description="Scoped promise on all constructors" 
-            id="com.surelogic.jsure.templates.promise.constructors" context="java" 
-            enabled="true">Promise("@${promise} for new(**)")</template>
+            id="com.surelogic.jsure.xml.templates.promise.constructors" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;@${promise}() for new(**)&lt;/Promise&gt;</template>
   
-  <template name="Promise" 
+  <template name="Promise" autoinsert="true"
             description="Scoped promise on all methods" 
-            id="com.surelogic.jsure.templates.promise.methods" context="java" 
-            enabled="true">Promise("@${promise} for *(**)")</template>
+            id="com.surelogic.jsure.xml.templates.promise.methods" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;${promise}() for **(**)&lt;/Promise&gt;</template>
   
   <template name="Promise" 
             description="Scoped promise on all methods and constructors"
-            id="com.surelogic.jsure.templates.promise.methods" context="java" 
-            enabled="true">Promise("@${promise} for **(**)")</template>
+            id="com.surelogic.jsure.xml.templates.promise.methods.all" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;@${promise}() for **(**)&lt;/Promise&gt;</template>
   
   <template name="Promise" 
-            description="unique on the default constructor" 
-            id="com.surelogic.jsure.templates.promise.methods" context="java" 
-            enabled="true">Promises({ @Promise("@Unique(return) for new()"),
-    })</template>  
+            description="@Unique(return) on the default constructor" 
+            id="com.surelogic.jsure.xml.templates.promise.unique.on.default.constructor" context="xml_tag" 
+            enabled="true">&lt;Promise&gt;Unique(return) for new()&lt;/Promise&gt;</template>  
   
   <!-- Starts annotations -->
   

@@ -14,10 +14,10 @@
     <!-- we need to do custom matching above since Eclipse can't match against all of '.promises.xml' -->
     
     <extension point="org.eclipse.ui.editors.templates">
-		<contextType name="Promises XML Tag Context"
+		<!--contextType name="Promises XML Tag Context"
 			class="org.eclipse.wst.xml.ui.internal.templates.TemplateContextTypeXML"
 			id="xml_tag">
-		</contextType>
+		</contextType -->
 		<include file="lib/templates/default-promises-xml-templates.xml" />
 	</extension>
     
