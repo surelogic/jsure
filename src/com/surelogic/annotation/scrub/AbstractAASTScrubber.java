@@ -362,7 +362,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		return true;
 	}
 	
-	protected void processAASTsForType(IRNode decl, List<A> l) {
+	protected void processAASTsForType(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l) {
 		if (StorageType.SEQ.equals(stor.type())) {
 			// Sort to process in a consistent order
 			Collections.sort(l, aastComparator);
@@ -373,7 +373,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				System.out.println("Scrubbing: "+a.toString());						
 			}
             */
-				processAAST(a);
+				processAAST(cb, a);
 			}
 		} else {
 			MultiMap<IRNode,A> annos = new MultiHashMap<IRNode, A>();
@@ -384,7 +384,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			Collections.sort(nodes, entryComparator);
 			
 			for(Map.Entry<IRNode,Collection<A>> e : nodes) {
-				processAASTsByNode(e.getValue());
+				processAASTsByNode(cb, e.getValue());
 			}  
 			/* Unordered among the nodes
 			for(Map.Entry<IRNode,Collection<A>> e : annos.entrySet()) {
@@ -403,10 +403,11 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	
 	/**
 	 * Written for boolean/node promises that can really only take one AAST per node
+	 * @param cb 
 	 */
-	protected void processAASTsByNode(Collection<A> l) {
+	protected void processAASTsByNode(IAnnotationTraversalCallback<A> cb, Collection<A> l) {
 		if (l.size() == 1) {
-			processAAST(l.iterator().next());
+			processAAST(cb, l.iterator().next());
 		} else if (l.isEmpty()) {
 			return;
 		} else {
@@ -419,7 +420,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			for(A a : sorted) {
 				PromiseDrop<?> pd = AASTStore.getPromiseSource(a);
 				if (pd == null) {
-					boolean success = processAAST(a);
+					boolean success = processAAST(cb, a);
 					if (success) {
 						for(A a2 : l) {
 							if (a2 != a) {
@@ -447,7 +448,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				// At most one other AAST, so use that one instead
 				for(A a : l) {
 					if (a != processedUnsuccessfully) {
-						processAAST(a);
+						processAAST(cb, a);
 						return;
 					}
 				}
@@ -462,10 +463,11 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	
 	/**
 	 * Intended to be overridden
+	 * @param cb 
 	 * 
 	 * @param a
 	 */
-	protected boolean processAAST(A a) {
+	protected boolean processAAST(IAnnotationTraversalCallback<A> cb, A a) {
 		TestResult expected = AASTStore.getTestResult(a);
 		boolean result = scrub(a);
 		if (result) {
@@ -477,7 +479,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				final PromiseFramework frame = PromiseFramework.getInstance();
 				frame.pushTypeContext(cu, true, true); // create one if there isn't one
 			}
-			PromiseDrop<? super A> d = makePromiseDrop(a);
+			PromiseDrop<? super A> d = makePromiseDrop(cb, a);
 			if (cu != null) {
 				d.setAssumed(true);
 				PromiseFramework.getInstance().popTypeContext();				
@@ -526,7 +528,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 					scrubByPromisedFor_Hierarchy(cls, type);
 					return;
 				case DIY:
-					scrubAll(AASTStore.getASTsByClass(cls));
+					scrubAll(nullCallback, AASTStore.getASTsByClass(cls));
 					return;
 				case OTHER:
 					throw new UnsupportedOperationException();
@@ -534,16 +536,6 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				AASTStore.sync();
 			}
 		});
-	}
-
-	/**
-	 * Scrub the bindings of the specified kind in no particular order
-	 */
-	@SuppressWarnings("unused")
-	private void scrub(Class<A> c) {
-		for (A a : AASTStore.getASTsByClass(c)) {
-			processAAST(a);
-		}
 	}
 
 	protected void startScrubbingType(IRNode decl) {
@@ -561,7 +553,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		return true;
 	}
 	
-	protected void scrubAll(Iterable<A> all) {
+	protected void scrubAll(IAnnotationTraversalCallback<A> cb, Iterable<A> all) {
 		throw new UnsupportedOperationException();
 	}
 	
@@ -588,6 +580,13 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		finishScrubbingType(decl);
 	}
 	
+	
+	private final IAnnotationTraversalCallback<A> nullCallback = new IAnnotationTraversalCallback<A>() {
+		public void addDerived(A c, PromiseDrop<? extends A> pd) {
+			context.reportWarning("Ignoring derived AAST created by "+pd.getClass().getSimpleName(), c);
+		}
+	};
+	
 	void scrubByPromisedFor_Type(Class<A> c) {
 		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
 		organizeByType(c, byType);
@@ -598,7 +597,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				final IRNode decl = e.getKey();
 				startScrubbingType_internal(decl);
 				try {
-					processAASTsForType(decl, l);
+					processAASTsForType(nullCallback, decl, l);
 				} finally {
 					finishScrubbingType_internal(decl);
 				}
@@ -627,7 +626,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		}
 	}
 	
-	private class HierarchyWalk {
+	private class HierarchyWalk implements IAnnotationTraversalCallback<A> {
 		// Empty list = a subclass w/o required annos
 		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
 		final Map<IRNode, List<IRNode>> methodRelatedDeclsToCheck = new HashMap<IRNode, List<IRNode>>();
@@ -787,7 +786,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 							processUnannotatedType(dt);
 						}
 					} else {
-						processAASTsForType(dt.getDeclaration(), l);
+						processAASTsForType(this, dt.getDeclaration(), l);
 						if (type == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
 							processUnannotatedDeclsForType(otherDeclsToCheck);
 						}
@@ -800,16 +799,46 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			done.add(decl);
 		}
 
-		void checkState() {
+		boolean hasMoreTypes() {
 			// Check that we've processed everything
 			for (IRNode t : done) {
 				byType.remove(t);
 			}
 			if (!byType.isEmpty()) {
 				for (IRNode type : byType.keySet()) {
-					throw new Error("Didn't process "
-							+ DebugUnparser.toString(type));
+					final IJavaDeclaredType dt = JavaTypeFactory.getMyThisType(type);
+					final IIRProject p = JavaProjects.getEnclosingProject(type);
+					// get super types
+					for (IJavaType st : p.getTypeEnv().getSuperTypes(dt)) {
+						if (st instanceof IJavaDeclaredType) {
+							IJavaDeclaredType sdt = (IJavaDeclaredType) st;
+							if (!done.contains(sdt.getDeclaration())) {
+								throw new Error("Didn't process "+dt+"'s supertype: "+sdt);
+							}
+						}		
+					}
 				}
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public void addDerived(A clone, PromiseDrop<? extends A> pd) {
+			IRNode ty = VisitUtil.getClosestType(clone.getPromisedFor());
+			List<A> l = byType.get(ty);
+			if (l == null || l.isEmpty()) {
+				l = new ArrayList<A>(1);
+			}
+			l.add(clone);
+			
+			// Copied from AASTStore
+			synchronized (AASTStore.class) {
+				AASTStore.setPromiseSource(clone, pd);
+				if (pd instanceof ValidatedDropCallback<?>) {
+					AASTStore.triggerWhenValidated(clone, (ValidatedDropCallback<?>) pd);
+				}
+				AASTStore.cloneTestResult(pd.getAST(), clone);
 			}
 		}
 	}
@@ -854,13 +883,23 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	private void scrubByPromisedFor_Hierarchy(Class<A> c, ScrubberType type) {
 		HierarchyWalk walk = new HierarchyWalk(type);
 		walk.init(c);
-		walk.walkHierarchy();
-		walk.checkState();
+		do {
+			walk.walkHierarchy();
+		} 
+		while (walk.hasMoreTypes());
 	}
 
 	protected P storeDropIfNotNull(A a, P pd) {
 	  return AnnotationRules.storeDropIfNotNull(stor, a, pd);
 	}
 	
+	/**
+	 * Meant to be overridden
+	 */
+	protected PromiseDrop<? super A> makePromiseDrop(IAnnotationTraversalCallback<A> cb, A ast) {
+		return makePromiseDrop(ast);
+	}
+	
+	// Only called by the method above
 	protected abstract PromiseDrop<? super A> makePromiseDrop(A ast);
 }

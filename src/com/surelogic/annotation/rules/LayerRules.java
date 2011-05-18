@@ -150,7 +150,7 @@ public class LayerRules extends AnnotationRules {
 		}
 		
 		@Override
-		protected void scrubAll(Iterable<A> all) {
+		protected void scrubAll(IAnnotationTraversalCallback<A> cb, Iterable<A> all) {
 			// Record all the names
 			// TODO what if there's an incremental build? 
 			//decls.clear();
@@ -161,7 +161,7 @@ public class LayerRules extends AnnotationRules {
 			
 			for(A n : all) {
 				setCurrent(n);
-				processAAST(n);
+				processAAST(cb, n);
 			}
 		}
 		
