@@ -1,8 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.*;
@@ -10,6 +8,7 @@ import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.*;
 import org.eclipse.ui.ide.IDE;
+import org.xml.sax.InputSource;
 
 
 import com.surelogic.common.core.EclipseUtility;
@@ -18,6 +17,7 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.views.AbstractSLView;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import com.surelogic.jsure.core.driver.JavacEclipse;
+import com.surelogic.xml.PackageAccessor;
 import com.surelogic.xml.TestXMLParserConstants;
 import com.surelogic.xml.XMLGenerator;
 
@@ -77,23 +77,44 @@ public abstract class AbstractJSureView extends AbstractSLView {
 						final File xml = new File(path);
 						if (!xml.exists()) {
 							xml.getParentFile().mkdirs();
-							
+
 							// Create a template?
 							try {
 								PrintWriter pw = new PrintWriter(xml);
-								IRNode ast = null;
-								if (ast != null) {
-									// Currently unused, since there's no good way to get the right AST
-									final String s = XMLGenerator.generateStringXML(ast, true);
-									pw.println(s);
-								} else {
-									pw.println("<package name=\""+srcRef.getPackage()+"\">");
-									pw.println("  <class name=\""+name+"\">");
-									pw.println("  </class>");								
-									pw.println("</package>");
+								// Try to copy from fluid first
+								try {
+									final InputSource is = PackageAccessor.readPackage(srcRef.getPackage(), name+TestXMLParserConstants.SUFFIX);									
+									if (is.getCharacterStream() == null) {
+										if (is.getByteStream() != null) {									
+											is.setCharacterStream(new InputStreamReader(is.getByteStream()));
+										} else {
+											// Try generating instead
+											throw new FileNotFoundException();
+										}
+									}
+									pw.println("<!-- Generated from the original XML within JSure -->");
+									char[] buf = new char[8192];
+									int read; 
+									while ((read = is.getCharacterStream().read(buf)) >= 0) {
+										pw.write(buf, 0, read);
+									}									
+								} catch (FileNotFoundException e) {
+									// No such XML in fluid, so generate something
+									IRNode ast = null;
+									if (ast != null) {
+										// Currently unused, since there's no good way to get the right AST
+										final String s = XMLGenerator.generateStringXML(ast, true);
+										pw.println(s);
+									} else {
+										pw.println("<package name=\""+srcRef.getPackage()+"\">");
+										pw.println("  <class name=\""+name+"\">");
+										pw.println("  </class>");								
+										pw.println("</package>");
+									}
+								} finally {								
+									pw.close();
 								}
-								pw.close();
-							} catch (FileNotFoundException e) {
+							} catch (IOException e) {
 								e.printStackTrace();
 							}
 						}
