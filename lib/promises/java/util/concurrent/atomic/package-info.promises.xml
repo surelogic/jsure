@@ -1,0 +1,3 @@
+<package name="java.util.concurrent.atomic">
+  <Promise>@ThreadSafe for * &amp; !(*FieldUpdater)</Promise> 
+</package>
