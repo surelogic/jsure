@@ -304,12 +304,12 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 	/**
 	 * Intended to be overridden
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected boolean checkifUndefined(A a) {		
 		final IRNode promisedFor = a.getPromisedFor();
 		final boolean defined    = stor.isDefined(promisedFor);
 		if (defined) {
-			PromiseDrop pd = (PromiseDrop) promisedFor.getSlotValue(stor.getSlotInfo());
+			PromiseDrop pd = promisedFor.getSlotValue(stor.getSlotInfo());
 			A old          = (A) pd.getAST();
 			if (/*!pd.isValid() ||*/ old == null) {
 				return true;
@@ -823,12 +823,12 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 			return false;
 		}
 
-		@Override
 		public void addDerived(A clone, PromiseDrop<? extends A> pd) {
 			IRNode ty = VisitUtil.getClosestType(clone.getPromisedFor());
 			List<A> l = byType.get(ty);
 			if (l == null || l.isEmpty()) {
 				l = new ArrayList<A>(1);
+				byType.put(ty, l);
 			}
 			l.add(clone);
 			
