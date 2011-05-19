@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.ContainableNode;
+import com.surelogic.annotation.scrub.ValidatedDropCallback;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -13,7 +14,9 @@ import edu.cmu.cs.fluid.sea.drops.*;
  * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<ContainableNode> {
+public final class ContainablePromiseDrop extends
+    ModifiedBooleanPromiseDrop<ContainableNode> implements
+    ValidatedDropCallback<ContainablePromiseDrop> {
   public ContainablePromiseDrop(ContainableNode a) {
     super(a); 
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
@@ -30,5 +33,10 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
       setResultMessage(Messages.LockAnnotation_containableAttributedDrop,
           isImplementationOnly, isVerify, name);
     }
+  }
+  
+  public void validated(final ContainablePromiseDrop pd) {
+    pd.setVirtual(true);
+    pd.setSourceDrop(this);
   }
 }

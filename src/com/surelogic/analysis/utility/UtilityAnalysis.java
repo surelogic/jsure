@@ -8,8 +8,8 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor;
+import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.UtilityRules;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -18,31 +18,23 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
-import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
-import edu.cmu.cs.fluid.java.operator.Implements;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
-import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ThrowStatement;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
+import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
-import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Drop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UtilityPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
-import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
-import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
 
-public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalysis.UtilityVisitor, UtilityAnalysis.Pair> {	
+public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalysis.UtilityVisitorFactory, UtilityAnalysis.Pair> {	
   /** Should we try to run things in parallel */
   private static boolean wantToRunInParallel = false;
   
@@ -74,14 +66,11 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 				public void op(Pair n) {
 					if (byCompUnit) {
 					  final TopLevelAnalysisVisitor topLevel = 
-					    new TopLevelAnalysisVisitor(
-					        new ClassProcessor(getAnalysis(), getResultDependUponDrop()));
+					    new TopLevelAnalysisVisitor(new ClassProcessor(getAnalysis()));
 					  // actually n.typeDecl is a CompilationUnit here!
 						topLevel.doAccept(n.typeDecl);	
 					} else {
-					  actuallyAnalyzeClassBody(
-					      getAnalysis(),getResultDependUponDrop(),
-					      n.typeDecl, n.classBody);
+					  actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl, n.classBody);
 					}
 				}
 			});
@@ -89,12 +78,12 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 	}
 	
 	
-	private final void actuallyAnalyzeClassBody(
-	    final UtilityVisitor uv, final Drop rd, 
-	    final IRNode typeDecl, final IRNode classBody) {
-	  final UtilityPromiseDrop uDrop = UtilityRules.getUtilityDrop(typeDecl);
+	private static void actuallyAnalyzeClassBody(final UtilityVisitorFactory f,
+	    final IRNode classDecl, final IRNode classBody) {
+	  final UtilityPromiseDrop uDrop = UtilityRules.getUtilityDrop(classDecl);
 	  if (uDrop != null) {
-	    uv.assureClass(typeDecl, classBody, uDrop);
+	    final UtilityVisitor uv = f.getVisitor(uDrop, classDecl, classBody);
+	    uv.processType();
 	  }
 	}
 
@@ -104,17 +93,17 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 	}
 	
 	@Override
-	protected UtilityVisitor constructIRAnalysis(final IBinder binder) {		
+	protected UtilityVisitorFactory constructIRAnalysis(final IBinder binder) {		
 	  if (binder == null || binder.getTypeEnvironment() == null) {
 		  return null;
 	  }
-	  return new UtilityVisitor(this, binder);
+	  return new UtilityVisitorFactory(binder);
 	}
 	
 	@Override
 	protected void clearCaches() {
 		if (!runInParallel()) {
-			final UtilityVisitor lv = getAnalysis();
+			final UtilityVisitorFactory lv = getAnalysis();
 			if (lv != null) {
 				lv.clearCaches();
 			}
@@ -130,7 +119,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 			return true;
 		}
 		// FIX factor out?
-		final ClassProcessor cp = new ClassProcessor(getAnalysis(), getResultDependUponDrop());
+		final ClassProcessor cp = new ClassProcessor(getAnalysis());
 		new TopLevelAnalysisVisitor(cp).doAccept(compUnit);
 		if (runInParallel()) {
 			if (queueWork) {
@@ -163,13 +152,11 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 	
 	
 	private final class ClassProcessor extends TopLevelAnalysisVisitor.SimpleClassProcessor {
-    private final UtilityVisitor utilityVisitor;
-    private final Drop resultsDependUpon;
+    private final UtilityVisitorFactory factory;
     private final List<Pair> types = new ArrayList<Pair>();
     
-    public ClassProcessor(final UtilityVisitor uv, final Drop rd) {
-      utilityVisitor = uv;
-      resultsDependUpon = rd;
+    public ClassProcessor(final UtilityVisitorFactory f) {
+      factory = f;
     }
 
     public Collection<Pair> getTypeBodies() {
@@ -181,154 +168,156 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       if (runInParallel() && !byCompUnit) {
         types.add(new Pair(typeDecl, classBody));
       } else {
-        actuallyAnalyzeClassBody(
-            utilityVisitor, resultsDependUpon, typeDecl, classBody);
+        actuallyAnalyzeClassBody(factory, typeDecl, classBody);
       }
     }
 	}
 
 
 
-  public static final class UtilityVisitor implements IBinderClient {
-    
-    private final class BodyVisitor extends JavaSemanticsVisitor {
-      private final IRNode utilityClass;
-      private final UtilityPromiseDrop uDrop;
-      
-      
-      
-      public BodyVisitor(final IRNode classDecl, final UtilityPromiseDrop drop) {
-        super(classDecl, true);
-        utilityClass = classDecl;
-        uDrop = drop;
+  public static final class UtilityVisitor extends TypeImplementationProcessor {
+    /**
+     * Visits the entire subtree (including nested types and anonymous classes)
+     * to search for new expressions and class declarations that may
+     * create instances of the utility class.
+     */
+    private final class BodyVisitor extends VoidTreeWalkVisitor {
+      public BodyVisitor() {
+        super();
       }
       
       
       
       @Override
-      protected void handleNewExpression(final IRNode newExpr) {
+      public Void visitNewExpression(final IRNode newExpr) {
         final IRNode clazz = binder.getBinding(NewExpression.getType(newExpr));
-        if (clazz.equals(utilityClass)) {
-          createResult(uDrop, newExpr, false, Messages.INSTANCE_CREATED);
+        if (clazz.equals(typeDecl)) {
+          createResult(newExpr, false, Messages.INSTANCE_CREATED);
         }
-        super.handleNewExpression(newExpr);
+        doAcceptForChildren(newExpr);
+        return null;
       }
       
       @Override
-      protected void handleNestedClassDeclaration(final IRNode nestedClass) {
+      public Void visitNestedClassDeclaration(final IRNode nestedClass) {
         final IRNode extendz = binder.getBinding(NestedClassDeclaration.getExtension(nestedClass));
-        if (extendz.equals(utilityClass)) {
-          createResult(uDrop, nestedClass, false, Messages.SUBCLASSED);
+        if (extendz.equals(typeDecl)) {
+          createResult(nestedClass, false, Messages.SUBCLASSED);
         }
         doAcceptForChildren(nestedClass);
+        return null;
       }
       
       @Override
-      protected void handleAnonClassExpression(final IRNode anonClass) {
+      public Void visitAnonClassExpression(final IRNode anonClass) {
         final IRNode extendz = binder.getBinding(AnonClassExpression.getType(anonClass));
-        if (extendz.equals(utilityClass)) {
-          createResult(uDrop, anonClass, false, Messages.INSTANCE_CREATED);
+        if (extendz.equals(typeDecl)) {
+          createResult(anonClass, false, Messages.INSTANCE_CREATED);
         }
-        super.handleAnonClassExpression(anonClass);
+        doAcceptForChildren(anonClass);
+        return null;
       }
     }
     
-    private final UtilityAnalysis analysis;
+
+    
     private final IBinder binder;
+    private IRNode constructorDecl;
+    private int numConstructors;
 
 
     
-    protected UtilityVisitor(final UtilityAnalysis a, final IBinder b) {
-      analysis = a;
+    protected UtilityVisitor(final UtilityAnalysis a,
+        final UtilityPromiseDrop uDrop, final IBinder b,
+        final IRNode classDecl, final IRNode classBody) {
+      super(a, uDrop, classDecl, classBody);
       binder = b;
     }
 
     
     
-    private final void createResult(
-        final UtilityPromiseDrop uDrop,
-        final IRNode node, final boolean isConsistent, 
-        final int msg, final Object... args) {
-      final ResultDropBuilder result =
-        ResultDropBuilder.create(analysis, Messages.toString(msg));
-      analysis.setResultDependUponDrop(result, node);
-      result.addCheckedPromise(uDrop);
-      result.setConsistent(isConsistent);
-      result.setResultMessage(msg, args);
+    @Override
+    protected String message2string(final int msg) {
+      return Messages.toString(msg);
     }
 
     
     
-    public void assureClass(
-        final IRNode classDecl, final IRNode classBody, final UtilityPromiseDrop drop) {
+    @Override
+    protected void preProcess() {
       /* We already know that it must be a class declaration because scrubbing
        * does not allow the annotation to appear on interfaces.
        */
       
       // Prefer the class to be final
-      if ((ClassDeclaration.getMods(classDecl) & JavaNode.FINAL) == 0) {
+      if ((ClassDeclaration.getMods(typeDecl) & JavaNode.FINAL) == 0) {
         final InfoDropBuilder db =
           InfoDropBuilder.create(analysis, Messages.toString(Messages.CONSIDER_FINAL), true);
-        analysis.setResultDependUponDrop(db, classDecl);
+        analysis.setResultDependUponDrop(db, typeDecl);
         db.setResultMessage(Messages.CONSIDER_FINAL);
       }
       
       // Class must be public
-      if ((ClassDeclaration.getMods(classDecl) & JavaNode.PUBLIC) != 0) {
-        createResult(drop, classDecl, true, Messages.CLASS_IS_PUBLIC);
+      if ((ClassDeclaration.getMods(typeDecl) & JavaNode.PUBLIC) != 0) {
+        createResult(typeDecl, true, Messages.CLASS_IS_PUBLIC);
       } else {
-        createResult(drop, classDecl, false, Messages.CLASS_IS_NOT_PUBLIC);
+        createResult(typeDecl, false, Messages.CLASS_IS_NOT_PUBLIC);
       }
-      
-      IRNode constructorDecl = null;
-      int numConstructors = 0;
-      for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
-        final Operator op = JJNode.tree.getOperator(bodyDecl);
-        if (FieldDeclaration.prototype.includes(op)) {
-          if (TypeUtil.isStatic(bodyDecl)) {
-            for (final IRNode field : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(bodyDecl))) {
-              createResult(drop, field, true, Messages.FIELD_IS_STATIC, 
-                  VariableDeclarator.getId(field));
-            }
-          } else {
-            for (final IRNode field : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(bodyDecl))) {
-              createResult(drop, field, false, Messages.FIELD_IS_NOT_STATIC, 
-                  VariableDeclarator.getId(field));
-            }
-          }
-        } else if (MethodDeclaration.prototype.includes(op)) {
-          if (TypeUtil.isStatic(bodyDecl)) {
-            createResult(drop, bodyDecl, true, Messages.METHOD_IS_STATIC,
-                JavaNames.genMethodConstructorName(bodyDecl));
-          } else {
-            createResult(drop, bodyDecl, false, Messages.METHOD_IS_NOT_STATIC,
-                JavaNames.genMethodConstructorName(bodyDecl));
-          }
-        } else if (ConstructorDeclaration.prototype.includes(op)) {
-          // ignore the implicit constructor
-          if (!JavaNode.wasImplicit(bodyDecl)) {
-            constructorDecl = bodyDecl;
-            numConstructors += 1;
-          }
-        }
+
+      constructorDecl = null;
+      numConstructors = 0;
+    }
+    
+    @Override
+    protected void processVariableDeclarator(
+        final IRNode varDecl, final boolean isStatic) {
+      if (isStatic) {
+        createResult(varDecl, true, Messages.FIELD_IS_STATIC, 
+            VariableDeclarator.getId(varDecl));
+      } else {
+        createResult(varDecl, false, Messages.FIELD_IS_NOT_STATIC, 
+            VariableDeclarator.getId(varDecl));
       }
-      
+    }
+    
+    @Override
+    protected void processMethodDeclaration(final IRNode mdecl) {
+      if (TypeUtil.isStatic(mdecl)) {
+        createResult(mdecl, true, Messages.METHOD_IS_STATIC,
+            JavaNames.genMethodConstructorName(mdecl));
+      } else {
+        createResult(mdecl, false, Messages.METHOD_IS_NOT_STATIC,
+            JavaNames.genMethodConstructorName(mdecl));
+      }
+    }
+    
+    @Override
+    protected void processConstructorDeclaration(final IRNode cdecl) {
+      // ignore the implicit constructor
+      if (!JavaNode.wasImplicit(cdecl)) {
+        constructorDecl = cdecl;
+        numConstructors += 1;
+      }
+    }
+    
+    @Override
+    protected void postProcess() {
       if (numConstructors == 0) {
-        createResult(drop, classDecl, false, Messages.NO_CONSTRUCTOR);
+        createResult(typeDecl, false, Messages.NO_CONSTRUCTOR);
       } else if (numConstructors > 1) {
-        createResult(drop, classDecl, false, Messages.TOO_MANY_CONSTRUCTORS);
+        createResult(typeDecl, false, Messages.TOO_MANY_CONSTRUCTORS);
       } else {
         boolean good = true;
         if (Visibility.getVisibilityOf(constructorDecl) != Visibility.PRIVATE) {
-          createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_NOT_PRIVATE);
+          createResult(constructorDecl, false, Messages.CONSTRUCTOR_NOT_PRIVATE);
           good = false;
         }
         if (Parameters.getFormalIterator(ConstructorDeclaration.getParams(constructorDecl)).hasNext()) {
-          createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_BAD_ARGS);
+          createResult(constructorDecl, false, Messages.CONSTRUCTOR_BAD_ARGS);
           good = false;
         }
         if (good) {
-          createResult(drop, constructorDecl, true, Messages.PRIVATE_NO_ARG_CONSTRUCTOR);
+          createResult(constructorDecl, true, Messages.PRIVATE_NO_ARG_CONSTRUCTOR);
         }
         
         /* Constructor must be one of 
@@ -351,12 +340,12 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
          * we know there is exactly one constructor.  Grab it and skip it.
          */
         @SuppressWarnings("unused")
-        final IRNode superCall = stmts.next();
+        final IRNode superCall = stmts.next(); // Eat the super call
         if (stmts.hasNext()) {
           final IRNode stmt = stmts.next();
           if (stmts.hasNext()) {
             // Has more than 2 statements, definitely bad
-            createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);            
+            createResult(constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);            
           } else {
             boolean bad = true;
             // Check for a Throws statement
@@ -370,19 +359,144 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
               }
             }
             if (bad) {
-              createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);
+              createResult(constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);
             } else {
-              createResult(drop, constructorDecl, true, Messages.CONSTRUCTOR_THROWS_ASSERTION_ERROR);
+              createResult(constructorDecl, true, Messages.CONSTRUCTOR_THROWS_ASSERTION_ERROR);
             }
           }
         } else {
-          createResult(drop, constructorDecl, true, Messages.CONSTRUCTOR_OKAY);
+          createResult(constructorDecl, true, Messages.CONSTRUCTOR_OKAY);
         }
       }
       
       // Check for class instantiation and extension
-      new BodyVisitor(classDecl, drop).doAccept(classBody);
-    }    
+      new BodyVisitor().doAccept(typeBody);
+    }
+    
+//    public void assureClass(
+//        final IRNode classDecl, final IRNode classBody, final UtilityPromiseDrop drop) {
+//      /* We already know that it must be a class declaration because scrubbing
+//       * does not allow the annotation to appear on interfaces.
+//       */
+//      
+//      // Prefer the class to be final
+//      if ((ClassDeclaration.getMods(classDecl) & JavaNode.FINAL) == 0) {
+//        final InfoDropBuilder db =
+//          InfoDropBuilder.create(analysis, Messages.toString(Messages.CONSIDER_FINAL), true);
+//        analysis.setResultDependUponDrop(db, classDecl);
+//        db.setResultMessage(Messages.CONSIDER_FINAL);
+//      }
+//      
+//      // Class must be public
+//      if ((ClassDeclaration.getMods(classDecl) & JavaNode.PUBLIC) != 0) {
+//        createResult(drop, classDecl, true, Messages.CLASS_IS_PUBLIC);
+//      } else {
+//        createResult(drop, classDecl, false, Messages.CLASS_IS_NOT_PUBLIC);
+//      }
+//      
+//      IRNode constructorDecl = null;
+//      int numConstructors = 0;
+//      for (final IRNode bodyDecl : ClassBody.getDeclIterator(classBody)) {
+//        final Operator op = JJNode.tree.getOperator(bodyDecl);
+//        if (FieldDeclaration.prototype.includes(op)) {
+//          if (TypeUtil.isStatic(bodyDecl)) {
+//            for (final IRNode field : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(bodyDecl))) {
+//              createResult(drop, field, true, Messages.FIELD_IS_STATIC, 
+//                  VariableDeclarator.getId(field));
+//            }
+//          } else {
+//            for (final IRNode field : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(bodyDecl))) {
+//              createResult(drop, field, false, Messages.FIELD_IS_NOT_STATIC, 
+//                  VariableDeclarator.getId(field));
+//            }
+//          }
+//        } else if (MethodDeclaration.prototype.includes(op)) {
+//          if (TypeUtil.isStatic(bodyDecl)) {
+//            createResult(drop, bodyDecl, true, Messages.METHOD_IS_STATIC,
+//                JavaNames.genMethodConstructorName(bodyDecl));
+//          } else {
+//            createResult(drop, bodyDecl, false, Messages.METHOD_IS_NOT_STATIC,
+//                JavaNames.genMethodConstructorName(bodyDecl));
+//          }
+//        } else if (ConstructorDeclaration.prototype.includes(op)) {
+//          // ignore the implicit constructor
+//          if (!JavaNode.wasImplicit(bodyDecl)) {
+//            constructorDecl = bodyDecl;
+//            numConstructors += 1;
+//          }
+//        }
+//      }
+//      
+//      if (numConstructors == 0) {
+//        createResult(drop, classDecl, false, Messages.NO_CONSTRUCTOR);
+//      } else if (numConstructors > 1) {
+//        createResult(drop, classDecl, false, Messages.TOO_MANY_CONSTRUCTORS);
+//      } else {
+//        boolean good = true;
+//        if (Visibility.getVisibilityOf(constructorDecl) != Visibility.PRIVATE) {
+//          createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_NOT_PRIVATE);
+//          good = false;
+//        }
+//        if (Parameters.getFormalIterator(ConstructorDeclaration.getParams(constructorDecl)).hasNext()) {
+//          createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_BAD_ARGS);
+//          good = false;
+//        }
+//        if (good) {
+//          createResult(drop, constructorDecl, true, Messages.PRIVATE_NO_ARG_CONSTRUCTOR);
+//        }
+//        
+//        /* Constructor must be one of 
+//         * 
+//         *   private C() {
+//         *     super();
+//         *   }
+//         * 
+//         * or
+//         * 
+//         *   private C() {
+//         *     super();
+//         *     throw new AssertionError();
+//         *   }
+//         */
+//        final Iteratable<IRNode> stmts = BlockStatement.getStmtIterator(
+//            MethodBody.getBlock(
+//                ConstructorDeclaration.getBody(constructorDecl)));
+//        /* First statement must be "super(...)".  Cannot be "this(...)" because
+//         * we know there is exactly one constructor.  Grab it and skip it.
+//         */
+//        @SuppressWarnings("unused")
+//        final IRNode superCall = stmts.next();
+//        if (stmts.hasNext()) {
+//          final IRNode stmt = stmts.next();
+//          if (stmts.hasNext()) {
+//            // Has more than 2 statements, definitely bad
+//            createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);            
+//          } else {
+//            boolean bad = true;
+//            // Check for a Throws statement
+//            if (ThrowStatement.prototype.includes(stmt)) {
+//              final IRNode thrown = ThrowStatement.getValue(stmt);
+//              if (NewExpression.prototype.includes(thrown)) {
+//                final IRNode type = NewExpression.getType(thrown);
+//                if (JavaNames.getFullTypeName(binder.getBinding(type)).equals("java.lang.AssertionError")) {
+//                  bad = false;
+//                }
+//              }
+//            }
+//            if (bad) {
+//              createResult(drop, constructorDecl, false, Messages.CONSTRUCTOR_DOES_TOO_MUCH);
+//            } else {
+//              createResult(drop, constructorDecl, true, Messages.CONSTRUCTOR_THROWS_ASSERTION_ERROR);
+//            }
+//          }
+//        } else {
+//          createResult(drop, constructorDecl, true, Messages.CONSTRUCTOR_OKAY);
+//        }
+//      }
+//      
+//      // Check for class instantiation and extension
+//      new BodyVisitor(classDecl, drop).doAccept(classBody);
+//    }    
     
     public IBinder getBinder() {
       return binder;
@@ -392,5 +506,31 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       // do nothing
     }
     
+  }
+
+
+  
+  public final class UtilityVisitorFactory implements IBinderClient {
+    private final IBinder binder;
+    
+    public UtilityVisitorFactory(final IBinder b) {
+      binder = b;
+    }
+    
+    
+    
+    public IBinder getBinder() {
+      return binder;
+    }
+
+    public void clearCaches() {
+      // do nothing
+    }
+    
+    public UtilityVisitor getVisitor(final UtilityPromiseDrop uDrop,
+        final IRNode classDecl, final IRNode classBody) {
+      return new UtilityVisitor(
+          UtilityAnalysis.this, uDrop, binder, classDecl, classBody);
+    }
   }
 }

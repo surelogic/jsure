@@ -101,15 +101,15 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	
 	private final void actuallyAnalyzeClassBody(
 	    final LockVisitor lv, final Drop rd, 
-	    final IRNode typeDecl, final IRNode classBody) {
-	  lv.analyzeClass(classBody, rd);
+	    final IRNode typeDecl, final IRNode typeBody) {
+	  lv.analyzeClass(typeBody, rd);
 	  
     final ThreadSafePromiseDrop threadSafeDrop =
       LockRules.getThreadSafeImplementation(typeDecl);
     // If null, assume it's not meant to be thread safe
     // Also check for verify=false
     if (threadSafeDrop != null && threadSafeDrop.verify()) {
-      new ThreadSafeVisitor(typeDecl, threadSafeDrop).doAccept(classBody);
+      new ThreadSafeProcessor(threadSafeDrop, typeDecl, typeBody).processType();
     }
     
     final ContainablePromiseDrop containableDrop = 
@@ -117,7 +117,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     // no @Containable annotation --> Default "annotation" of not containable
     // Also check for verify=false
     if (containableDrop != null && containableDrop.verify()) {
-      new ContainableVisitor(typeDecl, containableDrop).doAccept(classBody);
+      new ContainableProcessor(containableDrop, typeDecl, typeBody).processType();
     }
 
     final ImmutablePromiseDrop immutableDrop = 
@@ -125,7 +125,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     // no @Immutable annotation --> Default "annotation" of mutable
     // Also check for verify=false
     if (immutableDrop != null && immutableDrop.verify()) {
-      new ImmutableVisitor(typeDecl, immutableDrop).doAccept(classBody);
+      new ImmutableProcessor(immutableDrop, typeDecl, typeBody).processType();
     }
 	}
 	
@@ -296,20 +296,17 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 
 
 
-  private final class ThreadSafeVisitor extends JavaSemanticsVisitor {
-    private final Set<IRNode> varDecls = new HashSet<IRNode>();
-    private final PromiseDrop<? extends IAASTRootNode> threadSafeDrop;
+  private final class ThreadSafeProcessor extends TypeImplementationProcessor {
     private final Set<RegionLockRecord> lockDeclarations;
     private boolean hasFields = false;
     
     
     
-    public ThreadSafeVisitor(
-        final IRNode classDecl, final PromiseDrop<? extends IAASTRootNode> tsDrop) {
-      super(classDecl, false);
-      threadSafeDrop = tsDrop;
+    public ThreadSafeProcessor(final PromiseDrop<? extends IAASTRootNode> tsDrop,
+        final IRNode typeDecl, final IRNode typeBody) {
+      super(LockAnalysis.this, tsDrop, typeDecl, typeBody);
       lockDeclarations = lockModelHandle.get().getRegionLocksInClass(
-          JavaTypeFactory.getMyThisType(classDecl));
+          JavaTypeFactory.getMyThisType(typeDecl));
     }
 
     
@@ -322,37 +319,23 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       }
       return null;
     }
-    
-    
-    
-    private final ResultDropBuilder createResult(
-        final IRNode varDecl, final boolean isConsistent, 
-        final int msg, final Object... args) {
-      final ResultDropBuilder result =
-        ResultDropBuilder.create(LockAnalysis.this, Messages.toString(msg));
-      setResultDependUponDrop(result, varDecl);
-      result.addCheckedPromise(threadSafeDrop);
-      result.setConsistent(isConsistent);
-      result.setResultMessage(msg, args);
-      return result;
+
+    @Override
+    protected String message2string(final int msg) {
+      return Messages.toString(msg);
     }
     
     
     
     @Override
-    public Void visitClassBody(final IRNode classBody) {
-      super.visitClassBody(classBody);
-      // We only visit annotated classes
+    protected void postProcess() {
       if (!hasFields) {
-        createResult(classBody, true, Messages.TRIVIALLY_THREADSAFE);
+        createResult(typeBody, true, Messages.TRIVIALLY_THREADSAFE);
       }
-      return null;
     }
     
-    
-    
     @Override
-    protected void handleFieldInitialization(
+    protected void processVariableDeclarator(
         final IRNode varDecl, final boolean isStatic) {
       // we have a field
       hasFields = true;
@@ -370,115 +353,106 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
        *     field is also annotated @Unique, and the referenced object is
        *     aggregated into lock-protected regions. 
        */
-      /* Make sure we only visit each variable declaration once.  This is a 
-       * stupid way of doing this, but it's good enough for now.  SHould make 
-       * a new visitor type probably.
-       * 
-       * XXX: Why might we get visited more than once?  Must have happened or
-       * I wouldn't have added this, but I don't remember how this happens.
-       */
-      if (varDecls.add(varDecl)) {
-        final String id = VariableDeclarator.getId(varDecl);
+      final String id = VariableDeclarator.getId(varDecl);
+      
+      // Check for vouch
+      final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
+      if (vouchDrop != null && vouchDrop.isThreadSafe()) {
+        final ResultDropBuilder result =
+          createResult(varDecl, true, Messages.VOUCHED_THREADSAFE, id);
+        result.addTrustedPromise(vouchDrop);
+      } else {
+        /* First check if the field is volatile, final, or lock-protected */
+        final boolean isFinal = TypeUtil.isFinal(varDecl);
+        final boolean isVolatile = TypeUtil.isVolatile(varDecl);
+        final RegionLockRecord fieldLock = getLockForRegion(RegionModel.getInstance(varDecl));
         
-        // Check for vouch
-        final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
-        if (vouchDrop != null && vouchDrop.isThreadSafe()) {
-          final ResultDropBuilder result =
-            createResult(varDecl, true, Messages.VOUCHED_THREADSAFE, id);
-          result.addTrustedPromise(vouchDrop);
-        } else {
-          /* First check if the field is volatile, final, or lock-protected */
-          final boolean isFinal = TypeUtil.isFinal(varDecl);
-          final boolean isVolatile = TypeUtil.isVolatile(varDecl);
-          final RegionLockRecord fieldLock = getLockForRegion(RegionModel.getInstance(varDecl));
+        if (isFinal || isVolatile || fieldLock != null) {
+          /* Now check if the referenced object is thread safe */
+          final IJavaType type = getBinder().getJavaType(varDecl);
+          final IRNode typeDecl;
+          final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+          final PromiseDrop<? extends AbstractModifiedBooleanNode> declTSDrop;
+          final ContainablePromiseDrop declContainableDrop;
+          if (type instanceof IJavaDeclaredType) {
+            typeDecl = ((IJavaDeclaredType) type).getDeclaration();
+            // Null if no @ThreadSafe ==> not thread safe
+            declTSDrop = LockRules.getThreadSafePromise(typeDecl);
+            // Null if no @Containable ==> Default annotation of not containable
+            declContainableDrop = LockRules.getContainableType(typeDecl);
+          } else {
+            typeDecl = null;
+            declTSDrop = null;
+            declContainableDrop = null;
+          }
           
-          if (isFinal || isVolatile || fieldLock != null) {
-            /* Now check if the referenced object is thread safe */
-            final IJavaType type = getBinder().getJavaType(varDecl);
-            final IRNode typeDecl;
-            final boolean isPrimitive = type instanceof IJavaPrimitiveType;
-            final PromiseDrop<? extends AbstractModifiedBooleanNode> declTSDrop;
-            final ContainablePromiseDrop declContainableDrop;
-            if (type instanceof IJavaDeclaredType) {
-              typeDecl = ((IJavaDeclaredType) type).getDeclaration();
-              // Null if no @ThreadSafe ==> not thread safe
-              declTSDrop = LockRules.getThreadSafePromise(typeDecl);
-              // Null if no @Containable ==> Default annotation of not containable
-              declContainableDrop = LockRules.getContainableType(typeDecl);
-            } else {
-              typeDecl = null;
-              declTSDrop = null;
-              declContainableDrop = null;
-            }
-            
-            /* @ThreadSafe takes priority over @Containable: If the type is
-             * threadsafe don't check the aggregation status
-             */
-            final PromiseDrop<? extends IAASTRootNode> uDrop;
-            final Map<IRegion, IRegion> aggMap;
-            boolean isContained = false;
-            if (declTSDrop == null && declContainableDrop != null) {
-              uDrop = UniquenessUtils.getFieldUnique(varDecl);
-              if (uDrop != null) {
-                aggMap = UniquenessUtils.constructRegionMapping(varDecl);
-                isContained = true;
-                for (final IRegion destRegion : aggMap.values()) {
-                  isContained &= (getLockForRegion(destRegion) != null);
-                }
-              } else {
-                aggMap = null;
+          /* @ThreadSafe takes priority over @Containable: If the type is
+           * threadsafe don't check the aggregation status
+           */
+          final PromiseDrop<? extends IAASTRootNode> uDrop;
+          final Map<IRegion, IRegion> aggMap;
+          boolean isContained = false;
+          if (declTSDrop == null && declContainableDrop != null) {
+            uDrop = UniquenessUtils.getFieldUnique(varDecl);
+            if (uDrop != null) {
+              aggMap = UniquenessUtils.constructRegionMapping(varDecl);
+              isContained = true;
+              for (final IRegion destRegion : aggMap.values()) {
+                isContained &= (getLockForRegion(destRegion) != null);
               }
             } else {
-              uDrop = null;
               aggMap = null;
-              // no @Containable annotation --> Default "annotation" of not containable
-              isContained = false;
+            }
+          } else {
+            uDrop = null;
+            aggMap = null;
+            // no @Containable annotation --> Default "annotation" of not containable
+            isContained = false;
+          }
+          
+          if (isPrimitive || declTSDrop != null || isContained) {
+            final ResultDropBuilder result;
+            if (isFinal) {
+              result = createResult(varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
+            } else if(isVolatile) {
+              result = createResult(varDecl, true, Messages.VOLATILE_AND_THREADSAFE, id);
+            } else { // lock protected 
+              result = createResult(varDecl, true, Messages.PROTECTED_AND_THREADSAFE, id, fieldLock.name);
+              result.addTrustedPromise(fieldLock.lockDecl);
             }
             
-            if (isPrimitive || declTSDrop != null || isContained) {
-              final ResultDropBuilder result;
-              if (isFinal) {
-                result = createResult(varDecl, true, Messages.FINAL_AND_THREADSAFE, id);
-              } else if(isVolatile) {
-                result = createResult(varDecl, true, Messages.VOLATILE_AND_THREADSAFE, id);
-              } else { // lock protected 
-                result = createResult(varDecl, true, Messages.PROTECTED_AND_THREADSAFE, id, fieldLock.name);
-                result.addTrustedPromise(fieldLock.lockDecl);
-              }
-              
-              if (isPrimitive) {
-                result.addSupportingInformation(varDecl, Messages.PRIMITIVE_TYPE);
-              } else if (declTSDrop != null) {
-                result.addTrustedPromise(declTSDrop);
-              } else { // contained
-                result.addTrustedPromise(declContainableDrop);
-                result.addTrustedPromise(uDrop);
-                for (final IRegion destRegion : aggMap.values()) {
-                  result.addTrustedPromise(getLockForRegion(destRegion).lockDecl);
-                }
-              }
-            } else {
-              final ResultDropBuilder result = 
-                createResult(varDecl, false, Messages.UNSAFE_REFERENCE, id);
-              // type could be a non-declared, non-primitive type, that is, an array
-              if (typeDecl != null) {
-                if (declTSDrop == null) {
-                  result.addProposal(new ProposedPromiseBuilder(
-                      "ThreadSafe", null, typeDecl, varDecl));
-                }
-                if (declContainableDrop == null) {
-                  result.addProposal(new ProposedPromiseBuilder(
-                      "Containable", null, typeDecl, varDecl));
-                }
-              }
-              if (uDrop == null) {
-                result.addProposal(new ProposedPromiseBuilder(
-                    "Unique", null, varDecl, varDecl));
+            if (isPrimitive) {
+              result.addSupportingInformation(varDecl, Messages.PRIMITIVE_TYPE);
+            } else if (declTSDrop != null) {
+              result.addTrustedPromise(declTSDrop);
+            } else { // contained
+              result.addTrustedPromise(declContainableDrop);
+              result.addTrustedPromise(uDrop);
+              for (final IRegion destRegion : aggMap.values()) {
+                result.addTrustedPromise(getLockForRegion(destRegion).lockDecl);
               }
             }
           } else {
-            createResult(varDecl, false, Messages.UNSAFE_FIELD, id);
+            final ResultDropBuilder result = 
+              createResult(varDecl, false, Messages.UNSAFE_REFERENCE, id);
+            // type could be a non-declared, non-primitive type, that is, an array
+            if (typeDecl != null) {
+              if (declTSDrop == null) {
+                result.addProposal(new ProposedPromiseBuilder(
+                    "ThreadSafe", null, typeDecl, varDecl));
+              }
+              if (declContainableDrop == null) {
+                result.addProposal(new ProposedPromiseBuilder(
+                    "Containable", null, typeDecl, varDecl));
+              }
+            }
+            if (uDrop == null) {
+              result.addProposal(new ProposedPromiseBuilder(
+                  "Unique", null, varDecl, varDecl));
+            }
           }
+        } else {
+          createResult(varDecl, false, Messages.UNSAFE_FIELD, id);
         }
       }
     }
@@ -486,36 +460,24 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
   
 
 
-  private final class ContainableVisitor extends JavaSemanticsVisitor {
-    private final Set<IRNode> varDecls = new HashSet<IRNode>();
-    private final PromiseDrop<? extends IAASTRootNode> containableDrop;
-    
-    
-    
-    public ContainableVisitor(
-        final IRNode classDecl, final PromiseDrop<? extends IAASTRootNode> cDrop) {
-      super(classDecl, false);
-      containableDrop = cDrop;
+  private final class ContainableProcessor extends TypeImplementationProcessor {
+    public ContainableProcessor(
+        final PromiseDrop<? extends IAASTRootNode> cDrop,
+        final IRNode typeDecl, final IRNode typeBody) {
+      super(LockAnalysis.this, cDrop, typeDecl, typeBody);
     }
+
     
     
-    
-    private final ResultDropBuilder createResult(
-        final IRNode decl, final boolean isConsistent, 
-        final int msg, final Object... args) {
-      final ResultDropBuilder result =
-        ResultDropBuilder.create(LockAnalysis.this, Messages.toString(msg));
-      setResultDependUponDrop(result, decl);
-      result.addCheckedPromise(containableDrop);
-      result.setConsistent(isConsistent);
-      result.setResultMessage(msg, args);
-      return result;
+    @Override
+    protected String message2string(final int msg) {
+      return Messages.toString(msg);
     }
-    
+
 
     
     @Override
-    protected void handleConstructorDeclaration(final IRNode cdecl) {
+    protected void processConstructorDeclaration(final IRNode cdecl) {
       final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
       final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowed(rcvrDecl);
 
@@ -538,11 +500,10 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
         result.addProposal(
             new ProposedPromiseBuilder("Unique", "return", cdecl, cdecl));
       }
-      doAcceptForChildren(cdecl);
     }
 
     @Override
-    protected void handleMethodDeclaration(final IRNode mdecl) {
+    protected void processMethodDeclaration(final IRNode mdecl) {
       // Must borrow the receiver if the method is not static
       if (!TypeUtil.isStatic(mdecl)) {
         final String id = JavaNames.genMethodConstructorName(mdecl);
@@ -559,196 +520,165 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           result.addTrustedPromise(bpd);
         }
       }
-      doAcceptForChildren(mdecl);
     }
     
     
     
     @Override
-    protected void handleFieldInitialization(
+    protected void processVariableDeclarator(
         final IRNode varDecl, final boolean isStatic) {
-      /* Make sure we only visit each variable declaration once.  This is a 
-       * stupid way of doing this, but it's good enough for now.  SHould make 
-       * a new visitor type probably.
-       * 
-       * XXX: Why might we get visited more than once?  Must have happened or
-       * I wouldn't have added this, but I don't remember how this happens.
-       */
-      if (varDecls.add(varDecl)) {
-        final String id = VariableDeclarator.getId(varDecl);
-        final IJavaType type = getBinder().getJavaType(varDecl);
-        final boolean isPrimitive = type instanceof IJavaPrimitiveType;
-        if (isPrimitive) {
-          createResult(varDecl, true, Messages.FIELD_CONTAINED_PRIMITIVE, id);
+      final String id = VariableDeclarator.getId(varDecl);
+      final IJavaType type = getBinder().getJavaType(varDecl);
+      final boolean isPrimitive = type instanceof IJavaPrimitiveType;
+      if (isPrimitive) {
+        createResult(varDecl, true, Messages.FIELD_CONTAINED_PRIMITIVE, id);
+      } else {
+        final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
+        if (vouchDrop != null && vouchDrop.isContainable()) {
+          final ResultDropBuilder result =
+            createResult(varDecl, true, Messages.FIELD_CONTAINED_VOUCHED, id);
+          result.addTrustedPromise(vouchDrop);
         } else {
-          final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
-          if (vouchDrop != null && vouchDrop.isContainable()) {
+          final PromiseDrop<? extends IAASTRootNode> uniqueDrop = UniquenessUtils.getFieldUnique(varDecl);
+          final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
+          // no @Containable annotation --> Default "annotation" of not containable
+          final ContainablePromiseDrop declContainableDrop = typeDecl == null ? null : LockRules.getContainableType(typeDecl);
+          if (declContainableDrop != null && uniqueDrop != null) {
             final ResultDropBuilder result =
-              createResult(varDecl, true, Messages.FIELD_CONTAINED_VOUCHED, id);
-            result.addTrustedPromise(vouchDrop);
+              createResult(varDecl, true, Messages.FIELD_CONTAINED_OBJECT, id);
+            result.addTrustedPromise(declContainableDrop);
+            result.addTrustedPromise(uniqueDrop);
           } else {
-            final PromiseDrop<? extends IAASTRootNode> uniqueDrop = UniquenessUtils.getFieldUnique(varDecl);
-            final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
-            // no @Containable annotation --> Default "annotation" of not containable
-            final ContainablePromiseDrop declContainableDrop = LockRules.getContainableType(typeDecl);
-            if (declContainableDrop != null && uniqueDrop != null) {
-              final ResultDropBuilder result =
-                createResult(varDecl, true, Messages.FIELD_CONTAINED_OBJECT, id);
-              result.addTrustedPromise(declContainableDrop);
+            final ResultDropBuilder result =
+              createResult(varDecl, false, Messages.FIELD_BAD, id);
+            
+            // Always suggest @Vouch("Containable")
+            result.addProposal(new ProposedPromiseBuilder(
+                    "Vouch", "Containable", varDecl, varDecl));
+            
+            if (declContainableDrop != null) {
+              result.addTrustedPromise(declContainableDrop);              
+            } else {
+              // no @Containable annotation --> Default "annotation" of not containable
+              result.addSupportingInformation(varDecl, Messages.FIELD_NOT_CONTAINABLE);
+              if (type instanceof IJavaDeclaredType) {
+                result.addProposal(new ProposedPromiseBuilder(
+                    "Containable", null, typeDecl, varDecl));
+              }
+            }
+
+            if (uniqueDrop != null) {
               result.addTrustedPromise(uniqueDrop);
             } else {
-              final ResultDropBuilder result =
-                createResult(varDecl, false, Messages.FIELD_BAD, id);
-              
-              // Always suggest @Vouch("Containable")
-              result.addProposal(new ProposedPromiseBuilder(
-                      "Vouch", "Containable", varDecl, varDecl));
-              
-              if (declContainableDrop != null) {
-                result.addTrustedPromise(declContainableDrop);              
-              } else {
-                // no @Containable annotation --> Default "annotation" of not containable
-                result.addSupportingInformation(varDecl, Messages.FIELD_NOT_CONTAINABLE);
-                if (type instanceof IJavaDeclaredType) {
-                  result.addProposal(new ProposedPromiseBuilder(
-                      "Containable", null, typeDecl, varDecl));
-                }
-              }
-  
-              if (uniqueDrop != null) {
-                result.addTrustedPromise(uniqueDrop);
-              } else {
-                result.addSupportingInformation(varDecl, Messages.FIELD_NOT_UNIQUE);
-                result.addProposal(new ProposedPromiseBuilder("Unique", null, varDecl, varDecl));
-              }              
-            }
-          } 
-        }
+              result.addSupportingInformation(varDecl, Messages.FIELD_NOT_UNIQUE);
+              result.addProposal(new ProposedPromiseBuilder("Unique", null, varDecl, varDecl));
+            }              
+          }
+        } 
       }
     }
   }
   
+
   
-  
-  private final class ImmutableVisitor extends JavaSemanticsVisitor {
-    private final Set<IRNode> varDecls = new HashSet<IRNode>();
-    private final PromiseDrop<? extends IAASTRootNode> immutableDrop;
+  private final class ImmutableProcessor extends TypeImplementationProcessor {
     private boolean hasFields = false;
     
     
     
-    public ImmutableVisitor(
-        final IRNode classDecl, final PromiseDrop<? extends IAASTRootNode> cDrop) {
-      super(classDecl, false);
-      immutableDrop = cDrop;
-    }
-    
-    
-    
-    private final ResultDropBuilder createResult(
-        final IRNode decl, final boolean isConsistent, 
-        final int msg, final Object... args) {
-      final ResultDropBuilder result =
-        ResultDropBuilder.create(LockAnalysis.this, Messages.toString(msg));
-      setResultDependUponDrop(result, decl);
-      result.addCheckedPromise(immutableDrop);
-      result.setConsistent(isConsistent);
-      result.setResultMessage(msg, args);
-      return result;
+    public ImmutableProcessor(
+        final PromiseDrop<? extends IAASTRootNode> iDrop,
+        final IRNode typeDecl, final IRNode typeBody) {
+      super(LockAnalysis.this, iDrop, typeDecl, typeBody);
     }
 
     
     
     @Override
-    public Void visitClassBody(final IRNode classBody) {
-      super.visitClassBody(classBody);
+    protected String message2string(final int msg) {
+      return Messages.toString(msg);
+    }
+
+        
+    
+    @Override
+    protected void postProcess() {
       // We are only called on classes annotated with @Immutable
       if (!hasFields) {
-        createResult(classBody, true, Messages.TRIVIALLY_IMMUTABLE);
+        createResult(typeBody, true, Messages.TRIVIALLY_IMMUTABLE);
       }
-      return null;
     }
-
     
     @Override
-    protected void handleFieldInitialization(
+    protected void processVariableDeclarator(
         final IRNode varDecl, final boolean isStatic) {
       // We have a field
       hasFields = true;
       
-      /* Make sure we only visit each variable declaration once.  This is a 
-       * stupid way of doing this, but it's good enough for now.  SHould make 
-       * a new visitor type probably.
-       * 
-       * XXX: Why might we get visited more than once?  Must have happened or
-       * I wouldn't have added this, but I don't remember how this happens.
+      /* (1) Field must be final.
+       * (2) non-primitive fields must be @Immutable
+       * or
+       * Vouched for @Vouch("Immutable")
        */
-      if (varDecls.add(varDecl)) {
-        /* (1) Field must be final.
-         * (2) non-primitive fields must be @Immutable
-         * or
-         * Vouched for @Vouch("Immutable")
-         */
-        final String id = VariableDeclarator.getId(varDecl);
+      final String id = VariableDeclarator.getId(varDecl);
 
-        final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
-        if (vouchDrop != null && vouchDrop.isImmutable()) {
-          // VOUCHED OR
-          final ResultDropBuilder result =
-            createResult(varDecl, true, Messages.IMMUTABLE_VOUCHED, id);
-          result.addTrustedPromise(vouchDrop);
+      final VouchFieldIsPromiseDrop vouchDrop = LockRules.getVouchFieldIs(varDecl);
+      if (vouchDrop != null && vouchDrop.isImmutable()) {
+        // VOUCHED OR
+        final ResultDropBuilder result =
+          createResult(varDecl, true, Messages.IMMUTABLE_VOUCHED, id);
+        result.addTrustedPromise(vouchDrop);
+      } else {
+        final boolean isFinal = TypeUtil.isFinal(varDecl);
+        final IJavaType type = getBinder().getJavaType(varDecl);
+        final boolean isPrimitive = (type instanceof IJavaPrimitiveType);
+        ResultDropBuilder result = null;
+        boolean proposeVouch = false;
+        
+        if (isPrimitive) {
+          // PRIMITIVELY TYPED
+          if (isFinal) {
+            result = createResult(varDecl, true, Messages.IMMUTABLE_FINAL_PRIMITIVE, id);
+          } else {
+            result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL, id);
+            // Cannot use vouch on primitive types
+          }
         } else {
-          final boolean isFinal = TypeUtil.isFinal(varDecl);
-          final IJavaType type = getBinder().getJavaType(varDecl);
-          final boolean isPrimitive = (type instanceof IJavaPrimitiveType);
-          ResultDropBuilder result = null;
-          boolean proposeVouch = false;
+          // REFERENCE-TYPED
+          final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
+          // no @Immutable annotation --> Default "annotation" of mutable
+          final ImmutablePromiseDrop declImmutableDrop = LockRules.getImmutableType(typeDecl);
           
-          if (isPrimitive) {
-            // PRIMITIVELY TYPED
+          if (declImmutableDrop != null) {
+            // IMMUTABLE REFERENCE TYPE
             if (isFinal) {
-              result = createResult(varDecl, true, Messages.IMMUTABLE_FINAL_PRIMITIVE, id);
+              result = createResult(varDecl, true, Messages.IMMUTABLE_FINAL_IMMUTABLE, id);
+              result.addTrustedPromise(declImmutableDrop);
             } else {
               result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL, id);
-              // Cannot use vouch on primitive types
+              result.addTrustedPromise(declImmutableDrop);
+              proposeVouch = true;
             }
           } else {
-            // REFERENCE-TYPED
-            final IRNode typeDecl = (type instanceof IJavaDeclaredType) ? ((IJavaDeclaredType) type).getDeclaration() : null;
-            // no @Immutable annotation --> Default "annotation" of mutable
-            final ImmutablePromiseDrop declImmutableDrop = LockRules.getImmutableType(typeDecl);
-            
-            if (declImmutableDrop != null) {
-              // IMMUTABLE REFERENCE TYPE
-              if (isFinal) {
-                result = createResult(varDecl, true, Messages.IMMUTABLE_FINAL_IMMUTABLE, id);
-                result.addTrustedPromise(declImmutableDrop);
-              } else {
-                result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL, id);
-                result.addTrustedPromise(declImmutableDrop);
-                proposeVouch = true;
-              }
+            // MUTABLE REFERENCE TYPE
+            proposeVouch = true;
+            if (isFinal) {
+              result = createResult(varDecl, false, Messages.IMMUTABLE_FINAL_NOT_IMMUTABLE, id);
             } else {
-              // MUTABLE REFERENCE TYPE
-              proposeVouch = true;
-              if (isFinal) {
-                result = createResult(varDecl, false, Messages.IMMUTABLE_FINAL_NOT_IMMUTABLE, id);
-              } else {
-                result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE, id);
-              }
-              if (typeDecl != null) {
-            	  result.addProposal(new ProposedPromiseBuilder(
-            			  "Immutable", null, typeDecl, varDecl));
-              } else {
-            	  // TODO what if this is a type formal, or something else?
-              }
+              result = createResult(varDecl, false, Messages.IMMUTABLE_NOT_FINAL_NOT_IMMUTABLE, id);
+            }
+            if (typeDecl != null) {
+              result.addProposal(new ProposedPromiseBuilder(
+                  "Immutable", null, typeDecl, varDecl));
+            } else {
+              // TODO what if this is a type formal, or something else?
             }
           }
-          
-          if (proposeVouch) {
-            result.addProposal(new ProposedPromiseBuilder(
-                "Vouch", "Immutable", varDecl, varDecl));
-          }
+        }
+        
+        if (proposeVouch) {
+          result.addProposal(new ProposedPromiseBuilder(
+              "Vouch", "Immutable", varDecl, varDecl));
         }
       }
     }

@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.sea.drops.promises;
 
 import com.surelogic.aast.promise.ThreadSafeNode;
+import com.surelogic.annotation.scrub.ValidatedDropCallback;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -13,7 +14,9 @@ import edu.cmu.cs.fluid.sea.drops.*;
  * @see edu.cmu.cs.fluid.java.analysis.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<ThreadSafeNode> {
+public final class ThreadSafePromiseDrop extends
+    ModifiedBooleanPromiseDrop<ThreadSafeNode> implements
+    ValidatedDropCallback<ThreadSafePromiseDrop> {
   public ThreadSafePromiseDrop(ThreadSafeNode a) {
     super(a); 
     setCategory(JavaGlobals.LOCK_ASSURANCE_CAT);
@@ -30,5 +33,10 @@ public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<Thre
       setResultMessage(Messages.LockAnnotation_threadSafeAttributedDrop,
           isImplementationOnly, isVerify, name);
     }
+  }
+  
+  public void validated(final ThreadSafePromiseDrop pd) {
+    pd.setVirtual(true);
+    pd.setSourceDrop(this);
   }
 }
