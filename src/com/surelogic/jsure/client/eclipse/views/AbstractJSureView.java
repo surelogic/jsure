@@ -83,7 +83,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 								PrintWriter pw = new PrintWriter(xml);
 								// Try to copy from fluid first
 								try {
-									final InputSource is = PackageAccessor.readPackage(xml, srcRef.getPackage(), name+TestXMLParserConstants.SUFFIX);									
+									final InputSource is = PackageAccessor.readPackage(srcRef.getPackage(), name+TestXMLParserConstants.SUFFIX);									
 									if (is.getCharacterStream() == null) {
 										if (is.getByteStream() != null) {									
 											is.setCharacterStream(new InputStreamReader(is.getByteStream()));
