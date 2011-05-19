@@ -1,0 +1,5 @@
+<package name="java.util.concurrent">
+  <Promise>@ThreadSafe for Concurrent* | CopyOnWrite* | *Blocking*ue </Promise> 
+  <Promise>@ThreadSafe for DelayQueue | SynchronousQueue  </Promise> 
+  <Promise>@ThreadSafe for CountDownLatch | CyclicBarrier | Exchanger | Semaphore</Promise>
+</package>

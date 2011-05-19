@@ -1,0 +1,5 @@
+<package name="java.util">
+ <class name="AbstractSet">
+    <ThreadSafe  implementationOnly="true"/>
+ </class>
+</package>

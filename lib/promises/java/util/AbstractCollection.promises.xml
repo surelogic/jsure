@@ -1,5 +1,7 @@
 <package name="java.util">
  <class name="AbstractCollection">
+  <ThreadSafe  implementationOnly="true"/>
+
   <constructor>
    <borrowed>this</borrowed>
    <regionEffects>none</regionEffects>

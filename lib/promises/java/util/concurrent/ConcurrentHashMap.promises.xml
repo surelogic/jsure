@@ -1,7 +1,5 @@
 <package name="java.util.concurrent">
  <class name="ConcurrentHashMap">
-  <selfProtected/>
-
   <method name="keySet">
     <borrowed>this</borrowed>
     <RegionEffects>reads Instance</RegionEffects>
