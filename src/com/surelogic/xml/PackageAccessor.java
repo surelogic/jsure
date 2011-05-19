@@ -99,6 +99,13 @@ public class PackageAccessor implements TestXMLParserConstants {
 		return new OutputStreamWriter(dir.openFileWrite(className + PROMISES_XML));
 	}
 
+	public static InputSource readPackage(String pkgName, String className) throws IOException {
+		return readPackage(null, pkgName, className);
+	}
+	
+	/**
+     * @param className needs to have the .promises.xml extension
+     */     
 	public static InputSource readPackage(File root, String pkgName, String className) 
 	throws IOException {
 		String dirName = packagePath(pkgName, false); 
