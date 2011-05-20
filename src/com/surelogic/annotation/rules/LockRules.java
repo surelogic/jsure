@@ -1696,39 +1696,6 @@ public class LockRules extends AnnotationRules {
               cb.addDerived(derived, originalPromiseDrop);
             }
           }
-
-          // Bug 1705: Handle EnumConstantClassDeclarations
-//          if (EnumDeclaration.prototype.includes(promisedFor)) {
-//            for (final IRNode decl : ClassBody.getDeclIterator(EnumDeclaration.getBody(promisedFor))) {
-//              if (EnumConstantClassDeclaration.prototype.includes(decl)) {
-//                // Add derived annotation
-//                final boolean verify = a.verify();
-//                final int offset = JavaNode.getSrcRef(decl).getOffset();
-//                final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY);
-//                derived.setPromisedFor(decl);
-//                derived.setSrcType(a.getSrcType());
-//                cb.addDerived(derived, originalPromiseDrop);
-//              }
-//            }
-//          }
-          
-//          /* Add derived annotations to any EnumConstantClassDeclarations that
-//           * are members of an EnumDeclaration, but only if the annotation is 
-//           * NOT implementationOnly. 
-//           */
-//          if (EnumDeclaration.prototype.includes(promisedFor)) {
-//            for (final IRNode decl : ClassBody.getDeclIterator(EnumDeclaration.getBody(promisedFor))) {
-//              if (EnumConstantClassDeclaration.prototype.includes(decl)) {
-//                // Add derived annotation
-//                final boolean verify = a.verify();
-//                final int offset = JavaNode.getSrcRef(decl).getOffset();
-//                final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY);
-//                derived.setPromisedFor(decl);
-//                derived.setSrcType(a.getSrcType());
-//                cb.addDerived(derived, originalPromiseDrop);
-//              }
-//            }
-//          }
         }        
 	    }
 	    return originalPromiseDrop;
@@ -1773,9 +1740,6 @@ public class LockRules extends AnnotationRules {
 	            ClassDeclaration.getExtension(promisedFor));
 	      }
 
-	      /* A class annotated with implementationOnly=true, cannot implement an
-	       * interface annotated with T
-	       */
 	      if (implementationOnly) {
 	        final IRNode impls = EnumDeclaration.prototype.includes(op) ?
 	            EnumDeclaration.getImpls(promisedFor) :
@@ -1792,7 +1756,7 @@ public class LockRules extends AnnotationRules {
 	        
 	        // java.lang.Object doesn't have a superclass
 	        if (superDecl != promisedFor) {
-	          final P superAnno = getSuperTypeAnno(superDecl);
+	          final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> superAnno = getSuperTypeAnno(superDecl);
 	          if (superAnno == null) {
 	            bad = true;
 	            context.reportError(node,
@@ -1873,7 +1837,7 @@ public class LockRules extends AnnotationRules {
       } else {
         for (final IJavaType zuper : supers) {
           final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
-          final P anno = getSuperTypeAnno(zuperDecl);
+          final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> anno = getSuperTypeAnno(zuperDecl);
           if (anno != null) {
             if (TypeUtil.isInterface(zuperDecl)) {
               if (isNOT) {
@@ -1906,7 +1870,7 @@ public class LockRules extends AnnotationRules {
 	  
     protected abstract NP getNotAnnotation(IRNode typeDecl);
 	  
-	  protected abstract P getSuperTypeAnno(IRNode superDecl);
+	  protected abstract ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getSuperTypeAnno(IRNode superDecl);
 	  
 	  protected abstract P createDrop(A node);
 	  
@@ -1967,10 +1931,11 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ThreadSafeNode> makeScrubber() {
-      return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, "ThreadSafe", "NotThreadSafe", NOT_THREAD_SAFE) {
+      return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, "ThreadSafe", "NotThreadSafe", IMMUTABLE, NOT_THREAD_SAFE) {
         @Override
-        protected ThreadSafePromiseDrop getSuperTypeAnno(final IRNode superDecl) {
-          return getThreadSafeImplementation(superDecl);
+        protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getSuperTypeAnno(final IRNode superDecl) {
+          final ThreadSafePromiseDrop p = getThreadSafeImplementation(superDecl);
+          return (p == null) ? getImmutableImplementation(superDecl) : p; 
         }
         
         @Override
