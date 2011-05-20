@@ -1695,7 +1695,7 @@ public class LockRules extends AnnotationRules {
          * but only if the annotation is not implementationOnly.
          */
         if (!implementationOnly) {
-          System.out.println("Looking at "+DebugUnparser.toString(promisedFor));
+          //System.out.println("Looking at "+DebugUnparser.toString(promisedFor));
           for (final IRNode sub : getContext().getBinder().getTypeEnvironment().getRawSubclasses(promisedFor)) {
             final Operator subOp = JJNode.tree.getOperator(sub);
             if (AnonClassExpression.prototype.includes(subOp) ||
