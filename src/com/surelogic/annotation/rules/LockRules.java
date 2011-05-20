@@ -158,16 +158,8 @@ public class LockRules extends AnnotationRules {
 	
 	
 	
-  private static IRNode getTypeDeclarationToQuery(final IRNode tdecl) {
-//    if (EnumConstantClassDeclaration.prototype.includes(tdecl)) {
-//      return VisitUtil.getEnclosingType(tdecl);
-//    } else {
-      return tdecl;
-//    }
-  }
-  
-	private static <N extends AbstractModifiedBooleanNode, A extends ModifiedBooleanPromiseDrop<N>> A getX_Type(final IPromiseDropStorage<A> storage, final IRNode tdecl) {
-	  final A drop = getBooleanDrop(storage, getTypeDeclarationToQuery(tdecl));
+  private static <N extends AbstractModifiedBooleanNode, A extends ModifiedBooleanPromiseDrop<N>> A getX_Type(final IPromiseDropStorage<A> storage, final IRNode tdecl) {
+	  final A drop = getBooleanDrop(storage, tdecl);
     if (drop == null) {
       return null;
     } else {
@@ -175,10 +167,6 @@ public class LockRules extends AnnotationRules {
     }
 	}
 
-  private static <N extends AbstractModifiedBooleanNode, A extends ModifiedBooleanPromiseDrop<N>> A getX_Impl(final IPromiseDropStorage<A> storage, final IRNode tdecl) {
-    return getBooleanDrop(storage, getTypeDeclarationToQuery(tdecl));
-  }
-	
   
   
   public static boolean isContainableType(final IRNode cdecl) {
@@ -200,7 +188,7 @@ public class LockRules extends AnnotationRules {
    * drop whether or not it is implementation-only.
    */
   public static ContainablePromiseDrop getContainableImplementation(final IRNode cdecl) {
-    return getX_Impl(containableRule.getStorage(), cdecl);
+    return getBooleanDrop(containableRule.getStorage(), cdecl);
   }
   
   public static NotContainablePromiseDrop getNotContainable(IRNode cdecl) {
@@ -235,7 +223,7 @@ public class LockRules extends AnnotationRules {
    * drop whether or not it is implementation-only.
    */
   public static ThreadSafePromiseDrop getThreadSafeImplementation(final IRNode cdecl) {
-    return getX_Impl(threadSafeRule.getStorage(), cdecl);
+    return getBooleanDrop(threadSafeRule.getStorage(), cdecl);
 //    return getBooleanDrop(threadSafeRule.getStorage(), cdecl);
   }
 
@@ -270,7 +258,7 @@ public class LockRules extends AnnotationRules {
    * drop whether or not it is implementation-only.
    */
   public static ImmutablePromiseDrop getImmutableImplementation(final IRNode cdecl) {
-    return getX_Impl(immutableRule.getStorage(), cdecl);
+    return getBooleanDrop(immutableRule.getStorage(), cdecl);
 //    return getBooleanDrop(immutableRule.getStorage(), cdecl);
   }
   
@@ -1695,7 +1683,6 @@ public class LockRules extends AnnotationRules {
          * but only if the annotation is not implementationOnly.
          */
         if (!implementationOnly) {
-          //System.out.println("Looking at "+DebugUnparser.toString(promisedFor));
           for (final IRNode sub : getContext().getBinder().getTypeEnvironment().getRawSubclasses(promisedFor)) {
             final Operator subOp = JJNode.tree.getOperator(sub);
             if (AnonClassExpression.prototype.includes(subOp) ||
@@ -1724,25 +1711,25 @@ public class LockRules extends AnnotationRules {
 //              }
 //            }
 //          }
-        }
-        
-//  	    /* Add derived annotations to any EnumConstantClassDeclarations that
-//  	     * are members of an EnumDeclaration, but only if the annotation is 
-//  	     * NOT implementationOnly. 
-//  	     */
-//        if (!implementationOnly && EnumDeclaration.prototype.includes(promisedFor)) {
-//          for (final IRNode decl : ClassBody.getDeclIterator(EnumDeclaration.getBody(promisedFor))) {
-//            if (EnumConstantClassDeclaration.prototype.includes(decl)) {
-//              // Add derived annotation
-//              final boolean verify = a.verify();
-//              final int offset = JavaNode.getSrcRef(decl).getOffset();
-//              final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY);
-//              derived.setPromisedFor(decl);
-//              derived.setSrcType(a.getSrcType());
-//              cb.addDerived(derived, originalPromiseDrop);
+          
+//          /* Add derived annotations to any EnumConstantClassDeclarations that
+//           * are members of an EnumDeclaration, but only if the annotation is 
+//           * NOT implementationOnly. 
+//           */
+//          if (EnumDeclaration.prototype.includes(promisedFor)) {
+//            for (final IRNode decl : ClassBody.getDeclIterator(EnumDeclaration.getBody(promisedFor))) {
+//              if (EnumConstantClassDeclaration.prototype.includes(decl)) {
+//                // Add derived annotation
+//                final boolean verify = a.verify();
+//                final int offset = JavaNode.getSrcRef(decl).getOffset();
+//                final A derived = makeDerivedAnnotation(offset, verify ? 0 : JavaNode.NO_VERIFY);
+//                derived.setPromisedFor(decl);
+//                derived.setSrcType(a.getSrcType());
+//                cb.addDerived(derived, originalPromiseDrop);
+//              }
 //            }
 //          }
-//        }
+        }        
 	    }
 	    return originalPromiseDrop;
 	  }
@@ -1755,6 +1742,7 @@ public class LockRules extends AnnotationRules {
 	  private P scrubAnnotated(final A node) {
 	    final IAnnotationScrubberContext context = getContext();
 	    final IRNode promisedFor = node.getPromisedFor();
+      final Operator op = JJNode.tree.getOperator(promisedFor);
 	    final boolean implementationOnly = node.isImplementationOnly();
 	    boolean bad = false;
 	    
@@ -1770,7 +1758,6 @@ public class LockRules extends AnnotationRules {
 	        context.reportError(node, "An Interface may not be @{0}(implementationOnly=true)", name);
 	      }
 	    } else { // class
-	      final Operator op = JJNode.tree.getOperator(promisedFor);
 	      final IRNode superDecl;
 	      if (EnumDeclaration.prototype.includes(op)) {
 	        superDecl = context.getBinder().getTypeEnvironment().findNamedType(
@@ -1790,7 +1777,9 @@ public class LockRules extends AnnotationRules {
 	       * interface annotated with T
 	       */
 	      if (implementationOnly) {
-	        final IRNode impls = ClassDeclaration.getImpls(promisedFor);
+	        final IRNode impls = EnumDeclaration.prototype.includes(op) ?
+	            EnumDeclaration.getImpls(promisedFor) :
+	              ClassDeclaration.getImpls(promisedFor);
 	        for (final IRNode intfName : Implements.getIntfIterator(impls)) {
 	          final IRNode intfDecl = context.getBinder().getBinding(intfName);
 	          if (getSuperTypeAnno(intfDecl) != null) {
