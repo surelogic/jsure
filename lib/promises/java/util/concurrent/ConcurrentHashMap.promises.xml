@@ -61,5 +61,9 @@
     <RegionEffects>reads this:Instance</RegionEffects>
    </method>
   </class>
+  
+  <class name="Segment">
+    <ThreadSafe/>
+  </class>
  </class>
 </package>

@@ -1,5 +1,7 @@
 <package name="java.util">
  <class name="AbstractMap">
+  <ThreadSafe implementationOnly="true"/>
+ 
   <method name="hashCode">
    <!--starts>nothing</starts-->
    <borrowed>this</borrowed>

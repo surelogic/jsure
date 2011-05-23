@@ -1,0 +1,5 @@
+<package name="java.util">
+ <class name="AbstractQueue">
+    <ThreadSafe  implementationOnly="true"/>
+ </class>
+</package>
