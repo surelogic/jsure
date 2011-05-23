@@ -26,6 +26,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -377,7 +378,23 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           if (type instanceof IJavaDeclaredType) {
             typeDecl = ((IJavaDeclaredType) type).getDeclaration();
             // Null if no @ThreadSafe ==> not thread safe
-            declTSDrop = LockRules.getThreadSafePromise(typeDecl);
+            final PromiseDrop<? extends AbstractModifiedBooleanNode> typePromise =
+              LockRules.getThreadSafeTypePromise(typeDecl);
+            /* If the type is not thread safe, we can check to see if the
+             * implementation assigned to the field is thread safe, but only
+             * if the field is final.
+             */
+            if (typePromise == null && isFinal) {
+              final IRNode init = VariableDeclarator.getInit(varDecl);
+              if (Initialization.prototype.includes(init)) {
+                declTSDrop = LockRules.getThreadSafeImplPromise(
+                    ((IJavaDeclaredType) getBinder().getJavaType(init)).getDeclaration());
+              } else {
+                declTSDrop = typePromise;
+              }
+            } else {
+              declTSDrop = typePromise;
+            }
             // Null if no @Containable ==> Default annotation of not containable
             declContainableDrop = LockRules.getContainableType(typeDecl);
           } else {

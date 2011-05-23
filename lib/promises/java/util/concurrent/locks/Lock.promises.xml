@@ -1,5 +1,7 @@
 <package name="java.util.concurrent.locks">
  <class name="Lock">
+  <ThreadSafe/>
+
   <method name="lock">
    <regionEffects>writes Instance</regionEffects>
    <!--starts>nothing</starts-->

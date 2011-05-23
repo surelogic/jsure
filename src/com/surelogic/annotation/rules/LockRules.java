@@ -286,9 +286,23 @@ public class LockRules extends AnnotationRules {
    * @see getThreadSafeType
    * @see getImmutableType
    */
-  public static PromiseDrop<? extends AbstractModifiedBooleanNode> getThreadSafePromise(final IRNode tdecl) {
+  public static PromiseDrop<? extends AbstractModifiedBooleanNode> getThreadSafeTypePromise(final IRNode tdecl) {
     final ImmutablePromiseDrop immutable = getImmutableType(tdecl);
     return (immutable == null) ? getThreadSafeType(tdecl) : immutable;
+  }
+  
+  /**
+   * Get the most specific promise that allows us to consider this implementation
+   * to be thread safe.  If the class is annotated as Immutable, then the
+   * immutable promise is returned in preference to any ThreadSafe annotation
+   * that may be present.  Differs from {@link #getThreadSafeTypePromise} by
+   * considering implementation-only annotations.
+   * @see getThreadSafeImplementation
+   * @see getImmutableImplementation
+   */
+  public static PromiseDrop<? extends AbstractModifiedBooleanNode> getThreadSafeImplPromise(final IRNode tdecl) {
+    final ImmutablePromiseDrop immutable = getImmutableImplementation(tdecl);
+    return (immutable == null) ? getThreadSafeImplementation(tdecl) : immutable;
   }
   
   

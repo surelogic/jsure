@@ -1,6 +1,10 @@
 <package name="java.util.concurrent.locks">
  <class name="ReentrantReadWriteLock">
+  <ThreadSafe/>
+
   <class name="ReadLock">
+   <ThreadSafe/>
+   
    <method name="lock">
     <regionEffects>writes Instance</regionEffects>
     <!--starts>nothing</starts-->
@@ -28,6 +32,8 @@
   </class>
 
   <class name="WriteLock">
+   <ThreadSafe/>
+   
    <method name="lock">
     <regionEffects>writes Instance</regionEffects>
     <!--starts>nothing</starts-->
