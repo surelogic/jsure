@@ -34,6 +34,7 @@ public interface TestXMLParserConstants
   public static final String SUFFIX   = ".promises.xml";
   public static final String DTD_NAME = "promises.dtd";
   
+  public static final String UID_ATTRB = "uid";
   public static final String NAME_ATTRB = "name";
   public static final String PARAMS_ATTRB = "params";
   public static final String INDEX_ATTRB = "index";

@@ -89,6 +89,11 @@ public class TestXMLParser extends DefaultHandler implements
 
 		InputSource in = PackageAccessor.readPackage(file, pkgName, PackageAccessor
 				.promiseFileName(xml));
+		if (false) {
+			PromisesXMLReader r = new PromisesXMLReader();
+			r.read(in.getByteStream());
+			return 0;
+		}
 		if (in == null) {
 			throw new FileNotFoundException(xml + " doesn't exist");
 		}
