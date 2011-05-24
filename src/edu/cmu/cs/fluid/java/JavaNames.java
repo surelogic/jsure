@@ -186,6 +186,19 @@ public final class JavaNames {
 	}
 
 	/**
+	 * Generate an unqualified name from a constructor or method declaration.
+   * 
+   * @param node
+   *            a constructor or method declaration
+   * @return a created name
+	 */
+	public static String genSimpleMethodConstructorName(final IRNode node) {
+    final StringBuilder sb = new StringBuilder();
+    addTargetName(sb, node, true);
+    return sb.toString();
+	}
+	
+	/**
 	 * Generates a name from a constructor or method declaration.
 	 * 
 	 * @param node
@@ -200,7 +213,7 @@ public final class JavaNames {
 		final IRNode enclosingType = VisitUtil.getEnclosingType(node);
 		final String typeName = getFullTypeName(enclosingType);
 		final StringBuilder sb = new StringBuilder(typeName);
-		addTargetName(sb, node, true);
+		addTargetName(sb.append('.'), node, true);
 		return sb.toString();
 	}
 
@@ -212,7 +225,7 @@ public final class JavaNames {
 		final IRNode enclosingType = VisitUtil.getEnclosingType(node);
 		final String typeName = getRelativeTypeName(enclosingType);
 		final StringBuilder sb = new StringBuilder(typeName);
-		addTargetName(sb, node, false);
+		addTargetName(sb.append('.'), node, false);
 		return sb.toString();
 	}
 
@@ -231,7 +244,7 @@ public final class JavaNames {
 			sb.append("(" + op.name() + ")");
 			return;
 		}
-		sb.append('.').append(targetName);
+		sb.append(targetName);
 
 		if (includeArgs) {
 			sb.append(genArgList(args));

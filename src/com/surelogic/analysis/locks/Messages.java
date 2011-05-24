@@ -117,7 +117,7 @@ public final class Messages extends AbstractMessages {
   public static final int UNSAFE_REFERENCE = 406;
   public static final int VOUCHED_THREADSAFE = 407;
   public static final int TRIVIALLY_THREADSAFE = 408;
-  
+  public static final int THREAD_SAFE_IMPL = 409;
   
   
   // For Containable assurance

@@ -20,12 +20,19 @@ public final class Messages {
   public static final int UniquenessAnnotation_uniqueDrop2 = 116;
   public static final int RegionAnnotation_regionDrop = 117;
   public static final int LockAnnotation_containableDrop = 118;
-  public static final int LockAnnotation_containableAttributedDrop = 119;
-  public static final int LockAnnotation_immutableAttributedDrop = 120;
-  public static final int LockAnnotation_threadSafeAttributedDrop = 121;
+  public static final int LockAnnotation_containable_implOnly_noVerify = 119;
+  public static final int LockAnnotation_immutable_implOnly_noVerify = 120;
+  public static final int LockAnnotation_threadSafe_implOnly_noVerify = 121;
   public static final int LockAnnotation_notContainableDrop = 122;
   public static final int LockAnnotation_mutableDrop = 123;
   public static final int LockAnnotation_vouchFieldIsDrop = 124;
+  public static final int UtilityDrop = 125;
+  public static final int LockAnnotation_containable_implOnly = 126;
+  public static final int LockAnnotation_immutable_implOnly = 127;
+  public static final int LockAnnotation_threadSafe_implOnly = 128;
+  public static final int LockAnnotation_containable_noVerify = 129;
+  public static final int LockAnnotation_immutable_noVerify = 130;
+  public static final int LockAnnotation_threadSafe_noVerify = 131;
   
   /* 2011-01-18: Edwin says these are referenced from code that will become
    * obsolete and deleted.

@@ -27,11 +27,18 @@ public final class ThreadSafePromiseDrop extends
     final String name = JavaNames.getTypeName(getNode());
     final boolean isImplementationOnly = getAST().isImplementationOnly();
     final boolean isVerify = getAST().verify();
-    if (!isImplementationOnly && isVerify) {
-      setResultMessage(Messages.LockAnnotation_threadSafeDrop, name);
+    if (isVerify) {
+      if (!isImplementationOnly) { // default case
+        setResultMessage(Messages.LockAnnotation_threadSafeDrop, name);
+      } else {
+        setResultMessage(Messages.LockAnnotation_threadSafe_implOnly, name);
+      }
     } else {
-      setResultMessage(Messages.LockAnnotation_threadSafeAttributedDrop,
-          isImplementationOnly, isVerify, name);
+      if (isImplementationOnly) {
+        setResultMessage(Messages.LockAnnotation_threadSafe_implOnly_noVerify, name);
+      } else {
+        setResultMessage(Messages.LockAnnotation_threadSafe_noVerify, name);
+      }
     }
   }
   

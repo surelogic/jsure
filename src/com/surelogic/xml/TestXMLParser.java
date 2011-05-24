@@ -92,7 +92,7 @@ public class TestXMLParser extends DefaultHandler implements
 		if (false) {
 			PromisesXMLReader r = new PromisesXMLReader();
 			r.read(in.getByteStream());
-			File f = File.createTempFile(xml, TestXMLParser.SUFFIX);
+			File f = File.createTempFile(xml, TestXMLParserConstants.SUFFIX);
 			PromisesXMLWriter w = new PromisesXMLWriter(f);
 			w.write(r.getPackage());
 			f.deleteOnExit();

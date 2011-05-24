@@ -27,11 +27,18 @@ public final class ContainablePromiseDrop extends
     final String name = JavaNames.getTypeName(getNode());
     final boolean isImplementationOnly = getAST().isImplementationOnly();
     final boolean isVerify = getAST().verify();
-    if (!isImplementationOnly && isVerify) {
-      setResultMessage(Messages.LockAnnotation_containableDrop, name);
+    if (isVerify) {
+      if (!isImplementationOnly) { // default case
+        setResultMessage(Messages.LockAnnotation_containableDrop, name);
+      } else {
+        setResultMessage(Messages.LockAnnotation_containable_implOnly, name);
+      }
     } else {
-      setResultMessage(Messages.LockAnnotation_containableAttributedDrop,
-          isImplementationOnly, isVerify, name);
+      if (isImplementationOnly) {
+        setResultMessage(Messages.LockAnnotation_containable_implOnly_noVerify, name);
+      } else {
+        setResultMessage(Messages.LockAnnotation_containable_noVerify, name);
+      }
     }
   }
   

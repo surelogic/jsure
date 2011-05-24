@@ -26,12 +26,19 @@ public final class ImmutablePromiseDrop extends
   protected void computeBasedOnAST() {
     String name = JavaNames.getTypeName(getNode());
     final boolean isImplementationOnly = getAST().isImplementationOnly();
-    final boolean isVerify = getAST().verify();
-    if (!isImplementationOnly && isVerify) {
-      setResultMessage(Messages.LockAnnotation_immutableDrop, name);
+    final boolean isVerify = getAST().verify();    
+    if (isVerify) {
+      if (!isImplementationOnly) { // default case
+        setResultMessage(Messages.LockAnnotation_immutableDrop, name);
+      } else {
+        setResultMessage(Messages.LockAnnotation_immutable_implOnly, name);
+      }
     } else {
-      setResultMessage(Messages.LockAnnotation_immutableAttributedDrop,
-          isImplementationOnly, isVerify, name);
+      if (isImplementationOnly) {
+        setResultMessage(Messages.LockAnnotation_immutable_implOnly_noVerify, name);
+      } else {
+        setResultMessage(Messages.LockAnnotation_immutable_noVerify, name);
+      }
     }
   }
   

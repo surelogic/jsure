@@ -374,7 +374,9 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
           final IRNode typeDecl;
           final boolean isPrimitive = type instanceof IJavaPrimitiveType;
           final PromiseDrop<? extends AbstractModifiedBooleanNode> declTSDrop;
+          final boolean usingImplDrop;
           final ContainablePromiseDrop declContainableDrop;
+          
           if (type instanceof IJavaDeclaredType) {
             typeDecl = ((IJavaDeclaredType) type).getDeclaration();
             // Null if no @ThreadSafe ==> not thread safe
@@ -389,11 +391,14 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               if (Initialization.prototype.includes(init)) {
                 declTSDrop = LockRules.getThreadSafeImplPromise(
                     ((IJavaDeclaredType) getBinder().getJavaType(init)).getDeclaration());
+                usingImplDrop = true;
               } else {
                 declTSDrop = typePromise;
+                usingImplDrop = false;
               }
             } else {
               declTSDrop = typePromise;
+              usingImplDrop = false;
             }
             // Null if no @Containable ==> Default annotation of not containable
             declContainableDrop = LockRules.getContainableType(typeDecl);
@@ -401,6 +406,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
             typeDecl = null;
             declTSDrop = null;
             declContainableDrop = null;
+            usingImplDrop = false;
           }
           
           /* @ThreadSafe takes priority over @Containable: If the type is
@@ -442,6 +448,9 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
               result.addSupportingInformation(varDecl, Messages.PRIMITIVE_TYPE);
             } else if (declTSDrop != null) {
               result.addTrustedPromise(declTSDrop);
+              if (usingImplDrop) {
+                result.addSupportingInformation(varDecl, Messages.THREAD_SAFE_IMPL);
+              }
             } else { // contained
               result.addTrustedPromise(declContainableDrop);
               result.addTrustedPromise(uDrop);
@@ -502,7 +511,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
       final UniquePromiseDrop upd = UniquenessRules.getUnique(returnDecl);
       
       // Prefer unique return over borrowed receiver
-      final String id = JavaNames.genMethodConstructorName(cdecl);
+      final String id = JavaNames.genSimpleMethodConstructorName(cdecl);
       if (upd != null) {
         final ResultDropBuilder result =
           createResult(cdecl, true, Messages.CONSTRUCTOR_UNIQUE_RETURN, id);
@@ -523,7 +532,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     protected void processMethodDeclaration(final IRNode mdecl) {
       // Must borrow the receiver if the method is not static
       if (!TypeUtil.isStatic(mdecl)) {
-        final String id = JavaNames.genMethodConstructorName(mdecl);
+        final String id = JavaNames.genSimpleMethodConstructorName(mdecl);
         final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
         final BorrowedPromiseDrop bpd = UniquenessRules.getBorrowed(rcvrDecl);
         if (bpd == null) {

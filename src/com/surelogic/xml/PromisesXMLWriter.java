@@ -164,7 +164,6 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		}
 		final List<Map.Entry<String,T>> entries = new ArrayList<Map.Entry<String,T>>(map.entrySet());
 		Collections.sort(entries, new Comparator<Map.Entry<String,T>>() {
-			@Override
 			public int compare(Entry<String, T> o1, Entry<String, T> o2) {
 				return o1.getKey().compareTo(o2.getKey());
 			}
