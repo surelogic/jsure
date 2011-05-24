@@ -21,4 +21,8 @@ public abstract class AbstractJavaElement {
 	AnnotationElement getPromise(String uid) {
 		return promises.get(uid);
 	}
+	
+	public Iterable<AnnotationElement> getPromises() {
+		return promises.values();
+	}
 }

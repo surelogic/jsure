@@ -43,4 +43,8 @@ implements IClassMember
 	FunctionParameterElement getParameter(int i) {
 		return params.get(i);
 	}
+
+	Iterable<FunctionParameterElement> getParameters() {
+		return params;
+	}
 }
