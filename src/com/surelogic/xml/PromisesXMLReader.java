@@ -31,12 +31,10 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		return null;
 	}
 
-	@Override
 	public void start(String pkg, String na) {
 		pkgName = pkg;
 	}
 	
-	@Override
 	public Entity makeEntity(String name, Attributes a) {
 		//System.out.println("Making entity for "+name);
 		return new Entity(name, a);
@@ -118,7 +116,6 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		return e;
 	}
 	
-	@Override
 	public void done() {
 		pkg = new PackageElement(pkgName, clazz);		
 		for(AnnotationElement a : promises) {
