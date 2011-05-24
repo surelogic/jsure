@@ -82,12 +82,17 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		flush();
 	}
 	
-	private void writeClass(int indent, ClassElement c) {
+	private void writeClass(int indent, ClassElement c) {		
 		start(indent, CLASS, c);
-		writeAnnos(indent+INCR, c);
-		// TODO 		
-		// classinit
-		// fields
+		writeAnnos(indent+INCR, c);		
+		if (c.getClassInit() != null) {			
+			start(indent+INCR, CLASSINIT, c.getClassInit());
+			writeAnnos(indent+INCR, c.getClassInit());
+			end(indent+INCR, CLASSINIT);
+		}
+		for(FieldElement f : c.getFields()) {
+			writeField(indent+INCR, f);
+		}
 		for(ConstructorElement e : c.getConstructors()) {
 			writeConstructor(indent+INCR, e);
 		}
@@ -98,6 +103,12 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 			writeClass(indent+INCR, e);
 		}
 		end(indent, CLASS);
+	}
+	
+	private void writeField(int indent, FieldElement f) {
+		start(indent, FIELD, f);
+		writeAnnos(indent+INCR, f);
+		end(indent, FIELD);
 	}
 	
 	private void writeMethod(int indent, MethodElement m) {

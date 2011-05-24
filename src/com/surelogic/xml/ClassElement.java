@@ -66,6 +66,10 @@ public class ClassElement extends AbstractJavaElement {
 		return PromisesXMLWriter.getSortedValues(constructors);
 	}
 	
+	Iterable<FieldElement> getFields() {
+		return PromisesXMLWriter.getSortedValues(fields);
+	}
+	
 	Iterable<MethodElement> getMethods() {
 		final List<MethodElement> elements = new ArrayList<MethodElement>(methods.size());
 		for(Pair<String,String> key : methods.keys()) {
