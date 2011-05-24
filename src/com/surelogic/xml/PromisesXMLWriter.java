@@ -58,6 +58,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		writeAnnos(INCR, pkg);
 		writeClass(INCR, pkg.getClassElement());
 		end(0, PACKAGE);
+		pw.close();
 	}
 
 	private void writeAnnos(int indent, AbstractJavaElement e) {
@@ -83,6 +84,9 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	}
 	
 	private void writeClass(int indent, ClassElement c) {		
+		if (c == null) {
+			return;
+		}
 		start(indent, CLASS, c);
 		writeAnnos(indent+INCR, c);		
 		if (c.getClassInit() != null) {			
