@@ -2,6 +2,12 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.StorageType;
+
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.util.UniqueID;
+
 public class AnnotationElement {
 	private final String uid;
 	private final String promise;
@@ -9,10 +15,23 @@ public class AnnotationElement {
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
 	
 	AnnotationElement(String id, String name, String text, Map<String,String> a) {
-		uid = id;
+		if (id == null) {
+			final IPromiseDropStorage<?> storage = PromiseFramework.getInstance().findStorage(name);
+			if (storage.type() != StorageType.SEQ) {
+				uid = name;
+			} else {
+				System.err.println("Creating uid for seq annotation: "+name);
+				UniqueID u = new UniqueID();
+				uid = u.toString();
+			}
+			attributes.put(TestXMLParserConstants.UID_ATTRB, uid);
+		} else {
+			uid = id;
+		}
 		promise = name;
 		contents = text;
 		attributes.putAll(a);
+
 	}
 	
 	final String getUid() {
