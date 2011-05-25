@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.surelogic.Immutable;
 import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
@@ -61,6 +62,14 @@ public class C {
 
   
   
+  // GOOD: It's got nothing to do with locking or Object
+  private final Object stillGood = new Other(10);
+  
+  // GOOD: It's got nothing to do with locking or Object
+  private final Object stillGood2 = new Other2(10);
+
+  
+  
   @InRegion("R1")
   private int x;
   
@@ -94,3 +103,25 @@ public class C {
 class Bad {
   public Bad() {}
 }
+
+
+@ThreadSafe(implementationOnly=true) 
+class Other {
+	@SuppressWarnings("unused")
+  private final int value;
+	
+	public Other(int v) {
+		value = v;
+	}
+}
+
+@Immutable(implementationOnly=true)
+class Other2 {
+	@SuppressWarnings("unused")
+  private final int value;
+	
+	public Other2(int v) {
+		value = v;
+	}
+}
+
