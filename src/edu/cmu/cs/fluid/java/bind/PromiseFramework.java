@@ -41,6 +41,7 @@ import edu.cmu.cs.fluid.util.*;
  * @author chance
  *  
  */
+@SuppressWarnings("unchecked")
 public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 
   /**
@@ -74,14 +75,12 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     return instance;
   }
 
-  @SuppressWarnings("unchecked")
   protected static final <T extends PromiseDrop> 
   SlotInfo<T> makeDropSlotInfo(String promise) {
     SlotInfo<T> si = SimpleSlotFactory.prototype.newLabeledAttribute("@"+promise, null);
     return si;
   }
   
-  @SuppressWarnings("unchecked")
   protected static final <T extends PromiseDrop> 
   SlotInfo<List<T>> makeDropSeqSlotInfo(String promise) {
     SlotInfo<List<T>> si = SimpleSlotFactory.prototype.newLabeledAttribute("@"+promise, null);
@@ -158,11 +157,10 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * @param rule
    * @return true if completed successfully
    */
-  @SuppressWarnings("unchecked")
   public boolean registerParseDropRule(IAnnotationParseRule rule) {
 	  return registerParseDropRule(rule, false);
   }
-  @SuppressWarnings("unchecked")
+
   public boolean registerParseDropRule(IAnnotationParseRule rule, boolean suppressWarning) {
     String tag = rule.name();
     if (tag.length() == 0) {
@@ -205,7 +203,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     switch (stor.type()) {
       case BOOLEAN:
         SlotInfo<BooleanPromiseDrop> bsi = makeDropSlotInfo(tag);
-        @SuppressWarnings("unchecked")
         IBooleanPromiseDropStorage<BooleanPromiseDrop> bstor = 
           (IBooleanPromiseDropStorage<BooleanPromiseDrop>) stor;
         bstor.init(bsi);
@@ -248,43 +245,36 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     return null;
   }
   
-  @SuppressWarnings("unchecked")
   public <D extends PromiseDrop>
   ISinglePromiseDropStorage<D> findNodeStorage(String tag) {
     return (ISinglePromiseDropStorage<D>) findStorage(tag);
   }
   
-  @SuppressWarnings("unchecked")
   public <D extends PromiseDrop>
   IPromiseDropSeqStorage<D> findSeqStorage(String tag) {
     return (IPromiseDropSeqStorage<D>) findStorage(tag);
   }
   
-  @SuppressWarnings("unchecked")
   public <D extends BooleanPromiseDrop>
   IBooleanPromiseDropStorage<D> findBooleanStorage(String tag) {
     return (IBooleanPromiseDropStorage<D>) findStorage(tag);
   }
 
-  @SuppressWarnings("unchecked")
   public <D extends PromiseDrop>
   SlotInfo<D> findNodeSlotInfo(String tag) {
     return findStorage(tag, StorageType.NODE);
   }
   
-  @SuppressWarnings("unchecked")
   public <D extends PromiseDrop>
   SlotInfo<List<D>> findSeqSlotInfo(String tag) {
     return findStorage(tag, StorageType.SEQ);
   }
   
-  @SuppressWarnings("unchecked")
   public <D extends BooleanPromiseDrop>
   SlotInfo<D> findBooleanSlotInfo(String tag) {
     return findStorage(tag, StorageType.BOOLEAN);
   }
   
-  @SuppressWarnings("unchecked")
   public Iteratable<IPromiseDropStorage> getAllStorage() {
     final Iterator<Entry<String,IPromiseDropStorage>> entries = 
       storageMap.entrySet().iterator();
@@ -403,7 +393,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     return true;
   }
 
-  @SuppressWarnings("unchecked")
   private boolean registerInMap(ICustomHashMap map, Operator op,
       IPromiseRule rule) {
     Map.Entry e = map.getEntryAlways(op);
@@ -426,7 +415,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
   public Iterator<IPromiseParseRule> getParseRules() {
     return parser.getRules();
   }
-  @SuppressWarnings("unchecked")
+  
   public void printCheckOps() {
     if (!LOG.isLoggable(Level.FINER)) {
       return;
@@ -503,6 +492,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     }
   }
 
+  @SuppressWarnings("deprecation")
   public void checkAssumptionsOnAST(IWarningReport report, IRNode node) {
     final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
     
@@ -530,7 +520,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private void applyCheckRules(IRNode n) {
     final Operator op = tree.getOperator(n);
     final Collection<IPromiseCheckRule> c = (Collection<IPromiseCheckRule>) checkMap.get(op);
@@ -555,7 +544,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * @param op
    * @return
    */
-  @SuppressWarnings("unchecked")
   public Iterator<TokenInfo> getTokenInfos(Operator op) {
     List<IPromiseStorage> l = (List<IPromiseStorage>) storMap.get(op);
     if (l == null) {
@@ -585,7 +573,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     };
   }
   
-  @SuppressWarnings("unchecked")
   public <T extends PromiseDrop> 
   SlotInfo<T> findSlotInfo(String promise, Class<T> cls) {
     for(IPromiseStorage s : storSet) {
@@ -629,7 +616,9 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * HashMap, but modified to note whether we should create IRNodes if none
    */
   private static class MyMap extends ConcurrentHashMap<IRNode,IRNode> {
-	  boolean f_createIfNone = false;
+	private static final long serialVersionUID = 1L;
+	
+	boolean f_createIfNone = false;
 	  boolean f_onlyAssume = false;
 
 	  synchronized boolean createIfNone() {
@@ -647,7 +636,9 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
   }
 
   private static final MyMap EMPTY = new MyMap() {
-    @Override
+	private static final long serialVersionUID = 1L;
+	
+	@Override
     public IRNode get(Object k) {
       return null; // Always empty
     }
@@ -686,11 +677,13 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     }    
     if (LOG.isLoggable(Level.FINE) && context.size() > 0) {
       LOG.fine("Pushing non-empty @assume context");
+      /*
       Iterator it = context.keySet().iterator();
       while (it.hasNext()) {
         IRNode n = (IRNode) it.next();
-//        System.out.println("proxy for: "+DebugUnparser.toString(n));
+        System.out.println("proxy for: "+DebugUnparser.toString(n));
       }
+      */
     }
     context.setCreateIfNone(createIfNone);
     context.setOnlyAssume(onlyAssume);
@@ -834,7 +827,6 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * @param n The IRNode we want to ask about
    * @param p The policy object that decides what to do with the promises found
    */
-  @SuppressWarnings("unchecked")
   @Deprecated
   public void processPromises(IRNode n, IPromiseProcessor p) {
     if (n == null || !tree.isNode(n)) {
