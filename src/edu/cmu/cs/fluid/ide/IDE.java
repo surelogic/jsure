@@ -80,6 +80,10 @@ public abstract class IDE {
 
 	protected static IDE prototype;
 
+	public static synchronized boolean hasInstance() {
+		return prototype != null;
+	}
+	
 	public static synchronized IDE getInstance() {
 		if (prototype == null) {
 			throw new UnsupportedOperationException();
