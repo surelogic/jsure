@@ -52,14 +52,10 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 				handleNestedElement(clazz, n);
 			}
 		}
-		else if (PROMISE.equals(name)) {
+		else {
 			final String uid = e.getAttribute(UID_ATTRB);
 			promises.add(new AnnotationElement(uid, name, e.getCData(), e.getAttributes()));
 		}
-		else {
-			throw new IllegalStateException("Unknown entity: "+name);
-		}
-
 	}
 	
 	private void handleNestedElement(ClassElement c, Entity n) {		
@@ -83,9 +79,11 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		else if (CLASSINIT.equals(name)) {
 			c.addMember(handleAnnotations(new ClassInitElement(), n));
 		}
-		// Make an annotation		 
-		final String uid = n.getAttribute(UID_ATTRB);
-		c.addPromise(new AnnotationElement(uid, name, n.getCData(), n.getAttributes()));
+		else {
+			// Make an annotation		 
+			final String uid = n.getAttribute(UID_ATTRB);
+			c.addPromise(new AnnotationElement(uid, name, n.getCData(), n.getAttributes()));
+		}
 	}
 	
 	private IClassMember handleNestedElements(NestedClassElement cl, Entity c) {
