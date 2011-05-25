@@ -102,7 +102,7 @@ public final class SimpleLockNameNode extends LockNameNode {
           return true;
         } else if (overridingBase instanceof QualifiedThisExpressionNode) {
           /* Qualified type must be the type that contains the annotated method */
-          return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingBase);
+          return ((QualifiedThisExpressionNode) overridingBase).namesEnclosingTypeOfAnnotatedMethod();
         }
       } else { // First lock is a static lock from the current class
         if (overridingBase instanceof TypeExpressionNode) {

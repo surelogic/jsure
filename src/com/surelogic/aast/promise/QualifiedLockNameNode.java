@@ -156,7 +156,7 @@ public final class QualifiedLockNameNode extends LockNameNode {
       
       if (ancestorBase instanceof QualifiedThisExpressionNode) {
         // Check if the ancestor really is just the 0th-qualified outer class, that is, the normal receiver
-        if (namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) ancestorBase)) {
+        if (((QualifiedThisExpressionNode) ancestorBase).namesEnclosingTypeOfAnnotatedMethod()) {
           return specifiesTheReceiver(overridingBase);
         } else { // ancestor is a real qualified receiver
           if (overridingBase instanceof QualifiedThisExpressionNode) {
@@ -177,7 +177,7 @@ public final class QualifiedLockNameNode extends LockNameNode {
       return true;
     } else if (base instanceof QualifiedThisExpressionNode) {
       /* Qualified type must be the type that contains the annotated method */
-      return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) base);
+      return ((QualifiedThisExpressionNode) base).namesEnclosingTypeOfAnnotatedMethod();
     }
     return false;
   }

@@ -16,10 +16,8 @@ import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public class EffectSpecificationNode extends AASTNode {
 	// Fields
@@ -214,7 +212,7 @@ public class EffectSpecificationNode extends AASTNode {
            */
           
           // First check if the qualified receiver is really the regular receiver
-          if (namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) ancestorContext)) {
+          if (((QualifiedThisExpressionNode) ancestorContext).namesEnclosingTypeOfAnnotatedMethod()) {
             /* Affects region of the receiver.  Overriding method must name
              * the receiver implicitly, explicitly, or via the 0th-outer class.
              */
@@ -246,37 +244,6 @@ public class EffectSpecificationNode extends AASTNode {
             return (ancestorPos == overridingPos);
           }
         }
-        
-//        if (pContext instanceof ImplicitQualifierNode) {
-//          if (region.isStatic()) { // Static region -> class target
-//            targ = tf.createClassTarget(region);
-//          } else { // Instance region -> qualify with receiver
-//            // We bind the receiver ourselves, so this is safe
-//            targ = tf.createInstanceTarget(JavaPromise.getReceiverNode(mDecl), region);
-//          }
-//        } else if (pContext instanceof AnyInstanceExpressionNode) {
-//          final IJavaType type = 
-//            ((AnyInstanceExpressionNode) pContext).getType().resolveType().getJavaType();
-//          targ = tf.createAnyInstanceTarget((IJavaReferenceType) type, region);
-//        } else if (pContext instanceof QualifiedThisExpressionNode) {
-//          final QualifiedThisExpressionNode qthis =
-//            (QualifiedThisExpressionNode) pContext;
-//          final IRNode canonicalReceiver =
-//            JavaPromise.getQualifiedReceiverNodeByName(mDecl, qthis.resolveType().getNode());
-//          // We just bound the receiver ourselves, so this is safe
-//          targ = tf.createInstanceTarget(canonicalReceiver, region);
-//        } else if (pContext instanceof TypeExpressionNode) {
-//          targ = tf.createClassTarget(region);
-//        } else if (pContext instanceof ThisExpressionNode) {
-//          // We bind the receiver ourselves, so this is safe
-//          targ = tf.createInstanceTarget(JavaPromise.getReceiverNode(mDecl), region);
-//        } else if (pContext instanceof VariableUseExpressionNode) {
-//          // The object expression cannot be a receiver, so this is safe
-//          targ = tf.createInstanceTarget(((VariableUseExpressionNode) pContext).resolveBinding().getNode(), region);
-//        } else {
-//          // Shouldn't happen, but we need to ensure that blank final targ is initialized
-//          targ = null;
-//        }
       }
     }
     return false;
@@ -293,7 +260,7 @@ public class EffectSpecificationNode extends AASTNode {
     } else if (overridingContext instanceof QualifiedThisExpressionNode) {
       // One "this" expression, and one "C.this".  Equal if C is the 
       // class that contains the annotated method.
-      return namesEnclosingTypeOfAnnotatedMethod((QualifiedThisExpressionNode) overridingContext);
+      return ((QualifiedThisExpressionNode) overridingContext).namesEnclosingTypeOfAnnotatedMethod();
     }
     return false;
   }
@@ -315,15 +282,4 @@ public class EffectSpecificationNode extends AASTNode {
     }
     return false;
   }
-  
-
-
-  // Copied from LockNameNode.  Need to find a general place to put this
-  private static boolean namesEnclosingTypeOfAnnotatedMethod(
-      final QualifiedThisExpressionNode base) {
-    final IRNode declOfEnclosingType =
-      VisitUtil.getEnclosingType(base.getPromisedFor());
-    final IRNode declOfNamedType =
-      ((IJavaDeclaredType) base.getType().resolveType().getJavaType()).getDeclaration();
-    return declOfEnclosingType.equals(declOfNamedType);
-  }}
+}

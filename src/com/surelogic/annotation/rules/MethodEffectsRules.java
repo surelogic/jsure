@@ -1,7 +1,6 @@
 package com.surelogic.annotation.rules;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,13 +31,10 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
-import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 public class MethodEffectsRules extends AnnotationRules {
 	public static final String EFFECTS = "Effects";
@@ -433,22 +429,4 @@ public class MethodEffectsRules extends AnnotationRules {
 	    return false;
 	  }
 	}
-
-
-
-  // XXX: From LockRules --- find a better place for this
-  private static Map<IRNode, Integer> buildParameterMap(
-      final IRNode annotatedMethod, final IRNode parent) {
-    // Should have the same number of arguments
-    final Iteratable<IRNode> p1 = Parameters.getFormalIterator(MethodDeclaration.getParams(annotatedMethod));
-    final Iteratable<IRNode> p2 = Parameters.getFormalIterator(MethodDeclaration.getParams(parent));
-    int count = 0;
-    final Map<IRNode, Integer> positionMap = new HashMap<IRNode, Integer>();
-    for (final IRNode arg1 : p1) {
-      positionMap.put(arg1, count);
-      positionMap.put(p2.next(), count);
-      count += 1;
-    }
-    return positionMap;
-  }
 }

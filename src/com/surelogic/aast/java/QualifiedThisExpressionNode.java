@@ -9,7 +9,10 @@ import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.IVariableBinding;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class QualifiedThisExpressionNode extends SomeThisExpressionNode { 
@@ -84,5 +87,17 @@ public class QualifiedThisExpressionNode extends SomeThisExpressionNode {
 	public IAASTNode cloneTree() {
 		return new QualifiedThisExpressionNode(getOffset(), (ClassTypeNode)getType().cloneTree());
 	}
+
+	/**
+	 * Does this node actually refer to the immediately enclosing type?  That is,
+	 * is this qualified receiver really just a fancy way of naming the regular
+	 * receiver?
+	 */
+  public boolean namesEnclosingTypeOfAnnotatedMethod() {
+    final IRNode declOfEnclosingType = VisitUtil.getEnclosingType(getPromisedFor());
+    final IRNode declOfNamedType =
+      ((IJavaDeclaredType) getType().resolveType().getJavaType()).getDeclaration();
+    return declOfEnclosingType.equals(declOfNamedType);
+  }
 }
 

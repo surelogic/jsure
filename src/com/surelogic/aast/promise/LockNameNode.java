@@ -4,11 +4,8 @@ package com.surelogic.aast.promise;
 import java.util.Map;
 
 import com.surelogic.aast.INodeVisitor;
-import com.surelogic.aast.java.QualifiedThisExpressionNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public abstract class LockNameNode extends LockSpecificationNode { 
   // Fields
@@ -94,13 +91,5 @@ public abstract class LockNameNode extends LockSpecificationNode {
   abstract boolean namesSameLockAsQualifiedLock(
       QualifiedLockNameNode overriding, Map<IRNode, Integer> positionMap,
       How how);
-
-  static boolean namesEnclosingTypeOfAnnotatedMethod(final QualifiedThisExpressionNode base) {
-    final IRNode declOfEnclosingType =
-      VisitUtil.getEnclosingType(base.getPromisedFor());
-    final IRNode declOfNamedType =
-      ((IJavaDeclaredType) base.getType().resolveType().getJavaType()).getDeclaration();
-    return declOfEnclosingType.equals(declOfNamedType);
-  }
 }
 

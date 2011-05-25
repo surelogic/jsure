@@ -31,6 +31,8 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IDropFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
@@ -438,4 +440,21 @@ public abstract class AnnotationRules {
       }
     };       
   }
+  
+  
+  
+  protected static Map<IRNode, Integer> buildParameterMap(
+      final IRNode annotatedMethod, final IRNode parent) {
+    // Should have the same number of arguments
+    final Iteratable<IRNode> p1 = Parameters.getFormalIterator(MethodDeclaration.getParams(annotatedMethod));
+    final Iteratable<IRNode> p2 = Parameters.getFormalIterator(MethodDeclaration.getParams(parent));
+    int count = 0;
+    final Map<IRNode, Integer> positionMap = new HashMap<IRNode, Integer>();
+    for (final IRNode arg1 : p1) {
+      positionMap.put(arg1, count);
+      positionMap.put(p2.next(), count);
+      count += 1;
+    }
+    return positionMap;
+  }  
 }

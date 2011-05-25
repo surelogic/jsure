@@ -29,7 +29,6 @@ import edu.cmu.cs.fluid.sea.drops.BooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 public class LockRules extends AnnotationRules {
   private static final String JAVA_LANG_ENUM = "java.lang.Enum";
@@ -331,21 +330,6 @@ public class LockRules extends AnnotationRules {
     registerParseRuleStorage(fw, vouchFieldIsRule);
     registerScrubber(fw, new LockFieldVisibilityScrubber());
 	}
-
-	private static Map<IRNode, Integer> buildParameterMap(
-      final IRNode annotatedMethod, final IRNode parent) {
-    // Should have the same number of arguments
-    final Iteratable<IRNode> p1 = Parameters.getFormalIterator(MethodDeclaration.getParams(annotatedMethod));
-    final Iteratable<IRNode> p2 = Parameters.getFormalIterator(MethodDeclaration.getParams(parent));
-    int count = 0;
-    final Map<IRNode, Integer> positionMap = new HashMap<IRNode, Integer>();
-    for (final IRNode arg1 : p1) {
-      positionMap.put(arg1, count);
-      positionMap.put(p2.next(), count);
-      count += 1;
-    }
-    return positionMap;
-  }
 
   /**
 	 * Parse rule for the ReturnsLock annotation
