@@ -2,10 +2,10 @@
  <class name="ReadWriteLock">
   <ThreadSafe/>
 
-  <method name="readLock()">
+  <method name="readLock">
    <regionEffects>reads Instance</regionEffects>
   </method>
-  <method name="writeLock()">
+  <method name="writeLock">
    <regionEffects>reads Instance</regionEffects>
   </method>
  </class>
