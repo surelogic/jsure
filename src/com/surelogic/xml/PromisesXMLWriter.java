@@ -63,11 +63,11 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 
 	private void writeAnnos(int indent, AbstractJavaElement e) {
 		for(AnnotationElement a : e.getPromises()) {
-			writeAnnos(indent, a);
+			writeAnno(indent, a);
 		}
 	}
 	
-	private void writeAnnos(int indent, AnnotationElement a) {
+	private void writeAnno(int indent, AnnotationElement a) {
 		Entities.start(a.getPromise(), b, indent);
 		for(Map.Entry<String,String> attr : a.getAttributes()) {
 			// TODO indent?
