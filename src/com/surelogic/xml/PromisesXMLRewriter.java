@@ -2,9 +2,12 @@ package com.surelogic.xml;
 
 import java.io.*;
 
+import com.surelogic.annotation.rules.AnnotationRules;
+
 public class PromisesXMLRewriter {
 	public static void main(String[] args) {
 		final String path = "c:/work/workspace-3.5.1/fluid/lib/promises";
+		AnnotationRules.initialize();
 		rewrite(new File(path));
 	}
 
