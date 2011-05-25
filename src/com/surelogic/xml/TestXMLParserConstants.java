@@ -41,6 +41,8 @@ public interface TestXMLParserConstants
   public static final String TYPE_ATTRB = "type";
   public static final String KEYWORD_ATTRB = "keyword";
   public static final String CONTENTS_ATTRB = "contents";
+  public static final String REVISION_ATTRB = "revision";
+  public static final String DIRTY_ATTRB = "dirty";
  
   public static final int HASH_MAP_LOAD = 3;
 

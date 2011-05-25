@@ -8,7 +8,7 @@ import com.surelogic.promise.StorageType;
 
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 
-public class AnnotationElement {
+public class AnnotationElement implements TestXMLParserConstants {
 	private final String uid;
 	private final String promise;
 	private final String contents;
@@ -36,7 +36,7 @@ public class AnnotationElement {
 		contents = text;
 		attributes.putAll(a);
 		if (id == null && uid != name) {
-			attributes.put(TestXMLParserConstants.UID_ATTRB, uid);
+			attributes.put(UID_ATTRB, uid);
 		}
 	}
 	
@@ -58,5 +58,30 @@ public class AnnotationElement {
 
 	public Iterable<Map.Entry<String,String>> getAttributes() {
 		return PromisesXMLWriter.getSortedEntries(attributes);
+	}
+	
+	public int getRevision() {
+		String value = attributes.get(REVISION_ATTRB);
+		if (value != null) {
+			try {
+				return Integer.parseInt(value);
+			} catch(NumberFormatException e) {
+				e.printStackTrace();
+			}
+		}
+		return 0;
+	}
+	
+	public boolean isDirty() {
+		return "true".equals(attributes.get(DIRTY_ATTRB));
+	}
+	
+	public void incrRevision() {
+		if (!isDirty()) {
+			throw new IllegalStateException("Not dirty");
+		}
+		final int revision = getRevision();
+		attributes.remove(DIRTY_ATTRB);
+		attributes.put(REVISION_ATTRB, Integer.toString(revision+1));
 	}
 }
