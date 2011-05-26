@@ -33,7 +33,7 @@ public class AnnotationElement implements TestXMLParserConstants {
 			uid = id;
 		}
 		promise = name;
-		contents = text;
+		contents = text == null ? "" : text.trim();
 		attributes.putAll(a);
 		if (id == null && uid != name) {
 			attributes.put(UID_ATTRB, uid);
