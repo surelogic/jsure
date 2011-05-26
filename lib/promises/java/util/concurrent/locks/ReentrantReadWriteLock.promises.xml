@@ -2,6 +2,14 @@
  <class name="ReentrantReadWriteLock">
   <ThreadSafe/>
 
+  <method name="readLock">
+   <regionEffects>reads Instance</regionEffects>
+  </method>
+
+  <method name="writeLock">
+   <regionEffects>reads Instance</regionEffects>
+  </method>
+
   <class name="ReadLock">
    <ThreadSafe/>
    
