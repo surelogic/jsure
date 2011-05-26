@@ -54,6 +54,8 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	}
 	
 	public void write(PackageElement pkg) {		
+		pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+		pw.println();
 		start(0, PACKAGE, pkg);		
 		writeAnnos(INCR, pkg);
 		writeClass(INCR, pkg.getClassElement());
@@ -76,9 +78,10 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		if (a.isEmpty()) {
 			Entities.closeStart(b, true);
 		} else {
-			Entities.closeStart(b, false);
-			b.append(a.getContents());
-			Entities.end(a.getPromise(), b, indent);
+			final boolean newline = a.getContents().contains("\n");
+			Entities.closeStart(b, false, newline);
+			b.append(a.getContents());		
+			Entities.end(a.getPromise(), b, newline ? indent : -1);
 		}
 		flush();
 	}
@@ -99,12 +102,15 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		}
 		for(ConstructorElement e : c.getConstructors()) {
 			writeConstructor(indent+INCR, e);
+			pw.println();
 		}
 		for(MethodElement m : c.getMethods()) {
 			writeMethod(indent+INCR, m);
+			pw.println();
 		}
 		for(ClassElement e : c.getNestedClasses()) {
 			writeClass(indent+INCR, e);
+			pw.println();
 		}
 		end(indent, CLASS);
 	}
@@ -116,14 +122,22 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	}
 	
 	private void writeMethod(int indent, MethodElement m) {
-		start(indent, METHOD, m, PARAMS_ATTRB, m.getParams());
+		if (m.getParams().length() == 0) {
+			start(indent, METHOD, m);
+		} else {
+			start(indent, METHOD, m, PARAMS_ATTRB, m.getParams());
+		}
 		writeAnnos(indent+INCR, m);
 		writeParameters(indent+INCR, m);
 		end(indent, METHOD);
 	}
 	
 	private void writeConstructor(int indent, ConstructorElement m) {
-		start(indent, CONSTRUCTOR, null, PARAMS_ATTRB, m.getParams());
+		if (m.getParams().length() == 0) {
+			start(indent, CONSTRUCTOR, null);
+		} else {
+			start(indent, CONSTRUCTOR, null, PARAMS_ATTRB, m.getParams());
+		}
 		writeAnnos(indent+INCR, m);
 		writeParameters(indent+INCR, m);
 		end(indent, CONSTRUCTOR);
