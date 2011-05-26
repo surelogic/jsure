@@ -21,7 +21,7 @@ implements IClassMember
 		String[] splits = orig.split(",");
 		for(String s : splits) {
 			if (sb.length() > 0) {
-				sb.append(", ");
+				sb.append(",");
 			}
 			sb.append(s.trim());			
 		}
