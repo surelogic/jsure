@@ -48,6 +48,12 @@ public class JSureScanManager {
 			throw new IllegalArgumentException("Bad scan directory: "+run);
 		}
 		synchronized (this) {
+			if (data == null) {
+				throw new IllegalStateException("No scan data");
+			}
+			else if (data.getDataDir() == null) {
+				throw new IllegalStateException("No data dir");
+			}
 			if (!data.getDataDir().equals(run.getParentFile())) {
 				throw new IllegalArgumentException("Scan directory is not under the JSure data dir: "+run);
 			}
