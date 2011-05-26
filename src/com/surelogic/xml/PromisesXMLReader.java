@@ -97,7 +97,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		for(Entity n : f.getReferences()) {
 			if (PARAMETER.equals(n.getName())) {
 				final int i = Integer.parseInt(n.getAttribute(INDEX_ATTRB)); 
-				func.setParameter(new FunctionParameterElement(i));
+				func.setParameter(handleAnnotations(new FunctionParameterElement(i), n));
 			} else {
 				final String uid = n.getAttribute(UID_ATTRB);
 				func.addPromise(new AnnotationElement(uid, n.getName(), n.getCData(), n.getAttributes()));
