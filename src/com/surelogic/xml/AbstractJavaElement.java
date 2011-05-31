@@ -25,7 +25,6 @@ public abstract class AbstractJavaElement {
 	public Iterable<AnnotationElement> getPromises() {
 		List<AnnotationElement> sorted = new ArrayList<AnnotationElement>(promises.values());
 		Collections.sort(sorted, new Comparator<AnnotationElement>() {
-			@Override
 			public int compare(AnnotationElement o1, AnnotationElement o2) {
 				int rv = o1.getPromise().compareTo(o2.getPromise()); 
 				if (rv == 0) {
