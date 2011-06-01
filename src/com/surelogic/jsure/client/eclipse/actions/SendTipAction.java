@@ -7,8 +7,8 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.common.ui.dialogs.SendTipDialog;
+import com.surelogic.common.license.SLLicenseProduct;
+import com.surelogic.common.ui.serviceability.SendServiceMessageWizard;
 import com.surelogic.jsure.client.eclipse.Activator;
 
 public final class SendTipAction implements IWorkbenchWindowActionDelegate {
@@ -22,7 +22,7 @@ public final class SendTipAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void run(IAction action) {
-		SendTipDialog.open(EclipseUIUtility.getShell(), "JSure "
+		SendServiceMessageWizard.openTip(SLLicenseProduct.JSURE + " "
 				+ EclipseUtility.getVersion(Activator.getDefault()),
 				CommonImages.IMG_JSURE_LOGO);
 	}
