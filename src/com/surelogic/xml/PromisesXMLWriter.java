@@ -93,28 +93,38 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		start(indent, CLASS, c);
 		writeAnnos(indent+INCR, c);		
 		if (c.getClassInit() != null) {			
-			start(indent+INCR, CLASSINIT, c.getClassInit());
-			writeAnnos(indent+INCR, c.getClassInit());
+			start(indent+INCR, CLASSINIT, null);
+			writeAnnos(indent+INCR+INCR, c.getClassInit());
 			end(indent+INCR, CLASSINIT);
 		}
 		for(FieldElement f : c.getFields()) {
 			writeField(indent+INCR, f);
 		}
+		boolean first = true;
 		for(ConstructorElement e : c.getConstructors()) {
+			first = handleFirstElt(first);
 			writeConstructor(indent+INCR, e);
-			pw.println();
 		}
 		for(MethodElement m : c.getMethods()) {
+			first = handleFirstElt(first);
 			writeMethod(indent+INCR, m);
-			pw.println();
 		}
 		for(ClassElement e : c.getNestedClasses()) {
+			first = handleFirstElt(first);
 			writeClass(indent+INCR, e);
-			pw.println();
 		}
 		end(indent, CLASS);
 	}
 	
+	private boolean handleFirstElt(boolean first) {
+		if (!first) {
+			pw.println();
+		} else {
+			first = true;
+		}
+		return first;
+	}
+
 	private void writeField(int indent, FieldElement f) {
 		start(indent, FIELD, f);
 		writeAnnos(indent+INCR, f);
