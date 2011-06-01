@@ -21,19 +21,19 @@
 
   <template name="Method" description="Method w/ int parameter" 
             id="com.surelogic.jsure.xml.templates.method.int.param" context="xml_tag" 
-            enabled="true">&lt;method name="${name} params="int"&gt;
+            enabled="true">&lt;method name="${name}" params="int"&gt;
       &lt;${promise}&gt;&lt;/${promise}&gt;
     &lt;/method&gt;</template>    
 
   <template name="Method" description="Method w/ Object parameter" 
             id="com.surelogic.jsure.xml.templates.method.obj.param" context="xml_tag" 
-            enabled="true">&lt;method name="${name} params="${java.lang.Object}"&gt;
+            enabled="true">&lt;method name="${name}" params="${javalangObject}"&gt;
       &lt;${promise}&gt;&lt;/${promise}&gt;
     &lt;/method&gt;</template>   
 
   <template name="Method" description="Method w/ parameters" 
             id="com.surelogic.jsure.xml.templates.method.params" context="xml_tag" 
-            enabled="true">&lt;method name="${name} params="${p1},${p2}"&gt;
+            enabled="true">&lt;method name="${name}" params="${p1},${p2}"&gt;
       &lt;${promise}&gt;&lt;/${promise}&gt;
     &lt;/method&gt;</template>    
 
