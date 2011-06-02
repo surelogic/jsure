@@ -7,6 +7,6 @@
 			immutable; that is, once created, the abstract pathname represented
 			by a <code>File</code> object will never change.
 		-->
-        <selfProtected/>
+        <SelfProtected/>
     </class>
 </package>
