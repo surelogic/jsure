@@ -15,8 +15,9 @@ public class AnnotationElement implements TestXMLParserConstants {
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
 	private final List<String> comments = new ArrayList<String>(0);
 	
-	AnnotationElement(final String id, final String name, String text, Map<String,String> a) {
-		final IPromiseDropStorage<?> storage = PromiseFramework.getInstance().findStorage(AnnotationVisitor.capitalize(name));
+	AnnotationElement(final String id, final String tag, String text, Map<String,String> a) {
+		final String name = AnnotationVisitor.capitalize(tag);
+		final IPromiseDropStorage<?> storage = PromiseFramework.getInstance().findStorage(name);
 		if (storage == null) {
 			System.err.println("Unknown annotation: "+name);
 			uid = name;
