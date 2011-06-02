@@ -1,7 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util">
- <class name="LinkedHashMap">
-  <constructor>
-   <borrowed>this</borrowed>
-  </constructor>
- </class>
+    <class name="LinkedHashMap">
+        <constructor>
+            <Borrowed>this</Borrowed>
+        </constructor>
+    </class>
 </package>
