@@ -102,6 +102,9 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 			final boolean newline = a.getContents().contains("\n");
 			Entities.closeStart(b, false, newline);
 			Entities.addEscaped(a.getContents(), b);
+			if (newline) {
+				b.append('\n');
+			}
 			Entities.end(a.getPromise(), b, newline ? indent : -1);
 		}
 		flush();
