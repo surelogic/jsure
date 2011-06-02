@@ -3,7 +3,7 @@
 <package name="java.lang">
     <class name="Class">
         <method name="getName">
-            <borrowed>this</borrowed>
+            <Borrowed>this</Borrowed>
         </method>
     </class>
 </package>

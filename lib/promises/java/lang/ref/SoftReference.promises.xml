@@ -3,8 +3,8 @@
 <package name="java.lang.ref">
     <class name="SoftReference">
         <constructor params="java.lang.Object,java.lang.ref.ReferenceQueue">
+            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
-            <borrowed>this</borrowed>
         </constructor>
     </class>
 </package>

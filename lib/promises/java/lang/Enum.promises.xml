@@ -7,9 +7,9 @@
         <ThreadSafe implementationOnly="true"/>
         <constructor params="java.lang.String,int">
             <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
             <ThreadRoleTransparent/>
-            <starts>nothing</starts>
-            <unique>return</unique>
+            <Unique>return</Unique>
         </constructor>
     </class>
 </package>

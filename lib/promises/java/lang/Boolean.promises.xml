@@ -3,9 +3,9 @@
 <package name="java.lang">
     <class name="Boolean">
         <constructor params="boolean">
+            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
-            <borrowed>this</borrowed>
-            <starts>nothing</starts>
+            <Starts>nothing</Starts>
         </constructor>
     </class>
 </package>
