@@ -1,21 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.lang">
-	<class name="String">
-		<selfProtected />
+    <class name="String">
+        <selfProtected/>
+        <method name="concat" params="java.lang.String">
+            <RegionEffects>none</RegionEffects>
+            <unique>return</unique>
+        </method>
 
-		<method name="length">
-			<starts>nothing</starts>
-			<RegionEffects>none</RegionEffects>
-		</method>
+        <method name="length">
+            <RegionEffects>none</RegionEffects>
+            <starts>nothing</starts>
+        </method>
 
-
-		<method name="valueOf" params="java.lang.Object">
-			<unique>return</unique>
-			<RegionEffects>none</RegionEffects>
-		</method>
-
-		<method name="concat" params="java.lang.String">
-			<unique>return</unique>
-			<RegionEffects>none</RegionEffects>
-		</method>
-	</class>
+        <method name="valueOf" params="java.lang.Object">
+            <RegionEffects>none</RegionEffects>
+            <unique>return</unique>
+        </method>
+    </class>
 </package>

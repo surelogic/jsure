@@ -1,25 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.lang">
- <class name="Thread">
-  <constructor>
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-   <borrowed>this</borrowed>
-  </constructor>
-  
-  <constructor params="java.lang.Runnable">
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-   <borrowed>this</borrowed>
-  </constructor>
-  
-  <method name="getId">
-    <borrowed>this</borrowed>
-  </method>
-  <method name="setName" params="java.lang.String">	
-  	<borrowed>this</borrowed>
-  </method>
-  <method name="start">
-   <RegionEffects>reads Instance</RegionEffects>
-  </method>
- </class>
+    <class name="Thread">
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+            <borrowed>this</borrowed>
+            <starts>nothing</starts>
+        </constructor>
+
+        <constructor params="java.lang.Runnable">
+            <RegionEffects>none</RegionEffects>
+            <borrowed>this</borrowed>
+            <starts>nothing</starts>
+        </constructor>
+
+        <method name="getId">
+            <borrowed>this</borrowed>
+        </method>
+
+        <method name="setName" params="java.lang.String">
+            <borrowed>this</borrowed>
+        </method>
+
+        <method name="start">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+    </class>
 </package>

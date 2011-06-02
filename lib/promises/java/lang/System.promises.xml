@@ -1,19 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.lang">
-	<class name="System">
-		<!-- 
+    <class name="System">
+        <!-- 
 		<Promise>@ThreadRoleTransparent for get*(**) | arraycopy(**) |
 			currentTime*(**) | exit(*) | gc() | set*(**)</Promise>
         -->
-		<method name="arraycopy" params="java.lang.Object,int,java.lang.Object,int,int">
-			<parameter index="0">
-				<borrowed />
-			</parameter>
-			<parameter index="2">
-				<borrowed />
-			</parameter>
-			<RegionEffects>reads arg0:Instance; writes arg2:Instance
-			</RegionEffects>
-			<starts>nothing</starts>
-		</method>
-	</class>
+        <method name="arraycopy" params="java.lang.Object,int,java.lang.Object,int,int">
+            <RegionEffects>reads arg0:Instance; writes arg2:Instance</RegionEffects>
+            <starts>nothing</starts>
+            <parameter index="0">
+                <borrowed/>
+            </parameter>
+
+            <parameter index="2">
+                <borrowed/>
+            </parameter>
+        </method>
+    </class>
 </package>
