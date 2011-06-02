@@ -1,24 +1,26 @@
-<package name="java.util.concurrent.atomic">
- <class name="AtomicReference">
-  <constructor>
-   <borrowed>this</borrowed>
-   <regionEffects>none</regionEffects>
-  </constructor>
-  
-  <constructor genericParams="V extends java.lang.Object in AtomicReference" params="java.lang.Object">
-   <borrowed>this</borrowed>
-   <regionEffects>none</regionEffects>
-  </constructor>
+<?xml version="1.0" encoding="UTF-8"?>
 
-  <method name="get">
-   <starts>nothing</starts>
-   <borrowed>this</borrowed> 
-   <RegionEffects>reads this:Instance</RegionEffects>
-  </method>
-  
-  <method genericParams="V extends java.lang.Object in AtomicReference" params="java.lang.Object" name="set">
-   <borrowed>this</borrowed>  
-   <RegionEffects>writes this:Instance</RegionEffects>
-  </method>
- </class>
+<package name="java.util.concurrent.atomic">
+    <class name="AtomicReference">
+        <constructor>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
+
+        <constructor params="java.lang.Object" genericParams="V extends java.lang.Object in AtomicReference">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
+
+        <method name="get">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="set" params="java.lang.Object" genericParams="V extends java.lang.Object in AtomicReference">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
+    </class>
 </package>
