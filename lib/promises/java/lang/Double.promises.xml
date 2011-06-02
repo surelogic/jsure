@@ -2,8 +2,6 @@
 
 <package name="java.lang">
     <class name="Double">
-
-	  <abstractImmutable/>
-
-    </class>  
+        <abstractImmutable/>
+    </class>
 </package>

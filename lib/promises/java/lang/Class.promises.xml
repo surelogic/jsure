@@ -1,7 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.lang">
-  <class name="Class">
-    <method name="getName">
-      <borrowed>this</borrowed>
-    </method>
-  </class>
- </package>
+    <class name="Class">
+        <method name="getName">
+            <borrowed>this</borrowed>
+        </method>
+    </class>
+</package>

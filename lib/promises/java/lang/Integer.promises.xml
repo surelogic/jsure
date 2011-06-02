@@ -1,13 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.lang">
- <class name="Integer">
-  <constructor params="int">
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-   <borrowed>this</borrowed>
-  </constructor>
-  <method name="toString">
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method>
- </class>
+    <class name="Integer">
+        <constructor params="int">
+            <RegionEffects>none</RegionEffects>
+            <borrowed>this</borrowed>
+            <starts>nothing</starts>
+        </constructor>
+
+        <method name="toString">
+            <RegionEffects>none</RegionEffects>
+            <starts>nothing</starts>
+        </method>
+    </class>
 </package>
