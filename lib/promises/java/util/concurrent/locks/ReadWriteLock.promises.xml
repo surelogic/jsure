@@ -1,12 +1,14 @@
-<package name="java.util.concurrent.locks">
- <class name="ReadWriteLock">
-  <ThreadSafe/>
+<?xml version="1.0" encoding="UTF-8"?>
 
-  <method name="readLock">
-   <regionEffects>reads Instance</regionEffects>
-  </method>
-  <method name="writeLock">
-   <regionEffects>reads Instance</regionEffects>
-  </method>
- </class>
+<package name="java.util.concurrent.locks">
+    <class name="ReadWriteLock">
+        <ThreadSafe/>
+        <method name="readLock">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="writeLock">
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+    </class>
 </package>
