@@ -68,15 +68,13 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		
 		IClassMember m;
 		if (METHOD.equals(name)) {
-			final String params = n.getAttribute(PARAMS_ATTRB);
-			c.addMember(m = handleNestedElements(new MethodElement(id, params), n));
+			c.addMember(m = handleNestedElements(new MethodElement(id, n), n));
 		}
 		else if (CLASS.equals(name)) {
 			c.addMember(m = handleNestedElements(new NestedClassElement(id), n));
 		}
 		else if (CONSTRUCTOR.equals(name)) {
-			final String params = n.getAttribute(PARAMS_ATTRB);
-			c.addMember(m = handleNestedElements(new ConstructorElement(params), n));
+			c.addMember(m = handleNestedElements(new ConstructorElement(n), n));
 		}		
 		else if (FIELD.endsWith(name)) {
 			c.addMember(m = handleAnnotations(new FieldElement(id), n));

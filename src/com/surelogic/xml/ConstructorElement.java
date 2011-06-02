@@ -1,7 +1,9 @@
 package com.surelogic.xml;
 
+import com.surelogic.common.xml.Entity;
+
 public class ConstructorElement extends AbstractFunctionElement {
-	ConstructorElement(String params) {
-		super("new", params);
+	ConstructorElement(Entity e) {
+		super("new", e);
 	}
 }

@@ -37,6 +37,7 @@ public interface TestXMLParserConstants
   public static final String UID_ATTRB = "uid";
   public static final String NAME_ATTRB = "name";
   public static final String PARAMS_ATTRB = "params";
+  public static final String GENERIC_PARAMS_ATTRB = "genericParams";
   public static final String INDEX_ATTRB = "index";
   public static final String TYPE_ATTRB = "type";
   public static final String KEYWORD_ATTRB = "keyword";

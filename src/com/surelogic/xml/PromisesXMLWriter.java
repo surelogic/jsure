@@ -42,7 +42,10 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		}
 		for(int i=0; i<attrs.length; i+=2) {
 			// TODO indent?
-			Entities.addAttribute(attrs[i], attrs[i+1], b);
+			final String value = attrs[i+1];
+			if (value != null) {
+				Entities.addAttribute(attrs[i], value, b);
+			}
 		}
 		Entities.closeStart(b, false);
 		flush();
@@ -166,7 +169,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		if (m.getParams().length() == 0) {
 			start(indent, METHOD, m);
 		} else {
-			start(indent, METHOD, m, PARAMS_ATTRB, m.getParams());
+			start(indent, METHOD, m, PARAMS_ATTRB, m.getParams(), GENERIC_PARAMS_ATTRB, m.getGenericParams());
 		}
 		writeAnnos(indent+INCR, m);
 		writeParameters(indent+INCR, m);
@@ -179,7 +182,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		if (m.getParams().length() == 0) {
 			start(indent, CONSTRUCTOR, null);
 		} else {
-			start(indent, CONSTRUCTOR, null, PARAMS_ATTRB, m.getParams());
+			start(indent, CONSTRUCTOR, null, PARAMS_ATTRB, m.getParams(), GENERIC_PARAMS_ATTRB, m.getGenericParams());
 		}
 		writeAnnos(indent+INCR, m);
 		writeParameters(indent+INCR, m);

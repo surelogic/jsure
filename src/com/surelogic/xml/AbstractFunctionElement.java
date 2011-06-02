@@ -2,15 +2,21 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+import com.surelogic.common.xml.Entity;
+
 public abstract class AbstractFunctionElement extends AbstractJavaElement 
-implements IClassMember 
+implements IClassMember, TestXMLParserConstants
 {	
+	private final String genericParams;
 	private final String parameters;
 	private final List<FunctionParameterElement> params = new ArrayList<FunctionParameterElement>();
 	
-	AbstractFunctionElement(String id, String params) {
+	AbstractFunctionElement(String id, Entity e) {
 		super(id);
+		
+		final String params = e.getAttribute(PARAMS_ATTRB);
 		parameters = normalize(params);
+		genericParams = e.getAttribute(GENERIC_PARAMS_ATTRB);
 	}
 	
 	private static String normalize(String orig) {
@@ -30,6 +36,10 @@ implements IClassMember
 
 	public final String getParams() {
 		return parameters;
+	}
+	
+	public final String getGenericParams() {
+		return genericParams;
 	}
 	
 	void setParameter(FunctionParameterElement p) {
