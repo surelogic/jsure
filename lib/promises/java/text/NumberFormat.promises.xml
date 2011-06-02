@@ -3,12 +3,12 @@
 <package name="java.text">
     <class name="NumberFormat">
         <method name="format" params="double">
+            <Borrowed>this</Borrowed>
             <RegionEffects>reads this:Instance</RegionEffects>
-            <borrowed>this</borrowed>
         </method>
 
         <method name="getNumberInstance" params="java.util.Locale">
-            <unique>return</unique>
+            <Unique>return</Unique>
         </method>
     </class>
 </package>

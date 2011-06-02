@@ -5,7 +5,7 @@
     <class name="MessageFormat">
         <method name="format" params="java.lang.Object[],java.lang.StringBuffer,java.text.FieldPosition">
             <parameter index="0">
-                <borrowed/>
+                <Borrowed/>
             </parameter>
         </method>
     </class>
