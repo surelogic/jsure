@@ -1,49 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util">
- <class name="TreeMap">
-  <constructor>
-    <borrowed>this</borrowed>
-    <!--starts>nothing</starts-->
-  </constructor>
-  
-  <method name="keySet">
-    <borrowed>this</borrowed>
-    <!--starts>nothing</starts-->
-    <RegionEffects>reads Instance</RegionEffects>
-  </method>
-  
-  <method name="entrySet">
-    <borrowed>this</borrowed>
-    <!--starts>nothing</starts-->
-    <RegionEffects>reads Instance</RegionEffects>
-  </method>
-  
-  <method name="get" params="java.lang.Object">
-    <!--starts>nothing</starts-->
-    <borrowed>this</borrowed>
-    <RegionEffects>reads Instance</RegionEffects>
-  </method>  
+    <class name="TreeMap">
+        <constructor>
+            <Borrowed>this</Borrowed>
+            <!--starts>nothing</starts-->
+        </constructor>
 
-  <method name="put" params="java.lang.Object, java.lang.Object">
-    <!--starts>nothing</starts-->
-    <borrowed>this</borrowed>
-    <RegionEffects>writes Instance</RegionEffects>
-  </method>  
+        <method name="clear">
+            <Borrowed>this</Borrowed>
+            <!--starts>nothing</starts-->
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
 
-  <method name="clear">
-    <borrowed>this</borrowed>
-    <!--starts>nothing</starts-->
-    <RegionEffects>writes Instance</RegionEffects>
-  </method>
+        <method name="entrySet">
+            <Borrowed>this</Borrowed>
+            <!--starts>nothing</starts-->
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
 
-  <method name="size">
-    <borrowed>this</borrowed>
-    <!--starts>nothing</starts-->
-    <RegionEffects>reads Instance</RegionEffects>
-  </method>
+        <method name="get" params="java.lang.Object">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
 
-  <method name="values">
-    <borrowed>this</borrowed>
-    <RegionEffects>reads Instance</RegionEffects>
-  </method>
- </class>
+        <method name="keySet">
+            <Borrowed>this</Borrowed>
+            <!--starts>nothing</starts-->
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="put" params="java.lang.Object,java.lang.Object">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <!--starts>nothing</starts-->
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="values">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+    </class>
 </package>
