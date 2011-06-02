@@ -1,29 +1,30 @@
-<package name="java.util.concurrent.atomic">
- <class name="AtomicInteger">
-  <constructor>
-   <borrowed>this</borrowed>
-   <regionEffects>none</regionEffects>
-  </constructor>
-  
-  <constructor params="int">
-   <borrowed>this</borrowed>
-   <regionEffects>none</regionEffects>
-  </constructor>
+<?xml version="1.0" encoding="UTF-8"?>
 
-  <method name="get">
-   <starts>nothing</starts>
-   <borrowed>this</borrowed> 
-   <RegionEffects>reads this:Instance</RegionEffects>
-  </method>
-  
-  <method name="set" params="int">
-   <starts>nothing</starts>
-   <borrowed>this</borrowed>  
-   <RegionEffects>writes this:Instance</RegionEffects>
-  </method>
-  
-  <promise>@Starts(nothing) for *And*(**)</promise>
-  <promise>@Borrowed(this) for *And*(**)</promise>
-  <promise>@RegionEffects(writes this:Instance) for *And*(**)</promise>
- </class>
+<package name="java.util.concurrent.atomic">
+    <class name="AtomicInteger">
+        <Promise uid="365485ab-4040-4ada-8fac-ad37b203db4d">@Borrowed(this) for *And*(**)</Promise>
+        <Promise uid="ad9b5e6e-54eb-4449-8cb4-3b1d3c7648eb">@Starts(nothing) for *And*(**)</Promise>
+        <Promise uid="e55886d6-5a32-41f6-8e52-e563dd0037e6">@RegionEffects(writes this:Instance) for *And*(**)</Promise>
+        <constructor>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
+
+        <constructor params="int">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
+
+        <method name="get">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="set" params="int">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
 </package>
