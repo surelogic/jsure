@@ -1,13 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util">
- <class name="Vector">
-  <method name="add" params="java.lang.Object">
-    <borrowed>this</borrowed>
-    <RegionEffects>writes Instance</RegionEffects>
-  </method>
-  
-  <method name="isEmpty">
-   <borrowed>this</borrowed>  
-   <RegionEffects>reads this:Instance</RegionEffects>
-  </method>
- </class>
+    <class name="Vector">
+        <method name="add" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+    </class>
 </package>
