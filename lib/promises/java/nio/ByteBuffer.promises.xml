@@ -4,13 +4,13 @@
     <class name="ByteBuffer">
         <method name="allocateDirect" params="int">
             <RegionEffects>none</RegionEffects>
-            <starts>nothing</starts>
-            <unique>return</unique>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
         </method>
 
         <method name="put" params="byte[],int,int">
             <RegionEffects>writes Instance</RegionEffects>
-            <starts>nothing</starts>
+            <Starts>nothing</Starts>
             <!--borrowed>this</borrowed-->
         </method>
     </class>

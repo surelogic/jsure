@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.nio">
-  <Promise>@ThreadRoleTransparent for **(**)</Promise> 
+    <Promise uid="7f877b5e-3ce6-450f-83d9-12c3f2356cac">@ThreadRoleTransparent for **(**)</Promise>
 </package>
