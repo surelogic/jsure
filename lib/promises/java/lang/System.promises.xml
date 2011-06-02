@@ -8,13 +8,13 @@
         -->
         <method name="arraycopy" params="java.lang.Object,int,java.lang.Object,int,int">
             <RegionEffects>reads arg0:Instance; writes arg2:Instance</RegionEffects>
-            <starts>nothing</starts>
+            <Starts>nothing</Starts>
             <parameter index="0">
-                <borrowed/>
+                <Borrowed/>
             </parameter>
 
             <parameter index="2">
-                <borrowed/>
+                <Borrowed/>
             </parameter>
         </method>
     </class>

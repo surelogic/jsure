@@ -2,20 +2,20 @@
 
 <package name="java.lang">
     <class name="String">
-        <selfProtected/>
+        <SelfProtected/>
         <method name="concat" params="java.lang.String">
             <RegionEffects>none</RegionEffects>
-            <unique>return</unique>
+            <Unique>return</Unique>
         </method>
 
         <method name="length">
             <RegionEffects>none</RegionEffects>
-            <starts>nothing</starts>
+            <Starts>nothing</Starts>
         </method>
 
         <method name="valueOf" params="java.lang.Object">
             <RegionEffects>none</RegionEffects>
-            <unique>return</unique>
+            <Unique>return</Unique>
         </method>
     </class>
 </package>

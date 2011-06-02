@@ -3,23 +3,23 @@
 <package name="java.lang">
     <class name="Thread">
         <constructor>
+            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
-            <borrowed>this</borrowed>
-            <starts>nothing</starts>
+            <Starts>nothing</Starts>
         </constructor>
 
         <constructor params="java.lang.Runnable">
+            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
-            <borrowed>this</borrowed>
-            <starts>nothing</starts>
+            <Starts>nothing</Starts>
         </constructor>
 
         <method name="getId">
-            <borrowed>this</borrowed>
+            <Borrowed>this</Borrowed>
         </method>
 
         <method name="setName" params="java.lang.String">
-            <borrowed>this</borrowed>
+            <Borrowed>this</Borrowed>
         </method>
 
         <method name="start">

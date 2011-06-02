@@ -2,6 +2,6 @@
 
 <package name="java.lang">
     <class name="ThreadLocal">
-        <selfProtected/>
+        <SelfProtected/>
     </class>
 </package>

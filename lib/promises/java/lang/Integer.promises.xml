@@ -3,14 +3,14 @@
 <package name="java.lang">
     <class name="Integer">
         <constructor params="int">
+            <Borrowed>this</Borrowed>
             <RegionEffects>none</RegionEffects>
-            <borrowed>this</borrowed>
-            <starts>nothing</starts>
+            <Starts>nothing</Starts>
         </constructor>
 
         <method name="toString">
             <RegionEffects>none</RegionEffects>
-            <starts>nothing</starts>
+            <Starts>nothing</Starts>
         </method>
     </class>
 </package>
