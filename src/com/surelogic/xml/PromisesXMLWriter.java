@@ -63,6 +63,28 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		pw.close();
 	}
 
+	
+	
+	private void writeComments(int indent, AbstractJavaElement e) {
+		writeComments(indent, e.getComments());
+	}
+	
+	private void writeLastComments(int indent, AbstractJavaElement e) {
+		writeComments(indent, e.getLastComments());
+	}
+	
+	private void writeComments(int indent, Iterable<String> comments) {
+		for(String c : comments) {
+			Entities.indent(b, indent);
+			b.append("<!--");
+			b.append(c); // TODO need to unescape
+			b.append("-->\n");
+			flush();
+		}
+	}
+	
+	
+	
 	private void writeAnnos(int indent, AbstractJavaElement e) {
 		for(AnnotationElement a : e.getPromises()) {
 			writeAnno(indent, a);
@@ -70,6 +92,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	}
 	
 	private void writeAnno(int indent, AnnotationElement a) {
+		writeComments(indent, a.getComments());
 		Entities.start(a.getPromise(), b, indent);
 		for(Map.Entry<String,String> attr : a.getAttributes()) {
 			// TODO indent?
@@ -90,11 +113,14 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		if (c == null) {
 			return;
 		}
+		writeComments(indent, c);
 		start(indent, CLASS, c);
 		writeAnnos(indent+INCR, c);		
 		if (c.getClassInit() != null) {			
+			writeComments(indent+INCR, c.getClassInit());
 			start(indent+INCR, CLASSINIT, null);
 			writeAnnos(indent+INCR+INCR, c.getClassInit());
+			writeLastComments(indent+INCR+INCR, c.getClassInit());
 			end(indent+INCR, CLASSINIT);
 		}
 		for(FieldElement f : c.getFields()) {
@@ -113,6 +139,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 			first = handleFirstElt(first);
 			writeClass(indent+INCR, e);
 		}
+		writeLastComments(indent, c);
 		end(indent, CLASS);
 	}
 	
@@ -120,18 +147,21 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		if (!first) {
 			pw.println();
 		} else {
-			first = true;
+			first = false;
 		}
 		return first;
 	}
 
 	private void writeField(int indent, FieldElement f) {
+		writeComments(indent, f);
 		start(indent, FIELD, f);
 		writeAnnos(indent+INCR, f);
+		writeLastComments(indent+INCR, f);
 		end(indent, FIELD);
 	}
 	
 	private void writeMethod(int indent, MethodElement m) {
+		writeComments(indent, m);
 		if (m.getParams().length() == 0) {
 			start(indent, METHOD, m);
 		} else {
@@ -139,10 +169,12 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		}
 		writeAnnos(indent+INCR, m);
 		writeParameters(indent+INCR, m);
+		writeLastComments(indent+INCR, m);
 		end(indent, METHOD);
 	}
 	
 	private void writeConstructor(int indent, ConstructorElement m) {
+		writeComments(indent, m);
 		if (m.getParams().length() == 0) {
 			start(indent, CONSTRUCTOR, null);
 		} else {
@@ -150,21 +182,26 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		}
 		writeAnnos(indent+INCR, m);
 		writeParameters(indent+INCR, m);
+		writeLastComments(indent+INCR, m);
 		end(indent, CONSTRUCTOR);
 	}
 	
 	private void writeParameters(int indent, AbstractFunctionElement f) {
+		boolean first = true;
 		for(FunctionParameterElement p : f.getParameters()) {
 			if (p == null) {
 				continue;
 			}
+			first = handleFirstElt(first);
 			writeParameter(indent, p);
 		}		
 	}
 
 	private void writeParameter(int indent, FunctionParameterElement p) {
+		writeComments(indent, p);
 		start(indent, PARAMETER, null, INDEX_ATTRB, Integer.toString(p.getIndex()));
 		writeAnnos(indent+INCR, p);		
+		writeLastComments(indent+INCR, p);
 		end(indent, PARAMETER);
 	}
 

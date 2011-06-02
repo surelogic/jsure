@@ -13,6 +13,7 @@ public class AnnotationElement implements TestXMLParserConstants {
 	private final String promise;
 	private final String contents;
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
+	private final List<String> comments = new ArrayList<String>(0);
 	
 	AnnotationElement(final String id, final String name, String text, Map<String,String> a) {
 		final IPromiseDropStorage<?> storage = PromiseFramework.getInstance().findStorage(AnnotationVisitor.capitalize(name));
@@ -83,5 +84,13 @@ public class AnnotationElement implements TestXMLParserConstants {
 		final int revision = getRevision();
 		attributes.remove(DIRTY_ATTRB);
 		attributes.put(REVISION_ATTRB, Integer.toString(revision+1));
+	}
+
+	public void addComments(Collection<String> c) {
+		comments.addAll(c);
+	}
+	
+	Iterable<String> getComments() {
+		return comments;
 	}
 }

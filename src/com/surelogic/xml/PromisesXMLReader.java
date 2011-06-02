@@ -45,12 +45,13 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 	 */
 	public void notify(Entity e) {
 		final String name = e.getName().toLowerCase();
-		if (CLASS.equals(name)) {
+		if (COMMENT_TAG.equals(name)) { 
+			System.err.println("Ignoring top-level comment: "+e.getAttribute(COMMENT_TAG));
+		} else if (CLASS.equals(name)) {
 			final String id = e.getAttribute(NAME_ATTRB);
 			clazz = new ClassElement(id);
-			for(Entity n : e.getReferences()) {
-				handleNestedElement(clazz, n);
-			}
+			
+			handleNestedElements(clazz, e);
 		}
 		else {
 			final String uid = e.getAttribute(UID_ATTRB);
@@ -58,59 +59,96 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		}
 	}
 	
-	private void handleNestedElement(ClassElement c, Entity n) {		
+	private void handleNestedElement(ClassElement c, Entity n, List<String> comments) {		
 		final String name = n.getName();
 		final String id = n.getAttribute(NAME_ATTRB);
 		System.out.println("Looking at "+name+" -- "+id);
+		
+		IClassMember m;
 		if (METHOD.equals(name)) {
 			final String params = n.getAttribute(PARAMS_ATTRB);
-			c.addMember(handleNestedElements(new MethodElement(id, params), n));
+			c.addMember(m = handleNestedElements(new MethodElement(id, params), n));
 		}
 		else if (CLASS.equals(name)) {
-			c.addMember(handleNestedElements(new NestedClassElement(id), n));
+			c.addMember(m = handleNestedElements(new NestedClassElement(id), n));
 		}
 		else if (CONSTRUCTOR.equals(name)) {
 			final String params = n.getAttribute(PARAMS_ATTRB);
-			c.addMember(handleNestedElements(new ConstructorElement(params), n));
+			c.addMember(m = handleNestedElements(new ConstructorElement(params), n));
 		}		
 		else if (FIELD.endsWith(name)) {
-			c.addMember(handleAnnotations(new FieldElement(id), n));
+			c.addMember(m = handleAnnotations(new FieldElement(id), n));
 		}
 		else if (CLASSINIT.equals(name)) {
-			c.addMember(handleAnnotations(new ClassInitElement(), n));
+			c.addMember(m = handleAnnotations(new ClassInitElement(), n));
 		}
-		else {
-			// Make an annotation		 
-			final String uid = n.getAttribute(UID_ATTRB);
-			c.addPromise(new AnnotationElement(uid, name, n.getCData(), n.getAttributes()));
+		else { 			
+			handleAnnotationOnElt(c, comments, n);
+			return;
 		}
+		m.addComments(comments);
 	}
 	
-	private IClassMember handleNestedElements(NestedClassElement cl, Entity c) {
+	private IClassMember handleNestedElements(ClassElement cl, Entity c) {
+		// Handle comments
+		final List<String> comments = new ArrayList<String>(0);
 		for(Entity n : c.getReferences()) {
-			handleNestedElement(cl, n);
+			if (COMMENT_TAG.equals(n.getName())) {
+				final String comment = n.getAttribute(COMMENT_TAG);
+				System.out.println("Comment: "+comment);
+				comments.add(comment);
+			} else {
+				handleNestedElement(cl, n, comments);
+				comments.clear();
+			}
 		}
-		return cl;
+		cl.setLastComments(comments);
+		
+		if (cl instanceof NestedClassElement) {
+			return (IClassMember) cl;
+		}
+		return null;
 	}
 	
 	private IClassMember handleNestedElements(AbstractFunctionElement func, Entity f) {
+		// Handle comments
+		final List<String> comments = new ArrayList<String>(0);
 		for(Entity n : f.getReferences()) {
-			if (PARAMETER.equals(n.getName())) {
+			if (COMMENT_TAG.equals(n.getName())) {
+				comments.add(n.getAttribute(COMMENT_TAG));
+			} else if (PARAMETER.equals(n.getName())) {
 				final int i = Integer.parseInt(n.getAttribute(INDEX_ATTRB)); 
-				func.setParameter(handleAnnotations(new FunctionParameterElement(i), n));
+				FunctionParameterElement fe = new FunctionParameterElement(i);
+				func.setParameter(handleAnnotations(fe, n));
+				fe.addComments(comments);
+				comments.clear();
 			} else {
-				final String uid = n.getAttribute(UID_ATTRB);
-				func.addPromise(new AnnotationElement(uid, n.getName(), n.getCData(), n.getAttributes()));
+				handleAnnotationOnElt(func, comments, n);
 			}
 		}
+		func.setLastComments(comments);
 		return func;
 	}
 
+	private static void handleAnnotationOnElt(AbstractJavaElement func, final List<String> comments, Entity n) {
+		final String uid = n.getAttribute(UID_ATTRB);
+		AnnotationElement a = new AnnotationElement(uid, n.getName(), n.getCData(), n.getAttributes());
+		func.addPromise(a);
+		a.addComments(comments);
+		comments.clear();
+	}
+
 	private static <T extends AbstractJavaElement> T handleAnnotations(T e, Entity n) {
+		// Handle comments
+		final List<String> comments = new ArrayList<String>(0);
 		for(Entity a : n.getReferences()) {
-			final String uid = a.getAttribute(UID_ATTRB);
-			e.addPromise(new AnnotationElement(uid, a.getName(), a.getCData(), a.getAttributes()));
+			if (COMMENT_TAG.equals(n.getName())) {
+				comments.add(n.getAttribute(COMMENT_TAG));
+			} else {
+				handleAnnotationOnElt(e, comments, a);
+			}
 		}
+		e.setLastComments(comments);
 		return e;
 	}
 	
