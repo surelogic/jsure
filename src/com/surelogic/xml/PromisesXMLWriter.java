@@ -77,13 +77,11 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		for(String c : comments) {
 			Entities.indent(b, indent);
 			b.append("<!--");
-			b.append(c); // TODO need to unescape
+			b.append(Entities.unescape(c));
 			b.append("-->\n");
 			flush();
 		}
 	}
-	
-	
 	
 	private void writeAnnos(int indent, AbstractJavaElement e) {
 		for(AnnotationElement a : e.getPromises()) {
@@ -103,7 +101,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 		} else {
 			final boolean newline = a.getContents().contains("\n");
 			Entities.closeStart(b, false, newline);
-			b.append(a.getContents());		
+			Entities.addEscaped(a.getContents(), b);
 			Entities.end(a.getPromise(), b, newline ? indent : -1);
 		}
 		flush();
