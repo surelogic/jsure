@@ -1,15 +1,17 @@
-<package name="java.io">
- <class name="FileInputStream">
-  <constructor params="java.io.File">
-    <borrowed>this</borrowed>
-  </constructor>
+<?xml version="1.0" encoding="UTF-8"?>
 
-  <method name="read" params="byte[],int,int">
-    <parameter index="0">
-       <borrowed/>
-    </parameter>
-    <RegionEffects>writes this:Instance, arg0:Instance</RegionEffects>
-    <!--starts>nothing</starts-->
-  </method>
- </class>
+<package name="java.io">
+    <class name="FileInputStream">
+        <constructor params="java.io.File">
+            <borrowed>this</borrowed>
+        </constructor>
+
+        <method name="read" params="byte[],int,int">
+            <RegionEffects>writes this:Instance, arg0:Instance</RegionEffects>
+            <parameter index="0">
+                <borrowed/>
+            </parameter>
+            <!--starts>nothing</starts-->
+        </method>
+    </class>
 </package>

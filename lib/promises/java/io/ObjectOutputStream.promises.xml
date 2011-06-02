@@ -1,21 +1,23 @@
-<package name="java.io">
- <class name="ObjectOutputStream">
-  <method name="write" params="byte[],int,int">
-    <parameter index="0">
-       <borrowed/>
-    </parameter>
-    <RegionEffects>writes this:Instance; reads arg0:Instance</RegionEffects>
-    <!--starts>nothing</starts-->
-  </method>
+<?xml version="1.0" encoding="UTF-8"?>
 
-  <class name="BlockDataOutputStream">
-   <method name="write" params="byte[],int,int">
-     <parameter index="0">
-        <borrowed/>
-     </parameter>
-     <RegionEffects>writes this:Instance; reads arg0:Instance</RegionEffects>
-     <!--starts>nothing</starts-->
-   </method>
-  </class>
- </class>
+<package name="java.io">
+    <class name="ObjectOutputStream">
+        <method name="write" params="byte[],int,int">
+            <RegionEffects>writes this:Instance; reads arg0:Instance</RegionEffects>
+            <parameter index="0">
+                <borrowed/>
+            </parameter>
+            <!--starts>nothing</starts-->
+        </method>
+
+        <class name="BlockDataOutputStream">
+            <method name="write" params="byte[],int,int">
+                <RegionEffects>writes this:Instance; reads arg0:Instance</RegionEffects>
+                <parameter index="0">
+                    <borrowed/>
+                </parameter>
+                <!--starts>nothing</starts-->
+            </method>
+        </class>
+    </class>
 </package>
