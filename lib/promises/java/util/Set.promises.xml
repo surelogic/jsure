@@ -1,18 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util">
- <class name="Set">
-  <method name="add" params="java.lang.Object">
-   <borrowed>this</borrowed>
-   <RegionEffects>writes this:Instance</RegionEffects>
-  </method>
+    <class name="Set">
+        <method name="add" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
 
-  <method name="iterator">
-   <borrowed>this</borrowed>  <!-- not really true -->
-   <RegionEffects>reads this:Instance</RegionEffects>
-  </method>
+        <method name="clear">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+        </method>
 
-  <method name="clear">
-   <borrowed>this</borrowed>
-   <RegionEffects>writes this:Instance</RegionEffects>
-  </method>
- </class>
+        <method name="iterator">
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+    </class>
 </package>

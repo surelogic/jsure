@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util">
- <class name="Properties">
-  <selfProtected/>
- </class>
+    <class name="Properties">
+        <SelfProtected/>
+    </class>
 </package>
