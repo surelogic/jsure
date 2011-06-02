@@ -52,6 +52,8 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 			clazz = new ClassElement(id);
 			
 			handleNestedElements(clazz, e);
+			clazz.addComments(comments);
+			comments.clear();
 		}
 		else {
 			final String uid = e.getAttribute(UID_ATTRB);
@@ -153,6 +155,10 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 	}
 	
 	public void done() {
+		if (clazz != null) { 
+			clazz.setLastComments(comments);
+		}
+		
 		pkg = new PackageElement(pkgName, clazz);		
 		for(AnnotationElement a : promises) {
 			pkg.addPromise(a);
