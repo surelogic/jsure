@@ -1,9 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util.concurrent">
- <class name="LinkedBlockingQueue">
-  <method name="iterator">
-   <!--starts>nothing</starts-->
-   <borrowed>this</borrowed>  <!-- not really true -->
-   <RegionEffects>reads this:Instance</RegionEffects>
-  </method>
- </class>
+    <class name="LinkedBlockingQueue">
+        <method name="iterator">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+    </class>
 </package>

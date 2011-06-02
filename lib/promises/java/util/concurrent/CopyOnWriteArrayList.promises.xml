@@ -1,11 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util.concurrent">
- <class name="CopyOnWriteArrayList">
-  <promise>@Unique(return) for new(**)</promise>
-  
-  <constructor>
-   <regionEffects>none</regionEffects>
-  </constructor>
-  
-  <promise>@RegionEffects(writes arg0:Instance) for new(*)</promise>
- </class>
+    <class name="CopyOnWriteArrayList">
+        <Promise uid="4406f305-41e5-4b64-a1ca-1c4180b245aa">@Unique(return) for new(**)</Promise>
+        <Promise uid="7e0fb993-d77e-45db-9117-912040378930">@RegionEffects(writes arg0:Instance) for new(*)</Promise>
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
+    </class>
 </package>

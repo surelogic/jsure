@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util.concurrent">
- <class name="TimeUnit">
-   <ThreadSafe/>
- </class>
+    <class name="TimeUnit">
+        <ThreadSafe/>
+    </class>
 </package>
