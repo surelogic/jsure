@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <package name="javax.servlet">
-    <module>Servlet for *</module>
-    <threadrole>Servlet</threadrole>
+    <Module>Servlet for *</Module>
+    <Threadrole>Servlet</Threadrole>
 </package>
