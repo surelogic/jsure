@@ -1,8 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.text">
- <class name="DecimalFormat">
-  <method name="applyPattern" params="java.lang.String">
-   <borrowed>this</borrowed>
-   <RegionEffects>reads this:Instance</RegionEffects>
-  </method>
- </class>
+    <class name="DecimalFormat">
+        <method name="applyPattern" params="java.lang.String">
+            <RegionEffects>reads this:Instance</RegionEffects>
+            <borrowed>this</borrowed>
+        </method>
+    </class>
 </package>

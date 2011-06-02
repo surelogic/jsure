@@ -1,12 +1,14 @@
-<package name="java.text">
- <class name="NumberFormat">
-  <method name="getNumberInstance" params="java.util.Locale">
-   <unique>return</unique>
-  </method>
+<?xml version="1.0" encoding="UTF-8"?>
 
-  <method name="format" params="double">
-   <borrowed>this</borrowed>
-   <RegionEffects>reads this:Instance</RegionEffects>
-  </method>
- </class>
+<package name="java.text">
+    <class name="NumberFormat">
+        <method name="format" params="double">
+            <RegionEffects>reads this:Instance</RegionEffects>
+            <borrowed>this</borrowed>
+        </method>
+
+        <method name="getNumberInstance" params="java.util.Locale">
+            <unique>return</unique>
+        </method>
+    </class>
 </package>
