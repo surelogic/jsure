@@ -42,6 +42,13 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	}
 
 	@Override
+	public void dispose() {
+		JSureScansHub.getInstance().removeListener(this);
+		
+		super.dispose();
+	}
+	
+	@Override
 	public final void createPartControl(Composite parent) {
 		f_viewerbook = new PageBook(parent, SWT.NONE);
 		f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);

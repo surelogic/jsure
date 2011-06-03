@@ -23,6 +23,14 @@ implements IJSureScanListener, IJSureScanManagerListener {
 	}
 
 	@Override
+	public void dispose() {
+		JSureScansHub.getInstance().removeListener(this);
+		JSureScanManager.getInstance().removeListener(this);
+		
+		super.dispose();
+	}
+	
+	@Override
 	public final void createPartControl(Composite parent) {
 		super.createPartControl(parent);
 		updateViewState(ScanStatus.BOTH_CHANGED, DataDirStatus.CHANGED);
