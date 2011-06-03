@@ -4,6 +4,7 @@ package com.surelogic.util;
 import java.util.Collection;
 import java.util.Iterator;
 
+import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 
 /**
@@ -78,7 +79,7 @@ public class NullCollection<E> implements Collection<E> {
   }
 
   public final Object[] toArray() {
-    return new Object[0];
+    return ArrayUtil.empty;
   }
 
   public final <T> T[] toArray(final T[] a) {

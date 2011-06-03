@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.ir;
 
 import java.io.IOException;
 import java.io.PrintStream;
+
+import edu.cmu.cs.fluid.util.ArrayUtil;
 import edu.cmu.cs.fluid.util.Iteratable;
 
 /** A collection of values in order.
@@ -13,7 +15,7 @@ import edu.cmu.cs.fluid.util.Iteratable;
  * @see IRList
  */
 public interface IRSequence<T> extends IRCompound<IRSequence<T>>/*, List<T>*/ {
-  Object[] noObjects = new Object[0];
+  Object[] noObjects = ArrayUtil.empty;
   
   int size();
   boolean isVariable();

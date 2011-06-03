@@ -661,7 +661,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
  */
 @SuppressWarnings("all")
 class SortedArray {
-  static final Object[] empty = new Object[0];
+  static final Object[] empty = ArrayUtil.empty;
 
   static <V> V[] empty() {
     return (V[]) empty;

@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.ParseException;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public abstract class AstGen extends JavaParser {
   private AstGen() {
@@ -207,7 +208,7 @@ public abstract class AstGen extends JavaParser {
   private static final Object[][] nameMapping =
     { { VoidType.prototype, "ResultType" }, };
 
-  private static final Object[] mArgs = new Object[0];
+  private static final Object[] mArgs = ArrayUtil.empty;
 
   private static JavaOperator generalizeOperator(Operator op) {
     for (int i = 0; i < opMapping.length; i++) {
