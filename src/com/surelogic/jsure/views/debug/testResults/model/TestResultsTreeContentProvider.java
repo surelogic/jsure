@@ -3,8 +3,10 @@ package com.surelogic.jsure.views.debug.testResults.model;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import edu.cmu.cs.fluid.util.ArrayUtil;
+
 public final class TestResultsTreeContentProvider implements ITreeContentProvider {
-  private static final Object[] EMPTY_ARRAY = new Object[0];
+  private static final Object[] EMPTY_ARRAY = ArrayUtil.empty;
   private Root root = null;
   
   

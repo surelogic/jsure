@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.Image;
 import edu.cmu.cs.fluid.sea.IDropInfo;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary.*;
+import edu.cmu.cs.fluid.util.ArrayUtil;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.xml.Entity;
@@ -20,7 +21,7 @@ import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 import com.surelogic.fluid.javac.scans.*;
 
 public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
-	private static final Object[] noElements = new Object[0];
+	private static final Object[] noElements = ArrayUtil.empty;
 	private static final Object[] nothingToShow = new Object[1];
 	static {
 		nothingToShow[0] = new Category(null, "No differences");
