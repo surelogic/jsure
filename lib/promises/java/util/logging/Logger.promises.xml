@@ -1,35 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util.logging">
- <class name="Logger">
-  
-  <method name="log" params="java.util.logging.Level,java.lang.String,java.lang.Throwable">
-   <borrowed>this</borrowed>  
-   <RegionEffects>reads arg0:Instance, arg1:Instance, arg2:Instance; 
-                  writes this:Instance</RegionEffects>
-  </method>
-  
-  <method name="severe" params="java.lang.String">
-   <borrowed>this</borrowed>  
-   <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
-  </method>
-  
-  <method name="warning" params="java.lang.String">
-   <borrowed>this</borrowed>  
-   <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
-  </method>
-  
-  <method name="info" params="java.lang.String">
-   <borrowed>this</borrowed>  
-   <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
-  </method>
-  
-  <method name="fine" params="java.lang.String">
-   <borrowed>this</borrowed>  
-   <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
-  </method>
-  
-  <method name="finer" params="java.lang.String">
-   <borrowed>this</borrowed>  
-   <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
-  </method>
- </class>
+    <class name="Logger">
+        <method name="fine" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
+        </method>
+
+        <method name="finer" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
+        </method>
+
+        <method name="info" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
+        </method>
+
+        <method name="log" params="java.util.logging.Level,java.lang.String,java.lang.Throwable">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>
+reads arg0:Instance, arg1:Instance, arg2:Instance; 
+                  writes this:Instance
+            </RegionEffects>
+        </method>
+
+        <method name="severe" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
+        </method>
+
+        <method name="warning" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
+        </method>
+    </class>
 </package>
