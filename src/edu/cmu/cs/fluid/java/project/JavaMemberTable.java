@@ -823,17 +823,19 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     public IBinding lookup(String name, final IRNode useSite, final Selector selector) {
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) LOG.fine("Looking for " + name + " in " + this);
-      if (isVersioned) {
-    	  JavaMemberTable.this.ensureDerived();
-      }
-      Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
-      while (members.hasNext()) {
-        IRNode n = members.next();
-        if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
-        if (selector.select(n) && 
-        	(TypeDeclaration.prototype.includes(n) || BindUtil.isAccessible(tEnv, n, useSite))) {
-        	return IBinding.Util.makeBinding(n);
-        }
+      synchronized (JavaMemberTable.this) {
+    	  if (isVersioned) {
+    		  JavaMemberTable.this.ensureDerived();
+    	  }      
+    	  Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
+    	  while (members.hasNext()) {
+    		  IRNode n = members.next();
+    		  if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
+    		  if (selector.select(n) && 
+    				  (TypeDeclaration.prototype.includes(n) || BindUtil.isAccessible(tEnv, n, useSite))) {
+    			  return IBinding.Util.makeBinding(n);
+    		  }
+    	  }
       }
       return null;
     }
