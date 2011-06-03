@@ -64,10 +64,11 @@ import edu.cmu.cs.fluid.sea.drops.PleaseFolderize;
 import edu.cmu.cs.fluid.sea.drops.promises.PromisePromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.ArrayUtil;
 
 abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends AbstractContent<T, C>>
 		extends AbstractResultsViewContentProvider {
-	protected static final Object[] noObjects = new Object[0];
+	protected static final Object[] noObjects = ArrayUtil.empty;
 
 	// TODO These are not completely protected, since the arrays get returned
 	protected static Object[] m_root = noObjects;
