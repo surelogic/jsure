@@ -1,67 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.util">
- <class name="ArrayList">
- 
-  <constructor params="int">
-   <borrowed>this</borrowed>
-   <regionEffects>none</regionEffects>
-  </constructor>
+    <class name="ArrayList">
+        <constructor>
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
 
-  <constructor params="java.util.Collection">
-   <borrowed>this</borrowed>
-   <regionEffects>reads arg0:Instance</regionEffects>
-    <parameter index="0">
-       <borrowed/>
-    </parameter>
-  </constructor>
+        <constructor params="int">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+        </constructor>
 
-  <constructor>
-   <borrowed>this</borrowed>
-   <regionEffects>none</regionEffects>
-  </constructor>
-  
-  <method name="size">
-    <!--starts>nothing</starts-->
-    <borrowed>this</borrowed>
-    <regionEffects>reads Instance</regionEffects>
-  </method>
-  <method name="clear">
-    <!--starts>nothing</starts-->
-    <borrowed>this</borrowed>
-    <regionEffects>writes Instance</regionEffects>
-  </method>
-  <method name="add" params="java.lang.Object">
-    <!--starts>nothing</starts-->
-    <borrowed>this</borrowed>
-    <RegionEffects>writes Instance</RegionEffects>
-  </method>
-  <method name="get" params="int">
-    <!--starts>nothing</starts-->
-    <borrowed>this</borrowed>
-    <regionEffects>reads Instance</regionEffects>
-  </method>  
-  <method name="set" params="int, java.lang.Object">
-    <!--starts>nothing</starts-->
-    <borrowed>this</borrowed>
-    <regionEffects>writes Instance</regionEffects>
-  </method>  
-  <method name="toArray" params="java.lang.Object[]">
-    <!--starts>nothing</starts-->
-    <regionEffects>reads Instance</regionEffects>
-  </method>
-  <method name="remove" params="int">
-    <!--starts>nothing</starts-->
-    <borrowed>this</borrowed>
-    <regionEffects>writes Instance</regionEffects>
-  </method>
-  <method name="ensureCapacity" params="int">
-    <!--starts>nothing</starts-->
-    <borrowed>this</borrowed>
-    <RegionEffects>writes Instance</RegionEffects>
-  </method>
-  
-  <method name="isEmpty">
-   <borrowed>this</borrowed>  
-   <RegionEffects>reads this:Instance</RegionEffects>
-  </method>
- </class>
+        <constructor params="java.util.Collection">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </constructor>
+
+        <method name="add" params="java.lang.Object">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="clear">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="ensureCapacity" params="int">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="get" params="int">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="remove" params="int">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="set" params="int,java.lang.Object">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+        </method>
+
+        <method name="size">
+            <!--starts>nothing</starts-->
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+
+        <method name="toArray" params="java.lang.Object[]">
+            <!--starts>nothing</starts-->
+            <RegionEffects>reads Instance</RegionEffects>
+        </method>
+    </class>
 </package>
