@@ -1,72 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <package name="java.lang">
- <class name="Object">
-  <Immutable   implementationOnly="true"/> 
-  <Containable implementationOnly="true"/> 
-  <ThreadSafe  implementationOnly="true"/>
-  
-  <Region>public static All</Region>
-  <Region>public Instance extends All</Region>
-  <Region>public WaitQueue</Region>
-  <RegionLock>MUTEX is this protects WaitQueue</RegionLock>
-  
-  <!-- promise>@Borrowed(this) for *(**)</promise -->
-  <constructor>
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-   <unique>return</unique>
-  </constructor>
-  <!--method name="clone">
+    <class name="Object">
+        <Containable implementationOnly="true"/>
+        <Immutable implementationOnly="true"/>
+        <Region uid="463eb068-86c4-48eb-97e5-ae306fe4f509">public WaitQueue</Region>
+        <Region uid="98392026-4d3c-4542-b64f-cec1760420a3">public static All</Region>
+        <Region uid="a2b4b727-4a78-47f0-8cf4-3fb341abd825">public Instance extends All</Region>
+        <RegionLock uid="88cca40d-18b8-43f2-b7f6-64ec7eb3934f">MUTEX is this protects WaitQueue</RegionLock>
+        <ThreadSafe implementationOnly="true"/>
+        <!-- promise>@Borrowed(this) for *(**)</promise -->
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <!--method name="clone">
    <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
   </method-->
-  <!--method params="java.lang.Object" name="equals">
+        <!--method params="java.lang.Object" name="equals">
    <effects>reads this.Instance</effects>
    <effects>reads arg0.Instance</effects>
    <starts>nothing</starts>
   </method-->
-  <!--method name="finalize">
+        <!--method name="finalize">
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
   </method-->
-  <method name="getClass">
+        <method name="getClass">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <!--method name="hashCode">
    <borrowed>this</borrowed>
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
-  </method>
-  <!--method name="hashCode">
-   <borrowed>this</borrowed>
+  </method-->
+        <method name="notify">
+            <RegionEffects>none</RegionEffects>
+            <RequiresLock>MUTEX</RequiresLock>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="notifyAll">
+            <RegionEffects>none</RegionEffects>
+            <RequiresLock>MUTEX</RequiresLock>
+            <Starts>nothing</Starts>
+        </method>
+
+        <!--method name="toString">
    <starts>nothing</starts>
    <RegionEffects>none</RegionEffects>
   </method-->
-  <method name="notify">
-   <requiresLock>MUTEX</requiresLock>
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method>
-  <method name="notifyAll">
-   <requiresLock>MUTEX</requiresLock>
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method>
-  <!--method name="toString">
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method-->
-  <method name="wait">
-   <requiresLock>MUTEX</requiresLock>
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method>
-  <method params="long" name="wait">
-   <requiresLock>MUTEX</requiresLock>
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method>
-  <method params="long, int" name="wait">
-   <requiresLock>MUTEX</requiresLock>
-   <starts>nothing</starts>
-   <RegionEffects>none</RegionEffects>
-  </method>
- </class>
+        <method name="wait">
+            <RegionEffects>none</RegionEffects>
+            <RequiresLock>MUTEX</RequiresLock>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="wait" params="long">
+            <RegionEffects>none</RegionEffects>
+            <RequiresLock>MUTEX</RequiresLock>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="wait" params="long,int">
+            <RegionEffects>none</RegionEffects>
+            <RequiresLock>MUTEX</RequiresLock>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
 </package>
