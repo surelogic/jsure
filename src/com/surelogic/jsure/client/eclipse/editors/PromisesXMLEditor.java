@@ -1,7 +1,6 @@
 package com.surelogic.jsure.client.eclipse.editors;
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URI;
 
 import org.eclipse.core.runtime.*;
@@ -11,6 +10,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.part.EditorPart;
+
+import com.surelogic.xml.IJavaElement;
+import com.surelogic.xml.PromisesXMLReader;
 
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
@@ -37,7 +39,7 @@ public class PromisesXMLEditor extends EditorPart {
     	   if (contents != null) {
     		   contents.setInput(f.getURI());
     	   } else {
-    		   provider.inputChanged(null, null, f.getURI());    		   
+    		   provider.inputChanged(contents, null, f.getURI());    		   
     	   }
        }
     }
@@ -90,24 +92,41 @@ public class PromisesXMLEditor extends EditorPart {
 			} else {
 				System.out.println("Ignoring duplicate input");
 			}
+			if (viewer != null && viewer == contents) {
+				contents.getControl().getDisplay().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						contents.expandAll();
+					}					
+				});
+
+			}
 		}
 
 		private void build() {
 			if (location != null) {
 				try {
+					/*
+					File f = new File(location);
+					System.out.println("location = "+f);
+					*/
 					InputStream in = location.toURL().openStream();
-				} catch (MalformedURLException e) {
-					roots = ArrayUtil.empty;
-				} catch (IOException e) {
+					PromisesXMLReader r = new PromisesXMLReader();
+					r.read(in);
+					roots = new Object[1];
+					roots[0] = r.getPackage();
+				} catch (Exception e) {
 					roots = ArrayUtil.empty;
 				}
 			}
 		}
 		
 		@Override
-		public Object[] getChildren(Object parentElement) {
-			System.out.println("Trying to get children");
-			return ArrayUtil.empty;
+		public Object[] getChildren(Object element) {
+			if (element instanceof String) {
+				return ArrayUtil.empty;
+			}
+			return ((IJavaElement) element).getChildren();
 		}
 
 		@Override
@@ -118,8 +137,10 @@ public class PromisesXMLEditor extends EditorPart {
 
 		@Override
 		public boolean hasChildren(Object element) {
-			// TODO Auto-generated method stub
-			return false;
+			if (element instanceof String) {
+				return false;
+			}
+			return ((IJavaElement) element).hasChildren();
 		}
 
 		@Override
@@ -129,8 +150,10 @@ public class PromisesXMLEditor extends EditorPart {
 		
 		@Override
 		public String getText(Object element) {
-			// TODO Auto-generated method stub
-			return null;
+			if (element instanceof String) {
+				return element.toString();
+			}
+			return ((IJavaElement) element).getLabel();
 		}
 
 		@Override
