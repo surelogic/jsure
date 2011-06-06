@@ -57,4 +57,9 @@ implements IClassMember, TestXMLParserConstants
 	Iterable<FunctionParameterElement> getParameters() {
 		return params;
 	}
+	
+	@Override
+	protected void collectOtherChildren(List<Object> children) {
+		children.addAll(params);
+	}
 }

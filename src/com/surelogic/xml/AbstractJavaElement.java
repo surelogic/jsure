@@ -2,7 +2,9 @@ package com.surelogic.xml;
 
 import java.util.*;
 
-public abstract class AbstractJavaElement {
+import edu.cmu.cs.fluid.util.ArrayUtil;
+
+public abstract class AbstractJavaElement implements IJavaElement {
 	private final String name;
 	/**
 	 * These come before the element at the same level
@@ -30,7 +32,7 @@ public abstract class AbstractJavaElement {
 		return promises.get(uid);
 	}
 	
-	public Iterable<AnnotationElement> getPromises() {
+	public Collection<AnnotationElement> getPromises() {
 		List<AnnotationElement> sorted = new ArrayList<AnnotationElement>(promises.values());
 		Collections.sort(sorted, new Comparator<AnnotationElement>() {
 			public int compare(AnnotationElement o1, AnnotationElement o2) {
@@ -58,5 +60,25 @@ public abstract class AbstractJavaElement {
 	
 	Iterable<String> getLastComments() {
 		return lastEnclosedComments;
+	}
+	
+	public boolean hasChildren() {
+		return !comments.isEmpty() || !promises.isEmpty() || !lastEnclosedComments.isEmpty();
+	}
+	
+	public final Object[] getChildren() {
+		if (hasChildren()) {
+			List<Object> children = new ArrayList<Object>();
+			children.addAll(comments);
+			children.addAll(getPromises());
+			collectOtherChildren(children);
+			children.addAll(lastEnclosedComments);
+			return children.toArray();
+		}
+		return ArrayUtil.empty;
+	}
+
+	protected void collectOtherChildren(List<Object> children) {
+		// Nothing to do right now
 	}
 }

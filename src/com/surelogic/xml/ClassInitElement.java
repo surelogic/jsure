@@ -4,4 +4,9 @@ public class ClassInitElement extends AbstractJavaElement implements IClassMembe
 	ClassInitElement() {
 		super("classinit");
 	}
+
+	@Override
+	public String getLabel() {
+		return "<clinit>";
+	}
 }

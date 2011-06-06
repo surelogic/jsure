@@ -7,8 +7,9 @@ import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.util.ArrayUtil;
 
-public class AnnotationElement implements TestXMLParserConstants {
+public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 	private final String uid;
 	private final String promise;
 	private final String contents;
@@ -93,5 +94,20 @@ public class AnnotationElement implements TestXMLParserConstants {
 	
 	Iterable<String> getComments() {
 		return comments;
+	}
+	
+	public String getLabel() {
+		if (contents == null) {
+			return '@'+promise+' '+contents;
+		}
+		return '@'+promise+' '+contents;
+	}
+	
+	public boolean hasChildren() {
+		return false;
+	}
+	
+	public Object[] getChildren() {
+		return ArrayUtil.empty;
 	}
 }

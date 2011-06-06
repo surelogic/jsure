@@ -11,4 +11,9 @@ public class FunctionParameterElement extends AbstractJavaElement {
 	final int getIndex() {
 		return index;
 	}
+
+	@Override
+	public String getLabel() {
+		return "Arg #"+index;
+	}
 }

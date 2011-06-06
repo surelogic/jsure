@@ -6,4 +6,9 @@ public class ConstructorElement extends AbstractFunctionElement {
 	ConstructorElement(Entity e) {
 		super("new", e);
 	}
+
+	@Override
+	public String getLabel() {
+		return "Constructor("+getParams()+")";
+	}
 }

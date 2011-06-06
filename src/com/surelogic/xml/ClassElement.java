@@ -62,15 +62,15 @@ public class ClassElement extends AbstractJavaElement {
 		return PromisesXMLWriter.getSortedValues(classes);
 	}
 
-	Iterable<ConstructorElement> getConstructors() {
+	Iteratable<ConstructorElement> getConstructors() {
 		return PromisesXMLWriter.getSortedValues(constructors);
 	}
 	
-	Iterable<FieldElement> getFields() {
+	Iteratable<FieldElement> getFields() {
 		return PromisesXMLWriter.getSortedValues(fields);
 	}
 	
-	Iterable<MethodElement> getMethods() {
+	Collection<MethodElement> getMethods() {
 		final List<MethodElement> elements = new ArrayList<MethodElement>(methods.size());
 		for(Pair<String,String> key : methods.keys()) {
 			elements.add(methods.get(key.first(), key.second()));
@@ -85,5 +85,27 @@ public class ClassElement extends AbstractJavaElement {
 			}
 		});
 		return elements;
+	}
+
+	@Override
+	public String getLabel() {
+		return "type "+getName();
+	}
+	
+	@Override
+	protected void collectOtherChildren(List<Object> children) {
+		if (clinit != null) {
+			children.add(clinit);
+		}
+		for(FieldElement f : getFields()) {
+			children.add(f);
+		}
+		for(ConstructorElement c : getConstructors()) {
+			children.add(c);
+		}
+		children.addAll(getMethods());
+		for(NestedClassElement n : getNestedClasses()) {
+			children.add(n);
+		}
 	}
 }
