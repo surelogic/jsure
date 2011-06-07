@@ -95,6 +95,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     }
   }
   
+  private static final boolean useStdDev = false;  
   private static final boolean useCounts = false;
   
   static synchronized void count(final int size) {
@@ -108,29 +109,31 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 		  }
 		  */
 	  }
-	  if (useCounts) {
-		  int i = counts.size();
-		  if (i <= size) {
-			  // Fill in blanks
-			  for(; i<=size; i++) {
-				  counts.add(0);
+	  if (useStdDev) {
+		  if (useCounts) {
+			  int i = counts.size();
+			  if (i <= size) {
+				  // Fill in blanks
+				  for(; i<=size; i++) {
+					  counts.add(0);
+				  }
+				  counts.add(1);
+			  } else {
+				  int current = counts.get(size);
+				  counts.set(size, current+1);
 			  }
-			  counts.add(1);
-		  } else {
-			  int current = counts.get(size);
-			  counts.set(size, current+1);
-		  }
 
-		  if ((num & 0x7fffff) == 0) {
-			  printStats();
+			  if ((num & 0x7fffff) == 0) {
+				  printStats();
+			  }
+		  } else {
+			  // Update Ai and Qi
+			  final double Aold = Ai;
+			  final double Qold = Ai;
+			  final double diff = size - Aold;
+			  Ai = Ai + diff / num;
+			  Qi = Qi + diff * (size - Ai);
 		  }
-	  } else {
-		  // Update Ai and Qi
-		  final double Aold = Ai;
-		  final double Qold = Ai;
-		  final double diff = size - Aold;
-		  Ai = Ai + diff / num;
-		  Qi = Qi + diff * (size - Ai);
 	  }
   }
 
@@ -147,24 +150,28 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 	  double avg = sum / (double) num;
 	  //System.out.println("Average: "+avg+" for "+num);		  
 	  
-	  // Compute standard deviation
-	  double deviation = 0;
-	  if (useCounts) {
-		  int i=0;
-		  for(Integer iv : counts) {
-			  if (iv != 0) {
-				  double diff = avg - i;			  
-				  deviation += iv*(diff*diff);		
-				  //System.out.println("Count:  "+iv+" at "+i);
+	  if (useStdDev) {
+		  // Compute standard deviation
+		  double deviation = 0;
+		  if (useCounts) {
+			  int i=0;
+			  for(Integer iv : counts) {
+				  if (iv != 0) {
+					  double diff = avg - i;			  
+					  deviation += iv*(diff*diff);		
+					  //System.out.println("Count:  "+iv+" at "+i);
+				  }
+				  i++;			  
 			  }
-			  i++;			  
+		  } else {
+			  deviation = Qi;
 		  }
+		  double sd = Math.sqrt(deviation/(num-1));
+		  //System.out.println("Std dev: "+sd);	  
+		  return ", "+num+", "+avg+", "+sd+", "+max;
 	  } else {
-		  deviation = Qi;
+		  return ", "+num+", "+avg+", "+max;
 	  }
-	  double sd = Math.sqrt(deviation/(num-1));
-	  //System.out.println("Std dev: "+sd);	  
-	  return ", "+num+", "+avg+", "+sd+", "+max;
   }
   
   static synchronized String clearStats() {
