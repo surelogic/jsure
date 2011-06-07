@@ -12,6 +12,7 @@ import org.eclipse.ui.*;
 import org.eclipse.ui.part.EditorPart;
 
 import com.surelogic.xml.IJavaElement;
+import com.surelogic.xml.PackageElement;
 import com.surelogic.xml.PromisesXMLReader;
 
 import edu.cmu.cs.fluid.util.ArrayUtil;
@@ -53,36 +54,42 @@ public class PromisesXMLEditor extends EditorPart {
 	
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
-
+		provider.save(monitor);
 	}
 
 	@Override
 	public void doSaveAs() {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public boolean isDirty() {
-		// TODO Auto-generated method stub
-		return false;
+		return provider.isDirty();
 	}
 
 	@Override
 	public boolean isSaveAsAllowed() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	
 	class Provider implements ITreeContentProvider, ILabelProvider {
 		URI location;
+		PackageElement pkg;
 		Object[] roots;
 		
 		URI getInput() {
 			return location;
 		}
 		
+		void save(IProgressMonitor monitor) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		boolean isDirty() {
+			return pkg.isDirty();
+		}
+
 		@Override
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 			if (newInput != location) {
@@ -114,8 +121,9 @@ public class PromisesXMLEditor extends EditorPart {
 					PromisesXMLReader r = new PromisesXMLReader();
 					r.read(in);
 					roots = new Object[1];
-					roots[0] = r.getPackage();
+					roots[0] = pkg = r.getPackage();					
 				} catch (Exception e) {
+					pkg = null;
 					roots = ArrayUtil.empty;
 				}
 			}
