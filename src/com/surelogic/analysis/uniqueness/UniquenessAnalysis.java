@@ -48,6 +48,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
+import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
@@ -572,6 +573,16 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
+	protected Store transferBinop(IRNode node, Operator op, Store val) {
+    	if (op instanceof StringConcat)
+    		return super.transferBinop(node, op, val);
+    	else {
+    		return lattice.push(lattice.pop(lattice.pop(val)));
+    	}
+	}
+
+
+	@Override
     protected Store transferCall(final IRNode node, final boolean flag, Store s) {
       final IRNode mdecl = binder.getBinding(node);
       final Operator op = tree.getOperator(node);
