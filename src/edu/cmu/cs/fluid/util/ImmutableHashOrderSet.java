@@ -95,6 +95,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     }
   }
   
+  private static final boolean useCounts = false;
+  
   static synchronized void count(final int size) {
 	  num++;
 	  sum += size;
@@ -106,24 +108,35 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 		  }
 		  */
 	  }
-	  
-	  int i = counts.size();
-	  if (i <= size) {
-		  // Fill in blanks
-		  for(; i<=size; i++) {
-			  counts.add(0);
+	  if (useCounts) {
+		  int i = counts.size();
+		  if (i <= size) {
+			  // Fill in blanks
+			  for(; i<=size; i++) {
+				  counts.add(0);
+			  }
+			  counts.add(1);
+		  } else {
+			  int current = counts.get(size);
+			  counts.set(size, current+1);
 		  }
-		  counts.add(1);
+
+		  if ((num & 0x7fffff) == 0) {
+			  printStats();
+		  }
 	  } else {
-		  int current = counts.get(size);
-		  counts.set(size, current+1);
-	  }
-	  
-	  if ((num & 0x7fffff) == 0) {
-		  printStats();
+		  // Update Ai and Qi
+		  final double Aold = Ai;
+		  final double Qold = Ai;
+		  final double diff = size - Aold;
+		  Ai = Ai + diff / num;
+		  Qi = Qi + diff * (size - Ai);
 	  }
   }
 
+  // Using http://en.wikipedia.org/wiki/Standard_deviation#Rapid_calculation_methods
+  static double Ai = 0;
+  static double Qi = 0;
   static int num = 0;
   static long sum = 0;
   static int max = 0;
@@ -136,23 +149,29 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 	  
 	  // Compute standard deviation
 	  double deviation = 0;
-	  int i=0;
-	  for(Integer iv : counts) {
-		  if (iv != 0) {
-			  double diff = avg - i;			  
-			  deviation += iv*(diff*diff);		
-			  //System.out.println("Count:  "+iv+" at "+i);
+	  if (useCounts) {
+		  int i=0;
+		  for(Integer iv : counts) {
+			  if (iv != 0) {
+				  double diff = avg - i;			  
+				  deviation += iv*(diff*diff);		
+				  //System.out.println("Count:  "+iv+" at "+i);
+			  }
+			  i++;			  
 		  }
-		  i++;			  
+	  } else {
+		  deviation = Qi;
 	  }
 	  double sd = Math.sqrt(deviation/(num-1));
-	  //System.out.println("Std dev: "+sd);
+	  //System.out.println("Std dev: "+sd);	  
 	  return ", "+num+", "+avg+", "+sd+", "+max;
   }
   
   static synchronized String clearStats() {
 	  String rv = printStats();
 	  
+	  Ai = 0;
+	  Qi = 0;
 	  num = 0;
 	  sum = 0;
 	  max = 0;	  
