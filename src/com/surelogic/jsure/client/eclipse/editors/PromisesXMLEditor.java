@@ -14,6 +14,7 @@ import org.eclipse.ui.part.EditorPart;
 import com.surelogic.xml.IJavaElement;
 import com.surelogic.xml.PackageElement;
 import com.surelogic.xml.PromisesXMLReader;
+import com.surelogic.xml.PromisesXMLWriter;
 
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
@@ -53,6 +54,7 @@ public class PromisesXMLEditor extends EditorPart {
     }	
 	
 	@Override
+	
 	public void doSave(IProgressMonitor monitor) {
 		provider.save(monitor);
 	}
@@ -82,8 +84,13 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 		
 		void save(IProgressMonitor monitor) {
-			// TODO Auto-generated method stub
-			
+			try {
+				File f = new File(location);
+				PromisesXMLWriter w = new PromisesXMLWriter(f);
+				w.write(pkg);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 
 		boolean isDirty() {
