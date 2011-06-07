@@ -19,6 +19,8 @@ import com.surelogic.common.logging.SLLogger;
 //@SuppressWarnings("all")
 public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 {
+  public static final boolean debug = true;
+	
   /** This boolean value is true for infinite sets with finite
    * inverses, in which case the elements array holds the elements
    * in the inverse.
@@ -88,7 +90,9 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     elements = elems;
     inverse = inv;  	
     hashCode = computeHashCode(); 		
-    //count(elems.length);
+    if (debug) {
+    	count(elems.length);
+    }
   }
   
   static synchronized void count(final int size) {
