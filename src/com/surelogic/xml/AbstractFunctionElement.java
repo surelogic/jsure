@@ -62,4 +62,23 @@ implements IClassMember, TestXMLParserConstants
 	protected void collectOtherChildren(List<Object> children) {
 		children.addAll(params);
 	}
+	
+	public boolean isDirty() {
+		if (super.isDirty()) {
+			return true;
+		}
+		for(FunctionParameterElement p : params) {
+			if (p.isDirty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void markAsClean() {
+		super.markAsClean();
+		for(FunctionParameterElement p : params) {
+			p.markAsClean();
+		}
+	}
 }

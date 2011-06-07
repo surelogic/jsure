@@ -15,6 +15,7 @@ public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 	private final String contents;
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
 	private final List<String> comments = new ArrayList<String>(0);
+	private boolean isDirty;
 	
 	AnnotationElement(final String id, final String tag, String text, Map<String,String> a) {
 		final String name = AnnotationVisitor.capitalize(tag);
@@ -75,12 +76,12 @@ public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 		return 0;
 	}
 	
-	public boolean isDirty() {
+	public boolean isModified() {
 		return "true".equals(attributes.get(DIRTY_ATTRB));
 	}
 	
 	public void incrRevision() {
-		if (!isDirty()) {
+		if (!isModified()) {
 			throw new IllegalStateException("Not dirty");
 		}
 		final int revision = getRevision();
@@ -88,8 +89,9 @@ public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 		attributes.put(REVISION_ATTRB, Integer.toString(revision+1));
 	}
 
-	public void addComments(Collection<String> c) {
+	public void addComments(Collection<String> c) {		
 		comments.addAll(c);
+		isDirty = true;
 	}
 	
 	Iterable<String> getComments() {
@@ -109,5 +111,13 @@ public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 	
 	public Object[] getChildren() {
 		return ArrayUtil.empty;
+	}
+
+	boolean isDirty() {
+		return isDirty;
+	}
+
+	void markAsClean() {
+		isDirty = false;
 	}
 }

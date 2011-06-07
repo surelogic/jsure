@@ -108,4 +108,53 @@ public class ClassElement extends AbstractJavaElement {
 			children.add(n);
 		}
 	}
+	
+	public boolean isDirty() {
+		if (super.isDirty()) {
+			return true;
+		}
+		if (clinit != null && clinit.isDirty()) {
+			return true;
+		}
+		for(FieldElement f : fields.values()) {
+			if (f.isDirty()) {
+				return true;
+			}
+		}
+		for(ConstructorElement c : constructors.values()) {
+			if (c.isDirty()) {
+				return true;
+			}
+		}
+		for(MethodElement m : methods.elements()) {
+			if (m.isDirty()) {
+				return true;
+			}
+		}
+		for(NestedClassElement n : classes.values()) {
+			if (n.isDirty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void markAsClean() {
+		super.markAsClean();
+		if (clinit != null) {
+			clinit.markAsClean();
+		}
+		for(FieldElement f : fields.values()) {
+			f.markAsClean();
+		}
+		for(ConstructorElement c : constructors.values()) {
+			c.markAsClean();
+		}
+		for(MethodElement m : methods.elements()) {
+			m.markAsClean();
+		}
+		for(NestedClassElement n : classes.values()) {
+			n.markAsClean();
+		}
+	}
 }

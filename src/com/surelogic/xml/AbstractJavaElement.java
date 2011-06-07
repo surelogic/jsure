@@ -26,6 +26,7 @@ public abstract class AbstractJavaElement implements IJavaElement {
 	}
 	
 	AnnotationElement addPromise(AnnotationElement a) {
+		isDirty = true;
 		return promises.put(a.getUid(), a);
 	}
 	
@@ -49,6 +50,7 @@ public abstract class AbstractJavaElement implements IJavaElement {
 	
 	public final void addComments(Collection<String> c) {
 		comments.addAll(c);
+		isDirty = true;
 	}
 
 	Iterable<String> getComments() {
@@ -57,6 +59,7 @@ public abstract class AbstractJavaElement implements IJavaElement {
 	
 	void setLastComments(Collection<String> c) {
 		lastEnclosedComments.addAll(c);
+		isDirty = true;
 	}
 	
 	Iterable<String> getLastComments() {
@@ -81,5 +84,24 @@ public abstract class AbstractJavaElement implements IJavaElement {
 
 	protected void collectOtherChildren(List<Object> children) {
 		// Nothing to do right now
+	}
+	
+	public boolean isDirty() {
+		if (isDirty) {
+			return true;
+		}
+		for(AnnotationElement a : promises.values()) {
+			if (a.isDirty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void markAsClean() {
+		isDirty = false;
+		for(AnnotationElement a : promises.values()) {
+			a.markAsClean();
+		}
 	}
 }

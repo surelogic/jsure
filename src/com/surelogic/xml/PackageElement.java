@@ -30,13 +30,13 @@ public class PackageElement extends AbstractJavaElement {
 			children.add(clazz);
 		}
 	}
-
+	
 	public boolean isDirty() {
-		return isDirty();
+		return clazz.isDirty() || super.isDirty();
 	}
 	
 	public void markAsClean() {
-		// TODO Auto-generated method stub
-		
+		super.markAsClean();
+		clazz.markAsClean();
 	}
 }
