@@ -161,6 +161,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		for(AnnotationElement a : promises) {
 			pkg.addPromise(a);
 		}
+		pkg.markAsClean();
 	}
 	
 	public final PackageElement getPackage() {

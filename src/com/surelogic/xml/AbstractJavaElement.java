@@ -5,6 +5,7 @@ import java.util.*;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public abstract class AbstractJavaElement implements IJavaElement {
+	private boolean isDirty;
 	private final String name;
 	/**
 	 * These come before the element at the same level
