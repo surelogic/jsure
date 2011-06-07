@@ -6,15 +6,14 @@ import java.net.URI;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.MenuDetectEvent;
+import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.part.EditorPart;
 
-import com.surelogic.xml.IJavaElement;
-import com.surelogic.xml.PackageElement;
-import com.surelogic.xml.PromisesXMLReader;
-import com.surelogic.xml.PromisesXMLWriter;
+import com.surelogic.xml.*;
 
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
@@ -30,6 +29,14 @@ public class PromisesXMLEditor extends EditorPart {
        if (provider.getInput() != null) {
     	   contents.setInput(provider.getInput());
        }
+       contents.getControl().addMenuDetectListener(new MenuDetectListener() {
+    	   @Override
+    	   public void menuDetected(MenuDetectEvent e) {
+    		   final Menu menu = new Menu(contents.getControl().getShell(), SWT.POP_UP);
+    		   setupContextMenu(menu);
+    		   contents.getTree().setMenu(menu);
+    	   }
+       });
     }
     
     @Override
@@ -193,5 +200,24 @@ public class PromisesXMLEditor extends EditorPart {
 		public void dispose() {
 			// Nothing to do
 		}
+	}
+	
+	void setupContextMenu(Menu menu) {
+		final IStructuredSelection s = (IStructuredSelection) contents.getSelection();
+		if (s.size() != 1) {
+			return;
+		}
+		Object o = s.getFirstElement();
+		if (o instanceof AnnotationElement) {
+			// modify comments
+		}
+		else if (o instanceof AbstractJavaElement) {
+			AbstractJavaElement j = (AbstractJavaElement) o;
+		}
+		/*
+		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
+		item1.setText("");
+		item1.addSelectionListener(listener);
+		*/
 	}
 }
