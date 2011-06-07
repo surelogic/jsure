@@ -32,7 +32,7 @@ public class GroupedAnalysis implements IIRAnalysis {
 		return sb.toString();
 	}
 
-	public boolean runInParallel() {
+	public ConcurrencyType runInParallel() {
 		return analyses[0].runInParallel();
 	}
 	

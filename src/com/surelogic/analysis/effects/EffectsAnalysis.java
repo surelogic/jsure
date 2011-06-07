@@ -53,7 +53,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
   
 	public EffectsAnalysis() {
 		super(willRunInParallel, IRNode.class, "EffectAssurance2", BindingContextAnalysis.factory);
-		if (runInParallel()) {
+		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<IRNode>() {
 				public void op(IRNode compUnit) {
 					checkEffectsForFile(compUnit);
@@ -71,7 +71,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected void clearCaches() {
 		// TODO mostly copied from LockAnalysis
-		if (!runInParallel()) {
+		if (runInParallel() != ConcurrencyType.INTERNALLY) {
 			Effects lv = getAnalysis();
 			if (lv != null) {
 				lv.clearCaches();
@@ -90,7 +90,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
-		if (runInParallel()) {
+		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			queueWork(compUnit);
 		} else {
 			checkEffectsForFile(compUnit);

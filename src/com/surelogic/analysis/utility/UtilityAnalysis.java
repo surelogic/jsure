@@ -5,6 +5,7 @@ import java.util.*;
 import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
@@ -61,7 +62,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 	
 	public UtilityAnalysis() {
 		super(willRunInParallel, queueWork ? Pair.class : null, "UtilityAssurance");
-		if (runInParallel()) {
+		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<Pair>() {
 				public void op(Pair n) {
 					if (byCompUnit) {
@@ -102,7 +103,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 	
 	@Override
 	protected void clearCaches() {
-		if (!runInParallel()) {
+		if (runInParallel() != ConcurrencyType.INTERNALLY) {
 			final UtilityVisitorFactory lv = getAnalysis();
 			if (lv != null) {
 				lv.clearCaches();
@@ -121,7 +122,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 		// FIX factor out?
 		final ClassProcessor cp = new ClassProcessor(getAnalysis());
 		new TopLevelAnalysisVisitor(cp).doAccept(compUnit);
-		if (runInParallel()) {
+		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			if (queueWork) {
         queueWork(cp.getTypeBodies());
 			} else {
@@ -165,7 +166,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
     
     @Override
     protected void visitTypeDecl(final IRNode typeDecl, final IRNode classBody) {
-      if (runInParallel() && !byCompUnit) {
+      if (runInParallel() == ConcurrencyType.INTERNALLY && !byCompUnit) {
         types.add(new Pair(typeDecl, classBody));
       } else {
         actuallyAnalyzeClassBody(factory, typeDecl, classBody);

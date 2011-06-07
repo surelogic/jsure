@@ -111,7 +111,7 @@ public class ConcurrentAnalysis<Q> {
 		array.apply(proc);
 	}
 
-	public final boolean runInParallel() {
-		return runInParallel;
+	public ConcurrencyType runInParallel() {
+		return runInParallel ? ConcurrencyType.INTERNALLY : ConcurrencyType.EXTERNALLY;
 	}
 }

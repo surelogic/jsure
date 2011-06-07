@@ -68,7 +68,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	  cachedControlFlow.clear();
 	  controlFlowDrops.clear();
 	  
-	  if (!runInParallel()) {
+	  if (runInParallel() != ConcurrencyType.INTERNALLY) {
 		getAnalysis().clearCaches();
 	  } else {
 		analyses.clearCaches();
@@ -104,7 +104,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		try {
 			final Set<TypeAndMethod> methods = shouldAnalyzeCompilationUnit(compUnit);
 
-      if (runInParallel()) {
+      if (runInParallel() == ConcurrencyType.INTERNALLY) {
         runInParallel(TypeAndMethod.class, methods, new Procedure<TypeAndMethod>() {
           public void op(TypeAndMethod node) {
             final String methodName = JavaNames.genRelativeFunctionName(node.methodDecl);

@@ -38,7 +38,7 @@ public interface IIRAnalysis {
 	 */
 	String name();
 	boolean analyzeAll();
-	boolean runInParallel();
+	ConcurrencyType runInParallel();
 	Class<?> getGroup();
 	
 	/**

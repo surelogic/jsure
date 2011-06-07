@@ -78,7 +78,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	
 	public LockAnalysis() {
 		super(willRunInParallel, queueWork ? Pair.class : null, "LockAssurance", BindingContextAnalysis.factory);
-		if (runInParallel()) {
+		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<Pair>() {
 				public void op(Pair n) {
 					if (byCompUnit) {
@@ -204,7 +204,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 	
 	@Override
 	protected void clearCaches() {
-		if (!runInParallel()) {
+		if (runInParallel() != ConcurrencyType.INTERNALLY) {
 			LockVisitor lv = getAnalysis();
 			if (lv != null) {
 				lv.clearCaches();
@@ -227,7 +227,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
 		// FIX factor out?
 		final ClassProcessor cp = new ClassProcessor(getAnalysis(), getResultDependUponDrop());
 		new TopLevelAnalysisVisitor(cp).doAccept(compUnit);
-		if (runInParallel()) {
+		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			if (queueWork) {
         boolean flushed = queueWork(cp.getTypeBodies());
 				if (flushed) {
@@ -286,7 +286,7 @@ public class LockAnalysis extends AbstractAnalysisSharingAnalysis<BindingContext
     
     @Override
     protected void visitTypeDecl(final IRNode typeDecl, final IRNode classBody) {
-      if (runInParallel() && !byCompUnit) {
+      if (runInParallel() == ConcurrencyType.INTERNALLY && !byCompUnit) {
         types.add(new Pair(typeDecl, classBody));
       } else {
         actuallyAnalyzeClassBody(
