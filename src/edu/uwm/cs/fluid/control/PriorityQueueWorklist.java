@@ -13,15 +13,24 @@ import edu.uwm.cs.fluid.tree.SCCGraph;
 
 /**
  * Worklist that uses a priority on nodes based on the SCC ordering.
- * TODO: this does exactly the wrong thing for backwards analysis.
  * @author boyland
  */
 public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> {
   
+	private final boolean isForward;
   private List<ControlNode> roots;
   private SCCGraph sccs;
   private PriorityQueue<ControlNode> pqueue;
   
+  /**
+   * Create a priority worklist for a forward or (if isForward is false) a reverse control
+   * flow analysis
+   * @param forward whether to go forward or not
+   */
+  public PriorityQueueWorklist(boolean forward) {
+	  isForward = forward;
+  }
+
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.Worklist#initialize()
    */
@@ -35,7 +44,7 @@ public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> 
    * @see edu.uwm.cs.fluid.control.Worklist#start()
    */
   public void start() {
-    sccs = new SCCGraph(ControlFlowGraph.prototype,roots);
+    sccs = new SCCGraph(ControlFlowGraph.prototype,roots,!isForward);
     pqueue = new PriorityQueue<ControlNode>(10,this);
     for (ControlNode n : roots) {
       pqueue.add(n);

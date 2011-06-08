@@ -63,7 +63,7 @@ public interface Worklist extends Cloneable {
       // TODO: use a quick property to change
       //return new QueueWorklist();
       if (isForward) {
-    	  return new PriorityQueueWorklist();
+    	  return new PriorityQueueWorklist(isForward);
       }
       return new BufferWorklist();
     }

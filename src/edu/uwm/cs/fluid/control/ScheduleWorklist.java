@@ -18,13 +18,17 @@ import edu.uwm.cs.fluid.tree.SCCGraph;
  * @author boyland
  */
 public class ScheduleWorklist implements Worklist {
-
+	private final boolean isForward;
 	private List<ControlNode> roots;
 	private Iterator<SCCGraph.SCC> outerIterator;
 	private SCCGraph.SCC current;
 	private Iterator<IRNode> innerIterator;
 	private boolean repeatCurrent;
 
+	public ScheduleWorklist(boolean forward) {
+		isForward = forward;
+	}
+	
 	@Override
 	public void initialize() {
 		if (roots == null) roots = new ArrayList<ControlNode>();
@@ -35,7 +39,7 @@ public class ScheduleWorklist implements Worklist {
 
 	@Override
 	public void start() {
-		SCCGraph sccs = new SCCGraph(ControlFlowGraph.prototype,roots);
+		SCCGraph sccs = new SCCGraph(ControlFlowGraph.prototype,roots,!isForward);
 		outerIterator = sccs.iterator();
 		current = null;
 		innerIterator = null;

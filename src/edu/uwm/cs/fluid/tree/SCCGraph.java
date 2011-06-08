@@ -20,15 +20,14 @@ import edu.cmu.cs.fluid.tree.SymmetricDigraphInterface;
  * @author boyland
  */
 public class SCCGraph implements Iterable<SCCGraph.SCC> {
-
   private final Map<IRNode,Integer> nodeIndex = new HashMap<IRNode,Integer>();
   private final List<SCC> sccForNodeIndex = new ArrayList<SCC>();
   private final List<SCC> allSCCs = new ArrayList<SCC>();
   // if this structure is too space-inefficient, we can redefine SCC
   // to take two ints, and add a nodeForNodeIndex array list.
   
-  public SCCGraph(final SymmetricDigraphInterface dig, final Collection<? extends IRNode> roots) {
-    Creator creator = new Creator(dig,roots);
+  public SCCGraph(final SymmetricDigraphInterface dig, final Collection<? extends IRNode> roots, boolean rev) {
+    Creator creator = new Creator(dig,roots,rev);
     List<List<IRNode>> sccs = creator.getSCCs();
     int i = 0;
     for (List<IRNode> nodes : sccs) {
@@ -133,6 +132,7 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
   }
   
   private static class Creator {
+	  final boolean reverse;
     final SymmetricDigraphInterface graph;
     final HashSet<IRNode> visited = new HashSet<IRNode>();
     final List<IRNode> finished = new ArrayList<IRNode>();
@@ -140,8 +140,9 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
     final List<List<IRNode>> sccs = new ArrayList<List<IRNode>>();
     List<IRNode> scc = null;
     
-    public Creator(SymmetricDigraphInterface dig, Collection<? extends IRNode> roots) {
+    public Creator(SymmetricDigraphInterface dig, Collection<? extends IRNode> roots, boolean rev) {
       graph = dig;
+      reverse = rev;
       for (IRNode root : roots) {
         visit(root);
       }
@@ -157,7 +158,7 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
     private void visit(IRNode n) {
       if (visited.contains(n)) return;
       visited.add(n);
-      for (IRNode ch : graph.children(n)) {
+      for (IRNode ch : (reverse ? graph.parents(n) : graph.children(n))) {
         visit(ch);
       }
       finished.add(n);
@@ -169,7 +170,7 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
         if (visited2.contains(n)) return;
         if (scc == null) scc = new ArrayList<IRNode>();
         visited2.add(n);
-        for (IRNode p : graph.parents(n)) {
+        for (IRNode p : (reverse ? graph.children(n) : graph.parents(n))) {
           visit2(p);
         }
         scc.add(n);
