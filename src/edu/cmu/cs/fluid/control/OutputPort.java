@@ -25,4 +25,9 @@ public abstract class OutputPort extends AbstractProxyNode implements Port {
       return dual.getOutputs();
     }
   }
+  
+  @Override 
+  public String toString() {
+	  return getClass().getSimpleName() + "(" + getIRNode() + ")";
+  }
 }
