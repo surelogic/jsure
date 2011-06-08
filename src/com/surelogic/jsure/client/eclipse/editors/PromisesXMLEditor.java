@@ -37,6 +37,44 @@ public class PromisesXMLEditor extends EditorPart {
     		   contents.getTree().setMenu(menu);
     	   }
        });
+       // http://bingjava.appspot.com/snippet.jsp?id=2208
+       contents.addDoubleClickListener(new IDoubleClickListener() {
+    	   @Override
+    	   public void doubleClick(DoubleClickEvent event) {
+    		   final IStructuredSelection s = (IStructuredSelection) event.getSelection();
+    		   System.out.println("Doubleclik on "+s.getFirstElement());
+    		   contents.editElement(s.getFirstElement(), 0);
+    	   }
+       });
+
+       contents.setCellEditors(new CellEditor[] { new TextCellEditor(contents.getTree()) });
+       contents.setColumnProperties(new String[] { "col1" });
+       contents.setCellModifier(new ICellModifier() {
+    	   public boolean canModify(Object element, String property) {
+    		   return true;
+    	   }
+    	   public Object getValue(Object element, String property) {
+    		   return "What is this for?";//((MyModel) element).counter + "";
+    	   }
+    	   public void modify(Object element, String property, Object value) {
+    		   /*
+    		   element = ((Item) element).getData();
+    		   ((MyModel) element).counter = Integer.parseInt(value.toString());
+    		   contents.update(element, null);
+    		   */
+    	   }
+       });
+       /*
+       // http://eclipse.dzone.com/tips/treeviewer-two-clicks-edit
+       TreeViewerEditor.create(contents, null, new ColumnViewerEditorActivationStrategy(contents) {
+    	   @Override
+    	   protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent e) {
+    		   System.out.println("Got eae: "+e);
+    		   System.out.println("isEditorActivationEvent: "+super.isEditorActivationEvent(e));
+    		   return true;
+    	   }
+       }, ColumnViewerEditor.DEFAULT);
+       */
     }
     
     @Override
