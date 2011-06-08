@@ -83,8 +83,12 @@ public class ScheduleWorklist implements Worklist {
 
 	@Override
 	public void add(ControlNode node) {
-		if (current != null && current.contains(node)) {
-			repeatCurrent = true;
+		if (roots != null) {
+			roots.add(node);
+		} else {
+			if (!repeatCurrent && current != null && current.contains(node)) {
+				repeatCurrent = true;
+			}
 		}
 	}
 
