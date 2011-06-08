@@ -13,6 +13,24 @@ public interface IDEPreferences {
 	String TIMEOUT_FLAG = PREFIX + "timeoutFlag";
 	String TIMEOUT_SEC = PREFIX + "timeoutSec";
 
+	String[] BOOL_PREFS_TO_SYNC = {
+		ALLOW_JAVADOC_ANNOS,
+		TIMEOUT_FLAG,			
+	};
+	
+	String[] INT_PREFS_TO_SYNC = {
+		TOOL_MEMORY_MB,
+		ANALYSIS_THREAD_COUNT,
+		TIMEOUT_WARNING_SEC,
+		TIMEOUT_SEC,
+	};
+			
+	String[] STR_PREFS_TO_SYNC = {
+		JSURE_DATA_DIRECTORY,
+		// DEFAULT_JRE, 
+		JSURE_XML_DIRECTORY,
+	};
+	
 	/**
 	 * The preference prefix for whether an analysis is on
 	 */
