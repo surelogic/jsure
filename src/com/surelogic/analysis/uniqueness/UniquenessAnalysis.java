@@ -39,16 +39,32 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ISuperTypeSearchStrategy;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
+import edu.cmu.cs.fluid.java.operator.BoxExpression;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
+import edu.cmu.cs.fluid.java.operator.CompareExpression;
+import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.CrementExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.EqExpression;
+import edu.cmu.cs.fluid.java.operator.EqualityExpression;
+import edu.cmu.cs.fluid.java.operator.GreaterThanEqualExpression;
+import edu.cmu.cs.fluid.java.operator.GreaterThanExpression;
+import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
+import edu.cmu.cs.fluid.java.operator.LessThanEqualExpression;
+import edu.cmu.cs.fluid.java.operator.LessThanExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.MinusExpression;
+import edu.cmu.cs.fluid.java.operator.NotEqExpression;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
+import edu.cmu.cs.fluid.java.operator.PlusExpression;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
+import edu.cmu.cs.fluid.java.operator.UnboxExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
@@ -790,6 +806,18 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
+    protected Store transferRelop(IRNode node, Operator op, boolean flag, Store value) {
+    	if (EqualityExpression.prototype.includes(op)) {
+    		return super.transferRelop(node, op, flag, value);
+    	} else if (CompareExpression.prototype.includes(op)) {
+    		return lattice.push(lattice.pop(lattice.pop(value)));
+    	} else if (InstanceOfExpression.prototype.includes(op)) {
+    		return lattice.push(lattice.pop(value));
+    	}
+    	return super.transferRelop(node, op, flag, value);
+    }
+
+	@Override
     protected Store transferReturn(IRNode node, final Store s) {
       while (node != null && !MethodDeclaration.prototype.includes(node)) {
         node = tree.getParentOrNull(node);
@@ -807,6 +835,18 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
+	protected Store transferUnop(IRNode node, Operator op, Object info, Store val) {
+    	if (ArithUnopExpression.prototype.includes(op)) {
+    		return lattice.push(lattice.pop(val));
+    	} else if (ComplementExpression.prototype.includes(op)) {
+    		return lattice.push(lattice.pop(val));
+    	} else if (UnboxExpression.prototype.includes(op)) {
+    		return lattice.push(lattice.pop(val));
+    	}
+		return super.transferUnop(node, op, info, val);
+	}
+
+	@Override
     protected Store transferUseArray(final IRNode aref, Store s) {
       if (!s.isValid()) return s;
       if (isBothLhsRhs(aref)) {
