@@ -60,16 +60,25 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
 	  Integer i1 = nodeIndex.get(n1);
 	  Integer i2 = nodeIndex.get(n2);
 	  if (i1 == null) {
-		  complain(n1);
+		  complainUnreachable(n1);
 		  return true;
 	  } else if (i2 == null) {
-		  complain(n2);
+		  complainUnreachable(n2);
 		  return false;
 	  } else return i1 < i2;
   }
-  
-  protected void complain(IRNode n) {
-	  System.err.println("Got a node not reachable in CFG: " + n);
+
+  /**
+   * The node given is not reachable in the CFG and yet was added.
+   * This should only happen in reworkAll.
+   * <p>
+   * In general (with the exception of reworkAll),
+   * this would be a serious error: why is someone asking
+   * us to compare priority of nodes not reachable when the SCCs were built?
+   * @param n node not in any of the SCCs
+   */
+  protected void complainUnreachable(IRNode n) {
+	  // System.err.println("Got a node not reachable in CFG: " + n);
   }
   
   public void print(PrintWriter pw) {
@@ -102,15 +111,23 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
       return SCCforNode(n) == this;
     }
     
+    /**
+     * Return how many nodes in the SCC
+     * @return number of nodes in the SCC
+     */
+    public int size() {
+    	return nodes.size();
+    }
+    
     public void print(PrintWriter pw) {
     	if (nodes.size() > 1) {
     		pw.println("SCC:");
     		for (IRNode n : nodes) {
-    			if (n instanceof edu.cmu.cs.fluid.control.ComponentFlow) pw.println("  " + n);
+    			pw.println("  " + n);
     		}
     	} else {
     		IRNode n = nodes.get(0);
-    		if (n instanceof edu.cmu.cs.fluid.control.ComponentFlow) pw.println(n);
+    		pw.println(n);
     	}
     }
   }
@@ -139,9 +156,6 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
     
     private void visit(IRNode n) {
       if (visited.contains(n)) return;
-      /*if (n instanceof edu.cmu.cs.fluid.control.ComponentFlow) {
-    	  System.out.println("Visiting " + n);
-      }*/
       visited.add(n);
       for (IRNode ch : graph.children(n)) {
         visit(ch);
