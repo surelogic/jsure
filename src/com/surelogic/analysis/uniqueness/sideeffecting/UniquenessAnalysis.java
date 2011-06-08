@@ -10,6 +10,8 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.LocalVariableDeclarations;
+import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.Target;
@@ -39,15 +41,22 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ISuperTypeSearchStrategy;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
+import edu.cmu.cs.fluid.java.operator.CompareExpression;
+import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.EqualityExpression;
+import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
+import edu.cmu.cs.fluid.java.operator.StringConcat;
+import edu.cmu.cs.fluid.java.operator.UnboxExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
@@ -69,6 +78,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // ==================================================================
 
   private final boolean timeOut;
+  private final IMayAlias mayAlias;
+
+  
 
   // for creating drops
   private final IIRAnalysis analysis;
@@ -81,6 +93,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   public UniquenessAnalysis(final IIRAnalysis a,
       final IBinder binder, final boolean to) {
     super(new FixBinder(binder)); // avoid crashes.
+    mayAlias = new TypeBasedMayAlias(binder);
     analysis = a;
     timeOut = to;
   }
@@ -122,7 +135,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     final StoreLattice lattice = new StoreLattice(analysis, locals);
     final AtomicBoolean cargo = new AtomicBoolean(false);
     return new Uniqueness(true, cargo, "Uniqueness Analysis (Side Effecting)", lattice,
-        new UniquenessTransfer(cargo, binder, lattice, 0, flowUnit, timeOut),
+        new UniquenessTransfer(cargo, binder, mayAlias, lattice, 0, flowUnit, timeOut),
         timeOut);
 //    return new JavaForwardAnalysis<Store, StoreLattice>(
 //        "Uniqueness Analsys (UWM)", lattice,
@@ -271,6 +284,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         .getLogger("FLUID.analysis.unique.transfer");
 
     private final IRNode flowUnit;
+    private final IMayAlias mayAlias;
     private final Effects effects;
     
     
@@ -279,9 +293,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // ==================================================================
 
     public UniquenessTransfer(final AtomicBoolean cargo, 
-        final IBinder binder, final StoreLattice lattice,
+        final IBinder binder, final IMayAlias ma, final StoreLattice lattice,
         final int floor, final IRNode fu, final boolean timeOut) {
-      super(binder, lattice, new SubAnalysisFactory(cargo, fu, timeOut), floor);
+      super(binder, lattice, new SubAnalysisFactory(cargo, fu, ma, timeOut), floor);
+      mayAlias = ma;
       flowUnit = fu;
       effects = new Effects(binder);
     } 
@@ -331,96 +346,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // ==================================================================
     // === Other Helper Methods 
     // ==================================================================
-//    /**
-//     * Return a store after taking into account these effects (usually inferred
-//     * from a method call).
-//     * 
-//     * If <code>numActuals</code> is 0, then <code>actuals</code> is <code>null</code>!
-//     */
-//    private Store considerEffects(final IRNode rcvr,
-//        final int numActuals, final IRNode actuals,
-//        final Set<Effect> effects, Store s, final IRNode srcOp) {
-//      for (final Effect f : effects) {
-//        if (f.isEmpty()) {
-//          // empty effects are harmless
-//          continue;
-//        }
-//        
-//        if (f.isRead()) {
-//          // case 1: using permissions:
-//          // we only can bury aliases if we have write permission,
-//          // so we can ignore this case.
-//          // but with alias burying, we cannot ignore reads
-//          // CAN'T: continue;
-//        }
-//        
-//        final Target t = f.getTarget();
-//        final IRNode ref = t.getReference();
-//        
-//        if (ref != null) {
-//          // case 2:
-//          // if we are referencing a parameter or receiver, it may be
-//          // it is a final class with no unique fields.
-//          final IJavaType ty = binder.getJavaType(ref);
-//          if (ty instanceof IJavaArrayType) {
-//            // case 2a: if a "unique Array", then problems.
-//            // otherwise done
-//            // ! No unique array types (I think) ?
-//            continue;
-//          }
-//          if (ty instanceof IJavaDeclaredType) {
-//            final IRNode cd = ((IJavaDeclaredType) ty).getDeclaration();
-//
-//            if (cd != null
-//                && ClassDeclaration.prototype.includes(cd)
-//                && JavaNode.getModifier(cd, JavaNode.FINAL)) {
-//              final boolean hasUnique = regionHasUniqueFieldInClass(t.getRegion(), cd);
-//              if (LOG.isLoggable(Level.FINE)) {
-//                LOG.fine("Effect " + f + " is on final class with"
-//                    + (hasUnique ? "" : "out") + " unique fields");
-//              }
-//              if (!hasUnique)
-//                continue;
-//            }
-//          }
-//        }
-//        
-//        // From this point assume we are going to negate everything
-//        // reachable from the target.
-//
-//        // First we load the reference of the target
-//        if (ref == null) {
-//          s = lattice.opExisting(s, State.SHARED);
-//        } else if (ref.equals(rcvr)) {
-//          s = lattice.opDup(s, rcvr, numActuals);
-//        } else {
-//          foundActual: {
-//            for (int i = 0; i < numActuals; ++i) {
-//              /* If numActuals == 0 we don't get here, so it doesn't matter that
-//               * actuals == null in that case.
-//               */
-//              final IRNode actual = tree.getChild(actuals, i);
-//              if (actual.equals(ref)) {
-//                s = lattice.opDup(s, actual, numActuals - i - 1); // was + 1; fixed 2011-01-07
-//                break foundActual;
-//              }
-//            }
-//            s = lattice.opExisting(s, State.SHARED);
-//          }
-//        }
-//        
-//        final IRegion r = t.getRegion();
-//        if (r.isAbstract()) {
-//          // it could refer to almost anything
-//          // everything reachable from this pointer is alias buried:
-//          s = lattice.opLoadReachable(s, srcOp);
-//        } else {
-//          // it's a field, load and discard.
-//          s = lattice.pop(lattice.opLoad(s, srcOp, r.getNode()));
-//        }
-//      }
-//      return s;
-//    }
 
     private Store considerDeclaredEffects(final IRNode rcvr,
         final int numFormals, final IRNode formals,
@@ -442,7 +367,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final Target t = f.getTarget();
         final IRNode ref = t.getReference();
         
-        /* Update this: need to have the actual paramters. */
+        /* Should update this.  Need to look at the types of the 
+         * actual parameters for this.
+         */
         
 //        if (ref != null) {
 //          // case 2:
@@ -481,7 +408,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         } else if (ReceiverDeclaration.prototype.includes(ref)) {
           s = lattice.opDup(s, rcvr, numFormals);
         } else {
-          foundActual: {
+          foundFormal: {
             for (int i = 0; i < numFormals; ++i) {
               /* If numActuals == 0 we don't get here, so it doesn't matter that
                * actuals == null in that case.
@@ -489,7 +416,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
               final IRNode actual = tree.getChild(formals, i);
               if (actual.equals(ref)) {
                 s = lattice.opDup(s, actual, numFormals - i - 1); // was + 1; fixed 2011-01-07
-                break foundActual;
+                break foundFormal;
               }
             }
             s = lattice.opExisting(s, srcOp, State.SHARED);
@@ -708,6 +635,15 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
+    protected Store transferBinop(IRNode node, Operator op, Store val) {
+      if (op instanceof StringConcat)
+        return super.transferBinop(node, op, val);
+      else {
+        return lattice.push(lattice.pop(lattice.pop(val, node), node));
+      }
+    }
+
+    @Override
     protected Store transferCall(final IRNode node, final boolean flag, Store s) {
       final IRNode mdecl = binder.getBinding(node);
       final Operator op = tree.getOperator(node);
@@ -916,6 +852,18 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
+    protected Store transferRelop(IRNode node, Operator op, boolean flag, Store value) {
+      if (EqualityExpression.prototype.includes(op)) {
+        return super.transferRelop(node, op, flag, value);
+      } else if (CompareExpression.prototype.includes(op)) {
+        return lattice.push(lattice.pop(lattice.pop(value, node), node));
+      } else if (InstanceOfExpression.prototype.includes(op)) {
+        return lattice.push(lattice.pop(value, node));
+      }
+      return super.transferRelop(node, op, flag, value);
+    }
+
+    @Override
     protected Store transferReturn(IRNode node, final Store s) {
       while (node != null && !MethodDeclaration.prototype.includes(node)) {
         node = tree.getParentOrNull(node);
@@ -932,6 +880,19 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       return lattice.opCompromise(s, node);
     }
     
+    @Override
+    protected Store transferUnop(IRNode node, Operator op, Object info, Store val) {
+        if (ArithUnopExpression.prototype.includes(op)) {
+          return lattice.push(lattice.pop(val, node));
+        } else if (ComplementExpression.prototype.includes(op)) {
+          return lattice.push(lattice.pop(val, node));
+        } else if (UnboxExpression.prototype.includes(op)) {
+          return lattice.push(lattice.pop(val, node));
+        }
+      return super.transferUnop(node, op, info, val);
+    }
+
+
     @Override
     protected Store transferUseArray(final IRNode aref, Store s) {
       if (!s.isValid()) return s;
@@ -978,7 +939,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     
     public Store transferComponentSource(final IRNode node) {
-      return lattice.opStart(node);
+      return lattice.opStart(mayAlias, node);
     }
   }
   
@@ -992,12 +953,15 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private final AtomicBoolean cargo;
     private final IRNode flowUnit;
     private final boolean timeOut;
+    private final IMayAlias mayAlias;
+
     
     public SubAnalysisFactory(final AtomicBoolean c,
-        final IRNode fu, final boolean to) {
+        final IRNode fu, final IMayAlias ma, final boolean to) {
       cargo = c;
       flowUnit = fu;
       timeOut = to;
+      mayAlias = ma;
     }
     
     @Override
@@ -1005,7 +969,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode caller, final IBinder binder, final StoreLattice lattice,
         final Store initialValue, final boolean terminationNormal) {
       final int floor = initialValue.isValid() ? initialValue.getStackSize().intValue() : 0;
-      final UniquenessTransfer transfer = new UniquenessTransfer(cargo, binder, lattice, floor, flowUnit, timeOut);
+      final UniquenessTransfer transfer = new UniquenessTransfer(cargo, binder, mayAlias, lattice, floor, flowUnit, timeOut);
       return new Uniqueness(false, cargo, "Sub Analysis", lattice, transfer, timeOut);
 //      return new JavaForwardAnalysis<Store, StoreLattice>("Sub Analysis", lattice, transfer, DebugUnparser.viewer, timeOut);
     }

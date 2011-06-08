@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.surelogic.analysis.IIRAnalysis;
+import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -265,7 +266,7 @@ extends TripleLattice<Element<Integer>,
   // === Stack Machine Operations 
   // ==================================================================
 
-  public Store opStart(final IRNode srcOp) {
+  public Store opStart(final IMayAlias mayAlias, final IRNode srcOp) {
     Store temp = bottom();
     
     /*
@@ -308,11 +309,13 @@ extends TripleLattice<Element<Integer>,
           ParameterDeclaration.prototype.includes(op)) {
         if (isReceiverFromUniqueReturningConstructor
             || UniquenessRules.isBorrowed(local)) {
-          temp = opExisting(temp, srcOp, State.BORROWED);
+          temp = opExistingBetter(temp, srcOp, State.BORROWED, mayAlias, local);
+//          temp = opExisting(temp, srcOp, State.BORROWED);
         } else if (UniquenessRules.isUnique(local)) {
           temp = opNew(temp);
         } else {
-          temp = opExisting(temp, srcOp, State.SHARED);
+          temp = opExistingBetter(temp, srcOp, State.SHARED, mayAlias, local);
+//          temp = opExisting(temp, srcOp, State.SHARED);
         }
         temp = pop(apply(temp, srcOp, new Add(getStackTop(temp), EMPTY.addElement(local))), srcOp);
       } else {
@@ -539,6 +542,15 @@ extends TripleLattice<Element<Integer>,
     Store temp = push(s);
     final ImmutableHashOrderSet<Object> nset = EMPTY.addElement(getStackTop(temp));
     return join(temp, apply(temp, srcOp, new Add(pv, nset)));
+  }
+
+  private Store opExistingBetter(final Store s, final IRNode srcOp, final State pv, final IMayAlias mayAlias, final IRNode decl) {
+//  return opExisting(s, pv);
+  
+    if (!s.isValid()) return s;
+    Store temp = push(s);
+    final ImmutableHashOrderSet<Object> nset = EMPTY.addElement(getStackTop(temp));
+    return join(temp, apply(temp, srcOp, new AddBetter(mayAlias, decl, pv, nset)));
   }
 
   /**
