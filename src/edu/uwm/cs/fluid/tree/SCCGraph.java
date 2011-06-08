@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/edu/uwm/cs/fluid/tree/SCCGraph.java,v 1.4 2007/07/10 22:16:36 aarong Exp $*/
 package edu.uwm.cs.fluid.tree;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,7 +17,6 @@ import edu.cmu.cs.fluid.tree.SymmetricDigraphInterface;
 /**
  * Express a directed graph as a series of strongly-connected components
  * arranged in reverse-postorder.
- * XXX: The nodes in the SCCs are NOT in RPO.  Bug already fixed in SKLNST code.
  * @author boyland
  */
 public class SCCGraph implements Iterable<SCCGraph.SCC> {
@@ -37,6 +37,7 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
         nodeIndex.put(node,i);
         sccForNodeIndex.add(scc);
       }
+      allSCCs.add(scc);
     }
   }
 
@@ -56,7 +57,26 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
   }
   
   public boolean precedes(IRNode n1, IRNode n2) {
-    return nodeIndex.get(n1) < nodeIndex.get(n2);
+	  Integer i1 = nodeIndex.get(n1);
+	  Integer i2 = nodeIndex.get(n2);
+	  if (i1 == null) {
+		  complain(n1);
+		  return true;
+	  } else if (i2 == null) {
+		  complain(n2);
+		  return false;
+	  } else return i1 < i2;
+  }
+  
+  protected void complain(IRNode n) {
+	  System.err.println("Got a node not reachable in CFG: " + n);
+  }
+  
+  public void print(PrintWriter pw) {
+	  for (SCC s : this) {
+		  s.print(pw);
+	  }
+	  pw.flush();
   }
   
   /**
@@ -80,6 +100,18 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
      */
     public boolean contains(IRNode n) {
       return SCCforNode(n) == this;
+    }
+    
+    public void print(PrintWriter pw) {
+    	if (nodes.size() > 1) {
+    		pw.println("SCC:");
+    		for (IRNode n : nodes) {
+    			if (n instanceof edu.cmu.cs.fluid.control.ComponentFlow) pw.println("  " + n);
+    		}
+    	} else {
+    		IRNode n = nodes.get(0);
+    		if (n instanceof edu.cmu.cs.fluid.control.ComponentFlow) pw.println(n);
+    	}
     }
   }
   
@@ -107,6 +139,9 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
     
     private void visit(IRNode n) {
       if (visited.contains(n)) return;
+      /*if (n instanceof edu.cmu.cs.fluid.control.ComponentFlow) {
+    	  System.out.println("Visiting " + n);
+      }*/
       visited.add(n);
       for (IRNode ch : graph.children(n)) {
         visit(ch);
@@ -119,11 +154,11 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
         // otherwise, unreachable from roots
         if (visited2.contains(n)) return;
         if (scc == null) scc = new ArrayList<IRNode>();
-        scc.add(n);
         visited2.add(n);
         for (IRNode p : graph.parents(n)) {
           visit2(p);
         }
+        scc.add(n);
       }
     }
     
