@@ -6,6 +6,9 @@ package com.surelogic.xml;
  * @author Edwin
  */
 public interface IJavaElement {
+	void setParent(AbstractJavaElement p);
+	AbstractJavaElement getParent();
+	
 	String getLabel();
 	boolean hasChildren();
 	Object[] getChildren();

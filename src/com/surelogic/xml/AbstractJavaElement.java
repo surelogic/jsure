@@ -6,6 +6,7 @@ import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public abstract class AbstractJavaElement implements IJavaElement {
 	private boolean isDirty;
+	private AbstractJavaElement parent;
 	private final String name;
 	/**
 	 * These come before the element at the same level
@@ -21,12 +22,21 @@ public abstract class AbstractJavaElement implements IJavaElement {
 		name = id;
 	}
 	
+	public void setParent(AbstractJavaElement p) {
+		parent = p;
+	}
+	
+	public AbstractJavaElement getParent() {
+		return parent;
+	}
+	
 	public final String getName() {
 		return name;
 	}
 	
 	AnnotationElement addPromise(AnnotationElement a) {
 		isDirty = true;
+		a.setParent(this);
 		return promises.put(a.getUid(), a);
 	}
 	

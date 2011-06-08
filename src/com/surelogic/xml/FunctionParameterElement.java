@@ -3,7 +3,7 @@ package com.surelogic.xml;
 public class FunctionParameterElement extends AbstractJavaElement {
 	private final int index;
 	
-	FunctionParameterElement(int i) {
+	public FunctionParameterElement(int i) {
 		super(Integer.toString(i));
 		index = i;
 	}

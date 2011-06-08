@@ -8,6 +8,7 @@ public class PackageElement extends AbstractJavaElement {
 	PackageElement(String id, ClassElement c) {
 		super(id);
 		clazz = c;
+		c.setParent(this);
 	}	
 	
 	final ClassElement getClassElement() {

@@ -48,6 +48,7 @@ implements IClassMember, TestXMLParserConstants
 			params.add(null);			
 		}
 		params.set(p.getIndex(), p);
+		p.setParent(this);
 	}
 	
 	FunctionParameterElement getParameter(int i) {

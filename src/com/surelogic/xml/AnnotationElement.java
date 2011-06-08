@@ -16,8 +16,9 @@ public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
 	private final List<String> comments = new ArrayList<String>(0);
 	private boolean isDirty;
+	private AbstractJavaElement parent;
 	
-	AnnotationElement(final String id, final String tag, String text, Map<String,String> a) {
+	public AnnotationElement(final String id, final String tag, String text, Map<String,String> a) {
 		final String name = AnnotationVisitor.capitalize(tag);
 		final IPromiseDropStorage<?> storage = PromiseFramework.getInstance().findStorage(name);
 		if (storage == null) {
@@ -42,6 +43,14 @@ public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 		if (id == null && uid != name) {
 			attributes.put(UID_ATTRB, uid);
 		}
+	}
+	
+	public void setParent(AbstractJavaElement p) {
+		parent = p;
+	}
+	
+	public AbstractJavaElement getParent() {
+		return parent;
 	}
 	
 	final String getUid() {
