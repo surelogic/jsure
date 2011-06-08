@@ -1719,7 +1719,8 @@ public class JavacDriver implements IResourceChangeListener {
 				}
 				*/
 			}
-			doBuild(projects, args, monitor, ignoreNature);// false);
+			final boolean runRemote = !XUtil.profile && ignoreNature;
+			doBuild(projects, args, monitor, runRemote);
 			return SLStatus.OK_STATUS;
 		}
 	}
