@@ -3,6 +3,7 @@ package com.surelogic.jsure.client.eclipse.editors;
 import java.io.*;
 import java.net.URI;
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
@@ -283,7 +284,13 @@ public class PromisesXMLEditor extends EditorPart {
 						final IType t = findIType(c, "");						
 						ListSelectionDialog d;
 						try {
-							d = new ListSelectionDialog(contents.getTree().getShell(), t.getMethods(), 
+							List<IMethod> methods = new ArrayList<IMethod>();
+							for(IMethod m : t.getMethods()) {
+								if (m.getDeclaringType().equals(t) && !"<clinit>".equals(m.getElementName())) {
+									methods.add(m);
+								}
+							}
+							d = new ListSelectionDialog(contents.getTree().getShell(), methods.toArray(), 
 									                    jProvider, jProvider, "Select method(s)");
 							if (d.open() == SWT.OK) {
 								for(Object o : d.getResult()) {
@@ -371,7 +378,12 @@ public class PromisesXMLEditor extends EditorPart {
 
 		@Override
 		public String getText(Object element) {
-			return element.toString();
+			org.eclipse.jdt.core.IJavaElement e = (org.eclipse.jdt.core.IJavaElement) element; 
+			if (e instanceof IMethod) {
+				IMethod m = (IMethod) e;
+				return m.getElementName()+'('+translateParameters(m)+')';
+			}
+			return e.getElementName();
 		}
 
 		@Override
