@@ -20,18 +20,18 @@ import com.surelogic.common.logging.SLLogger;
 public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 {
   public static final boolean debug = true;
-	
-  /** This boolean value is true for infinite sets with finite
-   * inverses, in which case the elements array holds the elements
-   * in the inverse.
-   */
-  protected final boolean inverse;
 
   /** This array holds exactly the elements in the set (or not in
    * the set if inverse is true.  They are sorted by hashCode.
    */
   protected final T[] elements;
 
+  /** This boolean value is true for infinite sets with finite
+   * inverses, in which case the elements array holds the elements
+   * in the inverse.
+   */
+  protected final boolean inverse;
+  
   private final int hashCode;
 
   private int computeHashCode() {
