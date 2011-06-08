@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.editors;
 
 import java.io.*;
 import java.net.URI;
+import java.util.*;
 
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
@@ -11,6 +12,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
+import org.eclipse.ui.dialogs.ListSelectionDialog;
 import org.eclipse.ui.part.EditorPart;
 
 import com.surelogic.common.core.JDTUtility;
@@ -21,6 +23,7 @@ import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public class PromisesXMLEditor extends EditorPart {
 	private final Provider provider = new Provider();
+	private static final JavaElementProvider jProvider = new JavaElementProvider();
     private TreeViewer contents;
     
     @Override
@@ -274,18 +277,32 @@ public class PromisesXMLEditor extends EditorPart {
 			} 
 			else if (o instanceof ClassElement) {
 				final ClassElement c = (ClassElement) o;
-				makeMenuItem(menu, "Add existing member...", new SelectionAdapter() {
+				makeMenuItem(menu, "Add existing method(s)...", new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						// TODO create dialog
-						IType t = findIType(c, "");						
+						final IType t = findIType(c, "");						
+						ListSelectionDialog d;
+						try {
+							d = new ListSelectionDialog(contents.getTree().getShell(), t.getMethods(), 
+									                    jProvider, jProvider, "Select method(s)");
+							if (d.open() == SWT.OK) {
+								for(Object o : d.getResult()) {
+									IMethod m = (IMethod) o;
+									String params = translateParameters(m);									
+									c.addMember(m.isConstructor() ? new ConstructorElement(params) : 
+										                            new MethodElement(m.getElementName(), params));
+								}
+							}
+						} catch (JavaModelException e1) {
+							e1.printStackTrace();
+						}															
 					}
 				});
 			}
 		}
 	}
 	
-	IType findIType(ClassElement c, String nameSoFar) {
+	static IType findIType(ClassElement c, String nameSoFar) {
 		String typeName = nameSoFar.isEmpty() ? c.getName() : c.getName()+'.'+nameSoFar;
 		if (c instanceof NestedClassElement) {
 			ClassElement parent = (ClassElement) c.getParent();
@@ -296,9 +313,82 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 
-	void makeMenuItem(Menu menu, String label, SelectionListener l) {
+	private static final Map<String,String> typeMapping = new HashMap<String, String>();
+	static {
+		typeMapping.put(Signature.SIG_BOOLEAN, "boolean");
+		typeMapping.put(Signature.SIG_BYTE, "byte");
+		typeMapping.put(Signature.SIG_CHAR, "char");
+		typeMapping.put(Signature.SIG_SHORT, "short");
+		typeMapping.put(Signature.SIG_INT, "int");
+		typeMapping.put(Signature.SIG_LONG, "long");
+		typeMapping.put(Signature.SIG_FLOAT, "float");
+		typeMapping.put(Signature.SIG_DOUBLE, "double");
+	}
+	
+	static String translateParameters(IMethod m) {
+		StringBuilder sb = new StringBuilder();
+		for(String t : m.getParameterTypes()) {
+			if (sb.length() != 0) {
+				sb.append(',');
+			}		
+			String mapped = typeMapping.get(t);
+			if (mapped == null) {
+				// TODO
+				mapped = t.substring(1, t.length()-1);
+			}
+			sb.append(mapped);
+		}
+		return sb.toString();
+	}
+	
+	static void makeMenuItem(Menu menu, String label, SelectionListener l) {
 		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
 		item1.setText(label);
 		item1.addSelectionListener(l);
+	}
+	
+	static class JavaElementProvider implements IStructuredContentProvider, ILabelProvider {
+		@Override
+		public Object[] getElements(Object inputElement) {
+			return (Object[]) inputElement;
+		}
+
+		@Override
+		public void dispose() {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public Image getImage(Object element) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public String getText(Object element) {
+			return element.toString();
+		}
+
+		@Override
+		public void addListener(ILabelProviderListener listener) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public boolean isLabelProperty(Object element, String property) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void removeListener(ILabelProviderListener listener) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 }
