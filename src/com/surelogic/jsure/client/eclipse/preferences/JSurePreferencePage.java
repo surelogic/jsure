@@ -25,7 +25,9 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
 public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	static private final String TOOL_MB_LABEL = "jsure.eclipse.preference.page.toolMemoryPreferenceLabel";
 	static private final String THREADS_LABEL = "jsure.eclipse.preference.page.thread.msg";
-	
+	static private final String TIMEOUT_WARNING_LABEL = "jsure.eclipse.preference.page.timeoutWarning";
+	static private final String TIMEOUT_LABEL = "jsure.eclipse.preference.page.timeout";
+
 	private BooleanFieldEditor f_balloonFlag;
 	private BooleanFieldEditor f_autoOpenProposedPromiseView;
 	private BooleanFieldEditor f_autoOpenModelingProblemsView;
@@ -33,6 +35,9 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	private BooleanFieldEditor f_allowJavadocAnnos;
 	private ScaleFieldEditor f_analysisThreadCount;
 	private ScaleFieldEditor f_toolMemoryMB;
+	private ScaleFieldEditor f_timeoutWarningSec;
+	private BooleanFieldEditor f_timeoutFlag;
+	private ScaleFieldEditor f_timeoutSec;
 	private BooleanFieldEditor f_regionModelCap;
 	private BooleanFieldEditor f_regionModelCommonString;
 	private StringFieldEditor f_regionModelSuffix;
@@ -52,21 +57,24 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		final Group diGroup = createGroup(panel, "preference.page.group.app");
 
 		f_balloonFlag = new BooleanFieldEditor(
-				JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS,
-				I18N.msg("jsure.eclipse.preference.page.balloonFlag"), diGroup);
+				JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS, I18N
+						.msg("jsure.eclipse.preference.page.balloonFlag"),
+				diGroup);
 		setupEditor(diGroup, f_balloonFlag);
 
 		setupForPerspectiveSwitch(diGroup);
 
 		f_autoOpenProposedPromiseView = new BooleanFieldEditor(
 				JSurePreferencesUtility.AUTO_OPEN_PROPOSED_PROMISE_VIEW,
-				I18N.msg("jsure.eclipse.preference.page.autoOpenProposedPromiseView"),
+				I18N
+						.msg("jsure.eclipse.preference.page.autoOpenProposedPromiseView"),
 				diGroup);
 		setupEditor(diGroup, f_autoOpenProposedPromiseView);
 
 		f_autoOpenModelingProblemsView = new BooleanFieldEditor(
 				JSurePreferencesUtility.AUTO_OPEN_MODELING_PROBLEMS_VIEW,
-				I18N.msg("jsure.eclipse.preference.page.autoOpenModelingProblemsView"),
+				I18N
+						.msg("jsure.eclipse.preference.page.autoOpenModelingProblemsView"),
 				diGroup);
 		setupEditor(diGroup, f_autoOpenModelingProblemsView);
 
@@ -83,10 +91,16 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				annoGroup);
 		setupEditor(annoGroup, f_allowJavadocAnnos);
 
-		final Group threadGroup = createGroup(panel,
-				"preference.page.group.thread");
-		setupThreadCount(threadGroup);
-		setupMemorySize(threadGroup);
+		final Group analysisSettingsGroup = createGroup(panel,
+				"preference.page.group.analysis");
+		setupThreadCount(analysisSettingsGroup);
+		setupMemorySize(analysisSettingsGroup);
+		setupTimeoutWarning(analysisSettingsGroup);
+		f_timeoutFlag = new BooleanFieldEditor(IDEPreferences.TIMEOUT_FLAG,
+				I18N.msg("jsure.eclipse.preference.page.timeoutFlag"),
+				analysisSettingsGroup);
+		setupEditor(analysisSettingsGroup, f_timeoutFlag);
+		setupTimeout(analysisSettingsGroup);
 
 		final Group modelNamingGroup = createGroup(panel,
 				"preference.page.group.modelNaming");
@@ -101,7 +115,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_regionModelCap.fillIntoGrid(modelNamingGroup, 2);
 		f_regionModelCommonString = new BooleanFieldEditor(
 				JSurePreferencesUtility.REGION_MODEL_NAME_COMMON_STRING,
-				I18N.msg("jsure.eclipse.preference.page.regionModelNameCommonString"),
+				I18N
+						.msg("jsure.eclipse.preference.page.regionModelNameCommonString"),
 				modelNamingGroup);
 		setupEditor(modelNamingGroup, f_regionModelCommonString);
 		f_regionModelCommonString.fillIntoGrid(modelNamingGroup, 2);
@@ -112,8 +127,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		setupEditor(modelNamingGroup, f_regionModelSuffix);
 		f_regionModelSuffix.fillIntoGrid(modelNamingGroup, 2);
 		f_lockModelCap = new BooleanFieldEditor(
-				JSurePreferencesUtility.LOCK_MODEL_NAME_CAP,
-				I18N.msg("jsure.eclipse.preference.page.lockModelNameCap"),
+				JSurePreferencesUtility.LOCK_MODEL_NAME_CAP, I18N
+						.msg("jsure.eclipse.preference.page.lockModelNameCap"),
 				modelNamingGroup);
 		setupEditor(modelNamingGroup, f_lockModelCap);
 		f_lockModelCap.fillIntoGrid(modelNamingGroup, 2);
@@ -129,7 +144,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		return panel;
 	}
 
-	private void setupScaleEditor(Group group, final ScaleFieldEditor editor, int min, int max, int incr, final String label) {
+	private void setupScaleEditor(Group group, final ScaleFieldEditor editor,
+			int min, int max, int incr, final String label) {
 		editor.fillIntoGrid(group, 2);
 		editor.setMinimum(min);
 		editor.setMaximum(max);
@@ -137,31 +153,30 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		editor.setPage(this);
 		editor.setPreferenceStore(EclipseUIUtility.getPreferences());
 		editor.load();
-		editor.getScaleControl().addListener(SWT.Selection,
-				new Listener() {
+		editor.getScaleControl().addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(final Event event) {
 				updateScaleLabel(editor, label);
 			}
 		});
 	}
-	
+
 	private void updateScaleLabel(ScaleFieldEditor editor, String msg) {
 		final int param = editor.getScaleControl().getSelection();
 		editor.setLabelText(I18N.msg(msg, param));
 	}
-	
-	private void setupThreadCount(Group threadGroup) {
-		int threads = EclipseUtility.getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
+
+	private void setupThreadCount(Group group) {
+		int threads = EclipseUtility
+				.getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
 		f_analysisThreadCount = new ScaleFieldEditor(
-				IDEPreferences.ANALYSIS_THREAD_COUNT,
-				I18N.msg(THREADS_LABEL, threads),
-				threadGroup);
+				IDEPreferences.ANALYSIS_THREAD_COUNT, I18N.msg(THREADS_LABEL,
+						threads), group);
 		int max = Runtime.getRuntime().availableProcessors();
-		setupScaleEditor(threadGroup, f_analysisThreadCount, 1, max, 1, THREADS_LABEL);
+		setupScaleEditor(group, f_analysisThreadCount, 1, max, 1, THREADS_LABEL);
 	}
-	
-	private void setupMemorySize(Group memoryGroup) {
+
+	private void setupMemorySize(Group group) {
 		final int estimatedMax = MemoryUtility.computeMaxMemorySizeInMb();
 		int mb = EclipseUtility.getIntPreference(IDEPreferences.TOOL_MEMORY_MB);
 		if (mb > estimatedMax) {
@@ -169,12 +184,33 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 			EclipseUtility.setIntPreference(IDEPreferences.TOOL_MEMORY_MB, mb);
 		}
 		final String label = I18N.msg(TOOL_MB_LABEL, mb);
-		f_toolMemoryMB = new ScaleFieldEditor(
-				IDEPreferences.TOOL_MEMORY_MB, label + "     ",
-				memoryGroup);		
-		setupScaleEditor(memoryGroup, f_toolMemoryMB, 256, estimatedMax, 256, TOOL_MB_LABEL);
+		f_toolMemoryMB = new ScaleFieldEditor(IDEPreferences.TOOL_MEMORY_MB,
+				label + "     ", group);
+		setupScaleEditor(group, f_toolMemoryMB, 256, estimatedMax, 256,
+				TOOL_MB_LABEL);
 	}
-	
+
+	private void setupTimeoutWarning(Group group) {
+		int timeoutWarningSec = EclipseUtility
+				.getIntPreference(IDEPreferences.TIMEOUT_WARNING_SEC);
+
+		final String label = I18N.msg(TIMEOUT_WARNING_LABEL, timeoutWarningSec);
+		f_timeoutWarningSec = new ScaleFieldEditor(
+				IDEPreferences.TIMEOUT_WARNING_SEC, label + "     ", group);
+		setupScaleEditor(group, f_timeoutWarningSec, 5, 600, 60,
+				TIMEOUT_WARNING_LABEL);
+	}
+
+	private void setupTimeout(Group group) {
+		int timeoutSec = EclipseUtility
+				.getIntPreference(IDEPreferences.TIMEOUT_SEC);
+
+		final String label = I18N.msg(TIMEOUT_LABEL, timeoutSec);
+		f_timeoutSec = new ScaleFieldEditor(IDEPreferences.TIMEOUT_SEC, label
+				+ "     ", group);
+		setupScaleEditor(group, f_timeoutSec, 5, 600, 60, TIMEOUT_LABEL);
+	}
+
 	private Group createGroup(Composite panel, String suffix) {
 		final Group group = new Group(panel, SWT.NONE);
 		group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -203,6 +239,9 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_lockModelCap.loadDefault();
 		f_lockModelSuffix.loadDefault();
 		f_toolMemoryMB.loadDefault();
+		f_timeoutWarningSec.loadDefault();
+		f_timeoutFlag.loadDefault();
+		f_timeoutSec.loadDefault();
 		super.performDefaults();
 	}
 
@@ -220,6 +259,9 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_lockModelCap.store();
 		f_lockModelSuffix.store();
 		f_toolMemoryMB.store();
+		f_timeoutWarningSec.store();
+		f_timeoutFlag.store();
+		f_timeoutSec.store();
 		return super.performOk();
 	}
 }
