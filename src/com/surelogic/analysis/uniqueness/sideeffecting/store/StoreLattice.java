@@ -151,7 +151,7 @@ extends TripleLattice<Element<Integer>,
     return setStackSize(s, n+1);
   }
   
-  public Store pop(final Store s) {
+  public Store pop(final Store s, final IRNode srcOp) {
     if (!s.isValid()) return s;
     final Integer topOfStack = getStackTop(s);
     final int n = topOfStack.intValue();
@@ -159,7 +159,7 @@ extends TripleLattice<Element<Integer>,
       return errorStore("stack underflow");
     }
     return setStackSize(
-        apply(s, new Remove(EMPTY.addElement(topOfStack))),
+        apply(s, srcOp, new Remove(EMPTY.addElement(topOfStack))),
         Integer.valueOf(n-1));
   }
   
@@ -265,7 +265,7 @@ extends TripleLattice<Element<Integer>,
   // === Stack Machine Operations 
   // ==================================================================
 
-  public Store opStart() {
+  public Store opStart(final IRNode srcOp) {
     Store temp = bottom();
     
     /*
@@ -308,27 +308,27 @@ extends TripleLattice<Element<Integer>,
           ParameterDeclaration.prototype.includes(op)) {
         if (isReceiverFromUniqueReturningConstructor
             || UniquenessRules.isBorrowed(local)) {
-          temp = opExisting(temp, State.BORROWED);
+          temp = opExisting(temp, srcOp, State.BORROWED);
         } else if (UniquenessRules.isUnique(local)) {
           temp = opNew(temp);
         } else {
-          temp = opExisting(temp, State.SHARED);
+          temp = opExisting(temp, srcOp, State.SHARED);
         }
-        temp = pop(apply(temp, new Add(getStackTop(temp), EMPTY.addElement(local))));
+        temp = pop(apply(temp, srcOp, new Add(getStackTop(temp), EMPTY.addElement(local))), srcOp);
       } else {
         undefinedLocals = undefinedLocals.addElement(local);
       }
     }
-    temp = apply(temp, new Add(State.UNDEFINED, undefinedLocals));
+    temp = apply(temp, srcOp, new Add(State.UNDEFINED, undefinedLocals));
     return temp;
   }
 
   /**
    * Leave scope of method. Remove all local bindings.
    */
-  public Store opStop(final Store s) {
+  public Store opStop(final Store s, final IRNode srcOp) {
     if (!s.isValid()) return s;
-    return apply(s, new Remove(new ImmutableHashOrderSet<Object>(locals)));
+    return apply(s, srcOp, new Remove(new ImmutableHashOrderSet<Object>(locals)));
   }
 
   /**
@@ -338,7 +338,7 @@ extends TripleLattice<Element<Integer>,
     if (!s.isValid()) return s;
     if (isDefined(s, local)) {
       Store temp = push(s);
-      return apply(temp, new Add(local, EMPTY.addElement(getStackTop(temp))));
+      return apply(temp, srcOp, new Add(local, EMPTY.addElement(getStackTop(temp))));
     } else {
       final String name = (local instanceof IRNode) ? DebugUnparser
           .toString((IRNode) local) : local.toString();
@@ -377,13 +377,15 @@ extends TripleLattice<Element<Integer>,
   }
   
   /** Store the top of the stack into a local. */
-  public Store opSet(final Store s, final Object local) {
+  public Store opSet(final Store s, final IRNode srcOp, final Object local) {
     if (!s.isValid()) return s;
     final ImmutableHashOrderSet<Object> lset = EMPTY.addElement(local);
     return pop(
         apply(
-            apply(s, new Remove(lset)),
-            new Add(getStackTop(s), lset)));
+            apply(s, srcOp, new Remove(lset)),
+            srcOp,
+            new Add(getStackTop(s), lset)),
+        srcOp);
   }
   
   /**
@@ -411,7 +413,8 @@ extends TripleLattice<Element<Integer>,
       }
       Store temp = opNew(
           apply(
-              apply(s, new Remove(affected)),
+              apply(s, srcOp, new Remove(affected)),
+              srcOp,
               new Add(State.UNDEFINED, affected)));
       ImmutableSet<FieldTriple> newFieldStore = temp.getFieldStore();
       final ImmutableHashOrderSet<Object> uniqueNode =
@@ -429,9 +432,9 @@ extends TripleLattice<Element<Integer>,
             }
           });
       temp = setFieldStore(temp, newFieldStore);
-      return opSet(temp, n);
+      return opSet(temp, srcOp, n);
     } else {
-      return opExisting(opRelease(s), State.SHARED);
+      return opExisting(opRelease(s, srcOp), srcOp, State.SHARED);
     }
   }
   
@@ -454,7 +457,7 @@ extends TripleLattice<Element<Integer>,
     } else {
       temp = opCompromise(s, srcOp);
     }
-    return opRelease(temp);
+    return opRelease(temp, srcOp);
   }
   
   /**
@@ -490,8 +493,9 @@ extends TripleLattice<Element<Integer>,
     }
     return opRelease(
         apply(
-            apply(s, new Remove(affected)),
-            new Add(State.UNDEFINED, affected)));
+            apply(s, srcOp, new Remove(affected)),
+            srcOp,
+            new Add(State.UNDEFINED, affected)), srcOp);
   }
   
   /** Push the value "null" onto the top of the stack. */
@@ -530,31 +534,32 @@ extends TripleLattice<Element<Integer>,
    * Evaluate a pseudo-variable onto the top of the stack. A pseudo-variable can
    * have multiple values.
    */
-  public Store opExisting(final Store s, final State pv) {
+  public Store opExisting(final Store s, final IRNode srcOp, final State pv) {
     if (!s.isValid()) return s;
     Store temp = push(s);
     final ImmutableHashOrderSet<Object> nset = EMPTY.addElement(getStackTop(temp));
-    return join(temp, apply(temp, new Add(pv, nset)));
+    return join(temp, apply(temp, srcOp, new Add(pv, nset)));
   }
 
   /**
    * discard the value on the top of the stack from the set of objects and from
    * the field store, and then pop the stack.
    */
-  public Store opRelease(final Store s) {
+  public Store opRelease(final Store s, final IRNode srcOp) {
     if (!s.isValid()) return s;
-    return pop(apply(s, new Remove(EMPTY.addElement(getStackTop(s)))));
+    return pop(apply(s, srcOp, new Remove(EMPTY.addElement(getStackTop(s)))), srcOp);
   }
 
   /**
    * Ensure the top of the stack is at least borrowed and then pop the stack.
    */
-  public Store opBorrow(final Store s) {
+  public Store opBorrow(final Store s, final IRNode srcOp) {
     if (!s.isValid()) return s;
     if (localStatus(s, getStackTop(s)).compareTo(State.BORROWED) > 0) { // cannot be undefined
+      reportError(srcOp, "X100", "Undefined value where unique is expected: Another formal parameter has made the value undefined here");
       return errorStore("Undefined value on stack borrowed");
     }
-    return opRelease(s);
+    return opRelease(s, srcOp);
   }
   
   private void reportError(final IRNode srcOp, final String label, final String message) {
@@ -580,14 +585,14 @@ extends TripleLattice<Element<Integer>,
       reportError(srcOp, "X2", "Attempt to alias a borrowed value");
       return errorStore("Borrowed value on stack shared");
     }
-    return apply(s, new Add(n, EMPTY.addElement(State.SHARED)));
+    return apply(s, srcOp, new Add(n, EMPTY.addElement(State.SHARED)));
   }
   
   /**
    * Compromise the value on the top of the stack and then pop it off.
    */
   public Store opCompromise(final Store s, final IRNode srcOp) {
-    return opRelease(opCompromiseNoRelease(s, srcOp));
+    return opRelease(opCompromiseNoRelease(s, srcOp), srcOp);
   }
   
   /**
@@ -611,7 +616,7 @@ extends TripleLattice<Element<Integer>,
       reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
       return errorStore("Shared value on stack not unique");
     }
-    return opRelease(apply(s, new Add(n, EMPTY.addElement(State.UNDEFINED))));
+    return opRelease(apply(s, srcOp, new Add(n, EMPTY.addElement(State.UNDEFINED))), srcOp);
   }
   
   /**
@@ -622,11 +627,11 @@ extends TripleLattice<Element<Integer>,
    *          true if the two elements are assumed equal, otherwise they are
    *          assumed unequal.
    */
-  public Store opEqual(final Store s, final boolean areEqual) {
+  public Store opEqual(final Store s, final IRNode srcOp, final boolean areEqual) {
     if (!s.isValid()) return s;
     return opRelease(
         opRelease(
-            filter(s, new Equal(getStackTop(s), getUnderTop(s), areEqual))));
+            filter(s, srcOp, new Equal(getStackTop(s), getUnderTop(s), areEqual)), srcOp), srcOp);
   }
 
 
@@ -636,7 +641,7 @@ extends TripleLattice<Element<Integer>,
   // ==================================================================
 
   /** Apply a node-set changing operation to the state */
-  protected Store apply(final Store s, final Apply c) {
+  protected Store apply(final Store s, final IRNode srcOp, final Apply c) {
     if (!s.isValid()) return s;
 
     final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
@@ -672,13 +677,13 @@ extends TripleLattice<Element<Integer>,
     final ImmutableSet<FieldTriple> newFieldStore =
       ImmutableHashOrderSet.<FieldTriple>emptySet().addElements(filteredFields);
     
-    return check(setFieldStore(setObjects(s, newObjects), newFieldStore));
+    return check(setFieldStore(setObjects(s, newObjects), newFieldStore), srcOp);
   }
   
   
   
   /** Keep only nodes which fulfill the filter */
-  protected Store filter(final Store s, final Filter f) {
+  protected Store filter(final Store s, final IRNode srcOp, final Filter f) {
     if (!s.isValid()) return s;
 
     final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
@@ -709,14 +714,14 @@ extends TripleLattice<Element<Integer>,
             }
           });
     
-    return check(setFieldStore(setObjects(s, newObjects), newFieldStore));
+    return check(setFieldStore(setObjects(s, newObjects), newFieldStore), srcOp);
   }
 
   /**
    * Check that there are no compromised fields on nodes known only through
    * pseudo-variables.
    */
-  protected Store check(final Store s) {
+  protected Store check(final Store s, final IRNode srcOp) {
     if (!s.isValid()) return s;
     
     final ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
@@ -724,6 +729,7 @@ extends TripleLattice<Element<Integer>,
     for (final FieldTriple t : fieldStore) {
       final ImmutableHashOrderSet<Object> from = t.first();
       if (PSEUDOS.includes(from) && nodeStatus(t.third()).compareTo(State.UNIQUE) > 0) {
+        reportError(srcOp, "CF", "Reference to an object whose unique was made undefined as been lost; it is no longer possible to restore the uniqueness invariant of the undefined field");
         return errorStore("compromised field has been lost");
       }
     }

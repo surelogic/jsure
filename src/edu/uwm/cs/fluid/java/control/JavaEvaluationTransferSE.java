@@ -39,32 +39,32 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   // abstract stack operations.
 
   /** Pop an element from the stack and discard it. */
-  protected abstract T pop(T val);
+  protected abstract T pop(T val, IRNode srcOp);
   /** Push an unknown element onto the stack. */
-  protected abstract T push(T val);
+  protected abstract T push(T val, IRNode srcOp);
 
   /**
 	 * Pop all pending arguments from the stack because of an exception being
 	 * raised.
 	 */
-  protected abstract T popAllPending(T val);
+  protected abstract T popAllPending(T val, IRNode srcOp);
 
   /** Pop a specified number of elements off the stack. */
-  protected T pop(T val, int n) {
+  protected T pop(T val, final IRNode srcOp, int n) {
     for (; n > 0; --n) {
-      val = pop(val);
+      val = pop(val, srcOp);
     }
     return val;
   }
 
   /** Pop the second from top element from stack */
-  protected T popSecond(T val) {
-    return push(pop(pop(val)));
+  protected T popSecond(T val, final IRNode srcOp) {
+    return push(pop(pop(val, srcOp), srcOp), srcOp);
   }
 
   /** Duplicate the top element on the stack */
   protected T dup(final T val, final IRNode srcOp) {
-    return push(val);
+    return push(val, srcOp);
   }
 
   /**
@@ -102,7 +102,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
         if (ConditionalAndExpression.prototype.includes(op)
           || ConditionalOrExpression.prototype.includes(op)) {
           /* discard value not causing short-circuit: */
-          return pop(val);
+          return pop(val, node);
         } else
           return transferBinop(node, op, val);
       } else if (UnopExpression.prototype.includes(op)) {
@@ -122,7 +122,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
           return transferArrayInitializer(node, val);
         }
       } else if (ConditionalExpression.prototype.includes(op)) {
-        return pop(val); // discard value without consideration
+        return pop(val, node); // discard value without consideration
       } else if (ClassExpression.prototype.includes(op)) {
         return transferClassExpression(node, val);
       } else if (ParenExpression.prototype.includes(op)) {
@@ -140,7 +140,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
           || IfStatement.prototype.includes(op)
           // || IfElseStatement.prototype.includes(op)
           || WhileStatement.prototype.includes(op)) {
-        return pop(val);
+        return pop(val, node);
       } else if (ReturnStatement.prototype.includes(op)) {
         return transferReturn(node, val);
       } else if (SwitchStatement.prototype.includes(op)) {
@@ -152,7 +152,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
       return transferDefaultInit(node, val);
     } else if (StatementExpressionList.prototype.includes(op)) {
       /* discard each expression as it is evaluated */
-      return pop(val);
+      return pop(val, node);
     }
     throw new FluidError(
       "No transition defined for " + op + " with info=" + info);
@@ -163,7 +163,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * </strong>
 	 */
   protected T transferAdd(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
@@ -171,14 +171,14 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * grouping, leaf</strong>
 	 */
   protected T transferAllocation(IRNode node, T value) {
-    return push(value);
+    return push(value, node);
   }
 
   /**
 	 * Transfer a lattice value over &amp; connective. <strong>leaf</strong>
 	 */
   protected T transferAnd(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
@@ -199,9 +199,9 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   @Override
   protected T transferArrayCreation(IRNode node, T val) {
     if (tree.getOperator(node) instanceof DimExprs) {
-      val = pop(val, tree.numChildren(node));
+      val = pop(val, node, tree.numChildren(node));
     }
-    return push(val);
+    return push(val, node);
   }
 
   /**
@@ -209,7 +209,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * </strong>
 	 */
   protected T transferArrayInitializer(IRNode node, T val) {
-    return pop(val);
+    return pop(val, node);
   }
 
   /**
@@ -240,7 +240,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * and index in bounds). <strong>leaf</leaf>
 	 */
   protected T transferAssignArray(IRNode aref, T val) {
-    return popSecond(popSecond(val)); // pop object and index
+    return popSecond(popSecond(val, aref), aref); // pop object and index
   }
 
   /**
@@ -248,7 +248,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * <strong>leaf</leaf>
 	 */
   protected T transferAssignField(IRNode fref, T val) {
-    return popSecond(val); // pop object to assign into
+    return popSecond(val, fref); // pop object to assign into
   }
 
   /**
@@ -317,7 +317,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     if (flag)
       return value;
     else
-      return popAllPending(value);
+      return popAllPending(value, node);
   }
 
   /** Transfer over an implicit boxing operation.
@@ -363,9 +363,9 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     }
     for (IRNode arg : actuals) {
       if (VarArgsExpression.prototype.includes(arg)) {
-        value = pop(value, tree.numChildren(arg));
+        value = pop(value, node, tree.numChildren(arg));
       } else {
-        value = pop(value);
+        value = pop(value, node);
       }
     }
 
@@ -376,16 +376,16 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
       if (mcall) {
         LOG.severe("MethodCall's can't have qualifiers!");
       }
-      value = popSecond(value);
+      value = popSecond(value, node);
     }
     
     // now if a method call, pop receiver and push return value
     if (mcall) {
-      value = pop(value);
+      value = pop(value, node);
       /* Push value even for "void" methods.  The extraneous stack value will
        * be popped by the surrounding "ExpressionStatement" node.
        */
-      value = push(value);
+      value = push(value, node);
     }
     return value;
   }
@@ -416,7 +416,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 */
   protected T transferClassExpression(IRNode node, T val) {
     // push the class object on the stack.
-    return push(val);
+    return push(val, node);
   }
 
   /**
@@ -436,7 +436,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * </strong>
 	 */
   protected T transferComplement(IRNode node, T val) {
-    return push(pop(val));
+    return push(pop(val, node), node);
   }
 
   /**
@@ -446,7 +446,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
    * <strong>leaf</strong>
    */
   protected T transferConcat(IRNode node, T value) {
-    return push(pop(transferToString(node, pop(transferToString(node, value)))));
+    return push(pop(transferToString(node, pop(transferToString(node, value), node)), node), node);
   }
 
   /**
@@ -454,7 +454,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * </strong>
 	 */
   protected T transferCrement(IRNode node, Operator op, T val) {
-    return push(pop(val));
+    return push(pop(val, node), node);
   }
 
   /**
@@ -462,7 +462,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * </strong>
 	 */
   protected T transferDefaultInit(IRNode node, T val) {
-    return push(val);
+    return push(val, node);
   }
 
   /**
@@ -485,7 +485,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     if (flag) {
       return transferArrayCreation(dimExprs, val);
     } else {
-      return popAllPending(val);
+      return popAllPending(val, dimExprs);
     }
   }
 
@@ -514,14 +514,14 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * </strong>
 	 */
   protected T transferDivide(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
 	 * Transfer a lattice value over == test. <strong>leaf</strong>
 	 */
   protected T transferEq(IRNode node, boolean flag, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
@@ -534,14 +534,14 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   @Override
   protected T transferFailedArrayStore(IRNode node, T value) {
     // by default pop pending values
-    return popAllPending(value);
+    return popAllPending(value, node);
   }
 
   /**
 	 * Transfer a lattice value over a call which raises an exception.
 	 */
   protected T transferFailedCall(IRNode node, T value) {
-    return popAllPending(value);
+    return popAllPending(value, node);
   }
 
   /**
@@ -549,21 +549,21 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * exception.
 	 */
   protected T transferFailedCast(IRNode node, T value) {
-    return popAllPending(value);
+    return popAllPending(value, node);
   }
 
   /**
 	 * Transfer a lattice value over a failed divide or remainder.
 	 */
   protected T transferFailedDivide(IRNode divisor, T value) {
-    return popAllPending(value);
+    return popAllPending(value, divisor);
   }
 
   /**
 	 * Transfer a lattice value over &gt; test. <strong>leaf</strong>
 	 */
   protected T transferGreater(IRNode node, boolean flag, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
@@ -573,7 +573,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     IRNode node,
     boolean flag,
     T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   @Override
@@ -608,7 +608,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 *          the field declarator node.
 	 */
   protected T transferInitializationOfField(IRNode node, T value) {
-    return pop(value); // value is stored
+    return pop(value, node); // value is stored
   }
 
   /**
@@ -619,7 +619,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 *          the declarator node
 	 */
   protected T transferInitializationOfVar(IRNode node, T value) {
-    return pop(value); // value is stored
+    return pop(value, node); // value is stored
   }
 
   /**
@@ -630,7 +630,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     IRNode node,
     boolean flag,
     T val) {
-    return push(pop(val));
+    return push(pop(val, node), node);
   }
 
   /**
@@ -654,21 +654,21 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     if (flag)
       return value;
     else
-      return popAllPending(value);
+      return popAllPending(value, node);
   }
 
   /**
 	 * Transfer a lattice value over &lt;&lt; shift. <strong>leaf</strong>
 	 */
   protected T transferLeftShift(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
 	 * Transfer a lattice value over &lt; test. <strong>leaf</strong>
 	 */
   protected T transferLess(IRNode node, boolean flag, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
@@ -678,14 +678,14 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     IRNode node,
     boolean flag,
     T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
    * Transfer evaluation over literal expression. <strong>leaf</strong>
    */
   protected T transferLiteral(IRNode node, T val) {
-    return push(val);
+    return push(val, node);
   }
 
   /**
@@ -693,7 +693,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * </leaf>
 	 */
   protected T transferMinus(IRNode node, T value) {
-    return push(pop(value));
+    return push(pop(value, node), node);
   }
 
   /**
@@ -713,7 +713,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     boolean enter,
     T value) {
     if (enter)
-      return pop(value);
+      return pop(value, node);
     else
       return value;
   }
@@ -722,14 +722,14 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * Transfer a lattice value over multiplication. <strong>leaf</strong>
 	 */
   protected T transferMultiply(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
 	 * Transfer a lattice value over | connective. <strong>leaf</strong>
 	 */
   protected T transferOr(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
@@ -737,7 +737,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * chars, bytes and shorts to ints). <strong>leaf</leaf>
 	 */
   protected T transferPlus(IRNode node, T value) {
-    return push(pop(value));
+    return push(pop(value, node), node);
   }
 
   /** Transfer over a test */
@@ -773,7 +773,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * Transfer a lattice value over % operation. <strong>leaf</strong>
 	 */
   protected T transferRemainder(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
@@ -781,21 +781,21 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * major grouping, leaf</strong>
 	 */
   protected T transferReturn(IRNode node, T val) {
-    return pop(val);
+    return pop(val, node);
   }
 
   /**
 	 * Transfer a lattice value over &gt;&gt; shift. <strong>leaf</strong>
 	 */
   protected T transferRightShift(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
 	 * Transfer a lattice value over subtraction. <strong>leaf</strong>
 	 */
   protected T transferSubtract(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
@@ -803,7 +803,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * major grouping, leaf</strong>
 	 */
   protected T transferSwitch(IRNode node, T val) {
-    return pop(val);
+    return pop(val, node);
   }
 
   /**
@@ -811,7 +811,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * major grouping, leaf</strong>
 	 */
   protected T transferThrow(IRNode node, T val) {
-    return pop(val);
+    return pop(val, node);
   }
 
   /**
@@ -820,7 +820,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
    * <strong>leaf</strong>
    */
   protected T transferToString(IRNode node, T val) {
-    return push(pop(val));
+    return push(pop(val, node), node);
   }
 
 
@@ -829,7 +829,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * grouping, leaf</strong>
 	 */
   protected T transferType(IRNode node, T val) {
-    return push(val);
+    return push(val, node);
   }
 
   /** Transfer over an implicit unboxing operation
@@ -869,7 +869,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * </strong>
 	 */
   protected T transferUnsignedRightShift(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
@@ -930,8 +930,8 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 */
   protected T transferUseArray(IRNode aref, T val) {
     if (isBothLhsRhs(aref))
-      val = push(push(val));
-    return push(pop(pop(val)));
+      val = push(push(val, aref), aref);
+    return push(pop(pop(val, aref), aref), aref);
   }
 
   /**
@@ -940,8 +940,8 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 */
   protected T transferUseField(IRNode fref, T val) {
     if (isBothLhsRhs(fref))
-      val = push(val);
-    return push(pop(val));
+      val = push(val, fref);
+    return push(pop(val, fref), fref);
   }
 
   /**
@@ -950,22 +950,22 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
    */
   protected T transferUseArrayLength(IRNode fref, T val) {
     if (isBothLhsRhs(fref))
-      val = push(val);
-    return push(pop(val));
+      val = push(val, fref);
+    return push(pop(val, fref), fref);
   }
   
   /**
 	 * Transfer evaluation over use of a variable. <strong>leaf</leaf>
 	 */
   protected T transferUseVar(IRNode var, T val) {
-    return push(val);
+    return push(val, var);
   }
 
   /**
    * Transfer a lattice value over ^ connective. <strong>leaf </strong>
    */
   protected T transferXor(IRNode node, T value) {
-    return push(pop(pop(value)));
+    return push(pop(pop(value, node), node), node);
   }
 
   /**
