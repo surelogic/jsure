@@ -36,8 +36,8 @@ public final class JSurePreferencesUtility {
 	 * trigger Eclipse to load the containing plug-in. This is because the
 	 * constants are copied by the Java compiler into using class files. This
 	 * means that each using plug-in <b>must</b> invoke
-	 * {@link #initializeDefaultScope()} in its plug-in activator's
-	 * {@code start} method.
+	 * {@link #initializeDefaultScope()} in its plug-in activator's {@code
+	 * start} method.
 	 */
 	public static void initializeDefaultScope() {
 		if (f_initializationNeeded.compareAndSet(true, false)) {
@@ -47,8 +47,9 @@ public final class JSurePreferencesUtility {
 				cpuCount = 1;
 			EclipseUtility.setDefaultIntPreference(
 					IDEPreferences.ANALYSIS_THREAD_COUNT, cpuCount);
-			EclipseUtility.setDefaultIntPreference(IDEPreferences.TOOL_MEMORY_MB, 1024);
-			
+			EclipseUtility.setDefaultIntPreference(
+					IDEPreferences.TOOL_MEMORY_MB, 1024);
+
 			EclipseUtility.setDefaultBooleanPreference(
 					SHOW_BALLOON_NOTIFICATIONS, true);
 			EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences()
@@ -74,23 +75,30 @@ public final class JSurePreferencesUtility {
 					true);
 
 			String dataDir = EclipseUtility
-			.getADataDirectoryPath(FileUtility.JSURE_DATA_PATH_FRAGMENT);
-			EclipseUtility
-					.setDefaultStringPreference(
-							IDEPreferences.JSURE_DATA_DIRECTORY, dataDir);							
-			EclipseUtility
-			.setDefaultStringPreference(
-					IDEPreferences.JSURE_XML_DIRECTORY, dataDir+'/'+DriverConstants.XML_PATH_SEGMENT);	
+					.getADataDirectoryPath(FileUtility.JSURE_DATA_PATH_FRAGMENT);
+			EclipseUtility.setDefaultStringPreference(
+					IDEPreferences.JSURE_DATA_DIRECTORY, dataDir);
+			EclipseUtility.setDefaultStringPreference(
+					IDEPreferences.JSURE_XML_DIRECTORY, dataDir + '/'
+							+ DriverConstants.XML_PATH_SEGMENT);
 
-			for(IAnalysisInfo a : Javac.getDefault().getAnalysisInfo()) {
-				//System.out.println("Defaulting "+a.getUniqueIdentifier()+" to "+a.isProduction());
+			for (IAnalysisInfo a : Javac.getDefault().getAnalysisInfo()) {
+				// System.out.println("Defaulting "+a.getUniqueIdentifier()+" to "+a.isProduction());
 				EclipseUtility.setDefaultBooleanPreference(
-						IDEPreferences.ANALYSIS_ACTIVE_PREFIX+a.getUniqueIdentifier(), 
-						a.isProduction());
+						IDEPreferences.ANALYSIS_ACTIVE_PREFIX
+								+ a.getUniqueIdentifier(), a.isProduction());
 			}
-			
-			EclipseUtility.setDefaultStringPreference(SCAN_UPDATE_MODE, ScanUpdateMode.DIFF_WITH_PREV.toString());
-			
+
+			EclipseUtility.setDefaultStringPreference(SCAN_UPDATE_MODE,
+					ScanUpdateMode.DIFF_WITH_PREV.toString());
+
+			EclipseUtility.setDefaultIntPreference(
+					IDEPreferences.TIMEOUT_WARNING_SEC, 30);
+			EclipseUtility.setDefaultBooleanPreference(
+					IDEPreferences.TIMEOUT_FLAG, true);
+			EclipseUtility.setDefaultIntPreference(IDEPreferences.TIMEOUT_SEC,
+					60);
+
 			/*
 			 * We'll take the default-default for the other preferences.
 			 */
@@ -116,11 +124,11 @@ public final class JSurePreferencesUtility {
 			+ "lockModelNameSuffix";
 	public static final String LOCK_MODEL_NAME_CAP = PREFIX
 			+ "lockModelNameCap";
-	
+
 	public static final String BASELINE_SCAN = PREFIX + "baseline.scan";
 	public static final String CURRENT_SCAN = PREFIX + "current.scan";
 	public static final String SCAN_UPDATE_MODE = PREFIX + "scan.update.mode";
-	
+
 	/**
 	 * Gets the JSure data directory. This method ensures that the directory
 	 * does exist on the disk. It checks that is is there and, if not, tries to
@@ -153,12 +161,12 @@ public final class JSurePreferencesUtility {
 			}
 		};
 	}
-	
+
 	/**
 	 * Gets the memory size to be used by the remote JSure process
 	 */
 	public static int getMaxMemorySize() {
-	    return EclipseUtility.getIntPreference(IDEPreferences.TOOL_MEMORY_MB);
+		return EclipseUtility.getIntPreference(IDEPreferences.TOOL_MEMORY_MB);
 	}
 
 	private JSurePreferencesUtility() {
