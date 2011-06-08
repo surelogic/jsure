@@ -290,6 +290,23 @@ public class PromisesXMLEditor extends EditorPart {
 									methods.add(m);
 								}
 							}
+							Collections.sort(methods, new Comparator<IMethod>() {
+								@Override
+								public int compare(IMethod o1, IMethod o2) {
+									int rv = o1.getElementName().compareTo(o2.getElementName());
+									if (rv == 0) {
+										rv = o1.getParameterTypes().length - o2.getParameterTypes().length;
+									}
+									if (rv == 0) {
+										try {
+											rv = o1.getSignature().compareTo(o2.getSignature());
+										} catch (JavaModelException e) {
+											// ignore
+										}
+									}
+									return rv;
+								}
+							});
 							d = new ListSelectionDialog(contents.getTree().getShell(), methods.toArray(), 
 									                    jProvider, jProvider, "Select method(s)");
 							if (d.open() == SWT.OK) {
@@ -338,14 +355,29 @@ public class PromisesXMLEditor extends EditorPart {
 			if (sb.length() != 0) {
 				sb.append(',');
 			}		
-			String mapped = typeMapping.get(t);
-			if (mapped == null) {
-				// TODO
-				mapped = t.substring(1, t.length()-1);
-			}
-			sb.append(mapped);
+			translateParameter(sb, t);
 		}
 		return sb.toString();
+	}
+	
+	static void translateParameter(StringBuilder sb, String t) {
+		String mapped = typeMapping.get(t);
+		if (mapped == null) {
+			int dims = 0;
+			while (t.charAt(dims) == Signature.C_ARRAY) {
+				dims++;
+			}
+			if (dims == 0) {
+				// Assumed to be a class name
+				mapped = t.substring(1, t.length()-1).replace('$', '.');
+			} else {
+				translateParameter(sb, t.substring(dims));
+				for(int i=0; i<dims; i++) {
+					sb.append("[]");
+				}
+			}			
+		}
+		sb.append(mapped);
 	}
 	
 	static void makeMenuItem(Menu menu, String label, SelectionListener l) {
@@ -381,6 +413,13 @@ public class PromisesXMLEditor extends EditorPart {
 			org.eclipse.jdt.core.IJavaElement e = (org.eclipse.jdt.core.IJavaElement) element; 
 			if (e instanceof IMethod) {
 				IMethod m = (IMethod) e;
+				try {
+					if (m.isConstructor()) {
+						return "new "+m.getElementName()+'('+translateParameters(m)+')';
+					}
+				} catch (JavaModelException e1) {
+					// ignore
+				}
 				return m.getElementName()+'('+translateParameters(m)+')';
 			}
 			return e.getElementName();
