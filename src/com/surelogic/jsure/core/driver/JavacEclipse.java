@@ -34,6 +34,18 @@ public class JavacEclipse extends Javac {
 			boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);
 			setPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, value);
 		}
+		for(String pref : IDEPreferences.BOOL_PREFS_TO_SYNC) {
+			boolean value = EclipseUtility.getBooleanPreference(pref);			
+			setPreference(pref, value);
+		}
+		for(String pref : IDEPreferences.INT_PREFS_TO_SYNC) {
+			int value = EclipseUtility.getIntPreference(pref);			
+			setPreference(pref, value);
+		}
+		for(String pref : IDEPreferences.STR_PREFS_TO_SYNC) {
+			String value = EclipseUtility.getStringPreference(pref);			
+			setPreference(pref, value);
+		}
 		/*
 		if (XUtil.testing) {
 			new Throwable("For stack trace").printStackTrace();
