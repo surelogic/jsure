@@ -15,7 +15,7 @@ public class ClassElement extends AbstractJavaElement {
 		super(id);
 	}
 	
-	IClassMember addMember(IClassMember m) {
+	public IClassMember addMember(IClassMember m) {
 		m.setParent(this);
 		if (m instanceof MethodElement) {
 			MethodElement method = (MethodElement) m;
