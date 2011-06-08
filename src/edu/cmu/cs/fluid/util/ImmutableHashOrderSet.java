@@ -758,10 +758,16 @@ class SortedArray {
   }
 
   static <V> V[] sort(V[] a) {
-	if (a.length <= 1) {
-		return a; // Already 'sorted'
-	}	  
-    // V[] aux = (V[]) a.clone(); // Reuse these?
+    int n = a.length;
+    if (n <= 1) return a;
+    boolean sorted = true;
+    int prev = a[0].hashCode();
+    for (int i=1; sorted && i < n; ++i) {
+      int h = a[i].hashCode();
+      if (h < prev) sorted = false;
+      else prev = h;
+    }
+    if (sorted) return a;
     V[] aux = cloneArray(a);
     if (aux.length < a.length) {
       System.out.println("aux is shorter than a");
