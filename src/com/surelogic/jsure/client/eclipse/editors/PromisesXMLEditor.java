@@ -4,16 +4,18 @@ import java.io.*;
 import java.net.URI;
 
 import org.eclipse.core.runtime.*;
+import org.eclipse.jdt.core.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.*;
-import org.eclipse.swt.events.MenuDetectEvent;
-import org.eclipse.swt.events.MenuDetectListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.part.EditorPart;
 
+import com.surelogic.common.core.JDTUtility;
 import com.surelogic.xml.*;
+import com.surelogic.xml.IJavaElement;
 
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
@@ -240,22 +242,63 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
-	void setupContextMenu(Menu menu) {
+	private void setupContextMenu(final Menu menu) {
 		final IStructuredSelection s = (IStructuredSelection) contents.getSelection();
 		if (s.size() != 1) {
 			return;
 		}
 		Object o = s.getFirstElement();
 		if (o instanceof AnnotationElement) {
-			// modify comments
+			// TODO add comment
 		}
 		else if (o instanceof AbstractJavaElement) {
-			AbstractJavaElement j = (AbstractJavaElement) o;
+			final AbstractJavaElement j = (AbstractJavaElement) o;
+			makeMenuItem(menu, "Add annotation...", new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					// TODO create dialog
+					//AnnotationElement a = new AnnotationElement(null, tag, text, attrs);
+				}
+			});
+		
+			// TODO add comment
+			if (o instanceof AbstractFunctionElement) {
+				final AbstractFunctionElement f = (AbstractFunctionElement) o;
+				makeMenuItem(menu, "Add parameter...", new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						// TODO create dialog
+						FunctionParameterElement p = new FunctionParameterElement(0);						
+					}
+				});
+			} 
+			else if (o instanceof ClassElement) {
+				final ClassElement c = (ClassElement) o;
+				makeMenuItem(menu, "Add existing member...", new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						// TODO create dialog
+						IType t = findIType(c, "");						
+					}
+				});
+			}
 		}
-		/*
+	}
+	
+	IType findIType(ClassElement c, String nameSoFar) {
+		String typeName = nameSoFar.isEmpty() ? c.getName() : c.getName()+'.'+nameSoFar;
+		if (c instanceof NestedClassElement) {
+			ClassElement parent = (ClassElement) c.getParent();
+			return findIType(parent, typeName);
+		} else { // top-level
+			PackageElement pkg = (PackageElement) c.getParent();
+			return JDTUtility.findIType(null, pkg.getName(), typeName);
+		}
+	}
+
+	void makeMenuItem(Menu menu, String label, SelectionListener l) {
 		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
-		item1.setText("");
-		item1.addSelectionListener(listener);
-		*/
+		item1.setText(label);
+		item1.addSelectionListener(l);
 	}
 }
