@@ -23,7 +23,11 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	final StringBuilder b = new StringBuilder();
 	
 	public PromisesXMLWriter(File f) throws FileNotFoundException {
-		pw = new PrintWriter(f);
+		this(new PrintWriter(f));
+	}
+
+	public PromisesXMLWriter(PrintWriter w) {
+		pw = w;
 	}
 	
 	private void flush() {
