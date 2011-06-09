@@ -11,7 +11,7 @@ public class PackageElement extends AbstractJavaElement {
 		c.setParent(this);
 	}	
 	
-	final ClassElement getClassElement() {
+	public final ClassElement getClassElement() {
 		return clazz;
 	}
 
