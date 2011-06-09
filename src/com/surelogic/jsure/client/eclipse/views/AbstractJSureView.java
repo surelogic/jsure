@@ -78,7 +78,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 						}
 						final String path = root + slash + pkg + slash + name + TestXMLParserConstants.SUFFIX;
 						final File xml = new File(path);
-						if (!xml.exists()) {
+						if (!xml.exists() || xml.length() == 0) {
 							xml.getParentFile().mkdirs();
 
 							// Create a template
@@ -110,7 +110,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 										final String s = XMLGenerator.generateStringXML(ast, true);
 										pw.println(s);
 									} else {
-										PackageElement pe = PromisesXMLBuilder.makeModel(pkg, name);
+										PackageElement pe = PromisesXMLBuilder.makeModel(srcRef.getPackage(), name);
 										if (pe != null) {
 											PromisesXMLWriter w = new PromisesXMLWriter(pw);
 											w.write(pe);
