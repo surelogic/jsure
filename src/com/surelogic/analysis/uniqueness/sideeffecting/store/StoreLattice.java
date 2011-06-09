@@ -51,11 +51,25 @@ extends TripleLattice<Element<Integer>,
   // for creating drops
   private final IIRAnalysis analysis;
   
-  // should we create drops
+  /**
+   * Should we create drops at all.  This is set by the analysis using
+   * the lattice.  That is, are we at the side-effecing stage yet.
+   */
   private boolean makeDrops = false;
     
+  /**
+   * If we are creating drops, should temporarily suppress creation of the
+   * drops.  This is used internally, and set when along the abrupt termination
+   * path should not be created because they are going to duplicate results
+   * reported along the normal termination path.
+   */
+  private boolean suppressDrops = false;
   
-
+  /** Are the results we are creatin for the abrupt termination path */
+  private boolean abruptDrops = false;
+  
+  
+  
   // ==================================================================
   // === Constructor 
   // ==================================================================
@@ -76,6 +90,13 @@ extends TripleLattice<Element<Integer>,
     makeDrops = value;
   }
   
+  public void setSuppressDrops(final boolean value) {
+    suppressDrops = value;
+  }
+  
+  public void setAbruptResults(final boolean value) {
+    abruptDrops = value;
+  }
   
   
   // ==================================================================
@@ -575,9 +596,10 @@ extends TripleLattice<Element<Integer>,
   }
   
   private void reportError(final IRNode srcOp, final String label, final String message) {
-    if (makeDrops) {
+    if (makeDrops && !suppressDrops) {
+      final String newMsg = abruptDrops ? message + " (ABRUPT)" : message;
       final InfoDropBuilder infoDrop = InfoDropBuilder.create(analysis, label, true);
-      infoDrop.setMessage(message);
+      infoDrop.setMessage(newMsg);
       infoDrop.setNode(srcOp);
     }
   }
