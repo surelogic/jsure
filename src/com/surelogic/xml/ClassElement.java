@@ -11,7 +11,7 @@ public class ClassElement extends AbstractJavaElement {
 	private final Map<String,ConstructorElement> constructors = new HashMap<String, ConstructorElement>(0);
 	private ClassInitElement clinit;
 	
-	ClassElement(String id) {
+	public ClassElement(String id) {
 		super(id);
 	}
 	

@@ -5,7 +5,7 @@ import java.util.List;
 public class PackageElement extends AbstractJavaElement {
 	private final ClassElement clazz;
 	
-	PackageElement(String id, ClassElement c) {
+	public PackageElement(String id, ClassElement c) {
 		super(id);
 		clazz = c;
 		c.setParent(this);
