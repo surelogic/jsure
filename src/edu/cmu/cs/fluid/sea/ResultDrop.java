@@ -189,18 +189,18 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 	 * Typical use of this method is:
 	 * 
 	 * <pre>
-   * if (rd.hasOrLogic()) {
-   *   Set orLabels = rd.get_or_TrustLabelSet()
-   *   for (Iterator i = orLabels.iterator(); i.hasNext();) {
-   *      String orKey = (String) i.next();
-   *      Set promiseSet = rd.get_or_Trusts(orKey);
-   *      for (Iterator j = promiseSet.iterator(); j.hasNext();) {
-   *         PromiseDrop promise = (PromiseDrop) j.next();
-   *         // do something
-   *      }   
-   *   }
-   * }
-   * </pre>
+	 * if (rd.hasOrLogic()) {
+	 *   Set orLabels = rd.get_or_TrustLabelSet()
+	 *   for (Iterator i = orLabels.iterator(); i.hasNext();) {
+	 *      String orKey = (String) i.next();
+	 *      Set promiseSet = rd.get_or_Trusts(orKey);
+	 *      for (Iterator j = promiseSet.iterator(); j.hasNext();) {
+	 *         PromiseDrop promise = (PromiseDrop) j.next();
+	 *         // do something
+	 *      }   
+	 *   }
+	 * }
+	 * </pre>
 	 * 
 	 * @return <code>true</code> if "or" precondition logic exists,
 	 *         <code>false</code> otherwise.
@@ -215,19 +215,19 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 	 * Typical use of this method is:
 	 * 
 	 * <pre>
-   * if (rd.hasOrLogic()) {
-   *   Set orLabels = rd.get_or_TrustLables()
-   *   Set orLabels = rd.get_or_TrustLabelSet()
-   *   for (Iterator i = orLabels.iterator(); i.hasNext();) {
-   *      String orKey = (String) i.next();
-   *      Set promiseSet = rd.get_or_Trusts(orKey);
-   *      for (Iterator j = promiseSet.iterator(); j.hasNext();) {
-   *         PromiseDrop promise = (PromiseDrop) j.next();
-   *         // do something
-   *      }   
-   *   }
-   * }
-   * </pre>
+	 * if (rd.hasOrLogic()) {
+	 *   Set orLabels = rd.get_or_TrustLables()
+	 *   Set orLabels = rd.get_or_TrustLabelSet()
+	 *   for (Iterator i = orLabels.iterator(); i.hasNext();) {
+	 *      String orKey = (String) i.next();
+	 *      Set promiseSet = rd.get_or_Trusts(orKey);
+	 *      for (Iterator j = promiseSet.iterator(); j.hasNext();) {
+	 *         PromiseDrop promise = (PromiseDrop) j.next();
+	 *         // do something
+	 *      }   
+	 *   }
+	 * }
+	 * </pre>
 	 * 
 	 * @return the set of "or" keys used by this promise
 	 */
@@ -241,18 +241,18 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 	 * Typical use of this method is:
 	 * 
 	 * <pre>
-   * if (rd.hasOrLogic()) {
-   *   Set orLabels = rd.get_or_TrustLabelSet()
-   *   for (Iterator i = orLabels.iterator(); i.hasNext();) {
-   *      String orKey = (String) i.next();
-   *      Set promiseSet = rd.get_or_Trusts(orKey);
-   *      for (Iterator j = promiseSet.iterator(); j.hasNext();) {
-   *         PromiseDrop promise = (PromiseDrop) j.next();
-   *         // do something
-   *      }   
-   *   }
-   * }
-   * </pre>
+	 * if (rd.hasOrLogic()) {
+	 *   Set orLabels = rd.get_or_TrustLabelSet()
+	 *   for (Iterator i = orLabels.iterator(); i.hasNext();) {
+	 *      String orKey = (String) i.next();
+	 *      Set promiseSet = rd.get_or_Trusts(orKey);
+	 *      for (Iterator j = promiseSet.iterator(); j.hasNext();) {
+	 *         PromiseDrop promise = (PromiseDrop) j.next();
+	 *         // do something
+	 *      }   
+	 *   }
+	 * }
+	 * </pre>
 	 * 
 	 * @param key
 	 *            the key to provide the promise drop set for
@@ -298,7 +298,7 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 	 * Flags if this result drop was "vouched" for by a programmer even though
 	 * it is inconsistent.
 	 */
-	boolean vouched = false;
+	private boolean vouched = false;
 
 	/**
 	 * Returns if this result drop was "vouched" for by a programmer even though
@@ -318,6 +318,30 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 	 */
 	public void setVouched() {
 		vouched = true;
+	}
+
+	/**
+	 * Flags if this result drop is inconsistent because the analysis timed out.
+	 */
+	private boolean timeout = false;
+
+	/**
+	 * Sets this analysis result to inconsistent and marks that this is because
+	 * its verifying analysis timed out.
+	 */
+	public void setTimeout() {
+		setInconsistent();
+		timeout = true;
+	}
+
+	/**
+	 * Returns if this result is inconsistent because the analysis timed out.
+	 * 
+	 * @return <code>true</code> if this result drop is inconsistent because the
+	 *         analysis timed out, <code>false</code> otherwise.
+	 */
+	public boolean getTimeout() {
+		return timeout;
 	}
 
 	/**
