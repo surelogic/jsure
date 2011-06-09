@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
+import org.eclipse.jdt.ui.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.*;
 import org.eclipse.swt.events.*;
@@ -82,6 +83,11 @@ public class PromisesXMLEditor extends EditorPart {
     	   }
        }, ColumnViewerEditor.DEFAULT);
        */
+       /*
+       //http://help.eclipse.org/helios/index.jsp?topic=/org.eclipse.jdt.doc.isv/guide/jdt_api_render.htm
+       contents.setContentProvider(new StandardJavaElementContentProvider(true));
+       contents.setLabelProvider(new JavaElementLabelProvider());
+       */
     }
     
     @Override
@@ -152,11 +158,17 @@ public class PromisesXMLEditor extends EditorPart {
 		@Override
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 			if (newInput != location) {
-				location = (URI) newInput;				
-				System.out.println("Editor got "+location);
-				build();
+				if (newInput instanceof URI) {
+					location = (URI) newInput;				
+					System.out.println("Editor got "+location);
+					build();
+				}
 			} else {
 				System.out.println("Ignoring duplicate input");
+				/*
+				IType t = JDTUtility.findIType(null, pkg.getName(), pkg.getClassElement().getName());
+				contents.setInput(t);
+                */
 			}
 			if (viewer != null && viewer == contents) {
 				contents.getControl().getDisplay().asyncExec(new Runnable() {
