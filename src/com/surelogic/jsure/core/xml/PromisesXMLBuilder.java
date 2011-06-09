@@ -67,6 +67,8 @@ public class PromisesXMLBuilder {
 				}
 			}
 		}
+		// TODO fields
+		// TODO nested classes -- only public ones?
 		return new PackageElement(pkg, c);
 	}
 }
