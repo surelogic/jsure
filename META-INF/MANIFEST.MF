@@ -12,7 +12,8 @@ Export-Package: com.surelogic.jsure.core,
  com.surelogic.jsure.core.listeners,
  com.surelogic.jsure.core.preferences,
  com.surelogic.jsure.core.scans,
- com.surelogic.jsure.core.scripting
+ com.surelogic.jsure.core.scripting,
+ com.surelogic.jsure.core.xml
 Require-Bundle: com.surelogic.common,
  com.surelogic.common.core,
  edu.cmu.cs.fluid,
