@@ -18,6 +18,7 @@ import org.eclipse.ui.dialogs.ListSelectionDialog;
 import org.eclipse.ui.part.EditorPart;
 
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.*;
 import com.surelogic.xml.IJavaElement;
@@ -237,7 +238,11 @@ public class PromisesXMLEditor extends EditorPart {
 
 		@Override
 		public Image getImage(Object element) {
-			return null;
+			if (element instanceof String) {
+				return null;
+			}
+			IJavaElement e = (IJavaElement) element;
+			return SLImages.getImage(e.getImageKey());
 		}
 		
 		@Override
@@ -351,10 +356,6 @@ public class PromisesXMLEditor extends EditorPart {
 			return JDTUtility.findIType(null, pkg.getName(), typeName);
 		}
 	}
-
-
-	
-
 	
 	static void makeMenuItem(Menu menu, String label, SelectionListener l) {
 		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
