@@ -51,7 +51,6 @@ public abstract class TypeImplementationProcessor {
     result.addCheckedPromise(promiseDrop);
     result.setConsistent(isConsistent);
     result.setResultMessage(msg, args);
-    result.setTimeout();
     return result;
   }
 
