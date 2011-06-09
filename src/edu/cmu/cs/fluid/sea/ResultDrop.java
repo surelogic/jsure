@@ -340,7 +340,7 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 	 * @return <code>true</code> if this result drop is inconsistent because the
 	 *         analysis timed out, <code>false</code> otherwise.
 	 */
-	public boolean getTimeout() {
+	public boolean isTimeout() {
 		return timeout;
 	}
 

@@ -15,6 +15,7 @@ public interface IProofDropInfo extends IDropInfo {
 	boolean isVirtual();
 	
 	boolean isVouched();
+	boolean isTimeout();
 	Collection<? extends IProofDropInfo> getTrusts();
 	Collection<? extends IProofDropInfo> getChecks();
 	boolean hasOrLogic();
@@ -24,5 +25,4 @@ public interface IProofDropInfo extends IDropInfo {
 	Collection<? extends IProofDropInfo> get_or_Trusts(String key);
 	Collection<? extends IProofDropInfo> getCheckedBy();
 	Collection<? extends IProofDropInfo> getTrustsComplete();
-
 }
