@@ -61,7 +61,9 @@ public class PromisesXMLBuilder {
 				if ("<clinit>".equals(m.getElementName())) {
 					c.addMember(new ClassInitElement());
 				} else {
-					
+					String params = translateParameters(m);									
+					c.addMember(m.isConstructor() ? new ConstructorElement(params) : 
+						                            new MethodElement(m.getElementName(), params));
 				}
 			}
 		}
