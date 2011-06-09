@@ -94,6 +94,12 @@ public class ClassElement extends AbstractJavaElement {
 	}
 	
 	@Override
+	public boolean hasChildren() {
+		return !methods.isEmpty() || !constructors.isEmpty() || super.hasChildren() ||
+		       !classes.isEmpty() || !fields.isEmpty() || clinit != null;
+	}
+	
+	@Override
 	protected void collectOtherChildren(List<Object> children) {
 		if (clinit != null) {
 			children.add(clinit);

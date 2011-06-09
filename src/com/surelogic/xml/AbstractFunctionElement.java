@@ -66,6 +66,11 @@ implements IClassMember, TestXMLParserConstants
 	}
 	
 	@Override
+	public boolean hasChildren() {
+		return super.hasChildren() || !params.isEmpty();
+	}
+	
+	@Override
 	protected void collectOtherChildren(List<Object> children) {
 		children.addAll(params);
 	}
