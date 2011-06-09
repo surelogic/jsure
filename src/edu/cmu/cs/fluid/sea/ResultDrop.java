@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  * Not intended to be subclassed.
  */
 @SuppressWarnings("unchecked")
-public class ResultDrop extends ProofDrop implements IResultDrop {
+public final class ResultDrop extends ProofDrop implements IResultDrop {
 	public static final String VOUCHED = "vouched";
 	public static final String CONSISTENT = "consistent";
 	public static final String CHECKED_PROMISE = "checked-promise";

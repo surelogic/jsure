@@ -15,7 +15,6 @@ import edu.cmu.cs.fluid.sea.IRReferenceDrop;
 import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleResultDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoledClassDrop;
 
 
@@ -42,7 +41,7 @@ public static final Category multiThreadedInfoCategory =
   Category.getResultInstance("Possibly Multi-threaded methods");
 
   public static ResultDrop createResultDrop(String msg, String resultDropKind, IRNode loc) {
-    ResultDrop rd = new TRoleResultDrop(resultDropKind);
+    ResultDrop rd = new ResultDrop(resultDropKind); // TODO FIX TOP LEVEL
     rd.setConsistent();
     // rd.addCheckedPromise(pd);
     rd.setNodeAndCompilationUnitDependency(loc);

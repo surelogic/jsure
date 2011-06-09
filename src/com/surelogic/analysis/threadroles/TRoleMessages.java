@@ -16,7 +16,6 @@ import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.ResultDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleInfoDrop;
-import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleResultDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoleWarningDrop;
 import edu.cmu.cs.fluid.sea.drops.threadroles.TRoledClassDrop;
 
@@ -44,7 +43,7 @@ public class TRoleMessages {
 
 	public static ResultDrop createResultDrop(String msg,
 			String resultDropKind, IRNode loc) {
-		ResultDrop rd = new TRoleResultDrop(resultDropKind);
+		ResultDrop rd = new ResultDrop(resultDropKind); // TODO FIX TOP LEVEL
 		rd.setConsistent();
 		// rd.addCheckedPromise(pd);
 		rd.setNodeAndCompilationUnitDependency(loc);
@@ -95,7 +94,7 @@ public class TRoleMessages {
 
 	public static ResultDrop createProblemDrop(String msg,
 			String resultDropKind, IRNode loc) {
-		ResultDrop rd = new TRoleResultDrop(resultDropKind);
+		ResultDrop rd = new ResultDrop(resultDropKind); // TODO FIX TOP LEVEL
 		rd.setInconsistent();
 		// rd.addCheckedPromise(pd);
 		if (loc != null) {
