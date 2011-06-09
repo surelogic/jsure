@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
  */
 @SuppressWarnings("unchecked")
 public final class ResultDrop extends ProofDrop implements IResultDrop {
+	public static final String TIMEOUT = "timeout";
 	public static final String VOUCHED = "vouched";
 	public static final String CONSISTENT = "consistent";
 	public static final String CHECKED_PROMISE = "checked-promise";
@@ -402,6 +403,7 @@ public final class ResultDrop extends ProofDrop implements IResultDrop {
 		s.addAttribute(CONSISTENT, isConsistent());
 		s.addAttribute(OR_USES_RED_DOT, get_or_proofUsesRedDot());
 		s.addAttribute(OR_PROVED, get_or_provedConsistent());
+		s.addAttribute(TIMEOUT, isTimeout());
 		if (type != null) {
 			s.addAttribute("result-type", type);
 		} else {

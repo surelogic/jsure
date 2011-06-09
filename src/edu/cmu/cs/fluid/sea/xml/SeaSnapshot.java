@@ -740,6 +740,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 			return "true".equals(getAttribute(ResultDrop.VOUCHED));
 		}
 		
+		public boolean isTimeout() {
+			return "true".equals(getAttribute(ResultDrop.TIMEOUT));
+		}
+		
 		public boolean isAssumed() {
 			return "true".equals(getAttribute(PromiseDrop.ASSUMED));
 		}
