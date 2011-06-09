@@ -30,8 +30,9 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 		return rv;
 	}
 	
-	public void setTimeout(boolean value) {
-	  isTimeout = value;
+	public void setTimeout() {
+	  isTimeout = true;
+	  isConsistent = false;
 	}
 	
 	public void setConsistent(final boolean value) {
@@ -88,10 +89,10 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 			return 0;
 		}
 		ResultDrop rd = new ResultDrop(type);				
+		rd.setConsistent(isConsistent);
 		if (isTimeout) {
 			rd.setTimeout();
 		}
-		rd.setConsistent(isConsistent);
 		for(PromiseDrop check : checks) {
 			rd.addCheckedPromise(check);
 		}
