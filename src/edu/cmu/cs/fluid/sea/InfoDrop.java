@@ -12,11 +12,6 @@ public class InfoDrop extends IRReferenceDrop implements IResultDrop {
 		type = t;
 	}
 	
-	@Deprecated
-	public InfoDrop() {
-		this(null);
-	}
-	
 	@Override
 	public void snapshotAttrs(AbstractSeaXmlCreator s) {
 		super.snapshotAttrs(s);

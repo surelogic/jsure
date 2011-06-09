@@ -60,7 +60,7 @@ public static final Category multiThreadedInfoCategory =
 
   public static WarningDrop createWarningDrop(String msg,
       IRNode loc) {
-    WarningDrop wd = new WarningDrop();
+    WarningDrop wd = new WarningDrop("ColorMessages");
     // rd.addCheckedPromise(pd);
     wd.setNodeAndCompilationUnitDependency(loc);
     wd.setMessage(msg);
@@ -77,7 +77,7 @@ public static final Category multiThreadedInfoCategory =
   
 
   public static InfoDrop createInfoDrop(String msg, IRNode loc) {
-    InfoDrop id = new InfoDrop();
+    InfoDrop id = new InfoDrop(null);
     // rd.addCheckedPromise(pd);
     id.setNodeAndCompilationUnitDependency(loc);
     id.setMessage(msg);

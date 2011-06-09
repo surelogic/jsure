@@ -8,8 +8,4 @@ public class WarningDrop extends InfoDrop {
 	public WarningDrop(String t) {
 		super(t);
 	}
-	@Deprecated
-	public WarningDrop() {
-		this(null);
-	}
 }
