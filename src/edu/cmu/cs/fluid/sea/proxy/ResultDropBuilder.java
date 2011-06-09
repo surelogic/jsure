@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.sea.*;
  */
 @SuppressWarnings("unchecked")
 public final class ResultDropBuilder extends AbstractDropBuilder {	
+	private boolean isTimeout = false;
 	private boolean isConsistent = false;
 	private Set<PromiseDrop> checks = new HashSet<PromiseDrop>();
 	private Set<PromiseDrop> trusted = new HashSet<PromiseDrop>();
@@ -27,6 +28,10 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 		ResultDropBuilder rv = new ResultDropBuilder(type);
 		a.handleBuilder(rv);
 		return rv;
+	}
+	
+	public void setTimeout(boolean value) {
+	  isTimeout = value;
 	}
 	
 	public void setConsistent(final boolean value) {
@@ -83,6 +88,9 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 			return 0;
 		}
 		ResultDrop rd = new ResultDrop(type);				
+		if (isTimeout) {
+			rd.setTimeout();
+		}
 		rd.setConsistent(isConsistent);
 		for(PromiseDrop check : checks) {
 			rd.addCheckedPromise(check);
