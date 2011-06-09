@@ -18,12 +18,18 @@ public operator CatchClause {
 
     ControlLabel lab = new CaughtExceptionLabel(node);
     ControlNode test = new LabelTest(comp,lab);
+    ControlNode enter = new ComponentFlow(comp,null);
+    ControlNode endNormal = new ComponentFlow(comp,Boolean.TRUE);
+    ControlNode endAbrupt = new ComponentFlow(comp,Boolean.FALSE);
 
     ControlEdge.connect(comp.getEntryPort(),test);
-    ControlEdge.connect(test,sub.getEntryPort());
-    ControlEdge.connect(sub.getNormalExitPort(),comp.getNormalExitPort());
+    ControlEdge.connect(test,enter);
+    ControlEdge.connect(enter,sub.getEntryPort());
+    ControlEdge.connect(sub.getNormalExitPort(),endNormal);
+    ControlEdge.connect(endNormal,comp.getNormalExitPort());
     ControlEdge.connect(test,comp.getNormalExitPort());
-    ControlEdge.connect(sub.getAbruptExitPort(),comp.getAbruptExitPort());
+    ControlEdge.connect(sub.getAbruptExitPort(),endAbrupt);
+    ControlEdge.connect(endAbrupt,comp.getAbruptExitPort());
     return comp;
   }
 }

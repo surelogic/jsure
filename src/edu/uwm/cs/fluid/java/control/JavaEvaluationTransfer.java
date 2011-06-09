@@ -153,6 +153,10 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
     } else if (StatementExpressionList.prototype.includes(op)) {
       /* discard each expression as it is evaluated */
       return pop(val);
+    } else if (CatchClause.prototype.includes(op)) {
+    	if (info instanceof Boolean) {
+    		return transferCatchClose(node,((Boolean)info).booleanValue(),val);
+    	} else return transferCatchOpen(node,val);
     }
     throw new FluidError(
       "No transition defined for " + op + " with info=" + info);
@@ -410,6 +414,30 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
       return transferFailedCast(node, value);
   }
 
+  /**
+   * Transfer evaluation over the end of a catch clause.
+   * By default, we simply return the lattice value unchanged.
+   * <strong>major grouping, leaf</string>
+   * @param node CatchClause node
+   * @param val lattice value to transfer
+   * @param flag whether this is on the normal (true) or abrupt (false) path
+   * @return new lattice value after scope is closed.
+   */
+  protected T transferCatchClose(IRNode node, boolean flag, T val) {
+    return val;
+  }
+
+  /**
+   * Transfer evaluation over the start of a catch clause.
+   * By default, we return the lattice value unchanged.
+   * @param node CatchClause node
+   * @param val lattice value to transfer
+   * @return new lattice value after catch variable added to scope. 
+   */
+  protected T transferCatchOpen(IRNode node, T val) {
+	  return val;
+  }
+  
   /**
 	 * Transfer evaluation over ".class" expression. <strong>major grouping,
 	 * leaf</strong>

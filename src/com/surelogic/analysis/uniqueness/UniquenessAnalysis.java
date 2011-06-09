@@ -22,10 +22,10 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;
+import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.NormalExitPort;
 import edu.cmu.cs.fluid.control.Port;
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -41,26 +41,17 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
-import edu.cmu.cs.fluid.java.operator.BoxExpression;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
+import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.CompareExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.CrementExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
-import edu.cmu.cs.fluid.java.operator.EqExpression;
 import edu.cmu.cs.fluid.java.operator.EqualityExpression;
-import edu.cmu.cs.fluid.java.operator.GreaterThanEqualExpression;
-import edu.cmu.cs.fluid.java.operator.GreaterThanExpression;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
-import edu.cmu.cs.fluid.java.operator.LessThanEqualExpression;
-import edu.cmu.cs.fluid.java.operator.LessThanExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
-import edu.cmu.cs.fluid.java.operator.MinusExpression;
-import edu.cmu.cs.fluid.java.operator.NotEqExpression;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
-import edu.cmu.cs.fluid.java.operator.PlusExpression;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
@@ -706,6 +697,23 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       return s;
     }
 
+    @Override
+    protected Store transferCatchOpen(final IRNode node, Store s) {
+    	IRNode var = CatchClause.getParam(node);
+    	s = lattice.opExistingBetter(s, State.SHARED, mayAlias, var);
+    	return lattice.opSet(s, var);
+    }
+    
+    @Override
+    protected Store transferCatchClose(final IRNode node, boolean flag, Store s) {
+    	IRNode var = CatchClause.getParam(node);
+    	// System.out.println("before catch close: " + lattice.toString(s));
+    	s = lattice.opNull(s);
+    	s = lattice.opSet(s, var);
+    	// System.out.println("after catch close: " + lattice.toString(s));
+    	return s;
+    }
+    
     @Override
     protected Store transferDefaultInit(final IRNode node, final Store s) {
       final IRNode ty = VariableDeclarator.getType(tree.getParent(node));
