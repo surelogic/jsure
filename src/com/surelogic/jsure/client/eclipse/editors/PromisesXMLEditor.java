@@ -17,6 +17,7 @@ import org.eclipse.ui.dialogs.ListSelectionDialog;
 import org.eclipse.ui.part.EditorPart;
 
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.*;
 import com.surelogic.xml.IJavaElement;
 
@@ -168,7 +169,7 @@ public class PromisesXMLEditor extends EditorPart {
 			}
 		}
 
-		private void build() {
+		void build() {
 			if (location != null) {
 				try {
 					/*
@@ -251,7 +252,7 @@ public class PromisesXMLEditor extends EditorPart {
 		if (s.size() != 1) {
 			return;
 		}
-		Object o = s.getFirstElement();
+		final Object o = s.getFirstElement();
 		if (o instanceof AnnotationElement) {
 			// TODO add comment
 		}
@@ -309,13 +310,15 @@ public class PromisesXMLEditor extends EditorPart {
 							});
 							d = new ListSelectionDialog(contents.getTree().getShell(), methods.toArray(), 
 									                    jProvider, jProvider, "Select method(s)");
-							if (d.open() == SWT.OK) {
+							if (d.open() == ListSelectionDialog.OK) {
 								for(Object o : d.getResult()) {
 									IMethod m = (IMethod) o;
-									String params = translateParameters(m);									
+									String params = PromisesXMLBuilder.translateParameters(m);									
 									c.addMember(m.isConstructor() ? new ConstructorElement(params) : 
 										                            new MethodElement(m.getElementName(), params));
 								}
+								contents.refresh();
+								//contents.refresh(c, true);
 							}
 						} catch (JavaModelException e1) {
 							e1.printStackTrace();
@@ -337,48 +340,9 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 
-	private static final Map<String,String> typeMapping = new HashMap<String, String>();
-	static {
-		typeMapping.put(Signature.SIG_BOOLEAN, "boolean");
-		typeMapping.put(Signature.SIG_BYTE, "byte");
-		typeMapping.put(Signature.SIG_CHAR, "char");
-		typeMapping.put(Signature.SIG_SHORT, "short");
-		typeMapping.put(Signature.SIG_INT, "int");
-		typeMapping.put(Signature.SIG_LONG, "long");
-		typeMapping.put(Signature.SIG_FLOAT, "float");
-		typeMapping.put(Signature.SIG_DOUBLE, "double");
-	}
+
 	
-	static String translateParameters(IMethod m) {
-		StringBuilder sb = new StringBuilder();
-		for(String t : m.getParameterTypes()) {
-			if (sb.length() != 0) {
-				sb.append(',');
-			}		
-			translateParameter(sb, t);
-		}
-		return sb.toString();
-	}
-	
-	static void translateParameter(StringBuilder sb, String t) {
-		String mapped = typeMapping.get(t);
-		if (mapped == null) {
-			int dims = 0;
-			while (t.charAt(dims) == Signature.C_ARRAY) {
-				dims++;
-			}
-			if (dims == 0) {
-				// Assumed to be a class name
-				mapped = t.substring(1, t.length()-1).replace('$', '.');
-			} else {
-				translateParameter(sb, t.substring(dims));
-				for(int i=0; i<dims; i++) {
-					sb.append("[]");
-				}
-			}			
-		}
-		sb.append(mapped);
-	}
+
 	
 	static void makeMenuItem(Menu menu, String label, SelectionListener l) {
 		MenuItem item1 = new MenuItem(menu, SWT.PUSH);
@@ -415,12 +379,12 @@ public class PromisesXMLEditor extends EditorPart {
 				IMethod m = (IMethod) e;
 				try {
 					if (m.isConstructor()) {
-						return "new "+m.getElementName()+'('+translateParameters(m)+')';
+						return "new "+m.getElementName()+'('+PromisesXMLBuilder.translateParameters(m)+')';
 					}
 				} catch (JavaModelException e1) {
 					// ignore
 				}
-				return m.getElementName()+'('+translateParameters(m)+')';
+				return m.getElementName()+'('+PromisesXMLBuilder.translateParameters(m)+')';
 			}
 			return e.getElementName();
 		}
