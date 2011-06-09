@@ -130,7 +130,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
       }
     } else if (Statement.prototype.includes(op)) {
       if (BlockStatement.prototype.includes(op)) {
-        return transferCloseScope(node,val);
+        return transferCloseScope(node,((Boolean)info).booleanValue(),val);
       } else if (/* discard values without consideration */
         AssertMessageStatement.prototype.includes(op)
           || AssertStatement.prototype.includes(op)
@@ -453,9 +453,10 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
    * <strong>major grouping, leaf</string>
    * @param node BlockStatement node
    * @param val lattice value to transfer
+   * @param flag whether normal (true) or abrupt (false) termination
    * @return new lattice value after scope is closed.
    */
-  protected T transferCloseScope(IRNode node, T val) {
+  protected T transferCloseScope(IRNode node, boolean flag, T val) {
     return val;
   }
   

@@ -678,7 +678,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
-    protected Store transferCloseScope(final IRNode node, Store s) {
+    protected Store transferCloseScope(final IRNode node, boolean flag, Store s) {
       /*
        * Nullify all variables that were in scope. NB: "undefined" would be closer
        * in semantics, but this is not done to check errors, but rather for
