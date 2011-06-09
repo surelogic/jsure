@@ -17,7 +17,10 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.views.AbstractSLView;
 import com.surelogic.jsure.client.eclipse.views.JSureHistoricalSourceView;
 import com.surelogic.jsure.core.driver.JavacEclipse;
+import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.PackageAccessor;
+import com.surelogic.xml.PackageElement;
+import com.surelogic.xml.PromisesXMLWriter;
 import com.surelogic.xml.TestXMLParserConstants;
 import com.surelogic.xml.XMLGenerator;
 
@@ -78,7 +81,7 @@ public abstract class AbstractJSureView extends AbstractSLView {
 						if (!xml.exists()) {
 							xml.getParentFile().mkdirs();
 
-							// Create a template?
+							// Create a template
 							try {
 								PrintWriter pw = new PrintWriter(xml);
 								// Try to copy from fluid first
@@ -92,7 +95,8 @@ public abstract class AbstractJSureView extends AbstractSLView {
 											throw new FileNotFoundException();
 										}
 									}
-									pw.println("<!-- Generated from the original XML within JSure -->");
+									// This causes problems with the original first line
+									// pw.println("<!-- Generated from the original XML within JSure -->");
 									char[] buf = new char[8192];
 									int read; 
 									while ((read = is.getCharacterStream().read(buf)) >= 0) {
@@ -106,10 +110,11 @@ public abstract class AbstractJSureView extends AbstractSLView {
 										final String s = XMLGenerator.generateStringXML(ast, true);
 										pw.println(s);
 									} else {
-										pw.println("<package name=\""+srcRef.getPackage()+"\">");
-										pw.println("  <class name=\""+name+"\">");
-										pw.println("  </class>");								
-										pw.println("</package>");
+										PackageElement pe = PromisesXMLBuilder.makeModel(pkg, name);
+										if (pe != null) {
+											PromisesXMLWriter w = new PromisesXMLWriter(pw);
+											w.write(pe);
+										}
 									}
 								} finally {								
 									pw.close();
