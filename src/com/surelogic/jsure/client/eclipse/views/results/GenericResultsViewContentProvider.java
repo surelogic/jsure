@@ -194,9 +194,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 			return;
 		} else if (size == 1) {
 			ISupportingInformation si = supportingInformation.iterator().next();
-			C informationItem = makeContent(
-					"supporting information: " + si.getMessage(),
-					si.getSrcRef());
+			C informationItem = makeContent("supporting information: "
+					+ si.getMessage(), si.getSrcRef());
 			informationItem.setBaseImageName(CommonImages.IMG_INFO);
 			mutableContentSet.addChild(informationItem);
 			return;
@@ -245,8 +244,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 			return;
 		} else if (size == 1) {
 			IProposedPromiseDropInfo pp = proposals.iterator().next();
-			final C proposalItem = makeContent(
-					"proposed promise: " + pp.getJavaAnnotation(), (T) pp);
+			final C proposalItem = makeContent("proposed promise: "
+					+ pp.getJavaAnnotation(), (T) pp);
 			proposalItem.setBaseImageName(CommonImages.IMG_ANNOTATION_PROPOSED);
 			mutableContentSet.addChild(proposalItem);
 			return;
@@ -387,8 +386,9 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 	@SuppressWarnings("unchecked")
 	protected final C encloseDrop(T drop) {
 		if (drop == null) {
-			LOG.log(Level.SEVERE,
-					"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
+			LOG
+					.log(Level.SEVERE,
+							"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
 			throw new IllegalArgumentException(
 					"ResultsViewContentProvider.encloseDrop(Drop) passed a null drop");
 		}
@@ -437,8 +437,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 				promiseDrop.addMatchingDependentsTo(matching,
 						DropPredicateFactory.matchType(InfoDrop.class));
 				addDrops(result, (Collection<? extends T>) matching);
-				addDrops(result,
-						(Collection<? extends T>) promiseDrop.getCheckedBy());
+				addDrops(result, (Collection<? extends T>) promiseDrop
+						.getCheckedBy());
 
 			} else if (drop.isInstance(ResultDrop.class)) {
 
@@ -458,9 +458,11 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 							: CoE_Constants.INCONSISTENT);
 				}
 				result.setImageFlags(flags);
-				result.setBaseImageName(resultDrop.isConsistent() ? CommonImages.IMG_PLUS
-						: resultDrop.isVouched() ? CommonImages.IMG_PLUS_VOUCH
-								: CommonImages.IMG_RED_X);
+				result
+						.setBaseImageName(resultDrop.isConsistent() ? CommonImages.IMG_PLUS
+								: resultDrop.isVouched() ? CommonImages.IMG_PLUS_VOUCH
+										: resultDrop.isTimeout() ? CommonImages.IMG_TIMEOUT_X
+												: CommonImages.IMG_RED_X);
 
 				// children
 				addSupportingInformation(result, resultDrop);
@@ -475,8 +477,9 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 				 */
 
 				// image
-				result.setBaseImageName(drop.isInstance(WarningDrop.class) ? CommonImages.IMG_WARNING
-						: CommonImages.IMG_INFO);
+				result
+						.setBaseImageName(drop.isInstance(WarningDrop.class) ? CommonImages.IMG_WARNING
+								: CommonImages.IMG_INFO);
 
 				// children
 				addSupportingInformation(result, drop);
@@ -746,8 +749,9 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 								// create the class/type folder, save it in the
 								// map
 								folder = makeContent(typeKey);
-								folder.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE
-										: CommonImages.IMG_CLASS);
+								folder
+										.setBaseImageName(context.typeIsAnInterface ? CommonImages.IMG_INTERFACE
+												: CommonImages.IMG_CLASS);
 								typeToFolder.put(typeKey, folder);
 							}
 							folder.addChild(item);
@@ -1194,9 +1198,8 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 				final UIJob job = new SLUIJob() {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
-						EclipseUIUtility.showView(
-								ProposedPromiseView.class.getName(), null,
-								IWorkbenchPage.VIEW_VISIBLE);
+						EclipseUIUtility.showView(ProposedPromiseView.class
+								.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
 						return Status.OK_STATUS;
 					}
 				};
