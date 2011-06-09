@@ -16,4 +16,9 @@ public class FunctionParameterElement extends AbstractJavaElement {
 	public String getLabel() {
 		return "Arg #"+index;
 	}
+	
+	@Override
+	public final String getImageKey() {
+		return null; // TODO
+	}
 }

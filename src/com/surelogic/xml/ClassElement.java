@@ -2,6 +2,8 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+import com.surelogic.common.CommonImages;
+
 import edu.cmu.cs.fluid.util.*;
 
 public class ClassElement extends AbstractJavaElement {
@@ -13,6 +15,11 @@ public class ClassElement extends AbstractJavaElement {
 	
 	public ClassElement(String id) {
 		super(id);
+	}
+	
+	@Override
+	public final String getImageKey() {
+		return CommonImages.IMG_CLASS;
 	}
 	
 	public IClassMember addMember(IClassMember m) {

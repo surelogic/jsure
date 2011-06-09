@@ -9,4 +9,9 @@ public class ClassInitElement extends AbstractJavaElement implements IClassMembe
 	public String getLabel() {
 		return "<clinit>";
 	}
+	
+	@Override
+	public final String getImageKey() {
+		return null; // TODO
+	}
 }

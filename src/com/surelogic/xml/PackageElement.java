@@ -2,6 +2,8 @@ package com.surelogic.xml;
 
 import java.util.List;
 
+import com.surelogic.common.CommonImages;
+
 public class PackageElement extends AbstractJavaElement {
 	private final ClassElement clazz;
 	
@@ -10,6 +12,11 @@ public class PackageElement extends AbstractJavaElement {
 		clazz = c;
 		c.setParent(this);
 	}	
+	
+	@Override
+	public final String getImageKey() {
+		return CommonImages.IMG_PACKAGE;
+	}
 	
 	public final ClassElement getClassElement() {
 		return clazz;

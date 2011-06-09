@@ -3,6 +3,7 @@ package com.surelogic.xml;
 import java.util.*;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.common.CommonImages;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
@@ -128,5 +129,10 @@ public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 
 	void markAsClean() {
 		isDirty = false;
+	}
+
+	@Override
+	public final String getImageKey() {
+		return CommonImages.IMG_ANNOTATION;
 	}
 }

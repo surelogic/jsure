@@ -9,6 +9,7 @@ public interface IJavaElement {
 	void setParent(AbstractJavaElement p);
 	AbstractJavaElement getParent();
 	
+	String getImageKey();
 	String getLabel();
 	boolean hasChildren();
 	Object[] getChildren();

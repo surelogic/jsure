@@ -2,6 +2,7 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.xml.Entity;
 
 public abstract class AbstractFunctionElement extends AbstractJavaElement 
@@ -23,6 +24,11 @@ implements IClassMember, TestXMLParserConstants
 		final String params = e.getAttribute(PARAMS_ATTRB);
 		parameters = normalize(params);
 		genericParams = e.getAttribute(GENERIC_PARAMS_ATTRB);
+	}
+	
+	@Override
+	public final String getImageKey() {
+		return CommonImages.IMG_ASTERISK_ORANGE_50; // TODO
 	}
 	
 	private static String normalize(String orig) {

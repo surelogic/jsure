@@ -9,4 +9,9 @@ public class FieldElement extends AbstractJavaElement implements IClassMember {
 	public String getLabel() {
 		return "Field "+getName();
 	}
+	
+	@Override
+	public final String getImageKey() {
+		return null; // TODO
+	}
 }
