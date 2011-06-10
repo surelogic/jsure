@@ -18,21 +18,38 @@ public class VariableSubcomponentControlEdge extends ControlEdge {
   protected boolean isEntry;
   protected ControlNode local;
   protected boolean isSecondary;
+  protected boolean isReverse;
   
   public VariableSubcomponentControlEdge
       (VariableSubcomponent vs, int i, boolean entryp, ControlNode local) 
   {
-    subcomponent = vs;
-    index = i;
-    isEntry = entryp;
-    vs.registerVariableEdge(this,i,entryp);
-    if (entryp) {
-      attachSink(local);
-    } else {
-      attachSource(local);
-    }
+	  this(vs,i,entryp,local,false);
   }
-  
+
+  /**
+   * Create a variable subcomponent control edge that (possibly) runs in the opposite direction:
+   * after exiting a node we go to the previous one, not the next one.
+   * @param vs the component we are associated with.
+   * @param i which chain to choose (there may be multiple chains through the subcomponent)
+   * @param entryp is this the entry into the component, or exit?
+   * @param local the local node to attach to (other node is implicit)
+   * @param rev true if in reverse, false for a normal situation
+   */
+  public VariableSubcomponentControlEdge
+  (VariableSubcomponent vs, int i, boolean entryp, ControlNode local, boolean rev)
+  {
+	  isReverse = rev;
+	  subcomponent = vs;
+	  index = i;
+	  isEntry = entryp;
+	  vs.registerVariableEdge(this,i,entryp);
+	  if (entryp) {
+		  attachSink(local);
+	  } else {
+		  attachSource(local);
+	  }
+  }
+
   public VariableSubcomponent getVariableSubcomponent() {
     return subcomponent;
   }
@@ -55,13 +72,13 @@ public class VariableSubcomponentControlEdge extends ControlEdge {
     Subcomponent sub;
     IRNode parent = comp.getSyntax();
     if (loc == null) { // get first/last if existing
-      if (isEntry) {
+      if (isEntry != isReverse) {
         loc = Subcomponent.tree.lastChildLocation(parent);
       } else {
         loc = Subcomponent.tree.firstChildLocation(parent);
       }
     } else {
-      if (isEntry) {
+      if (isEntry != isReverse) {
         loc = Subcomponent.tree.prevChildLocation(parent, loc);
       } else {
         loc = Subcomponent.tree.nextChildLocation(parent, loc);

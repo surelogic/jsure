@@ -1,0 +1,32 @@
+# $Header$
+public operator VariableResource extends Resource {
+  syntax { 
+    annos:Annotations  
+    $mods:Modifiers(final)
+    type:Type var:VariableDeclarator
+  }
+    
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,2,2,1);
+    Subcomponent sub = 
+      new Subcomponent(comp,tree.childLocation(node,varLoc),1,1,1);
+
+    ControlNode doClose = new ComponentChoice(comp,null);
+    ControlNode propagateExceptions = new AddLabel(ExceptionLabel.prototype);
+    ControlNode abruptMerge = new Merge();
+    
+    // Connect up initial execution
+    ControlEdge.connect(comp.getEntryPort(),sub.getEntryPort());
+    ControlEdge.connect(sub.getNormalExitPort(),comp.getNormalExitPort());
+    ControlEdge.connect(sub.getAbruptExitPort(),abruptMerge);
+    
+    // Connect close
+    ControlEdge.connect(comp.getEntryPort(),doClose);
+    ControlEdge.connect(doClose,comp.getNormalExitPort());
+    ControlEdge.connect(doClose,propagateExceptions);
+    ControlEdge.connect(propagateExceptions,abruptMerge);
+    ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+    
+    return comp;
+  }
+}  

@@ -233,6 +233,8 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     } else if (op instanceof AssertStatement || op instanceof AssertMessageStatement) {
       // we don't know whether assertions are enabbled or not.
       return value;
+    } else if (op instanceof Resource) {
+      return transferResourceClose(node,flag,value);
     } else {
       if (lastOp != op || info != lastInfo) {
         LOG.warning("Unknown ComponentChoice branch: op = " + op + " info = " + info);
@@ -562,6 +564,22 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     T value) {
     // by default return the same value:
     return value;
+  }
+
+  /**
+   * Transfer over a resource close operation.
+   * This is a kind of call.  It also means the resource variable goes
+   * out of scope.
+   * @param node Resource node being closed
+   * @param flag normal (true) or abrupt (false) termination of close method
+   * @param value value to transfer over
+   * @return new lattice value.
+   */
+  protected T transferResourceClose(
+		  IRNode node,
+		  boolean flag,
+		  T value  ) {
+	  return value;
   }
 
   /**

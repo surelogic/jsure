@@ -7,10 +7,10 @@ import edu.cmu.cs.fluid.ir.IRNode;
 /** Components with a variable number of children to be executed.
  * We construct a control-flow graph with a special
  * <tt>VariableSubcomponent</tt> around each child.
- * There is another Variable SUbcomponent that logically sits
+ * There is another Variable Subcomponent that logically sits
  * before the first and after the last component.
  * The variable components have special variable edges which are
- * connected up in parallel with the one sbefore and after.
+ * connected up in parallel with the ones before and after.
  * These edges are then used to connect the actual subcomponent
  * for the child with the variable subcomponent around it.
  * @see SequenceComponent

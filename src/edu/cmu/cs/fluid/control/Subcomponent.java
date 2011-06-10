@@ -52,6 +52,8 @@ public class Subcomponent {
     this(comp, loc);
     if (inputs == 1) {
       entryPort = new SubcomponentEntryPort(this); // redundant assignment
+    } else if (inputs == 2) {
+    	entryPort = new SubcomponentBooleanEntryPort(this);
     } else {
       throw new FluidRuntimeException("bad number of entry ports");
     }

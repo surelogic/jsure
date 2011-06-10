@@ -1,0 +1,59 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/TryStatement.op,v 1.5 2006/08/23 08:57:07 boyland Exp $
+public operator TryResource extends Statement {
+  syntax {
+    "try" resources:Resources
+    block:BlockStatement
+    catchPart:CatchClauses
+    finallyPart:OptFinally
+  }
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent subres = 
+      new Subcomponent(comp,tree.childLocation(node,resourcesLoc),2,2,1);
+    Subcomponent subblock = 
+      new Subcomponent(comp,tree.childLocation(node,blockLoc),1,1,1);
+    Subcomponent subcatch = 
+      new Subcomponent(comp,tree.childLocation(node,catchPartLoc),1,1,1);
+    Subcomponent subfinal = 
+      new Subcomponent(comp,tree.childLocation(node,finallyPartLoc),1,1,1);
+
+    ControlNode trackClose = new TrackedMerge();
+    ControlNode checkTrackClose = new TrackedDemerge();
+    ControlNode endMerge = new Merge();
+    ControlNode catchMerge = new Merge();
+    ControlNode addTrack = new TrackedMerge();
+    ControlNode checkTrack = new TrackedDemerge();
+    ControlNode stripLabel = new PendingLabelStrip();
+    ControlNode abruptMerge = new Merge();
+    
+    // Connect up normal execution
+    ControlEdge.connect(comp.getEntryPort(),subres.getEntryPort());
+    ControlEdge.connect(subres.getNormalExitPort(),subblock.getEntryPort());
+    ControlEdge.connect(subblock.getNormalExitPort(),trackClose);
+    ControlEdge.connect(trackClose,subres.getEntryPort());
+    ControlEdge.connect(subres.getNormalExitPort(),checkTrackClose);
+    ControlEdge.connect(checkTrackClose,endMerge);
+    ControlEdge.connect(endMerge,addTrack);
+    ControlEdge.connect(addTrack,subfinal.getEntryPort());
+    ControlEdge.connect(subfinal.getNormalExitPort(),checkTrack);
+    ControlEdge.connect(checkTrack,comp.getNormalExitPort());
+
+    // Connect up close after errors:
+    ControlEdge.connect(subblock.getAbruptExitPort(),trackClose);
+    ControlEdge.connect(checkTrackClose,catchMerge);
+    ControlEdge.connect(subres.getAbruptExitPort(),catchMerge);
+
+    // Connect catch clauses
+    ControlEdge.connect(catchMerge,subcatch.getEntryPort());
+    ControlEdge.connect(subcatch.getNormalExitPort(),endMerge);
+    ControlEdge.connect(subcatch.getAbruptExitPort(),addTrack);
+
+    // Get labels right for abrupt termination of try statement
+    ControlEdge.connect(checkTrack,abruptMerge);
+    ControlEdge.connect(subfinal.getAbruptExitPort(),stripLabel);
+    ControlEdge.connect(stripLabel,abruptMerge);
+    ControlEdge.connect(abruptMerge,comp.getAbruptExitPort());
+    
+    return comp;
+  }
+}

@@ -77,6 +77,8 @@ public class Component {
       entryPort = new ComponentBlankEntryPort(this); // redundant assignment
     } else if (inputs == 1) {
       entryPort = new ComponentEntryPort(this);
+    } else if (inputs == 2) {
+        entryPort = new ComponentBooleanEntryPort(this);
     } else {
       throw new FluidRuntimeException("bad number of entry ports");
     }
