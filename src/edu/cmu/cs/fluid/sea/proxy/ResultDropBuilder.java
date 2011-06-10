@@ -75,6 +75,9 @@ public final class ResultDropBuilder extends AbstractDropBuilder {
 	}
 	
 	public void addTrustedPromise_or(String label, PromiseDrop drop) {
+	    if (drop == null) {
+	        throw new IllegalArgumentException();
+	    }
 		Set<PromiseDrop> drops = trustedOr.get(label);
 		if (drops == null) {
 			drops = new HashSet<PromiseDrop>();
