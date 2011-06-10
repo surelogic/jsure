@@ -59,8 +59,8 @@ public class PromisesXMLEditor extends EditorPart {
        contents.setCellEditors(new CellEditor[] { new TextCellEditor(contents.getTree()) });
        contents.setColumnProperties(new String[] { "col1" });
        contents.setCellModifier(new ICellModifier() {
-    	   public boolean canModify(Object element, String property) {
-    		   return true;
+    	   public boolean canModify(Object element, String property) {    		   
+    		   return element instanceof String;
     	   }
     	   public Object getValue(Object element, String property) {
     		   return "What is this for?";//((MyModel) element).counter + "";
@@ -203,23 +203,16 @@ public class PromisesXMLEditor extends EditorPart {
 		
 		@Override
 		public Object[] getChildren(Object element) {
-			if (element instanceof String) {
-				return ArrayUtil.empty;
-			}
 			return ((IJavaElement) element).getChildren();
 		}
 
 		@Override
 		public Object getParent(Object element) {
-			// TODO Auto-generated method stub
-			return null;
+			return ((IJavaElement) element).getParent();
 		}
 
 		@Override
 		public boolean hasChildren(Object element) {
-			if (element instanceof String) {
-				return false;
-			}
 			return ((IJavaElement) element).hasChildren();
 		}
 
@@ -230,17 +223,11 @@ public class PromisesXMLEditor extends EditorPart {
 		
 		@Override
 		public String getText(Object element) {
-			if (element instanceof String) {
-				return element.toString();
-			}
 			return ((IJavaElement) element).getLabel();
 		}
 
 		@Override
 		public Image getImage(Object element) {
-			if (element instanceof String) {
-				return null;
-			}
 			IJavaElement e = (IJavaElement) element;
 			return SLImages.getImage(e.getImageKey());
 		}
@@ -273,8 +260,8 @@ public class PromisesXMLEditor extends EditorPart {
 		if (o instanceof AnnotationElement) {
 			// TODO add comment
 		}
-		else if (o instanceof AbstractJavaElement) {
-			final AbstractJavaElement j = (AbstractJavaElement) o;
+		else if (o instanceof AnnotatedJavaElement) {
+			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
 			makeMenuItem(menu, "Add annotation...", new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
