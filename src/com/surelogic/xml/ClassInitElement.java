@@ -1,6 +1,6 @@
 package com.surelogic.xml;
 
-public class ClassInitElement extends AbstractJavaElement implements IClassMember {
+public class ClassInitElement extends AnnotatedJavaElement implements IClassMember {
 	public ClassInitElement() {
 		super("classinit");
 	}

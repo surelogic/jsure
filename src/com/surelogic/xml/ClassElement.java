@@ -6,7 +6,7 @@ import com.surelogic.common.CommonImages;
 
 import edu.cmu.cs.fluid.util.*;
 
-public class ClassElement extends AbstractJavaElement {
+public class ClassElement extends AnnotatedJavaElement {
 	private final Map<String,NestedClassElement> classes = new HashMap<String,NestedClassElement>(0);
 	private final Map<String,FieldElement> fields = new HashMap<String,FieldElement>(0);
 	private final Hashtable2<String,String,MethodElement> methods = new Hashtable2<String, String, MethodElement>();

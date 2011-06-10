@@ -8,16 +8,12 @@ import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.util.ArrayUtil;
 
-public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
+public class AnnotationElement extends CommentedJavaElement implements TestXMLParserConstants {
 	private final String uid;
 	private final String promise;
 	private final String contents;
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
-	private final List<String> comments = new ArrayList<String>(0);
-	private boolean isDirty;
-	private AbstractJavaElement parent;
 	
 	public AnnotationElement(final String id, final String tag, String text, Map<String,String> a) {
 		final String name = AnnotationVisitor.capitalize(tag);
@@ -44,14 +40,6 @@ public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 		if (id == null && uid != name) {
 			attributes.put(UID_ATTRB, uid);
 		}
-	}
-	
-	public void setParent(AbstractJavaElement p) {
-		parent = p;
-	}
-	
-	public AbstractJavaElement getParent() {
-		return parent;
 	}
 	
 	final String getUid() {
@@ -98,37 +86,12 @@ public class AnnotationElement implements IJavaElement, TestXMLParserConstants {
 		attributes.remove(DIRTY_ATTRB);
 		attributes.put(REVISION_ATTRB, Integer.toString(revision+1));
 	}
-
-	public void addComments(Collection<String> c) {		
-		comments.addAll(c);
-		isDirty = true;
-	}
-	
-	Iterable<String> getComments() {
-		return comments;
-	}
 	
 	public String getLabel() {
 		if (contents == null) {
 			return '@'+promise+' '+contents;
 		}
 		return '@'+promise+' '+contents;
-	}
-	
-	public boolean hasChildren() {
-		return false;
-	}
-	
-	public Object[] getChildren() {
-		return ArrayUtil.empty;
-	}
-
-	boolean isDirty() {
-		return isDirty;
-	}
-
-	void markAsClean() {
-		isDirty = false;
 	}
 
 	@Override

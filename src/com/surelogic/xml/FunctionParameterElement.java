@@ -1,6 +1,6 @@
 package com.surelogic.xml;
 
-public class FunctionParameterElement extends AbstractJavaElement {
+public class FunctionParameterElement extends AnnotatedJavaElement {
 	private final int index;
 	
 	public FunctionParameterElement(int i) {

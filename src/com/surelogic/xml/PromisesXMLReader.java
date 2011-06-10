@@ -130,7 +130,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		return func;
 	}
 
-	private static void handleAnnotationOnElt(AbstractJavaElement func, final List<String> comments, Entity n) {
+	private static void handleAnnotationOnElt(AnnotatedJavaElement func, final List<String> comments, Entity n) {
 		final String uid = n.getAttribute(UID_ATTRB);
 		AnnotationElement a = new AnnotationElement(uid, n.getName(), n.getCData(), n.getAttributes());
 		func.addPromise(a);
@@ -138,7 +138,7 @@ public class PromisesXMLReader extends NestedXMLReader implements IXMLResultList
 		comments.clear();
 	}
 
-	private static <T extends AbstractJavaElement> T handleAnnotations(T e, Entity n) {
+	private static <T extends AnnotatedJavaElement> T handleAnnotations(T e, Entity n) {
 		// Handle comments
 		final List<String> comments = new ArrayList<String>(0);
 		for(Entity a : n.getReferences()) {

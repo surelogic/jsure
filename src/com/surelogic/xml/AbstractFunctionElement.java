@@ -5,7 +5,7 @@ import java.util.*;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.xml.Entity;
 
-public abstract class AbstractFunctionElement extends AbstractJavaElement 
+public abstract class AbstractFunctionElement extends AnnotatedJavaElement 
 implements IClassMember, TestXMLParserConstants
 {	
 	private final String genericParams;

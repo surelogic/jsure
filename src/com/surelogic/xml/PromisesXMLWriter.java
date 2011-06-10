@@ -39,7 +39,7 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 	/**
 	 * @param attrs Should be key-value pairs
 	 */
-	private void start(int indent, String name, AbstractJavaElement e, String... attrs) {
+	private void start(int indent, String name, AnnotatedJavaElement e, String... attrs) {
 		Entities.start(name, b, indent);
 		if (e != null) {
 			Entities.addAttribute(NAME_ATTRB, e.getName(), b);
@@ -72,25 +72,25 @@ public class PromisesXMLWriter implements TestXMLParserConstants {
 
 	
 	
-	private void writeComments(int indent, AbstractJavaElement e) {
+	private void writeComments(int indent, AnnotatedJavaElement e) {
 		writeComments(indent, e.getComments());
 	}
 	
-	private void writeLastComments(int indent, AbstractJavaElement e) {
+	private void writeLastComments(int indent, AnnotatedJavaElement e) {
 		writeComments(indent, e.getLastComments());
 	}
 	
-	private void writeComments(int indent, Iterable<String> comments) {
-		for(String c : comments) {
+	private void writeComments(int indent, Iterable<CommentElement> comments) {
+		for(CommentElement c : comments) {
 			Entities.indent(b, indent);
 			b.append("<!--");
-			b.append(Entities.unescape(c));
+			b.append(Entities.unescape(c.getLabel()));
 			b.append("-->\n");
 			flush();
 		}
 	}
 	
-	private void writeAnnos(int indent, AbstractJavaElement e) {
+	private void writeAnnos(int indent, AnnotatedJavaElement e) {
 		for(AnnotationElement a : e.getPromises()) {
 			writeAnno(indent, a);
 		}

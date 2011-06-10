@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.surelogic.common.CommonImages;
 
-public class PackageElement extends AbstractJavaElement {
+public class PackageElement extends AnnotatedJavaElement {
 	private final ClassElement clazz;
 	
 	public PackageElement(String id, ClassElement c) {
