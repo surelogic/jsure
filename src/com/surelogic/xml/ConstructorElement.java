@@ -11,7 +11,6 @@ public class ConstructorElement extends AbstractFunctionElement {
 		super("new", e);
 	}
 
-	@Override
 	public String getLabel() {
 		return "Constructor("+getParams()+")";
 	}

@@ -26,7 +26,6 @@ implements IClassMember, TestXMLParserConstants
 		genericParams = e.getAttribute(GENERIC_PARAMS_ATTRB);
 	}
 	
-	@Override
 	public final String getImageKey() {
 		return CommonImages.IMG_ASTERISK_ORANGE_50; // TODO
 	}

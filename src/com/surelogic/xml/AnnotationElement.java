@@ -94,7 +94,6 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 		return '@'+promise+' '+contents;
 	}
 
-	@Override
 	public final String getImageKey() {
 		return CommonImages.IMG_ANNOTATION;
 	}

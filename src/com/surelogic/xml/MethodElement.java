@@ -9,8 +9,7 @@ public class MethodElement extends AbstractFunctionElement {
 	MethodElement(String id, Entity e) {
 		super(id, e);
 	}
-	
-	@Override
+
 	public String getLabel() {
 		return getName()+"("+getParams()+")";
 	}

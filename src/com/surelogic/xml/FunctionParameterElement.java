@@ -12,12 +12,10 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		return index;
 	}
 
-	@Override
 	public String getLabel() {
 		return "Arg #"+index;
 	}
 	
-	@Override
 	public final String getImageKey() {
 		return null; // TODO
 	}

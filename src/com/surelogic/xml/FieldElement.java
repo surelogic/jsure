@@ -5,12 +5,10 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 		super(id);
 	}
 
-	@Override
 	public String getLabel() {
 		return "Field "+getName();
 	}
 	
-	@Override
 	public final String getImageKey() {
 		return null; // TODO
 	}

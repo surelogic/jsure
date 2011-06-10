@@ -5,12 +5,10 @@ public class ClassInitElement extends AnnotatedJavaElement implements IClassMemb
 		super("classinit");
 	}
 
-	@Override
 	public String getLabel() {
 		return "<clinit>";
 	}
 	
-	@Override
 	public final String getImageKey() {
 		return null; // TODO
 	}

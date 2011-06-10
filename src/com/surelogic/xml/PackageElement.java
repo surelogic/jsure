@@ -12,8 +12,7 @@ public class PackageElement extends AnnotatedJavaElement {
 		clazz = c;
 		c.setParent(this);
 	}	
-	
-	@Override
+
 	public final String getImageKey() {
 		return CommonImages.IMG_PACKAGE;
 	}
@@ -22,7 +21,6 @@ public class PackageElement extends AnnotatedJavaElement {
 		return clazz;
 	}
 
-	@Override
 	public String getLabel() {
 		return "package "+getName();
 	}

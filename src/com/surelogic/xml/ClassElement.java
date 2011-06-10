@@ -17,7 +17,6 @@ public class ClassElement extends AnnotatedJavaElement {
 		super(id);
 	}
 	
-	@Override
 	public final String getImageKey() {
 		return CommonImages.IMG_CLASS;
 	}
@@ -95,7 +94,6 @@ public class ClassElement extends AnnotatedJavaElement {
 		return elements;
 	}
 
-	@Override
 	public String getLabel() {
 		return "type "+getName();
 	}
