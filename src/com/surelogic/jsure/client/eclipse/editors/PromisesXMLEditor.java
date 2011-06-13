@@ -7,8 +7,8 @@ import java.util.List;
 
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.ui.*;
 import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Image;
@@ -59,13 +59,16 @@ public class PromisesXMLEditor extends EditorPart {
        contents.setCellEditors(new CellEditor[] { new TextCellEditor(contents.getTree()) });
        contents.setColumnProperties(new String[] { "col1" });
        contents.setCellModifier(new ICellModifier() {
-    	   public boolean canModify(Object element, String property) {    		 
+    	   @Override
+        public boolean canModify(Object element, String property) {    		 
     		   return ((IJavaElement) element).canModify();
     	   }
-    	   public Object getValue(Object element, String property) {
+    	   @Override
+        public Object getValue(Object element, String property) {
     		   return ((IJavaElement) element).getLabel();
     	   }
-    	   public void modify(Object element, String property, Object value) {
+    	   @Override
+        public void modify(Object element, String property, Object value) {
     		   Item i = (Item) element;
     		   IJavaElement e = (IJavaElement) i.getData();
     		   e.modify((String) value);
@@ -314,7 +317,7 @@ public class PromisesXMLEditor extends EditorPart {
 							});
 							d = new ListSelectionDialog(contents.getTree().getShell(), methods.toArray(), 
 									                    jProvider, jProvider, "Select method(s)");
-							if (d.open() == ListSelectionDialog.OK) {
+							if (d.open() == Window.OK) {
 								for(Object o : d.getResult()) {
 									IMethod m = (IMethod) o;
 									String params = PromisesXMLBuilder.translateParameters(m);									
