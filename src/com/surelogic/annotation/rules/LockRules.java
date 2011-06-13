@@ -1881,7 +1881,7 @@ public class LockRules extends AnnotationRules {
       super(CONTAINABLE, typeDeclOps, ContainableNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset, int mods) {
+    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new ContainableNode(offset, mods);
     }
     @Override
@@ -1920,7 +1920,7 @@ public class LockRules extends AnnotationRules {
       super(THREAD_SAFE, typeDeclOps, ThreadSafeNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset, int mods) {
+    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new ThreadSafeNode(offset, mods);
     }
     @Override
@@ -1961,7 +1961,7 @@ public class LockRules extends AnnotationRules {
       super(NOT_THREAD_SAFE, typeDeclOps, NotThreadSafeNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset, int mods) {
+    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new NotThreadSafeNode(offset);
     }
     @Override
@@ -1980,7 +1980,7 @@ public class LockRules extends AnnotationRules {
       super(NOT_CONTAINABLE, typeDeclOps, NotContainableNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset, int mods) {
+    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new NotContainableNode(offset);
     }
     @Override
@@ -1999,7 +1999,7 @@ public class LockRules extends AnnotationRules {
       super(MUTABLE, typeDeclOps, MutableNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset, int mods) {
+    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new MutableNode(offset);
     }
     @Override
@@ -2017,8 +2017,9 @@ public class LockRules extends AnnotationRules {
     public ImmutableParseRule() {
       super(IMMUTABLE, typeDeclOps, ImmutableNode.class);
     }
+    
     @Override
-    protected IAASTRootNode makeAAST(int offset, int mods) {
+    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new ImmutableNode(offset, mods);
     }
     @Override

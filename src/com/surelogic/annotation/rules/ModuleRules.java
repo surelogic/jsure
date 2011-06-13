@@ -65,7 +65,7 @@ public class ModuleRules extends AnnotationRules {
       super(NOVIS, declOps, NoVisClauseNode.class);
     }
     @Override
-    protected IAASTRootNode makeAAST(int offset, int mods) {
+    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new NoVisClauseNode(offset);
     }
     @Override

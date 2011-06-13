@@ -78,7 +78,7 @@ extends AbstractAnnotationParseRule<A,P> {
       } else {
     	  mods = context.getModifiers();
       }
-      IAASTRootNode d = makeAAST(offset, mods);
+      IAASTRootNode d = makeAAST(context, offset, mods);
       context.reportAAST(offset, loc, tn.getText(), d);
     } catch (Exception e) {
       context.reportException(offset, e);

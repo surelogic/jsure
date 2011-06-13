@@ -395,6 +395,7 @@ public class RegionRules extends AnnotationRules {
     }
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
+      // Also creates UniqueMappingNodes
       return parser.uniqueInRegion().getTree();
     }
   
