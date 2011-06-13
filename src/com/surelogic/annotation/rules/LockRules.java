@@ -2110,7 +2110,7 @@ public class LockRules extends AnnotationRules {
 	  }
 	  @Override
 	  protected IAnnotationScrubber<ImmutableRefNode> makeScrubber() {
-		  throw new UnsupportedOperationException();
+		  return null; // TODO
 	  }
   }
   
