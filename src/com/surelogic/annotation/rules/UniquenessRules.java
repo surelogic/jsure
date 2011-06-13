@@ -172,6 +172,9 @@ public class UniquenessRules extends AnnotationRules {
       /* else must be a constructor: this is only allowed for javadoc
        * annotations so that they can name unique parameters
        */
+      if (isJavadoc) {
+    	  return parser.uniqueJava5Constructor().getTree();
+      }
       return parser.uniqueJavadocConstructor().getTree();
                          
     }

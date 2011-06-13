@@ -259,6 +259,10 @@ borrowedExpression
     : varUse | thisExpr 
     ;    
 
+uniqueJava5Constructor
+    : returnValue EOF -> returnValue
+    ;
+
 uniqueJava5Method
     : thisExpr EOF -> thisExpr
     | returnValue EOF -> returnValue
