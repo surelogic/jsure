@@ -13,4 +13,7 @@ public interface IJavaElement {
 	String getLabel();
 	boolean hasChildren();
 	Object[] getChildren();
+	
+	boolean canModify();
+	void modify(String value);
 }

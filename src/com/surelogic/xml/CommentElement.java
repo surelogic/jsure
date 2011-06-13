@@ -25,4 +25,15 @@ public class CommentElement extends AbstractJavaElement {
 	public Object[] getChildren() {
 		return ArrayUtil.empty;
 	}
+
+	@Override
+	public boolean canModify() {
+		return true;
+	}
+
+	@Override
+	public void modify(String value) {
+		comment = value;
+		markAsDirty();
+	}
 }

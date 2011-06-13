@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 public class AnnotationElement extends CommentedJavaElement implements TestXMLParserConstants {
 	private final String uid;
 	private final String promise;
-	private final String contents;
+	private String contents;
 	private final Map<String,String> attributes = new HashMap<String,String>(0);
 	
 	public AnnotationElement(final String id, final String tag, String text, Map<String,String> a) {
@@ -39,6 +39,38 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 		attributes.putAll(a);
 		if (id == null && uid != name) {
 			attributes.put(UID_ATTRB, uid);
+		}
+	}
+	
+	@Override
+	public boolean canModify() {
+		return true;
+	}
+	
+	@Override
+	public void modify(String value) {
+		value = value.trim();
+		
+		final int paren = value.indexOf('(');
+		String anno, text;
+		if (paren < 0) {
+			anno = value;
+			text = "";
+		} else {
+			if (!value.endsWith(")")) {
+				// Ignore, since the text doesn't have the right format
+				return;
+			}
+			anno = value.substring(0, paren).trim();
+			text = value.substring(paren+1, value.length()-1).trim();
+		}			
+		if (!promise.equals(anno)) {
+			// Ignore, since the promise changed
+			return;
+		}
+		if (!contents.equals(text)) {
+			contents = text;			
+			markAsDirty();
 		}
 	}
 	
@@ -88,10 +120,10 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 	}
 	
 	public String getLabel() {
-		if (contents == null) {
-			return '@'+promise+' '+contents;
+		if (contents == null || contents.length() == 0) {
+			return promise;
 		}
-		return '@'+promise+' '+contents;
+		return promise+'('+contents+')';
 	}
 
 	public final String getImageKey() {
