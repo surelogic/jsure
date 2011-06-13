@@ -332,7 +332,7 @@ public class UniquenessRules extends AnnotationRules {
   public static class Borrowed_ParseRule
   extends DefaultBooleanAnnotationParseRule<BorrowedNode,BorrowedPromiseDrop> {
     public Borrowed_ParseRule() {
-      super(BORROWED, methodOrParamDeclOps, BorrowedNode.class);
+      super(BORROWED, fieldMethodParamDeclOps, BorrowedNode.class);
     }
    
     @Override
@@ -340,7 +340,8 @@ public class UniquenessRules extends AnnotationRules {
       if (context.getSourceType() == AnnotationSource.JAVADOC) {
         return parser.borrowedList().getTree();
       }
-      if (ParameterDeclaration.prototype.includes(context.getOp())) {
+      if (ParameterDeclaration.prototype.includes(context.getOp()) ||
+          FieldDeclaration.prototype.includes(context.getOp())) {
         return parser.nothing().getTree();
       }
       return parser.borrowedFunction().getTree();
