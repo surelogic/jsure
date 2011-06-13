@@ -59,31 +59,31 @@ public class PromisesXMLEditor extends EditorPart {
        contents.setCellEditors(new CellEditor[] { new TextCellEditor(contents.getTree()) });
        contents.setColumnProperties(new String[] { "col1" });
        contents.setCellModifier(new ICellModifier() {
-    	   public boolean canModify(Object element, String property) {    		   
-    		   return element instanceof String;
+    	   public boolean canModify(Object element, String property) {    		 
+    		   return ((IJavaElement) element).canModify();
     	   }
     	   public Object getValue(Object element, String property) {
-    		   return "What is this for?";//((MyModel) element).counter + "";
+    		   return ((IJavaElement) element).getLabel();
     	   }
     	   public void modify(Object element, String property, Object value) {
-    		   /*
-    		   element = ((Item) element).getData();
-    		   ((MyModel) element).counter = Integer.parseInt(value.toString());
-    		   contents.update(element, null);
-    		   */
+    		   Item i = (Item) element;
+    		   IJavaElement e = (IJavaElement) i.getData();
+    		   e.modify((String) value);
+    		   contents.update(e, null);
     	   }
        });
-       /*
+       
        // http://eclipse.dzone.com/tips/treeviewer-two-clicks-edit
        TreeViewerEditor.create(contents, null, new ColumnViewerEditorActivationStrategy(contents) {
     	   @Override
     	   protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent e) {
     		   System.out.println("Got eae: "+e);
-    		   System.out.println("isEditorActivationEvent: "+super.isEditorActivationEvent(e));
-    		   return true;
+    		   ViewerCell cell = (ViewerCell) e.getSource();
+    		   IJavaElement elt = (IJavaElement) cell.getElement();
+    		   return elt.canModify();
     	   }
        }, ColumnViewerEditor.DEFAULT);
-       */
+       
        /*
        //http://help.eclipse.org/helios/index.jsp?topic=/org.eclipse.jdt.doc.isv/guide/jdt_api_render.htm
        contents.setContentProvider(new StandardJavaElementContentProvider(true));
