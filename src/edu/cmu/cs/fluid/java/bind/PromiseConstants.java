@@ -83,6 +83,13 @@ public interface PromiseConstants {
 	TypeDeclaration.prototype, 
   };
 
+  public static final Operator[] typeFuncVarDeclOps = {
+	  TypeDeclaration.prototype, 
+	  SomeFunctionDeclaration.prototype,
+	  FieldDeclaration.prototype,
+	  ParameterDeclaration.prototype,
+  };
+  
 	public static final Operator[] packageTypeDeclOps = {
 		// AnonClassExpression.prototype,
 		PackageDeclaration.prototype,
