@@ -15,12 +15,10 @@ abstract class AbstractJavaElement implements IJavaElement {
 		parent = p;
 	}
 	
-	@Override
 	public boolean canModify() {
 		return false;
 	}
 	
-	@Override
 	public void modify(String value) {
 		throw new UnsupportedOperationException();
 	}
