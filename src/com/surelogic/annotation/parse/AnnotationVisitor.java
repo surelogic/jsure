@@ -26,6 +26,7 @@ import edu.cmu.cs.fluid.util.*;
 public class AnnotationVisitor extends Visitor<Integer> {
 	public static final String IMPLEMENTATION_ONLY = "implementationOnly";
 	public static final String VERIFY = "verify";
+	public static final String ALLOW_RETURN = "allowReturn";
 	
 	static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
 	private static final String promisePrefix = "com.surelogic.";
@@ -290,6 +291,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 			if (pairs.hasNext()) {
 				boolean implOnly = false;
 				boolean verify = true;
+				boolean allowReturn = false;
 				for (IRNode valuePair : pairs) {
 					final String id = ElementValuePair.getId(valuePair);
 					if ("value".equals(id)) {
@@ -299,14 +301,17 @@ public class AnnotationVisitor extends Visitor<Integer> {
 									promise, StringLiteral.getToken(value)));
 						}
 					}
+					else if (ALLOW_RETURN.equals(id)) {
+					    allowReturn = extractBoolean(valuePair, allowReturn);
+					}
 					else if (IMPLEMENTATION_ONLY.equals(id)) {
 						implOnly = extractBoolean(valuePair, implOnly);
 					}
 					else if (VERIFY.equals(id)) {
 						verify = extractBoolean(valuePair, verify);
-					}
+					}					
 				}	            
-				return translate(handleJava5Promise(node, promise, convertToModifiers(implOnly, verify)));
+				return translate(handleJava5Promise(node, promise, convertToModifiers(implOnly, verify, allowReturn)));
 			} else {
 				return translate(handleJava5Promise(node, promise, JavaNode.ALL_FALSE));
 			}
@@ -315,13 +320,16 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		return 0;
 	}
 
-	public static int convertToModifiers(boolean implOnly, boolean verify) {
+	public static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn) {
         int modifiers = JavaNode.ALL_FALSE;
         if (implOnly) {
             modifiers |= JavaNode.IMPLEMENTATION_ONLY;
         }
         if (!verify) {
             modifiers |= JavaNode.NO_VERIFY;
+        }
+        if (allowReturn) {
+            modifiers |= JavaNode.ALLOW_RETURN;
         }
         return modifiers;
 	}

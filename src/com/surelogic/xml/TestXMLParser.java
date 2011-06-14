@@ -451,9 +451,10 @@ public class TestXMLParser extends DefaultHandler implements
 			final boolean implOnly = "true".equals(e.getAttribute(AnnotationVisitor.IMPLEMENTATION_ONLY));
 			final String rawVerify = e.getAttribute(AnnotationVisitor.VERIFY);
 			final boolean verify   = rawVerify == null || "true".equals(rawVerify);
+			final boolean allowReturn = "true".equals(e.getAttribute(AnnotationVisitor.ALLOW_RETURN));
 			
 			boolean added = annoVis.handleXMLPromise(annotatedNode, eName, contents, 
-			                                         AnnotationVisitor.convertToModifiers(implOnly, verify));
+			                                         AnnotationVisitor.convertToModifiers(implOnly, verify, allowReturn));
 			if (added) {
 				numAnnotationsAdded++;
 			}
