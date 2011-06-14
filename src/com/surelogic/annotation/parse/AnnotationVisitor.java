@@ -99,18 +99,18 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
 	private Context makeContext(IRNode node, String promise, String c,
 			AnnotationSource src, int offset) {
-		return makeContext(node, promise, c, src, offset, false, true);
+		return makeContext(node, promise, c, src, offset, JavaNode.ALL_FALSE);
 	}
 	
 	private Context makeContext(IRNode node, String promise, String c,
-			AnnotationSource src, int offset, boolean implOnly, boolean verify) {
+			AnnotationSource src, int offset, int modifiers) {
 		/* Bad things happen if contents is null */
 		String contents = (c == null) ? "" : c;
 		
 		IAnnotationParseRule<?, ?> r = 
 			PromiseFramework.getInstance().getParseDropRule(promise);
 		
-		return new Context(src, node, r, contents, offset, implOnly, verify);
+		return new Context(src, node, r, contents, offset, modifiers);
 	}
 	
 	// FIX needs more info about where the contents are coming from
@@ -147,16 +147,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		final int mods;
 		
 		Context(AnnotationSource src, IRNode n, IAnnotationParseRule<?, ?> r,
-				String text, int offset, boolean implOnly, boolean verify) {
+				String text, int offset, int modifiers) {
 			super(src, n, r, text, offset);
-			
-			int modifiers = JavaNode.ALL_FALSE;
-			if (implOnly) {
-				modifiers |= JavaNode.IMPLEMENTATION_ONLY;
-			}
-			if (!verify) {
-				modifiers |= JavaNode.NO_VERIFY;
-			}
 			mods = modifiers;
 		}
 		@Override
@@ -227,7 +219,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	public Integer visitMarkerAnnotation(IRNode node) {
 		String promise = mapToPromiseName(node);
 		if (promise != null) {
-			return translate(handleJava5Promise(node, promise, false, true));
+			return translate(handleJava5Promise(node, promise, JavaNode.ALL_FALSE));
 		}
 		return 0;
 	}
@@ -313,16 +305,27 @@ public class AnnotationVisitor extends Visitor<Integer> {
 					else if (VERIFY.equals(id)) {
 						verify = extractBoolean(valuePair, verify);
 					}
-				}
-				return translate(handleJava5Promise(node, promise, implOnly, verify));
+				}	            
+				return translate(handleJava5Promise(node, promise, convertToModifiers(implOnly, verify)));
 			} else {
-				return translate(handleJava5Promise(node, promise, false, true));
+				return translate(handleJava5Promise(node, promise, JavaNode.ALL_FALSE));
 			}
 			//throw new Error("A NormalAnnotation in a SL package?!?");
 		}
 		return 0;
 	}
 
+	public static int convertToModifiers(boolean implOnly, boolean verify) {
+        int modifiers = JavaNode.ALL_FALSE;
+        if (implOnly) {
+            modifiers |= JavaNode.IMPLEMENTATION_ONLY;
+        }
+        if (!verify) {
+            modifiers |= JavaNode.NO_VERIFY;
+        }
+        return modifiers;
+	}
+	
 	private boolean extractBoolean(IRNode valuePair, boolean defValue) {
 		IRNode value = ElementValuePair.getValue(valuePair);
 		if (TrueExpression.prototype.includes(value)) {
@@ -443,17 +446,17 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		return tag;
 	}
 
-	public boolean handleJava5Promise(IRNode node, String promise, boolean implOnly, boolean verify) {
-		return handleJava5Promise(node, node, promise, "", implOnly, verify);
+	public boolean handleJava5Promise(IRNode node, String promise, int modifiers) {
+		return handleJava5Promise(node, node, promise, "", modifiers);
 	}
 
 	public boolean handleJava5Promise(IRNode anno, IRNode here, String promise,
 			String c) {
-		return handleJava5Promise(anno, here, promise, c, false, true);
+		return handleJava5Promise(anno, here, promise, c, JavaNode.ALL_FALSE);
 	}
 	
 	public boolean handleJava5Promise(IRNode anno, IRNode here, String promise,
-			String c, boolean implOnly, boolean verify) {
+			String c, int modifiers) {
 		checkForTestResult(anno);
 
 		ISrcRef src = JavaNode.getSrcRef(here);
@@ -465,12 +468,12 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		 * if (src != null) {
 		 * System.out.println("Handling promise: "+promise+' '+c); }
 		 */
-		return createPromise(makeContext(here, promise, c, AnnotationSource.JAVA_5, offset, implOnly, verify));
+		return createPromise(makeContext(here, promise, c, AnnotationSource.JAVA_5, offset, modifiers));
 	}
 
-	public boolean handleXMLPromise(IRNode node, String promise, String c, boolean implOnly, boolean verify) {
+	public boolean handleXMLPromise(IRNode node, String promise, String c, int modifiers) {
 		return createPromise(makeContext(node, capitalize(promise), c,
-				AnnotationSource.XML, Integer.MAX_VALUE, implOnly, verify));
+				AnnotationSource.XML, Integer.MAX_VALUE, modifiers));
 	}
 
 	/**

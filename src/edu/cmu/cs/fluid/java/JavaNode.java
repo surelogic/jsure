@@ -171,10 +171,12 @@ public class JavaNode extends JJNode {
   
   public static final int NO_VERIFY = (1 << 20);
   
+  public static final int ALLOW_RETURN = (1 << 21);
+  
   public static final int[] MODIFIERS = {
     ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, 
     TRANSIENT, VOLATILE, STRICTFP, IMPLICIT, INSTANCE, VARARGS, WRITE,
-    AS_BINARY, IS_GRANULE, NOT_GRANULE, IMPLEMENTATION_ONLY, NO_VERIFY,
+    AS_BINARY, IS_GRANULE, NOT_GRANULE, IMPLEMENTATION_ONLY, NO_VERIFY, ALLOW_RETURN
   };
 
   public static final String MODIFIERS_ID =  "Java.modifiers";
@@ -205,8 +207,8 @@ public class JavaNode extends JJNode {
     return node.getIntSlotValue(modifiersSlotInfo);
   }
 
-  private static final int LASTMODIFIER = NO_VERIFY;
-  public static final int ILLEGAL_MOD = NO_VERIFY << 1;
+  private static final int LASTMODIFIER = ALLOW_RETURN;
+  public static final int ILLEGAL_MOD = LASTMODIFIER << 1;
 	  
   static final String[] modifiers = {"abstract", "final", "native", "private",
       "protected", "public", "static", "synchronized", "transient", "volatile",
