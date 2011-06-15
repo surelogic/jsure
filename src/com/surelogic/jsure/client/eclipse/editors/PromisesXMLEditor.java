@@ -259,17 +259,27 @@ public class PromisesXMLEditor extends EditorPart {
 		if (s.size() != 1) {
 			return;
 		}
-		final Object o = s.getFirstElement();
-		if (o instanceof AnnotationElement) {
-			// TODO add comment
+		final IJavaElement o = (IJavaElement) s.getFirstElement();
+		if (o instanceof CommentedJavaElement) {
+		    final CommentedJavaElement cje = (CommentedJavaElement) o;
+		    makeMenuItem(menu, "Add comment", new SelectionAdapter() {
+		        @Override
+		        public void widgetSelected(SelectionEvent e) {                
+		            CommentElement c = new CommentElement("...");
+		            cje.addComment(c);
+		            contents.refresh();
+		        }
+		    });
 		}
-		else if (o instanceof AnnotatedJavaElement) {
+		
+		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
 			makeMenuItem(menu, "Add annotation...", new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					// TODO create dialog
 					//AnnotationElement a = new AnnotationElement(null, tag, text, attrs);
+				    contents.refresh();
 				}
 			});
 		
@@ -280,7 +290,8 @@ public class PromisesXMLEditor extends EditorPart {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						// TODO create dialog
-						FunctionParameterElement p = new FunctionParameterElement(0);						
+						FunctionParameterElement p = new FunctionParameterElement(0);	
+						 contents.refresh();
 					}
 				});
 			} 
