@@ -143,27 +143,27 @@ public class WithUnique<T1, T2 extends Object, T3 extends Parent, T4 extends Unr
    * Test against type variable T5
    */
   
-  public void definitelyNotAliased_T5_assures1(final T5 other) {
+  public void definitelyAliased_T5_fails1(final T5 other) {
     this.u.twiddleParameter(other);
   }
   
-  public void definitelyNotAliased_T5_assures2(final T5 other) {
+  public void definitelyNotAliased_T5_assures1(final T5 other) {
     this.u.twiddleReceiver(other);
   }
   
-  public void definitelyNotAliased_T5_assures3(final T5 other) {
+  public void definitelyAliased_T5_fails2(final T5 other) {
     this.u.twiddleBoth(other);
   }
   
-  public void definitelyNotAliased_T5_assures4(final T5 other) {
-    Useless.twiddle1(this.u, other); // should be like definitelyNotAliased_fails1()
+  public void definitelyAliased_T5_fails3(final T5 other) {
+    Useless.twiddle1(this.u, other); // should be like definitelyAliased_T5_fails1()
   }
   
-  public void definitelyNotAliased_T5_assures5(final T5 other) {
-    Useless.twiddle2(this.u, other); // should be like definitelyNotAliased_assures1()
+  public void definitelyNotAliased_T5_assures2(final T5 other) {
+    Useless.twiddle2(this.u, other); // should be like definitelyNotAliased_T5_assures1()
   }
   
-  public void definitelyNotAliased_T5_assures6(final T5 other) {
-    Useless.twiddle3(this.u, other); // should be like definitelyNotAliased_fails2()
+  public void definitelyAliased_T5_fails4(final T5 other) {
+    Useless.twiddle3(this.u, other); // should be like definitelyAliased_T5_fails2()
   }
 }
