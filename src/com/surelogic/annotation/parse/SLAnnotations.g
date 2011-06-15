@@ -244,6 +244,9 @@ annoParameter
 	
 borrowedFunction
     : thisExpr EOF -> thisExpr
+    | qualifiedThisExpression EOF -> qualifiedThisExpression
+    | thisExpr ',' qualifiedThisExpression EOF -> ^(Expressions thisExpr qualifiedThisExpression)
+    | qualifiedThisExpression ',' thisExpr EOF -> ^(Expressions thisExpr qualifiedThisExpression)    
     ;
     
 borrowedList
@@ -256,7 +259,7 @@ borrowedExpressionList
     ;
 
 borrowedExpression
-    : varUse | thisExpr 
+    : varUse | thisExpr | qualifiedThisExpression
     ;    
 
 uniqueJava5Constructor
