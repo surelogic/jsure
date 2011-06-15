@@ -5,22 +5,23 @@ package com.surelogic.aast.promise;
 import com.surelogic.aast.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public class BorrowedNode extends AbstractBooleanNode 
+public final class BorrowedNode extends AbstractBooleanNode 
 { 
-  public static final AbstractAASTNodeFactory factory = new Factory("Borrowed") {   
-    @Override
-    public AASTNode create(int _start) {
-      return new BorrowedNode (_start);
-    }
-  };
+  private final boolean allowReturn;
 
   // Constructors
-  public BorrowedNode(int offset) {
+  public BorrowedNode(int offset, boolean allow) {
     super(offset);
+    allowReturn = allow;
   }
 
+  public final boolean allowReturn() {
+      return allowReturn;
+  }
+  
   @Override
   public String unparse(boolean debug, int indent) {
+    // TODO allowReturn?
     return unparse(debug, indent, "Borrowed");
   }
 
@@ -31,7 +32,7 @@ public class BorrowedNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new BorrowedNode(offset);
+  	return new BorrowedNode(offset, allowReturn);
   }
 }
 

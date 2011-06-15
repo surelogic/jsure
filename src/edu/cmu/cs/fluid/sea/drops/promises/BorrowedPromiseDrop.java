@@ -28,4 +28,8 @@ public final class BorrowedPromiseDrop extends BooleanPromiseDrop<BorrowedNode> 
                JavaNames.getFieldDecl(node), 
                JavaNames.genMethodConstructorName(VisitUtil.getEnclosingClassBodyDecl(node))); //$NON-NLS-1$
   }
+  
+  public final boolean allowReturn() {
+      return getAST().allowReturn();
+  }
 }

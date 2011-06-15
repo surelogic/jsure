@@ -19,6 +19,7 @@ import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
@@ -338,6 +339,7 @@ public class UniquenessRules extends AnnotationRules {
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
       if (context.getSourceType() == AnnotationSource.JAVADOC) {
+        // TODO how to handle allowReturn
         return parser.borrowedList().getTree();
       }
       if (ParameterDeclaration.prototype.includes(context.getOp()) ||
@@ -348,7 +350,7 @@ public class UniquenessRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new BorrowedNode(offset);
+      return new BorrowedNode(offset, JavaNode.isSet(mods, JavaNode.ALLOW_RETURN));
     }
     @Override
     protected IPromiseDropStorage<BorrowedPromiseDrop> makeStorage() {
