@@ -21,8 +21,7 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 public class NewScanAction extends AbstractProjectSelectedMenuAction {
 	@Override
-	protected void run(final List<IJavaProject> selectedProjects,
-			final List<String> projectNames) {
+	protected void runActionOn(final List<IJavaProject> selectedProjects) {
 
 		/*
 		 * License check: A hack because JSure is not using SLJobs yet.
@@ -35,10 +34,12 @@ public class NewScanAction extends AbstractProjectSelectedMenuAction {
 			return;
 		}
 
-		boolean success = JavacBuild.analyze(selectedProjects, BalloonUtility.errorListener);
+		boolean success = JavacBuild.analyze(selectedProjects,
+				BalloonUtility.errorListener);
 		if (success) {
 			// TODO check if we should auto-switch
-			EclipseUIUtility.showPerspective(CodeVerificationPerspective.class.getName());
+			EclipseUIUtility.showPerspective(CodeVerificationPerspective.class
+					.getName());
 		}
 	}
 
@@ -50,6 +51,7 @@ public class NewScanAction extends AbstractProjectSelectedMenuAction {
 				"Verify Project",
 				SLImages.getImage(CommonImages.IMG_JSURE_VERIFY),
 				selectedProjects,
-				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN);
+				JSurePreferencesUtility.ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN,
+				null);
 	}
 }
