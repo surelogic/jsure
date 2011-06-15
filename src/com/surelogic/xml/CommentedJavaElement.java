@@ -15,6 +15,12 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 	 */
 	private final List<CommentElement> lastEnclosedComments = new ArrayList<CommentElement>(0);
 	
+
+    public void addComment(CommentElement c) {
+        comments.add(c);
+        markAsDirty();
+    }
+	
 	public final void addComments(Collection<String> c) {		
 		for(String s : c) {
 			comments.add(new CommentElement(s));

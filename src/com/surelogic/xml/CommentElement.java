@@ -1,17 +1,18 @@
 package com.surelogic.xml;
 
+import com.surelogic.common.CommonImages;
+
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public class CommentElement extends AbstractJavaElement {
 	private String comment;
 
-	CommentElement(String c) {
+	public CommentElement(String c) {
 		comment = c;
 	}
 	
 	public String getImageKey() {
-		// TODO 
-		return null;
+		return CommonImages.IMG_COMMENT;
 	}
 
 	public String getLabel() {
