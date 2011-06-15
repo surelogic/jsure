@@ -111,6 +111,8 @@ public final class JSurePreferencesUtility {
 			+ "always.allow.user.to.select.projects.to.scan";
 	public static final String LAST_TIME_PROJECTS_TO_SCAN = PREFIX
 			+ "last.time.projects.to.scan";
+	public static final String LAST_TIME_PROJECTS_TO_UPDATE_JAR = PREFIX
+			+ "last.time.projects.to.update.jar";
 	public static final String AUTO_OPEN_MODELING_PROBLEMS_VIEW = PREFIX
 			+ "open.modeling.problems.view";
 	public static final String AUTO_OPEN_PROPOSED_PROMISE_VIEW = PREFIX
