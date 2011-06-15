@@ -30,6 +30,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UtilityPromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
@@ -253,7 +254,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
       // Prefer the class to be final
       if ((ClassDeclaration.getMods(typeDecl) & JavaNode.FINAL) == 0) {
         final InfoDropBuilder db =
-          InfoDropBuilder.create(analysis, Messages.toString(Messages.CONSIDER_FINAL), true);
+          InfoDropBuilder.create(analysis, Messages.toString(Messages.CONSIDER_FINAL), WarningDrop.factory);
         analysis.setResultDependUponDrop(db, typeDecl);
         db.setResultMessage(Messages.CONSIDER_FINAL);
       }

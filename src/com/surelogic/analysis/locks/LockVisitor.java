@@ -84,7 +84,9 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.LockModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.sea.drops.promises.RequiresLockPromiseDrop;
@@ -852,7 +854,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
 		final InfoDropBuilder info =
-		  InfoDropBuilder.create(analysisRoot, Messages.toString(msgTemplate), false);
+		  InfoDropBuilder.create(analysisRoot, Messages.toString(msgTemplate), InfoDrop.factory);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);
@@ -863,7 +865,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final IRNode context, final int msgTemplate,
 			final Object... msgArgs) {
 		final InfoDropBuilder info = InfoDropBuilder.create(analysisRoot,
-				Messages.toString(msgTemplate), true);
+				Messages.toString(msgTemplate), WarningDrop.factory);
 		setLockResultDep(info, context);
 		info.setResultMessage(msgTemplate, msgArgs);
 		info.setCategory(category);

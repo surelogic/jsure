@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.proxy.*;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -217,7 +218,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q> extends Con
 	}
 	
 	protected void reportProblem(String msg, IRNode context) {
-		InfoDropBuilder d = InfoDropBuilder.create(this, msg, true);
+		InfoDropBuilder d = InfoDropBuilder.create(this, msg, WarningDrop.factory);
 		if (context != null) {
 			d.setNodeAndCompilationUnitDependency(context);
 		} else {

@@ -13,12 +13,13 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.Category;
+import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 
 public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor,IRNode> {
 	private void reportInference(Category c, int number, String arg, IRNode loc) {
-		InfoDropBuilder id = InfoDropBuilder.create(this, Messages.toString(number), false);
+		InfoDropBuilder id = InfoDropBuilder.create(this, Messages.toString(number), InfoDrop.factory);
 		// rd.addCheckedPromise(pd);
 		id.setNodeAndCompilationUnitDependency(loc);
 		id.setResultMessage(number, arg);

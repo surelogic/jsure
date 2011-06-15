@@ -21,4 +21,14 @@ public class InfoDrop extends IRReferenceDrop implements IResultDrop {
 			System.out.println("InfoDrop result-type is null");
 		}
 	}
+	
+	public interface Factory {
+		InfoDrop create(String type);
+	}
+	
+	public static final Factory factory = new Factory() {
+		public InfoDrop create(String type) {
+			return new InfoDrop(type);
+		}
+	};
 }

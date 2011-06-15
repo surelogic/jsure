@@ -31,6 +31,7 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.InfoDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -300,7 +301,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
 	  final String id = JJNode.getInfo(typeDecl);
 	  for (final Effect e : masked) {
-	    final InfoDropBuilder drop = InfoDropBuilder.create(this, "EffectAssurance", false);
+	    final InfoDropBuilder drop = InfoDropBuilder.create(this, "EffectAssurance", InfoDrop.factory);
 	    drop.setCategory(null);
 	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
       setResultDependUponDrop(drop, src);

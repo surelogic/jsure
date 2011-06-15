@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.sea.proxy;
 
 import com.surelogic.analysis.IIRAnalysis;
 import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.InfoDrop.Factory;
 
 /**
  * Temporary builder to help analyses be parallelized
@@ -11,15 +12,15 @@ import edu.cmu.cs.fluid.sea.*;
  * @author Edwin
  */
 public class InfoDropBuilder extends AbstractDropBuilder {
-	private final boolean isWarning;
+	private final Factory factory;
 	
-	private InfoDropBuilder(String type, boolean warn) {
+	private InfoDropBuilder(String type, Factory f) {
 		super(type);
-		isWarning = warn;
+		factory = f;
 	}
 	
-	public static InfoDropBuilder create(IIRAnalysis a, String type, boolean warn) {
-		InfoDropBuilder rv = new InfoDropBuilder(type, warn);
+	public static InfoDropBuilder create(IIRAnalysis a, String type, Factory f) {
+		InfoDropBuilder rv = new InfoDropBuilder(type, f);
 		a.handleBuilder(rv);
 		return rv;
 	}
@@ -29,7 +30,7 @@ public class InfoDropBuilder extends AbstractDropBuilder {
 		if (!isValid()) {
 			return 0;
 		}
-		InfoDrop rd = isWarning ? new WarningDrop(type) : new InfoDrop(type);				
+		InfoDrop rd = factory.create(type);
 		return buildDrop(rd);
 	}
 }

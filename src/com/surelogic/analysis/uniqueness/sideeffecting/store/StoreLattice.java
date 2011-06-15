@@ -20,6 +20,7 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
@@ -598,7 +599,7 @@ extends TripleLattice<Element<Integer>,
   private void reportError(final IRNode srcOp, final String label, final String message) {
     if (makeDrops && !suppressDrops) {
       final String newMsg = abruptDrops ? message + " (ABRUPT)" : message;
-      final InfoDropBuilder infoDrop = InfoDropBuilder.create(analysis, label, true);
+      final InfoDropBuilder infoDrop = InfoDropBuilder.create(analysis, label, WarningDrop.factory);
       infoDrop.setMessage(newMsg);
       infoDrop.setNode(srcOp);
     }
