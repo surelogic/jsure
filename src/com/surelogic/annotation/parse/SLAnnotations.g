@@ -262,6 +262,12 @@ borrowedExpression
     : varUse | thisExpr | qualifiedThisExpression
     ;    
 
+// TODO
+borrowedAllowReturn
+    : 'allowReturn' '=' TRUE -> 'allowReturn'
+    | 'allowReturn' '=' FALSE -> FALSE // Same as default
+    ;
+
 uniqueJava5Constructor
     : returnValue EOF -> returnValue
     ;
@@ -673,7 +679,7 @@ identifier
       : IDENTIFIER | 'is' | 'protects' | 
         'none' | 'reads' | 'writes' | 'any' | 'readLock' | 'writeLock' |
         'into' | 'nothing' | 'itself' |
-        'implementationOnly' | 'verify' 
+        'implementationOnly' | 'verify' | 'allowReturn'
       ;
 
 IMPLEMENTATION_ONLY : 'implementationOnly';
