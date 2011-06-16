@@ -48,6 +48,10 @@ implements IClassMember, TestXMLParserConstants
 	public final String getParams() {
 		return parameters;
 	}
+
+	public final String[] getSplitParams() {
+		return parameters.split(",");
+	}
 	
 	public final String getGenericParams() {
 		return genericParams;
@@ -62,7 +66,7 @@ implements IClassMember, TestXMLParserConstants
 		p.setParent(this);
 	}
 	
-	FunctionParameterElement getParameter(int i) {
+	public FunctionParameterElement getParameter(int i) {
 		return params.get(i);
 	}
 
