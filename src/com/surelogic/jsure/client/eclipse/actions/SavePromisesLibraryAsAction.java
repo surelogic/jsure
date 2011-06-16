@@ -51,5 +51,4 @@ public class SavePromisesLibraryAsAction implements
 	public void selectionChanged(IAction action, ISelection selection) {
 		// Nothing to do
 	}
-
 }
