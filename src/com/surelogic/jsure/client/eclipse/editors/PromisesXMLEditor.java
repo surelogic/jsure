@@ -19,15 +19,17 @@ import org.eclipse.ui.part.EditorPart;
 
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.*;
 import com.surelogic.xml.IJavaElement;
 
-import edu.cmu.cs.fluid.util.ArrayUtil;
+import edu.cmu.cs.fluid.util.*;
 
 public class PromisesXMLEditor extends EditorPart {
 	private final Provider provider = new Provider();
 	private static final JavaElementProvider jProvider = new JavaElementProvider();
+	private static final ParameterProvider paramProvider = new ParameterProvider();
     private TreeViewer contents;
     
     @Override
@@ -136,7 +138,7 @@ public class PromisesXMLEditor extends EditorPart {
 		return false;
 	}
 	
-	class Provider implements ITreeContentProvider, ILabelProvider {
+	class Provider extends AbstractContentProvider implements ITreeContentProvider {
 		URI location;
 		PackageElement pkg;
 		Object[] roots;
@@ -234,24 +236,6 @@ public class PromisesXMLEditor extends EditorPart {
 			IJavaElement e = (IJavaElement) element;
 			return SLImages.getImage(e.getImageKey());
 		}
-		
-		@Override
-		public void addListener(ILabelProviderListener listener) {
-			// Nothing to do
-		}
-		@Override
-		public boolean isLabelProperty(Object element, String property) {
-			// Nothing to do
-			return false;
-		}
-		@Override
-		public void removeListener(ILabelProviderListener listener) {
-			// Nothing to do
-		}
-		@Override
-		public void dispose() {
-			// Nothing to do
-		}
 	}
 	
 	private void setupContextMenu(final Menu menu) {
@@ -284,17 +268,29 @@ public class PromisesXMLEditor extends EditorPart {
 				}
 			});
 		
-			// TODO add comment
 			if (o instanceof AbstractFunctionElement) {
 				final AbstractFunctionElement f = (AbstractFunctionElement) o;
-				makeMenuItem(menu, "Add parameter...", new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						// TODO create dialog
-						FunctionParameterElement p = new FunctionParameterElement(0);	
-						 contents.refresh();
+				if (f.getParams().length() > 0) {
+					final String[] params = f.getSplitParams();
+					final List<NewParameter> newParams = new ArrayList<NewParameter>();
+					for(int i=0; i<params.length; i++) {
+						if (f.getParameter(i) == null) {
+							newParams.add(new NewParameter(i,params[i]));
+						}
 					}
-				});
+					if (newParams.size() > 0) {
+						makeMenuItem(menu, "Add parameter...", new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent e) {						
+								ListSelectionDialog d = new 
+								    ListSelectionDialog(contents.getTree().getShell(), newParams.toArray(), 
+								    		paramProvider, paramProvider, "Select parameter(s) to add");
+								FunctionParameterElement p = new FunctionParameterElement(0);	
+								contents.refresh();
+							}
+						});
+					}
+				}
 			} 
 			else if (o instanceof ClassElement) {
 				final ClassElement c = (ClassElement) o;
@@ -348,6 +344,16 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
+	static class NewParameter {
+		final int index;
+		final String type;
+		
+		NewParameter(int i, String t) {
+			index = i;
+			type = t;
+		}		
+	}
+	
 	static IType findIType(ClassElement c, String nameSoFar) {
 		String typeName = nameSoFar.isEmpty() ? c.getName() : c.getName()+'.'+nameSoFar;
 		if (c instanceof NestedClassElement) {
@@ -365,26 +371,10 @@ public class PromisesXMLEditor extends EditorPart {
 		item1.addSelectionListener(l);
 	}
 	
-	static class JavaElementProvider implements IStructuredContentProvider, ILabelProvider {
+	static class JavaElementProvider extends AbstractContentProvider {
 		@Override
 		public Object[] getElements(Object inputElement) {
 			return (Object[]) inputElement;
-		}
-
-		@Override
-		public void dispose() {
-			// TODO Auto-generated method stub
-		}
-
-		@Override
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-			// TODO Auto-generated method stub
-		}
-
-		@Override
-		public Image getImage(Object element) {
-			// TODO Auto-generated method stub
-			return null;
 		}
 
 		@Override
@@ -403,22 +393,19 @@ public class PromisesXMLEditor extends EditorPart {
 			}
 			return e.getElementName();
 		}
-
+	}
+	
+	static class ParameterProvider extends AbstractContentProvider {
 		@Override
-		public void addListener(ILabelProviderListener listener) {
+		public Object[] getElements(Object inputElement) {
 			// TODO Auto-generated method stub
+			return null;
 		}
 
 		@Override
-		public boolean isLabelProperty(Object element, String property) {
+		public String getText(Object element) {
 			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public void removeListener(ILabelProviderListener listener) {
-			// TODO Auto-generated method stub
-			
+			return null;
 		}
 	}
 }
