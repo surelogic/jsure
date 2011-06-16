@@ -2,6 +2,7 @@ package com.surelogic.annotation.rules;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -18,6 +19,7 @@ import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -27,6 +29,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -433,6 +436,9 @@ public class UniquenessRules extends AnnotationRules {
     
     private BorrowedPromiseDrop scrubBorrowed(
         final IAnnotationScrubberContext context, final BorrowedNode a) {
+      if (QualifiedReceiverDeclaration.prototype.includes(a.getPromisedFor())) {
+    	  System.out.println("Borrowed on "+DebugUnparser.toString(a.getPromisedFor()));
+      }
       // must be a reference type variable
       boolean good = checkForReferenceType(context, a, "Borrowed");
       
@@ -518,12 +524,14 @@ public class UniquenessRules extends AnnotationRules {
     final IJavaType type;
     if (ParameterDeclaration.prototype.includes(promisedForOp)
         || ReceiverDeclaration.prototype.includes(promisedForOp)
-        || VariableDeclarator.prototype.includes(promisedForOp)) {
+        || VariableDeclarator.prototype.includes(promisedForOp)
+        || QualifiedReceiverDeclaration.prototype.includes(promisedForOp)) {
       type = context.getBinder().getJavaType(promisedFor);
     } else if (ReturnValueDeclaration.prototype.includes(promisedForOp)) {
       final IRNode method = JavaPromise.getPromisedFor(promisedFor);
       type = context.getBinder().getJavaType(method);
     } else {
+      LOG.log(Level.SEVERE, "Unexpected "+promisedForOp.name()+": "+DebugUnparser.toString(promisedFor), new Throwable());
       return false;
     }
     

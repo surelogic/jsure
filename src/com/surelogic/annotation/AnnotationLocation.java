@@ -12,7 +12,8 @@ public enum AnnotationLocation {
   DECL, 
   RECEIVER, 
   RETURN_VAL,
-  PARAMETER;
+  PARAMETER, 
+  QUALIFIED_RECEIVER;
   
   public static AnnotationLocation translateTokenType(int type) {
     switch (type) {
@@ -24,6 +25,8 @@ public enum AnnotationLocation {
         return AnnotationLocation.RETURN_VAL;
       case SLAnnotationsParser.VariableUseExpression:
         return AnnotationLocation.PARAMETER;      
+      case SLAnnotationsParser.QualifiedThisExpression:
+    	return AnnotationLocation.QUALIFIED_RECEIVER;
       default:
         throw new IllegalArgumentException("Unexpected type: "+SLAnnotationsParser.tokenNames[type]);
     }

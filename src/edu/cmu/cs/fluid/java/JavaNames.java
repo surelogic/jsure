@@ -27,6 +27,7 @@ import edu.cmu.cs.fluid.java.operator.TypeRef;
 import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidType;
+import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -70,6 +71,8 @@ public final class JavaNames {
 			} else if (ReturnValueDeclaration.prototype.includes(op)) {
 				result = "return";
 			} else if (FieldDeclaration.prototype.includes(op)) {
+				result = DebugUnparser.toString(field);
+			} else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
 				result = DebugUnparser.toString(field);
 			}
 		}

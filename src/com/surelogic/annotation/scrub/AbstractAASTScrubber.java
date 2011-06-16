@@ -696,6 +696,9 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				    // These can't be overridden by anything else
 				    continue;
 				}
+				else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
+					loc = AnnotationLocation.QUALIFIED_RECEIVER;
+				}
 				else {
 					throw new IllegalStateException("Unexpected decl: "+op.name());
 				}

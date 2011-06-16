@@ -79,7 +79,14 @@ extends AbstractAnnotationParseRule<A,P> {
     	  mods = context.getModifiers();
       }
       IAASTRootNode d = makeAAST(context, offset, mods);
-      context.reportAAST(offset, loc, tn.getText(), d);
+      final Object o;
+      if (loc == AnnotationLocation.QUALIFIED_RECEIVER) {
+    	  Tree child0 = node.getChild(0);
+    	  o = child0.getText();
+      } else {
+    	  o = tn.getText();
+      }
+      context.reportAAST(offset, loc, o, d);
     } catch (Exception e) {
       context.reportException(offset, e);
     }

@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
@@ -135,6 +136,23 @@ ITestAnnotationParsingContext {
       case PARAMETER:
         String id = (String) context;
         return BindUtil.findLV(decl, id);
+      case QUALIFIED_RECEIVER:    	    	
+    	final String pattern = (String) context;
+    	final boolean isQualified = pattern.indexOf('.') >= 0;
+    	IRNode here = decl;
+    	IRNode type;
+    	String typeName;
+    	do {
+    		type = VisitUtil.getEnclosingType(here);
+    		if (isQualified) {
+    			typeName = JavaNames.getFullTypeName(type);
+    		} else {
+    			typeName = JavaNames.getTypeName(type);
+    		}
+    		here = type;
+    	} 
+    	while (here != null && !typeName.equals(pattern));
+    	return JavaPromise.getQualifiedReceiverNodeByName(decl, type);
     }
     return null;
   }
