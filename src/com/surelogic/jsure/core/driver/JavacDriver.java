@@ -1664,11 +1664,20 @@ public class JavacDriver implements IResourceChangeListener {
 	/**
 	 * Wait for a normal Eclipse build
 	 */
+	public static void waitForBuild() {
+		waitForBuild(true);
+		waitForBuild(false);
+	}
+	
 	public static SLStatus waitForBuild(boolean isAuto) {
 		System.out.println("Waiting for build: " + isAuto);
 		try {
 			Object family = isAuto ? ResourcesPlugin.FAMILY_AUTO_BUILD
 					: ResourcesPlugin.FAMILY_MANUAL_BUILD;
+			Job[] jobs = Job.getJobManager().find(family);
+			if (jobs.length == 0) {
+				return SLStatus.OK_STATUS;
+			}
 			Job.getJobManager().join(family, null);
 		} catch (OperationCanceledException e1) {
 			return SLStatus.CANCEL_STATUS;
