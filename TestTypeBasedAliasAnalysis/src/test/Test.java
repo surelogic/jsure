@@ -1,6 +1,7 @@
 
 package test;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Test {
@@ -23,6 +24,20 @@ public class Test {
 			II ii,
 			JJ jj
 			) {
+		// blank
+	}
+	
+	public void arrays(
+			Object o,
+			Cloneable c,
+			Serializable s,
+			I i,
+			A[] aArray,
+			B[] bArray,
+			C[] cArray,
+			D[] dArray,
+			I[] iArray,
+			J[] jArray) {
 		// blank
 	}
 }
