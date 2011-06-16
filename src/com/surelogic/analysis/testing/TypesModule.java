@@ -70,15 +70,6 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
     }
     
     private void showType(final String prefix, final IJavaType type) {
-//      final InfoDrop drop = new InfoDrop();
-//      tm.setResultDependUponDrop(drop, e);
-//      drop.setCategory(Messages.DSC_TYPES);
-//      drop.setResultMessage(Messages.TYPE,
-//          DebugUnparser.toString(e),
-//          type.toString(),
-//          type.getClass().getName());
-
-      
       final String nextPrefix = prefix + "  ";
       if (type instanceof IJavaDeclaredType) {
         final IJavaDeclaredType declaredType = (IJavaDeclaredType) type;

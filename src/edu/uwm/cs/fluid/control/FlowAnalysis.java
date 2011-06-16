@@ -30,6 +30,7 @@ import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
 import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -71,7 +72,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   private static final boolean CHECK_MONOTONICITY = false;
   private static final boolean DEBUG = false;
   
-  private static final long TIMEOUT_DURATION = 1000000000L * 60L * 2; // 2 minutes in nanoseconds
+  private static final long ONE_SECOND = 1000000000L;
   private static final int COUNT_BEFORE_CHECK = 1000;
 
   
@@ -87,6 +88,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   private final IRNodeViewer nodeViewer;
   
   private final boolean shouldTimeOut;
+  private final long timeOutDuration;
   
   private boolean isComputed = false;
   
@@ -105,6 +107,8 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     worklist = createWorklist();
     nodeViewer = (nv == null) ? IRNodeViewer.defaultViewer : nv;
     shouldTimeOut = timeOut;
+    timeOutDuration = IDE.getInstance().getIntPreference(
+        IDEPreferences.TIMEOUT_SEC) * ONE_SECOND;
   }
   
   @RequiresLock("ComputeLock")
@@ -296,7 +300,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
    */
   protected final void realPerformAnalysis() {
     final IDE ide = IDE.getInstance();    
-    final long deadline = System.nanoTime() + TIMEOUT_DURATION;
+    final long deadline = System.nanoTime() + timeOutDuration;
     int globalCount = 0;
 
     int count = COUNT_BEFORE_CHECK;

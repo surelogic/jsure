@@ -13,7 +13,7 @@ final class Messages  {
   public static final Category DSC_COLLECT_METHOD_CALLS = Category.getInstance(510);
   public static final Category DSC_LOCAL_VARIABLES = Category.getInstance(520);
   public static final Category DSC_NON_NULL = Category.getInstance(530);
-  public static final Category DSC_TYPES = Category.getInstance(540);
+  public static final Category DSC_TEST_ALIAS = Category.getInstance(540);
   
   
   
@@ -22,7 +22,7 @@ final class Messages  {
   public static final int LOCAL_VARS = 520;
   public static final int NOT_NULL = 530;
   public static final int MAYBE_NULL = 531;
-  public static final int TYPE = 540;
+  public static final int ALIASED_PARAMETERS = 540;
   
   
   

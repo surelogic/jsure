@@ -29,7 +29,7 @@ import edu.uwm.cs.fluid.util.Lattice;
  */
 public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysisQuery<R>, R, T, L extends Lattice<T>>
     implements JavaFlowAnalysisQuery<R> {
-  /* The core functionality is handed off to a delegate object.  This this is
+  /* The core functionality is handed off to a delegate object.  This is
    * needed to handle the laziness, so that a query can start off unevaluated,
    * but change its behavior once it has been evaluated by changing the wrapped
    * delegate.
@@ -38,7 +38,7 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
   /*
    * A recurring issue when getting a subanalysis object is whether we need to
    * create a specialized "bottom-returning" query. This happens when the
-   * getSubanalysis() method from the SubANalysisFactory returns null. In this
+   * getSubanalysis() method from the SubAnalysisFactory returns null. In this
    * case, we assume the subanalysis was not created because the code that
    * contains it is dead: it is in an "if (false) { ... }" statement, for
    * example. So the user can query about this code, but the control flow
