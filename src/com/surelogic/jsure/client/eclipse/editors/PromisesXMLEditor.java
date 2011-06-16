@@ -268,6 +268,7 @@ public class PromisesXMLEditor extends EditorPart {
 		            CommentElement c = new CommentElement("...");
 		            cje.addComment(c);
 		            contents.refresh();
+		            contents.expandToLevel(cje, 1);
 		        }
 		    });
 		}
