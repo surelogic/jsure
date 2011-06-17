@@ -292,13 +292,17 @@ public class AnnotationVisitor extends Visitor<Integer> {
 				boolean implOnly = false;
 				boolean verify = true;
 				boolean allowReturn = false;
+				String contents = "";
 				for (IRNode valuePair : pairs) {
 					final String id = ElementValuePair.getId(valuePair);
 					if ("value".equals(id)) {
 						IRNode value = ElementValuePair.getValue(valuePair);
 						if (StringLiteral.prototype.includes(value)) {
+							contents = StringLiteral.getToken(value);
+							/*
 							return translate(handleJava5Promise(node, value,
 									promise, StringLiteral.getToken(value)));
+									*/
 						}
 					}
 					else if (ALLOW_RETURN.equals(id)) {
@@ -311,7 +315,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 						verify = extractBoolean(valuePair, verify);
 					}					
 				}	            
-				return translate(handleJava5Promise(node, promise, convertToModifiers(implOnly, verify, allowReturn)));
+				return translate(handleJava5Promise(node, node, promise, contents, convertToModifiers(implOnly, verify, allowReturn)));
 			} else {
 				return translate(handleJava5Promise(node, promise, JavaNode.ALL_FALSE));
 			}
