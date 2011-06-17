@@ -214,8 +214,14 @@ public class UniquenessRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber<ReadonlyNode> makeScrubber() {
-    	// TODO
-    	return null;
+    	// TODO scrub
+    	return new AbstractAASTScrubber<ReadonlyNode, ReadonlyPromiseDrop>() {
+			@Override
+			protected ReadonlyPromiseDrop makePromiseDrop(ReadonlyNode n) {
+				return new ReadonlyPromiseDrop(n);
+			}
+    		
+    	};
     }
   }
   
