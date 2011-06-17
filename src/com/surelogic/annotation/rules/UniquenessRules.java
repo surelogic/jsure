@@ -93,6 +93,14 @@ public class UniquenessRules extends AnnotationRules {
     return getBooleanDrop(borrowedRule.getStorage(), vdecl);
   }
   
+  public static boolean isReadOnly(IRNode vdecl) {
+	  return getReadOnly(vdecl) != null;
+  }
+  
+  public static ReadonlyPromiseDrop getReadOnly(IRNode vdecl) {
+	  return getBooleanDrop(readonlyRule.getStorage(), vdecl);
+  }
+  
   /**
    * Meant for testing
    */
