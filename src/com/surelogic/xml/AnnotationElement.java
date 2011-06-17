@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
@@ -41,6 +42,24 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 			attributes.put(UID_ATTRB, uid);
 		}
 	}
+		
+	public static boolean isIdentifier(String id) {
+		boolean first = true;
+		for(int i=0; i<id.length(); i++) {
+			char c = id.charAt(i);
+			if (first) {
+				first = false;
+				if (!Character.isJavaIdentifierStart(c)) {
+					return false;
+				}
+			} else {
+				if (!Character.isJavaIdentifierPart(c)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 	
 	@Override
 	public boolean canModify() {
@@ -48,29 +67,38 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 	}
 	
 	@Override
-	public void modify(String value) {
+	public void modify(String value, IErrorListener l) {
 		value = value.trim();
-		
+				
 		final int paren = value.indexOf('(');
 		String anno, text;
 		if (paren < 0) {
+			if (!isIdentifier(value)) {
+				// Ignore, since the promise type changed
+				l.reportError("Annotation cannot be changed", "The promise type cannot be changed from "+promise+" to "+value);
+				return;
+			}
 			anno = value;
 			text = "";
 		} else {
 			if (!value.endsWith(")")) {
 				// Ignore, since the text doesn't have the right format
+				l.reportError("Bad annotation syntax", "The annotation needs to use the general syntax:\n\tFoo()");
 				return;
 			}
 			anno = value.substring(0, paren).trim();
 			text = value.substring(paren+1, value.length()-1).trim();
 		}			
 		if (!promise.equals(anno)) {
-			// Ignore, since the promise changed
+			// Ignore, since the promise type changed
+			l.reportError("Annotation cannot be changed", "The promise type cannot be changed from "+promise+" to "+anno);
 			return;
 		}
 		if (!contents.equals(text)) {
 			contents = text;		
 			markAsDirty();
+		} else {
+			l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
 		}
 	}
 	

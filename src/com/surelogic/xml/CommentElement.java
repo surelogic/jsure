@@ -1,6 +1,7 @@
 package com.surelogic.xml;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.logging.IErrorListener;
 
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
@@ -33,7 +34,7 @@ public class CommentElement extends AbstractJavaElement {
 	}
 
 	@Override
-	public void modify(String value) {
+	public void modify(String value, IErrorListener l) {
 		comment = value;
 		markAsDirty();
 	}

@@ -1,5 +1,7 @@
 package com.surelogic.xml;
 
+import com.surelogic.common.logging.IErrorListener;
+
 abstract class AbstractJavaElement implements IJavaElement {
 	private IJavaElement parent;
 	private boolean isDirty;
@@ -19,7 +21,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 		return false;
 	}
 	
-	public void modify(String value) {
+	public void modify(String value, IErrorListener l) {
 		throw new UnsupportedOperationException();
 	}
 	

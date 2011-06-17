@@ -1,5 +1,7 @@
 package com.surelogic.xml;
 
+import com.surelogic.common.logging.IErrorListener;
+
 /**
  * Mostly for use by a Content/LabelProvider
  * 
@@ -15,5 +17,5 @@ public interface IJavaElement {
 	Object[] getChildren();
 	
 	boolean canModify();
-	void modify(String value);
+	void modify(String value, IErrorListener l);
 }
