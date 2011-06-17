@@ -57,7 +57,7 @@ implements IClassMember, TestXMLParserConstants
 		return genericParams;
 	}
 	
-	void setParameter(FunctionParameterElement p) {
+	public void setParameter(FunctionParameterElement p) {
 		// Make params big enough
 		while (params.size() <= p.getIndex()) {
 			params.add(null);			
@@ -67,6 +67,9 @@ implements IClassMember, TestXMLParserConstants
 	}
 	
 	public FunctionParameterElement getParameter(int i) {
+		if (i >= params.size()) {
+			return null;
+		}
 		return params.get(i);
 	}
 
