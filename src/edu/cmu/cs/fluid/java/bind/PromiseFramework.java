@@ -188,6 +188,10 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     return parseMap.get(tag);
   }
   
+  public Iterable<IAnnotationParseRule> getParseDropRules() {
+	  return parseMap.values();
+  }
+  
   public <D extends PromiseDrop>
   boolean registerDropStorage(IPromiseDropStorage<D> stor) {
     String tag = stor.name();
