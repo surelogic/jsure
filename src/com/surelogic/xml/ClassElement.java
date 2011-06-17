@@ -4,6 +4,8 @@ import java.util.*;
 
 import com.surelogic.common.CommonImages;
 
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
 public class ClassElement extends AnnotatedJavaElement {
@@ -15,6 +17,11 @@ public class ClassElement extends AnnotatedJavaElement {
 	
 	public ClassElement(String id) {
 		super(id);
+	}
+	
+	@Override
+	public Operator getOperator() {
+		return ClassDeclaration.prototype;
 	}
 	
 	public final String getImageKey() {

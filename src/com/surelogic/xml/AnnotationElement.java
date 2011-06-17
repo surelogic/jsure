@@ -69,12 +69,12 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 			return;
 		}
 		if (!contents.equals(text)) {
-			contents = text;			
+			contents = text;		
 			markAsDirty();
 		}
 	}
 	
-	final String getUid() {
+	public final String getUid() {
 		return uid;
 	}
 	

@@ -2,6 +2,8 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+import edu.cmu.cs.fluid.tree.Operator;
+
 public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 	private final String name;
 	private final Map<String, AnnotationElement> promises = new HashMap<String, AnnotationElement>(0);
@@ -10,11 +12,13 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 		name = id;
 	}
 	
+	public abstract Operator getOperator();
+	
 	public final String getName() {
 		return name;
 	}
 	
-	AnnotationElement addPromise(AnnotationElement a) {
+	public AnnotationElement addPromise(AnnotationElement a) {
 		markAsDirty();
 		a.setParent(this);
 		return promises.put(a.getUid(), a);

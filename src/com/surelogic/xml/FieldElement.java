@@ -1,5 +1,8 @@
 package com.surelogic.xml;
 
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.tree.Operator;
+
 public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 	FieldElement(String id) {
 		super(id);
@@ -11,5 +14,10 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 	
 	public final String getImageKey() {
 		return null; // TODO
+	}
+	
+	@Override
+	public Operator getOperator() {
+		return FieldDeclaration.prototype;
 	}
 }

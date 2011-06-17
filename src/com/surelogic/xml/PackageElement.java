@@ -4,6 +4,9 @@ import java.util.List;
 
 import com.surelogic.common.CommonImages;
 
+import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
+import edu.cmu.cs.fluid.tree.Operator;
+
 public class PackageElement extends AnnotatedJavaElement {
 	private final ClassElement clazz;
 	
@@ -13,6 +16,11 @@ public class PackageElement extends AnnotatedJavaElement {
 		c.setParent(this);
 	}	
 
+	@Override
+	public Operator getOperator() {
+		return PackageDeclaration.prototype;
+	}
+	
 	public final String getImageKey() {
 		return CommonImages.IMG_PACKAGE;
 	}

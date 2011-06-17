@@ -1,5 +1,8 @@
 package com.surelogic.xml;
 
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.tree.Operator;
+
 public class FunctionParameterElement extends AnnotatedJavaElement {
 	private final int index;
 	
@@ -18,5 +21,10 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 	
 	public final String getImageKey() {
 		return null; // TODO
+	}
+	
+	@Override
+	public Operator getOperator() {
+		return ParameterDeclaration.prototype;
 	}
 }
