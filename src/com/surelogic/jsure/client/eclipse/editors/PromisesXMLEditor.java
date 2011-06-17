@@ -17,6 +17,8 @@ import org.eclipse.ui.*;
 import org.eclipse.ui.dialogs.ListSelectionDialog;
 import org.eclipse.ui.part.EditorPart;
 
+import com.surelogic.annotation.IAnnotationParseRule;
+import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractContentProvider;
@@ -24,12 +26,14 @@ import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.*;
 import com.surelogic.xml.IJavaElement;
 
+import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.util.*;
 
 public class PromisesXMLEditor extends EditorPart {
 	private final Provider provider = new Provider();
 	private static final JavaElementProvider jProvider = new JavaElementProvider();
 	private static final ParameterProvider paramProvider = new ParameterProvider();
+	private static final AnnoProvider annoProvider = new AnnoProvider();
     private TreeViewer contents;
     
     @Override
@@ -259,18 +263,28 @@ public class PromisesXMLEditor extends EditorPart {
 		
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
+			final List<String> annos = findMissingAnnos(j);
 			makeMenuItem(menu, "Add annotation...", new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					// TODO create dialog
-					//AnnotationElement a = new AnnotationElement(null, tag, text, attrs);
-				    contents.refresh();
+					ListSelectionDialog d = new ListSelectionDialog(contents.getTree().getShell(), annos.toArray(), 
+				    		annoProvider, annoProvider, "Select annotation(s) to add");
+					if (d.open() == Window.OK) {
+						for(Object o : d.getResult()) {
+							final String tag = (String) o;
+							AnnotationElement a = new AnnotationElement(null, tag, "", Collections.<String,String>emptyMap());
+							j.addPromise(a);
+						}
+						contents.refresh();
+						contents.expandToLevel(j, 1);
+					}
 				}
 			});
 		
 			if (o instanceof AbstractFunctionElement) {
 				final AbstractFunctionElement f = (AbstractFunctionElement) o;
 				if (f.getParams().length() > 0) {
+					// Find out which parameters need to be added
 					final String[] params = f.getSplitParams();
 					final List<NewParameter> newParams = new ArrayList<NewParameter>();
 					for(int i=0; i<params.length; i++) {
@@ -292,6 +306,7 @@ public class PromisesXMLEditor extends EditorPart {
 										f.setParameter(p);
 									}
 									contents.refresh();
+									contents.expandToLevel(f, 1);
 								}
 							}
 						});
@@ -350,6 +365,42 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
+	private boolean isIdentifier(String id) {
+		boolean first = true;
+		for(int i=0; i<id.length(); i++) {
+			char c = id.charAt(i);
+			if (first) {
+				first = false;
+				if (!Character.isJavaIdentifierStart(c)) {
+					return false;
+				}
+			} else {
+				if (!Character.isJavaIdentifierPart(c)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	private List<String> findMissingAnnos(AnnotatedJavaElement j) {
+		final Set<String> annos = new HashSet<String>();
+		// Get valid/applicable annos
+		for(IAnnotationParseRule<?,?> rule : PromiseFramework.getInstance().getParseDropRules()) {			
+			if (rule.declaredOnValidOp(j.getOperator()) && isIdentifier(rule.name()) && !(rule instanceof NullAnnotationParseRule)) {
+				annos.add(rule.name());
+			}
+		}
+		// Remove clashes
+		for(AnnotationElement a : j.getPromises()) {
+			// This will remove it if there should only be one of that kind
+			annos.remove(a.getUid());
+		}
+		List<String> rv = new ArrayList<String>(annos);
+		Collections.sort(rv);
+		return rv;
+	}
+
 	static class NewParameter {
 		final int index;
 		final String type;
@@ -411,6 +462,18 @@ public class PromisesXMLEditor extends EditorPart {
 		public String getText(Object element) {
 			NewParameter p = (NewParameter) element;
 			return "["+p.index+"] : "+p.type;
+		}
+	}
+	
+	static class AnnoProvider extends AbstractContentProvider {
+		@Override
+		public Object[] getElements(Object inputElement) {
+			return (Object[]) inputElement;
+		}
+
+		@Override
+		public String getText(Object element) {
+			return element.toString();
 		}
 	}
 }
