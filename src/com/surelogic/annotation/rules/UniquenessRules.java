@@ -45,7 +45,7 @@ public class UniquenessRules extends AnnotationRules {
   public static final String BORROWED = "Borrowed";
   public static final String CONFLICTS = "CheckForUniquenessConflicts";
   public static final String UNIQUENESS_DONE = "UniquenessDone";
-  public static final String READONLY = "Readonly";
+  public static final String READONLY = "ReadOnly";
   
   private static final AnnotationRules instance = new UniquenessRules();
   
