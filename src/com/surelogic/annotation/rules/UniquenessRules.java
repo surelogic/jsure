@@ -45,11 +45,13 @@ public class UniquenessRules extends AnnotationRules {
   public static final String BORROWED = "Borrowed";
   public static final String CONFLICTS = "CheckForUniquenessConflicts";
   public static final String UNIQUENESS_DONE = "UniquenessDone";
+  public static final String READONLY = "Readonly";
   
   private static final AnnotationRules instance = new UniquenessRules();
   
   private static final Set<IRNode> uniqueNodes = new HashSet<IRNode>(); 
   
+  private static final Readonly_ParseRule readonlyRule = new Readonly_ParseRule();
   private static final Unique_ParseRule uniqueRule     = new Unique_ParseRule();
   private static final NotUnique_ParseRule notUniqueRule     = new NotUnique_ParseRule();
   private static final Borrowed_ParseRule borrowedRule = new Borrowed_ParseRule();
@@ -151,45 +153,69 @@ public class UniquenessRules extends AnnotationRules {
     public D generateDrop(T a);
   }
 
+  private static abstract class AbstractParseRule<N extends IAASTRootNode,D extends PromiseDrop<N>> 
+  extends DefaultBooleanAnnotationParseRule<N,D> {
+	  protected AbstractParseRule(String name, Operator[] ops, Class<N> dt) {
+		  super(name, ops, dt);
+	  }
+
+	  @Override
+	  protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
+		  final Operator op = context.getOp();
+		  if (FieldDeclaration.prototype.includes(op)) {
+			  return parser.nothing().getTree();
+		  }
+		  if (ParameterDeclaration.prototype.includes(op)) {
+			  return parser.nothing().getTree();
+		  }
+		  final boolean isJavadoc = context.getSourceType() == AnnotationSource.JAVADOC;
+		  if (MethodDeclaration.prototype.includes(op)) {        
+			  return isJavadoc ? parser.uniqueJavadocMethod().getTree() : 
+				  parser.uniqueJava5Method().getTree();
+		  }     
+		  /* else must be a constructor: this is only allowed for javadoc
+		   * annotations so that they can name unique parameters
+		   */
+		  if (isJavadoc) {
+			  return parser.uniqueJava5Constructor().getTree();
+		  }
+		  return parser.uniqueJavadocConstructor().getTree();
+	  }
+	  @Override
+	  protected AnnotationLocation translateTokenType(int type, Operator op) {
+		  AnnotationLocation loc = super.translateTokenType(type, op);
+		  if (loc == AnnotationLocation.DECL && MethodDeclaration.prototype.includes(op)) {
+			  return AnnotationLocation.RETURN_VAL;
+		  }
+		  return loc;
+	  }
+  }
   
+  public static class Readonly_ParseRule extends AbstractParseRule<ReadonlyNode, ReadonlyPromiseDrop> {
+	public Readonly_ParseRule() {
+		super(READONLY, fieldMethodParamDeclOps, ReadonlyNode.class);
+	}
+    @Override
+    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
+      return new ReadonlyNode(offset);
+    }
+    @Override
+    protected IPromiseDropStorage<ReadonlyPromiseDrop> makeStorage() {
+      return BooleanPromiseDropStorage.create(name(), ReadonlyPromiseDrop.class);
+    }
+    @Override
+    protected IAnnotationScrubber<ReadonlyNode> makeScrubber() {
+    	// TODO
+    	return null;
+    }
+  }
   
   public static class Unique_ParseRule 
-  extends DefaultBooleanAnnotationParseRule<UniqueNode,UniquePromiseDrop> {
+  extends AbstractParseRule<UniqueNode,UniquePromiseDrop> {
     public Unique_ParseRule() {
       super(UNIQUE, fieldMethodParamDeclOps, UniqueNode.class);
     }
    
-    @Override
-    protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
-      final Operator op = context.getOp();
-      if (FieldDeclaration.prototype.includes(op)) {
-        return parser.nothing().getTree();
-      }
-      if (ParameterDeclaration.prototype.includes(op)) {
-        return parser.nothing().getTree();
-      }
-      final boolean isJavadoc = context.getSourceType() == AnnotationSource.JAVADOC;
-      if (MethodDeclaration.prototype.includes(op)) {        
-        return isJavadoc ? parser.uniqueJavadocMethod().getTree() : 
-                           parser.uniqueJava5Method().getTree();
-      }     
-      /* else must be a constructor: this is only allowed for javadoc
-       * annotations so that they can name unique parameters
-       */
-      if (isJavadoc) {
-    	  return parser.uniqueJava5Constructor().getTree();
-      }
-      return parser.uniqueJavadocConstructor().getTree();
-                         
-    }
-    @Override
-    protected AnnotationLocation translateTokenType(int type, Operator op) {
-      AnnotationLocation loc = super.translateTokenType(type, op);
-      if (loc == AnnotationLocation.DECL && MethodDeclaration.prototype.includes(op)) {
-        return AnnotationLocation.RETURN_VAL;
-      }
-      return loc;
-    }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new UniqueNode(offset);
