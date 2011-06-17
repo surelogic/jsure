@@ -122,6 +122,7 @@ public class UniquenessRules extends AnnotationRules {
   
   @Override
   public void register(PromiseFramework fw) {
+	registerParseRuleStorage(fw, readonlyRule);
     registerParseRuleStorage(fw, uniqueRule);
     registerParseRuleStorage(fw, borrowedRule);
     registerParseRuleStorage(fw, notUniqueRule);
