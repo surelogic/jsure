@@ -132,7 +132,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 		this(rule, ScrubberType.UNORDERED, NONE);
 	}
 
-	protected AbstractAASTScrubber() {
+	private AbstractAASTScrubber() {
 		super(Boolean.TRUE); // set to default to true
 		cls = null;
 		dependencies = null;
