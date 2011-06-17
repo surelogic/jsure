@@ -463,9 +463,6 @@ public class UniquenessRules extends AnnotationRules {
     
     private BorrowedPromiseDrop scrubBorrowed(
         final IAnnotationScrubberContext context, final BorrowedNode a) {
-      if (QualifiedReceiverDeclaration.prototype.includes(a.getPromisedFor())) {
-    	  System.out.println("Borrowed on "+DebugUnparser.toString(a.getPromisedFor()));
-      }
       // must be a reference type variable
       boolean good = checkForReferenceType(context, a, "Borrowed");
       
