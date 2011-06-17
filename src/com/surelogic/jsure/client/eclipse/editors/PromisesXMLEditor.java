@@ -285,8 +285,14 @@ public class PromisesXMLEditor extends EditorPart {
 								ListSelectionDialog d = new 
 								    ListSelectionDialog(contents.getTree().getShell(), newParams.toArray(), 
 								    		paramProvider, paramProvider, "Select parameter(s) to add");
-								FunctionParameterElement p = new FunctionParameterElement(0);	
-								contents.refresh();
+								if (d.open() == Window.OK) {
+									for(Object o : d.getResult()) {
+										NewParameter np = (NewParameter) o;
+										FunctionParameterElement p = new FunctionParameterElement(np.index);	
+										f.setParameter(p);
+									}
+									contents.refresh();
+								}
 							}
 						});
 					}
@@ -398,14 +404,13 @@ public class PromisesXMLEditor extends EditorPart {
 	static class ParameterProvider extends AbstractContentProvider {
 		@Override
 		public Object[] getElements(Object inputElement) {
-			// TODO Auto-generated method stub
-			return null;
+			return (Object[]) inputElement;
 		}
 
 		@Override
 		public String getText(Object element) {
-			// TODO Auto-generated method stub
-			return null;
+			NewParameter p = (NewParameter) element;
+			return "["+p.index+"] : "+p.type;
 		}
 	}
 }
