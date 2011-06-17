@@ -35,13 +35,20 @@ public class Triple<T1, T2, T3> {
 
   @Override
   public final boolean equals(Object other) {
-    if (other instanceof Triple) {
-      @SuppressWarnings("unchecked")
-      final Triple otherT = (Triple) other;
-      return elem1.equals(otherT.elem1) && elem2.equals(otherT.elem2)
-          && elem3.equals(otherT.elem3);
-    }
-    return false;
+	  if (other instanceof Triple) {
+		  @SuppressWarnings("rawtypes")
+		  final Triple otherT = (Triple) other;
+		  return equals(elem1,otherT.elem1) && 
+		  equals(elem2,otherT.elem2) &&
+		  equals(elem3,otherT.elem3);
+	  }
+	  return false;
+  }
+
+  private static boolean equals(Object o1, Object o2) {
+	  if (o1 == o2) return true;
+	  if (o1 == null || o2 == null) return false;
+	  return o1.equals(o2);
   }
 
   @Override
