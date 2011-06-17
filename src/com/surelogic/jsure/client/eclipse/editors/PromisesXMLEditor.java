@@ -20,6 +20,7 @@ import org.eclipse.ui.part.EditorPart;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
@@ -77,7 +78,7 @@ public class PromisesXMLEditor extends EditorPart {
         public void modify(Object element, String property, Object value) {
     		   Item i = (Item) element;
     		   IJavaElement e = (IJavaElement) i.getData();
-    		   e.modify((String) value);
+    		   e.modify((String) value, BalloonUtility.errorListener);
     		   contents.update(e, null);
     	   }
        });
@@ -365,29 +366,13 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
-	private boolean isIdentifier(String id) {
-		boolean first = true;
-		for(int i=0; i<id.length(); i++) {
-			char c = id.charAt(i);
-			if (first) {
-				first = false;
-				if (!Character.isJavaIdentifierStart(c)) {
-					return false;
-				}
-			} else {
-				if (!Character.isJavaIdentifierPart(c)) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	
 	private List<String> findMissingAnnos(AnnotatedJavaElement j) {
 		final Set<String> annos = new HashSet<String>();
 		// Get valid/applicable annos
 		for(IAnnotationParseRule<?,?> rule : PromiseFramework.getInstance().getParseDropRules()) {			
-			if (rule.declaredOnValidOp(j.getOperator()) && isIdentifier(rule.name()) && !(rule instanceof NullAnnotationParseRule)) {
+			if (!(rule instanceof NullAnnotationParseRule) &&
+				rule.declaredOnValidOp(j.getOperator()) && 
+				AnnotationElement.isIdentifier(rule.name())) {
 				annos.add(rule.name());
 			}
 		}
