@@ -84,6 +84,7 @@ implements IClassMember, TestXMLParserConstants
 	
 	@Override
 	protected void collectOtherChildren(List<Object> children) {
+		super.collectOtherChildren(children);
 		children.addAll(params);
 	}
 	

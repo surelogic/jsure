@@ -113,6 +113,7 @@ public class ClassElement extends AnnotatedJavaElement {
 	
 	@Override
 	protected void collectOtherChildren(List<Object> children) {
+		super.collectOtherChildren(children);
 		if (clinit != null) {
 			children.add(clinit);
 		}

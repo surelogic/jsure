@@ -40,6 +40,7 @@ public class PackageElement extends AnnotatedJavaElement {
 	
 	@Override
 	protected void collectOtherChildren(List<Object> children) {
+		super.collectOtherChildren(children);
 		if (clazz != null) {
 			children.add(clazz);
 		}
