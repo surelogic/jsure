@@ -124,10 +124,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
     
     final StoreLattice lattice = new StoreLattice(locals);
-    return new JavaForwardAnalysis<Store, StoreLattice>(
+    return new Uniqueness(
         "Uniqueness Analsys (UWM)", lattice,
         new UniquenessTransfer(binder, mayAlias, lattice, 0, flowUnit, timeOut),
-        DebugUnparser.viewer, timeOut);
+        timeOut);
   }
 
   
@@ -215,6 +215,20 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     @Override
     public Iteratable<IBinding> findOverriddenMethods(IRNode methodDeclaration) {
       return binder.findOverriddenMethods(methodDeclaration);
+    }
+  }
+  
+  
+  
+  // ==================================================================
+  // === Flow Analysis: Subclass to throw Gave up exception
+  // ==================================================================
+
+  private static final class Uniqueness extends JavaForwardAnalysis<Store, StoreLattice> {
+    public Uniqueness(
+        final String name, final StoreLattice lattice,
+        final UniquenessTransfer transfer, boolean timeOut) {
+      super(name, lattice, transfer, DebugUnparser.viewer, timeOut);
     }
   }
   
@@ -927,7 +941,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final Store initialValue, final boolean terminationNormal) {
       final int floor = initialValue.isValid() ? initialValue.getStackSize().intValue() : 0;
       final UniquenessTransfer transfer = new UniquenessTransfer(binder, mayAlias, lattice, floor, flowUnit, timeOut);
-      return new JavaForwardAnalysis<Store, StoreLattice>("Sub Analysis", lattice, transfer, DebugUnparser.viewer, timeOut);
+      return new Uniqueness("Sub Analysis", lattice, transfer, timeOut);
     }
   }
   

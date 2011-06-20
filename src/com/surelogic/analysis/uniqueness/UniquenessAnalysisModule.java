@@ -16,6 +16,8 @@ import com.surelogic.analysis.uniqueness.UniquenessAnalysis.NormalErrorQuery;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -24,23 +26,22 @@ import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.LongRunningUniquenessAnalysisDrop;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
+import edu.uwm.cs.fluid.control.FlowAnalysis;
 
 public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Void> {
-  /**
-   * Map from promise drops to "intermediate result drops" that are used
-   * to allow promises to depend on other promises.  There should be only
-   * one intermediate result, so we cache it here.
-   */
-  private final Map<PromiseDrop<? extends IAASTRootNode>, ResultDropBuilder> intermediateResultDrops =
-    new HashMap<PromiseDrop<? extends IAASTRootNode>, ResultDropBuilder>();
+  private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
 
+  
+  
   /**
    * All the method control flow result drops we create.  We scan this at the
    * end to invalidate any drops that are not used.
@@ -59,12 +60,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 
 	@Override
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
-		return new UniquenessAnalysis(binder,	false);
+    final boolean shouldTimeOut = IDE.getInstance().getBooleanPreference(
+        IDEPreferences.TIMEOUT_FLAG);
+    return new UniquenessAnalysis(binder, shouldTimeOut);
+//    return new UniquenessAnalysis(binder, false);
 	}
 	
 	@Override
 	protected void clearCaches() {
-	  intermediateResultDrops.clear();
 	  cachedControlFlow.clear();
 	  controlFlowDrops.clear();
 	  
@@ -151,29 +154,66 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	 * or class init declaration node.
 	 */
 	private void analzyePseudoMethodDeclaration(final TypeAndMethod node) {
-    final PromiseRecord pr = getCachedPromiseRecord(node);
+    final PromiseRecord pr = createPromiseRecordFor(node);
     final Operator blockOp = JJNode.tree.getOperator(node.methodDecl);
     final boolean isInit = InitDeclaration.prototype.includes(blockOp);
     final boolean isClassInit = ClassInitDeclaration.prototype.includes(blockOp);
     final boolean isConstructorDecl = ConstructorDeclaration.prototype.includes(blockOp);
     final boolean isMethodDecl = MethodDeclaration.prototype.includes(blockOp);
-	  
-    /* if decl is a constructor declaration or initializer declaration, we need to
-     * scan the containing type and process the field declarations and
-     * initializer blocks.
-     */
-    if (isInit || isClassInit || isConstructorDecl) {
-      for (final IRNode bodyDecl : ClassBody.getDeclIterator(node.getClassBody())) {
-        if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
-          if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
-            analyzeSubtree(node.methodDecl, pr, bodyDecl);
+    final String methodName = JavaNames.genQualifiedMethodConstructorName(node.methodDecl);
+
+    // Prepare for 'too long' warning
+    final long tooLongDuration = IDE.getInstance().getIntPreference(
+        IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;
+    final long startTime = System.nanoTime();
+    try {
+      /* if decl is a constructor declaration or initializer declaration, we need to
+       * scan the containing type and process the field declarations and
+       * initializer blocks.
+       */
+      if (isInit || isClassInit || isConstructorDecl) {
+        for (final IRNode bodyDecl : ClassBody.getDeclIterator(node.getClassBody())) {
+          if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
+            if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
+              analyzeSubtree(node.methodDecl, pr, bodyDecl);
+            }
           }
         }
       }
-    }
-    
-    if (isConstructorDecl || isMethodDecl) {
-      analyzeSubtree(node.methodDecl, pr, node.methodDecl);
+      
+      if (isConstructorDecl || isMethodDecl) {
+        analyzeSubtree(node.methodDecl, pr, node.methodDecl);
+      }
+      
+      // Did we take too long?
+      final long endTime = System.nanoTime();
+      final long duration = endTime - startTime;
+      if (duration > tooLongDuration) {
+        System.out.println("______________________ too long ______________: " + methodName);
+        final InfoDropBuilder info =
+          InfoDropBuilder.create(this, Messages.toString(Messages.TOO_LONG), LongRunningUniquenessAnalysisDrop.factory);
+        this.setResultDependUponDrop(info, node.methodDecl);
+        info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
+            methodName, duration / NANO_SECONDS_PER_SECOND);
+      }
+    } catch (final FlowAnalysis.AnalysisGaveUp e) {
+      final long endTime = System.nanoTime();
+      final long duration = endTime - startTime;
+      /* (1) Mark our control flow drop as timed out */
+      pr.controlFlow.setTimeout();
+      pr.controlFlow.setCategory(Messages.DSC_UNIQUENESS_TIMEOUT);
+      pr.controlFlow.setResultMessage(Messages.TIMEOUT, e.timeOut / NANO_SECONDS_PER_SECOND,
+          methodName, duration / NANO_SECONDS_PER_SECOND);
+      
+      /* (2) Invalidate all our calledUniqueParam results, because we don't need
+       * them now.  The unique params we call will be marked as unassured because
+       * they depend on our control flow drop.
+       */
+      for (final ResultDropBuilder r : pr.calledUniqueParams) {
+        r.invalidate();
+      }
+
+      System.out.println(".............. Gave up analyzing " + methodName);
     }
 	}
 
@@ -287,14 +327,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	}
 
 
-
-	/**
-	 * @param block
-	 *          A MethodDeclaration, ConstructorDeclaration, InitDeclaration, or ClassInitDeclaration.
-	 */
-	private PromiseRecord getCachedPromiseRecord(final TypeAndMethod block) {
-	  return createPromiseRecordFor(block);
-	}
 
 	/**
 	 * A record of the annotations that are interesting for a particular
@@ -552,13 +584,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 			final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>(pr.calledBorrowedParams);
 			dependsOnResults.addAll(pr.calledBorrowedReceiverAsUniqueReturn);
 			dependsOnResults.add(pr.controlFlow);
-      addDependencies(
-          pr.myBorrowedParams, intermediateResultDrops, dependsOnResults);
+      addDependencies(pr.myBorrowedParams, dependsOnResults);
       /* If we are a constructor, we treat unique("return") like @borrowed("this")
        */
       if (isConstructorDecl) {
-        addDependencies(
-            pr.myUniqueReturn, intermediateResultDrops, dependsOnResults);
+        addDependencies(pr.myUniqueReturn, dependsOnResults);
       }
 		}
 
@@ -583,7 +613,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 			dependsOnResults.addAll(pr.calledBorrowedParams);
 			dependsOnResults.addAll(pr.calledBorrowedReceiverAsUniqueReturn);
 			dependsOnResults.addAll(pr.calledEffects);
-			addDependencies(pr.uniqueFields, intermediateResultDrops, dependsOnResults);
+			addDependencies(pr.uniqueFields, dependsOnResults);
 		}
 
 		/*
@@ -602,20 +632,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   		dependsOnResults.addAll(pr.calledUniqueReturns.keySet());
       dependsOnResults.addAll(pr.calledBorrowedConstructors.keySet());
       dependsOnResults.addAll(pr.calledUniqueConstructors.keySet());
-      addDependencies(
-          pr.myUniqueReturn, intermediateResultDrops, dependsOnResults);
+      addDependencies(pr.myUniqueReturn, dependsOnResults);
 		}
 
-		/* Set up the dependencies for this method's unique parameters.  They can
-		 * be compromised and turned non-unique during the execution of the method.
-		 * Depends on the the control-flow of the method.
+		/* My unique parameters depend on the control-flow results of my callers.
+		 * This is set up in populatePromiseRecord().
+		 * 
+		 * We used to make them depend on my control flow, but that is wrong.
 		 */
-		if (!pr.myUniqueParams.isEmpty()) {
-      final Set<ResultDropBuilder> dependsOnResults = new HashSet<ResultDropBuilder>();
-      dependsOnResults.add(pr.controlFlow);
-		  addDependencies(
-		      pr.myUniqueParams, intermediateResultDrops, dependsOnResults);
-		}
 		
 		/*
 		 * Set up the dependencies for this method's called methods with unique
@@ -743,9 +767,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           // This result checks the uniqueness promises of the parameters
           for (final UniquePromiseDrop uniqueParam : uniqueParams) {
             callDrop.addCheckedPromise(uniqueParam);
+            
+            /* The uniqueness of the parameter also depends on the control flow
+             * of the calling method.
+             */
+            pr.controlFlow.addCheckedPromise(uniqueParam);
           }
           allCallDrops.add(callDrop);
-          pr.calledUniqueParams.add(callDrop);
+          pr.calledUniqueParams.add(callDrop);          
         }
         if (!effects.isEmpty()) {
           final ResultDropBuilder callDrop = getMethodCallDrop(Messages.toString(Messages.CALL_EFFECT),
@@ -844,7 +873,6 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 
 	private <PD1 extends PromiseDrop<? extends IAASTRootNode>>
 	void addDependencies(final Set<PD1> promises,
-      final Map<PromiseDrop<? extends IAASTRootNode>, ResultDropBuilder> intermediateDrops,
 			final Set<ResultDropBuilder> dependsOnResults) {
 		if (!dependsOnResults.isEmpty()) {
 			for (final PD1 promiseToCheck : promises) {

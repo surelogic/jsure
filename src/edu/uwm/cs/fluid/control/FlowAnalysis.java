@@ -56,9 +56,14 @@ import edu.uwm.cs.fluid.control.LabeledLattice.UnaryOp;
  */
 public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable, IFlowAnalysis<T, L> {
   public static final class AnalysisGaveUp extends RuntimeException {
+    /** Timeout period in nanoseconds */
+    public final long timeOut;
+
+    /** Number of control flow nodes visited */
     public final int count;
     
-    public AnalysisGaveUp(final int c) {
+    public AnalysisGaveUp(final long time, final int c) {
+      timeOut = time;
       count = c;
     }
   }
@@ -73,8 +78,12 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   private static final boolean DEBUG = false;
   
   private static final long ONE_SECOND = 1000000000L;
-  private static final int COUNT_BEFORE_CHECK = 1000;
-
+  /* This used to be 1000, but that makes the granularity for checking for
+   * time out too large.  I played with different values, and right now 300
+   * seems reasonable. (Aaron)
+   */
+  private static final int COUNT_BEFORE_CHECK = 300;
+  
   
   
   public final String name;
@@ -308,14 +317,12 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     while (worklist.hasNext()) {
       if (count == 0) {
         count = COUNT_BEFORE_CHECK;
-
-        //System.out.println("Worklist: "+worklist.size());
         if (ide.isCancelled()) {
           throw new FluidInterruptedException();
         }
         
         if (shouldTimeOut && System.nanoTime() > deadline) {
-          throw new AnalysisGaveUp(globalCount);
+          throw new AnalysisGaveUp(timeOutDuration, globalCount);
         }
       }
       work(worklist.next());

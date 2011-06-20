@@ -14,6 +14,7 @@ public final class Messages  {
   
   public static final Category DSC_UNIQUE_PARAMS_SATISFIED = Category.getInstance(300);
   public static final Category DSC_UNIQUE_PARAMS_UNSATISFIED = Category.getInstance(301);
+  public static final Category DSC_UNIQUENESS_TIMEOUT = Category.getInstance(302);
   
   
   
@@ -29,6 +30,8 @@ public final class Messages  {
   public static final int UNIQUE_PARAMETERS_UNSATISFIED = 309;
   public static final int UNIQUE_RETURN_VALUE = 310;
   public static final int BORROWED_CONSTRUCTOR = 311;
+  public static final int TIMEOUT = 312;
+  public static final int TOO_LONG = 313;
   
   
   
@@ -46,6 +49,8 @@ public final class Messages  {
     code2name.put(UNIQUE_PARAMETERS_UNSATISFIED, "UniquenessAssurance_uniqueParametersDrop");
     code2name.put(UNIQUE_RETURN_VALUE, "?");
     code2name.put(BORROWED_CONSTRUCTOR, "?");
+    code2name.put(TIMEOUT, "?");
+    code2name.put(TOO_LONG, "?");
   }
   
   public static String toString(int code) {
