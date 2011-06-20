@@ -11,7 +11,7 @@ import edu.cmu.cs.fluid.sea.*;
  *
  * @author Edwin
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings("rawtypes")
 public final class ResultDropBuilder extends AbstractDropBuilder {	
 	private boolean isTimeout = false;
 	private boolean isConsistent = false;
