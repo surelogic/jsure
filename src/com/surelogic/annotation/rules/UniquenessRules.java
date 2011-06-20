@@ -218,9 +218,8 @@ public class UniquenessRules extends AnnotationRules {
     	return new AbstractAASTScrubber<ReadonlyNode, ReadonlyPromiseDrop>(this) {
 			@Override
 			protected ReadonlyPromiseDrop makePromiseDrop(ReadonlyNode n) {
-				return new ReadonlyPromiseDrop(n);
-			}
-    		
+				return storeDropIfNotNull(n, new ReadonlyPromiseDrop(n));
+			}    		
     	};
     }
   }
