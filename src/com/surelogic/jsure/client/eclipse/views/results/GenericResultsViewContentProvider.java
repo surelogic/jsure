@@ -68,6 +68,7 @@ import edu.cmu.cs.fluid.util.ArrayUtil;
 
 abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends AbstractContent<T, C>>
 		extends AbstractResultsViewContentProvider {
+	private static final boolean allowDuplicateNodes = true;
 	protected static final Object[] noObjects = ArrayUtil.empty;
 
 	// TODO These are not completely protected, since the arrays get returned
@@ -987,7 +988,9 @@ abstract class GenericResultsViewContentProvider<T extends IDropInfo, C extends 
 		}
 		node.resetChildren(children);
 		// Now it creates a leaf, if I ever see it again
-		// onPath.remove(node);
+		if (allowDuplicateNodes) {
+			onPath.remove(node);
+		}
 	}
 
 	// Map<C,Integer> counts = new HashMap<C, Integer>();
