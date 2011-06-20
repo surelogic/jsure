@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.actions;
 
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.common.CommonImages;
@@ -9,7 +10,9 @@ import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.actions.AbstractProjectSelectedMenuAction;
-import com.surelogic.common.ui.dialogs.JavaProjectSelectionDialog;
+import com.surelogic.common.ui.dialogs.*;
+import com.surelogic.common.ui.dialogs.ScopedResourcesSelectionDialog.Config;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.license.SLLicenseProduct;
@@ -48,7 +51,26 @@ public class NewScanAction extends AbstractProjectSelectedMenuAction {
 				return SLStatus.OK_STATUS;
 			}			
 		};
-		EclipseJob.getInstance().schedule(job);
+		Runnable r = new Runnable() {			
+			@Override
+			public void run() {
+				final IProject[] projects = new IProject[selectedProjects.size()];
+				for(int i=0; i<projects.length; i++) {
+					projects[i] = selectedProjects.get(i).getProject();
+				}
+				final boolean before = 
+					EclipseUtility.getBooleanPreference(JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_LAUNCH);
+				Config c = new Config("Save and Verify", "Always save &resources before verifying", before);
+				boolean scan = ScopedResourcesSelectionDialog.saveDirtyResources(projects, c);						
+				if (c.getAlwaysSavePref() != before) {
+					EclipseUtility.setBooleanPreference(JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_LAUNCH, c.getAlwaysSavePref());
+				}
+				if (scan) {					
+					EclipseJob.getInstance().schedule(job);
+				}
+			}
+		};
+		EclipseUIUtility.getShell().getDisplay().asyncExec(r);
 	}
 
 	@Override
