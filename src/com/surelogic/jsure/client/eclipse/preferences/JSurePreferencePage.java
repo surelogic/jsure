@@ -32,6 +32,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 	private BooleanFieldEditor f_autoOpenProposedPromiseView;
 	private BooleanFieldEditor f_autoOpenModelingProblemsView;
 	private BooleanFieldEditor f_selectProjectsToScan;
+	private BooleanFieldEditor f_autoSaveDirtyEditorsBeforeVerify;
 	private BooleanFieldEditor f_allowJavadocAnnos;
 	private ScaleFieldEditor f_analysisThreadCount;
 	private ScaleFieldEditor f_toolMemoryMB;
@@ -83,6 +84,11 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 				I18N.msg("jsure.eclipse.preference.page.selectProjectsToScan"),
 				diGroup);
 
+		f_autoSaveDirtyEditorsBeforeVerify = new BooleanFieldEditor(
+				JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_VERIFY,
+				I18N.msg("jsure.eclipse.preference.page.autoSaveBeforeVerify"),
+				diGroup);
+		
 		final Group annoGroup = createGroup(panel,
 				"preference.page.group.annos");
 		f_allowJavadocAnnos = new BooleanFieldEditor(
@@ -231,6 +237,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_autoOpenProposedPromiseView.loadDefault();
 		f_autoOpenModelingProblemsView.loadDefault();
 		f_selectProjectsToScan.loadDefault();
+		f_autoSaveDirtyEditorsBeforeVerify.loadDefault();
 		f_allowJavadocAnnos.loadDefault();
 		f_analysisThreadCount.loadDefault();
 		f_regionModelCap.loadDefault();
@@ -251,6 +258,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
 		f_autoOpenProposedPromiseView.store();
 		f_autoOpenModelingProblemsView.store();
 		f_selectProjectsToScan.store();
+		f_autoSaveDirtyEditorsBeforeVerify.store();
 		f_allowJavadocAnnos.store();
 		f_analysisThreadCount.store();
 		f_regionModelCap.store();
