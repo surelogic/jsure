@@ -99,7 +99,7 @@ public final class JSurePreferencesUtility {
 			EclipseUtility.setDefaultIntPreference(IDEPreferences.TIMEOUT_SEC,
 					60);
 
-			EclipseUtility.setDefaultBooleanPreference(SAVE_DIRTY_EDITORS_BEFORE_LAUNCH, false);
+			EclipseUtility.setDefaultBooleanPreference(SAVE_DIRTY_EDITORS_BEFORE_VERIFY, false);
 			
 			/*
 			 * We'll take the default-default for the other preferences.
@@ -130,7 +130,7 @@ public final class JSurePreferencesUtility {
 			+ "lockModelNameSuffix";
 	public static final String LOCK_MODEL_NAME_CAP = PREFIX
 			+ "lockModelNameCap";
-	public static final String SAVE_DIRTY_EDITORS_BEFORE_LAUNCH = PREFIX + "save.before.verify";
+	public static final String SAVE_DIRTY_EDITORS_BEFORE_VERIFY = PREFIX + "save.before.verify";
 
 	public static final String BASELINE_SCAN = PREFIX + "baseline.scan";
 	public static final String CURRENT_SCAN = PREFIX + "current.scan";
