@@ -21,4 +21,10 @@ public class MethodElement extends AbstractFunctionElement {
 	public Operator getOperator() {
 		return MethodDeclaration.prototype;
 	}
+	
+	MethodElement cloneMe() {
+		MethodElement clone = new MethodElement(getName(), getParams());
+		copyToClone(clone);
+		return clone;
+	}
 }

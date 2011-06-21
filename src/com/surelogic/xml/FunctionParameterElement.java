@@ -27,4 +27,10 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 	public Operator getOperator() {
 		return ParameterDeclaration.prototype;
 	}
+
+	FunctionParameterElement cloneMe() {
+		FunctionParameterElement clone = new FunctionParameterElement(index);
+		copyToClone(clone);
+		return clone;
+	}
 }

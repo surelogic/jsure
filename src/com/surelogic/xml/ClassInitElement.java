@@ -3,7 +3,7 @@ package com.surelogic.xml;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class ClassInitElement extends AnnotatedJavaElement implements IClassMember {
+public final class ClassInitElement extends AnnotatedJavaElement implements IClassMember {
 	public ClassInitElement() {
 		super("classinit");
 	}
@@ -19,5 +19,18 @@ public class ClassInitElement extends AnnotatedJavaElement implements IClassMemb
 	@Override
 	public Operator getOperator() {
 		return ClassInitDeclaration.prototype;
+	}
+
+	ClassInitElement merge(ClassInitElement clinit) {
+		if (clinit != null) {
+			mergeThis(clinit);
+		}
+		return this;
+	}
+
+	ClassInitElement cloneMe() {
+		ClassInitElement clone = new ClassInitElement();
+		copyToClone(clone);
+		return clone;
 	}
 }

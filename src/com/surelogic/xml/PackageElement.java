@@ -54,4 +54,27 @@ public class PackageElement extends AnnotatedJavaElement {
 		super.markAsClean();
 		clazz.markAsClean();
 	}
+
+	PackageElement merge(PackageElement changed) {
+		if (changed.getName().equals(getName())) {
+			ClassElement c;
+			if (clazz != null) {
+				if (changed.clazz == null) {
+					// One's a class, the other's a package
+					return null;
+				}
+				c = clazz.merge(changed.clazz);
+				if (c != null) {
+					// Class merged, so continue merging
+					mergeThis(changed);				
+					return this;
+				}
+			} else if (changed.clazz == null) {
+				// neither has a class, so they're both package-info.java files
+				mergeThis(changed);				
+				return this;
+			}
+		}
+		return null;
+	}
 }

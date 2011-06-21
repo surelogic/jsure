@@ -158,4 +158,10 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 	public final String getImageKey() {
 		return CommonImages.IMG_ANNOTATION;
 	}
+	
+	AnnotationElement cloneMe() {
+		AnnotationElement clone = new AnnotationElement(uid, promise, contents, attributes);
+		copyToClone(clone);
+		return clone;
+	}
 }

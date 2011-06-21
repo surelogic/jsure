@@ -20,4 +20,10 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 	public Operator getOperator() {
 		return FieldDeclaration.prototype;
 	}
+
+	FieldElement cloneMe() {
+		FieldElement clone = new FieldElement(getName());
+		copyToClone(clone);
+		return clone;
+	}
 }

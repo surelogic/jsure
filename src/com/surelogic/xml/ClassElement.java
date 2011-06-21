@@ -177,4 +177,69 @@ public class ClassElement extends AnnotatedJavaElement {
 			n.markAsClean();
 		}
 	}
+
+	ClassElement merge(ClassElement changed) {
+		if (getName().equals(changed.getName())) {
+			if (clinit != null) {
+				clinit.merge(changed.clinit);
+			} else if (changed.clinit != null) {
+				clinit = changed.clinit.cloneMe();
+			}
+			for(FieldElement f2 : changed.fields.values()) {
+				FieldElement f0 = fields.get(f2.getName());
+				if (f0 != null) {
+					f0.merge(f2);
+				} else {
+					addMember(f2.cloneMe());
+				}
+			}
+			for(ConstructorElement c2 : changed.constructors.values()) {
+				ConstructorElement c0 = constructors.get(c2.getParams());
+				if (c0 != null) {
+					c0.merge(c2);
+				} else {
+					addMember(c2.cloneMe());
+				}
+			}
+			for(Pair<String,String> keys : changed.methods.keys()) {
+				MethodElement m2 = changed.methods.get(keys.first(), keys.second());
+				MethodElement m0 = methods.get(keys.first(), keys.second());
+				if (m0 != null) {
+					m0.merge(m2);
+				} else {
+					addMember(m2.cloneMe());
+				}
+			}
+			for(NestedClassElement n2 : changed.classes.values()) {
+				NestedClassElement n0 = classes.get(n2.getName());
+				if (n0 != null) {
+					n0.merge(n2);
+				} else {
+					addMember(n2.cloneMe());
+				}
+			}
+			mergeThis(changed);
+			return this;
+		}
+		return null;
+	}
+
+	void copyToClone(ClassElement clone) {
+		super.copyToClone(clone);
+		if (clinit != null) {
+			clone.addMember(clinit.cloneMe());
+		}
+		for(FieldElement f : fields.values()) {
+			clone.addMember(f.cloneMe());
+		}
+		for(ConstructorElement c : constructors.values()) {
+			clone.addMember(c.cloneMe());
+		}
+		for(MethodElement m : methods.elements()) {
+			clone.addMember(m.cloneMe());
+		}
+		for(NestedClassElement n : classes.values()) {
+			clone.addMember(n.cloneMe());
+		}
+	}
 }

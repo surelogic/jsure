@@ -71,4 +71,28 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 			a.markAsClean();
 		}
 	}
+	
+	AnnotatedJavaElement merge(AnnotatedJavaElement changed) {
+		mergeThis(changed);
+		return this;
+	}
+	
+	void mergeThis(AnnotatedJavaElement changed) {
+		super.mergeThis(changed);
+		for(Map.Entry<String,AnnotationElement> e : changed.promises.entrySet()) {
+			final AnnotationElement a = promises.get(e.getKey());
+			if (a != null) {
+				a.mergeThis(e.getValue());
+			} else {				
+				addPromise(e.getValue().cloneMe());
+			}
+		}
+	}
+	
+	void copyToClone(AnnotatedJavaElement clone) {
+		super.copyToClone(clone);
+		for(AnnotationElement a : promises.values()) {
+			clone.addPromise(a.cloneMe());
+		}
+	}
 }

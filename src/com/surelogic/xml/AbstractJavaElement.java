@@ -36,4 +36,12 @@ abstract class AbstractJavaElement implements IJavaElement {
 	void markAsClean() {
 		isDirty = false;
 	}
+	
+	void mergeThis(AbstractJavaElement changed) {
+		// Nothing to do yet
+	}
+	
+	void copyToClone(CommentedJavaElement clone) {
+		// Nothing to do yet
+	}
 }

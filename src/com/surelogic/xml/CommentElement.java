@@ -38,4 +38,8 @@ public class CommentElement extends AbstractJavaElement {
 		comment = value;
 		markAsDirty();
 	}
+	
+	CommentElement cloneMe() {
+		return new CommentElement(comment);
+	}
 }

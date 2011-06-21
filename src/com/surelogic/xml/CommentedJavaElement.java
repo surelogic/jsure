@@ -18,12 +18,15 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 
     public void addComment(CommentElement c) {
         comments.add(c);
+        c.setParent(this);
         markAsDirty();
     }
 	
 	public final void addComments(Collection<String> c) {		
 		for(String s : c) {
-			comments.add(new CommentElement(s));
+			CommentElement e = new CommentElement(s);
+			comments.add(e);
+			e.setParent(this);
 		}
 		markAsDirty();
 	}
@@ -32,9 +35,17 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 		return comments;
 	}
 	
+	private void addLastEnclosedComment(CommentElement c) {
+		lastEnclosedComments.add(c);
+        c.setParent(this);
+        markAsDirty();
+	}
+	
 	void setLastComments(Collection<String> c) {
 		for(String s : c) {
-			lastEnclosedComments.add(new CommentElement(s));
+			CommentElement e = new CommentElement(s);
+			lastEnclosedComments.add(e);
+			e.setParent(this);
 		}
 		markAsDirty();
 	}
@@ -87,6 +98,23 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 		}
 		for(CommentElement a : lastEnclosedComments) {
 			a.markAsClean();
+		}
+	}
+	
+	void mergeThis(CommentedJavaElement changed) {
+		super.mergeThis(changed);
+		// TODO
+		comments.addAll(changed.comments);
+		lastEnclosedComments.addAll(changed.lastEnclosedComments);
+	}
+	
+	void copyToClone(CommentedJavaElement clone) {
+		super.copyToClone(clone);
+		for(CommentElement e : comments) {
+			clone.addComment(e.cloneMe());
+		}
+		for(CommentElement e : lastEnclosedComments) {
+			clone.addLastEnclosedComment(e.cloneMe());
 		}
 	}
 }

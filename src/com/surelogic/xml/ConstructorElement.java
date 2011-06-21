@@ -22,4 +22,10 @@ public class ConstructorElement extends AbstractFunctionElement {
 	public Operator getOperator() {
 		return ConstructorDeclaration.prototype;
 	}
+
+	ConstructorElement cloneMe() {
+		ConstructorElement clone = new ConstructorElement(getParams());
+		copyToClone(clone);
+		return clone;
+	}
 }

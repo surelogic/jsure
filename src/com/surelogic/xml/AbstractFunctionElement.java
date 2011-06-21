@@ -58,6 +58,9 @@ implements IClassMember, TestXMLParserConstants
 	}
 	
 	public void setParameter(FunctionParameterElement p) {
+		if (p == null) {
+			return;
+		}
 		// Make params big enough
 		while (params.size() <= p.getIndex()) {
 			params.add(null);			
@@ -104,6 +107,26 @@ implements IClassMember, TestXMLParserConstants
 		super.markAsClean();
 		for(FunctionParameterElement p : params) {
 			p.markAsClean();
+		}
+	}
+	
+	AbstractFunctionElement merge(AbstractFunctionElement changed) {
+		for(FunctionParameterElement p2 : changed.params) {
+			FunctionParameterElement p0 = getParameter(p2.getIndex());
+			if (p0 != null) {
+				p0.merge(p2);
+			} else {
+				setParameter(p2.cloneMe());
+			}
+		}
+		mergeThis(changed);
+		return this;
+	}
+	
+	void copyToClone(AbstractFunctionElement clone) {
+		super.copyToClone(clone);
+		for(FunctionParameterElement p : params) {
+			clone.setParameter(p.cloneMe());
 		}
 	}
 }
