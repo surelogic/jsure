@@ -97,6 +97,7 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 		if (!contents.equals(text)) {
 			contents = text;		
 			markAsDirty();
+			attributes.put(DIRTY_ATTRB, "true");
 		} else {
 			l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
 		}
