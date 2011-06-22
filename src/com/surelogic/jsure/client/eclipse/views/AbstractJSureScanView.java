@@ -26,6 +26,7 @@ import com.surelogic.jsure.core.preferences.JSureEclipseHub;
  */
 public abstract class AbstractJSureScanView extends AbstractJSureView implements IJSureScanListener {
 	protected static final String NO_RESULTS = I18N.msg("jsure.eclipse.view.no.scan.msg");
+	private static final boolean updateTitles = false;
 	
 	protected PageBook f_viewerbook = null;	
 
@@ -127,6 +128,9 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	 * focus to JSure to the view title.
 	 */
 	private void updateViewTitle(String label) {
+		if (!updateTitles) {
+			return;
+		}
 		/*
 		 * Set a default if we got a null for the view title from the plug-in
 		 * XML.
