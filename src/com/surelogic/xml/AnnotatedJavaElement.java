@@ -82,7 +82,7 @@ public abstract class AnnotatedJavaElement extends CommentedJavaElement {
 		for(Map.Entry<String,AnnotationElement> e : changed.promises.entrySet()) {
 			final AnnotationElement a = promises.get(e.getKey());
 			if (a != null) {
-				a.mergeThis(e.getValue());
+				a.merge(e.getValue());				
 			} else {				
 				addPromise(e.getValue().cloneMe());
 			}

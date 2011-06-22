@@ -159,6 +159,33 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 		return CommonImages.IMG_ANNOTATION;
 	}
 	
+	void merge(AnnotationElement other) {		
+		if (isModified()) {
+			// Keep what we've edited
+			return;
+		}
+		final int thisRev = getRevision();
+		final int otherRev = other.getRevision();
+		if (thisRev == otherRev) {
+			if (!other.isModified()) {
+				return; // These should be the same
+			}
+			// Overwrite things in common
+			contents = other.contents;
+			attributes.putAll(other.attributes);
+			incrRevision();			
+		} else if (otherRev > thisRev) {
+			// Overwrite this completely
+			attributes.clear();
+			contents = other.contents;
+			attributes.putAll(other.attributes);
+		} else {
+			// Ignore the other, since it's an older rev
+			return;
+		}
+		super.mergeThis(other);		
+	}
+	
 	AnnotationElement cloneMe() {
 		AnnotationElement clone = new AnnotationElement(uid, promise, contents, attributes);
 		copyToClone(clone);
