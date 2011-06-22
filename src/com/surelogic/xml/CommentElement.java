@@ -12,6 +12,20 @@ public class CommentElement extends AbstractJavaElement {
 		comment = c;
 	}
 	
+	@Override
+	public int hashCode() {
+		return comment.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof CommentElement) {
+			CommentElement other = (CommentElement) o;
+			return comment.equals(other.comment);
+		}
+		return false;
+	}
+	
 	public String getImageKey() {
 		return CommonImages.IMG_COMMENT;
 	}

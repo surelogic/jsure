@@ -2,6 +2,8 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+//import difflib.*;
+
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public abstract class CommentedJavaElement extends AbstractJavaElement {
@@ -101,11 +103,94 @@ public abstract class CommentedJavaElement extends AbstractJavaElement {
 		}
 	}
 	
-	void mergeThis(CommentedJavaElement changed) {
-		super.mergeThis(changed);
-		// TODO
-		comments.addAll(changed.comments);
-		lastEnclosedComments.addAll(changed.lastEnclosedComments);
+	private void copyList(List<CommentElement> src, List<CommentElement> dest) {
+		for(CommentElement e : src) {
+			CommentElement c = e.cloneMe();
+			dest.add(c);
+			c.setParent(this);
+		}
+		markAsDirty();
+	}
+	
+	private void mergeList(List<CommentElement> orig, List<CommentElement> other, MergeType type) {
+		if (type == MergeType.USE_OTHER) {
+			orig.clear();
+			copyList(other, orig);
+			return;
+		}
+		if (other.isEmpty()) {
+			return; // Nothing to do
+		}
+		if (orig.isEmpty()) {
+			copyList(other, orig);
+			return;
+		} 
+		// Keep the original
+		
+		/*
+		// Something to merge, so first find what's shared
+		final Set<String> shared = new HashSet<String>();
+		for(CommentElement e : orig) {
+			shared.add(e.getLabel());
+		}
+		int i=0;
+		boolean same = true;
+		for(CommentElement e : other) {
+			if (!shared.contains(e.getLabel())) {
+				shared.remove(e.getLabel());
+			}
+			if (!e.equals(orig.get(i))) {
+				same = false;
+			}
+			i++;
+		}
+		if (same) {
+			return; // Both are the same, so there's nothing to do
+		}
+		if (shared.isEmpty()) {
+			if (type == MergeType.PREFER_OTHER) {
+				// Replace
+				orig.clear();
+				copyList(other, orig);
+				return;
+			} else {
+				// Keep the original comments
+				return;
+			}
+		} else {
+			// TODO is this just a complicated way of saying "keep or overwrite"?
+			final List<CommentElement> temp = new ArrayList<CommentElement>();			
+			final Patch p = DiffUtils.diff(orig, other);			
+			int lastPosition = 0;
+			for(final Delta d : p.getDeltas()) {
+				final Chunk origC = d.getOriginal();
+				// Copy everything between where we left off and where this chunk starts
+				for(i=lastPosition; i<origC.getPosition(); i++) {
+					CommentElement e = orig.get(i).cloneMe();
+					e.setParent(this);
+					temp.add(e);
+				}
+				final Chunk src = type == MergeType.PREFER_OTHER ? d.getRevised() : d.getOriginal();
+				for(Object o : src.getLines()) {
+					CommentElement e = ((CommentElement) o).cloneMe();
+					e.setParent(this);
+					temp.add(e);
+				}
+				lastPosition = origC.getPosition() + origC.getSize();
+			}
+			for(i=lastPosition; i<orig.size(); i++) {
+				CommentElement e = orig.get(i).cloneMe();
+				e.setParent(this);
+				temp.add(e);
+			}
+		}
+		*/
+	}
+	
+	void mergeThis(CommentedJavaElement changed, MergeType type) {
+		super.mergeThis(changed, type);
+		mergeList(comments, changed.comments, type);
+		mergeList(lastEnclosedComments, changed.lastEnclosedComments, type);
 	}
 	
 	void copyToClone(CommentedJavaElement clone) {

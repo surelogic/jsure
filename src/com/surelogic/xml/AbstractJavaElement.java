@@ -37,7 +37,7 @@ abstract class AbstractJavaElement implements IJavaElement {
 		isDirty = false;
 	}
 	
-	void mergeThis(AbstractJavaElement changed) {
+	void mergeThis(AbstractJavaElement changed, MergeType type) {
 		// Nothing to do yet
 	}
 	

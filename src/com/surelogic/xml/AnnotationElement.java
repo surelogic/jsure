@@ -161,11 +161,11 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 	
 	void merge(AnnotationElement other) {		
 		if (isModified()) {
-			// Keep what we've edited
-			return;
+		 	return; // Keep what we've edited
 		}
 		final int thisRev = getRevision();
 		final int otherRev = other.getRevision();
+		MergeType type;
 		if (thisRev == otherRev) {
 			if (!other.isModified()) {
 				return; // These should be the same
@@ -174,16 +174,18 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 			contents = other.contents;
 			attributes.putAll(other.attributes);
 			incrRevision();			
+			type = MergeType.USE_OTHER;
 		} else if (otherRev > thisRev) {
 			// Overwrite this completely
 			attributes.clear();
 			contents = other.contents;
 			attributes.putAll(other.attributes);
+			type = MergeType.USE_OTHER;
 		} else {
 			// Ignore the other, since it's an older rev
 			return;
 		}
-		super.mergeThis(other);		
+		super.mergeThis(other, type);		
 	}
 	
 	AnnotationElement cloneMe() {
