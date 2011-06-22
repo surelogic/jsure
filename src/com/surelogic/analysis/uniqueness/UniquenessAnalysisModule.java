@@ -1,14 +1,23 @@
 package com.surelogic.analysis.uniqueness;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import jsr166y.forkjoin.Ops.Procedure;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.*;
-import com.surelogic.analysis.uniqueness.Messages;
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.ConcurrencyType;
+import com.surelogic.analysis.IAnalysisMonitor;
+import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.uniqueness.UniquenessAnalysis.AbruptErrorQuery;
 import com.surelogic.analysis.uniqueness.UniquenessAnalysis.IsInvalidQuery;
 import com.surelogic.analysis.uniqueness.UniquenessAnalysis.IsPositivelyAssuredQuery;
@@ -19,18 +28,31 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.CallInterface;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
+import edu.cmu.cs.fluid.java.operator.ClassInitializer;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.LongRunningUniquenessAnalysisDrop;
+import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
+import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
 import edu.cmu.cs.fluid.sea.drops.effects.RegionEffectsPromiseDrop;
-import edu.cmu.cs.fluid.sea.drops.promises.*;
+import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -191,10 +213,11 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       if (duration > tooLongDuration) {
         System.out.println("______________________ too long ______________: " + methodName);
         final InfoDropBuilder info =
-          InfoDropBuilder.create(this, Messages.toString(Messages.TOO_LONG), LongRunningUniquenessAnalysisDrop.factory);
+          InfoDropBuilder.create(this, Messages.toString(Messages.TOO_LONG), WarningDrop.factory);
         this.setResultDependUponDrop(info, node.methodDecl);
         info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
+        info.setCategory(Category.getInstance(630));
       }
     } catch (final FlowAnalysis.AnalysisGaveUp e) {
       final long endTime = System.nanoTime();
