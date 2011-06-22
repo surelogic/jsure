@@ -46,7 +46,6 @@ import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.sea.Category;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.CUDrop;
@@ -217,7 +216,10 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         this.setResultDependUponDrop(info, node.methodDecl);
         info.setResultMessage(Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
-        info.setCategory(Category.getInstance(630));
+        info.setCategory(Messages.DSC_UNIQUENESS_LONG_RUNNING);
+        for (final PromiseDrop<? extends IAASTRootNode> pd : pr.controlFlow.getChecks()) {
+          info.addDependUponDrop(pd);
+        }
       }
     } catch (final FlowAnalysis.AnalysisGaveUp e) {
       final long endTime = System.nanoTime();
