@@ -876,6 +876,12 @@ public class LockRules extends AnnotationRules {
         declIsGood = false;
       }
       
+      // Region cannot be a final field
+      if (regionBinding.getModel().isFinal()) {
+        context.reportError(lockDecl, "Field \"{0}\" is final: It cannot be protected by a lock", region.getId());
+        declIsGood = false;
+      }
+      
       /*
        * >> WFLockDefs << (3) the associated region must exist (4)
        * instance field or this cannot be associated with a static
