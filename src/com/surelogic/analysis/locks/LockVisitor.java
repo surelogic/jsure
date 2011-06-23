@@ -2745,9 +2745,18 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						lockIsIdentifiable = false;
 					}
 				} else { // Non-final lock expression -> warning!
-					makeWarningDrop(Messages.DSC_NONFINAL_EXPRESSION_WARNING, lockExpr,
-							Messages.LockAnalysis_ds_NonfinalExpression,
-							DebugUnparser.toString(lockExpr));
+				  // If the expression were final, would we be able to resolve the lock?
+          final Set<HeldLock> heldLocks = new HashSet<HeldLock>();
+          lockUtils.convertIntrinsicLockExpr(lockExpr, heldLockFactory,
+              enclosingMethod, syncBlock, heldLocks);
+
+					final InfoDropBuilder warning = 
+					  makeWarningDrop(Messages.DSC_NONFINAL_EXPRESSION_WARNING, lockExpr,
+					      Messages.LockAnalysis_ds_NonfinalExpression,
+					      DebugUnparser.toString(lockExpr));
+					for (final HeldLock l : heldLocks) {
+					  warning.addDependUponDrop(l.getLockPromise());
+					}
 					lockIsIdentifiable = false;
 				}
 			}
