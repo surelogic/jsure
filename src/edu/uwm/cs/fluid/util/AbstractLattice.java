@@ -15,6 +15,7 @@ public abstract class AbstractLattice<E> implements Lattice<E> {
   }
   
   public String toString(E v) {
+	if (v == null) return "<null>";
     return v.toString();
   }
 }
