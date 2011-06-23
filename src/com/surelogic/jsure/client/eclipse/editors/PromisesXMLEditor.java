@@ -428,10 +428,11 @@ public class PromisesXMLEditor extends EditorPart {
 					if (m.isConstructor()) {
 						return "new "+m.getElementName()+'('+PromisesXMLBuilder.translateParameters(m)+')';
 					}
+					return m.getElementName()+'('+PromisesXMLBuilder.translateParameters(m)+')';
 				} catch (JavaModelException e1) {
 					// ignore
 				}
-				return m.getElementName()+'('+PromisesXMLBuilder.translateParameters(m)+')';
+				return m.getElementName()+"(???)";
 			}
 			return e.getElementName();
 		}
