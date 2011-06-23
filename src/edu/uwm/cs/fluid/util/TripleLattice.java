@@ -93,7 +93,7 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>> im
   
   
   
-  private V checkTopBottom(final V newV, final V oldV) {
+  protected V canonicalize(final V newV, final V oldV) {
     // Inspired by the checks in the old RecordLattice.replaceValues()
     if (top.equals(newV)) return top;
     if (bottom.equals(newV)) return bottom;
@@ -102,14 +102,14 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>> im
   }
   
   public final V replaceFirst(final V v, final T1 first) {
-    return checkTopBottom(newTriple(first, v.second(), v.third()), v);
+    return canonicalize(newTriple(first, v.second(), v.third()), v);
   }
   
   public final V replaceSecond(final V v, final T2 second) {
-    return checkTopBottom(newTriple(v.first(), second, v.third()), v);
+    return canonicalize(newTriple(v.first(), second, v.third()), v);
   }
   
   public final V replaceThird(final V v, final T3 third) {
-    return checkTopBottom(newTriple(v.first(), v.second(), third), v);
+    return canonicalize(newTriple(v.first(), v.second(), third), v);
   }
 }
