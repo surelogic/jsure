@@ -20,18 +20,18 @@ public class PromisesXMLBuilder {
 		typeMapping.put(Signature.SIG_DOUBLE, "double");
 	}
 	
-	public static String translateParameters(IMethod m) {
+	public static String translateParameters(IMethod m) throws JavaModelException {
 		StringBuilder sb = new StringBuilder();
 		for(String t : m.getParameterTypes()) {
 			if (sb.length() != 0) {
 				sb.append(',');
 			}		
-			translateParameter(sb, t);
+			translateParameter(m, sb, t);
 		}
 		return sb.toString();
-	}
+	}	
 	
-	public static void translateParameter(StringBuilder sb, String t) {
+	public static void translateParameter(IMethod m, StringBuilder sb, String t) throws JavaModelException {
 		String mapped = typeMapping.get(t);
 		if (mapped == null) {
 			int dims = 0;
@@ -41,8 +41,9 @@ public class PromisesXMLBuilder {
 			if (dims == 0) {
 				// Assumed to be a class name
 				mapped = t.substring(1, t.length()-1).replace('$', '.');
+				translatePossibleGenericType(m, sb, translateToRawType(mapped));				
 			} else {
-				translateParameter(sb, t.substring(dims));
+				translateParameter(m, sb, t.substring(dims));
 				for(int i=0; i<dims; i++) {
 					sb.append("[]");
 				}
@@ -52,13 +53,55 @@ public class PromisesXMLBuilder {
 		}
 	}
 	
+	private static void translatePossibleGenericType(IMethod m, StringBuilder sb, String t) throws JavaModelException {
+		for(ITypeParameter p : m.getTypeParameters()) {
+			if (t.equals(p.getElementName())) {
+				translateToRawType(m, sb, p);
+				return;
+			}
+		}
+		for(ITypeParameter p : m.getDeclaringType().getTypeParameters()) {
+			if (t.equals(p.getElementName())) {
+				translateToRawType(m, sb, p);
+				return;
+			}
+		}
+		sb.append(t);
+	}
+	
+	private static void translateToRawType(IMethod m, StringBuilder sb, ITypeParameter p) throws JavaModelException {
+		String[] bounds = p.getBounds();
+		if (bounds.length == 0) {
+			sb.append("java.lang.Object");
+			return;
+		}
+		int i=0;
+		if (bounds.length > 1 && bounds[0].equals("java.lang.Object")) {
+			i = 1;
+		} 
+		translatePossibleGenericType(m, sb, translateToRawType(bounds[i]));		
+	}
+	
+	private static String translateToRawType(String t) {
+		int angleBracket = t.indexOf('<');
+		if (angleBracket >= 0) {
+			// Throw away type parameters
+			return t.substring(0, angleBracket);
+		}
+		return t;
+	}
+	
 	public static PackageElement makeModel(String pkg, String type) throws JavaModelException {
 		final IType t = JDTUtility.findIType(null, pkg, type);
+		return makeModel(t);
+	}
+	
+	public static PackageElement makeModel(IType t) throws JavaModelException {
 		if (t == null) {
 			return null;
 		}
 		// TODO not quite right for nested classes
-		final ClassElement c = new ClassElement(type);
+		final ClassElement c = new ClassElement(t.getElementName());
 		for(IMethod m : t.getMethods()) {
 			if (m.getDeclaringType().equals(t)) {
 				if ("<clinit>".equals(m.getElementName())) {
@@ -72,6 +115,6 @@ public class PromisesXMLBuilder {
 		}
 		// TODO fields
 		// TODO nested classes -- only public ones?
-		return new PackageElement(pkg, c);
+		return new PackageElement(t.getPackageFragment().getElementName(), c);
 	}
 }
