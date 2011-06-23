@@ -218,8 +218,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 
   @Override
   public boolean equals(Object other) {
-    if (other instanceof ImmutableHashOrderSet) {
-      return equals((ImmutableHashOrderSet)other);
+    if (other instanceof ImmutableHashOrderSet<?>) {
+      return equals((ImmutableHashOrderSet<?>)other);
     } else {
       // other can be null; this cannot be null
       return (other == null) ? false : other.equals(this);
@@ -227,12 +227,15 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     }
   }
   
-  public boolean equals(ImmutableHashOrderSet other) {
+  public boolean equals(ImmutableHashOrderSet<?> other) {
     return equals(this,other);
   }
 
-  public static boolean equals(ImmutableHashOrderSet s1, ImmutableHashOrderSet s2) {
+  public static boolean equals(ImmutableHashOrderSet<?> s1, ImmutableHashOrderSet<?> s2) {
     if (s1.inverse != s2.inverse) return false;
+    if (s1.hashCode != s2.hashCode) {
+    	return false;
+    }
     return SortedArray.equals(s1.elements,s2.elements);
   }
 
@@ -444,7 +447,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
   /** True if this set includes every element
    * in the argument set.
    */
-  public boolean includes(ImmutableHashOrderSet other) {
+  public boolean includes(ImmutableHashOrderSet<?> other) {
     if (inverse) {
       if (other.inverse) {
 	return SortedArray.includes(other.elements,elements);
@@ -463,7 +466,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
   /** True if this set includes some element
    * also included by the argument set.
    */
-  public boolean overlaps(ImmutableHashOrderSet other) {
+  public boolean overlaps(ImmutableHashOrderSet<?> other) {
     if (inverse) {
       if (other.inverse) {
 	return true;
