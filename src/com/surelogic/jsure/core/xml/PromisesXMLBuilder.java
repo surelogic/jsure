@@ -1,6 +1,5 @@
 package com.surelogic.jsure.core.xml;
 
-import java.lang.annotation.Annotation;
 import java.util.*;
 
 import org.eclipse.jdt.core.*;
@@ -48,12 +47,16 @@ public class PromisesXMLBuilder {
 					sb.append("[]");
 				}
 			}			
+		} else {
+			sb.append(mapped);
 		}
-		sb.append(mapped);
 	}
 	
 	public static PackageElement makeModel(String pkg, String type) throws JavaModelException {
 		final IType t = JDTUtility.findIType(null, pkg, type);
+		if (t == null) {
+			return null;
+		}
 		// TODO not quite right for nested classes
 		final ClassElement c = new ClassElement(type);
 		for(IMethod m : t.getMethods()) {
