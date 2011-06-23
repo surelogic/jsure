@@ -84,7 +84,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		return PromisesXMLWriter.getSortedValues(fields);
 	}
 	
-	Collection<MethodElement> getMethods() {
+	public Collection<MethodElement> getMethods() {
 		final List<MethodElement> elements = new ArrayList<MethodElement>(methods.size());
 		for(Pair<String,String> key : methods.keys()) {
 			elements.add(methods.get(key.first(), key.second()));
