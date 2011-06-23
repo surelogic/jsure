@@ -60,11 +60,18 @@ public class PromisesXMLBuilder {
 				return;
 			}
 		}
-		for(ITypeParameter p : m.getDeclaringType().getTypeParameters()) {
-			if (t.equals(p.getElementName())) {
-				translateToRawType(m, sb, p);
-				return;
+		IType type = m.getDeclaringType();
+		while (type != null) {
+			for(ITypeParameter p : type.getTypeParameters()) {
+				if (t.equals(p.getElementName())) {
+					translateToRawType(m, sb, p);
+					return;
+				}
 			}
+			type = type.getDeclaringType();
+		}
+		if (t.length() == 1) {
+			System.out.println("Suspicious type: "+t);
 		}
 		sb.append(t);
 	}
