@@ -147,6 +147,13 @@
 				<separator name="additions" />
 			</menu>
 
+			<!-- action
+				class="com.surelogic.jsure.client.eclipse.actions.TestMakeModelAction"
+				id="com.surelogic.jsure.client.eclipse.actions.TestMakeModelAction"
+				label="Test makeModel()"
+				menubarPath="com.surelogic.jsure.client.eclipse.workbenchMenu/client">
+			</action -->
+
 			<action
 				class="com.surelogic.jsure.client.eclipse.actions.OpenCodeVerificationPerspectiveAction"
 				id="com.surelogic.jsure.client.eclipse.actions.ShowCodeVerificationPerspectiveAction"
