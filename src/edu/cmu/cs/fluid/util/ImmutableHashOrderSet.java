@@ -52,11 +52,10 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
   /**
    * Create a set using the elements of an existing
    * <code>Collection</code>.
-   * <strong>This code is untested</strong>
    * @param c The collection to use.
    */
   @SuppressWarnings("unchecked")
-  public ImmutableHashOrderSet( final Collection<T> c )
+  public ImmutableHashOrderSet( final Collection<? extends T> c )
   {
     this((T[]) c.toArray(),false);
   }
@@ -186,9 +185,9 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 	  return rv;
   }
   
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public static final ImmutableHashOrderSet empty = new ImmutableHashOrderSet(SortedArray.empty,false);
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public static final ImmutableHashOrderSet universe = new ImmutableHashOrderSet(SortedArray.empty,true);
 
   @SuppressWarnings("unchecked")
@@ -218,7 +217,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 
   @Override
   public boolean equals(Object other) {
-    if (other instanceof ImmutableHashOrderSet<?>) {
+    if (other instanceof ImmutableHashOrderSet) {
       return equals((ImmutableHashOrderSet<?>)other);
     } else {
       // other can be null; this cannot be null
@@ -274,7 +273,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
       return elements.length;
   }
 
-  public Enumeration elements() throws SetException {
+  public Enumeration<T> elements() throws SetException {
     if (inverse) throw new SetException("infinite enumeration");
     return SortedArray.elements(elements);
   }
@@ -368,8 +367,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * @return <code>true</code> iff all the elements of <code>c</code>
    * are contained in this set.
    */
-  @SuppressWarnings("unchecked")
-  public boolean containsAll( final Collection c )
+  public boolean containsAll( final Collection<?> c )
   {
     // Quick and dirty checks for some of the easy infinite cases
     
@@ -380,14 +378,14 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 
     // This set is not the universe, so result is false if the other set is the universe
     if (c instanceof ImmutableHashOrderSet) {
-      final ImmutableHashOrderSet other = (ImmutableHashOrderSet) c;
+      final ImmutableHashOrderSet<?> other = (ImmutableHashOrderSet<?>) c;
       if (other.inverse && other.elements.length == 0) {
         return false;
       }
     }
     
     boolean flag = true;
-    final Iterator elts = c.iterator();
+    final Iterator<?> elts = c.iterator();
     while( flag && elts.hasNext() )
     {
       flag = contains( elts.next() );
@@ -400,7 +398,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
-  public boolean addAll( final Collection c )
+  public boolean addAll( final Collection<? extends T> c )
   {
     throw new UnsupportedOperationException( getClass().getName()
                                            + " does not support addAll()" );
@@ -411,7 +409,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
-  public boolean retainAll( final Collection c )
+  public boolean retainAll( final Collection<?> c )
   {
     throw new UnsupportedOperationException( getClass().getName()
                                            + " does not support retainAll()" );
@@ -422,7 +420,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
-  public boolean removeAll( final Collection c )
+  public boolean removeAll( final Collection<?> c )
   {
     throw new UnsupportedOperationException( getClass().getName()
                                            + " does not support removeAll()" );
@@ -680,10 +678,9 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 
   
   private static ThreadLocal<List<?>> tempList = new ThreadLocal<List<?>>() {
-	  @SuppressWarnings("unchecked")
 	  @Override
 	  protected List<?> initialValue() {
-		  return new ArrayList();
+		  return new ArrayList<Object>();
 	  }
   };
 }
