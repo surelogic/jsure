@@ -5,7 +5,6 @@ import static edu.cmu.cs.fluid.java.JavaGlobals.noNodes;
 import java.net.URL;
 
 import com.surelogic.analysis.IAnalysisInfo;
-import com.surelogic.analysis.PessimisticMayAlias;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 
@@ -33,6 +32,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.version.Era;
 import edu.cmu.cs.fluid.version.Version;
 import edu.cmu.cs.fluid.version.VersionedRegion;
@@ -124,6 +124,7 @@ public final class Test extends IDE {
   private final IRNode retDecl = ReturnValueDeclaration.prototype.createNode();
   {
     UniquenessRules.setIsUnique(retDecl, true);
+    JJNode.tree.clearParent(retDecl);
   }
 
   @SuppressWarnings("unused")
@@ -133,9 +134,13 @@ public final class Test extends IDE {
       Annotations.createNode(noNodes), 0, null, "n");
   {
     UniquenessRules.setIsUnique(param, true);
+    JJNode.tree.clearParent(param);
   }
 
   private final IRNode local = VariableDeclarator.createNode("local", 0, null);
+  {
+	  JJNode.tree.clearParent(local);
+  }
 
   
   
@@ -209,7 +214,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart(PessimisticMayAlias.INSTANCE);
+    store = sl.opStart();
     System.out.println(sl.toString(store));
 
     System.out.println("  this");
@@ -280,7 +285,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart(PessimisticMayAlias.INSTANCE);
+    store = sl.opStart();
     System.out.println(sl.toString(store));
 
     System.out.println("  this");
@@ -372,7 +377,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart(PessimisticMayAlias.INSTANCE);
+    store = sl.opStart();
     System.out.println(sl.toString(store));
 
     if (doStore) {
@@ -414,7 +419,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("Initial:");
-    store = sl.opStart(PessimisticMayAlias.INSTANCE);
+    store = sl.opStart();
     System.out.println(sl.toString(store));
 
     System.out.println("  0");
