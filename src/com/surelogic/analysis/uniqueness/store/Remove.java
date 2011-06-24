@@ -13,4 +13,9 @@ final class Remove implements Apply {
       final ImmutableHashOrderSet<Object> other) {
     return other.difference(old);
   }
+  
+  @Override
+  public String toString() {
+	  return "Remove(" + StoreLattice.nodeToString(old) + ")";
+  }
 }
