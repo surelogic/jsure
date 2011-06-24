@@ -162,7 +162,17 @@
 	<target name="setup Eclipse-based JSure" depends="setup sandbox directory">
 		<!-- Unarchive Eclipse into the sandbox directory -->
 		<unarchive-to archive="${archive.eclipse.dist}" sandbox="${sandbox}" />
-		<unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}" />
+		<if>
+			<!-- How do I match against 4.0 and above -->
+			<matches string="${jsure.tests.archive.use}" pattern="3\.[789](.*)" />
+			<then>
+				<!-- We need to unzip it to a slightly different place -->
+				<unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}/eclipse" />
+			</then>
+			<else>
+				<unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}" />
+			</else>
+		</if>
 
 		<findFile property="eclipse.startup.jar" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.equinox\.launcher_.*\.jar" />
 		<fail unless="eclipse.startup.jar" message="Unable to find the Eclipse startup jar (org.eclipse.equinox.launcher.*.jar) within ${sandbox.eclipse.plugins.dir}." />
@@ -281,11 +291,22 @@
 	<target name="run JSure on test suites" depends="setup test suites to analyze">
 		<findFile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.test_.*" />
 		<fail unless="eclipse.test.plugin.dir" message="Unable to find the Eclipse test plug-in (org.eclipse.test_*) within ${sandbox.eclipse.plugins.dir}." />
-		<property name="library.xml" value="${eclipse.test.plugin.dir}${fs}library.xml" />
-
+		
 		<!-- JUNIT.XSL hack to fix a bad reference in library.xml -->
 		<mkdir dir="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test" />
-		<copy file="${eclipse.test.plugin.dir}${fs}JUNIT.XSL" tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" />
+		<if>
+			<matches string="${eclipse.test.plugin.dir}" pattern="(.*)\.jar$" />
+			<then>
+				<unzip dest="${eclipse.test.plugin.dir}.dir" src="${eclipse.test.plugin.dir}" />
+				<!--delete file="${eclipse.test.plugin.dir}"/-->
+				<property name="library.xml" value="${eclipse.test.plugin.dir}.dir${fs}library.xml" />
+				<copy file="${eclipse.test.plugin.dir}.dir${fs}JUNIT.XSL" tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" />
+			</then>						
+			<else>
+				<property name="library.xml" value="${eclipse.test.plugin.dir}${fs}library.xml" />
+				<copy file="${eclipse.test.plugin.dir}${fs}JUNIT.XSL" tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" />
+			</else>
+		</if>
 
 		<findFile property="surelogic.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="com\.surelogic\.jsure\.tests_.*" />
 		<fail unless="surelogic.test.plugin.dir" message="Unable to find the SureLogic test plug-in (com.surelogic.jsure.tests_*) within ${sandbox.eclipse.plugins.dir}." />
