@@ -55,6 +55,13 @@
 			category="edu.cmu.cs.fluid.dcf" class="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView"
 			id="com.surelogic.jsure.client.eclipse.views.results.PersistentResultsView">
 		</view>
+		
+		<view category="edu.cmu.cs.fluid.dcf"
+			class="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
+			id="com.surelogic.jsure.client.eclipse.views.finder.FinderView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/sierra_investigate.gif"
+			name="Findings Quick Search">
+		</view>
 
         <!--
 		<view name="Verification Status (Old)"
