@@ -167,7 +167,8 @@
 			<matches string="${jsure.tests.archive.use}" pattern="3\.[789](.*)" />
 			<then>
 				<!-- We need to unzip it to a slightly different place -->
-				<unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}/eclipse" />
+				<!--unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}/eclipse" /-->
+				<antcall target="installTestPlugins"/>
 			</then>
 			<else>
 				<unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}" />
@@ -465,5 +466,45 @@
 				<echo message="${ln}" />
 			</else>
 		</if>
+	</target>
+	
+	<!--Extract test bundles repo -->
+	<target name="setupRepo">
+		<mkdir dir="${repoLocation}" />
+		<unarchive-to archive="${archive.eclipse.test}" sandbox="${repoLocation}" />
+	</target>
+	
+	<target name="installTestPlugins">
+		<property name="eclipse-home" value="${sandbox.eclipse.dir}" />
+		<property name="arch" value="${jsure.tests.archive.eclipse.arch}" />
+		<property name="os" value="${jsure.tests.archive.eclipse.os}" />
+		<property name="ws" value="${jsure.tests.archive.eclipse.ws}" />	
+		<property name="repoLocation" value="${sandbox}/testRepo" />
+		
+		<antcall target="setupRepo"/>
+		
+		<path id="launcher.paths">
+			<fileset dir="${eclipse-home}" includes="plugins/org.eclipse.equinox.launcher_*" />
+		</path>
+		<property name="launcherPath" refid="launcher.paths" />
+		<!--antcall target="setupPlatform" /-->
+		<echo>-installIU +</echo>
+		<java jar="${launcherPath}" failonerror="false" dir="${eclipse-home}" timeout="900000" fork="true" resultproperty="directorcode">
+			<arg line="-vm '${java.home}/bin/java\'" />
+			<arg line="-application org.eclipse.equinox.p2.director" />
+			<arg line="-consoleLog" />
+			<arg line="-flavor tooling" />
+			<arg line="-installIUs org.eclipse.test,org.eclipse.ant.optional.junit,org.eclipse.test.performance,org.eclipse.test.performance.win32,org.easymock" />
+			<arg line="-p2.os ${os}" />
+			<arg line="-p2.ws ${ws}" />
+			<arg line="-p2.arch ${arch}" />
+			<arg line="-roaming" />
+			<arg line="-profile SDKProfile" />
+			<arg line="-repository file:${repoLocation}" />
+			<arg line="-destination ${eclipse-home}" />
+			<arg line="-bundlepool ${eclipse-home}" />
+		</java>
+		<!--antcall target="configureTeamTest" /-->
+		<!--antcall target="unzipderby" /-->
 	</target>
 </project>
