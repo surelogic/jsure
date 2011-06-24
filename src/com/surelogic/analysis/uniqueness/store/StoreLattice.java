@@ -1,15 +1,26 @@
 package com.surelogic.analysis.uniqueness.store;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import com.surelogic.analysis.PessimisticMayAlias;
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.effects.Effect;
+import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.Target;
+import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.UniquenessRules;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -20,6 +31,8 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -36,6 +49,8 @@ extends TripleLattice<Element<Integer>,
     ImmutableSet<ImmutableHashOrderSet<Object>>,
     ImmutableSet<FieldTriple>,
     Store> {
+  private static final Logger LOG = SLLogger.getLogger("FLUID.analysis.unique");
+    
   private static final ImmutableHashOrderSet<Object> EMPTY =
     ImmutableHashOrderSet.<Object>emptySet();
 
@@ -47,19 +62,27 @@ extends TripleLattice<Element<Integer>,
 
   private final IRNode[] locals;
 
+  private final IMayAlias mayAlias;
+  private final Set<Effect> effects;
   
 
   // ==================================================================
   // === Constructor 
   // ==================================================================
   
-  public StoreLattice(final IRNode[] locals) {
+  public StoreLattice(final IRNode[] locals, IMayAlias ma, Set<Effect> fx) {
     super(new FlatLattice2<Integer>(),
         new UnionLattice<ImmutableHashOrderSet<Object>>(),
         new UnionLattice<FieldTriple>());
     this.locals = locals;
+    mayAlias = ma;
+    effects = fx;
   }
-  
+	  
+  public StoreLattice(final IRNode[] locals) {
+	  this(locals,PessimisticMayAlias.INSTANCE,ImmutableHashOrderSet.<Effect>emptySet());
+  }
+	  
   public int getNumLocals() {
     return locals.length;
   }
@@ -103,7 +126,7 @@ extends TripleLattice<Element<Integer>,
   // === Error handling 
   // ==================================================================
   
-  Store errorStore(final String msg) {
+  public Store errorStore(final String msg) {
     /* Create the new triple directly because we don't want replaceFirst()
      * to substitute the original bottom back in. 
      * Create a store that is invalid, but not top or bottom.
@@ -165,7 +188,7 @@ extends TripleLattice<Element<Integer>,
     for (final ImmutableSet<Object> node : objects) {
       if (node.contains(local)) {
         final State nstatus = nodeStatus(node);
-        if (nstatus.compareTo(status) > 0) status = nstatus;
+        status = State.lattice.join(status,nstatus);
       }
     }
     return status;
@@ -178,14 +201,27 @@ extends TripleLattice<Element<Integer>,
    * @return The status of the object. Never returns {@link State#NULL}.
    */
   public State nodeStatus(final ImmutableSet<Object> node) {
-    if (node.contains(State.UNDEFINED)) {
-      return State.UNDEFINED;
-    } else if (node.contains(State.SHARED)) {
-      return State.SHARED;
-    } else if (node.contains(State.BORROWED)) {
-      return State.BORROWED;
-    }
-    return State.UNIQUE;
+	  State status = State.UNIQUE;
+	  for (Object thing : node) {
+		  if (thing instanceof State) {
+			  status = State.lattice.join(status,(State)thing);
+		  }
+	  }
+	  return status;
+  }
+
+  /**
+   * Get the declared (by annotation) status of the given node.
+   * This method is used for Value Flow Analysis
+   * @param node parameter, receiver or field
+   * @return annotation converted into state
+   */
+  public State declStatus(final IRNode node) {
+	  if (UniquenessRules.isUnique(node)) return State.UNIQUE;
+	  if (UniquenessRules.isBorrowed(node)) return State.BORROWED;
+	  // if (UniquenessRules.isReadOnly(node)) return State.READONLY;
+	  // if (LockRules.isImmutableType(node)) return State.IMMUTABLE;
+	  return State.SHARED;
   }
 
   /**
@@ -194,22 +230,22 @@ extends TripleLattice<Element<Integer>,
    * effect.
    */
   public boolean isNull(final Store s, final Object local) {
-    return localStatus(s, local).compareTo(State.NULL) == 0;
+    return localStatus(s, local) == State.NULL;
   }
 
   /** Return whether a local or stack location is unique. */
   public boolean isUnique(final Store s, final Object local) {
-    return localStatus(s, local).compareTo(State.UNIQUE) <= 0;
+    return State.lattice.lessEq(localStatus(s, local),State.UNIQUE);
   }
 
   /** Return whether a local or stack location is defined and not borrowed. */
   public boolean isStoreable(final Store s, final Object local) {
-    return localStatus(s, local).compareTo(State.SHARED) <= 0;
+    return State.lattice.lessEq(localStatus(s, local),State.SHARED);
   }
 
   /** Return whether local or stack location is defined. */
   public boolean isDefined(final Store s, final Object local) {
-    return localStatus(s, local).compareTo(State.BORROWED) <= 0;
+    return State.lattice.lessEq(localStatus(s, local),State.BORROWED);
   }
 
 
@@ -254,7 +290,7 @@ extends TripleLattice<Element<Integer>,
   // === Stack Machine Operations 
   // ==================================================================
 
-  public Store opStart(final IMayAlias mayAlias) {
+  public Store opStart() {
     Store temp = bottom();
     
     /*
@@ -268,7 +304,7 @@ extends TripleLattice<Element<Integer>,
       addElement( EMPTY ).
       addElement( EMPTY.addElement(State.UNDEFINED) ).
       addElement( EMPTY.addElement(State.BORROWED) ).
-      addElement( EMPTY.addElement(State.BORROWED).addElement(State.SHARED) );
+      addElement( EMPTY.addElement(State.SHARED) );
     temp = setObjects(temp, objects);
     
     /* Now add each parameter or local in turn.  Currently undefined locals are
@@ -299,7 +335,9 @@ extends TripleLattice<Element<Integer>,
           (parent == null || !CatchClause.prototype.includes(JJNode.tree.getOperator(parent)))) {
         if (isReceiverFromUniqueReturningConstructor
             || UniquenessRules.isBorrowed(local)) {
-          temp = opExistingBetter(temp, State.BORROWED, mayAlias, local);
+        	// TODO we don't need to pull in shared if we have a constructor
+          temp = join(opExistingBetter(temp, State.BORROWED, mayAlias, local),
+        		      opExistingBetter(temp, State.SHARED, mayAlias, local));
 //          temp = opExisting(temp, State.BORROWED);
         } else if (UniquenessRules.isUnique(local)) {
           temp = opNew(temp);
@@ -322,8 +360,7 @@ extends TripleLattice<Element<Integer>,
    * Leave scope of method. Remove all local bindings.
    */
   public Store opStop(final Store s) {
-    if (!s.isValid()) return s;
-    return apply(s, new Remove(new ImmutableHashOrderSet<Object>(locals)));
+    return opClear(s,(Object[])locals);
   }
 
   /**
@@ -339,6 +376,17 @@ extends TripleLattice<Element<Integer>,
           .toString((IRNode) local) : local.toString();
       return errorStore("read undefined local: " + name);
     }
+  }
+
+  /**
+   * Remove bindings of all variables listed.
+   * @param s store before
+   * @param vars variables to assign to null
+   * @return store after
+   */
+  public Store opClear(final Store s, final Object... vars) {
+	  if (!s.isValid()) return s;
+	  return apply(s, new Remove(new ImmutableHashOrderSet<Object>(vars)));
   }
 
   /**
@@ -378,64 +426,173 @@ extends TripleLattice<Element<Integer>,
             apply(s, new Remove(lset)),
             new Add(getStackTop(s), lset)));
   }
-  
+
+  private static final IRNode fromField = null; // new EnumeratedIRNode<FieldKind>(FieldKind.FROM_FIELD);
+
   /**
-   * Load a field from memory
-   * 
-   * @precondition isValid();
+   * Add a from-edge between {@link from} to {@link to}.
+   * (We add the edge between every node that "from" aliases to every node
+   * that "to" aliases.)
+   * @param s store before
+   * @param from variable source of edge
+   * @param to variable destination of edge
+   * @return new store.
    */
-  public Store opLoad(final Store s, final IRNode fieldDecl) {
-    if (!s.isValid()) return s;
-    if (UniquenessUtils.isFieldUnique(fieldDecl)) {
-      final Integer n = getStackTop(s);
+  public Store opFrom(Store s, Object from, Object to) {
+	  List<ImmutableHashOrderSet<Object>> sources = new ArrayList<ImmutableHashOrderSet<Object>>();
+	  List<ImmutableHashOrderSet<Object>> destinations = new ArrayList<ImmutableHashOrderSet<Object>>();
+	  for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
+		  if (obj.contains(from)) sources.add(obj);
+		  if (obj.contains(to)) destinations.add(obj);
+	  }
+	  List<FieldTriple> newFields = new ArrayList<FieldTriple>();
+	  for (ImmutableHashOrderSet<Object> source : sources) {
+		  for (ImmutableHashOrderSet<Object> dest : destinations) {
+			  newFields.add(new FieldTriple(source,fromField,dest));
+		  }
+	  }
+	  ImmutableHashOrderSet<FieldTriple> newFieldSet = new ImmutableHashOrderSet<FieldTriple>(newFields);
+	  s = setFieldStore(s,s.getFieldStore().union(newFieldSet));
+	  return s;
+  }
+
+  /**
+   * Remove any "from" connections to "to" that have been declared OK:
+   * all objects are unique or have an allowReturn object in them.
+   * @param s store before
+   * @param to return/this variable that is ready to be done
+   * @return store after
+   */
+  public Store opRemoveFrom(Store s, Object to) {
+	  if (!s.isValid()) return s;
+	  List<FieldTriple> newFields = new ArrayList<FieldTriple>(s.getFieldStore());
+	  for (Iterator<FieldTriple> it = newFields.iterator(); it.hasNext();) {
+		  FieldTriple tr = it.next();
+		  // if (tr.second() != fromField) continue;
+		  if (tr.third().contains(to)) {
+			  switch (nodeStatus(tr.first())) {
+			  default: break;
+			  case UNIQUE:
+				  if (LOG.isLoggable(Level.FINE)) {
+					  LOG.fine("Removing unique: " + tripleToString(tr));
+				  }
+				  it.remove();
+				  break;
+			  case SHARED: // not sure here, but for monotonicity, should be done
+			  case BORROWED:
+				  boolean allowed = false;
+				  for (Object v : tr.first()) {
+					  if (v instanceof IRNode) {
+						  BorrowedPromiseDrop borrowed = UniquenessRules.getBorrowed((IRNode)v);
+						  if (borrowed != null && borrowed.allowReturn()) allowed = true;
+					  }
+				  }
+				  if (allowed) {
+					  if (LOG.isLoggable(Level.FINE)) {
+						  LOG.fine("Removing allowed: " + tripleToString(tr));
+					  }
+					  it.remove();
+				  }
+			  }
+		  }
+	  }
+	  if (newFields.size() != s.getFieldStore().size()) {
+		  return setFieldStore(s,new ImmutableHashOrderSet<FieldTriple>(newFields));
+	  }
+	  return s;
+  }
+
+  private Store undefineFromNodes(final Store s, Integer n) {
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
       ImmutableHashOrderSet<Object> affected = EMPTY;
       final ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
       if (fieldStore.isInfinite()) return s;
       for (final FieldTriple t : fieldStore) {
         final ImmutableHashOrderSet<Object> object = t.first();
-        if (object.contains(n) && objects.contains(object) && t.second().equals(fieldDecl)) {
+        if (object.contains(n) && objects.contains(object) && t.second() == fromField) {
           affected = affected.union(t.third());
         }
       }
-      if (nodeStatus(affected) != State.UNIQUE) {
-        return errorStore("loaded compromised field");
-      }
-      Store temp = opNew(
-          apply(
-              apply(s, new Remove(affected)),
-              new Add(State.UNDEFINED, affected)));
-      ImmutableSet<FieldTriple> newFieldStore = temp.getFieldStore();
-      final ImmutableHashOrderSet<Object> uniqueNode =
-        EMPTY.addElement(getStackTop(temp));
-      final ImmutableSet<ImmutableHashOrderSet<Object>> newObjects = temp.getObjects();
-      if (newObjects.isInfinite()) return s;
-      newFieldStore = addElements(newFieldStore,
-          new FilterIterator<ImmutableHashOrderSet<Object>, FieldTriple>(newObjects.iterator()) {
-            @Override
-            protected Object select(final ImmutableHashOrderSet<Object> object) {
-              if (object.contains(n)) {
-                return new FieldTriple(object, fieldDecl, uniqueNode);
-              }
-              return IteratorUtil.noElement;
-            }
-          });
-      temp = setFieldStore(temp, newFieldStore);
-      return opSet(temp, n);
-    } else {
-      return opExisting(opRelease(s), State.SHARED);
-    }
+      return apply(apply(s, new Remove(affected)),new Add(State.UNDEFINED, affected));
   }
   
-  public Store opStore(final Store s, final IRNode fieldDecl) {
+  /**
+   * Load a field from memory
+   * 
+   * @precondition isValid();
+   */
+  public Store opLoad(Store s, final IRNode fieldDecl) {
+	  // System.out.println("opLoad(" + DebugUnparser.toString(fieldDecl) + ": store " + toString(s));
+	  if (!s.isValid()) return s;
+	  s = undefineFromNodes(s,getStackTop(s));
+	  if (!s.isValid()) return s;
+	  if (UniquenessUtils.isFieldUnique(fieldDecl) ||
+			  UniquenessRules.isBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl)) {
+		  final Integer n = getStackTop(s);
+		  final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
+		  ImmutableHashOrderSet<Object> affected = EMPTY;
+		  final ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
+		  final Set<ImmutableHashOrderSet<Object>> aliases = new HashSet<ImmutableHashOrderSet<Object>>();
+		  for (final FieldTriple t : fieldStore) {
+			  final ImmutableHashOrderSet<Object> object = t.first();
+			  if (object.contains(n) && objects.contains(object) && t.second().equals(fieldDecl)) {
+				  aliases.add(t.third());
+				  affected = affected.union(t.third());
+			  }
+		  }
+		  // Alias Burying: If we get rid of alias burying, we can get rid of this check.
+		  // Otherwise, we cannot: *shared* (say) becomes undefined.
+		  if (nodeStatus(affected) != State.UNIQUE) {
+			  return errorStore("loaded compromised field");
+		  }
+
+		  // Remove affected nodes:
+		  //      s = apply(s,new Remove(affected));
+		  // Unfortunately, with combination (a.f = b, b.g = c -> a.* = c), removal of b
+		  // causes NEW *-edges to appear which would increase the affected set (by c).  
+		  // Rather than following this to the logical conclusion (fixed points),
+		  // I leave them in place, but then make stackTop alias existing fields
+
+		  // Alias Burying: make aliases undefined
+		  s = apply(s,new Add(State.UNDEFINED, affected));
+
+		  // Allocate new unaliased node on the stack
+		  Store temp = opNew(s);
+		  if (!temp.isValid()) return temp;
+
+		  // first add field edges to this new node.
+		  Set<FieldTriple> newFields = new HashSet<FieldTriple>();
+		  Integer newN = getStackTop(temp);
+		  final ImmutableHashOrderSet<Object> uniqueNode = EMPTY.addElement(newN);
+		  for (ImmutableHashOrderSet<Object> obj : temp.getObjects()) {
+			  if (obj.contains(n)) {
+				  newFields.add(new FieldTriple(obj,fieldDecl,uniqueNode));
+			  }
+		  }
+		  temp = setFieldStore(temp,temp.getFieldStore().union(newFields));
+		  
+		  // now that I am no longer removing the old aliases, I must add the following line:
+		  temp = apply(temp,new AddAlias(aliases,newN));
+		  return opSet(temp, n);
+	  } else if (UniquenessRules.isBorrowed(fieldDecl)) {
+		  assert (UniquenessRules.isReadOnly(fieldDecl));
+		  // not shared, because it won't let us pass in mutable state in parallel with the iterator
+		  return opExistingBetter(opRelease(s), State.BORROWED, mayAlias, fieldDecl);
+	  } else {
+		  return opExistingBetter(opRelease(s), State.SHARED, mayAlias, fieldDecl);
+	  }
+  }
+  
+  public Store opStore(Store s, final IRNode fieldDecl) {
+    if (!s.isValid()) return s;
+    s = undefineFromNodes(s,getUnderTop(s));
     if (!s.isValid()) return s;
     final Store temp;
     if (UniquenessUtils.isFieldUnique(fieldDecl)) {
       ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
       final Integer undertop = getUnderTop(s);
-      if (fieldStore.isInfinite()) return s;
       for (final FieldTriple t : fieldStore) {
-        if (t.second().equals(fieldDecl)) {
+        if (fieldDecl.equals(t.second())) {
           final ImmutableHashOrderSet<Object> object = t.first();
           if (TypeUtil.isStatic(fieldDecl) || object.contains(undertop)) {
             fieldStore = removeElement(fieldStore, t);
@@ -443,27 +600,100 @@ extends TripleLattice<Element<Integer>,
         }        
       }
       temp = opUndefine(setFieldStore(s, fieldStore));
+    } else if (UniquenessRules.isBorrowed(fieldDecl)) {
+    	// only permit if
+    	// (1) the field is final
+    	// (2) every object aliased to the top includes a borrowed(allowReturn) parameter/receiver
+    	// (3) this variable is final
+    	// (4) we have effects "writes v:Instance" for that variable (v).
+    	if (!isFinalField(fieldDecl)) return errorStore("borrowed field must be final");
+    	// perform remaining checks
+    	s = opReturn(s, fieldDecl);
+    	// if (!UniquenessRules.isReadOnly(fieldDecl)) // even readonly borrowing gets a from
+    	{
+    			s = opFrom(s,getStackTop(s),getUnderTop(s));
+    	}
+    	temp = opBorrow(s);
     } else {
       temp = opCompromise(s);
     }
     return opRelease(temp);
   }
-  
+
+  /**
+   * Check that the top of the stack is legal to "return" (or store to a borrowed
+   * field in a constructor).  Borrowed values must allow borrowing.
+   * @param s store before
+   * @param destDecl place the value is going (field or return decl)
+   * @return same store, or an error store
+   */
+  public Store opReturn(Store s, final IRNode destDecl) {
+	  // to prevent borrowing something twice, we ensure there is nothing from already:
+	  s = opLoadReachable(s);
+	  if (!s.isValid()) return s;
+	  final Integer stackTop = getStackTop(s);
+	  for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
+		  if (obj.contains(stackTop) && nodeStatus(obj) == State.BORROWED) {
+			  // System.out.println(DebugUnparser.toString(destDecl) + " is readonly? " + UniquenessRules.isReadOnly(destDecl));
+			  // we need to find something that allows the return in this object
+			  IRNode auth = null;
+			  for (Object x : obj) {
+				  if (x instanceof IRNode) {
+					  IRNode node = (IRNode)x;
+					  BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(node);
+					  if (pd != null && pd.allowReturn()) {
+						  auth = node;
+					  }
+				  }
+			  }
+			  if (auth == null) return errorStore("no allowReturn even though returned");
+			  if (!isFinalParam(auth)) 
+				  return errorStore("allowReturn must be final");
+			  boolean found = false;
+			  for (Effect f : effects) {
+				  if (!UniquenessRules.isReadOnly(destDecl) && !f.isWrite()) continue;
+				  Target t = f.getTarget();
+				  if (!(t instanceof InstanceTarget)) continue;
+				  if (t.getReference() != auth) continue;
+				  IRegion region = t.getRegion();
+				  if (!region.getModel().isSameRegionAs(RegionModel.getInstanceRegion(auth))) continue;
+				  found = true;
+			  }
+			  if (!found)
+				  if (UniquenessRules.isReadOnly(destDecl))
+					  return errorStore("need read effect on allowReturn");
+				  else
+					  return errorStore("need write effect on allowReturn");
+		  }
+	  }
+	  return s;
+  }
+
+  private boolean isFinalParam(IRNode auth) {
+	  Operator op = JJNode.tree.getOperator(auth);
+	  return JavaNode.getModifier(auth, JavaNode.FINAL) ||
+	  (op instanceof ReceiverDeclaration) ||
+	  (op instanceof QualifiedReceiverDeclaration);
+  }
+
+  private boolean isFinalField(IRNode fdecl) {
+	  return JavaNode.getModifier(JJNode.tree.getParent(JJNode.tree.getParent(fdecl)),JavaNode.FINAL);
+  }
+
   /**
    * Return the store after reading everything reachable from the top of the
-   * stack and then popping this value. In essence, any variable referring to
+   * stack. In essence, any variable referring to
    * structure reachable from the top of the stack is made undefined (alias
    * burying). Used to implement read (and write) effects.
    */
-  public Store opLoadReachable(final Store s) {
+  public Store opLoadReachable(Store s) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
+    s = undefineFromNodes(s,n);
+    if (!s.isValid()) return s;
     ImmutableHashOrderSet<Object> affected = EMPTY;
     final Set<ImmutableHashOrderSet<Object>> found = new HashSet<ImmutableHashOrderSet<Object>>();
     final ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
-    if (fieldStore.isInfinite()) {
-      return errorStore("internal error: loadReachable");
-    }
     boolean done;
     do {
       done = true;
@@ -479,10 +709,10 @@ extends TripleLattice<Element<Integer>,
     if (nodeStatus(affected) != State.UNIQUE) {
       return errorStore("loaded compromised field");
     }
-    return opRelease(
+    return
         apply(
             apply(s, new Remove(affected)),
-            new Add(State.UNDEFINED, affected)));
+            new Add(State.UNDEFINED, affected));
   }
   
   /** Push the value "null" onto the top of the stack. */
@@ -509,6 +739,7 @@ extends TripleLattice<Element<Integer>,
           @Override
           protected Object select(final FieldTriple t) {
             if (t.first().isEmpty()) {
+            	LOG.severe("!! Found edge for {}, should not happen after combination!");
               return new FieldTriple(nset, t.second(), t.third());
             }
             return IteratorUtil.noElement;
@@ -550,7 +781,7 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opBorrow(final Store s) {
     if (!s.isValid()) return s;
-    if (localStatus(s, getStackTop(s)).compareTo(State.BORROWED) > 0) { // cannot be undefined
+    if (!isDefined(s, getStackTop(s))) { // cannot be undefined
       return errorStore("Undefined value on stack borrowed");
     }
     return opRelease(s);
@@ -563,11 +794,12 @@ extends TripleLattice<Element<Integer>,
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
-    if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be shared
+    // the first check here is redundant
+    if (!State.lattice.lessEq(localStatus,State.BORROWED)) { // cannot be shared
       return errorStore("Undefined value on stack shared");
     }
-    if (localStatus.compareTo(State.SHARED) > 0) { // cannot be shared
-      return errorStore("Borrowed value on stack shared");
+    if (!State.lattice.lessEq(localStatus,State.SHARED)) { // cannot be shared
+      return errorStore("unshareable value on stack shared");
     }
     return apply(s, new Add(n, EMPTY.addElement(State.SHARED)));
   }
@@ -588,16 +820,41 @@ extends TripleLattice<Element<Integer>,
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
-    if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
+    // the first two checks are technically redundant
+    if (!State.lattice.lessEq(localStatus,State.BORROWED)) { // cannot be undefined
       return errorStore("Undefined value on stack not unique");
     }
-    if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
+    if (!State.lattice.lessEq(localStatus,State.SHARED)) { // cannot be borrowed
       return errorStore("Borowed value on stack not unique");
     }
-    if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
+    if (!State.lattice.lessEq(localStatus,State.UNIQUE)) { // cannot be shared
       return errorStore("Shared value on stack not unique");
     }
     return opRelease(apply(s, new Add(n, EMPTY.addElement(State.UNDEFINED))));
+  }
+  
+  public Store opCheckTopState(final Store s, State required) {
+	  if (!s.isValid()) return s;
+	  final Integer n = getStackTop(s);
+	  final State localStatus = localStatus(s, n);
+	  if (!State.lattice.lessEq(localStatus, required)) 
+		  return errorStore("Value flow error.  Required: " + required + ", actual: " + localStatus);
+	  // TODO: Complete this method
+	  return s;
+  }
+  
+  /**
+   * Return true if the two variables may be equal to a non-null value.
+   * @param s current store
+   * @param o1 one variable
+   * @param o2 another variable
+   * @return whether it is possible they could be equal AND non-null
+   */
+  public boolean mayAlias(final Store s, final Object o1, final Object o2) {
+	  for (ImmutableSet<Object> obj : s.getObjects()) {
+		  if (obj.contains(o1) && obj.contains(o2)) return true;
+	  }
+	  return false;
   }
   
   /**
@@ -622,7 +879,7 @@ extends TripleLattice<Element<Integer>,
   // ==================================================================
 
   /** Apply a node-set changing operation to the state */
-  protected Store apply(final Store s, final Apply c) {
+  protected Store applyOLD(final Store s, final Apply c) {
     if (!s.isValid()) return s;
 
     final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
@@ -661,8 +918,65 @@ extends TripleLattice<Element<Integer>,
     return check(setFieldStore(setObjects(s, newObjects), newFieldStore));
   }
   
+  /** Apply a node-set changing operation to the state */
+  protected Store apply(final Store s, final Apply c) {
+    if (!s.isValid()) return s;
+
+    final List<ImmutableHashOrderSet<Object>> newObjectList = new ArrayList<ImmutableHashOrderSet<Object>>();
+    for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
+    	newObjectList.add(c.apply(obj));
+    }
+    final ImmutableSet<ImmutableHashOrderSet<Object>> newObjects =
+      new ImmutableHashOrderSet<ImmutableHashOrderSet<Object>>(newObjectList);
+    
+    final List<FieldTriple> newFieldList = new ArrayList<FieldTriple>();
+    for (FieldTriple t : s.getFieldStore()) {
+    	ImmutableHashOrderSet<Object> newSource = c.apply(t.first());
+		ImmutableHashOrderSet<Object> newDest = c.apply(t.third());
+		if (newDest.isEmpty()) continue; // triple is dropped
+		if (newSource.isEmpty() && !t.first().isEmpty()) {
+			if (LOG.isLoggable(Level.FINE)) {
+				LOG.fine("While applying " + c);
+				LOG.fine("Found triple about to drop in soup: " + tripleToString(t));
+			}
+			applyCombine(s,c,newFieldList,t.first(),newDest);
+		} else
+			newFieldList.add(new FieldTriple(newSource, t.second(), newDest));
+    }
+    final ImmutableSet<FieldTriple> newFields =
+    	new ImmutableHashOrderSet<FieldTriple>(newFieldList);
+    
+    final Store result = check(canonicalize(newTriple(s.first(),newObjects,newFields),s));
+    // System.out.println("After apply " + c + ": " + toString(result));
+    return result;
+  }
   
-  
+  private void applyCombine(
+		  Store s,
+		  Apply c, 
+		  List<FieldTriple> newFieldList, 
+		  ImmutableHashOrderSet<Object> vanishing, 
+		  ImmutableHashOrderSet<Object> newDest) {
+	  for (FieldTriple p : s.getFieldStore()) {
+		  if (p.third().equals(vanishing)) {
+			  ImmutableHashOrderSet<Object> newSource = c.apply(p.first());
+			  if (newSource.isEmpty()) {
+				  // should be very rare
+				  LOG.fine("Previous triple also falling into soup: " + tripleToString(p));
+				  applyCombine(s,c,newFieldList,p.first(),newDest);
+			  } else {
+				  FieldTriple fieldTriple = new FieldTriple(newSource,fromField,newDest);
+				  if (LOG.isLoggable(Level.FINE)) {
+					  LOG.fine("  replacing with " + tripleToString(fieldTriple));
+				  }
+				  newFieldList.add(fieldTriple);
+			  }
+		  }
+	  }	
+  }
+
+
+
   /** Keep only nodes which fulfill the filter */
   protected Store filter(final Store s, final Filter f) {
     if (!s.isValid()) return s;
@@ -709,7 +1023,8 @@ extends TripleLattice<Element<Integer>,
     if (fieldStore.isInfinite()) return s;
     for (final FieldTriple t : fieldStore) {
       final ImmutableHashOrderSet<Object> from = t.first();
-      if (PSEUDOS.includes(from) && nodeStatus(t.third()).compareTo(State.UNIQUE) > 0) {
+      if (PSEUDOS.includes(from) && nodeStatus(t.third()) != State.UNIQUE) {
+    	  LOG.fine("Lost compromised field error for " + toString(s));
         return errorStore("compromised field has been lost");
       }
     }
@@ -764,8 +1079,9 @@ extends TripleLattice<Element<Integer>,
   }
   
   public static String tripleToString(final FieldTriple t) {
-    return nodeToString(t.first()) + "." +
-      VariableDeclarator.getId(t.second()) + " = " +
+    IRNode field = t.second();
+	return nodeToString(t.first()) + "." +
+      (field == null ? "*" : VariableDeclarator.getId(field)) + " = " +
       nodeToString(t.third());
   }
   

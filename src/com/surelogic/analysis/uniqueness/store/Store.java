@@ -13,9 +13,53 @@ extends Triple<Element<Integer>,
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects,
       final ImmutableSet<FieldTriple> edges) {
     super(size, objects, edges);
+    assert invariant() : "invariant error"; // turn off this check for production use
   }
   
+  /**
+   * Return false and print out string.
+   * This makes it easier to report invariant errors.
+   */
+  private boolean report(String s) {
+	  System.err.println("Invariant error specifics: " + s);
+	  return false;
+  }
   
+  /**
+   * Make sure that the store makes sense:
+   * <ul>
+   * <li> Stack size must be non-negative
+   * <li> All objects must be finite
+   * <li> Every integer must be in range (1,N) where N is the stack size
+   * <li> Every object mentioned in a triple must be in the object set
+   * <li> The empty object must not be the destination of a triple
+   * </ul>
+   */
+  private boolean invariant() {
+	  if (!isValid()) return true; // don't check error stores
+	  int n = getStackSize();
+	  if (n < 0) return report("Store invalid: stack size negative: " + n);
+	  ImmutableSet<ImmutableHashOrderSet<Object>> objects = getObjects();
+	  for (ImmutableHashOrderSet<Object> obj : objects) {
+		  // this will throw an exception if obj is infinite
+		  for (Object v : obj) {
+			  if (v instanceof Integer) {
+				  int n1 = ((Integer)v).intValue();
+				  if (n1 <= 0 || n1 > n) return report("Store invalid: stack slot sticking around: " + n);
+			  }
+		  }
+	  }
+	  for (FieldTriple tp : getFieldStore()) {
+		  if (!objects.contains(tp.first())) {
+			  return report("source of field is not in objects: " + tp.first());
+		  }
+		  if (tp.third().isEmpty()) return report("empty object is dest of field.");
+		  if (!objects.contains(tp.third())) {
+			  return report("dest of field is not in objects: " + tp.third());
+		  }
+	  }
+	  return true;
+  }
   
   public Integer getStackSize() {
     return first().getValue();
