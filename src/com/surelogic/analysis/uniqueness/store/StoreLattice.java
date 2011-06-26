@@ -18,6 +18,7 @@ import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 
+import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -29,7 +30,6 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
-import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.RegionModel;
@@ -291,13 +291,12 @@ extends TripleLattice<Element<Integer>,
   // ==================================================================
 
   public Store opStart() {
-    Store temp = bottom();
+    Store temp;
     
     /*
      * Start with nothing on stack, and just four objects {}, {undefined},
      * {borrowed}, {borrowed,shared}
      */
-    temp = setStackSize(temp, Integer.valueOf(0));
     ImmutableHashOrderSet<ImmutableHashOrderSet<Object>> objects = 
       ImmutableHashOrderSet.<ImmutableHashOrderSet<Object>>emptySet();
     objects = objects.
@@ -305,7 +304,7 @@ extends TripleLattice<Element<Integer>,
       addElement( EMPTY.addElement(State.UNDEFINED) ).
       addElement( EMPTY.addElement(State.BORROWED) ).
       addElement( EMPTY.addElement(State.SHARED) );
-    temp = setObjects(temp, objects);
+    temp = newTriple(FlatLattice2.asMember(0),objects,ImmutableHashOrderSet.<FieldTriple>emptySet());
     
     /* Now add each parameter or local in turn.  Currently undefined locals are
      * held back until the end, when they are made undefined (or actually, removed altogether)
@@ -427,19 +426,20 @@ extends TripleLattice<Element<Integer>,
             new Add(getStackTop(s), lset)));
   }
 
-  private static final IRNode fromField = null; // new EnumeratedIRNode<FieldKind>(FieldKind.FROM_FIELD);
+  public static final IRNode fromField = null; // new EnumeratedIRNode<FieldKind>(FieldKind.FROM_FIELD);
 
   /**
-   * Add a from-edge between {@link from} to {@link to}.
+   * Add a field edge from  {@link from} to {@link to}.
    * (We add the edge between every node that "from" aliases to every node
    * that "to" aliases.)
    * @param s store before
    * @param from variable source of edge
+   * @param field field IRnode
    * @param to variable destination of edge
    * @return new store.
-   */
-  public Store opFrom(Store s, Object from, Object to) {
-	  List<ImmutableHashOrderSet<Object>> sources = new ArrayList<ImmutableHashOrderSet<Object>>();
+   **/
+  public Store opConnect(Store s, Object from, IRNode field, Object to) {
+	List<ImmutableHashOrderSet<Object>> sources = new ArrayList<ImmutableHashOrderSet<Object>>();
 	  List<ImmutableHashOrderSet<Object>> destinations = new ArrayList<ImmutableHashOrderSet<Object>>();
 	  for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
 		  if (obj.contains(from)) sources.add(obj);
@@ -448,7 +448,7 @@ extends TripleLattice<Element<Integer>,
 	  List<FieldTriple> newFields = new ArrayList<FieldTriple>();
 	  for (ImmutableHashOrderSet<Object> source : sources) {
 		  for (ImmutableHashOrderSet<Object> dest : destinations) {
-			  newFields.add(new FieldTriple(source,fromField,dest));
+			newFields.add(new FieldTriple(source,field,dest));
 		  }
 	  }
 	  ImmutableHashOrderSet<FieldTriple> newFieldSet = new ImmutableHashOrderSet<FieldTriple>(newFields);
@@ -583,23 +583,38 @@ extends TripleLattice<Element<Integer>,
 	  }
   }
   
+  private ImmutableHashOrderSet<Object> getUndefinedObject(Store s) {
+	  for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
+		  if (obj.contains(State.UNDEFINED)) return obj;
+	  }
+	  System.out.println("No undefined object: " + toString(s));
+	  throw new FluidError("no undefined object?");
+  }
+  
   public Store opStore(Store s, final IRNode fieldDecl) {
     if (!s.isValid()) return s;
     s = undefineFromNodes(s,getUnderTop(s));
     if (!s.isValid()) return s;
     final Store temp;
     if (UniquenessUtils.isFieldUnique(fieldDecl)) {
-      ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
-      final Integer undertop = getUnderTop(s);
-      for (final FieldTriple t : fieldStore) {
-        if (fieldDecl.equals(t.second())) {
-          final ImmutableHashOrderSet<Object> object = t.first();
-          if (TypeUtil.isStatic(fieldDecl) || object.contains(undertop)) {
-            fieldStore = removeElement(fieldStore, t);
-          }
-        }        
-      }
-      temp = opUndefine(setFieldStore(s, fieldStore));
+        final Integer undertop = getUnderTop(s);
+        final Integer stacktop = getStackTop(s);
+        // We used to undefined everything that aliased the value stored in the unique field.
+        // We now simply undefined other field values that point to it, and keep the
+        // aliases as if they just read the field.
+        final ImmutableHashOrderSet<Object> undefinedObject = getUndefinedObject(s);
+    	HashSet<FieldTriple> newFields = new HashSet<FieldTriple>();
+    	for (FieldTriple t : s.getFieldStore()) {
+    		if (fieldDecl.equals(t.second()) && t.first().contains(undertop)) continue; // remove
+    		if (t.third().contains(stacktop)) {
+    			// old field is compromised
+    			newFields.add(new FieldTriple(t.first(),t.second(),undefinedObject));
+    		} else {
+    			newFields.add(t);
+    		}
+    	}
+    	temp = opRelease(opConnect(setFieldStore(s,new ImmutableHashOrderSet<FieldTriple>(newFields)),
+    							   undertop,fieldDecl,stacktop));
     } else if (UniquenessRules.isBorrowed(fieldDecl)) {
     	// only permit if
     	// (1) the field is final
@@ -611,7 +626,7 @@ extends TripleLattice<Element<Integer>,
     	s = opReturn(s, fieldDecl);
     	// if (!UniquenessRules.isReadOnly(fieldDecl)) // even readonly borrowing gets a from
     	{
-    			s = opFrom(s,getStackTop(s),getUnderTop(s));
+    			s = opConnect(s, getStackTop(s), fromField, getUnderTop(s));
     	}
     	temp = opBorrow(s);
     } else {
@@ -832,15 +847,57 @@ extends TripleLattice<Element<Integer>,
     }
     return opRelease(apply(s, new Add(n, EMPTY.addElement(State.UNDEFINED))));
   }
-  
+
+  /**
+   * Check that the top element has the required state
+   * @param s state before
+   * @param required state required
+   * @return same state afterwards, or a poisoned state
+   */
   public Store opCheckTopState(final Store s, State required) {
 	  if (!s.isValid()) return s;
 	  final Integer n = getStackTop(s);
 	  final State localStatus = localStatus(s, n);
 	  if (!State.lattice.lessEq(localStatus, required)) 
 		  return errorStore("Value flow error.  Required: " + required + ", actual: " + localStatus);
-	  // TODO: Complete this method
 	  return s;
+  }
+
+  /**
+   * Yield up access to top element as the given state.
+   * @param s state before
+   * @param state access being given up
+   * @return state after yielding up reference as state
+   */
+  public Store opYieldTopState(final Store s, State state) {
+	  if (!s.isValid()) return s;
+	  final Integer n = getStackTop(s);
+	  switch (state) {
+	  case UNDEFINED:
+	  case BORROWED: 
+		  break;
+	  case READONLY: 
+		  return apply(s, new Add(n, EMPTY.addElement(State.UNIQUEWRITE)));
+	  case IMMUTABLE:
+	  case SHARED:
+		  return apply(s, new Add(n, EMPTY.addElement(state)));
+	  case UNIQUEWRITE:
+		  return apply(s, new Add(n, EMPTY.addElement(State.READONLY)));
+	  case UNIQUE:
+		  return apply(s, new Add(n, EMPTY.addElement(State.UNDEFINED)));
+	  case NULL: throw new FluidError("canot yield a non-null value as null!");
+	  }
+	  return s;
+  }
+  
+  /**
+   * Remove the top element of the stack and yielding it up using the state given.
+   * @param s store before
+   * @param state required state of stack top which will be yielded.
+   * @return store after
+   */
+  public Store opConsume(final Store s, State state) {
+	  return opRelease(opYieldTopState(opCheckTopState(s,state),state));
   }
   
   /**
@@ -1145,11 +1202,5 @@ extends TripleLattice<Element<Integer>,
   private static <X> ImmutableHashOrderSet<X> addElements(
       final ImmutableSet<X> s, final Iterator<X> i) {
     return ((ImmutableHashOrderSet) s).addElements(i);
-  }
-  
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  private static <X> ImmutableHashOrderSet<X> removeElement(
-      final ImmutableSet<X> s, final X o) {
-    return ((ImmutableHashOrderSet) s).removeElement(o);
   }
 }

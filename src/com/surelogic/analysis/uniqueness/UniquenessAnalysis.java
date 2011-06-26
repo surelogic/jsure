@@ -464,7 +464,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      */
     private Store addFromNode(Store s) {
     	if (!s.isValid()) return s;
-    	return lattice.opFrom(s, lattice.getStackTop(s), RETURN_VAR);
+    	return lattice.opConnect(s, lattice.getStackTop(s), StoreLattice.fromField, RETURN_VAR);
     }
 
     /**
