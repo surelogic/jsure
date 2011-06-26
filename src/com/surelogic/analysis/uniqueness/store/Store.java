@@ -1,5 +1,8 @@
 package com.surelogic.analysis.uniqueness.store;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.Triple;
@@ -13,6 +16,9 @@ extends Triple<Element<Integer>,
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects,
       final ImmutableSet<FieldTriple> edges) {
     super(size, objects, edges);
+    /*if (!invariant()) {
+    	throw new AssertionError("invariant error");
+    }*/
     assert invariant() : "invariant error"; // turn off this check for production use
   }
   
@@ -30,6 +36,7 @@ extends Triple<Element<Integer>,
    * <ul>
    * <li> Stack size must be non-negative
    * <li> All objects must be finite
+   * <li> Every pseudo-variable must be present
    * <li> Every integer must be in range (1,N) where N is the stack size
    * <li> Every object mentioned in a triple must be in the object set
    * <li> The empty object must not be the destination of a triple
@@ -40,6 +47,7 @@ extends Triple<Element<Integer>,
 	  int n = getStackSize();
 	  if (n < 0) return report("Store invalid: stack size negative: " + n);
 	  ImmutableSet<ImmutableHashOrderSet<Object>> objects = getObjects();
+	  Set<State> found = new HashSet<State>();
 	  for (ImmutableHashOrderSet<Object> obj : objects) {
 		  // this will throw an exception if obj is infinite
 		  for (Object v : obj) {
@@ -47,6 +55,12 @@ extends Triple<Element<Integer>,
 				  int n1 = ((Integer)v).intValue();
 				  if (n1 <= 0 || n1 > n) return report("Store invalid: stack slot sticking around: " + n);
 			  }
+			  if (v instanceof State) found.add((State) v);
+		  }
+	  }
+	  for (State s : new State[]{State.UNDEFINED,State.BORROWED,State.SHARED}) {
+		  if (!found.contains(s)) {
+			  return report("Did not find " + s + " in objcts");
 		  }
 	  }
 	  for (FieldTriple tp : getFieldStore()) {
