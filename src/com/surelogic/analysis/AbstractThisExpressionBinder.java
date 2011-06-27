@@ -7,6 +7,7 @@ import com.surelogic.aast.java.SuperExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.BinderWrapper;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
@@ -15,11 +16,9 @@ import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public abstract class AbstractThisExpressionBinder implements ThisExpressionBinder {
-  private final IBinder binder;
-  
+public abstract class AbstractThisExpressionBinder extends BinderWrapper implements ThisExpressionBinder {  
   protected AbstractThisExpressionBinder(final IBinder b) {
-    binder = b;
+	super(b);
   }
 
   /**

@@ -3,6 +3,7 @@ package com.surelogic.analysis;
 import com.surelogic.aast.java.ExpressionNode;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
  * Contains methods used to bind ThisExpressions to ReceiverDeclarations and
@@ -18,7 +19,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * <p>Previously this process was called "fixing" the ThisExpression, but 
  * "binding" now seems more appropriate.
  */
-public interface ThisExpressionBinder {
+public interface ThisExpressionBinder extends IBinder {
   /**
    * If the given expression is a ThisExpession or a QualifiedThisExpression,
    * convert it to a ReceiverDeclaration or a QuanlifiedReceiverDeclaration,
