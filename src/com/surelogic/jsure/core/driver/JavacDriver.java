@@ -204,6 +204,9 @@ public class JavacDriver implements IResourceChangeListener {
 				
 				// Refresh the workspace
 				ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+								
+				JavacEclipse.initialize();
+				((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
 			} catch (Exception e) {
 				throw new IllegalStateException(
 						"Could not create/import project", e);
