@@ -55,7 +55,18 @@
 	<!-- Experimental and production promises go into '/build-x' -->
 
 	<target name="build-x" depends="setup">
-		<javac srcdir="${promises-x-src}:${production-promises-src}" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" target="1.5" />
+		<mkdir dir="${build-x}/src" />
+		<copy todir="${build-x}/src">
+			<fileset dir="${production-promises-src}">
+				<exclude name="bin/**,**/.svn/**" />
+			</fileset>
+		</copy>
+		<copy todir="${build-x}/src" overwrite="true">
+			<fileset dir="${promises-x-src}">
+				<exclude name="bin/**,**/.svn/**" />
+			</fileset>
+		</copy>
+		<javac srcdir="${build-x}/src" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" target="1.5" />
 		<jar destfile="${promises-x-jar}">
 			<fileset dir="${build-x}/bin" />
 			<manifest />
@@ -64,10 +75,7 @@
 
 	<target name="src-x" depends="build-x">
 		<jar destfile="${promises-x-jar}" update="true">
-			<fileset dir="${promises-x-src}">
-				<filename name="**/*.java" />
-			</fileset>
-			<fileset dir="${production-promises-src}">
+			<fileset dir="${build-x}/src">
 				<filename name="**/*.java" />
 			</fileset>
 			<manifest />
