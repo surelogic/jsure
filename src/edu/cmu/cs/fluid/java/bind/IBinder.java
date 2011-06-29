@@ -35,6 +35,11 @@ public interface IBinder {
    * about type formals.
    */
   IBinding getIBinding(IRNode node);
+
+  /**
+   * Like above, but uses context to help figure what to return
+   */
+  IBinding getIBinding(IRNode node, IRNode contextFlowUnit);
   
   /**
    * Return the type of an expression or of a declaration (field or local or 

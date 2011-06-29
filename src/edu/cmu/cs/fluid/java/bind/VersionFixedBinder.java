@@ -46,7 +46,8 @@ public class VersionFixedBinder extends AbstractBinder {
     return atVersion;
   }
   
-  public IBinding getIBinding(IRNode name) {
+  @Override
+  protected IBinding getIBinding_impl(IRNode name) {
     Version.saveVersion(atVersion);
     try {
       return fixed.getIBinding(name);

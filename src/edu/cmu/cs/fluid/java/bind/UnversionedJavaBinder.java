@@ -54,7 +54,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   
   @Override
-  public IBinding getIBinding(IRNode node) {
+  protected IBinding getIBinding_impl(IRNode node) {
 	  if (cache != null) {
 		  IBinding b = cache.checkForBinding(node);
 		  if (b != null) {
@@ -62,7 +62,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		  }	
 	  }
 	  try {
-		  return super.getIBinding(node);
+		  return super.getIBinding_impl(node);
 	  }
 	  catch (SlotUndefinedException e) {
 		  //LOG.log(Level.SEVERE, "Unable to get binding");//, e);
@@ -70,9 +70,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 	  }
   }
   
+  /*
   @Override
   public IRNode getBinding(IRNode node) {	  
-	/*
     Operator op = JJNode.tree.getOperator(node);
     if (NamedType.prototype.includes(op)) {
       String name = NamedType.getType(node);
@@ -90,7 +90,6 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
         }
       }
     }
-    */
     try {
       return super.getBinding(node);
     }
@@ -99,6 +98,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       return null;
     }
   }
+  */
   
   public void astsChanged() {
 	//System.out.println("Cleared out state for "+this);

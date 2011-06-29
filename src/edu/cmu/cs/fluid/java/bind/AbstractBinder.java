@@ -14,6 +14,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
+import edu.cmu.cs.fluid.java.promise.IFromInitializer;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -44,10 +46,37 @@ public abstract class AbstractBinder implements IBinder {
 	  return allowWarnings;
   }
   
-  public IRNode getBinding(IRNode node) {
+  public final IRNode getBinding(IRNode node) {
     IBinding binding = getIBinding(node);
     return binding == null ? null : binding.getNode();
   }
+  
+  public IBinding getIBinding(IRNode node) {
+	  return getIBinding_impl(node);
+  }
+  
+  public IBinding getIBinding(IRNode node, IRNode contextFlowUnit) {
+	  IBinding rv = getIBinding_impl(node);
+	  
+	  // Check if we need to remap anything
+	  if (contextFlowUnit != null && rv.getNode() != null) {
+		  // See if it's from an instance initializer and for a constructor
+		  Operator op = JJNode.tree.getOperator(rv.getNode()); 
+		  if (op instanceof IFromInitializer && ConstructorDeclaration.prototype.includes(contextFlowUnit)) {
+			  final IRNode newDecl;
+			  if (op == ReceiverDeclaration.prototype) {
+				  newDecl = JavaPromise.getReceiverNode(contextFlowUnit);
+			  } else {
+				  throw new IllegalStateException("Unexpected decl to bind: "+op.name());
+			  }
+			  return IBinding.Util.makeBinding(newDecl);
+		  }
+		  // TODO handle Foo.this in constructor call
+	  }
+	  return rv;
+  }
+  
+  protected abstract IBinding getIBinding_impl(IRNode node);
   
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#getJavaType(edu.cmu.cs.fluid.ir.IRNode)

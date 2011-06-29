@@ -231,7 +231,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#getIBinding(edu.cmu.cs.fluid.ir.IRNode)
    */
-  public IBinding getIBinding(IRNode node) {
+  @Override
+  protected IBinding getIBinding_impl(IRNode node) {
     IGranuleBindings bindings = ensureBindingsOK(node);    
     /*
     if (!JJNode.versioningIsOn && !node.valueExists(bindings.getUseToDeclAttr())) {

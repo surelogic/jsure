@@ -166,7 +166,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       binder = b;
     }
 
-    public IBinding getIBinding(IRNode node) {
+    @Override
+    protected IBinding getIBinding_impl(IRNode node) {
       IBinding result;
       try {
         result = binder.getIBinding(node);

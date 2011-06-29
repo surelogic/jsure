@@ -68,7 +68,8 @@ public class FakeBinder extends AbstractBinder {
     return found;
   }
 
-  public IBinding getIBinding(IRNode n) {
+  @Override
+  protected IBinding getIBinding_impl(IRNode n) {
     IBinding b = bindings.get(n);
     if (b != null) return b;
     try {

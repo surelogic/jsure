@@ -1,0 +1,5 @@
+/** An explicit declaration of the receiver used (temporarily) for instance initializers
+ */
+public operator ReceiverDeclarationInInit extends ReceiverDeclaration implements IFromInitializer {
+  syntax { "this" }
+}

@@ -34,7 +34,7 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 		return orig.getTypeEnvironment();
 	}
 	
-	public IBinding getIBinding(IRNode node) {
+	protected IBinding getIBinding_impl(IRNode node) {
 		/*
 		IBinding b = bindingCache.get(node);
 		if (b != null) {

@@ -53,6 +53,10 @@ public abstract class BinderWrapper implements IBinder {
 		return binder.getIBinding(node);
 	}
 
+	public IBinding getIBinding(IRNode node, IRNode context) {
+		return binder.getIBinding(node, context);
+	}
+	
 	public IJavaType getJavaType(IRNode n) {
 		return binder.getJavaType(n);
 	}
