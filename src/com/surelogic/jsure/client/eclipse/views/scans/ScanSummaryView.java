@@ -306,8 +306,8 @@ public class ScanSummaryView extends AbstractScanManagerView {
 								for(Object proj : selectedProjects) {
 									ZipEntry ze = zf.getEntry((String) proj);
 									if (ze == null) {
-										System.err.println("Couldn't find supposedly included project: "+proj+" in "+r.getDir());
-										continue runLoop;
+										// No results (i.e. all zero)
+										break;
 									}
 									Properties props = new Properties();
 									props.load(zf.getInputStream(ze));
