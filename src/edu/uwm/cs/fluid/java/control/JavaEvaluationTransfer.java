@@ -844,7 +844,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
   }
 
   /**
-   * Transfer evaluation over coercoing an operand to a string.
+   * Transfer evaluation over coercing an operand to a string.
    * By default, we just pop.
    * <strong>leaf</strong>
    */
