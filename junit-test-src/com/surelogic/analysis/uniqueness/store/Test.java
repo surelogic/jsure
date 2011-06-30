@@ -241,7 +241,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("  .getFile()");
-    store = sl.opUndefine(store);
+    store = sl.opConsume(store,State.UNIQUE);
     store = sl.opNew(store);
     System.out.println(sl.toString(store));
 
@@ -272,7 +272,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("consume return value");
-    store = sl.opUndefine(store);
+    store = sl.opConsume(store,State.UNIQUE);
     System.out.println(sl.toString(store));
   }
 
@@ -320,7 +320,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("  .equals(something) with effects ...");
-    store = sl.opExisting(store, State.BORROWED);
+    store = sl.opExisting(store, State.BORROWED, null);
     System.out.println(sl.toString(store));
 
     System.out.println("   reads this.Instance");
@@ -334,7 +334,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("   [popping argument and receiver]");
-    store = sl.opBorrow(sl.opBorrow(store));
+    store = sl.opConsume(sl.opConsume(store,State.BORROWED),State.BORROWED);
     System.out.println(sl.toString(store));
 
     System.out.println();
@@ -365,7 +365,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("consume return value");
-    store = sl.opUndefine(store);
+    store = sl.opConsume(store,State.UNIQUE);
     System.out.println(sl.toString(store));
   }
 
@@ -382,7 +382,7 @@ public final class Test extends IDE {
 
     if (doStore) {
       System.out.println("  something");
-      store = sl.opExisting(store, State.BORROWED);
+      store = sl.opExisting(store, State.BORROWED, null);
       System.out.println(sl.toString(store));
 
       System.out.println("  .f = this // not storing yet");
@@ -423,7 +423,7 @@ public final class Test extends IDE {
     System.out.println(sl.toString(store));
 
     System.out.println("  0");
-    store = sl.push(store);
+    store = sl.opNull(store);
     System.out.println(sl.toString(store));
 
     System.out.println("  -> local");
