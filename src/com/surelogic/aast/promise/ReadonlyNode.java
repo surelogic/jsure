@@ -7,7 +7,7 @@ import com.surelogic.aast.AbstractAASTNodeFactory;
 
 public class ReadonlyNode extends AbstractBooleanNode 
 { 
-  public static final AbstractAASTNodeFactory factory = new Factory("Readonly") {   
+  public static final AbstractAASTNodeFactory factory = new Factory("ReadOnly") {   
     @Override
     public AASTNode create(int _start) {
       return new ReadonlyNode (_start);
@@ -21,7 +21,7 @@ public class ReadonlyNode extends AbstractBooleanNode
 
   @Override
   public String unparse(boolean debug, int indent) {
-    return unparse(debug, indent, "Readonly");
+    return unparse(debug, indent, "ReadOnly");
   }
 
   @Override
