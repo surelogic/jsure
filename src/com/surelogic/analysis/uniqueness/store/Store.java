@@ -42,7 +42,7 @@ extends Triple<Element<Integer>,
    * <li> The empty object must not be the destination of a triple
    * </ul>
    */
-  private boolean invariant() {
+  boolean invariant() {
 	  if (!isValid()) return true; // don't check error stores
 	  int n = getStackSize();
 	  if (n < 0) return report("Store invalid: stack size negative: " + n);
