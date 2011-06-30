@@ -913,7 +913,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           final IRNode rnode = JavaPromise.getReturnNode(mdecl);
           s = lattice.opGet(s, rnode);
           s = lattice.opRemoveFrom(s, rnode);
-          s = lattice.opConsume(s, lattice.declStatus(rnode));
+          if (lattice.isValueNode(rnode)) {
+        	  // no check necessary: Java type system handles
+        	  s = lattice.opRelease(s);
+          } else {
+        	  s = lattice.opConsume(s, lattice.declStatus(rnode));
+          }
           if (fineIsLoggable) {
             LOG.fine("After handling return value of " + name + ": " + s);
           }
