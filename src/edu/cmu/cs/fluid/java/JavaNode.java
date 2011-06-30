@@ -25,6 +25,7 @@ import edu.cmu.cs.fluid.unparse.*;
  * loaded) need have this type.
  * @see JavaOperator
  */
+@SuppressWarnings("serial")
 public class JavaNode extends JJNode {
   // For debugging
   //private StackTraceElement[] trace = new Throwable().getStackTrace();
@@ -173,10 +174,12 @@ public class JavaNode extends JJNode {
   
   public static final int ALLOW_RETURN = (1 << 21);
   
+  public static final int ALLOW_READ = (1 << 22);
+  
   public static final int[] MODIFIERS = {
     ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, 
     TRANSIENT, VOLATILE, STRICTFP, IMPLICIT, INSTANCE, VARARGS, WRITE,
-    AS_BINARY, IS_GRANULE, NOT_GRANULE, IMPLEMENTATION_ONLY, NO_VERIFY, ALLOW_RETURN
+    AS_BINARY, IS_GRANULE, NOT_GRANULE, IMPLEMENTATION_ONLY, NO_VERIFY, ALLOW_RETURN, ALLOW_READ
   };
 
   public static final String MODIFIERS_ID =  "Java.modifiers";
@@ -207,7 +210,7 @@ public class JavaNode extends JJNode {
     return node.getIntSlotValue(modifiersSlotInfo);
   }
 
-  private static final int LASTMODIFIER = ALLOW_RETURN;
+  private static final int LASTMODIFIER = ALLOW_READ;
   public static final int ILLEGAL_MOD = LASTMODIFIER << 1;
 	  
   static final String[] modifiers = {"abstract", "final", "native", "private",

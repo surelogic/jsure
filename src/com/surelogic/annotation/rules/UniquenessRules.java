@@ -232,7 +232,7 @@ public class UniquenessRules extends AnnotationRules {
    
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new UniqueNode(offset);
+      return new UniqueNode(offset,JavaNode.isSet(mods, JavaNode.ALLOW_READ));
     }
     @Override
     protected IPromiseDropStorage<UniquePromiseDrop> makeStorage() {

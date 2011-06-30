@@ -27,6 +27,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	public static final String IMPLEMENTATION_ONLY = "implementationOnly";
 	public static final String VERIFY = "verify";
 	public static final String ALLOW_RETURN = "allowReturn";
+	public static final String ALLOW_READ = "allowRead";
 	
 	static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
 	private static final String promisePrefix = "com.surelogic.";
@@ -292,6 +293,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 				boolean implOnly = false;
 				boolean verify = true;
 				boolean allowReturn = false;
+				boolean allowRead = false;
 				String contents = "";
 				for (IRNode valuePair : pairs) {
 					final String id = ElementValuePair.getId(valuePair);
@@ -305,6 +307,9 @@ public class AnnotationVisitor extends Visitor<Integer> {
 									*/
 						}
 					}
+					else if (ALLOW_READ.equals(id)) {
+						allowRead = extractBoolean(valuePair, allowRead);
+					}
 					else if (ALLOW_RETURN.equals(id)) {
 					    allowReturn = extractBoolean(valuePair, allowReturn);
 					}
@@ -315,7 +320,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
 						verify = extractBoolean(valuePair, verify);
 					}					
 				}	            
-				return translate(handleJava5Promise(node, node, promise, contents, convertToModifiers(implOnly, verify, allowReturn)));
+				return translate(handleJava5Promise(node, node, promise, contents, 
+						         convertToModifiers(implOnly, verify, allowReturn, allowRead)));
 			} else {
 				return translate(handleJava5Promise(node, promise, JavaNode.ALL_FALSE));
 			}
@@ -324,7 +330,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		return 0;
 	}
 
-	public static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn) {
+	public static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn, boolean allowRead) {
         int modifiers = JavaNode.ALL_FALSE;
         if (implOnly) {
             modifiers |= JavaNode.IMPLEMENTATION_ONLY;
@@ -334,6 +340,9 @@ public class AnnotationVisitor extends Visitor<Integer> {
         }
         if (allowReturn) {
             modifiers |= JavaNode.ALLOW_RETURN;
+        }
+        if (allowRead) {
+        	modifiers |= JavaNode.ALLOW_READ;
         }
         return modifiers;
 	}

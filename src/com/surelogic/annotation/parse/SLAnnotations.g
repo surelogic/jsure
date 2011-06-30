@@ -268,6 +268,11 @@ borrowedAllowReturn
     | 'allowReturn' '=' FALSE -> FALSE // Same as default
     ;
 
+uniqueAllowRead
+    : 'allowRead' '=' TRUE -> 'allowRead'
+    | 'allowRead' '=' FALSE -> FALSE // Same as default
+    ;
+    
 uniqueJava5Constructor
     : returnValue EOF -> returnValue
     ;
@@ -679,7 +684,7 @@ identifier
       : IDENTIFIER | 'is' | 'protects' | 
         'none' | 'reads' | 'writes' | 'any' | 'readLock' | 'writeLock' |
         'into' | 'nothing' | 'itself' |
-        'implementationOnly' | 'verify' | 'allowReturn'
+        'implementationOnly' | 'verify' | 'allowReturn' | 'allowRead'
       ;
 
 IMPLEMENTATION_ONLY : 'implementationOnly';

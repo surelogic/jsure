@@ -77,6 +77,10 @@ implements MaybeTopLevel {
 	  return true;
   }
   
+  public final boolean allowRead() {
+      return getAST().allowRead();
+  }
+
   @Override
   public void snapshotAttrs(AbstractSeaXmlCreator s) {
 	  super.snapshotAttrs(s);
