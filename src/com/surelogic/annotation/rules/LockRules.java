@@ -2116,7 +2116,13 @@ public class LockRules extends AnnotationRules {
 	  }
 	  @Override
 	  protected IAnnotationScrubber<ImmutableRefNode> makeScrubber() {
-		  return null; // TODO
+		  // TODO scrub
+		  return new AbstractAASTScrubber<ImmutableRefNode, ImmutableRefPromiseDrop>(this) {
+			  @Override
+			  protected ImmutableRefPromiseDrop makePromiseDrop(ImmutableRefNode n) {
+				  return storeDropIfNotNull(n, new ImmutableRefPromiseDrop(n));
+			  }    		
+		  };
 	  }
   }
   
