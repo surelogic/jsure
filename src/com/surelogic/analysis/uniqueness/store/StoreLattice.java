@@ -256,8 +256,7 @@ extends TripleLattice<Element<Integer>,
 	  if (UniquenessUtils.isFieldUnique(node)) return State.UNIQUE;
 	  if (UniquenessRules.isBorrowed(node)) return State.BORROWED;
 	  if (UniquenessRules.isReadOnly(node)) return State.READONLY;
-	  // XXX The name on this method is bad
-	  if (LockRules.isImmutableType(node)) return State.IMMUTABLE;
+	  if (LockRules.isImmutableRef(node)) return State.IMMUTABLE;
 	  if (isValueNode(node)) return State.IMMUTABLE;
 	  return State.SHARED;
   }
@@ -282,7 +281,7 @@ extends TripleLattice<Element<Integer>,
 			  else
 				  required = State.BORROWED;
 		  } else {
-			  if (LockRules.isImmutableType(retDecl)) required = State.IMMUTABLE;
+			  if (LockRules.isImmutableRef(retDecl)) required = State.IMMUTABLE;
 			  else if (UniquenessRules.isReadOnly(retDecl)) required = State.UNIQUEWRITE;
 		  }
 	  }
@@ -901,8 +900,12 @@ extends TripleLattice<Element<Integer>,
 			  if (obj.contains(n) && obj.contains(VALUE)) return s;
 		  }
 	  }
-	  if (!State.lattice.lessEq(localStatus, required)) 
+	  if (!State.lattice.lessEq(localStatus, required)) {
+		  System.out.println("Value flow error: Required: " + required + ", actual: " + localStatus);
+		  System.out.println("Store: " + toString(s));
+		  // (new FluidError("for debugging")).printStackTrace();
 		  return errorStore("Value flow error.  Required: " + required + ", actual: " + localStatus);
+	  }
 	  return s;
   }
 
@@ -928,7 +931,7 @@ extends TripleLattice<Element<Integer>,
 		  Store temp = apply(s,new Add(NONVALUE,aliases));
 		  // then replace any occurrence of n with the NONVALUE set.
 		  // (This will involve replacing the NONVALUE object with itself...)
-		  return apply(temp, new ReplaceEntire(n,getPseudoObject(s,NONVALUE)));
+		  return apply(temp, new ReplaceEntire(n,getPseudoObject(temp,NONVALUE)));
 	  case READONLY: 
 		  return apply(s, new Downgrade(n, State.UNIQUEWRITE));
 	  case SHARED:

@@ -48,7 +48,7 @@ final class Add implements Apply {
 		  /* Only add if ALL the receiver/parameter declarations MAY ALIAS
 		   * the node decl.  If there aren't any in the set, we add additional too. 
 		   */
-		  if (decl != null & mayAlias != null) {
+		  if (decl != null && mayAlias != null) {
 			  for (final Object o : other) {
 				  if (o instanceof IRNode) {
 					  final IRNode n = (IRNode) o;

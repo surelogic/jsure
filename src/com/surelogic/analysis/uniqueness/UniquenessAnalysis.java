@@ -51,12 +51,14 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.EqualityExpression;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
@@ -524,6 +526,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	IRNode p = JJNode.tree.getParent(decl);
     	while (p != null && !(JJNode.tree.getOperator(p) instanceof NestedClassDeclaration))
     		p = JJNode.tree.getParent(p);
+    	// XXX: The following call does not work: we get the normal receiver
     	IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(decl, p);
     	
     	if (UniquenessRules.isBorrowed(qr) && UniquenessRules.getBorrowed(qr).allowReturn()) {
@@ -596,18 +599,24 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
        */
       final List<IRNode> externalVars = 
         LocalVariableDeclarations.getExternallyDeclaredVariables(
-            JavaPromise.getInitMethodOrNull(node));      
+            JavaPromise.getInitMethodOrNull(node)); 
+      boolean usedExternal = false;
       for (final IRNode n : tree.bottomUp(AnonClassExpression.getBody(node))) {
         if (VariableUseExpression.prototype.includes(n)) {
           final IRNode decl = binder.getBinding(n);
           if (externalVars.contains(decl)) {
             s = lattice.opCompromise(lattice.opGet(s, decl));
+            if (FieldDeclaration.prototype.includes(decl)) {
+            	usedExternal = true;
+            }
           }
+        } else if (QualifiedThisExpression.prototype.includes(n)) {
+        	usedExternal = true;
         }
       }
       
-      // If we aren't in a static context then compromise "this"
-      if (JavaPromise.getReceiverNodeOrNull(flowUnit) != null) { 
+      // If we used outer things and we aren't in a static context then compromise "this"
+      if (usedExternal && JavaPromise.getReceiverNodeOrNull(flowUnit) != null) { 
         // Now compromise "this" (this is slightly more conservative than necessary)
         s = lattice.opCompromise(lattice.opThis(s));
       }
@@ -732,6 +741,22 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
       s = lattice.opSet(s, RETURN_VAR);
       
+      // TODO: add code to assign to IFQR from IPQR 
+      /*
+      if (ConstructorCall.prototype.includes(node) && isNestedClassConstructor(thisMethod) &&
+    		  SuperExpression.prototype.includes(ConstructorCall.getObject(node))) {
+    	  // get the IFQR and IPQR and do an opStore.
+    	  IRNode pqr = getQualifiedReceiver(thisMethod);
+    	  IRNode fqr = getQualifiedReceiver(thisClass);
+    	  s = lattice.opGet(s,pqr);
+    	  if (UniquenessRules.isBorrowed(fqr)) {
+    		  s = lattice.opReturn(s,fqr);
+    		  s = lattice.opRelease(s);
+    	  } else {
+    		  s = lattice.opCompromise(s);
+    	  }
+      }*/
+      
       // We have to possibly compromise arguments
       s = popArguments(numActuals, formals, s);
       if (hasOuterObject(node)) {
@@ -739,7 +764,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           LOG.fine("Popping qualifier");
         }
         if (!s.isValid()) return s;
-        /* Compromise value under top: (1) copy it onto top; (2) compromise
+        /* Handle value under top: (1) copy it onto top; (2) compromise
          * new top and discard it; (3) popSecond
          */
         s = lattice.opGet(s, lattice.getUnderTop(s));
