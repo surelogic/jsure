@@ -14,7 +14,6 @@ public class AddAlias implements Apply {
 		newAlias = var;
 	}
 	
-	@Override
 	public ImmutableHashOrderSet<Object> apply(
 			ImmutableHashOrderSet<Object> other) {
 		if (aliasNodes.contains(other))
