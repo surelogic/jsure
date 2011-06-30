@@ -2,7 +2,8 @@
 
 <package name="java.lang">
     <class name="String">
-        <SelfProtected/>
+        <Immutable/>
+        
         <method name="concat" params="java.lang.String">
             <RegionEffects>none</RegionEffects>
             <Unique>return</Unique>
