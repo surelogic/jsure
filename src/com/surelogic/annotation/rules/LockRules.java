@@ -2047,9 +2047,9 @@ public class LockRules extends AnnotationRules {
          * annotations so that they can name unique parameters
          */
         if (isJavadoc) {
-      	  return parser.uniqueJava5Constructor().getTree();
+            return parser.uniqueJavadocConstructor().getTree();
         }
-        return parser.uniqueJavadocConstructor().getTree();
+        return parser.uniqueJava5Constructor().getTree();
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
