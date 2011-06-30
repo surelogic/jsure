@@ -263,6 +263,20 @@ public class LockRules extends AnnotationRules {
 //    return getBooleanDrop(immutableRule.getStorage(), cdecl);
   }
   
+  /**
+   * @param decl A field, parameter, receiver, or return value
+   */
+  public static boolean isImmutableRef(IRNode decl) {
+	return getImmutableRef(decl) != null;
+  }
+  
+  /**
+   * @param decl A field, parameter, receiver, or return value
+   */
+  public static ImmutableRefPromiseDrop getImmutableRef(IRNode decl) {
+	return getBooleanDrop(immutableRefRule.getStorage(), decl);
+  }
+  
   public static MutablePromiseDrop getMutable(IRNode cdecl) {
     return getBooleanDrop(mutableRule.getStorage(), cdecl);
   }
