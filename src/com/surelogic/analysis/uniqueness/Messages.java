@@ -3,6 +3,8 @@ package com.surelogic.analysis.uniqueness;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.surelogic.common.i18n.I18N;
+
 import edu.cmu.cs.fluid.sea.Category;
 
 public final class Messages  {
@@ -17,6 +19,8 @@ public final class Messages  {
   public static final Category DSC_UNIQUENESS_TIMEOUT = Category.getInstance(302);
   public static final Category DSC_UNIQUENESS_LONG_RUNNING = Category.getInstance(303);
   
+  public static final String NORMAL_EXIT = I18N.misc(320);
+  public static final String ABRUPT_EXIT = I18N.misc(321);
   
   public static final int METHOD_CONTROL_FLOW = 300;
   public static final int UNIQUE_RETURN = 301;
@@ -32,12 +36,19 @@ public final class Messages  {
   public static final int BORROWED_CONSTRUCTOR = 311;
   public static final int TIMEOUT = 312;
   public static final int TOO_LONG = 313;
-  
+
   public static final int COMPROMISED_READ = 320;
-  public static final int COMPROMISED_READ_ABRUPT = 321;
+  public static final int COMPROMISED_INDIRECT_READ = 321;  
   public static final int LOST_COMPROMISED_FIELD = 322;
-  public static final int LOST_COMPROMISED_FIELD_ABRUPT = 323;
-  public static final int COMPROMISED_BY = 324;
+  public static final int COMPROMISED_BY = 323;
+  public static final int UNDEFINED_BY = 324;  
+  public static final int READ_OF_BURIED = 325;
+  public static final int BURIED_BY = 326;
+  public static final int SHARED_NOT_UNIQUE = 330;
+  public static final int SHARED_NOT_UNIQUE_RETURN = 331;
+  public static final int BORROWED_NOT_UNIQUE = 332;
+  public static final int BORROWED_NOT_SHARED = 333;
+  public static final int BORROWED_NOT_SHARED_RETURN = 334;
   
   
   
@@ -57,8 +68,17 @@ public final class Messages  {
     code2name.put(BORROWED_CONSTRUCTOR, "?");
     code2name.put(TIMEOUT, "?");
     code2name.put(COMPROMISED_READ, "?");
-    code2name.put(COMPROMISED_BY, "?");
+    code2name.put(COMPROMISED_INDIRECT_READ, "?");
     code2name.put(LOST_COMPROMISED_FIELD, "?");
+    code2name.put(COMPROMISED_BY, "?");
+    code2name.put(UNDEFINED_BY, "?");
+    code2name.put(READ_OF_BURIED, "?");
+    code2name.put(BURIED_BY, "?");
+    code2name.put(SHARED_NOT_UNIQUE, "?");
+    code2name.put(SHARED_NOT_UNIQUE_RETURN, "?");
+    code2name.put(BORROWED_NOT_UNIQUE, "?");
+    code2name.put(BORROWED_NOT_SHARED, "?");
+    code2name.put(BORROWED_NOT_SHARED_RETURN, "?");
   }
   
   public static String toString(int code) {

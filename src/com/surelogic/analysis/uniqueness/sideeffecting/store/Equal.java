@@ -13,6 +13,12 @@ final class Equal implements Filter {
   }
 
   public boolean filter(ImmutableSet<Object> node) {
-    return (node.contains(v1) == node.contains(v2)) == both;
+    if (node.contains(v1)) {
+      if (node.contains(v2)) return both;
+      else return !both;
+    } else {
+      if (node.contains(v2)) return !both;
+      else return true; // error fixed 2011/6/24: was "both".
+    }
   }
 }

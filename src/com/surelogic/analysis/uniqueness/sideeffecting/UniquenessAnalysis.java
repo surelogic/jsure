@@ -7,8 +7,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
@@ -84,14 +84,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   
 
   // for creating drops
-  private final IIRAnalysis analysis;
+  private final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis;
   
   
   // ==================================================================
   // === Constructor 
   // ==================================================================
   
-  public UniquenessAnalysis(final IIRAnalysis a,
+  public UniquenessAnalysis(final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> a,
       final IBinder binder, final boolean to) {
     super(new FixBinder(binder)); // avoid crashes.
     mayAlias = new TypeBasedMayAlias(binder);
@@ -133,7 +133,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);
     
-    final StoreLattice lattice = new StoreLattice(analysis, locals);
+    final StoreLattice lattice = new StoreLattice(analysis, binder, locals);
     final AtomicBoolean cargo = new AtomicBoolean(false);
     return new Uniqueness(true, cargo, "Uniqueness Analysis (Side Effecting)", lattice,
         new UniquenessTransfer(cargo, binder, mayAlias, lattice, 0, flowUnit, timeOut),
@@ -264,6 +264,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
       if (flag.get()) {
         reworkAll();
+        lattice.makeResultDrops();
       }
     }
   }

@@ -3,7 +3,6 @@ package com.surelogic.analysis.uniqueness.sideeffecting;
 import java.util.Collections;
 
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.effects.Effects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
