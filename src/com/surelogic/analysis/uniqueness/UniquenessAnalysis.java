@@ -597,30 +597,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
        * instance initializer to look them up because we know every anonymous
        * class has one.
        */
-      final List<IRNode> externalVars = 
-        LocalVariableDeclarations.getExternallyDeclaredVariables(
-            JavaPromise.getInitMethodOrNull(node)); 
-      boolean usedExternal = false;
-      for (final IRNode n : tree.bottomUp(AnonClassExpression.getBody(node))) {
-        if (VariableUseExpression.prototype.includes(n)) {
-          final IRNode decl = binder.getBinding(n);
-          if (externalVars.contains(decl)) {
-            s = lattice.opCompromise(lattice.opGet(s, decl));
-            if (FieldDeclaration.prototype.includes(decl)) {
-            	usedExternal = true;
-            }
-          }
-        } else if (QualifiedThisExpression.prototype.includes(n)) {
-        	usedExternal = true;
-        }
-      }
-      
-      // If we used outer things and we aren't in a static context then compromise "this"
-      if (usedExternal && JavaPromise.getReceiverNodeOrNull(flowUnit) != null) { 
-        // Now compromise "this" (this is slightly more conservative than necessary)
-        s = lattice.opCompromise(lattice.opThis(s));
-      }
-      return s;
+    	return transferNestedClass(node,s);
     }
     
     @Override
@@ -961,6 +938,44 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
+	protected Store transferNestedClass(IRNode node, Store s) {
+    	// TODO: Here we compromise "this" if it is used
+    	// We should do that if the qualified receiver is not borrowed.
+    	// If the qualified receiver is readonly, we should only compromise at the read level.
+        IRNode classbody = 
+        	AnonClassExpression.prototype.includes(node) ? 
+        			AnonClassExpression.getBody(node) :
+        			NestedClassDeclaration.getBody(node);
+    	// called on NestedClassDeclaration AND AnonClassExpression
+        final List<IRNode> externalVars = 
+            LocalVariableDeclarations.getExternallyDeclaredVariables(
+                JavaPromise.getInitMethodOrNull(node)); 
+          boolean usedExternal = false;
+    	  for (final IRNode n : tree.bottomUp(classbody)) {
+            if (VariableUseExpression.prototype.includes(n)) {
+              final IRNode decl = binder.getBinding(n);
+              if (externalVars.contains(decl)) {
+                s = lattice.opCompromise(lattice.opGet(s, decl));
+                if (FieldDeclaration.prototype.includes(decl)) {
+                	usedExternal = true;
+                }
+              }
+            } else if (QualifiedThisExpression.prototype.includes(n)) {
+            	usedExternal = true;
+            }
+          }
+          
+          // If we used outer things and we aren't in a static context then compromise "this"
+          if (usedExternal && JavaPromise.getReceiverNodeOrNull(flowUnit) != null) { 
+            // Now compromise "this" (this is slightly more conservative than necessary)
+            s = lattice.opCompromise(lattice.opThis(s));
+          }
+          return s;
+	}
+
+
+
+	@Override
     protected Store transferRelop(IRNode node, Operator op, boolean flag, Store value) {
     	if (EqualityExpression.prototype.includes(op)) {
     		return super.transferRelop(node, op, flag, value);

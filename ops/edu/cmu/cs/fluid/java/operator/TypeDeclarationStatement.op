@@ -3,4 +3,16 @@ public operator TypeDeclarationStatement extends Statement {
   syntax {
     typedec:TypeDeclaration
   }
+  
+  @Override 
+  public Component createComponent(IRNode node) {
+    // the CFG for the nested type declaration is useless, we skip it
+    Component comp = new Component(node,1,1,0); 
+    ComponentFlow close = new ComponentFlow(comp,null); // close over used variables.
+    
+    ControlEdge.connect(comp.getEntryPort(),close);
+    ControlEdge.connect(close,comp.getNormalExitPort());
+    
+    return comp;
+  }
 }

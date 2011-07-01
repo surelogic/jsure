@@ -103,6 +103,8 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
       return transferMethodBody(node, (Port) info, value);
     } else if (info == null && op instanceof CrementExpression) {
       return transferAssignment(node, value);
+    } else if (TypeDeclarationStatement.prototype.includes(op)) {
+      return transferNestedClass(TypeDeclarationStatement.getTypedec(node), value);
     } else {
       return transferOperation(node, op, info, value);
     }
@@ -566,6 +568,19 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     return value;
   }
 
+  /**
+   * Transfer over a nested class declaration inside of a method.
+   * In other words, close over used variables.
+   * @param node nested class declaration statement
+   * @param value value to transfer over
+   * @return new lattice value
+   */
+  protected T transferNestedClass(
+		  IRNode node,
+		  T value ) {
+	  return value;
+  }
+  
   /**
    * Transfer over a resource close operation.
    * This is a kind of call.  It also means the resource variable goes
