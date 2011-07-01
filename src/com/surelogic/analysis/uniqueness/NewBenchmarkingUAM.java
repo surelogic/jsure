@@ -64,7 +64,7 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 					final long end = System.currentTimeMillis();
 					msg = methodName + ", " + length + ", " + numLocals + ", " + (end-start);
 				} catch(final AnalysisGaveUp e) {
-					msg = methodName + ", " + length + ", GAVE UP AFTER ~2 MINUTES: " + e.count + " STEPS";
+					msg = methodName + ", " + length + ", TIMEOUT after " + e.count + " worklist steps";
 				}
 				System.out.print(msg);
 				System.out.println(ImmutableHashOrderSet.clearCaches());				
