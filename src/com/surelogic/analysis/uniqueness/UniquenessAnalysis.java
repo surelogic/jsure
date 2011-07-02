@@ -62,6 +62,7 @@ import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.RefLiteral;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
+import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
@@ -404,6 +405,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         	s = lattice.opExisting(s, State.SHARED, null);
         else
         	s = lattice.opDup(s, actualStackDepth); 
+        
+        // check for sneaky mutations
+        s = lattice.opCheckMutable(s, lattice.getStackTop(s));
       
         final IRegion r = t.getRegion();
         if (r.isAbstract()) {
@@ -526,6 +530,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	IRNode p = JJNode.tree.getParent(decl);
     	while (p != null && !(JJNode.tree.getOperator(p) instanceof NestedClassDeclaration))
     		p = JJNode.tree.getParent(p);
+    	
+    	if (TypeDeclarationStatement.prototype.includes(JJNode.tree.getParent(p))) {
+    		// a NCD inside the current method
+    		return transferNestedClassUse(p,pop(s));
+    	}
+    	
     	// XXX: The following call does not work: we get the normal receiver
     	IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(decl, p);
     	
@@ -576,28 +586,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     protected Store transferAnonClass(final IRNode node, Store s) {
-    	// TODO: add "from" ideas.
-    	// Complications:
-    	// (1) We need to find the IFQR for the anonymous class
-    	//     If borrowed, we avoid compromising things, and instead add *-edges
-    	// (2) We need to check if the IFQR is used (if not, we avoid adding an *-edge from this)
-    	// (3) Then we check each parameter and add *-edges for non-shared things.
-      /*
-       * Compromise all the variables used in the body of the anonymous class
-       * that are externally declared to simulate the fact that they are read
-       * and stored in synthetic fields of the anonymous class.
-       * 
-       * Each one of these variables is visible in the calling context (that is,
-       * the flow unit being analyzed) because of Java syntactic nesting rules.
-       * Each variable is either declared in the flow unit, or is an external
-       * variable visible in the flow unit.
-       * 
-       * Each initializer/method/constructor of the anonymous class is going to
-       * have the same externally declared variables, so we just use the
-       * instance initializer to look them up because we know every anonymous
-       * class has one.
-       */
-    	return transferNestedClass(node,s);
+    	return transferNestedClassUse(node,s);
     }
     
     @Override
@@ -937,11 +926,42 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
     }
     
-    @Override
-	protected Store transferNestedClass(IRNode node, Store s) {
+    /**
+     * Transfer over the closure of a nested class over local variables.
+     * This happens at creation time (not declaration elaboration).
+     * @param node AnonClassExpression or NestedClassDeclaration
+     * @param s store before
+     * @return store after
+     */
+    protected Store transferNestedClassUse(IRNode node, Store s) {
+    	// TODO: add "from" ideas.
+    	// Complications:
+    	// (1) We need to find the IFQR for the anonymous class
+    	//     If borrowed, we avoid compromising things, and instead add *-edges
+    	// (2) We need to check if the IFQR is used (if not, we avoid adding an *-edge from this)
+    	// (3) Then we check each parameter and add *-edges for non-shared things.
+      /*
+       * Compromise all the variables used in the body of the anonymous class
+       * that are externally declared to simulate the fact that they are read
+       * and stored in synthetic fields of the anonymous class.
+       * 
+       * Each one of these variables is visible in the calling context (that is,
+       * the flow unit being analyzed) because of Java syntactic nesting rules.
+       * Each variable is either declared in the flow unit, or is an external
+       * variable visible in the flow unit.
+       * 
+       * Each initializer/method/constructor of the anonymous class is going to
+       * have the same externally declared variables, so we just use the
+       * instance initializer to look them up because we know every anonymous
+       * class has one.
+       */
     	// TODO: Here we compromise "this" if it is used
     	// We should do that if the qualified receiver is not borrowed.
     	// If the qualified receiver is readonly, we should only compromise at the read level.
+    	/*
+    	IRNode fqr = getQualifiedReceiver(node);
+    	boolean isBorrowed = UniquenessRules.isBorrowed(fqr);
+    	*/
         IRNode classbody = 
         	AnonClassExpression.prototype.includes(node) ? 
         			AnonClassExpression.getBody(node) :
@@ -955,10 +975,16 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
             if (VariableUseExpression.prototype.includes(n)) {
               final IRNode decl = binder.getBinding(n);
               if (externalVars.contains(decl)) {
-                s = lattice.opCompromise(lattice.opGet(s, decl));
-                if (FieldDeclaration.prototype.includes(decl)) {
-                	usedExternal = true;
-                }
+            	  if (FieldDeclaration.prototype.includes(decl)) {
+            		  usedExternal = true;
+            	  } else {
+            		  //XXX: Here we compromise.  If we want to
+            		  // be less conservative than this (and this will give errors
+            		  // if the value is ReadOnly), we need to use both the
+            		  // possible borrowed-ness of the local FQR, but also
+            		  // need an annotation on the local specific to the NCD or ACE.
+            		  s = lattice.opCompromise(lattice.opGet(s, decl));                	
+            	  }
               }
             } else if (QualifiedThisExpression.prototype.includes(n)) {
             	usedExternal = true;

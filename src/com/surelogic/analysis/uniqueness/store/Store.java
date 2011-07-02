@@ -47,20 +47,21 @@ extends Triple<Element<Integer>,
 	  int n = getStackSize();
 	  if (n < 0) return report("Store invalid: stack size negative: " + n);
 	  ImmutableSet<ImmutableHashOrderSet<Object>> objects = getObjects();
-	  Set<State> found = new HashSet<State>();
+	  Set<Object> found = new HashSet<Object>();
 	  for (ImmutableHashOrderSet<Object> obj : objects) {
 		  // this will throw an exception if obj is infinite
 		  for (Object v : obj) {
 			  if (v instanceof Integer) {
 				  int n1 = ((Integer)v).intValue();
 				  if (n1 <= 0 || n1 > n) return report("Store invalid: stack slot sticking around: " + n);
-			  }
-			  if (v instanceof State) found.add((State) v);
+			  } else found.add(v);
 		  }
 	  }
-	  for (State s : new State[]{State.UNDEFINED,State.BORROWED,State.SHARED}) {
+	  // don't require READONLY because UniqueWrite removes temporarily
+	  for (Object s : new Object[]{State.UNDEFINED,State.BORROWED,State.SHARED,StoreLattice.VALUE, StoreLattice.NONVALUE}) {
 		  if (!found.contains(s)) {
-			  return report("Did not find " + s + " in objcts");
+			  System.out.println(StoreLattice.nodeToString(new ImmutableHashOrderSet<Object>(found)));
+			  return report("Did not find " + s + " in objects");
 		  }
 	  }
 	  for (FieldTriple tp : getFieldStore()) {

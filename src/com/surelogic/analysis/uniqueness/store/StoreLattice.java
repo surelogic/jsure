@@ -59,8 +59,8 @@ extends TripleLattice<Element<Integer>,
   private static final ImmutableHashOrderSet<Object> EMPTY =
     ImmutableHashOrderSet.<Object>emptySet();
 
-  private static final Object VALUE = "value";
-  private static final Object NONVALUE = "nonvalue";
+  static final Object VALUE = "value";
+  static final Object NONVALUE = "nonvalue";
   
   private static final ImmutableHashOrderSet<Object> PSEUDOS =
     EMPTY.
@@ -254,6 +254,7 @@ extends TripleLattice<Element<Integer>,
 		  return State.UNIQUE;
 	  }
 	  if (UniquenessUtils.isFieldUnique(node)) return State.UNIQUE;
+	  // TODO: BorrowedReadOnly
 	  if (UniquenessRules.isBorrowed(node)) return State.BORROWED;
 	  if (UniquenessRules.isReadOnly(node)) return State.READONLY;
 	  if (LockRules.isImmutableRef(node)) return State.IMMUTABLE;
@@ -615,9 +616,30 @@ extends TripleLattice<Element<Integer>,
 	  }
   }
   
+  /**
+   * Check that the local decl give is legal for mutation.
+   * @param s store before
+   * @param var variable to check
+   * @return same store, or error store.
+   */
+  public Store opCheckMutable(Store s, Object var) {
+	  if (!s.isValid()) return s;
+	  // check that the object is writable
+	  // Needed for "sneaky" writes (flow-sensitive conversion to readonly)
+	  
+	  State localStatus = localStatus(s,var);
+	  if (localStatus == State.BORROWED) return s; // XXX: defer to effects analysis (UNSOUND!)
+	  
+	  if (!State.lattice.lessEq(localStatus,State.SHARED))
+		  return errorStore("mutation not legal on this reference");
+	  return s;
+  }
+  
   public Store opStore(Store s, final IRNode fieldDecl) {
     if (!s.isValid()) return s;
     s = undefineFromNodes(s,getUnderTop(s));
+    if (!s.isValid()) return s;
+    s = opCheckMutable(s,getUnderTop(s));
     if (!s.isValid()) return s;
     final Store temp;
     if (UniquenessUtils.isFieldUnique(fieldDecl)) {
@@ -678,7 +700,7 @@ extends TripleLattice<Element<Integer>,
 	  if (!s.isValid()) return s;
 	  final Integer stackTop = getStackTop(s);
 	  for (ImmutableHashOrderSet<Object> obj : s.getObjects()) {
-		  if (obj.contains(stackTop) && nodeStatus(obj) == State.BORROWED) {
+		  if (obj.contains(stackTop) && nodeStatus(obj) == State.BORROWED) { //TODO; Change to use contains
 			  // System.out.println(DebugUnparser.toString(destDecl) + " is readonly? " + UniquenessRules.isReadOnly(destDecl));
 			  // we need to find something that allows the return in this object
 			  IRNode auth = null;
@@ -695,6 +717,8 @@ extends TripleLattice<Element<Integer>,
 			  if (!isFinalParam(auth)) 
 				  return errorStore("allowReturn must be final");
 			  boolean found = false;
+			  // TODO: I think with the new BorrowedReadOnly, we might be able to avoid this looking
+			  // around.  Especially if we distinguished USELESS from BORROWEDREADONLY
 			  for (Effect f : effects) {
 				  if (!UniquenessRules.isReadOnly(destDecl) && !f.isWrite()) continue;
 				  Target t = f.getTarget();
@@ -855,9 +879,11 @@ extends TripleLattice<Element<Integer>,
 	  case UNDEFINED:
 		  throw new FluidError("should not generate undefiend things");
 		  
+	  // TODO: BorrowedReadOnly
+		  
 	  case BORROWED: 
 		  return join(join(opExisting(s,State.BORROWED,exprORdecl),
-				           opExisting(s,State.READONLY,exprORdecl)),
+				           opExisting(s,State.READONLY,exprORdecl)), // remove for new BORROWED
 				      join(opExisting(s,State.SHARED,exprORdecl),
 				    	   opExisting(s,State.UNIQUEWRITE,exprORdecl)));
 	  case READONLY: 
