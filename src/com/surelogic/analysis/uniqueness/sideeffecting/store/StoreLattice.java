@@ -843,12 +843,11 @@ extends TripleLattice<Element<Integer>,
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       reportError(srcOp, "U1", "Undefined value encountered when a unique value was expected");
       return errorStore("Undefined value on stack not unique");
-    }
-    if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
-      reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
-      return errorStore("Borowed value on stack not unique");
-    }
-    if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
+    } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
+      recordBorrowedNotUnique(srcOp, n, s.getObjects());
+//      reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
+//      return errorStore("Borowed value on stack not unique");
+    } else if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
       recordSharedNotUnique(srcOp);      
 //      reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
 //      return errorStore("Shared value on stack not unique");
@@ -1198,24 +1197,25 @@ extends TripleLattice<Element<Integer>,
   // -- Bad Values
   // ------------------------------------------------------------------
 
-  private void recordSharedNotUnique(final IRNode srcOp) {
-    /*
-     * Get the unique promise that is violated. If the srcOp is a FieldRef
-     * that is the RHS of an assignment statement, then we get the unique
-     * promise of the field. If the srcOp is a MethodBody, then we get the
-     * unique promise of the return node of the method. Otherwise the srcOp is
-     * an actual parameter or receiver in a method call, and we get the unique
-     * promise from the associated formal parameter.
-     */
+  private void recordBadUnique(
+      final IRNode srcOp, final int msgNormal, final int msgReturn) {
+  /*
+   * Get the unique promise that is violated. If the srcOp is a FieldRef
+   * that is the RHS of an assignment statement, then we get the unique
+   * promise of the field. If the srcOp is a MethodBody, then we get the
+   * unique promise of the return node of the method. Otherwise the srcOp is
+   * an actual parameter or receiver in a method call, and we get the unique
+   * promise from the associated formal parameter.
+   */
     UniquePromiseDrop badUnique = null;
     IRNode badCode = srcOp;
-    int msg = Messages.SHARED_NOT_UNIQUE;
+    int msg = msgNormal;
     final Operator op = JJNode.tree.getOperator(srcOp);
     if (MethodBody.prototype.includes(op)) {
       final IRNode returnNode = 
         JavaPromise.getReturnNode(JJNode.tree.getParent(srcOp));
       badUnique = UniquenessRules.getUnique(returnNode);
-      msg = Messages.SHARED_NOT_UNIQUE_RETURN;
+      msg = msgReturn;
     } else {
       if (FieldRef.prototype.includes(op)) {
         final IRNode parent = JJNode.tree.getParent(srcOp);
@@ -1251,6 +1251,66 @@ extends TripleLattice<Element<Integer>,
       }
     }      
     xNotY.add(new XnotY(badUnique, badCode, msg));
+  }
+  
+  private void recordBadBorrowed(
+      final IRNode srcOp, final Integer topOfStack,  
+      final ImmutableSet<ImmutableHashOrderSet<Object>> objects,
+      final int msg) {
+    final Set<Object> referringVars = new HashSet<Object>();
+    for (final ImmutableHashOrderSet<Object> obj : objects) {
+      if (obj.contains(topOfStack)) {
+        referringVars.addAll(obj);
+      }
+    }
+    /* Find all the @Borrowed ParameterDeclarations, including 
+     * @Unique("return") in the case of constructors.
+     */
+    for (final Object v : referringVars) {
+      if (v instanceof IRNode) {
+        final IRNode nv = (IRNode) v;
+        final Operator op2 = JJNode.tree.getOperator(nv);
+        PromiseDrop<? extends IAASTRootNode> promiseDrop = null;
+        if (ParameterDeclaration.prototype.includes(op2) ||
+            ReceiverDeclaration.prototype.includes(op2) ||
+            QualifiedReceiverDeclaration.prototype.includes(op2)) {
+          promiseDrop = UniquenessRules.getBorrowed(nv);
+          if (promiseDrop == null && ReceiverDeclaration.prototype.includes(op2)) {
+            final IRNode decl = JavaPromise.getPromisedFor(nv);
+            if (ConstructorDeclaration.prototype.includes(decl)) {
+              // It's from a constructor, look for unique on the return node
+              final IRNode returnNode = JavaPromise.getReturnNode(decl);
+              promiseDrop = UniquenessRules.getUnique(returnNode);
+            }
+          }
+          
+          if (promiseDrop != null) {
+            xNotY.add(new XnotY(promiseDrop, srcOp, msg));
+          }
+        }
+      }
+    }
+  }
+
+  private void recordSharedNotUnique(final IRNode srcOp) {
+    if (produceSideEffects) {
+      recordBadUnique(
+          srcOp, Messages.SHARED_NOT_UNIQUE, Messages.SHARED_NOT_UNIQUE_RETURN);
+    }
+  }
+  
+  private void recordBorrowedNotUnique(
+      final IRNode srcOp, final Integer topOfStack,  
+      final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
+
+    /* Two problems here: (1) A unique reference is expected, but a borrowed
+     * one is provided; and (2) A borrowed value is used in a unique context.
+     */
+    if (produceSideEffects) {
+      recordBadUnique(srcOp,
+          Messages.BORROWED_NOT_UNIQUE, Messages.BORROWED_NOT_UNIQUE_RETURN);
+      recordBadBorrowed(srcOp, topOfStack, objects, Messages.BORROWED_AS_UNIQUE);
+    }    
   }
 
   // ------------------------------------------------------------------
