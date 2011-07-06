@@ -235,7 +235,6 @@ extends TripleLattice<Element<Integer>,
 	  if (type instanceof IJavaSourceRefType) {
 		  final IJavaSourceRefType srcRefType = (IJavaSourceRefType) type;
 		  final IRNode typeDeclarationNode = srcRefType.getDeclaration();
-		  if (EnumDeclaration.prototype.includes(typeDeclarationNode)) return true;
 		  return LockRules.isImmutableType(typeDeclarationNode);
 	  }
 	  return false;
@@ -646,7 +645,8 @@ extends TripleLattice<Element<Integer>,
     if (!s.isValid()) return s;
     s = undefineFromNodes(s,getUnderTop(s));
     if (!s.isValid()) return s;
-    s = opCheckMutable(s,getUnderTop(s));
+    // avoid checking assignment of final fields in "Immutable" constructors:
+    if (!JavaNode.getModifier(fieldDecl, JavaNode.FINAL)) s = opCheckMutable(s,getUnderTop(s));
     if (!s.isValid()) return s;
     final Store temp;
     if (UniquenessUtils.isFieldUnique(fieldDecl)) {
