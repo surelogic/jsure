@@ -15,16 +15,16 @@ import com.surelogic.Regions;
 public class C {
   @SuppressWarnings("unused")
   private static class StaticInner {
-    @RegionEffects("reads test_qualifiedThis.C.this:InstanceRegion" /* is UNASSOCIATED: Static inner class */)
+    @RegionEffects("reads test_qualifiedThis.C.this:InstanceRegion" /* is UNBOUND: Static inner class */)
     public StaticInner(boolean reads) {} 
 
-    @RegionEffects("writes test_qualifiedThis.C.this:InstanceRegion" /* is UNASSOCIATED: Static inner class */)
+    @RegionEffects("writes test_qualifiedThis.C.this:InstanceRegion" /* is UNBOUND: Static inner class */)
     public StaticInner(Object writes) {}
 
-    @RegionEffects("reads test_qualifiedThis.C.this:InstanceRegion" /* is UNASSOCIATED: Static inner class */)
+    @RegionEffects("reads test_qualifiedThis.C.this:InstanceRegion" /* is UNBOUND: Static inner class */)
     public void bad_reads_staticInnerClass() {} 
 
-    @RegionEffects("writes test_qualifiedThis.C.this:InstanceRegion" /* is UNASSOCIATED: Static inner class */)
+    @RegionEffects("writes test_qualifiedThis.C.this:InstanceRegion" /* is UNBOUND: Static inner class */)
     public void bad_writes_staticInnerClass() {} 
 
     @RegionEffects("reads test_qualifiedThis.C.this:InstanceRegion" /* is UNBOUND: Static inner class */)
