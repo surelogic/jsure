@@ -325,8 +325,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     private Store considerDeclaredEffects(
         final int numFormals, final IRNode formals,
         final Set<Effect> declEffects, Store s) {
-      if (!s.isValid()) return s;
       for (final Effect f : declEffects) {
+    	if (!s.isValid()) return s;
         if (f.isEmpty()) {
           // empty effects are harmless
           continue;
@@ -406,8 +406,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         else
         	s = lattice.opDup(s, actualStackDepth); 
         
+        if (!s.isValid()) return s; // somehow opExisting (?) is finding an error
         // check for sneaky mutations
-        s = lattice.opCheckMutable(s, lattice.getStackTop(s));
+        if (f.isWrite()) s = lattice.opCheckMutable(s, lattice.getStackTop(s));
       
         final IRegion r = t.getRegion();
         if (r.isAbstract()) {

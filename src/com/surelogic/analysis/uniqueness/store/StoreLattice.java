@@ -630,8 +630,10 @@ extends TripleLattice<Element<Integer>,
 	  State localStatus = localStatus(s,var);
 	  if (localStatus == State.BORROWED) return s; // XXX: defer to effects analysis (UNSOUND!)
 	  
-	  if (!State.lattice.lessEq(localStatus,State.SHARED))
-		  return errorStore("mutation not legal on this reference");
+	  if (!State.lattice.lessEq(localStatus,State.SHARED)) {
+		  System.out.println("mutation not legal on this reference: " + var + ": " + localStatus + " in " + toString(s));
+		  return errorStore("mutation not legal on this reference: ");
+	  }
 	  return s;
   }
   
