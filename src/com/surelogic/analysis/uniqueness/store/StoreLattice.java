@@ -272,7 +272,12 @@ extends TripleLattice<Element<Integer>,
    */
   public State receiverStatus(final IRNode decl, final IRNode recDecl) {
 	  final boolean isConstructor = ConstructorDeclaration.prototype.includes(decl);
-	  final IRNode retDecl = JavaPromise.getReturnNode(decl);
+	  final IRNode retDecl = JavaPromise.getReturnNodeOrNull(decl);
+	  /*
+	  if (retDecl == null) {
+		  System.out.println("No return on "+JavaNames.genQualifiedMethodConstructorName(decl));
+	  }
+	  */
 
 	  State required = declStatus(recDecl);
 	  if (isConstructor && required == State.SHARED) {
