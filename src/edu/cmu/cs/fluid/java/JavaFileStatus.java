@@ -152,6 +152,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
         }
         */
         
+    	  /*
     	  if (InitDeclaration.prototype.includes(n)) {
     		  region.saveNode(JavaPromise.getReceiverNodeOrNull(n));
     		  for(IRNode qrd : JavaPromise.getQualifiedReceiverNodes(n)) {
@@ -160,6 +161,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     			  }
     		  }
     	  }
+    	  */
       }
     }
   }

@@ -349,7 +349,10 @@ public class JavaTypeFactory implements IRType, Cleanable {
       return getArrayType(bt, ArrayType.getDims(nodeType));
     } else if (op instanceof NamedType || op instanceof NameType) {
       IRNode decl = binder.getBinding(nodeType);
-      if (decl == null) return null; // program may have binding error
+      if (decl == null) {
+    	  binder.getBinding(nodeType);
+    	  return null; // program may have binding error
+      }
       if (TypeFormal.prototype.includes(decl)) {
         return getTypeFormal(decl);
       }

@@ -28,6 +28,8 @@ public operator QualifiedReceiverDeclaration implements edu.cmu.cs.fluid.java.bi
       if (op instanceof MethodDeclaration ||
           op instanceof ConstructorDeclaration) {
         assertIsEnclosingType(rv, edu.cmu.cs.fluid.java.util.VisitUtil.getEnclosingType(forNode));
+      } else if (op instanceof TypeDeclInterface) {
+        assertIsEnclosingType(rv, JavaPromise.getPromisedFor(node));
       } else if (op instanceof ClassInitDeclaration) {
         LOG.warning("ClassInitDeclarations nodes shouldn't have receivers");
         assertIsEnclosingType(rv, JavaPromise.getPromisedFor(node));
@@ -86,6 +88,7 @@ public operator QualifiedReceiverDeclaration implements edu.cmu.cs.fluid.java.bi
     return;
   }
   
+  /*
   public static IRNode getReceiverNode(IRNode methodNode, IRNode type) {
     IRNode node = JavaPromise.getQualifiedReceiverNodeByName(methodNode, type);
     if (node != null) {
@@ -111,11 +114,11 @@ public operator QualifiedReceiverDeclaration implements edu.cmu.cs.fluid.java.bi
     }
     throw new edu.cmu.cs.fluid.FluidRuntimeException("No receiver on "+op.name());    
   }
-
-  private static IRNode makeReceiverNode(IRNode methodNode, IRNode type) {
+  */
+  public static IRNode makeReceiverNode(IRNode decl, IRNode type) {
     IRNode t    = edu.cmu.cs.fluid.java.util.CogenUtil.makeCorrespondingTypeRef(type);
     IRNode node = JavaPromise.makeJavaPromise(prototype, new IRNode[] { t });
-    JavaPromise.setQualifiedReceiverNode(methodNode, node);
+    JavaPromise.setQualifiedReceiverNode(decl, node);
     return node;
   }
 }

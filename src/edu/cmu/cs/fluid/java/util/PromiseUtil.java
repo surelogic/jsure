@@ -8,6 +8,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBindHelper;
@@ -52,7 +53,7 @@ public final class PromiseUtil {
     	  n = InitDeclaration.getInitMethod(ast);
     	  added.add(n); // not needed for interfaces
       }      
-      addReceiverDecls(ast, added);
+      addQualifiedReceiverDeclToType(ast, added);
     }
 
     // No longer desirable to link * regions between classes
@@ -73,8 +74,11 @@ public final class PromiseUtil {
     boolean isConstructor,
     Collection<IRNode> added) {
 
-    if (isConstructor || !JavaNode.getModifier(node, JavaNode.STATIC)) {
-      addReceiverDecls(node, added);
+    if (isConstructor) {
+    	addReceiverDeclsToConstructor(node, added);
+    } 
+    else if (!JavaNode.getModifier(node, JavaNode.STATIC)) {
+    	addReceiverDeclsToMethod(node, added);
     }
 //    if (!isConstructor) {
 //      IRNode type  = MethodDeclaration.getReturnType(node);      
@@ -98,8 +102,7 @@ public final class PromiseUtil {
     */
   }
   
-  public static void addReceiverDecls(IRNode here) { 
-    addReceiverDecls(here, new AbstractCollection<IRNode>() {
+  private static Collection<IRNode> nullCollection = new AbstractCollection<IRNode>() {
       @Override
       public boolean add(IRNode e) { return false; }              
       
@@ -111,36 +114,59 @@ public final class PromiseUtil {
       @Override
       public int size() {
         return 0;
-      }});
+      }
+  };
+  
+  public static void addReceiverDeclsToMethod(IRNode method) { 
+	  addReceiverDeclsToMethod(method, nullCollection);
+  }
+  
+  // Really ok for any decl that should have one
+  public static void addReceiverDeclsToMethod(IRNode method, Collection<IRNode> added) {
+	  final IRNode recv = JavaPromise.getReceiverNodeOrNull(method);
+	  if (recv == null) {
+		  added.add(ReceiverDeclaration.getReceiverNode(method));
+	  }
+  }
+  
+  public static void addReceiverDeclsToConstructor(IRNode constructor) { 
+	addReceiverDeclsToConstructor(constructor, nullCollection);
   }
 
   // Only statically visible ones?
-  private static void addReceiverDecls(IRNode here, Collection<IRNode> added) {    
-	IRNode recv = JavaPromise.getReceiverNodeOrNull(here);
-	if (recv == null) {
-		added.add(ReceiverDeclaration.getReceiverNode(here));
-	}
-    Iterator<IRNode> types = VisitUtil.getEnclosingTypes(here, false);
-    if (!TypeDeclaration.prototype.includes(here)) {
-      if (!types.hasNext()) {
+  private static void addReceiverDeclsToConstructor(IRNode here, Collection<IRNode> added) {    
+	addReceiverDeclsToMethod(here, added);
+	  
+	final IRNode enclosingT = VisitUtil.getEnclosingType(here);
+	if (enclosingT == null) {
         LOG.severe("No enclosing types for "+DebugUnparser.toString(here));
         VisitUtil.getEnclosingTypes(here, false);
         return;
-      }
     }
-    while (types.hasNext()) {
-      IRNode type  = types.next();
-      /*
-      Operator top = JJNode.tree.getOperator(type);
-      if (AnonClassExpression.prototype.includes(top)) {
-        continue; // skip these
-      } 
-      */     
-      IRNode qrecv = JavaPromise.getQualifiedReceiverNodeByName(here, type);
-      if (qrecv == null) {
-    	  added.add(QualifiedReceiverDeclaration.getReceiverNode(here, type));
-      }
-    }
+	addQualifiedReceiverDecl(enclosingT, here, added);
+  }
+  
+  public static void addReceiverDeclsToType(IRNode type) {
+	  addReceiverDeclsToMethod(type, nullCollection);
+	  addQualifiedReceiverDeclToType(type, nullCollection);
+  }
+  
+  private static void addQualifiedReceiverDeclToType(IRNode type, Collection<IRNode> added) {
+	  addQualifiedReceiverDecl(type, type, added);
+  }
+  
+  private static void addQualifiedReceiverDecl(IRNode innerT, IRNode toBePromisedFor, Collection<IRNode> added) {
+	  if (TypeUtil.isStatic(innerT)) {
+		  return; // No QR
+	  }
+	  final IRNode outerT = VisitUtil.getEnclosingType(innerT);    
+	  if (outerT != null) {
+		  //final String outerTName = JavaNames.getFullTypeName(outerT);
+		  IRNode qrecv = JavaPromise.getQualifiedReceiverNodeOrNull(toBePromisedFor);
+		  if (qrecv == null) {
+			  added.add(QualifiedReceiverDeclaration.makeReceiverNode(toBePromisedFor, outerT));
+		  }
+	  }
   }
   
   /**

@@ -882,7 +882,8 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     if (receiver != null) {
       processPromises(receiver, p.getProcessorForReceiver(n, receiver));
     }
-    for(IRNode qr : JavaPromise.getQualifiedReceiverNodes(n)) {
+    IRNode qr = JavaPromise.getQualifiedReceiverNodeOrNull(n);
+    if (qr != null) {
       /*
       if ("Promise Visitor".equals(p.getIdentifier())) {
         System.out.println(qr+": "+DebugUnparser.toString(qr));

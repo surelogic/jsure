@@ -220,7 +220,9 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
 				if (!r.bindingExists() && context != null) {
 					String msg = "Couldn't resolve a binding for "+node+" on "+current;
 					context.reportError(msg, node);		
-					//r.bindingExists();
+					if (msg.startsWith("Couldn't resolve a binding for InstanceRegion on RegionEffects Writes test_qualifiedThis.C.this:InstanceRegion")) {
+						r.bindingExists();
+					}
 					rv = false;
 				}
 			}

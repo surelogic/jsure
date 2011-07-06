@@ -73,7 +73,7 @@ public class JavaRewrite implements JavaGlobals {
 		markAsAdded(cbody, constructor);
 		
 		ReturnValueDeclaration.getReturnNode(constructor);
-		PromiseUtil.addReceiverDecls(constructor);
+		PromiseUtil.addReceiverDeclsToConstructor(constructor);
 		
 		//IRNode type = VisitUtil.getEnclosingType(cbody);
 		//System.out.println("Created default constructor for "+JavaNames.getFullTypeName(type));

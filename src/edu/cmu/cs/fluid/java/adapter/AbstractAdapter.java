@@ -167,11 +167,11 @@ public class AbstractAdapter {
 					System.out.println("Making receiver decls for "+name);
 				}
 				*/
-					PromiseUtil.addReceiverDecls(n);
+					PromiseUtil.addReceiverDeclsToMethod(n);
 				}				
 			} else if (ConstructorDeclaration.prototype.includes(op)) {
 				ReturnValueDeclaration.getReturnNode(n);
-				PromiseUtil.addReceiverDecls(n);
+				PromiseUtil.addReceiverDeclsToConstructor(n);
 			} else if (InterfaceDeclaration.prototype.includes(op)) {
 				ClassInitDeclaration.getClassInitMethod(n);    
 			} else if (AnnotationDeclaration.prototype.includes(op)) {
@@ -187,8 +187,8 @@ public class AbstractAdapter {
 					|| EnumConstantClassDeclaration.prototype.includes(op)) {
 				IRNode init = InitDeclaration.getInitMethod(n);
 				ClassInitDeclaration.getClassInitMethod(n);
-				PromiseUtil.addReceiverDecls(n);
-				PromiseUtil.addReceiverDecls(init);
+				PromiseUtil.addReceiverDeclsToType(n);
+				PromiseUtil.addReceiverDeclsToMethod(init);
 
 				//System.out.println("Adding last-minute nodes to "+JavaNames.getFullTypeName(n));
 				if (makeSrcRefs) {

@@ -334,10 +334,10 @@ public class JavaPromise extends JavaNode {
 		attachPromiseNode(methodNode, receiverNode);
 	}
 
-	/* a special nodes to which to attach promises about qualified receivers. */
+	/* a special node to which to attach promises about qualified receivers. */
 
-	private static final SlotInfo<IRSequence<IRNode>> qualifiedReceiverNodeSlotInfo =
-		getConstantSlotInfo("JavaPromise.qualifiedReceiverNode", IRSequenceType.nodeSequenceType);
+	private static final SlotInfo<IRNode> qualifiedReceiverNodeSlotInfo =
+		getConstantSlotInfo("JavaPromise.qualifiedReceiverNode", IRNodeType.prototype);
 
 	/* XXX: Edwin says that this should be favored over getQualifiedReceiverNodeOrNull
 	 * if you are getting the type node by binding a QualifiedThisExpression or 
@@ -385,15 +385,22 @@ public class JavaPromise extends JavaNode {
 		}
 	}
 	
+	// 1. We're looking at a constructor -> check for the IPQR, then the below
+	// 2. We're looking at a method -> find the "field", starting from the enclosing class
+	// 3. We're looking at a type -> find the "field", starting from this class
 	public static IRNode getQualifiedReceiverNodeByName(IRNode declNode, String typeName) {
 		if (declNode == null || typeName == null) {
 			return null;
 		}
-		/*
-		if (type.equals(VisitUtil.getEnclosingType(declNode))) {
-		      return getReceiverNodeOrNull(declNode);
+
+		final Operator op = tree.getOperator(declNode);
+		IRNode type;
+		if (!TypeDeclaration.prototype.includes(op)) { 
+			type = VisitUtil.getEnclosingType(declNode);
+		} else {
+			type = declNode;
 		}
-		*/		
+		/*	
 		if (!TypeDeclaration.prototype.includes(declNode)) { 
 		  // decl is inside of a type
 		  IRNode enclosingT        = VisitUtil.getEnclosingType(declNode);
@@ -402,55 +409,114 @@ public class JavaPromise extends JavaNode {
 		    return getReceiverNode(declNode);
 		  }
 		}
-		if (declNode.valueExists(qualifiedReceiverNodeSlotInfo)) {
-			IRSequence<IRNode> seq = declNode.getSlotValue(qualifiedReceiverNodeSlotInfo);
-			final int size         = seq.size();
-			// This may contain $ for local classes
-			if (typeName.indexOf('$') >= 0) {
-				typeName = typeName.replace('$', '.');
+		 */
+		// Check if it's actually a normal receiver node
+		String name = JavaNames.getFullTypeName(type);
+		if (typeName.equals(name)) {
+			if (type != declNode) {
+				return getReceiverNode(declNode);
+			} else {
+				throw new IllegalStateException("No receiver node to get from "+JavaNames.getFullTypeName(type));
 			}
-			for (int i=0; i<size; i++) {
-				IRNode decl = seq.elementAt(i);
-				// Compare names
-				IRNode base = QualifiedReceiverDeclaration.getBase(decl);
-				String name = JavaNames.unparseType(base);
-				// A hack to match . to $   			
-				//if (Pattern.matches(name, qname)) {
-				if (name.equals(typeName)) {
-					return decl;
-				}
-			}       			
+		}
+		
+		// typeName may contain $ for local classes
+		if (typeName.indexOf('$') >= 0) {
+			typeName = typeName.replace('$', '.');
+		}
+		
+		// Check for match with IFQR
+		else if (ConstructorDeclaration.prototype.includes(op)) {
+			IRNode qr = lookForQualifiedReceiver(declNode, typeName);
+			if (qr != null) {
+				return qr;
+			}
+			// Skip the qr for this type, since the constructor's hides that one
+			type = VisitUtil.getEnclosingType(type);
+		}
+		
+		// Compare names with each qualified receiver
+		while (type != null) {
+			IRNode qr = lookForQualifiedReceiver(type, typeName);
+			if (qr != null) {
+				return qr;
+			}
+			type = VisitUtil.getEnclosingType(type);
 		}
 		return null;
 	}    
 
-	public static Iteratable<IRNode> getQualifiedReceiverNodes(IRNode methodNode) {
-		if (methodNode == null) {
+	private static IRNode lookForQualifiedReceiver(IRNode decl, String typeNameToMatch) {
+		IRNode qr = getQualifiedReceiverNodeOrNull(decl);
+		if (qr == null) {
 			return null;
 		}
-		if (methodNode.valueExists(qualifiedReceiverNodeSlotInfo)) {
-			IRSequence<IRNode> seq = methodNode.getSlotValue(qualifiedReceiverNodeSlotInfo);
-			return seq.elements();
+		IRNode base = QualifiedReceiverDeclaration.getBase(qr);
+		String name = JavaNames.unparseType(base);
+		// A hack to match . to $   			
+		//if (Pattern.matches(name, qname)) {
+		if (name.equals(typeNameToMatch)) {
+			return qr;
 		}
-		return EmptyIterator.prototype();
+		return null;
+	}
+	
+	/**
+	 * Find all the qualified receiver nodes available from this node
+	 */
+	public static Iteratable<IRNode> getQualifiedReceiverNodes(final IRNode declNode) {
+		return getQualifiedReceiverNodes(declNode, tree.getOperator(declNode));
+	}
+	
+	private static Iteratable<IRNode> getQualifiedReceiverNodes(final IRNode declNode, Operator op) {
+		IRNode initial = null;
+		final IRNode startType;
+		if (ConstructorDeclaration.prototype.includes(op)) {
+			initial = getQualifiedReceiverNodeOrNull(declNode);
+
+			// Skip the qr for this type, since the constructor's hides that one
+			IRNode thisType = VisitUtil.getEnclosingType(declNode);
+			startType = VisitUtil.getEnclosingType(thisType);
+		} else {
+			startType = TypeDeclaration.prototype.includes(op) ? declNode : VisitUtil.getEnclosingType(declNode);
+		}
+		return new SimpleRemovelessIterator<IRNode>(initial) {
+			IRNode type = startType;
+			
+			@Override
+			protected Object computeNext() {
+				while (type != null) {
+					IRNode qr = getQualifiedReceiverNodeOrNull(type);
+					type = VisitUtil.getEnclosingType(type);
+					if (qr != null) {
+						return qr;
+					}
+				}
+				return IteratorUtil.noElement;
+			}			
+		};
+	}	
+	
+	public static IRNode getQualifiedReceiverNodeOrNull(IRNode declNode) {
+		if (declNode == null) {
+			return null;
+		}
+		if (declNode.valueExists(qualifiedReceiverNodeSlotInfo)) {
+			return declNode.getSlotValue(qualifiedReceiverNodeSlotInfo);
+		}
+		return null;
 	}
 
 	/**
-	 * Doesn't check for duplicates or to see if it really is an enclosing type
+	 * Doesn't check to see if it really is an enclosing type
 	 */
-	public static void setQualifiedReceiverNode(IRNode methodNode, IRNode qDecl) {
-		if (methodNode == null || qDecl == null) {
+	public static void setQualifiedReceiverNode(IRNode declNode, IRNode qDecl) {
+		if (declNode == null || qDecl == null) {
 			return;
 		}
-		IRSequence<IRNode> seq;
-		if (!methodNode.valueExists(qualifiedReceiverNodeSlotInfo)) {
-			seq = JJNode.treeSlotFactory.newSequence(~0);
-			methodNode.setSlotValue(qualifiedReceiverNodeSlotInfo, seq);
-		} else {
-			seq = methodNode.getSlotValue(qualifiedReceiverNodeSlotInfo);
-		}
-		seq.appendElement(qDecl);
-		attachPromiseNode(methodNode, qDecl);
+
+		declNode.setSlotValue(qualifiedReceiverNodeSlotInfo, qDecl);
+		attachPromiseNode(declNode, qDecl);
 	}
 
 	/*

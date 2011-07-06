@@ -125,8 +125,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     if (rcvrNode != null) {
       refLocals.add(rcvrNode);
     }
+    /* TODO is this right?     
     for (final IRNode qrcvr : JavaPromise.getQualifiedReceiverNodes(flowUnit)) {
       refLocals.add(qrcvr);
+    }
+    */
+    final IRNode qrcvrNode = JavaPromise.getQualifiedReceiverNodeOrNull(flowUnit);
+    if (qrcvrNode != null) {
+    	refLocals.add(qrcvrNode);
     }
     
     final IRNode[] locals = refLocals.toArray(new IRNode[refLocals.size()]);

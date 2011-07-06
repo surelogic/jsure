@@ -502,9 +502,11 @@ final class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient
     // Here we are directly fixing the ThisExpression to be the receiver node
     final IRNode outerType =
       binder.getBinding(QualifiedThisExpression.getType(expr));
-    context.addEffect(
-        Effect.newRead(expr, targetFactory.createLocalTarget(
-            JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType))));
+    IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
+    if (qr == null) {
+    	JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
+    }
+    context.addEffect(Effect.newRead(expr, targetFactory.createLocalTarget(qr)));
     return null;
   }
 
