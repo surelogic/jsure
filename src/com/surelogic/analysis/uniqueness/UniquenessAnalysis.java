@@ -1035,7 +1035,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
 	@Override
 	protected Store transferType(IRNode node, Store val) {
-		return lattice.opValue(val);
+		return lattice.opExisting(val,State.SHARED,node);
 	}
 
 	@Override
