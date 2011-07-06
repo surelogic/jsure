@@ -48,8 +48,13 @@ public final class Messages  {
   public static final int SHARED_NOT_UNIQUE_RETURN = 328;
   public static final int BORROWED_NOT_UNIQUE = 329;
   public static final int BORROWED_NOT_UNIQUE_RETURN = 330;
-  public static final int BORROWED_AS_UNIQUE = 331;
-  
+  public static final int UNDEFINED_NOT_UNIQUE = 331;
+  public static final int UNDEFINED_NOT_UNIQUE_RETURN = 332;
+  public static final int BORROWED_AS_UNIQUE = 333;
+  public static final int BORROWED_AS_UNIQUE_RETURN = 334;
+  public static final int BORROWED_AS_SHARED = 335;
+  public static final int BORROWED_AS_SHARED_RETURN = 336;
+  public static final int UNDEFINED_NOT_BORROWED = 337;
   
   private static Map<Integer,String> code2name = new HashMap<Integer, String>();
   static {
@@ -78,6 +83,12 @@ public final class Messages  {
     code2name.put(BORROWED_NOT_UNIQUE, "?");
     code2name.put(BORROWED_NOT_UNIQUE_RETURN, "?");
     code2name.put(BORROWED_AS_UNIQUE, "?");
+    code2name.put(BORROWED_AS_UNIQUE_RETURN, "?");
+    code2name.put(UNDEFINED_NOT_UNIQUE, "?");
+    code2name.put(UNDEFINED_NOT_UNIQUE_RETURN, "?");
+    code2name.put(BORROWED_AS_SHARED, "?");
+    code2name.put(BORROWED_AS_SHARED_RETURN, "?");
+    code2name.put(UNDEFINED_NOT_BORROWED, "?");
   }
   
   public static String toString(int code) {

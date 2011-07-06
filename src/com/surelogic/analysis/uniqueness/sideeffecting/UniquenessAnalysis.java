@@ -65,6 +65,7 @@ import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
@@ -465,9 +466,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       for (int n = numActuals - 1; n >= 0; n--) {
         final IRNode formal = formals != null ? tree.getChild(formals, n) : null;
         final IRNode actual = actuals != null ?  tree.getChild(actuals, n) : null;
-        if (formal != null && UniquenessRules.isUnique(formal)) {
-          s = lattice.opUndefine(s, actual);
-        } else if (formal == null || UniquenessRules.isBorrowed(formal)) {
+        final UniquePromiseDrop uDrop = UniquenessRules.getUnique(formal);
+        if (uDrop != null) { // used to also check if formal != null
+          s = lattice.opUndefine(s, actual, uDrop);
+        } else if (/*formal == null ||*/ UniquenessRules.isBorrowed(formal)) {
           s  = lattice.opBorrow(s, actual);
         } else {
           s = lattice.opCompromise(s, actual);
@@ -491,9 +493,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final boolean isConstructor = ConstructorDeclaration.prototype.includes(decl);
         final IRNode recDecl = JavaPromise.getReceiverNode(decl);
         final IRNode retDecl = JavaPromise.getReturnNode(decl);
-        
-        if (UniquenessRules.isUnique(recDecl)) {
-          return lattice.opUndefine(s, srcOp);
+        final UniquePromiseDrop uDrop = UniquenessRules.getUnique(recDecl);
+        if (uDrop != null) {
+          return lattice.opUndefine(s, srcOp, uDrop);
         } else if (UniquenessRules.isBorrowed(recDecl) ||
             (isConstructor && UniquenessRules.isUnique(retDecl))) {
           return lattice.opBorrow(s, srcOp);
@@ -837,8 +839,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
               !VoidType.prototype.includes(MethodDeclaration.getReturnType(mdecl))) {
             final IRNode rnode = JavaPromise.getReturnNode(mdecl);
             s = lattice.opGet(s, body, rnode);
-            if (UniquenessRules.isUnique(rnode)) {
-              s = lattice.opUndefine(s, body);
+            final UniquePromiseDrop uDrop = UniquenessRules.getUnique(rnode);
+            if (uDrop != null) {
+              s = lattice.opUndefine(s, body, uDrop);
             } else {
               s = lattice.opCompromise(s, body);
             }

@@ -22,15 +22,9 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.Arguments;
-import edu.cmu.cs.fluid.java.operator.AssignmentExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
-import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
-import edu.cmu.cs.fluid.java.operator.Parameters;
-import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -116,6 +110,15 @@ extends TripleLattice<Element<Integer>,
    */
   final Map<IRNode, Set<IRNode>> undefinedAt =
     new HashMap<IRNode, Set<IRNode>>();
+  
+//  /**
+//   * Track where variables&mdash;by name&mdash;are made undefined.  Map
+//   * from VariableDeclator nodes to sets of IRNodes indicating locations
+//   * where the variables are made undefined.  Built by 
+//   * {@link #recordUndefiningOfUnique(IRNode, Integer, State, ImmutableSet)}.
+//   */
+//  final Map<IRNode, Set<IRNode>> undefinedVars = 
+//    new HashMap<IRNode, Set<IRNode>>();
   
   /**
    * Records where compromised fields are loaded.  After analysis is over,
@@ -784,7 +787,9 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opBorrow(final Store s, final IRNode srcOp) {
     if (!s.isValid()) return s;
-    if (localStatus(s, getStackTop(s)).compareTo(State.BORROWED) > 0) { // cannot be undefined
+    final Integer n = getStackTop(s);
+    if (localStatus(s, n).compareTo(State.BORROWED) > 0) { // cannot be undefined
+//      recordUndefinedNotBorrowed(srcOp, n, s.getObjects());
       reportError(srcOp, "X100", "Undefined value where unique is expected: Another formal parameter has made the value undefined here");
       return errorStore("Undefined value on stack borrowed");
     }
@@ -813,10 +818,10 @@ extends TripleLattice<Element<Integer>,
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be shared
       reportError(srcOp, "X1", "Use of undefined value");
       return errorStore("Undefined value on stack shared");
-    }
-    if (localStatus.compareTo(State.SHARED) > 0) { // cannot be shared
-      reportError(srcOp, "X2", "Attempt to alias a borrowed value");
-      return errorStore("Borrowed value on stack shared");
+    } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be shared
+      recordBorrowedNotShared(srcOp, n, s.getObjects());
+//      reportError(srcOp, "X2", "Attempt to alias a borrowed value");
+//      return errorStore("Borrowed value on stack shared");
     }
     return apply(s, srcOp, new Add(n, EMPTY.addElement(State.SHARED)));
   }
@@ -833,7 +838,8 @@ extends TripleLattice<Element<Integer>,
    * requested as a unique object and no one is allowed to reference it *ever
    * again*
    */
-  public Store opUndefine(final Store s, final IRNode srcOp) {
+  public Store opUndefine(
+      final Store s, final IRNode srcOp, final UniquePromiseDrop uDrop) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
@@ -841,14 +847,15 @@ extends TripleLattice<Element<Integer>,
     recordUndefiningOfUnique(srcOp, n, localStatus, s.getFieldStore());
     
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
-      reportError(srcOp, "U1", "Undefined value encountered when a unique value was expected");
-      return errorStore("Undefined value on stack not unique");
+      recordUndefinedNotUnique(srcOp, uDrop);
+//      reportError(srcOp, "U1", "Undefined value encountered when a unique value was expected");
+//      return errorStore("Undefined value on stack not unique");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
-      recordBorrowedNotUnique(srcOp, n, s.getObjects());
+      recordBorrowedNotUnique(srcOp, uDrop, n, s.getObjects());
 //      reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
 //      return errorStore("Borowed value on stack not unique");
     } else if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
-      recordSharedNotUnique(srcOp);      
+      recordSharedNotUnique(srcOp, uDrop);      
 //      reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
 //      return errorStore("Shared value on stack not unique");
     }
@@ -1122,7 +1129,7 @@ extends TripleLattice<Element<Integer>,
   private void recordCompromisingOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final ImmutableSet<FieldTriple> fieldStore) {
-    recordLossOfUnique(srcOp, topOfStack, localStatus, fieldStore, compromisedAt);
+    recordLossOfUniqueness(srcOp, topOfStack, localStatus, fieldStore, compromisedAt);
   }
 
   /**
@@ -1132,14 +1139,22 @@ extends TripleLattice<Element<Integer>,
   private void recordUndefiningOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final ImmutableSet<FieldTriple> fieldStore) {
-    recordLossOfUnique(srcOp, topOfStack, localStatus, fieldStore, undefinedAt);
+    recordLossOfUniqueness(srcOp, topOfStack, localStatus, fieldStore, undefinedAt);
   }
 
-  private void recordLossOfUnique(final IRNode srcOp, final Integer topOfStack,
+  private void recordLossOfUniqueness(final IRNode srcOp, final Integer topOfStack,
       final State localStatus, final ImmutableSet<FieldTriple> fieldStore,
       final Map<IRNode, Set<IRNode>> howLostMap) {
     if (produceSideEffects) {
       if (localStatus == State.UNIQUE) {
+//        if (howLostMap == undefinedAt) {
+//          final Operator op = JJNode.tree.getOperator(srcOp);
+//          System.out.println("&&&& undefining caused by " + op.name() + ": " + DebugUnparser.toString(srcOp));
+//          if (VariableUseExpression.prototype.includes(op)) {
+//            addToMappedSet(undefinedVars, binder.getBinding(srcOp), srcOp);
+//          }
+//        }
+        
         for (final FieldTriple ft : fieldStore) {
           if (ft.third().contains(topOfStack)) {
             addToMappedSet(howLostMap, ft.second(), srcOp);
@@ -1197,66 +1212,55 @@ extends TripleLattice<Element<Integer>,
   // -- Bad Values
   // ------------------------------------------------------------------
 
-  private void recordBadUnique(
-      final IRNode srcOp, final int msgNormal, final int msgReturn) {
-  /*
-   * Get the unique promise that is violated. If the srcOp is a FieldRef
-   * that is the RHS of an assignment statement, then we get the unique
-   * promise of the field. If the srcOp is a MethodBody, then we get the
-   * unique promise of the return node of the method. Otherwise the srcOp is
-   * an actual parameter or receiver in a method call, and we get the unique
-   * promise from the associated formal parameter.
-   */
-    UniquePromiseDrop badUnique = null;
-    IRNode badCode = srcOp;
-    int msg = msgNormal;
-    final Operator op = JJNode.tree.getOperator(srcOp);
-    if (MethodBody.prototype.includes(op)) {
-      final IRNode returnNode = 
-        JavaPromise.getReturnNode(JJNode.tree.getParent(srcOp));
-      badUnique = UniquenessRules.getUnique(returnNode);
-      msg = msgReturn;
-    } else {
-      if (FieldRef.prototype.includes(op)) {
-        final IRNode parent = JJNode.tree.getParent(srcOp);
-        if (AssignmentExpression.prototype.includes(parent)) {
-          if (srcOp == AssignmentExpression.getOp1(parent)) {
-            // srcOp is a field ref on the LHS of an assignment
-            badUnique = UniquenessRules.getUnique(binder.getBinding(srcOp));
-            // problem is actually with the RHS of the assignment
-            badCode = AssignmentExpression.getOp2(parent);
-          }
-        }
-      }
-      if (badUnique == null) {
-        final IRNode parent = JJNode.tree.getParent(srcOp);
-        if (MethodCall.prototype.includes(parent)) {
-          // srcOp is a receiver
-          badUnique = UniquenessRules.getUnique(
-              JavaPromise.getReceiverNode(binder.getBinding(parent)));
-        } else {
-          // Find the @Unique formal parameter
-          // here, parent must be the list of actual arguments
-          final IRNode call = JJNode.tree.getParent(parent);
-          final IRNode mdecl = binder.getBinding(call);
-          final IRNode formals = SomeFunctionDeclaration.getParams(mdecl);
-          for (int i = 0; true; i++) { // must 'break' because srcOp is an argument
-            if (Arguments.getArg(parent, i) == srcOp) {
-              badUnique = UniquenessRules.getUnique(
-                  Parameters.getFormal(formals, i));
-              break;
-            }
-          }
-        }
-      }
-    }      
-    xNotY.add(new XnotY(badUnique, badCode, msg));
+  private void recordBadUnique(final XnotYFactory factory,
+      final IRNode srcOp, final UniquePromiseDrop uDrop,
+      final int msgNormal, final int msgReturn) {
+//    /*
+//     * Get the unique promise that is violated.  The srcOp is either a MethodBody,
+//     * in which case the promise being violated is that of the return value,
+//     * or it is an actual parameter, in which case the promise being violated
+//     * is that of the formal parameter. 
+//     */
+//    UniquePromiseDrop badUnique = null;
+//    IRNode badCode = srcOp;
+//    int msg = msgNormal;
+//    final Operator op = JJNode.tree.getOperator(srcOp);
+//    if (MethodBody.prototype.includes(op)) {
+//      final IRNode returnNode = 
+//        JavaPromise.getReturnNode(JJNode.tree.getParent(srcOp));
+//      badUnique = UniquenessRules.getUnique(returnNode);
+//      msg = msgReturn;
+//    } else {
+//      final IRNode parent = JJNode.tree.getParent(srcOp);
+//      if (MethodCall.prototype.includes(parent)) {
+//        // srcOp is a receiver
+//        badUnique = UniquenessRules.getUnique(
+//            JavaPromise.getReceiverNode(binder.getBinding(parent)));
+//      } else {
+//        // Find the @Unique formal parameter
+//        // here, parent must be the list of actual arguments
+//        final IRNode call = JJNode.tree.getParent(parent);
+//        final IRNode mdecl = binder.getBinding(call);
+//        final IRNode formals = SomeFunctionDeclaration.getParams(mdecl);
+//        for (int i = 0; true; i++) { // must 'break' because srcOp is an argument
+//          if (Arguments.getArg(parent, i) == srcOp) {
+//            badUnique = UniquenessRules.getUnique(
+//                Parameters.getFormal(formals, i));
+//            break;
+//          }
+//        }
+//      }
+//    }      
+//    xNotY.add(factory.create(badUnique, badCode, msg));
+    
+    xNotY.add(factory.create(uDrop, srcOp,
+        MethodBody.prototype.includes(srcOp) ? msgReturn : msgNormal));
   }
   
-  private void recordBadBorrowed(
+  private void recordBadBorrowed(final XnotYFactory factory,
       final IRNode srcOp, final Integer topOfStack,  
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects,
-      final int msg) {
+      final int msgNormal, final int msgReturn) {
     final Set<Object> referringVars = new HashSet<Object>();
     for (final ImmutableHashOrderSet<Object> obj : objects) {
       if (obj.contains(topOfStack)) {
@@ -1269,13 +1273,13 @@ extends TripleLattice<Element<Integer>,
     for (final Object v : referringVars) {
       if (v instanceof IRNode) {
         final IRNode nv = (IRNode) v;
-        final Operator op2 = JJNode.tree.getOperator(nv);
+        final Operator op = JJNode.tree.getOperator(nv);
         PromiseDrop<? extends IAASTRootNode> promiseDrop = null;
-        if (ParameterDeclaration.prototype.includes(op2) ||
-            ReceiverDeclaration.prototype.includes(op2) ||
-            QualifiedReceiverDeclaration.prototype.includes(op2)) {
+        if (ParameterDeclaration.prototype.includes(op) ||
+            ReceiverDeclaration.prototype.includes(op) ||
+            QualifiedReceiverDeclaration.prototype.includes(op)) {
           promiseDrop = UniquenessRules.getBorrowed(nv);
-          if (promiseDrop == null && ReceiverDeclaration.prototype.includes(op2)) {
+          if (promiseDrop == null && ReceiverDeclaration.prototype.includes(op)) {
             final IRNode decl = JavaPromise.getPromisedFor(nv);
             if (ConstructorDeclaration.prototype.includes(decl)) {
               // It's from a constructor, look for unique on the return node
@@ -1285,39 +1289,71 @@ extends TripleLattice<Element<Integer>,
           }
           
           if (promiseDrop != null) {
-            xNotY.add(new XnotY(promiseDrop, srcOp, msg));
+            xNotY.add(factory.create(promiseDrop, srcOp,
+                MethodBody.prototype.includes(srcOp) ? msgReturn : msgNormal));
           }
         }
       }
     }
   }
 
-  private void recordSharedNotUnique(final IRNode srcOp) {
+  private void recordSharedNotUnique(
+      final IRNode srcOp, final UniquePromiseDrop uDrop) {
     if (produceSideEffects) {
-      recordBadUnique(
-          srcOp, Messages.SHARED_NOT_UNIQUE, Messages.SHARED_NOT_UNIQUE_RETURN);
+      recordBadUnique(sharedFactory, srcOp, uDrop,
+          Messages.SHARED_NOT_UNIQUE, Messages.SHARED_NOT_UNIQUE_RETURN);
     }
   }
   
   private void recordBorrowedNotUnique(
-      final IRNode srcOp, final Integer topOfStack,  
+      final IRNode srcOp, final UniquePromiseDrop uDrop, final Integer topOfStack,  
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
 
     /* Two problems here: (1) A unique reference is expected, but a borrowed
      * one is provided; and (2) A borrowed value is used in a unique context.
      */
     if (produceSideEffects) {
-      recordBadUnique(srcOp,
+      recordBadUnique(borrowedFactory, srcOp, uDrop,
           Messages.BORROWED_NOT_UNIQUE, Messages.BORROWED_NOT_UNIQUE_RETURN);
-      recordBadBorrowed(srcOp, topOfStack, objects, Messages.BORROWED_AS_UNIQUE);
+      recordBadBorrowed(borrowedFactory, srcOp, topOfStack, objects,
+          Messages.BORROWED_AS_UNIQUE, Messages.BORROWED_AS_UNIQUE_RETURN);
     }    
+  }
+
+  private void recordUndefinedNotUnique(
+      final IRNode srcOp, final UniquePromiseDrop uDrop) {
+    if (produceSideEffects) {
+      recordBadUnique(undefinedFactory, srcOp, uDrop,
+          Messages.UNDEFINED_NOT_UNIQUE, Messages.UNDEFINED_NOT_UNIQUE_RETURN);
+    }
+  }
+  
+  private void recordBorrowedNotShared(
+      final IRNode srcOp, final Integer topOfStack,  
+      final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
+    if (produceSideEffects) {
+      recordBadBorrowed(borrowedFactory, srcOp, topOfStack, objects,
+          Messages.BORROWED_AS_SHARED, Messages.BORROWED_AS_SHARED_RETURN);
+    }
+  }
+  
+  private void recordUndefinedNotBorrowed(
+      final IRNode srcOp, final Integer topOfStack,  
+      final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
+    if (produceSideEffects) {
+      recordBadBorrowed(undefinedFactory, srcOp, topOfStack, objects,
+          Messages.UNDEFINED_NOT_BORROWED,
+          Messages.UNDEFINED_NOT_BORROWED); // NOTE: Cannot have a borrowed return
+    }
   }
 
   // ------------------------------------------------------------------
   // -- Make result drops
   // ------------------------------------------------------------------
   
-  private final ResultDropBuilder createResultDrop(
+  private static ResultDropBuilder createResultDrop(
+      final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+      final boolean abruptDrops,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop,
       final IRNode node, final boolean isConsistent, 
       final int msg, final Object... args) {
@@ -1333,7 +1369,15 @@ extends TripleLattice<Element<Integer>,
     result.setResultMessage(msg, newArgs);
     return result;
   }
-  
+
+  private ResultDropBuilder createResultDrop(
+      final PromiseDrop<? extends IAASTRootNode> promiseDrop,
+      final IRNode node, final boolean isConsistent, 
+      final int msg, final Object... args) {
+    return createResultDrop(
+        analysis, abruptDrops, promiseDrop, node, isConsistent, msg, args);
+  }
+
   private void crossReferenceKilledFields(int msg,
       final Map<IRNode, Set<IRNode>> compromisedFields) {
     for (final Map.Entry<IRNode, Set<IRNode>> load : compromisedFields.entrySet()) {
@@ -1384,30 +1428,126 @@ extends TripleLattice<Element<Integer>,
     }
     
     for (final XnotY err: xNotY) {
-      createResultDrop(err.promiseDrop(), err.srcOp(), false, err.msg());
+      err.createDrop(analysis, abruptDrops, binder);
+//      createResultDrop(err.promiseDrop(), err.srcOp(), false, err.msg());
     }
   }
-}
 
-final class BuriedRead extends Pair<Object, IRNode> {
-  public BuriedRead(final Object var, final IRNode n) {
-    super(var, n);
+
+
+
+  private final static class BuriedRead extends Pair<Object, IRNode> {
+    public BuriedRead(final Object var, final IRNode n) {
+      super(var, n);
+    }
+
+    public Object var() { return first(); }
+    public IRNode srcOp() { return second(); }
   }
 
-  public Object var() { return first(); }
-  public IRNode srcOp() { return second(); }
-}
-
-/**
- * Record an error where the reference is expected to be "Y" but is actually
- * "X". For example, the reference is shared, but expected to be unique.
- */
-final class XnotY extends Triple<PromiseDrop<? extends IAASTRootNode>, IRNode, Integer> {
-  public XnotY(PromiseDrop<? extends IAASTRootNode> pd, final IRNode srcOp, final int msg) {
-    super(pd, srcOp, msg);
+  /**
+   * Record an error where the reference is expected to be "Y" but is actually
+   * "X". For example, the reference is shared, but expected to be unique.
+   */
+  private abstract class XnotY extends Triple<PromiseDrop<? extends IAASTRootNode>, IRNode, Integer> {
+    public XnotY(final PromiseDrop<? extends IAASTRootNode> pd, final IRNode srcOp, final int msg) {
+      super(pd, srcOp, msg);
+    }
+    
+    public final PromiseDrop<? extends IAASTRootNode> promiseDrop() { return first(); }
+    public final IRNode srcOp() { return second(); }
+    public final int msg() { return third(); }
+    
+    public final ResultDropBuilder createDrop(
+        final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+        final boolean abruptDrops,
+        final IBinder binder) {
+      final ResultDropBuilder result = StoreLattice.createResultDrop(
+          analysis, abruptDrops, promiseDrop(), srcOp(), false, msg());
+      addSupportingInformation(analysis, binder, result);
+      return result;          
+    }
+    
+    protected abstract void addSupportingInformation(
+        AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+        IBinder binder, ResultDropBuilder result);
   }
   
-  public PromiseDrop<? extends IAASTRootNode> promiseDrop() { return first(); }
-  public IRNode srcOp() { return second(); }
-  public int msg() { return third(); }
+  private final class SharedNotY extends XnotY {
+    public SharedNotY(final PromiseDrop<? extends IAASTRootNode> pd, final IRNode srcOp, final int msg) {
+      super(pd, srcOp, msg);
+    }
+    
+    @Override
+    public void addSupportingInformation(
+        final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+        final IBinder binder, final ResultDropBuilder result) {
+      // no supporting information
+    }
+  }
+  
+  private final class BorrowedNotY extends XnotY {
+    public BorrowedNotY(final PromiseDrop<? extends IAASTRootNode> pd, final IRNode srcOp, final int msg) {
+      super(pd, srcOp, msg);
+    }
+    
+    @Override
+    public void addSupportingInformation(
+        final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+        final IBinder binder, final ResultDropBuilder result) {
+      // no supporting information
+    }
+  }
+  
+  private final class UndefinedNotY extends XnotY {    
+    public UndefinedNotY(final PromiseDrop<? extends IAASTRootNode> pd, final IRNode srcOp, final int msg) {
+      super(pd, srcOp, msg);
+    }
+    
+    @Override
+    public void addSupportingInformation(
+        final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+        final IBinder binder, final ResultDropBuilder result) {
+//      final Operator op = JJNode.tree.getOperator(srcOp());
+//      if (VariableUseExpression.prototype.includes(op)) {
+//        final IRNode varDecl = binder.getBinding(srcOp());
+//        final Set<IRNode> set = undefinedVars.get(varDecl);
+//        if (set != null) {
+//          for (final IRNode whereUndefined : set) {
+//            result.addSupportingInformation(whereUndefined, Messages.UNDEFINED_BY, DebugUnparser.toString(whereUndefined));
+//          }
+//        }
+//      } else if (FieldRef.prototype.includes(op)) {
+//        
+//      }
+//      // no supporting information
+    }
+  }
+
+  public static interface XnotYFactory {
+    public XnotY create(
+        PromiseDrop<? extends IAASTRootNode> pd, IRNode srcOp, int msg);
+  }
+  
+  public final XnotYFactory sharedFactory = new XnotYFactory() {
+    public SharedNotY create(final PromiseDrop<? extends IAASTRootNode> pd,
+        final IRNode srcOp, final int msg) {
+      return new SharedNotY(pd, srcOp, msg);
+    }
+  };
+  
+  public final XnotYFactory borrowedFactory = new XnotYFactory() {
+    public BorrowedNotY create(final PromiseDrop<? extends IAASTRootNode> pd,
+        final IRNode srcOp, final int msg) {
+      return new BorrowedNotY(pd, srcOp, msg);
+    }
+  };
+  
+  public final XnotYFactory undefinedFactory = new XnotYFactory() {
+    public UndefinedNotY create(final PromiseDrop<? extends IAASTRootNode> pd,
+        final IRNode srcOp, final int msg) {
+      return new UndefinedNotY(pd, srcOp, msg);
+    }
+  };
 }
+
