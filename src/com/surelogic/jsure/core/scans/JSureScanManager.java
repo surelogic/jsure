@@ -10,6 +10,11 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
+/**
+ * Manages the scans in the JSure data directory
+ * 
+ * @author Edwin
+ */
 public class JSureScanManager {
 	private static final JSureScanManager prototype = new JSureScanManager();
 	
