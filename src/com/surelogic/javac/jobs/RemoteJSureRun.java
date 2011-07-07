@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.jobs;
+package com.surelogic.javac.jobs;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,12 +11,12 @@ import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
-import com.surelogic.fluid.javac.Config;
-import com.surelogic.fluid.javac.Javac;
-import com.surelogic.fluid.javac.JavacTypeEnvironment;
-import com.surelogic.fluid.javac.Projects;
-import com.surelogic.fluid.javac.Util;
-import com.surelogic.fluid.javac.persistence.JSureRun;
+import com.surelogic.javac.Config;
+import com.surelogic.javac.Javac;
+import com.surelogic.javac.JavacTypeEnvironment;
+import com.surelogic.javac.Projects;
+import com.surelogic.javac.Util;
+import com.surelogic.javac.persistence.JSureRun;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.sea.Sea;

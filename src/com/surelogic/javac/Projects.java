@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import java.io.*;
 import java.util.*;
@@ -7,7 +7,7 @@ import com.surelogic.analysis.*;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.jobs.*;
-import com.surelogic.fluid.javac.persistence.*;
+import com.surelogic.javac.persistence.*;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;

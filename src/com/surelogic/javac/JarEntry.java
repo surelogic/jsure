@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.util.zip.*;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.xml.Entities;
-import com.surelogic.fluid.javac.persistence.*;
+import com.surelogic.javac.persistence.*;
 
 /**
  * Despite the name, this handles both jars and directories

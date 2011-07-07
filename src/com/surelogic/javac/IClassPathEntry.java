@@ -1,9 +1,9 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import java.io.*;
 import java.net.URI;
 
-import com.surelogic.fluid.javac.persistence.JSureProjectsXMLCreator;
+import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 
 public interface IClassPathEntry {
 	/**

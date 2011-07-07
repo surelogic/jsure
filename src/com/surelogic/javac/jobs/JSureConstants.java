@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.jobs;
+package com.surelogic.javac.jobs;
 
 public final class JSureConstants {
 	public static final String COMMON_PLUGIN_ID = "com.surelogic.common";

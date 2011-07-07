@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.coe;
+package com.surelogic.javac.coe;
 
 import java.util.Arrays;
 import java.util.Comparator;

@@ -1,12 +1,12 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import java.io.File;
 import java.net.URI;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.xml.Entities;
-import com.surelogic.fluid.javac.persistence.JSureProjectsXMLCreator;
-import com.surelogic.fluid.javac.persistence.PersistenceConstants;
+import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
+import com.surelogic.javac.persistence.PersistenceConstants;
 
 import edu.cmu.cs.fluid.util.Pair;
 

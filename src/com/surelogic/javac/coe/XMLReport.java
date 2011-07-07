@@ -1,7 +1,4 @@
-/*
- * Created on Mar 1, 2005
- */
-package com.surelogic.fluid.javac.coe;
+package com.surelogic.javac.coe;
 
 import static com.surelogic.common.jsure.xml.CoE_Constants.*;
 

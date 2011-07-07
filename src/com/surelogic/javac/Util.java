@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import java.io.*;
 import java.util.*;
@@ -23,7 +23,7 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.fluid.javac.persistence.*;
+import com.surelogic.javac.persistence.*;
 import com.surelogic.common.jsure.xml.*;
 import com.surelogic.persistence.*;
 import com.surelogic.xml.*;

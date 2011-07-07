@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.persistence;
+package com.surelogic.javac.persistence;
 
 import java.io.*;
 import java.util.*;
@@ -7,8 +7,8 @@ import java.util.zip.*;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
-import com.surelogic.fluid.javac.JavacTypeEnvironment;
-import com.surelogic.fluid.javac.Projects;
+import com.surelogic.javac.JavacTypeEnvironment;
+import com.surelogic.javac.Projects;
 
 public class JSureRun implements Comparable<JSureRun> {
 	private final Date time;

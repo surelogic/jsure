@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.adapter;
+package com.surelogic.javac.adapter;
 
 import java.io.*;
 import java.util.*;
@@ -14,7 +14,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.fluid.javac.*;
+import com.surelogic.javac.*;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;

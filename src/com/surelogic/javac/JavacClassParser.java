@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import java.io.*;
 import java.util.*;
@@ -25,7 +25,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.surelogic.analysis.*;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.fluid.javac.adapter.*;
+import com.surelogic.javac.adapter.*;
 import com.surelogic.xml.PackageAccessor;
 
 import edu.cmu.cs.fluid.ir.*;

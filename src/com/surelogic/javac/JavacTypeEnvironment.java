@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

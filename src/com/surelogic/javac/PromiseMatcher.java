@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import java.io.*;
 import java.util.*;
@@ -6,8 +6,8 @@ import java.util.zip.*;
 
 import com.surelogic.annotation.parse.*;
 import com.surelogic.common.AbstractJavaZip;
-import com.surelogic.fluid.javac.persistence.*;
-import com.surelogic.fluid.javac.persistence.PersistenceConstants;
+import com.surelogic.javac.persistence.*;
+import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.persistence.*;
 
 public class PromiseMatcher {	

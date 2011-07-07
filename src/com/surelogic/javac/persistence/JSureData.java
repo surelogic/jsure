@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.persistence;
+package com.surelogic.javac.persistence;
 
 import java.io.*;
 import java.util.*;

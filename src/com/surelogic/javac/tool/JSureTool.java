@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.tool;
+package com.surelogic.javac.tool;
 
 /*
 import java.io.File;

@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.adapter;
+package com.surelogic.javac.adapter;
 
 import java.util.*;
 

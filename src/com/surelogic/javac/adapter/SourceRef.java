@@ -1,8 +1,8 @@
-package com.surelogic.fluid.javac.adapter;
+package com.surelogic.javac.adapter;
 
 import java.net.URI;
 
-import com.surelogic.fluid.javac.FileResource;
+import com.surelogic.javac.FileResource;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;

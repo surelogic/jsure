@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.jobs;
+package com.surelogic.javac.jobs;
 
 import com.surelogic.common.jobs.remote.ILocalConfig;
 

@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.coe;
+package com.surelogic.javac.coe;
 
 import edu.cmu.cs.fluid.sea.Category;
 

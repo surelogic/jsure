@@ -1,5 +1,4 @@
-
-package com.surelogic.fluid.javac.adapter;
+package com.surelogic.javac.adapter;
 
 import org.objectweb.asm.signature.SignatureVisitor;
 

@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.persistence;
+package com.surelogic.javac.persistence;
 
 import java.io.File;
 import java.text.ParseException;
@@ -10,13 +10,13 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.IXMLResultListener;
 import com.surelogic.common.xml.NestedXMLReader;
-import com.surelogic.fluid.javac.Config;
-import com.surelogic.fluid.javac.JarEntry;
-import com.surelogic.fluid.javac.JavaSourceFile;
-import com.surelogic.fluid.javac.Javac;
-import com.surelogic.fluid.javac.JavacProject;
-import com.surelogic.fluid.javac.JavacTypeEnvironment;
-import com.surelogic.fluid.javac.Projects;
+import com.surelogic.javac.Config;
+import com.surelogic.javac.JarEntry;
+import com.surelogic.javac.JavaSourceFile;
+import com.surelogic.javac.Javac;
+import com.surelogic.javac.JavacProject;
+import com.surelogic.javac.JavacTypeEnvironment;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 

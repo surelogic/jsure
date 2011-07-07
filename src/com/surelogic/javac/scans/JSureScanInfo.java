@@ -1,12 +1,12 @@
-package com.surelogic.fluid.javac.scans;
+package com.surelogic.javac.scans;
 
 import java.io.File;
 import java.util.*;
 
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.fluid.javac.Projects;
-import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
-import com.surelogic.fluid.javac.persistence.*;
+import com.surelogic.javac.Projects;
+import com.surelogic.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.persistence.*;
 
 import edu.cmu.cs.fluid.sea.*;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;

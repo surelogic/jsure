@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.scans;
+package com.surelogic.javac.scans;
 
 public enum ScanUpdateMode {
 	DIFF_WITH_PREV(true, true), DIFF_WITH_BASELINE(false,true), NO_UPDATE(false, false);

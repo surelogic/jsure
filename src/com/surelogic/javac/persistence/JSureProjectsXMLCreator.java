@@ -1,12 +1,11 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
-package com.surelogic.fluid.javac.persistence;
+package com.surelogic.javac.persistence;
 
 import java.io.*;
 import java.util.*;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.xml.Entities;
-import com.surelogic.fluid.javac.*;
+import com.surelogic.javac.*;
 
 import edu.cmu.cs.fluid.sea.xml.AbstractSeaXmlCreator;
 

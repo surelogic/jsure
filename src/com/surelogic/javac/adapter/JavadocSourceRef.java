@@ -1,8 +1,8 @@
-package com.surelogic.fluid.javac.adapter;
+package com.surelogic.javac.adapter;
 
 import java.util.*;
 
-import com.surelogic.fluid.javac.FileResource;
+import com.surelogic.javac.FileResource;
 
 import edu.cmu.cs.fluid.java.comment.*;
 

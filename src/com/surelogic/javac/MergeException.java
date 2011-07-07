@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 /**
  * Thrown when there's a conflict when merging Configs

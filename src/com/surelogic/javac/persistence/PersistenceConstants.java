@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.persistence;
+package com.surelogic.javac.persistence;
 
 public interface PersistenceConstants {
 	String RESULTS_ZIP = "results.zip";

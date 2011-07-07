@@ -1,10 +1,10 @@
-package com.surelogic.fluid.javac.persistence;
+package com.surelogic.javac.persistence;
 
 import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 
-import com.surelogic.fluid.javac.*;
+import com.surelogic.javac.*;
 
 /**
  * Scans and organizes the run directories in the JSure data dir

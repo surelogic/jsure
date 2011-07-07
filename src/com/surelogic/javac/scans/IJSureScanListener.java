@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.scans;
+package com.surelogic.javac.scans;
 
 /**
  * Listens to whether the baseline/current scans have changed

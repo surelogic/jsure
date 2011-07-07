@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.adapter;
+package com.surelogic.javac.adapter;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.comment.IJavadocElement;

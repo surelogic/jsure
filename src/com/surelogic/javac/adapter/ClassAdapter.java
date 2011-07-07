@@ -1,5 +1,4 @@
-
-package com.surelogic.fluid.javac.adapter;
+package com.surelogic.javac.adapter;
 
 import java.io.*;
 import java.util.*;
@@ -12,7 +11,7 @@ import org.objectweb.asm.commons.EmptyVisitor;
 import org.objectweb.asm.signature.*;
 
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.fluid.javac.Util;
+import com.surelogic.javac.Util;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;

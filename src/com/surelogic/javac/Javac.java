@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -24,7 +24,7 @@ import com.surelogic.analysis.threads.ThreadEffectsModule;
 import com.surelogic.analysis.uniqueness.NewBenchmarkingUAM;
 import com.surelogic.analysis.utility.UtilityAnalysis;
 import com.surelogic.common.XUtil;
-import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.jobs.RemoteJSureRun;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
 import edu.cmu.cs.fluid.ide.IClassPathContext;

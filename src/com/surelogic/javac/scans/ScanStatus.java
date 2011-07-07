@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac.scans;
+package com.surelogic.javac.scans;
 
 public enum ScanStatus {
 	NEITHER_CHANGED(false,false), BASELINE_CHANGED(true,false), CURRENT_CHANGED(false,true), BOTH_CHANGED(true,true);

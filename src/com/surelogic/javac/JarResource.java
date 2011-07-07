@@ -1,4 +1,4 @@
-package com.surelogic.fluid.javac;
+package com.surelogic.javac;
 
 import edu.cmu.cs.fluid.java.ICodeFile;
 

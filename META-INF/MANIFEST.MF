@@ -6,7 +6,9 @@ Bundle-Version: 4.0.0.qualifier
 Bundle-ClassPath: .,
  lib/runtime/sablejbdd-0.02.jar,
  lib/runtime/log4j-xml-1.3alpha-8.jar,
- lib/runtime/log4j-1.3alpha-8.jar
+ lib/runtime/log4j-1.3alpha-8.jar,
+ lib/runtime/javac.jar,
+ lib/runtime/javadoc.jar
 Bundle-Vendor: SureLogic, Inc.
 Export-Package: 
  com.surelogic.aast,
@@ -47,6 +49,10 @@ Export-Package:
  com.surelogic.ast.fluid,
  com.surelogic.ast.java.operator,
  com.surelogic.ast.java.promise,
+ com.surelogic.javac,
+ com.surelogic.javac.jobs,
+ com.surelogic.javac.persistence,
+ com.surelogic.javac.scans,
  com.surelogic.parse,
  com.surelogic.persistence,
  com.surelogic.promise,
