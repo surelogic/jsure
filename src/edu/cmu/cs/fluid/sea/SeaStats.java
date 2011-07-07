@@ -87,12 +87,19 @@ public final class SeaStats {
 	public static final Splitter<String> splitByProject = new Splitter<String>() {
         public String getLabel(IDropInfo d) {
             ISrcRef sr = d.getSrcRef();
-            if (sr != null) {
+            if (sr != null) {            	
+            	/*
                 String path = sr.getRelativePath();
                 int firstSlash = path.indexOf('/');
                 if (firstSlash >= 0 && path.endsWith(".java")) {
-                    return path.substring(0, firstSlash);
-                }
+                	String label = path.substring(0, firstSlash);
+                	if (!label.equals(sr.getProject())) {
+                		throw new IllegalStateException("Mismatched project: "+sr.getProject());
+                	}
+                	return label;
+                }                
+                */
+            	return sr.getProject();
             }
             return null;
         }	    
