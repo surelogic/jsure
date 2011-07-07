@@ -1,7 +1,5 @@
 package com.surelogic.jsure.views.debug.oracleDiff;
 
-import java.util.*;
-
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.*;
@@ -58,9 +56,11 @@ public class SnapshotDiffView extends AbstractScanTreeView<Object> {
 	}
 	
 	private ISrcRef makeSrcRef(final Entity e) {
+		/*
 		for(Map.Entry<String,String> me : e.getAttributes().entrySet()) {
 			System.out.println(me.getKey()+" = "+me.getValue());
 		}
+		*/
 		return new AbstractSrcRef() {
 			@Override
       public Object getEnclosingFile() {
@@ -82,6 +82,10 @@ public class SnapshotDiffView extends AbstractScanTreeView<Object> {
       public String getPackage() {
 				return null;
 			}			
+			@Override
+			public String getProject() {
+				return null;
+			}
 		};
 	}
 }
