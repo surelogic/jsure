@@ -7,8 +7,8 @@ import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.preferences.AutoPerspectiveSwitchPreferences;
-import com.surelogic.fluid.javac.Javac;
-import com.surelogic.fluid.javac.scans.ScanUpdateMode;
+import com.surelogic.javac.Javac;
+import com.surelogic.javac.scans.ScanUpdateMode;
 import com.surelogic.jsure.core.driver.DriverConstants;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;

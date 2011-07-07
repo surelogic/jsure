@@ -1,6 +1,6 @@
 package com.surelogic.jsure.core.scripting;
 
-import com.surelogic.fluid.javac.Util;
+import com.surelogic.javac.Util;
 
 public interface ScriptCommands {
 	String NAME = "test.script.txt";

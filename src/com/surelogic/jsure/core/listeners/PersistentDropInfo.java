@@ -12,8 +12,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.fluid.javac.Projects;
-import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.Projects;
+import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.sea.Drop;

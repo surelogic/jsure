@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.fluid.javac.persistence.*;
+import com.surelogic.javac.persistence.*;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;

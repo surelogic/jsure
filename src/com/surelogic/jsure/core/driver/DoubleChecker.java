@@ -17,7 +17,7 @@ import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.fluid.javac.Javac;
+import com.surelogic.javac.Javac;
 import com.surelogic.jsure.core.Activator;
 
 import edu.cmu.cs.fluid.ide.IDE;

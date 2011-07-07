@@ -7,7 +7,7 @@ import java.net.URL;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.Resources;
-import com.surelogic.fluid.javac.*;
+import com.surelogic.javac.*;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;

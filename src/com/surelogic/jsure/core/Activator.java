@@ -6,7 +6,7 @@ import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.fluid.javac.Util;
+import com.surelogic.javac.Util;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSureEclipseHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;

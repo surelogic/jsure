@@ -8,8 +8,8 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.fluid.javac.PromiseMatcher;
-import com.surelogic.fluid.javac.Util;
+import com.surelogic.javac.PromiseMatcher;
+import com.surelogic.javac.Util;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 

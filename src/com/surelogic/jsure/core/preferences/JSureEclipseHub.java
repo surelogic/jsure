@@ -3,7 +3,7 @@ package com.surelogic.jsure.core.preferences;
 import java.io.File;
 
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.javac.scans.*;
 
 import static com.surelogic.jsure.core.preferences.JSurePreferencesUtility.*;
 

@@ -11,10 +11,10 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.fluid.javac.Config;
-import com.surelogic.fluid.javac.IClassPathEntry;
-import com.surelogic.fluid.javac.JavacProject;
-import com.surelogic.fluid.javac.Projects;
+import com.surelogic.javac.Config;
+import com.surelogic.javac.IClassPathEntry;
+import com.surelogic.javac.JavacProject;
+import com.surelogic.javac.Projects;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 
