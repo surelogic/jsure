@@ -1,4 +1,4 @@
-package com.surelogic.javac.scans;
+package com.surelogic.scans;
 
 /**
  * Listens to whether the baseline/current scans have changed

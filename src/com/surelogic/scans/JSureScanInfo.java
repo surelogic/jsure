@@ -1,4 +1,4 @@
-package com.surelogic.javac.scans;
+package com.surelogic.scans;
 
 import java.io.File;
 import java.util.*;
