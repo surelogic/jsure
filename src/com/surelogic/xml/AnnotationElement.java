@@ -105,7 +105,8 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 				markAsDirty();
 				attributes.put(DIRTY_ATTRB, "true");
 			} else {
-				l.reportError("Annotation unparseable", "There was a problem parsing the contents of the promise");
+				// Handled by parses()
+				//l.reportError("Annotation unparseable", "There was a problem parsing the contents of the promise");
 			}
 		} else {
 			l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
