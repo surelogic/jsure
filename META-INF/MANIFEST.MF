@@ -12,8 +12,7 @@ Require-Bundle: com.surelogic.common,
  com.surelogic.jsure.client.eclipse,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
- org.eclipse.ui,
- com.surelogic.fluid.javac
+ org.eclipse.ui
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: SureLogic, Inc.

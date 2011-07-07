@@ -15,7 +15,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
 
 import edu.cmu.cs.fluid.java.AbstractSrcRef;
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.IDropInfo;
 //import edu.cmu.cs.fluid.sea.Sea;
 //import edu.cmu.cs.fluid.sea.drops.*;
 

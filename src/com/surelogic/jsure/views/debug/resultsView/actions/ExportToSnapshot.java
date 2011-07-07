@@ -22,7 +22,6 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.jsure.core.listeners.PersistentDropInfo;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.drops.ProjectsDrop;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSummary;

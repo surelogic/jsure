@@ -17,8 +17,7 @@ import edu.cmu.cs.fluid.util.ArrayUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.jsure.client.eclipse.views.*;
-import com.surelogic.jsure.core.listeners.PersistentDropInfo;
-import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.javac.scans.*;
 
 public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	private static final Object[] noElements = ArrayUtil.empty;
