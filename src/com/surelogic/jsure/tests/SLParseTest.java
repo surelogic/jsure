@@ -13,7 +13,7 @@ import com.surelogic.annotation.rules.*;
 import com.surelogic.annotation.rules.LockRulesTestHelper.*;
 import com.surelogic.annotation.rules.MethodEffectsRulesHelper.RegionEffects_ParseRuleHelper;
 import com.surelogic.annotation.rules.RegionRulesTestHelper.*;
-import com.surelogic.fluid.javac.Javac;
+import com.surelogic.javac.Javac;
 import com.surelogic.jsure.core.Eclipse;
 
 import edu.cmu.cs.fluid.ir.IRNode;

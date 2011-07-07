@@ -7,8 +7,8 @@ import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
-import com.surelogic.fluid.javac.Javac;
-import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.Javac;
+import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.test.xml.JUnitXMLOutput;
 
 public class RemoteJSureRunTest extends RemoteJSureRun {
