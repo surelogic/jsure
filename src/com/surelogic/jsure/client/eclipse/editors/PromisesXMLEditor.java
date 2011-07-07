@@ -19,6 +19,7 @@ import org.eclipse.ui.part.EditorPart;
 
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
+import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.SLImages;
@@ -316,6 +317,7 @@ public class PromisesXMLEditor extends EditorPart {
 			} 
 			else if (o instanceof ClassElement) {
 				final ClassElement c = (ClassElement) o;
+				// TODO scoped promise
 				makeMenuItem(menu, "Add existing method(s)...", new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
@@ -381,7 +383,10 @@ public class PromisesXMLEditor extends EditorPart {
 			// This will remove it if there should only be one of that kind
 			annos.remove(a.getUid());
 		}
-		List<String> rv = new ArrayList<String>(annos);
+		// These should never appear in XML files
+		annos.remove(ScopedPromiseRules.ASSUME); 
+		
+		List<String> rv = new ArrayList<String>(annos);		
 		Collections.sort(rv);
 		return rv;
 	}
