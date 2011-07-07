@@ -1,72 +1,76 @@
 package com.surelogic.jsure.core.scans;
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.javac.persistence.*;
+import com.surelogic.javac.persistence.JSureData;
+import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 /**
- * Manages the scans in the JSure data directory
+ * Singleton that manages the scans in the JSure data directory.
  * 
  * @author Edwin
  */
-public class JSureScanManager {
-	private static final JSureScanManager prototype = new JSureScanManager();
-	
+public final class JSureScanManager {
+
+	private static final JSureScanManager INSTANCE = new JSureScanManager();
+
 	public static JSureScanManager getInstance() {
-		return prototype;
+		return INSTANCE;
 	}
-	
-	private final List<IJSureScanManagerListener> listeners = new CopyOnWriteArrayList<IJSureScanManagerListener>();
+
+	private final List<IJSureScanManagerListener> f_listeners = new CopyOnWriteArrayList<IJSureScanManagerListener>();
+
 	private JSureData data;
-	
+
 	private JSureScanManager() {
 		final File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
 		data = JSureDataDirScanner.scan(dataDir);
 	}
-	
+
 	public void addListener(IJSureScanManagerListener l) {
-		listeners.add(l);
+		f_listeners.add(l);
 	}
-	
+
 	public void removeListener(IJSureScanManagerListener l) {
-		listeners.remove(l);
+		f_listeners.remove(l);
 	}
-	
+
 	private void notify(DataDirStatus s, File dir) {
-		for(IJSureScanManagerListener l : listeners) {
+		for (IJSureScanManagerListener l : f_listeners) {
 			l.updateScans(s, dir);
-		}		
+		}
 	}
-	
+
 	public synchronized JSureData getData() {
 		return data;
 	}
-	
-	public void addedScan(File run) {		
+
+	public void addedScan(File run) {
 		if (run == null || !run.isDirectory()) {
-			throw new IllegalArgumentException("Bad scan directory: "+run);
+			throw new IllegalArgumentException("Bad scan directory: " + run);
 		}
 		synchronized (this) {
 			if (data == null) {
 				throw new IllegalStateException("No scan data");
-			}
-			else if (data.getDataDir() == null) {
+			} else if (data.getDataDir() == null) {
 				throw new IllegalStateException("No data dir");
 			}
 			if (!data.getDataDir().equals(run.getParentFile())) {
-				throw new IllegalArgumentException("Scan directory is not under the JSure data dir: "+run);
+				throw new IllegalArgumentException(
+						"Scan directory is not under the JSure data dir: "
+								+ run);
 			}
 			data = JSureDataDirScanner.scan(data);
 		}
 		notify(DataDirStatus.ADDED, run);
 	}
-	
+
 	public void removedScans() {
 		File dir;
 		synchronized (this) {
@@ -75,7 +79,7 @@ public class JSureScanManager {
 		}
 		notify(DataDirStatus.CHANGED, dir);
 	}
-	
+
 	/**
 	 * Sets the JSure data directory to an existing directory.
 	 * <p>
@@ -96,9 +100,10 @@ public class JSureScanManager {
 				if (dir.equals(data.getDataDir())) {
 					// Ignoring, since it's the same as the current data dir
 					return;
-				}			
+				}
 				EclipseUtility.setStringPreference(
-						IDEPreferences.JSURE_DATA_DIRECTORY, dir.getAbsolutePath());
+						IDEPreferences.JSURE_DATA_DIRECTORY,
+						dir.getAbsolutePath());
 				data = JSureDataDirScanner.scan(dir);
 			}
 			notify(DataDirStatus.CHANGED, dir);
