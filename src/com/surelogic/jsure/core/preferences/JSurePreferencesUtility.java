@@ -8,8 +8,8 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.preferences.AutoPerspectiveSwitchPreferences;
 import com.surelogic.javac.Javac;
-import com.surelogic.javac.scans.ScanUpdateMode;
 import com.surelogic.jsure.core.driver.DriverConstants;
+import com.surelogic.scans.ScanUpdateMode;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -36,8 +36,8 @@ public final class JSurePreferencesUtility {
 	 * trigger Eclipse to load the containing plug-in. This is because the
 	 * constants are copied by the Java compiler into using class files. This
 	 * means that each using plug-in <b>must</b> invoke
-	 * {@link #initializeDefaultScope()} in its plug-in activator's {@code
-	 * start} method.
+	 * {@link #initializeDefaultScope()} in its plug-in activator's
+	 * {@code start} method.
 	 */
 	public static void initializeDefaultScope() {
 		if (f_initializationNeeded.compareAndSet(true, false)) {
@@ -99,8 +99,9 @@ public final class JSurePreferencesUtility {
 			EclipseUtility.setDefaultIntPreference(IDEPreferences.TIMEOUT_SEC,
 					60);
 
-			EclipseUtility.setDefaultBooleanPreference(SAVE_DIRTY_EDITORS_BEFORE_VERIFY, false);
-			
+			EclipseUtility.setDefaultBooleanPreference(
+					SAVE_DIRTY_EDITORS_BEFORE_VERIFY, false);
+
 			/*
 			 * We'll take the default-default for the other preferences.
 			 */
@@ -130,7 +131,8 @@ public final class JSurePreferencesUtility {
 			+ "lockModelNameSuffix";
 	public static final String LOCK_MODEL_NAME_CAP = PREFIX
 			+ "lockModelNameCap";
-	public static final String SAVE_DIRTY_EDITORS_BEFORE_VERIFY = PREFIX + "save.before.verify";
+	public static final String SAVE_DIRTY_EDITORS_BEFORE_VERIFY = PREFIX
+			+ "save.before.verify";
 
 	public static final String BASELINE_SCAN = PREFIX + "baseline.scan";
 	public static final String CURRENT_SCAN = PREFIX + "current.scan";

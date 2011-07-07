@@ -1,11 +1,15 @@
 package com.surelogic.jsure.core.preferences;
 
+import static com.surelogic.jsure.core.preferences.JSurePreferencesUtility.BASELINE_SCAN;
+import static com.surelogic.jsure.core.preferences.JSurePreferencesUtility.CURRENT_SCAN;
+import static com.surelogic.jsure.core.preferences.JSurePreferencesUtility.SCAN_UPDATE_MODE;
+
 import java.io.File;
 
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.javac.scans.*;
-
-import static com.surelogic.jsure.core.preferences.JSurePreferencesUtility.*;
+import com.surelogic.scans.JSureScansHub;
+import com.surelogic.scans.ScanStatus;
+import com.surelogic.scans.ScanUpdateMode;
 
 /**
  * Handles the Eclipse-specific details of persisting the scan info
@@ -16,15 +20,15 @@ public class JSureEclipseHub extends JSureScansHub {
 	static {
 		setInstance(new JSureEclipseHub());
 	}
-	
+
 	public static void init() {
 		// Create the instance above
 	}
-	
+
 	private JSureEclipseHub() {
 		// Nothing to do
 	}
-	
+
 	@Override
 	protected ScanStatus persistScans(String baseline, String current) {
 		ScanStatus changed = ScanStatus.NEITHER_CHANGED;
@@ -53,7 +57,8 @@ public class JSureEclipseHub extends JSureScansHub {
 
 	@Override
 	protected File getScanDir(boolean current) {
-		final String dir = EclipseUtility.getStringPreference(current ? CURRENT_SCAN : BASELINE_SCAN);
+		final String dir = EclipseUtility
+				.getStringPreference(current ? CURRENT_SCAN : BASELINE_SCAN);
 		return new File(dir);
 	}
 
