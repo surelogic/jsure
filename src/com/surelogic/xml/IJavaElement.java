@@ -2,6 +2,8 @@ package com.surelogic.xml;
 
 import com.surelogic.common.logging.IErrorListener;
 
+import edu.cmu.cs.fluid.tree.Operator;
+
 /**
  * Mostly for use by a Content/LabelProvider
  * 
@@ -18,4 +20,5 @@ public interface IJavaElement {
 	
 	boolean canModify();
 	void modify(String value, IErrorListener l);
+	Operator getOperator();
 }

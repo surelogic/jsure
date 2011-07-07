@@ -2,13 +2,18 @@ package com.surelogic.xml;
 
 import java.util.*;
 
+import com.surelogic.aast.*;
+import com.surelogic.annotation.*;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.Annotation;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class AnnotationElement extends CommentedJavaElement implements TestXMLParserConstants {
 	private final String uid;
@@ -95,12 +100,51 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 			return;
 		}
 		if (!contents.equals(text)) {
-			contents = text;		
-			markAsDirty();
-			attributes.put(DIRTY_ATTRB, "true");
+			if (parses(promise, text, l)) {
+				contents = text;		
+				markAsDirty();
+				attributes.put(DIRTY_ATTRB, "true");
+			} else {
+				l.reportError("Annotation unparseable", "There was a problem parsing the contents of the promise");
+			}
 		} else {
 			l.reportError("Annotation unchanged", "The contents of the promise were unchanged");
 		}
+	}
+	
+	private boolean parses(final String promise, final String text, final IErrorListener l) {
+		final IAnnotationParseRule<?,?> rule = PromiseFramework.getInstance().getParseDropRule(promise);
+		final IAnnotationParsingContext context = new AbstractAnnotationParsingContext(AnnotationSource.XML) {			
+			@Override
+			protected IRNode getNode() {
+				return null; // None to return
+			}
+			@Override
+			public Operator getOp() {
+				return getParent().getOperator();
+			}
+
+			@Override
+			public <T extends IAASTRootNode> void reportAAST(int offset,
+					AnnotationLocation loc, Object o, T ast) {				
+				// Ignore this; we only care that it parses
+			}
+
+			@Override
+			public void reportError(int offset, String msg) {
+				l.reportError("Problem parsing annotation", msg);
+			}
+			@Override
+			public void reportException(int offset, Exception e) {
+				e.printStackTrace();
+				l.reportError("Problem parsing annotation", e.getMessage()+" at "+e.getStackTrace()[0]);				
+			}			
+		};
+		return rule.parse(context, text) == ParseResult.OK;
+	}
+	
+	public Operator getOperator() {
+		return Annotation.prototype;
 	}
 	
 	public final String getUid() {

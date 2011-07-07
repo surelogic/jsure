@@ -3,6 +3,8 @@ package com.surelogic.xml;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.IErrorListener;
 
+import edu.cmu.cs.fluid.java.operator.StringLiteral;
+import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public class CommentElement extends AbstractJavaElement {
@@ -24,6 +26,10 @@ public class CommentElement extends AbstractJavaElement {
 			return comment.equals(other.comment);
 		}
 		return false;
+	}
+	
+	public Operator getOperator() {
+		return StringLiteral.prototype;
 	}
 	
 	public String getImageKey() {
