@@ -188,7 +188,7 @@
 		<mkdir dir="${sandbox.jsure.build.features.dir}" />
 
 		<!-- THE LISTS BELOW SHOULD BE UPDATED IF THE PLUG-INs/FEATUREs COMPRISING JSURE CHANGE -->
-		<property name="jsure.plugin.projects" value="common, common-core-eclipse, fluid, fluid-javac, jsure-core-eclipse, jsure-tests" />
+		<property name="jsure.plugin.projects" value="common, common-core-eclipse, fluid, jsure-core-eclipse, jsure-tests" />
 		<property name="jsure.feature.id" value="com.surelogic.feature.jsure.tests" />
 
 		<!-- Copy JSure plug-in projects for headless build -->
@@ -218,8 +218,8 @@
                      file ahead of the bootclasspath. This project only needs the contents
                      of classes.jar (on OS X). But if Java on OS X is updated then the
                      absolute path below may need to be updated.-->
-				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}fluid-javac${fs}build.properties">
-					<entry key="bootClasspath" value="lib/javac.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar" />
+				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}fluid${fs}build.properties">
+					<entry key="bootClasspath" value="lib/runtime/javac.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar" />
 				</propertyfile>
 				<echo message="[OS X] fluid-javac bootClasspath changed..." />
 			</then>
