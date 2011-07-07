@@ -208,7 +208,7 @@ public class ScopedPromiseRules extends AnnotationRules {
 	static class Promise_ParseRule extends
 			ScopedPromiseRule<ScopedPromiseNode, PromisePromiseDrop> {
 		protected Promise_ParseRule() {
-			super(PROMISE, anyOp, ScopedPromiseNode.class);
+			super(PROMISE, packageTypeDeclOps, ScopedPromiseNode.class);
 		}
 		
 		@Override
