@@ -6,8 +6,8 @@ import java.util.Arrays;
 
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
-import com.surelogic.fluid.javac.*;
-import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.javac.*;
+import com.surelogic.javac.scans.*;
 
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView implements IJSureScanListener {
 	private static Projects projects;

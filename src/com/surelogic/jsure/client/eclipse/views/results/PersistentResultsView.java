@@ -6,7 +6,7 @@ import java.util.*;
 import org.eclipse.ui.IMemento;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.javac.scans.*;
 import com.surelogic.jsure.core.preferences.JSureEclipseHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 

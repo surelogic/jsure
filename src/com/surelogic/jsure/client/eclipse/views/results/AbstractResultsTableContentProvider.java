@@ -9,7 +9,7 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.fluid.javac.scans.ScanStatus;
+import com.surelogic.javac.scans.ScanStatus;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
 
 import edu.cmu.cs.fluid.java.ISrcRef;

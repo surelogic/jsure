@@ -1,22 +1,16 @@
 package com.surelogic.jsure.client.eclipse.views;
 
 import java.util.logging.Level;
-
-
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.*;
 
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.part.*;
 
-
-
 import com.surelogic.common.i18n.*;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.javac.scans.*;
 import com.surelogic.jsure.core.preferences.JSureEclipseHub;
-
-
 
 /**
  * Handles whether there is any scan to show.

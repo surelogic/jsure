@@ -4,7 +4,7 @@ import java.io.*;
 
 import org.eclipse.swt.widgets.*;
 
-import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.javac.scans.*;
 import com.surelogic.jsure.client.eclipse.views.*;
 import com.surelogic.jsure.core.preferences.JSureEclipseHub;
 import com.surelogic.jsure.core.scans.*;

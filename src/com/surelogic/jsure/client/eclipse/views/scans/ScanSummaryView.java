@@ -24,11 +24,11 @@ import org.swtchart.ISeries.SeriesType;
 import com.surelogic.common.*;
 import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.views.ITableContentProvider;
-import com.surelogic.fluid.javac.JavacTypeEnvironment;
-import com.surelogic.fluid.javac.Projects;
-import com.surelogic.fluid.javac.scans.*;
-import com.surelogic.fluid.javac.jobs.RemoteJSureRun;
-import com.surelogic.fluid.javac.persistence.*;
+import com.surelogic.javac.JavacTypeEnvironment;
+import com.surelogic.javac.Projects;
+import com.surelogic.javac.scans.*;
+import com.surelogic.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.persistence.*;
 import com.surelogic.jsure.core.scans.*;
 
 import edu.cmu.cs.fluid.sea.SeaStats;

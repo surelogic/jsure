@@ -6,7 +6,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.javac.scans.*;
 
 import edu.cmu.cs.fluid.sea.*;
 

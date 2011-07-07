@@ -4,7 +4,7 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import com.surelogic.fluid.javac.scans.*;
+import com.surelogic.javac.scans.*;
 
 import edu.cmu.cs.fluid.sea.*;
 

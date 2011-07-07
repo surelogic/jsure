@@ -12,15 +12,13 @@ import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.text.edits.TextEdit;
 
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.ui.refactor.PromisesAnnotationRewriter;
 import com.surelogic.common.refactor.AnnotationDescription;
 import com.surelogic.common.refactor.Field;
 import com.surelogic.common.refactor.IJavaDeclaration;
 import com.surelogic.common.refactor.AnnotationDescription.CU;
-import com.surelogic.fluid.javac.JavacTypeEnvironment;
+import com.surelogic.javac.JavacTypeEnvironment;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
