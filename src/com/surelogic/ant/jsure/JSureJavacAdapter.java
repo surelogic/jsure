@@ -10,12 +10,10 @@ import org.apache.tools.ant.types.*;
 import org.apache.tools.ant.util.StringUtils;
 
 import com.surelogic.common.jobs.NullSLProgressMonitor;
-import com.surelogic.fluid.javac.Config;
-import com.surelogic.fluid.javac.JavaSourceFile;
-import com.surelogic.fluid.javac.Projects;
-import com.surelogic.fluid.javac.Util;
-
-import edu.cmu.cs.fluid.util.Pair;
+import com.surelogic.javac.Config;
+import com.surelogic.javac.JavaSourceFile;
+import com.surelogic.javac.Projects;
+import com.surelogic.javac.Util;
 
 public class JSureJavacAdapter extends DefaultCompilerAdapter {
 	boolean keepRunning = true;
