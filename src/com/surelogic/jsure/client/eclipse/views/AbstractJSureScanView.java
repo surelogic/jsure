@@ -9,8 +9,10 @@ import org.eclipse.ui.part.*;
 
 import com.surelogic.common.i18n.*;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.javac.scans.*;
 import com.surelogic.jsure.core.preferences.JSureEclipseHub;
+import com.surelogic.scans.IJSureScanListener;
+import com.surelogic.scans.JSureScansHub;
+import com.surelogic.scans.ScanStatus;
 
 /**
  * Handles whether there is any scan to show.

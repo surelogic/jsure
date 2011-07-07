@@ -7,59 +7,67 @@ import java.util.Arrays;
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
 import com.surelogic.javac.*;
-import com.surelogic.javac.scans.*;
+import com.surelogic.scans.IJSureScanListener;
+import com.surelogic.scans.JSureScanInfo;
+import com.surelogic.scans.JSureScansHub;
+import com.surelogic.scans.ScanStatus;
 
-public class JSureHistoricalSourceView extends AbstractHistoricalSourceView implements IJSureScanListener {
+public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
+		implements IJSureScanListener {
 	private static Projects projects;
-    private static ISourceZipFileHandles zips;
-    private static boolean viewIsEnabled = true;    
-    
-    public JSureHistoricalSourceView() {
-    	scansChanged(ScanStatus.CURRENT_CHANGED);
-    }
-    
+	private static ISourceZipFileHandles zips;
+	private static boolean viewIsEnabled = true;
+
+	public JSureHistoricalSourceView() {
+		scansChanged(ScanStatus.CURRENT_CHANGED);
+	}
+
 	@Override
 	public void scansChanged(ScanStatus status) {
 		if (status.currentChanged()) {
-			final JSureScanInfo info = JSureScansHub.getInstance().getCurrentScanInfo();
+			final JSureScanInfo info = JSureScansHub.getInstance()
+					.getCurrentScanInfo();
 			projects = info.getProjects();
 			zips = new ISourceZipFileHandles() {
 				public Iterable<File> getSourceZips() {
-					return Arrays.asList(new File(info.getLocation(), "zips").listFiles());
+					return Arrays.asList(new File(info.getLocation(), "zips")
+							.listFiles());
 				}
 			};
 		}
 	}
-    
-    @Override
-    protected ISourceZipFileHandles findSources(String run) {
-        //if (config.getRun().equals(run)) {
-            return zips;
-        //}
-        //return null;
-    }
 
-    public static void tryToOpenInEditor(final String pkg,
-            final String type, int lineNumber) {
-    	if (viewIsEnabled) {
-    		tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type, lineNumber);      
-    	}
-    }
-    
-    public static void tryToOpenInEditor(final String pkg,
-            final String type, final String field) {
-    	if (viewIsEnabled) {
-    		tryToOpenInEditorUsingFieldName(JSureHistoricalSourceView.class, null, pkg, type, field);       
-    	}
-    }
+	@Override
+	protected ISourceZipFileHandles findSources(String run) {
+		// if (config.getRun().equals(run)) {
+		return zips;
+		// }
+		// return null;
+	}
 
-    public static String tryToMapPath(String path) {
-    	if (projects == null) {
-    		return path;
-    	}
+	public static void tryToOpenInEditor(final String pkg, final String type,
+			int lineNumber) {
+		if (viewIsEnabled) {
+			tryToOpenInEditor(JSureHistoricalSourceView.class, null, pkg, type,
+					lineNumber);
+		}
+	}
+
+	public static void tryToOpenInEditor(final String pkg, final String type,
+			final String field) {
+		if (viewIsEnabled) {
+			tryToOpenInEditorUsingFieldName(JSureHistoricalSourceView.class,
+					null, pkg, type, field);
+		}
+	}
+
+	public static String tryToMapPath(String path) {
+		if (projects == null) {
+			return path;
+		}
 		try {
-	    	final URI uri = new URI(path);
-			for(Config config : projects.getConfigs()) {
+			final URI uri = new URI(path);
+			for (Config config : projects.getConfigs()) {
 				JavaSourceFile f = config.mapPath(uri);
 				if (f != null) {
 					String mapped = f.file.toURI().toString();
@@ -71,6 +79,6 @@ public class JSureHistoricalSourceView extends AbstractHistoricalSourceView impl
 		} catch (URISyntaxException e) {
 			// Nothing to do
 		}
-        return path;
-    }
+		return path;
+	}
 }

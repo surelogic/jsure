@@ -6,21 +6,26 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.javac.scans.*;
+import com.surelogic.scans.JSureScanInfo;
+import com.surelogic.scans.JSureScansHub;
+import com.surelogic.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.sea.*;
 
-public final class ProblemsViewContentProvider extends AbstractResultsTableContentProvider<IDropInfo> {
+public final class ProblemsViewContentProvider extends
+		AbstractResultsTableContentProvider<IDropInfo> {
 	ProblemsViewContentProvider() {
 		super("Description");
 	}
-	
+
 	protected String getAndSortResults(ScanStatus s, List<IDropInfo> contents) {
-		final JSureScanInfo info = JSureScansHub.getInstance().getCurrentScanInfo();
+		final JSureScanInfo info = JSureScansHub.getInstance()
+				.getCurrentScanInfo();
 		if (info == null) {
 			return null;
 		}
-		Set<? extends IDropInfo> promiseWarningDrops = info.getDropsOfType(PromiseWarningDrop.class);
+		Set<? extends IDropInfo> promiseWarningDrops = info
+				.getDropsOfType(PromiseWarningDrop.class);
 		for (IDropInfo id : promiseWarningDrops) {
 			// only show info drops at the main level if they are not
 			// attached

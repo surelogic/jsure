@@ -5,9 +5,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import com.surelogic.common.ui.ColumnViewerSorter;
-import com.surelogic.javac.scans.*;
-
-import edu.cmu.cs.fluid.sea.*;
+import com.surelogic.scans.ScanStatus;
 
 /**
  * Uses a TableViewer
