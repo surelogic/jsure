@@ -68,4 +68,8 @@ public class SourceRef extends AbstractRef {
 	public String getPackage() {
 		return ref.getPackage();
 	}
+	
+	public String getProject() {
+		return ref.getProjectName();
+	}
 }

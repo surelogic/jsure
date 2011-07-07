@@ -6,8 +6,10 @@ import com.surelogic.common.HashGenerator;
 public final class NamedSrcRef extends AbstractSrcRef {
   private final Object file;
   private final String pkg, cunit;
+  private final String project;
   
-  public NamedSrcRef(Object f, String p, String cu) {
+  public NamedSrcRef(String proj, Object f, String p, String cu) {
+	project = proj;
     file = f;
     pkg = CommonStrings.intern(p);
     cunit = cu;
@@ -29,6 +31,11 @@ public final class NamedSrcRef extends AbstractSrcRef {
   public String getPackage() {
 	  return pkg;
   }
+  
+  public String getProject() {
+	  return project;
+  }
+  
   @Override
   public String getRelativePath() {
 	  return cunit;

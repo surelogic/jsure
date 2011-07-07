@@ -148,10 +148,10 @@ public class AbstractAdapter {
 	}
 
 	protected void createLastMinuteNodes(IRNode root) {
-		createLastMinuteNodes(root, false);
+		createLastMinuteNodes(root, false, null);
 	}
 	
-	protected void createLastMinuteNodes(IRNode root, boolean makeSrcRefs) {
+	protected void createLastMinuteNodes(IRNode root, final boolean makeSrcRefs, final String project) {
 		final String pkg  = makeSrcRefs ? VisitUtil.getPackageName(root) : null;
 		final IRNode type = makeSrcRefs ? VisitUtil.getPrimaryType(root) : null;
 		final String cu   = makeSrcRefs ? JavaNames.getTypeName(type) : null; 
@@ -193,7 +193,7 @@ public class AbstractAdapter {
 				//System.out.println("Adding last-minute nodes to "+JavaNames.getFullTypeName(n));
 				if (makeSrcRefs) {
 					String name = JavaNames.getFullTypeName(n);
-					ISrcRef ref = new NamedSrcRef(name, pkg, cu);
+					ISrcRef ref = new NamedSrcRef(project, name, pkg, cu);
 					JavaNode.setSrcRef(n, ref);
 				}
 			}

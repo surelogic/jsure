@@ -23,4 +23,9 @@ public class DummySrcRef extends AbstractSrcRef {
 	  // TODO Auto-generated method stub
 	  return null;
   }
+
+  public String getProject() {
+	  // TODO Auto-generated method stub
+	  return null;
+  }
 }

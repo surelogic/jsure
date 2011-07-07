@@ -51,6 +51,7 @@ public class AbstractSeaXmlCreator extends XMLCreator {
 		addAttribute(HASH_ATTR, getHash(context));
 		addAttribute(CUNIT_ATTR, s.getCUName());
 		addAttribute(PKG_ATTR, s.getPackage());
+		addAttribute(PROJECT_ATTR, s.getProject());
 		b.append("/>\n");
 	}
 	

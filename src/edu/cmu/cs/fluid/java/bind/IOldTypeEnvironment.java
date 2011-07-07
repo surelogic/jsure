@@ -11,7 +11,6 @@ import java.util.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.IIRProject;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -163,7 +162,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       JavaNode.setModifier(privateLengthField, JavaNode.FINAL, true);      
       
       final ISrcRef ref = 
-    	  new NamedSrcRef(PromiseConstants.ARRAY_CLASS_QNAME, "java.lang", 
+    	  new NamedSrcRef(project, PromiseConstants.ARRAY_CLASS_QNAME, "java.lang", 
     			          PromiseConstants.ARRAY_CLASS_NAME);
       JavaNode.setSrcRef(privateCloneMethod, ref);
       JavaNode.setSrcRef(privateLengthField, ref);

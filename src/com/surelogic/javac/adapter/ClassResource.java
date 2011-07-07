@@ -5,8 +5,10 @@ import java.io.File;
 public class ClassResource {
 	final String pkg;
 	final String cuName;
+	final String project;
 	
-	ClassResource(String qname) {
+	ClassResource(String proj, String qname) {
+		project = proj;
 		int lastDot = qname.lastIndexOf('.');
 		if (lastDot >= 0) {
 			pkg = qname.substring(0, lastDot);
@@ -17,8 +19,8 @@ public class ClassResource {
 		}
 	}
 	
-	ClassResource(String qname, File f) {
-		this(qname);
+	ClassResource(String proj, String qname, File f) {
+		this(proj, qname);
 	}
 	
 	public String getPackage() {
@@ -35,5 +37,9 @@ public class ClassResource {
 
 	public long getHash() {
 		return getRelativePath().hashCode();
+	}
+
+	public String getProject() {
+		return project;
 	}
 }

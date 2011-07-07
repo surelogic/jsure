@@ -98,6 +98,10 @@ implements ISrcRef
 	  return super.getSrcRef().getPackage();
   }
   
+  public String getProject() {
+	  return super.getSrcRef().getProject();
+  }
+  
   public ISrcRef createSrcRef(int offset) {
 	throw new UnsupportedOperationException();
   }

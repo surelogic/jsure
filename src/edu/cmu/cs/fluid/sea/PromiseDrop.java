@@ -499,6 +499,11 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop
 		return ref == null ? null : ref.getPackage();
 	}
 
+	public String getProject() {
+		ISrcRef ref = super.getSrcRef();
+		return ref == null ? null : ref.getProject();
+	}
+	
 	/**
 	 * Set of promise annotations composing this promise drop.
 	 */

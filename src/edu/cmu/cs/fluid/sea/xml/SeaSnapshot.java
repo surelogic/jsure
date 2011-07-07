@@ -531,6 +531,10 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
 				public String getPackage() {
 					return ref.getAttribute(PKG_ATTR);
 				}				
+				
+				public String getProject() {
+					return ref.getAttribute(PROJECT_ATTR);
+				}
 			};
 		}
 		

@@ -40,6 +40,10 @@ public class ClassRef extends AbstractRef {
 		return 0;
 	}
 
+	public String getProject() {
+		return clazz.getProject();
+	}
+	
 	public String getPackage() {
 		return clazz.getPackage();
 	}

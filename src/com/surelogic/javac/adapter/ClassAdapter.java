@@ -37,7 +37,7 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 	IRNode root;
 	final List<IRNode> members = new ArrayList<IRNode>();
 	
-	public ClassAdapter(ZipFile j, String qname, boolean inner, int mods) {
+	public ClassAdapter(String project, ZipFile j, String qname, boolean inner, int mods) {
 		super(SLLogger.getLogger());
 		jar = j;
 		className = qname.replace('.', '/')+".class";
@@ -46,10 +46,10 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		debug     = Util.debug;
 		//debug     = "java/lang/Enum.class".equals(cls); 
 		this.mods = mods;
-		resource = new ClassResource(qname);
+		resource = new ClassResource(project, qname);
 	}
 
-	public ClassAdapter(File f, String qname, boolean inner, int mods) {
+	public ClassAdapter(String project, File f, String qname, boolean inner, int mods) {
 		super(SLLogger.getLogger());
 		jar = null;
 		className = null;
@@ -57,7 +57,7 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		isInner   = inner;
 		debug     = Util.debug;
 		this.mods = mods;
-		resource = new ClassResource(qname, f);
+		resource = new ClassResource(project, qname, f);
 	}
 	
 	public File getSource() {
@@ -109,7 +109,7 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 				IRNode imps  = ImportDeclarations.createNode(noNodes);
 				IRNode decls = TypeDeclarations.createNode(new IRNode[] { root });
 				IRNode cu    = CompilationUnit.createNode(pkg, imps, decls);
-				createLastMinuteNodes(cu, true);
+				createLastMinuteNodes(cu, true, resource.getProject());
 				JavaNode.setModifiers(cu, JavaNode.AS_BINARY);
                 /*
 				if ("java/lang/Object".equals(name)) {				
@@ -206,14 +206,15 @@ public class ClassAdapter extends AbstractAdapter implements ClassVisitor {
 		final int mods = adaptModifiers(access);
 		ClassAdapter a;
 		if (jar != null) {
-			a = new ClassAdapter(jar, name.replace('/', '.'), true, mods);
+			a = new ClassAdapter(resource.getProject(), jar, name.replace('/', '.'), true, mods);
 		} else {
 			int lastSlash = name.lastIndexOf('/');
 			if (lastSlash >= 0) {
 				name = name.substring(lastSlash+1);
 			}
 			String className = name+".class";
-			a = new ClassAdapter(new File(classFile.getParentFile(), className), 
+			a = new ClassAdapter(resource.getProject(), 
+					             new File(classFile.getParentFile(), className), 
 					             name.replace('/', '.'), true, mods);
 		}
 		try {
