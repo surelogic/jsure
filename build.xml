@@ -25,12 +25,13 @@
 		<fileset dir="../fluid/lib/jars"/>
 	  </copy>		
 	  
+	  <!--
 	  <jar destfile="./lib/fluid-javac.jar" basedir="../fluid-javac/bin" />
 		<mkdir dir="./lib/fluid-javac"/>
 		<copy todir="./lib/fluid-javac">
 			<fileset dir="../fluid-javac/lib"/>
 		</copy>	
-		
+	  -->
 	  <jar destfile="./lib/jsure-ant.jar" basedir="../jsure-ant/bin" />
 	  
 	</target>
