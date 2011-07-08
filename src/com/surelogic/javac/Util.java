@@ -840,7 +840,6 @@ public class Util {
 		// Precompute all the bindings
 		final long start = System.currentTimeMillis();
 		final Procedure<CodeInfo> bind = new Procedure<CodeInfo>() {
-			@Override
 			public void op(CodeInfo info) {				
 				if (monitor.isCanceled()) {
 					throw new CancellationException();

@@ -257,22 +257,18 @@ public class Javac extends IDE {
 			return false;
 		}
 
-		@Override
 		public Class<? extends IIRAnalysis> getAnalysisClass() {
 			return clazz;
 		}
 
-		@Override
 		public String getCategory() {
 			return null; // nothing's "required"
 		}
 
-		@Override
 		public String getLabel() {
 			return label;
 		}
 
-		@Override
 		public String[] getPrerequisiteIds() {
 			String[] result = new String[dependencies.size()];
 			int i=0;
@@ -282,17 +278,14 @@ public class Javac extends IDE {
 			return result;
 		}
 
-		@Override
 		public String getUniqueIdentifier() {
 			return id;
 		}
 
-		@Override
 		public boolean isIncluded() {
 			return IDE.getInstance().getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX+id);
 		}
 
-		@Override
 		public boolean isProduction() {
 			return isProduction;
 		}

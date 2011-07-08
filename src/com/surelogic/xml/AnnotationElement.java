@@ -120,25 +120,22 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 			protected IRNode getNode() {
 				return null; // None to return
 			}
-			@Override
 			public Operator getOp() {
 				return getParent().getOperator();
 			}
-			@Override
+
 			public String getSelectedText(int start, int stop) {
 				return text.substring(start, stop);
 			}			
-			@Override
+
 			public <T extends IAASTRootNode> void reportAAST(int offset,
 					AnnotationLocation loc, Object o, T ast) {				
 				// Ignore this; we only care that it parses
 			}
 
-			@Override
 			public void reportError(int offset, String msg) {
 				l.reportError("Problem parsing annotation", msg);
 			}
-			@Override
 			public void reportException(int offset, Exception e) {
 				e.printStackTrace();
 				l.reportError("Problem parsing annotation", e.getMessage()+" at "+e.getStackTrace()[0]);				
