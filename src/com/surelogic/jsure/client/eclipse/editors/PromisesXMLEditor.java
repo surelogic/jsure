@@ -29,6 +29,7 @@ import com.surelogic.xml.*;
 import com.surelogic.xml.IJavaElement;
 
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
 public class PromisesXMLEditor extends EditorPart {
@@ -265,23 +266,7 @@ public class PromisesXMLEditor extends EditorPart {
 		
 		if (o instanceof AnnotatedJavaElement) {
 			final AnnotatedJavaElement j = (AnnotatedJavaElement) o;
-			final List<String> annos = findMissingAnnos(j);
-			makeMenuItem(menu, "Add annotation...", new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					ListSelectionDialog d = new ListSelectionDialog(contents.getTree().getShell(), annos.toArray(), 
-				    		annoProvider, annoProvider, "Select annotation(s) to add");
-					if (d.open() == Window.OK) {
-						for(Object o : d.getResult()) {
-							final String tag = (String) o;
-							AnnotationElement a = new AnnotationElement(null, tag, "", Collections.<String,String>emptyMap());
-							j.addPromise(a);
-						}
-						contents.refresh();
-						contents.expandToLevel(j, 1);
-					}
-				}
-			});
+			makeMenuItem(menu, "Add annotation...", new AnnotationCreator(j));
 		
 			if (o instanceof AbstractFunctionElement) {
 				final AbstractFunctionElement f = (AbstractFunctionElement) o;
@@ -317,7 +302,9 @@ public class PromisesXMLEditor extends EditorPart {
 			} 
 			else if (o instanceof ClassElement) {
 				final ClassElement c = (ClassElement) o;
-				// TODO scoped promise
+				for(ScopedTargetType t : ScopedTargetType.values()) {
+					makeMenuItem(menu, "Add scoped promise for "+t.label+"...", new AnnotationCreator(j, t));
+				}
 				makeMenuItem(menu, "Add existing method(s)...", new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
@@ -368,27 +355,85 @@ public class PromisesXMLEditor extends EditorPart {
 		}
 	}
 	
-	private List<String> findMissingAnnos(AnnotatedJavaElement j) {
+	private class AnnotationCreator extends SelectionAdapter {
+		final AnnotatedJavaElement j;
+		final ScopedTargetType target;
+		final boolean makeScopedPromise;
+		
+		AnnotationCreator(AnnotatedJavaElement aje, ScopedTargetType t) {		
+			j = aje;
+			target = t;
+			makeScopedPromise = t != null;
+		}
+		
+		AnnotationCreator(AnnotatedJavaElement aje) {
+			this(aje, null);
+		}
+		
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			final List<String> annos;
+			if (makeScopedPromise) {
+				annos = findMissingAnnos(j);
+			} else {
+				annos = sortSet(remove(findApplicableAnnos(target.op), ScopedPromiseRules.PROMISE));
+			}
+			ListSelectionDialog d = new ListSelectionDialog(contents.getTree().getShell(), annos.toArray(), 
+		    		annoProvider, annoProvider, 
+		    		makeScopedPromise ? "Select scoped promise(s) to add" : "Select annotation(s) to add");
+			if (d.open() == Window.OK) {
+				for(Object o : d.getResult()) {
+					final String tag = (String) o;
+					final AnnotationElement a;
+					final Map<String,String> attrs = Collections.<String,String>emptyMap();
+					if (makeScopedPromise) {
+						a = new AnnotationElement(null, ScopedPromiseRules.PROMISE, "@"+tag+" for "+target.target, attrs);
+					} else {
+						a = new AnnotationElement(null, tag, "", attrs);
+					}
+					j.addPromise(a);
+				}
+				contents.refresh();
+				contents.expandToLevel(j, 1);
+			}
+		}
+	}
+	
+	private List<String> sortSet(final Set<String> s) {
+		List<String> rv = new ArrayList<String>(s);		
+		Collections.sort(rv);
+		return rv;
+	}
+	
+	private Set<String> findApplicableAnnos(final Operator op) {
 		final Set<String> annos = new HashSet<String>();
 		// Get valid/applicable annos
 		for(IAnnotationParseRule<?,?> rule : PromiseFramework.getInstance().getParseDropRules()) {			
 			if (!(rule instanceof NullAnnotationParseRule) &&
-				rule.declaredOnValidOp(j.getOperator()) && 
+				rule.declaredOnValidOp(op) && 
 				AnnotationElement.isIdentifier(rule.name())) {
 				annos.add(rule.name());
 			}
 		}
+		// These should never appear in XML files
+		annos.remove(ScopedPromiseRules.ASSUME); 
+		return annos;
+	}
+	
+	private Set<String> remove(Set<String> s, String elt) {
+		s.remove(elt);
+		return s;
+	}
+	
+	private List<String> findMissingAnnos(AnnotatedJavaElement j) {
+		final Set<String> annos = findApplicableAnnos(j.getOperator());
+		
 		// Remove clashes
 		for(AnnotationElement a : j.getPromises()) {
 			// This will remove it if there should only be one of that kind
 			annos.remove(a.getUid());
 		}
-		// These should never appear in XML files
-		annos.remove(ScopedPromiseRules.ASSUME); 
-		
-		List<String> rv = new ArrayList<String>(annos);		
-		Collections.sort(rv);
-		return rv;
+		return sortSet(annos);
 	}
 
 	static class NewParameter {
