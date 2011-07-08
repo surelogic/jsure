@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.javac.persistence.JSureData;
+import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
@@ -26,7 +26,7 @@ public final class JSureScanManager {
 
 	private final List<IJSureScanManagerListener> f_listeners = new CopyOnWriteArrayList<IJSureScanManagerListener>();
 
-	private JSureData data;
+	private JSureDataDir data;
 
 	private JSureScanManager() {
 		final File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
@@ -47,8 +47,10 @@ public final class JSureScanManager {
 		}
 	}
 
-	public synchronized JSureData getData() {
-		return data;
+	public JSureDataDir getData() {
+		synchronized (this) {
+			return data;
+		}
 	}
 
 	public void addedScan(File run) {
