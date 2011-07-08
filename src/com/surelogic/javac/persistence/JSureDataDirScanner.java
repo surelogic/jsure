@@ -20,13 +20,13 @@ public class JSureDataDirScanner {
 		}
 	}
 	
-	public static JSureData scan(JSureData oldData) {
+	public static JSureDataDir scan(JSureDataDir oldData) {
 		// This redoes everything
 		// return scan(oldData.getDataDir());
 		return organizeRuns(oldData.getDataDir(), oldData.updateRuns());
 	}
 	
-	public static JSureData scan(File dataDir) {
+	public static JSureDataDir scan(File dataDir) {
 		final Map<String,JSureRun> runs = new HashMap<String,JSureRun>();
 		
 		// Look for run directories
@@ -39,7 +39,7 @@ public class JSureDataDirScanner {
 		return organizeRuns(dataDir, runs);
 	}
 	
-	private static JSureData organizeRuns(File dataDir, Map<String,JSureRun> runs) {	
+	private static JSureDataDir organizeRuns(File dataDir, Map<String,JSureRun> runs) {	
 		// Figure out which are the full runs, and which are the last partial runs
 		final List<JSureRun> full = new ArrayList<JSureRun>();
 		// These should end up to be the last in a series
@@ -96,7 +96,7 @@ public class JSureDataDirScanner {
 			}
 		}
 		try {
-			return new JSureData(dataDir, runs, project2run);
+			return new JSureDataDir(dataDir, runs, project2run);
 		} catch(Exception ex) {
 			ex.printStackTrace();
 			return null;
