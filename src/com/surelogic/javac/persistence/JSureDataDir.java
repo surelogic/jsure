@@ -3,6 +3,10 @@ package com.surelogic.javac.persistence;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Contains information about what scans or runs exist in a JSure data
+ * directory.
+ */
 public class JSureDataDir {
 	private final File dataDir;
 	private final Map<String, JSureRun> runs;
@@ -19,9 +23,7 @@ public class JSureDataDir {
 		}
 	}
 
-	// TODO will I really do this by project?
-	// Assumes that we have results data for all these ... probably should check
-	public File getDataDir() {
+	public File getDir() {
 		return dataDir;
 	}
 
@@ -42,8 +44,7 @@ public class JSureDataDir {
 		return runs.values().toArray(new JSureRun[runs.size()]);
 	}
 
-	// Modified from JSureDataDirScanner.scan(File)
-	Map<String, JSureRun> updateRuns() {
+	synchronized Map<String, JSureRun> updateRuns() {
 		// Collect together existing info about runs
 		final Map<File, JSureRun> oldInfo = new HashMap<File, JSureRun>();
 		for (JSureRun r : runs.values()) {
