@@ -60,10 +60,10 @@ public final class JSureScanManager {
 		synchronized (this) {
 			if (data == null) {
 				throw new IllegalStateException("No scan data");
-			} else if (data.getDataDir() == null) {
+			} else if (data.getDir() == null) {
 				throw new IllegalStateException("No data dir");
 			}
-			if (!data.getDataDir().equals(run.getParentFile())) {
+			if (!data.getDir().equals(run.getParentFile())) {
 				throw new IllegalArgumentException(
 						"Scan directory is not under the JSure data dir: "
 								+ run);
@@ -76,7 +76,7 @@ public final class JSureScanManager {
 	public void removedScans() {
 		File dir;
 		synchronized (this) {
-			dir = data.getDataDir();
+			dir = data.getDir();
 			data = JSureDataDirScanner.scan(data);
 		}
 		notify(DataDirStatus.CHANGED, dir);
@@ -99,7 +99,7 @@ public final class JSureScanManager {
 	public void setJSureDataDirectory(final File dir) {
 		if (dir != null && dir.isDirectory()) {
 			synchronized (this) {
-				if (dir.equals(data.getDataDir())) {
+				if (dir.equals(data.getDir())) {
 					// Ignoring, since it's the same as the current data dir
 					return;
 				}
