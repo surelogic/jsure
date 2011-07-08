@@ -6,19 +6,17 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.core.preferences.JSureEclipseHub;
-import com.surelogic.jsure.core.scans.IJSureScanManagerListener;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.scans.IJSureScanListener;
 import com.surelogic.scans.JSureScansHub;
 import com.surelogic.scans.ScanStatus;
 
 /**
- * Helps to displays the baseline/current scan, as well as other scan info
- * 
- * @author Edwin
+ * Helps to displays the baseline/current scan, as well as other scan
+ * information.
  */
 public abstract class AbstractScanManagerView extends AbstractJSureView
-		implements IJSureScanListener, IJSureScanManagerListener {
+		implements IJSureScanListener, JSureDataDirHub.Listener {
 	protected AbstractScanManagerView() {
 		JSureEclipseHub.init();
 		JSureScansHub.getInstance().addListener(this);
