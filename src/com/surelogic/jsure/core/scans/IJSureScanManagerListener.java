@@ -2,6 +2,8 @@ package com.surelogic.jsure.core.scans;
 
 import java.io.File;
 
+import com.surelogic.jsure.core.scans.JSureDataDirHub.Status;
+
 /**
  * Listens for changes to the set of scans or runs within a JSure data
  * directory.
@@ -14,5 +16,5 @@ public interface IJSureScanManagerListener {
 	 *            the status
 	 * @param dir
 	 */
-	void updateScans(DataDirStatus s, File dir);
+	void updateScans(Status s, File dir);
 }

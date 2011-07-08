@@ -21,6 +21,10 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
  */
 public final class JSureDataDirHub {
 
+	public enum Status {
+		UNCHANGED, ADDED, CHANGED
+	}
+
 	private static final JSureDataDirHub INSTANCE = new JSureDataDirHub();
 
 	public static JSureDataDirHub getInstance() {
@@ -44,7 +48,7 @@ public final class JSureDataDirHub {
 		f_listeners.remove(l);
 	}
 
-	private void notify(DataDirStatus s, File dir) {
+	private void notify(Status s, File dir) {
 		for (IJSureScanManagerListener l : f_listeners) {
 			l.updateScans(s, dir);
 		}
@@ -73,7 +77,7 @@ public final class JSureDataDirHub {
 			}
 			data = JSureDataDirScanner.scan(data);
 		}
-		notify(DataDirStatus.ADDED, run);
+		notify(Status.ADDED, run);
 	}
 
 	public void notifyScanRemoved() {
@@ -82,7 +86,7 @@ public final class JSureDataDirHub {
 			dir = data.getDir();
 			data = JSureDataDirScanner.scan(data);
 		}
-		notify(DataDirStatus.CHANGED, dir);
+		notify(Status.CHANGED, dir);
 	}
 
 	/**
@@ -111,7 +115,7 @@ public final class JSureDataDirHub {
 						dir.getAbsolutePath());
 				data = JSureDataDirScanner.scan(dir);
 			}
-			notify(DataDirStatus.CHANGED, dir);
+			notify(Status.CHANGED, dir);
 		} else {
 			throw new IllegalArgumentException("Bad JSure data directory "
 					+ dir + " it doesn't exist on the disk");
