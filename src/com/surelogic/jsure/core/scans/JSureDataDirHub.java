@@ -21,8 +21,23 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
  */
 public final class JSureDataDirHub {
 
-	public enum Status {
+	public static enum Status {
 		UNCHANGED, ADDED, CHANGED
+	}
+
+	/**
+	 * Listens for changes to the set of scans or runs within a JSure data
+	 * directory.
+	 */
+	public static interface Listener {
+		/**
+		 * Notification of a change to the JSure data directory.
+		 * 
+		 * @param s
+		 *            the status
+		 * @param dir
+		 */
+		void updateScans(Status s, File dir);
 	}
 
 	private static final JSureDataDirHub INSTANCE = new JSureDataDirHub();
@@ -31,7 +46,7 @@ public final class JSureDataDirHub {
 		return INSTANCE;
 	}
 
-	private final List<IJSureScanManagerListener> f_listeners = new CopyOnWriteArrayList<IJSureScanManagerListener>();
+	private final List<Listener> f_listeners = new CopyOnWriteArrayList<Listener>();
 
 	private JSureDataDir data;
 
@@ -40,16 +55,16 @@ public final class JSureDataDirHub {
 		data = JSureDataDirScanner.scan(dataDir);
 	}
 
-	public void addListener(IJSureScanManagerListener l) {
+	public void addListener(Listener l) {
 		f_listeners.add(l);
 	}
 
-	public void removeListener(IJSureScanManagerListener l) {
+	public void removeListener(Listener l) {
 		f_listeners.remove(l);
 	}
 
 	private void notify(Status s, File dir) {
-		for (IJSureScanManagerListener l : f_listeners) {
+		for (Listener l : f_listeners) {
 			l.updateScans(s, dir);
 		}
 	}
