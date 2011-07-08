@@ -25,7 +25,6 @@ import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.views.ITableContentProvider;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureRun;
-import com.surelogic.jsure.core.scans.DataDirStatus;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.scans.JSureScanInfo;
 import com.surelogic.scans.JSureScansHub;
@@ -47,7 +46,8 @@ public class ScansView extends AbstractScanManagerView {
 	}
 
 	@Override
-	protected String updateViewer(ScanStatus status, DataDirStatus dirStatus) {
+	protected String updateViewer(ScanStatus status,
+			JSureDataDirHub.Status dirStatus) {
 		try {
 			String rv = f_content.build(status, dirStatus);
 			if (rv != null) {
@@ -187,9 +187,10 @@ public class ScansView extends AbstractScanManagerView {
 		JSureRun[] runs;
 		JSureRun baseline, current;
 
-		public String build(ScanStatus status, DataDirStatus dirStatus) {
-			final JSureDataDir data = JSureDataDirHub.getInstance().getJSureDataDir();
-			if (dirStatus == DataDirStatus.UNCHANGED) {
+		public String build(ScanStatus status, JSureDataDirHub.Status dirStatus) {
+			final JSureDataDir data = JSureDataDirHub.getInstance()
+					.getJSureDataDir();
+			if (dirStatus == JSureDataDirHub.Status.UNCHANGED) {
 				// Update scans
 				if (status.baselineChanged()) {
 					baseline = findScan(data, JSureScansHub.getInstance()

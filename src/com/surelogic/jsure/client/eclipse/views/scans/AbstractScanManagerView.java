@@ -6,7 +6,6 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.core.preferences.JSureEclipseHub;
-import com.surelogic.jsure.core.scans.DataDirStatus;
 import com.surelogic.jsure.core.scans.IJSureScanManagerListener;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.scans.IJSureScanListener;
@@ -37,10 +36,10 @@ public abstract class AbstractScanManagerView extends AbstractJSureView
 	@Override
 	public final void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		updateViewState(ScanStatus.BOTH_CHANGED, DataDirStatus.CHANGED);
+		updateViewState(ScanStatus.BOTH_CHANGED, JSureDataDirHub.Status.CHANGED);
 	}
 
-	public void updateScans(final DataDirStatus s, File dir) {
+	public void updateScans(final JSureDataDirHub.Status s, File dir) {
 		f_viewerControl.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -53,7 +52,7 @@ public abstract class AbstractScanManagerView extends AbstractJSureView
 		f_viewerControl.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				updateViewState(status, DataDirStatus.UNCHANGED);
+				updateViewState(status, JSureDataDirHub.Status.UNCHANGED);
 			}
 		});
 	}
@@ -62,13 +61,14 @@ public abstract class AbstractScanManagerView extends AbstractJSureView
 	 * @return The label to be shown in the title
 	 */
 	protected abstract String updateViewer(ScanStatus status,
-			DataDirStatus dirStatus);
+			JSureDataDirHub.Status dirStatus);
 
 	/**
 	 * Update the internal state, presumably after a new scan
 	 */
-	private void updateViewState(ScanStatus status, DataDirStatus dirStatus) {
-		if (status.changed() || dirStatus != DataDirStatus.UNCHANGED) {
+	private void updateViewState(ScanStatus status,
+			JSureDataDirHub.Status dirStatus) {
+		if (status.changed() || dirStatus != JSureDataDirHub.Status.UNCHANGED) {
 			final String label = updateViewer(status, dirStatus);
 			if (label != null) {
 				f_viewerControl.getDisplay().asyncExec(new Runnable() {

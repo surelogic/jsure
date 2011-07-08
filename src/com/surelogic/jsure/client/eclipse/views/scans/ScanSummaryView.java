@@ -69,7 +69,6 @@ import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureRun;
-import com.surelogic.jsure.core.scans.DataDirStatus;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.scans.ScanStatus;
 
@@ -95,12 +94,13 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	}
 
 	@Override
-	protected String updateViewer(ScanStatus status, DataDirStatus dirStatus) {
+	protected String updateViewer(ScanStatus status,
+			JSureDataDirHub.Status dirStatus) {
 		return updateViewer(status, dirStatus, false);
 	}
 
-	private String updateViewer(ScanStatus status, DataDirStatus dirStatus,
-			boolean selectedProjsChanged) {
+	private String updateViewer(ScanStatus status,
+			JSureDataDirHub.Status dirStatus, boolean selectedProjsChanged) {
 		try {
 			final IStructuredSelection sel = (IStructuredSelection) projectList
 					.getSelection();
@@ -318,10 +318,13 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		JSureRun[] runs;
 		Summary[] summaries;
 
-		public String build(ScanStatus status, DataDirStatus dirStatus,
+		public String build(ScanStatus status,
+				JSureDataDirHub.Status dirStatus,
 				boolean selectedProjectsChanged) {
-			final JSureDataDir data = JSureDataDirHub.getInstance().getJSureDataDir();
-			if (selectedProjectsChanged || dirStatus != DataDirStatus.UNCHANGED) {
+			final JSureDataDir data = JSureDataDirHub.getInstance()
+					.getJSureDataDir();
+			if (selectedProjectsChanged
+					|| dirStatus != JSureDataDirHub.Status.UNCHANGED) {
 				// Enough changed
 				runs = data.getAllRuns();
 
@@ -490,9 +493,10 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		/**
 		 * @return true if changed
 		 */
-		public boolean build(DataDirStatus dirStatus) {
-			final JSureDataDir data = JSureDataDirHub.getInstance().getJSureDataDir();
-			if (dirStatus != DataDirStatus.UNCHANGED) {
+		public boolean build(JSureDataDirHub.Status dirStatus) {
+			final JSureDataDir data = JSureDataDirHub.getInstance()
+					.getJSureDataDir();
+			if (dirStatus != JSureDataDirHub.Status.UNCHANGED) {
 				// Enough changed, so find all the relevant projects
 				final Set<String> names = new HashSet<String>();
 				for (JSureRun r : data.getAllRuns()) {
@@ -558,8 +562,8 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	class ProjectSelectionListener implements ISelectionChangedListener {
 		@Override
 		public void selectionChanged(SelectionChangedEvent event) {
-			updateViewer(ScanStatus.NEITHER_CHANGED, DataDirStatus.UNCHANGED,
-					true);
+			updateViewer(ScanStatus.NEITHER_CHANGED,
+					JSureDataDirHub.Status.UNCHANGED, true);
 		}
 	}
 
