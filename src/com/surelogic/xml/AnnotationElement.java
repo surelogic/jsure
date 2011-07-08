@@ -124,7 +124,10 @@ public class AnnotationElement extends CommentedJavaElement implements TestXMLPa
 			public Operator getOp() {
 				return getParent().getOperator();
 			}
-
+			@Override
+			public String getSelectedText(int start, int stop) {
+				return text.substring(start, stop);
+			}			
 			@Override
 			public <T extends IAASTRootNode> void reportAAST(int offset,
 					AnnotationLocation loc, Object o, T ast) {				
