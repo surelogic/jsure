@@ -21,6 +21,9 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
  */
 public final class JSureDataDirHub {
 
+	/**
+	 * Events that can occur within the JSure data directory.
+	 */
 	public static enum Status {
 		UNCHANGED, ADDED, CHANGED
 	}
@@ -33,11 +36,14 @@ public final class JSureDataDirHub {
 		/**
 		 * Notification of a change to the JSure data directory.
 		 * 
-		 * @param s
-		 *            the status
-		 * @param dir
+		 * @param event
+		 *            what happened within the JSure data directory. The value
+		 *            of {@link Status#UNCHANGED} indicates nothing changed.
+		 * @param directory
+		 *            the JSure data directory if {@link Status#CHANGED} or the
+		 *            new scan directory if {@link Status#ADDED}.
 		 */
-		void updateScans(Status s, File dir);
+		void updateScans(Status event, File directory);
 	}
 
 	private static final JSureDataDirHub INSTANCE = new JSureDataDirHub();
