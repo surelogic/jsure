@@ -12,15 +12,18 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 /**
- * Singleton that manages the scans in the JSure data directory.
- * 
- * @author Edwin
+ * Singleton that provides a notification hub about the scans or runs within the
+ * JSure data directory.
+ * <p>
+ * Clients can register with this hub and received notifications of when the
+ * contents of the JSure data directory change due to a scan being added or
+ * deleted.
  */
-public final class JSureScanManager {
+public final class JSureDataDirHub {
 
-	private static final JSureScanManager INSTANCE = new JSureScanManager();
+	private static final JSureDataDirHub INSTANCE = new JSureDataDirHub();
 
-	public static JSureScanManager getInstance() {
+	public static JSureDataDirHub getInstance() {
 		return INSTANCE;
 	}
 
@@ -28,7 +31,7 @@ public final class JSureScanManager {
 
 	private JSureDataDir data;
 
-	private JSureScanManager() {
+	private JSureDataDirHub() {
 		final File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
 		data = JSureDataDirScanner.scan(dataDir);
 	}
@@ -47,13 +50,13 @@ public final class JSureScanManager {
 		}
 	}
 
-	public JSureDataDir getData() {
+	public JSureDataDir getJSureDataDir() {
 		synchronized (this) {
 			return data;
 		}
 	}
 
-	public void addedScan(File run) {
+	public void notifyScanAdded(final File run) {
 		if (run == null || !run.isDirectory()) {
 			throw new IllegalArgumentException("Bad scan directory: " + run);
 		}
@@ -73,8 +76,8 @@ public final class JSureScanManager {
 		notify(DataDirStatus.ADDED, run);
 	}
 
-	public void removedScans() {
-		File dir;
+	public void notifyScanRemoved() {
+		final File dir;
 		synchronized (this) {
 			dir = data.getDir();
 			data = JSureDataDirScanner.scan(data);

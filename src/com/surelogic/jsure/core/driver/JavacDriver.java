@@ -79,7 +79,7 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.listeners.ClearProjectListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.scans.JSureScanManager;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scripting.ExportResults;
 import com.surelogic.jsure.core.scripting.ICommandContext;
 import com.surelogic.jsure.core.scripting.NullCommand;
@@ -1894,7 +1894,7 @@ public class JavacDriver implements IResourceChangeListener {
 					final File location = new File(projects.getRunDir(), RemoteJSureRun.RESULTS_XML);
 					new SeaSnapshot(location).snapshot(projects.getShortLabel(), Sea.getDefault());
 				}
-				JSureScanManager.getInstance().addedScan(projects.getRunDir());
+				JSureDataDirHub.getInstance().notifyScanAdded(projects.getRunDir());
 				JSureScansHub.getInstance().gotNewScan(projects.getRunDir());				
 				/*
 				 * final File rootLoc =
