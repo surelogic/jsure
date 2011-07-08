@@ -116,6 +116,12 @@ public abstract class JSureScansHub {
 					info = baselineInfo = new JSureScanInfo(dir);
 				}
 			}
+		} else { 
+			// Check if it's still good
+			File dir = info.getLocation();
+			if (dir == null || !dir.isDirectory()) {
+				return null;
+			}
 		}
 		return info;
 	}
