@@ -70,7 +70,7 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureRun;
 import com.surelogic.jsure.core.scans.DataDirStatus;
-import com.surelogic.jsure.core.scans.JSureScanManager;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.sea.SeaStats;
@@ -320,7 +320,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 
 		public String build(ScanStatus status, DataDirStatus dirStatus,
 				boolean selectedProjectsChanged) {
-			final JSureDataDir data = JSureScanManager.getInstance().getData();
+			final JSureDataDir data = JSureDataDirHub.getInstance().getJSureDataDir();
 			if (selectedProjectsChanged || dirStatus != DataDirStatus.UNCHANGED) {
 				// Enough changed
 				runs = data.getAllRuns();
@@ -491,7 +491,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		 * @return true if changed
 		 */
 		public boolean build(DataDirStatus dirStatus) {
-			final JSureDataDir data = JSureScanManager.getInstance().getData();
+			final JSureDataDir data = JSureDataDirHub.getInstance().getJSureDataDir();
 			if (dirStatus != DataDirStatus.UNCHANGED) {
 				// Enough changed, so find all the relevant projects
 				final Set<String> names = new HashSet<String>();

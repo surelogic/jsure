@@ -8,7 +8,7 @@ import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
 import com.surelogic.jsure.core.preferences.JSureEclipseHub;
 import com.surelogic.jsure.core.scans.DataDirStatus;
 import com.surelogic.jsure.core.scans.IJSureScanManagerListener;
-import com.surelogic.jsure.core.scans.JSureScanManager;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.scans.IJSureScanListener;
 import com.surelogic.scans.JSureScansHub;
 import com.surelogic.scans.ScanStatus;
@@ -23,13 +23,13 @@ public abstract class AbstractScanManagerView extends AbstractJSureView
 	protected AbstractScanManagerView() {
 		JSureEclipseHub.init();
 		JSureScansHub.getInstance().addListener(this);
-		JSureScanManager.getInstance().addListener(this);
+		JSureDataDirHub.getInstance().addListener(this);
 	}
 
 	@Override
 	public void dispose() {
 		JSureScansHub.getInstance().removeListener(this);
-		JSureScanManager.getInstance().removeListener(this);
+		JSureDataDirHub.getInstance().removeListener(this);
 
 		super.dispose();
 	}

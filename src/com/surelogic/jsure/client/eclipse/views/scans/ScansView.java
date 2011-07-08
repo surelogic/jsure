@@ -26,7 +26,7 @@ import com.surelogic.common.ui.views.ITableContentProvider;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureRun;
 import com.surelogic.jsure.core.scans.DataDirStatus;
-import com.surelogic.jsure.core.scans.JSureScanManager;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.scans.JSureScanInfo;
 import com.surelogic.scans.JSureScansHub;
 import com.surelogic.scans.ScanStatus;
@@ -121,7 +121,7 @@ public class ScansView extends AbstractScanManagerView {
 				// TODO popup confirm dialog
 				boolean deleted = super.run(s);
 				if (deleted) {
-					JSureScanManager.getInstance().removedScans();
+					JSureDataDirHub.getInstance().notifyScanRemoved();
 				}
 				return deleted;
 			}
@@ -188,7 +188,7 @@ public class ScansView extends AbstractScanManagerView {
 		JSureRun baseline, current;
 
 		public String build(ScanStatus status, DataDirStatus dirStatus) {
-			final JSureDataDir data = JSureScanManager.getInstance().getData();
+			final JSureDataDir data = JSureDataDirHub.getInstance().getJSureDataDir();
 			if (dirStatus == DataDirStatus.UNCHANGED) {
 				// Update scans
 				if (status.baselineChanged()) {
