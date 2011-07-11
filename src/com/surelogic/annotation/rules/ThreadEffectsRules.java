@@ -42,7 +42,7 @@ public class ThreadEffectsRules extends AnnotationRules {
   static class Starts_ParseRule 
   extends DefaultSLAnnotationParseRule<StartsSpecificationNode,StartsPromiseDrop> {
     protected Starts_ParseRule() {
-      super(STARTS, methodDeclOps, StartsSpecificationNode.class);
+      super(STARTS, functionDeclOps, StartsSpecificationNode.class);
     }
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {

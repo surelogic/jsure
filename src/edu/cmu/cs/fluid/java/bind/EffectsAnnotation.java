@@ -241,7 +241,7 @@ public class EffectsAnnotation extends AbstractPromiseAnnotation {
     final boolean check;
 
     Effects_ParseRule(String tag, boolean check) {
-      super(tag, SEQ, true, methodDeclOps, methodDeclOps);
+      super(tag, SEQ, true, functionDeclOps, functionDeclOps);
       this.check = check;
     }
 

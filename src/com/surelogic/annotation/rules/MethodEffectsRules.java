@@ -67,7 +67,7 @@ public class MethodEffectsRules extends AnnotationRules {
 			DefaultSLAnnotationParseRule<RegionEffectsNode, RegionEffectsPromiseDrop> {
 
 		public RegionEffects_ParseRule() {
-			super(REGIONEFFECTS, methodDeclOps, RegionEffectsNode.class);
+			super(REGIONEFFECTS, functionDeclOps, RegionEffectsNode.class);
 		}
 
 		/*

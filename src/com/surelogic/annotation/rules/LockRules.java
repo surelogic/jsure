@@ -481,7 +481,7 @@ public class LockRules extends AnnotationRules {
 	extends
 	DefaultSLAnnotationParseRule<ProhibitsLockNode, ProhibitsLockPromiseDrop> {
 		public ProhibitsLock_ParseRule() {
-			super(PROHIBITS_LOCK, methodDeclOps, ProhibitsLockNode.class);
+			super(PROHIBITS_LOCK, functionDeclOps, ProhibitsLockNode.class);
 		}
 
 		@Override
@@ -536,7 +536,7 @@ public class LockRules extends AnnotationRules {
 			DefaultSLAnnotationParseRule<RequiresLockNode, RequiresLockPromiseDrop> {
 
 		public RequiresLock_ParseRule() {
-			super(REQUIRES_LOCK, methodDeclOps, RequiresLockNode.class);
+			super(REQUIRES_LOCK, functionDeclOps, RequiresLockNode.class);
 		}
 
 		/*
@@ -1421,7 +1421,7 @@ public class LockRules extends AnnotationRules {
 			DefaultSLAnnotationParseRule<IsLockNode, IsLockPromiseDrop> {
 
 		protected IsLock_ParseRule() {
-			super(IS_LOCK, methodDeclOps, IsLockNode.class);
+			super(IS_LOCK, functionDeclOps, IsLockNode.class);
 		}
 
 		@Override

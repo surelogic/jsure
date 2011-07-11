@@ -162,7 +162,7 @@ public class ThreadRoleRules extends AnnotationRules {
 			extends
 			DefaultSLThreadRoleAnnotationParseRule<ThreadRoleTransparentNode, TRoleTransparentDrop> {
 		protected TRoleTransparent_ParseRule() {
-			super(TRANSPARENT, methodDeclOps, ThreadRoleTransparentNode.class);
+			super(TRANSPARENT, functionDeclOps, ThreadRoleTransparentNode.class);
 		}
 
 		@Override
@@ -233,7 +233,7 @@ public class ThreadRoleRules extends AnnotationRules {
 	static class TRole_ParseRule extends
 			DefaultSLThreadRoleAnnotationParseRule<ThreadRoleNode, TRoleRequireDrop> {
 		protected TRole_ParseRule() {
-			super(TROLE, methodDeclOps, ThreadRoleNode.class);
+			super(TROLE, functionDeclOps, ThreadRoleNode.class);
 		}
 
 		@Override

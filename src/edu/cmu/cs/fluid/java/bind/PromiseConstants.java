@@ -101,10 +101,15 @@ public interface PromiseConstants {
   public static final Operator[] constructorOp =
     { ConstructorDeclaration.prototype, };
 
-  public static final Operator[] methodDeclOps = {
+  public static final Operator[] functionDeclOps = {
     // AnonClassExpression.prototype,
     ClassInitDeclaration.prototype,
     SomeFunctionDeclaration.prototype, };
+
+  public static final Operator[] methodDeclOps = {
+	  // AnonClassExpression.prototype,
+	  ClassInitDeclaration.prototype,
+	  MethodDeclaration.prototype, };
   
   public static final Operator[] methodOrParamDeclOps = {
     // AnonClassExpression.prototype,

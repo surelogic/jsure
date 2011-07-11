@@ -217,7 +217,7 @@ public class UniquenessAnnotation extends AbstractPromiseAnnotation {
 
   abstract class Uniqueness_ParseRule extends AbstractPromiseParserCheckRule<Boolean> {
     protected Uniqueness_ParseRule(String tag) {
-      this(tag, methodDeclOps);
+      this(tag, functionDeclOps);
     }
 
     /**
@@ -226,7 +226,7 @@ public class UniquenessAnnotation extends AbstractPromiseAnnotation {
      * @param tag
      */
     protected Uniqueness_ParseRule(String tag, Operator[] parseOps) {
-      super(tag, IPromiseStorage.BOOL, false, parseOps, methodDeclOps,
+      super(tag, IPromiseStorage.BOOL, false, parseOps, functionDeclOps,
           varDeclOps);
     }
 
