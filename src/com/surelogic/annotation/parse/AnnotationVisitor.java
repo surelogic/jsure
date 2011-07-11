@@ -395,7 +395,15 @@ public class AnnotationVisitor extends Visitor<Integer> {
 		if (comment != null && comment.length() != 0) {
 			// Trim comment bits
 			int start = comment.indexOf('@');
+
 			if (start >= 0) {
+				for(int i=0; i<start; i++) {
+					if (!Character.isWhitespace(comment.charAt(i))) {
+						// There's something before the @, 
+						// so it's not an annotation
+						return 0;
+					}
+				}
 				int end = comment.length();
 				if (comment.endsWith("*/")) {
 					end = end - 2;
