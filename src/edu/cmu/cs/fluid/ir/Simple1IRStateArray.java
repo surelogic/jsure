@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.ir;
 
+import com.surelogic.*;
+
 /**
  * Dynamically creates a instance of SlotState if needed
  * 
@@ -14,6 +16,7 @@ public class Simple1IRStateArray<T> extends Simple1IRArray<T> {
 	 * FIX will this work?
 	 */
 	@Override
+	@Borrowed("this")
 	protected IRState createDefaultStateParent() {		
 		IRState p =  super.createDefaultStateParent();
 		if (p instanceof SlotState) {
