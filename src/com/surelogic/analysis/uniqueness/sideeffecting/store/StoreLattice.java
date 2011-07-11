@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -40,9 +41,7 @@ import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.IteratorUtil;
-import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.SimpleRemovelessIterator;
-import edu.cmu.cs.fluid.util.Triple;
 import edu.uwm.cs.fluid.util.FlatLattice2;
 import edu.uwm.cs.fluid.util.FlatLattice2.Element;
 import edu.uwm.cs.fluid.util.TripleLattice;
@@ -129,6 +128,8 @@ extends TripleLattice<Element<Integer>,
    */
   final Map<IRNode, Set<IRNode>> loadedCompromisedFields =
     new HashMap<IRNode, Set<IRNode>>();
+  final Map<IRNode, Set<IRNode>> loadedCompromisedFieldsAbrupt =
+    new HashMap<IRNode, Set<IRNode>>();
   
   /**
    * Records where compromised fields are loaded as the result of executing a method.  After analysis is over,
@@ -139,6 +140,8 @@ extends TripleLattice<Element<Integer>,
    */
   final Map<IRNode, Set<IRNode>> indirectlyLoadedCompromisedFields =
     new HashMap<IRNode, Set<IRNode>>();
+  final Map<IRNode, Set<IRNode>> indirectlyLoadedCompromisedFieldsAbrupt =
+    new HashMap<IRNode, Set<IRNode>>();
   
   /**
    * Records where compromised fields are lost.  After analysis is over,
@@ -148,6 +151,8 @@ extends TripleLattice<Element<Integer>,
    * the field is lost.
    */
   final Map<IRNode, Set<IRNode>> lostFields =
+    new HashMap<IRNode, Set<IRNode>>();
+  final Map<IRNode, Set<IRNode>> lostFieldsAbrupt =
     new HashMap<IRNode, Set<IRNode>>();
   
   /**
@@ -173,7 +178,8 @@ extends TripleLattice<Element<Integer>,
    * {@link #opUndefine(Store, IRNode)} and
    * {@link #opCompromiseNoRelease(Store, IRNode)}.
    */
-  final Set<XnotY> xNotY = new HashSet<XnotY>();
+//  final Set<XnotY> xNotY = new HashSet<XnotY>();
+  final Set<XNotY> xNotY = new HashSet<XNotY>();
   
   
   
@@ -623,7 +629,9 @@ extends TripleLattice<Element<Integer>,
   public Store opStore(final Store s, final IRNode srcOp, final IRNode fieldDecl) {
     if (!s.isValid()) return s;
     final Store temp;
-    if (UniquenessUtils.isFieldUnique(fieldDecl)) {
+    final PromiseDrop<? extends IAASTRootNode> uDrop = 
+      UniquenessUtils.getFieldUnique(fieldDecl);
+    if (uDrop != null) {
       final Integer undertop = getUnderTop(s);
       final Integer stacktop = getStackTop(s);
       // We used to undefined everything that aliased the value stored in the unique field.
@@ -646,16 +654,17 @@ extends TripleLattice<Element<Integer>,
       final State localStatus = localStatus(s, stacktop);
       if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
         // XXX: Can this happen?  Usually results in a different error on the load of the undefined value
-        reportError(srcOp, "U1", "Undefined value encountered when a unique value was expected");
-        return errorStore("Undefined value on stack not unique");
-      }
-      if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
-        reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
-        return errorStore("Borowed value on stack not unique");
-      }
-      if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
-        reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
-        return errorStore("Shared value on stack not unique");
+        recordUndefinedNotUnique(srcOp, uDrop);
+//        reportError(srcOp, "U1", "Undefined value encountered when a unique value was expected");
+//        return errorStore("Undefined value on stack not unique");
+      } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
+        recordBorrowedNotUnique(srcOp, uDrop, stacktop, s.getObjects());
+//        reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
+//        return errorStore("Borrowed value on stack not unique");
+      } else if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
+        recordSharedNotUnique(srcOp, uDrop);      
+//        reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
+//        return errorStore("Shared value on stack not unique");
       }      
       
       temp = opRelease(opConnect(
@@ -790,14 +799,14 @@ extends TripleLattice<Element<Integer>,
     final Integer n = getStackTop(s);
     if (localStatus(s, n).compareTo(State.BORROWED) > 0) { // cannot be undefined
 //      recordUndefinedNotBorrowed(srcOp, n, s.getObjects());
-      reportError(srcOp, "X100", "Undefined value where unique is expected: Another formal parameter has made the value undefined here");
+      reportError(srcOp, "X100", "Undefined value where unique is expected: Another actual parameter has made the value undefined here");
       return errorStore("Undefined value on stack borrowed");
     }
     return opRelease(s, srcOp);
   }
   
   private void reportError(final IRNode srcOp, final String label, final String message) {
-    if (produceSideEffects && !suppressDrops) {
+    if (shouldRecordResult()) {
       final String newMsg = abruptDrops ? message + " (ABRUPT)" : message;
       final InfoDropBuilder infoDrop = InfoDropBuilder.create(analysis, label, WarningDrop.factory);
       infoDrop.setMessage(newMsg);
@@ -815,12 +824,12 @@ extends TripleLattice<Element<Integer>,
     
     recordCompromisingOfUnique(srcOp, n, localStatus, s.getFieldStore());
 
-    if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be shared
+    if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       reportError(srcOp, "X1", "Use of undefined value");
       return errorStore("Undefined value on stack shared");
-    } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be shared
+    } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
       recordBorrowedNotShared(srcOp, n, s.getObjects());
-//      reportError(srcOp, "X2", "Attempt to alias a borrowed value");
+      reportError(srcOp, "X2", "Attempt to alias a borrowed value");
 //      return errorStore("Borrowed value on stack shared");
     }
     return apply(s, srcOp, new Add(n, EMPTY.addElement(State.SHARED)));
@@ -848,15 +857,15 @@ extends TripleLattice<Element<Integer>,
     
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       recordUndefinedNotUnique(srcOp, uDrop);
-//      reportError(srcOp, "U1", "Undefined value encountered when a unique value was expected");
+      reportError(srcOp, "U1", "Undefined value encountered when a unique value was expected");
 //      return errorStore("Undefined value on stack not unique");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
       recordBorrowedNotUnique(srcOp, uDrop, n, s.getObjects());
-//      reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
-//      return errorStore("Borowed value on stack not unique");
+      reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
+//      return errorStore("Borrowed value on stack not unique");
     } else if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
       recordSharedNotUnique(srcOp, uDrop);      
-//      reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
+      reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
 //      return errorStore("Shared value on stack not unique");
     }
     return opRelease(apply(s, srcOp, new Add(n, EMPTY.addElement(State.UNDEFINED))), srcOp);
@@ -1105,6 +1114,10 @@ extends TripleLattice<Element<Integer>,
   // === Side-effects
   // ==================================================================
   
+  private boolean shouldRecordResult() {
+    return produceSideEffects && !suppressDrops;
+  }
+  
   private static <K, V> void addToMappedSet(
       final Map<K, Set<V>> map, final K key, final V value) {
     // Get/make the set first
@@ -1145,7 +1158,7 @@ extends TripleLattice<Element<Integer>,
   private void recordLossOfUniqueness(final IRNode srcOp, final Integer topOfStack,
       final State localStatus, final ImmutableSet<FieldTriple> fieldStore,
       final Map<IRNode, Set<IRNode>> howLostMap) {
-    if (produceSideEffects) {
+    if (shouldRecordResult()) {
       if (localStatus == State.UNIQUE) {
 //        if (howLostMap == undefinedAt) {
 //          final Operator op = JJNode.tree.getOperator(srcOp);
@@ -1165,22 +1178,27 @@ extends TripleLattice<Element<Integer>,
   }
   
   private void recordLoadOfCompromisedField(final IRNode srcOp, final IRNode fieldDecl) {
-    if (produceSideEffects) {
+    if (shouldRecordResult()) {
       // Record look up of compromised field
-      addToMappedSet(loadedCompromisedFields, fieldDecl, srcOp);
+      addToMappedSet(
+          abruptDrops ? loadedCompromisedFieldsAbrupt : loadedCompromisedFields,
+          fieldDecl, srcOp);
     }
   }
   
   private void recordIndirectLoadOfCompromisedField(final IRNode srcOp, final IRNode fieldDecl) {
-    if (produceSideEffects) {
+    if (shouldRecordResult()) {
       // Record look up of compromised field
-      addToMappedSet(indirectlyLoadedCompromisedFields, fieldDecl, srcOp);
+      addToMappedSet(
+          abruptDrops ? indirectlyLoadedCompromisedFieldsAbrupt :
+            indirectlyLoadedCompromisedFields,
+          fieldDecl, srcOp);
     }
   }
   
   private void recordLossOfCompromisedField(final IRNode srcOp, final IRNode fieldDecl) {
-    if (produceSideEffects) {
-      addToMappedSet(lostFields, fieldDecl, srcOp);
+    if (shouldRecordResult()) {
+      addToMappedSet(abruptDrops ? lostFieldsAbrupt : lostFields, fieldDecl, srcOp);
     }        
   }
 
@@ -1189,14 +1207,14 @@ extends TripleLattice<Element<Integer>,
   // ------------------------------------------------------------------
   
   private void recordBuriedRead(final IRNode srcOp, final Object local) {
-    if (produceSideEffects) {
-      buriedReads.add(new BuriedRead(local, srcOp));
+    if (shouldRecordResult()) {
+      buriedReads.add(new BuriedRead(local, srcOp, abruptDrops));
     }
   }
   
   private void recordBuryingLoad(final IRNode fieldDecl,
       final Set<Object> affectedVars, final IRNode srcOp) {
-    if (produceSideEffects) {
+    if (shouldRecordResult()) {
       for (final Object lv : affectedVars) {
         Map<IRNode, Set<IRNode>> fieldMap = buryingLoads.get(lv);
         if (fieldMap == null) {
@@ -1212,55 +1230,19 @@ extends TripleLattice<Element<Integer>,
   // -- Bad Values
   // ------------------------------------------------------------------
 
-  private void recordBadUnique(final XnotYFactory factory,
-      final IRNode srcOp, final UniquePromiseDrop uDrop,
-      final int msgNormal, final int msgReturn) {
-//    /*
-//     * Get the unique promise that is violated.  The srcOp is either a MethodBody,
-//     * in which case the promise being violated is that of the return value,
-//     * or it is an actual parameter, in which case the promise being violated
-//     * is that of the formal parameter. 
-//     */
-//    UniquePromiseDrop badUnique = null;
-//    IRNode badCode = srcOp;
-//    int msg = msgNormal;
-//    final Operator op = JJNode.tree.getOperator(srcOp);
-//    if (MethodBody.prototype.includes(op)) {
-//      final IRNode returnNode = 
-//        JavaPromise.getReturnNode(JJNode.tree.getParent(srcOp));
-//      badUnique = UniquenessRules.getUnique(returnNode);
-//      msg = msgReturn;
-//    } else {
-//      final IRNode parent = JJNode.tree.getParent(srcOp);
-//      if (MethodCall.prototype.includes(parent)) {
-//        // srcOp is a receiver
-//        badUnique = UniquenessRules.getUnique(
-//            JavaPromise.getReceiverNode(binder.getBinding(parent)));
-//      } else {
-//        // Find the @Unique formal parameter
-//        // here, parent must be the list of actual arguments
-//        final IRNode call = JJNode.tree.getParent(parent);
-//        final IRNode mdecl = binder.getBinding(call);
-//        final IRNode formals = SomeFunctionDeclaration.getParams(mdecl);
-//        for (int i = 0; true; i++) { // must 'break' because srcOp is an argument
-//          if (Arguments.getArg(parent, i) == srcOp) {
-//            badUnique = UniquenessRules.getUnique(
-//                Parameters.getFormal(formals, i));
-//            break;
-//          }
-//        }
-//      }
-//    }      
-//    xNotY.add(factory.create(badUnique, badCode, msg));
-    
-    xNotY.add(factory.create(uDrop, srcOp,
-        MethodBody.prototype.includes(srcOp) ? msgReturn : msgNormal));
+  private void recordBadUnique(
+      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
+      final int msgNormal, final int msgReturn, final int msgAssign) {
+    xNotY.add(new XNotY(uDrop, srcOp, abruptDrops,
+        MethodBody.prototype.includes(srcOp) ? msgReturn : 
+          FieldRef.prototype.includes(srcOp) ? msgAssign : msgNormal));
   }
   
-  private void recordBadBorrowed(final XnotYFactory factory,
+  private void recordBadBorrowed(
       final IRNode srcOp, final Integer topOfStack,  
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects,
-      final int msgNormal, final int msgReturn) {
+      final int msgNormal, final int msgReturn,
+      final InfoAdder infoAdder) {
     final Set<Object> referringVars = new HashSet<Object>();
     for (final ImmutableHashOrderSet<Object> obj : objects) {
       if (obj.contains(topOfStack)) {
@@ -1289,8 +1271,9 @@ extends TripleLattice<Element<Integer>,
           }
           
           if (promiseDrop != null) {
-            xNotY.add(factory.create(promiseDrop, srcOp,
-                MethodBody.prototype.includes(srcOp) ? msgReturn : msgNormal));
+            xNotY.add(new XNotY(promiseDrop, srcOp, abruptDrops,
+                MethodBody.prototype.includes(srcOp) ? msgReturn : msgNormal,
+                infoAdder));
           }
         }
       }
@@ -1298,54 +1281,66 @@ extends TripleLattice<Element<Integer>,
   }
 
   private void recordSharedNotUnique(
-      final IRNode srcOp, final UniquePromiseDrop uDrop) {
-    if (produceSideEffects) {
-      recordBadUnique(sharedFactory, srcOp, uDrop,
-          Messages.SHARED_NOT_UNIQUE, Messages.SHARED_NOT_UNIQUE_RETURN);
+      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop) {
+    if (shouldRecordResult()) {
+      recordBadUnique(srcOp, uDrop,
+          Messages.SHARED_NOT_UNIQUE, Messages.SHARED_NOT_UNIQUE_RETURN,
+          Messages.SHARED_NOT_UNIQUE_ASSIGN);
     }
   }
   
   private void recordBorrowedNotUnique(
-      final IRNode srcOp, final UniquePromiseDrop uDrop, final Integer topOfStack,  
+      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
+      final Integer topOfStack,  
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
 
     /* Two problems here: (1) A unique reference is expected, but a borrowed
      * one is provided; and (2) A borrowed value is used in a unique context.
      */
-    if (produceSideEffects) {
-      recordBadUnique(borrowedFactory, srcOp, uDrop,
-          Messages.BORROWED_NOT_UNIQUE, Messages.BORROWED_NOT_UNIQUE_RETURN);
-      recordBadBorrowed(borrowedFactory, srcOp, topOfStack, objects,
-          Messages.BORROWED_AS_UNIQUE, Messages.BORROWED_AS_UNIQUE_RETURN);
+    if (shouldRecordResult()) {
+      recordBadUnique(srcOp, uDrop,
+          Messages.BORROWED_NOT_UNIQUE, Messages.BORROWED_NOT_UNIQUE_RETURN,
+          Messages.BORROWED_NOT_UNIQUE_ASSIGN);
+      recordBadBorrowed(srcOp, topOfStack, objects,
+          Messages.BORROWED_AS_UNIQUE, Messages.BORROWED_AS_UNIQUE_RETURN,
+          new InfoAdder() {
+            public void addSupportingInformation(
+                final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
+                final IBinder binder, final ResultDropBuilder resultDrop) {
+              resultDrop.addTrustedPromise(uDrop);
+            }
+          });
     }    
   }
 
   private void recordUndefinedNotUnique(
-      final IRNode srcOp, final UniquePromiseDrop uDrop) {
-    if (produceSideEffects) {
-      recordBadUnique(undefinedFactory, srcOp, uDrop,
-          Messages.UNDEFINED_NOT_UNIQUE, Messages.UNDEFINED_NOT_UNIQUE_RETURN);
+      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop) {
+    if (shouldRecordResult()) {
+      recordBadUnique(srcOp, uDrop,
+          Messages.UNDEFINED_NOT_UNIQUE, Messages.UNDEFINED_NOT_UNIQUE_RETURN,
+          Messages.UNDEFINED_NOT_UNIQUE_ASSIGN);
     }
   }
   
   private void recordBorrowedNotShared(
       final IRNode srcOp, final Integer topOfStack,  
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
-    if (produceSideEffects) {
-      recordBadBorrowed(borrowedFactory, srcOp, topOfStack, objects,
-          Messages.BORROWED_AS_SHARED, Messages.BORROWED_AS_SHARED_RETURN);
+    if (shouldRecordResult()) {
+      recordBadBorrowed(srcOp, topOfStack, objects,
+          Messages.BORROWED_AS_SHARED, Messages.BORROWED_AS_SHARED_RETURN,
+          null);
     }
   }
   
-  private void recordUndefinedNotBorrowed(
-      final IRNode srcOp, final Integer topOfStack,  
-      final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
-    if (produceSideEffects) {
-      recordBadBorrowed(undefinedFactory, srcOp, topOfStack, objects,
-          Messages.UNDEFINED_NOT_BORROWED,
-          Messages.UNDEFINED_NOT_BORROWED); // NOTE: Cannot have a borrowed return
-    }
-  }
+//  private void recordUndefinedNotBorrowed(
+//      final IRNode srcOp, final Integer topOfStack,  
+//      final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
+//    if (shouldRecordResult()) {
+//      recordBadBorrowed(undefinedFactory, srcOp, topOfStack, objects,
+//          Messages.UNDEFINED_NOT_BORROWED,
+//          Messages.UNDEFINED_NOT_BORROWED); // NOTE: Cannot have a borrowed return
+//    }
+//  }
 
   // ------------------------------------------------------------------
   // -- Make result drops
@@ -1370,15 +1365,8 @@ extends TripleLattice<Element<Integer>,
     return result;
   }
 
-  private ResultDropBuilder createResultDrop(
-      final PromiseDrop<? extends IAASTRootNode> promiseDrop,
-      final IRNode node, final boolean isConsistent, 
-      final int msg, final Object... args) {
-    return createResultDrop(
-        analysis, abruptDrops, promiseDrop, node, isConsistent, msg, args);
-  }
-
-  private void crossReferenceKilledFields(int msg,
+  private void crossReferenceKilledFields(
+      final int msg, final boolean isAbrupt,
       final Map<IRNode, Set<IRNode>> compromisedFields) {
     for (final Map.Entry<IRNode, Set<IRNode>> load : compromisedFields.entrySet()) {
       final IRNode fieldDecl = load.getKey();
@@ -1387,8 +1375,8 @@ extends TripleLattice<Element<Integer>,
       final UniquePromiseDrop uniquePromise = UniquenessRules.getUnique(load.getKey());
       
       for (final IRNode readAt : load.getValue()) {
-        final ResultDropBuilder r =
-          createResultDrop(uniquePromise, readAt, false, msg);
+        final ResultDropBuilder r = createResultDrop(
+            analysis, isAbrupt, uniquePromise, readAt, false, msg);
         if (compromises != null) {
           for (final IRNode compromisedAt : compromises) {
             r.addSupportingInformation(compromisedAt, Messages.COMPROMISED_BY,
@@ -1407,18 +1395,22 @@ extends TripleLattice<Element<Integer>,
 
   public void makeResultDrops() {
     // Link loaded compromised fields with comprising locations
-    crossReferenceKilledFields(Messages.COMPROMISED_READ, loadedCompromisedFields);
-    crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, indirectlyLoadedCompromisedFields);
+    crossReferenceKilledFields(Messages.COMPROMISED_READ, false, loadedCompromisedFields);
+    crossReferenceKilledFields(Messages.COMPROMISED_READ, true, loadedCompromisedFieldsAbrupt);
+    crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, false, indirectlyLoadedCompromisedFields);
+    crossReferenceKilledFields(Messages.COMPROMISED_INDIRECT_READ, true, indirectlyLoadedCompromisedFieldsAbrupt);
     
     // Link lost compromised fields with compromising locations
-    crossReferenceKilledFields(Messages.LOST_COMPROMISED_FIELD, lostFields);
+    crossReferenceKilledFields(Messages.LOST_COMPROMISED_FIELD, false, lostFields);
+    crossReferenceKilledFields(Messages.LOST_COMPROMISED_FIELD, true, lostFieldsAbrupt);
 
     // Link reads of buried references to burying field loads
     for (final BuriedRead read : buriedReads) {
-      final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var());
+      final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(read.var);
       for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
         final ResultDropBuilder r =
-          createResultDrop(UniquenessRules.getUnique(e.getKey()), read.srcOp(),
+          createResultDrop(analysis, read.isAbrupt, 
+              UniquenessRules.getUnique(e.getKey()), read.srcOp,
               false, Messages.READ_OF_BURIED);
         for (final IRNode buriedAt : e.getValue()) {
           r.addSupportingInformation(buriedAt, Messages.BURIED_BY, 
@@ -1427,127 +1419,68 @@ extends TripleLattice<Element<Integer>,
       }
     }
     
-    for (final XnotY err: xNotY) {
-      err.createDrop(analysis, abruptDrops, binder);
-//      createResultDrop(err.promiseDrop(), err.srcOp(), false, err.msg());
+    for (final XNotY err: xNotY) {
+      err.createDrop(analysis, binder);
     }
   }
 
 
 
 
-  private final static class BuriedRead extends Pair<Object, IRNode> {
-    public BuriedRead(final Object var, final IRNode n) {
-      super(var, n);
+  private final static class BuriedRead {
+    public final Object var;
+    public final IRNode srcOp;
+    public final boolean isAbrupt;
+    
+    public BuriedRead(final Object var, final IRNode n, final boolean a) {
+      this.var = var;
+      this.srcOp = n;
+      this.isAbrupt = a;
     }
-
-    public Object var() { return first(); }
-    public IRNode srcOp() { return second(); }
   }
-
+  
   /**
    * Record an error where the reference is expected to be "Y" but is actually
    * "X". For example, the reference is shared, but expected to be unique.
    */
-  private abstract class XnotY extends Triple<PromiseDrop<? extends IAASTRootNode>, IRNode, Integer> {
-    public XnotY(final PromiseDrop<? extends IAASTRootNode> pd, final IRNode srcOp, final int msg) {
-      super(pd, srcOp, msg);
-    }
+  private static final class XNotY {
+    private final PromiseDrop<? extends IAASTRootNode> promiseDrop;
+    private final IRNode srcOp;
+    private final boolean isAbrupt;
+    private final int msg;
+    private final InfoAdder adder;
     
-    public final PromiseDrop<? extends IAASTRootNode> promiseDrop() { return first(); }
-    public final IRNode srcOp() { return second(); }
-    public final int msg() { return third(); }
+    public XNotY(final PromiseDrop<? extends IAASTRootNode> pd,
+        final IRNode srcOp, final boolean isAbrupt,
+        final int msg, final InfoAdder adder) {
+      this.promiseDrop = pd;
+      this.srcOp = srcOp;
+      this.isAbrupt = isAbrupt;
+      this.msg = msg;
+      this.adder = adder;
+    }
+
+    public XNotY(final PromiseDrop<? extends IAASTRootNode> pd,
+        final IRNode srcOp, final boolean isAbrupt, final int msg) {
+      this(pd, srcOp, isAbrupt, msg, null);
+    }
     
     public final ResultDropBuilder createDrop(
         final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
-        final boolean abruptDrops,
         final IBinder binder) {
       final ResultDropBuilder result = StoreLattice.createResultDrop(
-          analysis, abruptDrops, promiseDrop(), srcOp(), false, msg());
-      addSupportingInformation(analysis, binder, result);
+          analysis, isAbrupt, promiseDrop, srcOp, false, msg);
+      if (adder != null) {
+        adder.addSupportingInformation(analysis, binder, result);
+      }
       return result;          
     }
-    
-    protected abstract void addSupportingInformation(
+  }
+  
+  private static interface InfoAdder {
+    public void addSupportingInformation(
         AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
-        IBinder binder, ResultDropBuilder result);
+        IBinder binder, ResultDropBuilder resultDrop);
   }
-  
-  private final class SharedNotY extends XnotY {
-    public SharedNotY(final PromiseDrop<? extends IAASTRootNode> pd, final IRNode srcOp, final int msg) {
-      super(pd, srcOp, msg);
-    }
-    
-    @Override
-    public void addSupportingInformation(
-        final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
-        final IBinder binder, final ResultDropBuilder result) {
-      // no supporting information
-    }
-  }
-  
-  private final class BorrowedNotY extends XnotY {
-    public BorrowedNotY(final PromiseDrop<? extends IAASTRootNode> pd, final IRNode srcOp, final int msg) {
-      super(pd, srcOp, msg);
-    }
-    
-    @Override
-    public void addSupportingInformation(
-        final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
-        final IBinder binder, final ResultDropBuilder result) {
-      // no supporting information
-    }
-  }
-  
-  private final class UndefinedNotY extends XnotY {    
-    public UndefinedNotY(final PromiseDrop<? extends IAASTRootNode> pd, final IRNode srcOp, final int msg) {
-      super(pd, srcOp, msg);
-    }
-    
-    @Override
-    public void addSupportingInformation(
-        final AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
-        final IBinder binder, final ResultDropBuilder result) {
-//      final Operator op = JJNode.tree.getOperator(srcOp());
-//      if (VariableUseExpression.prototype.includes(op)) {
-//        final IRNode varDecl = binder.getBinding(srcOp());
-//        final Set<IRNode> set = undefinedVars.get(varDecl);
-//        if (set != null) {
-//          for (final IRNode whereUndefined : set) {
-//            result.addSupportingInformation(whereUndefined, Messages.UNDEFINED_BY, DebugUnparser.toString(whereUndefined));
-//          }
-//        }
-//      } else if (FieldRef.prototype.includes(op)) {
-//        
-//      }
-//      // no supporting information
-    }
-  }
-
-  public static interface XnotYFactory {
-    public XnotY create(
-        PromiseDrop<? extends IAASTRootNode> pd, IRNode srcOp, int msg);
-  }
-  
-  public final XnotYFactory sharedFactory = new XnotYFactory() {
-    public SharedNotY create(final PromiseDrop<? extends IAASTRootNode> pd,
-        final IRNode srcOp, final int msg) {
-      return new SharedNotY(pd, srcOp, msg);
-    }
-  };
-  
-  public final XnotYFactory borrowedFactory = new XnotYFactory() {
-    public BorrowedNotY create(final PromiseDrop<? extends IAASTRootNode> pd,
-        final IRNode srcOp, final int msg) {
-      return new BorrowedNotY(pd, srcOp, msg);
-    }
-  };
-  
-  public final XnotYFactory undefinedFactory = new XnotYFactory() {
-    public UndefinedNotY create(final PromiseDrop<? extends IAASTRootNode> pd,
-        final IRNode srcOp, final int msg) {
-      return new UndefinedNotY(pd, srcOp, msg);
-    }
-  };
 }
 
