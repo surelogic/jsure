@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.logging.SLLogger;
 
@@ -54,6 +55,7 @@ import edu.uwm.cs.fluid.control.LabeledLattice.UnaryOp;
  * @see ForwardAnalysis
  * @see BackwardAnalysis
  */
+@RegionLock("ComputeLock is this protects Instance")
 public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable, IFlowAnalysis<T, L> {
   public static final class AnalysisGaveUp extends RuntimeException {
     /** Timeout period in nanoseconds */
