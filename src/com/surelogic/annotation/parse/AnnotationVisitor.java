@@ -549,6 +549,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
 				if (tag.indexOf('(') >= 0 || tag.lastIndexOf(')') >= 0) {
 					msg = "Syntax not matching Foo(\"...\"): " + text;
 				} else {
+					if (ch == ' ' && StandardRules.ignore(tag.substring(0, i))) { 
+						// It's a normal Javadoc tag						
+						return false;
+					}
 					msg = "Not a legal annotation name: " + text;
 				}
 				SimpleAnnotationParsingContext.reportError(decl, offset, msg);
