@@ -27,7 +27,8 @@ public class Simple1IRStateArray<T> extends Simple1IRArray<T> {
 		node = null;
 		return p;
 	}
-
+	
+	@Borrowed("this")
 	private void mergeSlotState(IRState p) {
 		@SuppressWarnings("unchecked") 
 		SlotState<T> s = (SlotState<T>) p;

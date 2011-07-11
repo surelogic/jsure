@@ -46,7 +46,7 @@ import edu.cmu.cs.fluid.util.*;
  */
 @SuppressWarnings("unchecked")
 @Region("ListState")
-@InRegion("seq, initialSize, sizeSlot into ListState")
+@InRegion("initialSize, sizeSlot into ListState")
 @RegionLock("ListLock is this protects ListState")
 public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
 	
@@ -69,6 +69,8 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   
   // these will be calld on "raw" receivers:
   protected abstract SlotStorage<IntS,Integer> getIntSlotStorage();
+  
+  @Borrowed("this")
   protected abstract SlotStorage<S,T> getSlotStorage();
   protected abstract SlotStorage<ES,IRLocation> getElemStorage();
   
@@ -85,6 +87,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     if (startingSize > 0) initialize(startingSize,false);
   }
   @RequiresLock("ListLock")
+  @Borrowed("this")
   private void initializeSizeSlot(int size) {
     sizeSlot = getIntSlotStorage().newSlot(IntegerTable.newInteger(size));
   }
@@ -124,6 +127,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
    * Called before we add the first element
    */
   @RequiresLock("ListLock")
+  @Borrowed("this")
   private void initialize(int size, boolean reverse) {
     if (sizeSlot == null) initializeSizeSlot(size);
     SlotStorage<S,T> st = getSlotStorage();
