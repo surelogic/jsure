@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.logging">
+    <class name="Formatter">
+        <constructor>
+            <Unique>return</Unique>
+        </constructor>
+    </class>
+</package>
