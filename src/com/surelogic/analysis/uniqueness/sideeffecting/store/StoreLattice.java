@@ -23,7 +23,6 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -110,15 +109,6 @@ extends TripleLattice<Element<Integer>,
   final Map<IRNode, Set<IRNode>> undefinedAt =
     new HashMap<IRNode, Set<IRNode>>();
   
-//  /**
-//   * Track where variables&mdash;by name&mdash;are made undefined.  Map
-//   * from VariableDeclator nodes to sets of IRNodes indicating locations
-//   * where the variables are made undefined.  Built by 
-//   * {@link #recordUndefiningOfUnique(IRNode, Integer, State, ImmutableSet)}.
-//   */
-//  final Map<IRNode, Set<IRNode>> undefinedVars = 
-//    new HashMap<IRNode, Set<IRNode>>();
-  
   /**
    * Records where compromised fields are loaded.  After analysis is over,
    * we cross reference this set with {@link #compromisedAt} and {@link #undefinedAt} to determine
@@ -178,7 +168,6 @@ extends TripleLattice<Element<Integer>,
    * {@link #opUndefine(Store, IRNode)} and
    * {@link #opCompromiseNoRelease(Store, IRNode)}.
    */
-//  final Set<XnotY> xNotY = new HashSet<XnotY>();
   final Set<XNotY> xNotY = new HashSet<XNotY>();
   
   
@@ -654,15 +643,16 @@ extends TripleLattice<Element<Integer>,
       final State localStatus = localStatus(s, stacktop);
       if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
         // XXX: Can this happen?  Usually results in a different error on the load of the undefined value
-        recordUndefinedNotUnique(srcOp, uDrop);
-//        reportError(srcOp, "U1", "Undefined value encountered when a unique value was expected");
+        recordUndefinedNotUnique(srcOp, uDrop, MessageChooser.ASSIGN);
+        reportError(srcOp, "U1", "(opStore) Undefined value encountered when a unique value was expected");
 //        return errorStore("Undefined value on stack not unique");
       } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
-        recordBorrowedNotUnique(srcOp, uDrop, stacktop, s.getObjects());
+        recordBorrowedNotUnique(
+            srcOp, uDrop, MessageChooser.ASSIGN, stacktop, s.getObjects());
 //        reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
 //        return errorStore("Borrowed value on stack not unique");
       } else if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
-        recordSharedNotUnique(srcOp, uDrop);      
+        recordSharedNotUnique(srcOp, uDrop, MessageChooser.ASSIGN);      
 //        reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
 //        return errorStore("Shared value on stack not unique");
       }      
@@ -794,12 +784,70 @@ extends TripleLattice<Element<Integer>,
   /**
    * Ensure the top of the stack is at least borrowed and then pop the stack.
    */
-  public Store opBorrow(final Store s, final IRNode srcOp) {
+  public Store opBorrow(final Store s, final IRNode srcOp,
+      final PromiseDrop<? extends IAASTRootNode> borrowedDrop) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     if (localStatus(s, n).compareTo(State.BORROWED) > 0) { // cannot be undefined
-//      recordUndefinedNotBorrowed(srcOp, n, s.getObjects());
-      reportError(srcOp, "X100", "Undefined value where unique is expected: Another actual parameter has made the value undefined here");
+//      recordUndefinedNotBorrowed(srcOp, borrowedDrop);
+      
+      if (shouldRecordResult()) {
+//        // Find the local variables that may be referenced here
+//        final Set<IRNode> vars = new HashSet<IRNode>();
+//        for (final ImmutableHashOrderSet<Object> object : s.getObjects()) {
+//          if (object.contains(n)) {
+//            for (final Object o : object) {
+//              if (o instanceof IRNode && VariableDeclarator.prototype.includes((IRNode) o)) {
+//                vars.add((IRNode) o);
+//              }
+//            }
+//          }
+//        }
+//        xNotY.add(new XNotY(
+//            borrowedDrop, srcOp, abruptDrops, 
+//            Messages.UNDEFINED_NOT_BORROWABLE));
+        
+//            new InfoAdder() {
+//              public void addSupportingInformation(
+//                  final AbstractWholeIRAnalysis<UniquenessAnalysis, Void> analysis,
+//                  final IBinder binder, final ResultDropBuilder resultDrop) {
+//                if (VariableUseExpression.prototype.includes(srcOp)) {
+//                  // Link reads of buried references to burying field loads
+//                  for (final IRNode var : vars) {
+//                    final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(var);
+//                    for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
+//                      for (final IRNode buriedAt : e.getValue()) {
+//                        resultDrop.addSupportingInformation(
+//                            buriedAt, Messages.BURIED_BY, 
+//                            DebugUnparser.toString(buriedAt));
+//                      }
+//                    }
+//                  }
+//                } else if (FieldRef.prototype.includes(srcOp)) {
+//                  final IRNode fieldDecl = binder.getBinding(srcOp);
+//                  final Set<IRNode> compromises = compromisedAt.get(fieldDecl);
+//                  final Set<IRNode> undefines = undefinedAt.get(fieldDecl);
+//                    
+//                  if (compromises != null) {
+//                    for (final IRNode compromisedAt : compromises) {
+//                      resultDrop.addSupportingInformation(
+//                          compromisedAt, Messages.COMPROMISED_BY,
+//                          DebugUnparser.toString(compromisedAt));
+//                    }
+//                  }
+//                  if (undefines != null) {
+//                    for (final IRNode undefinedAt : undefines) {
+//                      resultDrop.addSupportingInformation(
+//                          undefinedAt, Messages.UNDEFINED_BY,
+//                          DebugUnparser.toString(undefinedAt));
+//                    }
+//                  }                  
+//                }
+//              }
+//            }));
+      }
+      
+      reportError(srcOp, "X100", "(opBorrow) Undefined value where unique is expected: Another actual parameter has made the value undefined here");
       return errorStore("Undefined value on stack borrowed");
     }
     return opRelease(s, srcOp);
@@ -825,11 +873,11 @@ extends TripleLattice<Element<Integer>,
     recordCompromisingOfUnique(srcOp, n, localStatus, s.getFieldStore());
 
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
-      reportError(srcOp, "X1", "Use of undefined value");
+      reportError(srcOp, "X1", "(opCompromiseNoRelease) Use of undefined value");
       return errorStore("Undefined value on stack shared");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
       recordBorrowedNotShared(srcOp, n, s.getObjects());
-      reportError(srcOp, "X2", "Attempt to alias a borrowed value");
+//      reportError(srcOp, "X2", "Attempt to alias a borrowed value");
 //      return errorStore("Borrowed value on stack shared");
     }
     return apply(s, srcOp, new Add(n, EMPTY.addElement(State.SHARED)));
@@ -848,7 +896,8 @@ extends TripleLattice<Element<Integer>,
    * again*
    */
   public Store opUndefine(
-      final Store s, final IRNode srcOp, final UniquePromiseDrop uDrop) {
+      final Store s, final IRNode srcOp, final UniquePromiseDrop uDrop,
+      final MessageChooser msg) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
@@ -856,16 +905,16 @@ extends TripleLattice<Element<Integer>,
     recordUndefiningOfUnique(srcOp, n, localStatus, s.getFieldStore());
     
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
-      recordUndefinedNotUnique(srcOp, uDrop);
-      reportError(srcOp, "U1", "Undefined value encountered when a unique value was expected");
+      recordUndefinedNotUnique(srcOp, uDrop, msg);
+      reportError(srcOp, "U1", "(opUndefine) Undefined value encountered when a unique value was expected");
 //      return errorStore("Undefined value on stack not unique");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
-      recordBorrowedNotUnique(srcOp, uDrop, n, s.getObjects());
-      reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
+      recordBorrowedNotUnique(srcOp, uDrop, msg, n, s.getObjects());
+//      reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
 //      return errorStore("Borrowed value on stack not unique");
     } else if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
-      recordSharedNotUnique(srcOp, uDrop);      
-      reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
+      recordSharedNotUnique(srcOp, uDrop, msg);      
+//      reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
 //      return errorStore("Shared value on stack not unique");
     }
     return opRelease(apply(s, srcOp, new Add(n, EMPTY.addElement(State.UNDEFINED))), srcOp);
@@ -1230,12 +1279,15 @@ extends TripleLattice<Element<Integer>,
   // -- Bad Values
   // ------------------------------------------------------------------
 
-  private void recordBadUnique(
-      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
-      final int msgNormal, final int msgReturn, final int msgAssign) {
-    xNotY.add(new XNotY(uDrop, srcOp, abruptDrops,
-        MethodBody.prototype.includes(srcOp) ? msgReturn : 
-          FieldRef.prototype.includes(srcOp) ? msgAssign : msgNormal));
+//  private void recordUndefined(
+//      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> pd,
+//      final int msg) {
+//    xNotY.add(new XNotY(pd, srcOp, abruptDrops, msg));
+//  }
+
+  private void recordBadUnique(final IRNode srcOp,
+      final PromiseDrop<? extends IAASTRootNode> uDrop, final int msg) {
+    xNotY.add(new XNotY(uDrop, srcOp, abruptDrops, msg));
   }
   
   private void recordBadBorrowed(
@@ -1281,17 +1333,19 @@ extends TripleLattice<Element<Integer>,
   }
 
   private void recordSharedNotUnique(
-      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop) {
+      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
+      final MessageChooser msg) {
     if (shouldRecordResult()) {
-      recordBadUnique(srcOp, uDrop,
-          Messages.SHARED_NOT_UNIQUE, Messages.SHARED_NOT_UNIQUE_RETURN,
-          Messages.SHARED_NOT_UNIQUE_ASSIGN);
+      recordBadUnique(srcOp, uDrop, 
+          msg.chooseMsg(
+              Messages.SHARED_NOT_UNIQUE_ACTUAL, Messages.SHARED_NOT_UNIQUE_RETURN,
+              Messages.SHARED_NOT_UNIQUE_ASSIGN));
     }
   }
   
   private void recordBorrowedNotUnique(
       final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
-      final Integer topOfStack,  
+      final MessageChooser msg, final Integer topOfStack,  
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
 
     /* Two problems here: (1) A unique reference is expected, but a borrowed
@@ -1299,8 +1353,9 @@ extends TripleLattice<Element<Integer>,
      */
     if (shouldRecordResult()) {
       recordBadUnique(srcOp, uDrop,
-          Messages.BORROWED_NOT_UNIQUE, Messages.BORROWED_NOT_UNIQUE_RETURN,
-          Messages.BORROWED_NOT_UNIQUE_ASSIGN);
+          msg.chooseMsg(
+              Messages.BORROWED_NOT_UNIQUE_ACTUAL, Messages.BORROWED_NOT_UNIQUE_RETURN,
+              Messages.BORROWED_NOT_UNIQUE_ASSIGN));
       recordBadBorrowed(srcOp, topOfStack, objects,
           Messages.BORROWED_AS_UNIQUE, Messages.BORROWED_AS_UNIQUE_RETURN,
           new InfoAdder() {
@@ -1314,11 +1369,14 @@ extends TripleLattice<Element<Integer>,
   }
 
   private void recordUndefinedNotUnique(
-      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop) {
+      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
+      MessageChooser msg) {
     if (shouldRecordResult()) {
       recordBadUnique(srcOp, uDrop,
-          Messages.UNDEFINED_NOT_UNIQUE, Messages.UNDEFINED_NOT_UNIQUE_RETURN,
-          Messages.UNDEFINED_NOT_UNIQUE_ASSIGN);
+          msg.chooseMsg(
+              Messages.UNDEFINED_NOT_UNIQUE_ACTUAL,
+              Messages.UNDEFINED_NOT_UNIQUE_RETURN,
+              Messages.UNDEFINED_NOT_UNIQUE_ASSIGN));
     }
   }
   
@@ -1331,14 +1389,11 @@ extends TripleLattice<Element<Integer>,
           null);
     }
   }
-  
+//  
 //  private void recordUndefinedNotBorrowed(
-//      final IRNode srcOp, final Integer topOfStack,  
-//      final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
+//      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> pd) {
 //    if (shouldRecordResult()) {
-//      recordBadBorrowed(undefinedFactory, srcOp, topOfStack, objects,
-//          Messages.UNDEFINED_NOT_BORROWED,
-//          Messages.UNDEFINED_NOT_BORROWED); // NOTE: Cannot have a borrowed return
+//      recordUndefined(srcOp, pd, Messages.UNDEFINED_NOT_BORROWABLE);
 //    }
 //  }
 
@@ -1481,6 +1536,31 @@ extends TripleLattice<Element<Integer>,
     public void addSupportingInformation(
         AbstractWholeIRAnalysis<UniquenessAnalysis,Void> analysis,
         IBinder binder, ResultDropBuilder resultDrop);
+  }
+  
+  public static enum MessageChooser {
+    ACTUAL {
+      @Override
+      public int chooseMsg(final int actual, final int ret, final int assign) {
+        return actual;
+      }      
+    },
+    
+    RETURN {
+      @Override
+      public int chooseMsg(final int actual, final int ret, final int assign) {
+        return ret;
+      }
+    },
+    
+    ASSIGN {
+      @Override
+      public int chooseMsg(final int actual, final int ret, final int assign) {
+        return assign;
+      }
+    };
+    
+    public abstract int chooseMsg(int actual, int ret, int assign);
   }
 }
 

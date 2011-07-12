@@ -19,6 +19,7 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.sideeffecting.store.Store;
 import com.surelogic.analysis.uniqueness.sideeffecting.store.StoreLattice;
+import com.surelogic.analysis.uniqueness.sideeffecting.store.StoreLattice.MessageChooser;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
@@ -65,6 +66,7 @@ import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.sea.drops.promises.BorrowedPromiseDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
@@ -351,7 +353,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     // ==================================================================
 
     private Store considerDeclaredEffects(final IRNode rcvr,
-        final int numFormals, final IRNode formals,
+        final int numFormals, final IRNode formals, final IRNode actuals,
         final Set<Effect> declEffects, Store s, final IRNode srcOp) {
       for (final Effect f : declEffects) {
         if (f.isEmpty()) {
@@ -416,9 +418,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
               /* If numActuals == 0 we don't get here, so it doesn't matter that
                * actuals == null in that case.
                */
-              final IRNode actual = tree.getChild(formals, i);
-              if (actual.equals(ref)) {
-                s = lattice.opDup(s, actual, numFormals - i - 1); // was + 1; fixed 2011-01-07
+              final IRNode formal = tree.getChild(formals, i);
+              if (formal.equals(ref)) {
+                s = lattice.opDup(
+                    s, tree.getChild(actuals, i), numFormals - i - 1); // was + 1; fixed 2011-01-07
                 break foundFormal;
               }
             }
@@ -467,10 +470,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode formal = formals != null ? tree.getChild(formals, n) : null;
         final IRNode actual = actuals != null ?  tree.getChild(actuals, n) : null;
         final UniquePromiseDrop uDrop = UniquenessRules.getUnique(formal);
+        final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(formal);
         if (uDrop != null) { // used to also check if formal != null
-          s = lattice.opUndefine(s, actual, uDrop);
-        } else if (/*formal == null ||*/ UniquenessRules.isBorrowed(formal)) {
-          s  = lattice.opBorrow(s, actual);
+          s = lattice.opUndefine(s, actual, uDrop, MessageChooser.ACTUAL);
+        } else if (/*formal == null ||*/ bDrop != null) {
+          s  = lattice.opBorrow(s, actual, bDrop);
         } else {
           s = lattice.opCompromise(s, actual);
         }
@@ -484,9 +488,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
      * the receiver.
      */
     private Store popReceiver(final IRNode decl, final Store s, final IRNode srcOp) {
-      if (decl == null) {
-        return lattice.opBorrow(s, srcOp);
-      }
+//      if (decl == null) {
+//        return lattice.opBorrow(s, srcOp);
+//      }
       if (JavaNode.getModifier(decl, JavaNode.STATIC)) {
         return lattice.opRelease(s, srcOp);
       } else {
@@ -494,11 +498,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final IRNode recDecl = JavaPromise.getReceiverNode(decl);
         final IRNode retDecl = JavaPromise.getReturnNode(decl);
         final UniquePromiseDrop uDrop = UniquenessRules.getUnique(recDecl);
+        final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(recDecl);
+        final UniquePromiseDrop uDrop2 = UniquenessRules.getUnique(retDecl);
         if (uDrop != null) {
-          return lattice.opUndefine(s, srcOp, uDrop);
-        } else if (UniquenessRules.isBorrowed(recDecl) ||
-            (isConstructor && UniquenessRules.isUnique(retDecl))) {
-          return lattice.opBorrow(s, srcOp);
+          return lattice.opUndefine(s, srcOp, uDrop, MessageChooser.ACTUAL);
+        } else if (bDrop != null) {
+          return lattice.opBorrow(s, srcOp, bDrop);
+        } else if (isConstructor && uDrop2 != null) {
+          return lattice.opBorrow(s, srcOp, uDrop2);
         } else {
           if (isConstructor) {
             if (LOG.isLoggable(Level.FINE)) {
@@ -508,6 +515,19 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
           }
           return lattice.opCompromise(s, srcOp);
         }
+        
+//        else if (UniquenessRules.isBorrowed(recDecl) ||
+//            (isConstructor && UniquenessRules.isUnique(retDecl))) {
+//          return lattice.opBorrow(s, srcOp);
+//        } else {
+//          if (isConstructor) {
+//            if (LOG.isLoggable(Level.FINE)) {
+//              LOG.fine("Receiver is not limited for\n  "
+//                  + DebugUnparser.toString(decl));
+//            }
+//          }
+//          return lattice.opCompromise(s, srcOp);
+//        }
       }
     }
 
@@ -682,7 +702,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
       try {
         if (mdecl != null) {
-          s = considerDeclaredEffects(receiverNode, numActuals, formals,
+          s = considerDeclaredEffects(
+              receiverNode, numActuals, formals, actuals,
               effects.getMethodEffects(mdecl, node), s, node);
         }
         // We have to possibly compromise arguments
@@ -841,7 +862,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
             s = lattice.opGet(s, body, rnode);
             final UniquePromiseDrop uDrop = UniquenessRules.getUnique(rnode);
             if (uDrop != null) {
-              s = lattice.opUndefine(s, body, uDrop);
+              s = lattice.opUndefine(s, body, uDrop, MessageChooser.RETURN);
             } else {
               s = lattice.opCompromise(s, body);
             }
