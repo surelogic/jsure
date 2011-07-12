@@ -125,7 +125,12 @@ public final class PromiseUtil {
   public static void addReceiverDeclsToMethod(IRNode method, Collection<IRNode> added) {
 	  final IRNode recv = JavaPromise.getReceiverNodeOrNull(method);
 	  if (recv == null) {
-		  added.add(ReceiverDeclaration.getReceiverNode(method));
+		  final Operator op = JJNode.tree.getOperator(method);
+		  if (InitDeclaration.prototype.includes(op)) {
+			  added.add(ReceiverDeclarationInInit.makeReceiverNodeForInit(method));
+		  } else {
+			  added.add(ReceiverDeclaration.getReceiverNode(method));
+		  }
 	  }
   }
   

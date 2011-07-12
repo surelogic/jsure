@@ -21,6 +21,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclarationInInit;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -139,7 +140,7 @@ public class AbstractAdapter {
 
 	protected void createRequiredAnonClassNodes(IRNode result) {
 		IRNode init = InitDeclaration.getInitMethod(result);
-		ReceiverDeclaration.makeReceiverNode(init);
+		ReceiverDeclarationInInit.makeReceiverNodeForInit(init);
 		ReceiverDeclaration.makeReceiverNode(result);
 	}
 
