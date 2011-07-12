@@ -278,14 +278,15 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
     
     Version v = Version.getVersion();
     if (useMapCache) {
-    	A fa;
+    	final A fa;
     	synchronized (mapCache) {
-    		fa = mapCache.get(flowUnit, v);
-    		if (fa == null) {
+    		A temp = mapCache.get(flowUnit, v);
+    		if (temp == null) {
     			// Start with uncomputed analysis
-    			fa = createAnalysis(flowUnit);
-    			mapCache.put(flowUnit, v, fa);
+    			temp = createAnalysis(flowUnit);
+    			mapCache.put(flowUnit, v, temp);
     		}
+    		fa = temp;
 		}    
     	synchronized (fa) {
         	// Compute if necessary
