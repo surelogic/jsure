@@ -71,7 +71,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
       final String name, final L l, final XFER t, final IRNodeViewer nv) {
     this(name, l, t, nv, false);
   }
-  
+
   public BackwardAnalysis(
       final String name, final L l, final XFER t, final IRNodeViewer nv,
       final boolean timeOut) {
@@ -215,7 +215,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
     }
   }
 
-  LabeledLattice.Combiner<T,ComponentChoice> componentChoiceCombiner =
+  final LabeledLattice.Combiner<T,ComponentChoice> componentChoiceCombiner =
     new LabeledLattice.Combiner<T,ComponentChoice>() {
      public final UnaryOp<T,ComponentChoice> leftBottom = new UnaryOp<T,ComponentChoice>() {
        public T operate(T x, ComponentChoice arg) { 
@@ -248,7 +248,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
         return lattice.join(r1,r2);
       }
   };
-  LabeledLattice.Combiner<T, IRNode> conditionalCombiner =
+  final LabeledLattice.Combiner<T, IRNode> conditionalCombiner =
     new LabeledLattice.Combiner<T,IRNode>() {
       public final UnaryOp<T,IRNode> leftBottom = new UnaryOp<T,IRNode>() {
         public T operate(T x, IRNode arg) { 
@@ -300,7 +300,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
    *      }
    *  };
    */
-  LabeledLattice.Combiner<T, DynamicSplit> dynamicSplitCombiner = new LabeledLattice.Combiner<T, DynamicSplit>() {
+  final LabeledLattice.Combiner<T, DynamicSplit> dynamicSplitCombiner = new LabeledLattice.Combiner<T, DynamicSplit>() {
     public final UnaryOp<T, DynamicSplit> leftBottom = new UnaryOp<T, DynamicSplit>() {
       public T operate(T x, DynamicSplit arg) {
         return combine(lattice.bottom(), x, arg);
