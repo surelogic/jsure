@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/scrub/AASTStore.java,v 1.8 2008/09/04 18:50:16 chance Exp $*/
 package com.surelogic.annotation.scrub;
 
+import com.surelogic.*;
 import com.surelogic.aast.*;
 import com.surelogic.annotation.test.TestResult;
 
@@ -17,13 +18,17 @@ import java.util.concurrent.*;
  * 
  * @author Edwin.Chan
  */
+@Region("static Store")
+@RegionLock("StoreLock is class protects Store")
 public final class AASTStore {
+  @UniqueInRegion("Store")
   protected static final Collection<IAASTRootNode> asts = new ArrayList<IAASTRootNode>();
   
   /**
    * Resulting AASTs organized by type
    */
   @SuppressWarnings("rawtypes")
+  @UniqueInRegion("Store")
   protected static final Map<Class,Collection<? extends IAASTRootNode>> byClass = 
     new HashMap<Class,Collection<? extends IAASTRootNode>>();
   
@@ -36,18 +41,22 @@ public final class AASTStore {
   /**
    * Map from the AAST to the comp unit that it is assumed for
    */
+  @UniqueInRegion("Store")
   static final Map<IAASTRootNode, IRNode> assumedFor =
 	new HashMap<IAASTRootNode, IRNode>();
   
+  @InRegion("Store")
   static IRNode assumedCu = null;
   
   /**
    * Callbacks to be run after the AAST is scrubbed
    */
   @SuppressWarnings("rawtypes")
+  @UniqueInRegion("Store")
   protected static final Map<IAASTRootNode,List<ValidatedDropCallback>> triggers = 
     new HashMap<IAASTRootNode,List<ValidatedDropCallback>>();
   
+  @UniqueInRegion("Store")
   protected static final Map<IAASTRootNode,TestResult> results = 
     new HashMap<IAASTRootNode,TestResult>();
   
@@ -61,7 +70,7 @@ public final class AASTStore {
     addByClass(ast);
   }
   
-  // RequiresLock
+  @RequiresLock("StoreLock")
   private static <T extends IAASTRootNode> 
   void addByClass(T ast) {  	  
     Class<?> cls = ast.getClass();
