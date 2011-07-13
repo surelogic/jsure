@@ -130,7 +130,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
       }
     } else if (Statement.prototype.includes(op)) {
       if (BlockStatement.prototype.includes(op)) {
-        return transferCloseScope(node,val);
+        return transferCloseScope(node,((Boolean)info).booleanValue(),val);
       } else if (/* discard values without consideration */
         AssertMessageStatement.prototype.includes(op)
           || AssertStatement.prototype.includes(op)
@@ -153,6 +153,10 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     } else if (StatementExpressionList.prototype.includes(op)) {
       /* discard each expression as it is evaluated */
       return pop(val, node);
+    } else if (CatchClause.prototype.includes(op)) {
+      if (info instanceof Boolean) {
+        return transferCatchClose(node,((Boolean)info).booleanValue(),val);
+      } else return transferCatchOpen(node,val);
     }
     throw new FluidError(
       "No transition defined for " + op + " with info=" + info);
@@ -411,6 +415,30 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   }
 
   /**
+   * Transfer evaluation over the end of a catch clause.
+   * By default, we simply return the lattice value unchanged.
+   * <strong>major grouping, leaf</string>
+   * @param node CatchClause node
+   * @param val lattice value to transfer
+   * @param flag whether this is on the normal (true) or abrupt (false) path
+   * @return new lattice value after scope is closed.
+   */
+  protected T transferCatchClose(IRNode node, boolean flag, T val) {
+    return val;
+  }
+
+  /**
+   * Transfer evaluation over the start of a catch clause.
+   * By default, we return the lattice value unchanged.
+   * @param node CatchClause node
+   * @param val lattice value to transfer
+   * @return new lattice value after catch variable added to scope. 
+   */
+  protected T transferCatchOpen(IRNode node, T val) {
+    return val;
+  }
+  
+  /**
 	 * Transfer evaluation over ".class" expression. <strong>major grouping,
 	 * leaf</strong>
 	 */
@@ -425,9 +453,10 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
    * <strong>major grouping, leaf</string>
    * @param node BlockStatement node
    * @param val lattice value to transfer
+   * @param flag whether normal (true) or abrupt (false) termination
    * @return new lattice value after scope is closed.
    */
-  protected T transferCloseScope(IRNode node, T val) {
+  protected T transferCloseScope(IRNode node, boolean flag, T val) {
     return val;
   }
   
@@ -815,7 +844,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   }
 
   /**
-   * Transfer evaluation over coercoing an operand to a string.
+   * Transfer evaluation over coercing an operand to a string.
    * By default, we just pop.
    * <strong>leaf</strong>
    */
