@@ -56,7 +56,6 @@ Export-Package:
  com.surelogic.persistence,
  com.surelogic.promise,
  com.surelogic.refactor,
- com.surelogic.scans,
  com.surelogic.task,
  com.surelogic.test,
  com.surelogic.tree,
