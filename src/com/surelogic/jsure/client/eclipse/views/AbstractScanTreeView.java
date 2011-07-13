@@ -4,7 +4,7 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import com.surelogic.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.ScanStatus;
 
 /**
  * Uses a TreeViewer

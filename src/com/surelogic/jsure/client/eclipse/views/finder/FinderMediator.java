@@ -1,9 +1,9 @@
 package com.surelogic.jsure.client.eclipse.views.finder;
 
 import com.surelogic.common.ILifecycle;
-import com.surelogic.scans.IJSureScanListener;
-import com.surelogic.scans.JSureScansHub;
-import com.surelogic.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.IJSureScanListener;
+import com.surelogic.jsure.core.scans.JSureScansHub;
+import com.surelogic.jsure.core.scans.ScanStatus;
 
 public final class FinderMediator implements ILifecycle, IJSureScanListener {
 

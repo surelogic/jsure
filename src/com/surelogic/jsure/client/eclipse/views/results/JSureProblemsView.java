@@ -12,9 +12,9 @@ import org.eclipse.ui.actions.ActionFactory;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.*;
-import com.surelogic.scans.JSureScanInfo;
-import com.surelogic.scans.JSureScansHub;
-import com.surelogic.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
+import com.surelogic.jsure.core.scans.JSureScansHub;
+import com.surelogic.jsure.core.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.sea.*;
 

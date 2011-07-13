@@ -10,7 +10,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
-import com.surelogic.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;

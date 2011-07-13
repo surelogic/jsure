@@ -7,10 +7,10 @@ import java.util.Arrays;
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
 import com.surelogic.javac.*;
-import com.surelogic.scans.IJSureScanListener;
-import com.surelogic.scans.JSureScanInfo;
-import com.surelogic.scans.JSureScansHub;
-import com.surelogic.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.IJSureScanListener;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
+import com.surelogic.jsure.core.scans.JSureScansHub;
+import com.surelogic.jsure.core.scans.ScanStatus;
 
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
 		implements IJSureScanListener {

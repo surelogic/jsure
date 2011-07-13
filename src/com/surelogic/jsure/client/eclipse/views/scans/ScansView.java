@@ -26,9 +26,9 @@ import com.surelogic.common.ui.views.ITableContentProvider;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureRun;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.scans.JSureScanInfo;
-import com.surelogic.scans.JSureScansHub;
-import com.surelogic.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
+import com.surelogic.jsure.core.scans.JSureScansHub;
+import com.surelogic.jsure.core.scans.ScanStatus;
 
 /**
  * A simple view to show what scans are available to be selected as the

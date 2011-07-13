@@ -5,7 +5,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import com.surelogic.common.ui.ColumnViewerSorter;
-import com.surelogic.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.ScanStatus;
 
 /**
  * Uses a TableViewer

@@ -70,7 +70,7 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureRun;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.sea.SeaStats;
 

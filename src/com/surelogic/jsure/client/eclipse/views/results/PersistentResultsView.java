@@ -8,10 +8,10 @@ import org.eclipse.ui.IMemento;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.jsure.core.preferences.JSureEclipseHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.scans.IJSureScanListener;
-import com.surelogic.scans.JSureScanInfo;
-import com.surelogic.scans.JSureScansHub;
-import com.surelogic.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.IJSureScanListener;
+import com.surelogic.jsure.core.scans.JSureScanInfo;
+import com.surelogic.jsure.core.scans.JSureScansHub;
+import com.surelogic.jsure.core.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
