@@ -8,8 +8,8 @@ import org.osgi.framework.BundleContext;
 import com.surelogic.common.FileUtility;
 import com.surelogic.javac.Util;
 import com.surelogic.jsure.core.driver.JavacDriver;
-import com.surelogic.jsure.core.preferences.JSureEclipseHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import edu.cmu.cs.fluid.ide.IDE;
 
@@ -57,8 +57,6 @@ public class Activator extends Plugin {
 		Eclipse.initialize();
 		//monitor.worked(1);
 
-		JSureEclipseHub.init();
-		
 		// NotificationHub.addAnalysisListener(ConsistencyListener.prototype);
 		JavacDriver.getInstance();		
 		//monitor.worked(1);
