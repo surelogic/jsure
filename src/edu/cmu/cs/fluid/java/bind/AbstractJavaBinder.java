@@ -2217,7 +2217,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       // Could be part of a field or initializer
       // Receiver defined on initializer (for now)
       IRNode decl = VisitUtil.getEnclosingClassBodyDecl(n);
-      IRNode oldRV = null;
+      //IRNode oldRV = null;
       IRNode enclosingType = null;
       if (decl != null) {
         Operator op = JJNode.tree.getOperator(decl);
@@ -2237,13 +2237,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	if (ConstructorDeclaration.prototype.includes(op)) {
         		// Check if it's inside a ConstructorCall        		        
         		if (insideConstructorCall(n)) {
-        			return JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);
-        		} else {
-        			System.out.println("In constructor, but not call: "+DebugUnparser.toString(n));
+        			return JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);        			
+        		//} else {
+        		//	System.out.println("In constructor, but not call: "+DebugUnparser.toString(n));
         		}
-        	} else {
-        		System.out.println("In method: "+DebugUnparser.toString(n)+" in "+JavaNames.genMethodConstructorName(decl));
-        		oldRV = JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);		
+        	//} else {
+        	//	System.out.println("In method: "+DebugUnparser.toString(n)+" in "+JavaNames.genMethodConstructorName(decl));
+        	//	oldRV = JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);		
         	}
           } else {
         	  return JavaPromise.getReceiverNodeOrNull(decl);
@@ -2266,10 +2266,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         LOG.severe("Got nulls while binding "+DebugUnparser.toString(n));
         JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
       }
+      /*
       if (oldRV != rv) {
     	  //getting receivers from different nodes (method vs class)
     	  System.out.println("Results differ");
       }
+      */
       return rv;
     }
     
