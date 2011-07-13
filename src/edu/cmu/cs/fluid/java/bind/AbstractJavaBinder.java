@@ -2217,38 +2217,80 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       // Could be part of a field or initializer
       // Receiver defined on initializer (for now)
       IRNode decl = VisitUtil.getEnclosingClassBodyDecl(n);
+      IRNode oldRV = null;
+      IRNode enclosingType = null;
       if (decl != null) {
         Operator op = JJNode.tree.getOperator(decl);
         if (isParameterToAnonClassExpr(op, decl, n)) {
           // "inside" a ACE
           decl = VisitUtil.getEnclosingClassBodyDecl(decl);
           op   = JJNode.tree.getOperator(decl);
-        }
-        if (MethodDeclaration.prototype.includes(op) ||
-            ConstructorDeclaration.prototype.includes(op)) {
+        }        
+        if (SomeFunctionDeclaration.prototype.includes(op)) {
           if (contextTypeB != null) {
-            return JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);
+        	// Check if the context type is the same as the enclosing type
+        	enclosingType = VisitUtil.getEnclosingType(n);
+        	if (contextTypeB == enclosingType) {
+        		// If so, use the receiver node instead
+        		return JavaPromise.getReceiverNodeOrNull(decl);
+        	}
+        	if (ConstructorDeclaration.prototype.includes(op)) {
+        		// Check if it's inside a ConstructorCall        		        
+        		if (insideConstructorCall(n)) {
+        			return JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);
+        		} else {
+        			System.out.println("In constructor, but not call: "+DebugUnparser.toString(n));
+        		}
+        	} else {
+        		System.out.println("In method: "+DebugUnparser.toString(n)+" in "+JavaNames.genMethodConstructorName(decl));
+        		oldRV = JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);		
+        	}
+          } else {
+        	  return JavaPromise.getReceiverNodeOrNull(decl);
           }
-          return JavaPromise.getReceiverNodeOrNull(decl);
         }
       }
       // initializer or method
-      IRNode type = VisitUtil.getEnclosingType(n);
+      if (enclosingType == null) {
+    	  enclosingType = VisitUtil.getEnclosingType(n);
+      }
       IRNode rv;
       //decl = JavaPromise.getInitMethodOrNull(type);
       
-      if (contextTypeB != null && contextTypeB != type) {
-        rv = JavaPromise.getQualifiedReceiverNodeByName(type, contextTypeB);
+      if (contextTypeB != null && contextTypeB != enclosingType) {
+        rv = JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
       } else {
-        rv = JavaPromise.getReceiverNodeOrNull(type);
+        rv = JavaPromise.getReceiverNodeOrNull(enclosingType);
       }
-      if (type == null || decl == null || rv == null) {
+      if (enclosingType == null || decl == null || rv == null) {
         LOG.severe("Got nulls while binding "+DebugUnparser.toString(n));
-        JavaPromise.getQualifiedReceiverNodeByName(type, contextTypeB);
+        JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
+      }
+      if (oldRV != rv) {
+    	  //getting receivers from different nodes (method vs class)
+    	  System.out.println("Results differ");
       }
       return rv;
     }
     
+    
+    private boolean insideConstructorCall(IRNode n) {
+    	n = JJNode.tree.getParentOrNull(n);
+    	
+    	while (n != null) {
+    		final Operator op = getOperator(n);
+    		System.out.println("At: "+op.name());
+    		if (ConstructorCall.prototype.includes(op)) {
+    			return true;
+    		}
+    		if (Statement.prototype.includes(op)) {
+    			return false;
+    		}
+    		n = JJNode.tree.getParentOrNull(n);
+    	}
+		return false;
+	}
+
     @Override
     public Void visitParameterizedType(IRNode node) {
       if (!bindForType(node)) {
