@@ -9,10 +9,8 @@ import org.eclipse.ui.IMemento;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.scans.IJSureScanListener;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureScansHub;
-import com.surelogic.jsure.core.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.Drop;
@@ -22,7 +20,7 @@ import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
 public class PersistentResultsView extends ResultsView implements
-		IJSureScanListener {
+		JSureScansHub.Listener {
 	private static final String VIEW_STATE = "view.state";
 	private static final boolean useXML = SeaSnapshot.useFullType
 			|| AbstractWholeIRAnalysis.useDependencies;
@@ -54,7 +52,7 @@ public class PersistentResultsView extends ResultsView implements
 	}
 
 	@Override
-	public void scansChanged(ScanStatus status) {
+	public void scansChanged(JSureScansHub.ScanStatus status) {
 		seaChanged();
 	}
 

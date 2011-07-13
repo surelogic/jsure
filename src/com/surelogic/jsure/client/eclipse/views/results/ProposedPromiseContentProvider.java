@@ -8,7 +8,6 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureScansHub;
-import com.surelogic.jsure.core.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.sea.*;
 
@@ -18,7 +17,7 @@ public final class ProposedPromiseContentProvider extends
 		super("Proposed Promise");
 	}
 
-	protected String getAndSortResults(ScanStatus s,
+	protected String getAndSortResults(JSureScansHub.ScanStatus s,
 			List<IProposedPromiseDropInfo> contents) {
 		final JSureScanInfo info = JSureScansHub.getInstance()
 				.getCurrentScanInfo();

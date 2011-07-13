@@ -70,7 +70,7 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureRun;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import edu.cmu.cs.fluid.sea.SeaStats;
 
@@ -94,12 +94,12 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	}
 
 	@Override
-	protected String updateViewer(ScanStatus status,
+	protected String updateViewer(JSureScansHub.ScanStatus status,
 			JSureDataDirHub.Status dirStatus) {
 		return updateViewer(status, dirStatus, false);
 	}
 
-	private String updateViewer(ScanStatus status,
+	private String updateViewer(JSureScansHub.ScanStatus status,
 			JSureDataDirHub.Status dirStatus, boolean selectedProjsChanged) {
 		try {
 			final IStructuredSelection sel = (IStructuredSelection) projectList
@@ -270,7 +270,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	}
 
 	@Override
-	public void scansChanged(final ScanStatus status) {
+	public void scansChanged(final JSureScansHub.ScanStatus status) {
 		// Ignore these updates
 	}
 
@@ -318,7 +318,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 		JSureRun[] runs;
 		Summary[] summaries;
 
-		public String build(ScanStatus status,
+		public String build(JSureScansHub.ScanStatus status,
 				JSureDataDirHub.Status dirStatus,
 				boolean selectedProjectsChanged) {
 			final JSureDataDir data = JSureDataDirHub.getInstance()
@@ -562,7 +562,7 @@ public class ScanSummaryView extends AbstractScanManagerView {
 	class ProjectSelectionListener implements ISelectionChangedListener {
 		@Override
 		public void selectionChanged(SelectionChangedEvent event) {
-			updateViewer(ScanStatus.NEITHER_CHANGED,
+			updateViewer(JSureScansHub.ScanStatus.NEITHER_CHANGED,
 					JSureDataDirHub.Status.UNCHANGED, true);
 		}
 	}

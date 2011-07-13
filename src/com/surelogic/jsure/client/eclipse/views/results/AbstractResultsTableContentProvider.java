@@ -10,21 +10,22 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.jsure.client.eclipse.views.IResultsTableContentProvider;
-import com.surelogic.jsure.core.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
 import edu.cmu.cs.fluid.sea.*;
 
-abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implements IResultsTableContentProvider{
+abstract class AbstractResultsTableContentProvider<T extends IDropInfo>
+		implements IResultsTableContentProvider {
 	private final List<T> f_contents = new ArrayList<T>();
 	private final String[] f_labels;
-	
+
 	protected final Comparator<T> sortAsString = new Comparator<T>() {
 		public int compare(T d1, T d2) {
 			return d1.toString().compareTo(d2.toString());
 		}
 	};
-	
+
 	protected final Comparator<T> sortByLocation = new Comparator<T>() {
 		public int compare(T d1, T d2) {
 			String res1 = getResource(d1);
@@ -58,19 +59,19 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 			return rv;
 		}
 	};
-	
+
 	AbstractResultsTableContentProvider(String[] labels) {
 		f_labels = labels;
 	}
-	
+
 	AbstractResultsTableContentProvider(String mainLabel) {
 		this(new String[] { mainLabel, "Resource", "Line" });
 	}
-	
+
 	public final String[] getColumnLabels() {
 		return f_labels;
 	}
-	
+
 	public final int numColumns() {
 		return f_labels.length;
 	}
@@ -78,11 +79,11 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 	public final String getColumnTitle(int column) {
 		return f_labels[column];
 	}
-	
+
 	public boolean isIntSortedColumn(int colIdx) {
 		return colIdx == 2;
 	}
-	
+
 	public int getColumnWeight(int column) {
 		switch (column) {
 		case 0:
@@ -94,22 +95,23 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 		}
 		return 10;
 	}
-	
+
 	public final Object[] getElements(Object inputElement) {
 		return f_contents.toArray();
 	}
-	
-	public String build(ScanStatus status) {
+
+	public String build(JSureScansHub.ScanStatus status) {
 		f_contents.clear();
 		return getAndSortResults(status, f_contents);
 	}
-	
-	protected abstract String getAndSortResults(ScanStatus status, List<T> contents);
-	
+
+	protected abstract String getAndSortResults(
+			JSureScansHub.ScanStatus status, List<T> contents);
+
 	protected String getMainColumnText(T d) {
 		return d.getMessage();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public String getColumnText(Object element, int columnIndex) {
 		T d = (T) element;
@@ -127,7 +129,7 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 		}
 		return "";
 	}
-	
+
 	protected final String getResource(T d) {
 		ISrcRef ref = d.getSrcRef();
 		if (ref == null) {
@@ -154,7 +156,7 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 			}
 			final int bang = name.lastIndexOf('!');
 			if (bang >= 0) {
-				return name.substring(bang+1);
+				return name.substring(bang + 1);
 			}
 			IFile f = EclipseUtility.resolveIFile(name);
 			if (f == null) {
@@ -166,7 +168,7 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 		}
 		return "";
 	}
-	
+
 	protected final int getLine(T d) {
 		ISrcRef ref = d.getSrcRef();
 		if (ref != null) {
@@ -174,7 +176,7 @@ abstract class AbstractResultsTableContentProvider<T extends IDropInfo> implemen
 		}
 		return Integer.MAX_VALUE;
 	}
-	
+
 	public final void dispose() {
 		f_contents.clear();
 	}

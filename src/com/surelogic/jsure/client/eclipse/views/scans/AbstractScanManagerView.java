@@ -5,17 +5,15 @@ import java.io.File;
 import org.eclipse.swt.widgets.Composite;
 
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
-import com.surelogic.jsure.core.scans.IJSureScanListener;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScansHub;
-import com.surelogic.jsure.core.scans.ScanStatus;
 
 /**
  * Helps to displays the baseline/current scan, as well as other scan
  * information.
  */
 public abstract class AbstractScanManagerView extends AbstractJSureView
-		implements IJSureScanListener, JSureDataDirHub.Listener {
+		implements JSureScansHub.Listener, JSureDataDirHub.Listener {
 	protected AbstractScanManagerView() {
 		JSureScansHub.getInstance().addListener(this);
 		JSureDataDirHub.getInstance().addListener(this);
@@ -32,19 +30,20 @@ public abstract class AbstractScanManagerView extends AbstractJSureView
 	@Override
 	public final void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		updateViewState(ScanStatus.BOTH_CHANGED, JSureDataDirHub.Status.CHANGED);
+		updateViewState(JSureScansHub.ScanStatus.BOTH_CHANGED,
+				JSureDataDirHub.Status.CHANGED);
 	}
 
 	public void updateScans(final JSureDataDirHub.Status s, File dir) {
 		f_viewerControl.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				updateViewState(ScanStatus.NEITHER_CHANGED, s);
+				updateViewState(JSureScansHub.ScanStatus.NEITHER_CHANGED, s);
 			}
 		});
 	}
 
-	public void scansChanged(final ScanStatus status) {
+	public void scansChanged(final JSureScansHub.ScanStatus status) {
 		f_viewerControl.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -56,13 +55,13 @@ public abstract class AbstractScanManagerView extends AbstractJSureView
 	/**
 	 * @return The label to be shown in the title
 	 */
-	protected abstract String updateViewer(ScanStatus status,
+	protected abstract String updateViewer(JSureScansHub.ScanStatus status,
 			JSureDataDirHub.Status dirStatus);
 
 	/**
 	 * Update the internal state, presumably after a new scan
 	 */
-	private void updateViewState(ScanStatus status,
+	private void updateViewState(JSureScansHub.ScanStatus status,
 			JSureDataDirHub.Status dirStatus) {
 		if (status.changed() || dirStatus != JSureDataDirHub.Status.UNCHANGED) {
 			final String label = updateViewer(status, dirStatus);

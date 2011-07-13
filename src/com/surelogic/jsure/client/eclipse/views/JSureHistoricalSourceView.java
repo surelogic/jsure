@@ -7,23 +7,21 @@ import java.util.Arrays;
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
 import com.surelogic.javac.*;
-import com.surelogic.jsure.core.scans.IJSureScanListener;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureScansHub;
-import com.surelogic.jsure.core.scans.ScanStatus;
 
 public class JSureHistoricalSourceView extends AbstractHistoricalSourceView
-		implements IJSureScanListener {
+		implements JSureScansHub.Listener {
 	private static Projects projects;
 	private static ISourceZipFileHandles zips;
 	private static boolean viewIsEnabled = true;
 
 	public JSureHistoricalSourceView() {
-		scansChanged(ScanStatus.CURRENT_CHANGED);
+		scansChanged(JSureScansHub.ScanStatus.CURRENT_CHANGED);
 	}
 
 	@Override
-	public void scansChanged(ScanStatus status) {
+	public void scansChanged(JSureScansHub.ScanStatus status) {
 		if (status.currentChanged()) {
 			final JSureScanInfo info = JSureScansHub.getInstance()
 					.getCurrentScanInfo();

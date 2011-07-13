@@ -1,10 +1,12 @@
 package com.surelogic.jsure.client.eclipse.views;
 
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import com.surelogic.jsure.core.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.JSureScansHub;
 
 /**
  * Uses a TreeViewer
@@ -20,7 +22,7 @@ public abstract class AbstractScanTreeView<T> extends AbstractScanStructuredView
 	}
 	
 	@Override
-	protected String updateViewer(ScanStatus status) {
+	protected String updateViewer(JSureScansHub.ScanStatus status) {
 		return f_content.build(status);
 	}
 	

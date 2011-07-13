@@ -14,7 +14,6 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.client.eclipse.views.*;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureScansHub;
-import com.surelogic.jsure.core.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.sea.*;
 
@@ -54,7 +53,7 @@ public class JSureProblemsView extends AbstractScanTableView<IProofDropInfo> {
 		}
 
 		@Override
-		protected String getAndSortResults(ScanStatus status,
+		protected String getAndSortResults(JSureScansHub.ScanStatus status,
 				List<IProofDropInfo> contents) {
 			final JSureScanInfo info = JSureScansHub.getInstance()
 					.getCurrentScanInfo();

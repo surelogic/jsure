@@ -28,7 +28,6 @@ import com.surelogic.javac.persistence.JSureRun;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureScansHub;
-import com.surelogic.jsure.core.scans.ScanStatus;
 
 /**
  * A simple view to show what scans are available to be selected as the
@@ -46,7 +45,7 @@ public class ScansView extends AbstractScanManagerView {
 	}
 
 	@Override
-	protected String updateViewer(ScanStatus status,
+	protected String updateViewer(JSureScansHub.ScanStatus status,
 			JSureDataDirHub.Status dirStatus) {
 		try {
 			String rv = f_content.build(status, dirStatus);
@@ -187,7 +186,8 @@ public class ScansView extends AbstractScanManagerView {
 		JSureRun[] runs;
 		JSureRun baseline, current;
 
-		public String build(ScanStatus status, JSureDataDirHub.Status dirStatus) {
+		public String build(JSureScansHub.ScanStatus status,
+				JSureDataDirHub.Status dirStatus) {
 			final JSureDataDir data = JSureDataDirHub.getInstance()
 					.getJSureDataDir();
 			if (dirStatus == JSureDataDirHub.Status.UNCHANGED) {

@@ -5,7 +5,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import com.surelogic.common.ui.ColumnViewerSorter;
-import com.surelogic.jsure.core.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.JSureScansHub;
 
 /**
  * Uses a TableViewer
@@ -21,7 +21,7 @@ public abstract class AbstractScanTableView<T> extends AbstractScanStructuredVie
 	}
 	
 	@Override
-	protected String updateViewer(ScanStatus status) {
+	protected String updateViewer(JSureScansHub.ScanStatus status) {
 		return f_content.build(status);
 	}
 	

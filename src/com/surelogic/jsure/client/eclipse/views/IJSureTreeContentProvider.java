@@ -1,8 +1,8 @@
 package com.surelogic.jsure.client.eclipse.views;
 
 import com.surelogic.common.ui.views.ITreeLabelContentProvider;
-import com.surelogic.jsure.core.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.JSureScansHub;
 
 public interface IJSureTreeContentProvider extends ITreeLabelContentProvider {
-	String build(ScanStatus s);
+	String build(JSureScansHub.ScanStatus s);
 }
