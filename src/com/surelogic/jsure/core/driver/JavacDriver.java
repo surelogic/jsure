@@ -85,7 +85,7 @@ import com.surelogic.jsure.core.scripting.ICommandContext;
 import com.surelogic.jsure.core.scripting.NullCommand;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
-import com.surelogic.scans.JSureScansHub;
+import com.surelogic.jsure.core.scans.JSureScansHub;
 
 import difflib.Delta;
 import difflib.DiffUtils;

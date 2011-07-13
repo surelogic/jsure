@@ -7,9 +7,9 @@ import static com.surelogic.jsure.core.preferences.JSurePreferencesUtility.SCAN_
 import java.io.File;
 
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.scans.JSureScansHub;
-import com.surelogic.scans.ScanStatus;
-import com.surelogic.scans.ScanUpdateMode;
+import com.surelogic.jsure.core.scans.JSureScansHub;
+import com.surelogic.jsure.core.scans.ScanStatus;
+import com.surelogic.jsure.core.scans.ScanUpdateMode;
 
 /**
  * Handles the Eclipse-specific details of persisting the scan info
