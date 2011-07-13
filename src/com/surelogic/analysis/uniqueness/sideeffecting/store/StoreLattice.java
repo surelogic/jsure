@@ -23,6 +23,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -40,6 +41,7 @@ import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.IteratorUtil;
+import edu.cmu.cs.fluid.util.Pair;
 import edu.cmu.cs.fluid.util.SimpleRemovelessIterator;
 import edu.uwm.cs.fluid.util.FlatLattice2;
 import edu.uwm.cs.fluid.util.FlatLattice2.Element;
@@ -169,7 +171,36 @@ extends TripleLattice<Element<Integer>,
    * {@link #opCompromiseNoRelease(Store, IRNode)}.
    */
   final Set<XNotY> xNotY = new HashSet<XNotY>();
-  
+
+  /**
+   * Track which stack locations are made undefined and where. This is a map
+   * from stack indices to sets of IRNodes indicating source locations where the
+   * stack location may have been made undefined by use of a value as a unique
+   * parameter. Built by {@link #opUndefine(Store, IRNode)}. Used when handling
+   * "undefined" errors to out why the stack position is undefined.
+   */
+  final Map<Integer, Set<IRNode>> stackUndefinedAt =
+    new HashMap<Integer, Set<IRNode>>();
+
+  /**
+   * Track which stack locations are buried by unique field reads and where.  This is a map
+   * from stack indices to sets of IRNodes indicating source locations where
+   * the stack location may have been made compromised.  Built by
+   * {@link #opLoad(Store, IRNode)}.  Used when handling "undefined" errors
+   * to out why the stack position is undefined.
+   */
+  final Map<Integer, Set<IRNode>> stackBuriedAt =
+    new HashMap<Integer, Set<IRNode>>();
+
+  /**
+   * Track which stack locations are buried by unique field reads as a method side-effect.  This is a map
+   * from stack indices to sets of IRNodes indicating source locations where
+   * the stack location may have been made compromised.  Built by
+   * {@link #opLoadReachable(Store, IRNode)}.  Used when handling "undefined" errors
+   * to out why the stack position is undefined.
+   */
+  final Map<Integer, Set<Pair<Set<IRNode>, IRNode>>> stackIndirectlyBuriedAt =
+    new HashMap<Integer, Set<Pair<Set<IRNode>, IRNode>>>();
   
   
   // ==================================================================
@@ -573,7 +604,15 @@ extends TripleLattice<Element<Integer>,
           affected = affected.union(t.third());
         }
       }
+      
       recordBuryingLoad(fieldDecl, affected, srcOp);
+      for (final Object v : affected) {
+        if (v instanceof Integer) {
+          addToMappedSet(stackBuriedAt, (Integer) v, srcOp);
+        }
+      }
+      
+      
       if (nodeStatus(affected) != State.UNIQUE) {
         recordLoadOfCompromisedField(srcOp, fieldDecl);
 //        reportError(srcOp, "L1", "Read of a compromised unique field: value cannot be guaranteed unique");
@@ -642,10 +681,8 @@ extends TripleLattice<Element<Integer>,
       // Check that the top of stack makes sense
       final State localStatus = localStatus(s, stacktop);
       if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
-        // XXX: Can this happen?  Usually results in a different error on the load of the undefined value
-        recordUndefinedNotUnique(srcOp, uDrop, MessageChooser.ASSIGN);
-        reportError(srcOp, "U1", "(opStore) Undefined value encountered when a unique value was expected");
-//        return errorStore("Undefined value on stack not unique");
+        // XXX: Cannot happen.  Results in an error on the load/get of the undefined value
+        SLLogger.getLogger().log(Level.SEVERE, "Undefined value on top of stack in opStore");
       } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
         recordBorrowedNotUnique(
             srcOp, uDrop, MessageChooser.ASSIGN, stacktop, s.getObjects());
@@ -711,6 +748,12 @@ extends TripleLattice<Element<Integer>,
 
     for (final IRNode fieldDecl : loadedFields) {
       recordBuryingLoad(fieldDecl, affected, srcOp);
+    }
+    for (final Object v : affected) {
+      if (v instanceof Integer) {
+        addToMappedSet(stackIndirectlyBuriedAt, (Integer) v, 
+            new Pair<Set<IRNode>, IRNode>(loadedFields, srcOp));
+      }
     }
 
     return opRelease(
@@ -902,10 +945,10 @@ extends TripleLattice<Element<Integer>,
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
     
-    recordUndefiningOfUnique(srcOp, n, localStatus, s.getFieldStore());
+    recordUndefiningOfUnique(srcOp, n, localStatus, s);
     
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
-      recordUndefinedNotUnique(srcOp, uDrop, msg);
+      recordUndefinedNotUnique(srcOp, uDrop, n);
       reportError(srcOp, "U1", "(opUndefine) Undefined value encountered when a unique value was expected");
 //      return errorStore("Undefined value on stack not unique");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
@@ -1200,8 +1243,19 @@ extends TripleLattice<Element<Integer>,
    */
   private void recordUndefiningOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
-      final ImmutableSet<FieldTriple> fieldStore) {
-    recordLossOfUniqueness(srcOp, topOfStack, localStatus, fieldStore, undefinedAt);
+      final Store s) {
+    recordLossOfUniqueness(
+        srcOp, topOfStack, localStatus, s.getFieldStore(), undefinedAt);
+    // Find all the stack locations about to made undefined
+    for (final ImmutableHashOrderSet<Object> object : s.getObjects()) {
+      if (object.contains(topOfStack)) {
+        for (final Object o : object) {
+          if (o instanceof Integer) {
+            addToMappedSet(stackUndefinedAt, (Integer) o, srcOp);
+          }
+        }
+      }
+    }
   }
 
   private void recordLossOfUniqueness(final IRNode srcOp, final Integer topOfStack,
@@ -1209,14 +1263,6 @@ extends TripleLattice<Element<Integer>,
       final Map<IRNode, Set<IRNode>> howLostMap) {
     if (shouldRecordResult()) {
       if (localStatus == State.UNIQUE) {
-//        if (howLostMap == undefinedAt) {
-//          final Operator op = JJNode.tree.getOperator(srcOp);
-//          System.out.println("&&&& undefining caused by " + op.name() + ": " + DebugUnparser.toString(srcOp));
-//          if (VariableUseExpression.prototype.includes(op)) {
-//            addToMappedSet(undefinedVars, binder.getBinding(srcOp), srcOp);
-//          }
-//        }
-        
         for (final FieldTriple ft : fieldStore) {
           if (ft.third().contains(topOfStack)) {
             addToMappedSet(howLostMap, ft.second(), srcOp);
@@ -1286,8 +1332,9 @@ extends TripleLattice<Element<Integer>,
 //  }
 
   private void recordBadUnique(final IRNode srcOp,
-      final PromiseDrop<? extends IAASTRootNode> uDrop, final int msg) {
-    xNotY.add(new XNotY(uDrop, srcOp, abruptDrops, msg));
+      final PromiseDrop<? extends IAASTRootNode> uDrop, final int msg,
+      final InfoAdder infoAdder) {
+    xNotY.add(new XNotY(uDrop, srcOp, abruptDrops, msg, infoAdder));
   }
   
   private void recordBadBorrowed(
@@ -1339,7 +1386,7 @@ extends TripleLattice<Element<Integer>,
       recordBadUnique(srcOp, uDrop, 
           msg.chooseMsg(
               Messages.SHARED_NOT_UNIQUE_ACTUAL, Messages.SHARED_NOT_UNIQUE_RETURN,
-              Messages.SHARED_NOT_UNIQUE_ASSIGN));
+              Messages.SHARED_NOT_UNIQUE_ASSIGN), null);
     }
   }
   
@@ -1355,7 +1402,7 @@ extends TripleLattice<Element<Integer>,
       recordBadUnique(srcOp, uDrop,
           msg.chooseMsg(
               Messages.BORROWED_NOT_UNIQUE_ACTUAL, Messages.BORROWED_NOT_UNIQUE_RETURN,
-              Messages.BORROWED_NOT_UNIQUE_ASSIGN));
+              Messages.BORROWED_NOT_UNIQUE_ASSIGN), null);
       recordBadBorrowed(srcOp, topOfStack, objects,
           Messages.BORROWED_AS_UNIQUE, Messages.BORROWED_AS_UNIQUE_RETURN,
           new InfoAdder() {
@@ -1370,13 +1417,49 @@ extends TripleLattice<Element<Integer>,
 
   private void recordUndefinedNotUnique(
       final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
-      MessageChooser msg) {
+      final Integer topOfStack) {
     if (shouldRecordResult()) {
-      recordBadUnique(srcOp, uDrop,
-          msg.chooseMsg(
-              Messages.UNDEFINED_NOT_UNIQUE_ACTUAL,
-              Messages.UNDEFINED_NOT_UNIQUE_RETURN,
-              Messages.UNDEFINED_NOT_UNIQUE_ASSIGN));
+      recordBadUnique(srcOp, uDrop, Messages.ACTUAL_IS_UNDEFINED,
+          new InfoAdder() {
+            public void addSupportingInformation(
+                final AbstractWholeIRAnalysis<UniquenessAnalysis, Void> analysis,
+                final IBinder binder, final ResultDropBuilder resultDrop) {
+              final Set<IRNode> undefinedAt = stackUndefinedAt.get(topOfStack);
+              if (undefinedAt != null) {
+                for (final IRNode where : undefinedAt) {
+                  if (where != srcOp) {
+                    resultDrop.addSupportingInformation(
+                        where, Messages.BY_UNIQUE_PARAMETER,
+                        DebugUnparser.toString(where));
+                  }
+                }
+              }
+              final Set<IRNode> buriedAt = stackBuriedAt.get(topOfStack);
+              if (buriedAt != null) {
+                for (final IRNode where : buriedAt) {
+                  if (where != srcOp) {
+                    resultDrop.addSupportingInformation(
+                        where, Messages.BY_UNIQUE_LOAD,
+                        FieldRef.getId(where));
+                  }
+                }
+              }
+              final Set<Pair<Set<IRNode>, IRNode>> affectedAt =
+                stackIndirectlyBuriedAt.get(topOfStack);
+              if (affectedAt != null) {
+                for (final Pair<Set<IRNode>, IRNode> pair : affectedAt) {
+                  if (pair.second() != srcOp) {
+                    for (final IRNode field : pair.first()) {
+                      resultDrop.addSupportingInformation(
+                          pair.second(), Messages.BY_SIDE_EFFECT,
+                          VariableDeclarator.getId(field),
+                          DebugUnparser.toString(pair.second()));
+                    }
+                  }
+                }
+              }
+            }
+          });
     }
   }
   

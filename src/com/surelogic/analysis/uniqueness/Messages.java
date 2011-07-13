@@ -59,6 +59,13 @@ public final class Messages  {
   public static final int BORROWED_AS_SHARED_RETURN = 339;
   public static final int UNDEFINED_NOT_BORROWABLE = 340;
   
+  public static final int ACTUAL_IS_UNDEFINED = 341;
+  public static final int BY_UNIQUE_PARAMETER = 342;
+  public static final int BY_UNIQUE_LOAD = 343;
+  public static final int BY_SIDE_EFFECT = 344;
+  
+  
+  
   private static Map<Integer,String> code2name = new HashMap<Integer, String>();
   static {
     code2name.put(METHOD_CONTROL_FLOW, "UniquenessAssurance");
@@ -95,6 +102,11 @@ public final class Messages  {
     code2name.put(BORROWED_AS_SHARED, "?");
     code2name.put(BORROWED_AS_SHARED_RETURN, "?");
     code2name.put(UNDEFINED_NOT_BORROWABLE, "?");
+
+    code2name.put(ACTUAL_IS_UNDEFINED, "?");
+    code2name.put(BY_UNIQUE_PARAMETER, "?");
+    code2name.put(BY_UNIQUE_LOAD, "?");
+    code2name.put(BY_SIDE_EFFECT, "?");
   }
   
   public static String toString(int code) {
