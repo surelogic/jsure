@@ -6,20 +6,21 @@ import java.io.File;
 import java.util.Collection;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Image;
-
-import edu.cmu.cs.fluid.sea.IDropInfo;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary;
-import edu.cmu.cs.fluid.sea.xml.SeaSummary.*;
-import edu.cmu.cs.fluid.util.ArrayUtil;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.xml.Entity;
-import com.surelogic.jsure.client.eclipse.views.*;
-import com.surelogic.jsure.core.scans.ScanStatus;
+import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureScansHub;
+
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary.Category;
+import edu.cmu.cs.fluid.sea.xml.SeaSummary.Diff;
+import edu.cmu.cs.fluid.util.ArrayUtil;
 
 public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	private static final Object[] noElements = ArrayUtil.empty;
@@ -30,7 +31,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	private Diff diff;
 	
 	@Override
-	public String build(ScanStatus s) {
+	public String build(JSureScansHub.ScanStatus s) {
 		final JSureScanInfo scan = JSureScansHub.getInstance().getCurrentScanInfo();
 		if (scan == null) {
 			return null;
