@@ -15,6 +15,52 @@ import com.surelogic.common.core.EclipseUtility;
  */
 public final class JSureScansHub {
 
+	public static enum ScanStatus {
+		NEITHER_CHANGED(false, false), BASELINE_CHANGED(true, false), CURRENT_CHANGED(
+				false, true), BOTH_CHANGED(true, true);
+
+		private final boolean baselineChanged, currentChanged;
+
+		ScanStatus(boolean baseline, boolean current) {
+			baselineChanged = baseline;
+			currentChanged = current;
+		}
+
+		public boolean changed() {
+			return baselineChanged || currentChanged;
+		}
+
+		public boolean baselineChanged() {
+			return baselineChanged;
+		}
+
+		public boolean currentChanged() {
+			return currentChanged;
+		}
+
+		public ScanStatus combine(ScanStatus other) {
+			if (other == null) {
+				return this;
+			}
+			if (baselineChanged || other.baselineChanged) {
+				if (currentChanged || other.currentChanged) {
+					return BOTH_CHANGED;
+				} else {
+					return BASELINE_CHANGED;
+				}
+			}
+			// Baseline didn't change
+			if (currentChanged || other.currentChanged) {
+				return CURRENT_CHANGED;
+			}
+			return NEITHER_CHANGED;
+		}
+	}
+
+	public static interface Listener {
+		void scansChanged(ScanStatus status);
+	}
+
 	private static final JSureScansHub INSTANCE = new JSureScansHub();
 
 	private static final File USE_PREV = new File(
@@ -28,13 +74,13 @@ public final class JSureScansHub {
 		// Singleton
 	}
 
-	private final List<IJSureScanListener> f_listeners = new CopyOnWriteArrayList<IJSureScanListener>();
+	private final List<Listener> f_listeners = new CopyOnWriteArrayList<Listener>();
 
-	public final void addListener(IJSureScanListener l) {
+	public final void addListener(Listener l) {
 		f_listeners.add(l);
 	}
 
-	public final void removeListener(IJSureScanListener l) {
+	public final void removeListener(Listener l) {
 		f_listeners.remove(l);
 	}
 
@@ -121,7 +167,7 @@ public final class JSureScansHub {
 			}
 		}
 		if (status.changed()) {
-			for (IJSureScanListener l : f_listeners) {
+			for (Listener l : f_listeners) {
 				l.scansChanged(status);
 			}
 		}
