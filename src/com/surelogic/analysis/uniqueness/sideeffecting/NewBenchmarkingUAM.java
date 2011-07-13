@@ -4,6 +4,8 @@ import java.util.Collections;
 
 import com.surelogic.analysis.*;
 
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -31,7 +33,9 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 
 	@Override
 	protected UniquenessAnalysis constructIRAnalysis(IBinder binder) {
-	  return new UniquenessAnalysis(this, binder, true);
+	  final boolean shouldTimeOut = IDE.getInstance().getBooleanPreference(
+			  IDEPreferences.TIMEOUT_FLAG);
+	  return new UniquenessAnalysis(this, binder, shouldTimeOut);
 	}
 	
 	@Override
@@ -60,7 +64,7 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 					final long end = System.currentTimeMillis();
 					msg = methodName + ", " + length + ", " + numLocals + ", " + (end-start);
 				} catch(final AnalysisGaveUp e) {
-					msg = methodName + ", " + length + ", GAVE UP AFTER ~2 MINUTES: " + e.count + " STEPS";
+					msg = methodName + ", " + length + ", TIMEOUT after " + e.count + " worklist steps";
 				}
 				System.out.print(msg);
 				System.out.println(ImmutableHashOrderSet.clearCaches());				

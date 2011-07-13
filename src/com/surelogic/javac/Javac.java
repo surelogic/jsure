@@ -64,6 +64,8 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.CALLS", false, "Method Calls");
 		init(NewBenchmarkingUAM.class,
 				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew", false, "Uniqueness Benchmarking");
+		init(com.surelogic.analysis.uniqueness.sideeffecting.NewBenchmarkingUAM.class,
+				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessSE", false, "Uniqueness Benchmarking (SE)");
 		init(TypeBasedAliasModule.class,
 		    "com.surelogic.jsure.cliend.eclipse.TypeBasedAlias", false, "Test Type-Based Alias Analysis");
 		
