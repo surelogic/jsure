@@ -5,9 +5,8 @@ import java.io.File;
 import org.eclipse.swt.widgets.Composite;
 
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureView;
-import com.surelogic.jsure.core.preferences.JSureEclipseHub;
-import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.IJSureScanListener;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureScansHub;
 import com.surelogic.jsure.core.scans.ScanStatus;
 
@@ -18,7 +17,6 @@ import com.surelogic.jsure.core.scans.ScanStatus;
 public abstract class AbstractScanManagerView extends AbstractJSureView
 		implements IJSureScanListener, JSureDataDirHub.Listener {
 	protected AbstractScanManagerView() {
-		JSureEclipseHub.init();
 		JSureScansHub.getInstance().addListener(this);
 		JSureDataDirHub.getInstance().addListener(this);
 	}

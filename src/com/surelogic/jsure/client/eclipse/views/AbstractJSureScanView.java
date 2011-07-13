@@ -9,7 +9,6 @@ import org.eclipse.ui.part.*;
 
 import com.surelogic.common.i18n.*;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.jsure.core.preferences.JSureEclipseHub;
 import com.surelogic.jsure.core.scans.IJSureScanListener;
 import com.surelogic.jsure.core.scans.JSureScansHub;
 import com.surelogic.jsure.core.scans.ScanStatus;
@@ -34,7 +33,6 @@ public abstract class AbstractJSureScanView extends AbstractJSureView implements
 	private String f_viewTitle;
 	
 	protected AbstractJSureScanView() {
-		JSureEclipseHub.init();
 		JSureScansHub.getInstance().addListener(this);
 	}
 

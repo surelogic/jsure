@@ -1,12 +1,13 @@
 package com.surelogic.jsure.client.eclipse.views.results;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.eclipse.ui.IMemento;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.jsure.core.preferences.JSureEclipseHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.IJSureScanListener;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
@@ -14,7 +15,9 @@ import com.surelogic.jsure.core.scans.JSureScansHub;
 import com.surelogic.jsure.core.scans.ScanStatus;
 
 import edu.cmu.cs.fluid.java.ISrcRef;
-import edu.cmu.cs.fluid.sea.*;
+import edu.cmu.cs.fluid.sea.Drop;
+import edu.cmu.cs.fluid.sea.IDropInfo;
+import edu.cmu.cs.fluid.sea.Sea;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot;
 import edu.cmu.cs.fluid.sea.xml.SeaSnapshot.Info;
 
@@ -33,8 +36,6 @@ public class PersistentResultsView extends ResultsView implements
 	final File viewState;
 
 	public PersistentResultsView() {
-		JSureEclipseHub.init();
-
 		File viewState = null;
 		if (useXML)
 			try {
