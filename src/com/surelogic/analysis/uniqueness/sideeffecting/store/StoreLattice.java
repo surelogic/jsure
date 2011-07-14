@@ -610,13 +610,7 @@ extends TripleLattice<Element<Integer>,
         }
       }
       
-      recordBuryingLoad(fieldDecl, affected, srcOp);
-      for (final Object v : affected) {
-        if (v instanceof Integer) {
-          addToMappedSet(stackBuriedAt, (Integer) v, srcOp);
-        }
-      }
-      
+      recordBuryingFieldRead(fieldDecl, affected, srcOp);
       
       if (nodeStatus(affected) != State.UNIQUE) {
         recordLoadOfCompromisedField(srcOp, fieldDecl);
@@ -751,15 +745,7 @@ extends TripleLattice<Element<Integer>,
     final ImmutableHashOrderSet<Object> affected =
       new ImmutableHashOrderSet<Object>(affectedM);
 
-    for (final IRNode fieldDecl : loadedFields) {
-      recordBuryingLoad(fieldDecl, affected, srcOp);
-    }
-    for (final Object v : affected) {
-      if (v instanceof Integer) {
-        addToMappedSet(stackIndirectlyBuriedAt, (Integer) v, 
-            new Pair<Set<IRNode>, IRNode>(loadedFields, srcOp));
-      }
-    }
+    recordBuryingMethodEffects(loadedFields, affected, srcOp);
 
     return opRelease(
         apply(
@@ -835,66 +821,9 @@ extends TripleLattice<Element<Integer>,
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     if (localStatus(s, n).compareTo(State.BORROWED) > 0) { // cannot be undefined
-//      recordUndefinedNotBorrowed(srcOp, borrowedDrop);
-      
-      if (shouldRecordResult()) {
-//        // Find the local variables that may be referenced here
-//        final Set<IRNode> vars = new HashSet<IRNode>();
-//        for (final ImmutableHashOrderSet<Object> object : s.getObjects()) {
-//          if (object.contains(n)) {
-//            for (final Object o : object) {
-//              if (o instanceof IRNode && VariableDeclarator.prototype.includes((IRNode) o)) {
-//                vars.add((IRNode) o);
-//              }
-//            }
-//          }
-//        }
-//        xNotY.add(new XNotY(
-//            borrowedDrop, srcOp, abruptDrops, 
-//            Messages.UNDEFINED_NOT_BORROWABLE));
-        
-//            new InfoAdder() {
-//              public void addSupportingInformation(
-//                  final AbstractWholeIRAnalysis<UniquenessAnalysis, Void> analysis,
-//                  final IBinder binder, final ResultDropBuilder resultDrop) {
-//                if (VariableUseExpression.prototype.includes(srcOp)) {
-//                  // Link reads of buried references to burying field loads
-//                  for (final IRNode var : vars) {
-//                    final Map<IRNode, Set<IRNode>> loads = buryingLoads.get(var);
-//                    for (final Map.Entry<IRNode, Set<IRNode>> e : loads.entrySet()) {
-//                      for (final IRNode buriedAt : e.getValue()) {
-//                        resultDrop.addSupportingInformation(
-//                            buriedAt, Messages.BURIED_BY, 
-//                            DebugUnparser.toString(buriedAt));
-//                      }
-//                    }
-//                  }
-//                } else if (FieldRef.prototype.includes(srcOp)) {
-//                  final IRNode fieldDecl = binder.getBinding(srcOp);
-//                  final Set<IRNode> compromises = compromisedAt.get(fieldDecl);
-//                  final Set<IRNode> undefines = undefinedAt.get(fieldDecl);
-//                    
-//                  if (compromises != null) {
-//                    for (final IRNode compromisedAt : compromises) {
-//                      resultDrop.addSupportingInformation(
-//                          compromisedAt, Messages.COMPROMISED_BY,
-//                          DebugUnparser.toString(compromisedAt));
-//                    }
-//                  }
-//                  if (undefines != null) {
-//                    for (final IRNode undefinedAt : undefines) {
-//                      resultDrop.addSupportingInformation(
-//                          undefinedAt, Messages.UNDEFINED_BY,
-//                          DebugUnparser.toString(undefinedAt));
-//                    }
-//                  }                  
-//                }
-//              }
-//            }));
-      }
-      
+      recordUndefinedNotX(srcOp, borrowedDrop, n);
       reportError(srcOp, "X100", "(opBorrow) Undefined value where unique is expected: Another actual parameter has made the value undefined here");
-      return errorStore("Undefined value on stack borrowed");
+//      return errorStore("Undefined value on stack borrowed");
     }
     return opRelease(s, srcOp);
   }
@@ -951,7 +880,7 @@ extends TripleLattice<Element<Integer>,
     recordUndefiningOfUnique(srcOp, n, localStatus, s);
     
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
-      recordUndefinedNotUnique(srcOp, uDrop, n);
+      recordUndefinedNotX(srcOp, uDrop, n);
       reportError(srcOp, "U1", "(opUndefine) Undefined value encountered when a unique value was expected");
 //      return errorStore("Undefined value on stack not unique");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
@@ -1247,14 +1176,16 @@ extends TripleLattice<Element<Integer>,
   private void recordUndefiningOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final Store s) {
-    recordLossOfUniqueness(
-        srcOp, topOfStack, localStatus, s.getFieldStore(), undefinedAt);
-    // Find all the stack locations about to made undefined
-    for (final ImmutableHashOrderSet<Object> object : s.getObjects()) {
-      if (object.contains(topOfStack)) {
-        for (final Object o : object) {
-          if (o instanceof Integer) {
-            addToMappedSet(stackUndefinedAt, (Integer) o, srcOp);
+    if (shouldRecordResult()) {
+      recordLossOfUniqueness(
+          srcOp, topOfStack, localStatus, s.getFieldStore(), undefinedAt);
+      // Find all the stack locations about to made undefined
+      for (final ImmutableHashOrderSet<Object> object : s.getObjects()) {
+        if (object.contains(topOfStack)) {
+          for (final Object o : object) {
+            if (o instanceof Integer) {
+              addToMappedSet(stackUndefinedAt, (Integer) o, srcOp);
+            }
           }
         }
       }
@@ -1312,14 +1243,40 @@ extends TripleLattice<Element<Integer>,
   
   private void recordBuryingLoad(final IRNode fieldDecl,
       final Set<Object> affectedVars, final IRNode srcOp) {
+    for (final Object lv : affectedVars) {
+      Map<IRNode, Set<IRNode>> fieldMap = buryingLoads.get(lv);
+      if (fieldMap == null) {
+        fieldMap = new HashMap<IRNode, Set<IRNode>>();
+        buryingLoads.put(lv, fieldMap);
+      }
+      addToMappedSet(fieldMap, fieldDecl, srcOp);
+    }
+  }
+  
+  private void recordBuryingFieldRead(final IRNode fieldDecl,
+      final Set<Object> affectedVars, final IRNode srcOp) {
     if (shouldRecordResult()) {
-      for (final Object lv : affectedVars) {
-        Map<IRNode, Set<IRNode>> fieldMap = buryingLoads.get(lv);
-        if (fieldMap == null) {
-          fieldMap = new HashMap<IRNode, Set<IRNode>>();
-          buryingLoads.put(lv, fieldMap);
+      recordBuryingLoad(fieldDecl, affectedVars, srcOp);
+      for (final Object v : affectedVars) {
+        if (v instanceof Integer) {
+          addToMappedSet(stackBuriedAt, (Integer) v, srcOp);
+
         }
-        addToMappedSet(fieldMap, fieldDecl, srcOp);
+      }
+    }
+  }
+  
+  private void recordBuryingMethodEffects(final Set<IRNode> loadedFields,
+      final Set<Object> affectedVars, final IRNode srcOp) {
+    if (shouldRecordResult()) {
+      for (final IRNode fieldDecl : loadedFields) {
+        recordBuryingLoad(fieldDecl, affectedVars, srcOp);
+      }
+      for (final Object v : affectedVars) {
+        if (v instanceof Integer) {
+          addToMappedSet(stackIndirectlyBuriedAt, (Integer) v, 
+              new Pair<Set<IRNode>, IRNode>(loadedFields, srcOp));
+        }
       }
     }
   }
@@ -1418,7 +1375,7 @@ extends TripleLattice<Element<Integer>,
     }    
   }
 
-  private void recordUndefinedNotUnique(
+  private void recordUndefinedNotX(
       final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
       final Integer topOfStack) {
     if (shouldRecordResult()) {
@@ -1599,11 +1556,6 @@ extends TripleLattice<Element<Integer>,
       this.isAbrupt = isAbrupt;
       this.msg = msg;
       this.adder = adder;
-    }
-
-    public XNotY(final PromiseDrop<? extends IAASTRootNode> pd,
-        final IRNode srcOp, final boolean isAbrupt, final int msg) {
-      this(pd, srcOp, isAbrupt, msg, null);
     }
     
     public final ResultDropBuilder createDrop(

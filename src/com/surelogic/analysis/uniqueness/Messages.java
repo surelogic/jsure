@@ -50,19 +50,14 @@ public final class Messages  {
   public static final int BORROWED_NOT_UNIQUE_ACTUAL = 330;
   public static final int BORROWED_NOT_UNIQUE_RETURN = 331;
   public static final int BORROWED_NOT_UNIQUE_ASSIGN = 332;
-  public static final int UNDEFINED_NOT_UNIQUE_ACTUAL = 333;
-  public static final int UNDEFINED_NOT_UNIQUE_RETURN = 334;
-  public static final int UNDEFINED_NOT_UNIQUE_ASSIGN = 335;
-  public static final int BORROWED_AS_UNIQUE = 336;
-  public static final int BORROWED_AS_UNIQUE_RETURN = 337;
-  public static final int BORROWED_AS_SHARED = 338;
-  public static final int BORROWED_AS_SHARED_RETURN = 339;
-  public static final int UNDEFINED_NOT_BORROWABLE = 340;
-  
-  public static final int ACTUAL_IS_UNDEFINED = 341;
-  public static final int BY_UNIQUE_PARAMETER = 342;
-  public static final int BY_UNIQUE_LOAD = 343;
-  public static final int BY_SIDE_EFFECT = 344;
+  public static final int BORROWED_AS_UNIQUE = 333;
+  public static final int BORROWED_AS_UNIQUE_RETURN = 334;
+  public static final int BORROWED_AS_SHARED = 335;
+  public static final int BORROWED_AS_SHARED_RETURN = 336;
+  public static final int ACTUAL_IS_UNDEFINED = 337;
+  public static final int BY_UNIQUE_PARAMETER = 338;
+  public static final int BY_UNIQUE_LOAD = 339;
+  public static final int BY_SIDE_EFFECT = 340;
   
   
   
@@ -96,13 +91,8 @@ public final class Messages  {
     code2name.put(BORROWED_NOT_UNIQUE_ASSIGN, "?");
     code2name.put(BORROWED_AS_UNIQUE, "?");
     code2name.put(BORROWED_AS_UNIQUE_RETURN, "?");
-    code2name.put(UNDEFINED_NOT_UNIQUE_ACTUAL, "?");
-    code2name.put(UNDEFINED_NOT_UNIQUE_RETURN, "?");
-    code2name.put(UNDEFINED_NOT_UNIQUE_ASSIGN, "?");
     code2name.put(BORROWED_AS_SHARED, "?");
     code2name.put(BORROWED_AS_SHARED_RETURN, "?");
-    code2name.put(UNDEFINED_NOT_BORROWABLE, "?");
-
     code2name.put(ACTUAL_IS_UNDEFINED, "?");
     code2name.put(BY_UNIQUE_PARAMETER, "?");
     code2name.put(BY_UNIQUE_LOAD, "?");
