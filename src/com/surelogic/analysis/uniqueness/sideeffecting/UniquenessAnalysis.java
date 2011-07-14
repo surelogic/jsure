@@ -46,6 +46,7 @@ import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
+import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.CompareExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -778,6 +779,23 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       return s;
     }
 
+    @Override
+    protected Store transferCatchOpen(final IRNode node, Store s) {
+      IRNode var = CatchClause.getParam(node);
+      s = lattice.opExistingBetter(s, node, State.SHARED, mayAlias, var);
+      return lattice.opSet(s, node, var);
+    }
+    
+    @Override
+    protected Store transferCatchClose(final IRNode node, boolean flag, Store s) {
+      IRNode var = CatchClause.getParam(node);
+      // System.out.println("before catch close: " + lattice.toString(s));
+      s = lattice.opNull(s);
+      s = lattice.opSet(s, node, var);
+      // System.out.println("after catch close: " + lattice.toString(s));
+      return s;
+    }
+    
     @Override
     protected Store transferDefaultInit(final IRNode node, final Store s) {
       final IRNode ty = VariableDeclarator.getType(tree.getParent(node));

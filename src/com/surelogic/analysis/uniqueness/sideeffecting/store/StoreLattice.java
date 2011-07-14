@@ -22,6 +22,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
@@ -442,7 +443,7 @@ extends TripleLattice<Element<Integer>,
     temp = setObjects(temp, objects);
     
     /* Now add each parameter or local in turn.  Currently undefined locals are
-     * held back until the end, when they are made undefined.
+     * held back until the end, when they are made undefined (or actually, removed altogether)
      */
     ImmutableHashOrderSet<Object> undefinedLocals = EMPTY;
     for (final IRNode local : locals) {
@@ -462,9 +463,11 @@ extends TripleLattice<Element<Integer>,
           }
         }
       }
+      final IRNode parent = JJNode.tree.getParent(local);
       if (ReceiverDeclaration.prototype.includes(op) ||
           QualifiedReceiverDeclaration.prototype.includes(op) ||
-          ParameterDeclaration.prototype.includes(op)) {
+          ParameterDeclaration.prototype.includes(op) && 
+          (parent == null || !CatchClause.prototype.includes(JJNode.tree.getOperator(parent)))) {
         if (isReceiverFromUniqueReturningConstructor
             || UniquenessRules.isBorrowed(local)) {
           temp = opExistingBetter(temp, srcOp, State.BORROWED, mayAlias, local);
@@ -480,7 +483,9 @@ extends TripleLattice<Element<Integer>,
         undefinedLocals = undefinedLocals.addElement(local);
       }
     }
-    temp = apply(temp, srcOp, new Add(State.UNDEFINED, undefinedLocals));
+    // NB: There's no need to make them undefined since they are out of scope
+    // We can assume variables are not used before they are in scope/defined.
+    // temp = apply(temp, new Add(State.UNDEFINED, undefinedLocals));
     return temp;
   }
 
@@ -806,9 +811,7 @@ extends TripleLattice<Element<Integer>,
     return join(temp, apply(temp, srcOp, new Add(pv, nset)));
   }
 
-  private Store opExistingBetter(final Store s, final IRNode srcOp, final State pv, final IMayAlias mayAlias, final IRNode decl) {
-//  return opExisting(s, pv);
-  
+  public Store opExistingBetter(final Store s, final IRNode srcOp, final State pv, final IMayAlias mayAlias, final IRNode decl) {
     if (!s.isValid()) return s;
     Store temp = push(s);
     final ImmutableHashOrderSet<Object> nset = EMPTY.addElement(getStackTop(temp));
