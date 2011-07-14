@@ -331,7 +331,7 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
   /**
    * @param fa expected to be newly created and never used
    */
-  @RequiresLock("fa.ComputeLock")
+  @RequiresLock("fa:ComputeLock")
   private A computeAnalysis(final IRNode flowUnit, final Version v, final boolean debug, final A fa) {	  
 	  FlowUnit op = (FlowUnit) tree.getOperator(flowUnit);
 	  fa.initialize(op.getSource(flowUnit));
