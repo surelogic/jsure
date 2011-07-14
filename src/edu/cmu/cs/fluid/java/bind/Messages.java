@@ -33,6 +33,7 @@ public final class Messages {
   public static final int LockAnnotation_containable_noVerify = 129;
   public static final int LockAnnotation_immutable_noVerify = 130;
   public static final int LockAnnotation_threadSafe_noVerify = 131;
+  public static final int ControlFlow = 132;
   
   /* 2011-01-18: Edwin says these are referenced from code that will become
    * obsolete and deleted.

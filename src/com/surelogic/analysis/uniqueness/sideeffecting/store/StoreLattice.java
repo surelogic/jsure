@@ -31,10 +31,13 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
+import edu.cmu.cs.fluid.java.util.PromiseUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.sea.PromiseDrop;
 import edu.cmu.cs.fluid.sea.WarningDrop;
 import edu.cmu.cs.fluid.sea.drops.promises.UniquePromiseDrop;
+import edu.cmu.cs.fluid.sea.drops.promises.UniquenessControlFlowDrop;
 import edu.cmu.cs.fluid.sea.proxy.InfoDropBuilder;
 import edu.cmu.cs.fluid.sea.proxy.ResultDropBuilder;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -202,6 +205,15 @@ extends TripleLattice<Element<Integer>,
    */
   final Map<Integer, Set<Pair<Set<IRNode>, IRNode>>> stackIndirectlyBuriedAt =
     new HashMap<Integer, Set<Pair<Set<IRNode>, IRNode>>>();
+  
+  
+  /**
+   * Method control flow drops.  Map from method/constructor declaration
+   * nodes to drops.
+   */
+  final Map<IRNode, UniquenessControlFlowDrop> controlFlowDrops =
+    new HashMap<IRNode, UniquenessControlFlowDrop>();
+  
   
   
   // ==================================================================
@@ -848,8 +860,20 @@ extends TripleLattice<Element<Integer>,
     recordCompromisingOfUnique(srcOp, n, localStatus, s.getFieldStore());
 
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
+      
+      if (shouldRecordResult()) {
+        final IRNode mdecl = PromiseUtil.getEnclosingMethod(srcOp);
+        UniquenessControlFlowDrop cfDrop = controlFlowDrops.get(mdecl);
+        if (cfDrop == null) {
+          cfDrop = new UniquenessControlFlowDrop(mdecl);
+          controlFlowDrops.put(mdecl, cfDrop);
+        }
+        
+        recordUndefinedNotX(srcOp, cfDrop, n);
+      }
+      
       reportError(srcOp, "X1", "(opCompromiseNoRelease) Use of undefined value");
-      return errorStore("Undefined value on stack shared");
+//      return errorStore("Undefined value on stack shared");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
       recordBorrowedNotShared(srcOp, n, s.getObjects());
 //      reportError(srcOp, "X2", "Attempt to alias a borrowed value");
